@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "north": "ow:block/scarified_cherry_log",
+    "south": "minecraft:block/cherry_log",
+    "east": "minecraft:block/cherry_log",
+    "west": "minecraft:block/cherry_log",
+    "up": "minecraft:block/cherry_log_top",
+    "down": "minecraft:block/cherry_log_top",
+    "particle": "ow:block/scarified_cherry_log"
+  }
+}

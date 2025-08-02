@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "north": "ow:block/scarified_jungle_log",
+    "south": "minecraft:block/jungle_log",
+    "east": "minecraft:block/jungle_log",
+    "west": "minecraft:block/jungle_log",
+    "up": "minecraft:block/jungle_log_top",
+    "down": "minecraft:block/jungle_log_top",
+    "particle": "ow:block/scarified_jungle_log"
+  }
+}

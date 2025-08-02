@@ -1,0 +1,34 @@
+{
+  "parent": "ow:good_night",
+  "criteria": {
+    "tamed_tiger": {
+      "trigger": "minecraft:tame_animal",
+      "conditions": {
+        "entity": {
+          "type": "ow:tiger"
+        }
+      }
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.wild_meow.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "ow:tiger_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.wild_meow.title"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "requirements": [
+    [
+      "tamed_tiger"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "T": {
+      "item": "ow:fawn_tooth"
+    },
+    "V": {
+      "item": "ow:venomous_glands"
+    }
+  },
+  "pattern": [
+    " V ",
+    "VTV",
+    " V "
+  ],
+  "result": {
+    "count": 1,
+    "id": "ow:venomous_tooth"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_seabug_cockpit": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:seabug_cockpit"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "ow:seabug"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_seabug_cockpit"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "ow:seabug"
+    ]
+  }
+}

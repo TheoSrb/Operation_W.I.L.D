@@ -1,0 +1,45 @@
+{
+  "parent": "ow:root",
+  "criteria": {
+    "camouflage_armor": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:camouflage_helmet"
+          },
+          {
+            "items": "ow:camouflage_chestplate"
+          },
+          {
+            "items": "ow:camouflage_leggings"
+          },
+          {
+            "items": "ow:camouflage_boots"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.you_see_me.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "ow:camouflage_helmet"
+    },
+    "title": {
+      "translate": "ow.advancements.you_see_me.title"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "requirements": [
+    [
+      "camouflage_armor"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

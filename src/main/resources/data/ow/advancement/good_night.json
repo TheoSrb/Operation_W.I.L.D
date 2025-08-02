@@ -1,0 +1,36 @@
+{
+  "parent": "ow:root",
+  "criteria": {
+    "tranquilizer_arrow": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:tranquilizer_arrow"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.good_night.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "ow:tranquilizer_arrow"
+    },
+    "title": {
+      "translate": "ow.advancements.good_night.title"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "requirements": [
+    [
+      "tranquilizer_arrow"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

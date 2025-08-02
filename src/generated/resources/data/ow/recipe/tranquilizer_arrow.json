@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:arrow"
+    },
+    "T": {
+      "item": "ow:boa_tong"
+    }
+  },
+  "pattern": [
+    "  T",
+    " A ",
+    "   "
+  ],
+  "result": {
+    "count": 2,
+    "id": "ow:tranquilizer_arrow"
+  }
+}

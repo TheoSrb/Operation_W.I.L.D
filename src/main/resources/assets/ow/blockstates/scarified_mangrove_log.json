@@ -1,0 +1,18 @@
+{
+  "variants": {
+    "axis=y,facing=north": { "model": "ow:block/scarified_mangrove_log", "y": 180 },
+    "axis=y,facing=south": { "model": "ow:block/scarified_mangrove_log" },
+    "axis=y,facing=east": { "model": "ow:block/scarified_mangrove_log", "y": 270 },
+    "axis=y,facing=west": { "model": "ow:block/scarified_mangrove_log", "y": 90 },
+
+    "axis=x,facing=north": { "model": "ow:block/scarified_mangrove_log", "x": 90, "y": 180 },
+    "axis=x,facing=south": { "model": "ow:block/scarified_mangrove_log", "x": 90 },
+    "axis=x,facing=east": { "model": "ow:block/scarified_mangrove_log", "x": 90, "y": 270 },
+    "axis=x,facing=west": { "model": "ow:block/scarified_mangrove_log", "x": 90, "y": 90 },
+
+    "axis=z,facing=north": { "model": "ow:block/scarified_mangrove_log", "x": 90, "y": 180 },
+    "axis=z,facing=south": { "model": "ow:block/scarified_mangrove_log", "x": 90 },
+    "axis=z,facing=east": { "model": "ow:block/scarified_mangrove_log", "x": 90, "y": 270 },
+    "axis=z,facing=west": { "model": "ow:block/scarified_mangrove_log", "x": 90, "y": 90 }
+  }
+}

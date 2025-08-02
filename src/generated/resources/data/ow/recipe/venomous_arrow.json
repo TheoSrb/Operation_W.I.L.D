@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "ow:peacock_feather"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    },
+    "V": {
+      "item": "ow:venomous_tooth"
+    }
+  },
+  "pattern": [
+    "  V",
+    " S ",
+    "P  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "ow:venomous_arrow"
+  }
+}

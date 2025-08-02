@@ -1,0 +1,36 @@
+{
+  "parent": "ow:root",
+  "criteria": {
+    "venomous_arrow": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:venomous_arrow"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.upgraded_arrows.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "ow:venomous_arrow"
+    },
+    "title": {
+      "translate": "ow.advancements.upgraded_arrows.title"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "requirements": [
+    [
+      "venomous_arrow"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

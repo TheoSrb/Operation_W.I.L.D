@@ -1,0 +1,23 @@
+{
+  "display": {
+    "announce_to_chat": false,
+    "background": "minecraft:textures/block/mangrove_log.png",
+    "description": {
+      "translate": "ow.advancements.ow.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "ow:plant_fiber"
+    },
+    "show_toast": false,
+    "title": {
+      "translate": "ow.advancements.ow.title"
+    }
+  },
+  "criteria": {
+    "tick": {
+      "trigger": "minecraft:tick"
+    }
+  },
+  "sends_telemetry_event": true
+}

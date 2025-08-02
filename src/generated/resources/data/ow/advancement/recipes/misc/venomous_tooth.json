@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_fawn_tooth": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:fawn_tooth"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "ow:venomous_tooth"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_fawn_tooth"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "ow:venomous_tooth"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "F": {
+      "item": "ow:fawn_tooth"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    },
+    "T": {
+      "item": "ow:tiger_fur"
+    }
+  },
+  "pattern": [
+    " TF",
+    " ST",
+    "S  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "ow:primitive_spear"
+  }
+}

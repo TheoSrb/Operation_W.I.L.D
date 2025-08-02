@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "north": "ow:block/scarified_mangrove_log",
+    "south": "minecraft:block/mangrove_log",
+    "east": "minecraft:block/mangrove_log",
+    "west": "minecraft:block/mangrove_log",
+    "up": "minecraft:block/mangrove_log_top",
+    "down": "minecraft:block/mangrove_log_top",
+    "particle": "ow:block/scarified_mangrove_log"
+  }
+}

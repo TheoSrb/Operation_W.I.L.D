@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "cookingtime": 200,
+  "experience": 0.35,
+  "ingredient": {
+    "item": "ow:raw_boa"
+  },
+  "result": {
+    "count": 1,
+    "id": "ow:cooked_boa"
+  }
+}

@@ -1,0 +1,306 @@
+package net.tiew.operationWild.datagen;
+
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.PackOutput;
+import net.minecraft.data.recipes.*;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.common.conditions.IConditionBuilder;
+import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.block.OWBlocks;
+import net.tiew.operationWild.item.OWItems;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+public class OWRecipeProvider extends RecipeProvider implements IConditionBuilder {
+    public OWRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> future) {
+        super(output, future);
+    }
+
+    @Override
+    protected void buildRecipes(RecipeOutput recipeOutput) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.CAMOUFLAGE_HELMET.get())
+                .pattern("LLL")
+                .pattern("T T")
+                .pattern("   ")
+                .define('L', ItemTags.LEAVES)
+                .define('T', OWItems.TIGER_FUR.get()).unlockedBy(getHasName(OWItems.TIGER_FUR.get()), has(OWItems.TIGER_FUR.get())).unlockedBy("leaves", has(ItemTags.LEAVES)).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.CAMOUFLAGE_CHESTPLATE.get())
+                .pattern("L L")
+                .pattern("LLL")
+                .pattern("TTT")
+                .define('L', ItemTags.LEAVES)
+                .define('T', OWItems.TIGER_FUR.get()).unlockedBy(getHasName(OWItems.TIGER_FUR.get()), has(OWItems.TIGER_FUR.get())).unlockedBy("leaves", has(ItemTags.LEAVES)).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.CAMOUFLAGE_LEGGINGS.get())
+                .pattern("TTT")
+                .pattern("L L")
+                .pattern("L L")
+                .define('L', ItemTags.LEAVES)
+                .define('T', OWItems.TIGER_FUR.get()).unlockedBy(getHasName(OWItems.TIGER_FUR.get()), has(OWItems.TIGER_FUR.get())).unlockedBy("leaves", has(ItemTags.LEAVES)).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.CAMOUFLAGE_BOOTS.get())
+                .pattern("T T")
+                .pattern("L L")
+                .pattern("   ")
+                .define('L', ItemTags.LEAVES)
+                .define('T', OWItems.TIGER_FUR.get()).unlockedBy(getHasName(OWItems.TIGER_FUR.get()), has(OWItems.TIGER_FUR.get())).unlockedBy("leaves", has(ItemTags.LEAVES)).save(recipeOutput);
+
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.PRIMITIVE_SPEAR.get())
+                .pattern(" TF")
+                .pattern(" ST")
+                .pattern("S  ")
+                .define('S', Items.STICK)
+                .define('T', OWItems.TIGER_FUR.get())
+                .define('F', OWItems.FAWN_TOOTH.get())
+                .unlockedBy(getHasName(OWItems.TIGER_FUR.get()), has(OWItems.TIGER_FUR.get())).save(recipeOutput);
+
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.TRANQUILIZER_ARROW.get(), 2)
+                .pattern("  T")
+                .pattern(" A ")
+                .pattern("   ")
+                .define('T', OWItems.BOA_TONG.get())
+                .define('A', Items.ARROW)
+                .unlockedBy(getHasName(OWItems.BOA_TONG.get()), has(OWItems.BOA_TONG.get())).save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.VENOMOUS_TOOTH.get(), 1)
+                .pattern(" V ")
+                .pattern("VTV")
+                .pattern(" V ")
+                .define('T', OWItems.FAWN_TOOTH.get())
+                .define('V', OWItems.VENOMOUS_GLANDS.get())
+                .unlockedBy(getHasName(OWItems.FAWN_TOOTH.get()), has(OWItems.FAWN_TOOTH.get())).save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.VENOMOUS_ARROW.get(), 1)
+                .pattern("  V")
+                .pattern(" S ")
+                .pattern("P  ")
+                .define('P', OWItems.PEACOCK_FEATHER.get())
+                .define('S', Items.STICK)
+                .define('V', OWItems.VENOMOUS_TOOTH.get())
+                .unlockedBy(getHasName(OWItems.PEACOCK_FEATHER.get()), has(OWItems.PEACOCK_FEATHER.get())).save(recipeOutput);
+
+
+
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.JADE_SWORD.get())
+                .pattern("  J")
+                .pattern(" J ")
+                .pattern("S  ")
+                .define('S', Items.STICK)
+                .define('J', OWItems.JADE.get())
+                .unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.JADE_PICKAXE.get())
+                .pattern("JJJ")
+                .pattern(" S ")
+                .pattern(" S ")
+                .define('S', Items.STICK)
+                .define('J', OWItems.JADE.get())
+                .unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.JADE_AXE.get())
+                .pattern("JJ ")
+                .pattern("JS ")
+                .pattern(" S ")
+                .define('S', Items.STICK)
+                .define('J', OWItems.JADE.get())
+                .unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.JADE_SHOVEL.get())
+                .pattern(" J ")
+                .pattern(" S ")
+                .pattern(" S ")
+                .define('S', Items.STICK)
+                .define('J', OWItems.JADE.get())
+                .unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.JADE_HOE.get())
+                .pattern("JJ ")
+                .pattern(" S ")
+                .pattern(" S ")
+                .define('S', Items.STICK)
+                .define('J', OWItems.JADE.get())
+                .unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
+
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.RUBY_SWORD.get())
+                .pattern("  R")
+                .pattern(" R ")
+                .pattern("S  ")
+                .define('S', Items.STICK)
+                .define('R', OWItems.RUBY.get())
+                .unlockedBy(getHasName(OWItems.RUBY.get()), has(OWItems.RUBY.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.RUBY_PICKAXE.get())
+                .pattern("RRR")
+                .pattern(" S ")
+                .pattern(" S ")
+                .define('S', Items.STICK)
+                .define('R', OWItems.RUBY.get())
+                .unlockedBy(getHasName(OWItems.RUBY.get()), has(OWItems.RUBY.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.RUBY_AXE.get())
+                .pattern("RR ")
+                .pattern("RS ")
+                .pattern(" S ")
+                .define('S', Items.STICK)
+                .define('R', OWItems.RUBY.get())
+                .unlockedBy(getHasName(OWItems.RUBY.get()), has(OWItems.RUBY.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.RUBY_SHOVEL.get())
+                .pattern(" R ")
+                .pattern(" S ")
+                .pattern(" S ")
+                .define('S', Items.STICK)
+                .define('R', OWItems.RUBY.get())
+                .unlockedBy(getHasName(OWItems.RUBY.get()), has(OWItems.RUBY.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.RUBY_HOE.get())
+                .pattern("RR ")
+                .pattern(" S ")
+                .pattern(" S ")
+                .define('S', Items.STICK)
+                .define('R', OWItems.RUBY.get())
+                .unlockedBy(getHasName(OWItems.RUBY.get()), has(OWItems.RUBY.get())).save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.WOODEN_STINGER.get())
+                .pattern("   ")
+                .pattern(" S ")
+                .pattern("F  ")
+                .define('S', Items.STICK)
+                .define('F', Items.FEATHER)
+                .unlockedBy(getHasName(Items.FEATHER), has(Items.FEATHER)).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.TRANQUILIZER_WOODEN_STINGER.get(), 2)
+                .pattern("   ")
+                .pattern(" T ")
+                .pattern("W  ")
+                .define('W', OWItems.WOODEN_STINGER.get())
+                .define('T', OWItems.BOA_TONG.get())
+                .unlockedBy(getHasName(OWItems.BOA_TONG.get()), has(OWItems.BOA_TONG.get())).save(recipeOutput);
+
+
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.JADE_HELMET.get())
+                .pattern("JJJ")
+                .pattern("J J")
+                .pattern("   ")
+                .define('J', OWItems.JADE.get()).unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.JADE_CHESTPLATE.get())
+                .pattern("J J")
+                .pattern("JJJ")
+                .pattern("JJJ")
+                .define('J', OWItems.JADE.get()).unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.JADE_LEGGINGS.get())
+                .pattern("JJJ")
+                .pattern("J J")
+                .pattern("J J")
+                .define('J', OWItems.JADE.get()).unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.JADE_BOOTS.get())
+                .pattern("J J")
+                .pattern("J J")
+                .pattern("   ")
+                .define('J', OWItems.JADE.get()).unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
+
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.PRIMITIVE_SLINGSHOT.get(), 1)
+                .pattern("* *")
+                .pattern("SFS")
+                .pattern(" * ")
+                .define('F', OWItems.PLANT_FIBER.get())
+                .define('S', Items.STRING)
+                .define('*', Items.STICK)
+                .unlockedBy(getHasName(OWItems.PLANT_FIBER.get()), has(OWItems.PLANT_FIBER.get())).save(recipeOutput);
+
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWBlocks.SADDLER.get(), 1)
+                .pattern("ISI")
+                .pattern("ICI")
+                .pattern("III")
+                .define('S', Items.SADDLE)
+                .define('I', Items.IRON_INGOT)
+                .define('C', Blocks.CRAFTING_TABLE)
+                .unlockedBy(getHasName(Items.SADDLE), has(Items.SADDLE)).save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.SEABUG.get(), 1)
+                .pattern("  P")
+                .pattern(" C ")
+                .pattern("H  ")
+                .define('C', OWItems.SEABUG_COCKPIT.get())
+                .define('H', OWItems.SEABUG_HULL.get())
+                .define('P', OWItems.SEABUG_PORTHOLE.get())
+                .unlockedBy(getHasName(OWItems.SEABUG_COCKPIT.get()), has(OWItems.SEABUG_COCKPIT.get())).save(recipeOutput);
+
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Items.PINK_DYE)
+                .pattern("   ")
+                .pattern(" C ")
+                .pattern("   ")
+                .define('C', OWBlocks.CAMELLIA.get()).unlockedBy(getHasName(OWBlocks.CAMELLIA.get()), has(OWBlocks.CAMELLIA.get())).save(recipeOutput);
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.LAVENDER_BOUQUET.get())
+                .pattern("   ")
+                .pattern(" L ")
+                .pattern("   ")
+                .define('L', OWBlocks.LAVENDER.get()).unlockedBy(getHasName(OWBlocks.LAVENDER.get()), has(OWBlocks.LAVENDER.get())).save(recipeOutput);
+
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_TIGER.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_TIGER.get(), 0.35F, 200)
+                .unlockedBy(getHasName(OWItems.RAW_TIGER.get()), has(OWItems.RAW_TIGER.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_tiger_from_smelting");
+
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(OWItems.RAW_TIGER.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_TIGER.get(), 0.35F, 100)
+                .unlockedBy(getHasName(OWItems.RAW_TIGER.get()), has(OWItems.RAW_TIGER.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_tiger_from_smoking");
+
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_TIGER.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_TIGER.get(), 0.35F, 600)
+                .unlockedBy(getHasName(OWItems.RAW_TIGER.get()), has(OWItems.RAW_TIGER.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_tiger_from_campfire_cooking");
+
+
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_BOA.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_BOA.get(), 0.35F, 200)
+                .unlockedBy(getHasName(OWItems.RAW_BOA.get()), has(OWItems.RAW_BOA.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_boa_from_smelting");
+
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(OWItems.RAW_BOA.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_BOA.get(), 0.35F, 100)
+                .unlockedBy(getHasName(OWItems.RAW_BOA.get()), has(OWItems.RAW_BOA.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_boa_from_smoking");
+
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_BOA.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_BOA.get(), 0.35F, 600)
+                .unlockedBy(getHasName(OWItems.RAW_BOA.get()), has(OWItems.RAW_BOA.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_boa_from_campfire_cooking");
+
+
+
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_PEACOCK.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_PEACOCK.get(), 0.35F, 200)
+                .unlockedBy(getHasName(OWItems.RAW_PEACOCK.get()), has(OWItems.RAW_PEACOCK.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_peacock_from_smelting");
+
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(OWItems.RAW_PEACOCK.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_PEACOCK.get(), 0.35F, 100)
+                .unlockedBy(getHasName(OWItems.RAW_PEACOCK.get()), has(OWItems.RAW_PEACOCK.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_peacock_from_smoking");
+
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_PEACOCK.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_PEACOCK.get(), 0.35F, 600)
+                .unlockedBy(getHasName(OWItems.RAW_PEACOCK.get()), has(OWItems.RAW_PEACOCK.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_peacock_from_campfire_cooking");
+
+
+    }
+
+    protected static <T extends AbstractCookingRecipe> void oreCooking(RecipeOutput recipeOutput, RecipeSerializer<T> pCookingSerializer, AbstractCookingRecipe.Factory<T> factory,
+                                                                       List<ItemLike> pIngredients, RecipeCategory pCategory, ItemLike pResult, float pExperience, int pCookingTime, String pGroup, String pRecipeName) {
+        for(ItemLike itemlike : pIngredients) {
+            SimpleCookingRecipeBuilder.generic(Ingredient.of(itemlike), pCategory, pResult, pExperience, pCookingTime, pCookingSerializer, factory).group(pGroup).unlockedBy(getHasName(itemlike), has(itemlike))
+                    .save(recipeOutput, OperationWild.MOD_ID + ":" + getItemName(pResult) + pRecipeName + "_" + getItemName(itemlike));
+        }
+    }
+
+}

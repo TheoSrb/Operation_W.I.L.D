@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "compatibilityLevel": "JAVA_17",
+  "package": "net.tiew.operationWild.mixin",
+  "refmap": "mixins.ow.refmap.json",
+  "minVersion": "0.8",
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "client": [
+    "PlayerAttackMixin",
+    "PlayerHeadRotationMixin",
+    "SubmarineArmMixin",
+    "SubmarineMixin"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "values": [
+    "ow:primitive_spear",
+    "ow:primitive_slingshot",
+    "ow:jade_sword",
+    "ow:ruby_sword",
+    "ow:jade_axe",
+    "ow:ruby_axe",
+    "ow:jade_chestplate",
+    "ow:camouflage_chestplate",
+    "ow:jade_boots",
+    "ow:camouflage_boots",
+    "ow:jade_helmet",
+    "ow:camouflage_helmet",
+    "ow:jade_hoe",
+    "ow:ruby_hoe",
+    "ow:jade_leggings",
+    "ow:camouflage_leggings",
+    "ow:jade_pickaxe",
+    "ow:ruby_pickaxe",
+    "ow:jade_shovel",
+    "ow:ruby_shovel",
+    "ow:primitive_sickle",
+    "ow:maya_blowpipe"
+  ]
+}

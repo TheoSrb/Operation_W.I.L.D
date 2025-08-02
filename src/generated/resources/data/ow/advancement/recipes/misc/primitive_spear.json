@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "ow:primitive_spear"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tiger_fur": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:tiger_fur"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tiger_fur"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "ow:primitive_spear"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "north": "ow:block/saddler_side",
+    "south": "ow:block/saddler_side",
+    "east": "ow:block/saddler_side",
+    "west": "ow:block/saddler_side",
+    "up": "ow:block/saddler_top",
+    "down": "ow:block/saddler_top",
+    "particle": "ow:block/saddler_side"
+  }
+}

@@ -1,0 +1,385 @@
+{
+  "creativetab.ow.operation_wild": "Operation W.I.L.D",
+  "container.saddler": "Sellier",
+  "addExperienceCommandError": "Vous devez monter une entité pour lui ajouter de l'expérience.",
+  "addExperienceCommandWork": "Don de %s points d'expérience à votre entité.",
+  "addPrestigeCommandError": "Vous devez monter une entité pour lui ajouter des niveaux de prestige.",
+  "addPrestigeCommandWork": "Don de %s niveaux de prestige à votre entité.",
+
+  "key.ow.ultimate_key": "Capacité ultime",
+  "key.ow.attacks_info_key": "Informations d'attaques",
+  "key.ow.entity_journal_key": "Ouvrir le journal d'entité",
+
+  "tooltip.entity": "Entités",
+
+  "death.attack.water_pressure": "%s a été écrasé(e) par la pression des eaux profondes",
+  "death.attack.water_pressure2": "La pression de l’eau a transformé %s en pancake",
+  "tooHighPressure": "! Pression trop élevée, remontez vite !",
+
+  "ow.advancements.ow.title": "Operation W.I.L.D",
+  "ow.advancements.ow.description": "Tous les animaux ne sont pas ce qu’ils semblent être…",
+  "ow.advancements.wild_meow.title": "Miaou Sauvage",
+  "ow.advancements.wild_meow.description": "Vous avez apprivoisé un Tigre !",
+  "ow.advancements.arms_what_for.title": "Des bras ? Pour quoi faire ?",
+  "ow.advancements.arms_what_for.description": "Vous avez apprivoisé un Boa !",
+  "ow.advancements.colors.title": "1000 et 1 couleurs",
+  "ow.advancements.colors.description": "Vous avez apprivoisé un Paon !",
+  "ow.advancements.you_see_me.title": "On me voit, on me voit plus",
+  "ow.advancements.you_see_me.description": "Vous avez fabriqué une armure de camouflage complète.",
+  "ow.advancements.good_night.title": "Bonne nuit les petits",
+  "ow.advancements.good_night.description": "Vous avez fabriqué une flèche tranquillisante.",
+  "ow.advancements.upgraded_arrows.title": "Flèches Supérieures",
+  "ow.advancements.upgraded_arrows.description": "Vous avez fabriqué une flèche envenimée.",
+  "ow.advancements.friend_dead.title": "Tu vas me manquer mon ami",
+  "ow.advancements.friend_dead.description": "Vous avez récupéré une âme d'animal",
+  "ow.advancements.novice_tamer.title": "Dompteur Novice",
+  "ow.advancements.novice_tamer.description": "Vous avez franchi le cap des 300 expériences d'apprivoisement.",
+  "ow.advancements.renowned_tamer.title": "Dompteur Reconnu",
+  "ow.advancements.renowned_tamer.description": "Vous avez franchi le cap des 1500 expériences d'apprivoisement.",
+  "ow.advancements.professional_tamer.title": "Dompteur Professionel",
+  "ow.advancements.professional_tamer.description": "Vous avez franchi le cap des 2700 expériences d'apprivoisement.",
+  "ow.advancements.legendary_adventurer.title": "Aventurier de Légende",
+  "ow.advancements.legendary_adventurer.description": "Vous avez franchi le cap des 4000 expériences d'apprivoisement.",
+  "ow.advancements.captain.title": "Prenez la barre capitaine !",
+  "ow.advancements.captain.description": "Vous avez fabriqué un SeaBug.",
+
+  "tooltip.notebook": "Carnet de l'aventurier",
+  "tooltip.noDiscovered": "Pas encore découvert",
+  "tooltip.tamingNoDiscovered": "Méthode d'apprivoisement non-découverte",
+  "tooltip.notebookDescribe": "Ce carnet vous servira tout au long de votre aventure, notamment pour cartographier les animaux et monstres que vous découvrirez, ainsi que leurs méthodes d’apprivoisement respectives. De plus, ce carnet pourra vous informer sur votre taux d’expérience d’apprivoisement, etc...",
+  "tooltip.menuBook": "Menu",
+  "tooltip.taming": "Domptage",
+  "tooltip.tamingOf": "Domptage du",
+  "tooltip.tamingOfA": "Domptage de la",
+  "tooltip.other": "Divers",
+  "tooltip.tamingExperienceDescribe": "Dans votre aventure, l’expérience d’apprivoisement joue un rôle essentiel dans le domptage des créatures. Plus elle augmente, plus elle vous permet d’obtenir des informations sur l'apprivoisement des créatures ou de débloquer les selles de ces dernières. Vous pouvez l’améliorer en apprivoisant différentes créatures.",
+
+  "tooltip.stop_health": "Vous avez déjà atteint le plafond de santé de votre entité.",
+  "tooltip.stop_damage": "Vous avez déjà atteint le plafond de dégâts de votre entité.",
+  "tooltip.stop_speed": "Vous avez déjà atteint le plafond de vitesse de votre entité.",
+  "tooltip.level_points": "Nouveau Point de Niveau Disponible: %s",
+  "tooltip.owner": "Maître: %s",
+  "tooltip.lvl": "Niv: %s",
+  "tooltip.ownerImage": "Maître: ",
+  "tooltip.lvlImage": "Niv: ",
+  "tooltip.level": "Niveau:",
+  "tooltip.levelUp": "- Niveau Passé -",
+  "tooltip.prestigeLevelUp": "- Prestige Passé -",
+  "tooltip.maxLvl": "Niveau Maximum Atteint",
+  "tooltip.lvlBonusPoints": "Points de Niveau Bonus: %s",
+  "tooltip.resurrectionTime": "Temps Restant: ",
+  "tooltip.resurrection": "Résurrection en cours...",
+  "tooltip.resurrection_failed": "La tentative de résurrection de votre %s a échoué.",
+
+  "tooltip.mobTypesTank": "Type Tank: \nDiminution de 20% des dégâts de mélées.",
+  "tooltip.mobTypesAssassin": "Type Assassin: \n10% de chance d'infliger un coup critique.",
+  "tooltip.mobTypesMarauder": "Type Maraudeur: \nAugmentation de la vitesse de 15% en combat.",
+
+  "effect.ow.camouflage": "Camouflage",
+  "effect.ow.venom": "Venin",
+  "effect.ow.fear": "Peur primitive",
+  "effect.ow.water_pressure": "Pression de l'eau",
+  "effect.ow.bleeding": "Saignement",
+
+  "tooltip.xp" : " EXP",
+  "tooltip.entitySpeed": " blocs/s",
+  "tooltip.HP": " PV",
+  "tooltip.genderMale": "Mâle",
+  "tooltip.genderFemale": "Femelle",
+  "tooltip.mode": "Mode: ",
+  "tooltip.modePassive": "Passif",
+  "tooltip.modeAggressive": "Agressif",
+  "tooltip.skinsTitle": "Cosmétiques",
+  "tooltip.cosmetics": "Cosmétiques",
+  "tooltip.dailyQuests": "Quêtes Quotidiennes",
+  "tooltip.noSkins": "Cette entité n'a pas de cosmétiques.",
+  "tooltip.confirmationBuyingSkin": "Êtes-vous sûr de vouloir débloquer ce skin ?",
+  "tooltip.confirmationBuyingSkin2": "Aucun remboursement ne sera possible.",
+  "tooltip.yesButton": "Oui",
+  "tooltip.noButton": "Non",
+  "tooltip.following": "Votre entité vous suit",
+  "tooltip.delayBeforeBabyTask": "%s",
+
+
+
+  "tooltip.tigerSkin1": "Tigre Doré",
+  "tooltip.tigerSkin2": "Parrain",
+  "tooltip.tigerSkin3": "Pizzaiolo",
+  "tooltip.tigerSkin4": "Magmatique",
+  "tooltip.tigerSkin5": "Détective",
+  "tooltip.tigerSkin6": "Virus",
+  "tooltip.tigerSkin7": "Tigre Par Défaut",
+  "tooltip.tigerSkin8": "Damné",
+
+  "tooltip.boaSkin1": "Boa Doré",
+  "tooltip.boaSkin2": "Boa Viking",
+  "tooltip.boaSkin3": "Boa Mineur",
+  "tooltip.boaSkin4": "Boa Léviathan",
+  "tooltip.boaSkin5": "Boa Peluche",
+  "tooltip.boaSkin6": "Boa Cyborg",
+  "tooltip.boaSkin7": "Boa Par Défaut",
+
+  "tooltip.peacockSkin1": "Paon Doré",
+  "tooltip.peacockSkin2": "Paon Mage",
+  "tooltip.peacockSkin7": "Paon Par Défaut",
+
+
+
+
+  "tooltip.locked": "Vérouillé",
+  "skin.locked.message": "Skin Vérouillé",
+  "skin.unlocked.message": "Skin Débloqué",
+  "skin.locked.message.prestige": "Vous n'avez pas assez de niveaux de prestige pour débloquer ce skin.",
+
+
+  "item.ow.plant_empress_music_disc": "Disque",
+  "item.ow.plant_empress_music_disc.desc": "Operation W.I.L.D - Plant Empress Theme",
+
+
+
+  "tooltip.tigerSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
+  "tooltip.tigerSkin3Indication": "Dévérouillez le skin Tigre Pizzaiolo en échange de %d niveaux de prestige.",
+  "tooltip.tigerSkin5Indication": "Dévérouillez le skin Tigre Détective en échange de %d niveaux de prestige.",
+  "tooltip.tigerSkin6Indication": "Dévérouillez le skin Tigre Virus en échange de %d niveaux de prestige.",
+
+  "tooltip.boaSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
+  "tooltip.boaSkin2Indication": "Dévérouillez le skin Boa Viking en échange de %d niveaux de prestige.",
+
+  "tooltip.peacockSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
+
+  "tooltip.baby": "Bébé",
+  "tooltip.juvenile": "Juvénile",
+  "tooltip.adolescent": "Adolescent",
+
+  "tooltip.unknownEntity": "Inconnue",
+  "entity.ow.tiger": "Tigre",
+  "entity.ow.walrus": "Walrus",
+  "entity.ow.tiger_shark": "Requin Tigre",
+  "entity.ow.seabug": "SeaBug",
+  "entity.ow.seabug_shard_0": "Fragment de Seabug",
+  "entity.ow.seabug_shard_1": "Fragment de Seabug",
+  "entity.ow.seabug_shard_2": "Fragment de Seabug",
+  "entity.ow.plant_empress": "Impératrice Végétale",
+  "entity.ow.boa": "Boa",
+  "entity.ow.peacock": "Paon",
+  "entity.ow.primitive_spear": "Lance primitive",
+  "entity.ow.tranquilizer_arrow": "Flèche Tranquilisante",
+  "entity.ow.wooden_stinger": "Dart en bois",
+  "entity.ow.tranquilizer_wooden_stinger": "Dart en bois tranquilisant",
+  "entity.ow.venomous_arrow": "Flèche Envenimée",
+  "item.ow.tranquilizer_arrow": "Flèche Tranquilisante",
+  "item.ow.wooden_stinger": "Dart en bois",
+  "item.ow.tranquilizer_wooden_stinger": "Dart en bois tranquilisant",
+  "item.ow.venomous_arrow": "Flèche Envenimée",
+  "item.ow.tiger_spawn_egg": "Oeuf d'apparition de tigre",
+  "item.ow.tiger_shark_spawn_egg": "Oeuf d'apparition de requin tigre",
+  "item.ow.boa_spawn_egg": "Oeuf d'apparition de boa",
+  "item.ow.peacock_spawn_egg": "Oeuf d'apparition de paon",
+
+  "block.ow.lavender": "Lavande",
+  "block.ow.camellia": "Camélia",
+
+
+  "block.ow.jade_ore": "Minerais de jade",
+  "block.ow.deepslate_jade_ore": "Minerais de jade des abîmes",
+  "block.ow.ruby_ore": "Minerais de rubis",
+  "block.ow.deepslate_ruby_ore": "Minerais de rubis des abîmes",
+
+  "block.ow.saddler": "Sellier",
+
+  "block.ow.peacock_egg": "Oeuf de paon",
+
+  "block.ow.scarified_oak_log": "Bûche de chêne scarifiée",
+  "block.ow.scarified_dark_oak_log": "Bûche de chêne noir scarifiée",
+  "block.ow.scarified_spruce_log": "Bûche de sapin scarifiée",
+  "block.ow.scarified_mangrove_log": "Bûche de palétuvier scarifiée",
+  "block.ow.scarified_cherry_log": "Bûche de cerisier scarifiée",
+  "block.ow.scarified_birch_log": "Bûche de bouleau scarifiée",
+  "block.ow.scarified_acacia_log": "Bûche d'acacia scarifiée",
+  "block.ow.scarified_jungle_log": "Bûche d'acajou scarifiée",
+
+  "block.ow.savage_berry_bush": "Buisson de baies sauvages",
+
+
+
+  "item.ow.camouflage_helmet": "Casque de Camouflage",
+  "item.ow.camouflage_chestplate": "Plastron de Camouflage",
+  "item.ow.camouflage_leggings": "Jambières de Camouflage",
+  "item.ow.camouflage_boots": "Bottes de Camouflage",
+
+  "item.ow.jade_helmet": "Casque en jade",
+  "item.ow.jade_chestplate": "Plastron en jade",
+  "item.ow.jade_leggings": "Jambières en jade",
+  "item.ow.jade_boots": "Bottes en jade",
+
+
+  "item.ow.resurrection_amulet": "Amulette de Résurrection",
+
+  "item.ow.tiger_fur": "Fourrure de tigre",
+  "item.ow.boa_tong": "Langue fourchue",
+  "item.ow.fawn_tooth": "Dent de fauve",
+  "item.ow.venomous_tooth": "Dent envenimée",
+  "item.ow.venomous_glands": "Glande envenimée",
+  "item.ow.peacock_feather": "Plume de paon",
+  "item.ow.shark_fin": "Nageoire de requin",
+  "item.ow.animal_soul": "Âme de %s",
+  "item.ow.tiger_saddle": "Selle de tigre",
+  "item.ow.boa_saddle": "Selle de boa",
+  "item.ow.peacock_saddle": "Selle de paon",
+  "item.ow.tiger_shark_saddle": "Selle de requin tigre",
+
+  "platinum_plated_tooltip_1": "Dégâts bonus: +%s",
+  "platinum_plated_tooltip_2": "Dégâts bonus: +%s",
+  "platinum_plated_tooltip_3": "Durabilité bonus: +%s",
+
+  "item.ow.savage_berries": "Baies sauvages",
+
+
+  "item.ow.plant_fiber": "Fibre végétale",
+
+  "item.ow.lavender_bouquet": "Bouquet de lavande",
+
+  "item.ow.battery": "Batterie",
+
+  "item.ow.jade": "Jade",
+  "item.ow.ruby": "Rubis",
+  "item.ow.platinum_ingot": "Lingot de platine",
+
+  "item.ow.primitive_spear": "Lance primitive",
+  "item.ow.primitive_slingshot": "Lance-pierre primitif",
+  "item.ow.primitive_sickle": "Faucille primitive",
+  "item.ow.maya_blowpipe": "Sarbacane de Maya",
+
+  "item.ow.seabug_cockpit": "Cockpit de Seabug",
+  "item.ow.seabug_hull": "Coque de Seabug",
+  "item.ow.seabug_porthole": "Hublot de Seabug",
+
+  "item.ow.seabug": "Seabug",
+  "seabug.needWater": "Veuillez placer votre SeaBug dans l'eau.",
+
+  "item.ow.jade_sword": "Épée en jade",
+  "item.ow.jade_pickaxe": "Pioche en jade",
+  "item.ow.jade_axe": "Hache en jade",
+  "item.ow.jade_shovel": "Pelle en jade",
+  "item.ow.jade_hoe": "Houe en jade",
+
+  "item.ow.ruby_sword": "Épée en rubis",
+  "item.ow.ruby_pickaxe": "Pioche en rubis",
+  "item.ow.ruby_axe": "Hache en rubis",
+  "item.ow.ruby_shovel": "Pelle en rubis",
+  "item.ow.ruby_hoe": "Houe en rubis",
+
+  "item.ow.platinum_plated_ruby_sword": "Épée en rubis platinée",
+
+  "item.ow.raw_tiger": "Tigre cru",
+  "item.ow.cooked_tiger": "Tigre cuit",
+  "item.ow.raw_boa": "Boa cru",
+  "item.ow.cooked_boa": "Boa cuit",
+  "item.ow.raw_peacock": "Paon cru",
+  "item.ow.cooked_peacock": "Paon cuit",
+
+  "imageHealth": "Vie:",
+  "imageDamages": "Dégâts:",
+  "imageSpeed": "Vitesse:",
+  "imageTaming": "Apprivoisement:",
+  "sleepingTaming": "Somnolence:",
+  "imageMaturation": "Maturation",
+  "tooltip.rightClickAlert": "! Débattez-vous !",
+
+
+  "tiger.page1": "Le Tigre est un animal majestueux et redouté qui rôde dans les profondeurs verdoyantes des forêts tropicales. Silencieux et imposant, il incarne la puissance à l’état pur.",
+  "tiger.page2": "Lorsqu’il repère une cible, il bondit avec une agilité foudroyante, s’accroche à sa victime et ne la lâche plus.",
+  "tiger.page3": "Ses griffes acérées peuvent lui servir à marquer son territoire sur les troncs d’arbres. Il peut également désarmer un joueur d’un simple coup de patte, renversant un combat en un instant.",
+  "tiger.page4": "Analyse : Animal très dangereux — à éviter autant que possible.",
+
+  "boa.page1": "Le Boa est un prédateur silencieux se faufilant dans les zones humides et denses attendant impatiemment sa proie.",
+  "boa.page2": "Sa morsure, rapide et précise, peut inoculer à la fois venin et poison, affaiblissant ses victimes en quelques instants.",
+  "boa.page3": "Mais le danger ne s’arrête pas là, le Boa peut également s’enrouler autour de sa proie avec une force implacable, l’étouffant lentement, jusqu’à l’asphyxie.",
+  "boa.page4": "Analyse : Animal traître — redoutable pour les aventuriers imprudents, mais moins menaçant pour les explorateurs aguerris.",
+
+  "peacock.page1": "Le Paon est un oiseau aussi gracieux que spectaculaire, que l’on trouve dans les endroits fleuris comme les prairies ou les forêts de fleurs.",
+  "peacock.page2": "Lorsqu’un danger approche, il déploie son impressionnant éventail de plumes chatoyantes. Ce geste, à la fois soudain et théâtral, suffit bien souvent à faire fuir les prédateurs, troublés par sa beauté menaçante. Mais ce même déploiement peut aussi avoir un tout autre but, séduire. En période de reproduction, le mâle parade fièrement, espérant impressionner une femelle.",
+  "peacock.page3": "Lorsqu’un couple se forme, ils peuvent pondre un œuf, dont éclora un bébé paon, ajoutant encore un peu de grâce au paysage.",
+  "peacock.page4": "Analyse : Créature pacifique — fascinante à observer, mais jamais à sous-estimer.",
+
+  "tiger_shark.page1": "Le Requin Tigre est une espèce de Requin nageant exclusivement dans les eaux froides et profondes, en quête constante de nourriture, rôdant très souvent à proximité des Stations Immergées.",
+  "tiger_shark.page2": "Ce dernier possède un caractère curieux, contrastant avec son agressivité de prédateur silencieux, attaquant le plus souvent ses proies dans le dos afin de les surprendre.",
+  "tiger_shark.page3": "La morsure d'un Requin Tigre peut également provoquer une hémorragie, rendant les autres Requins plus agressifs, capables de vous entraîner dans les profondeurs.",
+  "tiger_shark.page4": "Cependant, les Requins Tigres peuvent être apaisés s’ils chargent, à la seconde où un Saumon leur est offert.",
+  "tiger_shark.page5": "Analyse : À éviter.",
+
+  "boa.taming.page1": "Le Boa est une espèce de grand et long serpent, se nourrissant exclusivement de la chair de grands animaux féroces comme du Tigre Cru, qu’il déniche le plus souvent à même le sol.",
+  "boa.taming.page2": "Lorsqu’il en repère un, il s’approche lentement, puis le dévore lorsque l’envie le prend.",
+  "boa.taming.page3": "Toutefois, durant sa phase d’apprivoisement, si le Boa aperçoit une cible, son appétit diminue aussitôt. Tant que ses yeux restent fixés sur elle, il délaisse la viande au sol, n’y prêtant plus la moindre attention.",
+  "boa.taming.page4": "Difficultée: 2 / 7",
+
+  "peacock.taming.page1": "Il est impossible d’apprivoiser un Paon adulte. En revanche, il est tout à fait possible de créer un lien avec un bébé Paon dès sa naissance.",
+  "peacock.taming.page2": "Pour cela, observez un Paon mâle en train de faire la roue près d'une femelle.",
+  "peacock.taming.page3": "Donnez-leur à tous les deux quelques Baies Sauvages pour favoriser leur rapprochement et encourager la ponte d’un œuf.",
+  "peacock.taming.page4": "Ensuite, place à la patience : attendez que l’œuf éclose et que le bébé Paon en sorte. Dès sa naissance, offrez-lui quelques Baies Sauvages pour l’apprivoiser.",
+  "peacock.taming.page5": "Difficultée: 1 / 7",
+
+  "tiger.taming.page1": "Apprivoiser un Tigre est une tâche délicate qui demande prudence et patience.",
+  "tiger.taming.page2": "Pour cela, munissez-vous d’un arc ou d’une sarbacane de maya, ainsi que d’un stock de flèches ou de dards tranquillisants, afin de plonger la bête dans un sommeil profond. Prenez garde : le sommeil du Tigre s’amenuise avec le temps. Assurez-vous donc de ne pas perdre une seconde une fois l’apprivoisement commencé.",
+  "tiger.taming.page3": "Une fois profondément endormi, le Tigre devra être nourri avec de la viande d’animaux dangereux, comme du Boa Cru.",
+  "tiger.taming.page4": "Difficultée: 4 / 7",
+
+  "enchantment.ow.putrid": "Putride",
+  "enchantment.ow.vampirism": "Vampirisme",
+  "enchantment.ow.lightness": "Légèreté",
+  "enchantment.ow.fawns_protection": "Protection contre les fauves",
+  "enchantment.ow.sliding": "Glissant",
+  "enchantment.ow.venom_protection": "Protection contre le venin",
+  "enchantment.ow.reptilian_calamity": "Calamité Reptilienne",
+  "enchantment.ow.plant_providence": "Providence Végétale",
+
+
+  "tooltip.questMenu": "Quêtes Quotidiennes",
+  "tooltip.nextDailyQuests": "Prochaines quêtes dans: ",
+  "tooltip.questFinished": "Quête Terminée",
+  "tooltip.questsUpdated": "| Nouvelles Quêtes Disponibles |",
+
+
+  "quest.babyQuest0": "aimerait",
+  "quest.babyQuest1": "Quete 2 du bébé",
+  "quest.babyQuest2": "Quete 3 du bébé",
+
+
+  "dailyQuest.0": "Infliger 300 dégâts",
+  "dailyQuest.1": "Absorber 200 dégâts",
+  "dailyQuest.2": "Régénérer 100 points de vie",
+  "dailyQuest.3": "Parcourir 2000 blocs",
+  "dailyQuest.4": "Infliger 40 dégats en 5 secondes",
+  "dailyQuest.5": "Passer 1 niveau",
+  "dailyQuest.6": "Éliminer 25 cibles",
+  "dailyQuest.7": "Éliminer 5 cibles en un seul coup",
+  "dailyQuest.8": "Éliminer 10 cibles en 5 secondes",
+  "dailyQuest.9": "Infliger 50 dégâts aux cibles plus puissantes",
+  "dailyQuest.10": "Éliminer 8 cibles sans être touché",
+
+
+  "attacks.title1.TigerEntity": "- Déchiquetage -",
+  "attacks.title2.TigerEntity": "- Bond Bestial -",
+  "attacks.title3.TigerEntity": "- Cruauté Féline -",
+
+  "attacks.title1.BoaEntity": "- Perforation -",
+  "attacks.title2.BoaEntity": "- Envenimation -",
+  "attacks.title3.BoaEntity": "- ? -",
+
+  "attacks.title1.PeacockEntity": "- Becqueter -",
+  "attacks.title2.PeacockEntity": "- ? -",
+  "attacks.title3.PeacockEntity": "- ? -",
+
+  "attacks.description1.TigerEntity": "Faites mordre votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque morsure.",
+  "attacks.description2.TigerEntity": "Faites bondir votre %1$s sur une longue distance toutes les %2$s secondes. S’il entre en contact avec une entité, il l’emprisonnera dans ses griffes et la dévorera, ce qui vous fera descendre de votre monture.",
+  "attacks.description3.TigerEntity": "Faites entrer votre %1$s dans une rage intense durant %2$s secondes, augmentant sa resistance de %3$s%% ses dégâts de %4$s%%, sa taille de %5$s%% ainsi que sa vitesse de %6$s%%, toutes les %7$s minutes.",
+
+  "attacks.description1.BoaEntity": "Faites mordre votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque morsure, avec %4$s %% de chances d’infecter la cible touchée avec l’effet Poison 3 pendant une durée comprise entre %5$s et %6$s secondes.",
+  "attacks.description2.BoaEntity": "Rendez les crocs de votre %1$s venimeux afin de transmettre l’effet Venin I à la cible touchée, pour une durée comprise entre %2$s et %3$s minutes toutes les %4$s secondes.",
+  "attacks.description3.BoaEntity": "?",
+
+  "attacks.description1.PeacockEntity": "Faites picorer votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque coup de bec.",
+  "attacks.description2.PeacockEntity": "?",
+  "attacks.description3.PeacockEntity": "?"
+
+}

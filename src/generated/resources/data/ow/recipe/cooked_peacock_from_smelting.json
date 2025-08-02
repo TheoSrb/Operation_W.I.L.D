@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "cookingtime": 200,
+  "experience": 0.35,
+  "ingredient": {
+    "item": "ow:raw_peacock"
+  },
+  "result": {
+    "count": 1,
+    "id": "ow:cooked_peacock"
+  }
+}

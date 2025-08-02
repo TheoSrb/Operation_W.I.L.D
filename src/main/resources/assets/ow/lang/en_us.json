@@ -1,5 +1,379 @@
 {
-  "itemGroup.examplemod": "Example Mod Tab",
-  "block.examplemod.example_block": "Example Block",
-  "item.examplemod.example_item": "Example Item"
+  "creativetab.ow.operation_wild": "Operation W.I.L.D",
+  "container.saddler": "Saddler",
+  "addExperienceCommandError": "You need to set up an entity to add experience to it.",
+  "addExperienceCommandWork": "Donate %s of experience points to your entity.",
+  "addPrestigeCommandError": "You need to set up an entity to add prestige levels to it.",
+  "addPrestigeCommandWork": "Donate %s of prestige levels points to your entity.",
+
+  "key.ow.ultimate_key": "Ultimate capacity",
+  "key.ow.attacks_info_key": "Attacks Informations",
+  "key.ow.entity_journal_key": "Open Entity Journal",
+
+  "tooltip.entity": "Entities",
+
+  "death.attack.water_pressure": "%s was crushed by the pressure of the deep sea",
+  "death.attack.water_pressure2": "The water pressure turned %s into a pancake.",
+  "tooHighPressure": "! Pressure too high, rise quickly !",
+
+  "ow.advancements.ow.title": "Operation W.I.L.D",
+  "ow.advancements.ow.description": "Not all animals are what they seem...",
+  "ow.advancements.wild_meow.title": "Wild Meow",
+  "ow.advancements.wild_meow.description": "You've tamed a Tiger !",
+  "ow.advancements.arms_what_for.title": "Arms? What for?",
+  "ow.advancements.arms_what_for.description": "You've tamed a Boa !",
+  "ow.advancements.colors.title": "1000 and 1 colors",
+  "ow.advancements.colors.description": "You've tamed a Peacock !",
+  "ow.advancements.you_see_me.title": "You see me, you don't see me",
+  "ow.advancements.you_see_me.description": "You've made a complete suit of camouflage armor.",
+  "ow.advancements.good_night.title": "Good night, little ones",
+  "ow.advancements.good_night.description": "You've made a tranquilizer arrow.",
+  "ow.advancements.upgraded_arrows.title": "Upgraded Arrows",
+  "ow.advancements.upgraded_arrows.description": "You've made a venomous arrow.",
+  "ow.advancements.friend_dead.title": "I will miss you my friend",
+  "ow.advancements.friend_dead.description": "You've recovered the soul of an animal",
+  "ow.advancements.novice_tamer.title": "Novice Tamer",
+  "ow.advancements.novice_tamer.description": "You've reached the milestone of 300 taming experiences.",
+  "ow.advancements.renowned_tamer.title": "Renowned Tamer",
+  "ow.advancements.renowned_tamer.description": "You have surpassed 1,500 taming experiences.",
+  "ow.advancements.professional_tamer.title": "Professional Tamer",
+  "ow.advancements.professional_tamer.description": "You have surpassed 2,700 taming experiences.",
+  "ow.advancements.legendary_adventurer.title": "Legendary Adventurer",
+  "ow.advancements.legendary_adventurer.description": "You have surpassed 4,000 taming experiences.",
+  "ow.advancements.captain.title": "Take the helm captain!",
+  "ow.advancements.captain.description": "You've built a SeaBug.",
+
+
+  "tooltip.notebook": "Adventurer's notebook",
+  "tooltip.noDiscovered": "Not yet discovered",
+  "tooltip.tamingNoDiscovered": "Taming method not discovered",
+  "tooltip.notebookDescribe": "This notebook will accompany you throughout your adventure, helping you map the animals and creatures you discover, along with their unique taming methods. It will also provide information on your taming experience level, etc...",
+  "tooltip.menuBook": "Home",
+  "tooltip.taming": "Taming",
+  "tooltip.tamingOf": "Taming of",
+  "tooltip.tamingOfA": "Taming of",
+  "tooltip.other": "Misc",
+  "tooltip.tamingExperienceDescribe": "Throughout your adventure, taming experience plays a key role in mastering creatures. The higher it is, the more information you’ll unlock about rare or dangerous entities. You can increase it by taming various creatures.",
+
+  "tooltip.stop_health": "You have already reached the maximum health limit for your entity.",
+  "tooltip.stop_damage": "You have already reached the maximum damage limit for your entity.",
+  "tooltip.stop_speed": "You have already reached the maximum speed limit for your entity.",
+  "tooltip.level_points": "New Level Point Available: %s",
+  "tooltip.owner": "Owner: %s",
+  "tooltip.lvl": "Lvl: %s",
+  "tooltip.ownerImage": "Owner: ",
+  "tooltip.lvlImage": "Lvl: ",
+  "tooltip.level": "Level:",
+  "tooltip.levelUp": "- Level Up -",
+  "tooltip.prestigeLevelUp": "- Prestige Up -",
+  "tooltip.maxLvl": "Max Level Reached",
+  "tooltip.lvlBonusPoints": "Bonus Points: %s",
+  "tooltip.resurrectionTime": "Time Remaining: ",
+  "tooltip.resurrection": "Résurrection in progress...",
+  "tooltip.resurrection_failed": "The attempt to resurrect your %s has failed.",
+
+  "tooltip.mobTypesTank": "Tank Type: 20% reduction in melée damage.",
+  "tooltip.mobTypesAssassin": "Assassin Type: 10% critical strike chance.",
+  "tooltip.mobTypesMarauder": "Marauder Type: 15% speed increase in combat.",
+
+  "effect.ow.camouflage": "Camouflage",
+  "effect.ow.venom": "Venom",
+  "effect.ow.fear": "Primitive Fear",
+  "effect.ow.water_pressure": "Water Pressure",
+  "effect.ow.bleeding": "Bleeding",
+
+  "tooltip.xp" : " XP",
+  "tooltip.entitySpeed": " blocks/s",
+  "tooltip.HP": " HP",
+  "tooltip.genderMale": "Male",
+  "tooltip.genderFemale": "Female",
+  "tooltip.mode": "Mode: ",
+  "tooltip.modePassive": "Passive",
+  "tooltip.modeAggressive": "Aggressive",
+  "tooltip.skinsTitle": "Cosmetics",
+  "tooltip.cosmetics": "Cosmetics",
+  "tooltip.dailyQuests": "Daily Quests",
+  "tooltip.noSkins": "This entity has no cosmetics.",
+  "tooltip.confirmationBuyingSkin": "Are you sure you want to unlock this skin?",
+  "tooltip.confirmationBuyingSkin2": "No refunds will be possible.",
+  "tooltip.yesButton": "Yes",
+  "tooltip.noButton": "No",
+  "tooltip.following": "Your entity follows you",
+  "tooltip.delayBeforeBabyTask": "%s",
+
+
+
+
+  "tooltip.tigerSkin1": "Golden Tiger",
+  "tooltip.tigerSkin2": "Godfather",
+  "tooltip.tigerSkin3": "Pizza Chef",
+  "tooltip.tigerSkin4": "Magmatic",
+  "tooltip.tigerSkin5": "Detective",
+  "tooltip.tigerSkin6": "Virus",
+  "tooltip.tigerSkin7": "Default Tiger",
+  "tooltip.tigerSkin8": "Damned",
+
+  "tooltip.boaSkin1": "Golden Boa",
+  "tooltip.boaSkin2": "Viking Boa",
+  "tooltip.boaSkin3": "Minor Boa",
+  "tooltip.boaSkin4": "Leviathan Boa",
+  "tooltip.boaSkin5": "Plush Boa",
+  "tooltip.boaSkin6": "Cyborg Boa",
+  "tooltip.boaSkin7": "Default Boa",
+
+  "tooltip.peacockSkin1": "Golden Peacock",
+  "tooltip.peacockSkin2": "Mage Peacock",
+  "tooltip.peacockSkin7": "Default Boa",
+
+  "tooltip.locked": "Locked",
+  "skin.locked.message": "Skin Locked",
+  "skin.unlocked.message": "Skin Unlocked",
+  "skin.locked.message.prestige": "You don't have enough prestige levels to unlock this skin.",
+
+
+  "item.ow.plant_empress_music_disc": "Plant Empress Music Disc",
+  "item.ow.plant_empress_music_disc.desc": "Operation W.I.L.D - Plant Empress Theme",
+
+
+  "tooltip.tigerSkin1Indication": "Reach level 50 to unlock this skin.",
+  "tooltip.tigerSkin3Indication": "Unlock the Tiger Pizzaiolo skin in exchange for %d prestige levels.",
+  "tooltip.tigerSkin5Indication": "Unlock the Tiger Detective skin in exchange for %d prestige levels.",
+  "tooltip.tigerSkin6Indication": "Unlock the Tiger Virus skin in exchange for %d prestige levels.",
+
+  "tooltip.boaSkin1Indication": "Reach level 50 to unlock this skin.",
+  "tooltip.boaSkin2Indication": "Unlock the Boa Viking skin in exchange for %d prestige levels.",
+
+  "tooltip.peacockSkin1Indication": "Reach level 50 to unlock this skin.",
+
+  "tooltip.baby": "Baby",
+  "tooltip.juvenile": "Juvenile",
+  "tooltip.adolescent": "Adolescent",
+
+  "tooltip.unknownEntity": "Unknown",
+  "entity.ow.tiger": "Tiger",
+  "entity.ow.walrus": "Walrus",
+  "entity.ow.tiger_shark": "Tiger Shark",
+  "entity.ow.seabug": "SeaBug",
+  "entity.ow.seabug_shard_0": "Seabug Fragment",
+  "entity.ow.seabug_shard_1": "Seabug Fragment",
+  "entity.ow.seabug_shard_2": "Seabug Fragment",
+  "entity.ow.plant_empress": "Plant Empress",
+  "entity.ow.boa": "Boa",
+  "entity.ow.peacock": "Peacock",
+  "entity.ow.primitive_spear": "Primitive Spear",
+  "entity.ow.primitive_slingshot": "Primitive Slingshot",
+  "entity.ow.tranquilizer_arrow": "Tranquilizer Arrow",
+  "entity.ow.wooden_stinger": "Wooden Stinger",
+  "entity.ow.tranquilizer_wooden_stinger": "Tranquilizer Wooden Stinger",
+  "entity.ow.venomous_arrow": "Venomous Arrow",
+  "item.ow.tranquilizer_arrow": "Tranquilizer Arrow",
+  "item.ow.wooden_stinger": "Wooden Stinger",
+  "item.ow.tranquilizer_wooden_stinger": "Tranquilizer Wooden Stinger",
+  "item.ow.venomous_arrow": "Venomous Arrow",
+  "item.ow.tiger_spawn_egg": "Tiger Spawn Egg",
+  "item.ow.tiger_shark_spawn_egg": "Tiger Shark Spawn Egg",
+  "item.ow.boa_spawn_egg": "Boa Spawn Egg",
+  "item.ow.peacock_spawn_egg": "Peacock Spawn Egg",
+
+  "block.ow.lavender": "Lavender",
+  "block.ow.camellia": "Camellia",
+
+
+  "block.ow.jade_ore": "Jade Ore",
+  "block.ow.deepslate_jade_ore": "Deepslate Jade Ore",
+  "block.ow.ruby_ore": "Ruby Ore",
+  "block.ow.deepslate_ruby_ore": "Deepslate Ruby Ore",
+
+  "block.ow.saddler": "Saddler",
+
+  "block.ow.peacock_egg": "Peacock Egg",
+
+  "block.ow.scarified_oak_log": "Scarified Oak Log",
+  "block.ow.scarified_dark_oak_log": "Scarified Dark Oak Log",
+  "block.ow.scarified_spruce_log": "Scarified Spruce Log",
+  "block.ow.scarified_mangrove_log": "Scarified Mangrove Log",
+  "block.ow.scarified_cherry_log": "Scarified Cherry Log",
+  "block.ow.scarified_birch_log": "Scarified Birch Log",
+  "block.ow.scarified_acacia_log": "Scarified Acacia Log",
+  "block.ow.scarified_jungle_log": "Scarified Jungle Log",
+
+  "block.ow.savage_berry_bush": "Savage Berry Bush",
+
+
+  "item.ow.camouflage_helmet": "Camouflage Helmet",
+  "item.ow.camouflage_chestplate": "Camouflage Chestplate",
+  "item.ow.camouflage_leggings": "Camouflage Leggings",
+  "item.ow.camouflage_boots": "Camouflage Boots",
+
+  "item.ow.jade_helmet": "Jade Helmet",
+  "item.ow.jade_chestplate": "Jade Chestplate",
+  "item.ow.jade_leggings": "Jade Leggings",
+  "item.ow.jade_boots": "Jade Boots",
+
+  "item.ow.resurrection_amulet": "Resurrection Amulet",
+
+  "item.ow.tiger_fur": "Tiger Fur",
+  "item.ow.boa_tong": "Forked Tong",
+  "item.ow.fawn_tooth": "Fawn Tooth",
+  "item.ow.venomous_tooth": "Venomous Tooth",
+  "item.ow.venomous_glands": "Venomous Gland",
+  "item.ow.peacock_feather": "Peacock Feather",
+  "item.ow.shark_fin": "Shark Fin",
+  "item.ow.animal_soul": "%s Soul",
+  "item.ow.tiger_saddle": "Tiger Saddle",
+  "item.ow.boa_saddle": "Boa Saddle",
+  "item.ow.peacock_saddle": "Peacock Saddle",
+  "item.ow.tiger_shark_saddle": "Tiger Shark Saddle",
+
+  "platinum_plated_tooltip_1": "Bonus Attack: +%s",
+  "platinum_plated_tooltip_2": "Bonus Attack: +%s",
+  "platinum_plated_tooltip_3": "Bonus Durability: +%s",
+
+  "item.ow.savage_berries": "Savage Berries",
+
+
+  "item.ow.plant_fiber": "Plant Fiber",
+
+  "item.ow.lavender_bouquet": "Lavender Bouquet",
+
+  "item.ow.battery": "Battery",
+
+  "item.ow.jade": "Jade",
+  "item.ow.ruby": "Ruby",
+  "item.ow.platinum_ingot": "Platinum Ingot",
+
+  "item.ow.primitive_spear": "Primitive Spear",
+  "item.ow.primitive_slingshot": "Primitive Slingshot",
+  "item.ow.primitive_sickle": "Primitive Sickle",
+  "item.ow.maya_blowpipe": "Maya Blowpipe",
+
+  "item.ow.seabug_cockpit": "Seabug Cockpit",
+  "item.ow.seabug_hull": "Seabug Hull",
+  "item.ow.seabug_porthole": "Seabug Porthole",
+
+  "item.ow.seabug": "Seabug",
+  "seabug.needWater": "Please place your SeaBug in water",
+
+  "item.ow.jade_sword": "Jade Sword",
+  "item.ow.jade_pickaxe": "Jade Pickaxe",
+  "item.ow.jade_axe": "Jade Axe",
+  "item.ow.jade_shovel": "Jade Shovel",
+  "item.ow.jade_hoe": "Jade Hoe",
+
+  "item.ow.ruby_sword": "Ruby Sword",
+  "item.ow.ruby_pickaxe": "Ruby Pickaxe",
+  "item.ow.ruby_axe": "Ruby Axe",
+  "item.ow.ruby_shovel": "Ruby Shovel",
+  "item.ow.ruby_hoe": "Ruby Hoe",
+
+  "item.ow.platinum_plated_ruby_sword": "Platinum Plated Ruby Sword",
+
+  "item.ow.raw_tiger": "Raw Tiger",
+  "item.ow.cooked_tiger": "Cooked Tiger",
+  "item.ow.raw_boa": "Raw Boa",
+  "item.ow.cooked_boa": "Cooked Boa",
+  "item.ow.raw_peacock": "Raw Peacock",
+  "item.ow.cooked_peacock": "Cooked Peacock",
+
+  "imageHealth": "Health:",
+  "imageDamages": "Damages:",
+  "imageSpeed": "Speed:",
+  "imageTaming": "Taming:",
+  "sleepingTaming": "Sleepiness:",
+  "imageMaturation": "Maturation",
+  "tooltip.rightClickAlert": "! Fight Back !",
+
+
+
+
+
+  "tiger.page1": "The Tiger is a majestic and feared animal that prowls through the verdant depths of tropical forests. Silent and imposing, it embodies pure power.",
+  "tiger.page2": "When it spots a target, it pounces with lightning agility, latches onto its victim and never lets go.",
+  "tiger.page3": "Its razor-sharp claws can serve to mark its territory on tree trunks. It can also disarm a player with a simple paw swipe, reversing a fight in an instant.",
+  "tiger.page4": "Analysis: Very dangerous animal — to be avoided as much as possible.",
+
+  "boa.page1": "The Boa is a silent predator slithering through dense, humid areas patiently awaiting its prey.",
+  "boa.page2": "Its bite, quick and precise, can inject both venom and poison, weakening its victims within moments.",
+  "boa.page3": "But the danger doesn't stop there—the Boa can also coil around its prey with relentless force, slowly suffocating it until asphyxiation.",
+  "boa.page4": "Analysis: Treacherous animal — formidable for reckless adventurers, but less threatening to seasoned explorers.",
+
+  "peacock.page1": "The Peacock is a bird as graceful as it is spectacular, found in flowery places like meadows or flower forests.",
+  "peacock.page2": "When danger approaches, it unfurls its impressive fan of shimmering feathers. This gesture, both sudden and theatrical, often suffices to drive away predators, troubled by its menacing beauty. But this same display can also serve another purpose entirely—seduction. During mating season, the male proudly struts, hoping to impress a female.",
+  "peacock.page3": "When a pair forms, they may lay an egg, from which a baby peacock will hatch, adding even more grace to the landscape.",
+  "peacock.page4": "Analysis: Peaceful creature — fascinating to observe, but never to be underestimated.",
+
+  "boa.taming.page1": "The Boa is a large and long snake species, feeding exclusively on the flesh of fierce large animals like Raw Tiger, which it usually finds directly on the ground.",
+  "boa.taming.page2": "When it spots one, it slowly approaches, then devours it whenever it feels the urge.",
+  "boa.taming.page3": "However, during taming, if the Boa catches sight of a target, its appetite fades instantly. As long as its eyes remain locked on it, it ignores the meat on the ground completely.",
+  "boa.taming.page4": "Difficulty: 2 / 7",
+
+  "peacock.taming.page1": "It is impossible to tame an adult Peacock. However, it is entirely possible to bond with a baby Peacock from the moment it hatches.",
+  "peacock.taming.page2": "To do so, watch for a male Peacock performing a courtship display near a female.",
+  "peacock.taming.page3": "Feed them both a few Savage Berries to encourage their bonding and trigger the laying of an egg.",
+  "peacock.taming.page4": "Then, be patient: wait for the egg to hatch and the baby Peacock to emerge. Once born, offer it a few Savage Berries to tame it.",
+  "peacock.taming.page5": "Difficulty: 1 / 7",
+
+  "tiger.taming.page1": "Taming a Tiger is a delicate task that requires caution and patience.",
+  "tiger.taming.page2": "To do so, equip yourself with a bow or a Maya blowpipe, along with a supply of tranquilizer arrows or darts to send the beast into a deep sleep. Be careful: the Tiger's sleep fades over time. Make sure not to waste a second once the taming begins.",
+  "tiger.taming.page3": "Once deeply asleep, the Tiger must be fed with meat from dangerous animals, such as Raw Boa.",
+  "tiger.taming.page4": "Difficulty: 4 / 7",
+
+
+
+
+  "enchantment.ow.putrid": "Putrid",
+  "enchantment.ow.vampirism": "Vampirism",
+  "enchantment.ow.lightness": "Lightness",
+  "enchantment.ow.fawns_protection": "Fawns Protection",
+  "enchantment.ow.sliding": "Sliding",
+  "enchantment.ow.venom_protection": "Venom Protection",
+  "enchantment.ow.reptilian_calamity": "Reptilian Calamity",
+  "enchantment.ow.plant_providence": "Plant Providence",
+
+  "tooltip.questMenu": "Daily Quests",
+  "tooltip.nextDailyQuests": "Next quest in: ",
+  "tooltip.questFinished": "Quest Completed",
+  "tooltip.questsUpdated": "| New Quests Available |",
+
+  "quest.babyQuest0": "want",
+  "quest.babyQuest1": "Quete 2 du bébé",
+  "quest.babyQuest2": "Quete 3 du bébé",
+
+  "dailyQuest.0": "Deal 300 damage",
+  "dailyQuest.1": "Absorb 200 damage",
+  "dailyQuest.2": "Regenerate 100 health points",
+  "dailyQuest.3": "Travel 2000 blocks",
+  "dailyQuest.4": "Deal 40 damage in 5 seconds",
+  "dailyQuest.5": "Level up once",
+  "dailyQuest.6": "Eliminate 25 targets",
+  "dailyQuest.7": "Eliminate 5 targets in a single hit",
+  "dailyQuest.8": "Eliminate 10 targets in 5 seconds",
+  "dailyQuest.9": "Inflict 50 damage to more powerful targets",
+  "dailyQuest.10": "Eliminate 8 targets without being hit",
+
+
+  "attacks.title1.TigerEntity": "- Shredding -",
+  "attacks.title2.TigerEntity": "- Bestial Leap -",
+  "attacks.title3.TigerEntity": "- Feline Cruelty -",
+
+  "attacks.title1.BoaEntity": "- Perforation -",
+  "attacks.title2.BoaEntity": "- Envenomation -",
+  "attacks.title3.BoaEntity": "- ? -",
+
+  "attacks.title1.PeacockEntity": "- Pecking -",
+  "attacks.title2.PeacockEntity": "- ? -",
+  "attacks.title3.PeacockEntity": "- ? -",
+
+  "attacks.description1.TigerEntity": "Make your %1$s bite every %2$s seconds, dealing %3$s damage with each bite.",
+  "attacks.description2.TigerEntity": "Make your %1$s leap a long distance every %2$s seconds. If it comes into contact with an entity, it will trap it in its claws and devour it, causing you to dismount.",
+  "attacks.description3.TigerEntity": "Make your %1$s enter an intense rage for %2$s seconds, increasing its resistance by %3$s%, its damage by %4$s%, its size by %5$s%, and its speed by %6$s%, every %7$s minutes.",
+
+  "attacks.description1.BoaEntity": "Make your %1$s bite every %2$s seconds, dealing %3$s damage per bite, with a %4$s%% chance to infect the target with the Poison 3 effect for a duration between %5$s and %6$s seconds.",
+  "attacks.description2.BoaEntity": "Make your %1$s's fangs venomous to apply the Venom I effect to the target, for a duration between %2$s and %3$s minutes, every %4$s seconds.",
+  "attacks.description3.BoaEntity": "?",
+
+  "attacks.description1.PeacockEntity": "Make your %1$s peck every %2$s seconds, dealing %3$s damage with each peak.",
+  "attacks.description2.PeacockEntity": "?",
+  "attacks.description3.PeacockEntity": "?"
+
 }

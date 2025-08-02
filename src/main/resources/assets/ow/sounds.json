@@ -1,0 +1,63 @@
+{
+  "tame_success": { "subtitle": "sounds.ow.tame_success", "sounds": [ "ow:tame_success" ] },
+
+  "spear_lunch": { "subtitle": "sounds.ow.spear_lunch", "sounds": [ "ow:spear_lunch" ] },
+  "spear_hurt": { "subtitle": "sounds.ow.spear_hurt", "sounds": [ "ow:spear_hurt" ] },
+  "primitive_blowpipe_lunch": { "subtitle": "sounds.ow.primitive_blowpipe_lunch", "sounds": [ "ow:primitive_blowpipe_lunch" ] },
+
+  "submarine_move_loop": { "subtitle": "sounds.ow.submarine_move_loop", "sounds": [ "ow:submarine/submarine_move_loop" ] },
+  "submarine_switch_light": { "subtitle": "sounds.ow.submarine_switch_light", "sounds": [ "ow:submarine/submarine_switch_light" ] },
+  "submarine_amelioration": { "subtitle": "sounds.ow.amelioration", "sounds": [ "ow:submarine/submarine_amelioration" ] },
+
+  "tiger_roar": { "subtitle": "sounds.ow.tiger_roar", "sounds": [ "ow:tiger/tiger_roar" ] },
+  "tiger_roar_ultimate": { "subtitle": "sounds.ow.tiger_roar_ultimate", "sounds": [ "ow:tiger/tiger_roar_ultimate" ] },
+  "tiger_jump": { "subtitle": "sounds.ow.tiger_jump", "sounds": [ "ow:tiger/tiger_jump" ] },
+  "tiger_idle": { "subtitle": "sounds.ow.tiger_idle", "sounds": [ "ow:tiger/tiger_hurt" ] },
+  "tiger_idle_2": { "subtitle": "sounds.ow.tiger_idle_2", "sounds": [ "ow:tiger/tiger_idle_2" ] },
+  "tiger_idle_3": {"subtitle": "sounds.ow.tiger_idle_3", "sounds": [{"name": "ow:tiger/tiger_idle_3", "pitch": 0.9}]},
+  "tiger_hurt": { "subtitle": "sounds.ow.tiger_hurt", "sounds": [ "ow:tiger/tiger_idle" ] },
+  "tiger_hurting": { "subtitle": "sounds.ow.tiger_hurting", "sounds": [ "ow:tiger/tiger_hurting" ] },
+  "tiger_sniffing": { "subtitle": "sounds.ow.tiger_sniffing", "sounds": [ "ow:tiger/tiger_sniffing" ] },
+  "tiger3": { "subtitle": "sounds.ow.tiger3", "sounds": [ "ow:tiger/tiger3" ] },
+  "tiger4": { "subtitle": "sounds.ow.tiger4", "sounds": [ "ow:tiger/tiger4" ] },
+  "tiger_snore_1": { "subtitle": "sounds.ow.tiger_snore_1", "sounds": [ "ow:tiger/tiger_snore_1" ] },
+  "tiger_snore_2": { "subtitle": "sounds.ow.tiger_snore_2", "sounds": [ "ow:tiger/tiger_snore_2" ] },
+  "tiger_snore_3": { "subtitle": "sounds.ow.tiger_snore_3", "sounds": [ "ow:tiger/tiger_snore_3" ] },
+
+  "tiger_roar_virus": { "subtitle": "sounds.ow.tiger_roar", "sounds": [ "ow:tiger/skins/tiger_roar_virus" ] },
+  "tiger_jump_virus": { "subtitle": "sounds.ow.tiger_jump", "sounds": [ "ow:tiger/skins/tiger_jump_no_loop_virus" ] },
+  "tiger_idle_virus": { "subtitle": "sounds.ow.tiger_idle", "sounds": [ "ow:tiger/skins/tiger_idle_virus" ] },
+  "tiger_idle_2_virus": { "subtitle": "sounds.ow.tiger_idle_2", "sounds": [ "ow:tiger/skins/tiger_idle_2_virus" ] },
+  "tiger_idle_3_virus": { "subtitle": "sounds.ow.tiger_idle_3", "sounds": [ "ow:tiger/skins/tiger_idle_3_virus" ] },
+  "tiger_hurt_virus": { "subtitle": "sounds.ow.tiger_hurt", "sounds": [ "ow:tiger/skins/tiger_hurt_virus" ] },
+  "tiger_hurting_virus": { "subtitle": "sounds.ow.tiger_hurting", "sounds": [ "ow:tiger/skins/tiger_hurting_virus" ] },
+  "tiger_sniffing_virus": { "subtitle": "sounds.ow.tiger_sniffing", "sounds": [ "ow:tiger/skins/tiger_sniffing_virus" ] },
+  "tiger3_virus": { "subtitle": "sounds.ow.tiger3", "sounds": [ "ow:tiger/skins/tiger3_virus" ] },
+  "tiger4_virus": { "subtitle": "sounds.ow.tiger4", "sounds": [ "ow:tiger/skins/tiger4_virus" ] },
+  "tiger_snore_1_virus": { "subtitle": "sounds.ow.tiger_snore_1", "sounds": [ "ow:tiger/skins/tiger_snore_1_virus" ] },
+  "tiger_snore_2_virus": { "subtitle": "sounds.ow.tiger_snore_2", "sounds": [ "ow:tiger/skins/tiger_snore_2_virus" ] },
+  "tiger_snore_3_virus": { "subtitle": "sounds.ow.tiger_snore_3", "sounds": [ "ow:tiger/skins/tiger_snore_3_virus" ] },
+
+  "boa_idle_1": { "subtitle": "sounds.ow.boa_idle_1", "sounds": [ "ow:boa/boa_idle_1" ] },
+  "boa_idle_2": { "subtitle": "sounds.ow.boa_idle_2", "sounds": [ "ow:boa/boa_idle_2" ] },
+  "boa_idle_3": { "subtitle": "sounds.ow.boa_idle_3", "sounds": [ "ow:boa/boa_idle_3" ] },
+  "boa_idle_4": { "subtitle": "sounds.ow.boa_idle_4", "sounds": [ "ow:boa/boa_idle_4" ] },
+  "boa_hurt": { "subtitle": "sounds.ow.boa_hurt", "sounds": [ "ow:boa/boa_hurt" ] },
+  "boa_hitting": { "subtitle": "sounds.ow.boa_hitting", "sounds": [ "ow:boa/boa_hitting" ] },
+  "boa_slither": { "subtitle": "sounds.ow.boa_slither", "sounds": [ "ow:boa/boa_slither" ] },
+
+  "peacock_idle": { "subtitle": "sounds.ow.peacock_idle", "sounds": [ "ow:peacock/peacock_idle" ] },
+
+  "tiger_shark_crush_mouth": { "subtitle": "sounds.ow.tiger_shark_crush_mouth", "sounds": [ "ow:tiger_shark/tiger_shark_crush_mouth" ] },
+
+
+
+
+
+
+
+
+  "plant_empress_theme": {"category": "music", "sounds": [{"name": "ow:boss/plant_empress_theme", "stream": true, "volume": 0.8, "pitch": 1.0}], "subtitle": "Boss music plays"},
+  "plant_empress_theme_lite": {"category": "music", "sounds": [{"name": "ow:boss/plant_empress_theme_lite", "stream": true, "volume": 1.3, "pitch": 1.0}], "subtitle": "Boss music plays"},
+  "plant_empress_defeated": {"category": "music", "sounds": [{"name": "ow:boss/plant_empress_defeated", "stream": true, "volume": 0.8, "pitch": 1.0}], "subtitle": "Boss music plays"}
+}

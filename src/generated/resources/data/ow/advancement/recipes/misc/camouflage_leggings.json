@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "ow:camouflage_leggings"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tiger_fur": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:tiger_fur"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "leaves": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#minecraft:leaves"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tiger_fur",
+      "leaves"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "ow:camouflage_leggings"
+    ]
+  }
+}

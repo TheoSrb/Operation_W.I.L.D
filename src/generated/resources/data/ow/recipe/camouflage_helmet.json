@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "L": {
+      "tag": "minecraft:leaves"
+    },
+    "T": {
+      "item": "ow:tiger_fur"
+    }
+  },
+  "pattern": [
+    "LLL",
+    "T T",
+    "   "
+  ],
+  "result": {
+    "count": 1,
+    "id": "ow:camouflage_helmet"
+  }
+}

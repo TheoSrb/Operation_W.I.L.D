@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "J": {
+      "item": "ow:jade"
+    }
+  },
+  "pattern": [
+    "JJJ",
+    "J J",
+    "   "
+  ],
+  "result": {
+    "count": 1,
+    "id": "ow:jade_helmet"
+  }
+}

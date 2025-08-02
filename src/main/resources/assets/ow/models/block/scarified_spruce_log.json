@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "north": "ow:block/scarified_spruce_log",
+    "south": "minecraft:block/spruce_log",
+    "east": "minecraft:block/spruce_log",
+    "west": "minecraft:block/spruce_log",
+    "up": "minecraft:block/spruce_log_top",
+    "down": "minecraft:block/spruce_log_top",
+    "particle": "ow:block/scarified_spruce_log"
+  }
+}

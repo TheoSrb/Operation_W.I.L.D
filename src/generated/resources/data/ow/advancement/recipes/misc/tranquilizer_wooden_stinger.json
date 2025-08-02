@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_boa_tong": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:boa_tong"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "ow:tranquilizer_wooden_stinger"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_boa_tong"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "ow:tranquilizer_wooden_stinger"
+    ]
+  }
+}

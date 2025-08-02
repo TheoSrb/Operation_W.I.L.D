@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "north": "ow:block/scarified_acacia_log",
+    "south": "minecraft:block/acacia_log",
+    "east": "minecraft:block/acacia_log",
+    "west": "minecraft:block/acacia_log",
+    "up": "minecraft:block/acacia_log_top",
+    "down": "minecraft:block/acacia_log_top",
+    "particle": "ow:block/scarified_acacia_log"
+  }
+}

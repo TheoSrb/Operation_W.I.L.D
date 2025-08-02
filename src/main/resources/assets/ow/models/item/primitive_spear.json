@@ -1,0 +1,18 @@
+{
+  "parent": "minecraft:item/handheld",
+  "loader": "forge:separate_transforms",
+  "base": {
+    "parent": "ow:item/primitive_spear_3d"
+  },
+  "perspectives": {
+    "gui": {
+      "parent": "ow:item/primitive_spear_2d"
+    },
+    "ground": {
+      "parent": "ow:item/primitive_spear_2d"
+    },
+    "fixed": {
+      "parent": "ow:item/primitive_spear_2d"
+    }
+  }
+}

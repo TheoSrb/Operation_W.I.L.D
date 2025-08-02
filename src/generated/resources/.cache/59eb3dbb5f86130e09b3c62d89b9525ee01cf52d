@@ -1,0 +1,20 @@
+// 1.21	2025-08-02T16:39:13.7119214	Loot Tables
+6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
+5b5fcfe0ecc7270dbed936f1c5d59ab6a543b479 data/ow/loot_table/blocks/deepslate_jade_ore.json
+06da0d1a496415bacabd90b29e9205b4df505f5e data/ow/loot_table/blocks/deepslate_ruby_ore.json
+bd866344effa488fde0a0635a9ea55425b493f5d data/ow/loot_table/blocks/jade_ore.json
+89d10d9f29a2364dfaac3519c5beedeb4a189a20 data/ow/loot_table/blocks/lavender.json
+a3ee4806afdcdbd2b8178c6c470eabd35c93c447 data/ow/loot_table/blocks/peacock_egg.json
+f153345ba251e42d4f98c012380b83a543500022 data/ow/loot_table/blocks/potted_camellia.json
+fa4b923c43bc9c7ea4fd7eded1bd12a288098520 data/ow/loot_table/blocks/potted_lavender.json
+c2d8ddfdd0e44e1f9aa7a13afb1e9ee6a44f4b0e data/ow/loot_table/blocks/ruby_ore.json
+56a3837ed440459bf403d62eb411e013c2f9975f data/ow/loot_table/blocks/saddler.json
+16e4b47c3d8470c38b1425c37665fbfd267b92fc data/ow/loot_table/blocks/savage_berry_bush.json
+b57bc2891c556555eaf16d9fc6e446fc09eb37fa data/ow/loot_table/blocks/scarified_acacia_log.json
+2f2c4fc3dea47ef12560865ad3402cdb638a7c73 data/ow/loot_table/blocks/scarified_birch_log.json
+5bcb9b4d874efde40b84749419b2feb99c19437f data/ow/loot_table/blocks/scarified_cherry_log.json
+b24bafc5cbed78e626c6b2b5c7b9e39a6629d7ab data/ow/loot_table/blocks/scarified_dark_oak_log.json
+859b944e5ab5e91d4f738e8d4f335183bf96b11b data/ow/loot_table/blocks/scarified_jungle_log.json
+4ceb6fb3de16d477a9682b207c13e33edfc3a136 data/ow/loot_table/blocks/scarified_mangrove_log.json
+4571134ec5a3e4ee60bc3dc37fff53bb5611b3ae data/ow/loot_table/blocks/scarified_oak_log.json
+199f85874368768d2b1d81a165893d9e2084d66c data/ow/loot_table/blocks/scarified_spruce_log.json

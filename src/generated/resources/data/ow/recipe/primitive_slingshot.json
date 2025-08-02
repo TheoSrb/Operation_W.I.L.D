@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "*": {
+      "item": "minecraft:stick"
+    },
+    "F": {
+      "item": "ow:plant_fiber"
+    },
+    "S": {
+      "item": "minecraft:string"
+    }
+  },
+  "pattern": [
+    "* *",
+    "SFS",
+    " * "
+  ],
+  "result": {
+    "count": 1,
+    "id": "ow:primitive_slingshot"
+  }
+}
