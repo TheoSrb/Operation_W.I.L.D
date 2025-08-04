@@ -4,11 +4,16 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.PlayerRideableJumping;
+import net.minecraft.world.entity.player.Player;
+import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.custom.vehicle.Submarine;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Gui.class)
@@ -29,8 +34,41 @@ public abstract class SubmarineMixin {
      * @author Tiew_37
      * @reason X
      */
-    @Inject(method = "renderPlayerHealth", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "renderHealthLevel", at = @At("HEAD"), cancellable = true)
     private void cancelPlayerHearts(GuiGraphics guiGraphics, CallbackInfo ci) {
+        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof Submarine) {
+            ci.cancel();
+        }
+    }
+
+    /**
+     * @author Tiew_37
+     * @reason X
+     */
+    @Inject(method = "renderArmorLevel", at = @At("HEAD"), cancellable = true)
+    private void cancelArmorLevel(GuiGraphics guiGraphics, CallbackInfo ci) {
+        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof Submarine) {
+            ci.cancel();
+        }
+    }
+
+    /**
+     * @author Tiew_37
+     * @reason X
+     */
+    @Inject(method = "renderFoodLevel", at = @At("HEAD"), cancellable = true)
+    private void cancelFoodLevel(GuiGraphics guiGraphics, CallbackInfo ci) {
+        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof Submarine) {
+            ci.cancel();
+        }
+    }
+
+    /**
+     * @author Tiew_37
+     * @reason X
+     */
+    @Inject(method = "renderAirLevel", at = @At("HEAD"), cancellable = true)
+    private void cancelAirLevel(GuiGraphics guiGraphics, CallbackInfo ci) {
         if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof Submarine) {
             ci.cancel();
         }
@@ -62,12 +100,25 @@ public abstract class SubmarineMixin {
      * @author Tiew_37
      * @reason X
      */
-    @Inject(method = "renderHotbarAndDecorations", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "renderHotbar", at = @At("HEAD"), cancellable = true)
     private void cancelSlots(GuiGraphics p_333625_, DeltaTracker p_344796_, CallbackInfo ci) {
         if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof Submarine) {
             ci.cancel();
         }
     }
 
+    /**
+     * @author Tiew_37
+     * @reason X
+     */
+    @Inject(method = "renderHearts", at = @At("HEAD"), cancellable = true)
+    private void renderCustomHearts(GuiGraphics guiGraphics, Player player, int x, int y, int height,
+                                    int offsetHeartIndex, float maxHealth, int currentHealth,
+                                    int displayHealth, int absorptionAmount, boolean renderHighlight,
+                                    CallbackInfo ci) {
+        if (player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()) || player.hasEffect(OWEffects.WATER_PRESSURE_EFFECT.getDelegate())) {
+            ci.cancel();
+        }
+    }
 
 }

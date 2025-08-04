@@ -9,6 +9,7 @@
   "key.ow.ultimate_key": "Capacité ultime",
   "key.ow.attacks_info_key": "Informations d'attaques",
   "key.ow.entity_journal_key": "Ouvrir le journal d'entité",
+  "key.categories.operationwild": "Operation Wild",
 
   "tooltip.entity": "Entités",
 
@@ -292,7 +293,7 @@
   "tiger.page3": "Ses griffes acérées peuvent lui servir à marquer son territoire sur les troncs d’arbres. Il peut également désarmer un joueur d’un simple coup de patte, renversant un combat en un instant.",
   "tiger.page4": "Analyse : Animal très dangereux — à éviter autant que possible.",
 
-  "boa.page1": "Le Boa est un prédateur silencieux se faufilant dans les zones humides et denses attendant impatiemment sa proie.",
+  "boa.page1": "Le §lBoa§r est un prédateur silencieux se faufilant dans les zones humides et denses attendant impatiemment sa proie.",
   "boa.page2": "Sa morsure, rapide et précise, peut inoculer à la fois venin et poison, affaiblissant ses victimes en quelques instants.",
   "boa.page3": "Mais le danger ne s’arrête pas là, le Boa peut également s’enrouler autour de sa proie avec une force implacable, l’étouffant lentement, jusqu’à l’asphyxie.",
   "boa.page4": "Analyse : Animal traître — redoutable pour les aventuriers imprudents, mais moins menaçant pour les explorateurs aguerris.",

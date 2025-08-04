@@ -30,7 +30,6 @@ public class OWNetworkHandler {
         registrar.playToServer(BoaVenomPacket.TYPE, BoaVenomPacket.STREAM_CODEC, BoaVenomPacket::handle);
         registrar.playToServer(OpenDailyQuestScreen.TYPE, OpenDailyQuestScreen.STREAM_CODEC, OpenDailyQuestScreen::handle);
         registrar.playToServer(SendUltimateCapacityPacket.TYPE, SendUltimateCapacityPacket.STREAM_CODEC, SendUltimateCapacityPacket::handle);
-        registrar.playToServer(SyncKillDataPacket.TYPE, SyncKillDataPacket.STREAM_CODEC, SyncKillDataPacket::handle);
         registrar.playToServer(CreateNewFilePacket.TYPE, CreateNewFilePacket.STREAM_CODEC, CreateNewFilePacket::handle);
         registrar.playToServer(StopNipsBoaPacket.TYPE, StopNipsBoaPacket.STREAM_CODEC, StopNipsBoaPacket::handle);
         registrar.playToServer(StopShakingSharkPacket.TYPE, StopShakingSharkPacket.STREAM_CODEC, StopShakingSharkPacket::handle);
@@ -44,6 +43,7 @@ public class OWNetworkHandler {
         registrar.playToClient(TigerUtilsSendToClientPacket.TYPE, TigerUtilsSendToClientPacket.STREAM_CODEC, TigerUtilsSendToClientPacket::handle);
         registrar.playToClient(BookNotificationPacket.TYPE, BookNotificationPacket.STREAM_CODEC, BookNotificationPacket::handle);
         registrar.playToClient(TigerSharkDatasSendToClient.TYPE, TigerSharkDatasSendToClient.STREAM_CODEC, TigerSharkDatasSendToClient::handle);
+        registrar.playToClient(SyncKillDataPacket.TYPE, SyncKillDataPacket.STREAM_CODEC, SyncKillDataPacket::handle);
     }
 
     public static void sendToServer(CustomPacketPayload packet) {

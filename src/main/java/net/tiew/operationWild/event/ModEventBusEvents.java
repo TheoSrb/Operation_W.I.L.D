@@ -9,6 +9,7 @@ import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.event.entity.RegisterSpawnPlacementsEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.client.model.*;
@@ -22,6 +23,7 @@ import net.tiew.operationWild.entity.custom.object.SeaBugShard0Entity;
 import net.tiew.operationWild.entity.custom.object.SeaBugShard1Entity;
 import net.tiew.operationWild.entity.custom.object.SeaBugShard2Entity;
 import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.utils.OWKeysBinding;
 
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
@@ -32,6 +34,11 @@ public class ModEventBusEvents {
         event.register(OWKeysBinding.OW_ULTIMATE);
         event.register(OWKeysBinding.OW_ATTACKS_INFO);
         event.register(OWKeysBinding.OW_ENTITY_JOURNAL);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterPayloadHandlers(RegisterPayloadHandlersEvent event) {
+        OWNetworkHandler.register(event);
     }
 
     @SubscribeEvent

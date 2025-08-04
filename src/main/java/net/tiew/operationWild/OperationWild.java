@@ -37,6 +37,7 @@ import net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests;
 import net.tiew.operationWild.gui.HeartRenderHandler;
 import net.tiew.operationWild.item.OWCreativeTabs;
 import net.tiew.operationWild.item.OWItems;
+import net.tiew.operationWild.item.custom.MayaBlowpipeItem;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.screen.OWMenuRegister;
 import net.tiew.operationWild.screen.blocks.SaddlerScreen;
@@ -122,8 +123,8 @@ public class OperationWild {
             LivingEntity target = mob.getTarget();
 
             if (target != null) {
-                if (target.getRootVehicle() instanceof SeaBugEntity seaBug) {
-                    mob.setTarget(seaBug);
+                if (target.getRootVehicle() instanceof SeaBugEntity seaBug && !target.equals(seaBug)) {
+                    event.setNewAboutToBeSetTarget(seaBug);
                     return;
                 }
 

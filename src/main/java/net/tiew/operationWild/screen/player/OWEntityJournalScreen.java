@@ -4,11 +4,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.entity.player.Player;
+import net.tiew.operationWild.entity.OWEntityRegistry;
 import org.lwjgl.glfw.GLFW;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
@@ -19,23 +24,23 @@ import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
 import net.tiew.operationWild.event.ClientEvents;
 
 public class OWEntityJournalScreen extends Screen {
-    private static final ResourceLocation OW_ENTITY_JOURNAL_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_entity_journal_interface_gui.png");
-    private static final ResourceLocation OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_entity_journal_interface_torn_out_gui.png");
-    private static final ResourceLocation OW_ENTITY_JOURNAL_BUTTON_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_entity_journal_button.png");
-    private static final ResourceLocation OW_ENTITY_JOURNAL_TAMING_EXPERIENCE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_entity_journal_interface_taming_experience_gui.png");
-    private static final ResourceLocation OW_ENTITY_JOURNAL_TAMING_EXPERIENCE_FULL_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_entity_journal_interface_taming_experience_full_gui.png");
+    private static final ResourceLocation OW_ENTITY_JOURNAL_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/misc/ow_entity_journal_interface_gui.png");
+    private static final ResourceLocation OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/misc/ow_entity_journal_interface_torn_out_gui.png");
+    private static final ResourceLocation OW_ENTITY_JOURNAL_BUTTON_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/misc/ow_entity_journal_button.png");
+    private static final ResourceLocation OW_ENTITY_JOURNAL_TAMING_EXPERIENCE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/misc/ow_entity_journal_interface_taming_experience_gui.png");
+    private static final ResourceLocation OW_ENTITY_JOURNAL_TAMING_EXPERIENCE_FULL_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/misc/ow_entity_journal_interface_taming_experience_full_gui.png");
     private static final ResourceLocation ARROW_FORWARD = ResourceLocation.fromNamespaceAndPath("minecraft", "widget/page_forward");
     private static final ResourceLocation ARROW_BACKWARD = ResourceLocation.fromNamespaceAndPath("minecraft", "widget/page_backward");
     private static final ResourceLocation ARROW_FORWARD_HIGHLIGHTED = ResourceLocation.fromNamespaceAndPath("minecraft", "widget/page_forward_highlighted");
     private static final ResourceLocation ARROW_BACKWARD_HIGHLIGHTED = ResourceLocation.fromNamespaceAndPath("minecraft", "widget/page_backward_highlighted");
 
-    private static final ResourceLocation BOA_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/boa_page.png");
-    private static final ResourceLocation BOA_TAMING_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/boa_page_taming.png");
-    private static final ResourceLocation PEACOCK_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/peacock_page.png");
-    private static final ResourceLocation PEACOCK_TAMING_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/peacock_page_taming.png");
-    private static final ResourceLocation TIGER_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/tiger_page.png");
-    private static final ResourceLocation TIGER_TAMING_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/tiger_page_taming.png");
-    private static final ResourceLocation TIGER_SHARK_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/tiger_shark_page.png");
+    private static final ResourceLocation BOA_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/description/boa_page.png");
+    private static final ResourceLocation BOA_TAMING_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/taming/boa_page_taming.png");
+    private static final ResourceLocation PEACOCK_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/description/peacock_page.png");
+    private static final ResourceLocation PEACOCK_TAMING_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/taming/peacock_page_taming.png");
+    private static final ResourceLocation TIGER_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/description/tiger_page.png");
+    private static final ResourceLocation TIGER_TAMING_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/taming/tiger_page_taming.png");
+    private static final ResourceLocation TIGER_SHARK_INTERFACE_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/description/tiger_shark_page.png");
 
     private float xMouse;
     private float yMouse;
@@ -57,6 +62,8 @@ public class OWEntityJournalScreen extends Screen {
     public static final int[] THRESHOLDS = {25, 80, 165, 115};
     public static int lastReachedThreshold = -1;
 
+    private static OWEntity owEntity;
+
     public OWEntityJournalScreen() {
         super(Component.literal("Entity Journal"));
         this.minecraft = Minecraft.getInstance();
@@ -64,6 +71,9 @@ public class OWEntityJournalScreen extends Screen {
         this.player = minecraft.player;
     }
 
+    private ResourceLocation getMobDescriptionTexture(String mobName) {
+        return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/description/" + mobName + "_page.png");
+    }
 
     @Override
     protected void init() {
@@ -197,16 +207,6 @@ public class OWEntityJournalScreen extends Screen {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
     }
 
-    private double getMaxTamingExp(String entityType) {
-        switch (entityType) {
-            case "boa": return 80.0;
-            case "peacock": return 25.0;
-            case "tiger": return 165.0;
-            case "tiger_shark": return 115.0;
-            default: return 0;
-        }
-    }
-
     private void createCategory(GuiGraphics graphics, int i, int j, int textX, int textY, String textComponent, boolean colorHighlighted, float scale, String entityType, boolean isTaming) {
         Component text = Component.translatable(textComponent).setStyle(Style.EMPTY.withBold(true));
         int color;
@@ -255,7 +255,7 @@ public class OWEntityJournalScreen extends Screen {
         return 0;
     }
 
-    public int getPageForAnimal(String animal) {
+    public int getTamingPageForAnimal(String animal) {
         switch (animal) {
             case "tiger":
                 return 7;
@@ -270,6 +270,43 @@ public class OWEntityJournalScreen extends Screen {
         }
     }
 
+    public int getDescriptionPageForAnimal(String animal) {
+        switch (animal) {
+            case "tiger":
+                return 4;
+            case "boa":
+                return 2;
+            case "peacock":
+                return 3;
+            case "tiger_shark":
+                return 5;
+            default:
+                return -1;
+        }
+    }
+
+    private double getMaxTamingExp(String entityType) {
+        switch (entityType) {
+            case "boa": return BoaEntity.TAMING_EXPERIENCE;
+            case "peacock": return PeacockEntity.TAMING_EXPERIENCE;
+            case "tiger": return TigerEntity.TAMING_EXPERIENCE;
+            case "tiger_shark": return TigerSharkEntity.TAMING_EXPERIENCE;
+            default: return -1;
+        }
+    }
+
+    public static EntityType<? extends OWEntity> getEntityTypeFromPage(int page) {
+        switch (page) {
+            case 0: return null;
+            case 1: return null;
+            case 2: case 6: return OWEntityRegistry.BOA.get();
+            case 3: case 7: return OWEntityRegistry.PEACOCK.get();
+            case 4: case 8: return OWEntityRegistry.TIGER.get();
+            case 5: return OWEntityRegistry.TIGER_SHARK.get();
+            default: return null;
+        }
+    }
+
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         int i = (this.width - this.imageWidth) / 2;
@@ -278,6 +315,19 @@ public class OWEntityJournalScreen extends Screen {
         this.yMouse = mouseY;
 
         super.render(graphics, mouseX, mouseY, partialTick);
+
+        EntityType<? extends OWEntity> entityType = getEntityTypeFromPage(actualPage);
+        if (entityType != null) {
+            owEntity = entityType.create(this.minecraft.level);
+        }
+
+        if (isMouseInEntityArea(mouseX, mouseY, i + 219, j + 160, 23, 13)) {
+            graphics.blitSprite(ARROW_FORWARD_HIGHLIGHTED, i + 219, j + 160, 23, 13);
+        } else graphics.blitSprite(ARROW_FORWARD, i + 219, j + 160, 23, 13);
+
+        if (isMouseInEntityArea(mouseX, mouseY, i + 13, j + 160, 23, 13)) {
+            graphics.blitSprite(ARROW_BACKWARD_HIGHLIGHTED, i + 13, j + 160, 23, 13);
+        } else graphics.blitSprite(ARROW_BACKWARD, i + 13, j + 160, 23, 13);
 
         createCategory(graphics, i + 25, j - 5, 25, 4, "tooltip.menuBook", actualPage == 1, 0.6f, null, false);
         createCategory(graphics, i + 72, j - 5, 27, 4, "tooltip.entity", actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1], 0.6f, null, false);
@@ -313,25 +363,25 @@ public class OWEntityJournalScreen extends Screen {
 
                 if (currentNotificationThreshold == TigerEntity.TAMING_EXPERIENCE) {
                     graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 285, j + 21 + (17 * adaptSpace("tiger")), 0, 26, 3, 11);
-                    if (actualPage == getPageForAnimal("tiger")) {
+                    if (actualPage == getTamingPageForAnimal("tiger")) {
                         OWEntity.clearNotification();
                     }
                 }
                 if (currentNotificationThreshold == BoaEntity.TAMING_EXPERIENCE) {
                     graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 285, j + 21 + (17 * adaptSpace("boa")), 0, 26, 3, 11);
-                    if (actualPage == getPageForAnimal("boa")) {
+                    if (actualPage == getTamingPageForAnimal("boa")) {
                         OWEntity.clearNotification();
                     }
                 }
                 if (currentNotificationThreshold == PeacockEntity.TAMING_EXPERIENCE) {
                     graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 285, j + 21 + (17 * adaptSpace("peacock")), 0, 26, 3, 11);
-                    if (actualPage == getPageForAnimal("peacock")) {
+                    if (actualPage == getTamingPageForAnimal("peacock")) {
                         OWEntity.clearNotification();
                     }
                 }
                 if (currentNotificationThreshold == TigerSharkEntity.TAMING_EXPERIENCE) {
                     graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 285, j + 21 + (17 * adaptSpace("tiger_shark")), 0, 26, 3, 11);
-                    if (actualPage == getPageForAnimal("tiger_shark")) {
+                    if (actualPage == getTamingPageForAnimal("tiger_shark")) {
                         OWEntity.clearNotification();
                     }
                 }
@@ -346,63 +396,8 @@ public class OWEntityJournalScreen extends Screen {
         graphics.drawString(this.font, String.valueOf(actualPage + " / " + maxPage), i + 113, j - 7, 0xb69d77);
 
 
-        showPage(graphics, i, j, actualPage);
-
-
-
-        if (actualPage == 2 && ClientEvents.hasPlayerKilledOWEntity(player, "boa")) {
-            Component text = Component.literal(String.valueOf(BoaEntity.TAMING_EXPERIENCE)).setStyle(Style.EMPTY.withBold(true));
-            float scale = 0.5f;
-            int textWidth = (int) (this.font.width(text) * scale);
-            int baseX = i + 51;
-
-            int adjustedX = (baseX - textWidth) + 15;
-
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, 1.0f);
-            graphics.drawString(this.font, text, (int) (adjustedX / scale), (int) ((j + 30) / scale), 0xb69d77, false);
-            graphics.pose().popPose();
-        }
-        if (actualPage == 3 && ClientEvents.hasPlayerKilledOWEntity(player, "peacock")) {
-            Component text = Component.literal(String.valueOf(PeacockEntity.TAMING_EXPERIENCE)).setStyle(Style.EMPTY.withBold(true));
-            float scale = 0.5f;
-            int textWidth = (int) (this.font.width(text) * scale);
-            int baseX = i + 51;
-
-            int adjustedX = (baseX - textWidth) + 15;
-
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, 1.0f);
-            graphics.drawString(this.font, text, (int) (adjustedX / scale), (int) ((j + 30) / scale), 0xb69d77, false);
-            graphics.pose().popPose();
-        }
-        if (actualPage == 4 && ClientEvents.hasPlayerKilledOWEntity(player, "tiger")) {
-            Component text = Component.literal(String.valueOf(TigerEntity.TAMING_EXPERIENCE)).setStyle(Style.EMPTY.withBold(true));
-            float scale = 0.5f;
-            int textWidth = (int) (this.font.width(text) * scale);
-            int baseX = i + 52;
-
-            int adjustedX = (baseX - textWidth) + 15;
-
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, 1.0f);
-            graphics.drawString(this.font, text, (int) (adjustedX / scale), (int) ((j + 30) / scale), 0xb69d77, false);
-            graphics.pose().popPose();
-        }
-        if (actualPage == 5 && ClientEvents.hasPlayerKilledOWEntity(player, "tiger_shark")) {
-            Component text = Component.literal(String.valueOf(TigerSharkEntity.TAMING_EXPERIENCE)).setStyle(Style.EMPTY.withBold(true));
-            float scale = 0.5f;
-            int textWidth = (int) (this.font.width(text) * scale);
-            int baseX = i + 52;
-
-            int adjustedX = (baseX - textWidth) + 15;
-
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, 1.0f);
-            graphics.drawString(this.font, text, (int) (adjustedX / scale), (int) ((j + 30) / scale), 0xb69d77, false);
-            graphics.pose().popPose();
-        }
-
+        showPage(graphics, i, j);
+        renderTexts(graphics, i, j);
 
         if (actualPage == miscPage) {
             int fillHeight = (int) (141 * (ClientEvents.tamingExperience / 4000.0));
@@ -428,156 +423,110 @@ public class OWEntityJournalScreen extends Screen {
 
             graphics.pose().popPose();
         }
-
-
-        if (isMouseInEntityArea(mouseX, mouseY, i + 219, j + 160, 23, 13)) {
-            graphics.blitSprite(ARROW_FORWARD_HIGHLIGHTED, i + 219, j + 160, 23, 13);
-        } else graphics.blitSprite(ARROW_FORWARD, i + 219, j + 160, 23, 13);
-
-        if (isMouseInEntityArea(mouseX, mouseY, i + 13, j + 160, 23, 13)) {
-            graphics.blitSprite(ARROW_BACKWARD_HIGHLIGHTED, i + 13, j + 160, 23, 13);
-        } else graphics.blitSprite(ARROW_BACKWARD, i + 13, j + 160, 23, 13);
-
-
-        renderTexts(graphics, i, j);
     }
 
-    private void showPage(GuiGraphics graphics, int i, int j, int actualPage) {
-        if (player == null) return;
-        switch (actualPage) {
-            case 2:
-                if (ClientEvents.hasPlayerKilledOWEntity(player, "boa"))
-                    graphics.blit(BOA_INTERFACE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                else {
-                    graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                    Component text = Component.translatable("tooltip.noDiscovered");
-                    graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
-                }
-                break;
-            case 3:
-                if (ClientEvents.hasPlayerKilledOWEntity(player, "peacock"))
-                    graphics.blit(PEACOCK_INTERFACE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                else {
-                    graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                    Component text = Component.translatable("tooltip.noDiscovered");
-                    graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
-                }
-                break;
-            case 4:
-                if (ClientEvents.hasPlayerKilledOWEntity(player, "tiger"))
-                    graphics.blit(TIGER_INTERFACE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                else {
-                    graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                    Component text = Component.translatable("tooltip.noDiscovered");
-                    graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
-                }
-                break;
-            case 5:
-                if (ClientEvents.hasPlayerKilledOWEntity(player, "tiger_shark"))
-                    graphics.blit(TIGER_SHARK_INTERFACE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                else {
-                    graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                    Component text = Component.translatable("tooltip.noDiscovered");
-                    graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
-                }
-                break;
-            case 6:
-                if (ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE)
-                    graphics.blit(BOA_TAMING_INTERFACE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                else {
-                    graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                    Component text = Component.translatable("tooltip.tamingNoDiscovered");
-                    graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
-                }
-                break;
-            case 7:
-                if (ClientEvents.tamingExperience >= PeacockEntity.TAMING_EXPERIENCE)
-                    graphics.blit(PEACOCK_TAMING_INTERFACE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                else {
-                    graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                    Component text = Component.translatable("tooltip.tamingNoDiscovered");
-                    graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
-                }
-                break;
-            case 8:
-                if (ClientEvents.tamingExperience >= TigerEntity.TAMING_EXPERIENCE)
-                    graphics.blit(TIGER_TAMING_INTERFACE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                else {
-                    graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                    Component text = Component.translatable("tooltip.tamingNoDiscovered");
-                    graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
-                }
-                break;
-            case 9:
-                graphics.blit(OW_ENTITY_JOURNAL_TAMING_EXPERIENCE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-                break;
-            default:
-                Minecraft.getInstance().setScreen(new OWEntityJournalScreen());
-                break;
+    private void showPage(GuiGraphics graphics, int i, int j) {
+        if (player == null || owEntity == null) return;
+
+        ResourceLocation entityId = BuiltInRegistries.ENTITY_TYPE.getKey(owEntity.getType());
+        String entityName = entityId.getPath();
+
+        if (ClientEvents.hasPlayerKilledOWEntity(player, entityName)) {
+            graphics.blit(getMobDescriptionTexture(entityName), i, j, 0, 0, this.imageWidth, this.imageHeight);
+
+
+            Component title = Component.translatable("entity.ow." + entityName).setStyle(Style.EMPTY.withBold(true));
+            Component tamingExperience = Component.literal(String.valueOf(getMaxTamingExp(entityName))).setStyle(Style.EMPTY.withBold(true));
+
+            int centerX = i + (this.imageWidth / 2);
+            int centerY = j + (this.imageHeight / 2);
+            float scale = 0.5f;
+            int textWidth = (int) (this.font.width(tamingExperience) * scale);
+            int baseX = i + 51;
+            int adjustedX = (baseX - textWidth) + 15;
+
+
+            graphics.drawString(this.font, title, (centerX - 62) - (this.font.width(title) / 2), centerY - 80, 0xb69d77, false);
+
+            graphics.pose().pushPose();
+            graphics.pose().scale(scale, scale, 1.0f);
+            graphics.drawString(this.font, tamingExperience, (int) (adjustedX / scale), (int) ((j + 30) / scale), 0xb69d77, false);
+            graphics.pose().popPose();
+
+            showText(graphics, i, j);
+        }
+        else {
+            graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
+            Component text = Component.translatable("tooltip.noDiscovered");
+            graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
         }
     }
 
-    private int renderText(GuiGraphics graphics, String text, int centerX, int xOffset, int startY, int maxWidth, int lineHeight, int color, String[] wordsBold) {
+    private void showText(GuiGraphics graphics, int i, int j) {
+        if (owEntity instanceof BoaEntity) {
+            createParagraph(graphics, i, j, "boa.page1", 55, -5, 115);
+        }
+    }
+
+    private void createParagraph(GuiGraphics graphics, int offsetX, int offsetY, String textTranslation, int xOffset, int yOffset, int maxWidth) {
+        int centerX = offsetX + (this.imageWidth / 2);
+        int centerY = offsetY + (this.imageHeight / 2);
+
+        Component text1 = Component.translatable(textTranslation).setStyle(Style.EMPTY);
+
+        graphics.pose().pushPose();
+        graphics.pose().scale(0.6f, 0.6f, 1.0f);
+
+        int lineHeight = 10;
+        int currentX = centerX - 225;
+        int currentY = centerY - 1;
+
+        currentY = renderText(graphics, text1.getString(), centerX, currentX - xOffset, currentY + yOffset, maxWidth, lineHeight, 0x745f41);
+        currentY += lineHeight * 2;
+
+        graphics.pose().popPose();
+    }
+
+    private int renderText(GuiGraphics graphics, String text, int centerX, int xOffset, int startY, int maxWidth, int lineHeight, int color) {
         String[] words = text.split(" ");
         StringBuilder currentLine = new StringBuilder();
         int currentY = startY;
         int currentX = centerX - xOffset;
-
         for (String word : words) {
-            String testLine = currentLine.length() == 0 ? word : currentLine + " " + word;
-
+            String testLine = currentLine.isEmpty() ? word : currentLine + " " + word;
             if (this.font.width(testLine) > maxWidth) {
-                if (currentLine.length() > 0) {
-                    currentX = renderLineWithFormatting(graphics, currentLine.toString(), centerX - xOffset, currentY, color, wordsBold);
+                if (!currentLine.isEmpty()) {
+                    currentX = renderLineWithFormatting(graphics, currentLine.toString(), centerX - xOffset, currentY, color);
                     currentY += lineHeight;
                     currentLine = new StringBuilder(word);
                 } else {
-                    currentX = renderLineWithFormatting(graphics, word, centerX - xOffset, currentY, color, wordsBold);
+                    currentX = renderLineWithFormatting(graphics, word, centerX - xOffset, currentY, color);
                     currentY += lineHeight;
                 }
             } else {
                 currentLine = new StringBuilder(testLine);
             }
         }
-
-        if (currentLine.length() > 0) {
-            currentX = renderLineWithFormatting(graphics, currentLine.toString(), centerX - xOffset, currentY, color, wordsBold);
+        if (!currentLine.isEmpty()) {
+            currentX = renderLineWithFormatting(graphics, currentLine.toString(), centerX - xOffset, currentY, color);
             currentY += lineHeight;
         }
-
         return currentY;
     }
 
-    private int renderLineWithFormatting(GuiGraphics graphics, String line, int x, int y, int color, String[] wordsBold) {
+    private int renderLineWithFormatting(GuiGraphics graphics, String line, int x, int y, int color) {
         String[] words = line.split(" ");
         int currentX = x;
-
         for (int i = 0; i < words.length; i++) {
             String word = words[i];
-            boolean isBold = false;
-
-            for (String boldWord : wordsBold) {
-                if (word.equals(boldWord)) {
-                    isBold = true;
-                    break;
-                }
-            }
-
-            if (isBold) {
-                Component boldWord = Component.literal(word).setStyle(Style.EMPTY.withBold(true));
-                graphics.drawString(this.font, boldWord, currentX, y, color, false);
-                currentX += this.font.width(boldWord);
-            } else {
-                graphics.drawString(this.font, word, currentX, y, color, false);
-                currentX += this.font.width(word);
-            }
+            graphics.drawString(this.font, word, currentX, y, color, false);
+            currentX += this.font.width(word);
 
             if (i < words.length - 1) {
                 graphics.drawString(this.font, " ", currentX, y, color, false);
                 currentX += this.font.width(" ");
             }
         }
-
         return currentX;
     }
 
@@ -586,9 +535,6 @@ public class OWEntityJournalScreen extends Screen {
         int j = (this.height - this.imageHeight) / 2;
         int centerX = offsetX + (this.imageWidth / 2);
         int centerY = offsetY + (this.imageHeight / 2);
-
-        boolean isEnglish = Minecraft.getInstance().getLanguageManager().getSelected().equals("en_us");
-        boolean isFrench = Minecraft.getInstance().getLanguageManager().getSelected().equals("fr_fr");
 
         if (actualPage == 1) {
             Component title = Component.literal("Operation").setStyle(Style.EMPTY.withBold(true));
@@ -616,51 +562,18 @@ public class OWEntityJournalScreen extends Screen {
             int currentY = centerY - 1;
 
             graphics.drawString(this.font, text2, (int) (((centerX - 46) - ((float) this.font.width(text2) / 2)) / scale2), (int) ((centerY + 10) / scale2), 0xb69d77, false);
-            currentY = renderText(graphics, text3.getString(), centerX, -75, currentY - 50, 115, lineHeight, 0xb69d77, new String[] {});
+            currentY = renderText(graphics, text3.getString(), centerX, -75, currentY - 50, 115, lineHeight, 0xb69d77);
 
 
             graphics.pose().popPose();
         }
-        else if (actualPage == 2 && ClientEvents.hasPlayerKilledOWEntity(player, "boa")) {
-            Component title = Component.translatable("entity.ow.boa").setStyle(Style.EMPTY.withBold(true));
+        /*else if (actualPage == 2 && ClientEvents.hasPlayerKilledOWEntity(player, "boa")) {
 
-            Component text1 = Component.translatable("boa.page1").setStyle(Style.EMPTY);
-            Component text2 = Component.translatable("boa.page2").setStyle(Style.EMPTY);
-            Component text3 = Component.translatable("boa.page3").setStyle(Style.EMPTY);
-            Component text4 = Component.translatable("boa.page4").setStyle(Style.EMPTY);
-
-            graphics.drawString(this.font, title, (centerX - 62) - (this.font.width(title) / 2), centerY - 80, 0xb69d77, false);
-
-            graphics.pose().pushPose();
-            graphics.pose().scale(0.6f, 0.6f, 1.0f);
-
-            int maxLengthByLine = 175;
-            int lineHeight = 10;
-            int currentY = centerY - 1;
-
-            String[] boldWords = {"Boa"};
-
-            currentY = renderText(graphics, text1.getString(), centerX, -40, currentY - 6, 115, lineHeight, 0x745f41, boldWords);
-            currentY += lineHeight * 2;
-
-            currentY = renderText(graphics, text2.getString(), centerX, 20, currentY + (isEnglish ? 100 : 90), maxLengthByLine, lineHeight, 0x745f41, boldWords);
-            currentY += lineHeight * 2;
-
-            currentY = renderText(graphics, text3.getString(), centerX, -180, currentY - 265, maxLengthByLine, lineHeight, 0x745f41, boldWords);
-            currentY += lineHeight * 2;
-
-            currentY = renderText(graphics, text4.getString(), centerX, -180, currentY, maxLengthByLine, lineHeight, 0x745f41, boldWords);
-
-            graphics.pose().popPose();
         } else if (actualPage == 3 && ClientEvents.hasPlayerKilledOWEntity(player, "peacock")) {
-            Component title = Component.translatable("entity.ow.peacock").setStyle(Style.EMPTY.withBold(true));
-
             Component text1 = Component.translatable("peacock.page1").setStyle(Style.EMPTY);
             Component text2 = Component.translatable("peacock.page2").setStyle(Style.EMPTY);
             Component text3 = Component.translatable("peacock.page3").setStyle(Style.EMPTY);
             Component text4 = Component.translatable("peacock.page4").setStyle(Style.EMPTY);
-
-            graphics.drawString(this.font, title, (centerX - 62) - (this.font.width(title) / 2), centerY - 80, 0xb69d77, false);
 
             graphics.pose().pushPose();
             graphics.pose().scale(0.6f, 0.6f, 1.0f);
@@ -684,14 +597,10 @@ public class OWEntityJournalScreen extends Screen {
 
             graphics.pose().popPose();
         } else if (actualPage == 4 && ClientEvents.hasPlayerKilledOWEntity(player, "tiger")) {
-            Component title = Component.translatable("entity.ow.tiger").setStyle(Style.EMPTY.withBold(true));
-
             Component text1 = Component.translatable("tiger.page1").setStyle(Style.EMPTY);
             Component text2 = Component.translatable("tiger.page2").setStyle(Style.EMPTY);
             Component text3 = Component.translatable("tiger.page3").setStyle(Style.EMPTY);
             Component text4 = Component.translatable("tiger.page4").setStyle(Style.EMPTY);
-
-            graphics.drawString(this.font, title, (centerX - 62) - (this.font.width(title) / 2), centerY - 80, 0xb69d77, false);
 
             graphics.pose().pushPose();
             graphics.pose().scale(0.6f, 0.6f, 1.0f);
@@ -715,15 +624,11 @@ public class OWEntityJournalScreen extends Screen {
 
             graphics.pose().popPose();
         } else if (actualPage == 5 && ClientEvents.hasPlayerKilledOWEntity(player, "tiger_shark")) {
-            Component title = Component.translatable("entity.ow.tiger_shark").setStyle(Style.EMPTY.withBold(true));
-
             Component text1 = Component.translatable("tiger_shark.page1").setStyle(Style.EMPTY);
             Component text2 = Component.translatable("tiger_shark.page2").setStyle(Style.EMPTY);
             Component text3 = Component.translatable("tiger_shark.page3").setStyle(Style.EMPTY);
             Component text4 = Component.translatable("tiger_shark.page4").setStyle(Style.EMPTY);
             Component text5 = Component.translatable("tiger_shark.page5").setStyle(Style.EMPTY);
-
-            graphics.drawString(this.font, title, (centerX - 62) - (this.font.width(title) / 2), centerY - 80, 0xb69d77, false);
 
             graphics.pose().pushPose();
             graphics.pose().scale(0.6f, 0.6f, 1.0f);
@@ -732,7 +637,7 @@ public class OWEntityJournalScreen extends Screen {
             int lineHeight = 10;
             int currentY = centerY - 1;
 
-            String[] boldWords = {"Requin", "Tigre", "Requins", "Tigres", "Stations", "Immergées"};
+            String[] boldWords = {"Requin", "Tigre", "Requins", "Tigres", "Stations", "Immergées.", "Saumon"};
 
             currentY = renderText(graphics, text1.getString(), centerX, 22, currentY - 5, maxLengthByLine - 10, lineHeight, 0x745f41, boldWords);
             currentY += lineHeight * 2;
@@ -749,9 +654,9 @@ public class OWEntityJournalScreen extends Screen {
             currentY = renderText(graphics, text5.getString(), centerX,  -180, currentY - 10, maxLengthByLine, lineHeight, 0x745f41, boldWords);
 
             graphics.pose().popPose();
-        } else if (actualPage == 6 && ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) {
+        }*/ else if (actualPage == 6 && ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) {
             Component title = Component.translatable("tooltip.tamingOf").setStyle(Style.EMPTY.withBold(true)).append(" ")
-                    .append(Component.translatable("entity.ow.boa").setStyle(Style.EMPTY.withBold(true)));
+                    .append(Component.translatable("owEntity.ow.boa").setStyle(Style.EMPTY.withBold(true)));
 
             Component text1 = Component.translatable("boa.taming.page1").setStyle(Style.EMPTY);
             Component text2 = Component.translatable("boa.taming.page2").setStyle(Style.EMPTY);
@@ -774,25 +679,20 @@ public class OWEntityJournalScreen extends Screen {
             int lineHeight = 10;
             int currentY = centerY - 1;
 
-            String[] boldWords = {"Boa", "Tigre", "Cru,", "Tiger,", "Raw"};
-
-            currentY = renderText(graphics, text1.getString(), centerX, 15, currentY - 5, 150, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text1.getString(), centerX, 15, currentY - 5, 150, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text2.getString(), centerX, -180, currentY - 125, maxLengthByLine - 20, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text2.getString(), centerX, -180, currentY - 125, maxLengthByLine - 20, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text3.getString(), centerX, -180, currentY, maxLengthByLine - 75, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text3.getString(), centerX, -180, currentY, maxLengthByLine - 75, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text4.getString(), centerX,  -180, currentY + 35, maxLengthByLine, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text4.getString(), centerX,  -180, currentY + 35, maxLengthByLine, lineHeight, 0x745f41);
 
             graphics.pose().popPose();
 
         } else if (actualPage == 7 && ClientEvents.tamingExperience >= PeacockEntity.TAMING_EXPERIENCE) {
-            Component title = Component.translatable("tooltip.tamingOf").setStyle(Style.EMPTY.withBold(true)).append(" ")
-                    .append(Component.translatable("entity.ow.boa").setStyle(Style.EMPTY.withBold(true)));
-
             Component text1 = Component.translatable("peacock.taming.page1").setStyle(Style.EMPTY);
             Component text2 = Component.translatable("peacock.taming.page2").setStyle(Style.EMPTY);
             Component text3 = Component.translatable("peacock.taming.page3").setStyle(Style.EMPTY);
@@ -815,27 +715,26 @@ public class OWEntityJournalScreen extends Screen {
             int lineHeight = 10;
             int currentY = centerY - 1;
 
-            String[] boldWords = {"Paon", "Peacock", "Baies", "Sauvages"};
 
-            currentY = renderText(graphics, text1.getString(), centerX, 15, currentY - 5, 80, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text1.getString(), centerX, 15, currentY - 5, 80, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text2.getString(), centerX, 15, currentY + 15, 90, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text2.getString(), centerX, 15, currentY + 15, 90, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text3.getString(), centerX, -180, currentY - 255, 150, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text3.getString(), centerX, -180, currentY - 255, 150, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text4.getString(), centerX,  -180, currentY - 7, maxLengthByLine, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text4.getString(), centerX,  -180, currentY - 7, maxLengthByLine, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text5.getString(), centerX,  -180, currentY + 87, maxLengthByLine, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text5.getString(), centerX,  -180, currentY + 87, maxLengthByLine, lineHeight, 0x745f41);
 
             graphics.pose().popPose();
 
         } else if (actualPage == 8 && ClientEvents.tamingExperience >= TigerEntity.TAMING_EXPERIENCE) {
             Component title = Component.translatable("tooltip.tamingOf").setStyle(Style.EMPTY.withBold(true)).append(" ")
-                    .append(Component.translatable("entity.ow.tiger").setStyle(Style.EMPTY.withBold(true)));
+                    .append(Component.translatable("owEntity.ow.tiger").setStyle(Style.EMPTY.withBold(true)));
 
             Component text1 = Component.translatable("tiger.taming.page1").setStyle(Style.EMPTY);
             Component text2 = Component.translatable("tiger.taming.page2").setStyle(Style.EMPTY);
@@ -858,18 +757,17 @@ public class OWEntityJournalScreen extends Screen {
             int lineHeight = 10;
             int currentY = centerY - 1;
 
-            String[] boldWords = {"Tigre", "Tiger", "Boa", "Cru.", "Raw", "Boa."};
 
-            currentY = renderText(graphics, text1.getString(), centerX, 15, currentY - 5, maxLengthByLine, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text1.getString(), centerX, 15, currentY - 5, maxLengthByLine, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text2.getString(), centerX, 15, currentY - 5, maxLengthByLine - 20, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text2.getString(), centerX, 15, currentY - 5, maxLengthByLine - 20, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text3.getString(), centerX, -180, currentY - 90, maxLengthByLine - 20, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text3.getString(), centerX, -180, currentY - 90, maxLengthByLine - 20, lineHeight, 0x745f41);
             currentY += lineHeight * 2;
 
-            currentY = renderText(graphics, text4.getString(), centerX,  -180, currentY + 35, maxLengthByLine, lineHeight, 0x745f41, boldWords);
+            currentY = renderText(graphics, text4.getString(), centerX,  -180, currentY + 35, maxLengthByLine, lineHeight, 0x745f41);
 
             graphics.pose().popPose();
 
@@ -879,7 +777,7 @@ public class OWEntityJournalScreen extends Screen {
             int currentY = centerY - 11;
             graphics.pose().pushPose();
             graphics.pose().scale(0.8f, 0.8f, 1.0f);
-            currentY = renderText(graphics, text.getString(), centerX, -75, currentY - 50, 115, lineHeight, 0xb69d77, new String[]{"expérience", "taming experience"});
+            currentY = renderText(graphics, text.getString(), centerX, -75, currentY - 50, 115, lineHeight, 0xb69d77);
             graphics.pose().popPose();
         }
     }

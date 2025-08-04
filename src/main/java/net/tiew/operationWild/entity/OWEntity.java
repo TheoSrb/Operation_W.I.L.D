@@ -1109,6 +1109,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     @Override
     public boolean hurt(DamageSource damageSource, float amount) {
         boolean willTakeDamage = super.hurt(damageSource, amount);
+
         if (willTakeDamage) {
             if (damageSource.getDirectEntity() instanceof TranquilizerArrow sedativeArrow) {
                 if (isSleeping()) return false;
@@ -1143,7 +1144,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         if (isQuestInProgress(DailyQuestRegistry.quest2) && !this.level().isClientSide()) {
             this.executeQuestProgression((byte) 1);
         }
-        return super.hurt(damageSource, amount);
+
+        return willTakeDamage;
     }
 
     public void spawnBabyOfParents(OWEntity partner1, OWEntity partner2, boolean spawnTwins) {

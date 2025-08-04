@@ -11,6 +11,7 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -147,43 +148,6 @@ public class MayaBlowpipeItem extends ProjectileWeaponItem {
     public int getDefaultProjectileRange() {
         return 20;
     }
-
-    /*@Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-
-            private static final HumanoidModel.ArmPose BLOWPIPE_POSE = HumanoidModel.ArmPose.create(
-                    "primitive_blowpipe",
-                    false,
-                    (model, entity, arm) -> {
-                        model.rightArm.xRot = -1.5f;
-                        model.rightArm.yRot = -0.4f;
-                        model.leftArm.xRot = -1.5f;
-                        model.leftArm.yRot = 0.4f;
-
-                        if (entity.getUseItem().getItem() instanceof MayaBlowpipeItem) {
-                            float chargeProgress = MayaBlowpipeItem.getChargeProgress(entity.getUseItem(), entity);
-
-                            model.rightArm.xRot += chargeProgress * 0.1F;
-                            model.leftArm.xRot += chargeProgress * 0.1F;
-                            model.rightArm.yRot += chargeProgress * 0.05F;
-                            model.leftArm.yRot -= chargeProgress * 0.05F;
-                        }
-                    }
-            );
-
-            @Override
-            public HumanoidModel.ArmPose getArmPose(LivingEntity entity, InteractionHand hand, ItemStack stack) {
-                if (entity.isUsingItem() && entity.getUseItem() == stack) {
-                    return BLOWPIPE_POSE;
-                }
-                return HumanoidModel.ArmPose.EMPTY;
-            }
-        });
-
-        NeoForge.EVENT_BUS.register(new BlowpipeRenderHandler());
-        NeoForge.EVENT_BUS.register(new BlowpipeSpeedHandler());
-    }*/
 
     @OnlyIn(Dist.CLIENT)
     public static class BlowpipeRenderHandler {

@@ -10,32 +10,19 @@ import net.tiew.operationWild.utils.OWKeysBinding;
 public class OWBookNotifyOverlay {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/ow_book.png");
 
-    public static int $$0 = 50;
-    public static boolean canDecrease = false;
-
     public static void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight) {
+        long currentTime = System.currentTimeMillis();
 
         int x = screenWidth / 2;
         int y = screenHeight / 2;
 
-        if (canDecrease) {
-            $$0--;
-            if ($$0 <= 50) {
-                canDecrease = false;
-            }
-        } else {
-            $$0++;
-            if ($$0 >= 100) {
-                canDecrease = true;
-            }
-        }
-
-
-        float opacity = $$0 / 100.0f;
+        float oscillation = (float)(Math.sin(currentTime * 0.008) * 37.5 + 75);
+        float opacity = Math.min(1.0f, oscillation / 100.0f);
+        int verticalOffset = (int)(oscillation / 10);
 
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, opacity);
-        guiGraphics.blit(TEXTURE, x - 235, ((y + 88) - ($$0 / 10)), 0, 0, 40, 40, 40, 40);
-        guiGraphics.drawString(Minecraft.getInstance().font, OWKeysBinding.OW_ENTITY_JOURNAL.getTranslatedKeyMessage(), x - 235 + 20 - (Minecraft.getInstance().font.width(OWKeysBinding.OW_ENTITY_JOURNAL.getTranslatedKeyMessage()) / 2), (y + 88 - 15) - ($$0 / 10), 0xFFFFFF);
+        guiGraphics.blit(TEXTURE, x - 235, ((y + 88) - verticalOffset), 0, 0, 40, 40, 40, 40);
+        guiGraphics.drawString(Minecraft.getInstance().font, OWKeysBinding.OW_ENTITY_JOURNAL.getTranslatedKeyMessage(), x - 235 + 20 - (Minecraft.getInstance().font.width(OWKeysBinding.OW_ENTITY_JOURNAL.getTranslatedKeyMessage()) / 2), (y + 88 - 15) - verticalOffset, 0xFFFFFF);
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
     }
 }

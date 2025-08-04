@@ -1173,4 +1173,3 @@ public class ClientEvents {
         return Minecraft.getInstance().options.getCameraType().isFirstPerson() && player.getVehicle() instanceof Submarine submarine && submarine.isLightOn() && submarine.isInWater() && player.isInWater() && !submarine.isOff();
     }
 }
-
