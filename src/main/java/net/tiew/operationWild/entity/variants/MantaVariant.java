@@ -3,14 +3,14 @@ package net.tiew.operationWild.entity.variants;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public enum WalrusVariant {
+public enum MantaVariant {
     DEFAULT(0);
 
-    public static final WalrusVariant[] BY_ID = Arrays.stream(values()).sorted(Comparator.comparingInt(WalrusVariant::getId)).toArray(WalrusVariant[]::new);
+    public static final MantaVariant[] BY_ID = Arrays.stream(values()).sorted(Comparator.comparingInt(MantaVariant::getId)).toArray(MantaVariant[]::new);
 
     private final int id;
 
-    WalrusVariant(int id) {
+    MantaVariant(int id) {
         this.id = id;
     }
 
@@ -18,7 +18,7 @@ public enum WalrusVariant {
         return id;
     }
 
-    public static WalrusVariant byId(int id) {
+    public static MantaVariant byId(int id) {
         return BY_ID[id % BY_ID.length];
     }
 }

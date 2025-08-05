@@ -38,10 +38,19 @@ public class OWEntityJournalScreen extends Screen {
             OWEntityRegistry.BOA.get(),
             OWEntityRegistry.TIGER.get(),
             OWEntityRegistry.PEACOCK.get(),
-            OWEntityRegistry.TIGER_SHARK.get()
+            OWEntityRegistry.TIGER_SHARK.get(),
+            OWEntityRegistry.HYENA.get(),
+            OWEntityRegistry.KODIAK.get(),
+            OWEntityRegistry.RED_PANDA.get(),
+            OWEntityRegistry.CHAMELEON.get(),
+            OWEntityRegistry.JELLYFISH.get(),
+            OWEntityRegistry.MANTA.get(),
+            OWEntityRegistry.WALRUS.get()
     ));
     public static final double[] THRESHOLDS = {
-            TigerEntity.TAMING_EXPERIENCE, TigerSharkEntity.TAMING_EXPERIENCE, BoaEntity.TAMING_EXPERIENCE, PeacockEntity.TAMING_EXPERIENCE
+            TigerEntity.TAMING_EXPERIENCE, TigerSharkEntity.TAMING_EXPERIENCE, BoaEntity.TAMING_EXPERIENCE, PeacockEntity.TAMING_EXPERIENCE,
+            HyenaEntity.TAMING_EXPERIENCE, KodiakEntity.TAMING_EXPERIENCE, RedPandaEntity.TAMING_EXPERIENCE, ChameleonEntity.TAMING_EXPERIENCE,
+            JellyfishEntity.TAMING_EXPERIENCE, MantaEntity.TAMING_EXPERIENCE, WalrusEntity.TAMING_EXPERIENCE
     };
 
     private float xMouse;
@@ -55,6 +64,8 @@ public class OWEntityJournalScreen extends Screen {
     private int[] descriptionPages = {2, owEntities.size() + 2 - 1};
     private int[] tamingPages = {owEntities.size() + 2, maxPage - 1};
     private int miscPage = maxPage;
+
+    private int spacement = 15;
 
     private final Player player;
     public static List<String> newEntitiesDiscovered = new ArrayList<>();
@@ -141,6 +152,13 @@ public class OWEntityJournalScreen extends Screen {
             case "peacock": return PeacockEntity.TAMING_EXPERIENCE;
             case "tiger": return TigerEntity.TAMING_EXPERIENCE;
             case "tiger_shark": return TigerSharkEntity.TAMING_EXPERIENCE;
+            case "hyena": return HyenaEntity.TAMING_EXPERIENCE;
+            case "kodiak": return KodiakEntity.TAMING_EXPERIENCE;
+            case "red_panda": return RedPandaEntity.TAMING_EXPERIENCE;
+            case "chameleon": return ChameleonEntity.TAMING_EXPERIENCE;
+            case "jellyfish": return JellyfishEntity.TAMING_EXPERIENCE;
+            case "manta": return MantaEntity.TAMING_EXPERIENCE;
+            case "walrus": return WalrusEntity.TAMING_EXPERIENCE;
             default: return -1;
         }
     }
@@ -244,7 +262,7 @@ public class OWEntityJournalScreen extends Screen {
 
 
         for (int $$0 = 0; $$0 < owEntities.size(); $$0++) {
-            if (isMouseInEntityArea(mouseX, mouseY, i + 254, j + (20 * ($$0 + 1)), 38, 13)) {
+            if (isMouseInEntityArea(mouseX, mouseY, i + 254, j + (spacement * ($$0 + 1)), 38, 13)) {
                 int descriptionPage = $$0 + 2;
                 int tamingPage = $$0 + 2 + ((maxPage - 2) / 2);
 
@@ -335,9 +353,15 @@ public class OWEntityJournalScreen extends Screen {
                 String entityName = entityId.getPath();
 
                 boolean isTigerShark = entityName.contains("tiger_shark");
+                boolean isChameleon = entityName.contains("chameleon");
+                boolean isRedPanda = entityName.contains("red_panda");
+                boolean isManta = entityName.contains("manta");
 
-                if (isTigerShark && ClientEvents.hasPlayerKilledOWEntity(player, "tiger_shark")) createCategory(false, graphics, i + 254, j + (20 * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.435f, entityName, false);
-                else createCategory(false, graphics, i + 254, j + (20 * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.6f, entityName, false);
+                if (isTigerShark && ClientEvents.hasPlayerKilledOWEntity(player, "tiger_shark")) createCategory(false, graphics, i + 254, j + (spacement * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.43f, entityName, false);
+                else if (isChameleon && ClientEvents.hasPlayerKilledOWEntity(player, "chameleon")) createCategory(false, graphics, i + 254, j + (spacement * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.535f, entityName, false);
+                else if (isRedPanda && ClientEvents.hasPlayerKilledOWEntity(player, "red_panda")) createCategory(false, graphics, i + 254, j + (spacement * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.43f, entityName, false);
+                else if (isManta && ClientEvents.hasPlayerKilledOWEntity(player, "manta")) createCategory(false, graphics, i + 254, j + (spacement * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.45f, entityName, false);
+                else createCategory(false, graphics, i + 254, j + (spacement * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.6f, entityName, false);
             }
         }
         else if (isInTamingCategory) {
@@ -346,12 +370,16 @@ public class OWEntityJournalScreen extends Screen {
                 String entityName = entityId.getPath();
 
                 boolean isTigerShark = entityName.contains("tiger_shark");
+                boolean isChameleon = entityName.contains("chameleon");
+                boolean isRedPanda = entityName.contains("red_panda");
+                boolean isManta = entityName.contains("manta");
 
-                if (isTigerShark) {
-                    createCategory(false, graphics, i + 254, j + (20 * ($0 + 1)), 5, 5, ClientEvents.tamingExperience >= getMaxTamingExp(entityName) ? "entity.ow." + entityName : "?", actualPage == getTamingPageForAnimal(entityName), ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE ? 0.435f : 0.6f, entityName, true);
-                } else {
-                    createCategory(false, graphics, i + 254, j + (20 * ($0 + 1)), 5, 5, ClientEvents.tamingExperience >= getMaxTamingExp(entityName) ? "entity.ow." + entityName : "?", actualPage == getTamingPageForAnimal(entityName), 0.6f, entityName, true);
-                }
+                if (isTigerShark) createCategory(false, graphics, i + 254, j + (spacement * ($0 + 1)), 5, 5, ClientEvents.tamingExperience >= getMaxTamingExp(entityName) ? "entity.ow." + entityName : "?", actualPage == getTamingPageForAnimal(entityName), ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE ? 0.43f : 0.6f, entityName, true);
+                else if (isChameleon) createCategory(false, graphics, i + 254, j + (spacement * ($0 + 1)), 5, 5, ClientEvents.tamingExperience >= getMaxTamingExp(entityName) ? "entity.ow." + entityName : "?", actualPage == getTamingPageForAnimal(entityName), ClientEvents.tamingExperience >= ChameleonEntity.TAMING_EXPERIENCE ? 0.535f : 0.6f, entityName, true);
+                else if (isRedPanda) createCategory(false, graphics, i + 254, j + (spacement * ($0 + 1)), 5, 5, ClientEvents.tamingExperience >= getMaxTamingExp(entityName) ? "entity.ow." + entityName : "?", actualPage == getTamingPageForAnimal(entityName), ClientEvents.tamingExperience >= RedPandaEntity.TAMING_EXPERIENCE ? 0.43f : 0.6f, entityName, true);
+                else if (isManta) createCategory(false, graphics, i + 254, j + (spacement * ($0 + 1)), 5, 5, ClientEvents.tamingExperience >= getMaxTamingExp(entityName) ? "entity.ow." + entityName : "?", actualPage == getTamingPageForAnimal(entityName), ClientEvents.tamingExperience >= MantaEntity.TAMING_EXPERIENCE ? 0.45f : 0.6f, entityName, true);
+                else createCategory(false, graphics, i + 254, j + (spacement * ($0 + 1)), 5, 5, ClientEvents.tamingExperience >= getMaxTamingExp(entityName) ? "entity.ow." + entityName : "?", actualPage == getTamingPageForAnimal(entityName), 0.6f, entityName, true);
+
             }
         }
 
@@ -359,7 +387,7 @@ public class OWEntityJournalScreen extends Screen {
             for (int idx = 0; idx < newEntitiesDiscovered.size(); idx++) {
                 String entity = newEntitiesDiscovered.get(idx);
                 if (actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1]) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 294, j + 21 + (20 * adaptSpace(entity)), 0, 26, 3, 11);
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 294, j + 21 + (spacement * adaptSpace(entity)), 0, 26, 3, 11);
                 } else {
                     graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 105, j - 10 + (idx * 15), 0, 26, 3, 11);
                 }
@@ -371,7 +399,7 @@ public class OWEntityJournalScreen extends Screen {
             for (int idx = 0; idx < newEntitiesTamed.size(); idx++) {
                 String entity = newEntitiesTamed.get(idx);
                 if (actualPage >= tamingPages[0] && actualPage <= tamingPages[1]) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 294, j + 21 + (20 * adaptSpace(entity)), 0, 26, 3, 11);
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 294, j + 21 + (spacement * adaptSpace(entity)), 0, 26, 3, 11);
                 } else {
                     graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 176, j - 10, 0, 26, 3, 11);
                 }
@@ -489,6 +517,12 @@ public class OWEntityJournalScreen extends Screen {
                         case "tiger" -> "tooltip.tamingOf";
                         case "tiger_shark" -> "tooltip.tamingOf";
                         case "peacock" -> "tooltip.tamingOf";
+                        case "hyena" -> "tooltip.tamingOfA";
+                        case "kodiak" -> "tooltip.tamingOf";
+                        case "red_panda" -> "tooltip.tamingOf";
+                        case "chameleon" -> "tooltip.tamingOf";
+                        case "jellyfish" -> "tooltip.tamingOfA";
+                        case "manta" -> "tooltip.tamingOfA";
                         case "walrus" -> "tooltip.tamingOf";
                         default -> "tooltip.tamingOf";
                     };
@@ -498,13 +532,21 @@ public class OWEntityJournalScreen extends Screen {
                             .append(Component.translatable("entity.ow." + entityName).setStyle(Style.EMPTY.withBold(true)));
 
                     boolean isTigerShark = entityName.equals("tiger_shark");
+                    boolean isHyena = entityName.equals("hyena");
+                    boolean isChameleon = entityName.equals("chameleon");
+                    boolean isKodiak = entityName.equals("kodiak");
+                    boolean isWalrus = entityName.equals("walrus");
+                    boolean isManta = entityName.equals("manta");
+                    boolean isJellyfish = entityName.equals("jellyfish");
+                    boolean isRedPanda = entityName.equals("red_panda");
 
                     int centerX = i + (this.imageWidth / 2);
                     int centerY = j + (this.imageHeight / 2);
                     float scale = 1.0f;
 
-
-                    if (isTigerShark) scale = 0.8f;
+                    if (isTigerShark || isManta || isRedPanda) scale = 0.7f;
+                    if (isHyena || isChameleon || isJellyfish) scale = 0.8f;
+                    if (isKodiak || isWalrus) scale = 0.9f;
 
 
                     graphics.pose().pushPose();

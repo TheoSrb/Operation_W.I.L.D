@@ -152,6 +152,13 @@
 
   "tooltip.unknownEntity": "Unknown",
   "entity.ow.tiger": "Tiger",
+  "entity.ow.walrus": "Walrus",
+  "entity.ow.manta": "Manta",
+  "entity.ow.jellyfish": "Jellyfish",
+  "entity.ow.chameleon": "Chameleon",
+  "entity.ow.red_panda": "Red Panda",
+  "entity.ow.kodiak": "Kodiak",
+  "entity.ow.hyena": "Hyena",
   "entity.ow.tiger_shark": "Tiger Shark",
   "entity.ow.seabug": "SeaBug",
   "entity.ow.seabug_shard_0": "Seabug Fragment",

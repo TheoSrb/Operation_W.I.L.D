@@ -154,6 +154,13 @@
 
   "tooltip.unknownEntity": "Inconnue",
   "entity.ow.tiger": "Tigre",
+  "entity.ow.walrus": "Morse",
+  "entity.ow.manta": "Raie Manta",
+  "entity.ow.jellyfish": "Méduse",
+  "entity.ow.chameleon": "Caméléon",
+  "entity.ow.red_panda": "Panda Roux",
+  "entity.ow.kodiak": "Kodiak",
+  "entity.ow.hyena": "Hyène",
   "entity.ow.tiger_shark": "Requin Tigre",
   "entity.ow.seabug": "SeaBug",
   "entity.ow.seabug_shard_0": "Fragment de Seabug",

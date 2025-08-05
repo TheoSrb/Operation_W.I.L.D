@@ -41,6 +41,13 @@ public class ModEventBusEvents {
     @SubscribeEvent
     public static void registerLayer(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(TigerModel.LAYER_LOCATION, TigerModel::createBodyLayer);
+        event.registerLayerDefinition(WalrusModel.LAYER_LOCATION, WalrusModel::createBodyLayer);
+        event.registerLayerDefinition(MantaModel.LAYER_LOCATION, MantaModel::createBodyLayer);
+        event.registerLayerDefinition(JellyfishModel.LAYER_LOCATION, JellyfishModel::createBodyLayer);
+        event.registerLayerDefinition(ChameleonModel.LAYER_LOCATION, ChameleonModel::createBodyLayer);
+        event.registerLayerDefinition(RedPandaModel.LAYER_LOCATION, RedPandaModel::createBodyLayer);
+        event.registerLayerDefinition(KodiakModel.LAYER_LOCATION, KodiakModel::createBodyLayer);
+        event.registerLayerDefinition(HyenaModel.LAYER_LOCATION, HyenaModel::createBodyLayer);
         event.registerLayerDefinition(SeaBugModel.LAYER_LOCATION, SeaBugModel::createBodyLayer);
         event.registerLayerDefinition(PlantEmpressModel.LAYER_LOCATION, PlantEmpressModel::createBodyLayer);
         event.registerLayerDefinition(BoaModel.LAYER_LOCATION, BoaModel::createBodyLayer);
@@ -62,6 +69,13 @@ public class ModEventBusEvents {
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(OWEntityRegistry.TIGER.get(), TigerEntity.createAttributes().build());
+        event.put(OWEntityRegistry.WALRUS.get(), WalrusEntity.createAttributes().build());
+        event.put(OWEntityRegistry.MANTA.get(), MantaEntity.createAttributes().build());
+        event.put(OWEntityRegistry.JELLYFISH.get(), JellyfishEntity.createAttributes().build());
+        event.put(OWEntityRegistry.CHAMELEON.get(), ChameleonEntity.createAttributes().build());
+        event.put(OWEntityRegistry.RED_PANDA.get(), RedPandaEntity.createAttributes().build());
+        event.put(OWEntityRegistry.KODIAK.get(), KodiakEntity.createAttributes().build());
+        event.put(OWEntityRegistry.HYENA.get(), HyenaEntity.createAttributes().build());
         event.put(OWEntityRegistry.SEABUG.get(), SeaBugEntity.createAttributes().build());
         event.put(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressEntity.createAttributes().build());
         event.put(OWEntityRegistry.BOA.get(), BoaEntity.createAttributes().build());

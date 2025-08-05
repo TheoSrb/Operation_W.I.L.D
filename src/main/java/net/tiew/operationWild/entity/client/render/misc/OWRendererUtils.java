@@ -297,6 +297,27 @@ public class OWRendererUtils {
             case "TigerSharkEntity" -> {
                 return "entity.ow.tiger_shark";
             }
+            case "ChameleonEntity" -> {
+                return "entity.ow.chameleon";
+            }
+            case "HyenaEntity" -> {
+                return "entity.ow.hyena";
+            }
+            case "JellyfishEntity" -> {
+                return "entity.ow.jellyfish";
+            }
+            case "KodiakEntity" -> {
+                return "entity.ow.kodiak";
+            }
+            case "MantaEntity" -> {
+                return "entity.ow.manta";
+            }
+            case "RedPandaEntity" -> {
+                return "entity.ow.red_panda";
+            }
+            case "WalrusEntity" -> {
+                return "entity.ow.walrus";
+            }
             default -> {
                 return "entity.ow.tiger";
             }
