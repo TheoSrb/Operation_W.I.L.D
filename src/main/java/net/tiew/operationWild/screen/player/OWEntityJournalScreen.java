@@ -45,7 +45,9 @@ public class OWEntityJournalScreen extends Screen {
             OWEntityRegistry.PEACOCK.get(),
             OWEntityRegistry.TIGER_SHARK.get()
     ));
-    public static final int[] THRESHOLDS = {25, 80, 165, 115};
+    public static final double[] THRESHOLDS = {
+            TigerEntity.TAMING_EXPERIENCE, TigerSharkEntity.TAMING_EXPERIENCE, BoaEntity.TAMING_EXPERIENCE, PeacockEntity.TAMING_EXPERIENCE
+    };
 
     private float xMouse;
     private float yMouse;
@@ -53,11 +55,11 @@ public class OWEntityJournalScreen extends Screen {
     protected int imageHeight = 193;
 
     private int actualPage = 1;
-    private int maxPage = 9;
+    private int maxPage = 10;
 
     private int[] descriptionPages = {2, 5};
-    private int[] tamingPages = {6, 8};
-    private int miscPage = 9;
+    private int[] tamingPages = {6, 9};
+    private int miscPage = 10;
 
     private final Player player;
     public static List<String> newEntitiesDiscovered = new ArrayList<>();
@@ -77,6 +79,72 @@ public class OWEntityJournalScreen extends Screen {
 
     private ResourceLocation getMobDescriptionTexture(String mobName) {
         return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/description/" + mobName + "_page.png");
+    }
+
+    private ResourceLocation getMobTamingTexture(String mobName) {
+        return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/taming/" + mobName + "_page_taming.png");
+    }
+
+    private int adaptSpace(String entityType) {
+        switch (entityType) {
+            case "boa": return 0;
+            case "peacock": return 1;
+            case "tiger": return 2;
+            case "tiger_shark": return 3;
+        }
+        return 0;
+    }
+
+    public int getTamingPageForAnimal(String animal) {
+        switch (animal) {
+            case "tiger":
+                return 8;
+            case "boa":
+                return 6;
+            case "peacock":
+                return 7;
+            case "tiger_shark":
+                return 9;
+            default:
+                return -1;
+        }
+    }
+
+    public int getDescriptionPageForAnimal(String animal) {
+        switch (animal) {
+            case "boa":
+                return 2;
+            case "peacock":
+                return 3;
+            case "tiger":
+                return 4;
+            case "tiger_shark":
+                return 5;
+            default:
+                return -1;
+        }
+    }
+
+    private double getMaxTamingExp(String entityType) {
+        switch (entityType) {
+            case "boa": return BoaEntity.TAMING_EXPERIENCE;
+            case "peacock": return PeacockEntity.TAMING_EXPERIENCE;
+            case "tiger": return TigerEntity.TAMING_EXPERIENCE;
+            case "tiger_shark": return TigerSharkEntity.TAMING_EXPERIENCE;
+            default: return -1;
+        }
+    }
+
+    public static EntityType<? extends OWEntity> getEntityTypeFromPage(int page) {
+        switch (page) {
+            case 0: return null;
+            case 1: return null;
+            case 2: case 6: return OWEntityRegistry.BOA.get();
+            case 3: case 7: return OWEntityRegistry.PEACOCK.get();
+            case 4: case 8: return OWEntityRegistry.TIGER.get();
+            case 5: case 9: return OWEntityRegistry.TIGER_SHARK.get();
+            default: return null;
+        }
     }
 
     @Override
@@ -180,28 +248,28 @@ public class OWEntityJournalScreen extends Screen {
             if (actualPage == 2 || actualPage == 6 || actualPage == miscPage) return false;
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            actualPage = (actualPage >= 2 && actualPage <= 5) ? 2 : 6;
+            actualPage = (actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1]) ? 2 : 6;
             return true;
         }
         if (isMouseInEntityArea(mouseX, mouseY, i + 254, j + 40, 38, 13)) {
             if (actualPage == 3 || actualPage == 7 || actualPage == miscPage) return false;
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            actualPage = (actualPage >= 2 && actualPage <= 5) ? 3 : 7;;
+            actualPage = (actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1]) ? 3 : 7;;
             return true;
         }
         if (isMouseInEntityArea(mouseX, mouseY, i + 254, j + 60, 38, 13)) {
             if (actualPage == 4 || actualPage == 8 || actualPage == miscPage) return false;
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            actualPage = (actualPage >= 2 && actualPage <= 5) ? 4 : 8;;
+            actualPage = (actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1]) ? 4 : 8;;
             return true;
         }
         if (isMouseInEntityArea(mouseX, mouseY, i + 254, j + 80, 38, 13)) {
-            if (actualPage == 5 || actualPage == 8 || actualPage == miscPage) return false;
+            if (actualPage == 5 || actualPage == 9 || actualPage == miscPage) return false;
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            actualPage = (actualPage >= 2 && actualPage <= 5) ? 5 : 9;;
+            actualPage = (actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1]) ? 5 : 9;
             return true;
         }
 
@@ -253,68 +321,6 @@ public class OWEntityJournalScreen extends Screen {
         graphics.pose().popPose();
     }
 
-    private int adaptSpace(String entityType) {
-        switch (entityType) {
-            case "boa": return 0;
-            case "peacock": return 1;
-            case "tiger": return 2;
-            case "tiger_shark": return 3;
-        }
-        return 0;
-    }
-
-    public int getTamingPageForAnimal(String animal) {
-        switch (animal) {
-            case "tiger":
-                return 7;
-            case "boa":
-                return 5;
-            case "peacock":
-                return 6;
-            case "tiger_shark":
-                return 8;
-            default:
-                return -1;
-        }
-    }
-
-    public int getDescriptionPageForAnimal(String animal) {
-        switch (animal) {
-            case "boa":
-                return 2;
-            case "peacock":
-                return 3;
-            case "tiger":
-                return 4;
-            case "tiger_shark":
-                return 5;
-            default:
-                return -1;
-        }
-    }
-
-    private double getMaxTamingExp(String entityType) {
-        switch (entityType) {
-            case "boa": return BoaEntity.TAMING_EXPERIENCE;
-            case "peacock": return PeacockEntity.TAMING_EXPERIENCE;
-            case "tiger": return TigerEntity.TAMING_EXPERIENCE;
-            case "tiger_shark": return TigerSharkEntity.TAMING_EXPERIENCE;
-            default: return -1;
-        }
-    }
-
-    public static EntityType<? extends OWEntity> getEntityTypeFromPage(int page) {
-        switch (page) {
-            case 0: return null;
-            case 1: return null;
-            case 2: case 6: return OWEntityRegistry.BOA.get();
-            case 3: case 7: return OWEntityRegistry.PEACOCK.get();
-            case 4: case 8: return OWEntityRegistry.TIGER.get();
-            case 5: return OWEntityRegistry.TIGER_SHARK.get();
-            default: return null;
-        }
-    }
-
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         int i = (this.width - this.imageWidth) / 2;
@@ -349,10 +355,26 @@ public class OWEntityJournalScreen extends Screen {
             }
         }
         else if (isInTamingCategory) {
-            createCategory(false, graphics, i + 254, j + 20, 15, 5, ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE ? "entity.ow.boa" : "?", actualPage == 5, 0.6f, "boa", true);
-            createCategory(false, graphics, i + 254, j + 37, 18, 5, ClientEvents.tamingExperience >= PeacockEntity.TAMING_EXPERIENCE ? "entity.ow.peacock" : "?", actualPage == 6, 0.6f, "peacock", true);
-            createCategory(false, graphics, i + 254, j + 54, 19, 4, ClientEvents.tamingExperience >= TigerEntity.TAMING_EXPERIENCE ? "entity.ow.tiger" : "?", actualPage == 7, 0.6f, "tiger", true);
-            createCategory(false, graphics, i + 254, j + 71, 19, 4, ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE ? "entity.ow.tiger_shark" : "?", actualPage == 8, 0.435f, "tiger_shark", true);
+            for (int $0 = 0; $0 < owEntities.size(); $0++) {
+                ResourceLocation entityId = BuiltInRegistries.ENTITY_TYPE.getKey(owEntities.get($0));
+                String entityName = entityId.getPath();
+
+                double requiredTamingExp = switch (entityName) {
+                    case "boa" -> BoaEntity.TAMING_EXPERIENCE;
+                    case "tiger" -> TigerEntity.TAMING_EXPERIENCE;
+                    case "peacock" -> PeacockEntity.TAMING_EXPERIENCE;
+                    case "tiger_shark" -> TigerSharkEntity.TAMING_EXPERIENCE;
+                    default -> 0;
+                };
+
+                boolean isTigerShark = entityName.contains("tiger_shark");
+
+                if (isTigerShark) {
+                    createCategory(false, graphics, i + 254, j + (20 * ($0 + 1)), 5, 5, ClientEvents.tamingExperience >= requiredTamingExp ? "entity.ow." + entityName : "?", actualPage == getTamingPageForAnimal(entityName), ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE ? 0.435f : 0.6f, entityName, true);
+                } else {
+                    createCategory(false, graphics, i + 254, j + (20 * ($0 + 1)), 5, 5, ClientEvents.tamingExperience >= requiredTamingExp ? "entity.ow." + entityName : "?", actualPage == getTamingPageForAnimal(entityName), 0.6f, entityName, true);
+                }
+            }
         }
 
         if (!newEntitiesDiscovered.isEmpty()) {
@@ -405,8 +427,10 @@ public class OWEntityJournalScreen extends Screen {
 
         graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
 
-        graphics.drawString(this.font, String.valueOf(actualPage + " / " + maxPage), i + 113, j - 7, 0xb69d77);
-
+        graphics.pose().pushPose();
+        graphics.pose().scale(0.8f, 0.8f, 0.8f);
+        graphics.drawString(this.font, String.valueOf(actualPage + " / " + maxPage), (int) ((i + 115) / 0.8f), (int) ((j - 7) / 0.8f), 0xb69d77);
+        graphics.pose().popPose();
 
         showPage(graphics, i, j);
         renderTexts(graphics, i, j);
@@ -446,45 +470,100 @@ public class OWEntityJournalScreen extends Screen {
     }
 
     private void showPage(GuiGraphics graphics, int i, int j) {
-        if (player == null || owEntity == null || actualPage == 1 || actualPage == miscPage) return;
+        if (player == null || owEntity == null || actualPage == 1) return;
 
         ResourceLocation entityId = BuiltInRegistries.ENTITY_TYPE.getKey(owEntity.getType());
         String entityName = entityId.getPath();
 
-        if (ClientEvents.hasPlayerKilledOWEntity(player, entityName)) {
-            graphics.blit(getMobDescriptionTexture(entityName), i, j, 0, 0, this.imageWidth, this.imageHeight);
+        boolean isInDescriptionCategory = actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1];
+        boolean isInTamingCategory = actualPage >= tamingPages[0] && actualPage <= tamingPages[1];
+
+        double requiredTamingExp = switch (entityName) {
+            case "boa" -> BoaEntity.TAMING_EXPERIENCE;
+            case "tiger" -> TigerEntity.TAMING_EXPERIENCE;
+            case "peacock" -> PeacockEntity.TAMING_EXPERIENCE;
+            case "tiger_shark" -> TigerSharkEntity.TAMING_EXPERIENCE;
+            default -> 0;
+        };
+
+        if (actualPage != miscPage) {
+            if (isInDescriptionCategory) {
+                if (ClientEvents.hasPlayerKilledOWEntity(player, entityName)) {
+                    graphics.blit(getMobDescriptionTexture(entityName), i, j, 0, 0, this.imageWidth, this.imageHeight);
 
 
-            Component title = Component.translatable("entity.ow." + entityName).setStyle(Style.EMPTY.withBold(true));
-            Component tamingExperience = Component.literal(String.valueOf(getMaxTamingExp(entityName))).setStyle(Style.EMPTY.withBold(true));
+                    Component title = Component.translatable("entity.ow." + entityName).setStyle(Style.EMPTY.withBold(true));
+                    Component tamingExperience = Component.literal(String.valueOf(getMaxTamingExp(entityName))).setStyle(Style.EMPTY.withBold(true));
 
-            int centerX = i + (this.imageWidth / 2);
-            int centerY = j + (this.imageHeight / 2);
-            float scale = 0.5f;
-            int textWidth = (int) (this.font.width(tamingExperience) * scale);
-            int baseX = i + 51;
-            int adjustedX = (baseX - textWidth) + 15;
+                    int centerX = i + (this.imageWidth / 2);
+                    int centerY = j + (this.imageHeight / 2);
+                    float scale = 0.5f;
+                    int textWidth = (int) (this.font.width(tamingExperience) * scale);
+                    int baseX = i + 51;
+                    int adjustedX = (baseX - textWidth) + 15;
 
 
-            graphics.drawString(this.font, title, (centerX - 62) - (this.font.width(title) / 2), centerY - 80, 0xb69d77, false);
+                    graphics.drawString(this.font, title, (centerX - 62) - (this.font.width(title) / 2), centerY - 80, 0xb69d77, false);
 
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, 1.0f);
-            graphics.drawString(this.font, tamingExperience, (int) (adjustedX / scale), (int) ((j + 30) / scale), 0xb69d77, false);
-            graphics.pose().popPose();
+                    graphics.pose().pushPose();
+                    graphics.pose().scale(scale, scale, 1.0f);
+                    graphics.drawString(this.font, tamingExperience, (int) (adjustedX / scale), (int) ((j + 30) / scale), 0xb69d77, false);
+                    graphics.pose().popPose();
 
-            showText(graphics, i, j);
-        }
-        else {
-            graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-            Component text = Component.translatable("tooltip.noDiscovered");
-            graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
-        }
+                    showText(graphics, i, j);
+                } else {
+                    graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
+                    Component text = Component.translatable("tooltip.noDiscovered");
+                    graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
+                }
+            }
+
+            if (isInTamingCategory) {
+                if (ClientEvents.tamingExperience >= requiredTamingExp) {
+                    graphics.blit(getMobTamingTexture(entityName), i, j, 0, 0, this.imageWidth, this.imageHeight);
+
+                    String tooltip = switch (entityName) {
+                        case "boa" -> "tooltip.tamingOf";
+                        case "tiger" -> "tooltip.tamingOf";
+                        case "tiger_shark" -> "tooltip.tamingOf";
+                        case "peacock" -> "tooltip.tamingOf";
+                        default -> "tooltip.tamingOf";
+                    };
+
+                    Component title = Component.translatable(tooltip).setStyle(Style.EMPTY.withBold(true))
+                            .append(" ")
+                            .append(Component.translatable("entity.ow." + entityName).setStyle(Style.EMPTY.withBold(true)));
+
+                    int centerX = i + (this.imageWidth / 2);
+                    int centerY = j + (this.imageHeight / 2);
+                    float scale = 0.5f;
+
+                    graphics.drawString(this.font, title, (centerX - 62) - (this.font.width(title) / 2), centerY - 80, 0xb69d77, false);
+
+                    graphics.pose().pushPose();
+                    graphics.pose().scale(scale, scale, 1.0f);
+                    graphics.pose().popPose();
+
+                    showText(graphics, i, j);
+                } else {
+                    graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_TORN_OUT_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
+                    Component text = Component.translatable("tooltip.tamingNoDiscovered");
+                    graphics.drawString(this.font, text, i + 128 - (this.font.width(text) / 2), j + 70, 0xb69d77, false);
+                }
+            }
+        } else graphics.blit(OW_ENTITY_JOURNAL_TAMING_EXPERIENCE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
     }
 
     private void showText(GuiGraphics graphics, int i, int j) {
-        if (owEntity instanceof BoaEntity) {
-            createParagraph(graphics, i, j, "boa.page1", 55, -5, 115);
+        boolean isInTamingCategory = actualPage >= tamingPages[0] && actualPage <= tamingPages[1];
+        if (!isInTamingCategory) {
+            if (owEntity instanceof BoaEntity) {
+                createParagraph(graphics, i, j, "boa.page1", 55, -5, 115);
+            }
+        } else {
+            if (owEntity instanceof BoaEntity) {
+                createParagraph(graphics, i, j, "boa.taming.page1", 55, -5, 115);
+            }
         }
     }
 
@@ -674,7 +753,7 @@ public class OWEntityJournalScreen extends Screen {
             currentY = renderText(graphics, text5.getString(), centerX,  -180, currentY - 10, maxLengthByLine, lineHeight, 0x745f41, boldWords);
 
             graphics.pose().popPose();
-        }*/ else if (actualPage == 6 && ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) {
+        } else if (actualPage == 6 && ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) {
             Component title = Component.translatable("tooltip.tamingOf").setStyle(Style.EMPTY.withBold(true)).append(" ")
                     .append(Component.translatable("owEntity.ow.boa").setStyle(Style.EMPTY.withBold(true)));
 
@@ -791,7 +870,7 @@ public class OWEntityJournalScreen extends Screen {
 
             graphics.pose().popPose();
 
-        } else if (actualPage == miscPage) {
+        }*/ else if (actualPage == miscPage) {
             Component text = Component.translatable("tooltip.tamingExperienceDescribe").setStyle(Style.EMPTY);
             int lineHeight = 10;
             int currentY = centerY - 11;

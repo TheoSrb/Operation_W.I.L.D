@@ -917,16 +917,6 @@ public class ClientEvents {
         entity.setDeltaMovement(newMotion);
     }
 
-    @EventBusSubscriber(modid = OperationWild.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
-    public static class ClientForgeEvents {
-        @SubscribeEvent
-        public static void onKeyRegister(RegisterKeyMappingsEvent event) {
-            event.register(OWKeysBinding.OW_ULTIMATE);
-            event.register(OWKeysBinding.OW_ATTACKS_INFO);
-            event.register(OWKeysBinding.OW_ENTITY_JOURNAL);
-        }
-    }
-
     private static boolean isPlayerBeingShaken(Player player) {
         return player.level().getEntitiesOfClass(TigerSharkEntity.class,
                         player.getBoundingBox().inflate(5.0))
