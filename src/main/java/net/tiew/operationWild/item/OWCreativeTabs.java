@@ -22,9 +22,16 @@ public class OWCreativeTabs {
                     .displayItems(((itemDisplayParameters, output) -> {
 
                         output.accept(OWItems.BOA_SPAWN_EGG.get());
+                        output.accept(OWItems.CHAMELEON_SPAWN_EGG.get());
+                        output.accept(OWItems.HYENA_SPAWN_EGG.get());
+                        output.accept(OWItems.JELLYFISH_SPAWN_EGG.get());
+                        output.accept(OWItems.KODIAK_SPAWN_EGG.get());
+                        output.accept(OWItems.MANTA_SPAWN_EGG.get());
                         output.accept(OWItems.PEACOCK_SPAWN_EGG.get());
-                        output.accept(OWItems.TIGER_SPAWN_EGG.get());
+                        output.accept(OWItems.RED_PANDA_SPAWN_EGG.get());
                         output.accept(OWItems.TIGER_SHARK_SPAWN_EGG.get());
+                        output.accept(OWItems.TIGER_SPAWN_EGG.get());
+                        output.accept(OWItems.WALRUS_SPAWN_EGG.get());
                         output.accept(OWItems.PLANT_FIBER.get());
                         output.accept(OWItems.LAVENDER_BOUQUET.get());
                         output.accept(OWItems.JADE.get());

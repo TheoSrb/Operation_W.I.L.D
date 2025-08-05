@@ -182,6 +182,13 @@
   "item.ow.tiger_shark_spawn_egg": "Oeuf d'apparition de requin tigre",
   "item.ow.boa_spawn_egg": "Oeuf d'apparition de boa",
   "item.ow.peacock_spawn_egg": "Oeuf d'apparition de paon",
+  "item.ow.walrus_spawn_egg": "Oeuf d'apparition de morse",
+  "item.ow.chameleon_spawn_egg": "Oeuf d'apparition de caméléon",
+  "item.ow.hyena_spawn_egg": "Oeuf d'apparition de hyène",
+  "item.ow.red_panda_spawn_egg": "Oeuf d'apparition de panda roux",
+  "item.ow.manta_spawn_egg": "Oeuf d'apparition de raie manta",
+  "item.ow.kodiak_spawn_egg": "Oeuf d'apparition de kodiak",
+  "item.ow.jellyfish_spawn_egg": "Oeuf d'apparition de méduse",
 
   "block.ow.lavender": "Lavande",
   "block.ow.camellia": "Camélia",

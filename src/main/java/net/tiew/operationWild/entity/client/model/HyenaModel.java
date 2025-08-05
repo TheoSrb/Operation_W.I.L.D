@@ -88,6 +88,9 @@ public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
+
+		this.head.xRot = (float) Math.toRadians(20);
+
         this.applyHeadRotation(netHeadYaw, headPitch);
     }
 

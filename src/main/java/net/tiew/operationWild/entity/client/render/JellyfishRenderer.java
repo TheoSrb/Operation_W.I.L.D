@@ -2,10 +2,14 @@ package net.tiew.operationWild.entity.client.render;
 
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -17,6 +21,7 @@ import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
 import net.tiew.operationWild.entity.variants.JellyfishVariant;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishModel<JellyfishEntity>> {
     private static final Map<JellyfishVariant, ResourceLocation> LOCATION_BY_VARIANT = Util.make(Maps.newEnumMap(JellyfishVariant.class), map -> {
@@ -32,6 +37,35 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
     @Override
     public ResourceLocation getTextureLocation(JellyfishEntity jellyfish) {
         return LOCATION_BY_VARIANT.get(jellyfish.getVariant());
+    }
+
+    @Override
+    public RenderType getRenderType(JellyfishEntity jellyfish, boolean bodyVisible, boolean translucent, boolean glowing) {
+        ResourceLocation texture = this.getTextureLocation(jellyfish);
+        return RenderType.entityTranslucent(texture);
+    }
+
+    private void renderWithOpacity(JellyfishEntity jellyfish, boolean glowLayer, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, float opacity) {
+        float ageInTicks = jellyfish.tickCount + partialTicks;
+        float jellyfishYaw = jellyfish.getViewYRot(partialTicks);
+        float jellyfishPitch = jellyfish.getViewXRot(partialTicks);
+
+        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+        poseStack.translate(0.0D, -1.5D, 0.0D);
+
+        opacity = Math.max(0.0f, Math.min(1.0f, opacity));
+        int alpha = (int)(opacity * 255.0f);
+        int color = 0xFFFFFF | (alpha << 24);
+
+        ResourceLocation texture = this.getTextureLocation(jellyfish);
+        RenderType renderType = glowLayer ? RenderType.eyes(texture) : RenderType.entityTranslucent(texture);
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+
+        this.getModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY, color);
+
+        float speed = (float) jellyfish.getDeltaMovement().length() * 10f;
+        float limbSwing = ageInTicks * 0.6662f;
+        this.model.setupAnim(jellyfish, limbSwing, speed, ageInTicks, jellyfishYaw, jellyfishPitch);
     }
 
     @Override
@@ -51,7 +85,7 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
             poseStack.scale(scale, scale, scale);
         }
 
-        super.render(jellyfish, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
+        this.renderWithOpacity(jellyfish, true, partialTicks, poseStack, bufferSource, packedLight, 0.75f);
         poseStack.popPose();
 
         if (!jellyfish.isInResurrection()) {

@@ -1,4 +1,4 @@
-// 1.21	2025-08-02T18:31:24.1421327	Item Models: ow
+// 1.21	2025-08-05T21:01:54.327585	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 b0d713a4fcaeee3e3f8c82f5ae5b8d42ccfcf53e assets/ow/models/item/boa_saddle.json
@@ -49,10 +49,12 @@ fab65a437d5443e130ef221c1ab7315dd8ea8171 assets/ow/models/item/camouflage_leggin
 8fd0e895b4ab105c5a21a34a9cec7daaebf44716 assets/ow/models/item/camouflage_leggings_netherite_trim.json
 9a4b95df7e7d07e662d92400fa9f5a7d92ffac9b assets/ow/models/item/camouflage_leggings_quartz_trim.json
 be0ab2dc0a07b69332d05173c4792eca447ffd28 assets/ow/models/item/camouflage_leggings_redstone_trim.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/chameleon_spawn_egg.json
 adcbfb5ceaa0d9a0a15bae4f5e815587d9060969 assets/ow/models/item/cooked_boa.json
 6564e282637e35db612bc5413e96c9b4b2701b78 assets/ow/models/item/cooked_peacock.json
 46f2291693f07717944a650567537d58a388e1c1 assets/ow/models/item/cooked_tiger.json
 42d75c0f4fdb3644d423606361201b2a8b41f77c assets/ow/models/item/fawn_tooth.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/hyena_spawn_egg.json
 b69eeee753a6359c8db1bbfa417adb15e820c348 assets/ow/models/item/jade.json
 87aca1381e079a50f6f081841c74981e7a073ec1 assets/ow/models/item/jade_axe.json
 fbdb90272bf022892c9cac11da66272abae6ad1e assets/ow/models/item/jade_boots.json
@@ -103,8 +105,11 @@ d2ef57d2c19fc294361ed586a8bebc427a4a70e1 assets/ow/models/item/jade_leggings_red
 192f86fb5e96c73f3cd5abca6a4e4ab5a2b57553 assets/ow/models/item/jade_pickaxe.json
 329edb5cf347ec99712a279bc558537f31e460dc assets/ow/models/item/jade_shovel.json
 517bff5cd41ea8b41e167ff630bedd9aac0a437d assets/ow/models/item/jade_sword.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/jellyfish_spawn_egg.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/kodiak_spawn_egg.json
 1ebdb833b170887c5e8cc6f4c60041866cfd435b assets/ow/models/item/lavender.json
 2f2c77bb01e9cfde96dce90c8443bac2830e566c assets/ow/models/item/lavender_bouquet.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/manta_spawn_egg.json
 14ba2d933a14ae784d51244b62dac6d9ebb2e038 assets/ow/models/item/maya_blowpipe.json
 372d9ad2d39f64664c0f0362cf401cc536c7fc07 assets/ow/models/item/medal_0.json
 41ad72e4d465aec64d751126ed1f211cf496eed3 assets/ow/models/item/medal_1.json
@@ -122,6 +127,7 @@ cf0da41eddad5fdc7274ce98c21f1154bf7fd8f9 assets/ow/models/item/primitive_slingsh
 413a92d38c675f445e3365ab199ecc04e0984888 assets/ow/models/item/raw_boa.json
 15aec4a17b5c5aee2196e2896f4ee4f27bd0a6f7 assets/ow/models/item/raw_peacock.json
 2ab97d8714d03bf0dd01e0b389afce3291e57564 assets/ow/models/item/raw_tiger.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/red_panda_spawn_egg.json
 631fe6de1f6f37fd26ed721962a2adde65852b56 assets/ow/models/item/resurrection_amulet.json
 1cd1f606c8bbfd678e4cedcb902ac9d761488c55 assets/ow/models/item/ruby.json
 7d30899902964633abd759d0b832b526608735aa assets/ow/models/item/ruby_axe.json
@@ -144,4 +150,5 @@ e89e5016d8fb6eb2227fa544689d8b5d2ef02a69 assets/ow/models/item/tranquilizer_wood
 1d913d85a318b101171b2050f58c3db52a885ffe assets/ow/models/item/venomous_arrow.json
 9ab1461c36ff4337672605e5be7deae831ddb842 assets/ow/models/item/venomous_glands.json
 c44ba10e0d12d7cf41d01a2320a8e156f93f401c assets/ow/models/item/venomous_tooth.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/walrus_spawn_egg.json
 570ab83c80bd52c25812d9ad71be20f7f09e54a8 assets/ow/models/item/wooden_stinger.json
