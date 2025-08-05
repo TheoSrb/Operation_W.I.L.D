@@ -43,7 +43,13 @@ public class OWEntityJournalScreen extends Screen {
             OWEntityRegistry.BOA.get(),
             OWEntityRegistry.TIGER.get(),
             OWEntityRegistry.PEACOCK.get(),
-            OWEntityRegistry.TIGER_SHARK.get()
+            OWEntityRegistry.TIGER_SHARK.get()/*,
+            OWEntityRegistry.CHAMELEON.get(),
+            OWEntityRegistry.WALRUS.get(),
+            OWEntityRegistry.HYENA.get(),
+            OWEntityRegistry.JELLYFISH.get(),
+            OWEntityRegistry.KODIAK.get(),
+            OWEntityRegistry.MANTA.get()*/
     ));
     public static final double[] THRESHOLDS = {
             TigerEntity.TAMING_EXPERIENCE, TigerSharkEntity.TAMING_EXPERIENCE, BoaEntity.TAMING_EXPERIENCE, PeacockEntity.TAMING_EXPERIENCE
@@ -95,21 +101,6 @@ public class OWEntityJournalScreen extends Screen {
         return 0;
     }
 
-    public int getTamingPageForAnimal(String animal) {
-        switch (animal) {
-            case "tiger":
-                return 8;
-            case "boa":
-                return 6;
-            case "peacock":
-                return 7;
-            case "tiger_shark":
-                return 9;
-            default:
-                return -1;
-        }
-    }
-
     public int getDescriptionPageForAnimal(String animal) {
         switch (animal) {
             case "boa":
@@ -120,6 +111,21 @@ public class OWEntityJournalScreen extends Screen {
                 return 4;
             case "tiger_shark":
                 return 5;
+            default:
+                return -1;
+        }
+    }
+
+    public int getTamingPageForAnimal(String animal) {
+        switch (animal) {
+            case "boa":
+                return 6;
+            case "peacock":
+                return 7;
+            case "tiger":
+                return 8;
+            case "tiger_shark":
+                return 9;
             default:
                 return -1;
         }

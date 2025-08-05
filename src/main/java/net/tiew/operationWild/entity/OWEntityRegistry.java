@@ -22,12 +22,23 @@ public class OWEntityRegistry {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(BuiltInRegistries.ENTITY_TYPE, OperationWild.MOD_ID);
     public static void register(IEventBus eventBus) { ENTITY_TYPES.register(eventBus);}
 
+
+
     public static final DeferredHolder<EntityType<?>, EntityType<TigerEntity>> TIGER = ENTITY_TYPES.register("tiger", () -> EntityType.Builder.<TigerEntity>of((type, world) -> new TigerEntity(type, world, 1.05f, 4000, 2), MobCategory.CREATURE).sized(1.3f, 1.3f).build("tiger"));
-    public static final DeferredHolder<EntityType<?>, EntityType<SeaBugEntity>> SEABUG = ENTITY_TYPES.register("seabug", () -> EntityType.Builder.<SeaBugEntity>of((type, world) -> new SeaBugEntity(type, world, 1.1f, 0, 0), MobCategory.WATER_CREATURE).sized(2.0f, 2.1f).build("SeaBug"));
     public static final DeferredHolder<EntityType<?>, EntityType<BoaEntity>> BOA = ENTITY_TYPES.register("boa", () -> EntityType.Builder.<BoaEntity>of((type, world) -> new BoaEntity(type, world, 1.0f, 2000, 4), MobCategory.CREATURE).sized(1.5f, 0.5f).build("boa"));
     public static final DeferredHolder<EntityType<?>, EntityType<PeacockEntity>> PEACOCK = ENTITY_TYPES.register("peacock", () -> EntityType.Builder.<PeacockEntity>of((type, world) -> new PeacockEntity(type, world, 1.1f, 650, 2), MobCategory.CREATURE).sized(0.7f, 1.0f).build("peacock"));
     public static final DeferredHolder<EntityType<?>, EntityType<TigerSharkEntity>> TIGER_SHARK = ENTITY_TYPES.register("tiger_shark", () -> EntityType.Builder.<TigerSharkEntity>of((type, world) -> new TigerSharkEntity(type, world, 1.0f, 2850, 1), MobCategory.WATER_CREATURE).sized(2.1f, 0.8f).build("tiger_shark"));
+    public static final DeferredHolder<EntityType<?>, EntityType<TigerSharkEntity>> WALRUS = ENTITY_TYPES.register("walrus", () -> EntityType.Builder.<TigerSharkEntity>of((type, world) -> new TigerSharkEntity(type, world, 1.0f, 2850, 1), MobCategory.WATER_CREATURE).sized(2.1f, 0.8f).build("walrus"));
+    public static final DeferredHolder<EntityType<?>, EntityType<TigerSharkEntity>> CHAMELEON = ENTITY_TYPES.register("chameleon", () -> EntityType.Builder.<TigerSharkEntity>of((type, world) -> new TigerSharkEntity(type, world, 1.0f, 2850, 1), MobCategory.WATER_CREATURE).sized(2.1f, 0.8f).build("chameleon"));
+    public static final DeferredHolder<EntityType<?>, EntityType<TigerSharkEntity>> JELLYFISH = ENTITY_TYPES.register("jellyfish", () -> EntityType.Builder.<TigerSharkEntity>of((type, world) -> new TigerSharkEntity(type, world, 1.0f, 2850, 1), MobCategory.WATER_CREATURE).sized(2.1f, 0.8f).build("jellyfish"));
+    public static final DeferredHolder<EntityType<?>, EntityType<TigerSharkEntity>> KODIAK = ENTITY_TYPES.register("kodiak", () -> EntityType.Builder.<TigerSharkEntity>of((type, world) -> new TigerSharkEntity(type, world, 1.0f, 2850, 1), MobCategory.WATER_CREATURE).sized(2.1f, 0.8f).build("kodiak"));
+    public static final DeferredHolder<EntityType<?>, EntityType<TigerSharkEntity>> MANTA = ENTITY_TYPES.register("manta", () -> EntityType.Builder.<TigerSharkEntity>of((type, world) -> new TigerSharkEntity(type, world, 1.0f, 2850, 1), MobCategory.WATER_CREATURE).sized(2.1f, 0.8f).build("manta"));
+    public static final DeferredHolder<EntityType<?>, EntityType<TigerSharkEntity>> HYENA = ENTITY_TYPES.register("hyena", () -> EntityType.Builder.<TigerSharkEntity>of((type, world) -> new TigerSharkEntity(type, world, 1.0f, 2850, 1), MobCategory.WATER_CREATURE).sized(2.1f, 0.8f).build("hyena"));
 
+
+
+
+    public static final DeferredHolder<EntityType<?>, EntityType<SeaBugEntity>> SEABUG = ENTITY_TYPES.register("seabug", () -> EntityType.Builder.<SeaBugEntity>of((type, world) -> new SeaBugEntity(type, world, 1.1f, 0, 0), MobCategory.WATER_CREATURE).sized(2.0f, 2.1f).build("SeaBug"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<SeaBugShard0Entity>> SEABUG_SHARD_0 = ENTITY_TYPES.register("seabug_shard_0", () -> EntityType.Builder.<SeaBugShard0Entity>of((type, world) -> new SeaBugShard0Entity(type, world, 1.1f, 0, 0), MobCategory.WATER_CREATURE).sized(1.8f, 1.6f).build("seabug_shard_0"));
     public static final DeferredHolder<EntityType<?>, EntityType<SeaBugShard1Entity>> SEABUG_SHARD_1 = ENTITY_TYPES.register("seabug_shard_1", () -> EntityType.Builder.<SeaBugShard1Entity>of((type, world) -> new SeaBugShard1Entity(type, world, 1.1f, 0, 0), MobCategory.WATER_CREATURE).sized(1.8f, 1.1f).build("seabug_shard_1"));
