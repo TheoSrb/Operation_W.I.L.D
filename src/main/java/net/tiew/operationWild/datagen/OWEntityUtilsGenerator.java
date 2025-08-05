@@ -24,10 +24,10 @@ public class OWEntityUtilsGenerator implements DataProvider {
     @Override
     public CompletableFuture<?> run(CachedOutput cachedOutput) {
 
-        createEntity("Walrus", MobCategory.WATER_CREATURE,
+        /*createEntity("Walrus", MobCategory.WATER_CREATURE,
                 50f, 0.2f, 10f, 0f, 0.5f,
                 0xd8dde4, 0.7f, 0, 0, 1.9f, 1.6f,
-                "Walrus", false);
+                "Walrus", false);*/
 
 
         return CompletableFuture.completedFuture(null);

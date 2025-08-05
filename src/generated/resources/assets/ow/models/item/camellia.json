@@ -1,3 +1,6 @@
 {
-  "parent": "ow:block/camellia"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "ow:block/camellia"
+  }
 }
