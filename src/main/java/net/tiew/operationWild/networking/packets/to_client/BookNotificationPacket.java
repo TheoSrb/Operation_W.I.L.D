@@ -32,8 +32,13 @@ public record BookNotificationPacket(String entityType, boolean isTaming) implem
     public static void handle(BookNotificationPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             ClientEvents.isNotifiedOWBook = true;
-            if (!packet.isTaming) OWEntityJournalScreen.newEntityDiscovered = packet.entityType;
-            else OWEntityJournalScreen.canNotifyNewTamingPage = true;
+            if (!packet.isTaming) {
+                if (!OWEntityJournalScreen.newEntitiesDiscovered.contains(packet.entityType)) {
+                    OWEntityJournalScreen.newEntitiesDiscovered.add(packet.entityType);
+                }
+            } else {
+                OWEntityJournalScreen.canNotifyNewTamingPage = true;
+            }
         });
     }
 }
