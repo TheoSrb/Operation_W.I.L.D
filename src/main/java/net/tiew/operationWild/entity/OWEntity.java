@@ -1834,7 +1834,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         double oldExperience = ClientEvents.tamingExperience;
         ClientEvents.tamingExperience += experience;
 
-        for (int threshold : OWEntityJournalScreen.THRESHOLDS) {
+        for (double threshold : OWEntityJournalScreen.THRESHOLDS) {
             if (threshold > OWEntityJournalScreen.lastReachedThreshold && oldExperience < threshold && ClientEvents.tamingExperience >= threshold) {
                 OWEntityJournalScreen.canNotifyNewTamingPage = true;
                 OWEntityJournalScreen.lastReachedThreshold = threshold;
