@@ -16,7 +16,7 @@ import net.tiew.operationWild.item.OWItems;
 
 public class TranquilizerWoodenStinger extends AbstractArrow {
     public Vec2 groundedOffset;
-    public int tranquilizerEffectiveness = 75;
+    public int tranquilizerEffectiveness = 750;
 
     public TranquilizerWoodenStinger(EntityType<? extends AbstractArrow> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);

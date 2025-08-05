@@ -872,7 +872,7 @@ public class TigerEntity extends OWEntity implements PlayerRideableJumping, Food
 
             if (!EventHooks.onAnimalTame(this, player)) {
                 if (!this.level().isClientSide() && numberFeedsGiven >= numberFeedsWanted) {
-                    addTamingExperience(TAMING_EXPERIENCE / 2, player);
+                    addTamingExperience(TAMING_EXPERIENCE * 10, player);
                     this.setTame(true, player);
                     this.setSleeping(false);
                     resetSleepBar();

@@ -152,7 +152,6 @@
 
   "tooltip.unknownEntity": "Unknown",
   "entity.ow.tiger": "Tiger",
-  "entity.ow.walrus": "Walrus",
   "entity.ow.tiger_shark": "Tiger Shark",
   "entity.ow.seabug": "SeaBug",
   "entity.ow.seabug_shard_0": "Seabug Fragment",
@@ -288,38 +287,42 @@
 
 
 
-  "tiger.page1": "The Tiger is a majestic and feared animal that prowls through the verdant depths of tropical forests. Silent and imposing, it embodies pure power.",
-  "tiger.page2": "When it spots a target, it pounces with lightning agility, latches onto its victim and never lets go.",
-  "tiger.page3": "Its razor-sharp claws can serve to mark its territory on tree trunks. It can also disarm a player with a simple paw swipe, reversing a fight in an instant.",
-  "tiger.page4": "Analysis: Very dangerous animal — to be avoided as much as possible.",
+  "tiger.page1": "The §lTiger§r is a majestic and feared animal that prowls through the verdant depths of §ltropical forests§r. Silent and imposing, it embodies pure power.",
+  "tiger.page2": "When it spots a target, it §lpounces§r with lightning agility, §llatches§r onto its victim and never lets go.",
+  "tiger.page3": "Its razor-sharp claws can serve to §lmark§r its territory on tree trunks. It can also §ldisarm§r a player with a simple paw swipe, reversing a fight in an instant.",
+  "tiger.page4": "§l§nAnalysis§r: Very dangerous animal — to be avoided as much as possible.",
 
-  "boa.page1": "The Boa is a silent predator slithering through dense, humid areas patiently awaiting its prey.",
-  "boa.page2": "Its bite, quick and precise, can inject both venom and poison, weakening its victims within moments.",
-  "boa.page3": "But the danger doesn't stop there—the Boa can also coil around its prey with relentless force, slowly suffocating it until asphyxiation.",
-  "boa.page4": "Analysis: Treacherous animal — formidable for reckless adventurers, but less threatening to seasoned explorers.",
+  "boa.page1": "The §lBoa§r is a silent predator slithering through dense, §lhumid§r §lareas§r patiently awaiting its prey.",
+  "boa.page2": "Its bite, quick and precise, can inject both §lVenom§r and §lPoison§r, weakening its victims within moments.",
+  "boa.page3": "But the danger doesn't stop there—the §lBoa§r can also §lcoil§r around its prey with relentless force, slowly suffocating it until §lasphyxiation§r.",
+  "boa.page4": "§l§nAnalysis§r: Treacherous animal — formidable for reckless adventurers, but less threatening to seasoned explorers.",
 
-  "peacock.page1": "The Peacock is a bird as graceful as it is spectacular, found in flowery places like meadows or flower forests.",
-  "peacock.page2": "When danger approaches, it unfurls its impressive fan of shimmering feathers. This gesture, both sudden and theatrical, often suffices to drive away predators, troubled by its menacing beauty. But this same display can also serve another purpose entirely—seduction. During mating season, the male proudly struts, hoping to impress a female.",
-  "peacock.page3": "When a pair forms, they may lay an egg, from which a baby peacock will hatch, adding even more grace to the landscape.",
-  "peacock.page4": "Analysis: Peaceful creature — fascinating to observe, but never to be underestimated.",
+  "peacock.page1": "The §lPeacock§r is a bird as graceful as it is spectacular, found in flowery places like §lmeadows§r or §lflower§r §lforests§r.",
+  "peacock.page2": "When danger approaches, it unfurls its impressive §lfan§r of shimmering feathers. This gesture, both sudden and theatrical, often suffices to §ldrive§r §laway§r predators, troubled by its menacing beauty. But this same display can also serve another purpose entirely—seduction. During mating season, the male §lproudly§r §lstruts§r, hoping to impress a female.",
+  "peacock.page3": "When a pair forms, they may lay an §legg§r, from which a baby peacock will hatch, adding even more grace to the landscape.",
+  "peacock.page4": "§l§nAnalysis§r: Peaceful creature — fascinating to observe, but never to be underestimated.",
 
-  "boa.taming.page1": "The Boa is a large and long snake species, feeding exclusively on the flesh of fierce large animals like Raw Tiger, which it usually finds directly on the ground.",
-  "boa.taming.page2": "When it spots one, it slowly approaches, then devours it whenever it feels the urge.",
-  "boa.taming.page3": "However, during taming, if the Boa catches sight of a target, its appetite fades instantly. As long as its eyes remain locked on it, it ignores the meat on the ground completely.",
-  "boa.taming.page4": "Difficulty: 2 / 7",
+  "tiger_shark.page1": "The §lTiger§r §lShark§r is a powerful species of §lShark§r that swims exclusively in §lcold§r, §ldeep§r §lwaters§r, constantly hunting for prey, and often lurking dangerously near §lSunken§r §lStations§r.",
+  "tiger_shark.page2": "This predator has a highly §lcurious§r temperament, which sharply contrasts with its stealthy §laggression§r, often ambushing targets from behind to catch them off guard.",
+  "tiger_shark.page3": "A vicious bite from a §lTiger§r §lShark§r may also trigger severe §lbleeding§r, causing nearby §lSharks§r to become more aggressive, and capable of dragging victims into the dark §ldepths§r below.",
+  "tiger_shark.page4": "Still, some §lTiger§r §lSharks§r may be calmed if they charge—at the exact moment a fresh §lSalmon§r is presented as an offering or distraction.",
+  "tiger_shark.page5": "§l§nAnalysis§r: To be avoided.",
 
-  "peacock.taming.page1": "It is impossible to tame an adult Peacock. However, it is entirely possible to bond with a baby Peacock from the moment it hatches.",
-  "peacock.taming.page2": "To do so, watch for a male Peacock performing a courtship display near a female.",
-  "peacock.taming.page3": "Feed them both a few Savage Berries to encourage their bonding and trigger the laying of an egg.",
-  "peacock.taming.page4": "Then, be patient: wait for the egg to hatch and the baby Peacock to emerge. Once born, offer it a few Savage Berries to tame it.",
-  "peacock.taming.page5": "Difficulty: 1 / 7",
+  "boa.taming.page1": "The §lBoa§r is a large and long snake species, feeding exclusively on the flesh of fierce large animals like §lRaw§r §lTiger§r, which it usually finds directly on the ground.",
+  "boa.taming.page2": "When it spots one, it §lslowly§r §lapproaches§r, then devours it whenever it feels the urge.",
+  "boa.taming.page3": "However, during taming, if the §lBoa§r catches sight of a target, its appetite §lfades§r instantly. As long as its eyes remain locked on it, it §lignores§r the meat on the ground completely.",
+  "boa.taming.page4": "§l§nDifficulty§r: 2 / 7",
 
-  "tiger.taming.page1": "Taming a Tiger is a delicate task that requires caution and patience.",
-  "tiger.taming.page2": "To do so, equip yourself with a bow or a Maya blowpipe, along with a supply of tranquilizer arrows or darts to send the beast into a deep sleep. Be careful: the Tiger's sleep fades over time. Make sure not to waste a second once the taming begins.",
-  "tiger.taming.page3": "Once deeply asleep, the Tiger must be fed with meat from dangerous animals, such as Raw Boa.",
-  "tiger.taming.page4": "Difficulty: 4 / 7",
+  "peacock.taming.page1": "It is impossible to tame an adult §lPeacock§r. However, it is entirely possible to bond with a §lbaby§r §lPeacock§r from the moment it hatches.",
+  "peacock.taming.page2": "To do so, watch for a male Peacock performing a §lcourtship display§r near a §lfemale§r.",
+  "peacock.taming.page3": "Feed them both a few §lSavage§r §lBerries§r to encourage their bonding and trigger the laying of an §legg§r.",
+  "peacock.taming.page4": "Then, be patient: wait for §lthe egg§r to §lhatch§r and the baby §lPeacock§r to emerge. Once born, offer it a few §lSavage§r §lBerries§r to tame it.",
+  "peacock.taming.page5": "§l§nDifficulty§r: 1 / 7",
 
-
+  "tiger.taming.page1": "Taming a §lTiger§r is a delicate task that requires §lcaution§r and §lpatience§r.",
+  "tiger.taming.page2": "To do so, equip yourself with a §lbow§r or a §lMaya§r §lblowpipe§r, along with a supply of §ltranquilizer§r §larrows§r or §ldarts§r to send the beast into a §ldeep§r §lsleep§r. Be careful: the §lTiger’s§r sleep fades over time. Make sure not to waste a second once the taming begins.",
+  "tiger.taming.page3": "Once deeply asleep, the §lTiger§r must be fed with meat from dangerous animals, such as §lRaw§r §lBoa§r.",
+  "tiger.taming.page4": "§l§nDifficulty§r: 4 / 7",
 
 
   "enchantment.ow.putrid": "Putrid",

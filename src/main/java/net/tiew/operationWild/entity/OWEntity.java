@@ -1836,10 +1836,19 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
         for (double threshold : OWEntityJournalScreen.THRESHOLDS) {
             if (threshold > OWEntityJournalScreen.lastReachedThreshold && oldExperience < threshold && ClientEvents.tamingExperience >= threshold) {
-                OWEntityJournalScreen.canNotifyNewTamingPage = true;
                 OWEntityJournalScreen.lastReachedThreshold = threshold;
-                OWEntityJournalScreen.currentNotificationThreshold = threshold;
-                OWNetworkHandler.sendToClient(new BookNotificationPacket("", true), (ServerPlayer) player);
+
+                Set<String> unlockedEntities = new HashSet<>();
+                if (ClientEvents.tamingExperience >= TigerEntity.TAMING_EXPERIENCE) unlockedEntities.add("tiger");
+                if (ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE) unlockedEntities.add("tiger_shark");
+                if (ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) unlockedEntities.add("boa");
+                if (ClientEvents.tamingExperience >= PeacockEntity.TAMING_EXPERIENCE) unlockedEntities.add("peacock");
+
+                for (String entityType : unlockedEntities) {
+                    if (!OWEntityJournalScreen.newEntitiesTamed.contains(entityType)) {
+                        OWNetworkHandler.sendToClient(new BookNotificationPacket(entityType, true), (ServerPlayer) player);
+                    }
+                }
                 break;
             }
         }
@@ -1856,11 +1865,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         else if (tamingExperience >= 1500) return "renowned_tamer";
         else if (tamingExperience >= 300) return "novice_tamer";
         return "";
-    }
-
-    public static void clearNotification() {
-        OWEntityJournalScreen.canNotifyNewTamingPage = false;
-        OWEntityJournalScreen.currentNotificationThreshold = -1;
     }
 
     public static void saveTamingExperience(Player player) {

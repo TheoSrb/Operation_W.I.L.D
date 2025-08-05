@@ -24,10 +24,10 @@ public class OWEntityUtilsGenerator implements DataProvider {
     @Override
     public CompletableFuture<?> run(CachedOutput cachedOutput) {
 
-        /*createEntity("Walrus", MobCategory.WATER_CREATURE,
+        createEntity("Walrus", MobCategory.WATER_CREATURE,
                 50f, 0.2f, 10f, 0f, 0.5f,
                 0xd8dde4, 0.7f, 0, 0, 1.9f, 1.6f,
-                "Walrus", false);*/
+                "Walrus", false);
 
 
         return CompletableFuture.completedFuture(null);
@@ -60,7 +60,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntityMainClass(String entityType, MobCategory mobCategory, float maxHealth, float speed, float followRange, float attackDamages, float knockbackResistance, int color) {
         String entityName = entityType;
 
-        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\entity\\custom\\" + (mobCategory.equals(MobCategory.MISC) ? "misc" : "living" + "\\");
+        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\entity\\custom\\" + (mobCategory.equals(MobCategory.MISC) ? "misc" : "living" + "\\");
         String fileType = ".java";
         String fileName = entityName + "Entity" + fileType;
         File file = new File(path + fileName);
@@ -369,7 +369,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
             }
         }
 
-        File fileWrite = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\entity\\variants\\" + entityName + "Variant.java");
+        File fileWrite = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\entity\\variants\\" + entityName + "Variant.java");
 
         try {
             List<String> lines = new ArrayList<>();
@@ -405,12 +405,12 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntityVariants(String entityType) {
         String entityName = entityType;
 
-        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\entity\\variants\\";
+        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\entity\\variants\\";
         String fileType = ".java";
         String fileName = entityName + "Variant" + fileType;
         File file = new File(path + fileName);
-        File folder = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\resources\\assets\\ow\\textures\\entity\\" + entityName.toLowerCase());
-        File folderSkins = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\resources\\assets\\ow\\textures\\entity\\" + entityName.toLowerCase() + "\\" + "skins");
+        File folder = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\resources\\assets\\ow\\textures\\entity\\" + entityName.toLowerCase());
+        File folderSkins = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\resources\\assets\\ow\\textures\\entity\\" + entityName.toLowerCase() + "\\" + "skins");
 
         if (!file.exists()) {
             List<String> lines = List.of(
@@ -461,7 +461,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntitySkins(String entityType) {
         String entityName = entityType;
 
-        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\screen\\entity\\skins\\";
+        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\screen\\entity\\skins\\";
         String fileType = ".java";
         String fileName = entityName + "SkinsScreen" + fileType;
         File file = new File(path + fileName);
@@ -562,7 +562,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntityEvents(String entityType) {
         String entityName = entityType;
 
-        File frFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\event\\ModEventBusEvents.java");
+        File frFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\event\\ModEventBusEvents.java");
 
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(frFile), "UTF-8"));
@@ -604,7 +604,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntityRegistry(String entityType, float scale, int maxSleepBar, int sleepBarDownSpeed, MobCategory mobCategory, float width, float height) {
         String entityName = entityType;
 
-        File frFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\entity\\OWEntityRegistry.java");
+        File frFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\entity\\OWEntityRegistry.java");
 
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(frFile), "UTF-8"));
@@ -641,7 +641,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntityLayer(String entityType) {
         String entityName = entityType;
 
-        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\entity\\client\\layer\\";
+        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\entity\\client\\layer\\";
         String fileType = ".java";
         String fileName = entityName + "Layer" + fileType;
         File file = new File(path + fileName);
@@ -720,7 +720,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntitySkinsLayer(String entityType) {
         String entityName = entityType;
 
-        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\entity\\client\\layer\\skins\\";
+        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\entity\\client\\layer\\skins\\";
         String fileType = ".java";
         String fileName = entityName + "Skins" + fileType;
         File file = new File(path + fileName);
@@ -787,7 +787,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntitySetup(String entityType) {
         String entityName = entityType;
 
-        File frFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\OperationWild.java");
+        File frFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\OperationWild.java");
 
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(frFile), "UTF-8"));
@@ -819,8 +819,8 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntityTranslations(String entityType, String entityNameFR) {
         String entityName = entityType;
 
-        File frFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\resources\\assets\\ow\\lang\\fr_fr.json");
-        File enFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\resources\\assets\\ow\\lang\\en_us.json");
+        File frFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\resources\\assets\\ow\\lang\\fr_fr.json");
+        File enFile = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\resources\\assets\\ow\\lang\\en_us.json");
 
         try {
             BufferedReader readerFr = new BufferedReader(new InputStreamReader(new FileInputStream(frFile), "UTF-8"));
@@ -873,7 +873,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
         String entityName = entityType;
 
         File file = new File("C:\\Users\\Tiew_37\\Desktop\\" + entityName.toLowerCase() + "_animations" + ".txt");
-        File fileToCreate = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\entity\\client\\animation\\" + entityName + "Animations.java");
+        File fileToCreate = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\entity\\client\\animation\\" + entityName + "Animations.java");
 
         if (!file.exists()) throw new RuntimeException(entityType + "Animations doesn't exist on Desktop.");
 
@@ -934,7 +934,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
     public void generateEntityRenderer(String entityType) {
         String entityName = entityType;
 
-        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\entity\\client\\render\\";
+        String path = "C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\entity\\client\\render\\";
         String fileType = ".java";
         String fileName = entityName + "Renderer" + fileType;
         File file = new File(path + fileName);
@@ -1053,7 +1053,7 @@ public class OWEntityUtilsGenerator implements DataProvider {
         String entityName = entityType;
 
         File file = new File("C:\\Users\\Tiew_37\\Desktop\\" + entityName.toLowerCase() + ".java");
-        File fileToCreate = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation-WILD\\src\\main\\java\\org\\operationWild\\entity\\client\\model\\" + entityName + "Model.java");
+        File fileToCreate = new File("C:\\Users\\Tiew_37\\IdeaProjects\\Operation_W.I.L.D\\src\\main\\java\\net\\tiew\\operationWild\\entity\\client\\model\\" + entityName + "Model.java");
 
         if (!file.exists()) throw new RuntimeException(entityType + "Model doesn't exist on Desktop.");
 

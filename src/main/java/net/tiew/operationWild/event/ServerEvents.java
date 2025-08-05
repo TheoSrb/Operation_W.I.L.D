@@ -1,6 +1,8 @@
 package net.tiew.operationWild.event;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -45,29 +47,13 @@ public class ServerEvents {
                 boolean wasAlreadyKilled = false;
 
                 String entityType = "";
-                switch (target.getClass().getSimpleName()) {
-                    case "BoaEntity":
-                        wasAlreadyKilled = modData.getBoolean("has_killed_boa");
-                        modData.putBoolean("has_killed_boa", true);
-                        entityType = "boa";
-                        break;
-                    case "PeacockEntity":
-                        wasAlreadyKilled = modData.getBoolean("has_killed_peacock");
-                        modData.putBoolean("has_killed_peacock", true);
-                        entityType = "peacock";
-                        break;
-                    case "TigerEntity":
-                        wasAlreadyKilled = modData.getBoolean("has_killed_tiger");
-                        modData.putBoolean("has_killed_tiger", true);
-                        entityType = "tiger";
-                        break;
-                    case "TigerSharkEntity":
-                        wasAlreadyKilled = modData.getBoolean("has_killed_tiger_shark");
-                        modData.putBoolean("has_killed_tiger_shark", true);
-                        entityType = "tiger_shark";
-                        break;
+                ResourceLocation entityKey = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
+                if (entityKey != null && entityKey.getNamespace().equals("ow")) {
+                    entityType = entityKey.getPath();
+                    String killKey = "has_killed_" + entityType;
+                    wasAlreadyKilled = modData.getBoolean(killKey);
+                    modData.putBoolean(killKey, true);
                 }
-
                 playerData.put("ow", modData);
 
                 if (!entityType.isEmpty()) {

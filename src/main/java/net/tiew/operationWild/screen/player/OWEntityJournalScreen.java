@@ -14,18 +14,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.custom.living.*;
 import org.lwjgl.glfw.GLFW;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
 import net.tiew.operationWild.event.ClientEvents;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class OWEntityJournalScreen extends Screen {
 
@@ -63,8 +58,7 @@ public class OWEntityJournalScreen extends Screen {
 
     private final Player player;
     public static List<String> newEntitiesDiscovered = new ArrayList<>();
-    public static boolean canNotifyNewTamingPage = false;
-    public static double currentNotificationThreshold = -1;
+    public static List<String> newEntitiesTamed = new ArrayList<>();
 
     public static double lastReachedThreshold = -1;
 
@@ -159,9 +153,13 @@ public class OWEntityJournalScreen extends Screen {
         this.minecraft = Minecraft.getInstance();
 
         owEntities.sort((entity1, entity2) -> {
-            String name1 = BuiltInRegistries.ENTITY_TYPE.getKey(entity1).getPath();
-            String name2 = BuiltInRegistries.ENTITY_TYPE.getKey(entity2).getPath();
-            return name1.compareTo(name2);
+            String translationKey1 = entity1.getDescriptionId();
+            String translationKey2 = entity2.getDescriptionId();
+
+            String translatedName1 = Component.translatable(translationKey1).getString();
+            String translatedName2 = Component.translatable(translationKey2).getString();
+
+            return translatedName1.compareTo(translatedName2);
         });
     }
 
@@ -233,7 +231,7 @@ public class OWEntityJournalScreen extends Screen {
             if (actualPage >= tamingPages[0] && actualPage <= tamingPages[1]) return false;
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            actualPage = 6;
+            actualPage = 2 + ((maxPage - 2) / 2);
             return true;
         }
         if (isMouseInEntityArea(mouseX, mouseY, i + 193, j - 5, 38, 8)) {
@@ -293,7 +291,7 @@ public class OWEntityJournalScreen extends Screen {
         graphics.pose().scale(scale, scale, 1.0f);
 
         if (textComponent.equals("?")) {
-            textX = 17;
+            textX = 13;
         }
 
         int scaledX = (int) ((i + textX - ((float) this.font.width(text) / 2)) / scale);
@@ -319,10 +317,12 @@ public class OWEntityJournalScreen extends Screen {
 
         EntityType<? extends OWEntity> entityType = getEntityTypeFromPage(actualPage);
         if (entityType != null) {
-            owEntity = entityType.create(this.minecraft.level);
+            try {
+                owEntity = entityType.create(this.minecraft.level);
+            } catch (Exception e) {
+                owEntity = OWEntityRegistry.TIGER.get().create(this.minecraft.level);
+            }
         }
-
-        System.out.println(getEntityTypeFromPage(actualPage) + " animal");
 
         createCategory(true, graphics, i + 25, j - 5, 25, 4, "tooltip.menuBook", actualPage == 1, 0.6f, null, false);
         createCategory(true, graphics, i + 72, j - 5, 27, 4, "tooltip.entity", actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1], 0.6f, null, false);
@@ -336,7 +336,7 @@ public class OWEntityJournalScreen extends Screen {
 
                 boolean isTigerShark = entityName.contains("tiger_shark");
 
-                if (isTigerShark) createCategory(false, graphics, i + 254, j + (20 * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.435f, entityName, false);
+                if (isTigerShark && ClientEvents.hasPlayerKilledOWEntity(player, "tiger_shark")) createCategory(false, graphics, i + 254, j + (20 * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.435f, entityName, false);
                 else createCategory(false, graphics, i + 254, j + (20 * ($$0 + 1)), 5, 5, ClientEvents.hasPlayerKilledOWEntity(player, entityName) ? "entity.ow." + entityName : "?", actualPage == getDescriptionPageForAnimal(entityName), 0.6f, entityName, false);
             }
         }
@@ -356,7 +356,6 @@ public class OWEntityJournalScreen extends Screen {
         }
 
         if (!newEntitiesDiscovered.isEmpty()) {
-
             for (int idx = 0; idx < newEntitiesDiscovered.size(); idx++) {
                 String entity = newEntitiesDiscovered.get(idx);
                 if (actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1]) {
@@ -365,48 +364,33 @@ public class OWEntityJournalScreen extends Screen {
                     graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 105, j - 10 + (idx * 15), 0, 26, 3, 11);
                 }
             }
-
-
             newEntitiesDiscovered.removeIf(entity -> actualPage == adaptSpace(entity) + 2);
         }
 
-        if (canNotifyNewTamingPage) {
-            if (isInTamingCategory) {
-                if (currentNotificationThreshold == TigerEntity.TAMING_EXPERIENCE) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 285, j + 21 + (17 * adaptSpace("tiger")), 0, 26, 3, 11);
-                    if (actualPage == getTamingPageForAnimal("tiger")) {
-                        OWEntity.clearNotification();
-                    }
+        if (!newEntitiesTamed.isEmpty()) {
+            for (int idx = 0; idx < newEntitiesTamed.size(); idx++) {
+                String entity = newEntitiesTamed.get(idx);
+                if (actualPage >= tamingPages[0] && actualPage <= tamingPages[1]) {
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 294, j + 21 + (20 * adaptSpace(entity)), 0, 26, 3, 11);
+                } else {
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 176, j - 10, 0, 26, 3, 11);
                 }
-                if (currentNotificationThreshold == BoaEntity.TAMING_EXPERIENCE) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 285, j + 21 + (17 * adaptSpace("boa")), 0, 26, 3, 11);
-                    if (actualPage == getTamingPageForAnimal("boa")) {
-                        OWEntity.clearNotification();
-                    }
-                }
-                if (currentNotificationThreshold == PeacockEntity.TAMING_EXPERIENCE) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 285, j + 21 + (17 * adaptSpace("peacock")), 0, 26, 3, 11);
-                    if (actualPage == getTamingPageForAnimal("peacock")) {
-                        OWEntity.clearNotification();
-                    }
-                }
-                if (currentNotificationThreshold == TigerSharkEntity.TAMING_EXPERIENCE) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 285, j + 21 + (17 * adaptSpace("tiger_shark")), 0, 26, 3, 11);
-                    if (actualPage == getTamingPageForAnimal("tiger_shark")) {
-                        OWEntity.clearNotification();
-                    }
-                }
-
-            } else graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 176, j - 10, 0, 26, 3, 11);
+            }
+            newEntitiesTamed.removeIf(entity -> actualPage == adaptSpace(entity) + 2);
         }
 
-
+        if (newEntitiesTamed != null && !newEntitiesTamed.isEmpty()) {
+            if (owEntity != null) {
+                String entityId = BuiltInRegistries.ENTITY_TYPE.getKey(owEntity.getType()).getPath();
+                newEntitiesTamed.remove(entityId);
+            }
+        }
 
         graphics.blit(OW_ENTITY_JOURNAL_INTERFACE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
 
         graphics.pose().pushPose();
         graphics.pose().scale(0.8f, 0.8f, 0.8f);
-        graphics.drawString(this.font, String.valueOf(actualPage + " / " + maxPage), (int) ((i + 115) / 0.8f), (int) ((j - 7) / 0.8f), 0xb69d77);
+        graphics.drawString(this.font, String.valueOf(actualPage + " / " + maxPage), (int) ((i + (actualPage >= 10 ? 112 : 115)) / 0.8f), (int) ((j - 7) / 0.8f), 0xb69d77);
         graphics.pose().popPose();
 
         showPage(graphics, i, j);
@@ -437,13 +421,17 @@ public class OWEntityJournalScreen extends Screen {
             graphics.pose().popPose();
         }
 
+        if (actualPage < miscPage) {
         if (isMouseInEntityArea(mouseX, mouseY, i + 219, j + 160, 23, 13)) {
             graphics.blitSprite(ARROW_FORWARD_HIGHLIGHTED, i + 219, j + 160, 23, 13);
         } else graphics.blitSprite(ARROW_FORWARD, i + 219, j + 160, 23, 13);
+        }
 
-        if (isMouseInEntityArea(mouseX, mouseY, i + 13, j + 160, 23, 13)) {
-            graphics.blitSprite(ARROW_BACKWARD_HIGHLIGHTED, i + 13, j + 160, 23, 13);
-        } else graphics.blitSprite(ARROW_BACKWARD, i + 13, j + 160, 23, 13);
+        if (actualPage > 1) {
+            if (isMouseInEntityArea(mouseX, mouseY, i + 13, j + 160, 23, 13)) {
+                graphics.blitSprite(ARROW_BACKWARD_HIGHLIGHTED, i + 13, j + 160, 23, 13);
+            } else graphics.blitSprite(ARROW_BACKWARD, i + 13, j + 160, 23, 13);
+        }
     }
 
     private void showPage(GuiGraphics graphics, int i, int j) {
@@ -489,13 +477,19 @@ public class OWEntityJournalScreen extends Screen {
 
             if (isInTamingCategory) {
                 if (ClientEvents.tamingExperience >= getMaxTamingExp(entityName)) {
-                    graphics.blit(getMobTamingTexture(entityName), i, j, 0, 0, this.imageWidth, this.imageHeight);
+                    ResourceLocation tamingTexture = getMobTamingTexture(entityName);
+                    if (Minecraft.getInstance().getResourceManager().getResource(tamingTexture).isPresent()) {
+                        graphics.blit(tamingTexture, i, j, 0, 0, this.imageWidth, this.imageHeight);
+                    } else {
+                        graphics.blit(getMobDescriptionTexture(entityName), i, j, 0, 0, this.imageWidth, this.imageHeight);
+                    }
 
                     String tooltip = switch (entityName) {
                         case "boa" -> "tooltip.tamingOf";
                         case "tiger" -> "tooltip.tamingOf";
                         case "tiger_shark" -> "tooltip.tamingOf";
                         case "peacock" -> "tooltip.tamingOf";
+                        case "walrus" -> "tooltip.tamingOf";
                         default -> "tooltip.tamingOf";
                     };
 
@@ -503,15 +497,19 @@ public class OWEntityJournalScreen extends Screen {
                             .append(" ")
                             .append(Component.translatable("entity.ow." + entityName).setStyle(Style.EMPTY.withBold(true)));
 
+                    boolean isTigerShark = entityName.equals("tiger_shark");
+
                     int centerX = i + (this.imageWidth / 2);
                     int centerY = j + (this.imageHeight / 2);
-                    float scale = 0.5f;
+                    float scale = 1.0f;
 
-                    graphics.drawString(this.font, title, (centerX - 62) - (this.font.width(title) / 2), centerY - 80, 0xb69d77, false);
+
+                    if (isTigerShark) scale = 0.8f;
+
 
                     graphics.pose().pushPose();
-                    graphics.pose().scale(scale, scale, 1.0f);
-                    graphics.pose().popPose();
+                    graphics.pose().scale(scale, scale, scale);
+                    graphics.drawString(this.font, title, (int) (((centerX - 62) / scale) - (this.font.width(title) / 2.0f)), (int) ((centerY - 80) / scale), 0xb69d77, false);                    graphics.pose().popPose();
 
                     showText(graphics, i, j);
                 } else {
@@ -525,13 +523,53 @@ public class OWEntityJournalScreen extends Screen {
 
     private void showText(GuiGraphics graphics, int i, int j) {
         boolean isInTamingCategory = actualPage >= tamingPages[0] && actualPage <= tamingPages[1];
+
+        boolean isEnglish = Minecraft.getInstance().getLanguageManager().getSelected().equals("en_us");
+        boolean isFrench = Minecraft.getInstance().getLanguageManager().getSelected().equals("fr_fr");
+
+        int firstPageX = -107;
+        int secondPageX = 15;
+
         if (!isInTamingCategory) {
             if (owEntity instanceof BoaEntity) {
-                createParagraph(graphics, i, j, "boa.page1", 55, -5, 115);
+                createParagraph(graphics, i, j, "boa.page1", firstPageX + 34, -55, 115);
+                createParagraph(graphics, i, j, "boa.page2", firstPageX, 45, 160);
+                createParagraph(graphics, i, j, "boa.page3", secondPageX, -80, 160);
+                createParagraph(graphics, i, j, "boa.page4", secondPageX, -35, 160);
+            } else if (owEntity instanceof PeacockEntity) {
+                createParagraph(graphics, i, j, "peacock.page1", firstPageX, -55, 160);
+                createParagraph(graphics, i, j, "peacock.page2", firstPageX, -15, 160);
+                createParagraph(graphics, i, j, "peacock.page3", secondPageX, 20, 160);
+                createParagraph(graphics, i, j, "peacock.page4", secondPageX, 55, 160);
+            } else if (owEntity instanceof TigerEntity) {
+                createParagraph(graphics, i, j, "tiger.page1", firstPageX, -55, 160);
+                createParagraph(graphics, i, j, "tiger.page2", firstPageX, -7, 160);
+                createParagraph(graphics, i, j, "tiger.page3", secondPageX, !isFrench ? 0 : -5, 160);
+                createParagraph(graphics, i, j, "tiger.page4", secondPageX, !isFrench ? 45 : 50, 160);
+            } else if (owEntity instanceof TigerSharkEntity) {
+                createParagraph(graphics, i, j, "tiger_shark.page1", firstPageX, -55, 160);
+                createParagraph(graphics, i, j, "tiger_shark.page2", firstPageX + 40, 3, 100);
+                createParagraph(graphics, i, j, "tiger_shark.page3", secondPageX,-18, 160);
+                createParagraph(graphics, i, j, "tiger_shark.page4", secondPageX,!isFrench ? 29 : 32, 160);
+                createParagraph(graphics, i, j, "tiger_shark.page5", secondPageX,65, 160);
             }
         } else {
             if (owEntity instanceof BoaEntity) {
-                createParagraph(graphics, i, j, "boa.taming.page1", 55, -5, 115);
+                createParagraph(graphics, i, j, "boa.taming.page1", firstPageX, -55, 160);
+                createParagraph(graphics, i, j, "boa.taming.page2", secondPageX, -80, 160);
+                createParagraph(graphics, i, j, "boa.taming.page3", secondPageX, !isFrench ? 10 : 0, 160);
+                createParagraph(graphics, i, j, "boa.taming.page4", secondPageX, 65, 160);
+            } else if (owEntity instanceof PeacockEntity) {
+                createParagraph(graphics, i, j, "peacock.taming.page1", firstPageX, -55, 80);
+                createParagraph(graphics, i, j, "peacock.taming.page2", firstPageX, 30, 100);
+                createParagraph(graphics, i, j, "peacock.taming.page3", secondPageX, -80, 160);
+                createParagraph(graphics, i, j, "peacock.taming.page4", secondPageX, -45, 160);
+                createParagraph(graphics, i, j, "peacock.taming.page5", secondPageX, 0, 160);
+            } else if (owEntity instanceof TigerEntity) {
+                createParagraph(graphics, i, j, "tiger.taming.page1", firstPageX, -55, 160);
+                createParagraph(graphics, i, j, "tiger.taming.page2", firstPageX, -30, 160);
+                createParagraph(graphics, i, j, "tiger.taming.page3", secondPageX, 0, 160);
+                createParagraph(graphics, i, j, "tiger.taming.page4", secondPageX, 40, 160);
             }
         }
     }
@@ -543,14 +581,18 @@ public class OWEntityJournalScreen extends Screen {
         Component text1 = Component.translatable(textTranslation).setStyle(Style.EMPTY);
 
         graphics.pose().pushPose();
+
+        int finalX = centerX + xOffset;
+        int finalY = centerY + yOffset;
+
         graphics.pose().scale(0.6f, 0.6f, 1.0f);
 
-        int lineHeight = 10;
-        int currentX = centerX - 225;
-        int currentY = centerY - 1;
+        int scaledX = (int)(finalX / 0.6f);
+        int scaledY = (int)(finalY / 0.6f);
 
-        currentY = renderText(graphics, text1.getString(), centerX, currentX - xOffset, currentY + yOffset, maxWidth, lineHeight, 0x745f41);
-        currentY += lineHeight * 2;
+        int lineHeight = 10;
+
+        renderText(graphics, text1.getString(), scaledX, 0, scaledY, maxWidth, lineHeight, 0x745f41);
 
         graphics.pose().popPose();
     }

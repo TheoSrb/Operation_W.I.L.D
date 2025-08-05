@@ -201,7 +201,7 @@ public class ClientEvents {
             try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
                 String line = "";
                 while (line != null) {
-                    if (line.contains(entityNameId)) return true;
+                    if (line.contains(entityNameId + "=")) return true;
                     line = buffer.readLine();
                 }
             } catch (Exception e) {
