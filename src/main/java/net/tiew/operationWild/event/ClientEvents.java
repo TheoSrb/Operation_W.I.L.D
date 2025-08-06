@@ -322,7 +322,7 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onMovementInputUpdate(MovementInputUpdateEvent event) {
         Player player = Minecraft.getInstance().player;
-        if (player != null) {
+        if (player != null && !player.isCreative()) {
             boolean holdingSeaBug = player.getMainHandItem().is(OWItems.SEABUG.get()) || player.getOffhandItem().is(OWItems.SEABUG.get());
             if (holdingSeaBug) {
                 event.getInput().shiftKeyDown = false;

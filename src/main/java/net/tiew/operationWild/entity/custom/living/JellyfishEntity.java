@@ -41,6 +41,7 @@ import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.entity.AI.*;
 import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.utils.OWDamageSources;
 import org.jetbrains.annotations.Nullable;
@@ -197,12 +198,15 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
                             seaBug.setEnergy(0);
                         }
                     }
+                    if (tickCount % 3 == 0) {
+                        OWUtils.spawnParticles(entity, OWParticles.ELECTRIC_PARTICLES.get(), 0, 0, 0, 5, 4);
+                    }
                 }
             }
 
-            if (electrifiedTimer % 5 == 0) {
+            if (electrifiedTimer % 3 == 0) {
                 this.setVariant(JellyfishVariant.ELECTRIFIED);
-                OWUtils.spawnParticles(this, ParticleTypes.ELECTRIC_SPARK, 0, 0, 0, 20, 3);
+                OWUtils.spawnParticles(this, OWParticles.ELECTRIC_PARTICLES.get(), 0, 0, 0, 5, 4);
             }
             if (electrifiedTimer % 10 == 0) this.setVariant(this.getInitialVariant());
 

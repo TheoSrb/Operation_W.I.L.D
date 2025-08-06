@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.Util;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -48,38 +49,57 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
         return RenderType.entityTranslucent(texture);
     }
 
-    private void renderWithOpacity(JellyfishEntity jellyfish, float scale, boolean glowLayer, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, float opacity) {
+    private void renderWithOpacity(JellyfishEntity jellyfish, float scale, boolean glowLayer, PoseStack poseStack, MultiBufferSource bufferSource, float opacity) {
+        if (jellyfish == null || poseStack == null || bufferSource == null) {
+            return;
+        }
+
         opacity = Math.max(0.0f, Math.min(1.0f, opacity));
         int alpha = (int)(opacity * 255.0f);
         int color = 0xFFFFFF | (alpha << 24);
 
-        poseStack.scale(scale, scale, scale);
+        poseStack.pushPose();
+        try {
+            poseStack.scale(scale, scale, scale);
 
-        ResourceLocation texture = this.getTextureLocation(jellyfish);
-        RenderType renderType = glowLayer ? RenderType.eyes(texture) : RenderType.entityTranslucent(texture);
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+            ResourceLocation texture = this.getTextureLocation(jellyfish);
+            if (texture == null) {
+                return;
+            }
 
-        this.getModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY, color);
+            RenderType renderType = glowLayer ? RenderType.eyes(texture) : RenderType.entityTranslucent(texture);
+            VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+
+            int customLight = LightTexture.pack(12, 12);
+            this.getModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : customLight, OverlayTexture.NO_OVERLAY, color);
+        } finally {
+            poseStack.popPose();
+        }
     }
 
     @Override
     public void render(JellyfishEntity jellyfish, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        if (jellyfish == null || poseStack == null || bufferSource == null) {
+            return;
+        }
+
         float scale = jellyfish.getScale();
         float babyScale = scale / 2.25f;
         int genderPosition = jellyfish.isFemale() ? 36 : jellyfish.isMale() ? 48 : 0;
         Player player = jellyfish.level().getNearestPlayer(jellyfish, 64.0D);
 
         poseStack.pushPose();
-
-        if (jellyfish.isBaby()) {
-            float maturationPercent = (float) jellyfish.getMaturationPercentage() / 100f;
-            float currentScale = babyScale + (scale - babyScale) * maturationPercent;
-            poseStack.scale(currentScale, currentScale, currentScale);
-        } else {
-            poseStack.scale(scale, scale, scale);
+        try {
+            if (jellyfish.isBaby()) {
+                float maturationPercent = (float) jellyfish.getMaturationPercentage() / 100f;
+                float currentScale = babyScale + (scale - babyScale) * maturationPercent;
+                poseStack.scale(currentScale, currentScale, currentScale);
+            } else {
+                poseStack.scale(scale, scale, scale);
+            }
+        } finally {
+            poseStack.popPose();
         }
-
-        poseStack.popPose();
 
         float ageInTicks = jellyfish.tickCount + partialTicks;
         float jellyfishYaw = jellyfish.getViewYRot(partialTicks);
@@ -89,25 +109,35 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
         this.model.setupAnim(jellyfish, limbSwing, speed, ageInTicks, jellyfishYaw, jellyfishPitch);
 
         poseStack.pushPose();
-        poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
+        try {
+            poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
 
-        poseStack.pushPose();
-        poseStack.translate(0.0D, -1.5D, 0.0D);
-        this.renderWithOpacity(jellyfish, 1, false, partialTicks, poseStack, bufferSource, packedLight, 0.8f);
-        poseStack.popPose();
+            poseStack.pushPose();
+            try {
+                poseStack.translate(0.0D, -1.5D, 0.0D);
+                this.renderWithOpacity(jellyfish, 1, false, poseStack, bufferSource , 0.8f);
+            } finally {
+                poseStack.popPose();
+            }
 
-        poseStack.pushPose();
-        poseStack.translate(0.0D, -1.575D, 0.0D);
-        this.renderWithOpacity(jellyfish, 1.2f, true, partialTicks, poseStack, bufferSource, packedLight, 0.65f);
-        poseStack.popPose();
+            poseStack.pushPose();
+            try {
+                poseStack.translate(0.0D, -1.55D, 0.0D);
+                this.renderWithOpacity(jellyfish, 1.2f, true , poseStack, bufferSource , 0.65f);
+            } finally {
+                poseStack.popPose();
+            }
 
-        poseStack.pushPose();
-        poseStack.translate(0.0D, -1.45D, 0.0D);
-        this.renderWithOpacity(jellyfish, 0.8f, true, partialTicks, poseStack, bufferSource, packedLight, 0.65f);
-        poseStack.popPose();
-
-        poseStack.popPose();
-
+            poseStack.pushPose();
+            try {
+                poseStack.translate(0.0D, -1.45D, 0.0D);
+                this.renderWithOpacity(jellyfish, 0.8f, true, poseStack, bufferSource, 0.65f);
+            } finally {
+                poseStack.popPose();
+            }
+        } finally {
+            poseStack.popPose();
+        }
 
         if (!jellyfish.isInResurrection()) {
             if (jellyfish.isAlive() && !jellyfish.isVehicle()) {

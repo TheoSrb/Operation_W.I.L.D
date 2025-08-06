@@ -20,6 +20,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.FlowerPotBlock;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
@@ -39,6 +40,8 @@ import net.tiew.operationWild.item.OWCreativeTabs;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.MayaBlowpipeItem;
 import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.particle.ElectricParticles;
+import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.screen.OWMenuRegister;
 import net.tiew.operationWild.screen.blocks.SaddlerScreen;
 import net.tiew.operationWild.screen.entity.OWInventoryScreen;
@@ -85,6 +88,7 @@ public class OperationWild {
         OWMenuRegister.register(modEventBus);
         OWEffects.register(modEventBus);
         OWDataComponentTypes.register(modEventBus);
+        OWParticles.register(modEventBus);
 
         OWDailyQuests.run();
 
@@ -221,6 +225,11 @@ public class OperationWild {
             event.register(OWMenuRegister.OW_INVENTORY_MENU.get(), OWInventoryScreen::new);
             event.register(OWMenuRegister.SEABUG_INVENTORY_MENU.get(), SeaBugInventoryScreen::new);
             event.register(OWMenuRegister.SADDLER_MENU.get(), SaddlerScreen::new);
+        }
+
+        @SubscribeEvent
+        public static void registerParticleFactories(RegisterParticleProvidersEvent event) {
+            event.registerSpriteSet(OWParticles.ELECTRIC_PARTICLES.get(), ElectricParticles.Provider::new);
         }
     }
 
