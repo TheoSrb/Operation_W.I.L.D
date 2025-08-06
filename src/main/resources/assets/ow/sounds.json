@@ -50,6 +50,7 @@
 
   "tiger_shark_crush_mouth": { "subtitle": "sounds.ow.tiger_shark_crush_mouth", "sounds": [ "ow:tiger_shark/tiger_shark_crush_mouth" ] },
 
+  "jellyfish_electrified": { "subtitle": "sounds.ow.jellyfish_electrified", "sounds": [ "ow:jellyfish/jellyfish_electrified" ], "volume": 2 },
 
 
 

@@ -15,6 +15,9 @@
 
   "death.attack.water_pressure": "%s a été écrasé(e) par la pression des eaux profondes",
   "death.attack.water_pressure2": "La pression de l’eau a transformé %s en pancake",
+  "death.attack.electrified": "%s a été électrocuté par une %s",
+  "death.attack.electrified2": "%s est mort en voulant jouer avec l'électricité",
+
   "tooHighPressure": "! Pression trop élevée, remontez vite !",
 
   "ow.advancements.ow.title": "Operation W.I.L.D",

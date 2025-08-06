@@ -36,9 +36,10 @@ public record BookNotificationPacket(String entityType, boolean isTaming) implem
                 if (!OWEntityJournalScreen.newEntitiesDiscovered.contains(packet.entityType)) {
                     OWEntityJournalScreen.newEntitiesDiscovered.add(packet.entityType);
                 }
-            }
-            if (!OWEntityJournalScreen.newEntitiesTamed.contains(packet.entityType)) {
-                OWEntityJournalScreen.newEntitiesTamed.add(packet.entityType);
+            } else {
+                if (!OWEntityJournalScreen.newEntitiesTamed.contains(packet.entityType)) {
+                    OWEntityJournalScreen.newEntitiesTamed.add(packet.entityType);
+                }
             }
         });
     }

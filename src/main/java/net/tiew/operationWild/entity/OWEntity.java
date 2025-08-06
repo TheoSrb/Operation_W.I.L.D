@@ -57,14 +57,11 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.tiew.operationWild.entity.custom.living.*;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
 import net.tiew.operationWild.entity.custom.living.boss.PlantEmpressEntity;
 import net.tiew.operationWild.entity.custom.misc.SlingshotProjectile;
 import net.tiew.operationWild.entity.custom.misc.TranquilizerArrow;
@@ -1843,6 +1840,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
                 if (ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE) unlockedEntities.add("tiger_shark");
                 if (ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) unlockedEntities.add("boa");
                 if (ClientEvents.tamingExperience >= PeacockEntity.TAMING_EXPERIENCE) unlockedEntities.add("peacock");
+                if (ClientEvents.tamingExperience >= HyenaEntity.TAMING_EXPERIENCE) unlockedEntities.add("hyena");
+                if (ClientEvents.tamingExperience >= JellyfishEntity.TAMING_EXPERIENCE) unlockedEntities.add("jellyfish");
+                if (ClientEvents.tamingExperience >= KodiakEntity.TAMING_EXPERIENCE) unlockedEntities.add("kodiak");
+                if (ClientEvents.tamingExperience >= ChameleonEntity.TAMING_EXPERIENCE) unlockedEntities.add("chameleon");
+                if (ClientEvents.tamingExperience >= WalrusEntity.TAMING_EXPERIENCE) unlockedEntities.add("walrus");
+                if (ClientEvents.tamingExperience >= MantaEntity.TAMING_EXPERIENCE) unlockedEntities.add("manta");
+                if (ClientEvents.tamingExperience >= RedPandaEntity.TAMING_EXPERIENCE) unlockedEntities.add("red_panda");
 
                 for (String entityType : unlockedEntities) {
                     if (!OWEntityJournalScreen.newEntitiesTamed.contains(entityType)) {
@@ -2053,7 +2057,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
         setMaxSleepingBarTo((int) OWUtils.determinateMinAndMax(maxSleepBar, 20));
-        if (!(this instanceof SeaBugEntity)) this.setRandomScale(averageScale, 0.95, 1.05);
+        if (!(this instanceof SeaBugEntity) && !(this instanceof JellyfishEntity)) this.setRandomScale(averageScale, 0.95, 1.05);
         else this.setScale(1.0f);
         this.setGender(this.random.nextInt(2));
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);

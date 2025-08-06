@@ -63,6 +63,8 @@ public class OWSounds {
 
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_SHARK_CRUSH_MOUTH = registerSoundEvent("tiger_shark_crush_mouth");
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> JELLYFISH_ELECTRIFIED = registerSoundEvent("jellyfish_electrified");
+
     public static final DeferredHolder<SoundEvent, SoundEvent> SUBMARINE_MOVE_LOOP = registerSoundEvent("submarine_move_loop");
     public static final DeferredHolder<SoundEvent, SoundEvent> SUBMARINE_SWITCH_LIGHT = registerSoundEvent("submarine_switch_light");
     public static final DeferredHolder<SoundEvent, SoundEvent> SUBMARINE_AMELIORATION = registerSoundEvent("submarine_amelioration");

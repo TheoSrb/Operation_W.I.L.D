@@ -26,6 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.event.ClientEvents;
@@ -251,7 +252,13 @@ public class Submarine extends OWEntity {
     public void tick() {
         super.tick();
 
-        setOff(getEnergy() <= 0);
+        List<JellyfishEntity> jellyfishEntities = this.level().getEntitiesOfClass(JellyfishEntity.class, getBoundingBox().inflate(1));
+
+        if (jellyfishEntities.isEmpty()) {
+            setOff(getEnergy() <= 0);
+        }
+
+
 
         if (isOff()) {
             if (!canDesactivateLight) {

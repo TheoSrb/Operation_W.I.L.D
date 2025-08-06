@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.tiew.operationWild.entity.AI.AquaticMoveController;
 import net.tiew.operationWild.entity.AI.AquaticPathNavigator;
+import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
 import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
 
 import java.util.EnumSet;
@@ -39,11 +40,12 @@ public class OWWaterEntity extends OWEntity {
             return;
         }
 
+
         if (this.isEffectiveAi() && this.isInWater() && !isSleeping()) {
             this.moveRelative(this.getSpeed(), travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
-            if (this.getTarget() == null) {
+            if (this.getTarget() == null && !(this instanceof JellyfishEntity)) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.005D, 0.0D));
             }
         } else {

@@ -55,17 +55,19 @@ public class PlayerHeadRotationMixin {
                 model.head.z = -1.5f;
                 model.hat.z = -1.5f;
             } else {
-                model.head.y = 0.0f;
-                model.hat.y = 0.0f;
-                model.head.z = 0.0f;
-                model.hat.z = 0.0f;
+                if (!Minecraft.getInstance().player.isSteppingCarefully()) {
+                    model.head.y = 0.0f;
+                    model.hat.y = 0.0f;
+                    model.head.z = 0.0f;
+                    model.hat.z = 0.0f;
 
-                model.body.xRot = 0.0f;
+                    model.body.xRot = 0.0f;
 
-                model.leftLeg.z = 0.1f;
-                model.leftPants.z = 0.1f;
-                model.rightLeg.z = 0.1f;
-                model.rightPants.z = 0.1f;
+                    model.leftLeg.z = 0.1f;
+                    model.leftPants.z = 0.1f;
+                    model.rightLeg.z = 0.1f;
+                    model.rightPants.z = 0.1f;
+                }
             }
         }
     }

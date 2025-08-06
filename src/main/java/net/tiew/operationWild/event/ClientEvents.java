@@ -319,6 +319,17 @@ public class ClientEvents {
         }
     }
 
+    @SubscribeEvent
+    public static void onMovementInputUpdate(MovementInputUpdateEvent event) {
+        Player player = Minecraft.getInstance().player;
+        if (player != null) {
+            boolean holdingSeaBug = player.getMainHandItem().is(OWItems.SEABUG.get()) || player.getOffhandItem().is(OWItems.SEABUG.get());
+            if (holdingSeaBug) {
+                event.getInput().shiftKeyDown = false;
+            }
+        }
+    }
+
     private static boolean canUseRightClick(Minecraft minecraft) {
         return minecraft.player != null && minecraft.player.getMainHandItem().getUseAnimation() == UseAnim.NONE && !(minecraft.player.getMainHandItem().getItem() instanceof MayaBlowpipeItem);
     }

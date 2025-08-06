@@ -387,7 +387,7 @@ public class OWEntityJournalScreen extends Screen {
             for (int idx = 0; idx < newEntitiesDiscovered.size(); idx++) {
                 String entity = newEntitiesDiscovered.get(idx);
                 if (actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1]) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 294, j + 21 + (spacement * adaptSpace(entity)), 0, 26, 3, 11);
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 294, j + 16 + (spacement * adaptSpace(entity)), 0, 26, 3, 11);
                 } else {
                     graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 105, j - 10 + (idx * 15), 0, 26, 3, 11);
                 }
@@ -399,7 +399,7 @@ public class OWEntityJournalScreen extends Screen {
             for (int idx = 0; idx < newEntitiesTamed.size(); idx++) {
                 String entity = newEntitiesTamed.get(idx);
                 if (actualPage >= tamingPages[0] && actualPage <= tamingPages[1]) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 294, j + 21 + (spacement * adaptSpace(entity)), 0, 26, 3, 11);
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 294, j + 16 + (spacement * adaptSpace(entity)), 0, 26, 3, 11);
                 } else {
                     graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 176, j - 10, 0, 26, 3, 11);
                 }
