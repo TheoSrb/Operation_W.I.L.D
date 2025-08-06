@@ -259,6 +259,22 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .save(recipeOutput, OperationWild.MOD_ID + ":cooked_tiger_from_campfire_cooking");
 
 
+        SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_KODIAK.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_KODIAK.get(), 0.35F, 200)
+                .unlockedBy(getHasName(OWItems.RAW_KODIAK.get()), has(OWItems.RAW_KODIAK.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_kodiak_from_smelting");
+
+        SimpleCookingRecipeBuilder.smoking(Ingredient.of(OWItems.RAW_KODIAK.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_KODIAK.get(), 0.35F, 100)
+                .unlockedBy(getHasName(OWItems.RAW_KODIAK.get()), has(OWItems.RAW_KODIAK.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_kodiak_from_smoking");
+
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_TIGER.get()),
+                        RecipeCategory.FOOD, OWItems.COOKED_KODIAK.get(), 0.35F, 600)
+                .unlockedBy(getHasName(OWItems.RAW_KODIAK.get()), has(OWItems.RAW_KODIAK.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cooked_kodiak_from_campfire_cooking");
+
+
 
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_BOA.get()),
                         RecipeCategory.FOOD, OWItems.COOKED_BOA.get(), 0.35F, 200)

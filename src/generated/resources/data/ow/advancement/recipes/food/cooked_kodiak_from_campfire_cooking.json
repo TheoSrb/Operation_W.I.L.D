@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_raw_kodiak": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:raw_kodiak"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "ow:cooked_kodiak_from_campfire_cooking"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_raw_kodiak"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "ow:cooked_kodiak_from_campfire_cooking"
+    ]
+  }
+}

@@ -150,7 +150,7 @@ public class TigerEntity extends OWEntity implements PlayerRideableJumping, Food
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 40D).add(Attributes.MOVEMENT_SPEED, 0.21D).add(Attributes.FOLLOW_RANGE, 25D).add(Attributes.ATTACK_DAMAGE, 6D).add(Attributes.KNOCKBACK_RESISTANCE, 0.4D).add(Attributes.JUMP_STRENGTH, 0.6D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 35D).add(Attributes.MOVEMENT_SPEED, 0.21D).add(Attributes.FOLLOW_RANGE, 25D).add(Attributes.ATTACK_DAMAGE, 6D).add(Attributes.KNOCKBACK_RESISTANCE, 0.4D).add(Attributes.JUMP_STRENGTH, 0.6D);
     }
 
     @Override

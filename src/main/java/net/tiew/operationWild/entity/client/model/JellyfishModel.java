@@ -108,7 +108,7 @@ public class JellyfishModel<T extends JellyfishEntity> extends HierarchicalModel
         this.root().getAllParts().forEach(ModelPart::resetPose);
 		circleTimer++;
 
-		this.ALL.yRot = (float) Math.toRadians((double) circleTimer / 50);
+		this.ALL.yRot = (float) Math.toRadians((double) circleTimer / 30);
 
 		this.animate(jellyfish.idleAnimationState, JellyfishAnimations.MISC_IDLE, ageInTicks, 1.0f);
 	}

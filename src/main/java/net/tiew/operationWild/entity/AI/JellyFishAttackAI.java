@@ -31,7 +31,8 @@ public class JellyFishAttackAI extends Goal {
 
         for (Entity entity : players) {
             if (entity instanceof Player || entity instanceof SeaBugEntity) {
-                if (!entity.isInvulnerable()) {
+                if (entity instanceof Player player && player.isCreative()) return false;
+                if (entity.isAlive()) {
                     this.targetPlayer = entity;
                     return true;
                 }
@@ -43,6 +44,10 @@ public class JellyFishAttackAI extends Goal {
 
     @Override
     public void tick() {
+        if (this.targetPlayer != null) {
+            this.jellyFish.getNavigation().moveTo(this.targetPlayer, this.speedModifier);
+        }
+
         List<Entity> entitiesCanBeHurt = this.jellyFish.level().getEntitiesOfClass(Entity.class, this.jellyFish.getBoundingBox().inflate(2));
 
         for (Entity entity : entitiesCanBeHurt) {
@@ -50,10 +55,6 @@ public class JellyFishAttackAI extends Goal {
             if (!entity.isInvulnerable() && !(entity instanceof JellyfishEntity)) {
                 if (this.jellyFish.electrifiedTimer <= 0) this.jellyFish.setElectrified(true);
             }
-        }
-
-        if (this.targetPlayer != null) {
-            this.jellyFish.getNavigation().moveTo(this.targetPlayer, this.speedModifier);
         }
     }
 

@@ -131,6 +131,9 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> RAW_TIGER = ITEMS.register("raw_tiger", () -> new Item(new Item.Properties().food(OWFoodsProperties.RAW_TIGER)));
     public static final DeferredHolder<Item, Item> COOKED_TIGER = ITEMS.register("cooked_tiger", () -> new Item(new Item.Properties().food(OWFoodsProperties.COOKED_TIGER)));
 
+    public static final DeferredHolder<Item, Item> RAW_KODIAK = ITEMS.register("raw_kodiak", () -> new Item(new Item.Properties().food(OWFoodsProperties.RAW_TIGER)));
+    public static final DeferredHolder<Item, Item> COOKED_KODIAK = ITEMS.register("cooked_kodiak", () -> new Item(new Item.Properties().food(OWFoodsProperties.COOKED_TIGER)));
+
     public static final DeferredHolder<Item, Item> RAW_BOA = ITEMS.register("raw_boa", () -> new Item(new Item.Properties().food(OWFoodsProperties.RAW_BOA)));
     public static final DeferredHolder<Item, Item> COOKED_BOA = ITEMS.register("cooked_boa", () -> new Item(new Item.Properties().food(OWFoodsProperties.COOKED_BOA)));
 

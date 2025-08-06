@@ -242,9 +242,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
     public static final List<Object> VEGETARIAN_ENTITIES = List.of(OWEntityRegistry.PEACOCK.get());
 
-    public static final List<Item> FOOD_FOR_HEALING_MEAT = List.of(Items.MUTTON, Items.COOKED_MUTTON, Items.CHICKEN, Items.COOKED_CHICKEN, Items.RABBIT, Items.COOKED_RABBIT, Items.BEEF, Items.COOKED_BEEF, Items.PORKCHOP, Items.COOKED_PORKCHOP, OWItems.RAW_TIGER.get(), OWItems.COOKED_TIGER.get(), OWItems.RAW_BOA.get(), OWItems.COOKED_BOA.get(), OWItems.RAW_PEACOCK.get(), OWItems.COOKED_PEACOCK.get().asItem());
+    public static final List<Item> FOOD_FOR_HEALING_MEAT = List.of(Items.MUTTON, Items.COOKED_MUTTON, Items.CHICKEN, Items.COOKED_CHICKEN, Items.RABBIT, Items.COOKED_RABBIT, Items.BEEF, Items.COOKED_BEEF, Items.PORKCHOP, Items.COOKED_PORKCHOP, OWItems.RAW_TIGER.get(), OWItems.COOKED_TIGER.get(), OWItems.RAW_BOA.get(), OWItems.COOKED_BOA.get(), OWItems.RAW_PEACOCK.get(), OWItems.COOKED_PEACOCK.get(), OWItems.RAW_KODIAK.get(), OWItems.COOKED_KODIAK.get().asItem());
 
-    public static final List<Item> RAW_MEATS_ITEMS = List.of(Items.MUTTON, Items.CHICKEN, Items.RABBIT, Items.BEEF, Items.PORKCHOP, OWItems.RAW_TIGER.get(), OWItems.RAW_BOA.get(), OWItems.RAW_PEACOCK.get());
+    public static final List<Item> RAW_MEATS_ITEMS = List.of(Items.MUTTON, Items.CHICKEN, Items.RABBIT, Items.BEEF, Items.PORKCHOP, OWItems.RAW_TIGER.get(), OWItems.RAW_BOA.get(), OWItems.RAW_PEACOCK.get(), OWItems.RAW_KODIAK.get());
 
     public static final List<Item> COOKED_MEATS_ITEMS = List.of(Items.COOKED_MUTTON, Items.COOKED_CHICKEN, Items.COOKED_RABBIT, Items.COOKED_BEEF, Items.COOKED_PORKCHOP, OWItems.COOKED_TIGER.get(), OWItems.COOKED_BOA.get(), OWItems.COOKED_PEACOCK.get());
 

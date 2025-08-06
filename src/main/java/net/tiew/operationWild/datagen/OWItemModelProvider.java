@@ -108,6 +108,8 @@ public class OWItemModelProvider extends ItemModelProvider {
 
         basicItem(OWItems.RAW_TIGER.get());
         basicItem(OWItems.COOKED_TIGER.get());
+        basicItem(OWItems.RAW_KODIAK.get());
+        basicItem(OWItems.COOKED_KODIAK.get());
         basicItem(OWItems.RAW_BOA.get());
         basicItem(OWItems.COOKED_BOA.get());
         basicItem(OWItems.RAW_PEACOCK.get());
