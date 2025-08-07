@@ -11,7 +11,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.JellyfishAnimations;
-import net.tiew.operationWild.entity.client.animation.PeacockAnimations;
 import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
 
 public class JellyfishModel<T extends JellyfishEntity> extends HierarchicalModel<T> {
@@ -29,8 +28,6 @@ public class JellyfishModel<T extends JellyfishEntity> extends HierarchicalModel
 	private final ModelPart tentacle_6;
 	private final ModelPart tentacle_8;
 	private final ModelPart body;
-
-	private int circleTimer = 0;
 
     public JellyfishModel(ModelPart root) {
 		this.ALL2 = root.getChild("ALL2");
@@ -106,9 +103,6 @@ public class JellyfishModel<T extends JellyfishEntity> extends HierarchicalModel
     @Override
     public void setupAnim(JellyfishEntity jellyfish, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
-		circleTimer++;
-
-		this.ALL.yRot = (float) Math.toRadians((double) circleTimer / 30);
 
 		this.animate(jellyfish.idleAnimationState, JellyfishAnimations.MISC_IDLE, ageInTicks, 1.0f);
 	}

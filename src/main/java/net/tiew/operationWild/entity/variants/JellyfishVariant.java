@@ -7,7 +7,10 @@ public enum JellyfishVariant {
     DEFAULT(0),
     ORANGE(1),
     PINK(2),
-    ELECTRIFIED(3);
+    GREEN(3),
+    PURPLE(4),
+    WHITE(5),
+    ELECTRIFIED(6);
 
     public static final JellyfishVariant[] BY_ID = Arrays.stream(values()).sorted(Comparator.comparingInt(JellyfishVariant::getId)).toArray(JellyfishVariant[]::new);
 

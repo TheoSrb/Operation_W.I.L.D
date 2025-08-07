@@ -2,8 +2,7 @@
   "type": "neoforge:add_spawns",
   "biomes": [
     "minecraft:bamboo_jungle",
-    "minecraft:jungle",
-    "minecraft:sparse_jungle"
+    "minecraft:jungle"
   ],
   "spawners": {
     "type": "ow:tiger",

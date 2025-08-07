@@ -30,13 +30,16 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.entity.animal.Turtle;
+import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -92,7 +95,7 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
         this.goalSelector.addGoal(4, new RandomLookAroundGoal(this));
         this.goalSelector.addGoal(8, new FollowBoatGoal(this));
 
-        this.goalSelector.addGoal(1, new JellyFishAttackAI(this, 40, 0.75));
+        this.goalSelector.addGoal(0, new JellyFishAttackAI(this, 40, 0.75));
 
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
 
@@ -101,6 +104,10 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
 
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 14.0D).add(Attributes.MOVEMENT_SPEED, 0.12D).add(Attributes.FOLLOW_RANGE, 40.0D).add(Attributes.ATTACK_DAMAGE, 1.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.5D);
+    }
+
+    public static boolean checkSurfaceWaterAnimalSpawnRules(EntityType<? extends JellyfishEntity> waterAnimal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+        return level.getFluidState(pos.below()).is(FluidTags.WATER) && level.getBlockState(pos.above()).is(Blocks.WATER);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -143,12 +150,37 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
 
             for (Entity entity : livingEntitiesCanBeHurt) {
                 if (!entity.isInvulnerable() && entity.isAlive() && !(entity instanceof JellyfishEntity)) {
-                    if (!this.level().isClientSide() && tickCount % 15 == 0) {
+                    if (!this.level().isClientSide() && tickCount % 20 == 0) {
                         DamageSource electricDamages = OWDamageSources.createElectrifiedDamage((ServerLevel) this.level(), this);
                         entity.hurt(electricDamages, this.getDamage());
                         if (entity instanceof LivingEntity livingEntity && livingEntity.getVehicle() == null) {
+                            if (livingEntity instanceof Player player && player.isCreative()) return;
                             livingEntity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 255, false, false, false));
                             livingEntity.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 100, 255, false, false, false));
+
+                            if (tickCount % 100 == 0) {
+                                if (livingEntity instanceof Player player) {
+                                    ItemStack mainHandItem = player.getMainHandItem();
+                                    if (mainHandItem != null && !mainHandItem.isEmpty()) {
+                                        if (mainHandItem.getItem() == OWItems.BATTERY.get()) {
+                                            if (mainHandItem.getDamageValue() > 0) {
+                                                int currentDamage = mainHandItem.getDamageValue();
+                                                mainHandItem.setDamageValue(Math.max(0, currentDamage - 1));
+                                            }
+                                        }
+                                    }
+
+                                    ItemStack offHandItem = player.getOffhandItem();
+                                    if (offHandItem != null && !offHandItem.isEmpty()) {
+                                        if (offHandItem.getItem() == OWItems.BATTERY.get()) {
+                                            if (offHandItem.getDamageValue() > 0) {
+                                                int currentDamage = offHandItem.getDamageValue();
+                                                offHandItem.setDamageValue(Math.max(0, currentDamage - 1));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                         if (entity instanceof SeaBugEntity seaBug) {
                             seaBug.setOff(true);
@@ -219,20 +251,27 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
             this.setVariant(chooseJellyfishVariant());
             this.setInitialVariant(this.getVariant());
         }
-
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
+    }
+
+    @Override
+    public boolean checkSpawnObstruction(LevelReader level) {
+        return level.isUnobstructed(this);
     }
 
     private JellyfishVariant chooseJellyfishVariant() {
         JellyfishVariant variant;
-        if (chance >= 66) variant = JellyfishVariant.ORANGE;
-        else if (chance >= 33) variant = JellyfishVariant.PINK;
+        if (chance >= 83.33) variant = JellyfishVariant.ORANGE;
+        else if (chance >= 66.66) variant = JellyfishVariant.PINK;
+        else if (chance >= 50) variant = JellyfishVariant.GREEN;
+        else if (chance >= 33.33) variant = JellyfishVariant.PURPLE;
+        else if (chance >= 16.66) variant = JellyfishVariant.WHITE;
         else variant = JellyfishVariant.DEFAULT;
         return variant;
     }
 
     private void setupAnimationState() {
-        createIdleAnimation(106, true);
+        createIdleAnimation(213, true);
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -267,7 +306,7 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
 
     @Override
     public int getMaxSpawnClusterSize() {
-        return (int) OWUtils.generateRandomInterval(6, 10);
+        return (int) OWUtils.generateRandomInterval(3, 6);
     }
 }
 

@@ -6,12 +6,13 @@
     "minecraft:deep_lukewarm_ocean",
     "minecraft:lukewarm_ocean",
     "minecraft:deep_cold_ocean",
-    "minecraft:cold_ocean"
+    "minecraft:cold_ocean",
+    "minecraft:warm_ocean"
   ],
   "spawners": {
     "type": "ow:jellyfish",
-    "maxCount": 10,
-    "minCount": 6,
-    "weight": 500
+    "maxCount": 6,
+    "minCount": 3,
+    "weight": 28
   }
 }

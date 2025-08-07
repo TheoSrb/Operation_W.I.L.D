@@ -2,6 +2,7 @@ package net.tiew.operationWild.entity;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.NaturalSpawner;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.tiew.operationWild.OperationWild;
@@ -29,10 +30,9 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<KodiakEntity>> KODIAK = ENTITY_TYPES.register("kodiak", () -> EntityType.Builder.<KodiakEntity>of((type, world) -> new KodiakEntity(type, world, 1.0f, 6500, 10), MobCategory.CREATURE).sized(1.9f, 2f).build("kodiak"));
     public static final DeferredHolder<EntityType<?>, EntityType<RedPandaEntity>> RED_PANDA = ENTITY_TYPES.register("red_panda", () -> EntityType.Builder.<RedPandaEntity>of((type, world) -> new RedPandaEntity(type, world, 1.05f, 550, 3), MobCategory.CREATURE).sized(0.7f, 0.6f).build("red_panda"));
     public static final DeferredHolder<EntityType<?>, EntityType<ChameleonEntity>> CHAMELEON = ENTITY_TYPES.register("chameleon", () -> EntityType.Builder.<ChameleonEntity>of((type, world) -> new ChameleonEntity(type, world, 0.9f, 285, 5), MobCategory.CREATURE).sized(0.7f, 0.6f).build("chameleon"));
-    public static final DeferredHolder<EntityType<?>, EntityType<JellyfishEntity>> JELLYFISH = ENTITY_TYPES.register("jellyfish", () -> EntityType.Builder.<JellyfishEntity>of((type, world) -> new JellyfishEntity(type, world, 0.95f, 1250, 15), MobCategory.WATER_CREATURE).sized(0.9f, 1.7f).clientTrackingRange(64).updateInterval(3).build("jellyfish"));
+    public static final DeferredHolder<EntityType<?>, EntityType<JellyfishEntity>> JELLYFISH = ENTITY_TYPES.register("jellyfish", () -> EntityType.Builder.<JellyfishEntity>of((type, world) -> new JellyfishEntity(type, world, 0.95f, 1250, 15), MobCategory.WATER_AMBIENT).sized(0.9f, 1.7f).build("jellyfish"));
     public static final DeferredHolder<EntityType<?>, EntityType<MantaEntity>> MANTA = ENTITY_TYPES.register("manta", () -> EntityType.Builder.<MantaEntity>of((type, world) -> new MantaEntity(type, world, 1.1f, 2800, 2), MobCategory.WATER_CREATURE).sized(2.2f, 0.4f).build("manta"));
     public static final DeferredHolder<EntityType<?>, EntityType<WalrusEntity>> WALRUS = ENTITY_TYPES.register("walrus", () -> EntityType.Builder.<WalrusEntity>of((type, world) -> new WalrusEntity(type, world, 1.0f, 4500, 1), MobCategory.CREATURE).sized(2.5f, 1.8f).build("walrus"));
-
 
 
 

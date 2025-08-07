@@ -29,6 +29,9 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
         map.put(JellyfishVariant.DEFAULT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_default.png"));
         map.put(JellyfishVariant.PINK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_pink.png"));
         map.put(JellyfishVariant.ORANGE, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_orange.png"));
+        map.put(JellyfishVariant.GREEN, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_green.png"));
+        map.put(JellyfishVariant.PURPLE, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_purple.png"));
+        map.put(JellyfishVariant.WHITE, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_white.png"));
         map.put(JellyfishVariant.ELECTRIFIED, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_electrified.png"));
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");

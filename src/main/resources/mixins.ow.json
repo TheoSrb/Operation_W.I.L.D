@@ -12,5 +12,8 @@
     "PlayerHeadRotationMixin",
     "SubmarineArmMixin",
     "SubmarineMixin"
+  ],
+  "mixins": [
+    "NaturalSpawnerMixin"
   ]
 }

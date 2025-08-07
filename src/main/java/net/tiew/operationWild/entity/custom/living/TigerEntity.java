@@ -898,7 +898,8 @@ public class TigerEntity extends OWEntity implements PlayerRideableJumping, Food
         Holder<Biome> biome = this.level().getBiome(this.blockPosition());
         TigerVariant tigerVariant;
 
-        tigerVariant = biome.is(Biomes.SPARSE_JUNGLE) ? TigerVariant.GOLDEN : biome.is(Biomes.BAMBOO_JUNGLE) ? TigerVariant.LIGHT_ORANGE : TigerVariant.DEFAULT;    // Choose Tiger's color with biome where he spawned.
+        tigerVariant = biome.is(Biomes.BAMBOO_JUNGLE) ? TigerVariant.LIGHT_ORANGE : TigerVariant.DEFAULT;    // Choose Tiger's color with biome where he spawned.
+        if (RANDOM(10)) tigerVariant = TigerVariant.GOLDEN;  // 10% chance to spawn golden tiger.
         if (RANDOM(10)) tigerVariant = TigerVariant.WHITE;  // 10% chance to spawn white tiger.
 
         this.setVariant(tigerVariant);  // Apply Tiger's Color to the entity.
