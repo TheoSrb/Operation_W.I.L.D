@@ -81,6 +81,8 @@ public class OWCreativeTabs {
                         output.accept(OWItems.VENOMOUS_TOOTH.get());
                         output.accept(OWItems.PEACOCK_FEATHER.get());
                         output.accept(OWItems.SHARK_FIN.get());
+                        output.accept(OWItems.STINGING_FILAMENT.get());
+                        output.accept(OWItems.BIOLUMINESCENT_JELLY.get());
                         output.accept(OWItems.ANIMAL_SOUL.get());
                         output.accept(OWItems.RAW_BOA.get());
                         output.accept(OWItems.COOKED_BOA.get());

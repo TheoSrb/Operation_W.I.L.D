@@ -80,6 +80,8 @@ public class OWItemModelProvider extends ItemModelProvider {
         basicItem(OWItems.VENOMOUS_GLANDS.get());
         basicItem(OWItems.PEACOCK_FEATHER.get());
         basicItem(OWItems.SHARK_FIN.get());
+        basicItem(OWItems.STINGING_FILAMENT.get());
+        basicItem(OWItems.BIOLUMINESCENT_JELLY.get());
 
         basicItem(OWItems.ANIMAL_SOUL.get());
 

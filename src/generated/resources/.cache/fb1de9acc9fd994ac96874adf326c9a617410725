@@ -1,6 +1,7 @@
-// 1.21	2025-08-06T16:22:31.1366293	Item Models: ow
+// 1.21	2025-08-07T20:41:49.2274188	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
+ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
 b0d713a4fcaeee3e3f8c82f5ae5b8d42ccfcf53e assets/ow/models/item/boa_saddle.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/boa_spawn_egg.json
 df830b15e454d59f16cd74758c6de75119214acc assets/ow/models/item/boa_tong.json
@@ -142,6 +143,7 @@ da176b702c605ca0b627c127597ae13976f945c5 assets/ow/models/item/ruby_sword.json
 8a254a54751fadd8db93d690b84a832dcb6b5c55 assets/ow/models/item/seabug_hull.json
 3d9a27932674be911b0f1de658823381f820d8bc assets/ow/models/item/seabug_porthole.json
 98a638b0e951e9e0da88adea74ed3bd81dcc5a60 assets/ow/models/item/shark_fin.json
+88cb16b3596abed1dffc5f5ae241dfe863aa1958 assets/ow/models/item/stinging_filament.json
 34f07399d58eb0af6afba1e9a085e1e0fbfee456 assets/ow/models/item/tiger_fur.json
 135021268f83660d3517f8ec557302c0940f73da assets/ow/models/item/tiger_saddle.json
 e008bc0a4532b510141dca8152831a04d78c0cc0 assets/ow/models/item/tiger_shark_saddle.json

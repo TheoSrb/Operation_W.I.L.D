@@ -53,6 +53,8 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(HyenaEntity.class, EntityDataSerializers.INT);
 
+    private static final EntityDataAccessor<Float> HEAD_X_ROT = SynchedEntityData.defineId(HyenaEntity.class, EntityDataSerializers.FLOAT);
+
     public HyenaVariant getVariant() { return HyenaVariant.byId(this.getTypeVariant() & 255);}
     public void setVariant(HyenaVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
     public HyenaVariant getInitialVariant() { return HyenaVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
@@ -80,6 +82,9 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
     }
 
     protected float getSoundVolume() { return 1f;}
+
+    public void setHeadX(float xHead) { this.entityData.set(HEAD_X_ROT, xHead);}
+    public float getHeadX() { return this.entityData.get(HEAD_X_ROT);}
 
     @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {
@@ -242,12 +247,14 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
+        builder.define(HEAD_X_ROT, (float) OWUtils.generateRandomInterval(0, 40));
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("getInitialVariant", this.getInitialVariant().getId());
         tag.putInt("Variant", this.getTypeVariant());
+        tag.putFloat("getHeadX", this.getHeadX());
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
 
@@ -257,6 +264,7 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
         super.readAdditionalSaveData(tag);
         this.entityData.set(DATA_INITIAL_VARIANT, tag.getInt("getInitialVariant"));
         this.entityData.set(VARIANT, tag.getInt("Variant"));
+        this.entityData.set(HEAD_X_ROT, tag.getFloat("getHeadX"));
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
     }

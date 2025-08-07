@@ -1,5 +1,6 @@
 package net.tiew.operationWild.item;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.*;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.tiew.operationWild.OperationWild;
@@ -93,6 +94,8 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> VENOMOUS_GLANDS = ITEMS.register("venomous_glands", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> PEACOCK_FEATHER = ITEMS.register("peacock_feather", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> SHARK_FIN = ITEMS.register("shark_fin", () -> new Item(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> STINGING_FILAMENT = ITEMS.register("stinging_filament", () -> new Item(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> BIOLUMINESCENT_JELLY = ITEMS.register("bioluminescent_jelly", () -> new Item(new Item.Properties()));
 
     public static final DeferredHolder<Item, Item> ANIMAL_SOUL = ITEMS.register("animal_soul", () -> new AnimalSoulItem(new Item.Properties().stacksTo(1).fireResistant()));
 

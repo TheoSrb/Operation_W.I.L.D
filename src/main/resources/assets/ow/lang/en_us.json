@@ -17,6 +17,7 @@
   "death.attack.water_pressure2": "The water pressure turned %s into a pancake.",
   "death.attack.electrified": "%s was electrocuted by a %s",
   "death.attack.electrified2": "%s died while trying to play with electricity",
+
   "tooHighPressure": "! Pressure too high, rise quickly !",
 
   "ow.advancements.ow.title": "Operation W.I.L.D",
@@ -235,6 +236,8 @@
   "item.ow.venomous_glands": "Venomous Gland",
   "item.ow.peacock_feather": "Peacock Feather",
   "item.ow.shark_fin": "Shark Fin",
+  "item.ow.stinging_filament": "Stinging Filament",
+  "item.ow.bioluminescent_jelly": "Bioluminescent Jelly",
   "item.ow.animal_soul": "%s Soul",
   "item.ow.tiger_saddle": "Tiger Saddle",
   "item.ow.boa_saddle": "Boa Saddle",

@@ -66,7 +66,7 @@ public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
 		.texOffs(0, 19).addBox(-3.5F, -5.0F, 3.0F, 7.0F, 9.0F, 7.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, -0.0873F, 0.0F, 0.0F));
 		PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(28, 33).addBox(-3.5F, -3.0F, -4.0F, 7.0F, 7.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -2.0F, -8.0F));
 		PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(28, 19).addBox(-4.0F, -4.0F, -5.0F, 8.0F, 8.0F, 6.0F, new CubeDeformation(0.0F))
-		.texOffs(20, 45).addBox(-2.5F, 0.0F, -10.0F, 5.0F, 4.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.1743F, -2.9924F, 0.0873F, 0.0F, 0.0F));
+		.texOffs(20, 45).addBox(-2.5F, 0.0F, -10.0F, 5.0F, 4.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.1743F, -2.9924F, 5F, 0.0F, 0.0F));
 		PartDefinition left_ear = head.addOrReplaceChild("left_ear", CubeListBuilder.create().texOffs(12, 54).addBox(-2.0F, -4.0F, -0.5F, 4.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(3.0F, -2.5F, 0.0F, 0.0F, 0.0F, 0.4363F));
 		PartDefinition right_ear = head.addOrReplaceChild("right_ear", CubeListBuilder.create().texOffs(12, 54).mirror().addBox(-2.0F, -4.0F, -0.5F, 4.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(-3.0F, -2.5F, 0.0F, 0.0F, 0.0F, -0.4363F));
 		PartDefinition left_eyeBall = head.addOrReplaceChild("left_eyeBall", CubeListBuilder.create().texOffs(25, 58).addBox(-1.0F, -0.5F, -0.025F, 2.0F, 1.0F, 0.0F, new CubeDeformation(0.025F)), PartPose.offset(3.0F, -1.5F, -5.0F));
@@ -80,7 +80,9 @@ public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
     @Override
     public void setupAnim(HyenaEntity hyena, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
-        if (hyena.isBaby()) {
+		this.applyHeadRotation(netHeadYaw, headPitch);
+
+		if (hyena.isBaby()) {
             float maturationPercent = (float) hyena.getMaturationPercentage() / 100f;
             float headScale = 2f - (2f - 1.0f) * maturationPercent;
 
@@ -89,10 +91,10 @@ public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
             this.head.zScale *= headScale;
         }
 
-		this.head.xRot = (float) Math.toRadians(20);
-
-        this.applyHeadRotation(netHeadYaw, headPitch);
-    }
+		this.neck.xRot = (float) Math.toRadians(hyena.getHeadX());
+		this.head.xRot = (float) Math.toRadians(5 + (-hyena.getHeadX()));
+		this.head.y = hyena.getHeadX() / 20;
+	}
 
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
