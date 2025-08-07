@@ -1,4 +1,4 @@
-// 1.21	2025-08-07T20:41:49.2274188	Item Models: ow
+// 1.21	2025-08-07T21:11:07.8186414	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
@@ -55,7 +55,6 @@ adcbfb5ceaa0d9a0a15bae4f5e815587d9060969 assets/ow/models/item/cooked_boa.json
 0ead5c5ce6a49f4c3f942c85e7182cd9e27fcb3a assets/ow/models/item/cooked_kodiak.json
 6564e282637e35db612bc5413e96c9b4b2701b78 assets/ow/models/item/cooked_peacock.json
 46f2291693f07717944a650567537d58a388e1c1 assets/ow/models/item/cooked_tiger.json
-42d75c0f4fdb3644d423606361201b2a8b41f77c assets/ow/models/item/fawn_tooth.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/hyena_spawn_egg.json
 b69eeee753a6359c8db1bbfa417adb15e820c348 assets/ow/models/item/jade.json
 87aca1381e079a50f6f081841c74981e7a073ec1 assets/ow/models/item/jade_axe.json
@@ -124,6 +123,7 @@ c34229071fd3f458d89fa76967dc053a6067157c assets/ow/models/item/peacock_feather.j
 d53db43b06849e3d4cce48e9095252433924ac17 assets/ow/models/item/plant_fiber.json
 5966d2d5f7628d375962654d62b04f3746b4d121 assets/ow/models/item/platinum_ingot.json
 c8ad86f78113db6b792e7fe29c4582b3e5740455 assets/ow/models/item/platinum_plated_ruby_sword.json
+c7e047836c2b4675fe70f07ba787baefe5331d2b assets/ow/models/item/predator_tooth.json
 ea4fa927a392a86dee26800fcace15a9c559ea13 assets/ow/models/item/primitive_sickle.json
 cf0da41eddad5fdc7274ce98c21f1154bf7fd8f9 assets/ow/models/item/primitive_slingshot.json
 413a92d38c675f445e3365ab199ecc04e0984888 assets/ow/models/item/raw_boa.json

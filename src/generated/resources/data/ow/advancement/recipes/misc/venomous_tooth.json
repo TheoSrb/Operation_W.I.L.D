@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_fawn_tooth": {
+    "has_predator_tooth": {
       "conditions": {
         "items": [
           {
-            "items": "ow:fawn_tooth"
+            "items": "ow:predator_tooth"
           }
         ]
       },
@@ -21,7 +21,7 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_fawn_tooth"
+      "has_predator_tooth"
     ]
   ],
   "rewards": {

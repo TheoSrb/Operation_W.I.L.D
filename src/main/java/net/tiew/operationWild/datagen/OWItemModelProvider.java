@@ -75,7 +75,7 @@ public class OWItemModelProvider extends ItemModelProvider {
 
         basicItem(OWItems.TIGER_FUR.get());
         basicItem(OWItems.BOA_TONG.get());
-        basicItem(OWItems.FAWN_TOOTH.get());
+        basicItem(OWItems.PREDATOR_TOOTH.get());
         basicItem(OWItems.VENOMOUS_TOOTH.get());
         basicItem(OWItems.VENOMOUS_GLANDS.get());
         basicItem(OWItems.PEACOCK_FEATHER.get());

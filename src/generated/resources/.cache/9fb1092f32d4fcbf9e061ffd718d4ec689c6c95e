@@ -1,4 +1,4 @@
-// 1.21	2025-08-06T16:22:31.1406192	Recipes
+// 1.21	2025-08-07T21:11:07.8226304	Recipes
 f33c002f0f4ef1baa4167f73e99e52613a4136f5 data/minecraft/advancement/recipes/misc/pink_dye.json
 e3f3a0b671388d6abdeedaefe2fd558cd9d00dac data/minecraft/recipe/pink_dye.json
 de112f61373b2fa438aeb487d1c45ba8a14efac2 data/ow/advancement/recipes/food/cooked_boa_from_campfire_cooking.json
@@ -39,7 +39,7 @@ bcc992495a57bdf8617cb208381366bbf7daa2a1 data/ow/advancement/recipes/misc/seabug
 9c7e0fd9a9acc7ba47e21878e8f22c2cbf1d1662 data/ow/advancement/recipes/misc/tranquilizer_arrow.json
 4ecd05277c3847101ddb9ae9cf4f8bc49c6be314 data/ow/advancement/recipes/misc/tranquilizer_wooden_stinger.json
 066a7504bd989a5d24ccc634f5994d8d781f5232 data/ow/advancement/recipes/misc/venomous_arrow.json
-8ec78d6e27f4cd569aa13b6d42f2b158da21724f data/ow/advancement/recipes/misc/venomous_tooth.json
+f7d7e5f555704bce081d70ef927c7df5aa655df3 data/ow/advancement/recipes/misc/venomous_tooth.json
 f3e247ba989ef18d5c21412e8d8f24f0ccb3049c data/ow/advancement/recipes/misc/wooden_stinger.json
 1b13f51af5acde64d5d16953a6c064b96137697a data/ow/recipe/camouflage_boots.json
 9d99c36eda5b7dff7c410cbf403c8a70f16bcd25 data/ow/recipe/camouflage_chestplate.json
@@ -68,7 +68,7 @@ bc61f84ad32f64c886bde567dfe6e97393c32957 data/ow/recipe/jade_leggings.json
 ab5979e2aab3344f761f116e4caa5a5235804599 data/ow/recipe/jade_sword.json
 92d9bd3a844271b83279ee3e7f299df3144ee874 data/ow/recipe/lavender_bouquet.json
 0fbc8227c91a2d7cfb1e6d82532bf1de70f6cd17 data/ow/recipe/primitive_slingshot.json
-755d9cfe2219cdc2aab20bf32edf03134a2c422e data/ow/recipe/primitive_spear.json
+0411fa11a6234f03315ed2539a840a7d7d1371b2 data/ow/recipe/primitive_spear.json
 5351f9aa5036066b79816950f3f86d4443c85c1b data/ow/recipe/ruby_axe.json
 874005a389b8e4f20c190d2b182b46924b114103 data/ow/recipe/ruby_hoe.json
 7ff147af320dd5b3f74e1716784d9640b6982cfc data/ow/recipe/ruby_pickaxe.json
@@ -79,5 +79,5 @@ cbb84aa1e7608d831e4a953ff2e866032744df6d data/ow/recipe/seabug.json
 bee0cf426c401757769a52f78d30bcff6208641f data/ow/recipe/tranquilizer_arrow.json
 241920997735f94788d480e5b0e06776bc4313fd data/ow/recipe/tranquilizer_wooden_stinger.json
 061a56cf8996c7ac65e8b596ebe471878571f8b3 data/ow/recipe/venomous_arrow.json
-cc953e7e048f8a9d5244050fe42576ed1b355937 data/ow/recipe/venomous_tooth.json
+cbedcb9f8cf095a939a9df2bfeba702f968ac562 data/ow/recipe/venomous_tooth.json
 296d4c70459bd6e4a85c12116ee99bb9a6ee6ddc data/ow/recipe/wooden_stinger.json

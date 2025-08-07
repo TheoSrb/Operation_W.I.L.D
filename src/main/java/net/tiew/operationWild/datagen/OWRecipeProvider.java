@@ -57,7 +57,7 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .pattern("S  ")
                 .define('S', Items.STICK)
                 .define('T', OWItems.TIGER_FUR.get())
-                .define('F', OWItems.FAWN_TOOTH.get())
+                .define('F', OWItems.PREDATOR_TOOTH.get())
                 .unlockedBy(getHasName(OWItems.TIGER_FUR.get()), has(OWItems.TIGER_FUR.get())).save(recipeOutput);
 
 
@@ -73,9 +73,9 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .pattern(" V ")
                 .pattern("VTV")
                 .pattern(" V ")
-                .define('T', OWItems.FAWN_TOOTH.get())
+                .define('T', OWItems.PREDATOR_TOOTH.get())
                 .define('V', OWItems.VENOMOUS_GLANDS.get())
-                .unlockedBy(getHasName(OWItems.FAWN_TOOTH.get()), has(OWItems.FAWN_TOOTH.get())).save(recipeOutput);
+                .unlockedBy(getHasName(OWItems.PREDATOR_TOOTH.get()), has(OWItems.PREDATOR_TOOTH.get())).save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.VENOMOUS_ARROW.get(), 1)
                 .pattern("  V")

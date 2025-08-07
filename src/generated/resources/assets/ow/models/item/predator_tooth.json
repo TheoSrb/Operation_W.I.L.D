@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "ow:item/fawn_tooth"
+    "layer0": "ow:item/predator_tooth"
   }
 }

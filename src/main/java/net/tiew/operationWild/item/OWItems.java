@@ -89,7 +89,7 @@ public class OWItems {
     // Mob Loots
     public static final DeferredHolder<Item, Item> TIGER_FUR = ITEMS.register("tiger_fur", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> BOA_TONG = ITEMS.register("boa_tong", () -> new Item(new Item.Properties()));
-    public static final DeferredHolder<Item, Item> FAWN_TOOTH = ITEMS.register("fawn_tooth", () -> new Item(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> PREDATOR_TOOTH = ITEMS.register("predator_tooth", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> VENOMOUS_TOOTH = ITEMS.register("venomous_tooth", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> VENOMOUS_GLANDS = ITEMS.register("venomous_glands", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> PEACOCK_FEATHER = ITEMS.register("peacock_feather", () -> new Item(new Item.Properties()));
