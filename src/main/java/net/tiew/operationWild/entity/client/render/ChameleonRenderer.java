@@ -75,7 +75,7 @@ public class ChameleonRenderer extends MobRenderer<ChameleonEntity, ChameleonMod
                 }
             }
         }
-        OWRendererUtils.createInformationImage(chameleon, poseStack, bufferSource, packedLight, 0, 0, 0, 0, 2);
+        OWRendererUtils.createInformationImage(chameleon, poseStack, bufferSource, packedLight, 0, 0, 0, 0, 1);
     }
 
     @Override

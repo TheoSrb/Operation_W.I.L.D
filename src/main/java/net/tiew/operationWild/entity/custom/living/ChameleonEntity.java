@@ -8,7 +8,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.DifficultyInstance;
@@ -20,33 +22,53 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.ai.navigation.WallClimberNavigation;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_client.ChameleonUtilsSendToClient;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
-import net.tiew.operationWild.entity.AI.OWPanicGoal;
 import net.tiew.operationWild.entity.AI.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityUtils;
 import net.tiew.operationWild.entity.variants.ChameleonVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
-import net.tiew.operationWild.utils.OWUtils;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
 public class ChameleonEntity extends OWEntity implements OWEntityUtils {
 
     public static final double TAMING_EXPERIENCE = 10.0;
+
+    public ResourceLocation CAMOUFLAGE_TEXTURE;
+    public ResourceLocation PREVIOUS_CAMOUFLAGE_TEXTURE;
+    public Block previousBlock = null;
+    public int camouflageTimer = 0;
+    public int fadeTimer = 0;
+    public static final int FADE_DURATION = 150;
+    public static final int CLIMBING_FADE_DURATION = 10;
+    public boolean isTransitioning = false;
+    public boolean hasInitialTexture = false;
+
+    public boolean isStartingClimbing = false;
+    public boolean isStopingClimbing = false;
+    public int climbingTimer = 0;
 
     public String[] quests = {};
     public int foodGiven = 0;
@@ -72,8 +94,12 @@ public class ChameleonEntity extends OWEntity implements OWEntityUtils {
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
     }
 
+    protected PathNavigation createNavigation(Level level) {
+        return new WallClimberNavigation(this, level);
+    }
+
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 12.0D).add(Attributes.MOVEMENT_SPEED, 0.17D).add(Attributes.FOLLOW_RANGE, 10.0D).add(Attributes.ATTACK_DAMAGE, 0.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.1D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 8.0D).add(Attributes.MOVEMENT_SPEED, 0.17D).add(Attributes.FOLLOW_RANGE, 10.0D).add(Attributes.ATTACK_DAMAGE, 0.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.1D);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -92,11 +118,39 @@ public class ChameleonEntity extends OWEntity implements OWEntityUtils {
             default -> throw new IllegalArgumentException("Invalid skin index: " + skinIndex);
         }
     }
-    
+
     @Override
     public void travel(Vec3 vec3) {
         super.travel(vec3);
-        //if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
+    }
+
+    public boolean isClimbing() {
+        return ((Byte)this.entityData.get(DATA_FLAGS_ID) & 1) != 0;
+    }
+
+    public void setClimbing(boolean climbing) {
+        byte b0 = (Byte)this.entityData.get(DATA_FLAGS_ID);
+        if (climbing) {
+            b0 = (byte)(b0 | 1);
+        } else {
+            b0 = (byte)(b0 & -2);
+        }
+
+        this.entityData.set(DATA_FLAGS_ID, b0);
+    }
+
+    @Override
+    public boolean onClimbable() {
+        return this.isClimbing();
+    }
+
+    @Override
+    protected float getJumpPower() {
+        return 0.0f;
+    }
+
+    @Override
+    public void jumpFromGround() {
     }
 
     @Override
@@ -130,7 +184,6 @@ public class ChameleonEntity extends OWEntity implements OWEntityUtils {
         super.setTarget(target);
     }
 
-
     public void changeSkin(int skinIndex) {
         this.setVariant(getInitialVariant());
         
@@ -153,16 +206,188 @@ public class ChameleonEntity extends OWEntity implements OWEntityUtils {
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
-        
-        
-        
-        
-        
-        
+
+        if (!this.level().isClientSide) {
+            boolean wasClimbing = this.isClimbing();
+            this.setClimbing(this.horizontalCollision);
+            boolean isNowClimbing = this.isClimbing();
+
+            if (!wasClimbing && isNowClimbing && !isStartingClimbing) {
+                isStartingClimbing = true;
+                isStopingClimbing = false;
+            }
+
+            if (wasClimbing && !isNowClimbing && !isStopingClimbing) {
+                isStopingClimbing = true;
+                isStartingClimbing = false;
+            }
+        }
+
+        if (isStartingClimbing) {
+            if (climbingTimer < CLIMBING_FADE_DURATION) {
+                climbingTimer++;
+            } else {
+                climbingTimer = CLIMBING_FADE_DURATION;
+                isStartingClimbing = false;
+            }
+        }
+
+        if (isStopingClimbing) {
+            if (climbingTimer > 0) {
+                climbingTimer--;
+            } else {
+                climbingTimer = 0;
+                isStopingClimbing = false;
+            }
+        }
+
+
+        if (!this.level().isClientSide()) {
+            if (this.level() instanceof ServerLevel serverLevel) {
+                for (ServerPlayer player : serverLevel.players()) {
+                    OWNetworkHandler.sendToClient(new ChameleonUtilsSendToClient(
+                            this.getId(),
+                            this.CAMOUFLAGE_TEXTURE,
+                            this.PREVIOUS_CAMOUFLAGE_TEXTURE,
+                            camouflageTimer,
+                            fadeTimer,
+                            isTransitioning,
+                            climbingTimer,
+                            isStopingClimbing
+                    ), player);
+                }
+            }
+        }
+
+        if (isTransitioning) {
+            fadeTimer++;
+            if (fadeTimer >= FADE_DURATION) {
+                PREVIOUS_CAMOUFLAGE_TEXTURE = null;
+                isTransitioning = false;
+                fadeTimer = 0;
+            }
+        }
+
+        int changeColorInterval = 300;
+
+        if (tickCount % changeColorInterval == 0 && !this.level().isClientSide()) {
+            BlockPos blockPosBelow = this.blockPosition().below();
+            Block blockBelow = this.level().getBlockState(blockPosBelow).getBlock();
+
+            String[] $$0 = blockBelow.asItem().toString().split(":");
+
+            boolean canChangeColor = blockBelow != Blocks.GRASS_BLOCK && blockBelow != Blocks.AIR && !isWaxedCopperBlock(blockBelow) && isFullBlock(blockBelow);
+
+            if (isInWater()) $$0[1] = "lapis_block";
+            else {
+                if ($$0[1].equals("snow_block")) $$0[1] = "snow";
+                if ($$0[1].equals("mycelium")) $$0[1] = "mycelium_top";
+                if ($$0[1].equals("podzol")) $$0[1] = "podzol_top";
+                if ($$0[1].equals("dried_kelp_block")) $$0[1] = "dried_kelp_side";
+                if ($$0[1].equals("bee_nest")) $$0[1] = "bee_nest_side";
+                if ($$0[1].equals("hay_block")) $$0[1] = "hay_block_side";
+                if ($$0[1].equals("melon")) $$0[1] = "melon_side";
+                if ($$0[1].contains("leaves") && !$$0[1].contains("cherry")) $$0[1] = "azalea_leaves";
+            }
+
+            if (canChangeColor) {
+                if (blockBelow != previousBlock) {
+                    previousBlock = blockBelow;
+
+                    ResourceLocation newTexture = ResourceLocation.fromNamespaceAndPath($$0[0], "textures/block/" + $$0[1] + ".png");
+
+                    if (!hasInitialTexture) {
+                        CAMOUFLAGE_TEXTURE = newTexture;
+                        PREVIOUS_CAMOUFLAGE_TEXTURE = null;
+                        isTransitioning = true;
+                        fadeTimer = 0;
+                        hasInitialTexture = true;
+                    } else {
+                        PREVIOUS_CAMOUFLAGE_TEXTURE = CAMOUFLAGE_TEXTURE;
+                        CAMOUFLAGE_TEXTURE = newTexture;
+                        isTransitioning = true;
+                        fadeTimer = 0;
+                    }
+                }
+            } else {
+                ResourceLocation newTexture = null;
+
+                if (!hasInitialTexture) {
+                    CAMOUFLAGE_TEXTURE = newTexture;
+                    PREVIOUS_CAMOUFLAGE_TEXTURE = null;
+                    isTransitioning = true;
+                    fadeTimer = 0;
+                    hasInitialTexture = true;
+                } else {
+                    PREVIOUS_CAMOUFLAGE_TEXTURE = CAMOUFLAGE_TEXTURE;
+                    CAMOUFLAGE_TEXTURE = newTexture;
+                    isTransitioning = true;
+                    fadeTimer = 0;
+                }
+            }
+        }
+
+
 
         /*if (this.getVariant() == ChameleonVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
             OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
         }*/
+    }
+
+    public float getFadeOpacity() {
+        if (!isTransitioning) return 1.0f;
+        return (float) fadeTimer / FADE_DURATION;
+    }
+
+    private boolean isFullBlock(Block block) {
+        if (block.defaultBlockState().is(Blocks.WATER)) return true;
+
+        BlockState blockState = block.defaultBlockState();
+        VoxelShape shape = blockState.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+
+        boolean isFullShape = shape.bounds().equals(Shapes.block().bounds());
+
+        if (!isFullShape) return false;
+
+        if (block instanceof SlabBlock) return false;
+        if (block instanceof StairBlock) return false;
+        if (block instanceof WallBlock) return false;
+        if (block instanceof FenceBlock) return false;
+        if (block instanceof FenceGateBlock) return false;
+        if (block instanceof DoorBlock) return false;
+        if (block instanceof TrapDoorBlock) return false;
+        if (block instanceof ButtonBlock) return false;
+        if (block instanceof PressurePlateBlock) return false;
+        if (block instanceof CarpetBlock) return false;
+        if (block instanceof ChainBlock) return false;
+        if (block instanceof LanternBlock) return false;
+        if (block instanceof TorchBlock) return false;
+        if (block instanceof RedstoneTorchBlock) return false;
+        if (block instanceof LadderBlock) return false;
+        if (block instanceof VineBlock) return false;
+        if (block instanceof TintedGlassBlock) return false;
+        if (block instanceof StainedGlassBlock) return false;
+        if (block instanceof IceBlock) return false;
+        if (block instanceof BarrierBlock) return false;
+        if (block instanceof BeaconBlock) return false;
+
+        return blockState.isSolid() && blockState.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+    }
+
+    private boolean isWaxedCopperBlock(Block block) {
+        return block == Blocks.WAXED_COPPER_BLOCK ||
+                block == Blocks.WAXED_EXPOSED_COPPER ||
+                block == Blocks.WAXED_WEATHERED_COPPER ||
+                block == Blocks.WAXED_OXIDIZED_COPPER ||
+                block == Blocks.WAXED_CUT_COPPER ||
+                block == Blocks.WAXED_EXPOSED_CUT_COPPER ||
+                block == Blocks.WAXED_WEATHERED_CUT_COPPER ||
+                block == Blocks.WAXED_OXIDIZED_CUT_COPPER;
+    }
+
+    public float getPreviousFadeOpacity() {
+        if (!isTransitioning) return 0.0f;
+        return 1.0f - ((float) fadeTimer / FADE_DURATION);
     }
 
     @Override
@@ -236,8 +461,7 @@ public class ChameleonEntity extends OWEntity implements OWEntityUtils {
 
 
     private void setupAnimationState() {
-        createIdleAnimation(54, true);
-        createSitAnimation(80, true);
+        createIdleAnimation(48, true);
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -251,7 +475,6 @@ public class ChameleonEntity extends OWEntity implements OWEntityUtils {
         tag.putInt("Variant", this.getTypeVariant());
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
-
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -265,6 +488,11 @@ public class ChameleonEntity extends OWEntity implements OWEntityUtils {
     @Override
     public int getEntityColor() {
         return 7309894;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 1.5f;
     }
 }
 

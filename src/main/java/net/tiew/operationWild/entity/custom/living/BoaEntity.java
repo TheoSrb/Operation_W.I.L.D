@@ -479,7 +479,7 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
 
 
     private boolean targetCanBeGrabbed(LivingEntity target) {
-        return target.getMaxHealth() <= 40 && !target.isUnderWater() && !target.isInWater() && target.getHealth() >= 5 && !(target instanceof BoaEntity);
+        return target.getMaxHealth() <= 40 && !target.isUnderWater() && !target.isInWater() && target.getHealth() >= 10 && !(target instanceof BoaEntity);
     }
 
     @Override

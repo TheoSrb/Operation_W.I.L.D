@@ -18,7 +18,8 @@ public class ChameleonLayer extends RenderLayer<ChameleonEntity, ChameleonModel<
     private static final ResourceLocation BLOODY_STAGE_0_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/chameleon/chameleon_bloody_stage_0.png");
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/chameleon/chameleon_bloody_stage_1.png");
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/chameleon/chameleon_bloody_stage_2.png");
-    private static final ResourceLocation SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/chameleon/chameleon_saddle.png");
+
+    private static final ResourceLocation CHAMELEON_EYES = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/chameleon/chameleon_eyes.png");
 
     public ChameleonLayer(ChameleonRenderer chameleonRenderer) {
         super(chameleonRenderer);
@@ -27,12 +28,36 @@ public class ChameleonLayer extends RenderLayer<ChameleonEntity, ChameleonModel<
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, ChameleonEntity chameleon, float v, float v1, float v2, float v3, float v4, float v5) {
         double chameleonHealthTier = chameleon.getMaxHealth() / 4;
+
+        if (!chameleon.isInvisible()) {
+            if (chameleon.isTransitioning) {
+                if (chameleon.PREVIOUS_CAMOUFLAGE_TEXTURE != null) {
+                    float previousOpacity = chameleon.getPreviousFadeOpacity() * 0.85f;
+                    renderOverlayWithOpacity(poseStack, multiBufferSource,
+                            chameleon.PREVIOUS_CAMOUFLAGE_TEXTURE, false, packedLight, previousOpacity);
+                }
+
+                if (chameleon.CAMOUFLAGE_TEXTURE != null) {
+                    float currentOpacity = chameleon.getFadeOpacity() * 0.85f;
+                    renderOverlayWithOpacity(poseStack, multiBufferSource,
+                            chameleon.CAMOUFLAGE_TEXTURE, false, packedLight, currentOpacity);
+                }
+            } else {
+                if (chameleon.CAMOUFLAGE_TEXTURE != null) {
+                    renderOverlayWithOpacity(poseStack, multiBufferSource,
+                            chameleon.CAMOUFLAGE_TEXTURE, false, packedLight, 0.85f);
+                }
+            }
+        }
+
+        renderOverlay(poseStack, multiBufferSource, CHAMELEON_EYES, false, packedLight);
+
         if (chameleon.isInResurrection()) {
             float opacity = (float) (0.75 * (1 - chameleon.getResurrectionPercentage() / 100.0f));
             renderOverlayWithOpacity(poseStack, multiBufferSource, RESURRECTION_TEXTURE, false, packedLight, opacity);
             renderOverlay(poseStack, multiBufferSource, RESURRECTION_GLOWING_TEXTURE, true, packedLight);
         }
-        if (chameleon.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+
         if (chameleon.getHealth() < chameleonHealthTier) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
         else if (chameleon.getHealth() < (chameleonHealthTier * 2)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);
         else if (chameleon.getHealth() < (chameleonHealthTier * 3)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);
