@@ -37,29 +37,29 @@ import net.tiew.operationWild.entity.AI.OWPanicGoal;
 import net.tiew.operationWild.entity.AI.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityUtils;
-import net.tiew.operationWild.entity.variants.KodiakVariant;
+import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.utils.OWUtils;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
-public class KodiakEntity extends OWEntity implements OWEntityUtils {
+public class ElephantEntity extends OWEntity implements OWEntityUtils {
 
-    public static final double TAMING_EXPERIENCE = 180.0;
+    public static final double TAMING_EXPERIENCE = 345.0;
 
     public String[] quests = {};
     public int foodGiven = 0;
     public int foodWanted;
 
-    private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
 
-    public KodiakVariant getVariant() { return KodiakVariant.byId(this.getTypeVariant() & 255);}
-    public void setVariant(KodiakVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
-    public KodiakVariant getInitialVariant() { return KodiakVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
-    public void setInitialVariant(KodiakVariant variant) { this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());}
+    public ElephantVariant getVariant() { return ElephantVariant.byId(this.getTypeVariant() & 255);}
+    public void setVariant(ElephantVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
+    public ElephantVariant getInitialVariant() { return ElephantVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
+    public void setInitialVariant(ElephantVariant variant) { this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());}
 
-    public KodiakEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
+    public ElephantEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
@@ -73,7 +73,7 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 50.0D).add(Attributes.MOVEMENT_SPEED, 0.19D).add(Attributes.FOLLOW_RANGE, 25.0D).add(Attributes.ATTACK_DAMAGE, 6.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 65.0D).add(Attributes.MOVEMENT_SPEED, 0.14D).add(Attributes.FOLLOW_RANGE, 30.0D).add(Attributes.ATTACK_DAMAGE, 8.0D).add(Attributes.KNOCKBACK_RESISTANCE, 1.0D);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -122,7 +122,7 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
         if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
             this.spawnAtLocation(soulStack);
         }
-        /*if (this.isSaddled()) this.spawnAtLocation(OWItems.KODIAK_SADDLE.get());*/
+        /*if (this.isSaddled()) this.spawnAtLocation(OWItems.ELEPHANT_SADDLE.get());*/
     }
 
     @Override
@@ -160,7 +160,7 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
         
         
 
-        /*if (this.getVariant() == KodiakVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
+        /*if (this.getVariant() == ElephantVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
             OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
         }*/
     }
@@ -188,9 +188,9 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
 
     @Override
     public boolean isAlliedTo(Entity entity) {
-        if (entity instanceof KodiakEntity otherKodiak) {
-            if (this.isTame()) return otherKodiak.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherKodiak.getOwnerUUID());
-            else return !otherKodiak.isTame();
+        if (entity instanceof ElephantEntity otherElephant) {
+            if (this.isTame()) return otherElephant.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherElephant.getOwnerUUID());
+            else return !otherElephant.isTame();
         }
         return super.isAlliedTo(entity);
     }
@@ -227,7 +227,7 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
             this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
 
-            this.setVariant(KodiakVariant.DEFAULT);
+            this.setVariant(ElephantVariant.DEFAULT);
             this.setInitialVariant(this.getVariant());
         }
 
@@ -264,7 +264,7 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
 
     @Override
     public int getEntityColor() {
-        return 8215109;
+        return 8749692;
     }
 }
 

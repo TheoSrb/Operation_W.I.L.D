@@ -52,7 +52,7 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
         return RenderType.entityTranslucent(texture);
     }
 
-    private void renderWithOpacity(JellyfishEntity jellyfish, float scale, boolean glowLayer, PoseStack poseStack, MultiBufferSource bufferSource, float opacity) {
+    private void renderJellyfish(JellyfishEntity jellyfish, float scale, boolean glowLayer, PoseStack poseStack, MultiBufferSource bufferSource, float opacity) {
         if (jellyfish == null || poseStack == null || bufferSource == null) {
             return;
         }
@@ -74,7 +74,8 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
             VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
 
             int customLight = LightTexture.pack(12, 12);
-            this.getModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : customLight, OverlayTexture.NO_OVERLAY, color);
+            int overlay = OverlayTexture.pack(OverlayTexture.u(jellyfish.hurtTime > 0 ? 1.0F : 0.0F), false);
+            this.getModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : customLight, overlay, color);
         } finally {
             poseStack.popPose();
         }
@@ -115,10 +116,15 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
         try {
             poseStack.mulPose(Axis.XP.rotationDegrees(180.0F));
 
+            if (jellyfish.deathTime > 0) {
+                float deathRotation = ((float)jellyfish.deathTime + partialTicks - 1.0F) * 90.0F / 20.0F;
+                poseStack.mulPose(Axis.ZP.rotationDegrees(deathRotation));
+            }
+
             poseStack.pushPose();
             try {
                 poseStack.translate(0.0D, -1.5D, 0.0D);
-                this.renderWithOpacity(jellyfish, 1, false, poseStack, bufferSource , 0.8f);
+                this.renderJellyfish(jellyfish, 1, false, poseStack, bufferSource , 0.8f);
             } finally {
                 poseStack.popPose();
             }
@@ -126,7 +132,7 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
             poseStack.pushPose();
             try {
                 poseStack.translate(0.0D, -1.55D, 0.0D);
-                this.renderWithOpacity(jellyfish, 1.2f, true , poseStack, bufferSource , 0.65f);
+                this.renderJellyfish(jellyfish, 1.2f, true , poseStack, bufferSource , 0.65f);
             } finally {
                 poseStack.popPose();
             }
@@ -134,7 +140,7 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
             poseStack.pushPose();
             try {
                 poseStack.translate(0.0D, -1.45D, 0.0D);
-                this.renderWithOpacity(jellyfish, 0.8f, true, poseStack, bufferSource, 0.65f);
+                this.renderJellyfish(jellyfish, 0.8f, true, poseStack, bufferSource, 0.65f);
             } finally {
                 poseStack.popPose();
             }

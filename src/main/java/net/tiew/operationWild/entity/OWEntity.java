@@ -234,9 +234,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
     }
 
-    public static final List<Class<?>> TANK_ENTITIES = List.of();
-    public static final List<Class<?>> ASSASSIN_ENTITIES = List.of(TigerEntity.class, TigerSharkEntity.class);
-    public static final List<Class<?>> MARAUDER_ENTITIES = List.of(BoaEntity.class, PeacockEntity.class);
+    public static final List<Class<?>> TANK_ENTITIES = List.of(ElephantEntity.class, KodiakEntity.class, WalrusEntity.class);
+    public static final List<Class<?>> ASSASSIN_ENTITIES = List.of(TigerEntity.class, TigerSharkEntity.class, HyenaEntity.class, JellyfishEntity.class);
+    public static final List<Class<?>> MARAUDER_ENTITIES = List.of(BoaEntity.class, PeacockEntity.class, RedPandaEntity.class, ChameleonEntity.class, MantaEntity.class);
 
     public static final List<Object> CARNIVOROUS_ENTITIES = List.of(OWEntityRegistry.TIGER.get(), OWEntityRegistry.BOA.get(), OWEntityRegistry.TIGER_SHARK.get());
 
@@ -280,7 +280,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
             BlockPos currentPosition = this.blockPosition();
             if (!currentPosition.equals(lastPosition)) {
                 this.quest3Progression++;
-                System.out.println(quest3Progression + " progression");
                 lastPosition = currentPosition;
             }
             if (quest3Progression >= 2000) this.finishQuest((byte) 3);
@@ -1847,6 +1846,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
                 if (ClientEvents.tamingExperience >= WalrusEntity.TAMING_EXPERIENCE) unlockedEntities.add("walrus");
                 if (ClientEvents.tamingExperience >= MantaEntity.TAMING_EXPERIENCE) unlockedEntities.add("manta");
                 if (ClientEvents.tamingExperience >= RedPandaEntity.TAMING_EXPERIENCE) unlockedEntities.add("red_panda");
+                if (ClientEvents.tamingExperience >= ElephantEntity.TAMING_EXPERIENCE) unlockedEntities.add("elephant");
 
                 for (String entityType : unlockedEntities) {
                     if (!OWEntityJournalScreen.newEntitiesTamed.contains(entityType)) {

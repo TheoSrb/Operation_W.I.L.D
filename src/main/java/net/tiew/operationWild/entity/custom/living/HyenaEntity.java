@@ -45,7 +45,7 @@ import net.tiew.operationWild.utils.OWUtils;
 
 public class HyenaEntity extends OWEntity implements OWEntityUtils {
 
-    public static final double TAMING_EXPERIENCE = 70.0;
+    public static final double TAMING_EXPERIENCE = 55.0;
 
     public String[] quests = {};
     public int foodGiven = 0;

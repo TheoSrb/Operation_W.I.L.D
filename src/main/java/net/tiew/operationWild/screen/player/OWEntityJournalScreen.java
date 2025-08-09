@@ -45,12 +45,13 @@ public class OWEntityJournalScreen extends Screen {
             OWEntityRegistry.CHAMELEON.get(),
             OWEntityRegistry.JELLYFISH.get(),
             OWEntityRegistry.MANTA.get(),
-            OWEntityRegistry.WALRUS.get()
+            OWEntityRegistry.WALRUS.get(),
+            OWEntityRegistry.ELEPHANT.get()
     ));
     public static final double[] THRESHOLDS = {
             TigerEntity.TAMING_EXPERIENCE, TigerSharkEntity.TAMING_EXPERIENCE, BoaEntity.TAMING_EXPERIENCE, PeacockEntity.TAMING_EXPERIENCE,
             HyenaEntity.TAMING_EXPERIENCE, KodiakEntity.TAMING_EXPERIENCE, RedPandaEntity.TAMING_EXPERIENCE, ChameleonEntity.TAMING_EXPERIENCE,
-            JellyfishEntity.TAMING_EXPERIENCE, MantaEntity.TAMING_EXPERIENCE, WalrusEntity.TAMING_EXPERIENCE
+            JellyfishEntity.TAMING_EXPERIENCE, MantaEntity.TAMING_EXPERIENCE, WalrusEntity.TAMING_EXPERIENCE, ElephantEntity.TAMING_EXPERIENCE,
     };
 
     private float xMouse;
@@ -159,6 +160,7 @@ public class OWEntityJournalScreen extends Screen {
             case "jellyfish": return JellyfishEntity.TAMING_EXPERIENCE;
             case "manta": return MantaEntity.TAMING_EXPERIENCE;
             case "walrus": return WalrusEntity.TAMING_EXPERIENCE;
+            case "elephant": return ElephantEntity.TAMING_EXPERIENCE;
             default: return -1;
         }
     }
@@ -524,6 +526,7 @@ public class OWEntityJournalScreen extends Screen {
                         case "jellyfish" -> "tooltip.tamingOfA";
                         case "manta" -> "tooltip.tamingOfA";
                         case "walrus" -> "tooltip.tamingOf";
+                        case "elephant" -> "tooltip.taming2";
                         default -> "tooltip.tamingOf";
                     };
 
@@ -536,6 +539,7 @@ public class OWEntityJournalScreen extends Screen {
                     boolean isChameleon = entityName.equals("chameleon");
                     boolean isKodiak = entityName.equals("kodiak");
                     boolean isWalrus = entityName.equals("walrus");
+                    boolean isElephant = entityName.equals("elephant");
                     boolean isManta = entityName.equals("manta");
                     boolean isJellyfish = entityName.equals("jellyfish");
                     boolean isRedPanda = entityName.equals("red_panda");
@@ -545,7 +549,7 @@ public class OWEntityJournalScreen extends Screen {
                     float scale = 1.0f;
 
                     if (isTigerShark || isManta || isRedPanda) scale = 0.7f;
-                    if (isHyena || isChameleon || isJellyfish) scale = 0.8f;
+                    if (isHyena || isChameleon || isJellyfish || isElephant) scale = 0.8f;
                     if (isKodiak || isWalrus) scale = 0.9f;
 
 

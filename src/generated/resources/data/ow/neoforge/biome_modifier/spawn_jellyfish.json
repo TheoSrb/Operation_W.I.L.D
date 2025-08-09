@@ -13,6 +13,6 @@
     "type": "ow:jellyfish",
     "maxCount": 6,
     "minCount": 3,
-    "weight": 28
+    "weight": 12
   }
 }

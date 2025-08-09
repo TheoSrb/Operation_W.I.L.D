@@ -48,6 +48,7 @@ public class ModEventBusEvents {
     @SubscribeEvent
     public static void registerLayer(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(TigerModel.LAYER_LOCATION, TigerModel::createBodyLayer);
+        event.registerLayerDefinition(ElephantModel.LAYER_LOCATION, ElephantModel::createBodyLayer);
         event.registerLayerDefinition(WalrusModel.LAYER_LOCATION, WalrusModel::createBodyLayer);
         event.registerLayerDefinition(MantaModel.LAYER_LOCATION, MantaModel::createBodyLayer);
         event.registerLayerDefinition(JellyfishModel.LAYER_LOCATION, JellyfishModel::createBodyLayer);
@@ -76,6 +77,7 @@ public class ModEventBusEvents {
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(OWEntityRegistry.TIGER.get(), TigerEntity.createAttributes().build());
+        event.put(OWEntityRegistry.ELEPHANT.get(), ElephantEntity.createAttributes().build());
         event.put(OWEntityRegistry.WALRUS.get(), WalrusEntity.createAttributes().build());
         event.put(OWEntityRegistry.MANTA.get(), MantaEntity.createAttributes().build());
         event.put(OWEntityRegistry.JELLYFISH.get(), JellyfishEntity.createAttributes().build());

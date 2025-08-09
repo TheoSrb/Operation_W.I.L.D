@@ -68,7 +68,7 @@ import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
 public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
 
-    public static final double TAMING_EXPERIENCE = 45.0;
+    public static final double TAMING_EXPERIENCE = 0.0;
 
     public String[] quests = {};
     public int foodGiven = 0;
@@ -139,6 +139,16 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
 
         setNoGravity(isInWater());
 
+        List<Entity> entitiesCanBeHurt = this.level().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(2));
+
+        for (Entity entity : entitiesCanBeHurt) {
+            if (!this.isInWater() || !this.isAlive()) return;
+            if (entity instanceof Player player && player.isCreative()) continue;
+            if (!entity.isInvulnerable() && !(entity instanceof JellyfishEntity) && electrifiedTimer == 0) {
+                this.setElectrified(true);
+            }
+        }
+
         if (isElectrified()) {
             electrifiedTimer++;
             if (canPlayElectricalSound) {
@@ -185,6 +195,21 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
                         if (entity instanceof SeaBugEntity seaBug) {
                             seaBug.setOff(true);
                             seaBug.setEnergy(0);
+                        }
+
+                        if (entity instanceof Player) {
+                            Vec3 direction = new Vec3(
+                                    this.getX() - entity.getX(),
+                                    this.getY() - entity.getY(),
+                                    this.getZ() - entity.getZ()
+                            );
+
+                            direction = direction.normalize();
+
+                            double speed = 0.25;
+                            Vec3 velocity = direction.scale(speed);
+
+                            entity.setDeltaMovement(velocity);
                         }
                     }
                     if (tickCount % 3 == 0) {

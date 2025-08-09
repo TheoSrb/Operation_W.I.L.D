@@ -33,19 +33,31 @@ public class ChameleonLayer extends RenderLayer<ChameleonEntity, ChameleonModel<
             if (chameleon.isTransitioning) {
                 if (chameleon.PREVIOUS_CAMOUFLAGE_TEXTURE != null) {
                     float previousOpacity = chameleon.getPreviousFadeOpacity() * 0.85f;
-                    renderOverlayWithOpacity(poseStack, multiBufferSource,
-                            chameleon.PREVIOUS_CAMOUFLAGE_TEXTURE, false, packedLight, previousOpacity);
+                    if (chameleon.PREVIOUS_CAMOUFLAGE_TEXTURE.getNamespace().equals("color")) {
+                        renderColorOverlay(poseStack, multiBufferSource, chameleon.PREVIOUS_CAMOUFLAGE_TEXTURE.getPath(), packedLight, previousOpacity, chameleon.isInWater());
+                    } else {
+                        renderOverlayWithOpacity(poseStack, multiBufferSource,
+                                chameleon.PREVIOUS_CAMOUFLAGE_TEXTURE, false, packedLight, previousOpacity);
+                    }
                 }
 
                 if (chameleon.CAMOUFLAGE_TEXTURE != null) {
                     float currentOpacity = chameleon.getFadeOpacity() * 0.85f;
-                    renderOverlayWithOpacity(poseStack, multiBufferSource,
-                            chameleon.CAMOUFLAGE_TEXTURE, false, packedLight, currentOpacity);
+                    if (chameleon.CAMOUFLAGE_TEXTURE.getNamespace().equals("color")) {
+                        renderColorOverlay(poseStack, multiBufferSource, chameleon.CAMOUFLAGE_TEXTURE.getPath(), packedLight, currentOpacity, chameleon.isInWater());
+                    } else {
+                        renderOverlayWithOpacity(poseStack, multiBufferSource,
+                                chameleon.CAMOUFLAGE_TEXTURE, false, packedLight, currentOpacity);
+                    }
                 }
             } else {
                 if (chameleon.CAMOUFLAGE_TEXTURE != null) {
-                    renderOverlayWithOpacity(poseStack, multiBufferSource,
-                            chameleon.CAMOUFLAGE_TEXTURE, false, packedLight, 0.85f);
+                    if (chameleon.CAMOUFLAGE_TEXTURE.getNamespace().equals("color")) {
+                        renderColorOverlay(poseStack, multiBufferSource, chameleon.CAMOUFLAGE_TEXTURE.getPath(), packedLight, 0.85f, chameleon.isInWater());
+                    } else {
+                        renderOverlayWithOpacity(poseStack, multiBufferSource,
+                                chameleon.CAMOUFLAGE_TEXTURE, false, packedLight, 0.85f);
+                    }
                 }
             }
         }
@@ -72,6 +84,30 @@ public class ChameleonLayer extends RenderLayer<ChameleonEntity, ChameleonModel<
         RenderType renderType = glowLayer ? RenderType.eyes(texture) : RenderType.entityCutoutNoCull(texture);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
         this.getParentModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY, color);
+    }
+
+    private void renderColorOverlay(PoseStack poseStack, MultiBufferSource bufferSource, String colorHex, int packedLight, float opacity, boolean isWater) {
+        opacity = Math.max(0.0f, Math.min(0.7f, opacity));
+
+        long baseColorLong = Long.parseLong(colorHex, 16);
+        int baseColor = (int) baseColorLong;
+
+        int originalAlpha = (baseColor >> 24) & 0xFF;
+
+        if (originalAlpha == 0) {
+            originalAlpha = 255;
+        }
+
+        int finalAlpha = (int)(originalAlpha * opacity);
+        int color = (baseColor & 0xFFFFFF) | (finalAlpha << 24);
+
+        ResourceLocation textureLocation = isWater ?
+                ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/white.png") :
+                ResourceLocation.fromNamespaceAndPath("minecraft", "textures/block/grass_block_top.png");
+
+        RenderType renderType = RenderType.entityTranslucent(textureLocation);
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+        this.getParentModel().renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, color);
     }
 
     private void renderOverlayWithOpacity(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, boolean glowLayer, int packedLight, float opacity) {

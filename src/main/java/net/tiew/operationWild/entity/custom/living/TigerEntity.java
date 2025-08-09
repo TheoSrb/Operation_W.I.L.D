@@ -76,7 +76,7 @@ import static net.tiew.operationWild.utils.OWUtils.determinateMinAndMax;
 
 public class TigerEntity extends OWEntity implements PlayerRideableJumping, FoodsPreference, OWEntityUtils {
 
-    public static final double TAMING_EXPERIENCE = 165.0;
+    public static final double TAMING_EXPERIENCE = 195.0;
 
     public String[] quests = {};
     public boolean wantToScarifyWood = false;

@@ -46,7 +46,7 @@ import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
 public class RedPandaEntity extends OWEntity implements OWEntityUtils {
 
-    public static final double TAMING_EXPERIENCE = 5;
+    public static final double TAMING_EXPERIENCE = 0.0;
 
     public String[] quests = {};
     public int foodGiven = 0;

@@ -59,15 +59,6 @@ public class JellyFishAttackAI extends Goal {
 
             this.jellyFish.getNavigation().moveTo(targetX, targetY, targetZ, this.speedModifier);
         }
-
-        List<Entity> entitiesCanBeHurt = this.jellyFish.level().getEntitiesOfClass(Entity.class, this.jellyFish.getBoundingBox().inflate(2));
-
-        for (Entity entity : entitiesCanBeHurt) {
-            if (entity instanceof Player player && player.isCreative()) continue;
-            if (!entity.isInvulnerable() && !(entity instanceof JellyfishEntity)) {
-                this.jellyFish.setElectrified(true);
-            }
-        }
     }
 
 }

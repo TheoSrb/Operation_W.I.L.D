@@ -55,6 +55,7 @@
   "tooltip.menuBook": "Menu",
   "tooltip.taming": "Domptage",
   "tooltip.tamingOf": "Domptage du",
+  "tooltip.taming2": "Domptage de",
   "tooltip.tamingOfA": "Domptage de la",
   "tooltip.other": "Divers",
   "tooltip.tamingExperienceDescribe": "Dans votre aventure, l’expérience d’apprivoisement joue un rôle essentiel dans le domptage des créatures. Plus elle augmente, plus elle vous permet d’obtenir des informations sur l'apprivoisement des créatures ou de débloquer les selles de ces dernières. Vous pouvez l’améliorer en apprivoisant différentes créatures.",
@@ -158,6 +159,7 @@
 
   "tooltip.unknownEntity": "Inconnue",
   "entity.ow.tiger": "Tigre",
+  "entity.ow.elephant": "Éléphant",
   "entity.ow.walrus": "Morse",
   "entity.ow.manta": "Raie Manta",
   "entity.ow.jellyfish": "Méduse",
@@ -184,6 +186,7 @@
   "item.ow.venomous_arrow": "Flèche Envenimée",
   "item.ow.tiger_spawn_egg": "Oeuf d'apparition de tigre",
   "item.ow.tiger_shark_spawn_egg": "Oeuf d'apparition de requin tigre",
+  "item.ow.elephant_spawn_egg": "Oeuf d'apparition d'éléphant",
   "item.ow.boa_spawn_egg": "Oeuf d'apparition de boa",
   "item.ow.peacock_spawn_egg": "Oeuf d'apparition de paon",
   "item.ow.walrus_spawn_egg": "Oeuf d'apparition de morse",

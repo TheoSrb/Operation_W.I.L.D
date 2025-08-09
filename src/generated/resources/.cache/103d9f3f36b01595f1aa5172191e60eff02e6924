@@ -1,4 +1,4 @@
-// 1.21	2025-08-07T11:20:21.4434147	Registries
+// 1.21	2025-08-09T13:10:21.7446767	Registries
 50ceb8e49f7e83c2dd6bfecce80a0a9483d14b93 data/ow/enchantment/fawns_protection.json
 421dbef5de6fc1fc864c4c6d02261d11247a489c data/ow/enchantment/lightness.json
 2e18fdc85cbc2b05f000ae62dc5d3d17ab741fae data/ow/enchantment/plant_providence.json
@@ -11,7 +11,7 @@ f07ddbc1400c4fa533846da495f9a7c507ad7135 data/ow/neoforge/biome_modifier/add_jad
 5efea63c8c82749185067eb67da6016e3b2fda56 data/ow/neoforge/biome_modifier/add_ruby_ore.json
 bec05f8beb9a1a5cc6135dc62377fa2f28136f21 data/ow/neoforge/biome_modifier/add_savage_berry_bush.json
 a7ed2b06986e8633d35de8b98793094cb6c33c7e data/ow/neoforge/biome_modifier/spawn_boa.json
-4be5277c6c263b79c11fc24a46a8dcea1b0411db data/ow/neoforge/biome_modifier/spawn_jellyfish.json
+3c12661f18eeeee1887b0310efa3ba6b9d06cbbc data/ow/neoforge/biome_modifier/spawn_jellyfish.json
 492562297ad071c4b1ab6b42f33835d24d4f3985 data/ow/neoforge/biome_modifier/spawn_peacock.json
 5f871e4ca1272c8688d75b1e7cbe7ec30173f7d2 data/ow/neoforge/biome_modifier/spawn_tiger.json
 2f81ab02218e5954662fc9ab4a8cea974bf4123d data/ow/worldgen/configured_feature/jade_ore.json

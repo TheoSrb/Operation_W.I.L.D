@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.custom.living;
 
+import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -39,6 +40,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_client.ChameleonUtilsSendToClient;
 import org.jetbrains.annotations.Nullable;
@@ -276,25 +278,36 @@ public class ChameleonEntity extends OWEntity implements OWEntityUtils {
 
             String[] $$0 = blockBelow.asItem().toString().split(":");
 
-            boolean canChangeColor = blockBelow != Blocks.GRASS_BLOCK && blockBelow != Blocks.AIR && !isWaxedCopperBlock(blockBelow) && isFullBlock(blockBelow);
+            boolean canChangeColor = !isWaxedCopperBlock(blockBelow) && isFullBlock(blockBelow);
 
-            if (isInWater()) $$0[1] = "lapis_block";
-            else {
-                if ($$0[1].equals("snow_block")) $$0[1] = "snow";
-                if ($$0[1].equals("mycelium")) $$0[1] = "mycelium_top";
-                if ($$0[1].equals("podzol")) $$0[1] = "podzol_top";
-                if ($$0[1].equals("dried_kelp_block")) $$0[1] = "dried_kelp_side";
-                if ($$0[1].equals("bee_nest")) $$0[1] = "bee_nest_side";
-                if ($$0[1].equals("hay_block")) $$0[1] = "hay_block_side";
-                if ($$0[1].equals("melon")) $$0[1] = "melon_side";
-                if ($$0[1].contains("leaves") && !$$0[1].contains("cherry")) $$0[1] = "azalea_leaves";
-            }
+
+            if ($$0[1].equals("snow_block")) $$0[1] = "snow";
+            if ($$0[1].equals("mycelium")) $$0[1] = "mycelium_top";
+            if ($$0[1].equals("podzol")) $$0[1] = "podzol_top";
+            if ($$0[1].equals("dried_kelp_block")) $$0[1] = "dried_kelp_side";
+            if ($$0[1].equals("bee_nest")) $$0[1] = "bee_nest_side";
+            if ($$0[1].equals("hay_block")) $$0[1] = "hay_block_side";
+            if ($$0[1].equals("melon")) $$0[1] = "melon_side";
+            if ($$0[1].contains("leaves") && !$$0[1].contains("cherry")) $$0[1] = "azalea_leaves";
+
 
             if (canChangeColor) {
                 if (blockBelow != previousBlock) {
                     previousBlock = blockBelow;
 
-                    ResourceLocation newTexture = ResourceLocation.fromNamespaceAndPath($$0[0], "textures/block/" + $$0[1] + ".png");
+                    ResourceLocation newTexture;
+
+                    if ($$0[1].equals("grass_block")) {
+                        int grassColor = BiomeColors.getAverageGrassColor(this.level(), this.getBlockPosBelowThatAffectsMyMovement());
+                        newTexture = ResourceLocation.fromNamespaceAndPath("color", String.format("%06x", grassColor));
+                    }
+                    else if (this.isInWater()) {
+                        int waterColor = BiomeColors.getAverageWaterColor(this.level(), this.getBlockPosBelowThatAffectsMyMovement());
+                        newTexture = ResourceLocation.fromNamespaceAndPath("color", String.format("%06x", waterColor));
+                    }
+                    else {
+                        newTexture = ResourceLocation.fromNamespaceAndPath($$0[0], "textures/block/" + $$0[1] + ".png");
+                    }
 
                     if (!hasInitialTexture) {
                         CAMOUFLAGE_TEXTURE = newTexture;
@@ -344,6 +357,8 @@ public class ChameleonEntity extends OWEntity implements OWEntityUtils {
 
         BlockState blockState = block.defaultBlockState();
         VoxelShape shape = blockState.getShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+
+        if (shape.isEmpty()) return false;
 
         boolean isFullShape = shape.bounds().equals(Shapes.block().bounds());
 

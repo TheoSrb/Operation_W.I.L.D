@@ -55,6 +55,7 @@
   "tooltip.menuBook": "Home",
   "tooltip.taming": "Taming",
   "tooltip.tamingOf": "Taming of",
+  "tooltip.taming2": "Taming of",
   "tooltip.tamingOfA": "Taming of",
   "tooltip.other": "Misc",
   "tooltip.tamingExperienceDescribe": "Throughout your adventure, taming experience plays a key role in mastering creatures. The higher it is, the more information you’ll unlock about rare or dangerous entities. You can increase it by taming various creatures.",
@@ -155,6 +156,7 @@
 
   "tooltip.unknownEntity": "Unknown",
   "entity.ow.tiger": "Tiger",
+  "entity.ow.elephant": "Elephant",
   "entity.ow.walrus": "Walrus",
   "entity.ow.manta": "Manta",
   "entity.ow.jellyfish": "Jellyfish",
@@ -183,6 +185,7 @@
   "item.ow.tiger_spawn_egg": "Tiger Spawn Egg",
   "item.ow.tiger_shark_spawn_egg": "Tiger Shark Spawn Egg",
   "item.ow.boa_spawn_egg": "Boa Spawn Egg",
+  "item.ow.elephant_spawn_egg": "Elephant Spawn Egg",
   "item.ow.peacock_spawn_egg": "Peacock Spawn Egg",
   "item.ow.walrus_spawn_egg": "Walrus Spawn Egg",
   "item.ow.jellyfish_spawn_egg": "Jellyfish Spawn Egg",

@@ -73,7 +73,7 @@ public class OWBiomeModifiers {
         spawnEntity(context, SPAWN_TIGER, TIGER_BIOMES, OWEntityRegistry.TIGER, rareEntitySpawnChance, 1, 1);
         spawnEntity(context, SPAWN_BOA, BOA_BIOMES, OWEntityRegistry.BOA, commonEntitySpawnChance, 1, 2);
         spawnEntity(context, SPAWN_PEACOCK, PEACOCK_BIOMES, OWEntityRegistry.PEACOCK, veryRareEntitySpawnChance, 1, 2);
-        spawnEntity(context, SPAWN_JELLYFISH, JELLYFISH_BIOMES, OWEntityRegistry.JELLYFISH, uncommonEntitySpawnChance, 3, 6);
+        spawnEntity(context, SPAWN_JELLYFISH, JELLYFISH_BIOMES, OWEntityRegistry.JELLYFISH, rareEntitySpawnChance, 3, 6);
 
 
 

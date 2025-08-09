@@ -46,7 +46,7 @@ import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
 public class WalrusEntity extends OWEntity implements OWEntityUtils {
 
-    public static final double TAMING_EXPERIENCE = 235;
+    public static final double TAMING_EXPERIENCE = 165.0;
 
     public String[] quests = {};
     public int foodGiven = 0;
