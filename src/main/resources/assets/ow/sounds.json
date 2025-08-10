@@ -52,6 +52,8 @@
 
   "jellyfish_electrified": { "subtitle": "sounds.ow.jellyfish_electrified", "sounds": [ "ow:jellyfish/jellyfish_electrified" ], "volume": 2 },
 
+  "elephant_footstep": { "subtitle": "sounds.ow.elephant_footstep", "sounds": [ "ow:elephant/elephant_footstep" ], "volume": 2 },
+
 
 
 

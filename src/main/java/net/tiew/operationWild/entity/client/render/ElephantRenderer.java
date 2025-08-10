@@ -19,11 +19,13 @@ import net.tiew.operationWild.entity.variants.ElephantVariant;
 import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantEntity, ElephantModel<ElephantEntity>> {
     private static final Map<ElephantVariant, ResourceLocation> LOCATION_BY_VARIANT = Util.make(Maps.newEnumMap(ElephantVariant.class), map -> {
         map.put(ElephantVariant.DEFAULT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_default.png"));
+        map.put(ElephantVariant.GREY, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_grey.png"));
+        map.put(ElephantVariant.PINK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_pink.png"));
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
     public ElephantRenderer(EntityRendererProvider.Context context) {
-        super(context, new ElephantModel<>(context.bakeLayer(ElephantModel.LAYER_LOCATION)), 0.4f);
+        super(context, new ElephantModel<>(context.bakeLayer(ElephantModel.LAYER_LOCATION)), 1.5f);
         this.addLayer(new ElephantLayer(this));
     }
 
@@ -73,7 +75,7 @@ import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantE
                 }
             }
         }
-        OWRendererUtils.createInformationImage(elephant, poseStack, bufferSource, packedLight, 0, 2, 0, 0, 4);
+        OWRendererUtils.createInformationImage(elephant, poseStack, bufferSource, packedLight, 0, 1.5, 0, 0, 4);
     }
 
     @Override

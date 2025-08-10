@@ -1,7 +1,9 @@
 package net.tiew.operationWild.entity.custom.living;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -27,10 +29,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.entity.variants.JellyfishVariant;
+import net.tiew.operationWild.event.ClientEvents;
+import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
 import net.tiew.operationWild.entity.AI.OWPanicGoal;
@@ -41,6 +47,8 @@ import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.utils.OWUtils;
+
+import java.util.List;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
@@ -148,17 +156,89 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         }
     }
 
+    private float getLimbSwing() {
+        return this.walkAnimation.position();
+    }
+
+    private float getLimbSwingAmount() {
+        return this.walkAnimation.speed();
+    }
+
     public void tick() {
         super.tick();
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
-        
-        
-        
-        
-        
-        
+
+
+
+        final int maxDistance = 20;
+
+        List<LivingEntity> entitiesAround = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(maxDistance));
+        float shakeIntensity = 0;
+
+        for (LivingEntity living : entitiesAround) {
+            if (!living.isAlive()) continue;
+            if (living instanceof Player player && player.isCreative()) continue;
+            if (living instanceof ElephantEntity) continue;
+            shakeIntensity = living.distanceTo(this);
+
+            shakeIntensity = ((maxDistance - shakeIntensity) / 10) / 3;
+
+            int firstInteraction = 24;
+            int secondInteraction = 58;
+
+            if (shakeIntensity > 0 && getLimbSwingAmount() > 0.1f) {
+                int walkAnimationTick = (int) (getLimbSwing() * 68f / (2 * Math.PI)) % 68;
+
+                if ((walkAnimationTick >= (firstInteraction - 2) && walkAnimationTick <= (firstInteraction + 2)) ||
+                        (walkAnimationTick >= (secondInteraction - 2) && walkAnimationTick <= (secondInteraction + 2))) {
+
+                    if (Minecraft.getInstance().player != null && !Minecraft.getInstance().player.isCreative()) {
+                        ClientEvents.shakeCamera(shakeIntensity, Minecraft.getInstance().player);
+                    }
+                }
+
+                if ((walkAnimationTick >= (firstInteraction - 1) && (walkAnimationTick <= firstInteraction + 1)) ||
+                        (walkAnimationTick >= (secondInteraction - 1) && walkAnimationTick <= (secondInteraction + 1))) {
+
+                    double yawRadians = Math.toRadians(this.getYRot());
+                    double distance = 1.5;
+                    double rightOffset = (walkAnimationTick >= (secondInteraction - 1) && walkAnimationTick <= (secondInteraction + 1)) ? 1.0 : -1.0;
+
+                    double frontX = this.getX() - Math.sin(yawRadians) * distance;
+                    double frontY = this.getY();
+                    double frontZ = this.getZ() + Math.cos(yawRadians) * distance;
+
+                    double rightX = frontX + Math.cos(yawRadians) * rightOffset;
+                    double rightZ = frontZ + Math.sin(yawRadians) * rightOffset;
+
+                    double backX = this.getX() - Math.sin(yawRadians) * (-1.0);
+                    double backZ = this.getZ() + Math.cos(yawRadians) * (-1.0);
+
+                    double rightBackX = backX + Math.cos(yawRadians) * -rightOffset;
+                    double rightBackZ = backZ + Math.sin(yawRadians) * -rightOffset;
+
+                    if (this.level().isClientSide()) {
+                        for (int i = 0; i < 30; i++) {
+                            this.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
+                                    rightX, frontY, rightZ,
+                                    0, 0, 0);
+                            this.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
+                                    rightBackX, frontY, rightBackZ,
+                                    0, 0, 0);
+                        }
+                    }
+
+
+
+                    if (!living.isInWater() && !living.isInLava() && !living.isInvulnerable() && living.onGround()) {
+                        living.setDeltaMovement(living.getDeltaMovement().x, shakeIntensity / 2, living.getDeltaMovement().z);
+                        this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get());
+                    }
+                }
+            } else this.walkAnimation.position(0);
+        }
 
         /*if (this.getVariant() == ElephantVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
             OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
@@ -227,16 +307,23 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
             this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
 
-            this.setVariant(ElephantVariant.DEFAULT);
+            this.setVariant(chooseElephantVariant());
             this.setInitialVariant(this.getVariant());
         }
 
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
+    private ElephantVariant chooseElephantVariant() {
+        ElephantVariant variant;
+        if (chance >= 66.67) variant = ElephantVariant.PINK;
+        else if (chance >= 33.33) variant = ElephantVariant.GREY;
+        else variant = ElephantVariant.DEFAULT;
+        return variant;
+    }
 
     private void setupAnimationState() {
-        createIdleAnimation(54, true);
+        createIdleAnimation(96, true);
         createSitAnimation(80, true);
     }
 
@@ -265,6 +352,11 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
     @Override
     public int getEntityColor() {
         return 8749692;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 15;
     }
 }
 

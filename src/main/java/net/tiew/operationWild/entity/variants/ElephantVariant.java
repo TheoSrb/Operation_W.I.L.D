@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public enum ElephantVariant {
-    DEFAULT(0);
+    DEFAULT(0),
+    GREY(1),
+    PINK(2);
 
     public static final ElephantVariant[] BY_ID = Arrays.stream(values()).sorted(Comparator.comparingInt(ElephantVariant::getId)).toArray(ElephantVariant[]::new);
 
