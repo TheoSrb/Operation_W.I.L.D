@@ -193,13 +193,13 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
             int secondInteraction = (int) (58 / (this.getTarget() != null ? 1.5f : 1.0f));
 
             if (shakeIntensity > 0 && getLimbSwingAmount() > 0.1f) {
-                int walkAnimationTick = (int) (getLimbSwing() * (68 / (this.getTarget() != null ? 1.5f : 1.0f)) / (2 * Math.PI)) % 68;
+                int walkAnimationTick = (int) ((int) (getLimbSwing() * (68 / (this.getTarget() != null ? 1.5f : 1.0f)) / (2 * Math.PI)) % (68 / (this.getTarget() != null ? 1.5f : 1.0f)));
 
-                if ((walkAnimationTick >= (firstInteraction - 2) && walkAnimationTick <= (firstInteraction + 2)) ||
-                        (walkAnimationTick >= (secondInteraction - 2) && walkAnimationTick <= (secondInteraction + 2))) {
+                if ((walkAnimationTick >= (firstInteraction - 5) && walkAnimationTick <= (firstInteraction + 5)) ||
+                        (walkAnimationTick >= (secondInteraction - 5) && walkAnimationTick <= (secondInteraction + 5))) {
 
-                    if (Minecraft.getInstance().player != null && !Minecraft.getInstance().player.isCreative()) {
-                        ClientEvents.shakeCamera(shakeIntensity, Minecraft.getInstance().player);
+                    if (living instanceof Player player && !player.isCreative()) {
+                        ClientEvents.shakeCamera(shakeIntensity * 3, player);
                     }
                 }
 
