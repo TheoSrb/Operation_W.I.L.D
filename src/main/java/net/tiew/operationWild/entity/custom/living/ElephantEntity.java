@@ -22,6 +22,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -34,6 +35,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.entity.AI.OWAttackGoal;
 import net.tiew.operationWild.entity.variants.JellyfishVariant;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.sound.OWSounds;
@@ -78,6 +80,9 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
+
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(new Class[0]));
+        this.targetSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 15f,20, 3,true));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -171,7 +176,6 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         if (this.isInResurrection()) this.setSleeping(true);
 
 
-
         final int maxDistance = 20;
 
         List<LivingEntity> entitiesAround = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(maxDistance));
@@ -185,11 +189,11 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
 
             shakeIntensity = ((maxDistance - shakeIntensity) / 10) / 3;
 
-            int firstInteraction = 24;
-            int secondInteraction = 58;
+            int firstInteraction = (int) (24 / (this.getTarget() != null ? 1.5f : 1.0f));
+            int secondInteraction = (int) (58 / (this.getTarget() != null ? 1.5f : 1.0f));
 
             if (shakeIntensity > 0 && getLimbSwingAmount() > 0.1f) {
-                int walkAnimationTick = (int) (getLimbSwing() * 68f / (2 * Math.PI)) % 68;
+                int walkAnimationTick = (int) (getLimbSwing() * (68 / (this.getTarget() != null ? 1.5f : 1.0f)) / (2 * Math.PI)) % 68;
 
                 if ((walkAnimationTick >= (firstInteraction - 2) && walkAnimationTick <= (firstInteraction + 2)) ||
                         (walkAnimationTick >= (secondInteraction - 2) && walkAnimationTick <= (secondInteraction + 2))) {
@@ -233,9 +237,15 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
 
 
                     if (!living.isInWater() && !living.isInLava() && !living.isInvulnerable() && living.onGround()) {
-                        living.setDeltaMovement(living.getDeltaMovement().x, shakeIntensity / 2, living.getDeltaMovement().z);
-                        this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get());
+                        if (this.getTarget() == null) {
+                            this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
+                            living.setDeltaMovement(living.getDeltaMovement().x, shakeIntensity / 2, living.getDeltaMovement().z);
+                        }
                     }
+                }
+                if (this.getTarget() != null && tickCount % 10 == 0) {
+                    this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
+                    living.setDeltaMovement(living.getDeltaMovement().x, shakeIntensity / 2, living.getDeltaMovement().z);
                 }
             } else this.walkAnimation.position(0);
         }
