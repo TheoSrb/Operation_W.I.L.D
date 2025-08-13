@@ -27,6 +27,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.HYENA_SPAWN_EGG.get());
                         output.accept(OWItems.JELLYFISH_SPAWN_EGG.get());
                         output.accept(OWItems.KODIAK_SPAWN_EGG.get());
+                        output.accept(OWItems.MANDRILL_SPAWN_EGG.get());
                         output.accept(OWItems.MANTA_SPAWN_EGG.get());
                         output.accept(OWItems.PEACOCK_SPAWN_EGG.get());
                         output.accept(OWItems.RED_PANDA_SPAWN_EGG.get());

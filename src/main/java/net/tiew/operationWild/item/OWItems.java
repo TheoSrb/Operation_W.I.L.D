@@ -169,6 +169,8 @@ public class OWItems {
             () -> new DeferredSpawnEggItem(OWEntityRegistry.KODIAK, 0x7d5a45, 0x4e3225, new Item.Properties()));
     public static final DeferredHolder<Item, Item> ELEPHANT_SPAWN_EGG = ITEMS.register("elephant_spawn_egg",
             () -> new DeferredSpawnEggItem(OWEntityRegistry.ELEPHANT, 0x7e7a76, 0x5a5350, new Item.Properties()));
+    public static final DeferredHolder<Item, Item> MANDRILL_SPAWN_EGG = ITEMS.register("mandrill_spawn_egg",
+            () -> new DeferredSpawnEggItem(OWEntityRegistry.MANDRILL, 0x35312f, 0x94c7d0, new Item.Properties()));
 
 
     public static void register(IEventBus eventBus) { ITEMS.register(eventBus);}

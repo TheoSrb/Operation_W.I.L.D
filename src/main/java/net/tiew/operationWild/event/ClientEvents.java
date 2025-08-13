@@ -211,9 +211,45 @@ public class ClientEvents {
         return false;
     }
 
+    public static boolean hasPlayerTamedOWEntity(Player player, String entityNameId) {
+        File file = new File("saves/" + getWorldName(player) + "/owDatas.properties");
+        if (file.exists()) {
+            try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
+                String line = "";
+                while (line != null) {
+                    if (line.contains(entityNameId + "_tamed" + "=")) return true;
+                    line = buffer.readLine();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+
     @SubscribeEvent
     public static void onPlayerJoinWorld(ClientPlayerNetworkEvent.LoggingIn event) {
         loadTamingExperience(event.getPlayer());
+
+        OWEntity.TAMED_ENTITIES.clear();
+
+        for (Class entity : OWEntity.TANK_ENTITIES) {
+            if (ClientEvents.hasPlayerTamedOWEntity(event.getPlayer(), entity.getSimpleName().toLowerCase().split("entity")[0])) {
+                OWEntity.TAMED_ENTITIES.add(entity);
+            }
+        }
+
+        for (Class entity : OWEntity.ASSASSIN_ENTITIES) {
+            if (ClientEvents.hasPlayerTamedOWEntity(event.getPlayer(), entity.getSimpleName().toLowerCase().split("entity")[0])) {
+                OWEntity.TAMED_ENTITIES.add(entity);
+            }
+        }
+
+        for (Class entity : OWEntity.MARAUDER_ENTITIES) {
+            if (ClientEvents.hasPlayerTamedOWEntity(event.getPlayer(), entity.getSimpleName().toLowerCase().split("entity")[0])) {
+                OWEntity.TAMED_ENTITIES.add(entity);
+            }
+        }
 
         if (DailyQuestsDate.isAlreadyChanged) {
             new Timer().schedule(new TimerTask() {

@@ -32,6 +32,29 @@ public class ClientKillData {
         }
     }
 
+    public static void saveTameData(String worldName, String entity) {
+        Properties props = new Properties();
+        String filePath = "saves/" + worldName + "/owDatas.properties";
+
+        File file = new File(filePath);
+        file.getParentFile().mkdirs();
+
+        if (file.exists()) {
+            try (FileInputStream input = new FileInputStream(filePath)) {
+                props.load(input);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        props.setProperty(entity + "_tamed", "true");
+
+        try (FileOutputStream output = new FileOutputStream(filePath)) {
+            props.store(output, "Operation Wild - Kill Data");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void createEmptyFile(String worldName) {
         File file = new File("saves/" + worldName + "/owDatas.properties");

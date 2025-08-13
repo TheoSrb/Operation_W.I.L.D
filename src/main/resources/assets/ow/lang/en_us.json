@@ -46,6 +46,8 @@
   "ow.advancements.legendary_adventurer.description": "You have surpassed 4,000 taming experiences.",
   "ow.advancements.captain.title": "Take the helm captain!",
   "ow.advancements.captain.description": "You've built a SeaBug.",
+  "ow.advancements.nice_book.title": "A well-filled notebook.",
+  "ow.advancements.nice_book.description": "You have tamed all the creatures from Operation W.I.L.D.",
 
 
   "tooltip.notebook": "Adventurer's notebook",
@@ -59,6 +61,8 @@
   "tooltip.tamingOfA": "Taming of",
   "tooltip.other": "Misc",
   "tooltip.tamingExperienceDescribe": "Throughout your adventure, taming experience plays a key role in mastering creatures. The higher it is, the more information you’ll unlock about rare or dangerous entities. You can increase it by taming various creatures.",
+  "tooltip.entityFound": "Entities Found: %s",
+  "tooltip.entityKilled": "Eliminated Entities: %s",
 
   "tooltip.stop_health": "You have already reached the maximum health limit for your entity.",
   "tooltip.stop_damage": "You have already reached the maximum damage limit for your entity.",
@@ -156,6 +160,7 @@
 
   "tooltip.unknownEntity": "Unknown",
   "entity.ow.tiger": "Tiger",
+  "entity.ow.mandrill": "Mandrill",
   "entity.ow.elephant": "Elephant",
   "entity.ow.walrus": "Walrus",
   "entity.ow.manta": "Manta",
@@ -184,6 +189,7 @@
   "item.ow.venomous_arrow": "Venomous Arrow",
   "item.ow.tiger_spawn_egg": "Tiger Spawn Egg",
   "item.ow.tiger_shark_spawn_egg": "Tiger Shark Spawn Egg",
+  "item.ow.mandrill_spawn_egg": "Mandrill Spawn Egg",
   "item.ow.boa_spawn_egg": "Boa Spawn Egg",
   "item.ow.elephant_spawn_egg": "Elephant Spawn Egg",
   "item.ow.peacock_spawn_egg": "Peacock Spawn Egg",

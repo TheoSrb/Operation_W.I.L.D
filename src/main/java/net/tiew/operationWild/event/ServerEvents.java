@@ -21,6 +21,7 @@ import net.tiew.operationWild.entity.custom.vehicle.Submarine;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_client.BookNotificationPacket;
 import net.tiew.operationWild.networking.packets.to_server.SyncKillDataPacket;
+import net.tiew.operationWild.screen.player.OWEntityJournalScreen;
 
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class ServerEvents {
@@ -46,20 +47,26 @@ public class ServerEvents {
 
         if (source instanceof ServerPlayer player) {
             if (target instanceof OWEntity owEntity && !owEntity.isTame() && !(owEntity instanceof Submarine) && !(owEntity instanceof SeabugShard)) {
-                CompoundTag playerData = player.getPersistentData();
-                CompoundTag modData = playerData.getCompound("ow");
+
+                if (OWEntityJournalScreen.owEntities.contains(owEntity.getType())) {
+                    OWEntity.KILLED_ENTITIES.add(owEntity.getClass());
+
+                    if (OWEntity.TAMED_ENTITIES.size() >= OWEntityJournalScreen.owEntities.size() && OWEntity.KILLED_ENTITIES.size() >= OWEntityJournalScreen.owEntities.size()) {
+                        if (player instanceof ServerPlayer serverPlayer) {
+                            serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + "nice_book");
+                        }
+                    }
+                }
 
                 boolean wasAlreadyKilled = false;
-
                 String entityType = "";
+
                 ResourceLocation entityKey = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
                 if (entityKey != null && entityKey.getNamespace().equals("ow")) {
                     entityType = entityKey.getPath();
-                    String killKey = "has_killed_" + entityType;
-                    wasAlreadyKilled = modData.getBoolean(killKey);
-                    modData.putBoolean(killKey, true);
+
+                    wasAlreadyKilled = ClientEvents.hasPlayerKilledOWEntity(player, entityType);
                 }
-                playerData.put("ow", modData);
 
                 if (!entityType.isEmpty()) {
                     String worldName = ClientEvents.getWorldName(player);

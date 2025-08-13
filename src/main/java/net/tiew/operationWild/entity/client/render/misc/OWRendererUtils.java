@@ -321,6 +321,9 @@ public class OWRendererUtils {
             case "ElephantEntity" -> {
                 return "entity.ow.elephant";
             }
+            case "MandrillEntity" -> {
+                return "entity.ow.mandrill";
+            }
             default -> {
                 return "entity.ow.tiger";
             }

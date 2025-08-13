@@ -1,9 +1,7 @@
 package net.tiew.operationWild.entity.custom.living;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -22,7 +20,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -30,46 +27,40 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
-import net.tiew.operationWild.entity.AI.OWAttackGoal;
-import net.tiew.operationWild.entity.variants.JellyfishVariant;
-import net.tiew.operationWild.event.ClientEvents;
-import net.tiew.operationWild.sound.OWSounds;
+import net.tiew.operationWild.entity.variants.ElephantVariant;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
 import net.tiew.operationWild.entity.AI.OWPanicGoal;
 import net.tiew.operationWild.entity.AI.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityUtils;
-import net.tiew.operationWild.entity.variants.ElephantVariant;
+import net.tiew.operationWild.entity.variants.MandrillVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.utils.OWUtils;
 
-import java.util.List;
-
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
-public class ElephantEntity extends OWEntity implements OWEntityUtils {
+public class MandrillEntity extends OWEntity implements OWEntityUtils {
 
-    public static final double TAMING_EXPERIENCE = 345.0;
+    public static final double TAMING_EXPERIENCE = 65.0;
 
     public String[] quests = {};
     public int foodGiven = 0;
     public int foodWanted;
 
-    private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(MandrillEntity.class, EntityDataSerializers.INT);
 
-    public ElephantVariant getVariant() { return ElephantVariant.byId(this.getTypeVariant() & 255);}
-    public void setVariant(ElephantVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
-    public ElephantVariant getInitialVariant() { return ElephantVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
-    public void setInitialVariant(ElephantVariant variant) { this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());}
+    public MandrillVariant getVariant() { return MandrillVariant.byId(this.getTypeVariant() & 255);}
+    public void setVariant(MandrillVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
+    public MandrillVariant getInitialVariant() { return MandrillVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
+    public void setInitialVariant(MandrillVariant variant) { this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());}
 
-    public ElephantEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
+    public MandrillEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
@@ -80,13 +71,10 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
-
-        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(new Class[0]));
-        this.targetSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 15f,20, 3,true));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 65.0D).add(Attributes.MOVEMENT_SPEED, 0.14D).add(Attributes.FOLLOW_RANGE, 30.0D).add(Attributes.ATTACK_DAMAGE, 8.0D).add(Attributes.KNOCKBACK_RESISTANCE, 1.0D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 18.0D).add(Attributes.MOVEMENT_SPEED, 0.18D).add(Attributes.FOLLOW_RANGE, 35.0D).add(Attributes.ATTACK_DAMAGE, 4.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.3D);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -135,7 +123,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
             this.spawnAtLocation(soulStack);
         }
-        /*if (this.isSaddled()) this.spawnAtLocation(OWItems.ELEPHANT_SADDLE.get());*/
+        /*if (this.isSaddled()) this.spawnAtLocation(OWItems.MANDRILL_SADDLE.get());*/
     }
 
     @Override
@@ -161,96 +149,19 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         }
     }
 
-    private float getLimbSwing() {
-        return this.walkAnimation.position();
-    }
-
-    private float getLimbSwingAmount() {
-        return this.walkAnimation.speed();
-    }
-
     public void tick() {
         super.tick();
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
+        
+        
+        
+        
+        
+        
 
-
-        final int maxDistance = 20;
-
-        List<LivingEntity> entitiesAround = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(maxDistance));
-        float shakeIntensity = 0;
-
-        for (LivingEntity living : entitiesAround) {
-            if (!living.isAlive()) continue;
-            if (living instanceof Player player && player.isCreative()) continue;
-            if (living instanceof ElephantEntity) continue;
-            shakeIntensity = living.distanceTo(this);
-
-            shakeIntensity = ((maxDistance - shakeIntensity) / 10) / 3;
-
-            int firstInteraction = (int) (24 / (this.getTarget() != null ? 1.5f : 1.0f));
-            int secondInteraction = (int) (58 / (this.getTarget() != null ? 1.5f : 1.0f));
-
-            if (shakeIntensity > 0 && getLimbSwingAmount() > 0.1f) {
-                int walkAnimationTick = (int) ((int) (getLimbSwing() * (68 / (this.getTarget() != null ? 1.5f : 1.0f)) / (2 * Math.PI)) % (68 / (this.getTarget() != null ? 1.5f : 1.0f)));
-
-                if ((walkAnimationTick >= (firstInteraction - 5) && walkAnimationTick <= (firstInteraction + 5)) ||
-                        (walkAnimationTick >= (secondInteraction - 5) && walkAnimationTick <= (secondInteraction + 5))) {
-
-                    if (living instanceof Player player && !player.isCreative()) {
-                        ClientEvents.shakeCamera(shakeIntensity * 3, player);
-                    }
-                }
-
-                if ((walkAnimationTick >= (firstInteraction - 1) && (walkAnimationTick <= firstInteraction + 1)) ||
-                        (walkAnimationTick >= (secondInteraction - 1) && walkAnimationTick <= (secondInteraction + 1))) {
-
-                    double yawRadians = Math.toRadians(this.getYRot());
-                    double distance = 1.5;
-                    double rightOffset = (walkAnimationTick >= (secondInteraction - 1) && walkAnimationTick <= (secondInteraction + 1)) ? 1.0 : -1.0;
-
-                    double frontX = this.getX() - Math.sin(yawRadians) * distance;
-                    double frontY = this.getY();
-                    double frontZ = this.getZ() + Math.cos(yawRadians) * distance;
-
-                    double rightX = frontX + Math.cos(yawRadians) * rightOffset;
-                    double rightZ = frontZ + Math.sin(yawRadians) * rightOffset;
-
-                    double backX = this.getX() - Math.sin(yawRadians) * (-1.0);
-                    double backZ = this.getZ() + Math.cos(yawRadians) * (-1.0);
-
-                    double rightBackX = backX + Math.cos(yawRadians) * -rightOffset;
-                    double rightBackZ = backZ + Math.sin(yawRadians) * -rightOffset;
-
-                    if (this.level().isClientSide()) {
-                        for (int i = 0; i < 30; i++) {
-                            this.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
-                                    rightX, frontY, rightZ,
-                                    0, 0, 0);
-                            this.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
-                                    rightBackX, frontY, rightBackZ,
-                                    0, 0, 0);
-                        }
-                    }
-
-
-
-                    if (!living.isInWater() && !living.isInLava() && !living.isInvulnerable() && living.onGround()) {
-                        if (this.getTarget() == null) {
-                            this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
-                            living.setDeltaMovement(living.getDeltaMovement().x, shakeIntensity / 2, living.getDeltaMovement().z);
-                        }
-                    }
-                }
-                if ((this.getTarget() != null || this.isVehicle()) && tickCount % 10 == 0) {
-                    this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
-                    living.setDeltaMovement(living.getDeltaMovement().x, shakeIntensity / 2, living.getDeltaMovement().z);
-                }
-            } else this.walkAnimation.position(0);
-        }
-
-        /*if (this.getVariant() == ElephantVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
+        /*if (this.getVariant() == MandrillVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
             OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
         }*/
     }
@@ -268,7 +179,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
     @Override
     protected void positionRider(Entity entity, MoveFunction function) {
         super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY(), entity.getZ());
+        function.accept(entity, entity.getX(), entity.getY() - 1, entity.getZ());
     }
 
     @Override
@@ -278,9 +189,9 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
 
     @Override
     public boolean isAlliedTo(Entity entity) {
-        if (entity instanceof ElephantEntity otherElephant) {
-            if (this.isTame()) return otherElephant.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherElephant.getOwnerUUID());
-            else return !otherElephant.isTame();
+        if (entity instanceof MandrillEntity otherMandrill) {
+            if (this.isTame()) return otherMandrill.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherMandrill.getOwnerUUID());
+            else return !otherMandrill.isTame();
         }
         return super.isAlliedTo(entity);
     }
@@ -289,7 +200,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        if (itemStack.is(OWItems.SAVAGE_BERRIES.get()) && !this.isTame()) {
+        if (/*itemStack.is(OWItems.SAVAGE_BERRIES.get()) &&*/ !this.isTame() && this.isBaby()) {
             foodGiven++;
             this.playSound(SoundEvents.CAMEL_EAT);
             itemStack.shrink(1);
@@ -317,23 +228,23 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
             this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
 
-            this.setVariant(chooseElephantVariant());
+            this.setVariant(chooseMandrillVariant());
             this.setInitialVariant(this.getVariant());
         }
 
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
-    private ElephantVariant chooseElephantVariant() {
-        ElephantVariant variant;
-        if (chance >= 66.67) variant = ElephantVariant.PINK;
-        else if (chance >= 33.33) variant = ElephantVariant.GREY;
-        else variant = ElephantVariant.DEFAULT;
+    private MandrillVariant chooseMandrillVariant() {
+        MandrillVariant variant;
+        if (chance >= 66.67) variant = MandrillVariant.BLUE;
+        else if (chance >= 33.33) variant = MandrillVariant.SILVER;
+        else variant = MandrillVariant.DEFAULT;
         return variant;
     }
 
     private void setupAnimationState() {
-        createIdleAnimation(96, true);
+        createIdleAnimation(71, true);
         createSitAnimation(80, true);
     }
 
@@ -361,12 +272,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
 
     @Override
     public int getEntityColor() {
-        return 8749692;
-    }
-
-    @Override
-    public float getEntityScale() {
-        return 15;
+        return 3880756;
     }
 }
 
