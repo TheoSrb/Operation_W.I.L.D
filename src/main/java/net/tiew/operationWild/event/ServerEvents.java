@@ -47,17 +47,6 @@ public class ServerEvents {
 
         if (source instanceof ServerPlayer player) {
             if (target instanceof OWEntity owEntity && !owEntity.isTame() && !(owEntity instanceof Submarine) && !(owEntity instanceof SeabugShard)) {
-
-                if (OWEntityJournalScreen.owEntities.contains(owEntity.getType())) {
-                    OWEntity.KILLED_ENTITIES.add(owEntity.getClass());
-
-                    if (OWEntity.TAMED_ENTITIES.size() >= OWEntityJournalScreen.owEntities.size() && OWEntity.KILLED_ENTITIES.size() >= OWEntityJournalScreen.owEntities.size()) {
-                        if (player instanceof ServerPlayer serverPlayer) {
-                            serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + "nice_book");
-                        }
-                    }
-                }
-
                 boolean wasAlreadyKilled = false;
                 String entityType = "";
 

@@ -61,8 +61,9 @@
   "tooltip.tamingOfA": "Taming of",
   "tooltip.other": "Misc",
   "tooltip.tamingExperienceDescribe": "Throughout your adventure, taming experience plays a key role in mastering creatures. The higher it is, the more information you’ll unlock about rare or dangerous entities. You can increase it by taming various creatures.",
-  "tooltip.entityFound": "Entities Found: %s",
-  "tooltip.entityKilled": "Eliminated Entities: %s",
+  "tooltip.orderBy": "Sort by:",
+  "tooltip.name": "Name",
+  "tooltip.tamingExperience": "Experience",
 
   "tooltip.stop_health": "You have already reached the maximum health limit for your entity.",
   "tooltip.stop_damage": "You have already reached the maximum damage limit for your entity.",

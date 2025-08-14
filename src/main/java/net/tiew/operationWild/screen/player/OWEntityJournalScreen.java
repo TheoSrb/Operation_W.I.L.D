@@ -244,25 +244,6 @@ public class OWEntityJournalScreen extends Screen {
             precedentPage();
             return true;
         }
-
-
-
-
-        if (keyCode == GLFW.GLFW_KEY_V) {
-            sortCode = sortCode == 0 ? 1 : 0;
-            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
-            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            init();
-            return true;
-        }
-        if (keyCode == GLFW.GLFW_KEY_X) {
-            descendingOrder = !descendingOrder;
-            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
-            this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            init();
-            return true;
-        }
-
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
@@ -308,6 +289,25 @@ public class OWEntityJournalScreen extends Screen {
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             actualPage = miscPage;
             return true;
+        }
+
+        int centerX = i + (this.imageWidth / 2);
+        int centerY = j + (this.imageHeight / 2);
+
+        if (isMouseInEntityArea(xMouse, yMouse, centerX - (100 / 2), centerY + 100, 100, 13)) {
+            if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                sortCode = sortCode == 0 ? 1 : 0;
+                this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
+                this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                init();
+                return true;
+            } else if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+                descendingOrder = !descendingOrder;
+                this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
+                this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                init();
+                return true;
+            }
         }
 
 
@@ -445,12 +445,22 @@ public class OWEntityJournalScreen extends Screen {
 
         if (!newEntitiesDiscovered.isEmpty()) {
             for (int idx = 0; idx < newEntitiesDiscovered.size(); idx++) {
-                boolean isLeftCorner = idx < 11;
                 String entity = newEntitiesDiscovered.get(idx);
+                int entityPosition = adaptSpace(entity);
+                boolean isLeftCorner = entityPosition < 11;
+
+                int relativePosition = isLeftCorner ? entityPosition : (entityPosition - 11);
+
                 if (actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1]) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, isLeftCorner ? i - 41 : i + 294, j + 16 + (spacement * adaptSpace(entity)), 0, 26, 3, 11);
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION,
+                            isLeftCorner ? i - 41 : i + 294,
+                            j + 16 + (spacement * relativePosition),
+                            0, 26, 3, 11);
                 } else {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 105, j - 10 + (idx * 15), 0, 26, 3, 11);
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION,
+                            i + 105,
+                            j - 10 + (idx * 15),
+                            0, 26, 3, 11);
                 }
             }
             newEntitiesDiscovered.removeIf(entity -> actualPage == adaptSpace(entity) + 2);
@@ -458,12 +468,22 @@ public class OWEntityJournalScreen extends Screen {
 
         if (!newEntitiesTamed.isEmpty()) {
             for (int idx = 0; idx < newEntitiesTamed.size(); idx++) {
-                boolean isLeftCorner = idx < 11;
                 String entity = newEntitiesTamed.get(idx);
+                int entityPosition = adaptSpace(entity);
+                boolean isLeftCorner = entityPosition < 11;
+
+                int relativePosition = isLeftCorner ? entityPosition : (entityPosition - 11);
+
                 if (actualPage >= tamingPages[0] && actualPage <= tamingPages[1]) {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, isLeftCorner ? i - 41 : i + 294, j + 16 + (spacement * adaptSpace(entity)), 0, 26, 3, 11);
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION,
+                            isLeftCorner ? i - 41 : i + 294,
+                            j + 16 + (spacement * relativePosition),
+                            0, 26, 3, 11);
                 } else {
-                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, i + 176, j - 10, 0, 26, 3, 11);
+                    graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION,
+                            i + 176,
+                            j - 10,
+                            0, 26, 3, 11);
                 }
             }
             newEntitiesTamed.removeIf(entity -> actualPage == adaptSpace(entity) + 2);
@@ -587,7 +607,7 @@ public class OWEntityJournalScreen extends Screen {
                         case "manta" -> "tooltip.tamingOfA";
                         case "walrus" -> "tooltip.tamingOf";
                         case "elephant" -> "tooltip.taming2";
-                        case "mandrill" -> "tooltip.tamingOfA";
+                        case "mandrill" -> "tooltip.tamingOf";
                         default -> "tooltip.tamingOf";
                     };
 
@@ -604,13 +624,14 @@ public class OWEntityJournalScreen extends Screen {
                     boolean isManta = entityName.equals("manta");
                     boolean isJellyfish = entityName.equals("jellyfish");
                     boolean isRedPanda = entityName.equals("red_panda");
+                    boolean isMandrill = entityName.equals("mandrill");
 
                     int centerX = i + (this.imageWidth / 2);
                     int centerY = j + (this.imageHeight / 2);
                     float scale = 1.0f;
 
                     if (isTigerShark || isManta || isRedPanda) scale = 0.7f;
-                    if (isHyena || isChameleon || isJellyfish || isElephant) scale = 0.8f;
+                    if (isHyena || isChameleon || isJellyfish || isElephant || isMandrill) scale = 0.8f;
                     if (isKodiak || isWalrus) scale = 0.9f;
 
 
@@ -627,28 +648,23 @@ public class OWEntityJournalScreen extends Screen {
             }
         } else graphics.blit(OW_ENTITY_JOURNAL_TAMING_EXPERIENCE_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
 
-        if (actualPage >= tamingPages[0] && actualPage <= tamingPages[1]) {
+        if (isInDescriptionCategory || isInTamingCategory) {
             int centerX = i + (this.imageWidth / 2);
             int centerY = j + (this.imageHeight / 2);
-            Component $$1 = Component.literal(OWEntity.TAMED_ENTITIES.size() + " / " + owEntities.size());
-            Component $$2 = Component.literal(OWEntity.TAMED_ENTITIES.size() + " / " + owEntities.size());
-            Component title = Component.translatable("tooltip.entityFound", $$1).setStyle(Style.EMPTY.withBold(true).withUnderlined(true));
-            float scale = 0.7f;
+            Component title = Component.translatable("tooltip.orderBy").setStyle(Style.EMPTY.withBold(true))
+                    .append(" ")
+                    .append(Component.translatable(sortCode == 0 ? "tooltip.name" : "tooltip.tamingExperience")).setStyle(Style.EMPTY.withBold(true))
+                    .append(Component.literal(descendingOrder ? " (-)" : " (+)")).setStyle(Style.EMPTY.withBold(true));
+
+            float scale = 0.6f;
+
+            graphics.blit(OW_ENTITY_JOURNAL_BUTTON_LOCATION, centerX - (100 / 2), centerY + 100, 0, isMouseInEntityArea(xMouse, yMouse, centerX - (100 / 2), centerY + 100, 100, 13) ? 50 : 37, 100, 13);
 
             graphics.pose().pushPose();
             graphics.pose().scale(scale, scale, scale);
-            graphics.drawString(this.font, title, (int) ((centerX / scale) - ((float) this.font.width(title) / 2)), (int) ((centerY / scale) + 145), 0xb69d77, false);
-            graphics.pose().popPose();
-        } else if (actualPage >= descriptionPages[0] && actualPage <= descriptionPages[1]) {
-            int centerX = i + (this.imageWidth / 2);
-            int centerY = j + (this.imageHeight / 2);
-            Component $$2 = Component.literal(OWEntity.KILLED_ENTITIES.size() + " / " + owEntities.size());
-            Component title2 = Component.translatable("tooltip.entityKilled", $$2).setStyle(Style.EMPTY.withBold(true).withUnderlined(true));
-            float scale = 0.7f;
 
-            graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, scale);
-            graphics.drawString(this.font, title2, (int) ((centerX / scale) - ((float) this.font.width(title2) / 2)), (int) ((centerY / scale) + 145), 0xb69d77, false);
+            graphics.drawString(this.font, title, (int) ((centerX / scale) - ((float) this.font.width(title) / 2)), (int) ((centerY / scale) + 174), isMouseInEntityArea(xMouse, yMouse, centerX - (100 / 2), centerY + 100, 100, 13) ? 0xf1dba6 : 0x564c39, false);
+
             graphics.pose().popPose();
         }
     }

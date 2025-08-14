@@ -241,9 +241,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public static final List<Class<?>> ASSASSIN_ENTITIES = List.of(TigerEntity.class, TigerSharkEntity.class, HyenaEntity.class, JellyfishEntity.class, MandrillEntity.class);
     public static final List<Class<?>> MARAUDER_ENTITIES = List.of(BoaEntity.class, PeacockEntity.class, RedPandaEntity.class, ChameleonEntity.class, MantaEntity.class);
 
-    public static final List<Class<?>> TAMED_ENTITIES = new ArrayList<>();
-    public static final Set<Class<?>> KILLED_ENTITIES = new HashSet<>();
-
     public static final List<Object> CARNIVOROUS_ENTITIES = List.of(OWEntityRegistry.TIGER.get(), OWEntityRegistry.BOA.get(), OWEntityRegistry.TIGER_SHARK.get());
 
     public static final List<Object> VEGETARIAN_ENTITIES = List.of(OWEntityRegistry.PEACOCK.get());
@@ -1956,15 +1953,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
                 serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectAdvancementByEntity(this));
             }
 
-
-            ClientKillData.saveTameData(ClientEvents.getWorldName(player), this.getClass().getSimpleName().toLowerCase().split("entity")[0]);
-
-            if (OWEntity.TAMED_ENTITIES.size() >= OWEntityJournalScreen.owEntities.size() && OWEntity.KILLED_ENTITIES.size() >= OWEntityJournalScreen.owEntities.size()) {
-                if (player instanceof ServerPlayer serverPlayer) {
-                    serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + "nice_book");
-                }
-            }
-
         } else {
             this.entityData.set(DATA_FLAGS_ID, (byte) (b0 & -5));
         }
@@ -2249,12 +2237,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
 
-        ListTag killedList = new ListTag();
-        for (Class<?> entityClass : KILLED_ENTITIES) {
-            killedList.add(StringTag.valueOf(entityClass.getName()));
-        }
-        tag.put("KilledEntities", killedList);
-
         if (level() != null && level().getServer() != null) {
             HolderLookup.Provider provider = level().getServer().registryAccess();
             tag.put("ItemStackHandler", itemStackHandler.serializeNBT(provider));
@@ -2354,21 +2336,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
-
-        if (tag.contains("KilledEntities", Tag.TAG_LIST)) {
-            ListTag killedList = tag.getList("KilledEntities", Tag.TAG_STRING);
-            KILLED_ENTITIES.clear();
-
-            for (int i = 0; i < killedList.size(); i++) {
-                String className = killedList.getString(i);
-                try {
-                    Class<?> entityClass = Class.forName(className);
-                    KILLED_ENTITIES.add(entityClass);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
 
         if (tag.contains("ItemStackHandler") && level() != null && level().getServer() != null) {
             HolderLookup.Provider provider = level().getServer().registryAccess();

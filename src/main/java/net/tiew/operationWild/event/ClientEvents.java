@@ -231,26 +231,6 @@ public class ClientEvents {
     public static void onPlayerJoinWorld(ClientPlayerNetworkEvent.LoggingIn event) {
         loadTamingExperience(event.getPlayer());
 
-        OWEntity.TAMED_ENTITIES.clear();
-
-        for (Class entity : OWEntity.TANK_ENTITIES) {
-            if (ClientEvents.hasPlayerTamedOWEntity(event.getPlayer(), entity.getSimpleName().toLowerCase().split("entity")[0])) {
-                OWEntity.TAMED_ENTITIES.add(entity);
-            }
-        }
-
-        for (Class entity : OWEntity.ASSASSIN_ENTITIES) {
-            if (ClientEvents.hasPlayerTamedOWEntity(event.getPlayer(), entity.getSimpleName().toLowerCase().split("entity")[0])) {
-                OWEntity.TAMED_ENTITIES.add(entity);
-            }
-        }
-
-        for (Class entity : OWEntity.MARAUDER_ENTITIES) {
-            if (ClientEvents.hasPlayerTamedOWEntity(event.getPlayer(), entity.getSimpleName().toLowerCase().split("entity")[0])) {
-                OWEntity.TAMED_ENTITIES.add(entity);
-            }
-        }
-
         if (DailyQuestsDate.isAlreadyChanged) {
             new Timer().schedule(new TimerTask() {
                 @Override

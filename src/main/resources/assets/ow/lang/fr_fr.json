@@ -61,8 +61,9 @@
   "tooltip.tamingOfA": "Domptage de la",
   "tooltip.other": "Divers",
   "tooltip.tamingExperienceDescribe": "Dans votre aventure, l’expérience d’apprivoisement joue un rôle essentiel dans le domptage des créatures. Plus elle augmente, plus elle vous permet d’obtenir des informations sur l'apprivoisement des créatures ou de débloquer les selles de ces dernières. Vous pouvez l’améliorer en apprivoisant différentes créatures.",
-  "tooltip.entityFound": "Entités apprivoisées: %s",
-  "tooltip.entityKilled": "Entités éliminées: %s",
+  "tooltip.orderBy": "Trier par:",
+  "tooltip.name": "Nom",
+  "tooltip.tamingExperience": "Expérience",
 
   "tooltip.stop_health": "Vous avez déjà atteint le plafond de santé de votre entité.",
   "tooltip.stop_damage": "Vous avez déjà atteint le plafond de dégâts de votre entité.",
