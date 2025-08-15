@@ -175,7 +175,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
 
     @Override
     public float getMaxVitalEnergy() {
-        return 350;
+        return 300 * (1 + ((float) this.getLevel() / 100));
     }
 
     @Override

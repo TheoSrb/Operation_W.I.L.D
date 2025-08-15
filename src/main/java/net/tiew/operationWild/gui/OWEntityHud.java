@@ -11,7 +11,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.custom.living.BoaEntity;
 import net.tiew.operationWild.entity.custom.living.ElephantEntity;
+import net.tiew.operationWild.entity.custom.living.PeacockEntity;
 import net.tiew.operationWild.entity.custom.living.TigerEntity;
 
 public class OWEntityHud {
@@ -45,6 +47,8 @@ public class OWEntityHud {
         switch (entity.getClass().getSimpleName()) {
             case "TigerEntity": return 0;
             case "ElephantEntity": return 1;
+            case "BoaEntity": return 2;
+            case "PeacockEntity": return 3;
             default: return 0;
         }
     }
@@ -64,9 +68,10 @@ public class OWEntityHud {
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         } else guiGraphics.blit(HUD, xPlacement + 1 + (79 - healthWidth), yPlacement + 1, 80 - healthWidth, 10 + (7 * getEntitySpace(entity)), healthWidth, 7);
 
-
         if (entity instanceof TigerEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (15 / 2), yPlacement - 7, 241, 21, 15, 15);
         else if (entity instanceof ElephantEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (31 / 2), yPlacement - 12, 225, 0, 31, 21);
+        else if (entity instanceof BoaEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 2, 239, 36,17, 11);
+        else if (entity instanceof PeacockEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (9 / 2), yPlacement - 10, 247, 47, 9, 19);
     }
 
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
