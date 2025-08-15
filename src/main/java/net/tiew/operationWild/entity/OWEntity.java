@@ -1343,7 +1343,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
                 setVitalEnergy(getVitalEnergy() + 1);
             }
 
-            if (!isRunning() && getVitalEnergy() > 0) {
+            if (!isRunning() && getVitalEnergy() > 0 && !isAttacking()) {
                 setVitalEnergy(getVitalEnergy() - getVitalEnergyRecuperation());
             }
         }
@@ -1793,14 +1793,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
                 if (this instanceof TigerEntity tiger) {
                     if (!tiger.isJumpingOnTarget() && !tiger.isTrappingEntity()) {
                         tiger.setSitting(!isSitting());
-                        if (player instanceof ServerPlayer serverPlayer && !this.isSitting()) {
-                            OWUtils.showMessage(serverPlayer, "tooltip.following", TextColor.fromRgb(0xFFFFFF), false);
+                        if (player instanceof ServerPlayer serverPlayer) {
+                            if (!this.isSitting()) OWUtils.showMessage(serverPlayer, "tooltip.following", TextColor.fromRgb(0xFFFFFF), false);
+                            else OWUtils.showMessage(serverPlayer, "tooltip.sitting", TextColor.fromRgb(0xFFFFFF), false);
                         }
                     }
                 } else {
                     this.setSitting(!isSitting());
-                    if (player instanceof ServerPlayer serverPlayer && !this.isSitting()) {
-                        OWUtils.showMessage(serverPlayer, "tooltip.following", TextColor.fromRgb(0xFFFFFF), false);
+                    if (player instanceof ServerPlayer serverPlayer) {
+                        if (!this.isSitting()) OWUtils.showMessage(serverPlayer, "tooltip.following", TextColor.fromRgb(0xFFFFFF), false);
+                        else OWUtils.showMessage(serverPlayer, "tooltip.sitting", TextColor.fromRgb(0xFFFFFF), false);
                     }
                 }
                 return InteractionResult.SUCCESS;
@@ -1930,6 +1932,19 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         return "unknown_world";
     }
 
+    @Override
+    public void handleEntityEvent(byte id) {
+        if (id == 8) {
+            if (this.level().isClientSide()) {
+                for (int i = 0; i < 50; i++) {
+                    OWUtils.spawnParticles(this, ParticleTypes.TOTEM_OF_UNDYING, 0, 0, 0, i, (double) i / 5);
+                }
+            }
+        } else {
+            super.handleEntityEvent(id);
+        }
+    }
+
     public void setTame(boolean tame, Player player) {
         byte b0 = this.entityData.get(DATA_FLAGS_ID);
         if (tame) {
@@ -1950,8 +1965,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
             this.setHealth(this.getMaxHealth());
             double pitch = OWUtils.generateRandomInterval(0.8, 1.3);
             this.playSound(OWSounds.TAME_SUCCESS.get(), 1.0f, (float) pitch);
-            this.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE);
-            if (!this.level().isClientSide()) OWUtils.spawnParticles(this, ParticleTypes.TOTEM_OF_UNDYING, 0, 0, 0, 30, 5);
+            this.playSound(SoundEvents.TOTEM_USE);
+            this.level().broadcastEntityEvent(this, (byte) 8);
             this.setOwnerUUID(player.getUUID());
             this.setDamageToClient(this.getDamage());
             this.setCurrentMode(Mode.Passive);

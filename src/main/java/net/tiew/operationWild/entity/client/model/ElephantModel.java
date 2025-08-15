@@ -21,6 +21,8 @@ import net.tiew.operationWild.networking.packets.to_server.ElephantFootstepPacke
 public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "elephant_default"), "main");
 
+	private float lastLimbSwing = 0.0f;
+
 	private final ModelPart ALL;
 	private final ModelPart right_arm;
 	private final ModelPart right_leg;
@@ -97,8 +99,6 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 		return LayerDefinition.create(meshdefinition, 256, 256);
     }
 
-	private float lastLimbSwing = 0.0f;
-
     @Override
     public void setupAnim(ElephantEntity elephant, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
@@ -114,7 +114,7 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 
 		this.animate(elephant.idleAnimationState, ElephantAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
-		if (limbSwingAmount > 0.1f && elephant.level().isClientSide) {
+		if (limbSwingAmount > 0.1f && elephant.level().isClientSide && elephant.onGround()) {
 			float cycle = limbSwing * 0.6662f;
 			float currentPos = (float) ((cycle % (2.0f * Math.PI)) / (2.0f * Math.PI));
 			float lastPos = (float) ((lastLimbSwing * 0.6662f % (2.0f * Math.PI)) / (2.0f * Math.PI));

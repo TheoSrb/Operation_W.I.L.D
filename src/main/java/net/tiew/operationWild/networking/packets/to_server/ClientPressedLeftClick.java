@@ -29,8 +29,11 @@ public record ClientPressedLeftClick() implements CustomPacketPayload {
                 Entity entity = player.getRootVehicle();
 
                 if (entity != null) {
-                    if (entity instanceof OWEntity owEntities) {
-                        owEntities.setAttacking(true);
+                    if (entity instanceof OWEntity owEntity) {
+                        if (owEntity.getVitalEnergy() > (owEntity.getMaxVitalEnergy() - 15)) return;
+
+                        owEntity.setAttacking(true);
+                        owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 15);
                     }
                 }
             }

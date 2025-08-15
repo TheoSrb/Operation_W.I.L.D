@@ -1,5 +1,7 @@
 package net.tiew.operationWild.entity.custom.living;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -249,10 +251,18 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
+        List<Player> playersAround = this.level().getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(FOOTSTEP_MAX_DISTANCE));
+
+        if (this.isRunning()) {
+            for (Player playerAround : playersAround) {
+                if (!playerAround.onGround() || this.getControllingPassenger() == playerAround) continue;
+                float shakeIntensity = playerAround.distanceTo(this);
+                shakeIntensity = ((FOOTSTEP_MAX_DISTANCE - shakeIntensity) / 10);
+                ClientEvents.shakeCamera(shakeIntensity, playerAround);
+            }
+        }
 
         if (isPlayerJump()) {
-            List<Player> playersAround = this.level().getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(FOOTSTEP_MAX_DISTANCE));
-
             for (Player playerAround : playersAround) {
                 if (playerAround.onGround()) {
                     float shakeIntensity = playerAround.distanceTo(this);

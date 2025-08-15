@@ -69,7 +69,7 @@ public class TigerOverlay {
                 }
             }
             if (tiger.cooldownJump > 0) {
-                int baseX2 = (screenWidth / 2) + 100 + spacing;
+                int baseX2 = (screenWidth / 2) + 96 + spacing;
                 int baseY2 = screenHeight - 22;
                 guiGraphics.blit(TEXTURE, baseX2, baseY2, 20, 60, 20, 20, maxScale, maxScale);
 
@@ -79,7 +79,7 @@ public class TigerOverlay {
                 guiGraphics.blit(TEXTURE, baseX2, baseY2 + offsetY, 20, 40 + offsetY, 20, height, maxScale, maxScale);
             }
             if (tiger.ultimateCooldown > 0) {
-                int baseX3 = (screenWidth / 2) + 100 + (spacing * 2);
+                int baseX3 = (screenWidth / 2) + 96 + (spacing * 2);
                 int baseY3 = screenHeight - 22;
                 guiGraphics.blit(TEXTURE, baseX3, baseY3, 40, 60, 20, 20, maxScale, maxScale);
 

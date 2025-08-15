@@ -109,6 +109,7 @@
   "tooltip.yesButton": "Yes",
   "tooltip.noButton": "No",
   "tooltip.following": "Your entity follows you",
+  "tooltip.sitting": "Your entity is sitting",
   "tooltip.delayBeforeBabyTask": "%s",
 
 

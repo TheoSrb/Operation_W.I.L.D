@@ -841,7 +841,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     @Override
     public void onPlayerJump(int i) {
         if (!this.onGround() || this.isInWater() || this.isUnderWater()) return;
-        if (this.getVitalEnergy() <= 10) return;
+        if (this.getVitalEnergy() > (this.getMaxVitalEnergy() - 10)) return;
 
         float pitch = (float) OWUtils.generateRandomInterval(0.7, 0.9);
         float jumpCharge = Math.min(i, 100) / 100.0f;
@@ -857,7 +857,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         double forwardZ = Math.cos(angle) * ((1.25 * i) / 100);
 
         this.setDeltaMovement(forwardX, this.getDeltaMovement().y, forwardZ);
-        this.setVitalEnergy(this.getVitalEnergy() - 10);
+        this.setVitalEnergy(this.getVitalEnergy() + 10);
 
         if (this.level().isClientSide() && i > 50) this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), isVirus() ? OWSounds.TIGER_HURTING_VIRUS.get() : OWSounds.TIGER_HURTING.get(), SoundSource.NEUTRAL, 1.0F, pitch, false);
         if (vec3.z > (double)0.0F) {
