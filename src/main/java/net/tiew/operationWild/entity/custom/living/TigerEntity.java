@@ -858,6 +858,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
 
         this.setDeltaMovement(forwardX, this.getDeltaMovement().y, forwardZ);
         this.setVitalEnergy(this.getVitalEnergy() - 10);
+
         if (this.level().isClientSide() && i > 50) this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), isVirus() ? OWSounds.TIGER_HURTING_VIRUS.get() : OWSounds.TIGER_HURTING.get(), SoundSource.NEUTRAL, 1.0F, pitch, false);
         if (vec3.z > (double)0.0F) {
             float f = Mth.sin(this.getYRot() * ((float)Math.PI / 180F));

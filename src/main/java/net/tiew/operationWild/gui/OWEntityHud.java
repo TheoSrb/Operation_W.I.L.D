@@ -74,7 +74,13 @@ public class OWEntityHud {
         int yPlacement = y + 89;
 
         guiGraphics.blit(HUD, xPlacement + 81 + 5, yPlacement, 0, 230, 8, 14);
-        guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, ((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())) >= 0.75 && (entity.tickCount / 5) % 2 == 0 ? 13 : 1, 244, 6, 12);
+
+        if ((entity.tickCount / 5) % 2 == 0 && entity.isRunning() && ((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())) < 0.75) {
+            RenderSystem.setShaderColor(0.68f, 0.85f, 0.91f, 0.75f);
+            guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 1, 244, 6, 12);
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        } else guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, ((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())) >= 0.75 && (entity.tickCount / 5) % 2 == 0 ? 13 : 1, 244, 6, 12);
+
         guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 7, 244, 6, (int) (12 * (((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())))));
     }
 }
