@@ -33,6 +33,7 @@ public class OWNetworkHandler {
         registrar.playToServer(CreateNewFilePacket.TYPE, CreateNewFilePacket.STREAM_CODEC, CreateNewFilePacket::handle);
         registrar.playToServer(StopNipsBoaPacket.TYPE, StopNipsBoaPacket.STREAM_CODEC, StopNipsBoaPacket::handle);
         registrar.playToServer(StopShakingSharkPacket.TYPE, StopShakingSharkPacket.STREAM_CODEC, StopShakingSharkPacket::handle);
+        registrar.playToServer(ElephantFootstepPacket.TYPE, ElephantFootstepPacket.STREAM_CODEC, ElephantFootstepPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);

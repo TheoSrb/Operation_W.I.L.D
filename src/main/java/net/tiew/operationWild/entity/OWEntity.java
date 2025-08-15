@@ -1235,6 +1235,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         }
     }
 
+    public boolean isMoving() {
+        return this.getDeltaMovement().horizontalDistanceSqr() != 0.0f;
+    }
+
     @Override
     public void setTarget(@Nullable LivingEntity target) {
         boolean hasCamouflage = target != null && target.hasEffect(OWEffects.CAMOUFLAGE_EFFECT.getDelegate()) && target.isSteppingCarefully();
@@ -1944,10 +1948,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
             this.setHealth(this.getMaxHealth());
             double pitch = OWUtils.generateRandomInterval(0.8, 1.3);
             this.playSound(OWSounds.TAME_SUCCESS.get(), 1.0f, (float) pitch);
+            this.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE);
+            if (!this.level().isClientSide()) OWUtils.spawnParticles(this, ParticleTypes.TOTEM_OF_UNDYING, 0, 0, 0, 30, 5);
             this.setOwnerUUID(player.getUUID());
             this.setDamageToClient(this.getDamage());
             this.setCurrentMode(Mode.Passive);
-            this.setPassive(true);
+            this.setAggressive(true);
 
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectAdvancementByEntity(this));

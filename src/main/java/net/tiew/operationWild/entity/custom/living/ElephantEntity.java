@@ -1,6 +1,5 @@
 package net.tiew.operationWild.entity.custom.living;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -13,17 +12,24 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -31,24 +37,20 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
-import net.tiew.operationWild.entity.AI.OWAttackGoal;
-import net.tiew.operationWild.entity.variants.JellyfishVariant;
+import net.tiew.operationWild.entity.AI.*;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
-import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
-import net.tiew.operationWild.entity.AI.OWPanicGoal;
-import net.tiew.operationWild.entity.AI.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityUtils;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
-import net.tiew.operationWild.utils.OWUtils;
 
 import java.util.List;
 
@@ -58,11 +60,14 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
 
     public static final double TAMING_EXPERIENCE = 345.0;
 
+    public static final int FOOTSTEP_MAX_DISTANCE = 20;
+
     public String[] quests = {};
     public int foodGiven = 0;
     public int foodWanted;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> PLAYER_CAN_JUMP = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
 
     public ElephantVariant getVariant() { return ElephantVariant.byId(this.getTypeVariant() & 255);}
     public void setVariant(ElephantVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
@@ -74,15 +79,15 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
     }
 
 
-    // Entity's AI
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
-        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
+        this.targetSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 20f, 20, 3, true));
+        this.goalSelector.addGoal(4, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
+        this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(new Class[0]));
-        this.targetSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 15f,20, 3,true));
+        this.targetSelector.addGoal(1, new OwnerHurtTargetGoal(this));
+        this.targetSelector.addGoal(3, new HurtByTargetGoal(this).setAlertOthers(new Class[0]));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -161,12 +166,27 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         }
     }
 
-    private float getLimbSwing() {
-        return this.walkAnimation.position();
-    }
+    public void setPlayerJump(boolean isPlayerJump) { this.entityData.set(PLAYER_CAN_JUMP, isPlayerJump);}
+    public boolean isPlayerJump() { return this.entityData.get(PLAYER_CAN_JUMP);}
 
-    private float getLimbSwingAmount() {
-        return this.walkAnimation.speed();
+    public void applyFootstep() {
+        List<LivingEntity> livingEntitiesAround = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(FOOTSTEP_MAX_DISTANCE));
+
+        for (int i = 0; i < 3; i++) {
+            this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
+        }
+
+        for (LivingEntity livingEntityAround : livingEntitiesAround) {
+            if (livingEntityAround.onGround()) {
+                if (livingEntityAround instanceof ElephantEntity) continue;
+                if (livingEntityAround.isInWater() || livingEntityAround.isInWall()) continue;
+                float shakeIntensity = livingEntityAround.distanceTo(this);
+                shakeIntensity = ((FOOTSTEP_MAX_DISTANCE - shakeIntensity) / 10) / 3;
+
+                livingEntityAround.setDeltaMovement(livingEntityAround.getDeltaMovement().x, shakeIntensity / 2, livingEntityAround.getDeltaMovement().z);
+                setPlayerJump(true);
+            }
+        }
     }
 
     public void tick() {
@@ -176,78 +196,20 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         if (this.isInResurrection()) this.setSleeping(true);
 
 
-        final int maxDistance = 20;
+        if (isPlayerJump()) {
+            List<Player> playersAround = this.level().getEntitiesOfClass(Player.class, this.getBoundingBox().inflate(FOOTSTEP_MAX_DISTANCE));
 
-        List<LivingEntity> entitiesAround = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(maxDistance));
-        float shakeIntensity = 0;
+            for (Player playerAround : playersAround) {
+                if (playerAround.onGround()) {
+                    float shakeIntensity = playerAround.distanceTo(this);
+                    shakeIntensity = ((FOOTSTEP_MAX_DISTANCE - shakeIntensity) / 10) / 3;
 
-        for (LivingEntity living : entitiesAround) {
-            if (!living.isAlive()) continue;
-            if (living instanceof Player player && player.isCreative()) continue;
-            if (living instanceof ElephantEntity) continue;
-            shakeIntensity = living.distanceTo(this);
+                    playerAround.setDeltaMovement(playerAround.getDeltaMovement().x, shakeIntensity / 2, playerAround.getDeltaMovement().z);
 
-            shakeIntensity = ((maxDistance - shakeIntensity) / 10) / 3;
-
-            int firstInteraction = (int) (24 / (this.getTarget() != null ? 1.5f : 1.0f));
-            int secondInteraction = (int) (58 / (this.getTarget() != null ? 1.5f : 1.0f));
-
-            if (shakeIntensity > 0 && getLimbSwingAmount() > 0.1f) {
-                int walkAnimationTick = (int) ((int) (getLimbSwing() * (68 / (this.getTarget() != null ? 1.5f : 1.0f)) / (2 * Math.PI)) % (68 / (this.getTarget() != null ? 1.5f : 1.0f)));
-
-                if ((walkAnimationTick >= (firstInteraction - 5) && walkAnimationTick <= (firstInteraction + 5)) ||
-                        (walkAnimationTick >= (secondInteraction - 5) && walkAnimationTick <= (secondInteraction + 5))) {
-
-                    if (living instanceof Player player && !player.isCreative()) {
-                        ClientEvents.shakeCamera(shakeIntensity * 3, player);
-                    }
+                    if (this.level().isClientSide()) ClientEvents.shakeCamera(shakeIntensity, playerAround);
                 }
-
-                if ((walkAnimationTick >= (firstInteraction - 1) && (walkAnimationTick <= firstInteraction + 1)) ||
-                        (walkAnimationTick >= (secondInteraction - 1) && walkAnimationTick <= (secondInteraction + 1))) {
-
-                    double yawRadians = Math.toRadians(this.getYRot());
-                    double distance = 1.5;
-                    double rightOffset = (walkAnimationTick >= (secondInteraction - 1) && walkAnimationTick <= (secondInteraction + 1)) ? 1.0 : -1.0;
-
-                    double frontX = this.getX() - Math.sin(yawRadians) * distance;
-                    double frontY = this.getY();
-                    double frontZ = this.getZ() + Math.cos(yawRadians) * distance;
-
-                    double rightX = frontX + Math.cos(yawRadians) * rightOffset;
-                    double rightZ = frontZ + Math.sin(yawRadians) * rightOffset;
-
-                    double backX = this.getX() - Math.sin(yawRadians) * (-1.0);
-                    double backZ = this.getZ() + Math.cos(yawRadians) * (-1.0);
-
-                    double rightBackX = backX + Math.cos(yawRadians) * -rightOffset;
-                    double rightBackZ = backZ + Math.sin(yawRadians) * -rightOffset;
-
-                    if (this.level().isClientSide()) {
-                        for (int i = 0; i < 30; i++) {
-                            this.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
-                                    rightX, frontY, rightZ,
-                                    0, 0, 0);
-                            this.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
-                                    rightBackX, frontY, rightBackZ,
-                                    0, 0, 0);
-                        }
-                    }
-
-
-
-                    if (!living.isInWater() && !living.isInLava() && !living.isInvulnerable() && living.onGround()) {
-                        if (this.getTarget() == null) {
-                            this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
-                            living.setDeltaMovement(living.getDeltaMovement().x, shakeIntensity / 2, living.getDeltaMovement().z);
-                        }
-                    }
-                }
-                if ((this.getTarget() != null || this.isVehicle()) && tickCount % 10 == 0) {
-                    this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
-                    living.setDeltaMovement(living.getDeltaMovement().x, shakeIntensity / 2, living.getDeltaMovement().z);
-                }
-            } else this.walkAnimation.position(0);
+            }
+            setPlayerJump(false);
         }
 
         /*if (this.getVariant() == ElephantVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
@@ -340,6 +302,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
+        builder.define(PLAYER_CAN_JUMP, false);
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {

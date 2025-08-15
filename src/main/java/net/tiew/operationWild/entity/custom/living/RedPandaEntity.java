@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.entity.variants.RedPandaVariant;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
@@ -73,7 +74,7 @@ public class RedPandaEntity extends OWEntity implements OWEntityUtils {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 10.0D).add(Attributes.MOVEMENT_SPEED, 0.19D).add(Attributes.FOLLOW_RANGE, 25.0D).add(Attributes.ATTACK_DAMAGE, 0.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.1D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 10.0D).add(Attributes.MOVEMENT_SPEED, 0.21D).add(Attributes.FOLLOW_RANGE, 25.0D).add(Attributes.ATTACK_DAMAGE, 0.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.1D);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -227,16 +228,22 @@ public class RedPandaEntity extends OWEntity implements OWEntityUtils {
             this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
 
-            this.setVariant(RedPandaVariant.RED_PANDA);
+            this.setVariant(chooseRedPandaVariant());
             this.setInitialVariant(this.getVariant());
         }
 
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
+    private RedPandaVariant chooseRedPandaVariant() {
+        RedPandaVariant variant;
+        if (chance >= 50) variant = RedPandaVariant.DARK;
+        else variant = RedPandaVariant.DEFAULT;
+        return variant;
+    }
 
     private void setupAnimationState() {
-        createIdleAnimation(54, true);
+        createIdleAnimation(53, this.onGround() && this.getDeltaMovement().lengthSqr() < 0.01);
         createSitAnimation(80, true);
     }
 

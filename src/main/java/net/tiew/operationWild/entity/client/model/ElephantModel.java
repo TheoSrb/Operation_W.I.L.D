@@ -2,27 +2,21 @@ package net.tiew.operationWild.entity.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.animation.AnimationDefinition;
-import net.minecraft.client.animation.KeyframeAnimations;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.core.particles.BlockParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Blocks;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.ElephantAnimations;
-import net.tiew.operationWild.entity.client.animation.PeacockAnimations;
 import net.tiew.operationWild.entity.custom.living.ElephantEntity;
-import net.tiew.operationWild.event.ClientEvents;
-import org.joml.Vector3f;
-
-import java.util.List;
+import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_server.ElephantFootstepPacket;
 
 public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "elephant_default"), "main");
@@ -103,6 +97,8 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 		return LayerDefinition.create(meshdefinition, 256, 256);
     }
 
+	private float lastLimbSwing = 0.0f;
+
     @Override
     public void setupAnim(ElephantEntity elephant, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
@@ -118,7 +114,52 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 
 		this.animate(elephant.idleAnimationState, ElephantAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
+		if (limbSwingAmount > 0.1f && elephant.level().isClientSide) {
+			float cycle = limbSwing * 0.6662f;
+			float currentPos = (float) ((cycle % (2.0f * Math.PI)) / (2.0f * Math.PI));
+			float lastPos = (float) ((lastLimbSwing * 0.6662f % (2.0f * Math.PI)) / (2.0f * Math.PI));
+
+			if ((lastPos < 0.25f && currentPos >= 0.25f)
+					|| (lastPos < 0.58f && currentPos >= 0.58f)
+					|| (lastPos < 0.85f && currentPos >= 0.85f)
+					|| (lastPos > currentPos && (currentPos >= 0.25f || currentPos >= 0.58f || currentPos >= 0.85f))) {
+
+				OWNetworkHandler.sendToServer(new ElephantFootstepPacket(elephant.getId()));
+
+				double yawRadians = Math.toRadians(elephant.getYRot());
+				double distance = 1.5;
+				double rightOffset = ((lastPos < 0.6f && currentPos >= 0.6f) ||
+						(lastPos > currentPos && currentPos >= 0.6f && currentPos < 0.85f))
+						? 1.0 : -1.0;
+
+				double frontX = elephant.getX() - Math.sin(yawRadians) * distance;
+				double frontY = elephant.getY();
+				double frontZ = elephant.getZ() + Math.cos(yawRadians) * distance;
+
+				double rightX = frontX + Math.cos(yawRadians) * rightOffset;
+				double rightZ = frontZ + Math.sin(yawRadians) * rightOffset;
+
+				double backX = elephant.getX() - Math.sin(yawRadians) * (-1.0);
+				double backZ = elephant.getZ() + Math.cos(yawRadians) * (-1.0);
+
+				double rightBackX = backX + Math.cos(yawRadians) * -rightOffset;
+				double rightBackZ = backZ + Math.sin(yawRadians) * -rightOffset;
+
+				if (elephant.level().isClientSide()) {
+					for (int i = 0; i < 30; i++) {
+						elephant.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
+								rightX, frontY, rightZ,
+								0, 0, 0);
+						elephant.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
+								rightBackX, frontY, rightBackZ,
+								0, 0, 0);
+					}
+				}
+			}
+		}
+
 		this.animateWalk(ElephantAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 10.75f, 8.75f);
+		lastLimbSwing = limbSwing;
 	}
 
     @Override

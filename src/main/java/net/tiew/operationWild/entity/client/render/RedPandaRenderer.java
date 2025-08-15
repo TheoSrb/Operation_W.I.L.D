@@ -20,7 +20,8 @@ import java.util.Map;
 
 public class RedPandaRenderer extends MobRenderer<RedPandaEntity, RedPandaModel<RedPandaEntity>> {
     private static final Map<RedPandaVariant, ResourceLocation> LOCATION_BY_VARIANT = Util.make(Maps.newEnumMap(RedPandaVariant.class), map -> {
-        map.put(RedPandaVariant.RED_PANDA, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/red_panda/red_panda_default.png"));
+        map.put(RedPandaVariant.DEFAULT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/red_panda/red_panda_default.png"));
+        map.put(RedPandaVariant.DARK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/red_panda/red_panda_dark.png"));
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
