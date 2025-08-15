@@ -54,6 +54,7 @@ import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
+import net.tiew.operationWild.entity.OWTameImplementation;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.AI.*;
 import net.tiew.operationWild.entity.AI.NapGoal;
@@ -74,7 +75,7 @@ import java.util.List;
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 import static net.tiew.operationWild.utils.OWUtils.determinateMinAndMax;
 
-public class TigerEntity extends OWEntity implements PlayerRideableJumping, FoodsPreference, OWEntityUtils {
+public class TigerEntity extends OWEntity implements OWTameImplementation, PlayerRideableJumping, FoodsPreference, OWEntityUtils {
 
     public static final double TAMING_EXPERIENCE = 195.0;
 
@@ -131,7 +132,57 @@ public class TigerEntity extends OWEntity implements PlayerRideableJumping, Food
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
-    // Entity's AI
+    // Entity Methods
+    @Override
+    public int getEntityColor() {
+        return 0xc47037;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 7.5f;
+    }
+
+    @Override
+    public float vehicleRunSpeedMultiplier() {
+        return 3.5f;
+    }
+
+    @Override
+    public float vehicleWalkSpeedMultiplier() {
+        return 2;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return OWItems.TIGER_SADDLE.get();
+    }
+
+    @Override
+    public List<Class<?>> getEntityType() {
+        return ASSASSIN_ENTITIES;
+    }
+
+    @Override
+    public List<Object> getEntityDiet() {
+        return CARNIVOROUS_ENTITIES;
+    }
+
+    @Override
+    public String getTamingAdvancement() {
+        return "wild_meow";
+    }
+
+    @Override
+    public float getMaxVitalEnergy() {
+        return 350;
+    }
+
+    @Override
+    public float getVitalEnergyRecuperation() {
+        return 1f;
+    }
+
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
@@ -790,23 +841,30 @@ public class TigerEntity extends OWEntity implements PlayerRideableJumping, Food
     @Override
     public void onPlayerJump(int i) {
         if (!this.onGround() || this.isInWater() || this.isUnderWater()) return;
+        if (this.getVitalEnergy() <= 10) return;
+
         float pitch = (float) OWUtils.generateRandomInterval(0.7, 0.9);
         float jumpCharge = Math.min(i, 100) / 100.0f;
         double d0 = (double)this.getJumpPower(jumpCharge);
         Vec3 vec3 = this.getDeltaMovement();
+
         this.setDeltaMovement(vec3.x, d0, vec3.z);
         this.hasImpulse = true;
         OWUtils.spawnParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, -0.75, 0.5, 10,1);
+
         float angle = (float) Math.toRadians(this.getYRot());
         double forwardX = -Math.sin(angle) * ((1.25 * i) / 100);
         double forwardZ = Math.cos(angle) * ((1.25 * i) / 100);
+
         this.setDeltaMovement(forwardX, this.getDeltaMovement().y, forwardZ);
+        this.setVitalEnergy(this.getVitalEnergy() - 10);
         if (this.level().isClientSide() && i > 50) this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), isVirus() ? OWSounds.TIGER_HURTING_VIRUS.get() : OWSounds.TIGER_HURTING.get(), SoundSource.NEUTRAL, 1.0F, pitch, false);
         if (vec3.z > (double)0.0F) {
             float f = Mth.sin(this.getYRot() * ((float)Math.PI / 180F));
             float f1 = Mth.cos(this.getYRot() * ((float)Math.PI / 180F));
             this.setDeltaMovement(this.getDeltaMovement().add((double)(-0.4F * f * jumpCharge), (double)0.0F, (double)(0.4F * f1 * jumpCharge)));
         }
+
         NeoForge.EVENT_BUS.post(new LivingEvent.LivingJumpEvent(this));
     }
 
@@ -1022,15 +1080,5 @@ public class TigerEntity extends OWEntity implements PlayerRideableJumping, Food
         this.numberFeedsWanted = tag.getInt("numberFeedsWanted");
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
         this.cooldownJump = tag.getInt("cooldownJump");
-    }
-
-    @Override
-    public int getEntityColor() {
-        return 0xc47037;
-    }
-
-    @Override
-    public float getEntityScale() {
-        return 7.5f;
     }
 }

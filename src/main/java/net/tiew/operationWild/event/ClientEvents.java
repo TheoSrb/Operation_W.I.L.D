@@ -150,9 +150,6 @@ public class ClientEvents {
             if (event.getKey() == inventoryKey && event.getAction() == GLFW.GLFW_PRESS) {
                 OWNetworkHandler.sendToServer(new OpenOWInventoryPacket());
             }
-            if (event.getKey() == runKey && event.getAction() == GLFW.GLFW_PRESS) {
-                OWNetworkHandler.sendToServer(new OWRunningPacket());
-            }
 
             if (owEntity instanceof TigerEntity entity) {
                 if (OWKeysBinding.OW_ULTIMATE.isDown() && entity.ultimateCooldown <= 0) {
@@ -350,6 +347,16 @@ public class ClientEvents {
 
     private static boolean canUseRightClick(Minecraft minecraft) {
         return minecraft.player != null && minecraft.player.getMainHandItem().getUseAnimation() == UseAnim.NONE && !(minecraft.player.getMainHandItem().getItem() instanceof MayaBlowpipeItem);
+    }
+
+    @SubscribeEvent
+    public static void onClientTick(PlayerTickEvent.Post event) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.level != null && minecraft.level.isClientSide()) {
+            if (minecraft.player != null && minecraft.player.getVehicle() instanceof OWEntity) {
+                OWNetworkHandler.sendToServer(new OWRunningPacket());
+            }
+        }
     }
 
     @SubscribeEvent
@@ -982,6 +989,10 @@ public class ClientEvents {
                             .anyMatch(tigerShark -> tigerShark.isShakingPrey() && tigerShark.getTarget() == player)) {
                 RightClickAlertOverlay.render(event.getGuiGraphics(),
                         event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
+            }
+
+            if (player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine)) {
+                OWEntityHud.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
             if (isNotifiedOWBook) {

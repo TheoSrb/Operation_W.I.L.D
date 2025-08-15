@@ -42,9 +42,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.AI.*;
+import net.tiew.operationWild.entity.OWTameImplementation;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.sound.OWSounds;
+import net.tiew.operationWild.utils.OWUtils;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityUtils;
@@ -56,7 +59,7 @@ import java.util.List;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
-public class ElephantEntity extends OWEntity implements OWEntityUtils {
+public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImplementation {
 
     public static final double TAMING_EXPERIENCE = 345.0;
 
@@ -78,6 +81,56 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
+    // Entity Methods
+    @Override
+    public int getEntityColor() {
+        return 8749692;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 15;
+    }
+
+    @Override
+    public float vehicleRunSpeedMultiplier() {
+        return 3.5f;
+    }
+
+    @Override
+    public float vehicleWalkSpeedMultiplier() {
+        return 2;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return OWItems.BOA_SADDLE.get();
+    }
+
+    @Override
+    public List<Class<?>> getEntityType() {
+        return TANK_ENTITIES;
+    }
+
+    @Override
+    public List<Object> getEntityDiet() {
+        return VEGETARIAN_ENTITIES;
+    }
+
+    @Override
+    public String getTamingAdvancement() {
+        return "";
+    }
+
+    @Override
+    public float getMaxVitalEnergy() {
+        return 200;
+    }
+
+    @Override
+    public float getVitalEnergyRecuperation() {
+        return 0.5f;
+    }
 
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
@@ -102,7 +155,6 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
 
     @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {
-        super.playStepSound(blockPos, blockState);
     }
 
     public void setBuyingSkin(int skinIndex) {
@@ -178,20 +230,22 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
 
         for (LivingEntity livingEntityAround : livingEntitiesAround) {
             if (livingEntityAround.onGround()) {
+                if (livingEntityAround instanceof Player player && player.isCreative()) continue;
                 if (livingEntityAround instanceof ElephantEntity) continue;
                 if (livingEntityAround.isInWater() || livingEntityAround.isInWall()) continue;
                 float shakeIntensity = livingEntityAround.distanceTo(this);
                 shakeIntensity = ((FOOTSTEP_MAX_DISTANCE - shakeIntensity) / 10) / 3;
 
                 livingEntityAround.setDeltaMovement(livingEntityAround.getDeltaMovement().x, shakeIntensity / 2, livingEntityAround.getDeltaMovement().z);
-                setPlayerJump(true);
             }
         }
+        setPlayerJump(true);
     }
 
     public void tick() {
         super.tick();
         setTamingPercentage(this.foodGiven, this.foodWanted);
+        if (!this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) createTameAttackSystem(30, 20, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, 5, 3.5, 2, false);
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
@@ -209,6 +263,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
                     if (this.level().isClientSide()) ClientEvents.shakeCamera(shakeIntensity, playerAround);
                 }
             }
+            if (this.isRunning()) OWUtils.spawnParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, -1.5, 0.5, 10, 0.5);
             setPlayerJump(false);
         }
 
@@ -320,16 +375,6 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils {
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
-    }
-
-    @Override
-    public int getEntityColor() {
-        return 8749692;
-    }
-
-    @Override
-    public float getEntityScale() {
-        return 15;
     }
 }
 

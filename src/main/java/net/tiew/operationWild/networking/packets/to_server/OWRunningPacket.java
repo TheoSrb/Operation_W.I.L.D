@@ -1,5 +1,6 @@
 package net.tiew.operationWild.networking.packets.to_server;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -29,8 +30,10 @@ public record OWRunningPacket() implements CustomPacketPayload {
                 Entity entity = player.getRootVehicle();
 
                 if (entity != null) {
-                    if (entity instanceof OWEntity owEntities) {
-                        owEntities.setRunning(!owEntities.isRunning());
+                    if (entity instanceof OWEntity owEntity) {
+                        if (Minecraft.getInstance().options.keySprint.isDown() && owEntity.getVitalEnergy() < owEntity.getMaxVitalEnergy()) {
+                            owEntity.setRunning(true);
+                        } else owEntity.setRunning(false);
                     }
                 }
             }

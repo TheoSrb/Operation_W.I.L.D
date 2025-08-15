@@ -9,6 +9,7 @@ import net.minecraft.world.entity.PlayerRideableJumping;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.custom.vehicle.Submarine;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -25,8 +26,10 @@ public abstract class SubmarineMixin {
      */
     @Inject(method = "renderVehicleHealth", at = @At("HEAD"), cancellable = true)
     private void cancelSubmarineHearts(GuiGraphics guiGraphics, CallbackInfo ci) {
-        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof Submarine) {
-            ci.cancel();
+        if (Minecraft.getInstance().player != null) {
+            if (Minecraft.getInstance().player.getVehicle() instanceof OWEntity) {
+                ci.cancel();
+            }
         }
     }
 

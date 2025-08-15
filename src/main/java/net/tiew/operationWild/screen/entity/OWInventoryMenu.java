@@ -84,13 +84,7 @@ public class OWInventoryMenu extends AbstractContainerMenu {
     }
 
     public Item chooseSaddleWithEntity(OWEntity entity) {
-        switch (entity.getClass().getSimpleName()) {
-            case "TigerEntity": return OWItems.TIGER_SADDLE.get();
-            case "BoaEntity": return OWItems.BOA_SADDLE.get();
-            case "PeacockEntity": return OWItems.PEACOCK_SADDLE.get();
-            case "TigerSharkEntity": return OWItems.TIGER_SHARK_SADDLE.get();
-            default: return null;
-        }
+        return entity.acceptSaddle();
     }
 
     @Override

@@ -29,7 +29,7 @@ public class TigerOverlay {
     }
 
     public static void createOverlayCharge(GuiGraphics guiGraphics, int screenWidth, int screenHeight, int maxScale, OWEntity owEntity, int timeMax) {
-        int baseX = (screenWidth / 2) + 100;
+        int baseX = (screenWidth / 2) + 96;
         int baseY = screenHeight - 22;
 
         int spacing = 25;
@@ -53,7 +53,7 @@ public class TigerOverlay {
 
         if (owEntity instanceof TigerEntity tiger) {
             if (tiger.chargeTimer >= 1) {
-                int baseX2 = (screenWidth / 2) + 100 + spacing;
+                int baseX2 = (screenWidth / 2) + 96 + spacing;
                 int baseY2 = screenHeight - 22;
                 guiGraphics.blit(TEXTURE, baseX2, baseY2, 20, 60, 20, 20, maxScale, maxScale);
 
