@@ -1,4 +1,4 @@
-// 1.21	2025-08-13T18:05:08.3005888	Item Models: ow
+// 1.21	2025-08-16T17:07:38.1315938	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
@@ -55,6 +55,7 @@ adcbfb5ceaa0d9a0a15bae4f5e815587d9060969 assets/ow/models/item/cooked_boa.json
 0ead5c5ce6a49f4c3f942c85e7182cd9e27fcb3a assets/ow/models/item/cooked_kodiak.json
 6564e282637e35db612bc5413e96c9b4b2701b78 assets/ow/models/item/cooked_peacock.json
 46f2291693f07717944a650567537d58a388e1c1 assets/ow/models/item/cooked_tiger.json
+6acfec09b74bbd111ce7893a2ce3a2783baf44f8 assets/ow/models/item/elephant_saddle.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/elephant_spawn_egg.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/hyena_spawn_egg.json
 b69eeee753a6359c8db1bbfa417adb15e820c348 assets/ow/models/item/jade.json

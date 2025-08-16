@@ -22,11 +22,19 @@ import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantE
         map.put(ElephantVariant.GREY, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_grey.png"));
         map.put(ElephantVariant.PINK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_pink.png"));
     });
+
+    public final ElephantLayer elephantLayer;
+
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
     public ElephantRenderer(EntityRendererProvider.Context context) {
         super(context, new ElephantModel<>(context.bakeLayer(ElephantModel.LAYER_LOCATION)), 1.5f);
-        this.addLayer(new ElephantLayer(this));
+        this.elephantLayer = new ElephantLayer(this);
+        this.addLayer(this.elephantLayer);
+    }
+
+    public ElephantLayer getElephantLayer() {
+        return this.elephantLayer;
     }
 
     @Override
@@ -60,17 +68,17 @@ import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantE
                     if (player != null && elephant.distanceTo(player) > 4.0D) {
                         OWRendererUtils.displayOwnerAboveEntity(elephant, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
                         OWRendererUtils.displayLevelAboveEntity(elephant, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
-                        OWRendererUtils.displayImageAboveEntity(ICONS, 0, genderPosition, 12, 256, 0, 0, elephant, poseStack, bufferSource, packedLight, true);
+                        OWRendererUtils.displayImageAboveEntity(ICONS, 0, genderPosition, 12, 256, 0, 4f, elephant, poseStack, bufferSource, packedLight, true);
                         if (elephant.isPassive())
-                            OWRendererUtils.displayImageAboveEntity(ICONS, 0, 60, 14, 256, 1.5f, 0f, elephant, poseStack, bufferSource, packedLight, true);
+                            OWRendererUtils.displayImageAboveEntity(ICONS, 0, 60, 14, 256, 1.5f, 4f, elephant, poseStack, bufferSource, packedLight, true);
                         if (elephant.getLevel() >= 50) {
-                            OWRendererUtils.displayImageAboveEntity(ICONS, 0, 143, 10, 256, -1f, 1f, elephant, poseStack, bufferSource, packedLight, true);
+                            OWRendererUtils.displayImageAboveEntity(ICONS, 0, 143, 10, 256, -1f, 5f, elephant, poseStack, bufferSource, packedLight, true);
                             OWRendererUtils.displayPrestigeLevelAboveEntity(elephant, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
                         }
                     }
                 } else {
                     if (elephant.isSleeping()) {
-                        OWRendererUtils.displayBonusPointAboveEntity(elephant, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, 0);
+                        OWRendererUtils.displayBonusPointAboveEntity(elephant, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, 1f);
                     }
                 }
             }

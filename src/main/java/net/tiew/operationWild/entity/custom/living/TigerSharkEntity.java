@@ -41,6 +41,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.entity.OWTameImplementation;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.AI.*;
@@ -59,7 +60,7 @@ import net.tiew.operationWild.utils.OWUtils;
 
 import java.util.List;
 
-public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, OWEntityUtils {
+public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, OWEntityUtils, OWTameImplementation {
 
     public static final double TAMING_EXPERIENCE = 115.0;
 
@@ -103,6 +104,56 @@ public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, 
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
+    // Entity Methods
+    @Override
+    public int getEntityColor() {
+        return 0x565047;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 9f;
+    }
+
+    @Override
+    public float vehicleRunSpeedMultiplier() {
+        return 3f;
+    }
+
+    @Override
+    public float vehicleWalkSpeedMultiplier() {
+        return 1.5f;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return OWItems.TIGER_SHARK_SADDLE.get();
+    }
+
+    @Override
+    public List<Class<?>> getEntityType() {
+        return ASSASSIN_ENTITIES;
+    }
+
+    @Override
+    public List<Object> getEntityDiet() {
+        return CARNIVOROUS_ENTITIES;
+    }
+
+    @Override
+    public String getTamingAdvancement() {
+        return "";
+    }
+
+    @Override
+    public float getMaxVitalEnergy() {
+        return 215 * (1 + ((float) this.getLevel() / 100));
+    }
+
+    @Override
+    public float getVitalEnergyRecuperation() {
+        return 0.75f;
+    }
 
     // Entity's AI
     protected void registerGoals() {
@@ -159,7 +210,7 @@ public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, 
         if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
             this.spawnAtLocation(soulStack);
         }
-        if (this.isSaddled()) this.spawnAtLocation(OWItems.TIGER_SHARK_SADDLE.get());
+        if (this.isSaddled()) this.spawnAtLocation(this.acceptSaddle());
     }
 
     @Override
@@ -567,15 +618,5 @@ public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, 
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
-    }
-
-    @Override
-    public int getEntityColor() {
-        return 0x565047;
-    }
-
-    @Override
-    public float getEntityScale() {
-        return 9f;
     }
 }

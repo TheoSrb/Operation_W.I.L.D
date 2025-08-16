@@ -127,6 +127,11 @@ public class OperationWild {
             LivingEntity target = mob.getTarget();
 
             if (target != null) {
+                if (target.getRootVehicle() instanceof OWEntity owVehicle && !target.equals(owVehicle)) {
+                    event.setNewAboutToBeSetTarget(owVehicle);
+                    return;
+                }
+
                 if (target.getRootVehicle() instanceof SeaBugEntity seaBug && !target.equals(seaBug)) {
                     event.setNewAboutToBeSetTarget(seaBug);
                     return;

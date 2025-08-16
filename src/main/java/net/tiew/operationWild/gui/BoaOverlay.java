@@ -28,7 +28,7 @@ public class BoaOverlay {
     }
 
     public static void createOverlayCharge(GuiGraphics guiGraphics, int screenWidth, int screenHeight, int maxScale, OWEntity owEntity) {
-        int baseX = (screenWidth / 2) + 100;
+        int baseX = (screenWidth / 2) + 96;
         int baseY = screenHeight - 22;
 
         int spacing = 25;

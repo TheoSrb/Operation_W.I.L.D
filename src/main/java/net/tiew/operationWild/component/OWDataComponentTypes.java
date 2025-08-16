@@ -7,10 +7,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.tiew.operationWild.OperationWild;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.UnaryOperator;
 
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -39,6 +42,7 @@ public class OWDataComponentTypes {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Float>> BABY_EGG_MAX_HEALTH = register("baby_egg_max_health", builder -> builder.persistent(ExtraCodecs.POSITIVE_FLOAT).networkSynchronized(ByteBufCodecs.FLOAT));
 
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Item>>> SADDLE_WOOLS = register("saddle_wools", builder -> builder.persistent(Codec.list(BuiltInRegistries.ITEM.byNameCodec())).networkSynchronized(ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.registry(Registries.ITEM))));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> PLATINUM_RANDOM_ATTRIBUTES = register("platinum_random_attributes", builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 }

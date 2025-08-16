@@ -258,6 +258,9 @@
   "item.ow.boa_saddle": "Selle de boa",
   "item.ow.peacock_saddle": "Selle de paon",
   "item.ow.tiger_shark_saddle": "Selle de requin tigre",
+  "item.ow.elephant_saddle": "Selle d'éléphant",
+
+  "tooltip.composition": "Composition:",
 
   "platinum_plated_tooltip_1": "Dégâts bonus: +%s",
   "platinum_plated_tooltip_2": "Dégâts bonus: +%s",

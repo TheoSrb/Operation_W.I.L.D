@@ -68,6 +68,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.CAMOUFLAGE_LEGGINGS.get());
                         output.accept(OWItems.CAMOUFLAGE_BOOTS.get());
                         output.accept(OWItems.BOA_SADDLE.get());
+                        output.accept(OWItems.ELEPHANT_SADDLE.get());
                         output.accept(OWItems.PEACOCK_SADDLE.get());
                         output.accept(OWItems.TIGER_SADDLE.get());
                         output.accept(OWItems.TIGER_SHARK_SADDLE.get());

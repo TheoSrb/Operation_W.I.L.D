@@ -108,6 +108,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         switch (this.entity.getClass().getSimpleName()) {
             case "TigerEntity" -> entityScale = 22;
             case "PeacockEntity" -> entityScale = 35;
+            case "ElephantEntity" -> entityScale = 12;
         }
     }
 
@@ -119,7 +120,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         int genderImagePosition = entity.isFemale() ? 36 : entity.isMale() ? 48 : 0;
         int mobTypePlacementX = this.entity.getLevel() >= 50 && this.entity.getLevelPoints() <= 0 ? this.entity.getPrestigeLevel() >= 100 ? i + 116 : this.entity.getPrestigeLevel() >= 10 ? i + 123 : this.entity.getPrestigeLevel() >= 0 ? i + 129 : 0 : i + 138;
 
-        guiGraphics.blit(OW_INVENTORY_LOCATION, i, j, 0, 0, 256,183);
+        guiGraphics.blit(OW_INVENTORY_LOCATION, i, j, 0, 0, 176,166);
         guiGraphics.blit(MISC_LOCATION, mobTypePlacementX, j + 4, 0, j2, 12,12);
         guiGraphics.blit(MISC_LOCATION, i + titleLength + 10, j + 4, 0, genderImagePosition, 12,12);
 
@@ -153,6 +154,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "BoaEntity": return 224;
             case "PeacockEntity": return 208;
             case "TigerSharkEntity": return 192;
+            case "ElephantEntity": return 176;
             default: return 0;
         }
     }

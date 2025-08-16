@@ -40,6 +40,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.entity.OWTameImplementation;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.OWEgg;
@@ -62,7 +63,7 @@ import java.util.TimerTask;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
-public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntityUtils {
+public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntityUtils, OWTameImplementation {
 
     public static final double TAMING_EXPERIENCE = 25.0;
 
@@ -102,6 +103,57 @@ public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntity
 
     public PeacockEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+    }
+
+    // Entity Methods
+    @Override
+    public int getEntityColor() {
+        return 0x464bc1;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 3.25f;
+    }
+
+    @Override
+    public float vehicleRunSpeedMultiplier() {
+        return 3f;
+    }
+
+    @Override
+    public float vehicleWalkSpeedMultiplier() {
+        return 1.5f;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return OWItems.PEACOCK_SADDLE.get();
+    }
+
+    @Override
+    public List<Class<?>> getEntityType() {
+        return MARAUDER_ENTITIES;
+    }
+
+    @Override
+    public List<Object> getEntityDiet() {
+        return VEGETARIAN_ENTITIES;
+    }
+
+    @Override
+    public String getTamingAdvancement() {
+        return "colors";
+    }
+
+    @Override
+    public float getMaxVitalEnergy() {
+        return 175 * (1 + ((float) this.getLevel() / 100));
+    }
+
+    @Override
+    public float getVitalEnergyRecuperation() {
+        return 1f;
     }
 
 
@@ -193,7 +245,7 @@ public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntity
         if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
             this.spawnAtLocation(soulStack);
         }
-        if (this.isSaddled()) this.spawnAtLocation(OWItems.PEACOCK_SADDLE.get());
+        if (this.isSaddled()) this.spawnAtLocation(this.acceptSaddle());
     }
 
     @Override
@@ -601,15 +653,5 @@ public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntity
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
-    }
-
-    @Override
-    public int getEntityColor() {
-        return 0x464bc1;
-    }
-
-    @Override
-    public float getEntityScale() {
-        return 3.25f;
     }
 }

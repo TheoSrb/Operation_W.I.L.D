@@ -1946,38 +1946,41 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     }
 
     public void setTame(boolean tame, Player player) {
-        byte b0 = this.entityData.get(DATA_FLAGS_ID);
-        if (tame) {
-            setNecklaceColor(0x993333);
-            int levelPointsBonus = 0;
-            if (!(this instanceof BoaEntity boa)) {
-                levelPointsBonus = this.getHealth() < this.getMaxHealth() / 2 ? 0 : (int) ((this.getHealth() - (this.getMaxHealth() / 2)) / (this.getMaxHealth() / 10));
+        if (!this.level().isClientSide()) {
+            byte b0 = this.entityData.get(DATA_FLAGS_ID);
+            if (tame) {
+                setNecklaceColor(0x993333);
+                int levelPointsBonus = 0;
+                if (!(this instanceof BoaEntity boa)) {
+                    levelPointsBonus = this.getHealth() < this.getMaxHealth() / 2 ? 0 : (int) ((this.getHealth() - (this.getMaxHealth() / 2)) / (this.getMaxHealth() / 10));
+                } else {
+                    levelPointsBonus = boa.numberOfError >= 5 ? 0 : 5 - boa.numberOfError;
+                }
+                if (!isBaby()) this.setLevelPoints(levelPointsBonus);
+                this.entityData.set(DATA_FLAGS_ID, (byte) (b0 | 4));
+                this.setTamedAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH));
+                this.navigation.recomputePath();
+                this.setTarget(null);
+                this.level().broadcastEntityEvent(this, (byte) 7);
+                this.setSitting(false);
+                this.setHealth(this.getMaxHealth());
+                double pitch = OWUtils.generateRandomInterval(0.8, 1.0);
+                this.playSound(OWSounds.TAME_SUCCESS.get(), 1.0f, (float) pitch);
+                this.playSound(SoundEvents.TOTEM_USE);
+                this.level().broadcastEntityEvent(this, (byte) 8);
+                this.setOwnerUUID(player.getUUID());
+                this.setDamageToClient(this.getDamage());
+                this.setCurrentMode(Mode.Passive);
+                this.setAggressive(true);
+
+                if (player instanceof ServerPlayer serverPlayer) {
+                    System.out.println("advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectAdvancementByEntity());
+                    serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectAdvancementByEntity());
+                }
+
             } else {
-                levelPointsBonus = boa.numberOfError >= 5 ? 0 : 5 - boa.numberOfError;
+                this.entityData.set(DATA_FLAGS_ID, (byte) (b0 & -5));
             }
-            if (!isBaby()) this.setLevelPoints(levelPointsBonus);
-            this.entityData.set(DATA_FLAGS_ID, (byte) (b0 | 4));
-            this.setTamedAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH));
-            this.navigation.recomputePath();
-            this.setTarget(null);
-            this.level().broadcastEntityEvent(this, (byte) 7);
-            this.setSitting(false);
-            this.setHealth(this.getMaxHealth());
-            double pitch = OWUtils.generateRandomInterval(0.8, 1.3);
-            this.playSound(OWSounds.TAME_SUCCESS.get(), 1.0f, (float) pitch);
-            this.playSound(SoundEvents.TOTEM_USE);
-            this.level().broadcastEntityEvent(this, (byte) 8);
-            this.setOwnerUUID(player.getUUID());
-            this.setDamageToClient(this.getDamage());
-            this.setCurrentMode(Mode.Passive);
-            this.setAggressive(true);
-
-            if (player instanceof ServerPlayer serverPlayer) {
-                serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectAdvancementByEntity());
-            }
-
-        } else {
-            this.entityData.set(DATA_FLAGS_ID, (byte) (b0 & -5));
         }
     }
 

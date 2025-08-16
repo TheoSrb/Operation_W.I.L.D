@@ -6,11 +6,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -44,10 +50,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.AI.*;
 import net.tiew.operationWild.entity.OWTameImplementation;
 import net.tiew.operationWild.event.ClientEvents;
+import net.tiew.operationWild.item.custom.ElephantSaddle;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.utils.OWUtils;
 import org.jetbrains.annotations.Nullable;
@@ -57,6 +65,7 @@ import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
@@ -73,6 +82,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> PLAYER_CAN_JUMP = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<CompoundTag> SADDLE_DATA = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.COMPOUND_TAG);
 
     public ElephantVariant getVariant() { return ElephantVariant.byId(this.getTypeVariant() & 255);}
     public void setVariant(ElephantVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
@@ -106,7 +116,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
 
     @Override
     public Item acceptSaddle() {
-        return OWItems.BOA_SADDLE.get();
+        return OWItems.ELEPHANT_SADDLE.get();
     }
 
     @Override
@@ -194,7 +204,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
             this.spawnAtLocation(soulStack);
         }
-        /*if (this.isSaddled()) this.spawnAtLocation(OWItems.ELEPHANT_SADDLE.get());*/
+        if (this.isSaddled()) this.spawnAtLocation(this.acceptSaddle());
     }
 
     @Override
@@ -351,6 +361,29 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
+    public void setSaddleWools(List<Item> wools) {
+        CompoundTag tag = new CompoundTag();
+        int[] woolIds = new int[wools.size()];
+        for (int i = 0; i < wools.size(); i++) {
+            woolIds[i] = BuiltInRegistries.ITEM.getId(wools.get(i));
+        }
+        tag.putIntArray("wools", woolIds);
+        this.entityData.set(SADDLE_DATA, tag);
+    }
+
+    public List<Item> getSaddleWools() {
+        CompoundTag tag = this.entityData.get(SADDLE_DATA);
+        List<Item> wools = new ArrayList<>();
+        if (tag.contains("wools")) {
+            int[] woolIds = tag.getIntArray("wools");
+            for (int woolId : woolIds) {
+                Item wool = BuiltInRegistries.ITEM.byId(woolId);
+                wools.add(wool);
+            }
+        }
+        return wools;
+    }
+
     private ElephantVariant chooseElephantVariant() {
         ElephantVariant variant;
         if (chance >= 66.67) variant = ElephantVariant.PINK;
@@ -368,6 +401,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(PLAYER_CAN_JUMP, false);
+        builder.define(SADDLE_DATA, new CompoundTag());
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {
@@ -377,6 +411,20 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
 
+        if (this.getInventory() != null) { // Remplacez par votre nom d'inventaire
+            ItemStack saddleStack = this.getInventory().getStackInSlot(0);
+            if (!saddleStack.isEmpty() && saddleStack.getItem() instanceof ElephantSaddle) {
+                List<Item> wools = saddleStack.get(OWDataComponentTypes.SADDLE_WOOLS.get());
+                if (wools != null && !wools.isEmpty()) {
+                    int[] woolIds = new int[wools.size()];
+                    for (int i = 0; i < wools.size(); i++) {
+                        woolIds[i] = BuiltInRegistries.ITEM.getId(wools.get(i));
+                    }
+                    tag.putIntArray("SaddleWools", woolIds);
+                }
+            }
+        }
+
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -385,6 +433,16 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
+
+        if (tag.contains("SaddleWools")) {
+            int[] woolIds = tag.getIntArray("SaddleWools");
+            List<Item> wools = new ArrayList<>();
+            for (int woolId : woolIds) {
+                Item wool = BuiltInRegistries.ITEM.byId(woolId);
+                wools.add(wool);
+            }
+            this.setSaddleWools(wools);
+        }
     }
 }
 

@@ -18,6 +18,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.tiew.operationWild.entity.custom.living.ElephantEntity;
+import net.tiew.operationWild.item.custom.ElephantSaddle;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -334,7 +336,7 @@ public class OWRendererUtils {
         int levelColor = 0xc8f6ff;
         Component level = Component.literal(String.valueOf(entity.getPrestigeLevel())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(levelColor).getValue()).withBold(true));
         poseStack.pushPose();
-        poseStack.translate(0, entity.getBbHeight() + 0.8F, 0);
+        poseStack.translate(0,  entity.getBbHeight() + (entity instanceof ElephantEntity ? 1.8F : 0.8F), 0);
         poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
         poseStack.scale(0.015F, -0.015F, 0.015F);
         Matrix4f matrix4f = poseStack.last().pose();
@@ -350,7 +352,7 @@ public class OWRendererUtils {
         Component level = Component.literal(String.valueOf(entity.getLevel())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(levelColor).getValue()).withBold(true));
         Component text = Component.translatable("tooltip.lvl", level).withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue());
         poseStack.pushPose();
-        poseStack.translate(0, entity.getBbHeight() + 0.6F, 0);
+        poseStack.translate(0, entity.getBbHeight() + (entity instanceof ElephantEntity ? 1.6F : 0.6F), 0);
         poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
         poseStack.scale(0.025F, -0.025F, 0.025F);
         Matrix4f matrix4f = poseStack.last().pose();
@@ -510,7 +512,7 @@ public class OWRendererUtils {
         Component owner = Component.literal(String.valueOf(Objects.requireNonNull(Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getPlayerByUUID(Objects.requireNonNull(entity.getOwnerUUID())) : null).getName().getString())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(ownerColor).getValue()).withBold(true));
         Component text = Component.translatable("tooltip.owner", owner).withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue());
         poseStack.pushPose();
-        poseStack.translate(0, entity.getBbHeight() + 0.35F, 0);
+        poseStack.translate(0,  entity.getBbHeight() + (entity instanceof ElephantEntity ? 1.35F : 0.35F), 0);
         poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
         poseStack.scale(0.0175F, -0.0175F, 0.0175F);
         Matrix4f matrix4f = poseStack.last().pose();

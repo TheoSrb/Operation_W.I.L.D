@@ -16,13 +16,11 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
+import net.tiew.operationWild.entity.custom.living.*;
 import net.tiew.operationWild.event.ClientEvents;
 
 import java.util.Collections;
@@ -35,17 +33,24 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
     private float yMouse;
     private ButtonListWidget buttonList;
 
+    private static final Item[] WOOL_ITEMS = {
+            Items.WHITE_WOOL, Items.ORANGE_WOOL, Items.MAGENTA_WOOL, Items.LIGHT_BLUE_WOOL,
+            Items.YELLOW_WOOL, Items.LIME_WOOL, Items.PINK_WOOL, Items.GRAY_WOOL,
+            Items.LIGHT_GRAY_WOOL, Items.CYAN_WOOL, Items.PURPLE_WOOL, Items.BLUE_WOOL,
+            Items.BROWN_WOOL, Items.GREEN_WOOL, Items.RED_WOOL, Items.BLACK_WOOL
+    };
+
     public static boolean canShowBoaSaddle = false;
     public static boolean canShowTigerSaddle = false;
     public static boolean canShowPeacockSaddle = false;
     public static boolean canShowTigerSharkSaddle = false;
-
+    public static boolean canShowElephantSaddle = false;
 
     public Button boaSaddleButton;
     public Button tigerSaddleButton;
     public Button peacockSaddleButton;
     public Button tigerSharkSaddleButton;
-
+    public Button elephantSaddleButton;
 
     public SaddlerScreen(SaddlerMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
@@ -59,32 +64,41 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
 
         this.buttonList = new ButtonListWidget(this.minecraft, i + 59, 105, 57, j + 14, j + 160);
 
-
         boaSaddleButton = createTransparentButton("item.ow.boa_saddle", 0x8b8b8b, 0, 0, 105, 19, this::boaButtonClick);
+        elephantSaddleButton = createTransparentButton("item.ow.elephant_saddle", 0x8b8b8b, 0, 0, 105, 19, this::elephantButtonClick);
         tigerSaddleButton = createTransparentButton("item.ow.tiger_saddle", 0x8b8b8b, 0, 0, 105, 19, this::tigerButtonClick);
         peacockSaddleButton = createTransparentButton("item.ow.peacock_saddle", 0x8b8b8b, 0, 0, 105, 19, this::peacockButtonClick);
         tigerSharkSaddleButton = createTransparentButton("item.ow.tiger_shark_saddle", 0x8b8b8b, 0, 0, 105, 19, this::tigerSharkButtonClick);
-
 
         if (ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(boaSaddleButton));
         if (ClientEvents.tamingExperience >= TigerEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(tigerSaddleButton));
         if (ClientEvents.tamingExperience >= PeacockEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(peacockSaddleButton));
         if (ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(tigerSharkSaddleButton));
-
+        if (ClientEvents.tamingExperience >= ElephantEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(elephantSaddleButton));
 
         this.addRenderableWidget(this.buttonList);
     }
 
     private void boaButtonClick() {
         canShowTigerSaddle = false;
+        canShowElephantSaddle = false;
         canShowTigerSharkSaddle= false;
         canShowPeacockSaddle = false;
         canShowBoaSaddle = !canShowBoaSaddle;
     }
 
+    private void elephantButtonClick() {
+        canShowTigerSaddle = false;
+        canShowTigerSharkSaddle= false;
+        canShowPeacockSaddle = false;
+        canShowBoaSaddle = false;
+        canShowElephantSaddle = !canShowElephantSaddle;
+    }
+
     private void peacockButtonClick() {
         canShowTigerSaddle = false;
         canShowBoaSaddle = false;
+        canShowElephantSaddle = false;
         canShowTigerSharkSaddle= false;
         canShowPeacockSaddle = !canShowPeacockSaddle;
     }
@@ -93,6 +107,7 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         canShowBoaSaddle = false;
         canShowPeacockSaddle = false;
         canShowTigerSharkSaddle= false;
+        canShowElephantSaddle = false;
         canShowTigerSaddle = !canShowTigerSaddle;
     }
 
@@ -100,6 +115,7 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         canShowBoaSaddle = false;
         canShowPeacockSaddle = false;
         canShowTigerSaddle= false;
+        canShowElephantSaddle = false;
         canShowTigerSharkSaddle = !canShowTigerSharkSaddle;
     }
 
@@ -123,10 +139,11 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         if (canShowTigerSaddle) guiGraphics.blit(SADDLER_LOCATION, i + 24, j + 53, 240, entitySaddleCoords(), 16, 16);
         if (canShowPeacockSaddle) guiGraphics.blit(SADDLER_LOCATION, i + 24, j + 53, 240, entitySaddleCoords(), 16, 16);
         if (canShowTigerSharkSaddle) guiGraphics.blit(SADDLER_LOCATION, i + 24, j + 53, 240, entitySaddleCoords(), 16, 16);
+        if (canShowElephantSaddle) guiGraphics.blit(SADDLER_LOCATION, i + 24, j + 53, 240, entitySaddleCoords(), 16, 16);
     }
 
     public static boolean menuWorking() {
-        return canShowBoaSaddle || canShowTigerSaddle || canShowPeacockSaddle || canShowTigerSharkSaddle;
+        return canShowBoaSaddle || canShowTigerSaddle || canShowPeacockSaddle || canShowTigerSharkSaddle || canShowElephantSaddle;
     }
 
     private int entitySaddleCoords() {
@@ -134,6 +151,7 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         if (canShowTigerSaddle) return 240;
         if (canShowPeacockSaddle) return 208;
         if (canShowTigerSharkSaddle) return 192;
+        if (canShowElephantSaddle) return 176;
 
         return 0;
     }
@@ -159,17 +177,23 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         guiGraphics.fillGradient(right - 1, top, right, bottom, 0x5028007F, 0x505000FF);
     }
 
+    private Item[] getAnimatedElephantWools() {
+        long currentTime = System.currentTimeMillis();
+        int index1 = (int) ((currentTime / 1000) % WOOL_ITEMS.length);
+        int index2 = (int) (((currentTime / 1000) + WOOL_ITEMS.length / 2) % WOOL_ITEMS.length);
+        return new Item[]{WOOL_ITEMS[index1], WOOL_ITEMS[index2]};
+    }
+
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.xMouse = mouseX;
         this.yMouse = mouseY;
 
-
         boaSaddleButton.setMessage(Component.translatable("item.ow.boa_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowBoaSaddle ? 0xFFFFFF : 0x8b8b8b))));
         tigerSaddleButton.setMessage(Component.translatable("item.ow.tiger_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowTigerSaddle ? 0xFFFFFF : 0x8b8b8b))));
         peacockSaddleButton.setMessage(Component.translatable("item.ow.peacock_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowPeacockSaddle ? 0xFFFFFF : 0x8b8b8b))));
         tigerSharkSaddleButton.setMessage(Component.translatable("item.ow.tiger_shark_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowTigerSharkSaddle ? 0xFFFFFF : 0x8b8b8b))));
-
+        elephantSaddleButton.setMessage(Component.translatable("item.ow.elephant_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowElephantSaddle ? 0xFFFFFF : 0x8b8b8b))));
 
         super.render(graphics, mouseX, mouseY, partialTick);
 
@@ -186,17 +210,15 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
                     if (button.getMessage().getContents() instanceof TranslatableContents contents) key = contents.getKey();
 
                     if (key.contains("boa")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.boaSaddleCraftItems, SaddlerMenu.boaSaddleCraftAmount);
-                    else if (key.contains("tiger")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.tigerSaddleCraftItems, SaddlerMenu.tigerSaddleCraftAmount);
+                    else if (key.contains("tiger") && !key.contains("tiger_shark")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.tigerSaddleCraftItems, SaddlerMenu.tigerSaddleCraftAmount);
                     else if (key.contains("peacock")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.peacockSaddleCraftItems, SaddlerMenu.peacockSaddleCraftAmount);
                     else if (key.contains("tiger_shark")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.tigerSharkSaddleCraftItems, SaddlerMenu.tigerSharkSaddleCraftAmount);
-
+                    else if (key.contains("elephant")) createElephantVisualCraft(mouseX, mouseY, graphics);
                 }
             }
         }
 
         poseStack.popPose();
-
-
 
         this.renderTooltip(graphics, mouseX, mouseY);
     }
@@ -211,6 +233,29 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         for (int i = 0; i < items.length; i++) {
             graphics.renderItem(items[i].getDefaultInstance(), tooltipX + 2, tooltipY + 2 + (i * 18));
             graphics.drawString(Minecraft.getInstance().font, "* " + amounts[i], tooltipX + 20, tooltipY + 4 + (i * 18), 0xFFFFFF, true);
+        }
+    }
+
+    public void createElephantVisualCraft(int mouseX, int mouseY, GuiGraphics graphics) {
+        int tooltipX = mouseX + 10;
+        int tooltipY = mouseY + 10;
+        int tooltipWidth = 150;
+        int tooltipHeight = 20 * 4;
+
+        renderTooltipBackground(graphics, tooltipX, tooltipY, tooltipWidth, tooltipHeight);
+
+        for (int i = 0; i < SaddlerMenu.elephantSaddleCraftItems.length; i++) {
+            graphics.renderItem(SaddlerMenu.elephantSaddleCraftItems[i].getDefaultInstance(), tooltipX + 2, tooltipY + 2 + (i * 18));
+            graphics.drawString(Minecraft.getInstance().font, "* " + SaddlerMenu.elephantSaddleCraftAmount[i], tooltipX + 20, tooltipY + 4 + (i * 18), 0xFFFFFF, true);
+        }
+
+        Item[] animatedWools = getAnimatedElephantWools();
+        for (int i = 0; i < animatedWools.length; i++) {
+            int yOffset = (SaddlerMenu.elephantSaddleCraftItems.length + i) * 18;
+            graphics.renderItem(animatedWools[i].getDefaultInstance(), tooltipX + 2, tooltipY + 2 + yOffset);
+
+            int woolAmount = (i == 0) ? SaddlerMenu.elephantSaddleCraftAmount[2] : SaddlerMenu.elephantSaddleCraftAmount[3];
+            graphics.drawString(Minecraft.getInstance().font, "* " + woolAmount, tooltipX + 20, tooltipY + 4 + yOffset, 0xFFFFFF, true);
         }
     }
 
@@ -234,6 +279,8 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
                 this.texture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/item/peacock_saddle.png");
             } else if (key.contains("tiger_shark")) {
                 this.texture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/item/tiger_shark_saddle.png");
+            } else if (key.contains("elephant")) {
+                this.texture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/item/elephant_saddle.png");
             } else {
                 this.texture = ResourceLocation.fromNamespaceAndPath("minecraft", "textures/item/saddle.png");
             }

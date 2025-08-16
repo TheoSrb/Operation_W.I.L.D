@@ -47,6 +47,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.tiew.operationWild.entity.OWTameImplementation;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.effect.OWEffects;
@@ -69,7 +70,7 @@ import java.util.TimerTask;
 
 import static net.tiew.operationWild.utils.OWUtils.*;
 
-public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtils {
+public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtils, OWTameImplementation {
 
     public static final double TAMING_EXPERIENCE = 80.0;
 
@@ -114,6 +115,57 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
 
     public BoaEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+    }
+
+    // Entity Methods
+    @Override
+    public int getEntityColor() {
+        return 0x838549;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 5.5f;
+    }
+
+    @Override
+    public float vehicleRunSpeedMultiplier() {
+        return 2f;
+    }
+
+    @Override
+    public float vehicleWalkSpeedMultiplier() {
+        return 1.5f;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return OWItems.BOA_SADDLE.get();
+    }
+
+    @Override
+    public List<Class<?>> getEntityType() {
+        return MARAUDER_ENTITIES;
+    }
+
+    @Override
+    public List<Object> getEntityDiet() {
+        return CARNIVOROUS_ENTITIES;
+    }
+
+    @Override
+    public String getTamingAdvancement() {
+        return "arms_what_for";
+    }
+
+    @Override
+    public float getMaxVitalEnergy() {
+        return 225 * (1 + ((float) this.getLevel() / 100));
+    }
+
+    @Override
+    public float getVitalEnergyRecuperation() {
+        return 1.5f;
     }
 
     // Entity's AI
@@ -229,7 +281,7 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
         if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
             this.spawnAtLocation(soulStack);
         }
-        if (this.isSaddled()) this.spawnAtLocation(OWItems.BOA_SADDLE.get());
+        if (this.isSaddled()) this.spawnAtLocation(this.acceptSaddle());
     }
 
     @Override
@@ -636,16 +688,17 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
 
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
-        this.setRandomAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH), this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
-        this.setBaseHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
-        this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
-        this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
+        if (mobSpawnType != MobSpawnType.BREEDING) {
+            this.setRandomAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH), this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
+            this.setBaseHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
+            this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
+            this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
-        this.setVariant(chooseBoaVariant());
-        this.setInitialVariant(this.getVariant());
+            this.setVariant(chooseBoaVariant());
+            this.setInitialVariant(this.getVariant());
 
-        foodWanted = (int) OWUtils.generateRandomInterval(5, 12);
-
+            foodWanted = (int) OWUtils.generateRandomInterval(5, 12);
+        }
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
@@ -775,15 +828,5 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
         this.foodWanted = tag.getInt("foodWanted");
         this.numberOfError = tag.getInt("numberOfError");
         this.numberOfToothDropped = tag.getInt("numberOfToothDropped");
-    }
-
-    @Override
-    public int getEntityColor() {
-        return 0x838549;
-    }
-
-    @Override
-    public float getEntityScale() {
-        return 5.5f;
     }
 }

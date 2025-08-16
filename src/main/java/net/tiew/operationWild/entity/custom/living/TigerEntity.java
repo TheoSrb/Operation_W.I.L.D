@@ -301,7 +301,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
             this.spawnAtLocation(soulStack);
         }
-        if (this.isSaddled()) this.spawnAtLocation(OWItems.TIGER_SADDLE.get());
+        if (this.isSaddled()) this.spawnAtLocation(this.acceptSaddle());
     }
 
     @Override
@@ -946,23 +946,25 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
 
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
-        this.setRandomAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH), this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
-        this.setBaseHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
-        this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
-        this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
+        if (mobSpawnType != MobSpawnType.BREEDING) {
+            this.setRandomAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH), this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
+            this.setBaseHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
+            this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
+            this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
-        timeMaxBeforeJumping = (int) OWUtils.generateRandomInterval(25, 50);
-        numberFeedsWanted = (int) determinateMinAndMax((int) (this.getMaxHealth() * 0.35 + this.getDamage() * 0.2), 20);
+            timeMaxBeforeJumping = (int) OWUtils.generateRandomInterval(25, 50);
+            numberFeedsWanted = (int) determinateMinAndMax((int) (this.getMaxHealth() * 0.35 + this.getDamage() * 0.2), 20);
 
-        Holder<Biome> biome = this.level().getBiome(this.blockPosition());
-        TigerVariant tigerVariant;
+            Holder<Biome> biome = this.level().getBiome(this.blockPosition());
+            TigerVariant tigerVariant;
 
-        tigerVariant = biome.is(Biomes.BAMBOO_JUNGLE) ? TigerVariant.LIGHT_ORANGE : TigerVariant.DEFAULT;    // Choose Tiger's color with biome where he spawned.
-        if (RANDOM(10)) tigerVariant = TigerVariant.GOLDEN;  // 10% chance to spawn golden tiger.
-        if (RANDOM(10)) tigerVariant = TigerVariant.WHITE;  // 10% chance to spawn white tiger.
+            tigerVariant = biome.is(Biomes.BAMBOO_JUNGLE) ? TigerVariant.LIGHT_ORANGE : TigerVariant.DEFAULT;    // Choose Tiger's color with biome where he spawned.
+            if (RANDOM(10)) tigerVariant = TigerVariant.GOLDEN;  // 10% chance to spawn golden tiger.
+            if (RANDOM(10)) tigerVariant = TigerVariant.WHITE;  // 10% chance to spawn white tiger.
 
-        this.setVariant(tigerVariant);  // Apply Tiger's Color to the entity.
-        this.setInitialVariant(this.getVariant());
+            this.setVariant(tigerVariant);  // Apply Tiger's Color to the entity.
+            this.setInitialVariant(this.getVariant());
+        }
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 

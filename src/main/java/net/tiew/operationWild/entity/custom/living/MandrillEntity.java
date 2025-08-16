@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.entity.OWTameImplementation;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
@@ -43,9 +44,11 @@ import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.utils.OWUtils;
 
+import java.util.List;
+
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
-public class MandrillEntity extends OWEntity implements OWEntityUtils {
+public class MandrillEntity extends OWEntity implements OWEntityUtils, OWTameImplementation {
 
     public static final double TAMING_EXPERIENCE = 65.0;
 
@@ -64,6 +67,56 @@ public class MandrillEntity extends OWEntity implements OWEntityUtils {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
+    // Entity Methods
+    @Override
+    public int getEntityColor() {
+        return 3880756;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 5.5f;
+    }
+
+    @Override
+    public float vehicleRunSpeedMultiplier() {
+        return 5f;
+    }
+
+    @Override
+    public float vehicleWalkSpeedMultiplier() {
+        return 2;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return OWItems.TIGER_SADDLE.get();
+    }
+
+    @Override
+    public List<Class<?>> getEntityType() {
+        return ASSASSIN_ENTITIES;
+    }
+
+    @Override
+    public List<Object> getEntityDiet() {
+        return CARNIVOROUS_ENTITIES;
+    }
+
+    @Override
+    public String getTamingAdvancement() {
+        return "";
+    }
+
+    @Override
+    public float getMaxVitalEnergy() {
+        return 500 * (1 + ((float) this.getLevel() / 100));
+    }
+
+    @Override
+    public float getVitalEnergyRecuperation() {
+        return 1f;
+    }
 
     // Entity's AI
     protected void registerGoals() {
@@ -179,7 +232,7 @@ public class MandrillEntity extends OWEntity implements OWEntityUtils {
     @Override
     protected void positionRider(Entity entity, MoveFunction function) {
         super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY() - 1, entity.getZ());
+        function.accept(entity, entity.getX(), entity.getY() - 0.15f, entity.getZ());
     }
 
     @Override
@@ -200,7 +253,7 @@ public class MandrillEntity extends OWEntity implements OWEntityUtils {
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        if (/*itemStack.is(OWItems.SAVAGE_BERRIES.get()) &&*/ !this.isTame() && this.isBaby()) {
+        if (itemStack.is(OWItems.SAVAGE_BERRIES.get()) && !this.isTame()) {
             foodGiven++;
             this.playSound(SoundEvents.CAMEL_EAT);
             itemStack.shrink(1);
@@ -268,11 +321,6 @@ public class MandrillEntity extends OWEntity implements OWEntityUtils {
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
-    }
-
-    @Override
-    public int getEntityColor() {
-        return 3880756;
     }
 }
 

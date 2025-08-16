@@ -254,6 +254,9 @@
   "item.ow.boa_saddle": "Boa Saddle",
   "item.ow.peacock_saddle": "Peacock Saddle",
   "item.ow.tiger_shark_saddle": "Tiger Shark Saddle",
+  "item.ow.elephant_saddle": "Elephant Saddle",
+
+  "tooltip.composition": "Composition:",
 
   "platinum_plated_tooltip_1": "Bonus Attack: +%s",
   "platinum_plated_tooltip_2": "Bonus Attack: +%s",
