@@ -965,7 +965,7 @@ public class ClientEvents {
     public static void onRenderStage(RenderGuiLayerEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
-        Entity targetedEntity = player.getRootVehicle();
+        Entity targetedEntity = player.getVehicle();
         Entity vehicle = player.getVehicle();
         boolean screenOpen = minecraft.screen != null;
         boolean hasVenom = player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()) || (vehicle != null && vehicle instanceof LivingEntity livingEntity && livingEntity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()));
@@ -994,6 +994,9 @@ public class ClientEvents {
 
             if (player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine)) {
                 OWEntityHud.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
+                TigerOverlay.render(event.getGuiGraphics(),
+                        event.getGuiGraphics().guiWidth(),
+                        event.getGuiGraphics().guiHeight());
             }
 
             if (isNotifiedOWBook) {
@@ -1022,12 +1025,6 @@ public class ClientEvents {
 
             if (renderFoodOverlay) {
                 OWEntityFoodOverlay.render(event.getGuiGraphics(),
-                        event.getGuiGraphics().guiWidth(),
-                        event.getGuiGraphics().guiHeight());
-            }
-
-            if (renderTiger) {
-                TigerOverlay.render(event.getGuiGraphics(),
                         event.getGuiGraphics().guiWidth(),
                         event.getGuiGraphics().guiHeight());
             }

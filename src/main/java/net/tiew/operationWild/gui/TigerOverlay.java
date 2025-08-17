@@ -16,11 +16,13 @@ public class TigerOverlay {
     public static void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight) {
         Player rider = Minecraft.getInstance().player;
 
+        if (Minecraft.getInstance().options.hideGui) return;
+
         if (rider != null) {
             LivingEntity entity = (LivingEntity) rider.getVehicle();
             if (entity != null) {
                 if (entity instanceof OWEntity owEntity) {
-                    if (owEntity instanceof TigerEntity tiger) {
+                    if (owEntity instanceof TigerEntity tiger && rider.getRootVehicle() == tiger) {
                         createOverlayCharge(guiGraphics, screenWidth, screenHeight, 256, owEntity, tiger.isRunning() ? 13 : 9);
                     }
                 }
