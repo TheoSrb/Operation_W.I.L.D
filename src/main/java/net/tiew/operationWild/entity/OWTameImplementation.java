@@ -9,6 +9,7 @@ import java.util.List;
 public interface OWTameImplementation {
     float vehicleRunSpeedMultiplier();
     float vehicleWalkSpeedMultiplier();
+    float vehicleComboSpeedMultiplier();
     Item acceptSaddle();
     List<Class<?>> getEntityType();
     List<Object> getEntityDiet();

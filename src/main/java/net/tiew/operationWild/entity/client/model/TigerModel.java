@@ -138,6 +138,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
     @Override
     public void setupAnim(TigerEntity tiger, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
+
         if (tiger.isBaby()) {
             float maturationPercent = (float) tiger.getMaturationPercentage() / 100f;
             float headScale = 1.6f - (1.6f - 1.0f) * maturationPercent;
@@ -157,6 +158,21 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
         this.applyHeadRotation(netHeadYaw, headPitch);
 
+        if (tiger.isCombo(1)) {
+            this.animate(tiger.attack1Combo, TigerAnimations.ATTACK_STRIKE, ageInTicks, 1.0f);
+        }
+        if (tiger.isCombo(2)) {
+            this.animate(tiger.attack2Combo, TigerAnimations.ATTACK_STRIKE2, ageInTicks, 0.8f);
+        }
+        if (tiger.isCombo(3)) {
+            this.animate(tiger.attack3Combo, TigerAnimations.ATTACK_STRIKE3, ageInTicks, 0.7f);
+        }
+
+
+
+
+
+
         if (tiger.transitionIdleSit.isStarted()) {
             this.animate(tiger.transitionIdleSit, TigerAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
             return;
@@ -171,8 +187,6 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
             this.animate(tiger.jumpAnimationState, TigerAnimations.JUMP, ageInTicks, 1.0f);
             return;
         }
-
-        this.animate(tiger.attackAnimationState, TigerAnimations.ATTACK_STRIKE, ageInTicks, 1.0f);
 
         if (tiger.isPreparingNapping()) {
             this.animate(tiger.preparingToNapAnimationState, TigerAnimations.NAP_TRANSITION, ageInTicks, 1.0f);
@@ -189,7 +203,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
             return;
         }
 
-        if (tiger.isFalling()) this.animate(tiger.jumpAnimationState, TigerAnimations.JUMP, ageInTicks, 1.0f);
+        if (tiger.isFalling() && !tiger.isCombo()) this.animate(tiger.jumpAnimationState, TigerAnimations.JUMP, ageInTicks, 1.0f);
 
         if (tiger.isSleeping()) {
             this.animate(tiger.sleepingAnimationState, TigerAnimations.SLEEP, ageInTicks, 1.0f);

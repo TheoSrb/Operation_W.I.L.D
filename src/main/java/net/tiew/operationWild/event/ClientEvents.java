@@ -86,17 +86,18 @@ public class ClientEvents {
         boolean leftButtonIsPressed = event.getButton() == 0 && event.getAction() == 1;
         boolean rightButtonIsPressed = event.getButton() == 1 && event.getAction() == 1;
 
-        if (minecraft.screen != null) {
-            if (minecraft.screen instanceof InventoryScreen || minecraft.screen instanceof ContainerScreen || minecraft.screen instanceof Screen) {
-                return;
-            }
+        if (minecraft.screen != null &&
+                (minecraft.screen instanceof InventoryScreen ||
+                        minecraft.screen instanceof ContainerScreen)) {
+            return;
         }
 
         if (player != null) {
             Entity ridingEntity = player.getRootVehicle();
-            if (ridingEntity instanceof OWEntity entity && entity.isAlive() && entity.isTame() && entity.isSaddled()) {
+            if (ridingEntity instanceof OWEntity entity &&
+                    entity.isAlive() && entity.isTame() && entity.isSaddled()) {
                 if (leftButtonIsPressed) {
-                    if (!entity.isAttacking()) OWNetworkHandler.sendToServer(new ClientPressedLeftClick());
+                    OWNetworkHandler.sendToServer(new ClientPressedLeftClick());
                 } else if (rightButtonIsPressed && canUseRightClick(Minecraft.getInstance())) {
                     OWNetworkHandler.sendToServer(new ClientPressedRightClick());
                 }

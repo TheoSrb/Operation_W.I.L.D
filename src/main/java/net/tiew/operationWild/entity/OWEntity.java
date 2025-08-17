@@ -112,6 +112,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     private final ItemStackHandler itemStackHandler = new ItemStackHandler(2);
     public final ItemStackHandler itemStackHandlerSeaBug = new ItemStackHandler(15);
     public int attackTimer;
+    public int comboTimer;
     public int chance = random.nextInt(100);
     private int fightingTime = 200;
     private BlockPos lastPosition;
@@ -157,6 +158,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public AnimationState transitionIdleSit = new AnimationState();
     public AnimationState transitionSitIdle = new AnimationState();
 
+    public boolean playerContinueCombo = false;
+    public boolean hasAlreadyHit0 = false;
+    public boolean hasAlreadyHit1 = false;
+    public int comboStep = 0;
+    public AnimationState attackState = new AnimationState();
+    public AnimationState attackState2 = new AnimationState();
+    public AnimationState attackState3 = new AnimationState();
+
     public static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> SITTING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> SADDLED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
@@ -174,6 +183,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public static final EntityDataAccessor<Float> VITAL_ENERGY = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> PREPARE_NAP = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> NAPPING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_COMBO = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Boolean> IS_COMBO_PAUSED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Integer> GET_COMBO_ATTACK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_FALLING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Float> BASE_HEALTH = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Float> BASE_DAMAGE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
@@ -198,6 +210,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     private static final EntityDataAccessor<Boolean> IS_IN_RESURRECTION = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> CAN_DROP_SOUL = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_BABY = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> ATTACK_ANIMATION_ID = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> ATTACK_ANIMATION_TICK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
 
     public int quest0Progression = 0;
     public int quest1Progression = 0;
@@ -730,7 +744,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         return false;
     }
 
-    // Nap System, activate setNap after delay
     public void setNap(boolean nap, int prepareNapInTicks) {
         Timer prepareNapTimer = new Timer();
         if (nap) {
@@ -1360,6 +1373,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     @Override
     public void tick() {
         super.tick();
+        if (this.level().isClientSide) {
+            handleClientAnimationSync();
+        }
 
         createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
         createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
@@ -1607,10 +1623,81 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
                 return;
             }
             if (attackTimer == timeToHit) {
-                attackEntitiesInFront(this.getDamage(), sound, width, height, reach);
+                attackEntitiesInFront(this.getDamage(), sound, width, height, reach, 1.0f);
                 if (spawnBlurr) OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
             }
         }
+    }
+
+    public void setAttackAnimation(int animationId) {
+        this.entityData.set(ATTACK_ANIMATION_ID, animationId);
+        this.entityData.set(ATTACK_ANIMATION_TICK, this.tickCount);
+    }
+
+    public int getAttackAnimation() {
+        return this.entityData.get(ATTACK_ANIMATION_ID);
+    }
+
+    public int getAttackAnimationTick() {
+        return this.entityData.get(ATTACK_ANIMATION_TICK);
+    }
+
+    private void handleClientAnimationSync() {
+        int currentAnimId = getAttackAnimation();
+        int animStartTick = getAttackAnimationTick();
+
+        if (currentAnimId > 0) {
+            switch (currentAnimId) {
+                case 1:
+                    if (!this.attackState.isStarted()) {
+                        this.attackState.start(animStartTick);
+                    }
+                    break;
+                case 2:
+                    if (!this.attackState2.isStarted()) {
+                        this.attackState.stop();
+                        this.attackState2.start(animStartTick);
+                    }
+                    break;
+                case 3:
+                    if (!this.attackState3.isStarted()) {
+                        this.attackState2.stop();
+                        this.attackState3.start(animStartTick);
+                    }
+                    break;
+            }
+        } else {
+            if (this.attackState.isStarted() || this.attackState2.isStarted() || this.attackState3.isStarted()) {
+                this.attackState.stop();
+                this.attackState2.stop();
+                this.attackState3.stop();
+            }
+        }
+    }
+
+    public void setPauseCombo(boolean isCombo) {
+        this.entityData.set(IS_COMBO_PAUSED, isCombo);
+    }
+
+    public boolean isPauseCombo() {
+        return this.entityData.get(IS_COMBO_PAUSED);
+    }
+
+    public void setCombo(boolean isCombo, int numberOfAttacks) {
+        this.entityData.set(IS_COMBO, isCombo);
+        this.entityData.set(GET_COMBO_ATTACK, numberOfAttacks);
+    }
+
+    public boolean isCombo(int numberOfAttack) {
+        return this.entityData.get(IS_COMBO) && this.entityData.get(GET_COMBO_ATTACK) == numberOfAttack;
+    }
+
+    public boolean isCombo() {
+        return this.entityData.get(IS_COMBO);
+    }
+
+    public int getComboAttack() {
+        return this.entityData.get(GET_COMBO_ATTACK);
     }
 
     public void tickRidden(Player player, Vec3 vec3) {
@@ -1630,7 +1717,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
         baseSpeed *= (vehicleRunSpeedMultiplier() / 2);
 
-        if (isAttacking()) return baseSpeed / 15;
+        if (isCombo()) {
+            return (baseSpeed / 15) * vehicleComboSpeedMultiplier();
+        }
 
         if (MARAUDER_ENTITIES.contains(this.getClass()) && isInFight()) {
             baseSpeed *= 1.15f;
@@ -2005,7 +2094,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
                 this.setOwnerUUID(player.getUUID());
                 this.setDamageToClient(this.getDamage());
                 this.setCurrentMode(Mode.Passive);
-                this.setAggressive(true);
+                this.setPassive(true);
 
                 if (player instanceof ServerPlayer serverPlayer) {
                     System.out.println("advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectAdvancementByEntity());
@@ -2084,6 +2173,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
     @Override
     public float vehicleWalkSpeedMultiplier() {
+        return 0;
+    }
+
+    @Override
+    public float vehicleComboSpeedMultiplier() {
         return 0;
     }
 
@@ -2167,7 +2261,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         return null;
     }
 
-    public void attackEntitiesInFront(float attackDamage, SoundEvent sound, double width, double height, double reach) {
+    public void attackEntitiesInFront(float attackDamage, SoundEvent sound, double width, double height, double reach, float $$1) {
         float pitch = (float) OWUtils.generateRandomInterval(0.8, 1.1f);
         double yaw = Math.toRadians(this.getYRot());
         double centerX = this.getX() - Math.sin(yaw) * reach;
@@ -2195,11 +2289,25 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
                 if (livingEntity instanceof Player player && player.getRootVehicle() != null) continue;
                 if (this.isAssassin() && OWUtils.RANDOM(10)) {
                     livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage *= 1.25f);
+
+                    if ($$1 > 0) {
+                        Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
+                        Vec3 knockback = knockbackDirection.scale($$1 * 0.5);
+                        livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
+                    }
+
                     OWUtils.spawnParticles(livingEntity, ParticleTypes.CRIT, 0, 0.5, 0, 20, 3);
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.NEUTRAL, 1.0F, pitch);
                 } else {
                     boolean isTigerInUltimate = this instanceof TigerEntity tiger && tiger.isUltimate();
                     livingEntity.hurt(this.damageSources().mobAttack(this), isTigerInUltimate ? attackDamage * 1.5f : attackDamage);
+
+                    if ($$1 > 0) {
+                        Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
+                        Vec3 knockback = knockbackDirection.scale($$1 * 0.4);
+                        livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
+                    }
+
                     if (this.isTame() && ownerIsRiding()) {
                         this.setFighting(true);
                     }
@@ -2333,11 +2441,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         builder.define(BASE_DAMAGE, 0.0f);
         builder.define(BASE_SPEED, 0.0f);
         builder.define(DAMAGE_TO_CLIENT, 0.0f);
+        builder.define(ATTACK_ANIMATION_ID, 0);
+        builder.define(ATTACK_ANIMATION_TICK, 0);
         builder.define(NAPPING, false);
         builder.define(PREPARE_NAP, false);
         builder.define(IS_IN_FIGHT, false);
         builder.define(SITTING, false);
         builder.define(IS_ATTACKING, false);
+        builder.define(IS_COMBO, false);
+        builder.define(IS_COMBO_PAUSED, false);
+        builder.define(GET_COMBO_ATTACK, 0);
         builder.define(SADDLED, false);
         builder.define(IS_FEMALE, false);
         builder.define(IS_RUNNING, false);

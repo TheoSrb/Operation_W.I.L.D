@@ -108,6 +108,16 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     private int runTime;
     public LivingEntity TRAPPED_ENTITY_TAMED = null;
     public int chargeTimer = 0;
+
+
+    public final AnimationState attack1Combo = new AnimationState();
+    public final AnimationState attack2Combo = new AnimationState();
+    public final AnimationState attack3Combo = new AnimationState();
+    public int attack1ComboTimer = 0;
+    public int attack2ComboTimer = 0;
+    public int attack3ComboTimer = 0;
+
+
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> JUMPING = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
@@ -151,6 +161,11 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     @Override
     public float vehicleWalkSpeedMultiplier() {
         return 2;
+    }
+
+    @Override
+    public float vehicleComboSpeedMultiplier() {
+        return 3.5f;
     }
 
     @Override
@@ -371,8 +386,76 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         }
     }
 
+    private int continueComboMaxTimer = 0;
+    private int actualAttackNumber = 0;
+    private final int MAX_ATTACKS_IN_COMBO = 3;
+
+    public void createTameAttackSystem(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr) {
+        if (this.isCombo()) {
+            if (attackTimer < timeMax) attackTimer++;
+            else {
+                attackTimer = 0;
+                setCombo(false, 0);
+                return;
+            }
+            if (attackTimer == timeToHit) {
+                attackEntitiesInFront(this.getDamage() / MAX_ATTACKS_IN_COMBO, sound, width, height, reach, actualAttackNumber == 2 ? 2 : 0);
+                if (spawnBlurr) {
+                    OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
+                }
+            }
+
+            if (attackTimer >= timeToHit - 1 && attackTimer < timeToHit + 1) {
+                if (actualAttackNumber == 2) {
+                    Vec3 lookDirection = this.getLookAngle();
+
+                    Vec3 currentMovement = this.getDeltaMovement();
+                    Vec3 forwardPush = lookDirection.scale(1);
+
+                    this.setDeltaMovement(currentMovement.x + forwardPush.x, currentMovement.y, currentMovement.z + forwardPush.z);
+                }
+            }
+
+            if (attackTimer == timeToHit + 2) {
+                setPauseCombo(true);
+            }
+        }
+    }
+
+    private void resetCombo(int numberOfAttacks) {
+        continueComboMaxTimer = 0;
+        setPauseCombo(false);
+        setCombo(false, numberOfAttacks);
+        attackTimer = 0;
+        playerContinueCombo = false;
+    }
+
     public void tick() {
         super.tick();
+
+        if (isPauseCombo()) {
+            continueComboMaxTimer++;
+
+            if (this.playerContinueCombo && actualAttackNumber < (MAX_ATTACKS_IN_COMBO - 1)) {
+                continueComboMaxTimer = 0;
+
+                actualAttackNumber++;
+
+                resetCombo(actualAttackNumber);
+                setCombo(true, actualAttackNumber + 1);
+
+                setPauseCombo(false);
+            }
+
+            if (continueComboMaxTimer >= 10) {
+                resetCombo(0);
+                actualAttackNumber = 0;
+            }
+        } else {
+            createTameAttackSystem(14, 8, OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2);
+        }
+
+
 
         if (isUltimate()) {
             this.ultimateTimer++;
@@ -433,8 +516,8 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
 
         LivingEntity target = this.getTarget();
         createAttackSystem(9);
-        createTameAttackSystem(this.isRunning() ? 13 : 9, 3, this.isVirus() ? OWSounds.TIGER_HURTING_VIRUS.get() : OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, true);
-        if (this.isVehicle() && this.isTame() && !this.isSitting() && TRAPPED_ENTITY_TAMED == null && !isTrappingEntity()) setMad(this.isAttacking());
+        //createTameAttackSystem(this.isRunning() ? 13 : 9, 3, this.isVirus() ? OWSounds.TIGER_HURTING_VIRUS.get() : OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, true);
+        if (this.isVehicle() && this.isTame() && !this.isSitting() && TRAPPED_ENTITY_TAMED == null && !isTrappingEntity()) setMad(this.isCombo());
         if (!this.level().isClientSide()) setTamingPercentage(this.numberFeedsGiven, this.numberFeedsWanted);
 
         double x = this.getX();
@@ -973,6 +1056,49 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         createIdleAnimation(80, true);
         createAttackAnimation(9, true);
         createSitAnimation(80, true);
+
+
+
+
+        if (this.isCombo(1)) {
+            if (this.attack1ComboTimer <= 0) {
+                this.attack1ComboTimer = 14;
+                this.attack1Combo.start(this.tickCount);
+            } else --this.attack1ComboTimer;
+        }
+
+        if (!this.isCombo(1)) {
+            this.attack1ComboTimer = 0;
+            this.attack1Combo.stop();
+        }
+
+        if (this.isCombo(2)) {
+            if (this.attack2ComboTimer <= 0) {
+                this.attack2ComboTimer = 14;
+                this.attack2Combo.start(this.tickCount);
+            } else --this.attack2ComboTimer;
+        }
+
+        if (!this.isCombo(2)) {
+            this.attack2ComboTimer = 0;
+            this.attack2Combo.stop();
+        }
+
+        if (this.isCombo(3)) {
+            if (this.attack3ComboTimer <= 0) {
+                this.attack3ComboTimer = 14;
+                this.attack3Combo.start(this.tickCount);
+            } else --this.attack3ComboTimer;
+        }
+
+        if (!this.isCombo(3)) {
+            this.attack3ComboTimer = 0;
+            this.attack3Combo.stop();
+        }
+
+
+
+
 
         if (this.isPreparingNapping()) {
             if (this.preparingToNapAnimationTimeout <= 0) {

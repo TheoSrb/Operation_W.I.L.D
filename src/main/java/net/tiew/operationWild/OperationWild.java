@@ -90,7 +90,7 @@ public class OperationWild {
         OWDataComponentTypes.register(modEventBus);
         OWParticles.register(modEventBus);
 
-        OWDailyQuests.run();
+        //OWDailyQuests.run();
 
         modEventBus.addListener(this::addCreative);
     }

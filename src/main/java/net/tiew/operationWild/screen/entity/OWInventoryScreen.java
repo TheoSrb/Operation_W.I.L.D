@@ -68,8 +68,11 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     }
 
     private void dailyQuestsButtonIsClicked() {
+        entity.getControllingPassenger().sendSystemMessage(Component.literal("ERROR"));
+        /*
         Minecraft.getInstance().setScreen(new OWDailyQuestScreen());
         OWNetworkHandler.sendToServer(new OpenDailyQuestScreen());
+        */
     }
 
     @Override

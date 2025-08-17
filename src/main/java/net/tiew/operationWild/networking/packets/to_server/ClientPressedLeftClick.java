@@ -1,5 +1,6 @@
 package net.tiew.operationWild.networking.packets.to_server;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -27,40 +28,40 @@ public record ClientPressedLeftClick() implements CustomPacketPayload {
 
     public static boolean $$0 = true;
 
+    public static boolean showTiredMessage = true;
+
     public static void handle(ClientPressedLeftClick packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
                 Entity entity = player.getRootVehicle();
 
-                if (entity != null) {
-                    if (entity instanceof OWEntity owEntity) {
-                        float vitalEnergyRestant = (float) (owEntity.getVitalEnergy() / owEntity.getMaxVitalEnergy());
+                if (entity instanceof OWEntity owEntity) {
+                    float vitalEnergyPercent = (float) (owEntity.getVitalEnergy() / owEntity.getMaxVitalEnergy());
 
-                        if (owEntity.hasReachedAttackEnergyLimit() && vitalEnergyRestant <= 0.8f) {
-                            owEntity.setHasReachedAttackEnergyLimit(false);
+                    if (owEntity.hasReachedAttackEnergyLimit() && vitalEnergyPercent <= 0.8f) {
+                        owEntity.setHasReachedAttackEnergyLimit(false);
+                    }
+
+                    if (vitalEnergyPercent >= 1.0f) {
+                        owEntity.setHasReachedAttackEnergyLimit(true);
+                        if (showTiredMessage) {
+                            OWUtils.showMessage(player, Component.translatable("tooltip.entityIsTired",
+                                            Component.translatable("entity.ow." + entity.getClass().getSimpleName().split("Entity")[0].toLowerCase())),
+                                    0xd2c7e8, false);
+                            showTiredMessage = false;
                         }
+                        return;
+                    }
 
-                        boolean canAttack = true;
-                        if (owEntity.hasReachedAttackEnergyLimit()) {
-                            canAttack = false;
-                        }
+                    if (entity.getRandom().nextInt(3) == 0) {
+                        showTiredMessage = true;
+                    }
 
-                        if (vitalEnergyRestant >= 1.0f) {
-                            owEntity.setHasReachedAttackEnergyLimit(true);
-                            canAttack = false;
-
-                            if ($$0) {
-                                OWUtils.showMessage(player, Component.translatable("tooltip.entityIsTired", Component.translatable("entity.ow." + entity.getClass().getSimpleName().split("Entity")[0].toLowerCase())), 0xd2c7e8, true);
-                                $$0 = false;
-                            }
-                        }
-
-                        if (canAttack && entity.getRandom().nextInt(3) == 0) $$0 = true;
-
-                        if (canAttack && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 15)) {
-                            owEntity.setAttacking(true);
-                            owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 15);
-                        }
+                    if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 15) && Minecraft.getInstance().screen == null) {
+                        owEntity.setCombo(true, 1);
+                        owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 15);
+                    } else if (owEntity.isPauseCombo()) {
+                        owEntity.playerContinueCombo = true;
                     }
                 }
             }

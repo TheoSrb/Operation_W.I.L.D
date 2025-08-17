@@ -51,7 +51,7 @@ public record OWRunningPacket() implements CustomPacketPayload {
                             canSprint = false;
 
                             if ($$0) {
-                                OWUtils.showMessage(player, Component.translatable("tooltip.entityIsTired", Component.translatable("entity.ow." + entity.getClass().getSimpleName().split("Entity")[0].toLowerCase())), 0xd2c7e8, true);
+                                OWUtils.showMessage(player, Component.translatable("tooltip.entityIsTired", Component.translatable("entity.ow." + entity.getClass().getSimpleName().split("Entity")[0].toLowerCase())), 0xd2c7e8, false);
                                 $$0 = false;
                             }
                         }
