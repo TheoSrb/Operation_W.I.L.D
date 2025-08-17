@@ -258,6 +258,8 @@
 
   "tooltip.composition": "Composition:",
 
+  "tooltip.entityIsTired": "Your %s is tired, please wait a moment.",
+
   "platinum_plated_tooltip_1": "Bonus Attack: +%s",
   "platinum_plated_tooltip_2": "Bonus Attack: +%s",
   "platinum_plated_tooltip_3": "Bonus Durability: +%s",

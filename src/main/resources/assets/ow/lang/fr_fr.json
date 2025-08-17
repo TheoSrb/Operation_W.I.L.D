@@ -262,6 +262,8 @@
 
   "tooltip.composition": "Composition:",
 
+  "tooltip.entityIsTired": "Votre %s est fatigué, patientez un moment.",
+
   "platinum_plated_tooltip_1": "Dégâts bonus: +%s",
   "platinum_plated_tooltip_2": "Dégâts bonus: +%s",
   "platinum_plated_tooltip_3": "Durabilité bonus: +%s",

@@ -117,6 +117,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     private BlockPos lastPosition;
     public LivingEntity lastVisibleTarget = null;
     public int questsReUpdatingTimer = 10;
+    private int sittingCooldown = 0;
     private float customWidth = 1.0F;
     private float customHeight = 1.0F;
 
@@ -128,7 +129,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     private static long lastHurtTime = 0;
     private int healAmount = 0;
     private int hurtAmount = 0;
-    private int killCount = 0;
     private int sleepBarDownSpeed;
     public int maxSleepBar;
     public float maxHealthBeforeResurrection;
@@ -153,6 +153,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public int idleAnimationTimeout = 0;
     public int attackAnimationTimeout = 0;
     public int sittingAnimationTimeout = 0;
+
+    public AnimationState transitionIdleSit = new AnimationState();
+    public AnimationState transitionSitIdle = new AnimationState();
 
     public static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> SITTING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
@@ -1022,6 +1025,26 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         if (isPreparingNapping() || isNapping()) entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,5, 255, false, false, false));
     }
 
+    private boolean hasReachedEnergyLimit = false;
+
+    public boolean hasReachedEnergyLimit() {
+        return hasReachedEnergyLimit;
+    }
+
+    public void setHasReachedEnergyLimit(boolean hasReachedEnergyLimit) {
+        this.hasReachedEnergyLimit = hasReachedEnergyLimit;
+    }
+
+    private boolean hasReachedAttackEnergyLimit = false;
+
+    public boolean hasReachedAttackEnergyLimit() {
+        return hasReachedAttackEnergyLimit;
+    }
+
+    public void setHasReachedAttackEnergyLimit(boolean hasReachedAttackEnergyLimit) {
+        this.hasReachedAttackEnergyLimit = hasReachedAttackEnergyLimit;
+    }
+
     public void resetState() {
         if (this.getTarget() != null) {
             this.setState(0);
@@ -1337,6 +1360,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     @Override
     public void tick() {
         super.tick();
+
+        createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
+        createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
+
+
+        if (sittingCooldown > 0) sittingCooldown--;
+
 
         if (!this.level().isClientSide()) {
             if (this.isRunning() && this.isVehicle()) {
@@ -1790,9 +1820,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
         if (this.isTame() && !isBaby() && !this.level().isClientSide() && hand == InteractionHand.MAIN_HAND) {
             if (player.isSteppingCarefully() && !this.isInResurrection()) {
+                if (this.sittingCooldown > 0) return InteractionResult.PASS;
+
                 if (this instanceof TigerEntity tiger) {
                     if (!tiger.isJumpingOnTarget() && !tiger.isTrappingEntity()) {
                         tiger.setSitting(!isSitting());
+                        this.sittingCooldown = 20;
                         if (player instanceof ServerPlayer serverPlayer) {
                             if (!this.isSitting()) OWUtils.showMessage(serverPlayer, "tooltip.following", TextColor.fromRgb(0xFFFFFF), false);
                             else OWUtils.showMessage(serverPlayer, "tooltip.sitting", TextColor.fromRgb(0xFFFFFF), false);
@@ -1800,6 +1833,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
                     }
                 } else {
                     this.setSitting(!isSitting());
+                    this.sittingCooldown = 20;
                     if (player instanceof ServerPlayer serverPlayer) {
                         if (!this.isSitting()) OWUtils.showMessage(serverPlayer, "tooltip.following", TextColor.fromRgb(0xFFFFFF), false);
                         else OWUtils.showMessage(serverPlayer, "tooltip.sitting", TextColor.fromRgb(0xFFFFFF), false);
@@ -2209,6 +2243,39 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(), sound, SoundSource.NEUTRAL, 1.0F, pitch);
     }
 
+    public final Map<String, TransitionData> transitions = new HashMap<>();
+
+    public void createTransitionAnimation(String name, AnimationState animationState, boolean condition, int maxDuration) {
+        if (this.level().isClientSide()) {
+            TransitionData data = transitions.computeIfAbsent(name, k -> new TransitionData(animationState));
+
+            if (condition && !data.shouldPlay) {
+                data.animationState.start(this.tickCount);
+                data.shouldPlay = true;
+                data.timer = 0;
+            }
+
+            if (!condition) {
+                data.shouldPlay = false;
+            }
+
+            if (data.shouldPlay && data.timer < maxDuration) {
+                data.timer++;
+            } else if (data.timer >= maxDuration) {
+                data.animationState.stop();
+            }
+        }
+    }
+
+    public static class TransitionData {
+        AnimationState animationState;
+        boolean shouldPlay = false;
+        int timer = 0;
+
+        TransitionData(AnimationState animationState) {
+            this.animationState = animationState;
+        }
+    }
 
     public int getTypeVariant() { return this.entityData.get(VARIANT);}
 

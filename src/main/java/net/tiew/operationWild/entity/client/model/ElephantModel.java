@@ -14,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.ElephantAnimations;
+import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 import net.tiew.operationWild.entity.custom.living.ElephantEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.ElephantFootstepPacket;
@@ -23,6 +24,7 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 
 	private float lastLimbSwing = 0.0f;
 
+	private final ModelPart ALL2;
 	private final ModelPart ALL;
 	private final ModelPart right_arm;
 	private final ModelPart right_leg;
@@ -39,7 +41,8 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 	private final ModelPart tail;
 
     public ElephantModel(ModelPart root) {
-		this.ALL = root.getChild("ALL");
+		this.ALL2 = root.getChild("ALL2");
+		this.ALL = this.ALL2.getChild("ALL");
 		this.right_arm = this.ALL.getChild("right_arm");
 		this.right_leg = this.ALL.getChild("right_leg");
 		this.left_leg = this.ALL.getChild("left_leg");
@@ -59,7 +62,9 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		PartDefinition ALL = partdefinition.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, -7.0F, 2.0F));
+		PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, -7.0F, 2.0F));
+
+		PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
 		PartDefinition right_arm = ALL.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(60, 70).mirror().addBox(-4.5F, 0.0F, -6.0F, 9.0F, 20.0F, 11.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-6.0F, 11.0F, -14.0F));
 
@@ -139,6 +144,24 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
         }
         this.applyHeadRotation(netHeadYaw, headPitch);
 
+
+		if (elephant.transitionIdleSit.isStarted()) {
+			this.animate(elephant.transitionIdleSit, ElephantAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
+			return;
+		}
+
+		if (elephant.transitionSitIdle.isStarted()) {
+			this.animate(elephant.transitionSitIdle, ElephantAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
+			return;
+		}
+
+
+		if (elephant.isSitting()) {
+			this.animate(elephant.sittingAnimationState, ElephantAnimations.SIT, ageInTicks, 1.0f);
+			return;
+		}
+
+
 		this.animate(elephant.idleAnimationState, ElephantAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 		if (limbSwingAmount > 0.1f && elephant.level().isClientSide && elephant.onGround()) {
@@ -191,7 +214,7 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
-        this.ALL.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
 
     private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
@@ -204,6 +227,6 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 
     @Override
     public ModelPart root() {
-        return this.ALL;
+        return this.ALL2;
     }
 }

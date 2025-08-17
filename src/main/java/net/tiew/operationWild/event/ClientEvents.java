@@ -79,8 +79,6 @@ public class ClientEvents {
     private static long lastRightClick = 0;
     private static final long CLICK_COOLDOWN = 50;
 
-
-
     @SubscribeEvent
     public static void onMouseClick(InputEvent.MouseButton.Pre event) {
         Minecraft minecraft = Minecraft.getInstance();

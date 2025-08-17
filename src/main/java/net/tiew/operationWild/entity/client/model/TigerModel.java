@@ -11,6 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.client.animation.ElephantAnimations;
 import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 import net.tiew.operationWild.entity.custom.living.TigerEntity;
 
@@ -155,6 +156,16 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
         }
 
         this.applyHeadRotation(netHeadYaw, headPitch);
+
+        if (tiger.transitionIdleSit.isStarted()) {
+            this.animate(tiger.transitionIdleSit, TigerAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
+            return;
+        }
+
+        if (tiger.transitionSitIdle.isStarted()) {
+            this.animate(tiger.transitionSitIdle, TigerAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
+            return;
+        }
 
         if (tiger.isTameJumping()) {
             this.animate(tiger.jumpAnimationState, TigerAnimations.JUMP, ageInTicks, 1.0f);

@@ -66,7 +66,9 @@ import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
@@ -342,6 +344,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         }
 
         if (itemStack.is(OWItems.SAVAGE_BERRIES.get())) return InteractionResult.PASS;
+
         return super.mobInteract(player, hand);
     }
 
@@ -394,7 +397,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
 
     private void setupAnimationState() {
         createIdleAnimation(96, true);
-        createSitAnimation(80, true);
+        createSitAnimation(121, true);
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -411,7 +414,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
 
-        if (this.getInventory() != null) { // Remplacez par votre nom d'inventaire
+        if (this.getInventory() != null) {
             ItemStack saddleStack = this.getInventory().getStackInSlot(0);
             if (!saddleStack.isEmpty() && saddleStack.getItem() instanceof ElephantSaddle) {
                 List<Item> wools = saddleStack.get(OWDataComponentTypes.SADDLE_WOOLS.get());

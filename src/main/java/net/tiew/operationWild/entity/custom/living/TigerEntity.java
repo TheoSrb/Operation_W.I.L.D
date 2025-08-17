@@ -497,6 +497,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
                 destroyingBlock(2, Blocks.BAMBOO);
                 List<LivingEntity> livingEntities = this.level().getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(2));
                 for (LivingEntity entity : livingEntities) {
+                    if (entity instanceof OWEntity owEntity && owEntity.getOwner() == this.getOwner()) continue;
                     if (entity.getMaxHealth() <= 20 && entity.getHealth() > 4 && !entity.isAlliedTo(this) && entity != this && entity != controllingPassenger && entity != this.getControllingPassenger()) {
                         if (!passengers.isEmpty()) {
                             controllingPassenger = passengers.get(0);

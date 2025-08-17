@@ -40,6 +40,11 @@ public class OWUtils {
         player.displayClientMessage(message, true);
     }
 
+    public static void showMessage(ServerPlayer player, Component component, int colorHex, boolean isBold) {
+        Component message = component.copy().setStyle(Style.EMPTY.withColor(TextColor.fromRgb(colorHex)).withBold(isBold));
+        player.displayClientMessage(message, true);
+    }
+
     public static int generateExponentialExp(double min, double multiplicator) {
         return (int) (min * (1 + java.lang.Math.log(1 + multiplicator) / (3 + Math.sqrt(min))));
     }

@@ -10,6 +10,7 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.client.animation.ElephantAnimations;
 import net.tiew.operationWild.entity.client.animation.PeacockAnimations;
 import net.tiew.operationWild.entity.custom.living.PeacockEntity;
 
@@ -142,6 +143,17 @@ public class PeacockModel<T extends PeacockEntity> extends HierarchicalModel<T> 
             this.head.zScale *= headScale;
         }
         this.applyHeadRotation(netHeadYaw, headPitch);
+
+        if (peacock.transitionIdleSit.isStarted()) {
+            this.animate(peacock.transitionIdleSit, PeacockAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
+            return;
+        }
+
+        if (peacock.transitionSitIdle.isStarted()) {
+            this.animate(peacock.transitionSitIdle, PeacockAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
+            return;
+        }
+
         if (peacock.isDeploying()) {
             this.animate(peacock.deployingAnimationState, PeacockAnimations.DEPLOY, ageInTicks, 1.0f);
             return;

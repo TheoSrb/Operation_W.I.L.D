@@ -118,7 +118,7 @@ public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntity
 
     @Override
     public float vehicleRunSpeedMultiplier() {
-        return 3f;
+        return 2.5f;
     }
 
     @Override
