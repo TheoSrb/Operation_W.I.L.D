@@ -144,6 +144,15 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
         }
         this.applyHeadRotation(netHeadYaw, headPitch);
 
+		if (elephant.isCombo(1)) {
+			this.animate(elephant.attack1Combo, ElephantAnimations.ATTACK_STRIKE, ageInTicks, 0.925f);
+		}
+		if (elephant.isCombo(2)) {
+			this.animate(elephant.attack2Combo, ElephantAnimations.ATTACK_STRIKE2, ageInTicks, 1.05f);
+		}
+		if (elephant.isCombo(3)) {
+			this.animate(elephant.attack3Combo, ElephantAnimations.ATTACK_STRIKE3, ageInTicks, 1.15f);
+		}
 
 		if (elephant.transitionIdleSit.isStarted()) {
 			this.animate(elephant.transitionIdleSit, ElephantAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
@@ -160,7 +169,6 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 			this.animate(elephant.sittingAnimationState, ElephantAnimations.SIT, ageInTicks, 1.0f);
 			return;
 		}
-
 
 		this.animate(elephant.idleAnimationState, ElephantAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
@@ -210,6 +218,11 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 
 		this.animateWalk(ElephantAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 10.75f, 8.75f);
 		lastLimbSwing = limbSwing;
+
+		if (elephant.level().isClientSide()) {
+			elephant.setBodyZRot((float) Math.toDegrees(this.body.zRot));
+			elephant.setBodyXRot((float) Math.toDegrees(this.body.xRot));
+		}
 	}
 
     @Override

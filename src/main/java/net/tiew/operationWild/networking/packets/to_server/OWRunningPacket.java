@@ -8,6 +8,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
@@ -58,10 +59,13 @@ public record OWRunningPacket() implements CustomPacketPayload {
 
                         if (canSprint && entity.getRandom().nextInt(3) == 0) $$0 = true;
 
-                        if (canSprint && Minecraft.getInstance().options.keySprint.isDown() && owEntity.getVitalEnergy() < owEntity.getMaxVitalEnergy() && owEntity.isSaddled()) {
+                        if (canSprint && Minecraft.getInstance().options.keySprint.isDown() && owEntity.getVitalEnergy() < owEntity.getMaxVitalEnergy() && owEntity.isSaddled()
+                                && owEntity.getControllingPassenger() != null && owEntity.getControllingPassenger().zza != 0) {
                             owEntity.setRunning(true);
+                            owEntity.setAcceleration(owEntity.getAcceleration() + 0.5f);
                         } else {
                             owEntity.setRunning(false);
+                            owEntity.setAcceleration(0);
                         }
                     }
                 }

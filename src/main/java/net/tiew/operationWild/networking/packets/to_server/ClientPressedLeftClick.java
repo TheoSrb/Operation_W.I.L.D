@@ -60,6 +60,7 @@ public record ClientPressedLeftClick() implements CustomPacketPayload {
                     if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 15) && Minecraft.getInstance().screen == null) {
                         owEntity.setCombo(true, 1);
                         owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 15);
+                        owEntity.setAcceleration(0);
                     } else if (owEntity.isPauseCombo()) {
                         owEntity.playerContinueCombo = true;
                     }

@@ -21,6 +21,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -42,11 +44,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.enchantment.effects.SpawnParticlesEffect;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
@@ -65,10 +69,7 @@ import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
@@ -81,6 +82,13 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     public String[] quests = {};
     public int foodGiven = 0;
     public int foodWanted;
+
+    public final AnimationState attack1Combo = new AnimationState();
+    public final AnimationState attack2Combo = new AnimationState();
+    public final AnimationState attack3Combo = new AnimationState();
+    public int attack1ComboTimer = 0;
+    public int attack2ComboTimer = 0;
+    public int attack3ComboTimer = 0;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> PLAYER_CAN_JUMP = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
@@ -117,6 +125,16 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     }
 
     @Override
+    public float vehicleComboSpeedMultiplier() {
+        return 2f;
+    }
+
+    @Override
+    public boolean canIncreasesSpeedDuringSprint() {
+        return true;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return OWItems.ELEPHANT_SADDLE.get();
     }
@@ -138,13 +156,14 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
 
     @Override
     public float getMaxVitalEnergy() {
-        return 200 * (1 + ((float) this.getLevel() / 100));
+        return 225 * (1 + ((float) this.getLevel() / 100));
     }
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 0.5f;
+        return 0.65f;
     }
+
 
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
@@ -185,7 +204,16 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
 
     @Override
     public void die(DamageSource damageSource) {
+
+        if (this.isSaddled()) {
+            ItemStack ancientSaddle = this.getInventory().getStackInSlot(0);
+            ItemStack saddle = new ItemStack(OWItems.ELEPHANT_SADDLE.get());
+            saddle.set(OWDataComponentTypes.SADDLE_WOOLS.get(), ancientSaddle.get(OWDataComponentTypes.SADDLE_WOOLS.get()));
+            this.spawnAtLocation(saddle);
+        }
+
         super.die(damageSource);
+
         ItemStack soulStack = new ItemStack(OWItems.ANIMAL_SOUL.get());
 
         Item item = soulStack.getItem();
@@ -206,7 +234,6 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
             this.spawnAtLocation(soulStack);
         }
-        if (this.isSaddled()) this.spawnAtLocation(this.acceptSaddle());
     }
 
     @Override
@@ -230,6 +257,28 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
                 );
             }
         }
+    }
+
+    public boolean breakWoodAround(Vec3 center, float radius, boolean square, float dropChance) {
+        if (this.isBaby() || !net.neoforged.neoforge.event.EventHooks.canEntityGrief(this.level(), this) || level().isClientSide) {
+            return false;
+        }
+        boolean flag = false;
+        for (BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(center.x - radius),
+                Mth.floor(center.y - radius), Mth.floor(center.z - radius),
+                Mth.floor(center.x + radius), Mth.floor(center.y + radius),
+                Mth.floor(center.z + radius))) {
+            BlockState blockstate = this.level().getBlockState(blockpos);
+            boolean isLog = blockstate.is(BlockTags.LOGS);
+
+            if (blockstate.blocksMotion() && (blockstate.getBlock().getExplosionResistance() <= 15)
+                    && (square || blockpos.distToCenterSqr(center.x, center.y, center.z) < radius * radius)
+                    && isLog || blockstate.is(BlockTags.FLOWERS) || blockstate.is(BlockTags.LEAVES) || blockstate.is(BlockTags.CROPS) || blockstate.is(BlockTags.SAPLINGS)) {
+                level().destroyBlock(blockpos, isLog);
+                flag = true;
+            }
+        }
+        return flag;
     }
 
     public void setPlayerJump(boolean isPlayerJump) { this.entityData.set(PLAYER_CAN_JUMP, isPlayerJump);}
@@ -256,8 +305,94 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         setPlayerJump(true);
     }
 
+    private int shockWaveTimer = 0;
+    public Vec3 look;
+    public boolean isCreatingShockWave = false;
+
+    public void createShockWave() {
+        isCreatingShockWave = true;
+        this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
+        this.playSound(OWSounds.MINI_EARTHQUAKE.get(), 1.5f, 1.2f);
+    }
+
     public void tick() {
         super.tick();
+        Vec3 center = new Vec3(0, 1, 1 * this.getScale()).yRot(-this.yBodyRot * ((float) Math.PI / 180F)).add(position());
+
+        createCombo(33, 22, actualAttackNumber == 2 ? SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR : OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, false, actualAttackNumber == 2 ? 4 : 2);
+
+        if (this.accelerationIsAtMax()) {
+            Vec3 look = this.getLookAngle();
+            double x = this.getX() + look.x * 2.0;
+            double z = this.getZ() + look.z * 2.0;
+
+            AABB area = new AABB(x - 2, this.getY() - 2, z - 2, x + 2, this.getY() + 3, z + 2);
+            List<Entity> entitiesInRange = this.level().getEntities(this, area, entity -> entity instanceof LivingEntity);
+
+            if (this.tickCount % 5 == 0) {
+                this.breakWoodAround(center, 4.0F, false, 1.0F);
+            }
+
+            for (Entity entity : entitiesInRange) {
+                if (!entity.isAlive() || entity == this) continue;
+                if (entity instanceof OWEntity owEntity && owEntity.getOwner() == this.getOwner()) continue;
+                if (entity == this.getOwner()) continue;
+
+                entity.hurt(this.damageSource, this.getDamage() / 3);
+            }
+        }
+
+
+        if (isCreatingShockWave) {
+            shockWaveTimer++;
+
+            if (shockWaveTimer == 1) {
+                look = this.getLookAngle();
+            }
+
+
+            double x = this.getX() + look.x * (2.0 + ((double) shockWaveTimer / 3));
+            double z = this.getZ() + look.z * (2.0 + ((double) shockWaveTimer / 3));
+            AABB area = new AABB(x - 2, this.getY() - 1, z - 2, x + 2, this.getY() + 1, z + 2);
+            List<Entity> entitiesInRange = this.level().getEntities(
+                    this,
+                    area,
+                    entity -> entity instanceof LivingEntity
+            );
+
+            for (Entity entity : entitiesInRange) {
+                if (!entity.isAlive() || entity == this) continue;
+                if (entity instanceof OWEntity owEntity && owEntity.getOwner() == this.getOwner()) continue;
+                if (entity == this.getOwner()) continue;
+
+                entity.hurt(this.damageSource, this.getDamage() / 3);
+                entity.playSound(SoundEvents.ROOTED_DIRT_HIT);
+                Vec3 knockback = look.scale(0.5);
+                entity.setDeltaMovement(entity.getDeltaMovement().x + knockback.x, 0.75 - ((double) shockWaveTimer / 120), entity.getDeltaMovement().z + knockback.z);
+            }
+
+            for (int i = 0; i < 50; i++) {
+                double px = area.minX + Math.random() * (area.maxX - area.minX);
+                double py = area.minY + Math.random() * (area.maxY - area.minY);
+                double pz = area.minZ + Math.random() * (area.maxZ - area.minZ);
+                BlockParticleOption particleOption = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
+
+                this.level().addParticle(particleOption, px, py, pz, 0, 0, 0);
+            }
+            for (int i = 0; i < 5; i++) {
+                double px = area.minX + Math.random() * (area.maxX - area.minX);
+                double py = area.minY + Math.random() * (area.maxY - area.minY);
+                double pz = area.minZ + Math.random() * (area.maxZ - area.minZ);
+                this.level().addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, px, py, pz, 0, 0, 0);
+            }
+
+            if (shockWaveTimer >= 60) {
+                shockWaveTimer = 0;
+                isCreatingShockWave = false;
+            }
+        }
+
+
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (!this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) createTameAttackSystem(30, 20, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, 5, 3.5, 2, false);
         if (this.level().isClientSide()) setupAnimationState();
@@ -307,7 +442,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     @Override
     protected void positionRider(Entity entity, MoveFunction function) {
         super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY(), entity.getZ());
+        function.accept(entity, entity.getX(), entity.getY() + (getComboAttack() == 3 ? 0.5f : 0), entity.getZ());
     }
 
     @Override
@@ -398,6 +533,42 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     private void setupAnimationState() {
         createIdleAnimation(96, true);
         createSitAnimation(121, true);
+
+        if (this.isCombo(1)) {
+            if (this.attack1ComboTimer <= 0) {
+                this.attack1ComboTimer = 40;
+                this.attack1Combo.start(this.tickCount);
+            } else --this.attack1ComboTimer;
+        }
+
+        if (!this.isCombo(1)) {
+            this.attack1ComboTimer = 0;
+            this.attack1Combo.stop();
+        }
+
+        if (this.isCombo(2)) {
+            if (this.attack2ComboTimer <= 0) {
+                this.attack2ComboTimer = 33;
+                this.attack2Combo.start(this.tickCount);
+            } else --this.attack2ComboTimer;
+        }
+
+        if (!this.isCombo(2)) {
+            this.attack2ComboTimer = 0;
+            this.attack2Combo.stop();
+        }
+
+        if (this.isCombo(3)) {
+            if (this.attack3ComboTimer <= 0) {
+                this.attack3ComboTimer = 33;
+                this.attack3Combo.start(this.tickCount);
+            } else --this.attack3ComboTimer;
+        }
+
+        if (!this.isCombo(3)) {
+            this.attack3ComboTimer = 0;
+            this.attack3Combo.stop();
+        }
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {

@@ -31,16 +31,13 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.tiew.operationWild.entity.OWEntityUtils;
+import net.tiew.operationWild.entity.custom.living.*;
 import net.tiew.operationWild.networking.ClientKillData;
 import org.joml.Quaternionf;
 import org.lwjgl.glfw.GLFW;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
 import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
 import net.tiew.operationWild.entity.custom.vehicle.Submarine;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestsDate;
@@ -994,9 +991,7 @@ public class ClientEvents {
 
             if (player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine)) {
                 OWEntityHud.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
-                TigerOverlay.render(event.getGuiGraphics(),
-                        event.getGuiGraphics().guiWidth(),
-                        event.getGuiGraphics().guiHeight());
+                TigerOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
             if (isNotifiedOWBook) {
@@ -1135,7 +1130,7 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onPlayerRenderPre(RenderPlayerEvent.Pre event) {
-        if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof Submarine)) {
+        if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof OWEntity)) {
             return;
         }
 
@@ -1152,12 +1147,27 @@ public class ClientEvents {
             poseStack.rotateAround(rotation, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
 
             poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
+        } else if (event.getEntity().getVehicle() instanceof OWEntity elephant) {
+
+            PoseStack poseStack = event.getPoseStack();
+            poseStack.pushPose();
+
+            Vec3 pivotPoint = new Vec3(0, 0, 0);
+
+            poseStack.mulPose(Axis.YP.rotationDegrees(-event.getEntity().getYRot()));
+
+            Quaternionf rotationZ = Axis.ZP.rotationDegrees(-elephant.getBodyZRot());
+            Quaternionf rotationX = Axis.XP.rotationDegrees(-elephant.getBodyXRot());
+            poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+            poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+
+            poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
         }
     }
 
     @SubscribeEvent
     public static void onPlayerRenderPost(RenderPlayerEvent.Post event) {
-        if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof Submarine)) {
+        if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof OWEntity)) {
             return;
         }
 
@@ -1165,6 +1175,18 @@ public class ClientEvents {
         poseStack.popPose();
     }
 
+    @SubscribeEvent
+    public static void onCameraSetup(ViewportEvent.ComputeCameraAngles event) {
+        Entity cameraEntity = event.getCamera().getEntity();
+        if (cameraEntity != null) {
+            Entity rootVehicle = cameraEntity.getRootVehicle();
+
+            if (rootVehicle instanceof ElephantEntity elephant) {
+                event.setRoll(event.getRoll() + (elephant.getBodyZRot() / 4));
+                event.setPitch(event.getPitch() + (elephant.getBodyXRot() / 2));
+            }
+        }
+    }
 
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {

@@ -22,6 +22,8 @@ public class OWSounds {
 
     public static final DeferredHolder<SoundEvent, SoundEvent> BLOWPIPE_LUNCH = registerSoundEvent("primitive_blowpipe_lunch");
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> MINI_EARTHQUAKE = registerSoundEvent("mini_earthquake");
+
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_ROAR = registerSoundEvent("tiger_roar");
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_ROAR_ULTIMATE = registerSoundEvent("tiger_roar_ultimate");
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_JUMP = registerSoundEvent("tiger_jump");

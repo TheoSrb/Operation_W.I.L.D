@@ -24,6 +24,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -159,9 +160,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public AnimationState transitionSitIdle = new AnimationState();
 
     public boolean playerContinueCombo = false;
-    public boolean hasAlreadyHit0 = false;
-    public boolean hasAlreadyHit1 = false;
-    public int comboStep = 0;
     public AnimationState attackState = new AnimationState();
     public AnimationState attackState2 = new AnimationState();
     public AnimationState attackState3 = new AnimationState();
@@ -178,12 +176,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> PRESTIGE_LEVEL = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Float> ACCELERATION = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Integer> LEVEL_POINTS = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Float> SCALE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Float> VITAL_ENERGY = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> PREPARE_NAP = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> NAPPING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> IS_COMBO = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> BODY_Z_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> BODY_X_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Boolean> IS_COMBO_PAUSED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Integer> GET_COMBO_ATTACK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_FALLING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
@@ -471,6 +472,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
     public void setPassive(boolean isPassive) { this.entityData.set(IS_PASSIVE, isPassive);}
 
+    public float getAcceleration() { return this.entityData.get(ACCELERATION);}
+
+    public void setAcceleration(float getAcceleration) { this.entityData.set(ACCELERATION, getAcceleration);}
+
     public int getNecklaceColor() { return this.entityData.get(NECKLACE_COLOR);}
 
     public void setNecklaceColor(int necklaceColor) { this.entityData.set(NECKLACE_COLOR, necklaceColor);}
@@ -735,6 +740,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public void setActualSleepingBarTo(int actualSleepingBar) { this.entityData.set(ACTUAL_SLEEPING_BAR, actualSleepingBar);}
 
     public int getActualSleepingBar() { return this.entityData.get(ACTUAL_SLEEPING_BAR);}
+
+    public void setBodyZRot(float getBodyZRot) { this.entityData.set(BODY_Z_ROT, getBodyZRot);}
+    public float getBodyZRot() { return this.entityData.get(BODY_Z_ROT);}
+
+    public void setBodyXRot(float getBodyXRot) { this.entityData.set(BODY_X_ROT, getBodyXRot);}
+    public float getBodyXRot() { return this.entityData.get(BODY_X_ROT);}
 
     public boolean ownerIsRiding() {
         if (this.getOwner() != null) {
@@ -1370,6 +1381,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         return this.getBbWidth() / this.getScale();
     }
 
+    public boolean accelerationIsAtMax() {
+        return this.getAcceleration() >= 100;
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -1380,9 +1395,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
         createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
 
-
         if (sittingCooldown > 0) sittingCooldown--;
-
 
         if (!this.level().isClientSide()) {
             if (this.isRunning() && this.isVehicle()) {
@@ -1614,6 +1627,90 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         }
     }
 
+    public int continueComboMaxTimer = 0;
+    public int actualAttackNumber = 0;
+    public final int MAX_ATTACKS_IN_COMBO = 3;
+
+    public void createComboAttackSystem(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
+        if (this.isCombo()) {
+            if (attackTimer < timeMax) attackTimer++;
+            else {
+                attackTimer = 0;
+                setCombo(false, 0);
+                return;
+            }
+            if (attackTimer == timeToHit) {
+                attackEntitiesInFront(this.getDamage() / MAX_ATTACKS_IN_COMBO, sound, width, height, reach, backMultiplier);
+                if (spawnBlurr) {
+                    OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
+                }
+            }
+
+            applyComboModification(timeToHit);
+
+            if (attackTimer == timeToHit + 2) {
+                setPauseCombo(true);
+            }
+        }
+    }
+
+    public void applyComboModification(int timeToHit) {
+
+        if (this instanceof TigerEntity) {
+            if (attackTimer >= timeToHit - 1 && attackTimer < timeToHit + 1) {
+                if (actualAttackNumber == 2) {
+                    Vec3 lookDirection = this.getLookAngle();
+
+                    Vec3 currentMovement = this.getDeltaMovement();
+                    Vec3 forwardPush = lookDirection.scale(1);
+
+                    this.setDeltaMovement(currentMovement.x + forwardPush.x, currentMovement.y, currentMovement.z + forwardPush.z);
+                }
+            }
+        }
+
+        if (this instanceof ElephantEntity elephant) {
+            if (attackTimer == timeToHit) {
+                if (elephant.getComboAttack() == 3) {
+                    elephant.createShockWave();
+                }
+            }
+        }
+
+    }
+
+    public void resetCombo(int numberOfAttacks) {
+        continueComboMaxTimer = 0;
+        setPauseCombo(false);
+        setCombo(false, numberOfAttacks);
+        attackTimer = 0;
+        playerContinueCombo = false;
+    }
+
+    public void createCombo(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
+        if (isPauseCombo()) {
+            continueComboMaxTimer++;
+
+            if (this.playerContinueCombo && actualAttackNumber < (MAX_ATTACKS_IN_COMBO - 1)) {
+                continueComboMaxTimer = 0;
+
+                actualAttackNumber++;
+
+                resetCombo(actualAttackNumber);
+                setCombo(true, actualAttackNumber + 1);
+
+                setPauseCombo(false);
+            }
+
+            if (continueComboMaxTimer >= 10) {
+                resetCombo(0);
+                actualAttackNumber = 0;
+            }
+        } else {
+            createComboAttackSystem(timeMax, timeToHit, sound, width, height, reach, spawnBlurr, backMultiplier);
+        }
+    }
+
     public void createTameAttackSystem(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr) {
         if (this.isAttacking()) {
             if (attackTimer < timeMax) attackTimer++;
@@ -1640,6 +1737,29 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
     public int getAttackAnimationTick() {
         return this.entityData.get(ATTACK_ANIMATION_TICK);
+    }
+
+    public boolean breakBlocksAround(Vec3 center, float radius, boolean square, float dropChance) {
+        if (this.isBaby() || !net.neoforged.neoforge.event.EventHooks.canEntityGrief(this.level(), this) || level().isClientSide) {
+            return false;
+        }
+        boolean flag = false;
+        for (BlockPos blockpos : BlockPos.betweenClosed(Mth.floor(center.x - radius),
+                Mth.floor(center.y - radius), Mth.floor(center.z - radius),
+                Mth.floor(center.x + radius), Mth.floor(center.y + radius),
+                Mth.floor(center.z + radius))) {
+            BlockState blockstate = this.level().getBlockState(blockpos);
+
+            if (blockstate.blocksMotion() && (blockstate.getBlock().getExplosionResistance() <= 15)
+                    && (square || blockpos.distToCenterSqr(center.x, center.y, center.z) < radius * radius)) {
+                Random random = new Random();
+                if (random.nextFloat() <= dropChance) {
+                    level().destroyBlock(blockpos, true);
+                }
+                flag = true;
+            }
+        }
+        return flag;
     }
 
     private void handleClientAnimationSync() {
@@ -1715,9 +1835,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
         float baseSpeed = this.getSpeed() * 2.5f;
 
-        baseSpeed *= (vehicleRunSpeedMultiplier() / 2);
+        if (canIncreasesSpeedDuringSprint()) {
+            if (isRunning()) {
+                baseSpeed *= ((vehicleRunSpeedMultiplier() * (0.5f + ((float) getAcceleration() / 100))) / 2);
+            } else baseSpeed *= (vehicleRunSpeedMultiplier() / 2);
+        }
+        else {
+            baseSpeed *= (vehicleRunSpeedMultiplier() / 2);
+        }
 
         if (isCombo()) {
+
+            if (this instanceof ElephantEntity elephant) {
+                if (elephant.getComboAttack() == 3) {
+                    return 0;
+                }
+            }
+
             return (baseSpeed / 15) * vehicleComboSpeedMultiplier();
         }
 
@@ -2182,6 +2316,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     }
 
     @Override
+    public boolean canIncreasesSpeedDuringSprint() {
+        return false;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return null;
     }
@@ -2443,6 +2582,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         builder.define(DAMAGE_TO_CLIENT, 0.0f);
         builder.define(ATTACK_ANIMATION_ID, 0);
         builder.define(ATTACK_ANIMATION_TICK, 0);
+        builder.define(ACCELERATION, 0.0f);
         builder.define(NAPPING, false);
         builder.define(PREPARE_NAP, false);
         builder.define(IS_IN_FIGHT, false);
@@ -2455,6 +2595,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         builder.define(IS_FEMALE, false);
         builder.define(IS_RUNNING, false);
         builder.define(IS_PASSIVE, false);
+        builder.define(BODY_Z_ROT, 0.0f);
+        builder.define(BODY_X_ROT, 0.0f);
         builder.define(IS_FALLING, false);
         builder.define(IS_FED, false);
         builder.define(ITEM_FOOD, ItemStack.EMPTY);

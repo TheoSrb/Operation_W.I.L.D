@@ -22,14 +22,11 @@ public class OWEntityHud {
 
         if (Minecraft.getInstance().options.hideGui) return;
 
-        int x = screenWidth / 2;
-        int y = screenHeight / 2;
-
         if (rider != null) {
             LivingEntity entity = (LivingEntity) rider.getVehicle();
             if (entity != null) {
                 if (entity instanceof OWEntity owEntity) {
-                    createHUD(guiGraphics, owEntity, x, y);
+                    createHUD(guiGraphics, owEntity, screenWidth, screenHeight);
                 }
             }
         }
@@ -38,6 +35,7 @@ public class OWEntityHud {
     public static void createHUD(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
         createHealthBar(guiGraphics, entity, x, y);
         createVitalEnergyBar(guiGraphics, entity, x, y);
+        createBar(guiGraphics, entity, x, y);
     }
 
     public static int getEntitySpace(OWEntity entity) {
@@ -52,9 +50,26 @@ public class OWEntityHud {
         }
     }
 
+    public static void createBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
+        int xPlacement = x / 2 + 217;;
+        int yPlacement = y - 113;
+
+        if (entity instanceof OWEntity owEntity && owEntity.canIncreasesSpeedDuringSprint()) {
+            guiGraphics.blit(HUD, xPlacement, yPlacement, 173, 0, 10, 103);
+
+            int barHeight = (int) (103 * (owEntity.getAcceleration() / 100.0f));
+            int startY = yPlacement + (103 - barHeight);
+            int textureY = 103 - barHeight;
+
+            guiGraphics.blit(HUD, xPlacement, startY, 183, textureY, 10, barHeight);
+
+            guiGraphics.blit(HUD, xPlacement - (19 / 2) + 2, yPlacement - 22, 193, owEntity.getAcceleration() >= 100 ? 0 : 17, 19, 17);
+        }
+    }
+
     public static void createHealthBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
-        int xPlacement = x + 10;
-        int yPlacement = y + 89;
+        int xPlacement = x / 2 + 10;
+        int yPlacement = y - 39;
 
         guiGraphics.blit(HUD, xPlacement, yPlacement, 0, 0, 81, 9);
 
@@ -76,8 +91,8 @@ public class OWEntityHud {
     }
 
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
-        int xPlacement = x + 10;
-        int yPlacement = y + 89;
+        int xPlacement = x / 2 + 10;
+        int yPlacement = y - 39;
 
         guiGraphics.blit(HUD, xPlacement + 81 + 5, yPlacement, 0, 230, 8, 14);
 

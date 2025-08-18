@@ -386,76 +386,10 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         }
     }
 
-    private int continueComboMaxTimer = 0;
-    private int actualAttackNumber = 0;
-    private final int MAX_ATTACKS_IN_COMBO = 3;
-
-    public void createTameAttackSystem(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr) {
-        if (this.isCombo()) {
-            if (attackTimer < timeMax) attackTimer++;
-            else {
-                attackTimer = 0;
-                setCombo(false, 0);
-                return;
-            }
-            if (attackTimer == timeToHit) {
-                attackEntitiesInFront(this.getDamage() / MAX_ATTACKS_IN_COMBO, sound, width, height, reach, actualAttackNumber == 2 ? 2 : 0);
-                if (spawnBlurr) {
-                    OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
-                }
-            }
-
-            if (attackTimer >= timeToHit - 1 && attackTimer < timeToHit + 1) {
-                if (actualAttackNumber == 2) {
-                    Vec3 lookDirection = this.getLookAngle();
-
-                    Vec3 currentMovement = this.getDeltaMovement();
-                    Vec3 forwardPush = lookDirection.scale(1);
-
-                    this.setDeltaMovement(currentMovement.x + forwardPush.x, currentMovement.y, currentMovement.z + forwardPush.z);
-                }
-            }
-
-            if (attackTimer == timeToHit + 2) {
-                setPauseCombo(true);
-            }
-        }
-    }
-
-    private void resetCombo(int numberOfAttacks) {
-        continueComboMaxTimer = 0;
-        setPauseCombo(false);
-        setCombo(false, numberOfAttacks);
-        attackTimer = 0;
-        playerContinueCombo = false;
-    }
-
     public void tick() {
         super.tick();
 
-        if (isPauseCombo()) {
-            continueComboMaxTimer++;
-
-            if (this.playerContinueCombo && actualAttackNumber < (MAX_ATTACKS_IN_COMBO - 1)) {
-                continueComboMaxTimer = 0;
-
-                actualAttackNumber++;
-
-                resetCombo(actualAttackNumber);
-                setCombo(true, actualAttackNumber + 1);
-
-                setPauseCombo(false);
-            }
-
-            if (continueComboMaxTimer >= 10) {
-                resetCombo(0);
-                actualAttackNumber = 0;
-            }
-        } else {
-            createTameAttackSystem(14, 8, OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2);
-        }
-
-
+        createCombo(14, 8, OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 2 : 0);
 
         if (isUltimate()) {
             this.ultimateTimer++;
