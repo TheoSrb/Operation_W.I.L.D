@@ -386,6 +386,10 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         }
     }
 
+    private boolean canJumpOnTarget(LivingEntity entity) {
+        return entity.getMaxHealth() <= 40 || this.random.nextInt(3) == 0;
+    }
+
     public void tick() {
         super.tick();
 
@@ -587,7 +591,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
             if (prepareJumpInTicks < delayBeforeJumpingInTicks) prepareJumpInTicks++;
         }
 
-        if (prepareJumpInTicks >= delayBeforeJumpingInTicks && distanceY <= 5) {
+        if (prepareJumpInTicks >= delayBeforeJumpingInTicks && distanceY <= 5 && canJumpOnTarget(target)) {
             this.setJumpingOnTarget(true);
         }
 
@@ -598,7 +602,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
             }
 
             this.setLookAt(targetX, targetY, targetZ);
-            if (this.horizontalCollision || target.isDeadOrDying()) {
+            if (this.horizontalCollision || target.isDeadOrDying() || !canJumpOnTarget(target)) {
                 this.setJumpingOnTarget(false);
                 resetTrappedEntity();
                 return;

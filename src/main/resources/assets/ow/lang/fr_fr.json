@@ -135,6 +135,9 @@
   "tooltip.peacockSkin2": "Paon Mage",
   "tooltip.peacockSkin7": "Paon Par Défaut",
 
+  "tooltip.elephantSkin1": "Éléphant Doré",
+  "tooltip.elephantSkin7": "Éléphant Par Défaut",
+
 
 
 
@@ -158,6 +161,8 @@
   "tooltip.boaSkin2Indication": "Dévérouillez le skin Boa Viking en échange de %d niveaux de prestige.",
 
   "tooltip.peacockSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
+
+  "tooltip.elephantSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
 
   "tooltip.baby": "Bébé",
   "tooltip.juvenile": "Juvénile",

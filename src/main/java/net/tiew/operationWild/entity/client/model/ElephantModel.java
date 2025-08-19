@@ -103,6 +103,11 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 		PartDefinition cube_r8 = body.addOrReplaceChild("cube_r8", CubeListBuilder.create().texOffs(120, -11).addBox(-0.1158F, -8.8537F, -5.3647F, 0.0F, 9.0F, 30.0F, new CubeDeformation(0.1F)), PartPose.offsetAndRotation(-15.7F, -11.0F, -18.3F, 0.3752F, 0.3683F, 0.5972F));
 
 		PartDefinition head = body.addOrReplaceChild("head", CubeListBuilder.create().texOffs(0, 70).addBox(-7.5F, -9.0F, -15.0F, 15.0F, 18.0F, 15.0F, new CubeDeformation(0.0F))
+				.texOffs(52, 108).addBox(-7.5F, -7.0F, -0.5F, 15.0F, 17.0F, 1.0F, new CubeDeformation(0.4F))
+				.texOffs(98, 108).addBox(-7.5F, -12.9F, 0.0F, 15.0F, 6.0F, 0.0F, new CubeDeformation(0.05F))
+				.texOffs(98, 114).addBox(-7.5F, 10.5F, -0.1F, 15.0F, 6.0F, 0.0F, new CubeDeformation(0.05F))
+				.texOffs(99, 127).addBox(-13.4F, -9.0F, -0.1F, 6.0F, 20.0F, 0.0F, new CubeDeformation(0.05F))
+				.texOffs(99, 127).mirror().addBox(7.4F, -9.0F, -0.1F, 6.0F, 20.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false)
 				.texOffs(142, 37).addBox(-7.5F, -9.0F, -15.0F, 15.0F, 18.0F, 15.0F, new CubeDeformation(0.5F)), PartPose.offset(0.0F, -7.0F, -21.0F));
 
 		PartDefinition cube_r9 = head.addOrReplaceChild("cube_r9", CubeListBuilder.create().texOffs(140, 83).mirror().addBox(-9.0F, -5.0F, -9.0F, 5.0F, 8.0F, 5.0F, new CubeDeformation(0.0F)).mirror(false)
@@ -223,6 +228,8 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 			elephant.setBodyZRot((float) Math.toDegrees(this.body.zRot));
 			elephant.setBodyXRot((float) Math.toDegrees(this.body.xRot));
 		}
+
+		this.head.xRot += (float) Math.toRadians(Math.min(elephant.getAcceleration(), 100) * 0.4f);
 	}
 
     @Override

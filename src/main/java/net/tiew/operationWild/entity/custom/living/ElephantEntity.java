@@ -58,6 +58,7 @@ import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.AI.*;
 import net.tiew.operationWild.entity.OWTameImplementation;
+import net.tiew.operationWild.entity.variants.PeacockVariant;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.item.custom.ElephantSaddle;
 import net.tiew.operationWild.sound.OWSounds;
@@ -177,7 +178,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 65.0D).add(Attributes.MOVEMENT_SPEED, 0.14D).add(Attributes.FOLLOW_RANGE, 30.0D).add(Attributes.ATTACK_DAMAGE, 8.0D).add(Attributes.KNOCKBACK_RESISTANCE, 1.0D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 65.0D).add(Attributes.MOVEMENT_SPEED, 0.14D).add(Attributes.FOLLOW_RANGE, 30.0D).add(Attributes.ATTACK_DAMAGE, 10.0D).add(Attributes.KNOCKBACK_RESISTANCE, 1.0D);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -244,7 +245,10 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
 
     public void changeSkin(int skinIndex) {
         this.setVariant(getInitialVariant());
-        
+
+        if (skinIndex == 1) setVariant(ElephantVariant.SKIN_GOLD);
+        else if (skinIndex == 7) setVariant(getInitialVariant());
+
         if (!this.level().isClientSide()) {
             Level world = this.level();
             if (world instanceof ServerLevel) {
@@ -273,7 +277,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
 
             if (blockstate.blocksMotion() && (blockstate.getBlock().getExplosionResistance() <= 15)
                     && (square || blockpos.distToCenterSqr(center.x, center.y, center.z) < radius * radius)
-                    && isLog || blockstate.is(BlockTags.FLOWERS) || blockstate.is(BlockTags.LEAVES) || blockstate.is(BlockTags.CROPS) || blockstate.is(BlockTags.SAPLINGS)) {
+                    && isLog || blockstate.is(BlockTags.LEAVES) || blockstate.is(BlockTags.CROPS) || blockstate.is(BlockTags.SAPLINGS)) {
                 level().destroyBlock(blockpos, isLog);
                 flag = true;
             }
@@ -338,7 +342,7 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
                 if (entity instanceof OWEntity owEntity && owEntity.getOwner() == this.getOwner()) continue;
                 if (entity == this.getOwner()) continue;
 
-                entity.hurt(this.damageSource, this.getDamage() / 3);
+                entity.hurt(this.damageSource, 2);
             }
         }
 
@@ -424,9 +428,9 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
             setPlayerJump(false);
         }
 
-        /*if (this.getVariant() == ElephantVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
-            OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
-        }*/
+        if (this.getVariant() == ElephantVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
+            OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 10, 3);
+        }
     }
 
     @Override

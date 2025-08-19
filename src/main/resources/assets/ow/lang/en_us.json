@@ -136,6 +136,9 @@
   "tooltip.peacockSkin2": "Mage Peacock",
   "tooltip.peacockSkin7": "Default Boa",
 
+  "tooltip.elephantSkin1": "Golden Elephant",
+  "tooltip.elephantSkin7": "Default Elephant",
+
   "tooltip.locked": "Locked",
   "skin.locked.message": "Skin Locked",
   "skin.unlocked.message": "Skin Unlocked",
@@ -155,6 +158,8 @@
   "tooltip.boaSkin2Indication": "Unlock the Boa Viking skin in exchange for %d prestige levels.",
 
   "tooltip.peacockSkin1Indication": "Reach level 50 to unlock this skin.",
+
+  "tooltip.elephantSkin1Indication": "Reach level 50 to unlock this skin.",
 
   "tooltip.baby": "Baby",
   "tooltip.juvenile": "Juvenile",

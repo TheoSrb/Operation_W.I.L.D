@@ -13,6 +13,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.custom.living.BoaEntity;
+import net.tiew.operationWild.entity.custom.living.ElephantEntity;
 import net.tiew.operationWild.entity.custom.living.PeacockEntity;
 import net.tiew.operationWild.entity.custom.living.TigerEntity;
 
@@ -41,6 +42,7 @@ public record OWVariantsSkinsPacket(int skinIndex) implements CustomPacketPayloa
                     if (owEntity instanceof TigerEntity tiger) tiger.changeSkin(packet.skinIndex());
                     if (owEntity instanceof BoaEntity boa) boa.changeSkin(packet.skinIndex());
                     if (owEntity instanceof PeacockEntity peacock) peacock.changeSkin(packet.skinIndex());
+                    if (owEntity instanceof ElephantEntity elephant) elephant.changeSkin(packet.skinIndex());
                     owEntity.level().playLocalSound(owEntity.getX(), owEntity.getY(), owEntity.getZ(), SoundEvents.SLIME_JUMP, SoundSource.NEUTRAL, 1.0F, 1.0f, false);
                 }
             }

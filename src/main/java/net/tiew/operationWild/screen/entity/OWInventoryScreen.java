@@ -19,6 +19,7 @@ import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.LevelUpOWInventoryPacket;
 import net.tiew.operationWild.networking.packets.to_server.OpenDailyQuestScreen;
 import net.tiew.operationWild.screen.entity.skins.BoaSkinsScreen;
+import net.tiew.operationWild.screen.entity.skins.ElephantSkinsScreen;
 import net.tiew.operationWild.screen.entity.skins.PeacockSkinsScreen;
 import net.tiew.operationWild.screen.entity.skins.TigerSkinsScreen;
 
@@ -63,6 +64,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "TigerEntity" -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
             case "BoaEntity" -> Minecraft.getInstance().setScreen(new BoaSkinsScreen());
             case "PeacockEntity" -> Minecraft.getInstance().setScreen(new PeacockSkinsScreen());
+            case "ElephantEntity" -> Minecraft.getInstance().setScreen(new ElephantSkinsScreen());
             default -> Minecraft.getInstance().player.sendSystemMessage(Component.translatable("tooltip.noSkins").withStyle(Style.EMPTY).withColor(0xFF0000));
         }
     }

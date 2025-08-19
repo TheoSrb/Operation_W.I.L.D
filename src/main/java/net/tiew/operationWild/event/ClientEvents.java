@@ -973,8 +973,6 @@ public class ClientEvents {
         boolean renderBoa = targetedEntity instanceof BoaEntity;
         boolean renderPeacock = targetedEntity instanceof PeacockEntity;
         boolean renderFoodOverlay = targetedEntity instanceof OWEntity ow && !ow.getItemFood().isEmpty();
-        int waterDepth = player.isInWater() ? (int) (player.level().getSeaLevel() - player.getY()) : -1;
-        float waterPressure = getWaterPressure(waterDepth);
 
         if (player != null) {
             PlantEmpressBossBar.render(event.getGuiGraphics(),
@@ -1034,37 +1032,6 @@ public class ClientEvents {
                 PeacockOverlay.render(event.getGuiGraphics(),
                         event.getGuiGraphics().guiWidth(),
                         event.getGuiGraphics().guiHeight());
-            }
-
-            boolean shouldApplyBlur = hasVenom && !screenOpen;
-
-            if (shouldApplyBlur) {
-                applyMinecraftBlurShader(player);
-            } else {
-                removeMinecraftBlurShader();
-            }
-
-            if (waterPressure >= 4 && !player.isCreative() && player.isAlive() && minecraft.screen == null && !minecraft.isPaused() && !isInSubmarine(player)) {
-                if (waterPressure >= 60)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur10.json"));
-                else if (waterPressure >= 54)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur9.json"));
-                else if (waterPressure >= 48)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur8.json"));
-                else if (waterPressure >= 42)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur7.json"));
-                else if (waterPressure >= 36)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur6.json"));
-                else if (waterPressure >= 30)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur5.json"));
-                else if (waterPressure >= 24)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur4.json"));
-                else if (waterPressure >= 18)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur3.json"));
-                else if (waterPressure >= 12)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur2.json"));
-                else if (waterPressure >= 6)
-                    Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur1.json"));
             }
         }
     }
@@ -1184,6 +1151,54 @@ public class ClientEvents {
             if (rootVehicle instanceof ElephantEntity elephant) {
                 event.setRoll(event.getRoll() + (elephant.getBodyZRot() / 4));
                 event.setPitch(event.getPitch() + (elephant.getBodyXRot() / 2));
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void renderCustomHearts(RenderLevelStageEvent event) {
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL && Minecraft.getInstance().screen == null
+                && !Minecraft.getInstance().options.hideGui && !Minecraft.getInstance().getDebugOverlay().showDebugScreen()) {
+            Minecraft minecraft = Minecraft.getInstance();
+            Player player = minecraft.player;
+
+            if (player != null) {
+                Entity vehicle = player.getVehicle();
+                boolean screenOpen = minecraft.screen != null;
+                boolean hasVenom = player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()) || (vehicle != null && vehicle instanceof LivingEntity livingEntity && livingEntity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()));
+                int waterDepth = player.isInWater() ? (int) (player.level().getSeaLevel() - player.getY()) : -1;
+                float waterPressure = getWaterPressure(waterDepth);
+                boolean shouldApplyBlur = hasVenom && !screenOpen;
+
+                if (shouldApplyBlur) {
+                    applyMinecraftBlurShader(player);
+                } else {
+                    removeMinecraftBlurShader();
+                }
+
+                /*if (waterPressure >= 4 && !player.isCreative() && player.isAlive() && minecraft.screen == null && !minecraft.isPaused() && !isInSubmarine(player)) {
+                    if (waterPressure >= 60)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur10.json"));
+                    else if (waterPressure >= 54)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur9.json"));
+                    else if (waterPressure >= 48)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur8.json"));
+                    else if (waterPressure >= 42)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur7.json"));
+                    else if (waterPressure >= 36)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur6.json"));
+                    else if (waterPressure >= 30)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur5.json"));
+                    else if (waterPressure >= 24)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur4.json"));
+                    else if (waterPressure >= 18)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur3.json"));
+                    else if (waterPressure >= 12)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur2.json"));
+                    else if (waterPressure >= 6)
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur1.json"));*/
+
+
             }
         }
     }

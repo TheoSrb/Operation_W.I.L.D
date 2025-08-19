@@ -11,6 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.ElephantLayer;
+import net.tiew.operationWild.entity.client.layer.skins.ElephantSkins;
 import net.tiew.operationWild.entity.client.model.ElephantModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
 import net.tiew.operationWild.entity.custom.living.ElephantEntity;
@@ -21,6 +22,8 @@ import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantE
         map.put(ElephantVariant.DEFAULT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_default.png"));
         map.put(ElephantVariant.GREY, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_grey.png"));
         map.put(ElephantVariant.PINK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_pink.png"));
+
+        map.put(ElephantVariant.SKIN_GOLD, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/skins/elephant_skin_gold.png"));
     });
 
     public final ElephantLayer elephantLayer;
@@ -31,10 +34,7 @@ import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantE
         super(context, new ElephantModel<>(context.bakeLayer(ElephantModel.LAYER_LOCATION)), 1.5f);
         this.elephantLayer = new ElephantLayer(this);
         this.addLayer(this.elephantLayer);
-    }
-
-    public ElephantLayer getElephantLayer() {
-        return this.elephantLayer;
+        this.addLayer(new ElephantSkins(this));
     }
 
     @Override

@@ -1392,6 +1392,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
             handleClientAnimationSync();
         }
 
+        if (this.isCombo()) {
+            this.setAcceleration(0);
+        }
+
         createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
         createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
 

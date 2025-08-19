@@ -147,17 +147,17 @@ public class HeartRenderHandler {
 
     public enum HeartType {
         CONTAINER(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/container.png"),
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartcontainer_blinking.png"),
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartcontainer.png"),
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartcontainer_blinking.png")),
-        VENOMOUS(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartvenomous_full.png"),
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartvenomous_full_blinking.png"),
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartvenomous_half.png"),
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartvenomous_half_blinking.png")),
-        WATER_PRESSURE(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartwater_pressure_full.png"),
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartwater_pressure_full_blinking.png"),
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartwater_pressure_half.png"),
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heartwater_pressure_half_blinking.png"));
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/container_blinking.png"),
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/container.png"),
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/container_blinking.png")),
+        VENOMOUS(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/venomous_full.png"),
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/venomous_full_blinking.png"),
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/venomous_half.png"),
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/venomous_half_blinking.png")),
+        WATER_PRESSURE(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/water_pressure_full.png"),
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/water_pressure_full_blinking.png"),
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/water_pressure_half.png"),
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/heart/water_pressure_half_blinking.png"));
 
         private final ResourceLocation texture;
         private final ResourceLocation blinkingTexture;
