@@ -60,6 +60,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.tiew.operationWild.entity.AI.FoodsPreference;
 import net.tiew.operationWild.entity.custom.living.*;
 import net.tiew.operationWild.networking.ClientKillData;
 import net.tiew.operationWild.networking.packets.to_client.*;
@@ -97,7 +98,7 @@ import java.util.*;
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 import static net.tiew.operationWild.utils.OWUtils.generateRandomInterval;
 
-public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUtils, OWTameImplementation {
+public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPreference, OWEntityUtils, OWTameImplementation {
 
     public float averageScale;
     public static final Random RANDOM = new Random();
@@ -1932,6 +1933,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         if (isRunning()) return baseSpeed;
         baseSpeed = baseSpeed * (vehicleWalkSpeedMultiplier() * 3);
 
+
         return baseSpeed / 25;
     }
 
@@ -2086,6 +2088,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
+
+        if (this.getHealth() < this.getMaxHealth() && (FOOD_FOR_HEALING_MEAT.contains(item) || FOOD_FOR_HEALING_VEGETABLES.contains(item))) {
+            itemstack.shrink(1);
+            healWithFavoriteFood(1.5f, preferRawMeat(), preferCookedMeat());
+            return InteractionResult.SUCCESS;
+        }
 
         if (isTame() && isBaby() && babyQuestIsInProgress && choosenQuest == 0 && !level().isClientSide()) {
             if (item == choosenFood) {
@@ -2411,6 +2419,21 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         return 0;
     }
 
+    @Override
+    public boolean preferRawMeat() {
+        return false;
+    }
+
+    @Override
+    public boolean preferCookedMeat() {
+        return false;
+    }
+
+    @Override
+    public boolean preferVegetables() {
+        return false;
+    }
+
     public enum Mode {
         Passive,
         Aggressive;
@@ -2681,6 +2704,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
 
+        if (!this.getActiveEffects().isEmpty()) {
+            ListTag effectsTag = new ListTag();
+            for (MobEffectInstance effect : this.getActiveEffects()) {
+                CompoundTag effectTag = (CompoundTag) effect.save();
+                effectsTag.add(effectTag);
+            }
+            tag.put("ActiveEffects", effectsTag);
+        }
+
         if (level() != null && level().getServer() != null) {
             HolderLookup.Provider provider = level().getServer().registryAccess();
             tag.put("ItemStackHandler", itemStackHandler.serializeNBT(provider));
@@ -2780,6 +2812,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
     public void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
+
+        if (tag.contains("ActiveEffects")) {
+            ListTag effectsTag = tag.getList("ActiveEffects", 10);
+            for (int i = 0; i < effectsTag.size(); i++) {
+                CompoundTag effectTag = effectsTag.getCompound(i);
+                MobEffectInstance effect = MobEffectInstance.load(effectTag);
+                if (effect != null) {
+                    this.addEffect(effect);
+                }
+            }
+        }
 
         if (tag.contains("ItemStackHandler") && level() != null && level().getServer() != null) {
             HolderLookup.Provider provider = level().getServer().registryAccess();

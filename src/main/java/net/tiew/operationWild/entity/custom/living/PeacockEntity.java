@@ -168,7 +168,7 @@ public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntity
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 12D).add(Attributes.MOVEMENT_SPEED, 0.19D).add(Attributes.FOLLOW_RANGE, 20D).add(Attributes.ATTACK_DAMAGE, 1.5D).add(Attributes.KNOCKBACK_RESISTANCE, 0.1D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 12D).add(Attributes.MOVEMENT_SPEED, 0.19D).add(Attributes.FOLLOW_RANGE, 20D).add(Attributes.ATTACK_DAMAGE, 2D).add(Attributes.KNOCKBACK_RESISTANCE, 0.1D);
     }
 
     @Override

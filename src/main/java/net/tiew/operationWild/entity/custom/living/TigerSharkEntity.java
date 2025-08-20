@@ -169,7 +169,7 @@ public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, 
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 35D).add(Attributes.MOVEMENT_SPEED, 0.19D).add(Attributes.FOLLOW_RANGE, 45D).add(Attributes.ATTACK_DAMAGE, 5D).add(Attributes.ATTACK_KNOCKBACK, 0.7f).add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 35D).add(Attributes.MOVEMENT_SPEED, 0.19D).add(Attributes.FOLLOW_RANGE, 45D).add(Attributes.ATTACK_DAMAGE, 7D).add(Attributes.ATTACK_KNOCKBACK, 0.7f).add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
     }
 
     @Override

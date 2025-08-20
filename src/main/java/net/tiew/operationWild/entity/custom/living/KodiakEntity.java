@@ -119,7 +119,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     @Override
     public List<Class<?>> getEntityType() {
-        return ASSASSIN_ENTITIES;
+        return TANK_ENTITIES;
     }
 
     @Override
@@ -157,7 +157,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 40.0).add(Attributes.MOVEMENT_SPEED, 0.17D).add(Attributes.FOLLOW_RANGE, 25.0D).add(Attributes.ATTACK_DAMAGE, 7.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 40.0).add(Attributes.MOVEMENT_SPEED, 0.17D).add(Attributes.FOLLOW_RANGE, 25.0D).add(Attributes.ATTACK_DAMAGE, 9.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -235,7 +235,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     public void tick() {
         super.tick();
 
-        createCombo(14, 10, OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, true, 2);
+        createCombo(20, 12, OWSounds.TIGER_HURTING.get(), 3.0, 2, 2.25, false, 2);
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();

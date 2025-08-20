@@ -1156,6 +1156,9 @@ public class ClientEvents {
             } else if (rootVehicle instanceof KodiakEntity kodiak) {
                 event.setRoll(event.getRoll() + (kodiak.getBodyZRot() / (kodiak.isRunning() ? 1 : 2)));
                 event.setPitch(event.getPitch() + (kodiak.getBodyXRot() / (kodiak.isRunning() ? 1 : 2)));
+            } else if (rootVehicle instanceof TigerEntity tiger) {
+                event.setRoll(event.getRoll() + (tiger.getBodyZRot()));
+                event.setPitch(event.getPitch() + (tiger.getBodyXRot()));
             }
         }
     }

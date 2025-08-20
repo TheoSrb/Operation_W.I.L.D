@@ -177,7 +177,7 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 25D).add(Attributes.MOVEMENT_SPEED, 0.18D).add(Attributes.FOLLOW_RANGE, 20D).add(Attributes.ATTACK_DAMAGE, 3.5D).add(Attributes.KNOCKBACK_RESISTANCE, 0.3D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 25D).add(Attributes.MOVEMENT_SPEED, 0.18D).add(Attributes.FOLLOW_RANGE, 20D).add(Attributes.ATTACK_DAMAGE, 5D).add(Attributes.KNOCKBACK_RESISTANCE, 0.3D);
     }
 
     @Override

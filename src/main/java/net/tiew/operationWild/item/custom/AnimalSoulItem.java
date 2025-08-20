@@ -16,12 +16,8 @@ import net.minecraft.world.level.Level;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
-import net.tiew.operationWild.entity.variants.BoaVariant;
-import net.tiew.operationWild.entity.variants.PeacockVariant;
-import net.tiew.operationWild.entity.variants.TigerVariant;
+import net.tiew.operationWild.entity.custom.living.*;
+import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.utils.OWUtils;
 
@@ -136,13 +132,9 @@ public class AnimalSoulItem extends Item {
             return Component.translatable("");
 
         String entityTypeStr = entityTypeComponent.getString();
-        return switch (entityTypeStr) {
-            case "TigerEntity" -> Component.translatable("entity.ow.tiger").withStyle(Style.EMPTY.withBold(true).withColor(0xc47037));
-            case "BoaEntity" -> Component.translatable("entity.ow.boa").withStyle(Style.EMPTY.withBold(true).withColor(0x838549));
-            case "PeacockEntity" -> Component.translatable("entity.ow.peacock").withStyle(Style.EMPTY.withBold(true).withColor(0x464bc1));
-            case "TigerSharkEntity" -> Component.translatable("entity.ow.tiger_shark").withStyle(Style.EMPTY.withBold(true).withColor(0x565047));
-            default -> Component.literal(entityTypeStr).withStyle(Style.EMPTY.withItalic(true).withColor(0xFFFFFF));
-        };
+        String entityName = entityTypeStr.toLowerCase().split("entity")[0];
+
+        return Component.translatable("entity.ow." + entityName).setStyle(Style.EMPTY.withBold(true).withColor(chooseEntityColor(stack)));
     }
 
     public String showEntitySpeed(ItemStack stack) {
@@ -176,6 +168,8 @@ public class AnimalSoulItem extends Item {
                 case "BoaEntity" -> owEntity = OWEntityRegistry.BOA.get().create(level);
                 case "PeacockEntity" -> owEntity = OWEntityRegistry.PEACOCK.get().create(level);
                 case "TigerSharkEntity" -> owEntity = OWEntityRegistry.TIGER_SHARK.get().create(level);
+                case "ElephantEntity" -> owEntity = OWEntityRegistry.ELEPHANT.get().create(level);
+                case "KodiakEntity" -> owEntity = OWEntityRegistry.KODIAK.get().create(level);
                 default -> owEntity = OWEntityRegistry.TIGER.get().create(level);
             }
 
@@ -195,7 +189,7 @@ public class AnimalSoulItem extends Item {
                 owEntity.setBaseHealth((float) owEntity.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
                 owEntity.setBaseDamage((float) owEntity.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
                 owEntity.setBaseSpeed((float) owEntity.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
-                owEntity.setResurrectionMaxTimer((int) (125 * owEntity.getMaxHealth() * owEntity.getDamage() * (1 + 10 * owEntity.getSpeed()) * ((float) Math.sqrt(owEntity.getLevel() + 1) / 5f + 1)));
+                owEntity.setResurrectionMaxTimer(((int) (125 * owEntity.getMaxHealth() * owEntity.getDamage() * (1 + 10 * owEntity.getSpeed()) * ((float) Math.sqrt(owEntity.getLevel() + 1) / 5f + 1))) / 2);
 
                 if (owEntity instanceof TigerEntity tiger) {
                     TigerVariant variant = TigerVariant.byId(variantId);
@@ -209,6 +203,14 @@ public class AnimalSoulItem extends Item {
                     PeacockVariant variant = PeacockVariant.byId(variantId);
                     peacock.setVariant(variant);
                     peacock.setInitialVariant(variant);
+                } else if (owEntity instanceof ElephantEntity elephant) {
+                    ElephantVariant variant = ElephantVariant.byId(variantId);
+                    elephant.setVariant(variant);
+                    elephant.setInitialVariant(variant);
+                } else if (owEntity instanceof KodiakEntity kodiak) {
+                    KodiakVariant variant = KodiakVariant.byId(variantId);
+                    kodiak.setVariant(variant);
+                    kodiak.setInitialVariant(variant);
                 }
 
                 owEntity.setPos(player.getX(), player.getY(), player.getZ());
@@ -241,6 +243,8 @@ public class AnimalSoulItem extends Item {
             case "BoaEntity" -> 0x838549;
             case "PeacockEntity" -> 0x464bc1;
             case "TigerSharkEntity" -> 0x565047;
+            case "ElephantEntity" -> 8749692;
+            case "KodiakEntity" -> 8215109;
             default -> 0xFFFFFF;
         };
     }

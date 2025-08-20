@@ -1,18 +1,27 @@
 package net.tiew.operationWild.screen.entity;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.MobEffectTextureManager;
+import net.minecraft.core.Holder;
+import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.ClientHooks;
+import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtensions;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
@@ -23,12 +32,18 @@ import net.tiew.operationWild.screen.entity.skins.ElephantSkinsScreen;
 import net.tiew.operationWild.screen.entity.skins.PeacockSkinsScreen;
 import net.tiew.operationWild.screen.entity.skins.TigerSkinsScreen;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
-public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> {
+public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventoryMenu> {
     private static final ResourceLocation OW_INVENTORY_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_inventory_gui.png");
     private static final ResourceLocation MISC_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
+    private static final ResourceLocation EFFECT_BACKGROUND_LARGE_SPRITE = ResourceLocation.withDefaultNamespace("container/inventory/effect_background_large");
+    private static final ResourceLocation EFFECT_BACKGROUND_SMALL_SPRITE = ResourceLocation.withDefaultNamespace("container/inventory/effect_background_small");
+
     private final OWEntity entity;
     private float xMouse;
     private float yMouse;
@@ -164,11 +179,13 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         }
     }
 
+    @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float v) {
         this.renderBackground(graphics, mouseX, mouseY, v);
         this.xMouse = (float) mouseX;
         this.yMouse = (float) mouseY;
         super.render(graphics, mouseX, mouseY, v);
+        this.renderEffects(graphics, mouseX, mouseY);
         this.renderTooltip(graphics, mouseX, mouseY);
 
         float upgradeHealthLimit = entity.isTank() ? 2.5f : entity.isAssassin() ? 1.75f : entity.isMarauder() ? 1.5f : 1.0f;
@@ -226,6 +243,8 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         }
 
         this.renderTooltip(graphics, mouseX, mouseY);
+
+
     }
 
     private void renderTexts(GuiGraphics graphics, int offsetX, int offsetY) {
@@ -263,5 +282,112 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         graphics.drawString(this.font, entitySpeed, centerX + 12, centerY - 25, 0x8b8b8b);
 
         graphics.drawString(this.font, fullLevelText, centerX - (this.font.width(fullLevelText) / 2), centerY + 100, 0xFFFFFF);
+    }
+
+    private void renderEffects(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        int i = this.leftPos + this.imageWidth + 2;
+        int j = this.width - i;
+        Collection<MobEffectInstance> collection = entity.getActiveEffects();
+        if (!collection.isEmpty() && j >= 32) {
+            boolean flag = j >= 120;
+            ScreenEvent.RenderInventoryMobEffects event = ClientHooks.onScreenPotionSize(this, j, !flag, i);
+            if (event.isCanceled()) {
+                return;
+            }
+
+            flag = !event.isCompact();
+            i = event.getHorizontalOffset();
+            int k = 33;
+            if (collection.size() > 5) {
+                k = 132 / (collection.size() - 1);
+            }
+
+            Iterable<MobEffectInstance> iterable = (Iterable)collection.stream().filter(ClientHooks::shouldRenderEffect).sorted().collect(Collectors.toList());
+            this.renderBackgrounds(guiGraphics, i, k, iterable, flag);
+            this.renderIcons(guiGraphics, i, k, iterable, flag);
+            if (flag) {
+                this.renderLabels(guiGraphics, i, k, iterable);
+            } else if (mouseX >= i && mouseX <= i + 33) {
+                int l = this.topPos;
+                MobEffectInstance mobeffectinstance = null;
+
+                for(MobEffectInstance mobeffectinstance1 : iterable) {
+                    if (mouseY >= l && mouseY <= l + k) {
+                        mobeffectinstance = mobeffectinstance1;
+                    }
+
+                    l += k;
+                }
+
+                if (mobeffectinstance != null) {
+                    List<Component> list = List.of(this.getEffectName(mobeffectinstance), MobEffectUtil.formatDuration(mobeffectinstance, 1.0F, this.minecraft.level.tickRateManager().tickrate()));
+                    list = ClientHooks.getEffectTooltip(this, mobeffectinstance, list);
+                    guiGraphics.renderTooltip(this.font, list, Optional.empty(), mouseX, mouseY);
+                }
+            }
+        }
+
+    }
+
+    private void renderBackgrounds(GuiGraphics guiGraphics, int renderX, int yOffset, Iterable<MobEffectInstance> effects, boolean isSmall) {
+        int i = this.topPos;
+
+        for(MobEffectInstance mobeffectinstance : effects) {
+            if (isSmall) {
+                guiGraphics.blitSprite(EFFECT_BACKGROUND_LARGE_SPRITE, renderX, i, 120, 32);
+            } else {
+                guiGraphics.blitSprite(EFFECT_BACKGROUND_SMALL_SPRITE, renderX, i, 32, 32);
+            }
+
+            i += yOffset;
+        }
+
+    }
+
+    private void renderIcons(GuiGraphics guiGraphics, int renderX, int yOffset, Iterable<MobEffectInstance> effects, boolean isSmall) {
+        MobEffectTextureManager mobeffecttexturemanager = this.minecraft.getMobEffectTextures();
+        int i = this.topPos;
+
+        for(MobEffectInstance mobeffectinstance : effects) {
+            IClientMobEffectExtensions renderer = IClientMobEffectExtensions.of(mobeffectinstance);
+            if (renderer.renderInventoryIcon(mobeffectinstance, this, guiGraphics, renderX + (isSmall ? 6 : 7), i, 0)) {
+                i += yOffset;
+            } else {
+                Holder<MobEffect> holder = mobeffectinstance.getEffect();
+                TextureAtlasSprite textureatlassprite = mobeffecttexturemanager.get(holder);
+                guiGraphics.blit(renderX + (isSmall ? 6 : 7), i + 7, 0, 18, 18, textureatlassprite);
+                i += yOffset;
+            }
+        }
+
+    }
+
+    private void renderLabels(GuiGraphics guiGraphics, int renderX, int yOffset, Iterable<MobEffectInstance> effects) {
+        int i = this.topPos;
+
+        for(MobEffectInstance mobeffectinstance : effects) {
+            IClientMobEffectExtensions renderer = IClientMobEffectExtensions.of(mobeffectinstance);
+            if (renderer.renderInventoryText(mobeffectinstance, this, guiGraphics, renderX, i, 0)) {
+                i += yOffset;
+            } else {
+                Component component = this.getEffectName(mobeffectinstance);
+                guiGraphics.drawString(this.font, component, renderX + 10 + 18, i + 6, 16777215);
+                Component component1 = MobEffectUtil.formatDuration(mobeffectinstance, 1.0F, this.minecraft.level.tickRateManager().tickrate());
+                guiGraphics.drawString(this.font, component1, renderX + 10 + 18, i + 6 + 10, 8355711);
+                i += yOffset;
+            }
+        }
+
+    }
+
+    private Component getEffectName(MobEffectInstance effect) {
+        MutableComponent mutablecomponent = ((MobEffect)effect.getEffect().value()).getDisplayName().copy();
+        if (effect.getAmplifier() >= 1 && effect.getAmplifier() <= 9) {
+            MutableComponent var10000 = mutablecomponent.append(CommonComponents.SPACE);
+            int var10001 = effect.getAmplifier();
+            var10000.append(Component.translatable("enchantment.level." + (var10001 + 1)));
+        }
+
+        return mutablecomponent;
     }
 }
