@@ -14,13 +14,11 @@ public class OWEntityFoodOverlay { ;
     public static void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight) {
         Player rider = Minecraft.getInstance().player;
 
-        int x = screenWidth / 2;
-        int y = screenHeight / 2;
         if (rider != null) {
             LivingEntity entity = (LivingEntity) rider.getVehicle();
             if (entity != null) {
                 if (entity instanceof OWEntity owEntity) {
-                    createFoodOverlay(guiGraphics, owEntity, x, y);
+                    createFoodOverlay(guiGraphics, owEntity, screenWidth, screenHeight);
                 }
             }
         }
@@ -31,7 +29,7 @@ public class OWEntityFoodOverlay { ;
         if (!foodItem.isEmpty()) {
             int count = entity.getFoodCount();
 
-            guiGraphics.renderItem(foodItem, x + 100, y + 76);
+            guiGraphics.renderItem(foodItem, (x / 2) - 110, y - 18);
 
 
             if (count > 0) {
@@ -41,8 +39,8 @@ public class OWEntityFoodOverlay { ;
                 String countText = String.valueOf(count);
                 Font font = Minecraft.getInstance().font;
 
-                float textX = x + 110 - font.width(countText) / 2f;
-                float textY = y + 94;
+                float textX = (((float) x / 2) - 114) + font.width(countText) / 2f;
+                float textY = y - 27;
 
                 guiGraphics.drawString(font, countText, (int) textX, (int) textY, 0xFFFFFF);
 

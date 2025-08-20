@@ -21,6 +21,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -29,6 +30,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.tiew.operationWild.entity.OWEntityUtils;
 import net.tiew.operationWild.entity.custom.living.*;
@@ -1114,7 +1116,7 @@ public class ClientEvents {
             poseStack.rotateAround(rotation, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
 
             poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
-        } else if (event.getEntity().getVehicle() instanceof OWEntity elephant) {
+        } else if (event.getEntity().getVehicle() instanceof OWEntity owEntity) {
 
             PoseStack poseStack = event.getPoseStack();
             poseStack.pushPose();
@@ -1123,8 +1125,8 @@ public class ClientEvents {
 
             poseStack.mulPose(Axis.YP.rotationDegrees(-event.getEntity().getYRot()));
 
-            Quaternionf rotationZ = Axis.ZP.rotationDegrees(-elephant.getBodyZRot());
-            Quaternionf rotationX = Axis.XP.rotationDegrees(-elephant.getBodyXRot());
+            Quaternionf rotationZ = Axis.ZP.rotationDegrees(-owEntity.getBodyZRot());
+            Quaternionf rotationX = Axis.XP.rotationDegrees(-owEntity.getBodyXRot());
             poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
             poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
 
@@ -1151,6 +1153,9 @@ public class ClientEvents {
             if (rootVehicle instanceof ElephantEntity elephant) {
                 event.setRoll(event.getRoll() + (elephant.getBodyZRot() / 4));
                 event.setPitch(event.getPitch() + (elephant.getBodyXRot() / 2));
+            } else if (rootVehicle instanceof KodiakEntity kodiak) {
+                event.setRoll(event.getRoll() + (kodiak.getBodyZRot() / (kodiak.isRunning() ? 1 : 2)));
+                event.setPitch(event.getPitch() + (kodiak.getBodyXRot() / (kodiak.isRunning() ? 1 : 2)));
             }
         }
     }

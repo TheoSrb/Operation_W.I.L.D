@@ -137,11 +137,6 @@ public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntity
     }
 
     @Override
-    public List<Object> getEntityDiet() {
-        return VEGETARIAN_ENTITIES;
-    }
-
-    @Override
     public String getTamingAdvancement() {
         return "colors";
     }

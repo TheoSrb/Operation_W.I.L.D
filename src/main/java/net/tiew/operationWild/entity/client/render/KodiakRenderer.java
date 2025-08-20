@@ -21,6 +21,8 @@ import java.util.Map;
 public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<KodiakEntity>> {
     private static final Map<KodiakVariant, ResourceLocation> LOCATION_BY_VARIANT = Util.make(Maps.newEnumMap(KodiakVariant.class), map -> {
         map.put(KodiakVariant.DEFAULT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_default.png"));
+        map.put(KodiakVariant.BLACK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_black.png"));
+        map.put(KodiakVariant.GREY, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_grey.png"));
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
@@ -75,7 +77,7 @@ public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<Kodiak
                 }
             }
         }
-        OWRendererUtils.createInformationImage(kodiak, poseStack, bufferSource, packedLight, 0, 0, 0, 0, 2);
+        OWRendererUtils.createInformationImage(kodiak, poseStack, bufferSource, packedLight, 0, 0.75, 0, 0, 3);
     }
 
     @Override

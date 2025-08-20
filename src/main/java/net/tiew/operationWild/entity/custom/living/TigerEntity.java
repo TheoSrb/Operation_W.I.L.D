@@ -179,11 +179,6 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     }
 
     @Override
-    public List<Object> getEntityDiet() {
-        return CARNIVOROUS_ENTITIES;
-    }
-
-    @Override
     public String getTamingAdvancement() {
         return "wild_meow";
     }

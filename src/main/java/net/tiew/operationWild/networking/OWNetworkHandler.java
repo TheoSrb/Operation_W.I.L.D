@@ -46,6 +46,7 @@ public class OWNetworkHandler {
         registrar.playToClient(TigerSharkDatasSendToClient.TYPE, TigerSharkDatasSendToClient.STREAM_CODEC, TigerSharkDatasSendToClient::handle);
         registrar.playToClient(SyncKillDataPacket.TYPE, SyncKillDataPacket.STREAM_CODEC, SyncKillDataPacket::handle);
         registrar.playToClient(ChameleonUtilsSendToClient.TYPE, ChameleonUtilsSendToClient.STREAM_CODEC, ChameleonUtilsSendToClient::handle);
+        registrar.playToClient(OWFoodPacketClient.TYPE, OWFoodPacketClient.STREAM_CODEC, OWFoodPacketClient::handle);
     }
 
     public static void sendToServer(CustomPacketPayload packet) {

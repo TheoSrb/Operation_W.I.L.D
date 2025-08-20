@@ -32,11 +32,6 @@ public record ClientPressedRightClick() implements CustomPacketPayload {
 
                 if (entity != null) {
                     if (entity instanceof OWEntity owEntities) {
-                        if (owEntities instanceof TigerEntity tiger) {
-                            if (!tiger.isTameJumping()) {
-                                tiger.setTameJumping(true);
-                            }
-                        }
                         if (owEntities instanceof SeaBugEntity seaBug) {
                             if (seaBug.level().getRawBrightness(seaBug.blockPosition(), 0) <= 3 && !seaBug.isOff()) {
                                 seaBug.setLightOn(!seaBug.isLightOn());

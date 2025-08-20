@@ -1,5 +1,7 @@
 package net.tiew.operationWild.entity.custom.living;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -9,6 +11,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.DifficultyInstance;
@@ -31,6 +34,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.entity.AI.FoodsPreference;
+import net.tiew.operationWild.entity.OWTameImplementation;
+import net.tiew.operationWild.entity.variants.ElephantVariant;
+import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_client.OWFoodPacketClient;
+import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
 import net.tiew.operationWild.entity.AI.OWPanicGoal;
@@ -42,15 +51,24 @@ import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.utils.OWUtils;
 
+import java.util.List;
+
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
-public class KodiakEntity extends OWEntity implements OWEntityUtils {
+public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEntityUtils, FoodsPreference {
 
     public static final double TAMING_EXPERIENCE = 180.0;
 
     public String[] quests = {};
-    public int foodGiven = 0;
-    public int foodWanted;
+
+    private int runTime;
+
+    public final AnimationState attack1Combo = new AnimationState();
+    public final AnimationState attack2Combo = new AnimationState();
+    public final AnimationState attack3Combo = new AnimationState();
+    public int attack1ComboTimer = 0;
+    public int attack2ComboTimer = 0;
+    public int attack3ComboTimer = 0;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
 
@@ -63,6 +81,72 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
+    // Entity Methods
+    @Override
+    public int getEntityColor() {
+        return 8215109;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 10;
+    }
+
+    @Override
+    public float vehicleRunSpeedMultiplier() {
+        return 5f;
+    }
+
+    @Override
+    public float vehicleWalkSpeedMultiplier() {
+        return 2;
+    }
+
+    @Override
+    public float vehicleComboSpeedMultiplier() {
+        return 3f;
+    }
+
+    @Override
+    public boolean canIncreasesSpeedDuringSprint() {
+        return false;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return OWItems.ELEPHANT_SADDLE.get();
+    }
+
+    @Override
+    public List<Class<?>> getEntityType() {
+        return ASSASSIN_ENTITIES;
+    }
+
+    @Override
+    public String getTamingAdvancement() {
+        return "";
+    }
+
+    @Override
+    public float getMaxVitalEnergy() {
+        return 350 * (1 + ((float) this.getLevel() / 100));
+    }
+
+    @Override
+    public float getVitalEnergyRecuperation() {
+        return 0.85f;
+    }
+
+    @Override
+    public boolean preferRawMeat() { return false;}
+
+    @Override
+    public boolean preferCookedMeat() { return true;}
+
+    @Override
+    public boolean preferVegetables() {
+        return false;
+    }
 
     // Entity's AI
     protected void registerGoals() {
@@ -73,7 +157,7 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 50.0D).add(Attributes.MOVEMENT_SPEED, 0.19D).add(Attributes.FOLLOW_RANGE, 25.0D).add(Attributes.ATTACK_DAMAGE, 6.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 40.0).add(Attributes.MOVEMENT_SPEED, 0.17D).add(Attributes.FOLLOW_RANGE, 25.0D).add(Attributes.ATTACK_DAMAGE, 7.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -84,7 +168,7 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
 
     @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {
-        super.playStepSound(blockPos, blockState);
+        if (!isRunning()) super.playStepSound(blockPos, blockState);
     }
 
     public void setBuyingSkin(int skinIndex) {
@@ -150,15 +234,33 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
 
     public void tick() {
         super.tick();
+
+        createCombo(14, 10, OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, true, 2);
+
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
-        
-        
-        
-        
-        
-        
+
+
+        if (((this.isVehicle() && this.isRunning()) || getTarget() != null)) {
+            if (this.level().isClientSide()) {
+                Player player = Minecraft.getInstance().player;
+                if (player != null && player.zza > 0) {
+                    runTime++;
+
+                    if (runTime >= 29) runTime = 0;
+
+                    if ((runTime == 5 || runTime == 19) && this.onGround()) {
+                        Minecraft.getInstance().getSoundManager().play(
+                                SimpleSoundInstance.forUI(SoundEvents.HORSE_STEP, 0.8f, 0.5f)
+                        );
+                    }
+                } else {
+                    runTime = 0;
+                }
+            }
+        }
+
 
         /*if (this.getVariant() == KodiakVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
             OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
@@ -176,9 +278,22 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
     }
 
     @Override
-    protected void positionRider(Entity entity, MoveFunction function) {
-        super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY() - 1, entity.getZ());
+    protected void positionRider(Entity entity, MoveFunction moveFunction) {
+        super.positionRider(entity, moveFunction);
+        Vec3 movement = this.getDeltaMovement();
+        Vec3 look = this.getLookAngle();
+        double dot = movement.normalize().dot(look.normalize());
+
+        if (entity instanceof Player player) {
+            if (player.zza == 0) {
+                moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f), this.getZ() + (look.z / 2.5));
+            } else if (this.isRunning() && dot >= 0.1) {
+                float yOffset = calculateAnimatedYOffset(1.44F, 1.0f, 17.0F, 0.0F, 0.6F);
+                moveFunction.accept(entity, this.getX(), entity.getY() + (-0.2f) + yOffset, this.getZ());
+            } else {
+                moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f), this.getZ() + (look.z / 2.5));
+            }
+        }
     }
 
     @Override
@@ -196,16 +311,21 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
     }
 
     @Override
+    public boolean isFood(ItemStack itemStack) {
+        return itemStack.is(OWItems.COOKED_PEACOCK.get());
+    }
+
+    @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        if (/*itemStack.is(OWItems.SAVAGE_BERRIES.get()) &&*/ !this.isTame() && this.isBaby()) {
-            foodGiven++;
+        if (isFood(itemStack) && !this.isTame()) {
+            this.foodGiven++;
             this.playSound(SoundEvents.CAMEL_EAT);
             itemStack.shrink(1);
 
             if (!EventHooks.onAnimalTame(this, player)) {
-                if (!this.level().isClientSide() && foodGiven >= foodWanted) {
+                if (!this.level().isClientSide() && this.foodGiven >= this.foodWanted) {
                     this.setTame(true, player);
                     this.setSleeping(false);
                     resetSleepBar();
@@ -214,7 +334,6 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
             return InteractionResult.SUCCESS;
         }
 
-        if (itemStack.is(OWItems.SAVAGE_BERRIES.get())) return InteractionResult.PASS;
         return super.mobInteract(player, hand);
     }
 
@@ -227,17 +346,62 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
             this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
 
-            this.setVariant(KodiakVariant.DEFAULT);
+            this.setVariant(chooseKodiakVariant());
             this.setInitialVariant(this.getVariant());
+
+            this.foodWanted = (int) OWUtils.generateRandomInterval(10, 16);
         }
 
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
+    private KodiakVariant chooseKodiakVariant() {
+        KodiakVariant variant;
+        if (chance >= 66.67) variant = KodiakVariant.BLACK;
+        else if (chance >= 33.33) variant = KodiakVariant.GREY;
+        else variant = KodiakVariant.DEFAULT;
+        return variant;
+    }
 
     private void setupAnimationState() {
-        createIdleAnimation(54, true);
+        createIdleAnimation(48, true);
         createSitAnimation(80, true);
+
+        if (this.isCombo(1)) {
+            if (this.attack1ComboTimer <= 0) {
+                this.attack1ComboTimer = 20;
+                this.attack1Combo.start(this.tickCount);
+            } else --this.attack1ComboTimer;
+        }
+
+        if (!this.isCombo(1)) {
+            this.attack1ComboTimer = 0;
+            this.attack1Combo.stop();
+        }
+
+        if (this.isCombo(2)) {
+            if (this.attack2ComboTimer <= 0) {
+                this.attack2ComboTimer = 20;
+                this.attack2Combo.start(this.tickCount);
+            } else --this.attack2ComboTimer;
+        }
+
+        if (!this.isCombo(2)) {
+            this.attack2ComboTimer = 0;
+            this.attack2Combo.stop();
+        }
+
+        if (this.isCombo(3)) {
+            if (this.attack3ComboTimer <= 0) {
+                this.attack3ComboTimer = 30;
+                this.attack3Combo.start(this.tickCount);
+            } else --this.attack3ComboTimer;
+        }
+
+        if (!this.isCombo(3)) {
+            this.attack3ComboTimer = 0;
+            this.attack3Combo.stop();
+        }
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -249,8 +413,8 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
         super.addAdditionalSaveData(tag);
         tag.putInt("getInitialVariant", this.getInitialVariant().getId());
         tag.putInt("Variant", this.getTypeVariant());
-        tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
-        tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
+        tag.putInt("foodGiven", this.foodGiven);
+        tag.putInt("foodWanted", this.foodWanted);
 
     }
 
@@ -258,13 +422,8 @@ public class KodiakEntity extends OWEntity implements OWEntityUtils {
         super.readAdditionalSaveData(tag);
         this.entityData.set(DATA_INITIAL_VARIANT, tag.getInt("getInitialVariant"));
         this.entityData.set(VARIANT, tag.getInt("Variant"));
-        this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
-        this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
-    }
-
-    @Override
-    public int getEntityColor() {
-        return 8215109;
+        this.foodGiven = tag.getInt("foodGiven");
+        this.foodWanted = tag.getInt("foodWanted");
     }
 }
 

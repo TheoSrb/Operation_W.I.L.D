@@ -165,7 +165,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
             this.animate(tiger.attack2Combo, TigerAnimations.ATTACK_STRIKE2, ageInTicks, 0.8f);
         }
         if (tiger.isCombo(3)) {
-            this.animate(tiger.attack3Combo, TigerAnimations.ATTACK_STRIKE3, ageInTicks, 0.7f);
+            this.animate(tiger.attack3Combo, TigerAnimations.ATTACK_STRIKE3, ageInTicks, 0.55f);
         }
 
 
@@ -220,10 +220,6 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
                 if ((tiger.isVehicle() && tiger.getControllingPassenger() instanceof Player player && player.zza > 0 && tiger.isRunning())) {
                     this.animateWalk(TigerAnimations.MOVE_RUN, limbSwing, limbSwingAmount, tiger.isVehicle() ? 0.75f : 1f, runSpeed);
-                    if (tiger.level().isClientSide()) {
-                        tiger.setBodyZRot(0);
-                        tiger.setBodyXRot(0);
-                    }
                     return;
                 }
 

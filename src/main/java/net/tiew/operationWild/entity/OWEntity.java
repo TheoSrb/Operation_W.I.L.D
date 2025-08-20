@@ -62,6 +62,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.tiew.operationWild.entity.custom.living.*;
 import net.tiew.operationWild.networking.ClientKillData;
+import net.tiew.operationWild.networking.packets.to_client.*;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import net.tiew.operationWild.OperationWild;
@@ -80,10 +81,6 @@ import net.tiew.operationWild.entity.variants.TigerVariant;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.networking.OWNetworkHandler;
-import net.tiew.operationWild.networking.packets.to_client.BookNotificationPacket;
-import net.tiew.operationWild.networking.packets.to_client.OWEntityUtilsToClient;
-import net.tiew.operationWild.networking.packets.to_client.OWPacketSendToClient;
-import net.tiew.operationWild.networking.packets.to_client.OWQuestProgressToClient;
 import net.tiew.operationWild.networking.packets.to_server.ConsumeItemPacket;
 import net.tiew.operationWild.screen.entity.OWInventoryMenu;
 import net.tiew.operationWild.screen.entity.submarine.SeaBugInventoryMenu;
@@ -149,6 +146,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public int choosenQuest;
     public String choosenQuestStr;
 
+    public int foodGiven = 0;
+    public int foodWanted;
+
     public final AnimationState idleAnimationState = new AnimationState();
     public final AnimationState attackAnimationState = new AnimationState();
     public final AnimationState sittingAnimationState = new AnimationState();
@@ -185,6 +185,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public static final EntityDataAccessor<Boolean> IS_COMBO = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> BODY_Z_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> BODY_X_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> BODY_Y_OFFSET = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Boolean> IS_COMBO_PAUSED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Integer> GET_COMBO_ATTACK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_FALLING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
@@ -255,13 +256,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
             if (!MARAUDER_ENTITIES.contains(this.getClass())) MARAUDER_ENTITIES.add(this.getClass());
         }
 
-        if (this.getEntityDiet() == CARNIVOROUS_ENTITIES) {
-            if (!CARNIVOROUS_ENTITIES.contains(this)) CARNIVOROUS_ENTITIES.add(this);
-        }
-        else if (this.getEntityDiet() == VEGETARIAN_ENTITIES) {
-            if (!VEGETARIAN_ENTITIES.contains(this)) VEGETARIAN_ENTITIES.add(this);
-        }
-
         babyQuests.put(0, "quest.babyQuest0");
         babyQuests.put(1, "quest.babyQuest1");
         babyQuests.put(2, "quest.babyQuest2");
@@ -277,9 +271,24 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     public static final List<Class<?>> ASSASSIN_ENTITIES = new ArrayList<>();
     public static final List<Class<?>> MARAUDER_ENTITIES = new ArrayList<>();
 
-    public static final List<Object> CARNIVOROUS_ENTITIES = new ArrayList<>();
+    public static final List<Object> CARNIVOROUS_ENTITIES = List.of(
+            OWEntityRegistry.TIGER.get(),
+            OWEntityRegistry.HYENA.get(),
+            OWEntityRegistry.BOA.get(),
+            OWEntityRegistry.CHAMELEON.get(),
+            OWEntityRegistry.JELLYFISH.get(),
+            OWEntityRegistry.KODIAK.get(),
+            OWEntityRegistry.MANDRILL.get(),
+            OWEntityRegistry.TIGER_SHARK.get(),
+            OWEntityRegistry.WALRUS.get()
+    );
 
-    public static final List<Object> VEGETARIAN_ENTITIES = new ArrayList<>();
+    public static final List<Object> VEGETARIAN_ENTITIES = List.of(
+            OWEntityRegistry.ELEPHANT.get(),
+            OWEntityRegistry.MANTA.get(),
+            OWEntityRegistry.PEACOCK.get(),
+            OWEntityRegistry.RED_PANDA.get()
+    );
 
     public static final List<Item> FOOD_FOR_HEALING_MEAT = List.of(Items.MUTTON, Items.COOKED_MUTTON, Items.CHICKEN, Items.COOKED_CHICKEN, Items.RABBIT, Items.COOKED_RABBIT, Items.BEEF, Items.COOKED_BEEF, Items.PORKCHOP, Items.COOKED_PORKCHOP, OWItems.RAW_TIGER.get(), OWItems.COOKED_TIGER.get(), OWItems.RAW_BOA.get(), OWItems.COOKED_BOA.get(), OWItems.RAW_PEACOCK.get(), OWItems.COOKED_PEACOCK.get(), OWItems.RAW_KODIAK.get(), OWItems.COOKED_KODIAK.get().asItem());
 
@@ -746,6 +755,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
 
     public void setBodyXRot(float getBodyXRot) { this.entityData.set(BODY_X_ROT, getBodyXRot);}
     public float getBodyXRot() { return this.entityData.get(BODY_X_ROT);}
+
+    public void setBodyYOffset(float getBodyXRot) { this.entityData.set(BODY_Y_OFFSET, getBodyXRot);}
+    public float getBodyYOffset() { return this.entityData.get(BODY_Y_OFFSET);}
 
     public boolean ownerIsRiding() {
         if (this.getOwner() != null) {
@@ -1402,6 +1414,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         if (sittingCooldown > 0) sittingCooldown--;
 
         if (!this.level().isClientSide()) {
+            if (this.level() instanceof ServerLevel serverLevel) {
+                for (ServerPlayer player : serverLevel.players()) {
+                    OWNetworkHandler.sendToClient(new OWFoodPacketClient(this.getId(), this.foodGiven, this.foodWanted), player);
+                }
+            }
+        }
+
+        if (!this.level().isClientSide()) {
             if (this.isRunning() && this.isVehicle()) {
                 setVitalEnergy(getVitalEnergy() + 1);
             }
@@ -1824,6 +1844,42 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         return this.entityData.get(GET_COMBO_ATTACK);
     }
 
+    public float calculateAnimatedYOffset(float animLength, float speedMultiplier, float heightMax, float heightMin, float amplitudeMultiplier) {
+        float walkSpeed = this.walkAnimation.speed();
+        float walkPos = this.walkAnimation.position();
+
+        float animProgress = (walkPos * speedMultiplier / 20.0F) % animLength / animLength;
+        float yOffset;
+
+        if (animProgress < 0.24f / animLength) {
+            float progress = animProgress / (0.24f / animLength);
+            yOffset = heightMax + (heightMin - heightMax) * progress;
+        } else if (animProgress < 0.4f / animLength) {
+            yOffset = heightMin;
+        } else if (animProgress < 0.56f / animLength) {
+            float progress = (animProgress - (0.4f / animLength)) / ((0.56f - 0.4f) / animLength);
+            yOffset = heightMin + (heightMax - heightMin) * progress;
+        } else if (animProgress < 0.72f / animLength) {
+            yOffset = heightMax;
+        } else if (animProgress < 0.92f / animLength) {
+            float progress = (animProgress - (0.72f / animLength)) / ((0.92f - 0.72f) / animLength);
+            yOffset = heightMax + (heightMin - heightMax) * progress;
+        } else if (animProgress < 1.12f / animLength) {
+            yOffset = heightMin;
+        } else if (animProgress < 1.28f / animLength) {
+            float progress = (animProgress - (1.12f / animLength)) / ((1.28f - 1.12f) / animLength);
+            yOffset = heightMin + (heightMax - heightMin) * progress;
+        } else {
+            yOffset = heightMax;
+        }
+
+        float amplitudeFactor = Math.min(1.0F, walkSpeed * amplitudeMultiplier);
+        yOffset *= amplitudeFactor;
+        yOffset /= 16.0F;
+
+        return yOffset;
+    }
+
     public void tickRidden(Player player, Vec3 vec3) {
         super.tickRidden(player, vec3);
         Vec2 vec2 = this.getRiddenRotation(player);
@@ -1853,6 +1909,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
             if (this instanceof ElephantEntity elephant) {
                 if (elephant.getComboAttack() == 3) {
                     return 0;
+                }
+            }
+
+            if (this instanceof KodiakEntity kodiak) {
+                if (kodiak.getComboAttack() == 3) {
+                    return (baseSpeed / 30) * vehicleComboSpeedMultiplier();
                 }
             }
 
@@ -2335,11 +2397,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
     }
 
     @Override
-    public List<Object> getEntityDiet() {
-        return List.of();
-    }
-
-    @Override
     public String getTamingAdvancement() {
         return "";
     }
@@ -2601,6 +2658,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, OWEntityUti
         builder.define(IS_PASSIVE, false);
         builder.define(BODY_Z_ROT, 0.0f);
         builder.define(BODY_X_ROT, 0.0f);
+        builder.define(BODY_Y_OFFSET, 0.0f);
         builder.define(IS_FALLING, false);
         builder.define(IS_FED, false);
         builder.define(ITEM_FOOD, ItemStack.EMPTY);

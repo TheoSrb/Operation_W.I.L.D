@@ -136,11 +136,6 @@ public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, 
     }
 
     @Override
-    public List<Object> getEntityDiet() {
-        return CARNIVOROUS_ENTITIES;
-    }
-
-    @Override
     public String getTamingAdvancement() {
         return "";
     }

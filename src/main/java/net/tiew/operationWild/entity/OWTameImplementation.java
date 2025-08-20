@@ -13,7 +13,6 @@ public interface OWTameImplementation {
     boolean canIncreasesSpeedDuringSprint();
     Item acceptSaddle();
     List<Class<?>> getEntityType();
-    List<Object> getEntityDiet();
     String getTamingAdvancement();
     float getMaxVitalEnergy();
     float getVitalEnergyRecuperation();

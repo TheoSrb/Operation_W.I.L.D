@@ -98,10 +98,6 @@ public class MandrillEntity extends OWEntity implements OWEntityUtils, OWTameImp
         return ASSASSIN_ENTITIES;
     }
 
-    @Override
-    public List<Object> getEntityDiet() {
-        return CARNIVOROUS_ENTITIES;
-    }
 
     @Override
     public String getTamingAdvancement() {

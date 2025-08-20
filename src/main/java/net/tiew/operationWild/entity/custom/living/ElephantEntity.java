@@ -58,6 +58,7 @@ import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.AI.*;
 import net.tiew.operationWild.entity.OWTameImplementation;
+import net.tiew.operationWild.entity.categoy.OWGroupEntity;
 import net.tiew.operationWild.entity.variants.PeacockVariant;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.item.custom.ElephantSaddle;
@@ -74,15 +75,13 @@ import java.util.*;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
-public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImplementation {
+public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTameImplementation, FoodsPreference {
 
     public static final double TAMING_EXPERIENCE = 345.0;
 
     public static final int FOOTSTEP_MAX_DISTANCE = 20;
 
     public String[] quests = {};
-    public int foodGiven = 0;
-    public int foodWanted;
 
     public final AnimationState attack1Combo = new AnimationState();
     public final AnimationState attack2Combo = new AnimationState();
@@ -100,8 +99,8 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     public ElephantVariant getInitialVariant() { return ElephantVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
     public void setInitialVariant(ElephantVariant variant) { this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());}
 
-    public ElephantEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
-        super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+    public ElephantEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed, boolean canBeAlpha) {
+        super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed, canBeAlpha);
     }
 
     // Entity Methods
@@ -146,11 +145,6 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     }
 
     @Override
-    public List<Object> getEntityDiet() {
-        return VEGETARIAN_ENTITIES;
-    }
-
-    @Override
     public String getTamingAdvancement() {
         return "";
     }
@@ -163,6 +157,17 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     @Override
     public float getVitalEnergyRecuperation() {
         return 0.65f;
+    }
+
+    @Override
+    public boolean preferRawMeat() { return false;}
+
+    @Override
+    public boolean preferCookedMeat() { return false;}
+
+    @Override
+    public boolean preferVegetables() {
+        return true;
     }
 
 
@@ -396,7 +401,6 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
             }
         }
 
-
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (!this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) createTameAttackSystem(30, 20, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, 5, 3.5, 2, false);
         if (this.level().isClientSide()) setupAnimationState();
@@ -498,6 +502,8 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
 
             this.setVariant(chooseElephantVariant());
             this.setInitialVariant(this.getVariant());
+
+            foodWanted = (int) OWUtils.generateRandomInterval(20, 30);
         }
 
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
@@ -586,8 +592,8 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         super.addAdditionalSaveData(tag);
         tag.putInt("getInitialVariant", this.getInitialVariant().getId());
         tag.putInt("Variant", this.getTypeVariant());
-        tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
-        tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
+        tag.putInt("foodWanted", this.foodWanted);
+        tag.putInt("foodGiven", this.foodGiven);
 
         if (this.getInventory() != null) {
             ItemStack saddleStack = this.getInventory().getStackInSlot(0);
@@ -609,8 +615,8 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
         super.readAdditionalSaveData(tag);
         this.entityData.set(DATA_INITIAL_VARIANT, tag.getInt("getInitialVariant"));
         this.entityData.set(VARIANT, tag.getInt("Variant"));
-        this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
-        this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
+        this.foodWanted = tag.getInt("foodWanted");
+        this.foodGiven = tag.getInt("foodGiven");
 
         if (tag.contains("SaddleWools")) {
             int[] woolIds = tag.getIntArray("SaddleWools");

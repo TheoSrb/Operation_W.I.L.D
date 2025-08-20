@@ -149,11 +149,6 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     }
 
     @Override
-    public List<Object> getEntityDiet() {
-        return CARNIVOROUS_ENTITIES;
-    }
-
-    @Override
     public String getTamingAdvancement() {
         return "arms_what_for";
     }

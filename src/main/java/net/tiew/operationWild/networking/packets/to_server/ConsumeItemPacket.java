@@ -14,9 +14,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
+import net.tiew.operationWild.entity.custom.living.*;
 
 public record ConsumeItemPacket(int entityId) implements CustomPacketPayload {
 
@@ -52,6 +50,8 @@ public record ConsumeItemPacket(int entityId) implements CustomPacketPayload {
                             if (owEntity instanceof BoaEntity boa) boa.healWithFavoriteFood(1.5f, boa.preferRawMeat(), boa.preferCookedMeat());
                             else if (owEntity instanceof TigerEntity tiger) tiger.healWithFavoriteFood(1.5f, tiger.preferRawMeat(), tiger.preferCookedMeat());
                             else if (owEntity instanceof PeacockEntity peacock) peacock.healWithFavoriteFood(1.5f, peacock.preferRawMeat(), peacock.preferCookedMeat());
+                            else if (owEntity instanceof ElephantEntity peacock) peacock.healWithFavoriteFood(1.5f, peacock.preferRawMeat(), peacock.preferCookedMeat());
+                            else if (owEntity instanceof KodiakEntity peacock) peacock.healWithFavoriteFood(1.5f, peacock.preferRawMeat(), peacock.preferCookedMeat());
 
                             owEntity.playSound(SoundEvents.CAMEL_EAT, 1.0f, 1.0f);
 

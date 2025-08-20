@@ -36,14 +36,6 @@ public record SendUltimateCapacityPacket() implements CustomPacketPayload {
 
                 if (entity != null) {
                     if (entity instanceof OWEntity owEntity && !owEntity.isUltimate()) {
-                        owEntity.setUltimate(true);
-
-                        if (owEntity.getControllingPassenger() != null) {
-                            owEntity.getControllingPassenger().addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 10, 255, false, false, false));
-                            owEntity.getControllingPassenger().level().playSound(null, owEntity.getX(), owEntity.getY(), owEntity.getZ(), SoundEvents.LIGHTNING_BOLT_THUNDER, SoundSource.NEUTRAL, 3.0F, 1.0F);
-                        }
-
-                        if (owEntity instanceof TigerEntity tiger) tiger.level().playSound(null, tiger.getX(), tiger.getY(), tiger.getZ(), OWSounds.TIGER_ROAR_ULTIMATE.get(), SoundSource.NEUTRAL, 3.0F, 1.0F);
                     }
                 }
             }
