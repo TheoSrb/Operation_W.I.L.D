@@ -25,6 +25,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -58,6 +59,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.tiew.operationWild.entity.AI.FoodsPreference;
@@ -2103,7 +2105,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
             return InteractionResult.SUCCESS;
         }
 
-        saveColor(player, hand);
+        if (itemstack.is(Tags.Items.DYES)) {
+            saveColor(player, hand);
+            return InteractionResult.SUCCESS;
+        }
 
         if (this.isTame() && !isBaby() && !this.level().isClientSide) {
             if (itemstack.is(Items.STICK)) {
