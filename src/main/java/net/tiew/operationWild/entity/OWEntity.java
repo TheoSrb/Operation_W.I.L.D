@@ -1713,6 +1713,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
             }
         }
 
+        if (this instanceof KodiakEntity kodiak) {
+            if (attackTimer == timeToHit) {
+                float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
+                kodiak.level().playSound(null, kodiak.getX(), kodiak.getY(), kodiak.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
+                if (getComboAttack() == 3) {
+                    kodiak.createMiniShockwave();
+                }
+            }
+        }
+
     }
 
     public void resetCombo(int numberOfAttacks) {

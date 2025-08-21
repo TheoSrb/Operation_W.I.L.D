@@ -2,8 +2,10 @@ package net.tiew.operationWild.entity.custom.living;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -14,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -30,7 +33,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
@@ -176,7 +181,17 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
-        return RANDOM(5) ? null : null;
+        if (RANDOM(3)) {
+            if (RANDOM(2)) return OWSounds.KODIAK_IDLE_3.get();
+            else if (RANDOM(2)) return OWSounds.KODIAK_IDLE_2.get();
+            else return OWSounds.KODIAK_IDLE_1.get();
+        }
+        return null;
+    }
+
+    @Override
+    protected @Nullable SoundEvent getHurtSound(DamageSource damageSource) {
+        return RANDOM(2) ? OWSounds.KODIAK_HURT.get() : OWSounds.KODIAK_MISC.get();
     }
 
     protected float getSoundVolume() {
@@ -249,10 +264,28 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         }
     }
 
+    public void createMiniShockwave() {
+        Vec3 look = this.getLookAngle();
+
+        double x = this.getX() + look.x * 2.0;
+        double z = this.getZ() + look.z * 2.0;
+        AABB area = new AABB(x - 1, this.getY() - 1, z - 1, x + 1, this.getY() + 1, z + 1);
+
+        for (int i = 0; i < 50; i++) {
+            double px = area.minX + Math.random() * (area.maxX - area.minX);
+            double py = area.minY + Math.random() * (area.maxY - area.minY);
+            double pz = area.minZ + Math.random() * (area.maxZ - area.minZ);
+            BlockParticleOption particleOption = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
+
+            this.level().addParticle(particleOption, px, py, pz, 0, 0, 0);
+        }
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ROOTED_DIRT_HIT, SoundSource.AMBIENT, 1.0f, 1.0f);
+    }
+
     public void tick() {
         super.tick();
 
-        createCombo(20, 12, OWSounds.TIGER_HURTING.get(), 3.0, 2, 2.25, false, 2);
+        createCombo(20, 12, random.nextInt(2) == 0 ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get(), 3.0, 2, 2.25, false, 2);
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();

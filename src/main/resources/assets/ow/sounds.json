@@ -55,6 +55,15 @@
 
   "elephant_footstep": { "subtitle": "sounds.ow.elephant_footstep", "sounds": [ "ow:elephant/elephant_footstep" ], "volume": 2 },
 
+  "kodiak_idle": { "subtitle": "sounds.ow.kodiak_idle", "sounds": [ "ow:kodiak/kodiak_idle" ] },
+  "kodiak_idle_2": { "subtitle": "sounds.ow.kodiak_idle_2", "sounds": [ "ow:kodiak/kodiak_idle_2" ] },
+  "kodiak_idle_3": { "subtitle": "sounds.ow.kodiak_idle_3", "sounds": [ "ow:kodiak/kodiak_idle_3" ] },
+  "kodiak_hurting": { "subtitle": "sounds.ow.kodiak_hurting", "sounds": [ "ow:kodiak/kodiak_hurting" ] },
+  "kodiak_hurting_2": { "subtitle": "sounds.ow.kodiak_hurting_2", "sounds": [ "ow:kodiak/kodiak_hurting_2" ] },
+  "kodiak_hurt": { "subtitle": "sounds.ow.kodiak_hurt", "sounds": [ "ow:kodiak/kodiak_hurt" ] },
+  "kodiak_misc": { "subtitle": "sounds.ow.kodiak_misc", "sounds": [ "ow:kodiak/kodiak_misc" ] },
+  "leg_hurt": { "subtitle": "sounds.ow.leg_hurt", "sounds": [ "ow:kodiak/leg_hurt" ] },
+
 
 
 

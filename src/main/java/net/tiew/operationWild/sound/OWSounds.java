@@ -69,6 +69,17 @@ public class OWSounds {
 
     public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_FOOTSTEP = registerSoundEvent("elephant_footstep");
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_IDLE_1 = registerSoundEvent("kodiak_idle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_IDLE_2 = registerSoundEvent("kodiak_idle_2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_IDLE_3 = registerSoundEvent("kodiak_idle_3");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_HURTING = registerSoundEvent("kodiak_hurting");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_HURTING_2 = registerSoundEvent("kodiak_hurting_2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_HURT = registerSoundEvent("kodiak_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_MISC = registerSoundEvent("kodiak_misc");
+    public static final DeferredHolder<SoundEvent, SoundEvent> LEG_HURT = registerSoundEvent("leg_hurt");
+
+
+
     public static final DeferredHolder<SoundEvent, SoundEvent> SUBMARINE_MOVE_LOOP = registerSoundEvent("submarine_move_loop");
     public static final DeferredHolder<SoundEvent, SoundEvent> SUBMARINE_SWITCH_LIGHT = registerSoundEvent("submarine_switch_light");
     public static final DeferredHolder<SoundEvent, SoundEvent> SUBMARINE_AMELIORATION = registerSoundEvent("submarine_amelioration");
