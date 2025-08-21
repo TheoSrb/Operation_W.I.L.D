@@ -201,11 +201,6 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     }
 
     @Override
-    protected boolean canAddPassenger(Entity passenger) {
-        return this.getPassengers().size() < 2;
-    }
-
-    @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
         ItemStack soulStack = new ItemStack(OWItems.ANIMAL_SOUL.get());
@@ -297,6 +292,11 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     @Override
     public boolean hurt(DamageSource damageSource, float v) {
         return super.hurt(damageSource, v);
+    }
+
+    @Override
+    protected boolean canAddPassenger(Entity passenger) {
+        return this.getPassengers().size() < 2;
     }
 
     @Override

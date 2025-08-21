@@ -492,7 +492,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
     public void setNecklaceColor(int necklaceColor) { this.entityData.set(NECKLACE_COLOR, necklaceColor);}
 
-    public void setSitting(boolean sitting) { this.entityData.set(SITTING, sitting); this.setOrderedToSit(sitting);}
+    public void setSitting(boolean sitting) {
+        this.entityData.set(SITTING, sitting); this.setOrderedToSit(sitting);
+        if (sitting) {
+            this.ejectPassengers();
+        }
+    }
 
     public boolean isSitting() { return this.entityData.get(SITTING);}
 

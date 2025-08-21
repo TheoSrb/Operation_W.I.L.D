@@ -448,9 +448,19 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     }
 
     @Override
+    protected boolean canAddPassenger(Entity passenger) {
+        return this.getPassengers().size() < 3;
+    }
+
+    @Override
     protected void positionRider(Entity entity, MoveFunction function) {
         super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY() + (getComboAttack() == 3 ? 0.5f : 0), entity.getZ());
+        int passengerIndex = this.getPassengers().indexOf(entity);
+        Vec3 look = this.getLookAngle();
+
+        if (passengerIndex == 0) function.accept(entity, entity.getX(), entity.getY() + (getComboAttack() == 3 ? 0.5f : 0), entity.getZ());
+        else if (passengerIndex == 1) function.accept(entity, entity.getX() - (look.x * 0.6f), entity.getY() + (getComboAttack() == 3 ? 0.5f : 0), entity.getZ() - (look.z * 0.6f));
+        else if (passengerIndex == 2) function.accept(entity, entity.getX() - (look.x * 1.35f), entity.getY() + (getComboAttack() == 3 ? 0.5f : 0), entity.getZ() - (look.z * 1.35f));
     }
 
     @Override
