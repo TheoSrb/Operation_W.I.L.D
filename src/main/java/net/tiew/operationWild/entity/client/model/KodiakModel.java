@@ -45,8 +45,8 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		this.right_ear = this.head.getChild("right_ear");
 		this.left_eyeBall = this.head.getChild("left_eyeBall");
 		this.right_eyeBall = this.head.getChild("right_eyeBall");
-		this.left_arm = this.ALL.getChild("left_arm");
-		this.right_arm = this.ALL.getChild("right_arm");
+		this.left_arm = this.body_1.getChild("left_arm");
+		this.right_arm = this.body_1.getChild("right_arm");
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -107,9 +107,9 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
 		PartDefinition right_eyeBall = head.addOrReplaceChild("right_eyeBall", CubeListBuilder.create().texOffs(77, 63).mirror().addBox(-1.5F, -0.5F, 0.0F, 3.0F, 1.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(-3.5F, -0.5F, -12.025F));
 
-		PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(68, 88).addBox(-3.5F, 0.0F, -3.5F, 7.0F, 10.0F, 7.0F, new CubeDeformation(0.0F)), PartPose.offset(4.5F, 8.0F, -10.5F));
+		PartDefinition left_arm = body_1.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(68, 88).addBox(-3.5F, 0.0F, -3.5F, 7.0F, 10.0F, 7.0F, new CubeDeformation(0.0F)), PartPose.offset(4.5F, 8.0F, -10.5F));
 
-		PartDefinition right_arm = ALL.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(68, 88).mirror().addBox(-3.5F, 0.0F, -3.5F, 7.0F, 10.0F, 7.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-4.5F, 8.0F, -10.5F));
+		PartDefinition right_arm = body_1.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(68, 88).mirror().addBox(-3.5F, 0.0F, -3.5F, 7.0F, 10.0F, 7.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-4.5F, 8.0F, -10.5F));
 
 		return LayerDefinition.create(meshdefinition, 256, 256);
     }
@@ -135,6 +135,21 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		}
 		if (kodiak.isCombo(3)) {
 			this.animate(kodiak.attack3Combo, KodiakAnimations.ATTACK_STRIKE3, ageInTicks, 1.15f);
+		}
+
+		if (kodiak.transitionIdleSit.isStarted()) {
+			this.animate(kodiak.transitionIdleSit, KodiakAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
+			return;
+		}
+
+		if (kodiak.transitionSitIdle.isStarted()) {
+			this.animate(kodiak.transitionSitIdle, KodiakAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
+			return;
+		}
+
+		if (kodiak.isSitting()) {
+			this.animate(kodiak.sittingAnimationState, KodiakAnimations.SIT, ageInTicks, 1.0f);
+			return;
 		}
 
 		this.animate(kodiak.idleAnimationState, KodiakAnimations.MISC_IDLE, ageInTicks, 1.0f);

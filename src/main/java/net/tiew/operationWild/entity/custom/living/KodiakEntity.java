@@ -72,10 +72,21 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
 
-    public KodiakVariant getVariant() { return KodiakVariant.byId(this.getTypeVariant() & 255);}
-    public void setVariant(KodiakVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
-    public KodiakVariant getInitialVariant() { return KodiakVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
-    public void setInitialVariant(KodiakVariant variant) { this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());}
+    public KodiakVariant getVariant() {
+        return KodiakVariant.byId(this.getTypeVariant() & 255);
+    }
+
+    public void setVariant(KodiakVariant variant) {
+        this.entityData.set(VARIANT, variant.getId() & 255);
+    }
+
+    public KodiakVariant getInitialVariant() {
+        return KodiakVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));
+    }
+
+    public void setInitialVariant(KodiakVariant variant) {
+        this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());
+    }
 
     public KodiakEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -138,10 +149,14 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     }
 
     @Override
-    public boolean preferRawMeat() { return false;}
+    public boolean preferRawMeat() {
+        return false;
+    }
 
     @Override
-    public boolean preferCookedMeat() { return true;}
+    public boolean preferCookedMeat() {
+        return true;
+    }
 
     @Override
     public boolean preferVegetables() {
@@ -164,7 +179,9 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         return RANDOM(5) ? null : null;
     }
 
-    protected float getSoundVolume() { return 1f;}
+    protected float getSoundVolume() {
+        return 1f;
+    }
 
     @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {
@@ -176,11 +193,16 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
             default -> throw new IllegalArgumentException("Invalid skin index: " + skinIndex);
         }
     }
-    
+
     @Override
     public void travel(Vec3 vec3) {
         super.travel(vec3);
         //if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
+    }
+
+    @Override
+    protected boolean canAddPassenger(Entity passenger) {
+        return this.getPassengers().size() < 2;
     }
 
     @Override
@@ -217,7 +239,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     public void changeSkin(int skinIndex) {
         this.setVariant(getInitialVariant());
-        
+
         if (!this.level().isClientSide()) {
             Level world = this.level();
             if (world instanceof ServerLevel) {
@@ -283,16 +305,28 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         Vec3 movement = this.getDeltaMovement();
         Vec3 look = this.getLookAngle();
         double dot = movement.normalize().dot(look.normalize());
+        int passengerIndex = this.getPassengers().indexOf(entity);
 
-        if (entity instanceof Player player) {
-            if (player.zza == 0) {
-                moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f), this.getZ() + (look.z / 2.5));
-            } else if (this.isRunning() && dot >= 0.1) {
-                float yOffset = calculateAnimatedYOffset(1.44F, 1.0f, 17.0F, 0.0F, 0.6F);
-                moveFunction.accept(entity, this.getX(), entity.getY() + (-0.2f) + yOffset, this.getZ());
-            } else {
-                moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f), this.getZ() + (look.z / 2.5));
+        if (passengerIndex == 0) {
+            if (entity instanceof Player player) {
+                if (player.zza == 0) {
+                    moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f), this.getZ() + (look.z / 2.5));
+                } else if (this.isRunning() && dot >= 0.1) {
+                    float yOffset = calculateAnimatedYOffset(1.44F, 1.0f, 17.0F, 0.0F, 0.6F);
+                    moveFunction.accept(entity, this.getX(), entity.getY() + (-0.2f) + yOffset, this.getZ());
+                } else {
+                    moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f), this.getZ() + (look.z / 2.5));
+                }
             }
+        } else if (passengerIndex == 1) {
+            moveFunction.accept(entity, this.getX() - (look.x / 1.5), entity.getY(), this.getZ() - (look.z / 1.5));
+        } else if (this.isRunning() && dot >= 0.1) {
+            float yOffset = calculateAnimatedYOffset(1.44F, 1.0f, 17.0F, 0.0F, 0.6F);
+            moveFunction.accept(entity, this.getX() - (look.x / 1.5), entity.getY() + yOffset, this.getZ() - (look.z / 1.5));
+        } else {
+            moveFunction.accept(entity, this.getX() - (look.x / 1.5), entity.getY(), this.getZ() - (look.z / 1.5));
+
+
         }
     }
 
@@ -365,7 +399,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     private void setupAnimationState() {
         createIdleAnimation(48, true);
-        createSitAnimation(80, true);
+        createSitAnimation(58, true);
 
         if (this.isCombo(1)) {
             if (this.attack1ComboTimer <= 0) {

@@ -1,13 +1,16 @@
 package net.tiew.operationWild.event;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -1090,6 +1093,60 @@ public class ClientEvents {
 
             player.setYRot((float) (player.getYRot() + yawOffset));
             player.setXRot((float) (player.getXRot() + pitchOffset));
+        }
+    }
+
+    @SubscribeEvent
+    public static void renderRedBorder(RenderGuiEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+
+        if (mc.player != null) {
+            OWEntity vehicle = (OWEntity) mc.player.getVehicle();
+
+            if (vehicle != null && ((float) (vehicle.getHealth() / vehicle.getMaxHealth())) <= 0.25f) {
+                float opacityPercent = ((float) (-2.8 * (float) (vehicle.getHealth() / vehicle.getMaxHealth())) + 1) * 1.5f;
+
+                if (mc.screen == null && !mc.options.hideGui) {
+                    GuiGraphics graphics = event.getGuiGraphics();
+                    int screenWidth = mc.getWindow().getGuiScaledWidth();
+                    int screenHeight = mc.getWindow().getGuiScaledHeight();
+
+                    float centerX = screenWidth / 2.0f;
+                    float centerY = screenHeight / 2.0f;
+                    int steps = 40;
+
+                    for (int step = 0; step < steps; step++) {
+                        float progress = (float) step / steps;
+                        float time = (System.currentTimeMillis() % 2000) / 2000.0f;
+                        float oscillation = 0.4f + 0.1f * (float) Math.sin(time * 2 * Math.PI);
+                        float size = progress * Math.min(screenWidth, screenHeight) * oscillation * ((1 + opacityPercent) / 2);
+                        float alpha = ((1.0f - progress) * 0.075f) * opacityPercent;
+
+                        int alphaInt = (int) (alpha * 255);
+                        int color = (alphaInt << 24) | 0xbc0c0c;
+
+                        int topHeight = (int) (size * (1.0f - Math.abs(centerY - size) / centerY));
+                        if (topHeight > 0) {
+                            graphics.fill(0, 0, screenWidth, Math.min(topHeight, screenHeight), color);
+                        }
+
+                        int bottomStart = (int) (screenHeight - size * (1.0f - Math.abs(centerY - (screenHeight - size)) / centerY));
+                        if (bottomStart < screenHeight) {
+                            graphics.fill(0, Math.max(bottomStart, 0), screenWidth, screenHeight, color);
+                        }
+
+                        int leftWidth = (int) (size * (1.0f - Math.abs(centerX - size) / centerX));
+                        if (leftWidth > 0) {
+                            graphics.fill(0, 0, Math.min(leftWidth, screenWidth), screenHeight, color);
+                        }
+
+                        int rightStart = (int) (screenWidth - size * (1.0f - Math.abs(centerX - (screenWidth - size)) / centerX));
+                        if (rightStart < screenWidth) {
+                            graphics.fill(Math.max(rightStart, 0), 0, screenWidth, screenHeight, color);
+                        }
+                    }
+                }
+            }
         }
     }
 
