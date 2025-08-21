@@ -310,12 +310,12 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         if (passengerIndex == 0) {
             if (entity instanceof Player player) {
                 if (player.zza == 0) {
-                    moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f), this.getZ() + (look.z / 2.5));
+                    moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f) + (getComboAttack() == 3 ? 0.35f : 0), this.getZ() + (look.z / 2.5));
                 } else if (this.isRunning() && dot >= 0.1) {
                     float yOffset = calculateAnimatedYOffset(1.44F, 1.0f, 17.0F, 0.0F, 0.6F);
-                    moveFunction.accept(entity, this.getX(), entity.getY() + (-0.2f) + yOffset, this.getZ());
+                    moveFunction.accept(entity, this.getX(), entity.getY() + (-0.2f) + yOffset + (getComboAttack() == 3 ? 0.35f : 0), this.getZ());
                 } else {
-                    moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f), this.getZ() + (look.z / 2.5));
+                    moveFunction.accept(entity, this.getX() + (look.x / 2.5), entity.getY() + (-0.2f) + (getComboAttack() == 3 ? 0.35f : 0), this.getZ() + (look.z / 2.5));
                 }
             }
         } else if (passengerIndex == 1) {

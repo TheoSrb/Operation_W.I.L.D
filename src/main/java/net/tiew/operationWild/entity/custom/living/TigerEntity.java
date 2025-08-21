@@ -200,7 +200,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         this.goalSelector.addGoal(1, new OWPanicGoal(this, this.getSpeed() * 16f, 3, 75));
         this.goalSelector.addGoal(0, new NapGoal(this, 200, 800, 20, 100,null, false, () -> getDayOrNightTimeInterval(11,16) && !this.isJumpingOnTarget() && !this.isTrappingEntity() && this.onGround()));
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(new Class[0]));
-        this.targetSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 15f,20, 3,!this.isJumpingOnTarget() && !this.isTrappingEntity()));
+        this.targetSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 15f,8, 3,!this.isJumpingOnTarget() && !this.isTrappingEntity()));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
         this.goalSelector.addGoal(2, new TigerScarifyTreeGoal(this, 20, 0.9D));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Animal.class, true));

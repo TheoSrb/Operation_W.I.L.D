@@ -47,10 +47,13 @@ public class OWAttackGoal extends Goal {
                 if (canHurt) {
                     if (target.isAlive()) {
                         LivingEntity vehicle = (LivingEntity) this.target.getRootVehicle();
-                        if (vehicle != null && vehicle.isAlive()) {
-                            this.attacker.doHurtTarget(vehicle);
-                        } else this.attacker.doHurtTarget(target);
-                        this.attacker.swing(InteractionHand.MAIN_HAND);
+                        if (!this.attacker.isCombo()) {
+                            if (vehicle != null && vehicle.isAlive()) {
+                                this.attacker.setCombo(true, 1);
+                            } else this.attacker.setCombo(true, 1);
+                        } else if (this.attacker.isPauseCombo()) {
+                            this.attacker.playerContinueCombo = true;
+                        }
                         canHurt = false;
                     }
                 }

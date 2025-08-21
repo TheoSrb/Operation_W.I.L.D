@@ -123,6 +123,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
     private float customWidth = 1.0F;
     private float customHeight = 1.0F;
 
+    public static final float SAVAGE_ENTITY_DAMAGE_MULITPLIER = 1.4f;
+
     private static int killCounter = 0;
     private static int killCounter2 = 0;
     private static int hitCounter = 0;
@@ -1665,6 +1667,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
     public void createComboAttackSystem(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
         if (this.isCombo()) {
+            boolean isRided = this.getControllingPassenger() != null;
+            if (isRided && this.getTarget() != null) this.setLookAt(this.getTarget().getX(), this.getTarget().getY(),this.getTarget().getZ());
             if (attackTimer < timeMax) attackTimer++;
             else {
                 attackTimer = 0;
@@ -1672,7 +1676,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
                 return;
             }
             if (attackTimer == timeToHit) {
-                attackEntitiesInFront(this.getDamage() / MAX_ATTACKS_IN_COMBO, sound, width, height, reach, backMultiplier);
+                attackEntitiesInFront((float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULITPLIER)), sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
                 if (spawnBlurr) {
                     OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
                 }
@@ -2519,7 +2523,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
             if (entity instanceof LivingEntity livingEntity) {
                 if (ownerUUID != null && entity instanceof Player player && player.getUUID().equals(ownerUUID)) continue;
                 if (ownerUUID != null && entity instanceof TamableAnimal otherTamable && otherTamable.getOwnerUUID() != null && otherTamable.getOwnerUUID().equals(ownerUUID)) continue;
-                if (livingEntity instanceof Player player && player.getRootVehicle() != null) continue;
+                if (livingEntity instanceof Player player && player.getVehicle() != null) continue;
                 if (this.isAssassin() && OWUtils.RANDOM(10)) {
                     livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage *= 1.25f);
 
