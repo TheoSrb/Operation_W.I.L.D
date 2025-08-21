@@ -190,6 +190,11 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     }
 
     @Override
+    protected @Nullable SoundEvent getDeathSound() {
+        return OWSounds.KODIAK_MISC.get();
+    }
+
+    @Override
     protected @Nullable SoundEvent getHurtSound(DamageSource damageSource) {
         return RANDOM(2) ? OWSounds.KODIAK_HURT.get() : OWSounds.KODIAK_MISC.get();
     }
