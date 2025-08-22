@@ -111,6 +111,8 @@ public class OWCreativeTabs {
                         output.accept(OWBlocks.SCARIFIED_ACACIA_LOG.get());
                         output.accept(OWBlocks.SCARIFIED_JUNGLE_LOG.get());
                         output.accept(OWBlocks.REDWOOD_LOG.get());
+                        output.accept(OWBlocks.REDWOOD_LEAVES.get());
+                        output.accept(OWBlocks.REDWOOD_SAPLING.get());
                         output.accept(OWBlocks.LAVENDER.get());
                         output.accept(OWBlocks.CAMELLIA.get());
                         output.accept(OWBlocks.PEACOCK_EGG.get());

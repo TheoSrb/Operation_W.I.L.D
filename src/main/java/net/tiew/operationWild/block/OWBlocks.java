@@ -1,6 +1,7 @@
 package net.tiew.operationWild.block;
 
 import net.minecraft.core.Direction;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.effect.MobEffects;
@@ -55,6 +56,10 @@ public class OWBlocks {
         return toReturn;
     }
 
+    private static Block leaves(SoundType soundType) {
+        return new LeavesBlock(BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).strength(0.2F).randomTicks().sound(soundType).noOcclusion().isValidSpawn(Blocks::ocelotOrParrot).isSuffocating((state, getter, pos) -> false).isViewBlocking((state, getter, pos) -> false).ignitedByLava().pushReaction(PushReaction.DESTROY).isRedstoneConductor((state, getter, pos) -> false));
+    }
+
     public static final DeferredBlock<Block> LAVENDER = registerBlock("lavender", () -> new FlowerBlock(MobEffects.NIGHT_VISION, 5.0F, BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).noCollission().instabreak().sound(SoundType.GRASS).offsetType(BlockBehaviour.OffsetType.XZ).pushReaction(PushReaction.DESTROY)));
     public static final DeferredBlock<Block> CAMELLIA = registerBlock("camellia", () -> new FlowerBlock(MobEffects.NIGHT_VISION, 5.0F, BlockBehaviour.Properties.of().mapColor(MapColor.PLANT).noCollission().instabreak().sound(SoundType.GRASS).offsetType(BlockBehaviour.OffsetType.XZ).pushReaction(PushReaction.DESTROY)));
 
@@ -87,6 +92,9 @@ public class OWBlocks {
 
 
     public static final DeferredBlock<Block> REDWOOD_LOG = registerBlock("redwood_log", () -> log(MapColor.WOOD, MapColor.PODZOL));
+
+    public static final DeferredBlock<Block> REDWOOD_LEAVES = registerBlock("redwood_leaves", () -> leaves(SoundType.GRASS));
+
     public static final DeferredBlock<Block> REDWOOD_SAPLING = registerBlock("redwood_sapling",
             () -> new SaplingBlock(OWTreeGrowers.REDWOOD, BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_SAPLING)));
 

@@ -46,11 +46,19 @@ public class OWBlockStateProvider extends BlockStateProvider {
 
         saplingBlock(OWBlocks.REDWOOD_SAPLING);
 
+        leavesBlock(OWBlocks.REDWOOD_LEAVES);
     }
 
 
     private void blockItem(DeferredBlock<?> deferredBlock) {
         simpleBlockItem(deferredBlock.get(), new ModelFile.UncheckedModelFile("ow:block/" + deferredBlock.getId().getPath()));
+    }
+
+    private void leavesBlock(DeferredBlock<Block> blockRegistryObject) {
+        simpleBlockWithItem(blockRegistryObject.get(),
+                models().withExistingParent(BuiltInRegistries.BLOCK.getKey(blockRegistryObject.get()).getPath(), "minecraft:block/leaves")
+                        .texture("all", blockTexture(blockRegistryObject.get()))
+                        .renderType("cutout"));
     }
 
     private void saplingBlock(DeferredBlock<Block> blockRegistryObject) {

@@ -1,4 +1,4 @@
-// 1.21	2025-08-22T10:34:03.0625049	Loot Tables
+// 1.21	2025-08-22T14:20:40.7040802	Loot Tables
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
 5b5fcfe0ecc7270dbed936f1c5d59ab6a543b479 data/ow/loot_table/blocks/deepslate_jade_ore.json
 06da0d1a496415bacabd90b29e9205b4df505f5e data/ow/loot_table/blocks/deepslate_ruby_ore.json
@@ -7,6 +7,7 @@ bd866344effa488fde0a0635a9ea55425b493f5d data/ow/loot_table/blocks/jade_ore.json
 a3ee4806afdcdbd2b8178c6c470eabd35c93c447 data/ow/loot_table/blocks/peacock_egg.json
 f153345ba251e42d4f98c012380b83a543500022 data/ow/loot_table/blocks/potted_camellia.json
 fa4b923c43bc9c7ea4fd7eded1bd12a288098520 data/ow/loot_table/blocks/potted_lavender.json
+78dbee0790816b48babe2f541cfa110d0b350b62 data/ow/loot_table/blocks/redwood_leaves.json
 2b3c29d6706f08277f0bcc14ddaa9af6841bdb8a data/ow/loot_table/blocks/redwood_log.json
 a871e727b6a3ad94afe00ffdf98ed6097ae0af68 data/ow/loot_table/blocks/redwood_sapling.json
 c2d8ddfdd0e44e1f9aa7a13afb1e9ee6a44f4b0e data/ow/loot_table/blocks/ruby_ore.json

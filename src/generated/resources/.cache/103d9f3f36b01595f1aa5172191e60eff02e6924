@@ -1,4 +1,4 @@
-// 1.21	2025-08-22T12:46:12.6133307	Registries
+// 1.21	2025-08-22T14:20:40.7060759	Registries
 50ceb8e49f7e83c2dd6bfecce80a0a9483d14b93 data/ow/enchantment/fawns_protection.json
 421dbef5de6fc1fc864c4c6d02261d11247a489c data/ow/enchantment/lightness.json
 2e18fdc85cbc2b05f000ae62dc5d3d17ab741fae data/ow/enchantment/plant_providence.json
@@ -15,7 +15,7 @@ a7ed2b06986e8633d35de8b98793094cb6c33c7e data/ow/neoforge/biome_modifier/spawn_b
 492562297ad071c4b1ab6b42f33835d24d4f3985 data/ow/neoforge/biome_modifier/spawn_peacock.json
 5f871e4ca1272c8688d75b1e7cbe7ec30173f7d2 data/ow/neoforge/biome_modifier/spawn_tiger.json
 2f81ab02218e5954662fc9ab4a8cea974bf4123d data/ow/worldgen/configured_feature/jade_ore.json
-8e2e3faabda496d147c428cedc669f583c1d0faf data/ow/worldgen/configured_feature/redwood.json
+2947156b3654ab52e3855f6c9ba8bbd6f7a2cc8a data/ow/worldgen/configured_feature/redwood.json
 dfd19ba2f5b7cbb383d84a5f092827e200ac0601 data/ow/worldgen/configured_feature/ruby_ore.json
 812d223814ba83c006726f60301be5aa2deabbb7 data/ow/worldgen/configured_feature/savage_berry_bush.json
 33f630d1fdcee96524335e78703a028bd9c204ae data/ow/worldgen/placed_feature/jade_ore_placed.json

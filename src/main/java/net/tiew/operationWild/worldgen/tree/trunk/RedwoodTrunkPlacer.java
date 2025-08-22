@@ -39,41 +39,26 @@ public class RedwoodTrunkPlacer extends TrunkPlacer {
         }
 
         for (int $$0 = -1; $$0 <= 1; $$0++) {
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 1.25) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, 1);
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 1.25) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, -1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, 1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, -1);
         }
 
         for (int $$1 = -1; $$1 <= 1; $$1++) {
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 1.25) + OWUtils.generateRandomInterval(0, 5)), 1, 0, $$1);
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 1.25) + OWUtils.generateRandomInterval(0, 5)), -1, 0, $$1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), 1, 0, $$1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), -1, 0, $$1);
         }
 
 
         for (int $$0 = -1; $$0 <= 1; $$0++) {
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, 2);
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, -2);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 8) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, 2);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 8) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, -2);
         }
 
         for (int $$1 = -1; $$1 <= 1; $$1++) {
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), 2, 0, $$1);
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), -2, 0, $$1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 8) + OWUtils.generateRandomInterval(0, 5)), 2, 0, $$1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 8) + OWUtils.generateRandomInterval(0, 5)), -2, 0, $$1);
         }
 
-
-        for (int $$0 = -1; $$0 <= 1; $$0++) {
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, 3);
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, -3);
-        }
-
-        for (int $$1 = -1; $$1 <= 1; $$1++) {
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), 3, 0, $$1);
-            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), -3, 0, $$1);
-        }
-
-        createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), -2, 0, 2);
-        createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), -2, 0, -2);
-        createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), 2, 0, 2);
-        createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), 2, 0, -2);
 
 
 

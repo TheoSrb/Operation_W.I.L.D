@@ -3,10 +3,12 @@ package net.tiew.operationWild.worldgen.tree.foliage;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.world.entity.animal.Cod;
 import net.minecraft.world.level.LevelSimulatedReader;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
 import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacer;
 import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacerType;
@@ -33,8 +35,28 @@ public class RedwoodFoliagePlacer extends FoliagePlacer {
     protected void createFoliage(LevelSimulatedReader level, FoliageSetter setter, RandomSource randomSource, TreeConfiguration config,
                                  int maxFreeTreeHeight, FoliageAttachment attachement, int foliageHeight, int foliageRadius, int offset) {
 
-        for (int $$0 = 0; $$0 < maxFreeTreeHeight; $$0++) {
-            this.placeLeavesRow(level, setter, randomSource, config, attachement.pos().below(), 2, 0, attachement.doubleTrunk());
+        for (int $0 = 0; $0 < maxFreeTreeHeight; $0++) {
+            int radius;
+            if ($0 < (maxFreeTreeHeight * 0.6)) {
+                radius = (int) (1.5 + ($0 * 0.2));
+            } else {
+                int remainingHeight = maxFreeTreeHeight - $0;
+                radius = (int) (1 + (remainingHeight * 0.15));
+            }
+            BlockPos layerPos = attachement.pos().below($0);
+
+            for (int x = -radius; x <= radius; x++) {
+                for (int z = -radius; z <= radius; z++) {
+                    if (x * x + z * z <= radius * radius) {
+                        if (randomSource.nextFloat() > 0.15f) {
+                            BlockPos leafPos = layerPos.offset(x, 0, z);
+                            if (level.isStateAtPosition(leafPos, BlockBehaviour.BlockStateBase::isAir)) {
+                                setter.set(leafPos, config.foliageProvider.getState(randomSource, leafPos));
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -32,6 +32,7 @@ import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.client.render.*;
 import net.tiew.operationWild.entity.client.render.misc.*;
 import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.event.ColorEvents;
 import net.tiew.operationWild.gui.HeartRenderHandler;
 import net.tiew.operationWild.item.OWCreativeTabs;
 import net.tiew.operationWild.item.OWItems;
@@ -88,6 +89,7 @@ public class OperationWild {
         OWParticles.register(modEventBus);
         OWTrunkPlacerTypes.register(modEventBus);
         OWFoliagePlacerType.register(modEventBus);
+        ColorEvents.register(modEventBus);
         //OWDailyQuests.run();
 
         modEventBus.addListener(this::addCreative);
