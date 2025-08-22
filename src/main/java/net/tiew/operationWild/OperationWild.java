@@ -3,14 +3,12 @@ package net.tiew.operationWild;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -34,12 +32,9 @@ import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.client.render.*;
 import net.tiew.operationWild.entity.client.render.misc.*;
 import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
-import net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests;
 import net.tiew.operationWild.gui.HeartRenderHandler;
 import net.tiew.operationWild.item.OWCreativeTabs;
 import net.tiew.operationWild.item.OWItems;
-import net.tiew.operationWild.item.custom.MayaBlowpipeItem;
-import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.particle.ElectricParticles;
 import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.screen.OWMenuRegister;
@@ -62,6 +57,8 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.tiew.operationWild.worldgen.tree.foliage.OWFoliagePlacerType;
+import net.tiew.operationWild.worldgen.tree.trunk.OWTrunkPlacerTypes;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -89,7 +86,8 @@ public class OperationWild {
         OWEffects.register(modEventBus);
         OWDataComponentTypes.register(modEventBus);
         OWParticles.register(modEventBus);
-
+        OWTrunkPlacerTypes.register(modEventBus);
+        OWFoliagePlacerType.register(modEventBus);
         //OWDailyQuests.run();
 
         modEventBus.addListener(this::addCreative);

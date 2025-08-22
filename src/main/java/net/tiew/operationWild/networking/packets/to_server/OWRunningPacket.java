@@ -59,6 +59,8 @@ public record OWRunningPacket() implements CustomPacketPayload {
 
                         if (canSprint && entity.getRandom().nextInt(3) == 0) $$0 = true;
 
+                        owEntity.canShowVitalEnergyLack = !canSprint;
+
                         if (canSprint && Minecraft.getInstance().options.keySprint.isDown() && owEntity.getVitalEnergy() < owEntity.getMaxVitalEnergy() && owEntity.isSaddled()
                                 && owEntity.getControllingPassenger() != null && owEntity.getControllingPassenger().zza != 0) {
                             owEntity.setRunning(true);

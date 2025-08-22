@@ -20,7 +20,8 @@ public record OWPacketSendToClient(
         String choosenQuestStr,
         boolean babyQuestIsInProgress,
         int babyQuestProgressTimer,
-        Item chooseFood
+        Item chooseFood,
+        boolean canShowVitalEnergyLack
 ) implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<OWPacketSendToClient> TYPE =
@@ -44,6 +45,8 @@ public record OWPacketSendToClient(
         } else {
             buffer.writeBoolean(false);
         }
+
+        buffer.writeBoolean(packet.canShowVitalEnergyLack());
     }
 
     private static OWPacketSendToClient decode(FriendlyByteBuf buffer) {
@@ -55,7 +58,8 @@ public record OWPacketSendToClient(
                 buffer.readUtf(),
                 buffer.readBoolean(),
                 buffer.readInt(),
-                buffer.readBoolean() ? BuiltInRegistries.ITEM.get(buffer.readResourceLocation()) : null
+                buffer.readBoolean() ? BuiltInRegistries.ITEM.get(buffer.readResourceLocation()) : null,
+                buffer.readBoolean()
         );
     }
 
@@ -75,6 +79,7 @@ public record OWPacketSendToClient(
                 owEntity.babyQuestIsInProgress = packet.babyQuestIsInProgress();
                 owEntity.babyQuestProgressTimer = packet.babyQuestProgressTimer();
                 owEntity.choosenFood = packet.chooseFood();
+                owEntity.canShowVitalEnergyLack = packet.canShowVitalEnergyLack();
             }
         });
     }

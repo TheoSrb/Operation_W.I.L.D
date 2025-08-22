@@ -44,6 +44,9 @@ public class OWBlockLootTableProvider extends BlockLootSubProvider {
 
         dropSelf(OWBlocks.SADDLER.get());
 
+        dropSelf(OWBlocks.REDWOOD_LOG.get());
+        dropSelf(OWBlocks.REDWOOD_SAPLING.get());
+
         this.add(OWBlocks.SCARIFIED_OAK_LOG.get(), block -> createMultipleOreDrops(OWBlocks.SCARIFIED_OAK_LOG.get(), Item.byBlock(Blocks.OAK_LOG), 1, 1));
         this.add(OWBlocks.SCARIFIED_DARK_OAK_LOG.get(), block -> createMultipleOreDrops(OWBlocks.SCARIFIED_DARK_OAK_LOG.get(), Item.byBlock(Blocks.DARK_OAK_LOG), 1, 1));
         this.add(OWBlocks.SCARIFIED_SPRUCE_LOG.get(), block -> createMultipleOreDrops(OWBlocks.SCARIFIED_SPRUCE_LOG.get(), Item.byBlock(Blocks.SPRUCE_LOG), 1, 1));

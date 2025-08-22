@@ -151,12 +151,12 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
 
     @Override
     public float getMaxVitalEnergy() {
-        return 225 * (1 + ((float) this.getLevel() / 100));
+        return 225 * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 0.65f;
+        return 0.65f * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override

@@ -57,12 +57,13 @@ public record ClientPressedLeftClick() implements CustomPacketPayload {
                         showTiredMessage = true;
                     }
 
-                    if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 15) && Minecraft.getInstance().screen == null) {
+                    if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5) && Minecraft.getInstance().screen == null) {
                         owEntity.setCombo(true, 1);
-                        owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 15);
+                        owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 5);
                         owEntity.setAcceleration(0);
-                    } else if (owEntity.isPauseCombo()) {
+                    } else if (owEntity.isPauseCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5)) {
                         owEntity.playerContinueCombo = true;
+                        owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 5);
                     }
                 }
             }

@@ -139,6 +139,9 @@
   "tooltip.elephantSkin1": "Golden Elephant",
   "tooltip.elephantSkin7": "Default Elephant",
 
+  "tooltip.kodiakSkin1": "Golden Kodiak",
+  "tooltip.kodiakSkin7": "Default Kodiak",
+
   "tooltip.locked": "Locked",
   "skin.locked.message": "Skin Locked",
   "skin.unlocked.message": "Skin Unlocked",
@@ -160,6 +163,8 @@
   "tooltip.peacockSkin1Indication": "Reach level 50 to unlock this skin.",
 
   "tooltip.elephantSkin1Indication": "Reach level 50 to unlock this skin.",
+
+  "tooltip.kodiakSkin1Indication": "Reach level 50 to unlock this skin.",
 
   "tooltip.baby": "Baby",
   "tooltip.juvenile": "Juvenile",
@@ -229,6 +234,8 @@
   "block.ow.scarified_birch_log": "Scarified Birch Log",
   "block.ow.scarified_acacia_log": "Scarified Acacia Log",
   "block.ow.scarified_jungle_log": "Scarified Jungle Log",
+
+  "block.ow.redwood_log": "Redwood Log",
 
   "block.ow.savage_berry_bush": "Savage Berry Bush",
 

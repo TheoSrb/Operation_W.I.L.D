@@ -8,9 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.screen.entity.skins.BoaSkinsScreen;
-import net.tiew.operationWild.screen.entity.skins.ElephantSkinsScreen;
-import net.tiew.operationWild.screen.entity.skins.TigerSkinsScreen;
+import net.tiew.operationWild.screen.entity.skins.*;
 
 public class OWSkinsConfirmationScreen extends Screen {
     protected final OWEntity entity;
@@ -97,7 +95,9 @@ public class OWSkinsConfirmationScreen extends Screen {
         switch(entity.getClass().getSimpleName()) {
             case "TigerEntity" -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
             case "BoaEntity" -> Minecraft.getInstance().setScreen(new BoaSkinsScreen());
+            case "PeacockEntity" -> Minecraft.getInstance().setScreen(new PeacockSkinsScreen());
             case "ElephantEntity" -> Minecraft.getInstance().setScreen(new ElephantSkinsScreen());
+            case "KodiakEntity" -> Minecraft.getInstance().setScreen(new KodiakSkinsScreen());
         }
     }
 }

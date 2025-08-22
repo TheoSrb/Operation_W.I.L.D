@@ -32,6 +32,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -64,6 +65,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.tiew.operationWild.entity.AI.FoodsPreference;
 import net.tiew.operationWild.entity.custom.living.*;
+import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.networking.ClientKillData;
 import net.tiew.operationWild.networking.packets.to_client.*;
 import org.jetbrains.annotations.Nullable;
@@ -78,9 +80,6 @@ import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuest;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestsDate;
-import net.tiew.operationWild.entity.variants.BoaVariant;
-import net.tiew.operationWild.entity.variants.PeacockVariant;
-import net.tiew.operationWild.entity.variants.TigerVariant;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.networking.OWNetworkHandler;
@@ -122,6 +121,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
     private int sittingCooldown = 0;
     private float customWidth = 1.0F;
     private float customHeight = 1.0F;
+    public boolean canShowVitalEnergyLack = false;
 
     public static final float SAVAGE_ENTITY_DAMAGE_MULITPLIER = 1.4f;
 
@@ -438,7 +438,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
                 if (prestigeReward >= xpStageRest) {
                     prestigeReward -= (int) xpStageRest;
-                    passingPrestigeLevel();
+                    passingPrestigeLevel(true);
                 } else {
                     this.setXp(this.getXp() + prestigeReward);
                     prestigeReward = 0;
@@ -607,10 +607,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         }
     }
 
-    public void passingPrestigeLevel() {
+    public void passingPrestigeLevel(boolean playSound) {
         setXp(Math.max(0, this.getXp() - this.getPrestigeXpStage()));
         this.setPrestigeLevel(this.getPrestigeLevel() + 1);
-        this.playSound(SoundEvents.PLAYER_LEVELUP);
+        if (playSound) {
+            this.playSound(SoundEvents.PLAYER_LEVELUP);
+        }
 
         LivingEntity rider = this.getControllingPassenger();
         if (rider != null) {
@@ -836,8 +838,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         float xpAmount = target.getMaxHealth() / 2;
         int xpStage = this.getPrestigeLevel() / 2;
         setPrestigeXpStage(xpStage);
-
-        System.out.println("Niveau Prestige: " + this.getPrestigeLevel() + "  |  " + this.getXp() + " / " + this.getPrestigeXpStage());
+        boolean hasLeveledUp = false;
 
         if (firstPrestigeKill) {
             this.setXp(xpAmount);
@@ -849,7 +850,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
             if (xpAmount >= xpStageRest) {
                 xpAmount -= xpStageRest;
-                passingPrestigeLevel();
+                passingPrestigeLevel(!hasLeveledUp);
+                hasLeveledUp = true;
             } else {
                 this.setXp(this.getXp() + xpAmount);
                 xpAmount = 0;
@@ -963,8 +965,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
     public void upgradeAttributes(OWEntity entity, Holder<Attribute> attributes1, int priority) {
         if (priority > 3) return;
         if (priority == 1) entity.getAttribute(attributes1).setBaseValue(entity.getAttribute(attributes1).getBaseValue() + chooseValueForUpgradingAttributes(1, 1.5, attributes1));
-        else if (priority == 2) entity.getAttribute(attributes1).setBaseValue(entity.getAttribute(attributes1).getBaseValue() + chooseValueForUpgradingAttributes(0.5, 0.75, attributes1));
-        else if (priority == 3) entity.getAttribute(attributes1).setBaseValue(entity.getAttribute(attributes1).getBaseValue() + chooseValueForUpgradingAttributes(0.25, 0.4, attributes1));
+        else if (priority == 2) entity.getAttribute(attributes1).setBaseValue(entity.getAttribute(attributes1).getBaseValue() + chooseValueForUpgradingAttributes(0.75, 1, attributes1));
+        else if (priority == 3) entity.getAttribute(attributes1).setBaseValue(entity.getAttribute(attributes1).getBaseValue() + chooseValueForUpgradingAttributes(0.5, 0.75, attributes1));
 
         if (attributes1 == Attributes.ATTACK_DAMAGE) setDamageToClient(this.getDamage());
 
@@ -1198,7 +1200,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
     @Override
     public boolean hurt(DamageSource damageSource, float amount) {
-        boolean willTakeDamage = super.hurt(damageSource, amount);
+        boolean isTankAndReduceDmg = this.isTank() && (damageSource.is(DamageTypes.MOB_ATTACK) || damageSource.is(DamageTypes.PLAYER_ATTACK) || damageSource.is(DamageTypes.GENERIC));
+        boolean willTakeDamage = super.hurt(damageSource, amount * (isTankAndReduceDmg ? 0.8f : 1.0f));
 
         if (willTakeDamage) {
             if (damageSource.getDirectEntity() instanceof TranquilizerArrow sedativeArrow) {
@@ -1324,6 +1327,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
             peacock.setVariant(PeacockVariant.byId(variant));
             peacock.setInitialVariant(PeacockVariant.byId(variant));
         }
+        else if (entity instanceof ElephantEntity elephant) {
+            elephant.setVariant(ElephantVariant.byId(variant));
+            elephant.setInitialVariant(ElephantVariant.byId(variant));
+        }
+        else if (entity instanceof KodiakEntity kodiak) {
+            kodiak.setVariant(KodiakVariant.byId(variant));
+            kodiak.setInitialVariant(KodiakVariant.byId(variant));
+        }
     }
 
     public boolean isMoving() {
@@ -1436,7 +1447,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
                 setVitalEnergy(getVitalEnergy() + 1);
             }
 
-            if (!isRunning() && getVitalEnergy() > 0 && !isAttacking()) {
+            if (!isRunning() && getVitalEnergy() > 0 && !isCombo()) {
                 setVitalEnergy(getVitalEnergy() - getVitalEnergyRecuperation());
             }
         }
@@ -1463,7 +1474,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         if (!this.level().isClientSide()) {
             if (this.level() instanceof ServerLevel serverLevel) {
                 for (ServerPlayer player : serverLevel.players()) {
-                    OWNetworkHandler.sendToClient(new OWPacketSendToClient(this.getId(), this.actualMaturation, this.maxMaturation, this.delayBeforeBabyTask, this.choosenQuestStr, this.babyQuestIsInProgress, this.babyQuestProgressTimer, this.choosenFood), player);
+                    OWNetworkHandler.sendToClient(new OWPacketSendToClient(this.getId(), this.actualMaturation, this.maxMaturation, this.delayBeforeBabyTask, this.choosenQuestStr, this.babyQuestIsInProgress, this.babyQuestProgressTimer, this.choosenFood, this.canShowVitalEnergyLack), player);
                 }
             }
         }

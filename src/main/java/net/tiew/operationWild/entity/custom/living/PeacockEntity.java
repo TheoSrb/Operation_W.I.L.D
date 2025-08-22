@@ -143,12 +143,12 @@ public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntity
 
     @Override
     public float getMaxVitalEnergy() {
-        return 175 * (1 + ((float) this.getLevel() / 100));
+        return 175 * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 1f;
+        return 1f * (1 + ((float) this.getLevel() / 50));
     }
 
 

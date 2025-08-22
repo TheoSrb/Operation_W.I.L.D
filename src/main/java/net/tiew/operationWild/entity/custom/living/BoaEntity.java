@@ -155,12 +155,12 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
 
     @Override
     public float getMaxVitalEnergy() {
-        return 225 * (1 + ((float) this.getLevel() / 100));
+        return 225 * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 1.5f;
+        return 1.5f * (1 + ((float) this.getLevel() / 50));
     }
 
     // Entity's AI

@@ -145,12 +145,12 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     @Override
     public float getMaxVitalEnergy() {
-        return 350 * (1 + ((float) this.getLevel() / 100));
+        return 350 * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 0.85f;
+        return 0.85f * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
@@ -255,6 +255,9 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     public void changeSkin(int skinIndex) {
         this.setVariant(getInitialVariant());
 
+        if (skinIndex == 1) setVariant(KodiakVariant.SKIN_GOLD);
+        else if (skinIndex == 7) setVariant(getInitialVariant());
+
         if (!this.level().isClientSide()) {
             Level world = this.level();
             if (world instanceof ServerLevel) {
@@ -317,9 +320,9 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         }
 
 
-        /*if (this.getVariant() == KodiakVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
+        if (this.getVariant() == KodiakVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
             OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
-        }*/
+        }
     }
 
     @Override

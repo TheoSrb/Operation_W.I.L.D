@@ -82,9 +82,9 @@
   "tooltip.resurrection": "Résurrection en cours...",
   "tooltip.resurrection_failed": "La tentative de résurrection de votre %s a échoué.",
 
-  "tooltip.mobTypesTank": "Type Tank: \nDiminution de 20% des dégâts de mélées.",
-  "tooltip.mobTypesAssassin": "Type Assassin: \n10% de chance d'infliger un coup critique.",
-  "tooltip.mobTypesMarauder": "Type Maraudeur: \nAugmentation de la vitesse de 15% en combat.",
+  "tooltip.mobTypesTank": "Type Tank: Diminution de 20% des dégâts de mélées.",
+  "tooltip.mobTypesAssassin": "Type Assassin: 10% de chance d'infliger un coup critique.",
+  "tooltip.mobTypesMarauder": "Type Maraudeur: Augmentation de la vitesse de 15% en combat.",
 
   "effect.ow.camouflage": "Camouflage",
   "effect.ow.venom": "Venin",
@@ -138,6 +138,9 @@
   "tooltip.elephantSkin1": "Éléphant Doré",
   "tooltip.elephantSkin7": "Éléphant Par Défaut",
 
+  "tooltip.kodiakSkin1": "Kodiak Doré",
+  "tooltip.kodiakSkin7": "Kodiak Par Défaut",
+
 
 
 
@@ -163,6 +166,8 @@
   "tooltip.peacockSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
 
   "tooltip.elephantSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
+
+  "tooltip.kodiakSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
 
   "tooltip.baby": "Bébé",
   "tooltip.juvenile": "Juvénile",
@@ -231,6 +236,8 @@
   "block.ow.scarified_birch_log": "Bûche de bouleau scarifiée",
   "block.ow.scarified_acacia_log": "Bûche d'acacia scarifiée",
   "block.ow.scarified_jungle_log": "Bûche d'acajou scarifiée",
+
+  "block.ow.redwood_log": "Bois de séquoias",
 
   "block.ow.savage_berry_bush": "Buisson de baies sauvages",
 

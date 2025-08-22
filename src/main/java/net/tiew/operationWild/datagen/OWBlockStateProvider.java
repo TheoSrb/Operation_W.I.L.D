@@ -1,12 +1,16 @@
 package net.tiew.operationWild.datagen;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
+import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.block.OWBlocks;
@@ -34,12 +38,25 @@ public class OWBlockStateProvider extends BlockStateProvider {
         simpleBlockWithItem(OWBlocks.POTTED_CAMELLIA.get(), models().singleTexture("potted_camellia", ResourceLocation.fromNamespaceAndPath("minecraft", "flower_pot_cross"), "plant", blockTexture(OWBlocks.CAMELLIA.get())).renderType("cutout"));
 
         makeBush(((SavageBerryBushBlock) OWBlocks.SAVAGE_BERRY_BUSH.get()), "savage_berry_bush_stage", "savage_berry_bush_stage");
+
+
+        logBlock((RotatedPillarBlock) OWBlocks.REDWOOD_LOG.get());
+
+        blockItem(OWBlocks.REDWOOD_LOG);
+
+        saplingBlock(OWBlocks.REDWOOD_SAPLING);
+
     }
 
 
+    private void blockItem(DeferredBlock<?> deferredBlock) {
+        simpleBlockItem(deferredBlock.get(), new ModelFile.UncheckedModelFile("ow:block/" + deferredBlock.getId().getPath()));
+    }
 
-
-
+    private void saplingBlock(DeferredBlock<Block> blockRegistryObject) {
+        simpleBlock(blockRegistryObject.get(),
+                models().cross(BuiltInRegistries.BLOCK.getKey(blockRegistryObject.get()).getPath(), blockTexture(blockRegistryObject.get())).renderType("cutout"));
+    }
 
     public void makeBush(SavageBerryBushBlock block, String modelName, String textureName) {
         Function<BlockState, ConfiguredModel[]> function = state -> states(state, modelName, textureName);

@@ -8,20 +8,20 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.screen.entity.OWSkinsInterface;
 
 @OnlyIn(Dist.CLIENT)
-public class ElephantSkinsScreen extends OWSkinsInterface {
+public class KodiakSkinsScreen extends OWSkinsInterface {
     private Button skinButton1;
     private Button skinButton7;
 
     private int numberOfSkins = 2;
 
-    public ElephantSkinsScreen() {
+    public KodiakSkinsScreen() {
         super();
     }
 
     @Override
     protected void initEntityScale() {
-        if (this.entity != null && "ElephantEntity".equals(this.entity.getClass().getSimpleName())) {
-            entityScale = (int) (15 * 2.5f);
+        if (this.entity != null && "KodiakEntity".equals(this.entity.getClass().getSimpleName())) {
+            entityScale = (int) (20 * 2.5f);
         }
     }
 
@@ -43,8 +43,8 @@ public class ElephantSkinsScreen extends OWSkinsInterface {
         RARE_SKIN.clear();
         COMMON_SKIN.clear();
 
-        skinButton1 = createSkinButton(Component.translatable("tooltip.elephantSkin1"), 1, LEGENDARY_SKIN);
-        skinButton7 = createSkinButton(Component.translatable("tooltip.elephantSkin7"), 7, COMMON_SKIN);
+        skinButton1 = createSkinButton(Component.translatable("tooltip.kodiakSkin1"), 1, LEGENDARY_SKIN);
+        skinButton7 = createSkinButton(Component.translatable("tooltip.kodiakSkin7"), 7, COMMON_SKIN);
 
         updateButtonColors();
         addButtonsToList();
@@ -59,7 +59,7 @@ public class ElephantSkinsScreen extends OWSkinsInterface {
 
     @Override
     protected void addTooltipsToButtons() {
-        if (isLocked(1)) skinButton1.setTooltip(Tooltip.create(Component.translatable("tooltip.elephantSkin1Indication")));
+        if (isLocked(1)) skinButton1.setTooltip(Tooltip.create(Component.translatable("tooltip.kodiakSkin1Indication")));
     }
 
     @Override

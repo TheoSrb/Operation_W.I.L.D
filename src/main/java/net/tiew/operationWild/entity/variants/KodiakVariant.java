@@ -6,7 +6,9 @@ import java.util.Comparator;
 public enum KodiakVariant {
     DEFAULT(0),
     BLACK(1),
-    GREY(2);
+    GREY(2),
+
+    SKIN_GOLD(3);
 
     public static final KodiakVariant[] BY_ID = Arrays.stream(values()).sorted(Comparator.comparingInt(KodiakVariant::getId)).toArray(KodiakVariant[]::new);
 

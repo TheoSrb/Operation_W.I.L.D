@@ -106,12 +106,12 @@ public class MandrillEntity extends OWEntity implements OWEntityUtils, OWTameImp
 
     @Override
     public float getMaxVitalEnergy() {
-        return 500 * (1 + ((float) this.getLevel() / 100));
+        return 500 * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 1f;
+        return 1f * (1 + ((float) this.getLevel() / 50));
     }
 
     // Entity's AI

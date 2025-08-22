@@ -16,6 +16,9 @@ public class OWEntityFoodOverlay { ;
 
         if (rider != null) {
             LivingEntity entity = (LivingEntity) rider.getVehicle();
+
+            if (Minecraft.getInstance().options.hideGui) return;
+
             if (entity != null) {
                 if (entity instanceof OWEntity owEntity) {
                     createFoodOverlay(guiGraphics, owEntity, screenWidth, screenHeight);

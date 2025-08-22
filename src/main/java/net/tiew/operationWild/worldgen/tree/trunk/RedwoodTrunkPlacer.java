@@ -1,0 +1,90 @@
+package net.tiew.operationWild.worldgen.tree.trunk;
+
+import com.google.common.collect.ImmutableList;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelSimulatedReader;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
+import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacer;
+import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacer;
+import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacerType;
+import net.tiew.operationWild.utils.OWUtils;
+
+import java.util.List;
+import java.util.function.BiConsumer;
+
+public class RedwoodTrunkPlacer extends TrunkPlacer {
+    public static final MapCodec<RedwoodTrunkPlacer> CODEC = RecordCodecBuilder.mapCodec(instance ->
+            trunkPlacerParts(instance).apply(instance, RedwoodTrunkPlacer::new));
+
+    public RedwoodTrunkPlacer(int pBaseHeight, int pHeightRandA, int pHeightRandB) {
+        super(pBaseHeight, pHeightRandA, pHeightRandB);
+    }
+
+    @Override
+    protected TrunkPlacerType<?> type() {
+        return OWTrunkPlacerTypes.REDWOOD_TRUNK_PLACER.get();
+    }
+
+    @Override
+    public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader level, BiConsumer<BlockPos, BlockState> blockSetter, RandomSource random, int height,
+            BlockPos pos, TreeConfiguration config) {
+
+        for (int i = 0; i < height; i++) {
+            placeLog(level, blockSetter, random, pos.above(i), config);
+        }
+
+        for (int $$0 = -1; $$0 <= 1; $$0++) {
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 1.25) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, 1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 1.25) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, -1);
+        }
+
+        for (int $$1 = -1; $$1 <= 1; $$1++) {
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 1.25) + OWUtils.generateRandomInterval(0, 5)), 1, 0, $$1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 1.25) + OWUtils.generateRandomInterval(0, 5)), -1, 0, $$1);
+        }
+
+
+        for (int $$0 = -1; $$0 <= 1; $$0++) {
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, 2);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, -2);
+        }
+
+        for (int $$1 = -1; $$1 <= 1; $$1++) {
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), 2, 0, $$1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 2) + OWUtils.generateRandomInterval(0, 5)), -2, 0, $$1);
+        }
+
+
+        for (int $$0 = -1; $$0 <= 1; $$0++) {
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, 3);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), $$0, 0, -3);
+        }
+
+        for (int $$1 = -1; $$1 <= 1; $$1++) {
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), 3, 0, $$1);
+            createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), -3, 0, $$1);
+        }
+
+        createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), -2, 0, 2);
+        createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), -2, 0, -2);
+        createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), 2, 0, 2);
+        createLogPillar(level, blockSetter, random, pos, config, (int) (((double) height / 4) + OWUtils.generateRandomInterval(0, 5)), 2, 0, -2);
+
+
+
+        return List.of(new FoliagePlacer.FoliageAttachment(pos.above(height), 0, false));
+    }
+
+    private void createLogPillar(LevelSimulatedReader level, BiConsumer<BlockPos, BlockState> blockSetter, RandomSource random, BlockPos pos, TreeConfiguration config,
+                                 int height, int x, int y, int z) {
+        for (int j = 0; j < height; j++) {
+            if (j == 0) setDirtAt(level, blockSetter, random, pos.below(), config);
+            placeLog(level, blockSetter, random, pos.above(j).offset(x, y, z), config);
+        }
+    }
+}

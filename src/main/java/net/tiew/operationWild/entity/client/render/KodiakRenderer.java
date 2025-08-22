@@ -11,6 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.KodiakLayer;
+import net.tiew.operationWild.entity.client.layer.skins.ElephantSkins;
+import net.tiew.operationWild.entity.client.layer.skins.KodiakSkins;
 import net.tiew.operationWild.entity.client.model.KodiakModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
 import net.tiew.operationWild.entity.custom.living.KodiakEntity;
@@ -23,12 +25,14 @@ public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<Kodiak
         map.put(KodiakVariant.DEFAULT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_default.png"));
         map.put(KodiakVariant.BLACK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_black.png"));
         map.put(KodiakVariant.GREY, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_grey.png"));
+        map.put(KodiakVariant.SKIN_GOLD, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/skins/kodiak_skin_gold.png"));
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
     public KodiakRenderer(EntityRendererProvider.Context context) {
         super(context, new KodiakModel<>(context.bakeLayer(KodiakModel.LAYER_LOCATION)), 0.4f);
         this.addLayer(new KodiakLayer(this));
+        this.addLayer(new KodiakSkins(this));
     }
 
     @Override

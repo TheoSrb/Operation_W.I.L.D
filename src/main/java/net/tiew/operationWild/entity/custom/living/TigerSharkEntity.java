@@ -142,12 +142,12 @@ public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, 
 
     @Override
     public float getMaxVitalEnergy() {
-        return 215 * (1 + ((float) this.getLevel() / 100));
+        return 215 * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 0.75f;
+        return 0.75f * (1 + ((float) this.getLevel() / 50));
     }
 
     // Entity's AI

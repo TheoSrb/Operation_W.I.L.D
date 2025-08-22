@@ -98,7 +98,7 @@ public class OWEntityHud {
 
         guiGraphics.blit(HUD, xPlacement + 81 + 5, yPlacement, 0, 230, 8, 14);
 
-        if ((entity.tickCount / 5) % 2 == 0 && entity.isRunning() && ((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())) < 0.75) {
+        if ((entity.tickCount / 5) % 2 == 0 && (entity.isRunning() || entity.isCombo()) && ((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())) < 0.75) {
             RenderSystem.setShaderColor(0.81f, 0.85f, 0.91f, 0.75f);
             guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 1, 244, 6, 12);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
