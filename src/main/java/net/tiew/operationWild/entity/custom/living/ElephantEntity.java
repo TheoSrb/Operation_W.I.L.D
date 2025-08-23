@@ -63,6 +63,7 @@ import net.tiew.operationWild.entity.variants.PeacockVariant;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.item.custom.ElephantSaddle;
 import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_server.BoaVenomPacket;
 import net.tiew.operationWild.networking.packets.to_server.ElephantFootstepPacket;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.utils.OWUtils;
@@ -328,10 +329,6 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     public void applyFootstep() {
         List<LivingEntity> livingEntitiesAround = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(FOOTSTEP_MAX_DISTANCE));
 
-        for (int i = 0; i < 3; i++) {
-            this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
-        }
-
         for (LivingEntity livingEntityAround : livingEntitiesAround) {
             if (livingEntityAround.onGround()) {
                 if (livingEntityAround instanceof Player player && player.isCreative()) continue;
@@ -356,8 +353,15 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         this.playSound(OWSounds.MINI_EARTHQUAKE.get(), 1.5f, 1.2f);
     }
 
+    public void applyFootstepSound() {
+        for (int i = 0; i < 3; i++) {
+            this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
+        }
+    }
+
     public void tick() {
         super.tick();
+
         Vec3 center = new Vec3(0, 1, 1 * this.getScale()).yRot(-this.yBodyRot * ((float) Math.PI / 180F)).add(position());
 
         createCombo(33, 22, actualAttackNumber == 2 ? SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR : RANDOM(2) ? OWSounds.ELEPHANT_HURT.get() : OWSounds.ELEPHANT_HURTING_2.get(), 3.0, 3.5, 1.5, false, actualAttackNumber == 2 ? 4 : 2);
@@ -382,7 +386,6 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
                 entity.hurt(this.damageSource, 2);
             }
         }
-
 
         if (isCreatingShockWave) {
             shockWaveTimer++;
@@ -434,7 +437,7 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         }
 
 
-        if (getLimbSwingAmount() > 0.1f && this.level().isClientSide && this.onGround()) {
+        if (getLimbSwingAmount() > 0.1f && this.onGround()) {
             float cycle = getLimbSwing() * 0.6662f;
             float currentPos = (float) ((cycle % (2.0f * Math.PI)) / (2.0f * Math.PI));
             float lastPos = (float) ((getLastLimbSwing() * 0.6662f % (2.0f * Math.PI)) / (2.0f * Math.PI));
@@ -445,6 +448,7 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
                     || (lastPos > currentPos && (currentPos >= 0.25f || currentPos >= 0.58f || currentPos >= 0.85f))) {
 
                 this.applyFootstep();
+                OWNetworkHandler.sendToServer(new ElephantFootstepPacket(this.getX(), this.getY(), this.getZ()));
 
                 double yawRadians = Math.toRadians(this.getYRot());
                 double distance = 1.5;

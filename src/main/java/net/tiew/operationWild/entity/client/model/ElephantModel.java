@@ -10,6 +10,7 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.tiew.operationWild.OperationWild;
@@ -18,9 +19,12 @@ import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 import net.tiew.operationWild.entity.custom.living.ElephantEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.ElephantFootstepPacket;
+import net.tiew.operationWild.sound.OWSounds;
 
 public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "elephant_default"), "main");
+
+	private float lastLimbSwing = 0.0f;
 
 	private final ModelPart ALL2;
 	private final ModelPart ALL;
