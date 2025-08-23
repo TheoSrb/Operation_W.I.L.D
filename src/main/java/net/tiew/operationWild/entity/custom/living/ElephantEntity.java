@@ -62,6 +62,8 @@ import net.tiew.operationWild.entity.categoy.OWGroupEntity;
 import net.tiew.operationWild.entity.variants.PeacockVariant;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.item.custom.ElephantSaddle;
+import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_server.ElephantFootstepPacket;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.utils.OWUtils;
 import org.jetbrains.annotations.Nullable;
@@ -93,6 +95,10 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> PLAYER_CAN_JUMP = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<CompoundTag> SADDLE_DATA = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.COMPOUND_TAG);
+
+    private static final EntityDataAccessor<Float> LIMBSWING = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> LIMBSWING_AMOUNT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> LAST_LIMBSWING = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.FLOAT);
 
     public ElephantVariant getVariant() { return ElephantVariant.byId(this.getTypeVariant() & 255);}
     public void setVariant(ElephantVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
@@ -187,7 +193,24 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
-        return RANDOM(5) ? null : null;
+        if (RANDOM(2)) {
+            if (chance >= 75) return OWSounds.ELEPHANT_IDLE.get();
+            else if (chance >= 50) return OWSounds.ELEPHANT_IDLE_2.get();
+            else if (chance >= 25) return OWSounds.ELEPHANT_IDLE_3.get();
+            else if (chance >= 0) return OWSounds.ELEPHANT_IDLE_4.get();
+        }
+
+        return null;
+    }
+
+    @Override
+    protected @Nullable SoundEvent getDeathSound() {
+        return OWSounds.ELEPHANT_SCREAM.get();
+    }
+
+    @Override
+    protected @Nullable SoundEvent getHurtSound(DamageSource damageSource) {
+        return OWSounds.ELEPHANT_HURTING.get();
     }
 
     protected float getSoundVolume() { return 1f;}
@@ -293,6 +316,15 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     public void setPlayerJump(boolean isPlayerJump) { this.entityData.set(PLAYER_CAN_JUMP, isPlayerJump);}
     public boolean isPlayerJump() { return this.entityData.get(PLAYER_CAN_JUMP);}
 
+    public void setLimbSwing(float getLimbSwing) { this.entityData.set(LIMBSWING, getLimbSwing); }
+    public float getLimbSwing() { return this.entityData.get(LIMBSWING);}
+
+    public void setLimbSwingAmount(float getLimbSwingAmount) { this.entityData.set(LIMBSWING_AMOUNT, getLimbSwingAmount); }
+    public float getLimbSwingAmount() { return this.entityData.get(LIMBSWING_AMOUNT);}
+
+    public void setLastLimbSwing(float getLastLimbSwing) { this.entityData.set(LAST_LIMBSWING, getLastLimbSwing); }
+    public float getLastLimbSwing() { return this.entityData.get(LAST_LIMBSWING);}
+
     public void applyFootstep() {
         List<LivingEntity> livingEntitiesAround = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(FOOTSTEP_MAX_DISTANCE));
 
@@ -328,7 +360,7 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         super.tick();
         Vec3 center = new Vec3(0, 1, 1 * this.getScale()).yRot(-this.yBodyRot * ((float) Math.PI / 180F)).add(position());
 
-        createCombo(33, 22, actualAttackNumber == 2 ? SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR : OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, false, actualAttackNumber == 2 ? 4 : 2);
+        createCombo(33, 22, actualAttackNumber == 2 ? SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR : RANDOM(2) ? OWSounds.ELEPHANT_HURT.get() : OWSounds.ELEPHANT_HURTING_2.get(), 3.0, 3.5, 1.5, false, actualAttackNumber == 2 ? 4 : 2);
 
         if (this.accelerationIsAtMax()) {
             Vec3 look = this.getLookAngle();
@@ -400,6 +432,53 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
                 isCreatingShockWave = false;
             }
         }
+
+
+        if (getLimbSwingAmount() > 0.1f && this.level().isClientSide && this.onGround()) {
+            float cycle = getLimbSwing() * 0.6662f;
+            float currentPos = (float) ((cycle % (2.0f * Math.PI)) / (2.0f * Math.PI));
+            float lastPos = (float) ((getLastLimbSwing() * 0.6662f % (2.0f * Math.PI)) / (2.0f * Math.PI));
+
+            if ((lastPos < 0.25f && currentPos >= 0.25f)
+                    || (lastPos < 0.58f && currentPos >= 0.58f)
+                    || (lastPos < 0.85f && currentPos >= 0.85f)
+                    || (lastPos > currentPos && (currentPos >= 0.25f || currentPos >= 0.58f || currentPos >= 0.85f))) {
+
+                this.applyFootstep();
+
+                double yawRadians = Math.toRadians(this.getYRot());
+                double distance = 1.5;
+                double rightOffset = ((lastPos < 0.6f && currentPos >= 0.6f) ||
+                        (lastPos > currentPos && currentPos >= 0.6f && currentPos < 0.85f))
+                        ? 1.0 : -1.0;
+
+                double frontX = this.getX() - Math.sin(yawRadians) * distance;
+                double frontY = this.getY();
+                double frontZ = this.getZ() + Math.cos(yawRadians) * distance;
+
+                double rightX = frontX + Math.cos(yawRadians) * rightOffset;
+                double rightZ = frontZ + Math.sin(yawRadians) * rightOffset;
+
+                double backX = this.getX() - Math.sin(yawRadians) * (-1.0);
+                double backZ = this.getZ() + Math.cos(yawRadians) * (-1.0);
+
+                double rightBackX = backX + Math.cos(yawRadians) * -rightOffset;
+                double rightBackZ = backZ + Math.sin(yawRadians) * -rightOffset;
+
+                if (this.level().isClientSide()) {
+                    for (int i = 0; i < 30; i++) {
+                        this.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
+                                rightX, frontY, rightZ,
+                                0, 0, 0);
+                        this.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState()),
+                                rightBackX, frontY, rightBackZ,
+                                0, 0, 0);
+                    }
+                }
+            }
+        }
+
+        this.setLastLimbSwing(getLimbSwing());
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (!this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) createTameAttackSystem(30, 20, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, 5, 3.5, 2, false);
@@ -596,6 +675,10 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(PLAYER_CAN_JUMP, false);
         builder.define(SADDLE_DATA, new CompoundTag());
+
+        builder.define(LIMBSWING, 0.0f);
+        builder.define(LIMBSWING_AMOUNT, 0.0f);
+        builder.define(LAST_LIMBSWING, 0.0f);
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {

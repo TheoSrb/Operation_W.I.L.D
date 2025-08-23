@@ -68,6 +68,15 @@ public class OWSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> JELLYFISH_ELECTRIFIED = registerSoundEvent("jellyfish_electrified");
 
     public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_FOOTSTEP = registerSoundEvent("elephant_footstep");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_IDLE = registerSoundEvent("elephant_idle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_IDLE_2 = registerSoundEvent("elephant_idle_2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_IDLE_3 = registerSoundEvent("elephant_idle_3");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_IDLE_4 = registerSoundEvent("elephant_idle_5");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_HURT = registerSoundEvent("elephant_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_HURTING = registerSoundEvent("elephant_hurting");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_HURTING_2 = registerSoundEvent("elephant_hurting_2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_SCREAM = registerSoundEvent("elephant_scream");
+    public static final DeferredHolder<SoundEvent, SoundEvent> ELEPHANT_CALL = registerSoundEvent("elephant_call");
 
     public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_IDLE_1 = registerSoundEvent("kodiak_idle");
     public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_IDLE_2 = registerSoundEvent("kodiak_idle_2");

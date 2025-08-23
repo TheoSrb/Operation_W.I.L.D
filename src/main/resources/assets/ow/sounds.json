@@ -54,6 +54,16 @@
   "jellyfish_electrified": { "subtitle": "sounds.ow.jellyfish_electrified", "sounds": [ "ow:jellyfish/jellyfish_electrified" ], "volume": 2 },
 
   "elephant_footstep": { "subtitle": "sounds.ow.elephant_footstep", "sounds": [ "ow:elephant/elephant_footstep" ], "volume": 2 },
+  "elephant_idle": { "subtitle": "sounds.ow.elephant_idle", "sounds": [ "ow:elephant/elephant_idle" ], "volume": 2 },
+  "elephant_idle_2": { "subtitle": "sounds.ow.elephant_idle_2", "sounds": [ "ow:elephant/elephant_idle_2" ], "volume": 2 },
+  "elephant_idle_3": { "subtitle": "sounds.ow.elephant_idle_3", "sounds": [ "ow:elephant/elephant_idle_3" ], "volume": 2 },
+  "elephant_idle_4": { "subtitle": "sounds.ow.elephant_idle_4", "sounds": [ "ow:elephant/elephant_idle_4" ], "volume": 2 },
+  "elephant_idle_5": { "subtitle": "sounds.ow.elephant_idle_5", "sounds": [ "ow:elephant/elephant_idle_5" ], "volume": 2 },
+  "elephant_hurt": { "subtitle": "sounds.ow.elephant_hurt", "sounds": [ "ow:elephant/elephant_hurt" ], "volume": 2 },
+  "elephant_hurting": { "subtitle": "sounds.ow.elephant_hurting", "sounds": [ "ow:elephant/elephant_hurting" ], "volume": 2 },
+  "elephant_hurting_2": { "subtitle": "sounds.ow.elephant_hurting_2", "sounds": [ "ow:elephant/elephant_hurting_2" ], "volume": 2 },
+  "elephant_scream": { "subtitle": "sounds.ow.elephant_scream", "sounds": [ "ow:elephant/elephant_scream" ], "volume": 2 },
+  "elephant_call": { "subtitle": "sounds.ow.elephant_call", "sounds": [ "ow:elephant/elephant_call" ], "volume": 2 },
 
   "kodiak_idle": { "subtitle": "sounds.ow.kodiak_idle", "sounds": [ "ow:kodiak/kodiak_idle" ] },
   "kodiak_idle_2": { "subtitle": "sounds.ow.kodiak_idle_2", "sounds": [ "ow:kodiak/kodiak_idle_2" ] },

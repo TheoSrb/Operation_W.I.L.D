@@ -1686,7 +1686,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
                 setCombo(false, 0);
                 return;
             }
-            if (attackTimer == timeToHit) {
+            if (attackTimer == timeToHit - (this instanceof ElephantEntity ? 3 : 0)) {
                 attackEntitiesInFront((float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULITPLIER)), sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
                 if (spawnBlurr) {
                     OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
@@ -1718,6 +1718,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
         if (this instanceof ElephantEntity elephant) {
             if (attackTimer == timeToHit) {
+                float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
+                elephant.level().playSound(null, elephant.getX(), elephant.getY(), elephant.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
                 if (elephant.getComboAttack() == 3) {
                     elephant.createShockWave();
                 }
