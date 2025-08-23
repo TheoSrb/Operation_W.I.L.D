@@ -68,7 +68,7 @@ public class RedwoodTrunkPlacer extends TrunkPlacer {
     private void createLogPillar(LevelSimulatedReader level, BiConsumer<BlockPos, BlockState> blockSetter, RandomSource random, BlockPos pos, TreeConfiguration config,
                                  int height, int x, int y, int z) {
         for (int j = 0; j < height; j++) {
-            if (j == 0) setDirtAt(level, blockSetter, random, pos.below(), config);
+            if (j == 0) setDirtAt(level, blockSetter, random, pos.offset(x, y, z).below(), config);
             placeLog(level, blockSetter, random, pos.above(j).offset(x, y, z), config);
         }
     }

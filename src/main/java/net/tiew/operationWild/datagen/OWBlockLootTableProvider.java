@@ -45,6 +45,7 @@ public class OWBlockLootTableProvider extends BlockLootSubProvider {
         dropSelf(OWBlocks.SADDLER.get());
 
         dropSelf(OWBlocks.REDWOOD_LOG.get());
+        dropSelf(OWBlocks.REDWOOD_PLANKS.get());
         dropSelf(OWBlocks.REDWOOD_SAPLING.get());
         this.add(OWBlocks.REDWOOD_LEAVES.get(), block -> createLeavesDrops(block, OWBlocks.REDWOOD_SAPLING.get(), NORMAL_LEAVES_SAPLING_CHANCES));
 

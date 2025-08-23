@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": {
+      "item": "ow:redwood_log"
+    }
+  },
+  "pattern": [
+    "   ",
+    " P ",
+    "   "
+  ],
+  "result": {
+    "count": 4,
+    "id": "ow:redwood_planks"
+  }
+}

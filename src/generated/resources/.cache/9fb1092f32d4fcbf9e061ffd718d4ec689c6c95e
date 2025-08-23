@@ -1,4 +1,4 @@
-// 1.21	2025-08-07T21:11:07.8226304	Recipes
+// 1.21	2025-08-23T14:06:25.6722909	Recipes
 f33c002f0f4ef1baa4167f73e99e52613a4136f5 data/minecraft/advancement/recipes/misc/pink_dye.json
 e3f3a0b671388d6abdeedaefe2fd558cd9d00dac data/minecraft/recipe/pink_dye.json
 de112f61373b2fa438aeb487d1c45ba8a14efac2 data/ow/advancement/recipes/food/cooked_boa_from_campfire_cooking.json
@@ -29,6 +29,7 @@ f25e66dbd32ca26021474d3c77166e42190dc9bc data/ow/advancement/recipes/misc/jade_p
 6e05767f7decb6b9015cd94d98119070ef26ef7b data/ow/advancement/recipes/misc/lavender_bouquet.json
 7b476ce21d38d267e3c6180ceda095db8365d6e1 data/ow/advancement/recipes/misc/primitive_slingshot.json
 7ad27e07925ea45f53d2a19d95b3e7e753d4522e data/ow/advancement/recipes/misc/primitive_spear.json
+f305127023171c79a15db14b9173cd1dfec98291 data/ow/advancement/recipes/misc/redwood_planks.json
 5b84560fc0abba9e6ccb5b443f037443fe993deb data/ow/advancement/recipes/misc/ruby_axe.json
 adb58206aa83b0b522f30bbd829474d8b39190bb data/ow/advancement/recipes/misc/ruby_hoe.json
 f265edd4b09e2b17d826c86da8f4eab5f69920a9 data/ow/advancement/recipes/misc/ruby_pickaxe.json
@@ -69,6 +70,7 @@ ab5979e2aab3344f761f116e4caa5a5235804599 data/ow/recipe/jade_sword.json
 92d9bd3a844271b83279ee3e7f299df3144ee874 data/ow/recipe/lavender_bouquet.json
 0fbc8227c91a2d7cfb1e6d82532bf1de70f6cd17 data/ow/recipe/primitive_slingshot.json
 0411fa11a6234f03315ed2539a840a7d7d1371b2 data/ow/recipe/primitive_spear.json
+ba2e3a1e78381fb33e6f51dd800be05bb5e60b96 data/ow/recipe/redwood_planks.json
 5351f9aa5036066b79816950f3f86d4443c85c1b data/ow/recipe/ruby_axe.json
 874005a389b8e4f20c190d2b182b46924b114103 data/ow/recipe/ruby_hoe.json
 7ff147af320dd5b3f74e1716784d9640b6982cfc data/ow/recipe/ruby_pickaxe.json

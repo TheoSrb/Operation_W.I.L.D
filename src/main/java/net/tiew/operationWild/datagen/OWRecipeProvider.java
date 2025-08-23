@@ -243,6 +243,18 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .define('L', OWBlocks.LAVENDER.get()).unlockedBy(getHasName(OWBlocks.LAVENDER.get()), has(OWBlocks.LAVENDER.get())).save(recipeOutput);
 
 
+
+
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWBlocks.REDWOOD_PLANKS.get(), 4)
+                .pattern("   ")
+                .pattern(" P ")
+                .pattern("   ")
+                .define('P', OWBlocks.REDWOOD_LOG.get()).unlockedBy(getHasName(OWBlocks.REDWOOD_LOG.get()), has(OWBlocks.REDWOOD_LOG.get())).save(recipeOutput);
+
+
+
+
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(OWItems.RAW_TIGER.get()),
                         RecipeCategory.FOOD, OWItems.COOKED_TIGER.get(), 0.35F, 200)
                 .unlockedBy(getHasName(OWItems.RAW_TIGER.get()), has(OWItems.RAW_TIGER.get()))

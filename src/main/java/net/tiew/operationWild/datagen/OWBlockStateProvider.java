@@ -40,9 +40,13 @@ public class OWBlockStateProvider extends BlockStateProvider {
         makeBush(((SavageBerryBushBlock) OWBlocks.SAVAGE_BERRY_BUSH.get()), "savage_berry_bush_stage", "savage_berry_bush_stage");
 
 
+
+
         logBlock((RotatedPillarBlock) OWBlocks.REDWOOD_LOG.get());
 
         blockItem(OWBlocks.REDWOOD_LOG);
+
+        blockWithItem(OWBlocks.REDWOOD_PLANKS);
 
         saplingBlock(OWBlocks.REDWOOD_SAPLING);
 
