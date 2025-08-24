@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.tiew.operationWild.entity.custom.living.ElephantEntity;
 import net.tiew.operationWild.item.custom.ElephantSaddle;
+import net.tiew.operationWild.utils.OWUtils;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -157,18 +158,6 @@ public class OWRendererUtils {
         poseStack.popPose();
 
 
-
-
-
-        double speedBlocksPerSecond = 0;
-
-        switch(entity.getClass().getSimpleName()) {
-            //                                           blocks/s  speed
-            case "TigerEntity" -> speedBlocksPerSecond = (7.84 / 0.181763) * entity.getSpeed();
-            case "BoaEntity" -> speedBlocksPerSecond = (4.383 / 0.16604447) * entity.getSpeed();
-            case "PeacockEntity" -> speedBlocksPerSecond = (5.833 / 0.19152214) * entity.getSpeed();
-        }
-
         poseStack.scale(0.0035F, -0.0035F, 0.0035F);
         poseStack.translate(0.0D, 0.0D, 0.001D);
 
@@ -182,7 +171,7 @@ public class OWRendererUtils {
 
         Component speedComponent = Component.empty()
                 .append(Component.translatable("imageSpeed").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
-                .append(" " + Math.round(speedBlocksPerSecond * 100) / 100.0)
+                .append(" " + Math.round(OWUtils.getSpeedBlocksPerSecond(entity) * 100) / 100.0)
                 .append(Component.translatable("tooltip.entitySpeed").withStyle(style -> style.withBold(false)));
 
         Component stateComponent = Component.empty()

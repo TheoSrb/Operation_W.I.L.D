@@ -32,5 +32,10 @@ public class OWDataGenerators {
 
         generator.addProvider(event.includeClient(), new OWBlockStateProvider(packOutput, existingFileHelper));
 
+
+        OWBlockTagProvider blockTagProvider = generator.addProvider(event.includeServer(), new OWBlockTagProvider(packOutput, lookupProvider, existingFileHelper));
+        generator.addProvider(event.includeClient(), new OWItemTagProvider(packOutput, lookupProvider, blockTagProvider.contentsGetter(), existingFileHelper));
+        generator.addProvider(event.includeServer(), new OWEntityTypeTagProvider(packOutput, lookupProvider, existingFileHelper));
+        generator.addProvider(event.includeServer(), new OWEnchantmentTagProvider(packOutput, lookupProvider, existingFileHelper));
     }
 }

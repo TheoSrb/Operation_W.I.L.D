@@ -69,6 +69,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.CAMOUFLAGE_BOOTS.get());
                         output.accept(OWItems.BOA_SADDLE.get());
                         output.accept(OWItems.ELEPHANT_SADDLE.get());
+                        output.accept(OWItems.KODIAK_SADDLE.get());
                         output.accept(OWItems.PEACOCK_SADDLE.get());
                         output.accept(OWItems.TIGER_SADDLE.get());
                         output.accept(OWItems.TIGER_SHARK_SADDLE.get());
@@ -101,6 +102,23 @@ public class OWCreativeTabs {
                         output.accept(OWItems.SEABUG_COCKPIT.get());
                         output.accept(OWItems.SEABUG_HULL.get());
                         output.accept(OWItems.SEABUG_PORTHOLE.get());
+
+                        output.accept(OWBlocks.REDWOOD_LOG.get());
+                        output.accept(OWBlocks.REDWOOD_WOOD.get());
+                        output.accept(OWBlocks.STRIPPED_REDWOOD_LOG.get());
+                        output.accept(OWBlocks.STRIPPED_REDWOOD_WOOD.get());
+                        output.accept(OWBlocks.REDWOOD_PLANKS.get());
+                        output.accept(OWBlocks.REDWOOD_STAIRS.get());
+                        output.accept(OWBlocks.REDWOOD_SLAB.get());
+                        output.accept(OWBlocks.REDWOOD_FENCE.get());
+                        output.accept(OWBlocks.REDWOOD_FENCE_GATE.get());
+                        output.accept(OWBlocks.REDWOOD_DOOR.get());
+                        output.accept(OWBlocks.REDWOOD_TRAPDOOR.get());
+                        output.accept(OWBlocks.REDWOOD_PRESSURE_PLATE.get());
+                        output.accept(OWBlocks.REDWOOD_BUTTON.get());
+                        output.accept(OWBlocks.REDWOOD_LEAVES.get());
+                        output.accept(OWBlocks.REDWOOD_SAPLING.get());
+
                         output.accept(OWBlocks.SADDLER.get());
                         output.accept(OWBlocks.SCARIFIED_OAK_LOG.get());
                         output.accept(OWBlocks.SCARIFIED_DARK_OAK_LOG.get());
@@ -110,10 +128,7 @@ public class OWCreativeTabs {
                         output.accept(OWBlocks.SCARIFIED_BIRCH_LOG.get());
                         output.accept(OWBlocks.SCARIFIED_ACACIA_LOG.get());
                         output.accept(OWBlocks.SCARIFIED_JUNGLE_LOG.get());
-                        output.accept(OWBlocks.REDWOOD_LOG.get());
-                        output.accept(OWBlocks.REDWOOD_PLANKS.get());
-                        output.accept(OWBlocks.REDWOOD_LEAVES.get());
-                        output.accept(OWBlocks.REDWOOD_SAPLING.get());
+
                         output.accept(OWBlocks.LAVENDER.get());
                         output.accept(OWBlocks.CAMELLIA.get());
                         output.accept(OWBlocks.PEACOCK_EGG.get());

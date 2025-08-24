@@ -1,4 +1,4 @@
-// 1.21	2025-08-23T14:06:25.6692996	Loot Tables
+// 1.21	2025-08-23T19:03:23.3497193	Loot Tables
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
 5b5fcfe0ecc7270dbed936f1c5d59ab6a543b479 data/ow/loot_table/blocks/deepslate_jade_ore.json
 06da0d1a496415bacabd90b29e9205b4df505f5e data/ow/loot_table/blocks/deepslate_ruby_ore.json
@@ -7,10 +7,19 @@ bd866344effa488fde0a0635a9ea55425b493f5d data/ow/loot_table/blocks/jade_ore.json
 a3ee4806afdcdbd2b8178c6c470eabd35c93c447 data/ow/loot_table/blocks/peacock_egg.json
 f153345ba251e42d4f98c012380b83a543500022 data/ow/loot_table/blocks/potted_camellia.json
 fa4b923c43bc9c7ea4fd7eded1bd12a288098520 data/ow/loot_table/blocks/potted_lavender.json
+8c0f01def7b6dbd6c6f30d3839d7c55f3ac7cbc3 data/ow/loot_table/blocks/redwood_button.json
+b3d17ce2c8e0ce6f2713c918df871267df16a176 data/ow/loot_table/blocks/redwood_door.json
+cca896d27af0d277d24aac68a552c2eae3744fa2 data/ow/loot_table/blocks/redwood_fence.json
+9a261c3f2fd5488e9dc53b5d97d1e860d04dfffd data/ow/loot_table/blocks/redwood_fence_gate.json
 78dbee0790816b48babe2f541cfa110d0b350b62 data/ow/loot_table/blocks/redwood_leaves.json
 2b3c29d6706f08277f0bcc14ddaa9af6841bdb8a data/ow/loot_table/blocks/redwood_log.json
 fa6c2261141bf829d8cf1fa9c0d5e8144b1acc38 data/ow/loot_table/blocks/redwood_planks.json
+63e148a88487585b16b442d119055acf8f698651 data/ow/loot_table/blocks/redwood_pressure_plate.json
 a871e727b6a3ad94afe00ffdf98ed6097ae0af68 data/ow/loot_table/blocks/redwood_sapling.json
+769e81914a8897b94407683a6007391ac4f421e9 data/ow/loot_table/blocks/redwood_slab.json
+36b29f074b9831ec7018d1052672b2d08e9db195 data/ow/loot_table/blocks/redwood_stairs.json
+3534d744dbb91bffda56658bfb2c239ef9e57a42 data/ow/loot_table/blocks/redwood_trapdoor.json
+dce70c0a011beac70637804e6c1ed25655694fe2 data/ow/loot_table/blocks/redwood_wood.json
 c2d8ddfdd0e44e1f9aa7a13afb1e9ee6a44f4b0e data/ow/loot_table/blocks/ruby_ore.json
 56a3837ed440459bf403d62eb411e013c2f9975f data/ow/loot_table/blocks/saddler.json
 16e4b47c3d8470c38b1425c37665fbfd267b92fc data/ow/loot_table/blocks/savage_berry_bush.json
@@ -22,3 +31,5 @@ b24bafc5cbed78e626c6b2b5c7b9e39a6629d7ab data/ow/loot_table/blocks/scarified_dar
 4ceb6fb3de16d477a9682b207c13e33edfc3a136 data/ow/loot_table/blocks/scarified_mangrove_log.json
 4571134ec5a3e4ee60bc3dc37fff53bb5611b3ae data/ow/loot_table/blocks/scarified_oak_log.json
 199f85874368768d2b1d81a165893d9e2084d66c data/ow/loot_table/blocks/scarified_spruce_log.json
+067bd9d34994f9e06dea31b91ea4edfc09e977a6 data/ow/loot_table/blocks/stripped_redwood_log.json
+1c457b93eaec97aedfd1ae2c58459efc4b40e1b1 data/ow/loot_table/blocks/stripped_redwood_wood.json

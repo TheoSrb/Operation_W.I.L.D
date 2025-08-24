@@ -87,6 +87,7 @@ public class OWItemModelProvider extends ItemModelProvider {
         basicItem(OWItems.ANIMAL_SOUL.get());
 
         basicItem(OWItems.TIGER_SADDLE.get());
+        basicItem(OWItems.KODIAK_SADDLE.get());
         basicItem(OWItems.BOA_SADDLE.get());
         basicItem(OWItems.PEACOCK_SADDLE.get());
         basicItem(OWItems.TIGER_SHARK_SADDLE.get());
@@ -136,16 +137,40 @@ public class OWItemModelProvider extends ItemModelProvider {
         withExistingParent(OWItems.JELLYFISH_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.WALRUS_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
 
+
         saplingItem(OWBlocks.REDWOOD_SAPLING);
+        buttonItem(OWBlocks.REDWOOD_BUTTON, OWBlocks.REDWOOD_PLANKS);
+        fenceItem(OWBlocks.REDWOOD_FENCE, OWBlocks.REDWOOD_PLANKS);
+        basicItem(OWBlocks.REDWOOD_DOOR.asItem());
+
+    }
+
+    public void buttonItem(DeferredBlock<?> block, DeferredBlock<Block> baseBlock) {
+        this.withExistingParent(block.getId().getPath(), mcLoc("block/button_inventory"))
+                .texture("texture", ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID,
+                        "block/" + baseBlock.getId().getPath()));
+    }
+
+    public void fenceItem(DeferredBlock<?> block, DeferredBlock<Block> baseBlock) {
+        this.withExistingParent(block.getId().getPath(), mcLoc("block/fence_inventory"))
+                .texture("texture", ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID,
+                        "block/" + baseBlock.getId().getPath()));
+    }
+
+    public void wallItem(DeferredBlock<?> block, DeferredBlock<Block> baseBlock) {
+        this.withExistingParent(block.getId().getPath(), mcLoc("block/wall_inventory"))
+                .texture("wall", ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID,
+                        "block/" + baseBlock.getId().getPath()));
     }
 
     private ItemModelBuilder saplingItem(DeferredBlock<Block> item) {
         return withExistingParent(item.getId().getPath(),
                 ResourceLocation.parse("item/generated")).texture("layer0",
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID,"block/" + item.getId().getPath()));
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "block/" + item.getId().getPath()));
     }
 
     private static LinkedHashMap<ResourceKey<TrimMaterial>, Float> trimMaterials = new LinkedHashMap<>();
+
     static {
         trimMaterials.put(TrimMaterials.QUARTZ, 0.1F);
         trimMaterials.put(TrimMaterials.IRON, 0.2F);
@@ -162,7 +187,7 @@ public class OWItemModelProvider extends ItemModelProvider {
     private ItemModelBuilder simpleBlockItemBlockTexture(DeferredHolder<Block, Block> item) {
         return withExistingParent(item.getId().getPath(),
                 ResourceLocation.parse("item/generated")).texture("layer0",
-                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID,"block/" + item.getId().getPath()));
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "block/" + item.getId().getPath()));
     }
 
     private ItemModelBuilder handheldItem(DeferredHolder<Item, Item> item) {
@@ -174,7 +199,7 @@ public class OWItemModelProvider extends ItemModelProvider {
     private void trimmedArmorItem(DeferredHolder<Item, Item> itemRegistryObject) {
         final String MOD_ID = OperationWild.MOD_ID;
 
-        if(itemRegistryObject.get() instanceof ArmorItem armorItem) {
+        if (itemRegistryObject.get() instanceof ArmorItem armorItem) {
             trimMaterials.forEach((trimMaterial, value) -> {
                 float trimValue = value;
 
@@ -203,7 +228,7 @@ public class OWItemModelProvider extends ItemModelProvider {
                 this.withExistingParent(itemRegistryObject.getId().getPath(),
                                 mcLoc("item/generated"))
                         .override()
-                        .model(new ModelFile.UncheckedModelFile(trimNameResLoc.getNamespace()  + ":item/" + trimNameResLoc.getPath()))
+                        .model(new ModelFile.UncheckedModelFile(trimNameResLoc.getNamespace() + ":item/" + trimNameResLoc.getPath()))
                         .predicate(mcLoc("trim_type"), trimValue).end()
                         .texture("layer0",
                                 ResourceLocation.fromNamespaceAndPath(MOD_ID,
@@ -215,7 +240,7 @@ public class OWItemModelProvider extends ItemModelProvider {
     private void regularArmorItem(DeferredHolder<Item, Item> itemRegistryObject) {
         final String MOD_ID = OperationWild.MOD_ID;
 
-        if(itemRegistryObject.get() instanceof ArmorItem armorItem) {
+        if (itemRegistryObject.get() instanceof ArmorItem armorItem) {
             String armorType = switch (armorItem.getEquipmentSlot()) {
                 case HEAD -> "helmet";
                 case CHEST -> "chestplate";

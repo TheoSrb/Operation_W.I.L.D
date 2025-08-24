@@ -28,6 +28,7 @@ import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.LevelUpOWInventoryPacket;
 import net.tiew.operationWild.networking.packets.to_server.OpenDailyQuestScreen;
 import net.tiew.operationWild.screen.entity.skins.*;
+import net.tiew.operationWild.utils.OWUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -173,6 +174,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
             case "PeacockEntity": return 208;
             case "TigerSharkEntity": return 192;
             case "ElephantEntity": return 176;
+            case "KodiakEntity": return 160;
             default: return 0;
         }
     }
@@ -188,7 +190,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
 
         float upgradeHealthLimit = entity.isTank() ? 2.5f : entity.isAssassin() ? 1.75f : entity.isMarauder() ? 1.5f : 1.0f;
         float upgradeDamageLimit = entity.isTank() ? 1.5f : entity.isAssassin() ? 1.85f : entity.isMarauder() ? 1.7f : 1.0f;
-        float upgradeSpeedLimit = entity.isTank() ? 1.1f : entity.isAssassin() ? 1.2f : entity.isMarauder() ? 1.35f : 1.0f;
+        float upgradeSpeedLimit = entity.isTank() ? 1.2f : entity.isAssassin() ? 1.4f : entity.isMarauder() ? 1.7f : 1.0f;
         int color = (entity.tickCount / 7) % 2 == 0 ? 0xb8e45a : 0x8b8b8b;
 
         boolean hasLevelPoints = entity.getLevelPoints() > 0;
@@ -249,19 +251,10 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         int centerX = offsetX + (this.imageWidth / 2);
         int centerY = offsetY + (this.imageHeight / 2);
 
-        double speedBlocksPerSecond = 0;
-
-        switch(entity.getClass().getSimpleName()) {
-            //                                           blocks/s  speed
-            case "TigerEntity" -> speedBlocksPerSecond = (7.84 / 0.181763) * entity.getSpeed();
-            case "BoaEntity" -> speedBlocksPerSecond = (4.383 / 0.16604447) * entity.getSpeed();
-            case "PeacockEntity" -> speedBlocksPerSecond = (5.833 / 0.19152214) * entity.getSpeed();
-        }
-
         String levelPoints = String.valueOf(entity.getLevelPoints());
         String entityHealth = String.valueOf(Math.round(entity.getHealth() * 2) / 2.0 + " / " + Math.round(entity.getMaxHealth() * 2) / 2.0);
         String entityDamage = String.valueOf(Math.round(entity.getDamageToClient() * 10) / 10.0);
-        String entityBaseSpeed = String.valueOf(Math.round(speedBlocksPerSecond * 100) / 100.0);
+        String entityBaseSpeed = String.valueOf(Math.round(OWUtils.getSpeedBlocksPerSecond(entity) * 100) / 100.0);
         Component entitySpeed = Component.literal(entityBaseSpeed)
                 .append(Component.translatable("tooltip.entitySpeed"));
 
@@ -283,7 +276,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
     }
 
     private void renderEffects(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        int i = this.leftPos + this.imageWidth + 2;
+        int i = this.leftPos + this.imageWidth + 2 + (entity.getLevelPoints() > 0 ? 8 : 0);
         int j = this.width - i;
         Collection<MobEffectInstance> collection = entity.getActiveEffects();
         if (!collection.isEmpty() && j >= 32) {

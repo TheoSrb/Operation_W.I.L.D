@@ -44,10 +44,23 @@ public class OWBlockLootTableProvider extends BlockLootSubProvider {
 
         dropSelf(OWBlocks.SADDLER.get());
 
+
         dropSelf(OWBlocks.REDWOOD_LOG.get());
+        dropSelf(OWBlocks.REDWOOD_WOOD.get());
+        dropSelf(OWBlocks.STRIPPED_REDWOOD_WOOD.get());
+        dropSelf(OWBlocks.STRIPPED_REDWOOD_LOG.get());
         dropSelf(OWBlocks.REDWOOD_PLANKS.get());
         dropSelf(OWBlocks.REDWOOD_SAPLING.get());
+        dropSelf(OWBlocks.REDWOOD_STAIRS.get());
+        dropSelf(OWBlocks.REDWOOD_PRESSURE_PLATE.get());
+        dropSelf(OWBlocks.REDWOOD_BUTTON.get());
+        dropSelf(OWBlocks.REDWOOD_FENCE.get());
+        dropSelf(OWBlocks.REDWOOD_FENCE_GATE.get());
+        dropSelf(OWBlocks.REDWOOD_TRAPDOOR.get());
+        this.add(OWBlocks.REDWOOD_SLAB.get(), block -> createSlabItemTable(OWBlocks.REDWOOD_SLAB.get()));
+        this.add(OWBlocks.REDWOOD_DOOR.get(), block -> createDoorTable(OWBlocks.REDWOOD_DOOR.get()));
         this.add(OWBlocks.REDWOOD_LEAVES.get(), block -> createLeavesDrops(block, OWBlocks.REDWOOD_SAPLING.get(), NORMAL_LEAVES_SAPLING_CHANCES));
+
 
         this.add(OWBlocks.SCARIFIED_OAK_LOG.get(), block -> createMultipleOreDrops(OWBlocks.SCARIFIED_OAK_LOG.get(), Item.byBlock(Blocks.OAK_LOG), 1, 1));
         this.add(OWBlocks.SCARIFIED_DARK_OAK_LOG.get(), block -> createMultipleOreDrops(OWBlocks.SCARIFIED_DARK_OAK_LOG.get(), Item.byBlock(Blocks.DARK_OAK_LOG), 1, 1));

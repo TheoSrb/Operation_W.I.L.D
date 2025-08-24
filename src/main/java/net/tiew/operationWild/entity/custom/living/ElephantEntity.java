@@ -437,7 +437,7 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         }
 
 
-        if (getLimbSwingAmount() > 0.1f && this.onGround()) {
+        if (getLimbSwingAmount() > 0.1f && this.onGround() && !this.isSitting()) {
             float cycle = getLimbSwing() * 0.6662f;
             float currentPos = (float) ((cycle % (2.0f * Math.PI)) / (2.0f * Math.PI));
             float lastPos = (float) ((getLastLimbSwing() * 0.6662f % (2.0f * Math.PI)) / (2.0f * Math.PI));

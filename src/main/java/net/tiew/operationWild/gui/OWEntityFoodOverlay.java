@@ -4,6 +4,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -39,10 +41,10 @@ public class OWEntityFoodOverlay { ;
                 PoseStack poseStack = guiGraphics.pose();
                 poseStack.pushPose();
 
-                String countText = String.valueOf(count);
+                Component countText = Component.literal(String.valueOf(count)).setStyle(Style.EMPTY.withBold(true));
                 Font font = Minecraft.getInstance().font;
 
-                float textX = (((float) x / 2) - 114) + font.width(countText) / 2f;
+                float textX = (((float) x / 2) - 116 + (count >= 10 ? 0 : 8)) + font.width(countText) / 2f;
                 float textY = y - 27;
 
                 guiGraphics.drawString(font, countText, (int) textX, (int) textY, 0xFFFFFF);

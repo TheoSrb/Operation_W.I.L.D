@@ -43,19 +43,39 @@ public class OWBlockStateProvider extends BlockStateProvider {
 
 
         logBlock((RotatedPillarBlock) OWBlocks.REDWOOD_LOG.get());
+        axisBlock(((RotatedPillarBlock) OWBlocks.REDWOOD_WOOD.get()), blockTexture(OWBlocks.REDWOOD_LOG.get()), blockTexture(OWBlocks.REDWOOD_LOG.get()));
+        axisBlock(((RotatedPillarBlock) OWBlocks.STRIPPED_REDWOOD_LOG.get()), blockTexture(OWBlocks.STRIPPED_REDWOOD_LOG.get()), ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "block/stripped_redwood_log_top"));
+        axisBlock(((RotatedPillarBlock) OWBlocks.STRIPPED_REDWOOD_WOOD.get()), blockTexture(OWBlocks.STRIPPED_REDWOOD_LOG.get()), blockTexture(OWBlocks.STRIPPED_REDWOOD_LOG.get()));
+        blockWithItem(OWBlocks.REDWOOD_PLANKS);
+        saplingBlock(OWBlocks.REDWOOD_SAPLING);
+        leavesBlock(OWBlocks.REDWOOD_LEAVES);
+        stairsBlock(OWBlocks.REDWOOD_STAIRS.get(), blockTexture(OWBlocks.REDWOOD_PLANKS.get()));
+        slabBlock(OWBlocks.REDWOOD_SLAB.get(), blockTexture(OWBlocks.REDWOOD_PLANKS.get()), blockTexture(OWBlocks.REDWOOD_PLANKS.get()));
+        buttonBlock(OWBlocks.REDWOOD_BUTTON.get(), blockTexture(OWBlocks.REDWOOD_PLANKS.get()));
+        pressurePlateBlock(OWBlocks.REDWOOD_PRESSURE_PLATE.get(), blockTexture(OWBlocks.REDWOOD_PLANKS.get()));
+        fenceBlock(OWBlocks.REDWOOD_FENCE.get(), blockTexture(OWBlocks.REDWOOD_PLANKS.get()));
+        fenceGateBlock(OWBlocks.REDWOOD_FENCE_GATE.get(), blockTexture(OWBlocks.REDWOOD_PLANKS.get()));
+        doorBlockWithRenderType(OWBlocks.REDWOOD_DOOR.get(), modLoc("block/redwood_door_bottom"), modLoc("block/redwood_door_top"), "cutout");
+        trapdoorBlockWithRenderType(OWBlocks.REDWOOD_TRAPDOOR.get(), modLoc("block/redwood_trapdoor"), true, "cutout");
 
         blockItem(OWBlocks.REDWOOD_LOG);
-
-        blockWithItem(OWBlocks.REDWOOD_PLANKS);
-
-        saplingBlock(OWBlocks.REDWOOD_SAPLING);
-
-        leavesBlock(OWBlocks.REDWOOD_LEAVES);
+        blockItem(OWBlocks.REDWOOD_WOOD);
+        blockItem(OWBlocks.STRIPPED_REDWOOD_LOG);
+        blockItem(OWBlocks.STRIPPED_REDWOOD_WOOD);
+        blockItem(OWBlocks.REDWOOD_STAIRS);
+        blockItem(OWBlocks.REDWOOD_SLAB);
+        blockItem(OWBlocks.REDWOOD_PRESSURE_PLATE);
+        blockItem(OWBlocks.REDWOOD_FENCE_GATE);
+        blockItem(OWBlocks.REDWOOD_TRAPDOOR, "_bottom");
     }
 
 
     private void blockItem(DeferredBlock<?> deferredBlock) {
         simpleBlockItem(deferredBlock.get(), new ModelFile.UncheckedModelFile("ow:block/" + deferredBlock.getId().getPath()));
+    }
+
+    private void blockItem(DeferredBlock<?> deferredBlock, String appendix) {
+        simpleBlockItem(deferredBlock.get(), new ModelFile.UncheckedModelFile("ow:block/" + deferredBlock.getId().getPath() + appendix));
     }
 
     private void leavesBlock(DeferredBlock<Block> blockRegistryObject) {

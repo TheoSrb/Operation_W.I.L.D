@@ -26,7 +26,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.Bee;
+import net.minecraft.world.entity.animal.Salmon;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -39,16 +43,13 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
-import net.tiew.operationWild.entity.AI.FoodsPreference;
+import net.tiew.operationWild.entity.AI.*;
 import net.tiew.operationWild.entity.OWTameImplementation;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_client.OWFoodPacketClient;
 import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
-import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
-import net.tiew.operationWild.entity.AI.OWPanicGoal;
-import net.tiew.operationWild.entity.AI.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityUtils;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
@@ -130,7 +131,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     @Override
     public Item acceptSaddle() {
-        return OWItems.ELEPHANT_SADDLE.get();
+        return OWItems.KODIAK_SADDLE.get();
     }
 
     @Override
@@ -171,9 +172,16 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     // Entity's AI
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.targetSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, true));
+        this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(new Class[0]));
+
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
+
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Salmon.class, true));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Bee.class, true));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -298,7 +306,6 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
-
 
         if (((this.isVehicle() && this.isRunning()) || getTarget() != null)) {
             if (this.level().isClientSide()) {

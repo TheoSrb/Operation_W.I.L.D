@@ -45,12 +45,14 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
     public static boolean canShowPeacockSaddle = false;
     public static boolean canShowTigerSharkSaddle = false;
     public static boolean canShowElephantSaddle = false;
+    public static boolean canShowKodiakSaddle = false;
 
     public Button boaSaddleButton;
     public Button tigerSaddleButton;
     public Button peacockSaddleButton;
     public Button tigerSharkSaddleButton;
     public Button elephantSaddleButton;
+    public Button kodiakSaddleButton;
 
     public SaddlerScreen(SaddlerMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
@@ -69,18 +71,21 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         tigerSaddleButton = createTransparentButton("item.ow.tiger_saddle", 0x8b8b8b, 0, 0, 105, 19, this::tigerButtonClick);
         peacockSaddleButton = createTransparentButton("item.ow.peacock_saddle", 0x8b8b8b, 0, 0, 105, 19, this::peacockButtonClick);
         tigerSharkSaddleButton = createTransparentButton("item.ow.tiger_shark_saddle", 0x8b8b8b, 0, 0, 105, 19, this::tigerSharkButtonClick);
+        kodiakSaddleButton = createTransparentButton("item.ow.kodiak_saddle", 0x8b8b8b, 0, 0, 105, 19, this::kodiakButtonClick);
 
         if (ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(boaSaddleButton));
         if (ClientEvents.tamingExperience >= TigerEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(tigerSaddleButton));
         if (ClientEvents.tamingExperience >= PeacockEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(peacockSaddleButton));
         if (ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(tigerSharkSaddleButton));
         if (ClientEvents.tamingExperience >= ElephantEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(elephantSaddleButton));
+        if (ClientEvents.tamingExperience >= KodiakEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(kodiakSaddleButton));
 
         this.addRenderableWidget(this.buttonList);
     }
 
     private void boaButtonClick() {
         canShowTigerSaddle = false;
+        canShowKodiakSaddle = false;
         canShowElephantSaddle = false;
         canShowTigerSharkSaddle= false;
         canShowPeacockSaddle = false;
@@ -90,6 +95,7 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
     private void elephantButtonClick() {
         canShowTigerSaddle = false;
         canShowTigerSharkSaddle= false;
+        canShowKodiakSaddle= false;
         canShowPeacockSaddle = false;
         canShowBoaSaddle = false;
         canShowElephantSaddle = !canShowElephantSaddle;
@@ -98,6 +104,7 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
     private void peacockButtonClick() {
         canShowTigerSaddle = false;
         canShowBoaSaddle = false;
+        canShowKodiakSaddle = false;
         canShowElephantSaddle = false;
         canShowTigerSharkSaddle= false;
         canShowPeacockSaddle = !canShowPeacockSaddle;
@@ -106,6 +113,7 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
     private void tigerButtonClick() {
         canShowBoaSaddle = false;
         canShowPeacockSaddle = false;
+        canShowKodiakSaddle = false;
         canShowTigerSharkSaddle= false;
         canShowElephantSaddle = false;
         canShowTigerSaddle = !canShowTigerSaddle;
@@ -113,10 +121,20 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
 
     private void tigerSharkButtonClick() {
         canShowBoaSaddle = false;
+        canShowKodiakSaddle = false;
         canShowPeacockSaddle = false;
         canShowTigerSaddle= false;
         canShowElephantSaddle = false;
         canShowTigerSharkSaddle = !canShowTigerSharkSaddle;
+    }
+
+    private void kodiakButtonClick() {
+        canShowTigerSharkSaddle = false;
+        canShowBoaSaddle = false;
+        canShowPeacockSaddle = false;
+        canShowTigerSaddle= false;
+        canShowElephantSaddle = false;
+        canShowKodiakSaddle = !canShowKodiakSaddle;
     }
 
     public Button createTransparentButton(String textOnButton, int color, int positionX, int positionY, int width, int height, Runnable onClick) {
@@ -140,10 +158,11 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         if (canShowPeacockSaddle) guiGraphics.blit(SADDLER_LOCATION, i + 24, j + 53, 240, entitySaddleCoords(), 16, 16);
         if (canShowTigerSharkSaddle) guiGraphics.blit(SADDLER_LOCATION, i + 24, j + 53, 240, entitySaddleCoords(), 16, 16);
         if (canShowElephantSaddle) guiGraphics.blit(SADDLER_LOCATION, i + 24, j + 53, 240, entitySaddleCoords(), 16, 16);
+        if (canShowKodiakSaddle) guiGraphics.blit(SADDLER_LOCATION, i + 24, j + 53, 240, entitySaddleCoords(), 16, 16);
     }
 
     public static boolean menuWorking() {
-        return canShowBoaSaddle || canShowTigerSaddle || canShowPeacockSaddle || canShowTigerSharkSaddle || canShowElephantSaddle;
+        return canShowBoaSaddle || canShowTigerSaddle || canShowPeacockSaddle || canShowTigerSharkSaddle || canShowElephantSaddle || canShowKodiakSaddle;
     }
 
     private int entitySaddleCoords() {
@@ -152,6 +171,7 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         if (canShowPeacockSaddle) return 208;
         if (canShowTigerSharkSaddle) return 192;
         if (canShowElephantSaddle) return 176;
+        if (canShowKodiakSaddle) return 160;
 
         return 0;
     }
@@ -190,6 +210,7 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         this.yMouse = mouseY;
 
         boaSaddleButton.setMessage(Component.translatable("item.ow.boa_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowBoaSaddle ? 0xFFFFFF : 0x8b8b8b))));
+        kodiakSaddleButton.setMessage(Component.translatable("item.ow.kodiak_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowKodiakSaddle ? 0xFFFFFF : 0x8b8b8b))));
         tigerSaddleButton.setMessage(Component.translatable("item.ow.tiger_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowTigerSaddle ? 0xFFFFFF : 0x8b8b8b))));
         peacockSaddleButton.setMessage(Component.translatable("item.ow.peacock_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowPeacockSaddle ? 0xFFFFFF : 0x8b8b8b))));
         tigerSharkSaddleButton.setMessage(Component.translatable("item.ow.tiger_shark_saddle").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(canShowTigerSharkSaddle ? 0xFFFFFF : 0x8b8b8b))));
@@ -210,6 +231,7 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
                     if (button.getMessage().getContents() instanceof TranslatableContents contents) key = contents.getKey();
 
                     if (key.contains("boa")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.boaSaddleCraftItems, SaddlerMenu.boaSaddleCraftAmount);
+                    if (key.contains("kodiak")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.kodiakSaddleCraftItems, SaddlerMenu.kodiakSaddleCraftAmount);
                     else if (key.contains("tiger") && !key.contains("tiger_shark")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.tigerSaddleCraftItems, SaddlerMenu.tigerSaddleCraftAmount);
                     else if (key.contains("peacock")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.peacockSaddleCraftItems, SaddlerMenu.peacockSaddleCraftAmount);
                     else if (key.contains("tiger_shark")) createVisualCraft(mouseX, mouseY, graphics, SaddlerMenu.tigerSharkSaddleCraftItems, SaddlerMenu.tigerSharkSaddleCraftAmount);
@@ -279,6 +301,8 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
                 this.texture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/item/peacock_saddle.png");
             } else if (key.contains("tiger_shark")) {
                 this.texture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/item/tiger_shark_saddle.png");
+            } else if (key.contains("kodiak")) {
+                this.texture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/item/kodiak_saddle.png");
             } else if (key.contains("elephant")) {
                 this.texture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/item/elephant_saddle.png");
             } else {

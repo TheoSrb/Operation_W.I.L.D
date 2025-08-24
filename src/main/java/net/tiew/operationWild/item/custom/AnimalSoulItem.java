@@ -6,6 +6,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -137,41 +139,35 @@ public class AnimalSoulItem extends Item {
         return Component.translatable("entity.ow." + entityName).setStyle(Style.EMPTY.withBold(true).withColor(chooseEntityColor(stack)));
     }
 
-    public String showEntitySpeed(ItemStack stack) {
+    public String showEntitySpeed(ItemStack stack, Level level) {
         Component entityTypeComponent = getEntityType(stack);
         if (entityTypeComponent == null || entityTypeComponent.getString().isEmpty())
             return "";
 
-        String entityTypeStr = entityTypeComponent.getString();
-        double speedBlocksPerSecond = 0;
+        return String.valueOf(Math.round(OWUtils.getSpeedBlocksPerSecond(getOWEntity(stack, level)) * 1000) / 1000.0);
+    }
 
-        switch (entityTypeStr) {
-            case "TigerEntity" -> speedBlocksPerSecond = (7.84 / 0.181763) * getEntitySpeed(stack);
-            case "BoaEntity" -> speedBlocksPerSecond = (4.383 / 0.16604447) * getEntitySpeed(stack);
-            case "PeacockEntity" -> speedBlocksPerSecond = (4.383 / 0.16604447) * getEntitySpeed(stack);
-            case "TigerSharkEntity" -> speedBlocksPerSecond = (4.383 / 0.16604447) * getEntitySpeed(stack);
-            default -> speedBlocksPerSecond = getEntitySpeed(stack);
+    private OWEntity getOWEntity(ItemStack stack, Level level) {
+        OWEntity owEntity;
+        switch (getEntityType(stack).getString()) {
+            case "TigerEntity" -> owEntity = OWEntityRegistry.TIGER.get().create(level);
+            case "BoaEntity" -> owEntity = OWEntityRegistry.BOA.get().create(level);
+            case "PeacockEntity" -> owEntity = OWEntityRegistry.PEACOCK.get().create(level);
+            case "TigerSharkEntity" -> owEntity = OWEntityRegistry.TIGER_SHARK.get().create(level);
+            case "ElephantEntity" -> owEntity = OWEntityRegistry.ELEPHANT.get().create(level);
+            case "KodiakEntity" -> owEntity = OWEntityRegistry.KODIAK.get().create(level);
+            default -> owEntity = OWEntityRegistry.TIGER.get().create(level);
         }
 
-        return String.valueOf(Math.round(speedBlocksPerSecond * 100) / 100.0);
+        return owEntity;
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (!level.isClientSide) {
-            OWEntity owEntity;
+            OWEntity owEntity = getOWEntity(stack, level);
             int variantId = getEntityVariant(stack);
-
-            switch (getEntityType(stack).getString()) {
-                case "TigerEntity" -> owEntity = OWEntityRegistry.TIGER.get().create(level);
-                case "BoaEntity" -> owEntity = OWEntityRegistry.BOA.get().create(level);
-                case "PeacockEntity" -> owEntity = OWEntityRegistry.PEACOCK.get().create(level);
-                case "TigerSharkEntity" -> owEntity = OWEntityRegistry.TIGER_SHARK.get().create(level);
-                case "ElephantEntity" -> owEntity = OWEntityRegistry.ELEPHANT.get().create(level);
-                case "KodiakEntity" -> owEntity = OWEntityRegistry.KODIAK.get().create(level);
-                default -> owEntity = OWEntityRegistry.TIGER.get().create(level);
-            }
 
             if (owEntity != null) {
                 float pitch = (float) OWUtils.generateRandomInterval(0.9f, 1.1f);
@@ -280,7 +276,7 @@ public class AnimalSoulItem extends Item {
                         .withStyle(Style.EMPTY.withBold(false)));
         Component entitySpeed = Component.translatable("imageSpeed")
                 .withStyle(Style.EMPTY.withBold(true))
-                .append(Component.literal(" " + String.valueOf(showEntitySpeed(stack)))
+                .append(Component.literal(" " + String.valueOf(showEntitySpeed(stack, context.level())))
                         .withStyle(Style.EMPTY.withBold(false)))
                 .append(Component.translatable("tooltip.entitySpeed").withStyle(Style.EMPTY.withBold(false)));
 

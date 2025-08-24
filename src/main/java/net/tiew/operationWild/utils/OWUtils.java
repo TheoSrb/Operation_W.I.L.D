@@ -8,6 +8,7 @@ import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.tiew.operationWild.entity.OWEntity;
@@ -16,6 +17,7 @@ import org.joml.Vector3f;
 import net.tiew.operationWild.entity.custom.living.BoaEntity;
 
 public class OWUtils {
+
     public static boolean RANDOM(int i) { return OWEntity.RANDOM.nextInt(i) == 0;}
 
     public static double generateRandomInterval(double min, double max) { return (min + (Math.random() * (max - min)));}
@@ -33,6 +35,10 @@ public class OWUtils {
                 .withStyle(style -> style.withColor(TextColor.fromRgb(isAggressive ? 0xFF5555 : 0x55FF55)).withBold(true));
 
         player.displayClientMessage(label.copy().append(translatedMode), true);
+    }
+
+    public static float getSpeedBlocksPerSecond(OWEntity entity) {
+       return (entity.getSpeed() * 20) * 2.5f;
     }
 
     public static void showMessage(ServerPlayer player, String messageText, TextColor color, boolean isBold) {

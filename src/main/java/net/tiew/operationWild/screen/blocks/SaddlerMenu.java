@@ -27,6 +27,8 @@ public class SaddlerMenu extends AbstractContainerMenu {
     public static Item[] peacockSaddleCraftItems = {Items.LEATHER, Items.IRON_INGOT, OWItems.PLANT_FIBER.get()};
     public static int[] tigerSharkSaddleCraftAmount = {29, 18, 20};
     public static Item[] tigerSharkSaddleCraftItems = {Items.LEATHER, Items.IRON_INGOT, OWItems.PLANT_FIBER.get()};
+    public static int[] kodiakSaddleCraftAmount = {41, 34, 60};
+    public static Item[] kodiakSaddleCraftItems = {Items.LEATHER, Items.IRON_INGOT, OWItems.PLANT_FIBER.get()};
     public static int[] elephantSaddleCraftAmount = {21, 44, 18, 18};
     public static Item[] elephantSaddleCraftItems = {Items.GOLD_INGOT, OWItems.PLANT_FIBER.get()};
 
@@ -49,6 +51,7 @@ public class SaddlerMenu extends AbstractContainerMenu {
                 if (SaddlerScreen.canShowBoaSaddle) craftWithMultipleItems(boaSaddleCraftItems, boaSaddleCraftAmount, OWItems.BOA_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSaddle) craftWithMultipleItems(tigerSaddleCraftItems, tigerSaddleCraftAmount, OWItems.TIGER_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowPeacockSaddle) craftWithMultipleItems(peacockSaddleCraftItems, peacockSaddleCraftAmount, OWItems.PEACOCK_SADDLE.get().getDefaultInstance());
+                if (SaddlerScreen.canShowKodiakSaddle) craftWithMultipleItems(kodiakSaddleCraftItems, kodiakSaddleCraftAmount, OWItems.KODIAK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSharkSaddle) craftWithMultipleItems(tigerSharkSaddleCraftItems, tigerSharkSaddleCraftAmount, OWItems.TIGER_SHARK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowElephantSaddle) craftElephantSaddle();
             }
@@ -58,6 +61,7 @@ public class SaddlerMenu extends AbstractContainerMenu {
                 super.onTake(player, itemStack);
                 if (SaddlerScreen.canShowBoaSaddle) craftWithMultipleItems(boaSaddleCraftItems, boaSaddleCraftAmount, OWItems.BOA_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSaddle) craftWithMultipleItems(tigerSaddleCraftItems, tigerSaddleCraftAmount, OWItems.TIGER_SADDLE.get().getDefaultInstance());
+                if (SaddlerScreen.canShowKodiakSaddle) craftWithMultipleItems(kodiakSaddleCraftItems, kodiakSaddleCraftAmount, OWItems.KODIAK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowPeacockSaddle) craftWithMultipleItems(peacockSaddleCraftItems, peacockSaddleCraftAmount, OWItems.PEACOCK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSharkSaddle) craftWithMultipleItems(tigerSharkSaddleCraftItems, tigerSharkSaddleCraftAmount, OWItems.TIGER_SHARK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowElephantSaddle) craftElephantSaddle();
@@ -82,6 +86,7 @@ public class SaddlerMenu extends AbstractContainerMenu {
                 super.setByPlayer(itemStack);
                 if (SaddlerScreen.canShowBoaSaddle) craftWithMultipleItems(boaSaddleCraftItems, boaSaddleCraftAmount, OWItems.BOA_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSaddle) craftWithMultipleItems(tigerSaddleCraftItems, tigerSaddleCraftAmount, OWItems.TIGER_SADDLE.get().getDefaultInstance());
+                if (SaddlerScreen.canShowKodiakSaddle) craftWithMultipleItems(kodiakSaddleCraftItems, kodiakSaddleCraftAmount, OWItems.KODIAK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowPeacockSaddle) craftWithMultipleItems(peacockSaddleCraftItems, peacockSaddleCraftAmount, OWItems.PEACOCK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSharkSaddle) craftWithMultipleItems(tigerSharkSaddleCraftItems, tigerSharkSaddleCraftAmount, OWItems.TIGER_SHARK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowElephantSaddle) craftElephantSaddle();
@@ -92,6 +97,7 @@ public class SaddlerMenu extends AbstractContainerMenu {
                 super.onTake(player, itemStack);
                 if (SaddlerScreen.canShowBoaSaddle) craftWithMultipleItems(boaSaddleCraftItems, boaSaddleCraftAmount, OWItems.BOA_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSaddle) craftWithMultipleItems(tigerSaddleCraftItems, tigerSaddleCraftAmount, OWItems.TIGER_SADDLE.get().getDefaultInstance());
+                if (SaddlerScreen.canShowKodiakSaddle) craftWithMultipleItems(kodiakSaddleCraftItems, kodiakSaddleCraftAmount, OWItems.KODIAK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowPeacockSaddle) craftWithMultipleItems(peacockSaddleCraftItems, peacockSaddleCraftAmount, OWItems.PEACOCK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSharkSaddle) craftWithMultipleItems(tigerSharkSaddleCraftItems, tigerSharkSaddleCraftAmount, OWItems.TIGER_SHARK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowElephantSaddle) craftElephantSaddle();
@@ -115,6 +121,7 @@ public class SaddlerMenu extends AbstractContainerMenu {
             public void setByPlayer(ItemStack itemStack) {
                 super.setByPlayer(itemStack);
                 if (SaddlerScreen.canShowBoaSaddle) craftWithMultipleItems(boaSaddleCraftItems, boaSaddleCraftAmount, OWItems.BOA_SADDLE.get().getDefaultInstance());
+                if (SaddlerScreen.canShowKodiakSaddle) craftWithMultipleItems(kodiakSaddleCraftItems, kodiakSaddleCraftAmount, OWItems.KODIAK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSaddle) craftWithMultipleItems(tigerSaddleCraftItems, tigerSaddleCraftAmount, OWItems.TIGER_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowPeacockSaddle) craftWithMultipleItems(peacockSaddleCraftItems, peacockSaddleCraftAmount, OWItems.PEACOCK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSharkSaddle) craftWithMultipleItems(tigerSharkSaddleCraftItems, tigerSharkSaddleCraftAmount, OWItems.TIGER_SHARK_SADDLE.get().getDefaultInstance());
@@ -125,6 +132,7 @@ public class SaddlerMenu extends AbstractContainerMenu {
             public void onTake(Player player, ItemStack itemStack) {
                 super.onTake(player, itemStack);
                 if (SaddlerScreen.canShowBoaSaddle) craftWithMultipleItems(boaSaddleCraftItems, boaSaddleCraftAmount, OWItems.BOA_SADDLE.get().getDefaultInstance());
+                if (SaddlerScreen.canShowKodiakSaddle) craftWithMultipleItems(kodiakSaddleCraftItems, kodiakSaddleCraftAmount, OWItems.KODIAK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSaddle) craftWithMultipleItems(tigerSaddleCraftItems, tigerSaddleCraftAmount, OWItems.TIGER_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowPeacockSaddle) craftWithMultipleItems(peacockSaddleCraftItems, peacockSaddleCraftAmount, OWItems.PEACOCK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSharkSaddle) craftWithMultipleItems(tigerSharkSaddleCraftItems, tigerSharkSaddleCraftAmount, OWItems.TIGER_SHARK_SADDLE.get().getDefaultInstance());
@@ -149,6 +157,7 @@ public class SaddlerMenu extends AbstractContainerMenu {
             public void setByPlayer(ItemStack itemStack) {
                 super.setByPlayer(itemStack);
                 if (SaddlerScreen.canShowBoaSaddle) craftWithMultipleItems(boaSaddleCraftItems, boaSaddleCraftAmount, OWItems.BOA_SADDLE.get().getDefaultInstance());
+                if (SaddlerScreen.canShowKodiakSaddle) craftWithMultipleItems(kodiakSaddleCraftItems, kodiakSaddleCraftAmount, OWItems.KODIAK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSaddle) craftWithMultipleItems(tigerSaddleCraftItems, tigerSaddleCraftAmount, OWItems.TIGER_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowPeacockSaddle) craftWithMultipleItems(peacockSaddleCraftItems, peacockSaddleCraftAmount, OWItems.PEACOCK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSharkSaddle) craftWithMultipleItems(tigerSharkSaddleCraftItems, tigerSharkSaddleCraftAmount, OWItems.TIGER_SHARK_SADDLE.get().getDefaultInstance());
@@ -159,6 +168,7 @@ public class SaddlerMenu extends AbstractContainerMenu {
             public void onTake(Player player, ItemStack itemStack) {
                 super.onTake(player, itemStack);
                 if (SaddlerScreen.canShowBoaSaddle) craftWithMultipleItems(boaSaddleCraftItems, boaSaddleCraftAmount, OWItems.BOA_SADDLE.get().getDefaultInstance());
+                if (SaddlerScreen.canShowKodiakSaddle) craftWithMultipleItems(kodiakSaddleCraftItems, kodiakSaddleCraftAmount, OWItems.KODIAK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSaddle) craftWithMultipleItems(tigerSaddleCraftItems, tigerSaddleCraftAmount, OWItems.TIGER_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowPeacockSaddle) craftWithMultipleItems(peacockSaddleCraftItems, peacockSaddleCraftAmount, OWItems.PEACOCK_SADDLE.get().getDefaultInstance());
                 if (SaddlerScreen.canShowTigerSharkSaddle) craftWithMultipleItems(tigerSharkSaddleCraftItems, tigerSharkSaddleCraftAmount, OWItems.TIGER_SHARK_SADDLE.get().getDefaultInstance());
@@ -186,6 +196,7 @@ public class SaddlerMenu extends AbstractContainerMenu {
             public void onTake(Player player, ItemStack itemStack) {
                 super.onTake(player, itemStack);
                 if (SaddlerScreen.canShowBoaSaddle) completeMultiItemCraft(boaSaddleCraftAmount, boaSaddleCraftItems);
+                if (SaddlerScreen.canShowKodiakSaddle) completeMultiItemCraft(kodiakSaddleCraftAmount, kodiakSaddleCraftItems);
                 if (SaddlerScreen.canShowTigerSaddle) completeMultiItemCraft(tigerSaddleCraftAmount, tigerSaddleCraftItems);
                 if (SaddlerScreen.canShowPeacockSaddle) completeMultiItemCraft(peacockSaddleCraftAmount, peacockSaddleCraftItems);
                 if (SaddlerScreen.canShowTigerSharkSaddle) completeMultiItemCraft(tigerSharkSaddleCraftAmount, tigerSharkSaddleCraftItems);

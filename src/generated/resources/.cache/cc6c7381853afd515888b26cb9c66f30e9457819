@@ -1,0 +1,16 @@
+// 1.21	2025-08-23T19:00:12.7333874	Tags for minecraft:item mod id ow
+a95e41043c88f7255d524b559e13744ab52905bf data/minecraft/tags/item/arrows.json
+eaf8ca4ec63ce59020fe02cb2de6fa99ae85b6b4 data/minecraft/tags/item/axes.json
+eaef426a95f0a6b733a243ad602caeb95bf795f2 data/minecraft/tags/item/chest_armor.json
+277349f3bc165ca84546c4a15b01e4f1c7260e3a data/minecraft/tags/item/enchantable/armor.json
+c743d385dedf50e4aaf2096161846ec7f090f8ce data/minecraft/tags/item/enchantable/durability.json
+29eb105e82047b7bad4cc39b611a546ba6cee463 data/minecraft/tags/item/enchantable/weapon.json
+f27bd701851612fbf40ce3e8891e8a2f61cc4c16 data/minecraft/tags/item/foot_armor.json
+9bce1416f67a393bd412648dd12959eecaadf580 data/minecraft/tags/item/head_armor.json
+fcba97bcde9580dafa244fdd4254d48777a6994e data/minecraft/tags/item/hoes.json
+1a80805426be0df398ce3f983887322fbf364a55 data/minecraft/tags/item/leg_armor.json
+59b9438f0af2af799c267601108c92ccff7b4533 data/minecraft/tags/item/logs_that_burn.json
+3b4cc3aa3765e6333c8af616acd43f74ed6253b0 data/minecraft/tags/item/pickaxes.json
+5a6b6fda74029a60e1c49a42dd474acc74a5ab4f data/minecraft/tags/item/planks.json
+743b0f3104fd2af6316246e49e0c6daee8fad9c9 data/minecraft/tags/item/shovels.json
+838da6170554c6370a5a98dfe912af516920d23f data/minecraft/tags/item/swords.json

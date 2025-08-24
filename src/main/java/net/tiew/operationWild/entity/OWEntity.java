@@ -1421,6 +1421,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
     @Override
     public void tick() {
         super.tick();
+
         if (this.level().isClientSide) {
             handleClientAnimationSync();
         }
@@ -2123,7 +2124,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
 
-        if (this.getHealth() < this.getMaxHealth() && (FOOD_FOR_HEALING_MEAT.contains(item) || FOOD_FOR_HEALING_VEGETABLES.contains(item))) {
+        if (this.getHealth() < this.getMaxHealth() && (FOOD_FOR_HEALING_MEAT.contains(item) || FOOD_FOR_HEALING_VEGETABLES.contains(item)) && this.isTame()) {
             itemstack.shrink(1);
             healWithFavoriteFood(1.5f, preferRawMeat(), preferCookedMeat());
             return InteractionResult.SUCCESS;
@@ -2560,7 +2561,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.NEUTRAL, 1.0F, pitch);
                 } else {
                     boolean isTigerInUltimate = this instanceof TigerEntity tiger && tiger.isUltimate();
-                    livingEntity.hurt(this.damageSources().mobAttack(this), isTigerInUltimate ? attackDamage * 1.5f : attackDamage);
+                    if (this instanceof BoaEntity boa) boa.doHurtTarget(livingEntity);
+                    else livingEntity.hurt(this.damageSources().mobAttack(this), isTigerInUltimate ? attackDamage * 1.5f : attackDamage);
 
                     if ($$1 > 0) {
                         Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();

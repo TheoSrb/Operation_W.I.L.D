@@ -1,6 +1,9 @@
-// 1.21	2025-08-23T14:06:25.6722909	Recipes
+// 1.21	2025-08-23T19:00:12.7295398	Recipes
 f33c002f0f4ef1baa4167f73e99e52613a4136f5 data/minecraft/advancement/recipes/misc/pink_dye.json
 e3f3a0b671388d6abdeedaefe2fd558cd9d00dac data/minecraft/recipe/pink_dye.json
+aab17de6a0d54f51ff73a206f2dceb5e0346f117 data/ow/advancement/recipes/building_blocks/redwood_slab.json
+49fe4979b8b97220958a14a03a23523c5a754d74 data/ow/advancement/recipes/building_blocks/redwood_stairs.json
+1f914ecd4b4d1864c838a53075ed2beeaf70f775 data/ow/advancement/recipes/decorations/redwood_fence.json
 de112f61373b2fa438aeb487d1c45ba8a14efac2 data/ow/advancement/recipes/food/cooked_boa_from_campfire_cooking.json
 7c52e102067fa89583aea78edebf5cc89d6e864a data/ow/advancement/recipes/food/cooked_boa_from_smelting.json
 9b29dd9ed142445078a2e81baa51415bcbdd63ec data/ow/advancement/recipes/food/cooked_boa_from_smoking.json
@@ -42,6 +45,11 @@ bcc992495a57bdf8617cb208381366bbf7daa2a1 data/ow/advancement/recipes/misc/seabug
 066a7504bd989a5d24ccc634f5994d8d781f5232 data/ow/advancement/recipes/misc/venomous_arrow.json
 f7d7e5f555704bce081d70ef927c7df5aa655df3 data/ow/advancement/recipes/misc/venomous_tooth.json
 f3e247ba989ef18d5c21412e8d8f24f0ccb3049c data/ow/advancement/recipes/misc/wooden_stinger.json
+1652133e7d4ab6844ce263bbe67b960bed1d45c8 data/ow/advancement/recipes/redstone/redwood_button.json
+4f365f1a3f7b2956d3a80b91b6aed90d6f59efcd data/ow/advancement/recipes/redstone/redwood_door.json
+6e0af26e52d18ae039fc7f487e980c6e99011c90 data/ow/advancement/recipes/redstone/redwood_fence_gate.json
+526695c6a02f311dc9c73a83dfc83582f4baa41c data/ow/advancement/recipes/redstone/redwood_pressure_plate.json
+d95d7c41bd5ab7c3ae9a1f93ae580538ddecce39 data/ow/advancement/recipes/redstone/redwood_trapdoor.json
 1b13f51af5acde64d5d16953a6c064b96137697a data/ow/recipe/camouflage_boots.json
 9d99c36eda5b7dff7c410cbf403c8a70f16bcd25 data/ow/recipe/camouflage_chestplate.json
 a18ee1bdadea3debd46a2df209f88a3c87772b51 data/ow/recipe/camouflage_helmet.json
@@ -70,7 +78,15 @@ ab5979e2aab3344f761f116e4caa5a5235804599 data/ow/recipe/jade_sword.json
 92d9bd3a844271b83279ee3e7f299df3144ee874 data/ow/recipe/lavender_bouquet.json
 0fbc8227c91a2d7cfb1e6d82532bf1de70f6cd17 data/ow/recipe/primitive_slingshot.json
 0411fa11a6234f03315ed2539a840a7d7d1371b2 data/ow/recipe/primitive_spear.json
+e012e6c21e54921cff5f75de20a8efd259d5c1f8 data/ow/recipe/redwood_button.json
+0ac0e9ecd60fdb33cda940a83184a92ecfa9257f data/ow/recipe/redwood_door.json
+b19841b9fbbd664a6bb000129ac67eeec076ac3f data/ow/recipe/redwood_fence.json
+db10b2bde43de33883a734d4ecc076accce56338 data/ow/recipe/redwood_fence_gate.json
 ba2e3a1e78381fb33e6f51dd800be05bb5e60b96 data/ow/recipe/redwood_planks.json
+9429369e73b7744e194768b45e9e2edd8b071d8d data/ow/recipe/redwood_pressure_plate.json
+1a987f09d6f649ccd7d36bfab8d546ef3ca210b6 data/ow/recipe/redwood_slab.json
+b34a0df83e271badd50b834e304999ff3d514643 data/ow/recipe/redwood_stairs.json
+02b0c5146d33607895483b423c4c850b84fd03c8 data/ow/recipe/redwood_trapdoor.json
 5351f9aa5036066b79816950f3f86d4443c85c1b data/ow/recipe/ruby_axe.json
 874005a389b8e4f20c190d2b182b46924b114103 data/ow/recipe/ruby_hoe.json
 7ff147af320dd5b3f74e1716784d9640b6982cfc data/ow/recipe/ruby_pickaxe.json

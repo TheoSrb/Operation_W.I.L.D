@@ -69,7 +69,7 @@ public class OWConfiguredFeatures {
     public static void createTree(BootstrapContext<ConfiguredFeature<?, ?>> context) {
         register(context, REDWOOD, Feature.TREE, new TreeConfiguration.TreeConfigurationBuilder(
                 BlockStateProvider.simple(OWBlocks.REDWOOD_LOG.get()),
-                new RedwoodTrunkPlacer(30, 15, 3),
+                new RedwoodTrunkPlacer(25, 15, 10),
 
                 BlockStateProvider.simple(OWBlocks.REDWOOD_LEAVES.get()),
                 new RedwoodFoliagePlacer(UniformInt.of(5, 7), UniformInt.of(2, 5), 3),

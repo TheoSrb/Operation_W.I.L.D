@@ -236,9 +236,20 @@
   "block.ow.scarified_jungle_log": "Scarified Jungle Log",
 
   "block.ow.redwood_log": "Redwood Log",
+  "block.ow.redwood_wood": "Redwood Wood",
+  "block.ow.stripped_redwood_log": "Stripped Redwood Log",
+  "block.ow.stripped_redwood_wood": "Stripped Redwood Wood",
   "block.ow.redwood_planks": "Redwood Planks",
   "block.ow.redwood_sapling": "Redwood Sapling",
   "block.ow.redwood_leaves": "Redwood Leaves",
+  "block.ow.redwood_stairs": "Redwood Stairs",
+  "block.ow.redwood_slab": "Redwood Slab",
+  "block.ow.redwood_button": "Redwood Button",
+  "block.ow.redwood_pressure_plate": "Redwood Pressure Plate",
+  "block.ow.redwood_fence": "Redwood Fence",
+  "block.ow.redwood_fence_gate": "Redwood Fence Gate",
+  "block.ow.redwood_door": "Redwood Door",
+  "block.ow.redwood_trapdoor": "Redwood Trapdoor",
 
   "block.ow.savage_berry_bush": "Savage Berry Bush",
 
@@ -266,6 +277,7 @@
   "item.ow.bioluminescent_jelly": "Bioluminescent Jelly",
   "item.ow.animal_soul": "%s Soul",
   "item.ow.tiger_saddle": "Tiger Saddle",
+  "item.ow.kodiak_saddle": "Kodiak Saddle",
   "item.ow.boa_saddle": "Boa Saddle",
   "item.ow.peacock_saddle": "Peacock Saddle",
   "item.ow.tiger_shark_saddle": "Tiger Shark Saddle",

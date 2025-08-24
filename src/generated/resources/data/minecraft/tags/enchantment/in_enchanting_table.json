@@ -1,0 +1,36 @@
+{
+  "values": [
+    {
+      "id": "ow:putrid",
+      "required": false
+    },
+    {
+      "id": "ow:vampirism",
+      "required": false
+    },
+    {
+      "id": "ow:lightness",
+      "required": false
+    },
+    {
+      "id": "ow:sliding",
+      "required": false
+    },
+    {
+      "id": "ow:fawns_protection",
+      "required": false
+    },
+    {
+      "id": "ow:venom_protection",
+      "required": false
+    },
+    {
+      "id": "ow:reptilian_calamity",
+      "required": false
+    },
+    {
+      "id": "ow:plant_providence",
+      "required": false
+    }
+  ]
+}

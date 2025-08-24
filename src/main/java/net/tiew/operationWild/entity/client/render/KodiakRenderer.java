@@ -81,7 +81,7 @@ public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<Kodiak
                 }
             }
         }
-        OWRendererUtils.createInformationImage(kodiak, poseStack, bufferSource, packedLight, 0, 0.75, 0, 0, 3);
+        OWRendererUtils.createInformationImage(kodiak, poseStack, bufferSource, packedLight, 0, kodiak.isSitting() ? 1.5f : 0.75f, 0, 0, 3);
     }
 
     @Override

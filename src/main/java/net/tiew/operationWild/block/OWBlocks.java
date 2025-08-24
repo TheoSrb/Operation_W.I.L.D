@@ -12,17 +12,16 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
+import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.block.custom.OWEgg;
-import net.tiew.operationWild.block.custom.SaddlerBlock;
-import net.tiew.operationWild.block.custom.SavageBerryBushBlock;
-import net.tiew.operationWild.block.custom.ScarifiedWoodLogBlock;
+import net.tiew.operationWild.block.custom.*;
 import net.tiew.operationWild.item.OWItems;
 
 import java.util.function.Supplier;
@@ -94,7 +93,11 @@ public class OWBlocks {
     public static final DeferredBlock<Block> SCARIFIED_JUNGLE_LOG = registerBlock("scarified_jungle_log", () -> new ScarifiedWoodLogBlock(BlockBehaviour.Properties.of().mapColor((state) -> state.getValue(RotatedPillarBlock.AXIS) == Direction.Axis.Y ? MapColor.WOOD : MapColor.PODZOL).instrument(NoteBlockInstrument.BASS).strength(2.0F).sound(SoundType.WOOD).ignitedByLava()));
 
 
-    public static final DeferredBlock<Block> REDWOOD_LOG = registerBlock("redwood_log", () -> log(MapColor.WOOD, MapColor.PODZOL));
+    public static final DeferredBlock<Block> REDWOOD_LOG = registerBlock("redwood_log", () -> new OWFlammableRotatedPillarBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_LOG).strength(3f)));
+    public static final DeferredBlock<Block> REDWOOD_WOOD = registerBlock("redwood_wood", () -> new OWFlammableRotatedPillarBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_WOOD).strength(3f)));
+
+    public static final DeferredBlock<Block> STRIPPED_REDWOOD_LOG = registerBlock("stripped_redwood_log", () -> new OWFlammableRotatedPillarBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.STRIPPED_OAK_LOG).strength(3f)));
+    public static final DeferredBlock<Block> STRIPPED_REDWOOD_WOOD = registerBlock("stripped_redwood_wood", () -> new OWFlammableRotatedPillarBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.STRIPPED_OAK_WOOD).strength(3f)));
 
     public static final DeferredBlock<Block> REDWOOD_PLANKS = registerBlock("redwood_planks",
             () -> new Block(BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_PLANKS)) {
@@ -115,8 +118,14 @@ public class OWBlocks {
             });
 
     public static final DeferredBlock<Block> REDWOOD_LEAVES = registerBlock("redwood_leaves", () -> leaves(SoundType.GRASS));
-
-    public static final DeferredBlock<Block> REDWOOD_SAPLING = registerBlock("redwood_sapling",
-            () -> new SaplingBlock(OWTreeGrowers.REDWOOD, BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_SAPLING)));
+    public static final DeferredBlock<Block> REDWOOD_SAPLING = registerBlock("redwood_sapling", () -> new SaplingBlock(OWTreeGrowers.REDWOOD, BlockBehaviour.Properties.ofFullCopy(Blocks.OAK_SAPLING)));
+    public static final DeferredBlock<StairBlock> REDWOOD_STAIRS = registerBlock("redwood_stairs", () -> new StairBlock(OWBlocks.REDWOOD_PLANKS.get().defaultBlockState(), BlockBehaviour.Properties.of().strength(2f).requiresCorrectToolForDrops().sound(SoundType.WOOD)));
+    public static final DeferredBlock<SlabBlock> REDWOOD_SLAB = registerBlock("redwood_slab", () -> new SlabBlock(BlockBehaviour.Properties.of().strength(2f).requiresCorrectToolForDrops().sound(SoundType.WOOD)));
+    public static final DeferredBlock<PressurePlateBlock> REDWOOD_PRESSURE_PLATE = registerBlock("redwood_pressure_plate", () -> new PressurePlateBlock(BlockSetType.MANGROVE, BlockBehaviour.Properties.of().strength(2f).requiresCorrectToolForDrops().sound(SoundType.WOOD)));
+    public static final DeferredBlock<ButtonBlock> REDWOOD_BUTTON = registerBlock("redwood_button", () -> new ButtonBlock(BlockSetType.OAK, 5, BlockBehaviour.Properties.of().strength(2f).requiresCorrectToolForDrops().noCollission().sound(SoundType.WOOD)));
+    public static final DeferredBlock<FenceBlock> REDWOOD_FENCE = registerBlock("redwood_fence", () -> new FenceBlock(BlockBehaviour.Properties.of().strength(2f).requiresCorrectToolForDrops().sound(SoundType.WOOD)));
+    public static final DeferredBlock<FenceGateBlock> REDWOOD_FENCE_GATE = registerBlock("redwood_fence_gate", () -> new FenceGateBlock(WoodType.MANGROVE, BlockBehaviour.Properties.of().strength(2f).requiresCorrectToolForDrops().sound(SoundType.WOOD)));
+    public static final DeferredBlock<DoorBlock> REDWOOD_DOOR = registerBlock("redwood_door", () -> new DoorBlock(BlockSetType.MANGROVE, BlockBehaviour.Properties.of().strength(2f).requiresCorrectToolForDrops().noOcclusion().sound(SoundType.WOOD)));
+    public static final DeferredBlock<TrapDoorBlock> REDWOOD_TRAPDOOR = registerBlock("redwood_trapdoor", () -> new TrapDoorBlock(BlockSetType.MANGROVE, BlockBehaviour.Properties.of().strength(2f).requiresCorrectToolForDrops().noOcclusion().sound(SoundType.WOOD)));
 
 }

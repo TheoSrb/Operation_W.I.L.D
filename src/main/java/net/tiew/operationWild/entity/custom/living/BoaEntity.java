@@ -139,6 +139,11 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     }
 
     @Override
+    public float vehicleComboSpeedMultiplier() {
+        return 4f;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return OWItems.BOA_SADDLE.get();
     }
@@ -177,7 +182,7 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 25D).add(Attributes.MOVEMENT_SPEED, 0.18D).add(Attributes.FOLLOW_RANGE, 20D).add(Attributes.ATTACK_DAMAGE, 5D).add(Attributes.KNOCKBACK_RESISTANCE, 0.3D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 25D).add(Attributes.MOVEMENT_SPEED, 0.18D).add(Attributes.FOLLOW_RANGE, 20D).add(Attributes.ATTACK_DAMAGE, 2D).add(Attributes.KNOCKBACK_RESISTANCE, 0.3D);
     }
 
     @Override
@@ -331,9 +336,10 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
 
     public void tick() {
         super.tick();
-        createAttackSystem(11);
-        createTameAttackSystem(11, 5, OWSounds.BOA_HITTING.get(), 3.0, 3.5, 2, false);
         setTamingPercentage(this.foodGiven, this.foodWanted);
+
+        createCombo(10, 6, OWSounds.BOA_HITTING.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 0 : -1);
+
 
         if (this.isInResurrection()) this.setSleeping(true);
 
@@ -545,10 +551,8 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
         LivingEntity rider = this.getControllingPassenger();
 
         if (entity instanceof LivingEntity livingTarget) {
-
             if (canNips) {
                 if (targetCanBeGrabbed(livingTarget) && rider == null && RANDOM(3)) {
-
                     boolean alreadyGrabbed = false;
                     for (Entity e : livingTarget.getPassengers()) {
                         if (e instanceof BoaEntity boa && boa.isNips()) {

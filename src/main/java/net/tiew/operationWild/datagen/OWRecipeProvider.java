@@ -252,6 +252,24 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .pattern("   ")
                 .define('P', OWBlocks.REDWOOD_LOG.get()).unlockedBy(getHasName(OWBlocks.REDWOOD_LOG.get()), has(OWBlocks.REDWOOD_LOG.get())).save(recipeOutput);
 
+        stairBuilder(OWBlocks.REDWOOD_STAIRS.get(), Ingredient.of(OWBlocks.REDWOOD_PLANKS)).group("redwood_planks")
+                .unlockedBy("has_redwood_planks", has(OWBlocks.REDWOOD_PLANKS)).save(recipeOutput);
+        slab(recipeOutput, RecipeCategory.BUILDING_BLOCKS, OWBlocks.REDWOOD_SLAB.get(), OWBlocks.REDWOOD_PLANKS.get());
+
+        buttonBuilder(OWBlocks.REDWOOD_BUTTON.get(), Ingredient.of(OWBlocks.REDWOOD_PLANKS.get())).group("redwood_planks")
+                .unlockedBy("has_redwood_planks", has(OWBlocks.REDWOOD_PLANKS.get())).save(recipeOutput);
+        pressurePlate(recipeOutput, OWBlocks.REDWOOD_PRESSURE_PLATE.get(), OWBlocks.REDWOOD_PLANKS.get());
+
+        fenceBuilder(OWBlocks.REDWOOD_FENCE.get(), Ingredient.of(OWBlocks.REDWOOD_PLANKS.get())).group("redwood_planks")
+                .unlockedBy("has_redwood_planks", has(OWBlocks.REDWOOD_PLANKS.get())).save(recipeOutput);
+        fenceGateBuilder(OWBlocks.REDWOOD_FENCE_GATE.get(), Ingredient.of(OWBlocks.REDWOOD_PLANKS.get())).group("redwood_planks")
+                .unlockedBy("has_redwood_planks", has(OWBlocks.REDWOOD_PLANKS.get())).save(recipeOutput);
+
+        doorBuilder(OWBlocks.REDWOOD_DOOR.get(), Ingredient.of(OWBlocks.REDWOOD_PLANKS.get())).group("redwood_planks")
+                .unlockedBy("has_redwood_planks", has(OWBlocks.REDWOOD_PLANKS.get())).save(recipeOutput);
+        trapdoorBuilder(OWBlocks.REDWOOD_TRAPDOOR.get(), Ingredient.of(OWBlocks.REDWOOD_PLANKS.get())).group("redwood_planks")
+                .unlockedBy("has_redwood_planks", has(OWBlocks.REDWOOD_PLANKS.get())).save(recipeOutput);
+
 
 
 
