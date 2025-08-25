@@ -29,6 +29,8 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
     private final ModelPart right_ear;
     private final ModelPart left_eyeBall;
     private final ModelPart right_eyeBall;
+    private final ModelPart mouth_Up;
+    private final ModelPart mouth_Down;
     private final ModelPart tail;
     private final ModelPart front;
     private final ModelPart back;
@@ -46,6 +48,8 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
         this.right_ear = this.head.getChild("right_ear");
         this.left_eyeBall = this.head.getChild("left_eyeBall");
         this.right_eyeBall = this.head.getChild("right_eyeBall");
+        this.mouth_Up = this.head.getChild("mouth_Up");
+        this.mouth_Down = this.head.getChild("mouth_Down");
         this.tail = this.body.getChild("tail");
         this.front = this.tail.getChild("front");
         this.back = this.tail.getChild("back");
@@ -61,7 +65,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
         PartDefinition right_arm = ALL.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(50, 14).mirror().addBox(-2.0F, 1.0F, -3.0F, 5.0F, 8.0F, 6.0F, new CubeDeformation(0.0F)).mirror(false)
                 .texOffs(60, 35).mirror().addBox(0.0F, 5.0F, -6.0F, 1.0F, 1.0F, 10.0F, new CubeDeformation(0.0F)).mirror(false)
-                .texOffs(51, 30).mirror().addBox(0.0F, 3.0F, -11.0F, 1.0F, 5.0F, 5.0F, new CubeDeformation(0.0F)).mirror(false)
+                .texOffs(65, 88).mirror().addBox(0.0F, 3.0F, -11.0F, 1.0F, 5.0F, 5.0F, new CubeDeformation(0.0F)).mirror(false)
                 .texOffs(69, 0).mirror().addBox(-2.5F, 5.0F, -3.5F, 6.0F, 1.0F, 7.0F, new CubeDeformation(0.0F)).mirror(false)
                 .texOffs(70, 0).mirror().addBox(-0.5F, 4.5F, -3.6F, 2.0F, 2.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-5.0F, 6.0F, -7.0F));
 
@@ -99,15 +103,11 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
                 .texOffs(83, 13).addBox(-6.0F, -3.5F, -7.0F, 12.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
                 .texOffs(92, 18).mirror().addBox(-6.5F, -3.5F, -6.0F, 1.0F, 1.0F, 6.0F, new CubeDeformation(0.0F)).mirror(false)
                 .texOffs(92, 18).addBox(5.5F, -3.5F, -6.0F, 1.0F, 1.0F, 6.0F, new CubeDeformation(0.0F))
-                .texOffs(0, 65).addBox(-3.0F, -1.0F, -11.0F, 6.0F, 6.0F, 5.0F, new CubeDeformation(0.0F))
                 .texOffs(2, 142).addBox(-7.0F, 2.0F, -10.0F, 14.0F, 1.0F, 0.0F, new CubeDeformation(0.0F))
                 .texOffs(6, 135).mirror().addBox(-7.0F, -8.0F, -10.0F, 0.0F, 11.0F, 16.0F, new CubeDeformation(0.1F)).mirror(false)
                 .texOffs(6, 135).addBox(7.0F, -8.0F, -10.0F, 0.0F, 11.0F, 16.0F, new CubeDeformation(0.1F))
                 .texOffs(2, 172).mirror().addBox(-5.6F, 2.0F, -10.5F, 11.0F, 1.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false)
-                .texOffs(123, 189).addBox(-3.0F, -1.0F, -11.0F, 6.0F, 3.0F, 5.0F, new CubeDeformation(0.0F))
                 .texOffs(147, 192).addBox(-3.0F, 5.0F, -11.0F, 6.0F, 3.0F, 5.0F, new CubeDeformation(0.0F))
-                .texOffs(123, 206).addBox(-3.0F, 2.0F, -11.0F, 1.0F, 3.0F, 5.0F, new CubeDeformation(0.0F))
-                .texOffs(104, 207).addBox(2.0F, 2.0F, -11.0F, 1.0F, 3.0F, 5.0F, new CubeDeformation(0.0F))
                 .texOffs(113, 183).addBox(-3.0F, 2.0F, -9.025F, 6.0F, 3.0F, 0.0F, new CubeDeformation(0.0F))
                 .texOffs(80, 73).addBox(3.0F, -3.0F, -11.0F, 5.0F, 6.0F, 0.0F, new CubeDeformation(0.0F))
                 .texOffs(80, 73).mirror().addBox(-8.0F, -3.0F, -11.0F, 5.0F, 6.0F, 0.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(0.0F, -1.0F, -13.0F));
@@ -125,6 +125,16 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
         PartDefinition left_eyeBall = head.addOrReplaceChild("left_eyeBall", CubeListBuilder.create().texOffs(32, 77).addBox(-1.0F, -0.5F, -0.025F, 2.0F, 1.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(3.0F, -2.5F, -6.0F));
 
         PartDefinition right_eyeBall = head.addOrReplaceChild("right_eyeBall", CubeListBuilder.create().texOffs(32, 77).mirror().addBox(-1.0F, -0.5F, -0.025F, 2.0F, 1.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(-3.0F, -2.5F, -6.0F));
+
+        PartDefinition mouth_Up = head.addOrReplaceChild("mouth_Up", CubeListBuilder.create().texOffs(52, 28).addBox(-3.0F, -1.0F, -6.0F, 6.0F, 3.0F, 6.0F, new CubeDeformation(0.0F))
+                .texOffs(41, 29).addBox(-3.0F, 2.0F, -5.9F, 6.0F, 2.0F, 0.0F, new CubeDeformation(0.01F))
+                .texOffs(42, 26).addBox(-2.8F, 2.0F, -6.0F, 0.0F, 2.0F, 6.0F, new CubeDeformation(0.01F))
+                .texOffs(42, 26).mirror().addBox(2.8F, 2.0F, -5.9F, 0.0F, 2.0F, 6.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offset(0.0F, 0.0F, -6.0F));
+
+        PartDefinition mouth_Down = head.addOrReplaceChild("mouth_Down", CubeListBuilder.create().texOffs(76, 31).addBox(-3.0F, -1.0F, -6.0F, 6.0F, 3.0F, 6.0F, new CubeDeformation(0.0F))
+                .texOffs(38, 6).addBox(-3.0F, -3.0F, -5.9F, 6.0F, 2.0F, 0.0F, new CubeDeformation(0.01F))
+                .texOffs(38, 5).addBox(2.9F, -3.0F, -6.0F, 0.0F, 2.0F, 6.0F, new CubeDeformation(0.01F))
+                .texOffs(38, 5).mirror().addBox(-2.9F, -3.0F, -6.0F, 0.0F, 2.0F, 6.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offset(0.0F, 3.0F, -6.0F));
 
         PartDefinition tail = body.addOrReplaceChild("tail", CubeListBuilder.create(), PartPose.offset(0.0F, 1.0F, 12.0F));
 

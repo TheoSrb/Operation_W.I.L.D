@@ -1985,6 +1985,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
             }
         }
 
+        if (this instanceof TigerEntity tiger) {
+            if (attackTimer == timeToHit) {
+                if (this.getComboAttack() < 3) {
+                    float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
+                    tiger.level().playSound(null, tiger.getX(), tiger.getY(), tiger.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
+                } else if (this.getComboAttack() == 3) {
+                    float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
+                    tiger.level().playSound(null, tiger.getX(), tiger.getY(), tiger.getZ(), OWSounds.TIGER_SHARK_CRUSH_MOUTH.get(), SoundSource.HOSTILE, 1.0f, pitch);
+                }
+            }
+        }
+
     }
 
     public void resetCombo(int numberOfAttacks) {
