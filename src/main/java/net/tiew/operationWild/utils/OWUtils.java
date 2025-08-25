@@ -38,7 +38,10 @@ public class OWUtils {
     }
 
     public static float getSpeedBlocksPerSecond(OWEntity entity) {
-       return (entity.getSpeed() * 20) * 2.5f;
+        if (entity.canIncreasesSpeedDuringSprint()) {
+            return (((entity.getSpeed() * 20) / 3) * ((entity.vehicleRunSpeedMultiplier() * (0.5f + ((float) (Math.min(100, 50 / 100))) / 2) * 1.75f)));
+        }
+        return (entity.getSpeed() * 20) * (entity.vehicleRunSpeedMultiplier() / 1.75f);
     }
 
     public static void showMessage(ServerPlayer player, String messageText, TextColor color, boolean isBold) {

@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.custom.living;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -337,6 +338,7 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     public void tick() {
         super.tick();
         setTamingPercentage(this.foodGiven, this.foodWanted);
+
 
         createCombo(10, 6, OWSounds.BOA_HITTING.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 0 : -1);
 

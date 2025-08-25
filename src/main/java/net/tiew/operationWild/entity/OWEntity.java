@@ -25,6 +25,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
@@ -42,6 +43,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FollowParentGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
+import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -55,12 +57,15 @@ import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.tiew.operationWild.entity.AI.FoodsPreference;
@@ -1125,9 +1130,235 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         return this instanceof SeaBugEntity ? new SeaBugInventoryMenu(id, inventory, this.itemStackHandlerSeaBug) : new OWInventoryMenu(id, inventory, this.itemStackHandler);
     }
 
+    private int noJumpDelay;
+
+    private float getRiddenSpeedVehicle(Player player) {
+        if (this.isSitting()) return 0;
+        if (!this.onGround() && !this.isInWater() && !this.jumping) return this.getSpeed();
+
+        if (isCombo()) {
+            if (this instanceof ElephantEntity elephant) {
+                if (elephant.getComboAttack() == 3) {
+                    return 0;
+                }
+            } else if (this instanceof KodiakEntity kodiak) {
+                if (kodiak.getComboAttack() == 3) {
+                    return (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 4);
+                }
+            }
+            return (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 3);
+        }
+
+        if (player.zza == 0) return 0;
+
+        if (isRunning()) {
+            if (canIncreasesSpeedDuringSprint()) {
+                return ((this.getSpeed() / 3) * ((this.vehicleRunSpeedMultiplier() * (0.5f + ((float) (Math.min(100, getAcceleration())) / 100))) / 2) * 1.75f);
+            }
+            if (MARAUDER_ENTITIES.contains(this.getClass()) && this.isInFight()) {
+                return (this.getSpeed() / 3) * (vehicleRunSpeedMultiplier() * 1.75f) * 1.15f;
+            }
+            return this.getSpeed() * (vehicleRunSpeedMultiplier() / 1.75f);
+        }
+
+        return (this.getSpeed() / 3) * (vehicleWalkSpeedMultiplier() / 2);
+    }
+
+    private void travelRidden(Player player, Vec3 travelVector) {
+        Vec3 vec3 = this.getRiddenInput(player, travelVector);
+        this.tickRidden(player, vec3);
+        if (this.isControlledByLocalInstance()) {
+            Vec3 lookDirection = Vec3.directionFromRotation(0, player.getYRot()).normalize();
+            double speedPerTick = getRiddenSpeedVehicle(player);
+
+            Vec3 currentMovement = this.getDeltaMovement();
+
+            double yMovement = currentMovement.y;
+
+            Vec3 newMovement = new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick);
+
+            this.setDeltaMovement(newMovement);
+            this.travel(vec3);
+        } else {
+            this.calculateEntityAnimation(false);
+            this.setDeltaMovement(Vec3.ZERO);
+            this.tryCheckInsideBlocks();
+        }
+    }
+
     @Override
     public void aiStep() {
-        super.aiStep();
+        if (this.noJumpDelay > 0) {
+            --this.noJumpDelay;
+        }
+
+        if (this.isControlledByLocalInstance()) {
+            this.lerpSteps = 0;
+            this.syncPacketPositionCodec(this.getX(), this.getY(), this.getZ());
+
+            if (this.jumping && this.isAffectedByFluids()) {
+                FluidType fluidType = this.getMaxHeightFluidType();
+                double d3;
+                if (!fluidType.isAir()) {
+                    d3 = this.getFluidTypeHeight(fluidType);
+                } else if (this.isInLava()) {
+                    d3 = this.getFluidHeight(FluidTags.LAVA);
+                } else {
+                    d3 = this.getFluidHeight(FluidTags.WATER);
+                }
+
+                boolean flag = this.isInWater() && d3 > (double)0.0F;
+                double d4 = this.getFluidJumpThreshold();
+                if (!flag || this.onGround() && !(d3 > d4)) {
+                    if (!this.isInLava() || this.onGround() && !(d3 > d4)) {
+                        if (fluidType.isAir() || this.onGround() && !(d3 > d4)) {
+                            if ((this.onGround() || flag && d3 <= d4) && this.noJumpDelay == 0) {
+                                this.jumpFromGround();
+                                this.noJumpDelay = 10;
+                            }
+                        } else {
+                            this.jumpInFluid(fluidType);
+                        }
+                    } else {
+                        this.jumpInFluid((FluidType)NeoForgeMod.LAVA_TYPE.value());
+                    }
+                } else {
+                    this.jumpInFluid((FluidType)NeoForgeMod.WATER_TYPE.value());
+                }
+            } else {
+                this.noJumpDelay = 0;
+            }
+        }
+
+        if (this.lerpSteps > 0) {
+            this.lerpPositionAndRotationStep(this.lerpSteps, this.lerpX, this.lerpY, this.lerpZ, this.lerpYRot, this.lerpXRot);
+            --this.lerpSteps;
+        } else if (!this.isEffectiveAi()) {
+            this.setDeltaMovement(this.getDeltaMovement().scale(0.98));
+        }
+
+        if (this.lerpHeadSteps > 0) {
+            this.lerpHeadRotationStep(this.lerpHeadSteps, this.lerpYHeadRot);
+            --this.lerpHeadSteps;
+        }
+
+        Vec3 vec3 = this.getDeltaMovement();
+        double d0 = vec3.x;
+        double d1 = vec3.y;
+        double d2 = vec3.z;
+        if (java.lang.Math.abs(vec3.x) < 0.003) {
+            d0 = (double)0.0F;
+        }
+
+        if (java.lang.Math.abs(vec3.y) < 0.003) {
+            d1 = (double)0.0F;
+        }
+
+        if (java.lang.Math.abs(vec3.z) < 0.003) {
+            d2 = (double)0.0F;
+        }
+
+        this.setDeltaMovement(d0, d1, d2);
+        this.level().getProfiler().push("ai");
+        if (this.isImmobile()) {
+            this.jumping = false;
+            this.xxa = 0.0F;
+            this.zza = 0.0F;
+        } else if (this.isEffectiveAi()) {
+            this.level().getProfiler().push("newAi");
+            this.serverAiStep();
+            this.level().getProfiler().pop();
+        }
+
+        this.level().getProfiler().pop();
+        this.level().getProfiler().push("jump");
+        if (this.jumping && this.isAffectedByFluids()) {
+            FluidType fluidType = this.getMaxHeightFluidType();
+            double d3;
+            if (!fluidType.isAir()) {
+                d3 = this.getFluidTypeHeight(fluidType);
+            } else if (this.isInLava()) {
+                d3 = this.getFluidHeight(FluidTags.LAVA);
+            } else {
+                d3 = this.getFluidHeight(FluidTags.WATER);
+            }
+
+            boolean flag = this.isInWater() && d3 > (double)0.0F;
+            double d4 = this.getFluidJumpThreshold();
+            if (!flag || this.onGround() && !(d3 > d4)) {
+                if (!this.isInLava() || this.onGround() && !(d3 > d4)) {
+                    if (fluidType.isAir() || this.onGround() && !(d3 > d4)) {
+                        if ((this.onGround() || flag && d3 <= d4) && this.noJumpDelay == 0) {
+                            this.jumpFromGround();
+                            this.noJumpDelay = 10;
+                        }
+                    } else {
+                        this.jumpInFluid(fluidType);
+                    }
+                } else {
+                    this.jumpInFluid((FluidType)NeoForgeMod.LAVA_TYPE.value());
+                }
+            } else {
+                this.jumpInFluid((FluidType)NeoForgeMod.WATER_TYPE.value());
+            }
+        } else {
+            this.noJumpDelay = 0;
+        }
+
+        this.level().getProfiler().pop();
+        this.level().getProfiler().push("travel");
+        this.xxa *= 0.98F;
+        this.zza *= 0.98F;
+        this.updateFallFlying();
+        AABB aabb = this.getBoundingBox();
+        Vec3 vec31 = new Vec3((double)this.xxa, (double)this.yya, (double)this.zza);
+        if (this.hasEffect(MobEffects.SLOW_FALLING) || this.hasEffect(MobEffects.LEVITATION)) {
+            this.resetFallDistance();
+        }
+
+        label111: {
+            LivingEntity var17 = this.getControllingPassenger();
+            if (var17 instanceof Player player) {
+                if (this.isAlive()) {
+                    this.travelRidden(player, vec31);
+                    break label111;
+                }
+            }
+
+            this.travel(vec31);
+        }
+
+        this.level().getProfiler().pop();
+        this.level().getProfiler().push("freezing");
+        if (!this.level().isClientSide && !this.isDeadOrDying()) {
+            int i = this.getTicksFrozen();
+            if (this.isInPowderSnow && this.canFreeze()) {
+                this.setTicksFrozen(java.lang.Math.min(this.getTicksRequiredToFreeze(), i + 1));
+            } else {
+                this.setTicksFrozen(java.lang.Math.max(0, i - 2));
+            }
+        }
+
+        this.removeFrost();
+        this.tryAddFrost();
+        if (!this.level().isClientSide && this.tickCount % 40 == 0 && this.isFullyFrozen() && this.canFreeze()) {
+            this.hurt(this.damageSources().freeze(), 1.0F);
+        }
+
+        this.level().getProfiler().pop();
+        this.level().getProfiler().push("push");
+        if (this.autoSpinAttackTicks > 0) {
+            --this.autoSpinAttackTicks;
+            this.checkAutoSpinAttack(aabb, this.getBoundingBox());
+        }
+
+        this.pushEntities();
+        this.level().getProfiler().pop();
+        if (!this.level().isClientSide && this.isSensitiveToWater() && this.isInWaterRainOrBubble()) {
+            this.hurt(this.damageSources().drown(), 1.0F);
+        }
+
+
         if (!this.level().isClientSide()) {
             IItemHandler itemHandler = this.getInventory();
 
@@ -1176,6 +1407,22 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
                 }
             }
         }
+
+    }
+
+    private void updateFallFlying() {
+        boolean flag = this.getSharedFlag(7);
+        if (flag && !this.onGround() && !this.isPassenger() && !this.hasEffect(MobEffects.LEVITATION)) {
+            ItemStack itemstack = this.getItemBySlot(EquipmentSlot.CHEST);
+            flag = itemstack.canElytraFly(this) && itemstack.elytraFlightTick(this, this.fallFlyTicks);
+        } else {
+            flag = false;
+        }
+
+        if (!this.level().isClientSide) {
+            this.setSharedFlag(7, flag);
+        }
+
     }
 
     @Override
@@ -1704,15 +1951,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
     public void applyComboModification(int timeToHit) {
 
-        if (this instanceof TigerEntity) {
+        if (this instanceof TigerEntity tiger) {
             if (attackTimer >= timeToHit - 1 && attackTimer < timeToHit + 1) {
-                if (actualAttackNumber == 2) {
+                if (tiger.getComboAttack() == 3) {
                     Vec3 lookDirection = this.getLookAngle();
+                    Vec3 forwardPush = lookDirection.scale(1.5);
 
-                    Vec3 currentMovement = this.getDeltaMovement();
-                    Vec3 forwardPush = lookDirection.scale(1);
+                    this.move(MoverType.SELF, forwardPush);
 
-                    this.setDeltaMovement(currentMovement.x + forwardPush.x, currentMovement.y, currentMovement.z + forwardPush.z);
+                    this.hasImpulse = true;
+                    OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
                 }
             }
         }
@@ -1925,53 +2173,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         }
         player.resetFallDistance();
     }
-
-    protected float getRiddenSpeed(Player player) {
-        if (isSitting()) return 0.0f;
-
-        float baseSpeed = this.getSpeed() * 2.5f;
-
-        if (canIncreasesSpeedDuringSprint()) {
-            if (isRunning()) {
-                baseSpeed *= ((vehicleRunSpeedMultiplier() * (0.5f + ((float) getAcceleration() / 100))) / 2);
-            } else baseSpeed *= (vehicleRunSpeedMultiplier() / 2);
-        }
-        else {
-            baseSpeed *= (vehicleRunSpeedMultiplier() / 2);
-        }
-
-        if (isCombo()) {
-
-            if (this instanceof ElephantEntity elephant) {
-                if (elephant.getComboAttack() == 3) {
-                    return 0;
-                }
-            }
-
-            if (this instanceof KodiakEntity kodiak) {
-                if (kodiak.getComboAttack() == 3) {
-                    return (baseSpeed / 30) * vehicleComboSpeedMultiplier();
-                }
-            }
-
-            return (baseSpeed / 15) * vehicleComboSpeedMultiplier();
-        }
-
-        if (MARAUDER_ENTITIES.contains(this.getClass()) && isInFight()) {
-            baseSpeed *= 1.15f;
-        }
-
-        if (this instanceof TigerEntity tiger && tiger.isUltimate()) baseSpeed *= 5;
-
-        if (player.zza == 0) return 0.0f;
-
-        if (isRunning()) return baseSpeed;
-        baseSpeed = baseSpeed * (vehicleWalkSpeedMultiplier() * 3);
-
-
-        return baseSpeed / 25;
-    }
-
 
     public Vec2 getRiddenRotation(LivingEntity livingEntity) { return new Vec2(livingEntity.getXRot() * 0.5F, livingEntity.getYRot());}
 

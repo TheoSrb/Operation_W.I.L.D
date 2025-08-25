@@ -196,7 +196,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
-        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
+        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 25f, 15, 3));
         this.goalSelector.addGoal(1, new OWPanicGoal(this, this.getSpeed() * 16f, 3, 75));
         this.goalSelector.addGoal(0, new NapGoal(this, 200, 800, 20, 100,null, false, () -> getDayOrNightTimeInterval(11,16) && !this.isJumpingOnTarget() && !this.isTrappingEntity() && this.onGround()));
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(new Class[0]));
@@ -802,10 +802,6 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         this.playSound(isVirus() ? OWSounds.TIGER_HURTING_VIRUS.get() : OWSounds.TIGER_HURTING.get(), 1.25f, (float) pitch);
         OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
         return super.doHurtTarget(entity);
-    }
-
-    protected float getRiddenSpeed(Player player) {
-        return this.isTameJumping() ? 0.0f : super.getRiddenSpeed(player);
     }
 
     @Override

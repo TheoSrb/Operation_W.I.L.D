@@ -111,7 +111,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     @Override
     public float vehicleRunSpeedMultiplier() {
-        return 5f;
+        return 3.5f;
     }
 
     @Override
