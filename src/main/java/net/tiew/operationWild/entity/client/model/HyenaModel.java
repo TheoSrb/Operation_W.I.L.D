@@ -11,11 +11,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.HyenaAnimations;
+import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
 import net.tiew.operationWild.entity.custom.living.HyenaEntity;
 
 public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "hyena_default"), "main");
 
+	private final ModelPart ALL2;
 	private final ModelPart ALL;
 	private final ModelPart left_arm;
 	private final ModelPart left_leg;
@@ -31,8 +33,8 @@ public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
 	private final ModelPart tail;
 
     public HyenaModel(ModelPart root) {
-
-		this.ALL = root.getChild("ALL");
+		this.ALL2 = root.getChild("ALL2");
+		this.ALL = this.ALL2.getChild("ALL");
 		this.left_arm = this.ALL.getChild("left_arm");
 		this.left_leg = this.ALL.getChild("left_leg");
 		this.right_arm = this.ALL.getChild("right_arm");
@@ -48,32 +50,60 @@ public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
     }
 
     public static LayerDefinition createBodyLayer() {
-
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
-		PartDefinition ALL = partdefinition.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 12.0F, -1.0F));
+
+		PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 12.0F, -1.0F));
+
+		PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
+
 		PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create(), PartPose.offsetAndRotation(2.0F, 3.5F, -5.5F, -0.0873F, 0.0F, 0.0F));
+
 		PartDefinition cube_r1 = left_arm.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(52, 33).addBox(3.0F, 1.0F, -3.0F, 2.0F, 9.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-4.0F, -1.7F, 1.5F, 0.0873F, 0.0F, 0.0F));
+
 		PartDefinition left_leg = ALL.addOrReplaceChild("left_leg", CubeListBuilder.create(), PartPose.offsetAndRotation(2.0F, 4.5F, 6.5F, -0.0873F, 0.0F, 0.0F));
+
 		PartDefinition cube_r2 = left_leg.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(40, 45).addBox(3.0F, 1.0F, -3.0F, 3.0F, 9.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-4.0F, -2.7F, 1.5F, 0.0873F, 0.0F, 0.0F));
+
 		PartDefinition right_arm = ALL.addOrReplaceChild("right_arm", CubeListBuilder.create(), PartPose.offsetAndRotation(-2.0F, 3.5F, -5.5F, -0.0873F, 0.0F, 0.0F));
+
 		PartDefinition cube_r3 = right_arm.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(52, 33).mirror().addBox(-5.0F, 1.0F, -3.0F, 2.0F, 9.0F, 3.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(4.0F, -1.7F, 1.5F, 0.0873F, 0.0F, 0.0F));
+
 		PartDefinition right_leg = ALL.addOrReplaceChild("right_leg", CubeListBuilder.create(), PartPose.offsetAndRotation(-2.0F, 4.5F, 6.5F, -0.0873F, 0.0F, 0.0F));
+
 		PartDefinition cube_r4 = right_leg.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(40, 45).mirror().addBox(-6.0F, 1.0F, -3.0F, 3.0F, 9.0F, 3.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(4.0F, -2.7F, 1.5F, 0.0873F, 0.0F, 0.0F));
+
 		PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-4.5F, -5.0F, -7.0F, 9.0F, 9.0F, 10.0F, new CubeDeformation(0.0F))
-		.texOffs(67, -11).addBox(1.5F, -10.0F, -10.0F, 0.0F, 5.0F, 11.0F, new CubeDeformation(0.0F))
-		.texOffs(67, -11).mirror().addBox(-1.5F, -10.0F, -10.0F, 0.0F, 5.0F, 11.0F, new CubeDeformation(0.0F)).mirror(false)
-		.texOffs(0, 19).addBox(-3.5F, -5.0F, 3.0F, 7.0F, 9.0F, 7.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, -0.0873F, 0.0F, 0.0F));
+				.texOffs(46, 109).addBox(-4.5F, -5.0F, -7.0F, 9.0F, 9.0F, 10.0F, new CubeDeformation(0.5F))
+				.texOffs(0, 118).addBox(-3.5F, -7.0F, -7.0F, 7.0F, 2.0F, 8.0F, new CubeDeformation(0.0F))
+				.texOffs(67, -11).addBox(1.5F, -10.0F, -10.0F, 0.0F, 5.0F, 11.0F, new CubeDeformation(0.0F))
+				.texOffs(67, -11).mirror().addBox(-1.5F, -10.0F, -10.0F, 0.0F, 5.0F, 11.0F, new CubeDeformation(0.0F)).mirror(false)
+				.texOffs(0, 19).addBox(-3.5F, -5.0F, 3.0F, 7.0F, 9.0F, 7.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.0F, 0.0F, -0.0873F, 0.0F, 0.0F));
+
 		PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(28, 33).addBox(-3.5F, -3.0F, -4.0F, 7.0F, 7.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -2.0F, -8.0F));
+
 		PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(28, 19).addBox(-4.0F, -4.0F, -5.0F, 8.0F, 8.0F, 6.0F, new CubeDeformation(0.0F))
-		.texOffs(20, 45).addBox(-2.5F, 0.0F, -10.0F, 5.0F, 4.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.1743F, -2.9924F, 5F, 0.0F, 0.0F));
+				.texOffs(20, 45).addBox(-2.5F, 0.0F, -10.0F, 5.0F, 4.0F, 5.0F, new CubeDeformation(0.0F))
+				.texOffs(22, 105).addBox(-4.5F, 2.0F, -9.5F, 9.0F, 1.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 0.1743F, -2.9924F, 0.0873F, 0.0F, 0.0F));
+
+		PartDefinition cube_r5 = head.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(76, 86).mirror().addBox(0.0F, -8.5F, -0.5F, 0.0F, 9.0F, 17.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(-4.0F, 2.5F, -9.0F, 0.0436F, -0.0873F, 0.0F));
+
+		PartDefinition cube_r6 = head.addOrReplaceChild("cube_r6", CubeListBuilder.create().texOffs(76, 86).addBox(0.0F, -8.5F, -0.5F, 0.0F, 9.0F, 17.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(4.0F, 2.5F, -9.0F, 0.0436F, 0.0873F, 0.0F));
+
 		PartDefinition left_ear = head.addOrReplaceChild("left_ear", CubeListBuilder.create().texOffs(12, 54).addBox(-2.0F, -4.0F, -0.5F, 4.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(3.0F, -2.5F, 0.0F, 0.0F, 0.0F, 0.4363F));
+
 		PartDefinition right_ear = head.addOrReplaceChild("right_ear", CubeListBuilder.create().texOffs(12, 54).mirror().addBox(-2.0F, -4.0F, -0.5F, 4.0F, 5.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(-3.0F, -2.5F, 0.0F, 0.0F, 0.0F, -0.4363F));
+
 		PartDefinition left_eyeBall = head.addOrReplaceChild("left_eyeBall", CubeListBuilder.create().texOffs(25, 58).addBox(-1.0F, -0.5F, -0.025F, 2.0F, 1.0F, 0.0F, new CubeDeformation(0.025F)), PartPose.offset(3.0F, -1.5F, -5.0F));
+
 		PartDefinition right_eyeBall = head.addOrReplaceChild("right_eyeBall", CubeListBuilder.create().texOffs(25, 58).mirror().addBox(-1.0F, -0.5F, -0.025F, 2.0F, 1.0F, 0.0F, new CubeDeformation(0.025F)).mirror(false), PartPose.offset(-3.0F, -1.5F, -5.0F));
+
 		PartDefinition tail = body.addOrReplaceChild("tail", CubeListBuilder.create(), PartPose.offset(0.0F, -1.0F, 10.0F));
-		PartDefinition cube_r5 = tail.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(0, 78).addBox(5.0F, -5.0F, -1.0F, 0.0F, 11.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-5.0F, 3.5F, 0.5F, 0.0873F, 0.0F, 0.0F));
-		PartDefinition cube_r6 = tail.addOrReplaceChild("cube_r6", CubeListBuilder.create().texOffs(0, 78).addBox(-1.0F, -5.0F, 5.0F, 2.0F, 11.0F, 0.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 4.0F, -4.5F, 0.0873F, 0.0F, 0.0F));
+
+		PartDefinition cube_r7 = tail.addOrReplaceChild("cube_r7", CubeListBuilder.create().texOffs(0, 78).addBox(5.0F, -5.0F, -1.0F, 0.0F, 11.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-5.0F, 3.5F, 0.5F, 0.0873F, 0.0F, 0.0F));
+
+		PartDefinition cube_r8 = tail.addOrReplaceChild("cube_r8", CubeListBuilder.create().texOffs(0, 78).addBox(-1.0F, -5.0F, 5.0F, 2.0F, 11.0F, 0.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 4.0F, -4.5F, 0.0873F, 0.0F, 0.0F));
+
 		return LayerDefinition.create(meshdefinition, 128, 128);
     }
 
@@ -94,11 +124,23 @@ public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
 		this.neck.xRot = (float) Math.toRadians(hyena.getHeadX());
 		this.head.xRot = (float) Math.toRadians(5 + (-hyena.getHeadX()));
 		this.head.y = hyena.getHeadX() / 20;
+
+		this.animate(hyena.idleAnimationState, HyenaAnimations.MISC_IDLE, ageInTicks, 1.0f);
+
+		if (hyena.isRunning() || hyena.getState() == 2) {
+			this.animateWalk(HyenaAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.0f, 1.0f);
+		} else this.animateWalk(HyenaAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 5f, 5f);
+
+
+		if (hyena.level().isClientSide()) {
+			hyena.setBodyZRot((float) Math.toDegrees(this.body.zRot));
+			hyena.setBodyXRot((float) Math.toDegrees(this.body.xRot));
+		}
 	}
 
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
-        this.ALL.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
 
     private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
@@ -111,6 +153,6 @@ public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
 
     @Override
     public ModelPart root() {
-        return this.ALL;
+        return this.ALL2;
     }
 }

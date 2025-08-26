@@ -1221,6 +1221,9 @@ public class ClientEvents {
             } else if (rootVehicle instanceof TigerEntity tiger) {
                 event.setRoll(event.getRoll() + (tiger.getBodyZRot()));
                 event.setPitch(event.getPitch() + (tiger.getBodyXRot()));
+            } else if (rootVehicle instanceof HyenaEntity hyena) {
+                event.setRoll(event.getRoll() + (hyena.getBodyZRot() / 3));
+                event.setPitch(event.getPitch() + (hyena.getBodyXRot() / 3));
             }
         }
     }

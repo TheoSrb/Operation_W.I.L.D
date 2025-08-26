@@ -21,6 +21,9 @@ import java.util.Map;
 public class HyenaRenderer extends MobRenderer<HyenaEntity, HyenaModel<HyenaEntity>> {
     private static final Map<HyenaVariant, ResourceLocation> LOCATION_BY_VARIANT = Util.make(Maps.newEnumMap(HyenaVariant.class), map -> {
         map.put(HyenaVariant.DEFAULT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/hyena/hyena_default.png"));
+        map.put(HyenaVariant.GREY, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/hyena/hyena_grey.png"));
+        map.put(HyenaVariant.YELLOW, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/hyena/hyena_yellow.png"));
+        map.put(HyenaVariant.DARK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/hyena/hyena_dark.png"));
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
@@ -75,7 +78,7 @@ public class HyenaRenderer extends MobRenderer<HyenaEntity, HyenaModel<HyenaEnti
                 }
             }
         }
-        OWRendererUtils.createInformationImage(hyena, poseStack, bufferSource, packedLight, 0, 0, 0, 0, 2);
+        OWRendererUtils.createInformationImage(hyena, poseStack, bufferSource, packedLight, 0, 0.5, 0, 0, 2);
     }
 
     @Override

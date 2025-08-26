@@ -181,7 +181,10 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
 
 
-
+        if (tiger.level().isClientSide()) {
+            tiger.setBodyZRot((float) Math.toDegrees(this.body.zRot) / 2);
+            tiger.setBodyXRot((float) Math.toDegrees(this.body.xRot) / 2);
+        }
 
         if (tiger.transitionIdleSit.isStarted()) {
             this.animate(tiger.transitionIdleSit, TigerAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
@@ -230,10 +233,6 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
                 if ((tiger.isVehicle() && tiger.getControllingPassenger() instanceof Player player && player.zza > 0 && tiger.isRunning())) {
                     this.animateWalk(TigerAnimations.MOVE_RUN, limbSwing, limbSwingAmount, tiger.isVehicle() ? 0.75f : 1f, runSpeed);
-                    if (tiger.level().isClientSide()) {
-                        tiger.setBodyZRot(0);
-                        tiger.setBodyXRot(0);
-                    }
                     return;
                 }
 
@@ -246,11 +245,6 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
                 this.animate(tiger.idleAnimationState, TigerAnimations.IDLE, ageInTicks, 1.0f);
             }
-        }
-
-        if (tiger.level().isClientSide()) {
-            tiger.setBodyZRot((float) Math.toDegrees(this.body.zRot) / 2);
-            tiger.setBodyXRot((float) Math.toDegrees(this.body.xRot) / 2);
         }
     }
 

@@ -111,7 +111,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     @Override
     public float vehicleRunSpeedMultiplier() {
-        return 3.5f;
+        return 4f;
     }
 
     @Override
@@ -121,6 +121,11 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     @Override
     public float vehicleComboSpeedMultiplier() {
+        return 3f;
+    }
+
+    @Override
+    public float vehicleWaterSpeedDivider() {
         return 3f;
     }
 
@@ -176,7 +181,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(new Class[0]));
 
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
-        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
+        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 30f, 15, 3));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
 
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
@@ -225,7 +230,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     @Override
     public void travel(Vec3 vec3) {
         super.travel(vec3);
-        //if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
+        if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
     }
 
     @Override

@@ -10,6 +10,7 @@ public interface OWTameImplementation {
     float vehicleRunSpeedMultiplier();
     float vehicleWalkSpeedMultiplier();
     float vehicleComboSpeedMultiplier();
+    float vehicleWaterSpeedDivider();
     boolean canIncreasesSpeedDuringSprint();
     Item acceptSaddle();
     List<Class<?>> getEntityType();

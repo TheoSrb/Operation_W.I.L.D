@@ -123,7 +123,7 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
 
     @Override
     public float vehicleRunSpeedMultiplier() {
-        return 3.5f;
+        return 4f;
     }
 
     @Override
@@ -134,6 +134,11 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     @Override
     public float vehicleComboSpeedMultiplier() {
         return 2f;
+    }
+
+    @Override
+    public float vehicleWaterSpeedDivider() {
+        return 5f;
     }
 
     @Override
@@ -353,12 +358,6 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         this.playSound(OWSounds.MINI_EARTHQUAKE.get(), 1.5f, 1.2f);
     }
 
-    public void applyFootstepSound() {
-        for (int i = 0; i < 3; i++) {
-            this.playSound(OWSounds.ELEPHANT_FOOTSTEP.get(), 1.5f, 1.0f);
-        }
-    }
-
     public void tick() {
         super.tick();
 
@@ -501,14 +500,16 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         }
 
         if (isPlayerJump()) {
-            for (Player playerAround : playersAround) {
-                if (playerAround.onGround()) {
-                    float shakeIntensity = playerAround.distanceTo(this);
+            for (LivingEntity livingEntityAround : playersAround) {
+                if (livingEntityAround.onGround()) {
+                    float shakeIntensity = livingEntityAround.distanceTo(this);
                     shakeIntensity = ((FOOTSTEP_MAX_DISTANCE - shakeIntensity) / 10) / 3;
 
-                    playerAround.setDeltaMovement(playerAround.getDeltaMovement().x, shakeIntensity / 2, playerAround.getDeltaMovement().z);
+                    livingEntityAround.setDeltaMovement(livingEntityAround.getDeltaMovement().x, shakeIntensity / 2, livingEntityAround.getDeltaMovement().z);
 
-                    if (this.level().isClientSide()) ClientEvents.shakeCamera(shakeIntensity, playerAround);
+                    if (this.level().isClientSide() && livingEntityAround instanceof Player player) ClientEvents.shakeCamera(shakeIntensity, player);
+
+                    break;
                 }
             }
             if (this.isRunning()) OWUtils.spawnParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, -1.5, 0.5, 10, 0.5);

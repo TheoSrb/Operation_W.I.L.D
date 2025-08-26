@@ -7,9 +7,11 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.utils.OWUtils;
 
@@ -35,7 +37,7 @@ public record ClientPressedLeftClick() implements CustomPacketPayload {
             if (context.player() instanceof ServerPlayer player) {
                 Entity entity = player.getRootVehicle();
 
-                if (entity instanceof OWEntity owEntity) {
+                if (entity instanceof OWEntity owEntity && !owEntity.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) {
                     float vitalEnergyPercent = (float) (owEntity.getVitalEnergy() / owEntity.getMaxVitalEnergy());
 
                     if (owEntity.hasReachedAttackEnergyLimit() && vitalEnergyPercent <= 0.8f) {

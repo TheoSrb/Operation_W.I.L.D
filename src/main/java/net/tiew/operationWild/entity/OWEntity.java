@@ -127,6 +127,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
     private float customWidth = 1.0F;
     private float customHeight = 1.0F;
     public boolean canShowVitalEnergyLack = false;
+    private int noJumpDelay;
+    private float currentSpeed = 0;
+    private float targetSpeed = 0;
 
     public static final float SAVAGE_ENTITY_DAMAGE_MULITPLIER = 1.4f;
 
@@ -767,10 +770,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
     public int getActualSleepingBar() { return this.entityData.get(ACTUAL_SLEEPING_BAR);}
 
-    public void setBodyZRot(float getBodyZRot) { this.entityData.set(BODY_Z_ROT, getBodyZRot);}
+    public void setBodyZRot(float getBodyZRot) {
+        if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) this.entityData.set(BODY_Z_ROT, 0.0f);
+        else this.entityData.set(BODY_Z_ROT, getBodyZRot);
+    }
     public float getBodyZRot() { return this.entityData.get(BODY_Z_ROT);}
 
-    public void setBodyXRot(float getBodyXRot) { this.entityData.set(BODY_X_ROT, getBodyXRot);}
+    public void setBodyXRot(float getBodyXRot) {
+        if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) this.entityData.set(BODY_X_ROT, 0.0f);
+        else this.entityData.set(BODY_X_ROT, getBodyXRot);
+    }
     public float getBodyXRot() { return this.entityData.get(BODY_X_ROT);}
 
     public void setBodyYOffset(float getBodyXRot) { this.entityData.set(BODY_Y_OFFSET, getBodyXRot);}
@@ -1130,11 +1139,19 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         return this instanceof SeaBugEntity ? new SeaBugInventoryMenu(id, inventory, this.itemStackHandlerSeaBug) : new OWInventoryMenu(id, inventory, this.itemStackHandler);
     }
 
-    private int noJumpDelay;
-
     private float getRiddenSpeedVehicle(Player player) {
-        if (this.isSitting()) return 0;
-        if (!this.onGround() && !this.isInWater() && !this.jumping) return this.getSpeed();
+        if (this.isSitting() || this.jumping) return 0.0f;
+
+        if (player.zza == 0 && !this.isCombo()) {
+            if (!canIncreasesSpeedDuringSprint()) {
+                currentSpeed *= 0.75f;
+            } else {
+                currentSpeed = 0;
+            }
+            return currentSpeed;
+        }
+
+        if (!this.onGround() && !this.isInWater()) return this.getSpeed();
 
         if (isCombo()) {
             if (this instanceof ElephantEntity elephant) {
@@ -1146,34 +1163,40 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
                     return (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 4);
                 }
             }
-            return (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 3);
+            if (vehicleComboSpeedMultiplier() != -1) targetSpeed = (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 3);
         }
 
-        if (player.zza == 0) return 0;
-
-        if (isRunning()) {
+        else if (isRunning()) {
             if (canIncreasesSpeedDuringSprint()) {
                 return ((this.getSpeed() / 3) * ((this.vehicleRunSpeedMultiplier() * (0.5f + ((float) (Math.min(100, getAcceleration())) / 100))) / 2) * 1.75f);
             }
             if (MARAUDER_ENTITIES.contains(this.getClass()) && this.isInFight()) {
-                return (this.getSpeed() / 3) * (vehicleRunSpeedMultiplier() * 1.75f) * 1.15f;
+                targetSpeed = (this.getSpeed() / 3) * (vehicleRunSpeedMultiplier() * 1.75f) * 1.15f;
             }
-            return this.getSpeed() * (vehicleRunSpeedMultiplier() / 1.75f);
+            targetSpeed = this.getSpeed() * (vehicleRunSpeedMultiplier() / 1.75f);
         }
 
-        return (this.getSpeed() / 3) * (vehicleWalkSpeedMultiplier() / 2);
+        else {
+            targetSpeed = (this.getSpeed() / 3) * (vehicleWalkSpeedMultiplier() / 2);
+        }
+
+        if (canIncreasesSpeedDuringSprint()) {
+            currentSpeed = targetSpeed;
+        } else {
+            currentSpeed += (targetSpeed - currentSpeed) * 0.15f;
+        }
+        return currentSpeed;
     }
 
     private void travelRidden(Player player, Vec3 travelVector) {
         Vec3 vec3 = this.getRiddenInput(player, travelVector);
         this.tickRidden(player, vec3);
         if (this.isControlledByLocalInstance()) {
-            Vec3 lookDirection = Vec3.directionFromRotation(0, player.getYRot()).normalize();
-            double speedPerTick = getRiddenSpeedVehicle(player);
+            Vec3 lookDirection = Vec3.directionFromRotation(isInWater() ? player.getXRot() : 0, player.getYRot()).normalize();
+            double speedPerTick = getRiddenSpeedVehicle(player) / (isInWater() ? vehicleWaterSpeedDivider() : 1);
 
             Vec3 currentMovement = this.getDeltaMovement();
-
-            double yMovement = currentMovement.y;
+            double yMovement = isInWater() ? lookDirection.y * speedPerTick - 0.01 : currentMovement.y;
 
             Vec3 newMovement = new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick);
 
@@ -1325,7 +1348,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
                 }
             }
 
-            this.travel(vec31);
+            if (this.getControllingPassenger() == null) this.travel(vec31);
         }
 
         this.level().getProfiler().pop();
@@ -2637,6 +2660,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
     @Override
     public float vehicleComboSpeedMultiplier() {
+        return 0;
+    }
+
+    @Override
+    public float vehicleWaterSpeedDivider() {
         return 0;
     }
 

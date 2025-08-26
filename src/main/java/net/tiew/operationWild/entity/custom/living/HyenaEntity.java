@@ -1,5 +1,7 @@
 package net.tiew.operationWild.entity.custom.living;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -11,6 +13,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -30,7 +34,11 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.tiew.operationWild.entity.variants.ElephantVariant;
+import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
 import net.tiew.operationWild.entity.AI.OWPanicGoal;
@@ -42,17 +50,18 @@ import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.utils.OWUtils;
 
+import java.util.List;
 
-public class HyenaEntity extends OWEntity implements OWEntityUtils {
+
+public class HyenaEntity extends OWEntity implements OWEntityUtils, PlayerRideableJumping {
 
     public static final double TAMING_EXPERIENCE = 55.0;
 
     public String[] quests = {};
-    public int foodGiven = 0;
-    public int foodWanted;
+
+    private int runTime;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(HyenaEntity.class, EntityDataSerializers.INT);
-
     private static final EntityDataAccessor<Float> HEAD_X_ROT = SynchedEntityData.defineId(HyenaEntity.class, EntityDataSerializers.FLOAT);
 
     public HyenaVariant getVariant() { return HyenaVariant.byId(this.getTypeVariant() & 255);}
@@ -64,6 +73,81 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
+    // Entity Methods
+    @Override
+    public int getEntityColor() {
+        return 9662025;
+    }
+
+    @Override
+    public float getEntityScale() {
+        return 5;
+    }
+
+    @Override
+    public float vehicleRunSpeedMultiplier() {
+        return 3.5f;
+    }
+
+    @Override
+    public float vehicleWalkSpeedMultiplier() {
+        return 2;
+    }
+
+    @Override
+    public float vehicleComboSpeedMultiplier() {
+        return -1f;
+    }
+
+    @Override
+    public float vehicleWaterSpeedDivider() {
+        return 4f;
+    }
+
+    @Override
+    public boolean canIncreasesSpeedDuringSprint() {
+        return false;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return OWItems.KODIAK_SADDLE.get();
+    }
+
+    @Override
+    public List<Class<?>> getEntityType() {
+        return ASSASSIN_ENTITIES;
+    }
+
+    @Override
+    public String getTamingAdvancement() {
+        return "";
+    }
+
+    @Override
+    public float getMaxVitalEnergy() {
+        return Float.MAX_VALUE;
+    }
+
+    @Override
+    public float getVitalEnergyRecuperation() {
+        return 1.1f * (1 + ((float) this.getLevel() / 50));
+    }
+
+    @Override
+    public boolean preferRawMeat() {
+        return true;
+    }
+
+    @Override
+    public boolean preferCookedMeat() {
+        return false;
+    }
+
+    @Override
+    public boolean preferVegetables() {
+        return false;
+    }
 
     // Entity's AI
     protected void registerGoals() {
@@ -74,7 +158,7 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 20.0D).add(Attributes.MOVEMENT_SPEED, 0.2D).add(Attributes.FOLLOW_RANGE, 30.0D).add(Attributes.ATTACK_DAMAGE, 3.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.2D);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 18.0D).add(Attributes.MOVEMENT_SPEED, 0.2D).add(Attributes.FOLLOW_RANGE, 30.0D).add(Attributes.ATTACK_DAMAGE, 3.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.2D);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -100,7 +184,7 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
     @Override
     public void travel(Vec3 vec3) {
         super.travel(vec3);
-        //if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
+        if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
     }
 
     @Override
@@ -154,11 +238,31 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
 
     public void tick() {
         super.tick();
+
+        createCombo(10, 6, random.nextInt(2) == 0 ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get(), 3.0, 2, 1.5, false, 0.1f);
+
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
-        
-        
+
+        if (((this.isVehicle() && this.isRunning()) || getTarget() != null)) {
+            if (this.level().isClientSide()) {
+                Player player = Minecraft.getInstance().player;
+                if (player != null && player.zza > 0) {
+                    runTime++;
+
+                    if (runTime >= 10) runTime = 0;
+
+                    if (runTime == 5 && this.onGround()) {
+                        Minecraft.getInstance().getSoundManager().play(
+                                SimpleSoundInstance.forUI(SoundEvents.HORSE_STEP, 1.2f, 0.5f)
+                        );
+                    }
+                } else {
+                    runTime = 0;
+                }
+            }
+        }
         
         
         
@@ -182,7 +286,7 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
     @Override
     protected void positionRider(Entity entity, MoveFunction function) {
         super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY() - 1, entity.getZ());
+        function.accept(entity, entity.getX(), entity.getY(), entity.getZ());
     }
 
     @Override
@@ -200,10 +304,15 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
     }
 
     @Override
+    public boolean isFood(ItemStack itemStack) {
+        return itemStack.is(OWItems.RAW_KODIAK.get());
+    }
+
+    @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        if (/*itemStack.is(OWItems.SAVAGE_BERRIES.get()) &&*/ !this.isTame() && this.isBaby()) {
+        if (isFood(itemStack) && !this.isTame()) {
             foodGiven++;
             this.playSound(SoundEvents.CAMEL_EAT);
             itemStack.shrink(1);
@@ -231,16 +340,71 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
             this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
 
-            this.setVariant(HyenaVariant.DEFAULT);
+            this.setVariant(chooseHyenaVariant());
             this.setInitialVariant(this.getVariant());
+
+            this.foodWanted = (int) OWUtils.generateRandomInterval(17, 24);
         }
 
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
+    private HyenaVariant chooseHyenaVariant() {
+        HyenaVariant variant;
+        if (chance >= 75) variant = HyenaVariant.GREY;
+        else if (chance >= 50) variant = HyenaVariant.DARK;
+        else if (chance >= 25) variant = HyenaVariant.YELLOW;
+        else variant = HyenaVariant.DEFAULT;
+        return variant;
+    }
+
+    @Override
+    public void onPlayerJump(int i) {
+        if (!this.onGround() || this.isInWater() || this.isUnderWater()) return;
+        if (this.getVitalEnergy() > (this.getMaxVitalEnergy() - 10)) return;
+
+        float pitch = (float) OWUtils.generateRandomInterval(0.7, 0.9);
+        float jumpCharge = Math.min(i, 100) / 100.0f;
+        double d0 = (double)this.getJumpPower(jumpCharge) * 1.35f;
+        Vec3 vec3 = this.getDeltaMovement();
+
+        this.setDeltaMovement(vec3.x, d0, vec3.z);
+        this.hasImpulse = true;
+        OWUtils.spawnParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, -0.75, 0.5, 10,1);
+
+        float angle = (float) Math.toRadians(this.getYRot());
+        double forwardX = -Math.sin(angle) * ((1.25 * i) / 100);
+        double forwardZ = Math.cos(angle) * ((1.25 * i) / 100);
+
+        this.setDeltaMovement(forwardX, this.getDeltaMovement().y, forwardZ);
+        this.setVitalEnergy(this.getVitalEnergy() + 10);
+
+        if (this.level().isClientSide() && i > 50) this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_HURTING.get(), SoundSource.NEUTRAL, 1.0F, pitch, false);
+        if (vec3.z > (double)0.0F) {
+            float f = Mth.sin(this.getYRot() * ((float)Math.PI / 180F));
+
+            Vec3 lookDirection = this.getLookAngle();
+            Vec3 forwardPush = lookDirection.scale((-0.4 * f * jumpCharge) * 2);
+
+            this.move(MoverType.SELF, forwardPush);
+
+            this.hasImpulse = true;
+        }
+
+        NeoForge.EVENT_BUS.post(new LivingEvent.LivingJumpEvent(this));
+    }
+
+    @Override
+    public boolean canJump() { return this.isRunning();}
+
+    @Override
+    public void handleStartJump(int i) {}
+
+    @Override
+    public void handleStopJump() {}
 
     private void setupAnimationState() {
-        createIdleAnimation(54, true);
+        createIdleAnimation(48, true);
         createSitAnimation(80, true);
     }
 
@@ -255,8 +419,8 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
         tag.putInt("getInitialVariant", this.getInitialVariant().getId());
         tag.putInt("Variant", this.getTypeVariant());
         tag.putFloat("getHeadX", this.getHeadX());
-        tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
-        tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
+        tag.putInt("foodGiven", this.foodGiven);
+        tag.putInt("foodWanted", this.foodWanted);
 
     }
 
@@ -265,13 +429,8 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils {
         this.entityData.set(DATA_INITIAL_VARIANT, tag.getInt("getInitialVariant"));
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.entityData.set(HEAD_X_ROT, tag.getFloat("getHeadX"));
-        this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
-        this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
-    }
-
-    @Override
-    public int getEntityColor() {
-        return 9662025;
+        this.foodGiven = tag.getInt("foodGiven");
+        this.foodWanted = tag.getInt("foodWanted");
     }
 }
 

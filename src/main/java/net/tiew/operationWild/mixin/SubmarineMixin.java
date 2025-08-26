@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PlayerRideableJumping;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
@@ -61,7 +62,7 @@ public abstract class SubmarineMixin {
      */
     @Inject(method = "renderFoodLevel", at = @At("HEAD"), cancellable = true)
     private void cancelFoodLevel(GuiGraphics guiGraphics, CallbackInfo ci) {
-        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof Submarine) {
+        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof OWEntity) {
             ci.cancel();
         }
     }
@@ -70,10 +71,23 @@ public abstract class SubmarineMixin {
      * @author Tiew_37
      * @reason X
      */
-    @Inject(method = "renderAirLevel", at = @At("HEAD"), cancellable = true)
-    private void cancelAirLevel(GuiGraphics guiGraphics, CallbackInfo ci) {
-        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof Submarine) {
-            ci.cancel();
+    @Inject(method = "renderAirLevel", at = @At("HEAD"))
+    private void modifyAirLevelPosition(GuiGraphics guiGraphics, CallbackInfo ci) {
+        if (Minecraft.getInstance().player != null) {
+            Entity vehicle = Minecraft.getInstance().player.getVehicle();
+            if (vehicle instanceof Submarine) {
+                ci.cancel();
+            } else if (vehicle instanceof OWEntity) {
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(0, -20, 0);
+            }
+        }
+    }
+
+    @Inject(method = "renderAirLevel", at = @At("RETURN"))
+    private void restoreAirLevelPosition(GuiGraphics guiGraphics, CallbackInfo ci) {
+        if (Minecraft.getInstance().player != null && Minecraft.getInstance().player.getVehicle() instanceof OWEntity) {
+            guiGraphics.pose().popPose();
         }
     }
 

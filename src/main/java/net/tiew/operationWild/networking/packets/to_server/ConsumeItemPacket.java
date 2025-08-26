@@ -47,11 +47,7 @@ public record ConsumeItemPacket(int entityId) implements CustomPacketPayload {
 
                             owEntity.setFoodCount(foodStack.getCount());
 
-                            if (owEntity instanceof BoaEntity boa) boa.healWithFavoriteFood(1.5f, boa.preferRawMeat(), boa.preferCookedMeat());
-                            else if (owEntity instanceof TigerEntity tiger) tiger.healWithFavoriteFood(1.5f, tiger.preferRawMeat(), tiger.preferCookedMeat());
-                            else if (owEntity instanceof PeacockEntity peacock) peacock.healWithFavoriteFood(1.5f, peacock.preferRawMeat(), peacock.preferCookedMeat());
-                            else if (owEntity instanceof ElephantEntity peacock) peacock.healWithFavoriteFood(1.5f, peacock.preferRawMeat(), peacock.preferCookedMeat());
-                            else if (owEntity instanceof KodiakEntity peacock) peacock.healWithFavoriteFood(1.5f, peacock.preferRawMeat(), peacock.preferCookedMeat());
+                            owEntity.healWithFavoriteFood(1.5f, owEntity.preferRawMeat(), owEntity.preferCookedMeat());
 
                             owEntity.playSound(SoundEvents.CAMEL_EAT, 1.0f, 1.0f);
 

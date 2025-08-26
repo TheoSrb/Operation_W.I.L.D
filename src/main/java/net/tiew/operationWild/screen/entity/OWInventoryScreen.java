@@ -128,6 +128,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
             case "TigerEntity" -> entityScale = 22;
             case "PeacockEntity" -> entityScale = 35;
             case "ElephantEntity" -> entityScale = 12;
+            case "HyenaEntity" -> entityScale = 30;
         }
     }
 

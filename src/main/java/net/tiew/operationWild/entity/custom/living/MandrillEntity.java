@@ -98,7 +98,6 @@ public class MandrillEntity extends OWEntity implements OWEntityUtils, OWTameImp
         return ASSASSIN_ENTITIES;
     }
 
-
     @Override
     public String getTamingAdvancement() {
         return "";

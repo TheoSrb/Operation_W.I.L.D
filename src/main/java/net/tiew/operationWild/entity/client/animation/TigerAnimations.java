@@ -68,22 +68,6 @@ public class TigerAnimations {
                             new Keyframe(1.08f, KeyframeAnimations.degreeVec(57.6f, 14.03f, 20.91f),
                                     AnimationChannel.Interpolations.CATMULLROM),
                             new Keyframe(2f, KeyframeAnimations.degreeVec(57.6f, -14.03f, -20.91f),
-                                    AnimationChannel.Interpolations.CATMULLROM)))
-            .addAnimation("mouth_Down",
-                    new AnimationChannel(AnimationChannel.Targets.POSITION,
-                            new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, 0f),
-                                    AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(1f, KeyframeAnimations.posVec(0f, -1f, 2f),
-                                    AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(2f, KeyframeAnimations.posVec(0f, 0f, 0f),
-                                    AnimationChannel.Interpolations.CATMULLROM)))
-            .addAnimation("mouth_Down",
-                    new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                            new Keyframe(0f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
-                                    AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(1f, KeyframeAnimations.degreeVec(10f, 0f, 0f),
-                                    AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(2f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
                                     AnimationChannel.Interpolations.CATMULLROM))).build();
     public static final AnimationDefinition MOVE_WALK = AnimationDefinition.Builder.withLength(1.15691f).looping()
             .addAnimation("right_arm",

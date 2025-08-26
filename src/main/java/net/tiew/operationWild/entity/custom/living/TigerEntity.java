@@ -169,6 +169,11 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     }
 
     @Override
+    public float vehicleWaterSpeedDivider() {
+        return 2f;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return OWItems.TIGER_SADDLE.get();
     }
@@ -791,7 +796,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
 
     @Override
     public @Nullable LivingEntity getControllingPassenger() {
-        return this.isTameJumping() ? null : super.getControllingPassenger();
+        return (this.isTameJumping()) ? null : super.getControllingPassenger();
     }
 
     @Override
@@ -875,8 +880,13 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         if (this.level().isClientSide() && i > 50) this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), isVirus() ? OWSounds.TIGER_HURTING_VIRUS.get() : OWSounds.TIGER_HURTING.get(), SoundSource.NEUTRAL, 1.0F, pitch, false);
         if (vec3.z > (double)0.0F) {
             float f = Mth.sin(this.getYRot() * ((float)Math.PI / 180F));
-            float f1 = Mth.cos(this.getYRot() * ((float)Math.PI / 180F));
-            this.setDeltaMovement(this.getDeltaMovement().add((double)(-0.4F * f * jumpCharge), (double)0.0F, (double)(0.4F * f1 * jumpCharge)));
+
+            Vec3 lookDirection = this.getLookAngle();
+            Vec3 forwardPush = lookDirection.scale(-0.4 * f * jumpCharge);
+
+            this.move(MoverType.SELF, forwardPush);
+
+            this.hasImpulse = true;
         }
 
         NeoForge.EVENT_BUS.post(new LivingEvent.LivingJumpEvent(this));

@@ -145,6 +145,11 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     }
 
     @Override
+    public float vehicleWaterSpeedDivider() {
+        return 1f;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return OWItems.BOA_SADDLE.get();
     }

@@ -92,6 +92,8 @@
   "effect.ow.water_pressure": "Water Pressure",
   "effect.ow.bleeding": "Bleeding",
 
+  "tooltip.fearStarted": "Your entity is frightened and out of control.",
+
   "tooltip.xp" : " XP",
   "tooltip.entitySpeed": " blocks/s",
   "tooltip.HP": " HP",
