@@ -651,6 +651,7 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof BoaEntity otherBoa) {
+            if (otherBoa.isBaby()) return true;
             if (this.isTame()) return otherBoa.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherBoa.getOwnerUUID());
             else return !otherBoa.isTame();
         }

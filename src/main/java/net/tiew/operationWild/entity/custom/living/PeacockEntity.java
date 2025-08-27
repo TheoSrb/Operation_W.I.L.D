@@ -468,6 +468,7 @@ public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntity
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof PeacockEntity otherPeacock) {
+            if (otherPeacock.isBaby()) return true;
             if (this.isTame()) return otherPeacock.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherPeacock.getOwnerUUID());
             else return !otherPeacock.isTame();
         }

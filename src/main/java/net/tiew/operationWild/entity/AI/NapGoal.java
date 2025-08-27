@@ -3,6 +3,7 @@ package net.tiew.operationWild.entity.AI;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.custom.living.KodiakEntity;
 
 import java.util.function.Supplier;
 
@@ -43,6 +44,7 @@ public class NapGoal extends Goal {
     public void tick() {
         super.tick();
         if (mob.isBaby()) return;
+        if (mob instanceof KodiakEntity kodiak && (kodiak.isHungry() || kodiak.isSniffing())) return;
         this.mob.createNapSystem(
                 mob,
                 this.intervalTimeInTicks,

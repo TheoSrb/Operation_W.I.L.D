@@ -14,8 +14,12 @@ import net.tiew.operationWild.entity.client.render.KodiakRenderer;
 import net.tiew.operationWild.entity.custom.living.KodiakEntity;
 
 public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEntity>> {
+    private static final ResourceLocation BABY_EYES = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/baby_eyes.png");
+
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/in_resurrection.png");
     private static final ResourceLocation RESURRECTION_GLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/skins/kodiak_skin_gold_glowing.png");
+
+    private static final ResourceLocation ANGRY_EYES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_angry_eyes.png");
 
     private static final ResourceLocation BLOODY_STAGE_0_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_bloody_stage_0.png");
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_bloody_stage_1.png");
@@ -33,15 +37,17 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, KodiakEntity kodiak, float v, float v1, float v2, float v3, float v4, float v5) {
         double kodiakHealthTier = kodiak.getMaxHealth() / 4;
+
+        if (kodiak.getMaturationPercentage() < 60 && kodiak.getMaturationPercentage() > 0) renderOverlay(poseStack, multiBufferSource, BABY_EYES, false, packedLight);
+        else if (kodiak.isTame() && !kodiak.isInResurrection()) {
+            renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, kodiak.getNecklaceColor());
+            renderOverlay(poseStack, multiBufferSource, NECKLACE_SPIKES_TEXTURE, false, packedLight);
+        }
+
         if (kodiak.isInResurrection()) {
             float opacity = (float) (0.75 * (1 - kodiak.getResurrectionPercentage() / 100.0f));
             renderOverlayWithOpacity(poseStack, multiBufferSource, RESURRECTION_TEXTURE, false, packedLight, opacity);
             renderOverlay(poseStack, multiBufferSource, RESURRECTION_GLOWING_TEXTURE, true, packedLight);
-        }
-
-        if (kodiak.isTame() && !kodiak.isInResurrection()) {
-            renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, kodiak.getNecklaceColor());
-            renderOverlay(poseStack, multiBufferSource, NECKLACE_SPIKES_TEXTURE, false, packedLight);
         }
 
 
@@ -49,6 +55,10 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
         if (kodiak.getHealth() < kodiakHealthTier) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
         else if (kodiak.getHealth() < (kodiakHealthTier * 2)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);
         else if (kodiak.getHealth() < (kodiakHealthTier * 3)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);
+
+        if (kodiak.isMad()) {
+            renderOverlay(poseStack, multiBufferSource, ANGRY_EYES_TEXTURE, true, packedLight);
+        }
     }
 
     private void renderOverlay(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, boolean glowLayer, int packedLight) {

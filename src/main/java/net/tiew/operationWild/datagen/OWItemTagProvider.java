@@ -7,6 +7,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.tiew.operationWild.OperationWild;
@@ -105,5 +106,15 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(OWItems.JADE_LEGGINGS.get())
                 .add(OWItems.CAMOUFLAGE_LEGGINGS.get());
 
+        tag(Tags.Items.FOODS)
+                .add(OWItems.RAW_KODIAK.get())
+                .add(OWItems.RAW_PEACOCK.get())
+                .add(OWItems.RAW_TIGER.get())
+                .add(OWItems.RAW_BOA.get())
+                .add(OWItems.COOKED_PEACOCK.get())
+                .add(OWItems.COOKED_KODIAK.get())
+                .add(OWItems.COOKED_TIGER.get())
+                .add(OWItems.COOKED_BOA.get())
+                .add(OWItems.SAVAGE_BERRIES.get());
     }
 }

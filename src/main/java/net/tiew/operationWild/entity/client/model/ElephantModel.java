@@ -143,7 +143,7 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
         this.root().getAllParts().forEach(ModelPart::resetPose);
         if (elephant.isBaby()) {
             float maturationPercent = (float) elephant.getMaturationPercentage() / 100f;
-            float headScale = 2f - (2f - 1.0f) * maturationPercent;
+            float headScale = 1.75f - (1.75f - 1.0f) * maturationPercent;
 
             this.head.xScale *= headScale;
             this.head.yScale *= headScale;

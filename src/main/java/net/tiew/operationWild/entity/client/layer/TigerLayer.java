@@ -43,6 +43,10 @@ public class TigerLayer extends RenderLayer<TigerEntity, TigerModel<TigerEntity>
         double tigerHealthTier = tiger.getMaxHealth() / 4;
 
         if (tiger.getMaturationPercentage() < 60 && tiger.getMaturationPercentage() > 0) renderOverlay(poseStack, multiBufferSource, BABY_EYES, false, packedLight);
+        else if (tiger.isTame() && !tiger.isInResurrection()) {
+            renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, tiger.getNecklaceColor());
+            renderOverlay(poseStack, multiBufferSource, NECKLACE_SPIKES_TEXTURE, false, packedLight);
+        }
 
         if (tiger.isInResurrection()) {
             float opacity = (float) (0.75 * (1 - tiger.getResurrectionPercentage() / 100.0f));
@@ -60,10 +64,6 @@ public class TigerLayer extends RenderLayer<TigerEntity, TigerModel<TigerEntity>
         else if (tiger.getHealth() < (tigerHealthTier * 2)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);
         else if (tiger.getHealth() < (tigerHealthTier * 3)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);
 
-        if (tiger.isTame() && !tiger.isInResurrection()) {
-            renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, tiger.getNecklaceColor());
-            renderOverlay(poseStack, multiBufferSource, NECKLACE_SPIKES_TEXTURE, false, packedLight);
-        }
         if (tiger.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
         if (tiger.isMad()) {
             if (tiger.isWhite()) renderOverlay(poseStack, multiBufferSource, ANGRY_EYES_WHITE_TEXTURE, true, packedLight);

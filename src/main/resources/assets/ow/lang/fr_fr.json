@@ -91,8 +91,11 @@
   "effect.ow.fear": "Peur primitive",
   "effect.ow.water_pressure": "Pression de l'eau",
   "effect.ow.bleeding": "Saignement",
+  "effect.ow.occupied_territory": "Territoire occupé",
 
   "tooltip.fearStarted": "Votre entité est effrayée et hors de contrôle",
+
+  "tooltip.enteringKodiakTerritory": "Vous entrez dans le territoire d'un Kodiak",
 
   "tooltip.xp" : " EXP",
   "tooltip.entitySpeed": " blocs/s",

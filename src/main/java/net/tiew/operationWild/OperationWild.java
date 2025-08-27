@@ -37,6 +37,7 @@ import net.tiew.operationWild.gui.HeartRenderHandler;
 import net.tiew.operationWild.item.OWCreativeTabs;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.particle.ElectricParticles;
+import net.tiew.operationWild.particle.NapParticles;
 import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.screen.OWMenuRegister;
 import net.tiew.operationWild.screen.blocks.SaddlerScreen;
@@ -237,6 +238,7 @@ public class OperationWild {
         @SubscribeEvent
         public static void registerParticleFactories(RegisterParticleProvidersEvent event) {
             event.registerSpriteSet(OWParticles.ELECTRIC_PARTICLES.get(), ElectricParticles.Provider::new);
+            event.registerSpriteSet(OWParticles.NAP_PARTICLES.get(), NapParticles.Provider::new);
         }
     }
 

@@ -3,6 +3,7 @@ package net.tiew.operationWild.entity.client.render;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
@@ -45,7 +46,7 @@ import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantE
     @Override
     public void render(ElephantEntity elephant, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         float scale = elephant.getScale();
-        float babyScale = scale / 2.25f;
+        float babyScale = scale / 2.75f;
         int genderPosition = elephant.isFemale() ? 36 : elephant.isMale() ? 48 : 0;
         Player player = elephant.level().getNearestPlayer(elephant, 64.0D);
 
@@ -65,6 +66,10 @@ import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantE
         if (!elephant.isInResurrection()) {
             if (elephant.isAlive() && !elephant.isVehicle()) {
                 if (elephant.isTame()) {
+                    if (elephant.isBaby() && player != null) {
+                        OWRendererUtils.displayTimeLeftBeforeBabyTaskAboveEntity(elephant, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, elephant.distanceTo(player) > 4 ? 0 : Minecraft.getInstance().options.hideGui ? 0 : 0.75f);
+                        OWRendererUtils.displayImageAboveEntity(ICONS, 0, 154, 48, 256, -2.5f, elephant.distanceTo(player) > 4 ? 2.6f : Minecraft.getInstance().options.hideGui ? 2.6f : 5.5f, elephant, poseStack, bufferSource, packedLight, false);
+                    }
                     if (player != null && elephant.distanceTo(player) > 4.0D) {
                         OWRendererUtils.displayOwnerAboveEntity(elephant, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
                         OWRendererUtils.displayLevelAboveEntity(elephant, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
@@ -83,7 +88,7 @@ import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantE
                 }
             }
         }
-        OWRendererUtils.createInformationImage(elephant, poseStack, bufferSource, packedLight, 0, 1.5, 0, 0, 4);
+        OWRendererUtils.createInformationImage(elephant, poseStack, bufferSource, packedLight, 0, elephant.getBbHeight() - (elephant.isBaby() ? (elephant.getMaturationPercentage() / 100) * 1.85 : 1.85), 0, 0, 4);
     }
 
     @Override

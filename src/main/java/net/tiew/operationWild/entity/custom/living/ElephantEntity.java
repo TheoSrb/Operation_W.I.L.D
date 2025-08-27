@@ -57,6 +57,7 @@ import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.AI.*;
+import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.OWTameImplementation;
 import net.tiew.operationWild.entity.categoy.OWGroupEntity;
 import net.tiew.operationWild.entity.variants.PeacockVariant;
@@ -78,7 +79,7 @@ import java.util.*;
 
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 
-public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTameImplementation, FoodsPreference {
+public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImplementation, FoodsPreference {
 
     public static final double TAMING_EXPERIENCE = 345.0;
 
@@ -93,6 +94,9 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
 
+    public boolean timerIsWorking = false;
+    public int timerTime = 600;
+
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> PLAYER_CAN_JUMP = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<CompoundTag> SADDLE_DATA = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.COMPOUND_TAG);
@@ -106,8 +110,8 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     public ElephantVariant getInitialVariant() { return ElephantVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
     public void setInitialVariant(ElephantVariant variant) { this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());}
 
-    public ElephantEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed, boolean canBeAlpha) {
-        super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed, canBeAlpha);
+    public ElephantEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
+        super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
     // Entity Methods
@@ -192,11 +196,16 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
 
         this.targetSelector.addGoal(1, new OwnerHurtTargetGoal(this));
         this.targetSelector.addGoal(3, new HurtByTargetGoal(this).setAlertOthers(new Class[0]));
+
+        this.goalSelector.addGoal(2, new OWBreedGoal(this, 1.0D));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 65.0D).add(Attributes.MOVEMENT_SPEED, 0.14D).add(Attributes.FOLLOW_RANGE, 30.0D).add(Attributes.ATTACK_DAMAGE, 12.0D).add(Attributes.KNOCKBACK_RESISTANCE, 1.0D);
     }
+
+    @Override
+    public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) { return OWEntityRegistry.ELEPHANT.get().create(serverLevel);}
 
     protected @Nullable SoundEvent getAmbientSound() {
         if (RANDOM(2)) {
@@ -223,6 +232,7 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
 
     @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {
+        if (isBaby()) super.playStepSound(blockPos, blockState);
     }
 
     public void setBuyingSkin(int skinIndex) {
@@ -436,7 +446,7 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         }
 
 
-        if (getLimbSwingAmount() > 0.1f && this.onGround() && !this.isSitting()) {
+        if (getLimbSwingAmount() > 0.1f && this.onGround() && !this.isSitting() && !this.isBaby()) {
             float cycle = getLimbSwing() * 0.6662f;
             float currentPos = (float) ((cycle % (2.0f * Math.PI)) / (2.0f * Math.PI));
             float lastPos = (float) ((getLastLimbSwing() * 0.6662f % (2.0f * Math.PI)) / (2.0f * Math.PI));
@@ -482,6 +492,15 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         }
 
         this.setLastLimbSwing(getLimbSwing());
+
+        if (timerIsWorking) {
+            if (timerTime > 0) timerTime--;
+            else {
+                timerTime = 600;
+                this.timerIsWorking = false;
+                foodGiven = 0;
+            }
+        }
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (!this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) createTameAttackSystem(30, 20, SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, 5, 3.5, 2, false);
@@ -555,6 +574,7 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof ElephantEntity otherElephant) {
+            if (otherElephant.isBaby()) return true;
             if (this.isTame()) return otherElephant.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherElephant.getOwnerUUID());
             else return !otherElephant.isTame();
         }
@@ -562,19 +582,59 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
     }
 
     @Override
+    public boolean isFood(ItemStack itemStack) {
+        return itemStack.is(OWItems.SAVAGE_BERRIES.get());
+    }
+
+    @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        if (itemStack.is(OWItems.SAVAGE_BERRIES.get()) && !this.isTame()) {
-            foodGiven++;
+        if (!isSleeping() && !isNapping() && !isPreparingNapping() && isFood(itemStack) && !isBaby()) {
+            return super.mobInteract(player, hand);
+        }
+
+        if (this.isBaby() && !isTame() && itemStack.is(OWItems.SAVAGE_BERRIES.get()) && (!timerIsWorking || timerTime <= 200)) {
             this.playSound(SoundEvents.CAMEL_EAT);
             itemStack.shrink(1);
 
-            if (!EventHooks.onAnimalTame(this, player)) {
-                if (!this.level().isClientSide() && foodGiven >= foodWanted) {
-                    this.setTame(true, player);
-                    this.setSleeping(false);
-                    resetSleepBar();
+            List<ElephantEntity> nearbyElephants = this.level().getEntitiesOfClass(ElephantEntity.class, this.getBoundingBox().inflate(5));
+            boolean hasNearbyAdult = false;
+
+            for (ElephantEntity elephant : nearbyElephants) {
+                if (elephant != this && elephant.onGround() && !elephant.isBaby() && !elephant.isTame()) {
+                    hasNearbyAdult = true;
+                    break;
+                }
+            }
+
+            if (hasNearbyAdult) {
+                if (foodGiven < foodWanted - 1) {
+                    foodGiven++;
+                    timerIsWorking = true;
+                    timerTime = 600;
+                    OWUtils.spawnParticles(this, ParticleTypes.HEART, 0, 0, 0, 10, 1);
+                    List<ElephantEntity> elephants = this.level().getEntitiesOfClass(ElephantEntity.class, this.getBoundingBox().inflate(20));
+
+                    for (ElephantEntity elephant : elephants) {
+                        if (elephant.onGround() && !elephant.isBaby() && !elephant.isTame()) {
+                            elephant.setTarget(player);
+                        }
+                    }
+
+                } else {
+                    timerIsWorking = false;
+                    timerTime = 600;
+                    foodGiven = 0;
+
+                    if (!EventHooks.onAnimalTame(this, player)) {
+                        if (!this.level().isClientSide() && foodGiven >= foodWanted) {
+                            this.setTame(true, player);
+                            this.setSleeping(false);
+                            resetSleepBar();
+                        }
+                    }
+                    return InteractionResult.SUCCESS;
                 }
             }
             return InteractionResult.SUCCESS;
@@ -587,19 +647,16 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
 
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
-        if (mobSpawnType != MobSpawnType.BREEDING) {
-            this.setRandomAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH), this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
-            this.setBaseHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
-            this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
-            this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
+        this.setRandomAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH), this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
+        this.setBaseHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
+        this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
+        this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
 
-            this.setVariant(chooseElephantVariant());
-            this.setInitialVariant(this.getVariant());
+        this.setVariant(chooseElephantVariant());
+        this.setInitialVariant(this.getVariant());
 
-            foodWanted = (int) OWUtils.generateRandomInterval(20, 30);
-        }
-
+        foodWanted = (int) OWUtils.generateRandomInterval(10, 20);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
@@ -693,6 +750,9 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         tag.putInt("foodWanted", this.foodWanted);
         tag.putInt("foodGiven", this.foodGiven);
 
+        tag.putInt("timerTime", this.timerTime);
+        tag.putBoolean("timerIsWorking", this.timerIsWorking);
+
         if (this.getInventory() != null) {
             ItemStack saddleStack = this.getInventory().getStackInSlot(0);
             if (!saddleStack.isEmpty() && saddleStack.getItem() instanceof ElephantSaddle) {
@@ -715,6 +775,9 @@ public class ElephantEntity extends OWGroupEntity implements OWEntityUtils, OWTa
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.foodWanted = tag.getInt("foodWanted");
         this.foodGiven = tag.getInt("foodGiven");
+
+        this.timerTime = tag.getInt("timerTime");
+        this.timerIsWorking = tag.getBoolean("timerIsWorking");
 
         if (tag.contains("SaddleWools")) {
             int[] woolIds = tag.getIntArray("SaddleWools");

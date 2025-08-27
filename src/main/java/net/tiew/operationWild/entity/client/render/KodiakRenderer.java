@@ -1,15 +1,27 @@
 package net.tiew.operationWild.entity.client.render;
 
 import com.google.common.collect.Maps;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.client.layer.KodiakLayer;
 import net.tiew.operationWild.entity.client.layer.skins.ElephantSkins;
 import net.tiew.operationWild.entity.client.layer.skins.KodiakSkins;
@@ -17,7 +29,11 @@ import net.tiew.operationWild.entity.client.model.KodiakModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
 import net.tiew.operationWild.entity.custom.living.KodiakEntity;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
+import java.awt.*;
 import java.util.Map;
 
 public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<KodiakEntity>> {
@@ -29,8 +45,10 @@ public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<Kodiak
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
+    private static final ResourceLocation HUNGRY_BAR = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/hud/hungry_bar.png");
+
     public KodiakRenderer(EntityRendererProvider.Context context) {
-        super(context, new KodiakModel<>(context.bakeLayer(KodiakModel.LAYER_LOCATION)), 0.4f);
+        super(context, new KodiakModel<>(context.bakeLayer(KodiakModel.LAYER_LOCATION)), 1.2f);
         this.addLayer(new KodiakLayer(this));
         this.addLayer(new KodiakSkins(this));
     }
@@ -62,8 +80,31 @@ public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<Kodiak
 
         if (!kodiak.isInResurrection()) {
             if (kodiak.isAlive() && !kodiak.isVehicle()) {
+                if (!kodiak.isTame() && !kodiak.isBaby() && kodiak.isAlive() && player != null && kodiak.distanceTo(player) > 4.0D && kodiak.distanceTo(player) <= 15.0D && !Minecraft.getInstance().options.hideGui) {
+                    float hungerPercentage = kodiak.getHungryBar() / 100.0F;
+
+                    poseStack.pushPose();
+                    poseStack.translate(0.0D, kodiak.getBbHeight() - 1f, 0.0D);
+                    poseStack.scale(2.5f, 2.5f, 2.5f);
+
+                    Quaternionf cameraOrientation = Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation();
+                    float yaw = cameraOrientation.getEulerAnglesYXZ(new Vector3f()).y;
+                    poseStack.mulPose(Axis.YP.rotation(yaw));
+
+                    poseStack.scale(0.25F, 0.25F, 0.25F);
+
+                    OWRendererUtils.renderVerticalBar(HUNGRY_BAR, 20, 0, 20, 20, 1.0F, 1.0F, 1.0F, -0.5F, 1.5F, 0.001F, 255, poseStack, bufferSource, packedLight);
+
+                    OWRendererUtils.renderVerticalBar(HUNGRY_BAR, kodiak.isHungry() ? 40 : 0, 0, 20, 20, 1.0F, 1.0F, hungerPercentage, -0.5F, 1.5F, 0.002F, 255, poseStack, bufferSource, packedLight);
+
+                    poseStack.popPose();
+                }
                 if (kodiak.isTame()) {
-                    if (player != null && kodiak.distanceTo(player) > 4.0D) {
+                    if (kodiak.isBaby() && player != null) {
+                        OWRendererUtils.displayTimeLeftBeforeBabyTaskAboveEntity(kodiak, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, kodiak.distanceTo(player) > 4 ? 0 : Minecraft.getInstance().options.hideGui ? 0 : 0.75f);
+                        OWRendererUtils.displayImageAboveEntity(ICONS, 0, 154, 48, 256, -2.5f, kodiak.distanceTo(player) > 4 ? 2.6f : Minecraft.getInstance().options.hideGui ? 2.6f : 5.5f, kodiak, poseStack, bufferSource, packedLight, false);
+                    }
+                    if (player != null && kodiak.distanceTo(player) > 3.0D) {
                         OWRendererUtils.displayOwnerAboveEntity(kodiak, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
                         OWRendererUtils.displayLevelAboveEntity(kodiak, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
                         OWRendererUtils.displayImageAboveEntity(ICONS, 0, genderPosition, 12, 256, 0, 0, kodiak, poseStack, bufferSource, packedLight, true);

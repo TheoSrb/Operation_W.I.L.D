@@ -11,7 +11,8 @@ import java.util.function.Supplier;
 
 public class OWParticles {
     public static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES = DeferredRegister.create(BuiltInRegistries.PARTICLE_TYPE, OperationWild.MOD_ID);
-    public static void register(IEventBus bus) {PARTICLE_TYPES.register(bus);}
+    public static void register(IEventBus bus) { PARTICLE_TYPES.register(bus);}
 
     public static final Supplier<SimpleParticleType> ELECTRIC_PARTICLES = PARTICLE_TYPES.register("electric_particles", () -> new SimpleParticleType(true));
+    public static final Supplier<SimpleParticleType> NAP_PARTICLES = PARTICLE_TYPES.register("nap_particles", () -> new SimpleParticleType(true));
 }

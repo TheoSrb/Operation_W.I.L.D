@@ -297,6 +297,7 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils, PlayerRideab
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof HyenaEntity otherHyena) {
+            if (otherHyena.isBaby()) return true;
             if (this.isTame()) return otherHyena.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherHyena.getOwnerUUID());
             else return !otherHyena.isTame();
         }

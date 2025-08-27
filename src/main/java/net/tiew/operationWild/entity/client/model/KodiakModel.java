@@ -2,17 +2,25 @@ package net.tiew.operationWild.entity.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.ElephantAnimations;
 import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
 import net.tiew.operationWild.entity.custom.living.KodiakEntity;
+
+import java.util.List;
 
 public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kodiak_default"), "main");
@@ -29,8 +37,11 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 	private final ModelPart right_ear;
 	private final ModelPart left_eyeBall;
 	private final ModelPart right_eyeBall;
+	private final ModelPart muzzle;
 	private final ModelPart left_arm;
 	private final ModelPart right_arm;
+
+	private KodiakEntity currentEntity;
 
     public KodiakModel(ModelPart root) {
 		this.ALL2 = root.getChild("ALL2");
@@ -45,6 +56,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		this.right_ear = this.head.getChild("right_ear");
 		this.left_eyeBall = this.head.getChild("left_eyeBall");
 		this.right_eyeBall = this.head.getChild("right_eyeBall");
+		this.muzzle = this.head.getChild("muzzle");
 		this.left_arm = this.body_1.getChild("left_arm");
 		this.right_arm = this.body_1.getChild("right_arm");
     }
@@ -79,25 +91,24 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		PartDefinition head = body_1.addOrReplaceChild("head", CubeListBuilder.create().texOffs(64, 39).addBox(-6.0F, -5.0F, -12.0F, 12.0F, 12.0F, 12.0F, new CubeDeformation(0.0F))
 				.texOffs(230, 243).addBox(-6.0F, -5.0F, -1.0F, 12.0F, 12.0F, 1.0F, new CubeDeformation(0.5F))
 				.texOffs(232, 224).addBox(6.0F, -5.0F, -1.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F))
-				.texOffs(232, 224).mirror().addBox(-18.0F, -5.0F, -1.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false)
 				.texOffs(231, 198).addBox(-6.0F, -17.0F, -0.5F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F))
+				.texOffs(232, 224).mirror().addBox(-18.0F, -5.0F, -1.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false)
 				.texOffs(69, 202).addBox(-6.0F, -5.0F, -12.0F, 12.0F, 12.0F, 12.0F, new CubeDeformation(0.5F))
 				.texOffs(62, 126).addBox(-6.0F, -5.0F, -16.0F, 0.0F, 12.0F, 4.0F, new CubeDeformation(0.05F))
 				.texOffs(62, 126).mirror().addBox(6.0F, -5.0F, -16.0F, 0.0F, 12.0F, 4.0F, new CubeDeformation(0.05F)).mirror(false)
 				.texOffs(84, 24).addBox(-4.0F, 1.0F, -17.0F, 8.0F, 6.0F, 5.0F, new CubeDeformation(0.0F))
+				.texOffs(113, 58).addBox(-8.5F, 5.5F, -30.0F, 16.0F, 0.0F, 16.0F, new CubeDeformation(0.0F))
 				.texOffs(4, 158).addBox(-7.0F, 5.0F, -17.0F, 14.0F, 1.0F, 1.0F, new CubeDeformation(0.1F)), PartPose.offset(0.0F, -1.0F, -14.0F));
 
-		PartDefinition cube_r1 = head.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(-8, 94).addBox(-15.0F, 0.0F, -29.0F, 16.0F, 0.0F, 16.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(20.0F, 1.25F, -7.0F, 0.5521F, 0.6566F, 0.3705F));
+		PartDefinition cube_r1 = head.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(0, 229).mirror().addBox(6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(2.0F, 8.0F, -8.0F, 0.0F, 0.2618F, 0.0F));
 
-		PartDefinition cube_r2 = head.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(0, 229).mirror().addBox(6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(2.0F, 8.0F, -8.0F, 0.0F, 0.2618F, 0.0F));
+		PartDefinition cube_r2 = head.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(0, 213).mirror().addBox(6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(1.25F, -1.5F, 1.0F, 0.0F, -0.2618F, 0.0F));
 
-		PartDefinition cube_r3 = head.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(0, 213).mirror().addBox(6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(1.25F, -1.5F, 1.0F, 0.0F, -0.2618F, 0.0F));
+		PartDefinition cube_r3 = head.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(0, 213).addBox(-6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(-1.25F, -1.5F, 1.0F, 0.0F, 0.2618F, 0.0F));
 
-		PartDefinition cube_r4 = head.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(0, 213).addBox(-6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(-1.25F, -1.5F, 1.0F, 0.0F, 0.2618F, 0.0F));
+		PartDefinition cube_r4 = head.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(0, 229).addBox(-6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(-2.0F, 8.0F, -8.0F, 0.0F, -0.2618F, 0.0F));
 
-		PartDefinition cube_r5 = head.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(0, 229).addBox(-6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(-2.0F, 8.0F, -8.0F, 0.0F, -0.2618F, 0.0F));
-
-		PartDefinition cube_r6 = head.addOrReplaceChild("cube_r6", CubeListBuilder.create().texOffs(231, 181).addBox(-6.0F, -12.0F, 6.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(0.0F, 7.0F, -6.5F, 0.0F, 0.0F, -3.1416F));
+		PartDefinition cube_r5 = head.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(231, 181).addBox(-6.0F, -12.0F, 6.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(0.0F, 7.0F, -6.5F, 0.0F, 0.0F, -3.1416F));
 
 		PartDefinition left_ear = head.addOrReplaceChild("left_ear", CubeListBuilder.create().texOffs(40, 70).addBox(-2.0F, -2.0F, -0.5F, 4.0F, 4.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offset(6.0F, -5.0F, -4.5F));
 
@@ -106,6 +117,8 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		PartDefinition left_eyeBall = head.addOrReplaceChild("left_eyeBall", CubeListBuilder.create().texOffs(77, 63).addBox(-1.5F, -0.5F, 0.0F, 3.0F, 1.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(3.5F, -0.5F, -12.025F));
 
 		PartDefinition right_eyeBall = head.addOrReplaceChild("right_eyeBall", CubeListBuilder.create().texOffs(77, 63).mirror().addBox(-1.5F, -0.5F, 0.0F, 3.0F, 1.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(-3.5F, -0.5F, -12.025F));
+
+		PartDefinition muzzle = head.addOrReplaceChild("muzzle", CubeListBuilder.create().texOffs(89, 27).addBox(-2.0F, -1.0F, 0.0F, 4.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 2.0F, -17.0F));
 
 		PartDefinition left_arm = body_1.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(68, 88).addBox(-3.5F, 0.0F, -3.5F, 7.0F, 10.0F, 7.0F, new CubeDeformation(0.0F)), PartPose.offset(4.5F, 8.0F, -10.5F));
 
@@ -117,14 +130,25 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     @Override
     public void setupAnim(KodiakEntity kodiak, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
+
+		this.currentEntity = kodiak;
+
         if (kodiak.isBaby()) {
             float maturationPercent = (float) kodiak.getMaturationPercentage() / 100f;
-            float headScale = 2f - (2f - 1.0f) * maturationPercent;
+            float headScale = 1.6f - (1.6f - 1.0f) * maturationPercent;
 
             this.head.xScale *= headScale;
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
+		if ((kodiak.getMaturationPercentage() < 60 && kodiak.getMaturationPercentage() > 0) || (kodiak.isMad())) {
+			this.left_eyeBall.xScale = 0;
+			this.left_eyeBall.yScale = 0;
+			this.left_eyeBall.zScale = 0;
+			this.right_eyeBall.xScale = 0;
+			this.right_eyeBall.yScale = 0;
+			this.right_eyeBall.zScale = 0;
+		}
         this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (kodiak.isCombo(1)) {
@@ -137,6 +161,10 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			this.animate(kodiak.attack3Combo, KodiakAnimations.ATTACK_STRIKE3, ageInTicks, 1.15f);
 		}
 
+		if (kodiak.isSniffing()) {
+			this.animate(kodiak.sniffsAnimationState, KodiakAnimations.SNIFFS, ageInTicks, 1.0f);
+		}
+
 		if (kodiak.transitionIdleSit.isStarted()) {
 			this.animate(kodiak.transitionIdleSit, KodiakAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
 			return;
@@ -147,16 +175,45 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			return;
 		}
 
+		if (kodiak.transitionIdleSleep.isStarted()) {
+			this.animate(kodiak.transitionIdleSleep, KodiakAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 2.0f);
+			return;
+		}
+
+		if (kodiak.transitionSleepIdle.isStarted()) {
+			this.animate(kodiak.transitionSleepIdle, KodiakAnimations.TRANSITION_SLEEP_IDLE, ageInTicks, 2.0f);
+			return;
+		}
+
 		if (kodiak.isSitting()) {
 			this.animate(kodiak.sittingAnimationState, KodiakAnimations.SIT, ageInTicks, 1.0f);
 			return;
+		}
+
+		if (kodiak.isNapping()) {
+			this.animate(kodiak.sleepingAnimationState, KodiakAnimations.SLEEP, ageInTicks, 1.0f);
+			return;
+		}
+
+		List<Player> players = kodiak.level().getEntitiesOfClass(Player.class, kodiak.getBoundingBox().inflate(30));
+
+		for (Player player : players) {
+			if (kodiak.isSniffing()) {
+				double distance = kodiak.distanceTo(player);
+
+				if (distance < 10) {
+					this.head.xRot -= (float) (Math.toRadians((10 - distance) * 2.5f));
+				}
+			}
 		}
 
 		this.animate(kodiak.idleAnimationState, KodiakAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 		if (kodiak.isRunning() || kodiak.getState() == 2) {
 			this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.0f, 1.0f);
-		} else this.animateWalk(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 3.5f, 3.5f);
+		} else {
+			this.animateWalk(kodiak.getFoodChooseFromChest().isEmpty() ? KodiakAnimations.MOVE_WALK : KodiakAnimations.MOVE_WALK_WITH_ITEM, limbSwing, limbSwingAmount, 4.5f, 4.5f);
+		}
 
 
 		if (kodiak.level().isClientSide()) {
@@ -168,7 +225,28 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
         this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+
+		if (this.currentEntity != null && !this.currentEntity.getFoodChooseFromChest().isEmpty()) {
+			renderItemOnHead(this.currentEntity, poseStack, packedLight);
+		}
     }
+
+	private void renderItemOnHead(KodiakEntity kodiak, PoseStack poseStack, int packedLight) {
+		poseStack.pushPose();
+
+		this.head.translateAndRotate(poseStack);
+
+		poseStack.translate(0.0D, 0.75, -1.3D);
+		poseStack.scale(1f, 1f, 1f);
+
+		poseStack.mulPose(Axis.XP.rotationDegrees(90));
+
+		MultiBufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+
+		Minecraft.getInstance().getItemRenderer().renderStatic(kodiak.getFoodChooseFromChest(), ItemDisplayContext.GROUND, packedLight, OverlayTexture.NO_OVERLAY, poseStack, bufferSource, kodiak.level(), 0);
+
+		poseStack.popPose();
+	}
 
     private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
         pNetHeadYaw = Mth.clamp(pNetHeadYaw, -30.0F, 30.0F);

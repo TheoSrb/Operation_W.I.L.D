@@ -203,7 +203,7 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 25f, 15, 3));
         this.goalSelector.addGoal(1, new OWPanicGoal(this, this.getSpeed() * 16f, 3, 75));
-        this.goalSelector.addGoal(0, new NapGoal(this, 200, 800, 20, 100,null, false, () -> getDayOrNightTimeInterval(11,16) && !this.isJumpingOnTarget() && !this.isTrappingEntity() && this.onGround()));
+        this.goalSelector.addGoal(0, new NapGoal(this, 200, 800, 20, 100,OWUtils.RANDOM(2) ? OWSounds.TIGER_SNORE_1.get() : OWUtils.RANDOM(2) ? OWSounds.TIGER_SNORE_2.get() : OWSounds.TIGER_SNORE_3.get(), false, () -> getDayOrNightTimeInterval(11,16) && !this.isJumpingOnTarget() && !this.isTrappingEntity() && this.onGround()));
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(new Class[0]));
         this.targetSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 15f,8, 3,!this.isJumpingOnTarget() && !this.isTrappingEntity()));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
@@ -919,6 +919,9 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof TigerEntity otherTiger) {
+            if (otherTiger.isBaby()) {
+                return true;
+            }
             if (this.isTame()) return otherTiger.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherTiger.getOwnerUUID());
             else return !otherTiger.isTame();
         }

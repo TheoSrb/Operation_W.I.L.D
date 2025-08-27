@@ -171,6 +171,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
     public AnimationState transitionIdleSit = new AnimationState();
     public AnimationState transitionSitIdle = new AnimationState();
+    public AnimationState transitionIdleSleep = new AnimationState();
+    public AnimationState transitionSleepIdle = new AnimationState();
 
     public boolean playerContinueCombo = false;
     public AnimationState attackState = new AnimationState();
@@ -757,6 +759,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         this.entityData.set(IS_SLEEPING, isSleeping);
         if (isSleeping) {
             if (this instanceof TigerEntity tiger) tiger.setMad(false);
+            if (this instanceof KodiakEntity kodiak) kodiak.setMad(false);
         }
     }
 
@@ -1615,6 +1618,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
     public void setTarget(@Nullable LivingEntity target) {
         boolean hasCamouflage = target != null && target.hasEffect(OWEffects.CAMOUFLAGE_EFFECT.getDelegate()) && target.isSteppingCarefully();
 
+        if (target != null && target.isBaby()) {
+            super.setTarget(null);
+            return;
+        }
+
         if (isSleeping()) {
             super.setTarget(null);
             return;
@@ -1702,6 +1710,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
         createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
         createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
+        createTransitionAnimation("idleSleep", transitionIdleSleep, this.isNapping(), 20);
+        createTransitionAnimation("sleepIdle", transitionSleepIdle, !this.isNapping(), 20);
 
         if (sittingCooldown > 0) sittingCooldown--;
 
@@ -2360,17 +2370,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
 
-        if (this.getHealth() < this.getMaxHealth() && (FOOD_FOR_HEALING_MEAT.contains(item) || FOOD_FOR_HEALING_VEGETABLES.contains(item)) && this.isTame()) {
-            itemstack.shrink(1);
-            healWithFavoriteFood(1.5f, preferRawMeat(), preferCookedMeat());
-            return InteractionResult.SUCCESS;
-        }
-
         if (isTame() && isBaby() && babyQuestIsInProgress && choosenQuest == 0 && !level().isClientSide()) {
             if (item == choosenFood) {
                 resetBabyQuest(true);
                 itemstack.shrink(1);
             }
+            return InteractionResult.SUCCESS;
+        }
+
+        if (this.getHealth() < this.getMaxHealth() && (FOOD_FOR_HEALING_MEAT.contains(item) || FOOD_FOR_HEALING_VEGETABLES.contains(item)) && this.isTame()) {
+            itemstack.shrink(1);
+            healWithFavoriteFood(1.5f, preferRawMeat(), preferCookedMeat());
             return InteractionResult.SUCCESS;
         }
 
@@ -2787,6 +2797,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         for (Entity entity : entitiesInRange) {
             if (entity instanceof LivingEntity livingEntity) {
                 if (ownerUUID != null && entity instanceof Player player && player.getUUID().equals(ownerUUID)) continue;
+                if (this.isAlliedTo(livingEntity)) continue;
                 if (ownerUUID != null && entity instanceof TamableAnimal otherTamable && otherTamable.getOwnerUUID() != null && otherTamable.getOwnerUUID().equals(ownerUUID)) continue;
                 if (livingEntity instanceof Player player && player.getVehicle() != null) continue;
                 if (this.isAssassin() && OWUtils.RANDOM(10)) {
@@ -2873,6 +2884,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
             if (data.shouldPlay && data.timer < maxDuration) {
                 data.timer++;
             } else if (data.timer >= maxDuration) {
+                data.animationState.stop();
+            }
+
+            if (this.tickCount < 60 && data.shouldPlay) {
                 data.animationState.stop();
             }
         }

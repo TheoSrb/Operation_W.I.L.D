@@ -51,7 +51,6 @@ public class OWBreedGoal extends Goal {
     }
 
     public void tick() {
-        if (!animal.isTame()) return;
         if ((animal.isFemale() && partner.isMale()) || (animal.isMale() && partner.isFemale())) {
             this.animal.getLookControl().setLookAt(this.partner, 10.0F, (float) this.animal.getMaxHeadXRot());
             this.animal.getNavigation().moveTo(this.partner, this.speedModifier);

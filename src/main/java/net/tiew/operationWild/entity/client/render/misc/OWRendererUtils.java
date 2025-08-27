@@ -19,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.tiew.operationWild.entity.custom.living.ElephantEntity;
+import net.tiew.operationWild.entity.custom.living.KodiakEntity;
 import net.tiew.operationWild.item.custom.ElephantSaddle;
 import net.tiew.operationWild.utils.OWUtils;
 import org.joml.Matrix4f;
@@ -458,6 +459,30 @@ public class OWRendererUtils {
         poseStack.popPose();
     }
 
+    public static void renderVerticalBar(ResourceLocation texture, float textureX, float textureY, float textureWidth, float textureHeight, float barWidth, float barHeight, float fillPercentage, float posX, float posY, float posZ, int opacity, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
+        poseStack.pushPose();
+        poseStack.translate(posX, posY, posZ);
+
+        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityTranslucent(texture));
+        Matrix4f matrix = poseStack.last().pose();
+
+        float renderedHeight = barHeight * fillPercentage;
+        float u0 = textureX / 256.0F;
+        float u1 = (textureX + textureWidth) / 256.0F;
+        float v0 = (textureY + textureHeight * (1.0F - fillPercentage)) / 256.0F;
+        float v1 = (textureY + textureHeight) / 256.0F;
+
+        int lightU = packedLight & 0xFFFF;
+        int lightV = (packedLight >> 16) & 0xFFFF;
+
+        vertexConsumer.addVertex(matrix, 0.0F, 0.0F, 0.0F).setColor(255, 255, 255, opacity).setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0.0F, 1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix, barWidth, 0.0F, 0.0F).setColor(255, 255, 255, opacity).setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0.0F, 1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix, barWidth, renderedHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0.0F, 1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix, 0.0F, renderedHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0.0F, 1.0F, 0.0F);
+
+        poseStack.popPose();
+    }
+
     public static void displayImageAboveEntity(ResourceLocation image, float positionX, float positionY, float elementScale, float imageScale, float rightOffset, float upOffset, OWEntity entity, PoseStack poseStack, MultiBufferSource buffer, int packedLight, boolean followCamera) {
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
@@ -492,7 +517,6 @@ public class OWRendererUtils {
         vertexConsumer.addVertex(matrix, -width / 2, height / 2, 0.0F).setColor(255, 255, 255, 255).setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0.0F, 1.0F, 0.0F);
         poseStack.popPose();
     }
-
 
     public static void displayOwnerAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher) {
         int textColor = 0xdfdfdf;
