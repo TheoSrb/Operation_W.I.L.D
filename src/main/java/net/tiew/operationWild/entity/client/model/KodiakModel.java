@@ -151,6 +151,10 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		}
         this.applyHeadRotation(netHeadYaw, headPitch);
 
+		if (kodiak.isRub()) {
+			this.animate(kodiak.standingUpIdleAnimationState, KodiakAnimations.STANDING_UP_IDLE, ageInTicks, 1.0f);
+		}
+
 		if (kodiak.isCombo(1)) {
 			this.animate(kodiak.attack1Combo, KodiakAnimations.ATTACK_STRIKE, ageInTicks, 0.925f);
 		}
@@ -161,9 +165,6 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			this.animate(kodiak.attack3Combo, KodiakAnimations.ATTACK_STRIKE3, ageInTicks, 1.15f);
 		}
 
-		if (kodiak.isSniffing()) {
-			this.animate(kodiak.sniffsAnimationState, KodiakAnimations.SNIFFS, ageInTicks, 1.0f);
-		}
 
 		if (kodiak.transitionIdleSit.isStarted()) {
 			this.animate(kodiak.transitionIdleSit, KodiakAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
@@ -185,6 +186,16 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			return;
 		}
 
+		if (kodiak.transitionIdleStandingUp.isStarted()) {
+			this.animate(kodiak.transitionIdleStandingUp, KodiakAnimations.TRANSITION_IDLE_STAND_UP, ageInTicks, 1.0f);
+			return;
+		}
+
+		if (kodiak.transitionStandingUpIdle.isStarted()) {
+			this.animate(kodiak.transitionStandingUpIdle, KodiakAnimations.TRANSITION_STAND_UP_IDLE, ageInTicks, 1.0f);
+			return;
+		}
+
 		if (kodiak.isSitting()) {
 			this.animate(kodiak.sittingAnimationState, KodiakAnimations.SIT, ageInTicks, 1.0f);
 			return;
@@ -195,17 +206,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			return;
 		}
 
-		List<Player> players = kodiak.level().getEntitiesOfClass(Player.class, kodiak.getBoundingBox().inflate(30));
 
-		for (Player player : players) {
-			if (kodiak.isSniffing()) {
-				double distance = kodiak.distanceTo(player);
-
-				if (distance < 10) {
-					this.head.xRot -= (float) (Math.toRadians((10 - distance) * 2.5f));
-				}
-			}
-		}
 
 		this.animate(kodiak.idleAnimationState, KodiakAnimations.MISC_IDLE, ageInTicks, 1.0f);
 

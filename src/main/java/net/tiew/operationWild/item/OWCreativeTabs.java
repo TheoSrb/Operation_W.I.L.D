@@ -87,6 +87,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.SHARK_FIN.get());
                         output.accept(OWItems.STINGING_FILAMENT.get());
                         output.accept(OWItems.BIOLUMINESCENT_JELLY.get());
+                        output.accept(OWItems.KODIAK_COAT.get());
                         output.accept(OWItems.ANIMAL_SOUL.get());
                         output.accept(OWItems.RAW_BOA.get());
                         output.accept(OWItems.COOKED_BOA.get());
@@ -132,6 +133,7 @@ public class OWCreativeTabs {
                         output.accept(OWBlocks.LAVENDER.get());
                         output.accept(OWBlocks.CAMELLIA.get());
                         output.accept(OWBlocks.PEACOCK_EGG.get());
+                        output.accept(OWBlocks.TEDDY_BEAR.get());
                         output.accept(OWItems.PLANT_EMPRESS_MUSIC_DISC.get());
 
                     })).build());

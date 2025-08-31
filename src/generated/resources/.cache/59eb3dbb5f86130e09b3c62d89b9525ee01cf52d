@@ -1,4 +1,4 @@
-// 1.21	2025-08-23T19:03:23.3497193	Loot Tables
+// 1.21	2025-08-29T15:02:47.0121948	Loot Tables
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
 5b5fcfe0ecc7270dbed936f1c5d59ab6a543b479 data/ow/loot_table/blocks/deepslate_jade_ore.json
 06da0d1a496415bacabd90b29e9205b4df505f5e data/ow/loot_table/blocks/deepslate_ruby_ore.json
@@ -33,3 +33,22 @@ b24bafc5cbed78e626c6b2b5c7b9e39a6629d7ab data/ow/loot_table/blocks/scarified_dar
 199f85874368768d2b1d81a165893d9e2084d66c data/ow/loot_table/blocks/scarified_spruce_log.json
 067bd9d34994f9e06dea31b91ea4edfc09e977a6 data/ow/loot_table/blocks/stripped_redwood_log.json
 1c457b93eaec97aedfd1ae2c58459efc4b40e1b1 data/ow/loot_table/blocks/stripped_redwood_wood.json
+13d7679ab22070b0d9b56beb22aa65670ebd584c data/ow/loot_table/blocks/teddy_bear.json
+48f05608c5e2c0af04a772af6e673284a76216aa data/ow/loot_table/entities/boa.json
+68e6ba9d250b4688bf942956325153761142fef5 data/ow/loot_table/entities/chameleon.json
+8e0e6d751af4340f3fe60f3a76f8e64a0cfde785 data/ow/loot_table/entities/elephant.json
+4238c881b8578a51822bedc3cf9d414705c1ab95 data/ow/loot_table/entities/hyena.json
+55d34f54fbb4767d2c950ac707c5f110b0a119d0 data/ow/loot_table/entities/jellyfish.json
+be73d7ecf6c368985dbc35b3fd75a80fb1a78266 data/ow/loot_table/entities/kodiak.json
+c51f93182992fec692e3f3ef0a8c6f5be276d806 data/ow/loot_table/entities/mandrill.json
+6669415b326872e475ccf0f0243f7a38cc916c5e data/ow/loot_table/entities/manta.json
+dc4a937cebafd751688a079e23ddea3d31d6f92d data/ow/loot_table/entities/peacock.json
+39610dbed52045c08dad942c60325f4a89c2f127 data/ow/loot_table/entities/plant_empress.json
+30fde7be140d64f8241814b9454d47d2d566bd15 data/ow/loot_table/entities/red_panda.json
+7e6d2422d023d722aecca73a3b3c8cdd37e4b894 data/ow/loot_table/entities/seabug.json
+d5c54b99a44c09e946b9fae89c9dd591b276777e data/ow/loot_table/entities/seabug_shard_0.json
+cabe4742023d54715447bac71ffbca3813bb261e data/ow/loot_table/entities/seabug_shard_1.json
+220dce711573da97d4a664fa414f85891940e5fb data/ow/loot_table/entities/seabug_shard_2.json
+4fbe76e7eacb8358a1ddbd2ba186ceff3a61bd7a data/ow/loot_table/entities/tiger.json
+5fb4a3b041860122a675ecc066eac753f71de7f5 data/ow/loot_table/entities/tiger_shark.json
+5433a4c12545c8c771eb52152116818e4b0993ed data/ow/loot_table/entities/walrus.json

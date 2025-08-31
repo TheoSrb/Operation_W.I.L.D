@@ -1,8 +1,6 @@
 package net.tiew.operationWild.entity.custom.living;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -23,25 +21,18 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.TemptGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.Bee;
-import net.minecraft.world.entity.animal.Salmon;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.food.Foods;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
@@ -49,15 +40,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.effect.OWEffects;
-import net.tiew.operationWild.entity.AI.*;
+import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.OWTameImplementation;
-import net.tiew.operationWild.entity.variants.ElephantVariant;
-import net.tiew.operationWild.networking.OWNetworkHandler;
-import net.tiew.operationWild.networking.packets.to_client.OWFoodPacketClient;
 import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
@@ -84,25 +71,28 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
     public static final int TERRITORY_RADIUS = 80;
     public boolean playerEnteringInTerritory = true;
 
-    private Player playerWhoFeed = null;
-    private boolean isChasingPlayerAfterFeedWithTamingFood = false;
+    private int dirtyTimer = 0;
+
+    public ItemEntity itemLocked = null;
+
+    public AnimationState transitionIdleStandingUp = new AnimationState();
+    public AnimationState transitionStandingUpIdle = new AnimationState();
 
     public final AnimationState attack1Combo = new AnimationState();
     public final AnimationState attack2Combo = new AnimationState();
     public final AnimationState attack3Combo = new AnimationState();
     public final AnimationState sleepingAnimationState = new AnimationState();
-    public final AnimationState sniffsAnimationState = new AnimationState();
+    public final AnimationState standingUpIdleAnimationState = new AnimationState();
     public int attack1ComboTimer = 0;
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
     public int sleepingAnimationTimeout = 0;
-    public int sniffsAnimationTimeout = 0;
+    public int standingUpIdleAnimationTimeout = 0;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<ItemStack> FOOD_CHOOSE_FROM_CHEST = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Boolean> IS_SNIFFING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Float> HUNGRY_BAR = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> IS_RUB = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
 
     public KodiakVariant getVariant() {
         return KodiakVariant.byId(this.getTypeVariant() & 255);
@@ -208,12 +198,13 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 30f, 15, 3));
-        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
+        this.goalSelector.addGoal(3, new RandomStrollGoal(this, 0.8f));
 
         this.goalSelector.addGoal(2, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(4, new NapGoal(this, 500, 1300, 0, 100,OWSounds.TIGER_SNORE_1.get(), false, () -> canNap()));
-        this.goalSelector.addGoal(3, new KodiakCheckChestGoal(this));
-        this.goalSelector.addGoal(2, new KodiakSniffPlayerFoodGoal(this));
+
+        this.targetSelector.addGoal(3, new OWNearestAttackableTargetGoal<>(this, LivingEntity.class, true));
+
+        this.goalSelector.addGoal(2, new KodiakRubTreeGoal(this, this.getSpeed() * 15f));
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -253,12 +244,6 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         if (!isRunning()) super.playStepSound(blockPos, blockState);
     }
 
-    public void setBuyingSkin(int skinIndex) {
-        switch (skinIndex) {
-            default -> throw new IllegalArgumentException("Invalid skin index: " + skinIndex);
-        }
-    }
-
     @Override
     public void travel(Vec3 vec3) {
         super.travel(vec3);
@@ -290,7 +275,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         }
 
         if (!getFoodChooseFromChest().isEmpty()) this.spawnAtLocation(getFoodChooseFromChest());
-        /*if (this.isSaddled()) this.spawnAtLocation(OWItems.KODIAK_SADDLE.get());*/
+        if (this.isSaddled()) this.spawnAtLocation(OWItems.KODIAK_SADDLE.get());
     }
 
     @Override
@@ -298,19 +283,6 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         if (isNapping()) return;
 
         if (!isTame()) setMad(!isBaby() && target != null && getSleepBarPercent() < 75 && !this.isSitting());
-
-        if (target != null && target instanceof Player player && player.isCreative()) {
-            isChasingPlayerAfterFeedWithTamingFood = false;
-            this.setTarget(null);
-            return;
-        }
-
-        if (target != null && target.distanceTo(this) >= 60) {
-            isChasingPlayerAfterFeedWithTamingFood = false;
-            this.setTarget(null);
-            return;
-        }
-
         super.setTarget(target);
     }
 
@@ -364,35 +336,19 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
         if (!item.isEmpty()) eatFoodFromChestTimer = 1;
     }
-
     public void setFoodChooseFromChest(ItemStack item) {
         this.entityData.set(FOOD_CHOOSE_FROM_CHEST, item);
         if (!item.isEmpty()) eatFoodFromChestTimer = 1;
     }
-
     public ItemStack getFoodChooseFromChest() { return this.entityData.get(FOOD_CHOOSE_FROM_CHEST);}
-
     public void setMad(boolean isMad) {
         if (isMad) if (this.getCurrentMode() == Mode.Passive) return;
         this.entityData.set(IS_MAD, isMad);
     }
-
     public boolean isMad() { return this.entityData.get(IS_MAD);}
+    public void setRub(boolean isRub) { this.entityData.set(IS_RUB, isRub);}
+    public boolean isRub() { return this.entityData.get(IS_RUB);}
 
-    public void setSniffing(boolean isSniffing) { this.entityData.set(IS_SNIFFING, isSniffing);}
-    public boolean isSniffing() { return this.entityData.get(IS_SNIFFING);}
-
-    public void setHungryBar(float getHungryBar) {
-        this.entityData.set(HUNGRY_BAR, Math.max(0.0f, Math.min(100.0f, getHungryBar)));
-    }
-    public float getHungryBar() { return this.entityData.get(HUNGRY_BAR);}
-
-    public void createHungerSystem() {
-        MobEffectInstance hungerEffect = this.getEffect(MobEffects.HUNGER);
-        int hungerEffectLevel = hungerEffect != null ? hungerEffect.getAmplifier() : 0;
-
-        setHungryBar(getHungryBar() - (0.005f * (this.hasEffect(MobEffects.HUNGER) ? (1 + ((float) hungerEffectLevel / 5)) : 1)));
-    }
 
     public void createTerritorySystem() {
         if (this.isTame() || this.isBaby()) return;
@@ -422,43 +378,17 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         }
     }
 
-    public boolean isHungry() {
-        return getHungryBar() < 50.0f;
-    }
-
     public void tick() {
         super.tick();
-
         createCombo(20, 12, random.nextInt(2) == 0 ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get(), 3.0, 2, 2.25, false, 2);
 
-        createHungerSystem();
         createTerritorySystem();
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
-        if (eatFoodFromChestTimer >= 1) {
-            eatFoodFromChestTimer++;
-
-            if (eatFoodFromChestTimer >= 601) {
-                eatFoodFromChestTimer = 0;
-
-                this.setHungryBar(this.getHungryBar() + (Objects.requireNonNull(getFoodChooseFromChest().getFoodProperties(this)).nutrition() * 4));
-
-                this.setFoodChooseFromChest(ItemStack.EMPTY);
-                this.playSound(SoundEvents.GENERIC_EAT);
-            }
-        }
-
-        if (isChasingPlayerAfterFeedWithTamingFood) {
-            this.setMad(true);
-            this.setTarget(playerWhoFeed);
-
-            if (playerWhoFeed == null) isChasingPlayerAfterFeedWithTamingFood = false;
-        }
-
-        if (((this.isRunning()) || getTarget() != null)) {
+         if (((this.isRunning()) || getTarget() != null)) {
             if (this.level().isClientSide()) {
                 Player player = Minecraft.getInstance().player;
                 if (player != null && player.zza > 0) {
@@ -560,6 +490,12 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
 
     @Override
     public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {
+        setMad(false);
+        setTarget(null);
+        resetState();
+
+        this.setFoodChooseFromChest(ItemStack.EMPTY);
+        this.playSound(SoundEvents.GENERIC_EAT);
         return super.killedEntity(serverLevel, entity);
     }
 
@@ -599,30 +535,20 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
             return InteractionResult.SUCCESS;
         }
 
-        if (itemStack.is(Tags.Items.FOODS) && !this.isTame() && this.isSniffing()) {
-            this.setHungryBar(this.getHungryBar() + (Objects.requireNonNull(itemStack.getFoodProperties(this)).nutrition() * 4));
-
-            this.setSniffing(false);
-            KodiakSniffPlayerFoodGoal.cooldown = 1;
+        if (isFood(itemStack) && !this.isTame() && this.isNapping()) {
+            this.foodGiven++;
+            this.setNap(false, 0);
+            itemStack.shrink(1);
 
             this.playSound(SoundEvents.CAMEL_EAT);
 
-            if (isFood(itemStack)) {
-                this.foodGiven++;
-
-                playerWhoFeed = player;
-                isChasingPlayerAfterFeedWithTamingFood = true;
-
-                if (!EventHooks.onAnimalTame(this, player)) {
-                    if (!this.level().isClientSide() && this.foodGiven >= this.foodWanted) {
-                        this.setTame(true, player);
-                        this.setSleeping(false);
-                        resetSleepBar();
-                    }
+            if (!EventHooks.onAnimalTame(this, player)) {
+                if (!this.level().isClientSide() && this.foodGiven >= this.foodWanted) {
+                    this.setTame(true, player);
+                    this.setSleeping(false);
+                    resetSleepBar();
                 }
             }
-            itemStack.shrink(1);
-
             return InteractionResult.SUCCESS;
         }
 
@@ -657,16 +583,16 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         createIdleAnimation(48, true);
         createSitAnimation(58, true);
 
-        if (this.isSniffing()) {
-            if (this.sniffsAnimationTimeout <= 0) {
-                this.sniffsAnimationTimeout = 13;
-                this.sniffsAnimationState.start(this.tickCount);
-            } else --this.sniffsAnimationTimeout;
+        if (this.isRub()) {
+            if (this.standingUpIdleAnimationTimeout <= 0) {
+                this.standingUpIdleAnimationTimeout = 80;
+                this.standingUpIdleAnimationState.start(this.tickCount);
+            } else --this.standingUpIdleAnimationTimeout;
         }
 
-        if (!this.isSniffing()) {
-            this.sniffsAnimationTimeout = 0;
-            this.sniffsAnimationState.stop();
+        if (!this.isRub()) {
+            this.standingUpIdleAnimationTimeout = 0;
+            this.standingUpIdleAnimationState.stop();
         }
 
         if (this.isCombo(1)) {
@@ -723,8 +649,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(FOOD_CHOOSE_FROM_CHEST, ItemStack.EMPTY);
         builder.define(IS_MAD, false);
-        builder.define(IS_SNIFFING, false);
-        builder.define(HUNGRY_BAR, 100.0f);
+        builder.define(IS_RUB, false);
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {
@@ -733,8 +658,7 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         tag.putInt("Variant", this.getTypeVariant());
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
-
-        tag.putFloat("getHungryBar", this.getHungryBar());
+        tag.putInt("dirtyTimer", this.dirtyTimer);
 
         if (getFoodChooseFromChest() != null) {
             if (!getFoodChooseFromChest().isEmpty() && level() != null) {
@@ -750,8 +674,8 @@ public class KodiakEntity extends OWEntity implements OWTameImplementation, OWEn
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
+        this.dirtyTimer = tag.getInt("dirtyTimer");
 
-        this.entityData.set(HUNGRY_BAR, tag.getFloat("getHungryBar"));
 
         if (tag.contains("getFoodChooseFromChest", Tag.TAG_COMPOUND)) {
             CompoundTag itemTag = tag.getCompound("getFoodChooseFromChest");

@@ -74,6 +74,8 @@ public class OWBlockLootTableProvider extends BlockLootSubProvider {
 
         dropSelf(OWBlocks.PEACOCK_EGG.get());
 
+        dropSelf(OWBlocks.TEDDY_BEAR.get());
+
 
         dropSelf(OWBlocks.LAVENDER.get());
         dropSelf(OWBlocks.CAMELLIA.get());

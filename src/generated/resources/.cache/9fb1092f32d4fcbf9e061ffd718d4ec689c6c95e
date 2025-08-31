@@ -1,4 +1,4 @@
-// 1.21	2025-08-23T19:00:12.7295398	Recipes
+// 1.21	2025-08-29T15:44:53.9115706	Recipes
 f33c002f0f4ef1baa4167f73e99e52613a4136f5 data/minecraft/advancement/recipes/misc/pink_dye.json
 e3f3a0b671388d6abdeedaefe2fd558cd9d00dac data/minecraft/recipe/pink_dye.json
 aab17de6a0d54f51ff73a206f2dceb5e0346f117 data/ow/advancement/recipes/building_blocks/redwood_slab.json
@@ -40,6 +40,7 @@ f265edd4b09e2b17d826c86da8f4eab5f69920a9 data/ow/advancement/recipes/misc/ruby_p
 6d36b88a913abd9069c7febaf29d4da48af3db70 data/ow/advancement/recipes/misc/ruby_sword.json
 25b5497fcd15acf244c023c11f6741d36254c8a2 data/ow/advancement/recipes/misc/saddler.json
 bcc992495a57bdf8617cb208381366bbf7daa2a1 data/ow/advancement/recipes/misc/seabug.json
+6fa0bfcc3e30254607f7b143aedde88bbf49ebd8 data/ow/advancement/recipes/misc/teddy_bear.json
 9c7e0fd9a9acc7ba47e21878e8f22c2cbf1d1662 data/ow/advancement/recipes/misc/tranquilizer_arrow.json
 4ecd05277c3847101ddb9ae9cf4f8bc49c6be314 data/ow/advancement/recipes/misc/tranquilizer_wooden_stinger.json
 066a7504bd989a5d24ccc634f5994d8d781f5232 data/ow/advancement/recipes/misc/venomous_arrow.json
@@ -94,6 +95,7 @@ b34a0df83e271badd50b834e304999ff3d514643 data/ow/recipe/redwood_stairs.json
 a244a011a34508266458af1eaea09ac6c2d24f3d data/ow/recipe/ruby_sword.json
 9cdc7b047bebbfb911bef1c390ac4eadfbe2b7d4 data/ow/recipe/saddler.json
 cbb84aa1e7608d831e4a953ff2e866032744df6d data/ow/recipe/seabug.json
+f20dbc223846d3e8b8022c8a296f12fa290643f3 data/ow/recipe/teddy_bear.json
 bee0cf426c401757769a52f78d30bcff6208641f data/ow/recipe/tranquilizer_arrow.json
 241920997735f94788d480e5b0e06776bc4313fd data/ow/recipe/tranquilizer_wooden_stinger.json
 061a56cf8996c7ac65e8b596ebe471878571f8b3 data/ow/recipe/venomous_arrow.json

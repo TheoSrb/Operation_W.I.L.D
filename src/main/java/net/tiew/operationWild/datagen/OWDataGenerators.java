@@ -24,7 +24,12 @@ public class OWDataGenerators {
         ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
         CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
 
-        generator.addProvider(event.includeServer(), new LootTableProvider(packOutput, Collections.emptySet(), List.of(new LootTableProvider.SubProviderEntry(OWBlockLootTableProvider::new, LootContextParamSets.BLOCK)), lookupProvider));
+        generator.addProvider(event.includeServer(), new LootTableProvider(packOutput, Collections.emptySet(),
+                List.of(
+                        new LootTableProvider.SubProviderEntry(OWBlockLootTableProvider::new, LootContextParamSets.BLOCK),
+                        new LootTableProvider.SubProviderEntry(OWEntityLootTableProvider::new, LootContextParamSets.ENTITY)
+                ), lookupProvider));
+
         generator.addProvider(event.includeServer(), new OWRecipeProvider(packOutput, lookupProvider));
 
         generator.addProvider(event.includeClient(), new OWItemModelProvider(packOutput, existingFileHelper));

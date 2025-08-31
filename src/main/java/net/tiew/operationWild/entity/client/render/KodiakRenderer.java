@@ -80,25 +80,6 @@ public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<Kodiak
 
         if (!kodiak.isInResurrection()) {
             if (kodiak.isAlive() && !kodiak.isVehicle()) {
-                if (!kodiak.isTame() && !kodiak.isBaby() && kodiak.isAlive() && player != null && kodiak.distanceTo(player) > 4.0D && kodiak.distanceTo(player) <= 15.0D && !Minecraft.getInstance().options.hideGui) {
-                    float hungerPercentage = kodiak.getHungryBar() / 100.0F;
-
-                    poseStack.pushPose();
-                    poseStack.translate(0.0D, kodiak.getBbHeight() - 1f, 0.0D);
-                    poseStack.scale(2.5f, 2.5f, 2.5f);
-
-                    Quaternionf cameraOrientation = Minecraft.getInstance().getEntityRenderDispatcher().cameraOrientation();
-                    float yaw = cameraOrientation.getEulerAnglesYXZ(new Vector3f()).y;
-                    poseStack.mulPose(Axis.YP.rotation(yaw));
-
-                    poseStack.scale(0.25F, 0.25F, 0.25F);
-
-                    OWRendererUtils.renderVerticalBar(HUNGRY_BAR, 20, 0, 20, 20, 1.0F, 1.0F, 1.0F, -0.5F, 1.5F, 0.001F, 255, poseStack, bufferSource, packedLight);
-
-                    OWRendererUtils.renderVerticalBar(HUNGRY_BAR, kodiak.isHungry() ? 40 : 0, 0, 20, 20, 1.0F, 1.0F, hungerPercentage, -0.5F, 1.5F, 0.002F, 255, poseStack, bufferSource, packedLight);
-
-                    poseStack.popPose();
-                }
                 if (kodiak.isTame()) {
                     if (kodiak.isBaby() && player != null) {
                         OWRendererUtils.displayTimeLeftBeforeBabyTaskAboveEntity(kodiak, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, kodiak.distanceTo(player) > 4 ? 0 : Minecraft.getInstance().options.hideGui ? 0 : 0.75f);

@@ -86,6 +86,9 @@ public class OWSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_HURT = registerSoundEvent("kodiak_hurt");
     public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_MISC = registerSoundEvent("kodiak_misc");
     public static final DeferredHolder<SoundEvent, SoundEvent> LEG_HURT = registerSoundEvent("leg_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_SNIFF_1 = registerSoundEvent("kodiak_sniff_1");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_SNIFF_2 = registerSoundEvent("kodiak_sniff_2");
+    public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_SNIFF_3 = registerSoundEvent("kodiak_sniff_3");
 
 
 

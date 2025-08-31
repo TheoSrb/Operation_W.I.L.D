@@ -12,8 +12,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidType;
-import net.tiew.operationWild.entity.AI.AquaticMoveController;
-import net.tiew.operationWild.entity.AI.AquaticPathNavigator;
+import net.tiew.operationWild.entity.goals.AquaticMoveController;
+import net.tiew.operationWild.entity.goals.AquaticPathNavigator;
 import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
 import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
 

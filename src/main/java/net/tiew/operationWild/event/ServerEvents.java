@@ -24,14 +24,17 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.bus.api.Event;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
 import net.tiew.operationWild.entity.custom.living.KodiakEntity;
@@ -56,6 +59,33 @@ public class ServerEvents {
         } else if (ClientEvents.tamingExperience >= 25) {
 
         }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerTrySleep(CanPlayerSleepEvent event) {
+        Player player = event.getEntity();
+        Level level = player.level();
+
+        if (hasTeddyBearNearby(player, level)) {
+            event.setProblem(null);
+        }
+    }
+
+    private static boolean hasTeddyBearNearby(Player player, Level level) {
+        BlockPos playerPos = player.blockPosition();
+        int radius = 3;
+
+        for (int x = -radius; x <= radius; x++) {
+            for (int y = -radius; y <= radius; y++) {
+                for (int z = -radius; z <= radius; z++) {
+                    BlockPos checkPos = playerPos.offset(x, y, z);
+                    if (level.getBlockState(checkPos).is(OWBlocks.TEDDY_BEAR.get())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     @SubscribeEvent

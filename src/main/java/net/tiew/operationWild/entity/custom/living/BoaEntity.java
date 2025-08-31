@@ -1,6 +1,5 @@
 package net.tiew.operationWild.entity.custom.living;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -53,7 +52,7 @@ import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
-import net.tiew.operationWild.entity.AI.*;
+import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.OWEntityUtils;

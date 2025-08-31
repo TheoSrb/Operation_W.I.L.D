@@ -201,6 +201,14 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .define('J', OWItems.JADE.get()).unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
 
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWBlocks.TEDDY_BEAR.get(), 1)
+                .pattern(" C ")
+                .pattern("CCC")
+                .pattern("C C")
+                .define('C', OWItems.KODIAK_COAT.get())
+                .unlockedBy(getHasName(OWItems.KODIAK_COAT.get()), has(OWItems.KODIAK_COAT.get())).save(recipeOutput);
+
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.PRIMITIVE_SLINGSHOT.get(), 1)
                 .pattern("* *")
                 .pattern("SFS")

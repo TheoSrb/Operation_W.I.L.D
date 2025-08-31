@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.OWEgg;
 import net.tiew.operationWild.effect.OWEffects;
-import net.tiew.operationWild.entity.AI.*;
+import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.OWEntityUtils;

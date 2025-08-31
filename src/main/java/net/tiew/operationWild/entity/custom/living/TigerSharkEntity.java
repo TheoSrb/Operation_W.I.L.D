@@ -44,7 +44,7 @@ import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.entity.OWTameImplementation;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.effect.OWEffects;
-import net.tiew.operationWild.entity.AI.*;
+import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.OWEntityUtils;
 import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;

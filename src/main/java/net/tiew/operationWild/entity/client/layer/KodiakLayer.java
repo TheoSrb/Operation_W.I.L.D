@@ -16,6 +16,8 @@ import net.tiew.operationWild.entity.custom.living.KodiakEntity;
 public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEntity>> {
     private static final ResourceLocation BABY_EYES = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/baby_eyes.png");
 
+    private static final ResourceLocation DIRTY = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_honey.png");
+
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/in_resurrection.png");
     private static final ResourceLocation RESURRECTION_GLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/skins/kodiak_skin_gold_glowing.png");
 

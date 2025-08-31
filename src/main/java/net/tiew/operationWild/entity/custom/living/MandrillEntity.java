@@ -32,17 +32,14 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.entity.OWTameImplementation;
-import net.tiew.operationWild.entity.variants.ElephantVariant;
 import org.jetbrains.annotations.Nullable;
-import net.tiew.operationWild.entity.AI.OWFollowOwnerGoal;
-import net.tiew.operationWild.entity.AI.OWPanicGoal;
-import net.tiew.operationWild.entity.AI.OWRandomLookAroundGoal;
+import net.tiew.operationWild.entity.goals.OWFollowOwnerGoal;
+import net.tiew.operationWild.entity.goals.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityUtils;
 import net.tiew.operationWild.entity.variants.MandrillVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
-import net.tiew.operationWild.utils.OWUtils;
 
 import java.util.List;
 

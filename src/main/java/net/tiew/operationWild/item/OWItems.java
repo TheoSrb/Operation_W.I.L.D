@@ -96,6 +96,7 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> SHARK_FIN = ITEMS.register("shark_fin", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> STINGING_FILAMENT = ITEMS.register("stinging_filament", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> BIOLUMINESCENT_JELLY = ITEMS.register("bioluminescent_jelly", () -> new Item(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> KODIAK_COAT = ITEMS.register("kodiak_coat", () -> new Item(new Item.Properties()));
 
     public static final DeferredHolder<Item, Item> ANIMAL_SOUL = ITEMS.register("animal_soul", () -> new AnimalSoulItem(new Item.Properties().stacksTo(1).fireResistant()));
 

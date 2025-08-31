@@ -231,6 +231,8 @@
 
   "block.ow.peacock_egg": "Peacock Egg",
 
+  "block.ow.teddy_bear": "Teddy Bear",
+
   "block.ow.scarified_oak_log": "Scarified Oak Log",
   "block.ow.scarified_dark_oak_log": "Scarified Dark Oak Log",
   "block.ow.scarified_spruce_log": "Scarified Spruce Log",
@@ -280,6 +282,7 @@
   "item.ow.shark_fin": "Shark Fin",
   "item.ow.stinging_filament": "Stinging Filament",
   "item.ow.bioluminescent_jelly": "Bioluminescent Jelly",
+  "item.ow.kodiak_coat": "Kodiak Coat",
   "item.ow.animal_soul": "%s Soul",
   "item.ow.tiger_saddle": "Tiger Saddle",
   "item.ow.kodiak_saddle": "Kodiak Saddle",
