@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.MandrillModel;
 import net.tiew.operationWild.entity.client.render.MandrillRenderer;
-import net.tiew.operationWild.entity.custom.living.MandrillEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.MandrillEntity;
 
 public class MandrillLayer extends RenderLayer<MandrillEntity, MandrillModel<MandrillEntity>> {
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/mandrill/in_resurrection.png");

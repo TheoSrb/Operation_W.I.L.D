@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.TigerModel;
 import net.tiew.operationWild.entity.client.render.TigerRenderer;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 
 public class TigerLayer extends RenderLayer<TigerEntity, TigerModel<TigerEntity>> {
     private static final ResourceLocation BABY_EYES = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/tiger/baby_eyes.png");

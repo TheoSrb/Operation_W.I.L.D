@@ -9,7 +9,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.object.SeaBugShard1Entity;
+import net.tiew.operationWild.entity.misc.SeaBugShard1Entity;
 
 public class SeaBugShard1Model<T extends SeaBugShard1Entity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "seabug_shard_1"), "main");

@@ -62,19 +62,25 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
-import net.tiew.operationWild.entity.goals.FoodsPreference;
-import net.tiew.operationWild.entity.custom.living.*;
+import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
+import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.*;
+import net.tiew.operationWild.entity.utils.IOWEntity;
+import net.tiew.operationWild.entity.utils.IOWRideable;
+import net.tiew.operationWild.entity.utils.IOWTamable;
+import net.tiew.operationWild.entity.utils.OWEntityUtils;
 import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.networking.packets.to_client.*;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
-import net.tiew.operationWild.entity.custom.living.boss.PlantEmpressEntity;
-import net.tiew.operationWild.entity.custom.misc.SlingshotProjectile;
-import net.tiew.operationWild.entity.custom.misc.TranquilizerArrow;
-import net.tiew.operationWild.entity.custom.misc.TranquilizerWoodenStinger;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
+import net.tiew.operationWild.entity.misc.SlingshotProjectile;
+import net.tiew.operationWild.entity.misc.TranquilizerArrow;
+import net.tiew.operationWild.entity.misc.TranquilizerWoodenStinger;
+import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuest;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestsDate;
@@ -97,7 +103,7 @@ import java.util.*;
 import static net.tiew.operationWild.utils.OWUtils.RANDOM;
 import static net.tiew.operationWild.utils.OWUtils.generateRandomInterval;
 
-public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPreference, OWEntityUtils, OWTameImplementation {
+public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, IOWTamable, IOWRideable {
 
     public float averageScale;
     public static final Random RANDOM = new Random();
@@ -111,6 +117,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
     public final ItemStackHandler itemStackHandlerSeaBug = new ItemStackHandler(15);
     public int attackTimer;
     public int comboTimer;
+    private int runTime;
     public int chance = random.nextInt(100);
     private int fightingTime = 200;
     private BlockPos lastPosition;
@@ -254,16 +261,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         this.sleepBarDownSpeed = sleepBarDownSpeed;
         this.maxSleepBar = maxSleepBar;
 
-        if (this.getEntityType() == TANK_ENTITIES) {
-            if (!TANK_ENTITIES.contains(this.getClass())) TANK_ENTITIES.add(this.getClass());
-        }
-        else if (this.getEntityType() == ASSASSIN_ENTITIES) {
-            if (!ASSASSIN_ENTITIES.contains(this.getClass())) ASSASSIN_ENTITIES.add(this.getClass());
-        }
-        else if (this.getEntityType() == MARAUDER_ENTITIES) {
-            if (!MARAUDER_ENTITIES.contains(this.getClass())) MARAUDER_ENTITIES.add(this.getClass());
-        }
-
         babyQuests.put(0, "quest.babyQuest0");
         babyQuests.put(1, "quest.babyQuest1");
         babyQuests.put(2, "quest.babyQuest2");
@@ -306,9 +303,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
     public static final List<Item> FOOD_FOR_HEALING_VEGETABLES = List.of(Items.APPLE, Items.POTATO, Items.CARROT, Items.BEETROOT, Items.BROWN_MUSHROOM, Items.RED_MUSHROOM, Items.BREAD, Items.PUMPKIN_PIE, Items.MELON, Items.COOKIE, OWItems.SAVAGE_BERRIES.get(), Items.GLOW_BERRIES, Items.SWEET_BERRIES);
 
-    public boolean isTank() {return TANK_ENTITIES.contains(this.getClass());}
-    public boolean isAssassin() { return ASSASSIN_ENTITIES.contains(this.getClass());}
-    public boolean isMarauder() { return MARAUDER_ENTITIES.contains(this.getClass());}
+    public boolean isTank() { return getArchetype() == OWEntityUtils.Archetypes.TANK;}
+    public boolean isAssassin() { return getArchetype() == OWEntityUtils.Archetypes.ASSASSIN;}
+    public boolean isMarauder() { return getArchetype() == OWEntityUtils.Archetypes.MARAUDER;}
+    public boolean isHealer() { return getArchetype() == OWEntityUtils.Archetypes.HEALER;}
 
     public float getBaseHealth() { return this.entityData.get(BASE_HEALTH);}
     public void setBaseHealth(float health) { this.entityData.set(BASE_HEALTH, health);}
@@ -2424,6 +2422,29 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         return super.mobInteract(player, hand);
     }
 
+    public void handleRunningEffects(int maxRunTime, SoundEvent soundEvent, float pitch, int[] runTimeSound) {
+        if (((this.isRunning()) || getTarget() != null)) {
+            if (this.level().isClientSide()) {
+                Player player = Minecraft.getInstance().player;
+                if (player != null && player.zza > 0) {
+                    runTime++;
+                    if (runTime >= maxRunTime) runTime = 0;
+                    if ((runTime == runTimeSound[0] || runTime == runTimeSound[1]) && this.onGround()) {
+                        this.level().playLocalSound(
+                                this.getX(), this.getY(), this.getZ(),
+                                SoundEvents.HORSE_STEP,
+                                this.getSoundSource(),
+                                0.8f, pitch,
+                                false
+                        );
+                    }
+                } else {
+                    runTime = 0;
+                }
+            }
+        }
+    }
+
     @Override
     public PlayerTeam getTeam() { return super.getTeam();}
 
@@ -2583,7 +2604,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
 
                 if (player instanceof ServerPlayer serverPlayer) {
                     System.out.println("advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectAdvancementByEntity());
-                    serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectAdvancementByEntity());
+                    serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + selectAdvancementByEntity());
                 }
 
             } else {
@@ -2630,7 +2651,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
         return super.getDismountLocationForPassenger(living);
     }
 
-    private String selectAdvancementByEntity() {
+    private ResourceLocation selectAdvancementByEntity() {
         return this.getTamingAdvancement();
     }
 
@@ -2647,8 +2668,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
     }
 
     @Override
-    public float getEntityScale() {
+    public float getTheoreticalScale() {
         return 0;
+    }
+
+    @Override
+    public OWEntityUtils.Archetypes getArchetype() {
+        return null;
     }
 
     @Override
@@ -2682,13 +2708,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, FoodsPrefer
     }
 
     @Override
-    public List<Class<?>> getEntityType() {
-        return List.of();
-    }
-
-    @Override
-    public String getTamingAdvancement() {
-        return "";
+    public ResourceLocation getTamingAdvancement() {
+        return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "");
     }
 
     @Override

@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.SeaBugModel;
 import net.tiew.operationWild.entity.client.render.SeaBugRenderer;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.entity.misc.SeaBugEntity;
 
 public class SeaBugLayer extends RenderLayer<SeaBugEntity, SeaBugModel<SeaBugEntity>> {
     private static final ResourceLocation LIGHTS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/seabug/seabug_light.png");

@@ -12,8 +12,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
 import net.tiew.operationWild.utils.OWUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

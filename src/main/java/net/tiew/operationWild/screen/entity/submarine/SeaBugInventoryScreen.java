@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.item.OWItems;
 
 @OnlyIn(Dist.CLIENT)

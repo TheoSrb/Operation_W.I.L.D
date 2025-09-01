@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.PeacockModel;
 import net.tiew.operationWild.entity.client.render.PeacockRenderer;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
 import net.tiew.operationWild.entity.variants.PeacockVariant;
 
 public class PeacockSkins extends RenderLayer<PeacockEntity, PeacockModel<PeacockEntity>> {

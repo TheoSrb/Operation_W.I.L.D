@@ -1,9 +1,5 @@
 package net.tiew.operationWild.screen.entity;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -16,15 +12,11 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.client.layer.ElephantLayer;
-import net.tiew.operationWild.entity.client.render.ElephantRenderer;
-import net.tiew.operationWild.entity.custom.living.ElephantEntity;
-import net.tiew.operationWild.item.OWItems;
+import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.item.custom.ElephantSaddle;
 import net.tiew.operationWild.screen.OWMenuRegister;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 public class OWInventoryMenu extends AbstractContainerMenu {

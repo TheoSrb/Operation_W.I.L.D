@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.BoaModel;
 import net.tiew.operationWild.entity.client.render.BoaRenderer;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 
 public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
     private static final ResourceLocation BABY_EYES = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/baby_eyes.png");

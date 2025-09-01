@@ -10,7 +10,7 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.living.WalrusEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.WalrusEntity;
 
 public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "walrus_default"), "main");

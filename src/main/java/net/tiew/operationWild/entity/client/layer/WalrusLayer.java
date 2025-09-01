@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.WalrusModel;
 import net.tiew.operationWild.entity.client.render.WalrusRenderer;
-import net.tiew.operationWild.entity.custom.living.WalrusEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.WalrusEntity;
 
 public class WalrusLayer extends RenderLayer<WalrusEntity, WalrusModel<WalrusEntity>> {
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/walrus/in_resurrection.png");

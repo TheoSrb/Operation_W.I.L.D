@@ -8,9 +8,8 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.living.MantaEntity;
+import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
 
 public class MantaModel<T extends MantaEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "manta_default"), "main");

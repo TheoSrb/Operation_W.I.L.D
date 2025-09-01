@@ -11,9 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.ChameleonAnimations;
-import net.tiew.operationWild.entity.client.animation.PeacockAnimations;
-import net.tiew.operationWild.entity.client.animation.TigerAnimations;
-import net.tiew.operationWild.entity.custom.living.ChameleonEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity;
 
 public class ChameleonModel<T extends ChameleonEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "chameleon_default"), "main");

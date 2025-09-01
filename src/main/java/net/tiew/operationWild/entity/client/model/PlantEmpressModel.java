@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.PlantEmpressAnimations;
-import net.tiew.operationWild.entity.custom.living.boss.PlantEmpressEntity;
+import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 
 public class PlantEmpressModel<T extends PlantEmpressEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "plant_empress_default"), "main");

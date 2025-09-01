@@ -31,7 +31,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.client.render.*;
 import net.tiew.operationWild.entity.client.render.misc.*;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.event.ColorEvents;
 import net.tiew.operationWild.gui.HeartRenderHandler;
 import net.tiew.operationWild.item.OWCreativeTabs;

@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.ChameleonModel;
 import net.tiew.operationWild.entity.client.render.ChameleonRenderer;
-import net.tiew.operationWild.entity.custom.living.ChameleonEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity;
 
 public class ChameleonLayer extends RenderLayer<ChameleonEntity, ChameleonModel<ChameleonEntity>> {
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/chameleon/in_resurrection.png");

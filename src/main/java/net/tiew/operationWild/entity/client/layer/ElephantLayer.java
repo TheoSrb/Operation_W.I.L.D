@@ -14,8 +14,7 @@ import net.minecraft.world.item.Items;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.ElephantModel;
 import net.tiew.operationWild.entity.client.render.ElephantRenderer;
-import net.tiew.operationWild.entity.custom.living.ElephantEntity;
-import net.tiew.operationWild.item.custom.ElephantSaddle;
+import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 
 import java.util.*;
 

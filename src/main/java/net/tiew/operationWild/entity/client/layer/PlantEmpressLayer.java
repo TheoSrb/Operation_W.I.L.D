@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.entity.client.model.PlantEmpressModel;
 import net.tiew.operationWild.entity.client.render.PlantEmpressRenderer;
-import net.tiew.operationWild.entity.custom.living.boss.PlantEmpressEntity;
+import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 
 public class PlantEmpressLayer extends RenderLayer<PlantEmpressEntity, PlantEmpressModel<PlantEmpressEntity>> {
 

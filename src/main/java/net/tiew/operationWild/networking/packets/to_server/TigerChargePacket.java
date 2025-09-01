@@ -8,8 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 
 public record TigerChargePacket() implements CustomPacketPayload {
 

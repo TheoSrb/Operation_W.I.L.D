@@ -53,6 +53,8 @@ public class OWTags {
         public static final TagKey<Item> SLINGSHOT_PROJECTILES = tag("slingshot_projectiles");
         public static final TagKey<Item> BLOWPIPE_PROJECTILES = tag("blowpipe_projectiles");
 
+        public static final TagKey<Item> KODIAK_FOOD = tag("kodiak_food");
+
 
         private static TagKey<Item> tag(String name) {
             return ItemTags.create(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, name));

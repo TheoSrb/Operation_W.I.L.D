@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.screen.OWMenuRegister;
 import net.tiew.operationWild.sound.OWSounds;

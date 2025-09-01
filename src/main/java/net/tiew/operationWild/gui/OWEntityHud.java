@@ -1,17 +1,15 @@
 package net.tiew.operationWild.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.living.*;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.*;
 
 public class OWEntityHud {
 

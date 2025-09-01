@@ -10,7 +10,6 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
 
 public record OWFoodPacketClient(int entityId, int foodGiven, int foodWanted) implements CustomPacketPayload {
 

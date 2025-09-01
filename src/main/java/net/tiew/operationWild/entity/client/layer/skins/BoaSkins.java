@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.BoaModel;
 import net.tiew.operationWild.entity.client.render.BoaRenderer;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.variants.BoaVariant;
 
 public class BoaSkins extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {

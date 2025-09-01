@@ -19,7 +19,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntityRegistry;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.entity.misc.SeaBugEntity;
 
 public class SeaBugItem extends Item {
 

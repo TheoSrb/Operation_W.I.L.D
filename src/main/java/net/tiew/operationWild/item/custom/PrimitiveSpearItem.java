@@ -29,7 +29,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.enchantment.OWEnchantments;
-import net.tiew.operationWild.entity.custom.misc.PrimitiveSpearProjectileEntity;
+import net.tiew.operationWild.entity.misc.PrimitiveSpearProjectileEntity;
 
 public class PrimitiveSpearItem extends Item implements ProjectileItem {
 

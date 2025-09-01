@@ -14,7 +14,7 @@ import net.minecraft.world.item.ProjectileWeaponItem;
 import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.EventHooks;
-import net.tiew.operationWild.entity.custom.misc.SlingshotProjectile;
+import net.tiew.operationWild.entity.misc.SlingshotProjectile;
 import net.tiew.operationWild.utils.OWTags;
 
 import javax.annotation.Nullable;

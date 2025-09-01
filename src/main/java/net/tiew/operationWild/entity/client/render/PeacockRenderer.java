@@ -15,7 +15,7 @@ import net.tiew.operationWild.entity.client.layer.PeacockLayer;
 import net.tiew.operationWild.entity.client.layer.skins.PeacockSkins;
 import net.tiew.operationWild.entity.client.model.PeacockModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
 import net.tiew.operationWild.entity.variants.PeacockVariant;
 
 import java.util.Map;

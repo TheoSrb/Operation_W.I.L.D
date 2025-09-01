@@ -17,7 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.ScarifiedWoodLogBlock;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.sound.OWSounds;
 
 import java.util.EnumSet;

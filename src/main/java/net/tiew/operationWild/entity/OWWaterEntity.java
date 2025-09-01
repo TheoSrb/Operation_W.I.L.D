@@ -14,8 +14,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.tiew.operationWild.entity.goals.AquaticMoveController;
 import net.tiew.operationWild.entity.goals.AquaticPathNavigator;
-import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 
 import java.util.EnumSet;
 import java.util.Timer;

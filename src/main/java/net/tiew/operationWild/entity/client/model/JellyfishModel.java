@@ -8,10 +8,9 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.JellyfishAnimations;
-import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
+import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 
 public class JellyfishModel<T extends JellyfishEntity> extends HierarchicalModel<T> {
 

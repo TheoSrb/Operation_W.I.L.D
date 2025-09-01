@@ -11,7 +11,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.KodiakModel;
 import net.tiew.operationWild.entity.client.render.KodiakRenderer;
-import net.tiew.operationWild.entity.custom.living.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.variants.KodiakVariant;
 
 public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEntity>> {
     private static final ResourceLocation BABY_EYES = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/baby_eyes.png");
@@ -21,7 +22,9 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/in_resurrection.png");
     private static final ResourceLocation RESURRECTION_GLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/skins/kodiak_skin_gold_glowing.png");
 
-    private static final ResourceLocation ANGRY_EYES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_angry_eyes.png");
+    private static final ResourceLocation DEFAULT_ANGRY_EYES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_default_angry_eyes.png");
+    private static final ResourceLocation BLACK_ANGRY_EYES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_black_angry_eyes.png");
+    private static final ResourceLocation GREY_ANGRY_EYES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_grey_angry_eyes.png");
 
     private static final ResourceLocation BLOODY_STAGE_0_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_bloody_stage_0.png");
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_bloody_stage_1.png");
@@ -59,7 +62,7 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
         else if (kodiak.getHealth() < (kodiakHealthTier * 3)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);
 
         if (kodiak.isMad()) {
-            renderOverlay(poseStack, multiBufferSource, ANGRY_EYES_TEXTURE, true, packedLight);
+            renderOverlay(poseStack, multiBufferSource, kodiak.getVariant() == KodiakVariant.BLACK ? BLACK_ANGRY_EYES_TEXTURE : kodiak.getVariant() == KodiakVariant.GREY ? GREY_ANGRY_EYES_TEXTURE : DEFAULT_ANGRY_EYES_TEXTURE, false, packedLight);
         }
     }
 

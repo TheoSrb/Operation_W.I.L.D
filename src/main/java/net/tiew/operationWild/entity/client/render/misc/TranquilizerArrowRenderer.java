@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.misc.TranquilizerArrowModel;
-import net.tiew.operationWild.entity.custom.misc.TranquilizerArrow;
+import net.tiew.operationWild.entity.misc.TranquilizerArrow;
 
 public class TranquilizerArrowRenderer extends EntityRenderer<TranquilizerArrow> {
     private TranquilizerArrowModel model;

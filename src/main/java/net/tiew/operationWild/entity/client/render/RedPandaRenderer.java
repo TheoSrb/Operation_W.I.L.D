@@ -13,7 +13,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.RedPandaLayer;
 import net.tiew.operationWild.entity.client.model.RedPandaModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.custom.living.RedPandaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.variants.RedPandaVariant;
 
 import java.util.Map;

@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.PlantEmpressLayer;
 import net.tiew.operationWild.entity.client.model.PlantEmpressModel;
-import net.tiew.operationWild.entity.custom.living.boss.PlantEmpressEntity;
+import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 import net.tiew.operationWild.entity.variants.PlantEmpressVariant;
 
 import java.util.Map;public class PlantEmpressRenderer extends MobRenderer<PlantEmpressEntity, PlantEmpressModel<PlantEmpressEntity>> {

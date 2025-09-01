@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 
 public record StopShakingSharkPacket() implements CustomPacketPayload {
 

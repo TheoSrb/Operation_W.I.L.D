@@ -11,8 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.HyenaAnimations;
-import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
-import net.tiew.operationWild.entity.custom.living.HyenaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.HyenaEntity;
 
 public class HyenaModel<T extends HyenaEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "hyena_default"), "main");

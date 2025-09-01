@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.misc.WoodenStingerModel;
-import net.tiew.operationWild.entity.custom.misc.WoodenStinger;
+import net.tiew.operationWild.entity.misc.WoodenStinger;
 
 public class WoodenStingerRenderer extends EntityRenderer<WoodenStinger> {
     private WoodenStingerModel model;

@@ -7,9 +7,8 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.living.boss.PlantEmpressEntity;
+import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 
 import java.util.List;
 

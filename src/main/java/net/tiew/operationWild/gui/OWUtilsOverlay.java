@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.vehicle.Submarine;
+import net.tiew.operationWild.entity.misc.Submarine;
 
 public class OWUtilsOverlay { ;
 

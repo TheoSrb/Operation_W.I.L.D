@@ -13,7 +13,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.MandrillLayer;
 import net.tiew.operationWild.entity.client.model.MandrillModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.custom.living.MandrillEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.MandrillEntity;
 import net.tiew.operationWild.entity.variants.MandrillVariant;
 
 import java.util.Map;public class MandrillRenderer extends MobRenderer<MandrillEntity, MandrillModel<MandrillEntity>> {

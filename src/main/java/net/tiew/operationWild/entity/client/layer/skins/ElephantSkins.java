@@ -9,17 +9,9 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.ElephantModel;
-import net.tiew.operationWild.entity.client.model.TigerModel;
 import net.tiew.operationWild.entity.client.render.ElephantRenderer;
-import net.tiew.operationWild.entity.client.render.TigerRenderer;
-import net.tiew.operationWild.entity.custom.living.ElephantEntity;
-import net.tiew.operationWild.entity.custom.living.TigerEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
-import net.tiew.operationWild.entity.variants.TigerVariant;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public class ElephantSkins extends RenderLayer<ElephantEntity, ElephantModel<ElephantEntity>> {
     private static final ResourceLocation SKIN_GOLD_GLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/skins/elephant_skin_gold_glowing.png");

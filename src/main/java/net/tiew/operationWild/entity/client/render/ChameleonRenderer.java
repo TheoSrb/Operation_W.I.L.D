@@ -3,7 +3,6 @@ package net.tiew.operationWild.entity.client.render;
 import com.google.common.collect.Maps;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.Util;
-import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
@@ -14,7 +13,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.ChameleonLayer;
 import net.tiew.operationWild.entity.client.model.ChameleonModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.custom.living.ChameleonEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity;
 import net.tiew.operationWild.entity.variants.ChameleonVariant;
 
 import java.util.Map;

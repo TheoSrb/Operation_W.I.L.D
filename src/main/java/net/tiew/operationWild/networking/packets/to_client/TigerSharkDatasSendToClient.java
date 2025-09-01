@@ -10,7 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 
 public record TigerSharkDatasSendToClient(
         int entityId,

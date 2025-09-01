@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.JellyfishModel;
 import net.tiew.operationWild.entity.client.render.JellyfishRenderer;
-import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
+import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 
 public class JellyfishLayer extends RenderLayer<JellyfishEntity, JellyfishModel<JellyfishEntity>> {
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/in_resurrection.png");

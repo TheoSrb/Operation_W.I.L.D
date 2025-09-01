@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.misc.PrimitiveSpearProjectileModel;
-import net.tiew.operationWild.entity.custom.misc.PrimitiveSpearProjectileEntity;
+import net.tiew.operationWild.entity.misc.PrimitiveSpearProjectileEntity;
 
 public class PrimitiveSpearProjectileRenderer extends EntityRenderer<PrimitiveSpearProjectileEntity> {
     private PrimitiveSpearProjectileModel model;

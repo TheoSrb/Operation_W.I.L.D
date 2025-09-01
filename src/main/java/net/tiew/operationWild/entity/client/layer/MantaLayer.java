@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.MantaModel;
 import net.tiew.operationWild.entity.client.render.MantaRenderer;
-import net.tiew.operationWild.entity.custom.living.MantaEntity;
+import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
 
 public class MantaLayer extends RenderLayer<MantaEntity, MantaModel<MantaEntity>> {
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/manta/in_resurrection.png");

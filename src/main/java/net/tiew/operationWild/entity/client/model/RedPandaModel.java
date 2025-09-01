@@ -10,10 +10,8 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.client.animation.ElephantAnimations;
-import net.tiew.operationWild.entity.client.animation.PeacockAnimations;
 import net.tiew.operationWild.entity.client.animation.RedPandaAnimations;
-import net.tiew.operationWild.entity.custom.living.RedPandaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 
 public class RedPandaModel<T extends RedPandaEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "red_panda_default"), "main");

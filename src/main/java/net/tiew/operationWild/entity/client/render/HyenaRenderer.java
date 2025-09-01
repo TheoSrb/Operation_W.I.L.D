@@ -13,7 +13,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.HyenaLayer;
 import net.tiew.operationWild.entity.client.model.HyenaModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.custom.living.HyenaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.HyenaEntity;
 import net.tiew.operationWild.entity.variants.HyenaVariant;
 
 import java.util.Map;

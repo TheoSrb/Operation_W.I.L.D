@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 
 public record BoaFoodsSendToClient(int entityId, int foodGiven, int foodWanted, int numberOfErrors, int venomCooldown, boolean canVenom) implements CustomPacketPayload {
 

@@ -4,7 +4,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
-import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
+import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 
 public class AquaticMoveController extends MoveControl {
     private final PathfinderMob entity;

@@ -9,7 +9,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.misc.WoodenStinger;
+import net.tiew.operationWild.entity.misc.WoodenStinger;
 
 public class WoodenStingerModel extends EntityModel<WoodenStinger> {
 

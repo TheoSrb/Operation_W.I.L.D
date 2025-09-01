@@ -12,7 +12,7 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.custom.living.*;
+import net.tiew.operationWild.entity.animals.terrestrial.*;
 
 public record OWVariantsSkinsPacket(int skinIndex) implements CustomPacketPayload {
 

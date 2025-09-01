@@ -14,7 +14,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.TigerSharkLayer;
 import net.tiew.operationWild.entity.client.model.TigerSharkModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.variants.TigerSharkVariant;
 
 import java.util.Map;

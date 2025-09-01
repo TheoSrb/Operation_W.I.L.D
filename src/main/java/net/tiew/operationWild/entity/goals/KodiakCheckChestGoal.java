@@ -15,9 +15,10 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.neoforge.common.Tags;
-import net.tiew.operationWild.entity.custom.living.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 public class KodiakCheckChestGoal extends Goal {
@@ -40,6 +41,8 @@ public class KodiakCheckChestGoal extends Goal {
 
     public KodiakCheckChestGoal(KodiakEntity kodiak) {
         this.kodiak = kodiak;
+
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
     @Override

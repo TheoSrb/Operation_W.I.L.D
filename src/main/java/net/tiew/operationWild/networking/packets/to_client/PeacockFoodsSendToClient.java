@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
 
 public record PeacockFoodsSendToClient(int entityId, int foodGiven, int foodWanted) implements CustomPacketPayload {
 

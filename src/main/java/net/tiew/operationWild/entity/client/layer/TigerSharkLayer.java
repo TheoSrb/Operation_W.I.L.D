@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.TigerSharkModel;
 import net.tiew.operationWild.entity.client.render.TigerSharkRenderer;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.variants.TigerSharkVariant;
 
 public class TigerSharkLayer extends RenderLayer<TigerSharkEntity, TigerSharkModel<TigerSharkEntity>> {

@@ -8,13 +8,9 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.client.model.ElephantModel;
 import net.tiew.operationWild.entity.client.model.KodiakModel;
-import net.tiew.operationWild.entity.client.render.ElephantRenderer;
 import net.tiew.operationWild.entity.client.render.KodiakRenderer;
-import net.tiew.operationWild.entity.custom.living.ElephantEntity;
-import net.tiew.operationWild.entity.custom.living.KodiakEntity;
-import net.tiew.operationWild.entity.variants.ElephantVariant;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 
 public class KodiakSkins extends RenderLayer<KodiakEntity, KodiakModel<KodiakEntity>> {

@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.misc.SlingshotProjectileModel;
-import net.tiew.operationWild.entity.custom.misc.SlingshotProjectile;
+import net.tiew.operationWild.entity.misc.SlingshotProjectile;
 
 public class SlingshotProjectileRenderer extends EntityRenderer<SlingshotProjectile> {
     private SlingshotProjectileModel model;

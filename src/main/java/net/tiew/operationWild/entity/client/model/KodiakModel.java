@@ -13,14 +13,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.client.animation.ElephantAnimations;
 import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
-import net.tiew.operationWild.entity.custom.living.KodiakEntity;
-
-import java.util.List;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
 public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kodiak_default"), "main");

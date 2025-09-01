@@ -4,6 +4,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.tiew.operationWild.entity.OWEntity;
 
+import java.util.EnumSet;
 import java.util.function.Supplier;
 
 public class NapGoal extends Goal {

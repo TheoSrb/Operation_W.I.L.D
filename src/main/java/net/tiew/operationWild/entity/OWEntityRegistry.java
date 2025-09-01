@@ -2,17 +2,15 @@ package net.tiew.operationWild.entity;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.level.NaturalSpawner;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.living.*;
-import net.tiew.operationWild.entity.custom.living.boss.PlantEmpressEntity;
-import net.tiew.operationWild.entity.custom.misc.*;
-import net.tiew.operationWild.entity.custom.object.SeaBugShard0Entity;
-import net.tiew.operationWild.entity.custom.object.SeaBugShard1Entity;
-import net.tiew.operationWild.entity.custom.object.SeaBugShard2Entity;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
+import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.*;
+import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
+import net.tiew.operationWild.entity.misc.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.neoforge.registries.DeferredHolder;
 

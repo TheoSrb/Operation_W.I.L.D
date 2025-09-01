@@ -5,8 +5,8 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
-import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
+import net.tiew.operationWild.entity.misc.SeaBugEntity;
 
 import java.util.EnumSet;
 import java.util.List;

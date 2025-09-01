@@ -12,7 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.misc.SeaBugShard0Model;
-import net.tiew.operationWild.entity.custom.object.SeaBugShard0Entity;
+import net.tiew.operationWild.entity.misc.SeaBugShard0Entity;
 import net.tiew.operationWild.entity.variants.SeaBugShardVariant;
 
 import java.util.Map;

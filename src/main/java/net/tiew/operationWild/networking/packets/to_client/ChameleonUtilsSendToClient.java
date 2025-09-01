@@ -2,15 +2,13 @@ package net.tiew.operationWild.networking.packets.to_client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
-import net.tiew.operationWild.entity.custom.living.ChameleonEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ChameleonEntity;
 
 public record ChameleonUtilsSendToClient(
         int entityId,

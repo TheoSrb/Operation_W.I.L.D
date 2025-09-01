@@ -8,13 +8,12 @@ import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.tiew.operationWild.entity.OWEntity;
 import org.joml.Math;
 import org.joml.Vector3f;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 
 public class OWUtils {
 

@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.RedPandaModel;
 import net.tiew.operationWild.entity.client.render.RedPandaRenderer;
-import net.tiew.operationWild.entity.custom.living.RedPandaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 
 public class RedPandaLayer extends RenderLayer<RedPandaEntity, RedPandaModel<RedPandaEntity>> {
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/red_panda/in_resurrection.png");

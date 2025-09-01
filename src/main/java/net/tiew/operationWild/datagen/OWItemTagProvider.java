@@ -5,6 +5,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.Tags;
@@ -13,6 +14,7 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.item.OWItems;
+import net.tiew.operationWild.utils.OWTags;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
@@ -116,5 +118,8 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(OWItems.COOKED_TIGER.get())
                 .add(OWItems.COOKED_BOA.get())
                 .add(OWItems.SAVAGE_BERRIES.get());
+
+        tag(OWTags.Items.KODIAK_FOOD)
+                .add(Items.SALMON);
     }
 }

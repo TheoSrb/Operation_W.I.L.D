@@ -21,7 +21,7 @@ import org.joml.Matrix4f;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.SeaBugLayer;
 import net.tiew.operationWild.entity.client.model.SeaBugModel;
-import net.tiew.operationWild.entity.custom.vehicle.SeaBugEntity;
+import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.entity.variants.SeaBugVariant;
 
 import java.util.Map;

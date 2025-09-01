@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.PeacockModel;
 import net.tiew.operationWild.entity.client.render.PeacockRenderer;
-import net.tiew.operationWild.entity.custom.living.PeacockEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
 
 public class PeacockLayer extends RenderLayer<PeacockEntity, PeacockModel<PeacockEntity>> {
     private static final ResourceLocation BABY_EYES = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/peacock/baby_eyes.png");

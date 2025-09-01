@@ -18,11 +18,10 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.JellyfishLayer;
 import net.tiew.operationWild.entity.client.model.JellyfishModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.custom.living.JellyfishEntity;
+import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 import net.tiew.operationWild.entity.variants.JellyfishVariant;
 
 import java.util.Map;
-import java.util.Objects;
 
 public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishModel<JellyfishEntity>> {
     private static final Map<JellyfishVariant, ResourceLocation> LOCATION_BY_VARIANT = Util.make(Maps.newEnumMap(JellyfishVariant.class), map -> {

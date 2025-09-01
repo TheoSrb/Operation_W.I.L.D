@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -14,7 +15,7 @@ public interface OWTameImplementation {
     boolean canIncreasesSpeedDuringSprint();
     Item acceptSaddle();
     List<Class<?>> getEntityType();
-    String getTamingAdvancement();
+    ResourceLocation getTamingAdvancement();
     float getMaxVitalEnergy();
     float getVitalEnergyRecuperation();
 }

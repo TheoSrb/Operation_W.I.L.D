@@ -15,7 +15,7 @@ import net.tiew.operationWild.entity.client.layer.ElephantLayer;
 import net.tiew.operationWild.entity.client.layer.skins.ElephantSkins;
 import net.tiew.operationWild.entity.client.model.ElephantModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.custom.living.ElephantEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
 
 import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantEntity, ElephantModel<ElephantEntity>> {

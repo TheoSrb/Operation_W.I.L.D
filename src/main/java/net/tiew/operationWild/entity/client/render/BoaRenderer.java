@@ -15,7 +15,7 @@ import net.tiew.operationWild.entity.client.layer.BoaLayer;
 import net.tiew.operationWild.entity.client.layer.skins.BoaSkins;
 import net.tiew.operationWild.entity.client.model.BoaModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.custom.living.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.variants.BoaVariant;
 
 import java.util.Map;

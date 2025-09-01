@@ -3,8 +3,9 @@ package net.tiew.operationWild.entity.goals;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.common.Tags;
-import net.tiew.operationWild.entity.custom.living.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
+import java.util.EnumSet;
 import java.util.List;
 
 public class KodiakSniffPlayerFoodUpGoal extends Goal {
@@ -16,6 +17,8 @@ public class KodiakSniffPlayerFoodUpGoal extends Goal {
 
     public KodiakSniffPlayerFoodUpGoal(KodiakEntity kodiak) {
         this.kodiak = kodiak;
+
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
     @Override

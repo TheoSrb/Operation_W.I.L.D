@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.misc.VenomousArrowModel;
-import net.tiew.operationWild.entity.custom.misc.VenomousArrow;
+import net.tiew.operationWild.entity.misc.VenomousArrow;
 
 public class VenomousArrowRenderer extends EntityRenderer<VenomousArrow> {
     private VenomousArrowModel model;

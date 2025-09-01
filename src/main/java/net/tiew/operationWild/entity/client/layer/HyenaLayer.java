@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.model.HyenaModel;
 import net.tiew.operationWild.entity.client.render.HyenaRenderer;
-import net.tiew.operationWild.entity.custom.living.HyenaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.HyenaEntity;
 
 public class HyenaLayer extends RenderLayer<HyenaEntity, HyenaModel<HyenaEntity>> {
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/hyena/in_resurrection.png");

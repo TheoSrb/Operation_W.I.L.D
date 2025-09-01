@@ -12,7 +12,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.TigerSharkAnimations;
-import net.tiew.operationWild.entity.custom.living.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 
 public class TigerSharkModel<T extends TigerSharkEntity> extends HierarchicalModel<T> {
 
