@@ -19,7 +19,7 @@ import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.util.List;
 import java.util.Objects;

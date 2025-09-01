@@ -82,9 +82,13 @@
   "tooltip.resurrection": "Résurrection en cours...",
   "tooltip.resurrection_failed": "La tentative de résurrection de votre %s a échoué.",
 
-  "tooltip.mobTypesTank": "Type Tank: Diminution de 20% des dégâts de mélées.",
-  "tooltip.mobTypesAssassin": "Type Assassin: 10% de chance d'infliger un coup critique.",
-  "tooltip.mobTypesMarauder": "Type Maraudeur: Augmentation de la vitesse de 15% en combat.",
+  "tooltip.mobTypesTank": "§lType§r §b§lTank§r : Réduction des dégâts de mêlée subis.",
+  "tooltip.mobTypesAssassin": "§lType§r §4§lAssassin§r : Peut infliger un coup critique causant plus de dégâts.",
+  "tooltip.mobTypesMarauder": "§lType§r §5§lMaraudeur§r : Augmente la vitesse de déplacement en combat.",
+  "tooltip.mobTypesHealer": "§lType§r §a§lSoigneur§r : Soigne les entités apprivoisées à proximité.",
+  "tooltip.mobTypesBerserker": "§lType§r §6§lBerserker§r : Frappe plus vite et plus fort en cas de blessure.",
+  "tooltip.mobTypesScout": "§lType§r §e§lÉclaireur§r : Récupère toute son énergie vitale après chaque élimination.",
+  "tooltip.mobTypesNormal": "§lType§r §f§lNormal§r",
 
   "effect.ow.camouflage": "Camouflage",
   "effect.ow.venom": "Venin",

@@ -64,13 +64,13 @@ import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_client.BoaFoodsSendToClient;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static net.tiew.operationWild.utils.OWUtils.*;
+import static net.tiew.operationWild.core.OWUtils.*;
 
 public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtils, OWTameImplementation {
 

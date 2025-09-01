@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.item.OWItems;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 public class PrimitiveSickleItem extends Item {
     public PrimitiveSickleItem(Properties properties) {

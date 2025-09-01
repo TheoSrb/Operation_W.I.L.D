@@ -19,7 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;

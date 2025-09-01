@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.utils.OWKeysBinding;
+import net.tiew.operationWild.core.OWKeysBinding;
 
 public class OWBookNotifyOverlay {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/ow_book.png");

@@ -1,4 +1,4 @@
-package net.tiew.operationWild.utils;
+package net.tiew.operationWild.core;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;

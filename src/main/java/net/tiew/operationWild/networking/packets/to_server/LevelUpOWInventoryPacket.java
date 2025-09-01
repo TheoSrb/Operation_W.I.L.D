@@ -12,7 +12,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,25 +42,11 @@ public record LevelUpOWInventoryPacket(String attributeName) implements CustomPa
 
                 if (entity != null && entity instanceof OWEntity owEntity) {
                     if (packet.attributeName().equals("MaxHealth")) {
-                        owEntity.upgradeAttributes(
-                                owEntity,
-                                Attributes.MAX_HEALTH,
-                                owEntity.isTank() ? 1 : owEntity.isAssassin() ? 2 : owEntity.isMarauder() ? 3 : 4
-                        );
+                        owEntity.upgradeAttributes(owEntity, Attributes.MAX_HEALTH);
                     } else if (packet.attributeName().equals("AttackDamage")) {
-                        owEntity.upgradeAttributes(
-                                owEntity,
-                                Attributes.ATTACK_DAMAGE,
-                                owEntity.isAssassin() ? 1 : owEntity.isMarauder() ? 2 : owEntity.isTank() ? 3 : 4
-                        );
-
-                        System.out.println((owEntity.getDamage() / owEntity.getBaseDamage()) * 100);
+                        owEntity.upgradeAttributes(owEntity, Attributes.ATTACK_DAMAGE);
                     } else if (packet.attributeName().equals("MovementSpeed")) {
-                        owEntity.upgradeAttributes(
-                                owEntity,
-                                Attributes.MOVEMENT_SPEED,
-                                owEntity.isMarauder() ? 1 : owEntity.isAssassin() ? 2 : owEntity.isTank() ? 3 : 4
-                        );
+                        owEntity.upgradeAttributes(owEntity, Attributes.MOVEMENT_SPEED);
                     }
                     owEntity.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0f, pitch);
                 }

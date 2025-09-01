@@ -29,7 +29,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
 import net.tiew.operationWild.entity.variants.PeacockVariant;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;

@@ -17,7 +17,7 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.util.*;
 

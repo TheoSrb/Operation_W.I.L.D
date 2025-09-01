@@ -82,9 +82,13 @@
   "tooltip.resurrection": "Résurrection in progress...",
   "tooltip.resurrection_failed": "The attempt to resurrect your %s has failed.",
 
-  "tooltip.mobTypesTank": "Tank Type: 20% reduction in melée damage.",
-  "tooltip.mobTypesAssassin": "Assassin Type: 10% critical strike chance.",
-  "tooltip.mobTypesMarauder": "Marauder Type: 15% speed increase in combat.",
+  "tooltip.mobTypesTank": "§b§lTank§r §lType§r: Reduces melee damage taken.",
+  "tooltip.mobTypesAssassin": "§4§lAssassin§r §lType§r: Can land a critical hit dealing extra damage.",
+  "tooltip.mobTypesMarauder": "§5§lMarauder§r §lType§r: Increases movement speed in combat.",
+  "tooltip.mobTypesHealer": "§a§lHealer§r §lType§r: Heals nearby tamed entities.",
+  "tooltip.mobTypesBerserker": "§6§lBerserker§r §lType§r: Strikes faster and harder when injured.",
+  "tooltip.mobTypesScout": "§e§lScout§r §lType§r: Restores full health after each elimination.",
+  "tooltip.mobTypesNormal": "§f§lNormal§r §f§lType§r",
 
   "effect.ow.camouflage": "Camouflage",
   "effect.ow.venom": "Venom",

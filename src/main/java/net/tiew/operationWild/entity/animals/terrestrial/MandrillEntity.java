@@ -45,7 +45,7 @@ import net.tiew.operationWild.item.custom.AnimalSoulItem;
 
 import java.util.List;
 
-import static net.tiew.operationWild.utils.OWUtils.RANDOM;
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class MandrillEntity extends OWEntity implements OWEntityUtils, OWTameImplementation {
 

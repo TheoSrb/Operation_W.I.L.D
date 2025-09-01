@@ -48,9 +48,7 @@ import net.tiew.operationWild.entity.OWEntityUtils;
 import net.tiew.operationWild.entity.variants.HyenaVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
-import net.tiew.operationWild.utils.OWUtils;
-
-import java.util.List;
+import net.tiew.operationWild.core.OWUtils;
 
 
 public class HyenaEntity extends OWEntity implements OWEntityUtils, PlayerRideableJumping {

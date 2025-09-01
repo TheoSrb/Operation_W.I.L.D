@@ -45,24 +45,24 @@ import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.OWEntityRegistry;
-import net.tiew.operationWild.entity.utils.IOWEntity;
-import net.tiew.operationWild.entity.utils.IOWRideable;
-import net.tiew.operationWild.entity.utils.IOWTamable;
-import net.tiew.operationWild.entity.utils.OWEntityUtils;
+import net.tiew.operationWild.entity.config.IOWEntity;
+import net.tiew.operationWild.entity.config.IOWRideable;
+import net.tiew.operationWild.entity.config.IOWTamable;
+import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWTags;
+import net.tiew.operationWild.core.OWTags;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.util.*;
 import java.util.function.Predicate;
 
-import static net.tiew.operationWild.utils.OWUtils.RANDOM;
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
 
@@ -148,8 +148,13 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
-    public OWEntityUtils.Archetypes getArchetype() {
-        return OWEntityUtils.Archetypes.TANK;
+    public OWEntityConfig.Archetypes getArchetype() {
+        return OWEntityConfig.Archetypes.BERSERKER;
+    }
+
+    @Override
+    public OWEntityConfig.Diet getDiet() {
+        return OWEntityConfig.Diet.OMNIVOROUS;
     }
 
     @Override
@@ -462,7 +467,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     private boolean handleTamingInteraction(Player player, ItemStack itemStack) {
-        if (isFood(itemStack) && !this.isTame() && this.isNapping()) {
+        if (isFood(itemStack) && !this.isTame()) {
             this.foodGiven++;
             this.setNap(false, 0);
             itemStack.shrink(1);

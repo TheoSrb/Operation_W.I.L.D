@@ -27,13 +27,13 @@ import net.tiew.operationWild.entity.misc.TranquilizerWoodenStinger;
 import net.tiew.operationWild.entity.misc.WoodenStinger;
 import net.tiew.operationWild.item.custom.projectile.TranquilizerWoodenStingerItem;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWTags;
+import net.tiew.operationWild.core.OWTags;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
-import static net.tiew.operationWild.utils.OWUtils.*;
+import static net.tiew.operationWild.core.OWUtils.*;
 
 public class MayaBlowpipeItem extends ProjectileWeaponItem {
 

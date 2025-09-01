@@ -27,6 +27,7 @@ public class OWEntityTypeTagProvider extends EntityTypeTagsProvider {
 
         tag(EntityTypeTags.AQUATIC)
                 .add(OWEntityRegistry.JELLYFISH.get())
+                .add(OWEntityRegistry.TIGER_SHARK.get())
                 .add(OWEntityRegistry.MANTA.get());
 
     }

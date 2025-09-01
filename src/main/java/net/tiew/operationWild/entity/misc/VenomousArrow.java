@@ -14,7 +14,7 @@ import net.minecraft.world.phys.Vec2;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.item.OWItems;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 public class VenomousArrow extends AbstractArrow {
     public Vec2 groundedOffset;

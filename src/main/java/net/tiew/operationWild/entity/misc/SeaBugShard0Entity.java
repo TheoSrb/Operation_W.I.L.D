@@ -25,7 +25,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.variants.SeaBugShardVariant;
 import net.tiew.operationWild.item.OWItems;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 public class SeaBugShard0Entity extends SeabugShard {
 

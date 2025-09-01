@@ -1,11 +1,9 @@
 package net.tiew.operationWild.screen.entity;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -26,9 +24,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.LevelUpOWInventoryPacket;
-import net.tiew.operationWild.networking.packets.to_server.OpenDailyQuestScreen;
 import net.tiew.operationWild.screen.entity.skins.*;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -135,13 +132,14 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
     protected void renderBg(GuiGraphics guiGraphics, float p_282998_, int p_282929_, int p_283133_) {
         int i = (this.width - this.imageWidth) / 2;
         int j = (this.height - this.imageHeight) / 2;
-        int j2 = entity.isTank() ? 0 : entity.isAssassin() ? 12 : entity.isMarauder() ? 24 : 0;
+        int j1 = (entity.isHealer() || entity.isBerserker() || entity.isScout() || entity.isNormal()) ? 12 : 0;
+        int j2 = (entity.isTank() || entity.isHealer()) ? 0 : (entity.isAssassin() || entity.isBerserker()) ? 12 : (entity.isMarauder() || entity.isScout()) ? 24 : entity.isNormal() ? 36 : 0;
         int titleLength = (int) font.width(this.title);
         int genderImagePosition = entity.isFemale() ? 36 : entity.isMale() ? 48 : 0;
         int mobTypePlacementX = this.entity.getLevel() >= 50 && this.entity.getLevelPoints() <= 0 ? this.entity.getPrestigeLevel() >= 100 ? i + 116 : this.entity.getPrestigeLevel() >= 10 ? i + 123 : this.entity.getPrestigeLevel() >= 0 ? i + 129 : 0 : i + 138;
 
         guiGraphics.blit(OW_INVENTORY_LOCATION, i, j, 0, 0, 176,166);
-        guiGraphics.blit(MISC_LOCATION, mobTypePlacementX, j + 4, 0, j2, 12,12);
+        guiGraphics.blit(MISC_LOCATION, mobTypePlacementX, j + 4, j1, j2, 12,12);
         guiGraphics.blit(MISC_LOCATION, i + titleLength + 10, j + 4, 0, genderImagePosition, 12,12);
 
         if (!entity.getItemFood().isEmpty()) {
@@ -189,9 +187,9 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         this.renderEffects(graphics, mouseX, mouseY);
         this.renderTooltip(graphics, mouseX, mouseY);
 
-        float upgradeHealthLimit = entity.isTank() ? 2.5f : entity.isAssassin() ? 1.75f : entity.isMarauder() ? 1.5f : 1.0f;
-        float upgradeDamageLimit = entity.isTank() ? 1.5f : entity.isAssassin() ? 1.85f : entity.isMarauder() ? 1.7f : 1.0f;
-        float upgradeSpeedLimit = entity.isTank() ? 1.2f : entity.isAssassin() ? 1.4f : entity.isMarauder() ? 1.7f : 1.0f;
+        float upgradeHealthLimit = 1 + entity.getArchetype().getHealthMultiplier();
+        float upgradeDamageLimit = 1 + entity.getArchetype().getDamageMultiplier();
+        float upgradeSpeedLimit = 1 + entity.getArchetype().getSpeedMultiplier();
         int color = (entity.tickCount / 7) % 2 == 0 ? 0xb8e45a : 0x8b8b8b;
 
         boolean hasLevelPoints = entity.getLevelPoints() > 0;
@@ -212,7 +210,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         int titleLength = this.title.getString().length() * 6;
         int iconY = j + 4;
         int mobTypePlacementX = this.entity.getLevel() >= 50 && this.entity.getLevelPoints() <= 0 ? this.entity.getPrestigeLevel() >= 100 ? i + 116 : this.entity.getPrestigeLevel() >= 10 ? i + 123 : this.entity.getPrestigeLevel() >= 0 ? i + 129 : 0 : i + 138;
-        String tooltipKey = entity.isTank() ? "tooltip.mobTypesTank" : entity.isAssassin() ? "tooltip.mobTypesAssassin" : entity.isMarauder() ? "tooltip.mobTypesMarauder" : "";
+        String tooltipKey = entity.isTank() ? "tooltip.mobTypesTank" : entity.isAssassin() ? "tooltip.mobTypesAssassin" : entity.isMarauder() ? "tooltip.mobTypesMarauder" : entity.isHealer() ? "tooltip.mobTypesHealer" : entity.isBerserker() ? "tooltip.mobTypesBerserker" : entity.isScout() ? "tooltip.mobTypesScout" : entity.isNormal() ? "tooltip.mobTypesNormal" : "";
         Component tooltipXpValue = Component.literal(String.valueOf(Math.round(entity.getXp() * 100) / 100.0 + " / ")).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
         Component tooltipXpMaxValue = Component.literal(String.valueOf(this.entity.getLevel() < 50 ? (float) Math.round(entity.getXpStage() * 100) / 100.0 : (float) Math.round(entity.getPrestigeXpStage() * 100) / 100.0)).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
         Component tooltipXp = Component.translatable("tooltip.xp").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(this.entity.getLevel() < 50 ? 0xb8e45a : 0x7fe1ff)).withItalic(true).withBold(true));

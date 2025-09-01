@@ -57,8 +57,8 @@ import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_client.TigerSharkDatasSendToClient;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWTags;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWTags;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.util.List;
 

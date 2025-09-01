@@ -36,16 +36,16 @@ import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWDamageSources;
+import net.tiew.operationWild.core.OWDamageSources;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntityUtils;
 import net.tiew.operationWild.entity.variants.JellyfishVariant;
 import net.tiew.operationWild.item.OWItems;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.util.List;
 
-import static net.tiew.operationWild.utils.OWUtils.RANDOM;
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
 

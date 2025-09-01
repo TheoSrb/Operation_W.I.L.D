@@ -1,4 +1,4 @@
-package net.tiew.operationWild.entity.utils;
+package net.tiew.operationWild.entity.config;
 import net.minecraft.world.item.Item;
 
 public interface IOWRideable {

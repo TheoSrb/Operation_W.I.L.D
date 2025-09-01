@@ -40,7 +40,7 @@ import net.tiew.operationWild.entity.variants.MantaVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 
-import static net.tiew.operationWild.utils.OWUtils.RANDOM;
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class MantaEntity extends OWEntity implements OWEntityUtils {
 

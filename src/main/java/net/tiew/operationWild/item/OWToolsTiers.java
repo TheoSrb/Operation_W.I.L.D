@@ -3,7 +3,7 @@ package net.tiew.operationWild.item;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.neoforged.neoforge.common.SimpleTier;
-import net.tiew.operationWild.utils.OWTags;
+import net.tiew.operationWild.core.OWTags;
 
 public class OWToolsTiers {
     public static final Tier JADE = new SimpleTier(

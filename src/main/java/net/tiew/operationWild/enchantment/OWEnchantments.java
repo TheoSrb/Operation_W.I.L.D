@@ -20,7 +20,7 @@ import net.minecraft.world.level.storage.loot.predicates.DamageSourceCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemEntityPropertyCondition;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.enchantment.custom.*;
-import net.tiew.operationWild.utils.OWTags;
+import net.tiew.operationWild.core.OWTags;
 
 public class OWEnchantments {
     public static final ResourceKey<Enchantment> PUTRID = ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "putrid"));

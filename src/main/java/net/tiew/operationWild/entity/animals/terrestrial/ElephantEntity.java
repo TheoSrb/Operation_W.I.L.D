@@ -51,7 +51,7 @@ import net.tiew.operationWild.item.custom.ElephantSaddle;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.ElephantFootstepPacket;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityUtils;
@@ -61,7 +61,7 @@ import net.tiew.operationWild.item.custom.AnimalSoulItem;
 
 import java.util.*;
 
-import static net.tiew.operationWild.utils.OWUtils.RANDOM;
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImplementation, FoodsPreference {
 

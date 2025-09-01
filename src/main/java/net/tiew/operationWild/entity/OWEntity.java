@@ -66,10 +66,10 @@ import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
-import net.tiew.operationWild.entity.utils.IOWEntity;
-import net.tiew.operationWild.entity.utils.IOWRideable;
-import net.tiew.operationWild.entity.utils.IOWTamable;
-import net.tiew.operationWild.entity.utils.OWEntityUtils;
+import net.tiew.operationWild.entity.config.IOWEntity;
+import net.tiew.operationWild.entity.config.IOWRideable;
+import net.tiew.operationWild.entity.config.IOWTamable;
+import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.networking.packets.to_client.*;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +92,7 @@ import net.tiew.operationWild.screen.entity.OWInventoryMenu;
 import net.tiew.operationWild.screen.entity.submarine.SeaBugInventoryMenu;
 import net.tiew.operationWild.screen.player.OWEntityJournalScreen;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -100,8 +100,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
 
-import static net.tiew.operationWild.utils.OWUtils.RANDOM;
-import static net.tiew.operationWild.utils.OWUtils.generateRandomInterval;
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import static net.tiew.operationWild.core.OWUtils.generateRandomInterval;
 
 public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, IOWTamable, IOWRideable {
 
@@ -302,11 +302,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static final List<Item> COOKED_MEATS_ITEMS = List.of(Items.COOKED_MUTTON, Items.COOKED_CHICKEN, Items.COOKED_RABBIT, Items.COOKED_BEEF, Items.COOKED_PORKCHOP, OWItems.COOKED_TIGER.get(), OWItems.COOKED_BOA.get(), OWItems.COOKED_PEACOCK.get());
 
     public static final List<Item> FOOD_FOR_HEALING_VEGETABLES = List.of(Items.APPLE, Items.POTATO, Items.CARROT, Items.BEETROOT, Items.BROWN_MUSHROOM, Items.RED_MUSHROOM, Items.BREAD, Items.PUMPKIN_PIE, Items.MELON, Items.COOKIE, OWItems.SAVAGE_BERRIES.get(), Items.GLOW_BERRIES, Items.SWEET_BERRIES);
-
-    public boolean isTank() { return getArchetype() == OWEntityUtils.Archetypes.TANK;}
-    public boolean isAssassin() { return getArchetype() == OWEntityUtils.Archetypes.ASSASSIN;}
-    public boolean isMarauder() { return getArchetype() == OWEntityUtils.Archetypes.MARAUDER;}
-    public boolean isHealer() { return getArchetype() == OWEntityUtils.Archetypes.HEALER;}
 
     public float getBaseHealth() { return this.entityData.get(BASE_HEALTH);}
     public void setBaseHealth(float health) { this.entityData.set(BASE_HEALTH, health);}
@@ -970,16 +965,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         System.out.println("New Health: " + entity.getAttributeBaseValue(Attributes.MAX_HEALTH) + " New Damage: " + entity.getAttributeBaseValue(Attributes.ATTACK_DAMAGE) + " New Speed: " + entity.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
     }
 
-    public void upgradeAttributes(OWEntity entity, Holder<Attribute> attributes1, int priority) {
-        if (priority > 3) return;
-        if (priority == 1) entity.getAttribute(attributes1).setBaseValue(entity.getAttribute(attributes1).getBaseValue() + chooseValueForUpgradingAttributes(1, 1.5, attributes1));
-        else if (priority == 2) entity.getAttribute(attributes1).setBaseValue(entity.getAttribute(attributes1).getBaseValue() + chooseValueForUpgradingAttributes(0.75, 1, attributes1));
-        else if (priority == 3) entity.getAttribute(attributes1).setBaseValue(entity.getAttribute(attributes1).getBaseValue() + chooseValueForUpgradingAttributes(0.5, 0.75, attributes1));
-
-        if (attributes1 == Attributes.ATTACK_DAMAGE) setDamageToClient(this.getDamage());
+    public void upgradeAttributes(OWEntity entity, Holder<Attribute> attribute) {
+        if (attribute == null) return;
+        if (attribute == Attributes.MAX_HEALTH) {
+            entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(entity.getAttribute(attribute).getBaseValue() + (1 * getArchetype().getHealthMultiplier()));
+        } else if (attribute == Attributes.ATTACK_DAMAGE) {
+            entity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(entity.getAttribute(attribute).getBaseValue() + (0.15 * getArchetype().getDamageMultiplier()));
+            setDamageToClient(entity.getDamage());
+        } else if (attribute == Attributes.MOVEMENT_SPEED) {
+            entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(entity.getAttribute(attribute).getBaseValue() + (0.002 * getArchetype().getDamageMultiplier()));
+        }
 
         this.setLevelPoints(this.getLevelPoints() - 1);
-        System.out.println("Vie: " + entity.getMaxHealth() + " |  Dégâts: " + entity.getDamage() + " | Vitesse: " + entity.getSpeed());
     }
 
     public double chooseValueForUpgradingAttributes(double min, double max, Holder<Attribute> attributes) {
@@ -2603,8 +2600,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 this.setPassive(true);
 
                 if (player instanceof ServerPlayer serverPlayer) {
-                    System.out.println("advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectAdvancementByEntity());
-                    serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + selectAdvancementByEntity());
+                    serverPlayer.getServer().getCommands().performPrefixedCommand(
+                            serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(),
+                            "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + selectAdvancementByEntity()
+                    );
                 }
 
             } else {
@@ -2673,7 +2672,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     @Override
-    public OWEntityUtils.Archetypes getArchetype() {
+    public OWEntityConfig.Archetypes getArchetype() {
+        return null;
+    }
+
+    @Override
+    public OWEntityConfig.Diet getDiet() {
         return null;
     }
 

@@ -57,6 +57,10 @@ import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.OWTameImplementation;
+import net.tiew.operationWild.entity.config.IOWEntity;
+import net.tiew.operationWild.entity.config.IOWRideable;
+import net.tiew.operationWild.entity.config.IOWTamable;
+import net.tiew.operationWild.entity.config.OWEntityConfig;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.goals.NapGoal;
@@ -69,15 +73,15 @@ import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_client.TigerUtilsSendToClientPacket;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWTags;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWTags;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.util.List;
 
-import static net.tiew.operationWild.utils.OWUtils.RANDOM;
-import static net.tiew.operationWild.utils.OWUtils.determinateMinAndMax;
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import static net.tiew.operationWild.core.OWUtils.determinateMinAndMax;
 
-public class TigerEntity extends OWEntity implements OWTameImplementation, PlayerRideableJumping, FoodsPreference, OWEntityUtils {
+public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, PlayerRideableJumping {
 
     public static final double TAMING_EXPERIENCE = 195.0;
 
@@ -145,14 +149,25 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     }
 
     // Entity Methods
+
     @Override
     public int getEntityColor() {
         return 0xc47037;
     }
 
     @Override
-    public float getEntityScale() {
+    public float getTheoreticalScale() {
         return 7.5f;
+    }
+
+    @Override
+    public OWEntityConfig.Archetypes getArchetype() {
+        return OWEntityConfig.Archetypes.ASSASSIN;
+    }
+
+    @Override
+    public OWEntityConfig.Diet getDiet() {
+        return OWEntityConfig.Diet.CARNIVOROUS;
     }
 
     @Override
@@ -176,13 +191,13 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     }
 
     @Override
-    public Item acceptSaddle() {
-        return OWItems.TIGER_SADDLE.get();
+    public boolean canIncreasesSpeedDuringSprint() {
+        return false;
     }
 
     @Override
-    public List<Class<?>> getEntityType() {
-        return ASSASSIN_ENTITIES;
+    public Item acceptSaddle() {
+        return OWItems.TIGER_SADDLE.get();
     }
 
     @Override
@@ -197,7 +212,22 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 1f * (1 + ((float) this.getLevel() / 50));
+        return 1 * (1 + ((float) this.getLevel() / 50));
+    }
+
+    @Override
+    public boolean preferRawMeat() {
+        return true;
+    }
+
+    @Override
+    public boolean preferCookedMeat() {
+        return false;
+    }
+
+    @Override
+    public boolean preferVegetables() {
+        return false;
     }
 
     protected void registerGoals() {
@@ -931,17 +961,6 @@ public class TigerEntity extends OWEntity implements OWTameImplementation, Playe
     }
 
     private boolean isValidFood(ItemStack stack) { return stack.is(OWTags.Items.TIGER_TAMING_FOOD);}
-
-    @Override
-    public boolean preferRawMeat() { return true;}
-
-    @Override
-    public boolean preferCookedMeat() { return false;}
-
-    @Override
-    public boolean preferVegetables() {
-        return false;
-    }
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {

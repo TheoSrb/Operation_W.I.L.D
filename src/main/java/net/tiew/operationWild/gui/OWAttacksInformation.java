@@ -11,7 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
-import net.tiew.operationWild.utils.OWKeysBinding;
+import net.tiew.operationWild.core.OWKeysBinding;
 
 import java.util.List;
 

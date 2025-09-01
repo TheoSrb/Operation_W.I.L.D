@@ -48,8 +48,8 @@ import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.*;
 import net.tiew.operationWild.screen.player.OWEntityJournalScreen;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWDamageSources;
-import net.tiew.operationWild.utils.OWKeysBinding;
+import net.tiew.operationWild.core.OWDamageSources;
+import net.tiew.operationWild.core.OWKeysBinding;
 
 import java.io.*;
 import java.util.Properties;

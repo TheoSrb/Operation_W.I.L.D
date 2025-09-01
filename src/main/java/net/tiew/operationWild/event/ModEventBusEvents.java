@@ -24,7 +24,7 @@ import net.tiew.operationWild.entity.misc.SeaBugShard1Entity;
 import net.tiew.operationWild.entity.misc.SeaBugShard2Entity;
 import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
-import net.tiew.operationWild.utils.OWKeysBinding;
+import net.tiew.operationWild.core.OWKeysBinding;
 
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class ModEventBusEvents {

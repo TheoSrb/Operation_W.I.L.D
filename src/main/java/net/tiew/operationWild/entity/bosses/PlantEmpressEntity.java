@@ -38,12 +38,12 @@ import net.tiew.operationWild.entity.misc.SlingshotProjectile;
 import net.tiew.operationWild.entity.misc.VenomousArrow;
 import net.tiew.operationWild.entity.variants.PlantEmpressVariant;
 import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.utils.OWUtils;
+import net.tiew.operationWild.core.OWUtils;
 
 import java.util.List;
 import java.util.Map;
 
-import static net.tiew.operationWild.utils.OWUtils.RANDOM;
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
 
