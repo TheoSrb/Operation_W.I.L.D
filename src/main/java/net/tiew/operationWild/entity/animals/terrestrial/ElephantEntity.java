@@ -43,6 +43,10 @@ import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.effect.OWEffects;
+import net.tiew.operationWild.entity.config.IOWEntity;
+import net.tiew.operationWild.entity.config.IOWRideable;
+import net.tiew.operationWild.entity.config.IOWTamable;
+import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.OWTameImplementation;
@@ -63,7 +67,7 @@ import java.util.*;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImplementation, FoodsPreference {
+public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
 
     public static final double TAMING_EXPERIENCE = 345.0;
 
@@ -105,8 +109,18 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     }
 
     @Override
-    public float getEntityScale() {
+    public float getTheoreticalScale() {
         return 15;
+    }
+
+    @Override
+    public OWEntityConfig.Archetypes getArchetype() {
+        return OWEntityConfig.Archetypes.TANK;
+    }
+
+    @Override
+    public OWEntityConfig.Diet getDiet() {
+        return OWEntityConfig.Diet.VEGETARIAN;
     }
 
     @Override
@@ -137,11 +151,6 @@ public class ElephantEntity extends OWEntity implements OWEntityUtils, OWTameImp
     @Override
     public Item acceptSaddle() {
         return OWItems.ELEPHANT_SADDLE.get();
-    }
-
-    @Override
-    public List<Class<?>> getEntityType() {
-        return TANK_ENTITIES;
     }
 
     @Override

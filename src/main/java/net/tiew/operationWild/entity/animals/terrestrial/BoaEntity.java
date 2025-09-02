@@ -50,6 +50,10 @@ import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.entity.OWTameImplementation;
+import net.tiew.operationWild.entity.config.IOWEntity;
+import net.tiew.operationWild.entity.config.IOWRideable;
+import net.tiew.operationWild.entity.config.IOWTamable;
+import net.tiew.operationWild.entity.config.OWEntityConfig;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.effect.OWEffects;
@@ -72,7 +76,7 @@ import java.util.TimerTask;
 
 import static net.tiew.operationWild.core.OWUtils.*;
 
-public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtils, OWTameImplementation {
+public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
 
     public static final double TAMING_EXPERIENCE = 80.0;
 
@@ -126,8 +130,18 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     }
 
     @Override
-    public float getEntityScale() {
+    public float getTheoreticalScale() {
         return 5.5f;
+    }
+
+    @Override
+    public OWEntityConfig.Archetypes getArchetype() {
+        return OWEntityConfig.Archetypes.MARAUDER;
+    }
+
+    @Override
+    public OWEntityConfig.Diet getDiet() {
+        return OWEntityConfig.Diet.CARNIVOROUS;
     }
 
     @Override
@@ -151,13 +165,13 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     }
 
     @Override
-    public Item acceptSaddle() {
-        return OWItems.BOA_SADDLE.get();
+    public boolean canIncreasesSpeedDuringSprint() {
+        return false;
     }
 
     @Override
-    public List<Class<?>> getEntityType() {
-        return MARAUDER_ENTITIES;
+    public Item acceptSaddle() {
+        return OWItems.BOA_SADDLE.get();
     }
 
     @Override
@@ -174,6 +188,18 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
     public float getVitalEnergyRecuperation() {
         return 1.5f * (1 + ((float) this.getLevel() / 50));
     }
+
+    @Override
+    public boolean preferRawMeat() { return false;}
+
+    @Override
+    public boolean preferCookedMeat() { return false;}
+
+    @Override
+    public boolean preferVegetables() {
+        return true;
+    }
+
 
     // Entity's AI
     protected void registerGoals() {
@@ -657,17 +683,6 @@ public class BoaEntity extends OWEntity implements FoodsPreference, OWEntityUtil
             else return !otherBoa.isTame();
         }
         return super.isAlliedTo(entity);
-    }
-
-    @Override
-    public boolean preferRawMeat() { return true;}
-
-    @Override
-    public boolean preferCookedMeat() { return false;}
-
-    @Override
-    public boolean preferVegetables() {
-        return false;
     }
 
     @Override

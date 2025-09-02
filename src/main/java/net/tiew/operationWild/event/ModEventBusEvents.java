@@ -19,10 +19,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.client.model.*;
 import net.tiew.operationWild.entity.client.model.misc.*;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
-import net.tiew.operationWild.entity.misc.SeaBugShard0Entity;
-import net.tiew.operationWild.entity.misc.SeaBugShard1Entity;
-import net.tiew.operationWild.entity.misc.SeaBugShard2Entity;
-import net.tiew.operationWild.entity.misc.SeaBugEntity;
+import net.tiew.operationWild.entity.misc.*;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.core.OWKeysBinding;
 
@@ -69,6 +66,8 @@ public class ModEventBusEvents {
         event.registerLayerDefinition(TranquilizerWoodenStingerModel.LAYER_LOCATION, TranquilizerWoodenStingerModel::createBodyLayer);
         event.registerLayerDefinition(VenomousArrowModel.LAYER_LOCATION, VenomousArrowModel::createBodyLayer);
         event.registerLayerDefinition(SlingshotProjectileModel.LAYER_LOCATION, SlingshotProjectileModel::createBodyLayer);
+
+        event.registerLayerDefinition(AdventurerManuscriptModel.LAYER_LOCATION, AdventurerManuscriptModel::createBodyLayer);
     }
 
     @SubscribeEvent
@@ -92,6 +91,8 @@ public class ModEventBusEvents {
         event.put(OWEntityRegistry.SEABUG_SHARD_0.get(), SeaBugShard0Entity.createAttributes().build());
         event.put(OWEntityRegistry.SEABUG_SHARD_1.get(), SeaBugShard1Entity.createAttributes().build());
         event.put(OWEntityRegistry.SEABUG_SHARD_2.get(), SeaBugShard2Entity.createAttributes().build());
+
+        event.put(OWEntityRegistry.ADVENTURER_MANUSCRIPT.get(), AdventurerManuscript.createAttributes().build());
     }
 
     @SubscribeEvent

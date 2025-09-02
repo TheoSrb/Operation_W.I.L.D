@@ -51,4 +51,7 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<TranquilizerWoodenStinger>> TRANQUILIZER_WOODEN_STINGER = ENTITY_TYPES.register("tranquilizer_wooden_stinger", () -> EntityType.Builder.<TranquilizerWoodenStinger>of(TranquilizerWoodenStinger::new, MobCategory.MISC).sized(0.25f, 0.25f).build("tranquilizer_wooden_stinger"));
     public static final DeferredHolder<EntityType<?>, EntityType<VenomousArrow>> VENOMOUS_ARROW = ENTITY_TYPES.register("venomous_arrow", () -> EntityType.Builder.<VenomousArrow>of(VenomousArrow::new, MobCategory.MISC).sized(0.5f, 0.5f).build("venomous_arrow"));
     public static final DeferredHolder<EntityType<?>, EntityType<SlingshotProjectile>> SLINGSHOT_PROJECTILE = ENTITY_TYPES.register("slingshot_projectile", () -> EntityType.Builder.<SlingshotProjectile>of(SlingshotProjectile::new, MobCategory.MISC).sized(0.5f, 0.5f).build("slingshot_projectile"));
+
+
+    public static final DeferredHolder<EntityType<?>, EntityType<AdventurerManuscript>> ADVENTURER_MANUSCRIPT = ENTITY_TYPES.register("adventurer_manuscript", () -> EntityType.Builder.<AdventurerManuscript>of(AdventurerManuscript::new, MobCategory.MISC).sized(0.5f, 0.5f).build("adventurer_manuscript"));
 }

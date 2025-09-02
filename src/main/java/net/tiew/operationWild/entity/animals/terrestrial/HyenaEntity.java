@@ -39,6 +39,10 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.EventHooks;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.tiew.operationWild.advancements.OWAdvancements;
+import net.tiew.operationWild.entity.config.IOWEntity;
+import net.tiew.operationWild.entity.config.IOWRideable;
+import net.tiew.operationWild.entity.config.IOWTamable;
+import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.goals.OWFollowOwnerGoal;
@@ -51,7 +55,7 @@ import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.core.OWUtils;
 
 
-public class HyenaEntity extends OWEntity implements OWEntityUtils, PlayerRideableJumping {
+public class HyenaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, PlayerRideableJumping {
 
     public static final double TAMING_EXPERIENCE = 55.0;
 
@@ -78,8 +82,18 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils, PlayerRideab
     }
 
     @Override
-    public float getEntityScale() {
-        return 5;
+    public float getTheoreticalScale() {
+        return 4.5f;
+    }
+
+    @Override
+    public OWEntityConfig.Archetypes getArchetype() {
+        return OWEntityConfig.Archetypes.MARAUDER;
+    }
+
+    @Override
+    public OWEntityConfig.Diet getDiet() {
+        return OWEntityConfig.Diet.CARNIVOROUS;
     }
 
     @Override
@@ -111,7 +125,6 @@ public class HyenaEntity extends OWEntity implements OWEntityUtils, PlayerRideab
     public Item acceptSaddle() {
         return OWItems.KODIAK_SADDLE.get();
     }
-
 
     @Override
     public ResourceLocation getTamingAdvancement() {

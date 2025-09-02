@@ -131,6 +131,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private float currentSpeed = 0;
     private float targetSpeed = 0;
 
+    public static float comboSpeedMultiplier = 1.0f;
+
     public static final float SAVAGE_ENTITY_DAMAGE_MULITPLIER = 1.4f;
 
     private static int killCounter = 0;

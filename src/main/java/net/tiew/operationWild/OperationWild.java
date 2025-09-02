@@ -225,6 +225,8 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.SEABUG_SHARD_1.get(), SeaBugShard1Renderer::new);
             EntityRenderers.register(OWEntityRegistry.SEABUG_SHARD_2.get(), SeaBugShard2Renderer::new);
 
+            EntityRenderers.register(OWEntityRegistry.ADVENTURER_MANUSCRIPT.get(), AdventurerManuscriptRenderer::new);
+
             HeartRenderHandler.register();
         }
 

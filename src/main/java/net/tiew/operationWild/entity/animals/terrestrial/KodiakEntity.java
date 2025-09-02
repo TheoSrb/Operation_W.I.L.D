@@ -110,9 +110,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
+        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 30f, 15, 3));
         this.goalSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, true));
         this.goalSelector.addGoal(4, new RandomStrollGoal(this, 0.8f));
-        this.goalSelector.addGoal(5, new OWFollowOwnerGoal(this, this.getSpeed() * 30f, 15, 3));
         this.goalSelector.addGoal(5, new FollowParentGoal(this, 1.25D));
         this.goalSelector.addGoal(6, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
@@ -137,6 +137,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(IS_RUB, false);
     }
 
+    // Entity Methods
     @Override
     public int getEntityColor() {
         return 8215109;
@@ -249,7 +250,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public void tick() {
         super.tick();
-        createCombo(20, 12, random.nextInt(2) == 0 ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get(), 3.0, 2, 2.25, false, 2);
+        createCombo((int) (20 / comboSpeedMultiplier), (int) (12 / comboSpeedMultiplier), random.nextInt(2) == 0 ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get(), 3.0, 2, 2.25, false, 2);
 
         createTerritorySystem();
         setTamingPercentage(this.foodGiven, this.foodWanted);
@@ -601,9 +602,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, 20);
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, 20);
-        setupComboAnimation(3, attack3Combo, attack3ComboTimer, 30);
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (20 / comboSpeedMultiplier));
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (20 / comboSpeedMultiplier));
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (30 / comboSpeedMultiplier));
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {

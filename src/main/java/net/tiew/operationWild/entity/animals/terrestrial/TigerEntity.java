@@ -149,7 +149,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     // Entity Methods
-
     @Override
     public int getEntityColor() {
         return 0xc47037;

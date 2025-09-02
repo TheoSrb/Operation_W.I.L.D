@@ -156,7 +156,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
-        if (tiger.getMaturationPercentage() < 60 && tiger.getMaturationPercentage() > 0) {
+        if ((tiger.getMaturationPercentage() < 60 && tiger.getMaturationPercentage() > 0) || (tiger.isMad())) {
             this.left_eyeBall.xScale = 0;
             this.left_eyeBall.yScale = 0;
             this.left_eyeBall.zScale = 0;

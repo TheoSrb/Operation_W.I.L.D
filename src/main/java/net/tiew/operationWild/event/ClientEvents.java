@@ -33,6 +33,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.networking.ClientKillData;
+import net.tiew.operationWild.screen.player.AdventurerManuscriptScreen;
 import org.joml.Quaternionf;
 import org.lwjgl.glfw.GLFW;
 import net.tiew.operationWild.OperationWild;
@@ -155,7 +156,8 @@ public class ClientEvents {
             }
         }
         if (minecraft.player != null && OWKeysBinding.OW_ENTITY_JOURNAL.isDown()) {
-            minecraft.setScreen(new OWEntityJournalScreen());
+            //minecraft.setScreen(new OWEntityJournalScreen());
+            minecraft.setScreen(new AdventurerManuscriptScreen());
             isNotifiedOWBook = false;
             minecraft.player.playSound(SoundEvents.BOOK_PAGE_TURN);
         }
