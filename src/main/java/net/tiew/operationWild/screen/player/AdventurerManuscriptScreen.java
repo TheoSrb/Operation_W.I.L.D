@@ -148,17 +148,6 @@ public class AdventurerManuscriptScreen extends Screen {
         }
     }
 
-    public String getPageTexture(int actualPage) {
-        EntityType<? extends OWEntity> entityType = getPageAnimal(actualPage);
-
-        if (entityType != null) {
-            String entityName = entityType.getDescriptionId().replace("entity.your_mod.", "");
-            return "textures/gui/adventurer_manuscript/" + entityName + "_chapter.png";
-        }
-
-        return "textures/gui/adventurer_manuscript/default_chapter.png";
-    }
-
     public EntityType<? extends OWEntity> getPageAnimal(int actualPage) {
         for (Map.Entry<EntityType<? extends OWEntity>, Integer> entry : ENTITIES.entrySet()) {
             if (entry.getValue().equals(actualPage)) {
