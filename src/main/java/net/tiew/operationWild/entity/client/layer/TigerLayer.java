@@ -66,8 +66,8 @@ public class TigerLayer extends RenderLayer<TigerEntity, TigerModel<TigerEntity>
 
         if (tiger.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
         if (tiger.isMad()) {
-            if (tiger.isWhite()) renderOverlay(poseStack, multiBufferSource, ANGRY_EYES_WHITE_TEXTURE, false, packedLight);
-            else renderOverlay(poseStack, multiBufferSource, ANGRY_EYES_TEXTURE, false, packedLight);
+            if (tiger.isWhite()) renderOverlay(poseStack, multiBufferSource, ANGRY_EYES_WHITE_TEXTURE, true, packedLight);
+            else renderOverlay(poseStack, multiBufferSource, ANGRY_EYES_TEXTURE, true, packedLight);
         }
     }
 

@@ -62,7 +62,7 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
         else if (kodiak.getHealth() < (kodiakHealthTier * 3)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);
 
         if (kodiak.isMad()) {
-            renderOverlay(poseStack, multiBufferSource, kodiak.getVariant() == KodiakVariant.BLACK ? BLACK_ANGRY_EYES_TEXTURE : kodiak.getVariant() == KodiakVariant.GREY ? GREY_ANGRY_EYES_TEXTURE : DEFAULT_ANGRY_EYES_TEXTURE, false, packedLight);
+            renderOverlay(poseStack, multiBufferSource, kodiak.getVariant() == KodiakVariant.BLACK ? BLACK_ANGRY_EYES_TEXTURE : kodiak.getVariant() == KodiakVariant.GREY ? GREY_ANGRY_EYES_TEXTURE : DEFAULT_ANGRY_EYES_TEXTURE, true, packedLight);
         }
     }
 
