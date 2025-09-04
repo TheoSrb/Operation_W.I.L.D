@@ -83,7 +83,7 @@ public class AdventurerManuscriptScreen extends Screen {
 
     private void assignEntityToHisPage() {
         for (int i = 0; i < owEntities.size(); i++) {
-            ENTITIES.put(owEntities.get(i), i);
+            ENTITIES.put(owEntities.get(i), i + 1);
         }
     }
 
@@ -116,6 +116,7 @@ public class AdventurerManuscriptScreen extends Screen {
         });
 
         assignEntityToHisPage();
+        this.maxPage = owEntities.size();
         updatePageContent();
     }
 
@@ -127,44 +128,37 @@ public class AdventurerManuscriptScreen extends Screen {
     private void updatePageContent() {
         String newLeftPage = "";
 
-        if (actualPage == getAnimalPage(OWEntityRegistry.KODIAK.get())) {
-            newLeftPage = "textures/gui/adventurer_manuscript/kodiak_chapter.png";
-        } else if (actualPage == getAnimalPage(OWEntityRegistry.TIGER.get())) {
-            newLeftPage = "textures/gui/adventurer_manuscript/tiger_chapter.png";
-        } else if (actualPage == getAnimalPage(OWEntityRegistry.JELLYFISH.get())) {
-            newLeftPage = "textures/gui/adventurer_manuscript/jellyfish_chapter.png";
-        } else if (actualPage == getAnimalPage(OWEntityRegistry.ELEPHANT.get())) {
-            newLeftPage = "textures/gui/adventurer_manuscript/elephant_chapter.png";
+        EntityType<? extends OWEntity> entityType = getPageAnimal(actualPage);
+        if (entityType != null) {
+            if (entityType == OWEntityRegistry.KODIAK.get()) {
+                newLeftPage = "textures/gui/adventurer_manuscript/kodiak_chapter.png";
+            } else if (entityType == OWEntityRegistry.TIGER.get()) {
+                newLeftPage = "textures/gui/adventurer_manuscript/tiger_chapter.png";
+            } else if (entityType == OWEntityRegistry.JELLYFISH.get()) {
+                newLeftPage = "textures/gui/adventurer_manuscript/jellyfish_chapter.png";
+            } else if (entityType == OWEntityRegistry.ELEPHANT.get()) {
+                newLeftPage = "textures/gui/adventurer_manuscript/elephant_chapter.png";
+            }
         }
 
-
         if (!newLeftPage.equals(currentLeftPage)) {
-            if (!currentLeftPage.equals("") || !newLeftPage.equals("")) {
-                targetLeftPage = newLeftPage;
-                isFading = true;
-                fadeTimer = 0;
-            } else {
-                currentLeftPage = newLeftPage;
-                LEFT_PAGE = currentLeftPage;
-            }
+            targetLeftPage = newLeftPage;
+            isFading = true;
+            fadeTimer = 0;
         }
     }
 
     public String getPageTexture(int actualPage) {
-        // Récupérer l'EntityType pour cette page
         EntityType<? extends OWEntity> entityType = getPageAnimal(actualPage);
 
         if (entityType != null) {
-            // Construire le chemin avec le nom de l'EntityType
-            String entityName = entityType.getDescriptionId().replace("entity.your_mod.", ""); // Adapter selon votre mod
+            String entityName = entityType.getDescriptionId().replace("entity.your_mod.", "");
             return "textures/gui/adventurer_manuscript/" + entityName + "_chapter.png";
         }
 
-        // Fallback si aucune entité trouvée
         return "textures/gui/adventurer_manuscript/default_chapter.png";
     }
 
-    // Votre méthode getPageAnimal (de la version précédente)
     public EntityType<? extends OWEntity> getPageAnimal(int actualPage) {
         for (Map.Entry<EntityType<? extends OWEntity>, Integer> entry : ENTITIES.entrySet()) {
             if (entry.getValue().equals(actualPage)) {
@@ -242,9 +236,11 @@ public class AdventurerManuscriptScreen extends Screen {
 
         if (fadeTimer < FADE_DURATION) {
             return 1.0f - (fadeTimer / (float) FADE_DURATION);
-        } else {
+        } else if (fadeTimer < FADE_DURATION * 2) {
             return (fadeTimer - FADE_DURATION) / (float) FADE_DURATION;
         }
+
+        return 1.0f;
     }
 
     @Override
