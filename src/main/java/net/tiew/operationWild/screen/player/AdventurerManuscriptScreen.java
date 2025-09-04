@@ -26,10 +26,7 @@ import net.tiew.operationWild.entity.misc.AdventurerManuscript;
 import org.lwjgl.glfw.GLFW;
 
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class AdventurerManuscriptScreen extends Screen {
 
@@ -134,7 +131,12 @@ public class AdventurerManuscriptScreen extends Screen {
             newLeftPage = "textures/gui/adventurer_manuscript/kodiak_chapter.png";
         } else if (actualPage == getAnimalPage(OWEntityRegistry.TIGER.get())) {
             newLeftPage = "textures/gui/adventurer_manuscript/tiger_chapter.png";
+        } else if (actualPage == getAnimalPage(OWEntityRegistry.JELLYFISH.get())) {
+            newLeftPage = "textures/gui/adventurer_manuscript/jellyfish_chapter.png";
+        } else if (actualPage == getAnimalPage(OWEntityRegistry.ELEPHANT.get())) {
+            newLeftPage = "textures/gui/adventurer_manuscript/elephant_chapter.png";
         }
+
 
         if (!newLeftPage.equals(currentLeftPage)) {
             if (!currentLeftPage.equals("") || !newLeftPage.equals("")) {
@@ -146,6 +148,30 @@ public class AdventurerManuscriptScreen extends Screen {
                 LEFT_PAGE = currentLeftPage;
             }
         }
+    }
+
+    public String getPageTexture(int actualPage) {
+        // Récupérer l'EntityType pour cette page
+        EntityType<? extends OWEntity> entityType = getPageAnimal(actualPage);
+
+        if (entityType != null) {
+            // Construire le chemin avec le nom de l'EntityType
+            String entityName = entityType.getDescriptionId().replace("entity.your_mod.", ""); // Adapter selon votre mod
+            return "textures/gui/adventurer_manuscript/" + entityName + "_chapter.png";
+        }
+
+        // Fallback si aucune entité trouvée
+        return "textures/gui/adventurer_manuscript/default_chapter.png";
+    }
+
+    // Votre méthode getPageAnimal (de la version précédente)
+    public EntityType<? extends OWEntity> getPageAnimal(int actualPage) {
+        for (Map.Entry<EntityType<? extends OWEntity>, Integer> entry : ENTITIES.entrySet()) {
+            if (entry.getValue().equals(actualPage)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     private void nextPage() {
