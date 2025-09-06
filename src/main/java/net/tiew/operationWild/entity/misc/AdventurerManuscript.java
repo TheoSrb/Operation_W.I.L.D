@@ -56,27 +56,6 @@ public class AdventurerManuscript extends Mob {
         }
     }
 
-    public void startOpenAnimation() {
-        if (this.openAnimationTimeout <= 0) {
-            this.openAnimationTimeout = 48;
-            this.openAnimationState.start(this.tickCount);
-        }
-    }
-
-    public void startNextPageAnimation() {
-        if (this.nextPageAnimationTimeout <= 0) {
-            this.nextPageAnimationTimeout = 44;
-            this.nextPageAnimationState.start(this.tickCount);
-        }
-    }
-
-    public void startPrecedentPageAnimation() {
-        if (this.precedentPageAnimationTimeout <= 0) {
-            this.precedentPageAnimationTimeout = 44;
-            this.precedentPageAnimationState.start(this.tickCount);
-        }
-    }
-
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);

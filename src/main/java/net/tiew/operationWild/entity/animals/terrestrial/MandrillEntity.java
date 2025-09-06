@@ -103,6 +103,11 @@ public class MandrillEntity extends OWEntity implements OWEntityUtils, OWTameImp
     }
 
     @Override
+    public double getTamingExperience() {
+        return TAMING_EXPERIENCE;
+    }
+
+    @Override
     public float getMaxVitalEnergy() {
         return 500 * (1 + ((float) this.getLevel() / 50));
     }

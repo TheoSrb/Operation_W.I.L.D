@@ -2674,6 +2674,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     @Override
+    public double getTamingExperience() {
+        return 0;
+    }
+
+    @Override
     public OWEntityConfig.Archetypes getArchetype() {
         return null;
     }

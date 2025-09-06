@@ -143,6 +143,11 @@ public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, 
     }
 
     @Override
+    public double getTamingExperience() {
+        return TAMING_EXPERIENCE;
+    }
+
+    @Override
     public float getMaxVitalEnergy() {
         return 215 * (1 + ((float) this.getLevel() / 50));
     }

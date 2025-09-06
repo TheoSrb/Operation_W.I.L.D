@@ -160,6 +160,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     @Override
+    public double getTamingExperience() {
+        return TAMING_EXPERIENCE;
+    }
+
+    @Override
     public OWEntityConfig.Archetypes getArchetype() {
         return OWEntityConfig.Archetypes.ASSASSIN;
     }

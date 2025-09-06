@@ -182,6 +182,22 @@
   "tooltip.juvenile": "Juvénile",
   "tooltip.adolescent": "Adolescent",
 
+  "chapter.entity.ow.tiger": "Tigre",
+  "chapter.entity.ow.mandrill": "Mandrill",
+  "chapter.entity.ow.elephant": "Éléphant",
+  "chapter.entity.ow.walrus": "Morse",
+  "chapter.entity.ow.manta": "Raie Manta",
+  "chapter.entity.ow.jellyfish": "Méduse",
+  "chapter.entity.ow.chameleon": "Caméléon",
+  "chapter.entity.ow.red_panda": "Panda Roux",
+  "chapter.entity.ow.kodiak": "Kodiak",
+  "chapter.entity.ow.hyena": "Hyène",
+  "chapter.entity.ow.tiger_shark": "Requin Tigre",
+  "chapter.entity.ow.seabug": "SeaBug",
+  "chapter.entity.ow.plant_empress": "Impératrice Végétale",
+  "chapter.entity.ow.boa": "Boa",
+  "chapter.entity.ow.peacock": "Paon",
+
   "tooltip.unknownEntity": "Inconnue",
   "entity.ow.tiger": "Tigre",
   "entity.ow.mandrill": "Mandrill",
@@ -364,7 +380,7 @@
   "tooltip.rightClickAlert": "! Débattez-vous !",
 
 
-  "tiger.page1": "Le §lTigre§r est un animal majestueux et redouté qui rôde dans les profondeurs verdoyantes des §lforêts tropicales§r. Silencieux et imposant, il incarne la puissance à l’état pur.",
+  "tiger.page1": "Le §l§n§aTigre§r est un animal majestueux et redouté qui rôde dans les profondeurs verdoyantes des §lforêts tropicales§r. Silencieux et imposant, il incarne la puissance à l'état pur.",
   "tiger.page2": "Lorsqu’il repère une cible, il §lbondit§r avec une agilité foudroyante, §ls’accroche§r à sa victime et ne la lâche plus.",
   "tiger.page3": "Ses griffes acérées peuvent lui servir à §lmarquer§r son territoire sur les troncs d’arbres. Il peut également §ldésarmer§r un joueur d’un simple coup de patte, renversant un combat en un instant.",
   "tiger.page4": "§l§nAnalyse§r : Animal très dangereux — à éviter autant que possible.",

@@ -5,4 +5,5 @@ import net.minecraft.resources.ResourceLocation;
 public interface IOWTamable {
     ResourceLocation getTamingAdvancement();
     float getTheoreticalScale();
+    double getTamingExperience();
 }

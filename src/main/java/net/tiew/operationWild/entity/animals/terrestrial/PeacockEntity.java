@@ -144,6 +144,11 @@ public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntity
     }
 
     @Override
+    public double getTamingExperience() {
+        return TAMING_EXPERIENCE;
+    }
+
+    @Override
     public float getMaxVitalEnergy() {
         return 175 * (1 + ((float) this.getLevel() / 50));
     }

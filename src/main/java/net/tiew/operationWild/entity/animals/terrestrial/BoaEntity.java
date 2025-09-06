@@ -135,6 +135,11 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
     }
 
     @Override
+    public double getTamingExperience() {
+        return TAMING_EXPERIENCE;
+    }
+
+    @Override
     public OWEntityConfig.Archetypes getArchetype() {
         return OWEntityConfig.Archetypes.MARAUDER;
     }

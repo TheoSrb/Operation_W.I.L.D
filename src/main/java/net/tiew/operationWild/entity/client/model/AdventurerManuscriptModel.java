@@ -19,12 +19,12 @@ public class AdventurerManuscriptModel<T extends AdventurerManuscript> extends H
 
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "adventurer_manuscript"), "main");
 
-	private final ModelPart ALL;
-	private final ModelPart root;
-	private final ModelPart right;
-	private final ModelPart page;
-	private final ModelPart left;
-	private final ModelPart page2;
+	public final ModelPart ALL;
+	public final ModelPart root;
+	public final ModelPart right;
+	public final ModelPart page;
+	public final ModelPart left;
+	public final ModelPart page2;
 
     public AdventurerManuscriptModel(ModelPart root) {
 		this.ALL = root.getChild("ALL");
@@ -64,9 +64,9 @@ public class AdventurerManuscriptModel<T extends AdventurerManuscript> extends H
     public void setupAnim(AdventurerManuscript book, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-		this.animate(book.openAnimationState, AdventurerManuscriptAnimations.OPEN, ageInTicks, 0.5f);
-		this.animate(book.nextPageAnimationState, AdventurerManuscriptAnimations.NEXT_PAGE, ageInTicks, 0.25f);
-		this.animate(book.precedentPageAnimationState, AdventurerManuscriptAnimations.PRECEDENT_PAGE, ageInTicks, 0.25f);
+		this.animate(book.openAnimationState, AdventurerManuscriptAnimations.OPEN, ageInTicks, 1f);
+		this.animate(book.nextPageAnimationState, AdventurerManuscriptAnimations.NEXT_PAGE, ageInTicks, 0.75f);
+		this.animate(book.precedentPageAnimationState, AdventurerManuscriptAnimations.PRECEDENT_PAGE, ageInTicks, 0.75f);
 	}
 
     @Override

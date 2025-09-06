@@ -5,8 +5,9 @@ import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.animation.Keyframe;
 import net.minecraft.client.animation.KeyframeAnimations;
 
-public class AdventurerManuscriptAnimations {
+import java.security.Key;
 
+public class AdventurerManuscriptAnimations {
 
     public static final AnimationDefinition OPEN = AnimationDefinition.Builder.withLength(2.4f)
             .addAnimation("root",
@@ -36,6 +37,8 @@ public class AdventurerManuscriptAnimations {
                             new Keyframe(0.32f, KeyframeAnimations.degreeVec(0f, -90f, 0f),
                                     AnimationChannel.Interpolations.CATMULLROM),
                             new Keyframe(1.2f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
+                                    AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(2.4f, KeyframeAnimations.degreeVec(0f, -10f, 0f),
                                     AnimationChannel.Interpolations.CATMULLROM)))
             .addAnimation("right",
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
@@ -48,6 +51,8 @@ public class AdventurerManuscriptAnimations {
                             new Keyframe(0.32f, KeyframeAnimations.degreeVec(0f, 90f, 0f),
                                     AnimationChannel.Interpolations.CATMULLROM),
                             new Keyframe(1.2f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
+                                    AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(2.4f, KeyframeAnimations.degreeVec(0f, 10f, 0f),
                                     AnimationChannel.Interpolations.CATMULLROM))).build();
     public static final AnimationDefinition NEXT_PAGE = AnimationDefinition.Builder.withLength(0.56f)
             .addAnimation("root",

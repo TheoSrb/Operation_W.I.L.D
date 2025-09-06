@@ -149,6 +149,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public double getTamingExperience() {
+        return TAMING_EXPERIENCE;
+    }
+
+    @Override
     public OWEntityConfig.Archetypes getArchetype() {
         return OWEntityConfig.Archetypes.BERSERKER;
     }

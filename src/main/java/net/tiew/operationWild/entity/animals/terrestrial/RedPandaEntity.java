@@ -275,5 +275,10 @@ public class RedPandaEntity extends OWEntity implements OWEntityUtils {
     public float getEntityScale() {
         return 0;
     }
+
+    @Override
+    public double getTamingExperience() {
+        return TAMING_EXPERIENCE;
+    }
 }
 
