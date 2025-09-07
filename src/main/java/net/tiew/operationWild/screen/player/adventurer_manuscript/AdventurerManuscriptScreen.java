@@ -13,15 +13,11 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.FormattedCharSequence;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.core.OWTextureWriter;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.client.model.AdventurerManuscriptModel;
@@ -50,9 +46,6 @@ public class AdventurerManuscriptScreen extends Screen {
     private int maxPage;
     private int previousPage = 1;
 
-    private float leftDegrees;
-    private float rightDegrees;
-
     private AdventurerManuscript cachedBookEntity;
 
     private long initTime = 0;
@@ -60,8 +53,8 @@ public class AdventurerManuscriptScreen extends Screen {
     private float animationSpeed = 1.0f;
 
     private float oscillationTimer = 0;
-    private float oscillationSpeed = 0.035f;
-    private float oscillationAmplitude = 7;
+    private float oscillationSpeed = 0.04f;
+    private float oscillationAmplitude = 5;
     private float oscillationFrequency = 0.25f;
 
     private long pageCooldownStartTime = 0;
@@ -363,7 +356,7 @@ public class AdventurerManuscriptScreen extends Screen {
         int modelRadius = 50;
 
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(0, getOscillationValue() - 5, 0);
+        guiGraphics.pose().translate(0, (getOscillationValue() / 1.5f) - 5, 0);
         renderModel(guiGraphics, screenCenterX - modelRadius, (screenCenterY - modelRadius), screenCenterX + modelRadius, (int)(screenCenterY + modelRadius), 130, partialTick);
 
         if (entityType != null) {
@@ -425,11 +418,13 @@ public class AdventurerManuscriptScreen extends Screen {
 
         float ageInTicks = (this.totalElapsedTime * 20);
 
+        float yOscillationValue = getOscillationValue() * 0.1f;
+        float yOscillationRadians = (float) Math.toRadians(yOscillationValue);
+
         if (this.cachedBookEntity != null) {
             this.cachedBookEntity.openAnimationState.startIfStopped(this.cachedBookEntity.tickCount);
             bookModel.setupAnim(this.cachedBookEntity, 0.0F, 0.0F, ageInTicks, 0.0F, 0.0F);
-            rightDegrees = ((float) Math.toDegrees(bookModel.right.yRot)) - (float) Math.toDegrees(bookModel.root.yRot);
-            leftDegrees = ((float) Math.toDegrees(bookModel.left.yRot)) + ((float) Math.toDegrees(bookModel.root.yRot));
+            bookModel.root.xRot -= (yOscillationRadians) * 15;
         }
 
         bookModel.renderToBuffer(guiGraphics.pose(), vertexConsumer, 15728880, OverlayTexture.NO_OVERLAY, 0xFFFFFF);
