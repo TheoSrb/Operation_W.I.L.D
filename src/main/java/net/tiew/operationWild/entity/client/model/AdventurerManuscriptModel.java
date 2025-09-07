@@ -39,23 +39,23 @@ public class AdventurerManuscriptModel<T extends AdventurerManuscript> extends H
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		PartDefinition ALL = partdefinition.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 11.0F, 0.0F));
+		PartDefinition ALL = partdefinition.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 13.0F, 0.0F));
 
-		PartDefinition root = ALL.addOrReplaceChild("root", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
+		PartDefinition root = ALL.addOrReplaceChild("root", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 2.0F));
 
-		PartDefinition right = root.addOrReplaceChild("right", CubeListBuilder.create().texOffs(0, 39).mirror().addBox(0.3F, -11.0F, 1.0F, 18.0F, 23.0F, 2.0F, new CubeDeformation(0.3F)).mirror(false)
-				.texOffs(0, 0).mirror().addBox(-1.1F, -11.0F, -0.8F, 19.0F, 23.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false)
-				.texOffs(72, 34).mirror().addBox(-0.1F, -11.0F, -0.95F, 17.0F, 22.0F, 2.0F, new CubeDeformation(-0.25F)).mirror(false), PartPose.offset(0.0F, 1.0F, 0.0F));
+		PartDefinition right = root.addOrReplaceChild("right", CubeListBuilder.create().texOffs(0, 39).mirror().addBox(0.3F, -1.0F, 1.0F, 18.0F, 23.0F, 2.0F, new CubeDeformation(0.3F)).mirror(false)
+				.texOffs(72, 34).mirror().addBox(-0.1F, 0.0F, -0.95F, 17.0F, 22.0F, 2.0F, new CubeDeformation(-0.25F)).mirror(false)
+				.texOffs(0, 0).mirror().addBox(-0.1F, -1.0F, -0.8F, 18.0F, 23.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(0.0F, -11.0F, -2.0F));
 
-		PartDefinition page = right.addOrReplaceChild("page", CubeListBuilder.create().texOffs(52, 105).addBox(-0.2F, -11.0F, -1.025F, 18.0F, 23.0F, 0.0F, new CubeDeformation(0.05F))
-				.texOffs(0, 0).mirror().addBox(-1.1F, -11.0F, -1.0F, 19.0F, 23.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(0.0F, 0.0F, 0.0F));
+		PartDefinition page = right.addOrReplaceChild("page", CubeListBuilder.create().texOffs(0, 0).mirror().addBox(-0.1F, -12.0F, 0.2F, 18.0F, 23.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false)
+				.texOffs(52, 105).addBox(0.1F, -12.0F, 0.175F, 18.0F, 23.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(0.0F, 11.0F, -1.2F));
 
-		PartDefinition left = root.addOrReplaceChild("left", CubeListBuilder.create().texOffs(0, 69).addBox(-18.3F, -11.0F, 1.0F, 18.0F, 23.0F, 2.0F, new CubeDeformation(0.3F))
-				.texOffs(0, 0).addBox(-17.9F, -11.0F, -0.8F, 19.0F, 23.0F, 0.0F, new CubeDeformation(0.05F))
-				.texOffs(72, 34).addBox(-16.9F, -11.0F, -0.95F, 17.0F, 22.0F, 2.0F, new CubeDeformation(-0.25F)), PartPose.offset(0.0F, 1.0F, 0.0F));
+		PartDefinition left = root.addOrReplaceChild("left", CubeListBuilder.create().texOffs(0, 69).addBox(-18.3F, -1.0F, 1.0F, 18.0F, 23.0F, 2.0F, new CubeDeformation(0.3F))
+				.texOffs(72, 34).addBox(-16.9F, 0.0F, -0.95F, 17.0F, 22.0F, 2.0F, new CubeDeformation(-0.25F))
+				.texOffs(0, 0).addBox(-17.9F, -1.0F, -0.7F, 18.0F, 23.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(0.0F, -11.0F, -2.0F));
 
-		PartDefinition page2 = left.addOrReplaceChild("page2", CubeListBuilder.create().texOffs(0, 0).addBox(-17.9F, -11.0F, -1.0F, 19.0F, 23.0F, 0.0F, new CubeDeformation(0.05F))
-				.texOffs(92, 105).addBox(-18.4F, -11.0F, -1.025F, 18.0F, 23.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+		PartDefinition page2 = left.addOrReplaceChild("page2", CubeListBuilder.create().texOffs(0, 0).addBox(-17.9F, -12.0F, 0.2F, 18.0F, 23.0F, 0.0F, new CubeDeformation(0.05F))
+				.texOffs(92, 105).addBox(-17.9F, -12.0F, 0.075F, 18.0F, 23.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(0.0F, 11.0F, -1.1F));
 
 		return LayerDefinition.create(meshdefinition, 128, 128);
     }
@@ -64,9 +64,9 @@ public class AdventurerManuscriptModel<T extends AdventurerManuscript> extends H
     public void setupAnim(AdventurerManuscript book, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-		this.animate(book.openAnimationState, AdventurerManuscriptAnimations.OPEN, ageInTicks, 1f);
-		this.animate(book.nextPageAnimationState, AdventurerManuscriptAnimations.NEXT_PAGE, ageInTicks, 0.75f);
-		this.animate(book.precedentPageAnimationState, AdventurerManuscriptAnimations.PRECEDENT_PAGE, ageInTicks, 0.75f);
+		this.animate(book.openAnimationState, AdventurerManuscriptAnimations.OPEN, ageInTicks, 1.25f);
+		this.animate(book.nextPageAnimationState, AdventurerManuscriptAnimations.NEXT, ageInTicks, 0.9f);
+		this.animate(book.precedentPageAnimationState, AdventurerManuscriptAnimations.PRECEDENT, ageInTicks, 0.9f);
 	}
 
     @Override

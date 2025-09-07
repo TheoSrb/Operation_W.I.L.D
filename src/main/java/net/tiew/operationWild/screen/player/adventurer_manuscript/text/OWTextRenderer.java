@@ -32,7 +32,14 @@ public class OWTextRenderer {
                 }
 
                 int color = createColorWithAlpha(alpha, segment.color, segment.isBold, colorWanted);
-                writeStyledTextDirectlyOnImage(image, word, currentX, currentY, color, segment.isBold, segment.isUnderlined, scale);
+
+                int wordStartX = currentX;
+                writeStyledTextDirectlyOnImage(image, word, currentX, currentY, color, segment.isBold, false, scale);
+
+                if (segment.isUnderlined) {
+                    drawWordUnderline(image, wordStartX, currentY, wordWidth, color, segment.isBold, scale);
+                }
+
                 currentX += wordWidth;
             }
         }
@@ -62,10 +69,6 @@ public class OWTextRenderer {
         return (red << 16) | (green << 8) | blue;
     }
 
-    private static void writeStyledTextDirectlyOnImage(NativeImage image, String text, int x, int y, int color, boolean isBold, boolean isUnderlined) {
-        writeStyledTextDirectlyOnImage(image, text, x, y, color, isBold, isUnderlined, 1.0f);
-    }
-
     private static void writeStyledTextDirectlyOnImage(NativeImage image, String text, int x, int y, int color, boolean isBold, boolean isUnderlined, float scale) {
         int currentX = x;
         for (char c : text.toCharArray()) {
@@ -73,16 +76,34 @@ public class OWTextRenderer {
             if (pattern != null) {
                 drawCharacterPattern(image, pattern, currentX, y, color, isBold, scale);
 
-                if (isUnderlined) {
-                    int scaledUnderlineY = y + (int)(pattern.length * scale) + (int)(1 * scale);
-                    int scaledWidth = (int)(pattern[0].length * scale);
-                    drawUnderline(image, currentX, scaledUnderlineY, scaledWidth, color, isBold, scale);
-                }
-
                 currentX += (int)(pattern[0].length * scale) + (int)(1 * scale);
                 if (isBold) currentX += (int)(1 * scale);
             }
         }
+    }
+
+    private static void drawWordUnderline(NativeImage image, int startX, int baseY, int wordWidth, int color, boolean isBold, float scale) {
+        int charHeight = getCharacterHeight(scale);
+        int underlineY = baseY + charHeight + (int)(1 * scale);
+
+        int thickness = isBold ? (int)Math.max(1, 2 * scale) : (int)Math.max(1, 1 * scale);
+
+        for (int t = 0; t < thickness; t++) {
+            for (int x = startX; x < startX + wordWidth; x++) {
+                int yPos = underlineY + t;
+                if (isValidPixelPosition(image, x, yPos)) {
+                    image.setPixelRGBA(x, yPos, color);
+                }
+            }
+        }
+    }
+
+    private static int getCharacterHeight(float scale) {
+        boolean[][] pattern = OWTextureWriter.FONT_DATA.get('A');
+        if (pattern != null) {
+            return (int)(pattern.length * scale);
+        }
+        return (int)(8 * scale);
     }
 
     private static void drawUnderline(NativeImage image, int startX, int underlineY, int width, int color, boolean isBold, float scale) {

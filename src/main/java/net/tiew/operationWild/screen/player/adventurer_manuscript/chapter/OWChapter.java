@@ -26,7 +26,7 @@ public class OWChapter {
 
     public static void drawTextOnRightPage(Component text, int x, int y, float scale, float alpha, int maxLength, int color) {
         ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
-        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text);
+        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, color);
 
         int baseX = 430;
         int baseY = 855;
@@ -50,7 +50,7 @@ public class OWChapter {
 
     public static void drawTextOnLeftPage(Component text, int x, int y, float scale, float alpha, int maxLength, int color) {
         ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
-        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text);
+        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, color);
 
         int baseX = 760;
         int baseY = 855;
@@ -74,7 +74,7 @@ public class OWChapter {
 
     public static void drawTextOnLeftPage(String text, int x, int y, float scale, float alpha, int maxLength, int color) {
         ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
-        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text);
+        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, color);
 
         int baseX = 760;
         int baseY = 855;
@@ -105,9 +105,9 @@ public class OWChapter {
 
         ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
 
-        List<StyledTextSegment> segments1 = OWTextParser.parseStyledText(text1);
-        List<StyledTextSegment> segments2 = OWTextParser.parseStyledText(text2);
-        List<StyledTextSegment> segments3 = OWTextParser.parseStyledText(text3);
+        List<StyledTextSegment> segments1 = OWTextParser.parseStyledText(text1, color1);
+        List<StyledTextSegment> segments2 = OWTextParser.parseStyledText(text2, color2);
+        List<StyledTextSegment> segments3 = OWTextParser.parseStyledText(text3, color3);
 
         int baseX = 760;
         int baseY = 855;
