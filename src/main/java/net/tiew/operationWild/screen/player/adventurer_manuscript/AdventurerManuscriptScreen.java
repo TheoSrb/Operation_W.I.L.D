@@ -363,7 +363,7 @@ public class AdventurerManuscriptScreen extends Screen {
             OWChapters.render(0, 0, 1.0f, getFadeAlpha(), entityType);
         }
 
-        handleChapterText(lastEntityTypeFound, screenCenterX, screenCenterY, getFadeAlpha());
+        handleChapterText(lastEntityTypeFound, (int) (screenCenterX / 0.8f), (int) (screenCenterY / 0.8f), getFadeAlpha());
         guiGraphics.pose().popPose();
 
         Component page = Component.literal(String.valueOf(actualPage + " / " + maxPage));

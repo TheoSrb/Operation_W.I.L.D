@@ -10,7 +10,7 @@ public class OWTextRenderer {
 
     public static void processStyledTextWithLineBreaks(NativeImage image, List<StyledTextSegment> segments,
                                                        int startX, int startY, float alpha, int maxLineWidth, float scale, int colorWanted) {
-        int scaledLineSpacing = (int)(10 * scale);
+        int scaledLineSpacing = (int)(12 * scale);
         int currentX = startX;
         int currentY = startY;
 

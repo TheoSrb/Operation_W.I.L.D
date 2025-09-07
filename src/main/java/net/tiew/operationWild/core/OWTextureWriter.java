@@ -72,7 +72,13 @@ public class OWTextureWriter {
         FONT_DATA.put('è', createNewLetter("  /  ", "   / ", " /// ", "/   /", "/////", "/    ", " ////"));
         FONT_DATA.put('ê', createNewLetter("  /  ", " / / ", " /// ", "/   /", "/////", "/    ", " ////"));
 
+        FONT_DATA.put('à', createNewLetter("  /  ", "   / ", " /// ", "    /", " ////", "/   /", " ////"));
+        FONT_DATA.put('â', createNewLetter("  /  ", " / / ", " /// ", "    /", " ////", "/   /", " ////"));
+
         FONT_DATA.put('ô', createNewLetter("  /  ", " / / ", " /// ", "/   /", "/   /", "/   /", " /// "));
+        FONT_DATA.put('ö', createNewLetter(" / / ", "     ", " /// ", "/   /", "/   /", "/   /", " /// "));
+
+        FONT_DATA.put('ï', createNewLetter("/ /", "   ", " / ", " / ", " / ", " / ", " / "));
 
 
 
@@ -117,21 +123,16 @@ public class OWTextureWriter {
 
         FONT_DATA.put('Ç', new boolean[][]{{false, true, true, true, false}, {true, false, false, false, true}, {true, false, false, false, false}, {true, false, false, false, true}, {false, true, true, true, false}, {false, false, true, false, false}, {false, true, false, false, false}});
 
-        FONT_DATA.put('à', new boolean[][]{{false, true, false, false}, {false, false, false, false}, {false, true, true, false}, {false, false, false, true}, {false, true, true, true}, {true, false, false, true}, {true, true, true, true}});
         FONT_DATA.put('á', new boolean[][]{{false, false, false, true}, {false, false, false, false}, {false, true, true, false}, {false, false, false, true}, {false, true, true, true}, {true, false, false, true}, {true, true, true, true}});
-        FONT_DATA.put('â', new boolean[][]{{false, true, false}, {true, false, true}, {false, true, true, false}, {false, false, false, true}, {false, true, true, true}, {true, false, false, true}, {true, true, true, true}});
-        FONT_DATA.put('ä', new boolean[][]{{true, false, true, false}, {false, false, false, false}, {false, true, true, false}, {false, false, false, true}, {false, true, true, true}, {true, false, false, true}, {true, true, true, true}});
 
         FONT_DATA.put('ë', new boolean[][]{{true, false, true, false}, {false, false, false, false}, {false, true, true, false}, {true, true, true, true}, {true, false, false, false}, {false, true, true, false}});
 
         FONT_DATA.put('ì', new boolean[][]{{true, false, false}, {false, false, false}, {true, true, false}, {false, true, false}, {false, true, false}, {true, true, true}});
         FONT_DATA.put('í', new boolean[][]{{false, false, true}, {false, false, false}, {true, true, false}, {false, true, false}, {false, true, false}, {true, true, true}});
         FONT_DATA.put('î', new boolean[][]{{false, true, false}, {true, false, true}, {true, true, false}, {false, true, false}, {false, true, false}, {true, true, true}});
-        FONT_DATA.put('ï', new boolean[][]{{true, false, true}, {false, false, false}, {true, true, false}, {false, true, false}, {false, true, false}, {true, true, true}});
 
         FONT_DATA.put('ò', new boolean[][]{{false, true, false, false}, {false, false, false, false}, {false, true, true, false}, {true, false, false, true}, {true, false, false, true}, {false, true, true, false}});
         FONT_DATA.put('ó', new boolean[][]{{false, false, false, true}, {false, false, false, false}, {false, true, true, false}, {true, false, false, true}, {true, false, false, true}, {false, true, true, false}});
-        FONT_DATA.put('ö', new boolean[][]{{true, false, true, false}, {false, false, false, false}, {false, true, true, false}, {true, false, false, true}, {true, false, false, true}, {false, true, true, false}});
 
         FONT_DATA.put('ù', new boolean[][]{{false, true, false, false}, {false, false, false, false}, {true, false, false, true}, {true, false, false, true}, {true, false, false, true}, {false, true, true, true}});
         FONT_DATA.put('ú', new boolean[][]{{false, false, false, true}, {false, false, false, false}, {true, false, false, true}, {true, false, false, true}, {true, false, false, true}, {false, true, true, true}});
