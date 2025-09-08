@@ -29,6 +29,17 @@ public class OWTextureWriter {
         FONT_DATA.put('M', createNewLetter("/   /", "// //", "/ / /", "/   /", "/   /", "/   /", "/   /"));
         FONT_DATA.put('N', createNewLetter("/   /", "//  /", "/ / /", "/  //", "/   /", "/   /", "/   /"));
         FONT_DATA.put('O', createNewLetter(" /// ", "/   /", "/   /", "/   /", "/   /", "/   /", " /// "));
+        FONT_DATA.put('P', createNewLetter("//// ", "/   /", "//// ", "/    ", "/    ", "/    ", "/    "));
+        FONT_DATA.put('Q', createNewLetter(" /// ", "/   /", "/   /", "/   /", "/   /", "/  / ", " // /"));
+        FONT_DATA.put('R', createNewLetter("//// ", "/   /", "//// ", "/   /", "/   /", "/   /", "/   /"));
+        FONT_DATA.put('S', createNewLetter(" ////", "/    ", " /// ", "    /", "    /", "/   /", " /// "));
+        FONT_DATA.put('T', createNewLetter("/////", "  /  ", "  /  ", "  /  ", "  /  ", "  /  ", "  /  "));
+        FONT_DATA.put('U', createNewLetter("/   /", "/   /", "/   /", "/   /", "/   /", "/   /", " /// "));
+        FONT_DATA.put('V', createNewLetter("/   /", "/   /", "/   /", "/   /", " / / ", " / / ", "  /  "));
+        FONT_DATA.put('W', createNewLetter("/   /", "/   /", "/   /", "/   /", "/ / /", "// //", "/   /"));
+        FONT_DATA.put('X', createNewLetter("/   /", " / / ", "  /  ", " / / ", "/   /", "/   /", "/   /"));
+        FONT_DATA.put('Y', createNewLetter("/   /", " / / ", "  /  ", "  /  ", "  /  ", "  /  ", "  /  "));
+        FONT_DATA.put('Z', createNewLetter("/////", "    /", "   / ", "  /  ", " /   ", "/    ", "/////"));
 
 
 
