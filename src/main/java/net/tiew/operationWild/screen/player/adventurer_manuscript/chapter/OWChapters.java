@@ -23,8 +23,8 @@ public class OWChapters extends OWChapter {
             ResourceLocation entityTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_page/misc/ow_entity_journal_interface_taming_experience_gui.png");
 
             drawCombinedTextAndImageOnLeftPage(
-                    titleStr, x + 28 - (Minecraft.getInstance().font.width(titleStr) / 2), y - 1, scale * 2, alpha, maxLength, 0xc8be95,
-                    titleStr, x + 27 - (Minecraft.getInstance().font.width(titleStr) / 2), y - 2, scale * 2, alpha, maxLength, 0x887c57,
+                    titleStr, x + 25 - (Minecraft.getInstance().font.width(titleStr) / 2), y - 1, scale * 2, alpha, 150, 0xc8be95,
+                    titleStr, x + 24 - (Minecraft.getInstance().font.width(titleStr) / 2), y - 2, scale * 2, alpha, 150, 0x887c57,
                     tamingExperience, x + 60, y + 20, scale, alpha, maxLength, 0x887c57,
                     entityTexture, x + 42, y + 15, 1.35f, alpha, 110, 12, 11, 11
             );
