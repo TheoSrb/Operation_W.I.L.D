@@ -15,31 +15,23 @@ public class OWTextureWriter {
 
     static {
         FONT_DATA.put('A', createNewLetter(" /// ", "/   /", "/////", "/   /", "/   /", "/   /", "/   /"));
-        FONT_DATA.put('B', new boolean[][]{{true, true, true, true, false}, {true, false, false, false, true}, {true, true, true, true, false}, {true, false, false, false, true}, {true, true, true, true, false}});
-        FONT_DATA.put('C', new boolean[][]{{false, true, true, true, false}, {true, false, false, false, true}, {true, false, false, false, false}, {true, false, false, false, true}, {false, true, true, true, false}});
-        FONT_DATA.put('D', new boolean[][]{{true, true, true, false, false}, {true, false, false, true, false}, {true, false, false, false, true}, {true, false, false, true, false}, {true, true, true, false, false}});
-        FONT_DATA.put('E', new boolean[][]{{true, true, true, true, true}, {true, false, false, false, false}, {true, true, true, false, false}, {true, false, false, false, false}, {true, true, true, true, true}});
-        FONT_DATA.put('F', new boolean[][]{{true, true, true, true, true}, {true, false, false, false, false}, {true, true, true, false, false}, {true, false, false, false, false}, {true, false, false, false, false}});
-        FONT_DATA.put('G', new boolean[][]{{false, true, true, true, false}, {true, false, false, false, false}, {true, false, true, true, true}, {true, false, false, false, true}, {false, true, true, true, false}});
-        FONT_DATA.put('H', new boolean[][]{{true, false, false, false, true}, {true, false, false, false, true}, {true, true, true, true, true}, {true, false, false, false, true}, {true, false, false, false, true}});
-        FONT_DATA.put('I', new boolean[][]{{true, true, true}, {false, true, false}, {false, true, false}, {false, true, false}, {true, true, true}});
-        FONT_DATA.put('J', new boolean[][]{{false, false, true}, {false, false, true}, {false, false, true}, {true, false, true}, {false, true, false}});
-        FONT_DATA.put('K', new boolean[][]{{true, false, false, true}, {true, false, true, false}, {true, true, false, false}, {true, false, true, false}, {true, false, false, true}});
-        FONT_DATA.put('L', new boolean[][]{{true, false, false, false}, {true, false, false, false}, {true, false, false, false}, {true, false, false, false}, {true, true, true, true}});
-        FONT_DATA.put('M', new boolean[][]{{true, false, false, false, true}, {true, true, false, true, true}, {true, false, true, false, true}, {true, false, false, false, true}, {true, false, false, false, true}});
-        FONT_DATA.put('N', new boolean[][]{{true, false, false, false, true}, {true, true, false, false, true}, {true, false, true, false, true}, {true, false, false, true, true}, {true, false, false, false, true}});
-        FONT_DATA.put('O', new boolean[][]{{false, true, true, true, false}, {true, false, false, false, true}, {true, false, false, false, true}, {true, false, false, false, true}, {false, true, true, true, false}});
-        FONT_DATA.put('P', new boolean[][]{{true, true, true, true, false}, {true, false, false, false, true}, {true, true, true, true, false}, {true, false, false, false, false}, {true, false, false, false, false}});
-        FONT_DATA.put('Q', new boolean[][]{{false, true, true, true, false}, {true, false, false, false, true}, {true, false, false, false, true}, {true, false, false, true, true}, {false, true, true, true, true}});
-        FONT_DATA.put('R', new boolean[][]{{true, true, true, true, false}, {true, false, false, false, true}, {true, true, true, true, false}, {true, false, false, true, false}, {true, false, false, false, true}});
-        FONT_DATA.put('S', new boolean[][]{{false, true, true, true, false}, {true, false, false, false, false}, {false, true, true, true, false}, {false, false, false, false, true}, {false, true, true, true, false}});
-        FONT_DATA.put('T', new boolean[][]{{true, true, true, true, true}, {false, false, true, false, false}, {false, false, true, false, false}, {false, false, true, false, false}, {false, false, true, false, false}});
-        FONT_DATA.put('U', new boolean[][]{{true, false, false, false, true}, {true, false, false, false, true}, {true, false, false, false, true}, {true, false, false, false, true}, {false, true, true, true, false}});
-        FONT_DATA.put('V', new boolean[][]{{true, false, false, false, true}, {true, false, false, false, true}, {true, false, false, false, true}, {false, true, false, true, false}, {false, false, true, false, false}});
-        FONT_DATA.put('W', new boolean[][]{{true, false, false, false, true}, {true, false, false, false, true}, {true, false, true, false, true}, {true, true, false, true, true}, {true, false, false, false, true}});
-        FONT_DATA.put('X', new boolean[][]{{true, false, false, false, true}, {false, true, false, true, false}, {false, false, true, false, false}, {false, true, false, true, false}, {true, false, false, false, true}});
-        FONT_DATA.put('Y', new boolean[][]{{true, false, false, false, true}, {false, true, false, true, false}, {false, false, true, false, false}, {false, false, true, false, false}, {false, false, true, false, false}});
-        FONT_DATA.put('Z', new boolean[][]{{true, true, true, true, true}, {false, false, false, true, false}, {false, false, true, false, false}, {false, true, false, false, false}, {true, true, true, true, true}});
+        FONT_DATA.put('B', createNewLetter("//// ", "/   /", "//// ", "/   /", "/   /", "/   /", "//// "));
+        FONT_DATA.put('C', createNewLetter(" /// ", "/   /", "/    ", "/    ", "/    ", "/   /", " /// "));
+        FONT_DATA.put('D', createNewLetter("//// ", "/   /", "/   /", "/   /", "/   /", "/   /", "//// "));
+        FONT_DATA.put('E', createNewLetter("/////", "/    ", "///  ", "/    ", "/    ", "/    ", "/////"));
+        FONT_DATA.put('F', createNewLetter("/////", "/    ", "///  ", "/    ", "/    ", "/    ", "/    "));
+        FONT_DATA.put('G', createNewLetter(" ////", "/    ", "/  //", "/   /", "/   /", "/   /", " /// "));
+        FONT_DATA.put('H', createNewLetter("/   /", "/   /", "/////", "/   /", "/   /", "/   /", "/   /"));
+        FONT_DATA.put('I', createNewLetter("///  ", " /   ", " /   ", " /   ", " /   ", " /   ", "///  "));
+        FONT_DATA.put('J', createNewLetter("    /", "    /", "    /", "    /", "    /", "/   /", " /// "));
+        FONT_DATA.put('K', createNewLetter("/    ", "/   /", "/  / ", "///  ", "/  / ", "/   /", "/   /"));
+        FONT_DATA.put('L', createNewLetter("/    ", "/    ", "/    ", "/    ", "/    ", "/    ", "/////"));
+        FONT_DATA.put('M', createNewLetter("/   /", "// //", "/ / /", "/   /", "/   /", "/   /", "/   /"));
+        FONT_DATA.put('N', createNewLetter("/   /", "//  /", "/ / /", "/  //", "/   /", "/   /", "/   /"));
+        FONT_DATA.put('O', createNewLetter(" /// ", "/   /", "/   /", "/   /", "/   /", "/   /", " /// "));
+
+
+
 
         FONT_DATA.put('a', createNewLetter("     ", "     ", " /// ", "    /", " ////", "/   /", " ////"));
         FONT_DATA.put('b', createNewLetter("/    ", "/    ", "/ // ", "//  /", "/   /", "/   /", "////"));
