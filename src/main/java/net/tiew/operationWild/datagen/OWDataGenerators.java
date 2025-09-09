@@ -37,6 +37,7 @@ public class OWDataGenerators {
 
         generator.addProvider(event.includeClient(), new OWBlockStateProvider(packOutput, existingFileHelper));
 
+        generator.addProvider(event.includeServer(), new OWAdvancementProvider(packOutput, lookupProvider, existingFileHelper));
 
         OWBlockTagProvider blockTagProvider = generator.addProvider(event.includeServer(), new OWBlockTagProvider(packOutput, lookupProvider, existingFileHelper));
         generator.addProvider(event.includeClient(), new OWItemTagProvider(packOutput, lookupProvider, blockTagProvider.contentsGetter(), existingFileHelper));
