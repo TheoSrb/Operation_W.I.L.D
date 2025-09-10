@@ -54,4 +54,27 @@ public class OWEntityRegistry {
 
 
     public static final DeferredHolder<EntityType<?>, EntityType<AdventurerManuscript>> ADVENTURER_MANUSCRIPT = ENTITY_TYPES.register("adventurer_manuscript", () -> EntityType.Builder.<AdventurerManuscript>of(AdventurerManuscript::new, MobCategory.MISC).sized(0.5f, 0.5f).build("adventurer_manuscript"));
+
+
+
+
+
+    public static EntityType<? extends OWEntity> getEntityTypeFromName(String name) {
+        switch (name) {
+            case "tiger_shark": return OWEntityRegistry.TIGER_SHARK.get();
+            case "tiger": return OWEntityRegistry.TIGER.get();
+            case "boa": return OWEntityRegistry.BOA.get();
+            case "peacock": return OWEntityRegistry.PEACOCK.get();
+            case "hyena": return OWEntityRegistry.HYENA.get();
+            case "kodiak": return OWEntityRegistry.KODIAK.get();
+            case "red_panda": return OWEntityRegistry.RED_PANDA.get();
+            case "chameleon": return OWEntityRegistry.CHAMELEON.get();
+            case "jellyfish": return OWEntityRegistry.JELLYFISH.get();
+            case "manta": return OWEntityRegistry.MANTA.get();
+            case "walrus": return OWEntityRegistry.WALRUS.get();
+            case "elephant": return OWEntityRegistry.ELEPHANT.get();
+            case "mandrill": return OWEntityRegistry.MANDRILL.get();
+            default: return null;
+        }
+    }
 }

@@ -50,6 +50,7 @@ public class OWTextParser {
                 switch (formatCode) {
                     case 'l': isBold = true; break;
                     case 'n': isUnderlined = true; break;
+                    case 's': isUnderlined = true; break; // Added support for §s
                     case 'r': isBold = false; isUnderlined = false; currentColor = null; break;
                     case '0': currentColor = TextColor.fromRgb(blendColors(0xFFFFFF, color)); break;
                     case '1': currentColor = TextColor.fromRgb(blendColors(0xFFFF55, color)); break;
@@ -117,6 +118,7 @@ public class OWTextParser {
             parseComponentRecursive(sibling, segments, currentStyle);
         }
     }
+
     private static void parseComponentRecursive(String text, List<StyledTextSegment> segments, Style parentStyle) {
         if (!text.isEmpty()) {
             boolean isBold = parentStyle.isBold();

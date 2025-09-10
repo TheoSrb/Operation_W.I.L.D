@@ -36,6 +36,8 @@ public class OWItemModelProvider extends ItemModelProvider {
         basicItem(OWItems.MEDAL_3.get());
 
 
+        handheldItem(OWItems.MANUSCRIPT_FRAGMENT);
+
         basicItem(OWItems.SEABUG_COCKPIT.get());
         basicItem(OWItems.SEABUG_HULL.get());
         basicItem(OWItems.SEABUG_PORTHOLE.get());

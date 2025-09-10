@@ -1,11 +1,11 @@
 {
-  "parent": "ow:root",
+  "parent": "ow:ow",
   "criteria": {
-    "animal_soul": {
+    "item.ow.tranquilizer_arrow": {
       "conditions": {
         "items": [
           {
-            "items": "ow:animal_soul"
+            "items": "ow:tranquilizer_arrow"
           }
         ]
       },
@@ -14,22 +14,19 @@
   },
   "display": {
     "description": {
-      "translate": "ow.advancements.friend_dead.description"
+      "translate": "ow.advancements.good_night.description"
     },
     "icon": {
       "count": 1,
-      "id": "ow:animal_soul"
+      "id": "ow:tranquilizer_arrow"
     },
     "title": {
-      "translate": "ow.advancements.friend_dead.title"
-    },
-    "frame": "goal",
-    "show_toast": true,
-    "announce_to_chat": true
+      "translate": "ow.advancements.good_night.title"
+    }
   },
   "requirements": [
     [
-      "animal_soul"
+      "item.ow.tranquilizer_arrow"
     ]
   ],
   "sends_telemetry_event": true

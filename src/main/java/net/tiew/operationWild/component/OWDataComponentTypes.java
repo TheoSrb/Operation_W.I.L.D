@@ -38,6 +38,8 @@ public class OWDataComponentTypes {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> TAMED_ENTITY_VARIANT = register("tamed_entity_variant", builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
 
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Component>> MANUSCRIPT_FRAGMENT_ENTITY = register("manuscript_fragment_entity", builder -> builder.persistent(ComponentSerialization.FLAT_CODEC).networkSynchronized(ComponentSerialization.STREAM_CODEC).cacheEncoding());
+
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Float>> BABY_EGG_MAX_HEALTH = register("baby_egg_max_health", builder -> builder.persistent(ExtraCodecs.POSITIVE_FLOAT).networkSynchronized(ByteBufCodecs.FLOAT));
 

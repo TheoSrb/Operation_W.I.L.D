@@ -1,7 +1,7 @@
 {
-  "parent": "ow:root",
+  "parent": "ow:ow",
   "criteria": {
-    "venomous_arrow": {
+    "item.ow.venomous_arrow": {
       "conditions": {
         "items": [
           {
@@ -22,14 +22,11 @@
     },
     "title": {
       "translate": "ow.advancements.upgraded_arrows.title"
-    },
-    "frame": "goal",
-    "show_toast": true,
-    "announce_to_chat": true
+    }
   },
   "requirements": [
     [
-      "venomous_arrow"
+      "item.ow.venomous_arrow"
     ]
   ],
   "sends_telemetry_event": true

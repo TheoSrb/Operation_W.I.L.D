@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity;
 
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
@@ -2602,10 +2603,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 this.setPassive(true);
 
                 if (player instanceof ServerPlayer serverPlayer) {
-                    serverPlayer.getServer().getCommands().performPrefixedCommand(
-                            serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(),
-                            "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + selectAdvancementByEntity()
-                    );
+                    AdvancementHolder advancement = player.getServer().getAdvancements().get(this.getTamingAdvancement());
+                    if (advancement != null) {
+                        serverPlayer.getAdvancements().award(advancement, "tamed_" + this.getClass().getSimpleName().toLowerCase().split("entity")[0]);
+                    }
                 }
 
             } else {

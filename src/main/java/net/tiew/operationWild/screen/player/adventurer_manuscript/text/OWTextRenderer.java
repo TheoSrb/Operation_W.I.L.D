@@ -15,32 +15,75 @@ public class OWTextRenderer {
         int currentY = startY;
 
         for (StyledTextSegment segment : segments) {
-            String[] words = segment.text.split(" ");
+            if (segment.text.contains("\n")) {
+                String[] lines = segment.text.split("\n", -1);
 
-            for (int i = 0; i < words.length; i++) {
-                String word = words[i];
-                int wordWidth = calculateStyledTextWidth(word, segment.isBold, segment.isUnderlined, scale);
-                int spaceWidth = (currentX > startX) ? calculateStyledTextWidth(" ", segment.isBold, segment.isUnderlined, scale) : 0;
+                for (int lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+                    String line = lines[lineIndex];
 
-                if (currentX + spaceWidth + wordWidth > startX + maxLineWidth && currentX > startX) {
-                    currentX = startX;
-                    currentY += scaledLineSpacing;
+                    if (!line.isEmpty()) {
+                        String[] words = line.split(" ");
+
+                        for (int i = 0; i < words.length; i++) {
+                            String word = words[i];
+                            int wordWidth = calculateStyledTextWidth(word, segment.isBold, segment.isUnderlined, scale);
+                            int spaceWidth = (currentX > startX) ? calculateStyledTextWidth(" ", segment.isBold, segment.isUnderlined, scale) : 0;
+
+                            if (currentX + spaceWidth + wordWidth > startX + maxLineWidth && currentX > startX) {
+                                currentX = startX;
+                                currentY += scaledLineSpacing;
+                            }
+
+                            if (currentX > startX) {
+                                currentX += spaceWidth;
+                            }
+
+                            int color = createColorWithAlpha(alpha, segment.color, segment.isBold, colorWanted);
+
+                            int wordStartX = currentX;
+                            writeStyledTextDirectlyOnImage(image, word, currentX, currentY, color, segment.isBold, false, scale);
+
+                            if (segment.isUnderlined) {
+                                drawWordUnderline(image, wordStartX, currentY, wordWidth, color, segment.isBold, scale);
+                            }
+
+                            currentX += wordWidth;
+                        }
+                    }
+
+                    if (lineIndex < lines.length - 1) {
+                        currentX = startX;
+                        currentY += scaledLineSpacing;
+                    }
                 }
+            } else {
+                String[] words = segment.text.split(" ");
 
-                if (currentX > startX) {
-                    currentX += spaceWidth;
+                for (int i = 0; i < words.length; i++) {
+                    String word = words[i];
+                    int wordWidth = calculateStyledTextWidth(word, segment.isBold, segment.isUnderlined, scale);
+                    int spaceWidth = (currentX > startX) ? calculateStyledTextWidth(" ", segment.isBold, segment.isUnderlined, scale) : 0;
+
+                    if (currentX + spaceWidth + wordWidth > startX + maxLineWidth && currentX > startX) {
+                        currentX = startX;
+                        currentY += scaledLineSpacing;
+                    }
+
+                    if (currentX > startX) {
+                        currentX += spaceWidth;
+                    }
+
+                    int color = createColorWithAlpha(alpha, segment.color, segment.isBold, colorWanted);
+
+                    int wordStartX = currentX;
+                    writeStyledTextDirectlyOnImage(image, word, currentX, currentY, color, segment.isBold, false, scale);
+
+                    if (segment.isUnderlined) {
+                        drawWordUnderline(image, wordStartX, currentY, wordWidth, color, segment.isBold, scale);
+                    }
+
+                    currentX += wordWidth;
                 }
-
-                int color = createColorWithAlpha(alpha, segment.color, segment.isBold, colorWanted);
-
-                int wordStartX = currentX;
-                writeStyledTextDirectlyOnImage(image, word, currentX, currentY, color, segment.isBold, false, scale);
-
-                if (segment.isUnderlined) {
-                    drawWordUnderline(image, wordStartX, currentY, wordWidth, color, segment.isBold, scale);
-                }
-
-                currentX += wordWidth;
             }
         }
     }

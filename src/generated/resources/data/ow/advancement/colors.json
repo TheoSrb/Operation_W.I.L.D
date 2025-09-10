@@ -1,29 +1,33 @@
 {
-  "parent": "ow:root",
+  "parent": "ow:novice_tamer",
   "criteria": {
     "tamed_peacock": {
-      "trigger": "minecraft:tame_animal",
       "conditions": {
-        "entity": {
-          "type": "ow:peacock"
-        }
-      }
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:peacock"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
     }
   },
   "display": {
     "description": {
       "translate": "ow.advancements.colors.description"
     },
+    "frame": "goal",
     "icon": {
       "count": 1,
       "id": "ow:peacock_spawn_egg"
     },
     "title": {
       "translate": "ow.advancements.colors.title"
-    },
-    "frame": "goal",
-    "show_toast": true,
-    "announce_to_chat": true
+    }
   },
   "requirements": [
     [

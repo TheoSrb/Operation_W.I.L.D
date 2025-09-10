@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_elephant": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:elephant"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.trailer.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:elephant_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.trailer.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_elephant"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

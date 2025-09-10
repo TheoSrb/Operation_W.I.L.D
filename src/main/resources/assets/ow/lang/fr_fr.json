@@ -22,12 +22,20 @@
 
   "ow.advancements.ow.title": "Operation W.I.L.D",
   "ow.advancements.ow.description": "Tous les animaux ne sont pas ce qu’ils semblent être…",
+  "ow.advancements.ow_taming.title": "Operation W.I.L.D - Domptage",
+  "ow.advancements.ow_taming.description": "Apprivoisez-les tous !",
   "ow.advancements.wild_meow.title": "Miaou Sauvage",
   "ow.advancements.wild_meow.description": "Vous avez apprivoisé un Tigre !",
   "ow.advancements.arms_what_for.title": "Des bras ? Pour quoi faire ?",
   "ow.advancements.arms_what_for.description": "Vous avez apprivoisé un Boa !",
   "ow.advancements.colors.title": "1000 et 1 couleurs",
   "ow.advancements.colors.description": "Vous avez apprivoisé un Paon !",
+  "ow.advancements.big_fuzzball.title": "Une grosse boule de poils",
+  "ow.advancements.big_fuzzball.description": "Vous avez apprivoisé un Kodiak !",
+  "ow.advancements.trailer.title": "Besoin d’une remorque, s’il vous plaît",
+  "ow.advancements.trailer.description": "Vous avez apprivoisé un Éléphant !",
+
+
   "ow.advancements.you_see_me.title": "On me voit, on me voit plus",
   "ow.advancements.you_see_me.description": "Vous avez fabriqué une armure de camouflage complète.",
   "ow.advancements.good_night.title": "Bonne nuit les petits",
@@ -52,6 +60,7 @@
 
   "tooltip.notebook": "Carnet de l'aventurier",
   "tooltip.noDiscovered": "Pas encore découvert",
+  "tooltip.newEntity": "Le chapitre %s a été ajouté à votre Manuscrit",
   "tooltip.tamingNoDiscovered": "Méthode d'apprivoisement non-découverte",
   "tooltip.notebookDescribe": "Ce carnet vous servira tout au long de votre aventure, notamment pour cartographier les animaux et monstres que vous découvrirez, ainsi que leurs méthodes d’apprivoisement respectives. De plus, ce carnet pourra vous informer sur votre taux d’expérience d’apprivoisement, etc...",
   "tooltip.menuBook": "Menu",
@@ -198,6 +207,10 @@
   "chapter.entity.ow.boa": "Boa",
   "chapter.entity.ow.peacock": "Paon",
 
+  "tooltip.chapter": "Chapitre %s",
+  "tooltip.chapterEmpty": "Vide",
+  "tooltip.haveEntityChapter": "Vous avez déjà débloqué le chapitre %s",
+
   "tooltip.unknownEntity": "Inconnue",
   "entity.ow.tiger": "Tigre",
   "entity.ow.mandrill": "Mandrill",
@@ -328,6 +341,8 @@
 
   "item.ow.plant_fiber": "Fibre végétale",
 
+  "item.ow.manuscript_fragment": "Fragment de manuscrit",
+
   "item.ow.lavender_bouquet": "Bouquet de lavande",
 
   "item.ow.battery": "Batterie",
@@ -380,10 +395,14 @@
   "tooltip.rightClickAlert": "! Débattez-vous !",
 
 
-  "tiger.page1": "Le §l§n§aTigre§r est un animal majestueux et redouté qui rôde dans les profondeurs verdoyantes des §lforêts tropicales§r. Silencieux et imposant, il incarne la puissance à l'état pur.",
-  "tiger.page2": "Lorsqu’il repère une cible, il §lbondit§r avec une agilité foudroyante, §ls’accroche§r à sa victime et ne la lâche plus.",
-  "tiger.page3": "Ses griffes acérées peuvent lui servir à §lmarquer§r son territoire sur les troncs d’arbres. Il peut également §ldésarmer§r un joueur d’un simple coup de patte, renversant un combat en un instant.",
-  "tiger.page4": "§l§nAnalyse§r : Animal très dangereux — à éviter autant que possible.",
+  "adventurer_manuscript.entity.tiger.page_1": "Le §l§n§dTigre§r est un §lfélin§r sauvage de taille moyenne, rôdant dans les §lforêts tropicales§r et les §ljungles de bambous§r. Extrêmement agile et territorial, il attaque sans avertissement.",
+  "adventurer_manuscript.entity.tiger.page_2": "§l§n1. Saut Bestial: \n\n§r Lorsqu’il repère une cible, le §l§n§dTigre§r effectue un bond précis et puissant, visant à immobiliser et piéger sa proie avec ses griffes acérées.\n\nS’il vous attrape, il vous lacère avec ses",
+  "adventurer_manuscript.entity.tiger.page_3": "§lgriffes§r, infligeant des dégâts tout en vous maintenant §lprisonnier§r sous sa force et sa puissance, jusqu’à ce qu’il vous lâche.",
+  "adventurer_manuscript.entity.tiger.page_4": "§l§n2. Désarmement: \n\n§r Les frappes du §l§n§dTigre§r sont suffisamment précises pour forcer un joueur à §llâcher§r son équipement.",
+  "adventurer_manuscript.entity.tiger.page_5": "§l§n3. Territorial: \n\n§r Le §l§n§dTigre§r griffonne régulièrement les troncs d’arbres dans sa zone de chasse, laissant des traces visibles sur l’écorce. Ces marques servent à signaler sa présence et à dissuader les intrus.",
+  "adventurer_manuscript.entity.tiger.page_6": "§l§n4. Repos: \n\n§r Le §l§n§dTigre§r alterne ses phases d’activité avec des périodes de §lrepos§r, se retirant dans des zones sûres pour récupérer son énergie avant de §lreprendre§r la chasse.",
+  "adventurer_manuscript.entity.tiger.page_7": "§l§nAnalyse§r: Prédateur territorial - À absolument éviter.",
+
 
   "boa.page1": "Le §lBoa§r est un prédateur silencieux se faufilant dans les §lzones§r §lhumides§r et denses attendant impatiemment sa proie.",
   "boa.page2": "Sa morsure, rapide et précise, peut inoculer à la fois §lVenin§r et §lPoison§r, affaiblissant ses victimes en quelques instants.",

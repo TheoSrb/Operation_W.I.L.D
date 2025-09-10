@@ -22,12 +22,20 @@
 
   "ow.advancements.ow.title": "Operation W.I.L.D",
   "ow.advancements.ow.description": "Not all animals are what they seem...",
+  "ow.advancements.ow_taming.title": "Operation W.I.L.D - Tamings",
+  "ow.advancements.ow_taming.description": "Tame them all!",
   "ow.advancements.wild_meow.title": "Wild Meow",
   "ow.advancements.wild_meow.description": "You've tamed a Tiger !",
   "ow.advancements.arms_what_for.title": "Arms? What for?",
   "ow.advancements.arms_what_for.description": "You've tamed a Boa !",
   "ow.advancements.colors.title": "1000 and 1 colors",
   "ow.advancements.colors.description": "You've tamed a Peacock !",
+  "ow.advancements.big_fuzzball.title": "That big fuzzball",
+  "ow.advancements.big_fuzzball.description": "You've tamed a Kodiak !",
+  "ow.advancements.trailer.title": "Need a trailer, please",
+  "ow.advancements.trailer.description": "You've tamed an Elephant !",
+
+
   "ow.advancements.you_see_me.title": "You see me, you don't see me",
   "ow.advancements.you_see_me.description": "You've made a complete suit of camouflage armor.",
   "ow.advancements.good_night.title": "Good night, little ones",
@@ -51,6 +59,7 @@
 
 
   "tooltip.notebook": "Adventurer's notebook",
+  "tooltip.newEntity": "Chapter %s has been added to your Manuscript",
   "tooltip.noDiscovered": "Not yet discovered",
   "tooltip.tamingNoDiscovered": "Taming method not discovered",
   "tooltip.notebookDescribe": "This notebook will accompany you throughout your adventure, helping you map the animals and creatures you discover, along with their unique taming methods. It will also provide information on your taming experience level, etc...",
@@ -195,6 +204,10 @@
   "chapter.entity.ow.boa": "Boa",
   "chapter.entity.ow.peacock": "Peacock",
 
+  "tooltip.chapter": "Chapter %s",
+  "tooltip.chapterEmpty": "Empty",
+  "tooltip.haveEntityChapter": "You've already unlocked chapter %s",
+
   "tooltip.unknownEntity": "Unknown",
   "entity.ow.tiger": "Tiger",
   "entity.ow.mandrill": "Mandrill",
@@ -324,6 +337,8 @@
 
   "item.ow.plant_fiber": "Plant Fiber",
 
+  "item.ow.manuscript_fragment": "Manuscript Fragment",
+
   "item.ow.lavender_bouquet": "Lavender Bouquet",
 
   "item.ow.battery": "Battery",
@@ -376,13 +391,8 @@
   "tooltip.rightClickAlert": "! Fight Back !",
 
 
+  "adventurer_manuscript.entity.tiger.page_1": "Félin sauvage de taille moyenne, repéré dans les forêts tropicales et les jungles de bambous. Extrêmement agile et territorial, il attaque sans avertissement.",
 
-
-
-  "tiger.page1": "The §lTiger§r is a majestic and feared animal that prowls through the verdant depths of §ltropical forests§r. Silent and imposing, it embodies pure power.",
-  "tiger.page2": "When it spots a target, it §lpounces§r with lightning agility, §llatches§r onto its victim and never lets go.",
-  "tiger.page3": "Its razor-sharp claws can serve to §lmark§r its territory on tree trunks. It can also §ldisarm§r a player with a simple paw swipe, reversing a fight in an instant.",
-  "tiger.page4": "§l§nAnalysis§r: Very dangerous animal — to be avoided as much as possible.",
 
   "boa.page1": "The §lBoa§r is a silent predator slithering through dense, §lhumid§r §lareas§r patiently awaiting its prey.",
   "boa.page2": "Its bite, quick and precise, can inject both §lVenom§r and §lPoison§r, weakening its victims within moments.",

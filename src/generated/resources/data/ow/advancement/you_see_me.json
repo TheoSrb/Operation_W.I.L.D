@@ -1,5 +1,5 @@
 {
-  "parent": "ow:root",
+  "parent": "ow:ow",
   "criteria": {
     "camouflage_armor": {
       "conditions": {
@@ -31,10 +31,7 @@
     },
     "title": {
       "translate": "ow.advancements.you_see_me.title"
-    },
-    "frame": "goal",
-    "show_toast": true,
-    "announce_to_chat": true
+    }
   },
   "requirements": [
     [

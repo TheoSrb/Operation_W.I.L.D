@@ -481,6 +481,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
             if (!EventHooks.onAnimalTame(this, player)) {
                 if (!this.level().isClientSide() && this.foodGiven >= this.foodWanted) {
+                    this.setMad(false);
                     this.setTame(true, player);
                     this.setSleeping(false);
                     resetSleepBar();

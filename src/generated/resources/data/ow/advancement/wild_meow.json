@@ -1,29 +1,33 @@
 {
-  "parent": "ow:good_night",
+  "parent": "ow:renowned_tamer",
   "criteria": {
     "tamed_tiger": {
-      "trigger": "minecraft:tame_animal",
       "conditions": {
-        "entity": {
-          "type": "ow:tiger"
-        }
-      }
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:tiger"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
     }
   },
   "display": {
     "description": {
       "translate": "ow.advancements.wild_meow.description"
     },
+    "frame": "goal",
     "icon": {
       "count": 1,
       "id": "ow:tiger_spawn_egg"
     },
     "title": {
       "translate": "ow.advancements.wild_meow.title"
-    },
-    "frame": "goal",
-    "show_toast": true,
-    "announce_to_chat": true
+    }
   },
   "requirements": [
     [

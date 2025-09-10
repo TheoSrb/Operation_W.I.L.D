@@ -1,0 +1,27 @@
+{
+  "parent": "ow:professional_tamer",
+  "criteria": {
+    "impossible": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.legendary_tamer.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "ow:medal_0"
+    },
+    "title": {
+      "translate": "ow.advancements.legendary_tamer.title"
+    }
+  },
+  "requirements": [
+    [
+      "impossible"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

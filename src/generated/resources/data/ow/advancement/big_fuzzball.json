@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_kodiak": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:kodiak"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.big_fuzzball.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:kodiak_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.big_fuzzball.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_kodiak"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

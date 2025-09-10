@@ -28,6 +28,7 @@ public class OWItems {
 
 
 
+    public static final DeferredHolder<Item, Item> MANUSCRIPT_FRAGMENT = ITEMS.register("manuscript_fragment", () -> new ManuscriptFragmentItem(new Item.Properties().stacksTo(1)));
 
 
     public static final DeferredHolder<Item, Item> MEDAL_0 = ITEMS.register("medal_0", () -> new Item(new Item.Properties()));

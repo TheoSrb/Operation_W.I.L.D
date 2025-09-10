@@ -10,6 +10,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
@@ -43,6 +44,7 @@ import net.tiew.operationWild.screen.OWMenuRegister;
 import net.tiew.operationWild.screen.blocks.SaddlerScreen;
 import net.tiew.operationWild.screen.entity.OWInventoryScreen;
 import net.tiew.operationWild.screen.entity.submarine.SeaBugInventoryScreen;
+import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManuscriptScreen;
 import net.tiew.operationWild.sound.OWSounds;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -186,6 +188,41 @@ public class OperationWild {
             modifier = Math.max(modifier, 1.0F);
             event.setNewDamage(event.getNewDamage() * modifier);
         }
+    }
+
+    public static void addEntityToManuscript(EntityType<? extends OWEntity> entityType, int page, Player player) {
+        AdventurerManuscriptScreen.addEntityToManuscript(entityType, page, player);
+    }
+
+    public static int getMaxPageForEntityInManuscript(EntityType<? extends OWEntity> entityType) {
+        if (entityType == OWEntityRegistry.TIGER.get()) {
+            return 4;
+        } else if (entityType == OWEntityRegistry.BOA.get()) {
+            return 2;
+        } else if (entityType == OWEntityRegistry.PEACOCK.get()) {
+            return 3;
+        } else if (entityType == OWEntityRegistry.TIGER_SHARK.get()) {
+            return 3;
+        } else if (entityType == OWEntityRegistry.HYENA.get()) {
+            return 2;
+        } else if (entityType == OWEntityRegistry.KODIAK.get()) {
+            return 3;
+        } else if (entityType == OWEntityRegistry.RED_PANDA.get()) {
+            return 2;
+        } else if (entityType == OWEntityRegistry.CHAMELEON.get()) {
+            return 2;
+        } else if (entityType == OWEntityRegistry.JELLYFISH.get()) {
+            return 2;
+        } else if (entityType == OWEntityRegistry.MANTA.get()) {
+            return 2;
+        } else if (entityType == OWEntityRegistry.WALRUS.get()) {
+            return 3;
+        } else if (entityType == OWEntityRegistry.ELEPHANT.get()) {
+            return 3;
+        } else if (entityType == OWEntityRegistry.MANDRILL.get()) {
+            return 2;
+        }
+        return -1;
     }
 
     @SubscribeEvent

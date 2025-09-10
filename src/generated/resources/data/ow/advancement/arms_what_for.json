@@ -1,29 +1,33 @@
 {
-  "parent": "ow:root",
+  "parent": "ow:novice_tamer",
   "criteria": {
     "tamed_boa": {
-      "trigger": "minecraft:tame_animal",
       "conditions": {
-        "entity": {
-          "type": "ow:boa"
-        }
-      }
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:boa"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
     }
   },
   "display": {
     "description": {
       "translate": "ow.advancements.arms_what_for.description"
     },
+    "frame": "goal",
     "icon": {
       "count": 1,
       "id": "ow:boa_spawn_egg"
     },
     "title": {
       "translate": "ow.advancements.arms_what_for.title"
-    },
-    "frame": "goal",
-    "show_toast": true,
-    "announce_to_chat": true
+    }
   },
   "requirements": [
     [

@@ -1,33 +1,26 @@
 {
   "parent": "ow:renowned_tamer",
   "criteria": {
-    "tamed_peacock": {
-      "trigger": "minecraft:tame_animal",
-      "conditions": {
-        "entity": {
-          "type": "ow:peacock"
-        }
-      }
+    "impossible": {
+      "trigger": "minecraft:impossible"
     }
   },
   "display": {
     "description": {
       "translate": "ow.advancements.professional_tamer.description"
     },
+    "frame": "challenge",
     "icon": {
       "count": 1,
       "id": "ow:medal_1"
     },
     "title": {
       "translate": "ow.advancements.professional_tamer.title"
-    },
-    "frame": "challenge",
-    "show_toast": true,
-    "announce_to_chat": true
+    }
   },
   "requirements": [
     [
-      "tamed_peacock"
+      "impossible"
     ]
   ],
   "sends_telemetry_event": true

@@ -13,15 +13,20 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.client.model.AdventurerManuscriptModel;
 import net.tiew.operationWild.entity.misc.AdventurerManuscript;
+import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.chapter.OWChapter;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.chapter.OWChapters;
 import org.lwjgl.glfw.GLFW;
@@ -68,39 +73,17 @@ public class AdventurerManuscriptScreen extends Screen {
 
     private EntityType<? extends OWEntity> lastEntityTypeFound = null;
 
-    public static final List<EntityType<? extends OWEntity>> owEntities = new ArrayList<>(Arrays.asList(
-            OWEntityRegistry.BOA.get(),
-            OWEntityRegistry.TIGER.get(),
-            OWEntityRegistry.PEACOCK.get(),
-            OWEntityRegistry.TIGER_SHARK.get(),
-            OWEntityRegistry.HYENA.get(),
-            OWEntityRegistry.KODIAK.get(),
-            OWEntityRegistry.RED_PANDA.get(),
-            OWEntityRegistry.CHAMELEON.get(),
-            OWEntityRegistry.JELLYFISH.get(),
-            OWEntityRegistry.MANTA.get(),
-            OWEntityRegistry.WALRUS.get(),
-            OWEntityRegistry.ELEPHANT.get(),
-            OWEntityRegistry.MANDRILL.get()
-    ));
+    public static Map<EntityType<? extends OWEntity>, Integer> OW_ENTITIES = new LinkedHashMap<>();
+    public static Map<EntityType<? extends OWEntity>, Integer> tempMap = new HashMap<>();
 
-    public static final Map<EntityType<? extends OWEntity>, Integer> OW_ENTITIES = new LinkedHashMap<>();
+    public AdventurerManuscriptScreen() {
+        super(Component.literal(""));
+    }
 
-    static {
-        Map<EntityType<? extends OWEntity>, Integer> tempMap = new HashMap<>();
-        tempMap.put(OWEntityRegistry.BOA.get(), 2);
-        tempMap.put(OWEntityRegistry.TIGER.get(), 3);
-        tempMap.put(OWEntityRegistry.PEACOCK.get(), 3);
-        tempMap.put(OWEntityRegistry.TIGER_SHARK.get(), 3);
-        tempMap.put(OWEntityRegistry.HYENA.get(), 2);
-        tempMap.put(OWEntityRegistry.KODIAK.get(), 3);
-        tempMap.put(OWEntityRegistry.RED_PANDA.get(), 2);
-        tempMap.put(OWEntityRegistry.CHAMELEON.get(), 2);
-        tempMap.put(OWEntityRegistry.JELLYFISH.get(), 2);
-        tempMap.put(OWEntityRegistry.MANTA.get(), 2);
-        tempMap.put(OWEntityRegistry.WALRUS.get(), 3);
-        tempMap.put(OWEntityRegistry.ELEPHANT.get(), 3);
-        tempMap.put(OWEntityRegistry.MANDRILL.get(), 2);
+    public static InteractionResult addEntityToManuscript(EntityType<? extends OWEntity> entityType, int page, Player player) {
+        if (tempMap.containsKey(entityType) || OW_ENTITIES.containsKey(entityType)) return InteractionResult.PASS;
+
+        tempMap.put(entityType, page);
 
         Collator collator = Collator.getInstance();
         collator.setStrength(Collator.PRIMARY);
@@ -114,12 +97,19 @@ public class AdventurerManuscriptScreen extends Screen {
                     String translatedName2 = Component.translatable(translationKey2).getString();
 
                     return collator.compare(translatedName1, translatedName2);
-                })
-                .forEach(entry -> OW_ENTITIES.put(entry.getKey(), entry.getValue()));
-    }
+                });
 
-    public AdventurerManuscriptScreen() {
-        super(Component.literal(""));
+        ClientEvents.isNotifiedOWBook = true;
+        player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP);
+
+
+        if (player.level().isClientSide()) {
+            OWEntity entity = entityType.create(Minecraft.getInstance().level);
+
+            player.displayClientMessage(Component.translatable("tooltip.newEntity",
+                    Component.translatable(String.valueOf(entityType)).setStyle(Style.EMPTY.withBold(true).withColor(entity != null ? entity.getEntityColor() : 0xFFFFFF))), true);
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -146,8 +136,32 @@ public class AdventurerManuscriptScreen extends Screen {
     }
 
     @Override
+    public void onClose() {
+        super.onClose();
+        OW_ENTITIES.clear();
+        LEFT_PAGE = null;
+        RIGHT_PAGE = null;
+        leftChapterPage = null;
+    }
+
+    @Override
     protected void init() {
         super.init();
+        Collator collator = Collator.getInstance();
+        collator.setStrength(Collator.PRIMARY);
+
+        tempMap.entrySet().stream()
+                .sorted((entry1, entry2) -> {
+                    String translationKey1 = entry1.getKey().getDescriptionId();
+                    String translationKey2 = entry2.getKey().getDescriptionId();
+
+                    String translatedName1 = Component.translatable(translationKey1).getString();
+                    String translatedName2 = Component.translatable(translationKey2).getString();
+
+                    return collator.compare(translatedName1, translatedName2);
+                })
+                .forEach(entry -> OW_ENTITIES.put(entry.getKey(), entry.getValue()));
+
         if (this.cachedBookEntity == null) {
             this.cachedBookEntity = new AdventurerManuscript(
                     OWEntityRegistry.ADVENTURER_MANUSCRIPT.get(),
@@ -161,19 +175,6 @@ public class AdventurerManuscriptScreen extends Screen {
         this.fadeStartTime = 0;
         this.isFading = false;
         this.pageCooldownStartTime = System.currentTimeMillis();
-
-        Collator collator = Collator.getInstance();
-        collator.setStrength(Collator.PRIMARY);
-
-        owEntities.sort((entity1, entity2) -> {
-            String translationKey1 = entity1.getDescriptionId();
-            String translationKey2 = entity2.getDescriptionId();
-
-            String translatedName1 = Component.translatable(translationKey1).getString();
-            String translatedName2 = Component.translatable(translationKey2).getString();
-
-            return collator.compare(translatedName1, translatedName2);
-        });
 
         this.maxPage = getAllAnimalPages();
         updatePageContent();

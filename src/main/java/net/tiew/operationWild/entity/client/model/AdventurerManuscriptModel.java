@@ -64,7 +64,7 @@ public class AdventurerManuscriptModel<T extends AdventurerManuscript> extends H
     public void setupAnim(AdventurerManuscript book, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-		this.animate(book.openAnimationState, AdventurerManuscriptAnimations.OPEN, ageInTicks, 1.25f);
+		this.animate(book.openAnimationState, AdventurerManuscriptAnimations.OPEN, ageInTicks, 2f);
 		this.animate(book.nextPageAnimationState, AdventurerManuscriptAnimations.NEXT, ageInTicks, 0.9f);
 		this.animate(book.precedentPageAnimationState, AdventurerManuscriptAnimations.PRECEDENT, ageInTicks, 0.9f);
 	}

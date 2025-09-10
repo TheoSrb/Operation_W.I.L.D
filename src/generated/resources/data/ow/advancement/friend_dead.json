@@ -1,0 +1,34 @@
+{
+  "parent": "ow:ow",
+  "criteria": {
+    "item.ow.animal_soul": {
+      "conditions": {
+        "items": [
+          {
+            "items": "ow:animal_soul"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.friend_dead.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:animal_soul"
+    },
+    "title": {
+      "translate": "ow.advancements.friend_dead.title"
+    }
+  },
+  "requirements": [
+    [
+      "item.ow.animal_soul"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -104,6 +104,8 @@ public class OWCreativeTabs {
                         output.accept(OWItems.SEABUG_HULL.get());
                         output.accept(OWItems.SEABUG_PORTHOLE.get());
 
+                        output.accept(OWItems.MANUSCRIPT_FRAGMENT.get());
+
                         output.accept(OWBlocks.REDWOOD_LOG.get());
                         output.accept(OWBlocks.REDWOOD_WOOD.get());
                         output.accept(OWBlocks.STRIPPED_REDWOOD_LOG.get());
