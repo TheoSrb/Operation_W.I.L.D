@@ -112,6 +112,24 @@ public class AdventurerManuscriptAnimations {
                             new Keyframe(0.16f, KeyframeAnimations.degreeVec(0f, -40f, 0f),
                                     AnimationChannel.Interpolations.CATMULLROM),
                             new Keyframe(0.56f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
+                                    AnimationChannel.Interpolations.CATMULLROM)))
+            .addAnimation("page3",
+                    new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                            new Keyframe(0f, KeyframeAnimations.degreeVec(0f, 0f, 0f),
+                                    AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(0.48f, KeyframeAnimations.degreeVec(0f, 170f, 0f),
+                                    AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(0.56f, KeyframeAnimations.degreeVec(0f, 360f, 0f),
+                                    AnimationChannel.Interpolations.CATMULLROM)))
+            .addAnimation("page3",
+                    new AnimationChannel(AnimationChannel.Targets.SCALE,
+                            new Keyframe(0f, KeyframeAnimations.scaleVec(1f, 1f, 1f),
+                                    AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(0.48f, KeyframeAnimations.scaleVec(1f, 1f, 1f),
+                                    AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(0.52f, KeyframeAnimations.scaleVec(0f, 0f, 0f),
+                                    AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(0.56f, KeyframeAnimations.scaleVec(1f, 1f, 1f),
                                     AnimationChannel.Interpolations.CATMULLROM))).build();
     public static final AnimationDefinition PRECEDENT = AnimationDefinition.Builder.withLength(0.56f)
             .addAnimation("root",

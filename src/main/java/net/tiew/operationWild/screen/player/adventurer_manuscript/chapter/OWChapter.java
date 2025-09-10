@@ -23,6 +23,7 @@ public class OWChapter {
 
     private static ResourceLocation lastCreatedLeftTexture = null;
     private static ResourceLocation lastCreatedRightTexture = null;
+    private static ResourceLocation lastCreatedNextRightTexture = null;
 
     public static void drawTextOnRightPage(Component text, int x, int y, float scale, float alpha, int maxLength, int color) {
         ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
@@ -183,8 +184,10 @@ public class OWChapter {
 
         cleanupPreviousTexture(lastCreatedLeftTexture);
         cleanupPreviousTexture(lastCreatedRightTexture);
+        cleanupPreviousTexture(lastCreatedNextRightTexture);
         lastCreatedLeftTexture = null;
         lastCreatedRightTexture = null;
+        lastCreatedNextRightTexture = null;
     }
 
     private static NativeImage loadBaseImageCached(ResourceLocation texture) throws Exception {
@@ -224,6 +227,8 @@ public class OWChapter {
             cleanupPreviousTexture(lastCreatedLeftTexture);
         } else if ("right_page".equals(pageName)) {
             cleanupPreviousTexture(lastCreatedRightTexture);
+        } else if ("next_right_page".equals(pageName)) {
+            cleanupPreviousTexture(lastCreatedNextRightTexture);
         }
 
         Minecraft mc = Minecraft.getInstance();
@@ -236,6 +241,8 @@ public class OWChapter {
             lastCreatedLeftTexture = result;
         } else if ("right_page".equals(pageName)) {
             lastCreatedRightTexture = result;
+        } else if ("next_right_page".equals(pageName)) {
+            lastCreatedNextRightTexture = result;
         }
 
         return result;
@@ -260,8 +267,10 @@ public class OWChapter {
 
         cleanupPreviousTexture(lastCreatedLeftTexture);
         cleanupPreviousTexture(lastCreatedRightTexture);
+        cleanupPreviousTexture(lastCreatedNextRightTexture);
         lastCreatedLeftTexture = null;
         lastCreatedRightTexture = null;
+        lastCreatedNextRightTexture = null;
     }
 
     public static void drawImageOnLeftPage(GuiGraphics graphics, int x, int y, float scale, float alpha,
