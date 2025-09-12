@@ -364,7 +364,6 @@ public class AdventurerManuscriptScreen extends Screen {
             OWChapters.render(0, 0, 1.0f, getFadeAlpha(), entityType);
         }
 
-        handleChapterText(lastEntityTypeFound, (int) (screenCenterX / 0.8f), (int) (screenCenterY / 0.8f), getFadeAlpha());
         guiGraphics.pose().popPose();
 
         Component page = Component.literal(String.valueOf(actualPage + " / " + maxPage));
@@ -405,8 +404,11 @@ public class AdventurerManuscriptScreen extends Screen {
                 modelSet.bakeLayer(AdventurerManuscriptModel.LAYER_LOCATION)
         );
 
-        ResourceLocation baseTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/adventurer_manuscript.png");
         ResourceLocation bookTexture = OWChapter.drawDirectlyOnModelTexture("Test Text", 20, 20, 1.0f, 1.0f, 0x887c57);
+        int screenCenterX = this.width / 2;
+        int screenCenterY = (this.height / 2) - 55;
+        handleChapterText(lastEntityTypeFound, (int) (screenCenterX / 0.8f), (int) (screenCenterY / 0.8f), getFadeAlpha());
+
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(centerX, centerY, 100.0F);

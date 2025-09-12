@@ -40,7 +40,7 @@ public class OWChapter {
             if (workingImage != null) {
                 workingImage.close();
             }
-            return modelTexture; // Return original texture if error
+            return modelTexture;
         }
     }
 
