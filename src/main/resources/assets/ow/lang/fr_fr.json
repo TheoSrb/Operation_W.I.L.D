@@ -492,6 +492,11 @@
 
   "attacks.description1.PeacockEntity": "Faites picorer votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque coup de bec.",
   "attacks.description2.PeacockEntity": "?",
-  "attacks.description3.PeacockEntity": "?"
+  "attacks.description3.PeacockEntity": "?",
+
+
+
+
+  "ascent.mission.tiger.1": "Sautez et attrapez un total de %s entités avec votre Tigre."
 
 }

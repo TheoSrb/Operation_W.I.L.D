@@ -61,6 +61,7 @@ import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.quests.ascent.TigerAscensionMissions;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.goals.NapGoal;
@@ -84,6 +85,10 @@ import static net.tiew.operationWild.core.OWUtils.determinateMinAndMax;
 public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, PlayerRideableJumping {
 
     public static final double TAMING_EXPERIENCE = 195.0;
+
+
+    private TigerAscensionMissions mission1 = TigerAscensionMissions.MISSION_1;
+
 
     public String[] quests = {};
     public boolean wantToScarifyWood = false;
@@ -453,6 +458,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                             this.getY(),
                             this.getZ() + 0.5);
                 }
+
+                if (hitTrappingCount <= 0) {
+                    setAscentMissionValue(mission1.getMission(), mission1.getActualValue() + 1);
+                }
+
                 this.setTrappingEntity(true);
 
                 TRAPPED_ENTITY_TAMED.hurt(this.damageSource, this.getDamage() / 4);
@@ -969,6 +979,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
+
         if (!isTrappingEntity() && !isSleeping() && !isJumpingOnTarget() && !wantToScarifyWood && !isNapping() && !isPreparingNapping() && isFood(itemStack) && !isBaby() && isTame()) {
             return super.mobInteract(player, hand);
         }
@@ -1158,6 +1169,9 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         tag.putInt("numberFeedsWanted", this.numberFeedsWanted);
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
         tag.putInt("cooldownJump", this.cooldownJump);
+
+        tag.putBoolean("isMissionIsFinished", this.mission1.isMissionIsFinished());
+        tag.putDouble("getActualValue", this.mission1.getActualValue());
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -1177,5 +1191,9 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.numberFeedsWanted = tag.getInt("numberFeedsWanted");
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
         this.cooldownJump = tag.getInt("cooldownJump");
+
+        this.mission1.setMissionIsFinished(tag.getBoolean("isMissionIsFinished"));
+        this.mission1.setActualValue(tag.getDouble("getActualValue"));
+
     }
 }

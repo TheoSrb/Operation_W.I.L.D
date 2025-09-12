@@ -405,7 +405,8 @@ public class AdventurerManuscriptScreen extends Screen {
                 modelSet.bakeLayer(AdventurerManuscriptModel.LAYER_LOCATION)
         );
 
-        ResourceLocation bookTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/adventurer_manuscript.png");
+        ResourceLocation baseTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/adventurer_manuscript.png");
+        ResourceLocation bookTexture = OWChapter.drawDirectlyOnModelTexture("Test Text", 20, 20, 1.0f, 1.0f, 0x887c57);
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(centerX, centerY, 100.0F);
@@ -429,42 +430,6 @@ public class AdventurerManuscriptScreen extends Screen {
         }
 
         bookModel.renderToBuffer(guiGraphics.pose(), vertexConsumer, 15728880, OverlayTexture.NO_OVERLAY, 0xFFFFFF);
-
-        if (leftChapterPage != null && !leftChapterPage.equals("")) {
-            ResourceLocation leftOverlayTexture = ResourceLocation.parse(leftChapterPage);
-            RenderSystem.setShaderTexture(0, leftOverlayTexture);
-            VertexConsumer leftOverlayConsumer = guiGraphics.bufferSource().getBuffer(RenderType.entityTranslucent(leftOverlayTexture));
-
-            float alpha = getFadeAlpha();
-            int alphaValue = (int)(alpha * 187);
-            int color = (alphaValue << 24) | 0xFFFFFF;
-
-            bookModel.renderToBuffer(guiGraphics.pose(), leftOverlayConsumer, 15728880, OverlayTexture.NO_OVERLAY, color);
-        }
-
-        if (RIGHT_PAGE != null && !RIGHT_PAGE.equals("")) {
-            ResourceLocation rightOverlayTexture = ResourceLocation.parse(RIGHT_PAGE);
-            RenderSystem.setShaderTexture(0, rightOverlayTexture);
-            VertexConsumer rightOverlayConsumer = guiGraphics.bufferSource().getBuffer(RenderType.entityTranslucent(rightOverlayTexture));
-
-            float alpha = getFadeAlpha();
-            int alphaValue = (int)(alpha * 187);
-            int color = (alphaValue << 24) | 0xFFFFFF;
-
-            bookModel.renderToBuffer(guiGraphics.pose(), rightOverlayConsumer, 15728880, OverlayTexture.NO_OVERLAY, color);
-        }
-
-        if (LEFT_PAGE != null && !LEFT_PAGE.equals("")) {
-            ResourceLocation rightOverlayTexture = ResourceLocation.parse(LEFT_PAGE);
-            RenderSystem.setShaderTexture(0, rightOverlayTexture);
-            VertexConsumer rightOverlayConsumer = guiGraphics.bufferSource().getBuffer(RenderType.entityTranslucent(rightOverlayTexture));
-
-            float alpha = getFadeAlpha();
-            int alphaValue = (int)(alpha * 187);
-            int color = (alphaValue << 24) | 0xFFFFFF;
-
-            bookModel.renderToBuffer(guiGraphics.pose(), rightOverlayConsumer, 15728880, OverlayTexture.NO_OVERLAY, color);
-        }
 
         guiGraphics.flush();
         guiGraphics.pose().popPose();

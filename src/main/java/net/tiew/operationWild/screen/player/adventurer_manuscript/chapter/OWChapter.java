@@ -25,6 +25,86 @@ public class OWChapter {
     private static ResourceLocation lastCreatedRightTexture = null;
     private static ResourceLocation lastCreatedNextRightTexture = null;
 
+    public static ResourceLocation drawDirectlyOnModelTexture(String text, int x, int y, float scale, float alpha, int color) {
+        ResourceLocation modelTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/adventurer_manuscript.png");
+        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, color);
+
+        NativeImage workingImage = null;
+        try {
+            workingImage = loadBaseImageCached(modelTexture);
+            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, x, y, alpha, 200, scale, color);
+            ResourceLocation result = createFinalTexture(workingImage, "model_texture");
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (workingImage != null) {
+                workingImage.close();
+            }
+            return modelTexture; // Return original texture if error
+        }
+    }
+
+    public static ResourceLocation drawImageDirectlyOnModelTexture(ResourceLocation sourceImage, int x, int y, float scale, float alpha, int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
+        ResourceLocation modelTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/adventurer_manuscript.png");
+
+        NativeImage workingImage = null;
+        try {
+            workingImage = loadBaseImageCached(modelTexture);
+
+            int scaledWidth = (int)(sourceWidth * scale);
+            int scaledHeight = (int)(sourceHeight * scale);
+
+            drawImageOnNativeImage(workingImage, sourceImage, x, y, scaledWidth, scaledHeight, alpha, sourceX, sourceY, sourceWidth, sourceHeight);
+
+            ResourceLocation result = createFinalTexture(workingImage, "model_texture");
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (workingImage != null) {
+                workingImage.close();
+            }
+            return modelTexture; // Return original texture if error
+        }
+    }
+
+    public static ResourceLocation drawCombinedDirectlyOnModelTexture(
+            String text1, int x1, int y1, float scale1, float alpha1, int color1,
+            String text2, int x2, int y2, float scale2, float alpha2, int color2,
+            ResourceLocation imageLocation, int imageX, int imageY, float imageScale, float imageAlpha,
+            int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
+
+        ResourceLocation modelTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/adventurer_manuscript.png");
+
+        List<StyledTextSegment> segments1 = OWTextParser.parseStyledText(text1, color1);
+        List<StyledTextSegment> segments2 = OWTextParser.parseStyledText(text2, color2);
+
+        int scaledImageWidth = (int)(sourceWidth * imageScale);
+        int scaledImageHeight = (int)(sourceHeight * imageScale);
+
+        NativeImage workingImage = null;
+        try {
+            workingImage = loadBaseImageCached(modelTexture);
+
+            // Draw image first
+            if (imageLocation != null) {
+                drawImageOnNativeImage(workingImage, imageLocation, imageX, imageY, scaledImageWidth, scaledImageHeight, imageAlpha, sourceX, sourceY, sourceWidth, sourceHeight);
+            }
+
+            // Draw texts
+            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments1, x1, y1, alpha1, 200, scale1, color1);
+            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments2, x2, y2, alpha2, 200, scale2, color2);
+
+            ResourceLocation result = createFinalTexture(workingImage, "model_texture");
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (workingImage != null) {
+                workingImage.close();
+            }
+            return modelTexture; // Return original texture if error
+        }
+    }
+
     public static void drawTextOnRightPage(Component text, int x, int y, float scale, float alpha, int maxLength, int color) {
         ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
         List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, color);

@@ -71,6 +71,7 @@ import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.quests.ascent.AscentMission;
 import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.networking.packets.to_client.*;
 import org.jetbrains.annotations.Nullable;
@@ -2797,6 +2798,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) {
         return null;
+    }
+
+    public void setAscentMissionValue(AscentMission mission, double $$0) {
+        if (!this.level().isClientSide() && this.isTame()) {
+            mission.setActualValue($$0);
+        }
     }
 
     public void attackEntitiesInFront(float attackDamage, SoundEvent sound, double width, double height, double reach, float $$1) {
