@@ -30,7 +30,6 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.networking.ClientKillData;
