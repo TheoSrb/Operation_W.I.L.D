@@ -41,6 +41,10 @@ public class AdventurerManuscriptScreen extends Screen {
     public static String leftChapterPage = "";
     public static String LEFT_PAGE;
     public static String RIGHT_PAGE;
+    public static String NEXT_LEFT_PAGE;
+    public static String NEXT_RIGHT_PAGE;
+    public static String PREVIOUS_LEFT_PAGE;
+    public static String PREVIOUS_RIGHT_PAGE;
 
     public static final float BOOK_ROTATION = -20.0f;
 
@@ -60,12 +64,12 @@ public class AdventurerManuscriptScreen extends Screen {
     private float animationSpeed = 1.0f;
 
     private float oscillationTimer = 0;
-    private float oscillationSpeed = 0.04f;
+    private float oscillationSpeed = 0.1f;
     private float oscillationAmplitude = 5;
     private float oscillationFrequency = 0.25f;
 
     private long pageCooldownStartTime = 0;
-    private long pageCooldownDuration = 800;
+    private long pageCooldownDuration = 1400;
 
     private long fadeStartTime = 0;
     private boolean isFading = false;
@@ -124,7 +128,7 @@ public class AdventurerManuscriptScreen extends Screen {
             long window = mc.getWindow().getWindow();
             if (InputConstants.isKeyDown(window, GLFW.GLFW_KEY_RIGHT) || InputConstants.isKeyDown(window, GLFW.GLFW_KEY_LEFT)) {
                 pageCooldownDuration /= 1.04f;
-            } else pageCooldownDuration = 800;
+            } else pageCooldownDuration = 1400;
         }
 
         pageCooldownDuration = Math.max(pageCooldownDuration, 100);
@@ -143,6 +147,10 @@ public class AdventurerManuscriptScreen extends Screen {
         OW_ENTITIES.clear();
         LEFT_PAGE = null;
         RIGHT_PAGE = null;
+        NEXT_LEFT_PAGE = null;
+        NEXT_RIGHT_PAGE = null;
+        PREVIOUS_LEFT_PAGE = null;
+        PREVIOUS_RIGHT_PAGE = null;
         leftChapterPage = null;
     }
 
@@ -254,7 +262,16 @@ public class AdventurerManuscriptScreen extends Screen {
             OWChapter.resetPageTexts();
 
             previousPage = actualPage;
-            actualPage++;
+
+            Timer timer = new Timer();
+
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    actualPage++;
+                }
+            }, 1400);
+
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
 
             this.pageCooldownStartTime = System.currentTimeMillis();
@@ -273,7 +290,16 @@ public class AdventurerManuscriptScreen extends Screen {
             OWChapter.resetPageTexts();
 
             previousPage = actualPage;
-            actualPage--;
+
+            Timer timer = new Timer();
+
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    actualPage--;
+                }
+            }, 1400);
+
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
 
             this.pageCooldownStartTime = System.currentTimeMillis();
@@ -453,6 +479,38 @@ public class AdventurerManuscriptScreen extends Screen {
 
         if (LEFT_PAGE != null && !LEFT_PAGE.equals("")) {
             ResourceLocation rightOverlayTexture = ResourceLocation.parse(LEFT_PAGE);
+            RenderSystem.setShaderTexture(0, rightOverlayTexture);
+            VertexConsumer rightOverlayConsumer = guiGraphics.bufferSource().getBuffer(RenderType.entityTranslucent(rightOverlayTexture));
+
+            bookModel.renderToBuffer(guiGraphics.pose(), rightOverlayConsumer, 15728880, OverlayTexture.NO_OVERLAY, color);
+        }
+
+        if (NEXT_LEFT_PAGE != null && !NEXT_LEFT_PAGE.equals("")) {
+            ResourceLocation rightOverlayTexture = ResourceLocation.parse(NEXT_LEFT_PAGE);
+            RenderSystem.setShaderTexture(0, rightOverlayTexture);
+            VertexConsumer rightOverlayConsumer = guiGraphics.bufferSource().getBuffer(RenderType.entityTranslucent(rightOverlayTexture));
+
+            bookModel.renderToBuffer(guiGraphics.pose(), rightOverlayConsumer, 15728880, OverlayTexture.NO_OVERLAY, color);
+        }
+
+        if (NEXT_RIGHT_PAGE != null && !NEXT_RIGHT_PAGE.equals("")) {
+            ResourceLocation rightOverlayTexture = ResourceLocation.parse(NEXT_RIGHT_PAGE);
+            RenderSystem.setShaderTexture(0, rightOverlayTexture);
+            VertexConsumer rightOverlayConsumer = guiGraphics.bufferSource().getBuffer(RenderType.entityTranslucent(rightOverlayTexture));
+
+            bookModel.renderToBuffer(guiGraphics.pose(), rightOverlayConsumer, 15728880, OverlayTexture.NO_OVERLAY, color);
+        }
+
+        if (PREVIOUS_LEFT_PAGE != null && !PREVIOUS_LEFT_PAGE.equals("")) {
+            ResourceLocation rightOverlayTexture = ResourceLocation.parse(PREVIOUS_LEFT_PAGE);
+            RenderSystem.setShaderTexture(0, rightOverlayTexture);
+            VertexConsumer rightOverlayConsumer = guiGraphics.bufferSource().getBuffer(RenderType.entityTranslucent(rightOverlayTexture));
+
+            bookModel.renderToBuffer(guiGraphics.pose(), rightOverlayConsumer, 15728880, OverlayTexture.NO_OVERLAY, color);
+        }
+
+        if (PREVIOUS_RIGHT_PAGE != null && !PREVIOUS_RIGHT_PAGE.equals("")) {
+            ResourceLocation rightOverlayTexture = ResourceLocation.parse(PREVIOUS_RIGHT_PAGE);
             RenderSystem.setShaderTexture(0, rightOverlayTexture);
             VertexConsumer rightOverlayConsumer = guiGraphics.bufferSource().getBuffer(RenderType.entityTranslucent(rightOverlayTexture));
 
