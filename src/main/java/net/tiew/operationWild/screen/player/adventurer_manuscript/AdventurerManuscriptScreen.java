@@ -44,7 +44,6 @@ public class AdventurerManuscriptScreen extends Screen {
 
     public static final float BOOK_ROTATION = -20.0f;
 
-
     private float xMouse;
     private float yMouse;
     protected int imageWidth = 256;
