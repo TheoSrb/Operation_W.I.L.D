@@ -6,6 +6,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
@@ -14,6 +15,7 @@ import net.tiew.operationWild.screen.player.adventurer_manuscript.text.OWTextPar
 import net.tiew.operationWild.screen.player.adventurer_manuscript.text.OWTextRenderer;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.text.StyledTextSegment;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,83 +27,177 @@ public class OWChapter {
     private static ResourceLocation lastCreatedRightTexture = null;
     private static ResourceLocation lastCreatedNextRightTexture = null;
 
-    public static ResourceLocation drawDirectlyOnModelTexture(String text, int x, int y, float scale, float alpha, int color) {
-        ResourceLocation modelTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/adventurer_manuscript.png");
-        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, color);
+    public static class ImageLayer {
+        public final ResourceLocation imageLocation;
+        public final int x;
+        public final int y;
+        public final float scale;
+        public final float alpha;
+        public final int sourceX;
+        public final int sourceY;
+        public final int sourceWidth;
+        public final int sourceHeight;
 
-        NativeImage workingImage = null;
-        try {
-            workingImage = loadBaseImageCached(modelTexture);
-            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, x, y, alpha, 200, scale, color);
-            ResourceLocation result = createFinalTexture(workingImage, "model_texture");
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (workingImage != null) {
-                workingImage.close();
-            }
-            return modelTexture;
+        public ImageLayer(ResourceLocation imageLocation, int x, int y, float scale, float alpha, int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
+            this.imageLocation = imageLocation;
+            this.x = x;
+            this.y = y;
+            this.scale = scale;
+            this.alpha = alpha;
+            this.sourceX = sourceX;
+            this.sourceY = sourceY;
+            this.sourceWidth = sourceWidth;
+            this.sourceHeight = sourceHeight;
         }
     }
 
-    public static ResourceLocation drawImageDirectlyOnModelTexture(ResourceLocation sourceImage, int x, int y, float scale, float alpha, int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
-        ResourceLocation modelTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/adventurer_manuscript.png");
+    public static class TextLayer {
+        public final String text;
+        public final int x;
+        public final int y;
+        public final float scale;
+        public final float alpha;
+        public final int color;
 
-        NativeImage workingImage = null;
-        try {
-            workingImage = loadBaseImageCached(modelTexture);
-
-            int scaledWidth = (int)(sourceWidth * scale);
-            int scaledHeight = (int)(sourceHeight * scale);
-
-            drawImageOnNativeImage(workingImage, sourceImage, x, y, scaledWidth, scaledHeight, alpha, sourceX, sourceY, sourceWidth, sourceHeight);
-
-            ResourceLocation result = createFinalTexture(workingImage, "model_texture");
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace();
-            if (workingImage != null) {
-                workingImage.close();
-            }
-            return modelTexture; // Return original texture if error
+        public TextLayer(String text, int x, int y, float scale, float alpha, int color) {
+            this.text = text;
+            this.x = x;
+            this.y = y;
+            this.scale = scale;
+            this.alpha = alpha;
+            this.color = color;
         }
     }
 
-    public static ResourceLocation drawCombinedDirectlyOnModelTexture(
-            String text1, int x1, int y1, float scale1, float alpha1, int color1,
-            String text2, int x2, int y2, float scale2, float alpha2, int color2,
-            ResourceLocation imageLocation, int imageX, int imageY, float imageScale, float imageAlpha,
-            int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
-
-        ResourceLocation modelTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/adventurer_manuscript.png");
-
-        List<StyledTextSegment> segments1 = OWTextParser.parseStyledText(text1, color1);
-        List<StyledTextSegment> segments2 = OWTextParser.parseStyledText(text2, color2);
-
-        int scaledImageWidth = (int)(sourceWidth * imageScale);
-        int scaledImageHeight = (int)(sourceHeight * imageScale);
-
+    public static void writeMultiLayerContentOnModelTexture(TextLayer[] textLayers, ImageLayer[] imageLayers, ResourceLocation textureLocation, boolean reverse, int maxLength) {
         NativeImage workingImage = null;
         try {
-            workingImage = loadBaseImageCached(modelTexture);
+            workingImage = loadBaseImageCached(textureLocation);
 
-            // Draw image first
-            if (imageLocation != null) {
-                drawImageOnNativeImage(workingImage, imageLocation, imageX, imageY, scaledImageWidth, scaledImageHeight, imageAlpha, sourceX, sourceY, sourceWidth, sourceHeight);
+            if (imageLayers != null) {
+                for (ImageLayer imageLayer : imageLayers) {
+                    if (imageLayer == null || imageLayer.imageLocation == null) continue;
+
+                    int scaledImageWidth = (int)(imageLayer.sourceWidth * imageLayer.scale);
+                    int scaledImageHeight = (int)(imageLayer.sourceHeight * imageLayer.scale);
+
+                    drawImageOnNativeImageWithAlpha(workingImage, imageLayer.imageLocation, imageLayer.x, imageLayer.y,
+                            scaledImageWidth, scaledImageHeight, imageLayer.alpha,
+                            imageLayer.sourceX, imageLayer.sourceY, imageLayer.sourceWidth, imageLayer.sourceHeight);
+                }
             }
 
-            // Draw texts
-            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments1, x1, y1, alpha1, 200, scale1, color1);
-            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments2, x2, y2, alpha2, 200, scale2, color2);
+            if (textLayers != null) {
+                for (TextLayer layer : textLayers) {
+                    if (layer == null || layer.text == null) continue;
 
-            ResourceLocation result = createFinalTexture(workingImage, "model_texture");
-            return result;
+                    List<StyledTextSegment> segments = OWTextParser.parseStyledText(layer.text, layer.color);
+
+                    if (reverse) {
+                        int estimatedLines = Math.max(1, (layer.text.length() * (int)(8 * layer.scale)) / maxLength);
+                        int tempImageHeight = Math.max(100, estimatedLines * (int)(12 * layer.scale) + 50);
+                        int tempImageWidth = Math.max(maxLength + 50, 200);
+
+                        NativeImage tempImage = new NativeImage(tempImageWidth, tempImageHeight, true);
+
+                        OWTextRenderer.processStyledTextWithLineBreaks(tempImage, segments, 0, 0, layer.alpha, maxLength, layer.scale, layer.color);
+
+                        copyReversedText(workingImage, tempImage, layer.x, layer.y);
+
+                        tempImage.close();
+                    } else {
+                        OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, layer.x, layer.y, layer.alpha, maxLength, layer.scale, layer.color);
+                    }
+                }
+            }
+
+            TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+            DynamicTexture dynamicTexture = new DynamicTexture(workingImage);
+            textureManager.register(textureLocation, dynamicTexture);
+
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
             if (workingImage != null) {
                 workingImage.close();
             }
-            return modelTexture; // Return original texture if error
+        }
+    }
+
+    private static void drawImageOnNativeImageWithAlpha(NativeImage targetImage, ResourceLocation imageLocation, int x, int y, int width, int height, float alpha, int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
+        try {
+            Minecraft mc = Minecraft.getInstance();
+            NativeImage sourceImage = NativeImage.read(mc.getResourceManager().getResource(imageLocation).orElseThrow().open());
+
+            for (int sy = 0; sy < height; sy++) {
+                for (int sx = 0; sx < width; sx++) {
+                    int actualSourceX = sourceX + (sx * sourceWidth) / width;
+                    int actualSourceY = sourceY + (sy * sourceHeight) / height;
+
+                    int targetX = x + sx;
+                    int targetY = y + sy;
+
+                    if (targetX >= 0 && targetY >= 0 && targetX < targetImage.getWidth() && targetY < targetImage.getHeight() &&
+                            actualSourceX >= 0 && actualSourceY >= 0 && actualSourceX < sourceImage.getWidth() && actualSourceY < sourceImage.getHeight()) {
+
+                        int sourcePixel = sourceImage.getPixelRGBA(actualSourceX, actualSourceY);
+                        int sourceAlpha = (sourcePixel >> 24) & 0xFF;
+
+                        if (sourceAlpha > 0) {
+                            int newAlpha = Math.min(255, (int)(sourceAlpha * alpha));
+                            int newPixel = (newAlpha << 24) | (sourcePixel & 0x00FFFFFF);
+                            targetImage.setPixelRGBA(targetX, targetY, newPixel);
+                        }
+                    }
+                }
+            }
+
+            sourceImage.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void copyReversedText(NativeImage targetImage, NativeImage textImage, int targetX, int targetY) {
+        int minX = textImage.getWidth();
+        int maxX = 0;
+        int minY = textImage.getHeight();
+        int maxY = 0;
+
+        for (int y = 0; y < textImage.getHeight(); y++) {
+            for (int x = 0; x < textImage.getWidth(); x++) {
+                int pixelColor = textImage.getPixelRGBA(x, y);
+                int alpha = (pixelColor >> 24) & 0xFF;
+
+                if (alpha > 0) {
+                    minX = Math.min(minX, x);
+                    maxX = Math.max(maxX, x);
+                    minY = Math.min(minY, y);
+                    maxY = Math.max(maxY, y);
+                }
+            }
+        }
+
+        if (minX > maxX) return;
+
+        int textWidth = maxX - minX + 1;
+        for (int y = minY; y <= maxY; y++) {
+            for (int x = minX; x <= maxX; x++) {
+                int pixelColor = textImage.getPixelRGBA(x, y);
+                int alpha = (pixelColor >> 24) & 0xFF;
+
+                if (alpha > 0) {
+                    int reversedX = minX + (textWidth - 1 - (x - minX));
+
+                    int finalX = targetX + (reversedX - minX);
+                    int finalY = targetY + (y - minY);
+
+                    if (finalX >= 0 && finalX < targetImage.getWidth() &&
+                            finalY >= 0 && finalY < targetImage.getHeight()) {
+                        targetImage.setPixelRGBA(finalX, finalY, pixelColor);
+                    }
+                }
+            }
         }
     }
 
@@ -119,11 +215,11 @@ public class OWChapter {
             workingImage = loadBaseImageCached(emptyTexture);
             OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, baseX + scaledX, baseY + scaledY, alpha, maxLength, scale, color);
             ResourceLocation result = createFinalTexture(workingImage, "right_page");
-            AdventurerManuscriptScreen.RIGHT_PAGE = result.toString();
+            AdventurerManuscriptScreen.RIGHT_PAGE = String.valueOf(result);
         } catch (Exception e) {
             e.printStackTrace();
-            AdventurerManuscriptScreen.RIGHT_PAGE = emptyTexture.toString();
             if (workingImage != null) {
+                AdventurerManuscriptScreen.RIGHT_PAGE = null;
                 workingImage.close();
             }
         }
@@ -143,11 +239,11 @@ public class OWChapter {
             workingImage = loadBaseImageCached(emptyTexture);
             OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, baseX + scaledX, baseY + scaledY, alpha, maxLength, scale, color);
             ResourceLocation result = createFinalTexture(workingImage, "left_page");
-            AdventurerManuscriptScreen.LEFT_PAGE = result.toString();
+            AdventurerManuscriptScreen.LEFT_PAGE = String.valueOf(result);
         } catch (Exception e) {
             e.printStackTrace();
-            AdventurerManuscriptScreen.LEFT_PAGE = emptyTexture.toString();
             if (workingImage != null) {
+                AdventurerManuscriptScreen.LEFT_PAGE = null;
                 workingImage.close();
             }
         }
@@ -167,11 +263,11 @@ public class OWChapter {
             workingImage = loadBaseImageCached(emptyTexture);
             OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, baseX + scaledX, baseY + scaledY, alpha, maxLength, scale, color);
             ResourceLocation result = createFinalTexture(workingImage, "left_page");
-            AdventurerManuscriptScreen.LEFT_PAGE = result.toString();
+            AdventurerManuscriptScreen.LEFT_PAGE = String.valueOf(result);
         } catch (Exception e) {
             e.printStackTrace();
-            AdventurerManuscriptScreen.LEFT_PAGE = emptyTexture.toString();
             if (workingImage != null) {
+                AdventurerManuscriptScreen.LEFT_PAGE = null;
                 workingImage.close();
             }
         }
@@ -214,11 +310,11 @@ public class OWChapter {
             OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments3, baseX + scaledX3, baseY + scaledY3, alpha3, maxLength3, scale3, color3);
 
             ResourceLocation result = createFinalTexture(workingImage, "left_page");
-            AdventurerManuscriptScreen.LEFT_PAGE = result.toString();
+            AdventurerManuscriptScreen.LEFT_PAGE = String.valueOf(result);
         } catch (Exception e) {
             e.printStackTrace();
-            AdventurerManuscriptScreen.LEFT_PAGE = emptyTexture.toString();
             if (workingImage != null) {
+                AdventurerManuscriptScreen.LEFT_PAGE = null;
                 workingImage.close();
             }
         }
@@ -259,15 +355,16 @@ public class OWChapter {
     }
 
     public static void resetPageTexts() {
-        AdventurerManuscriptScreen.LEFT_PAGE = null;
-        AdventurerManuscriptScreen.RIGHT_PAGE = null;
-
         cleanupPreviousTexture(lastCreatedLeftTexture);
         cleanupPreviousTexture(lastCreatedRightTexture);
         cleanupPreviousTexture(lastCreatedNextRightTexture);
         lastCreatedLeftTexture = null;
         lastCreatedRightTexture = null;
         lastCreatedNextRightTexture = null;
+
+        AdventurerManuscriptScreen.LEFT_PAGE = null;
+        AdventurerManuscriptScreen.leftChapterPage = null;
+        AdventurerManuscriptScreen.RIGHT_PAGE = null;
     }
 
     private static NativeImage loadBaseImageCached(ResourceLocation texture) throws Exception {
