@@ -67,7 +67,7 @@ public class AdventurerManuscriptAnimations {
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, -1f),
                                     AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(0.16f, KeyframeAnimations.posVec(0f, 3f, -1f),
+                            new Keyframe(0.16f, KeyframeAnimations.posVec(0f, 1f, -1f),
                                     AnimationChannel.Interpolations.CATMULLROM),
                             new Keyframe(0.56f, KeyframeAnimations.posVec(0f, 0f, -1f),
                                     AnimationChannel.Interpolations.CATMULLROM)))
@@ -120,7 +120,7 @@ public class AdventurerManuscriptAnimations {
                     new AnimationChannel(AnimationChannel.Targets.POSITION,
                             new Keyframe(0f, KeyframeAnimations.posVec(0f, 0f, -1f),
                                     AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(0.16f, KeyframeAnimations.posVec(0f, 3f, -1f),
+                            new Keyframe(0.16f, KeyframeAnimations.posVec(0f, 1f, -1f),
                                     AnimationChannel.Interpolations.CATMULLROM),
                             new Keyframe(0.56f, KeyframeAnimations.posVec(0f, 0f, -1f),
                                     AnimationChannel.Interpolations.CATMULLROM)))

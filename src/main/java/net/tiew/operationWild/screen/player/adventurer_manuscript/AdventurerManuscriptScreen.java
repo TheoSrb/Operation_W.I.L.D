@@ -131,10 +131,19 @@ public class AdventurerManuscriptScreen extends Screen {
             } else pageCooldownDuration = 1400;
         }
 
-        pageCooldownDuration = Math.max(pageCooldownDuration, 100);
+        pageCooldownDuration = Math.max(pageCooldownDuration, 200);
         fadeDuration = 1;
 
         oscillationTimer += oscillationSpeed;
+
+
+        if (actualPage > maxPage) {
+            actualPage = maxPage;
+        }
+
+        if (actualPage < 1) {
+            actualPage = 1;
+        }
     }
 
     private float getOscillationValue() {
@@ -210,6 +219,7 @@ public class AdventurerManuscriptScreen extends Screen {
         String newLeftPage = "";
 
         EntityType<? extends OWEntity> entityType = getChapterPageAnimal(actualPage);
+
         if (entityType != null) {
             String baseTexturePath = "textures/gui/adventurer_manuscript/" + entityType.toString().split("entity.ow.")[1] + "_chapter.png";
             ResourceLocation baseTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, baseTexturePath);
@@ -221,6 +231,7 @@ public class AdventurerManuscriptScreen extends Screen {
             isFading = true;
             fadeStartTime = System.currentTimeMillis();
         }
+
     }
 
     private int getChapterPage(EntityType<? extends OWEntity> entityType) {
@@ -259,7 +270,6 @@ public class AdventurerManuscriptScreen extends Screen {
 
     private void nextPage() {
         if (actualPage < maxPage && !isPageCooldownActive()) {
-            OWChapter.resetPageTexts();
 
             previousPage = actualPage;
 
@@ -269,8 +279,10 @@ public class AdventurerManuscriptScreen extends Screen {
                 @Override
                 public void run() {
                     actualPage++;
+                    OWChapter.resetPageTexts();
+                    updatePageContent();
                 }
-            }, 1400);
+            }, pageCooldownDuration);
 
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
 
@@ -280,8 +292,6 @@ public class AdventurerManuscriptScreen extends Screen {
                 this.cachedBookEntity.nextPageAnimationState.stop();
                 this.cachedBookEntity.nextPageAnimationState.startIfStopped(this.cachedBookEntity.tickCount);
             }
-
-            updatePageContent();
         }
     }
 
@@ -297,8 +307,10 @@ public class AdventurerManuscriptScreen extends Screen {
                 @Override
                 public void run() {
                     actualPage--;
+                    OWChapter.resetPageTexts();
+                    updatePageContent();
                 }
-            }, 1400);
+            }, pageCooldownDuration);
 
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.BOOK_PAGE_TURN, 1.0F));
 
@@ -308,8 +320,6 @@ public class AdventurerManuscriptScreen extends Screen {
                 this.cachedBookEntity.precedentPageAnimationState.stop();
                 this.cachedBookEntity.precedentPageAnimationState.startIfStopped(this.cachedBookEntity.tickCount);
             }
-
-            updatePageContent();
         }
     }
 
@@ -351,6 +361,8 @@ public class AdventurerManuscriptScreen extends Screen {
 
 
         EntityType<? extends OWEntity> entityType = getChapterPageAnimal(actualPage);
+        EntityType<? extends OWEntity> entityTypeNext = getChapterPageAnimal(actualPage + 1);
+        EntityType<? extends OWEntity> entityTypePrevious = getChapterPageAnimal(actualPage - 1);
         OWEntity entity = null;
         if (entityType != null) {
             entity = entityType.create(Minecraft.getInstance().level != null ? Minecraft.getInstance().level : null);
@@ -388,13 +400,13 @@ public class AdventurerManuscriptScreen extends Screen {
         guiGraphics.pose().translate(0, (getOscillationValue() / 1.5f) - 5, 0);
         renderModel(guiGraphics, screenCenterX - modelRadius, (screenCenterY - modelRadius), screenCenterX + modelRadius, (int)(screenCenterY + modelRadius), 130, partialTick);
 
-        if (entityType != null) {
-            OWChapters.render(0, 0, 1.0f, getFadeAlpha(), entityType);
+        if (entityType != null || entityTypeNext != null || entityTypePrevious != null) {
+            OWChapters.render(0, 0, 1.0f, getFadeAlpha(), entityType, entityTypeNext, entityTypePrevious);
         }
 
         guiGraphics.pose().popPose();
 
-        Component page = Component.literal(String.valueOf(actualPage + " / " + maxPage));
+        Component page = Component.literal(String.valueOf(Math.max(Math.min(maxPage, actualPage), 1) + " / " + maxPage));
         guiGraphics.drawString(this.font, page, screenCenterX - (this.font.width(page) / 2), screenCenterY + 165, 0xa2956e);
     }
 
