@@ -114,6 +114,8 @@ public class AdventurerManuscriptScreen extends Screen {
 
             player.displayClientMessage(Component.translatable("tooltip.newEntity",
                     Component.translatable(String.valueOf(entityType)).setStyle(Style.EMPTY.withBold(true).withColor(entity != null ? entity.getEntityColor() : 0xFFFFFF))), true);
+
+            ManuscriptPersistence.saveClient();
         }
         return InteractionResult.SUCCESS;
     }
@@ -152,6 +154,7 @@ public class AdventurerManuscriptScreen extends Screen {
 
     @Override
     public void onClose() {
+        ManuscriptPersistence.saveClient();
         super.onClose();
         OW_ENTITIES.clear();
         LEFT_PAGE = null;
@@ -166,6 +169,7 @@ public class AdventurerManuscriptScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        ManuscriptPersistence.loadClient();
         Collator collator = Collator.getInstance();
         collator.setStrength(Collator.PRIMARY);
 
@@ -412,6 +416,7 @@ public class AdventurerManuscriptScreen extends Screen {
 
     @Override
     public void removed() {
+        ManuscriptPersistence.saveClient();
         super.removed();
         this.cachedBookEntity = null;
         this.totalElapsedTime = 0;

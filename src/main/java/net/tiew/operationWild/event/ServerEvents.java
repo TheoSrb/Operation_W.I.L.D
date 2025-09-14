@@ -80,7 +80,7 @@ public class ServerEvents {
         }
         Entity target = event.getEntity();
 
-        if (source instanceof ServerPlayer player) {
+        /*if (source instanceof ServerPlayer player) {
             if (target instanceof OWEntity owEntity && !owEntity.isTame() && !(owEntity instanceof Submarine) && !(owEntity instanceof SeabugShard)) {
                 boolean wasAlreadyKilled = false;
                 String entityType = "";
@@ -100,7 +100,7 @@ public class ServerEvents {
 
                 if (!wasAlreadyKilled) sendNotificationBook(player, entityType, false);
             }
-        }
+        }*/
     }
 
     @SubscribeEvent

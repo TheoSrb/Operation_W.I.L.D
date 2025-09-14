@@ -1,8 +1,10 @@
 package net.tiew.operationWild.item.custom;
 
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -20,6 +22,7 @@ import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.misc.SeaBugEntity;
+import net.tiew.operationWild.event.ClientEvents;
 
 public class SeaBugItem extends Item {
 
@@ -53,7 +56,10 @@ public class SeaBugItem extends Item {
                             seaBug.setOwnerUUID(player.getUUID());
 
                             if (player instanceof ServerPlayer serverPlayer) {
-                                serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":captain");
+                                AdvancementHolder advancement = player.getServer().getAdvancements().get(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "captain"));
+                                if (advancement != null) {
+                                    serverPlayer.getAdvancements().award(advancement, "impossible");
+                                }
                             }
 
                             return InteractionResultHolder.success(itemStack);

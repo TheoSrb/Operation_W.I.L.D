@@ -1,0 +1,27 @@
+{
+  "parent": "ow:ow",
+  "criteria": {
+    "impossible": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.captain.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "ow:seabug"
+    },
+    "title": {
+      "translate": "ow.advancements.captain.title"
+    }
+  },
+  "requirements": [
+    [
+      "impossible"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

@@ -81,6 +81,8 @@ public class OWAdvancementProvider extends AdvancementProvider {
                     createItemChangedAdvancement(rootOW, saver, OWItems.TRANQUILIZER_ARROW.get(), OWItems.TRANQUILIZER_ARROW.get(), "good_night", AdvancementType.TASK);
             AdvancementHolder upgradedArrows =
                     createItemChangedAdvancement(rootOW, saver, OWItems.VENOMOUS_ARROW.get(), OWItems.VENOMOUS_ARROW.get(), "upgraded_arrows", AdvancementType.TASK);
+            AdvancementHolder captain =
+                    createImpossibleAdvancement(rootOW, saver, OWItems.SEABUG.get(), "captain", AdvancementType.CHALLENGE);
 
 
             AdvancementHolder tigerTamingAdvancement =

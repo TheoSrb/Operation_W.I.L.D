@@ -34,6 +34,7 @@ import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.networking.ClientKillData;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManuscriptScreen;
+import net.tiew.operationWild.screen.player.adventurer_manuscript.ManuscriptPersistence;
 import org.joml.Quaternionf;
 import org.lwjgl.glfw.GLFW;
 import net.tiew.operationWild.OperationWild;
@@ -627,7 +628,9 @@ public class ClientEvents {
                 }
             }
 
-            if (submarine.isAlive() && submarine.isInWater()) submarine.setDeltaMovement(newMovement);
+            if (submarine.isAlive() && submarine.isInWater()) {
+                submarine.setDeltaMovement(newMovement);
+            }
 
             if (someKeyIsPressed && submarine.isInWater() && player == Minecraft.getInstance().player) {
                 submarine.spawnBubbleParticles();

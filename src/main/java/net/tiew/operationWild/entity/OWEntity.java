@@ -71,6 +71,7 @@ import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.misc.*;
 import net.tiew.operationWild.entity.quests.ascent.AscentMission;
 import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.networking.packets.to_client.*;
@@ -79,10 +80,6 @@ import org.joml.Math;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
-import net.tiew.operationWild.entity.misc.SlingshotProjectile;
-import net.tiew.operationWild.entity.misc.TranquilizerArrow;
-import net.tiew.operationWild.entity.misc.TranquilizerWoodenStinger;
-import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuest;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestsDate;
@@ -1206,6 +1203,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     @Override
     public void aiStep() {
+        if (this instanceof Submarine) {
+            super.aiStep();
+            return;
+        }
+
         if (this.noJumpDelay > 0) {
             --this.noJumpDelay;
         }
