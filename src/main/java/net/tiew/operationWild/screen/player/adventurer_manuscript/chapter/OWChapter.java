@@ -442,6 +442,41 @@ public class OWChapter {
         }
     }
 
+    public static void drawTextAndImageOnPreviousRightPage(Component text, int textX, int textY, float textScale, float textAlpha, int maxLength, int textColor,
+                                                       ResourceLocation imageLocation, int imageX, int imageY, float imageScale, float imageAlpha,
+                                                       int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
+        ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
+        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, textColor);
+
+        int baseX = 542;
+        int baseY = 559;
+        int scaledTextX = (int)(textX * textScale);
+        int scaledTextY = (int)(textY * textScale);
+
+        int scaledImageWidth = (int)(sourceWidth * imageScale);
+        int scaledImageHeight = (int)(sourceHeight * imageScale);
+
+        NativeImage workingImage = null;
+        try {
+            workingImage = loadBaseImageCached(emptyTexture);
+
+            drawImageOnNativeImage(workingImage, imageLocation, baseX + imageX, baseY + imageY,
+                    scaledImageWidth, scaledImageHeight, imageAlpha, sourceX, sourceY, sourceWidth, sourceHeight);
+
+            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, baseX + scaledTextX, baseY + scaledTextY,
+                    textAlpha, maxLength, textScale, textColor);
+
+            ResourceLocation result = createFinalTexture(workingImage, "previous_right_page");
+            AdventurerManuscriptScreen.PREVIOUS_RIGHT_PAGE = String.valueOf(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (workingImage != null) {
+                AdventurerManuscriptScreen.PREVIOUS_RIGHT_PAGE = null;
+                workingImage.close();
+            }
+        }
+    }
+
 
     public static void drawCombinedTextAndImageOnLeftPage(
             String text1, int x1, int y1, float scale1, float alpha1, int maxLength1, int color1,

@@ -134,6 +134,10 @@ public class OWChapters extends OWChapter {
 
                     drawTextOnPreviousLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
                     drawTextOnPreviousRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextAndImageOnPreviousRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57,
+                            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/tiger_widget_0.png"),
+                            x + 2, y + 83, 0.85f, alpha, 416, 922, 126, 77);
                     break;
                 case 4:
                     drawTextOnLeftPage(text_6, x, y, scale, alpha, maxLength, 0x887c57);
