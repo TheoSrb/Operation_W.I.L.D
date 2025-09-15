@@ -22,7 +22,7 @@ public class OWTextureWriter {
         FONT_DATA.put('F', createNewLetter("/////", "/    ", "///  ", "/    ", "/    ", "/    ", "/    "));
         FONT_DATA.put('G', createNewLetter(" ////", "/    ", "/  //", "/   /", "/   /", "/   /", " /// "));
         FONT_DATA.put('H', createNewLetter("/   /", "/   /", "/////", "/   /", "/   /", "/   /", "/   /"));
-        FONT_DATA.put('I', createNewLetter("///  ", " /   ", " /   ", " /   ", " /   ", " /   ", "///  "));
+        FONT_DATA.put('I', createNewLetter("///", " / ", " / ", " / ", " / ", " / ", "///"));
         FONT_DATA.put('J', createNewLetter("    /", "    /", "    /", "    /", "    /", "/   /", " /// "));
         FONT_DATA.put('K', createNewLetter("/    ", "/   /", "/  / ", "///  ", "/  / ", "/   /", "/   /"));
         FONT_DATA.put('L', createNewLetter("/    ", "/    ", "/    ", "/    ", "/    ", "/    ", "/////"));

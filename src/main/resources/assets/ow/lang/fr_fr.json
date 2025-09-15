@@ -396,19 +396,21 @@
 
 
   "adventurer_manuscript.entity.tiger.page_1": "Le §l§n§dTigre§r est un §lfélin§r sauvage de taille moyenne, rôdant dans les §lforêts tropicales§r et les §ljungles de bambous§r. Extrêmement agile et territorial, il attaque sans avertissement.",
-  "adventurer_manuscript.entity.tiger.page_2": "§l§n1. Saut Bestial: \n\n§r Lorsqu’il repère une cible, le §l§n§dTigre§r effectue un bond précis et puissant, visant à immobiliser et piéger sa proie avec ses griffes acérées.\n\nS’il vous attrape, il vous lacère avec ses",
+  "adventurer_manuscript.entity.tiger.page_2": "§l§nI. Saut Bestial: \n\n§r Lorsqu’il repère une cible, le §l§n§dTigre§r effectue un bond précis et puissant, visant à immobiliser et piéger sa proie avec ses griffes acérées.\n\nS’il vous attrape, il vous lacère avec ses",
   "adventurer_manuscript.entity.tiger.page_3": "§lgriffes§r, infligeant des dégâts tout en vous maintenant §lprisonnier§r sous sa force et sa puissance, jusqu’à ce qu’il vous lâche.",
-  "adventurer_manuscript.entity.tiger.page_4": "§l§n2. Désarmement: \n\n§r Les frappes du §l§n§dTigre§r sont suffisamment précises pour forcer un joueur à §llâcher§r son équipement.",
-  "adventurer_manuscript.entity.tiger.page_5": "§l§n3. Territorial: \n\n§r Le §l§n§dTigre§r griffonne régulièrement les troncs d’arbres dans sa zone de chasse, laissant des traces visibles sur l’écorce. Ces marques servent à signaler sa présence et à dissuader les intrus.",
-  "adventurer_manuscript.entity.tiger.page_6": "§l§n4. Repos: \n\n§r Le §l§n§dTigre§r alterne ses phases d’activité avec des périodes de §lrepos§r, se retirant dans des zones sûres pour récupérer son énergie avant de §lreprendre§r la chasse.",
+  "adventurer_manuscript.entity.tiger.page_4": "§l§nII. Désarmement: \n\n§r Les frappes du §l§n§dTigre§r sont suffisamment précises pour forcer un joueur à §llâcher§r son équipement.",
+  "adventurer_manuscript.entity.tiger.page_5": "§l§nIII. Territorial: \n\n§r Le §l§n§dTigre§r griffonne régulièrement les troncs d’arbres dans sa zone de chasse, laissant des traces visibles sur l’écorce. Ces marques servent à signaler sa présence et à dissuader les intrus.",
+  "adventurer_manuscript.entity.tiger.page_6": "§l§nIV. Repos: \n\n§r Le §l§n§dTigre§r alterne ses phases d’activité avec des périodes de §lrepos§r, se retirant dans des zones sûres pour récupérer son énergie avant de §lreprendre§r la chasse.",
   "adventurer_manuscript.entity.tiger.page_7": "§l§nAnalyse§r: Prédateur territorial - À absolument éviter.",
 
 
   "adventurer_manuscript.entity.boa.page_1": "Faisant partie des plus grands §lserpents§r existants, le §l§n§dBoa§r, observable dans les §lmarais chauds§r et les §ljungles§r, n'est pas un prédateur à prendre à la légère.",
-  "adventurer_manuscript.entity.boa.page_2": "§l§n1. Envenimation: \n\n§r Les crocs du §l§n§dBoa§r sont bien souvent imbibés de §ltoxine§r.\n\n\n\n\n\nCe qui peut §ltroubler la vision§r des entités",
-  "adventurer_manuscript.entity.boa.page_3": "mordues par ce dernier. \nUne fois envenimées, les défenses immunitaires des entités atteintes sont §l§nradicalement§r §lmoins efficaces§r.",
-  "adventurer_manuscript.entity.boa.page_4": "§l§n2. Hydrodynamisme: \n\n§r Le corps du §l§n§dBoa§r, d'une longueur impressionnante, est aussi parfaitement §nadapté§r à la nage. Une particularité qui lui permet de vous §lpoursuivre aisément§r dans l’eau si vous tentez de fuir.",
-  "adventurer_manuscript.entity.boa.page_5": "§l§n3. Asphyxie : \n\n§r Le §l§n§dBoa§r n’a pas toujours besoin de mordre. Il peut §ls’enrouler§r autour de sa proie et §lbloquer sa respiration§r en la serrant fort. \n§l§nAnalyse§r: Prédateur puissant et silencieux - À éviter.",
+  "adventurer_manuscript.entity.boa.page_2": "§l§nI. Envenimation: \n\n§r Les crocs du §l§n§dBoa§r sont bien souvent imbibés de §ltoxine§r.\n\n\n\n\n\nCe qui peut §ltroubler la vision§r des entités mordues par",
+  "adventurer_manuscript.entity.boa.page_3": "ce dernier. \nUne fois envenimées, les défenses immunitaires des entités atteintes sont §nradicalement§r §lmoins efficaces§r.\n\nÀ ce moment-là, il est préférable d’utiliser un §l§n§dantidote§r pour limiter la §npropagation§r du §lvenin§r.",
+  "adventurer_manuscript.entity.boa.page_4": "§l§nII. Ondulation: \n\n§r Le corps du §l§n§dBoa§r, d'une longueur impressionnante, est aussi parfaitement §nadapté§r à la nage. Une particularité qui lui permet de vous §lpoursuivre aisément§r dans l’eau si vous tentez de fuir.",
+  "adventurer_manuscript.entity.boa.page_5": "§l§nIII. Asphyxie: \n\n§r Le §l§n§dBoa§r n’a pas toujours besoin de mordre. Il peut §ls’enrouler§r autour de sa proie et §lbloquer sa respiration§r en la serrant de toutes ses forces, lui infligeant des dégâts de plus en plus importants au fil",
+  "adventurer_manuscript.entity.boa.page_6": "du temps, infligeant de §llourds dégâts§r. \n\n§l§nIV. Mue: \n\n§r Quand l'heure est venue, le §l§n§dBoa§r se met à §nmuer§r, laissant son §lancienne peau§r sur le sol, qui peut être §nramassée§r.",
+  "adventurer_manuscript.entity.boa.page_7": "§l§nAnalyse§r: Prédateur puissant, silencieux et imprévisible, redoutable à portée mais moins coriace à distance - à éviter.",
 
 
   "boa.page1": "Le §lBoa§r est un prédateur silencieux se faufilant dans les §lzones§r §lhumides§r et denses attendant impatiemment sa proie.",
