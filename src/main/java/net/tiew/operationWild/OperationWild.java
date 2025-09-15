@@ -198,7 +198,7 @@ public class OperationWild {
         if (entityType == OWEntityRegistry.TIGER.get()) {
             return 4;
         } else if (entityType == OWEntityRegistry.BOA.get()) {
-            return 2;
+            return 3;
         } else if (entityType == OWEntityRegistry.PEACOCK.get()) {
             return 3;
         } else if (entityType == OWEntityRegistry.TIGER_SHARK.get()) {

@@ -100,22 +100,17 @@ public class OWChapters extends OWChapter {
             Component text_6 = Component.translatable("adventurer_manuscript.entity.tiger.page_6");
             Component text_7 = Component.translatable("adventurer_manuscript.entity.tiger.page_7");
 
-
-
-
             switch (page) {
                 case 1:
                     drawTextOnRightPage(text_1, x, y, scale, alpha, maxLength, 0x887c57);
 
                     drawTextOnNextLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
-
                     drawTextAndImageOnNextRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57,
                             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/tiger_widget_0.png"),
                             x + 2, y + 83, 0.85f, alpha, 416, 922, 126, 77);
                     break;
                 case 2:
                     drawTextOnLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
-
                     drawTextAndImageOnRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57,
                             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/tiger_widget_0.png"),
                             x + 2, y + 83, 0.85f, alpha, 416, 922, 126, 77);
@@ -134,10 +129,10 @@ public class OWChapters extends OWChapter {
 
                     drawTextOnPreviousLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
                     drawTextOnPreviousRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
-
                     drawTextAndImageOnPreviousRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57,
                             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/tiger_widget_0.png"),
                             x + 2, y + 83, 0.85f, alpha, 416, 922, 126, 77);
+
                     break;
                 case 4:
                     drawTextOnLeftPage(text_6, x, y, scale, alpha, maxLength, 0x887c57);
@@ -146,6 +141,43 @@ public class OWChapters extends OWChapter {
                     drawTextOnPreviousLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
                     drawTextOnPreviousRightPage(text_5, x, y, scale, alpha, maxLength, 0x887c57);
                     break;
+            }
+        }
+    }
+
+    public static class BoaChapter extends OWChapter {
+        public static void render(int x, int y, float scale, float alpha, int page) {
+            Component text_1 = Component.translatable("adventurer_manuscript.entity.boa.page_1");
+            Component text_2 = Component.translatable("adventurer_manuscript.entity.boa.page_2");
+            Component text_3 = Component.translatable("adventurer_manuscript.entity.boa.page_3");
+            Component text_4 = Component.translatable("adventurer_manuscript.entity.boa.page_4");
+
+            switch (page) {
+                case 1:
+                    drawTextOnRightPage(text_1, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnNextLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnNextRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    break;
+                case 2:
+                    drawTextOnLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnNextLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnPreviousRightPage(text_1, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    break;
+                case 3:
+                    drawTextOnLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnPreviousLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnPreviousRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    break;
+
+
             }
         }
     }

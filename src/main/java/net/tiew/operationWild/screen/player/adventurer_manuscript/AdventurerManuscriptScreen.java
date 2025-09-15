@@ -428,6 +428,10 @@ public class AdventurerManuscriptScreen extends Screen {
             int page = getChapterPageOf(OWEntityRegistry.TIGER.get(), actualPage);
             OWChapters.TigerChapter.render(0, 0, 1f, alpha, page);
         }
+        if (entityType == OWEntityRegistry.BOA.get()) {
+            int page = getChapterPageOf(OWEntityRegistry.BOA.get(), actualPage);
+            OWChapters.BoaChapter.render(0, 0, 1f, alpha, page);
+        }
     }
 
     private int getChapterPageOf(EntityType<? extends OWEntity> entityType, int actualPage) {
