@@ -151,6 +151,7 @@ public class OWChapters extends OWChapter {
             Component text_2 = Component.translatable("adventurer_manuscript.entity.boa.page_2");
             Component text_3 = Component.translatable("adventurer_manuscript.entity.boa.page_3");
             Component text_4 = Component.translatable("adventurer_manuscript.entity.boa.page_4");
+            Component text_5 = Component.translatable("adventurer_manuscript.entity.boa.page_5");
 
             switch (page) {
                 case 1:
@@ -165,12 +166,14 @@ public class OWChapters extends OWChapter {
                     drawTextOnRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
 
                     drawTextOnNextLeftPage(text_4, x - 5, y, scale, alpha, maxLength + 10, 0x887c57);
+                    drawTextOnNextRightPage(text_5, x, y, scale, alpha, maxLength, 0x887c57);
 
                     drawTextOnPreviousRightPage(text_1, x, y, scale, alpha, maxLength, 0x887c57);
 
                     break;
                 case 3:
                     drawTextOnLeftPage(text_4, x - 5, y, scale, alpha, maxLength + 10, 0x887c57);
+                    drawTextOnRightPage(text_5, x, y, scale, alpha, maxLength, 0x887c57);
 
                     drawTextOnPreviousLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
                     drawTextOnPreviousRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
