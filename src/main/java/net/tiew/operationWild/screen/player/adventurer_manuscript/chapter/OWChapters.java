@@ -164,13 +164,13 @@ public class OWChapters extends OWChapter {
                     drawTextOnLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
                     drawTextOnRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
 
-                    drawTextOnNextLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnNextLeftPage(text_4, x - 5, y, scale, alpha, maxLength + 10, 0x887c57);
 
                     drawTextOnPreviousRightPage(text_1, x, y, scale, alpha, maxLength, 0x887c57);
 
                     break;
                 case 3:
-                    drawTextOnLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnLeftPage(text_4, x - 5, y, scale, alpha, maxLength + 10, 0x887c57);
 
                     drawTextOnPreviousLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
                     drawTextOnPreviousRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
