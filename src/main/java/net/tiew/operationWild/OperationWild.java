@@ -18,6 +18,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.FlowerPotBlock;
+import net.minecraft.world.level.levelgen.SurfaceRules;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.common.util.TriState;
@@ -61,8 +62,11 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.tiew.operationWild.worldgen.biome.OWTerrablender;
+import net.tiew.operationWild.worldgen.biome.surface.OWSurfaceRules;
 import net.tiew.operationWild.worldgen.tree.foliage.OWFoliagePlacerType;
 import net.tiew.operationWild.worldgen.tree.trunk.OWTrunkPlacerTypes;
+import terrablender.api.SurfaceRuleManager;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -93,6 +97,7 @@ public class OperationWild {
         OWTrunkPlacerTypes.register(modEventBus);
         OWFoliagePlacerType.register(modEventBus);
         ColorEvents.register(modEventBus);
+        OWTerrablender.registerBiomes();
         //OWDailyQuests.run();
 
         modEventBus.addListener(this::addCreative);
@@ -101,6 +106,8 @@ public class OperationWild {
     private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(OWBlocks.LAVENDER.getId(), OWBlocks.POTTED_LAVENDER);});
         event.enqueueWork(() -> {((FlowerPotBlock) Blocks.FLOWER_POT).addPlant(OWBlocks.CAMELLIA.getId(), OWBlocks.POTTED_CAMELLIA);});
+
+        SurfaceRuleManager.addSurfaceRules(SurfaceRuleManager.RuleCategory.OVERWORLD, MOD_ID, OWSurfaceRules.makeRules());
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent event) {

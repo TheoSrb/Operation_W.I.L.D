@@ -1,11 +1,14 @@
 package net.tiew.operationWild.worldgen;
 
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.*;
@@ -19,6 +22,8 @@ public class OWPlacedFeatures {
 
     public static final ResourceKey<PlacedFeature> SAVAGE_BERRY_BUSH_PLACED = registerKey("savage_berry_bush_placed");
 
+    public static final ResourceKey<PlacedFeature> REDWOOD_TREE_PLACED = registerKey("redwood_tree_placed");
+
 
     public static void bootstrap(BootstrapContext<PlacedFeature> context) {
         var configuredFeatures = context.lookup(Registries.CONFIGURED_FEATURE);
@@ -31,6 +36,22 @@ public class OWPlacedFeatures {
 
         register(context, SAVAGE_BERRY_BUSH_PLACED, configuredFeatures.getOrThrow(OWConfiguredFeatures.SAVAGE_BERRY_BUSH),
                 List.of(RarityFilter.onAverageOnceEvery(32), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_WORLD_SURFACE, BiomeFilter.biome()));
+
+        register(context, REDWOOD_TREE_PLACED, configuredFeatures.getOrThrow(OWConfiguredFeatures.REDWOOD),
+                List.of(
+                        CountPlacement.of(3),
+                        InSquarePlacement.spread(),
+                        PlacementUtils.HEIGHTMAP_WORLD_SURFACE,
+                        BlockPredicateFilter.forPredicate(BlockPredicate.not(BlockPredicate.anyOf(
+                                BlockPredicate.matchesBlocks(Direction.NORTH.getNormal(), Blocks.WATER),
+                                BlockPredicate.matchesBlocks(Direction.SOUTH.getNormal(), Blocks.WATER),
+                                BlockPredicate.matchesBlocks(Direction.EAST.getNormal(), Blocks.WATER),
+                                BlockPredicate.matchesBlocks(Direction.WEST.getNormal(), Blocks.WATER),
+                                BlockPredicate.matchesBlocks(Direction.UP.getNormal(), Blocks.WATER),
+                                BlockPredicate.matchesBlocks(Direction.DOWN.getNormal(), Blocks.WATER)
+                        ))),
+                        BiomeFilter.biome()
+                ));
     }
 
     private static ResourceKey<PlacedFeature> registerKey(String name) {

@@ -11,6 +11,7 @@ import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.worldgen.OWBiomeModifiers;
 import net.tiew.operationWild.worldgen.OWConfiguredFeatures;
 import net.tiew.operationWild.worldgen.OWPlacedFeatures;
+import net.tiew.operationWild.worldgen.biome.OWBiomes;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +21,8 @@ public class OWDatapackEntries extends DatapackBuiltinEntriesProvider {
             .add(NeoForgeRegistries.Keys.BIOME_MODIFIERS, OWBiomeModifiers::bootstrap)
             .add(Registries.ENCHANTMENT, OWEnchantments::bootstrap)
             .add(Registries.CONFIGURED_FEATURE, OWConfiguredFeatures::bootstrap)
-            .add(Registries.PLACED_FEATURE, OWPlacedFeatures::bootstrap);
+            .add(Registries.PLACED_FEATURE, OWPlacedFeatures::bootstrap)
+            .add(Registries.BIOME, OWBiomes::bootstrap);
 
 
 

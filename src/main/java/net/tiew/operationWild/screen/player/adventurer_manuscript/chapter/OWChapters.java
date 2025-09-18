@@ -159,12 +159,16 @@ public class OWChapters extends OWChapter {
                 case 1:
                     drawTextOnRightPage(text_1, x, y, scale, alpha, maxLength, 0x887c57);
 
-                    drawTextOnNextLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextAndImageOnNextLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57,
+                            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/boa_widget_0.png"),
+                            x - 5, y + 65, 0.85f, alpha, 740, 919, 136, 40);
                     drawTextOnNextRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
 
                     break;
                 case 2:
-                    drawTextOnLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextAndImageOnLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57,
+                            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/boa_widget_0.png"),
+                            x - 5, y + 65, 0.85f, alpha, 740, 919, 136, 40);
                     drawTextOnRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
 
                     drawTextOnNextLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
@@ -177,7 +181,9 @@ public class OWChapters extends OWChapter {
                     drawTextOnLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
                     drawTextOnRightPage(text_5, x, y, scale, alpha, maxLength, 0x887c57);
 
-                    drawTextOnPreviousLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextAndImageOnPreviousLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57,
+                            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/boa_widget_0.png"),
+                            x - 5, y + 65, 0.85f, alpha, 740, 919, 136, 40);
                     drawTextOnPreviousRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
 
                     drawTextOnNextLeftPage(text_6, x, y, scale, alpha, maxLength, 0x887c57);

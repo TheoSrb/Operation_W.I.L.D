@@ -407,6 +407,111 @@ public class OWChapter {
         }
     }
 
+    public static void drawTextAndImageOnLeftPage(Component text, int textX, int textY, float textScale, float textAlpha, int maxLength, int textColor,
+                                                   ResourceLocation imageLocation, int imageX, int imageY, float imageScale, float imageAlpha,
+                                                   int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
+        ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
+        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, textColor);
+
+        int baseX = 760;
+        int baseY = 855;
+        int scaledTextX = (int)(textX * textScale);
+        int scaledTextY = (int)(textY * textScale);
+
+        int scaledImageWidth = (int)(sourceWidth * imageScale);
+        int scaledImageHeight = (int)(sourceHeight * imageScale);
+
+        NativeImage workingImage = null;
+        try {
+            workingImage = loadBaseImageCached(emptyTexture);
+
+            drawImageOnNativeImage(workingImage, imageLocation, baseX + imageX, baseY + imageY,
+                    scaledImageWidth, scaledImageHeight, imageAlpha, sourceX, sourceY, sourceWidth, sourceHeight);
+
+            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, baseX + scaledTextX, baseY + scaledTextY,
+                    textAlpha, maxLength, textScale, textColor);
+
+            ResourceLocation result = createFinalTexture(workingImage, "left_page");
+            AdventurerManuscriptScreen.LEFT_PAGE = String.valueOf(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (workingImage != null) {
+                AdventurerManuscriptScreen.LEFT_PAGE = null;
+                workingImage.close();
+            }
+        }
+    }
+
+    public static void drawTextAndImageOnNextLeftPage(Component text, int textX, int textY, float textScale, float textAlpha, int maxLength, int textColor,
+                                                  ResourceLocation imageLocation, int imageX, int imageY, float imageScale, float imageAlpha,
+                                                  int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
+        ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
+        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, textColor);
+
+        int baseX = 904;
+        int baseY = 551;
+        int scaledTextX = (int)(textX * textScale);
+        int scaledTextY = (int)(textY * textScale);
+
+        int scaledImageWidth = (int)(sourceWidth * imageScale);
+        int scaledImageHeight = (int)(sourceHeight * imageScale);
+
+        NativeImage workingImage = null;
+        try {
+            workingImage = loadBaseImageCached(emptyTexture);
+
+            drawImageOnNativeImage(workingImage, imageLocation, baseX + imageX, baseY + imageY,
+                    scaledImageWidth, scaledImageHeight, imageAlpha, sourceX, sourceY, sourceWidth, sourceHeight);
+
+            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, baseX + scaledTextX, baseY + scaledTextY,
+                    textAlpha, maxLength, textScale, textColor);
+
+            ResourceLocation result = createFinalTexture(workingImage, "next_left_page");
+            AdventurerManuscriptScreen.NEXT_LEFT_PAGE = String.valueOf(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (workingImage != null) {
+                AdventurerManuscriptScreen.NEXT_LEFT_PAGE = null;
+                workingImage.close();
+            }
+        }
+    }
+
+    public static void drawTextAndImageOnPreviousLeftPage(Component text, int textX, int textY, float textScale, float textAlpha, int maxLength, int textColor,
+                                                      ResourceLocation imageLocation, int imageX, int imageY, float imageScale, float imageAlpha,
+                                                      int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
+        ResourceLocation emptyTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/adventurer_manuscript/empty.png");
+        List<StyledTextSegment> segments = OWTextParser.parseStyledText(text, textColor);
+
+        int baseX = 760;
+        int baseY = 15;
+        int scaledTextX = (int)(textX * textScale);
+        int scaledTextY = (int)(textY * textScale);
+
+        int scaledImageWidth = (int)(sourceWidth * imageScale);
+        int scaledImageHeight = (int)(sourceHeight * imageScale);
+
+        NativeImage workingImage = null;
+        try {
+            workingImage = loadBaseImageCached(emptyTexture);
+
+            drawImageOnNativeImage(workingImage, imageLocation, baseX + imageX, baseY + imageY,
+                    scaledImageWidth, scaledImageHeight, imageAlpha, sourceX, sourceY, sourceWidth, sourceHeight);
+
+            OWTextRenderer.processStyledTextWithLineBreaks(workingImage, segments, baseX + scaledTextX, baseY + scaledTextY,
+                    textAlpha, maxLength, textScale, textColor);
+
+            ResourceLocation result = createFinalTexture(workingImage, "previous_left_page");
+            AdventurerManuscriptScreen.PREVIOUS_LEFT_PAGE = String.valueOf(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (workingImage != null) {
+                AdventurerManuscriptScreen.PREVIOUS_LEFT_PAGE = null;
+                workingImage.close();
+            }
+        }
+    }
+
     public static void drawTextAndImageOnNextRightPage(Component text, int textX, int textY, float textScale, float textAlpha, int maxLength, int textColor,
                                                    ResourceLocation imageLocation, int imageX, int imageY, float imageScale, float imageAlpha,
                                                    int sourceX, int sourceY, int sourceWidth, int sourceHeight) {
