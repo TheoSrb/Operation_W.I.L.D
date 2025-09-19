@@ -3,6 +3,7 @@ package net.tiew.operationWild.enchantment;
 import net.minecraft.advancements.critereon.DamageSourcePredicate;
 import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.EntityTypePredicate;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
@@ -21,6 +22,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemEntityPropertyC
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.enchantment.custom.*;
 import net.tiew.operationWild.core.OWTags;
+import net.tiew.operationWild.item.OWItems;
 
 public class OWEnchantments {
     public static final ResourceKey<Enchantment> PUTRID = ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "putrid"));
@@ -62,7 +64,7 @@ public class OWEnchantments {
                         EnchantmentTarget.VICTIM, new VampirismEnchantment()));
 
         register(context, LIGHTNESS, Enchantment.enchantment(Enchantment.definition(
-                        items.getOrThrow(OWTags.Items.PRIMITIVE_TOOLS),
+                        HolderSet.direct(items.getOrThrow(OWItems.PRIMITIVE_SPEAR.getKey())),
                         5,
                         2,
                         Enchantment.dynamicCost(1, 11),

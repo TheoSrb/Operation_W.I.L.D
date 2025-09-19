@@ -6,6 +6,8 @@
   "addPrestigeCommandError": "You need to set up an entity to add prestige levels to it.",
   "addPrestigeCommandWork": "Donate %s of prestige levels points to your entity.",
 
+  "biome.ow.redwood_forest": "Redwood Forest",
+
   "key.ow.ultimate_key": "Ultimate capacity",
   "key.ow.attacks_info_key": "Attacks Informations",
   "key.ow.entity_journal_key": "Open Entity Journal",

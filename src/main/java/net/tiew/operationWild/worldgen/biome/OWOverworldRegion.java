@@ -23,6 +23,8 @@ public class OWOverworldRegion extends Region {
 
         this.addModifiedVanillaOverworldBiomes(mapper, modifiedVanillaOverworldBuilder -> {
             modifiedVanillaOverworldBuilder.replaceBiome(Biomes.TAIGA, OWBiomes.REDWOOD_FOREST_BIOME);
+            modifiedVanillaOverworldBuilder.replaceBiome(Biomes.OLD_GROWTH_PINE_TAIGA, OWBiomes.REDWOOD_FOREST_BIOME);
+            modifiedVanillaOverworldBuilder.replaceBiome(Biomes.OLD_GROWTH_SPRUCE_TAIGA, OWBiomes.REDWOOD_FOREST_BIOME);
         });
     }
 

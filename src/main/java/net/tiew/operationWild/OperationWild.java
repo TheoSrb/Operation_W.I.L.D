@@ -38,6 +38,7 @@ import net.tiew.operationWild.event.ColorEvents;
 import net.tiew.operationWild.gui.HeartRenderHandler;
 import net.tiew.operationWild.item.OWCreativeTabs;
 import net.tiew.operationWild.item.OWItems;
+import net.tiew.operationWild.item.custom.MayaBlowpipeItem;
 import net.tiew.operationWild.particle.ElectricParticles;
 import net.tiew.operationWild.particle.NapParticles;
 import net.tiew.operationWild.particle.OWParticles;
@@ -101,6 +102,7 @@ public class OperationWild {
         //OWDailyQuests.run();
 
         modEventBus.addListener(this::addCreative);
+        NeoForge.EVENT_BUS.register(new MayaBlowpipeItem.BlowpipeRenderHandler());
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

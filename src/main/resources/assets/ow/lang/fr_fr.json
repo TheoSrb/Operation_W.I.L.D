@@ -6,6 +6,8 @@
   "addPrestigeCommandError": "Vous devez monter une entité pour lui ajouter des niveaux de prestige.",
   "addPrestigeCommandWork": "Don de %s niveaux de prestige à votre entité.",
 
+  "biome.ow.redwood_forest": "Forêt de séquoias",
+
   "key.ow.ultimate_key": "Capacité ultime",
   "key.ow.attacks_info_key": "Informations d'attaques",
   "key.ow.entity_journal_key": "Ouvrir le journal d'entité",

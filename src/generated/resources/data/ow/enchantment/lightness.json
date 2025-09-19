@@ -27,6 +27,6 @@
   "slots": [
     "mainhand"
   ],
-  "supported_items": "#ow:primitive_tools",
+  "supported_items": "ow:primitive_spear",
   "weight": 5
 }

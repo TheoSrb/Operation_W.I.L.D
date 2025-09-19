@@ -8,12 +8,13 @@
     "defaultRequire": 1
   },
   "client": [
+    "ItemInHandLayerMixin",
     "PlayerAttackMixin",
-    "PlayerHeadRotationMixin",
+    "PlayerModelRotationMixin",
     "SubmarineArmMixin",
     "SubmarineMixin"
   ],
   "mixins": [
-    "NaturalSpawnerMixin",
+    "NaturalSpawnerMixin"
   ]
 }

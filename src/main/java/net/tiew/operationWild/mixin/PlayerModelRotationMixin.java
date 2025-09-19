@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(PlayerModel.class)
-public class PlayerHeadRotationMixin {
+public class PlayerModelRotationMixin {
 
     @Inject(method = "setupAnim", at = @At("TAIL"))
     private void rotateHead(LivingEntity p_103395_, float p_103396_, float p_103397_,
@@ -28,6 +28,19 @@ public class PlayerHeadRotationMixin {
 
             boolean holdingSeaBug = Minecraft.getInstance().player.getMainHandItem().is(OWItems.SEABUG.get()) ||
                     Minecraft.getInstance().player.getOffhandItem().is(OWItems.SEABUG.get());
+            boolean havingBlowpipeInHand = Minecraft.getInstance().player.getMainHandItem().getItem() == OWItems.MAYA_BLOWPIPE.get() && Minecraft.getInstance().player.isUsingItem();
+
+            if (havingBlowpipeInHand) {
+                model.rightArm.xRot = (float) Math.toRadians(-90);
+                model.rightArm.yRot = (float) Math.toRadians(-20);
+                model.rightSleeve.xRot = (float) Math.toRadians(-90);
+                model.rightSleeve.yRot = (float) Math.toRadians(-20);
+
+                model.leftArm.xRot = (float) Math.toRadians(-90);
+                model.leftArm.yRot = (float) Math.toRadians(20);
+                model.leftSleeve.xRot = (float) Math.toRadians(-90);
+                model.leftSleeve.yRot = (float) Math.toRadians(20);
+            }
 
             if (holdingSeaBug) {
                 model.rightArm.yRot = 0;

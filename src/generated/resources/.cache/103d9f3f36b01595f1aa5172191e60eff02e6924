@@ -1,6 +1,6 @@
-// 1.21	2025-09-18T18:49:18.8366465	Registries
+// 1.21	2025-09-19T13:42:21.6170663	Registries
 50ceb8e49f7e83c2dd6bfecce80a0a9483d14b93 data/ow/enchantment/fawns_protection.json
-421dbef5de6fc1fc864c4c6d02261d11247a489c data/ow/enchantment/lightness.json
+e156689f884404354ca67120bdc7f8d470c68d2e data/ow/enchantment/lightness.json
 2e18fdc85cbc2b05f000ae62dc5d3d17ab741fae data/ow/enchantment/plant_providence.json
 6ecdf85f81c64a88b68015a8ba4b5d9a48975c9a data/ow/enchantment/putrid.json
 8531cf8a9b990dce8c816f265461f441ad168b88 data/ow/enchantment/reptilian_calamity.json
@@ -14,7 +14,7 @@ a7ed2b06986e8633d35de8b98793094cb6c33c7e data/ow/neoforge/biome_modifier/spawn_b
 3c12661f18eeeee1887b0310efa3ba6b9d06cbbc data/ow/neoforge/biome_modifier/spawn_jellyfish.json
 492562297ad071c4b1ab6b42f33835d24d4f3985 data/ow/neoforge/biome_modifier/spawn_peacock.json
 5f871e4ca1272c8688d75b1e7cbe7ec30173f7d2 data/ow/neoforge/biome_modifier/spawn_tiger.json
-60d1417504c0bfc1ef9b7d6002cf595dd860695b data/ow/worldgen/biome/redwood_forest.json
+cf6f72a57347e46470b61efa870a7d98c621566b data/ow/worldgen/biome/redwood_forest.json
 2f81ab02218e5954662fc9ab4a8cea974bf4123d data/ow/worldgen/configured_feature/jade_ore.json
 d5bf7889e1b2c63255b5a056df7b6a3dff40c46e data/ow/worldgen/configured_feature/redwood.json
 dfd19ba2f5b7cbb383d84a5f092827e200ac0601 data/ow/worldgen/configured_feature/ruby_ore.json
