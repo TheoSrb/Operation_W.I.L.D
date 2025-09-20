@@ -368,7 +368,6 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     public void tick() {
         super.tick();
-
         Vec3 center = new Vec3(0, 1, 1 * this.getScale()).yRot(-this.yBodyRot * ((float) Math.PI / 180F)).add(position());
 
         createCombo(33, 22, actualAttackNumber == 2 ? SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR : RANDOM(2) ? OWSounds.ELEPHANT_HURT.get() : OWSounds.ELEPHANT_HURTING_2.get(), 3.0, 3.5, 1.5, false, actualAttackNumber == 2 ? 4 : 2);
