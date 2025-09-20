@@ -393,7 +393,22 @@
   "tooltip.rightClickAlert": "! Fight Back !",
 
 
-  "adventurer_manuscript.entity.tiger.page_1": "Félin sauvage de taille moyenne, repéré dans les forêts tropicales et les jungles de bambous. Extrêmement agile et territorial, il attaque sans avertissement.",
+  "adventurer_manuscript.entity.tiger.page_1": "The §l§n§dTiger§r is a §lmedium-sized§r wild feline, prowling through §ltropical forests§r and §lbamboo jungles§r. Extremely agile and territorial, it attacks without warning.",
+  "adventurer_manuscript.entity.tiger.page_2": "§l§nI. Beast Leap: \n\n§r When it spots a target, the §l§n§dTiger§r performs a precise and powerful leap, aiming to immobilize and trap its prey with its razor-sharp claws.\n\nIf it catches you, it slashes you with its",
+  "adventurer_manuscript.entity.tiger.page_3": "§lclaws§r, dealing damage while keeping you §ltrapped§r under its strength and power, until it releases you.",
+  "adventurer_manuscript.entity.tiger.page_4": "§l§nII. Disarmament: \n\n§r The §l§n§dTiger§r's strikes are precise enough to force a player to §ldrop§r their equipment.",
+  "adventurer_manuscript.entity.tiger.page_5": "§l§nIII. Territorial: \n\n§r The §l§n§dTiger§r regularly claws tree trunks in its hunting zone, leaving visible marks on the bark. These marks serve to signal its presence and deter intruders.",
+  "adventurer_manuscript.entity.tiger.page_6": "§l§nIV. Rest: \n\n§r The §l§n§dTiger§r alternates its activity phases with periods of §lrest§r, retreating to safe areas to recover its energy before §lresuming§r the hunt.",
+  "adventurer_manuscript.entity.tiger.page_7": "§l§nAnalysis§r: Territorial predator - Must be avoided at all costs.",
+
+
+  "adventurer_manuscript.entity.boa.page_1": "Being among the largest existing §lserpents§r, the §l§n§dBoa§r, observable in §lwarm swamps§r and §ljungles§r, is not a predator to be taken lightly.",
+  "adventurer_manuscript.entity.boa.page_2": "§l§nI. Envenomation: \n\n§r The §l§n§dBoa§r's fangs are often soaked with §ltoxin§r.\n\n\n\n\n\nThis can §lblur the vision§r of entities bitten by",
+  "adventurer_manuscript.entity.boa.page_3": "it. \nOnce envenomed, the immune defenses of affected entities are §nradically§r §lless effective§r.\n\nAt this point, it's preferable to use an §l§n§dantidote§r to limit the §nspread§r of the §lvenom§r.",
+  "adventurer_manuscript.entity.boa.page_4": "§l§nII. Undulation: \n\n§r The §l§n§dBoa§r's body, of impressive length, is also perfectly §nadapted§r to swimming. A trait that allows it to §leasily pursue you§r in water if you attempt to flee.",
+  "adventurer_manuscript.entity.boa.page_5": "§l§nIII. Asphyxiation: \n\n§r The §l§n§dBoa§r doesn't always need to bite. It can §lcoil around§r its prey and §lblock its breathing§r by squeezing with all its strength, dealing increasingly heavy damage over",
+  "adventurer_manuscript.entity.boa.page_6": "time, inflicting §lheavy damage§r. \n\n§l§nIV. Molting: \n\n§r When the time comes, the §l§n§dBoa§r begins to §nmolt§r, leaving its §lold skin§r on the ground, which can be §ncollected§r.",
+  "adventurer_manuscript.entity.boa.page_7": "§l§nAnalysis§r: Powerful, silent and unpredictable predator, formidable at close range but less tough at distance - avoid.",
 
 
   "boa.page1": "The §lBoa§r is a silent predator slithering through dense, §lhumid§r §lareas§r patiently awaiting its prey.",
