@@ -10,9 +10,10 @@ import net.tiew.operationWild.screen.entity.OWSkinsInterface;
 @OnlyIn(Dist.CLIENT)
 public class ElephantSkinsScreen extends OWSkinsInterface {
     private Button skinButton1;
+    private Button skinButton2;
     private Button skinButton7;
 
-    private int numberOfSkins = 2;
+    private int numberOfSkins = 3;
 
     public ElephantSkinsScreen() {
         super();
@@ -44,6 +45,7 @@ public class ElephantSkinsScreen extends OWSkinsInterface {
         COMMON_SKIN.clear();
 
         skinButton1 = createSkinButton(Component.translatable("tooltip.elephantSkin1"), 1, LEGENDARY_SKIN);
+        skinButton2 = createSkinButton(Component.translatable("tooltip.elephantSkin2"), 2, EPIC_SKIN);
         skinButton7 = createSkinButton(Component.translatable("tooltip.elephantSkin7"), 7, COMMON_SKIN);
 
         updateButtonColors();
@@ -53,6 +55,7 @@ public class ElephantSkinsScreen extends OWSkinsInterface {
     @Override
     protected int getSkinIndexForButton(Button button) {
         if (button == skinButton1) return 1;
+        if (button == skinButton2) return 2;
         if (button == skinButton7) return 7;
         return -1;
     }
@@ -66,6 +69,7 @@ public class ElephantSkinsScreen extends OWSkinsInterface {
     protected void updateLockStates() {
         if (this.entity != null) {
             setLockState(1, entity.getLevel() < 50);
+            setLockState(2, false);
             setLockState(7, false);
         }
     }

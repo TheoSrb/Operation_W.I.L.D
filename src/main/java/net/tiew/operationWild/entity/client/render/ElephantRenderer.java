@@ -24,6 +24,7 @@ import java.util.Map;public class ElephantRenderer extends MobRenderer<ElephantE
         map.put(ElephantVariant.GREY, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_grey.png"));
         map.put(ElephantVariant.PINK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_pink.png"));
 
+        map.put(ElephantVariant.SKIN_DEMON, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/skins/elephant_skin_demon.png"));
         map.put(ElephantVariant.SKIN_GOLD, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/skins/elephant_skin_gold.png"));
     });
 
