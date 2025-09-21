@@ -85,20 +85,23 @@ public class ManuscriptFragmentItem extends Item {
             EntityType<? extends OWEntity> entityType = OWEntityRegistry.getEntityTypeFromName(entityName);
 
             if (entityType != null) {
-                if (AdventurerManuscriptScreen.tempMap.containsKey(entityType) || AdventurerManuscriptScreen.OW_ENTITIES.containsKey(entityType)) {
-                    if (player.level().isClientSide()) {
-                        OWEntity entity = entityType.create(Minecraft.getInstance().level);
-
+                if (!level.isClientSide()) {
+                    stack.shrink(1);
+                    return InteractionResultHolder.success(stack);
+                } else {
+                    if (AdventurerManuscriptScreen.tempMap.containsKey(entityType) || AdventurerManuscriptScreen.OW_ENTITIES.containsKey(entityType)) {
+                        OWEntity entity = entityType.create(level);
                         player.displayClientMessage(Component.translatable("tooltip.haveEntityChapter",
                                 Component.translatable(String.valueOf(entityType)).setStyle(Style.EMPTY.withColor(entity != null ? 0xFF0000 : 0xFFFFFF))).setStyle(Style.EMPTY.withColor(0xFF0000)), true);
+                        return InteractionResultHolder.fail(stack);
                     }
-                    return InteractionResultHolder.fail(stack);
+                    OperationWild.addEntityToManuscript(entityType, OperationWild.getMaxPageForEntityInManuscript(entityType), player);
+                    player.playSound(net.minecraft.sounds.SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
+                    return InteractionResultHolder.success(stack);
                 }
-                OperationWild.addEntityToManuscript(entityType, OperationWild.getMaxPageForEntityInManuscript(entityType), player);
-                stack.shrink(1);
             }
         }
-        return super.use(level, player, usedHand);
+        return InteractionResultHolder.pass(stack);
     }
 
     private String getSimpleNameFromEntityType(EntityType<? extends OWEntity> entityType) {

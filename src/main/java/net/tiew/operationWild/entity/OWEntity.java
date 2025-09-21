@@ -40,6 +40,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FollowParentGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -71,6 +73,7 @@ import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.goals.OWFollowOwnerGoal;
 import net.tiew.operationWild.entity.misc.*;
 import net.tiew.operationWild.entity.quests.ascent.AscentMission;
 import net.tiew.operationWild.entity.variants.*;
@@ -268,9 +271,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     protected void registerGoals() {
+        this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
+        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 30f, 15, 3));
         this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25));
         this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 6.0F));
-        this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
+
+        this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
     }
 
     public static final List<Class<?>> TANK_ENTITIES = new ArrayList<>();
@@ -746,7 +753,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(IS_SLEEPING, isSleeping);
         if (isSleeping) {
             if (this instanceof TigerEntity tiger) tiger.setMad(false);
-            if (this instanceof KodiakEntity kodiak) kodiak.setMad(false);
         }
     }
 

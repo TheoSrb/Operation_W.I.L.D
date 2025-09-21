@@ -138,19 +138,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
-		if ((kodiak.getMaturationPercentage() < 60 && kodiak.getMaturationPercentage() > 0) || (kodiak.isMad())) {
-			this.left_eyeBall.xScale = 0;
-			this.left_eyeBall.yScale = 0;
-			this.left_eyeBall.zScale = 0;
-			this.right_eyeBall.xScale = 0;
-			this.right_eyeBall.yScale = 0;
-			this.right_eyeBall.zScale = 0;
-		}
         this.applyHeadRotation(netHeadYaw, headPitch);
-
-		if (kodiak.isRub()) {
-			this.animate(kodiak.standingUpIdleAnimationState, KodiakAnimations.STANDING_UP_IDLE, ageInTicks, 1.0f);
-		}
 
 		if (kodiak.isCombo(1)) {
 			this.animate(kodiak.attack1Combo, KodiakAnimations.ATTACK_STRIKE, ageInTicks, 0.925f * OWEntity.comboSpeedMultiplier);
@@ -198,11 +186,6 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			return;
 		}
 
-		if (kodiak.isNapping()) {
-			this.animate(kodiak.sleepingAnimationState, KodiakAnimations.SLEEP, ageInTicks, 1.0f);
-			return;
-		}
-
 
 
 		this.animate(kodiak.idleAnimationState, KodiakAnimations.MISC_IDLE, ageInTicks, 1.0f);
@@ -210,7 +193,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		if (kodiak.isRunning() || kodiak.getState() == 2) {
 			this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.0f, 1.0f);
 		} else {
-			this.animateWalk(kodiak.getFoodChooseFromChest().isEmpty() ? KodiakAnimations.MOVE_WALK : KodiakAnimations.MOVE_WALK_WITH_ITEM, limbSwing, limbSwingAmount, 4.5f, 4.5f);
+			this.animateWalk(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 4.5f, 4.5f);
 		}
 
 
@@ -224,7 +207,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
         this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 
-		if (this.currentEntity != null && !this.currentEntity.getFoodChooseFromChest().isEmpty()) {
+		if (this.currentEntity != null && !this.currentEntity.getFoodPick().isEmpty()) {
 			renderItemOnHead(this.currentEntity, poseStack, packedLight);
 		}
     }
@@ -235,13 +218,13 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		this.head.translateAndRotate(poseStack);
 
 		poseStack.translate(0.0D, 0.75, -1.3D);
-		poseStack.scale(1f, 1f, 1f);
+		poseStack.scale(1.5f, 1.5f, 1.5f);
 
 		poseStack.mulPose(Axis.XP.rotationDegrees(90));
 
 		MultiBufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
 
-		Minecraft.getInstance().getItemRenderer().renderStatic(kodiak.getFoodChooseFromChest(), ItemDisplayContext.GROUND, packedLight, OverlayTexture.NO_OVERLAY, poseStack, bufferSource, kodiak.level(), 0);
+		Minecraft.getInstance().getItemRenderer().renderStatic(kodiak.getFoodPick(), ItemDisplayContext.GROUND, packedLight, OverlayTexture.NO_OVERLAY, poseStack, bufferSource, kodiak.level(), 0);
 
 		poseStack.popPose();
 	}

@@ -355,7 +355,7 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .unlockedBy(getHasName(OWItems.RAW_KODIAK.get()), has(OWItems.RAW_KODIAK.get()))
                 .save(recipeOutput, OperationWild.MOD_ID + ":cooked_kodiak_from_smoking");
 
-        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_TIGER.get()),
+        SimpleCookingRecipeBuilder.campfireCooking(Ingredient.of(OWItems.RAW_KODIAK.get()),
                         RecipeCategory.FOOD, OWItems.COOKED_KODIAK.get(), 0.35F, 600)
                 .unlockedBy(getHasName(OWItems.RAW_KODIAK.get()), has(OWItems.RAW_KODIAK.get()))
                 .save(recipeOutput, OperationWild.MOD_ID + ":cooked_kodiak_from_campfire_cooking");

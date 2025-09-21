@@ -1,4 +1,4 @@
-// 1.21	2025-09-21T10:39:56.0265376	Recipes
+// 1.21	2025-09-21T19:50:24.1382244	Recipes
 3c2b99d9646d611411da8840b8533e6ce53cbcf3 data/minecraft/advancement/recipes/misc/acacia_planks.json
 ba72d03a353d6dfc052927d89425303771985ee6 data/minecraft/advancement/recipes/misc/birch_planks.json
 7bce2a10c51100ea331fdfad09a5cc299ecb1a0d data/minecraft/advancement/recipes/misc/cherry_planks.json
@@ -74,7 +74,7 @@ a18ee1bdadea3debd46a2df209f88a3c87772b51 data/ow/recipe/camouflage_helmet.json
 0dc1829d3dfbc3e9f008b0d853759a348b7744bd data/ow/recipe/cooked_boa_from_campfire_cooking.json
 9bc6eca25063fddfdeec0f622e570deee45a8192 data/ow/recipe/cooked_boa_from_smelting.json
 4534b203c670c0b355f10cdf839002f41bfe1de6 data/ow/recipe/cooked_boa_from_smoking.json
-8e938bfb49eaf5fca53315311485381a0ad78d32 data/ow/recipe/cooked_kodiak_from_campfire_cooking.json
+e7c920a1454b54a4a4a8e914dd57e4e207358a43 data/ow/recipe/cooked_kodiak_from_campfire_cooking.json
 bf6537158c5202c468afaca0c6775f50c4d10546 data/ow/recipe/cooked_kodiak_from_smelting.json
 45b476732c28a8bee8e9287b429023ae8483e378 data/ow/recipe/cooked_kodiak_from_smoking.json
 d561c18f21fb339a0a9a5cc3c0f34c7cd929af74 data/ow/recipe/cooked_peacock_from_campfire_cooking.json

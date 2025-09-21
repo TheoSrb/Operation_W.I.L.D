@@ -44,6 +44,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.entity.OWTameImplementation;
+import net.tiew.operationWild.entity.config.FoodsPreference;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.goals.*;

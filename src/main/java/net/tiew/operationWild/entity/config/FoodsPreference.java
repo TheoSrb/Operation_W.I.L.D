@@ -1,4 +1,4 @@
-package net.tiew.operationWild.entity.goals;
+package net.tiew.operationWild.entity.config;
 
 public interface FoodsPreference {
     boolean preferRawMeat();

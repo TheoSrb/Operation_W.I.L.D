@@ -61,7 +61,10 @@
       "minecraft:ore_lapis_buried",
       "minecraft:ore_copper",
       "minecraft:underwater_magma",
-      "minecraft:ore_gold_extra"
+      "minecraft:ore_gold_extra",
+      "minecraft:disk_sand",
+      "minecraft:disk_clay",
+      "minecraft:disk_gravel"
     ],
     [],
     [
@@ -71,6 +74,10 @@
     [
       "minecraft:forest_flowers",
       "minecraft:patch_large_fern",
+      "minecraft:patch_grass_taiga",
+      "minecraft:patch_dead_bush",
+      "minecraft:brown_mushroom_old_growth",
+      "minecraft:red_mushroom_old_growth",
       "minecraft:trees_plains",
       "minecraft:patch_tall_grass",
       "minecraft:patch_grass_jungle",
