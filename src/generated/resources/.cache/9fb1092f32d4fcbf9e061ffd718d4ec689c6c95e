@@ -1,6 +1,22 @@
-// 1.21	2025-08-29T15:44:53.9115706	Recipes
+// 1.21	2025-09-21T10:39:56.0265376	Recipes
+3c2b99d9646d611411da8840b8533e6ce53cbcf3 data/minecraft/advancement/recipes/misc/acacia_planks.json
+ba72d03a353d6dfc052927d89425303771985ee6 data/minecraft/advancement/recipes/misc/birch_planks.json
+7bce2a10c51100ea331fdfad09a5cc299ecb1a0d data/minecraft/advancement/recipes/misc/cherry_planks.json
+894f84f20eedf3f0d13e415198c3fa4ab6f6e22f data/minecraft/advancement/recipes/misc/dark_oak_planks.json
+e674dc8338a4847b3118527a2f420a3c0787e533 data/minecraft/advancement/recipes/misc/jungle_planks.json
+2277fc1e1e380f191c226790ee22594b352166f5 data/minecraft/advancement/recipes/misc/mangrove_planks.json
+5e519c42d1520f7457f70dc319a398dec1108a86 data/minecraft/advancement/recipes/misc/oak_planks.json
 f33c002f0f4ef1baa4167f73e99e52613a4136f5 data/minecraft/advancement/recipes/misc/pink_dye.json
+14801a6bc99471edc69a67a4c9cdeefa29f213d5 data/minecraft/advancement/recipes/misc/spruce_planks.json
+c714608a3d33a1f1dc7cc3e46ccb09aa21ad72b0 data/minecraft/recipe/acacia_planks.json
+b1cd5ecaf4eb78fe6130487e4d455a94eeda1b5f data/minecraft/recipe/birch_planks.json
+35acb456063a879206171d1564a8169d2f1d24ea data/minecraft/recipe/cherry_planks.json
+d6792df4dd6ce6df91579320d04c6a80c4175603 data/minecraft/recipe/dark_oak_planks.json
+fe34bddb0744261055f4a2cdebe1e64997f5b84d data/minecraft/recipe/jungle_planks.json
+6da03b9cc42b867187fa71eaf915b31492451f91 data/minecraft/recipe/mangrove_planks.json
+e6fda4def65b9bbd367f3e50eadcfc0120da2e1b data/minecraft/recipe/oak_planks.json
 e3f3a0b671388d6abdeedaefe2fd558cd9d00dac data/minecraft/recipe/pink_dye.json
+bb2fb1d9dee709987d5923fb4a33b2dbd46b8b06 data/minecraft/recipe/spruce_planks.json
 aab17de6a0d54f51ff73a206f2dceb5e0346f117 data/ow/advancement/recipes/building_blocks/redwood_slab.json
 49fe4979b8b97220958a14a03a23523c5a754d74 data/ow/advancement/recipes/building_blocks/redwood_stairs.json
 1f914ecd4b4d1864c838a53075ed2beeaf70f775 data/ow/advancement/recipes/decorations/redwood_fence.json

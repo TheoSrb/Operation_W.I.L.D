@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "L": {
+      "item": "ow:scarified_spruce_log"
+    }
+  },
+  "pattern": [
+    "   ",
+    " L ",
+    "   "
+  ],
+  "result": {
+    "count": 4,
+    "id": "minecraft:spruce_planks"
+  }
+}
