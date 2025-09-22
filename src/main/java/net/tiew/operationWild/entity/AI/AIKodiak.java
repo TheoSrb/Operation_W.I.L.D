@@ -187,35 +187,46 @@ public abstract class AIKodiak extends OWEntity {
                 stop();
                 return;
             }
-            if (targetPos != null && target instanceof Block && ((Block) target) == Blocks.CAMPFIRE) {
-                BlockEntity blockEntity = kodiak.level().getBlockEntity(targetPos);
-                if (blockEntity instanceof CampfireBlockEntity campfire) {
-                    campfireItems = campfire.getItems();
-                    if (!campfireItems.isEmpty() || kodiak.level().isNight()) {
-                        kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0f);
+            if (targetPos != null) {
+                if (target instanceof Block && ((Block) target) == Blocks.CAMPFIRE) {
+                    BlockEntity blockEntity = kodiak.level().getBlockEntity(targetPos);
+                    if (blockEntity instanceof CampfireBlockEntity campfire) {
+                        campfireItems = campfire.getItems();
+                        if (!campfireItems.isEmpty() || kodiak.level().isNight()) {
+                            kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0f);
 
-                        double distanceBetweenKodiakAndTarget = distanceRest(kodiak, targetPos);
-                        boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
+                            double distanceBetweenKodiakAndTarget = distanceRest(kodiak, targetPos);
+                            boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
 
-                        if (isArrived) {
-                            if (campfireItems != null) {
-                                int $$0 = kodiak.getRandom().nextInt(campfireItems.size());
-                                foodPick = campfireItems.get($$0);
-                                campfire.getItems().set($$0, ItemStack.EMPTY);
-                                campfire.setChanged();
-                                if (!kodiak.level().isClientSide) {
-                                    BlockState state = kodiak.level().getBlockState(targetPos);
-                                    kodiak.level().sendBlockUpdated(targetPos, state, state, Block.UPDATE_CLIENTS);
+                            if (isArrived) {
+                                if (campfireItems != null) {
+                                    int $$0 = kodiak.getRandom().nextInt(campfireItems.size());
+                                    foodPick = campfireItems.get($$0);
+                                    campfire.getItems().set($$0, ItemStack.EMPTY);
+                                    campfire.setChanged();
+                                    if (!kodiak.level().isClientSide) {
+                                        BlockState state = kodiak.level().getBlockState(targetPos);
+                                        kodiak.level().sendBlockUpdated(targetPos, state, state, Block.UPDATE_CLIENTS);
+                                    }
+                                    aiKodiak.foodPick = foodPick;
                                 }
-                                aiKodiak.foodPick = foodPick;
+                                actionAtTheEnd.run();
+                                stop();
                             }
-                            actionAtTheEnd.run();
-                            stop();
-                        }
 
-                    } else {
+                        } else {
+                            stop();
+                            return;
+                        }
+                    }
+                } else {
+                    kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0f);
+                    double distanceBetweenKodiakAndTarget = distanceRest(kodiak, targetPos);
+                    boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
+
+                    if (isArrived) {
+                        actionAtTheEnd.run();
                         stop();
-                        return;
                     }
                 }
             }
