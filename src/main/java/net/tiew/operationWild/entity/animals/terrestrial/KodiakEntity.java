@@ -63,6 +63,8 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     public static final double TAMING_EXPERIENCE = 180.0;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_SHADE_SKIN = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+
 
     public AnimationState transitionIdleStandingUp = new AnimationState();
     public AnimationState transitionStandingUpIdle = new AnimationState();
@@ -96,6 +98,7 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
+        builder.define(IS_SHADE_SKIN, false);
     }
 
     // Entity Methods
@@ -404,9 +407,14 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
 
     public void changeSkin(int skinIndex) {
         this.setVariant(getInitialVariant());
+        this.setSkinShade(false);
 
         if (skinIndex == 1) {
             setVariant(KodiakVariant.SKIN_GOLD);
+        } else if (skinIndex == 2) {
+            setVariant(KodiakVariant.SKIN_SKELETON);
+        } else if (skinIndex == 3) {
+            setSkinShade(true);
         } else if (skinIndex == 7) {
             setVariant(getInitialVariant());
         }
@@ -498,12 +506,18 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
         this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());
     }
 
+    public void setSkinShade(boolean isShade) { this.entityData.set(IS_SHADE_SKIN, isShade);}
+
+    public boolean isShade() { return this.entityData.get(IS_SHADE_SKIN);}
+
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("getInitialVariant", this.getInitialVariant().getId());
         tag.putInt("Variant", this.getTypeVariant());
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
+
+        tag.putBoolean("isShade", this.isShade());
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -512,5 +526,7 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
+
+        this.entityData.set(IS_SHADE_SKIN, tag.getBoolean("isShade"));
     }
 }

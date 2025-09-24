@@ -81,6 +81,7 @@ public class OWScreenUtils {
 
                     int lockedRarityPositionY = parentScreen.LEGENDARY_SKIN.contains(button) ? 74 :
                             parentScreen.EPIC_SKIN.contains(button) ? 88 :
+                                parentScreen.HALLOWEEN_SKIN.contains(button) ? 88 :
                                     parentScreen.RARE_SKIN.contains(button) ? 102 :
                                             parentScreen.COMMON_SKIN.contains(button) ? 116 : 0;
 

@@ -50,6 +50,7 @@ public class TigerSkinsScreen extends OWSkinsInterface {
     protected void createAndAddButtons() {
         LEGENDARY_SKIN.clear();
         EPIC_SKIN.clear();
+        HALLOWEEN_SKIN.clear();
         RARE_SKIN.clear();
         COMMON_SKIN.clear();
 

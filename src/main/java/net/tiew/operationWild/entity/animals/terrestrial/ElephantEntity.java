@@ -290,6 +290,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         if (skinIndex == 1) setVariant(ElephantVariant.SKIN_GOLD);
         else if (skinIndex == 2) setVariant(ElephantVariant.SKIN_DEMON);
+        else if (skinIndex == 3) setVariant(ElephantVariant.SKIN_ZOMBIE);
         else if (skinIndex == 7) setVariant(getInitialVariant());
 
         if (!this.level().isClientSide()) {
@@ -432,6 +433,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
                 if (this.getVariant() == ElephantVariant.SKIN_DEMON && this.tickCount % 2 == 0) {
                     this.level().addParticle(ParticleTypes.FLAME, px, py, pz, 0, 0.05, 0);
+                }
+                if (this.getVariant() == ElephantVariant.SKIN_ZOMBIE && this.tickCount % 2 == 0) {
+                    this.level().addParticle(ParticleTypes.SCULK_SOUL, px, py, pz, 0, 0.05, 0);
                 }
             }
             for (int i = 0; i < 5; i++) {

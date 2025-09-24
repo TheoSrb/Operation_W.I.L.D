@@ -8,7 +8,8 @@ public enum KodiakVariant {
     BLACK(1),
     GREY(2),
 
-    SKIN_GOLD(3);
+    SKIN_SKELETON(3),
+    SKIN_GOLD(4);
 
     public static final KodiakVariant[] BY_ID = Arrays.stream(values()).sorted(Comparator.comparingInt(KodiakVariant::getId)).toArray(KodiakVariant[]::new);
 

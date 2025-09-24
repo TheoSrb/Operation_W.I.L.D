@@ -158,9 +158,12 @@
 
   "tooltip.elephantSkin1": "Golden Elephant",
   "tooltip.elephantSkin2": "Demon Elephant",
+  "tooltip.elephantSkin3": "Zombified Elephant",
   "tooltip.elephantSkin7": "Default Elephant",
 
   "tooltip.kodiakSkin1": "Golden Kodiak",
+  "tooltip.kodiakSkin2": "Dark Bone Kodiak",
+  "tooltip.kodiakSkin3": "Shade Kodiak",
   "tooltip.kodiakSkin7": "Default Kodiak",
 
   "tooltip.locked": "Locked",

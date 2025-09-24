@@ -9,7 +9,8 @@ public enum ElephantVariant {
     PINK(2),
 
     SKIN_DEMON(3),
-    SKIN_GOLD(4);
+    SKIN_ZOMBIE(4),
+    SKIN_GOLD(5);
 
     public static final ElephantVariant[] BY_ID = Arrays.stream(values()).sorted(Comparator.comparingInt(ElephantVariant::getId)).toArray(ElephantVariant[]::new);
 

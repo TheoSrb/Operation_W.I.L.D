@@ -44,6 +44,8 @@ public class OWSkinsInterface extends Screen {
     public final List<Button> RARE_SKIN = new ArrayList<>();
     public final List<Button> COMMON_SKIN = new ArrayList<>();
 
+    public final List<Button> HALLOWEEN_SKIN = new ArrayList<>();
+
     protected final Map<Integer, Boolean> lockedSkins = new HashMap<>();
     protected final Map<Integer, Integer> skinPrices = new HashMap<>();
 
@@ -111,6 +113,7 @@ public class OWSkinsInterface extends Screen {
     protected void createAndAddButtons() {
         LEGENDARY_SKIN.clear();
         EPIC_SKIN.clear();
+        HALLOWEEN_SKIN.clear();
         RARE_SKIN.clear();
         COMMON_SKIN.clear();
 
@@ -138,6 +141,7 @@ public class OWSkinsInterface extends Screen {
         orderedButtons.addAll(COMMON_SKIN);
         orderedButtons.addAll(RARE_SKIN);
         orderedButtons.addAll(EPIC_SKIN);
+        orderedButtons.addAll(HALLOWEEN_SKIN);
 
         List<Button> legendaryButtons = new ArrayList<>(LEGENDARY_SKIN);
 
@@ -169,6 +173,7 @@ public class OWSkinsInterface extends Screen {
 
     protected void updateButtonColors() {
         updateButtonsInList(LEGENDARY_SKIN, 0xfdd85f);
+        updateButtonsInList(HALLOWEEN_SKIN, 0xd86a2e);
         updateButtonsInList(EPIC_SKIN, 0x682b90);
         updateButtonsInList(RARE_SKIN, 0xf19f60);
         updateButtonsInList(COMMON_SKIN, 0xc4def2);

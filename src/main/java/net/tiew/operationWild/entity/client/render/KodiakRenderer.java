@@ -26,6 +26,7 @@ public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<Kodiak
         map.put(KodiakVariant.BLACK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_black.png"));
         map.put(KodiakVariant.GREY, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_grey.png"));
         map.put(KodiakVariant.SKIN_GOLD, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/skins/kodiak_skin_gold.png"));
+        map.put(KodiakVariant.SKIN_SKELETON, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/skins/kodiak_skin_skeleton.png"));
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 

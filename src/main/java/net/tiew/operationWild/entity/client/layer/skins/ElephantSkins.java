@@ -16,6 +16,7 @@ import net.tiew.operationWild.entity.variants.ElephantVariant;
 public class ElephantSkins extends RenderLayer<ElephantEntity, ElephantModel<ElephantEntity>> {
     private static final ResourceLocation SKIN_GOLD_GLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/skins/elephant_skin_gold_glowing.png");
     private static final ResourceLocation SKIN_DEMON_GLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/skins/elephant_skin_demon_glowing.png");
+    private static final ResourceLocation SKIN_ZOMBIE_GLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/skins/elephant_skin_zombie_glowing.png");
 
     public ElephantSkins(ElephantRenderer tigerRenderer) {
         super(tigerRenderer);
@@ -25,6 +26,7 @@ public class ElephantSkins extends RenderLayer<ElephantEntity, ElephantModel<Ele
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, ElephantEntity elephant, float v, float v1, float v2, float v3, float v4, float v5) {
         if (elephant.getVariant() == ElephantVariant.SKIN_GOLD) renderOverlay(poseStack, multiBufferSource, SKIN_GOLD_GLOWING_TEXTURE, true, packedLight);
         if (elephant.getVariant() == ElephantVariant.SKIN_DEMON) renderOverlay(poseStack, multiBufferSource, SKIN_DEMON_GLOWING_TEXTURE, true, packedLight);
+        if (elephant.getVariant() == ElephantVariant.SKIN_ZOMBIE) renderOverlay(poseStack, multiBufferSource, SKIN_ZOMBIE_GLOWING_TEXTURE, true, packedLight);
     }
 
     private void renderOverlay(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, boolean glowLayer, int packedLight) {
