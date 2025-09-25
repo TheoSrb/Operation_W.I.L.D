@@ -125,6 +125,7 @@ public abstract class AIKodiak extends OWEntity {
         pickupItemInHisMouth(Items.HONEYCOMB.getDefaultInstance());
         this.playSound(SoundEvents.HONEY_BLOCK_PLACE);
 
+        // TODO particles don't render.
         if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
             double x = this.getX();
             double y = this.getY() + 0.5;
