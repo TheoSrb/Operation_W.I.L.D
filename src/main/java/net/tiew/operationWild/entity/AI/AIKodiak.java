@@ -69,7 +69,7 @@ public abstract class AIKodiak extends OWEntity {
 
     private void registerBasicsGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, isCanAttack()));
+        this.goalSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, canAttack()));
         this.goalSelector.addGoal(6, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
         this.goalSelector.addGoal(7, new RandomStrollGoal(this, 0.75D));
@@ -146,7 +146,7 @@ public abstract class AIKodiak extends OWEntity {
         }
     }
 
-    protected boolean isCanAttack() {
+    protected boolean canAttack() {
         return canAttack;
     }
 
