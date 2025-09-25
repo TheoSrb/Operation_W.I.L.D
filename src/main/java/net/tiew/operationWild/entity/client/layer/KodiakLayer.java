@@ -58,10 +58,9 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
         }
 
 
-        if (kodiak.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+        if (kodiak.isSaddled()) renderOverlayWithOpacity(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight, 0.5f);
 
-        // TODO layer don't work.
-        if (kodiak.getFoodPick() == Items.HONEYCOMB.getDefaultInstance()) {
+        if (kodiak.getFoodPick().is(Items.HONEYCOMB)) {
             renderOverlay(poseStack, multiBufferSource, DIRTY, false, packedLight);
         }
 

@@ -124,15 +124,6 @@ public abstract class AIKodiak extends OWEntity {
     protected void lookForHoneyInTheBeeNest() {
         pickupItemInHisMouth(Items.HONEYCOMB.getDefaultInstance());
         this.playSound(SoundEvents.HONEY_BLOCK_PLACE);
-
-        // TODO particles don't render.
-        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
-            double x = this.getX();
-            double y = this.getY() + 0.5;
-            double z = this.getZ();
-
-            serverLevel.sendParticles(ParticleTypes.DRIPPING_HONEY, x, y, z, 15, 0.5, 0.3, 0.5, 0.1);
-        }
     }
 
     protected void warnBeesAround(int radius) {
@@ -286,6 +277,12 @@ public abstract class AIKodiak extends OWEntity {
         @Override
         public boolean canContinueToUse() {
             if (targetPos == null || !conditionToWork) return false;
+
+            if (target instanceof Block) {
+                if (!kodiak.level().getBlockState(targetPos).is((Block) target)) {
+                    return false;
+                }
+            }
 
             double distance = distanceRest(kodiak, targetPos);
 
