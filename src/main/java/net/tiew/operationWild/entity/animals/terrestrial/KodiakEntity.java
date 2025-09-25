@@ -25,6 +25,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -72,10 +73,12 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     public final AnimationState attack1Combo = new AnimationState();
     public final AnimationState attack2Combo = new AnimationState();
     public final AnimationState attack3Combo = new AnimationState();
+    public final AnimationState napAnimationState = new AnimationState();
 
     public int attack1ComboTimer = 0;
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
+    public int napAnimationTimeout = 0;
 
     public KodiakEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -226,26 +229,7 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
         if (this.isInResurrection()) this.setSleeping(true);
 
         handleRunningEffects(29, SoundEvents.HORSE_STEP, 0.5f, new int[]{5, 19});
-        handleNappingEffects();
         handleGoldVariantEffects();
-    }
-
-    private void handleNappingEffects() {
-        if (this.isNapping()) {
-            setTarget(null);
-            if (this.tickCount % 20 == 0) {
-                Vec3 lookDirection = this.getLookAngle();
-                double entityX = this.getX();
-                double entityY = this.getY() + 1.15;
-                double entityZ = this.getZ();
-                double fixedX = entityX + lookDirection.x * 1.25;
-                double fixedY = entityY;
-                double fixedZ = entityZ + lookDirection.z * 1.25;
-                this.level().addParticle(OWParticles.NAP_PARTICLES.get(),
-                        fixedX, fixedY, fixedZ,
-                        0, 0, 0);
-            }
-        }
     }
 
     private void handleGoldVariantEffects() {
@@ -312,6 +296,7 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
 
     @Override
     public boolean hurt(DamageSource damageSource, float v) {
+        if (damageSource.getDirectEntity() instanceof Bee) return false;
         return super.hurt(damageSource, v);
     }
 
@@ -460,6 +445,19 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     private void setupAnimationState() {
         createIdleAnimation(48, true);
         createSitAnimation(58, true);
+
+        if (this.isNapping()) {
+            if (this.napAnimationTimeout <= 0) {
+                this.napAnimationTimeout = 96;
+                this.napAnimationState.start(this.tickCount);
+            } else --this.napAnimationTimeout;
+        }
+
+        if (!this.isNapping()) {
+            this.napAnimationTimeout = 0;
+            this.napAnimationState.stop();
+        }
+
 
         setupComboAnimations();
     }

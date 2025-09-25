@@ -789,22 +789,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
-    public void setNap(boolean nap, int prepareNapInTicks) {
-        Timer prepareNapTimer = new Timer();
-        if (nap) {
-            setPrepareNap(true);
-            prepareNapTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    OWEntity.this.setPrepareNap(false);
-                    OWEntity.this.entityData.set(NAPPING, true);
-                }
-            }, (prepareNapInTicks / 20) * 1000L);
-        } else this.entityData.set(NAPPING, false);
-        intervallNapTimer = 0;
-        napTimer = 0;
-    }
-
+    public void setNap(boolean nap) { this.entityData.set(NAPPING, nap);}
     public boolean isNapping() { return this.entityData.get(NAPPING);}
 
     public float getSpeed() { return (float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);}
@@ -1037,52 +1022,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
-    public boolean canBeNap(OWEntity entity) {
-        return this.getTarget() == null && entity != null && !entity.isDeadOrDying() && !entity.isTame() && !isInFight();
-    }
-
-    public void stayAwake(int intervallInTicks, int prepareNapTimeInTicks) {
-        if (isNapping()) return;
-
-        if (intervallNapTimer < intervallInTicks) intervallNapTimer++;
-        else setNap(true, prepareNapTimeInTicks);
-    }
-
     public boolean isEntityLookingAtThis(Entity entity, double threshold) {
         Vec3 lookVec = entity.getLookAngle();
         Vec3 toThisVec = new Vec3(this.getX() - entity.getX(), this.getY() - entity.getY(), this.getZ() - entity.getZ()).normalize();
 
         double dotProduct = lookVec.x * toThisVec.x + lookVec.y * toThisVec.y + lookVec.z * toThisVec.z;
         return dotProduct > threshold;
-    }
-
-    public void stayNap(int napTimeInTicks, int prepareNapTimeInTicks, int snoreIntervallInTicks, SoundEvent snoreSound, boolean canTurnHead) {
-        if (!isNapping()) return;
-
-        if (snoreIntervallInTicks > 0) {
-            if (tickCount % snoreIntervallInTicks == 0) {
-                if (this instanceof TigerEntity tiger) {
-                    if (random.nextInt(3) == 0) {
-                        this.playSound(tiger.isVirus() ? OWSounds.TIGER_SNORE_1_VIRUS.get() : OWSounds.TIGER_SNORE_1.get());
-                    } else if (random.nextInt(2) == 0) {
-                        this.playSound(tiger.isVirus() ? OWSounds.TIGER_SNORE_2_VIRUS.get() : OWSounds.TIGER_SNORE_2.get());
-                    } else this.playSound(tiger.isVirus() ? OWSounds.TIGER_SNORE_3_VIRUS.get() : OWSounds.TIGER_SNORE_3.get());
-                } else this.playSound(snoreSound);
-            }
-        }
-
-        if (napTimer < napTimeInTicks) napTimer++;
-        else setNap(false, prepareNapTimeInTicks);
-    }
-
-    public void createNapSystem(OWEntity entity, int intervallInTicks, int napTimeInTicks, int prepareNapTimeInTicks, int snoreIntervallInTicks, SoundEvent snoreSound, boolean canTurnHead, boolean condition) {
-        if (!canBeNap(entity) || !condition || this.isInFight()) return;
-        if (this.getSleepBarPercent() > 0) return;
-
-        if (!isNapping()) stayAwake(intervallInTicks, prepareNapTimeInTicks);
-        else stayNap(napTimeInTicks, prepareNapTimeInTicks, snoreIntervallInTicks, snoreSound, canTurnHead);
-
-        if (isPreparingNapping() || isNapping()) entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,5, 255, false, false, false));
     }
 
     private boolean hasReachedEnergyLimit = false;
@@ -1503,7 +1448,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         lastVisibleTarget = (LivingEntity) damageSource.getEntity();
         quest10Progression = 0;
-        this.setNap(false, 0);
+        this.setNap(false);
         fightingTime = 200;
         this.setFighting(true);
         hurtAmount = (int) amount;

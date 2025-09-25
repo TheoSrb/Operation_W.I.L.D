@@ -18,6 +18,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
 public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kodiak_default"), "main");
@@ -200,6 +201,12 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			return;
 		}
 
+		if (kodiak.isNapping()) {
+			this.animate(kodiak.napAnimationState, KodiakAnimations.SLEEP, ageInTicks, 1.0f);
+			return;
+		}
+
+
 		if (kodiak.isSitting()) {
 			this.animate(kodiak.sittingAnimationState, KodiakAnimations.SIT, ageInTicks, 1.0f);
 			return;
@@ -212,7 +219,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		if (kodiak.isRunning() || kodiak.getState() == 2) {
 			this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.0f, 1.0f);
 		} else {
-			this.animateWalk(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 4.5f, 4.5f);
+			this.animateWalk(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
 		}
 
 

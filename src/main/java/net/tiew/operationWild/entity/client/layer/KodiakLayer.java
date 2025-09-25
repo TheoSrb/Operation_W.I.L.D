@@ -8,7 +8,9 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.entity.client.model.KodiakModel;
 import net.tiew.operationWild.entity.client.render.KodiakRenderer;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
@@ -57,6 +59,11 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
 
 
         if (kodiak.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+
+        if (kodiak.getFoodPick() == Items.HONEYCOMB.getDefaultInstance()) {
+            renderOverlay(poseStack, multiBufferSource, DIRTY, false, packedLight);
+        }
+
         if (kodiak.getHealth() < kodiakHealthTier) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
         else if (kodiak.getHealth() < (kodiakHealthTier * 2)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);
         else if (kodiak.getHealth() < (kodiakHealthTier * 3)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);

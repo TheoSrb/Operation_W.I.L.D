@@ -18,6 +18,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.*;
+import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Pillager;
@@ -28,6 +29,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.CampfireBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,14 +45,15 @@ import java.util.function.Predicate;
 
 public abstract class AIKodiak extends OWEntity {
 
-    protected KodiakEntity kodiak = (KodiakEntity) this;
-
     protected boolean canAttack = false;
     public ItemStack foodPick = ItemStack.EMPTY;
 
     private boolean startEatingTimer = false;
+    private boolean startHoneyTimer = false;
     private static final int MAX_EATING_TIMER = 400;
+    private static final int MAX_HONEY_TIMER = 750;
     private int eatingTimer = 0;
+    private int honeyTimer = 0;
 
     private static final EntityDataAccessor<ItemStack> FOOD_PICK = SynchedEntityData.defineId(AIKodiak.class, EntityDataSerializers.ITEM_STACK);
 
@@ -63,8 +66,12 @@ public abstract class AIKodiak extends OWEntity {
         super.registerGoals();
         this.registerBasicsGoals();
 
-        this.goalSelector.addGoal(4, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.CAMPFIRE, 60, 1.0f,
-                () -> pickupItemInHisMouth(foodPick), this.getFoodPick().isEmpty()));
+        this.goalSelector.addGoal(3, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.BEE_NEST,
+              1.75f,  25, 2.0f, this::lookForHoneyInTheBeeNest, true));
+        this.goalSelector.addGoal(4, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.CAMPFIRE,
+                1.0f, 60, 1.0f, () -> pickupItemInHisMouth(foodPick), this.getFoodPick().isEmpty()));
+        this.goalSelector.addGoal(5, new NapGoal((KodiakEntity) this, 1.5f, 700, true));
+
     }
 
     private void registerBasicsGoals() {
@@ -96,12 +103,43 @@ public abstract class AIKodiak extends OWEntity {
                     eatFoodInHisMouth(getFoodPick());
                 }
             }
+
+            if (getFoodPick() == Items.HONEYCOMB.getDefaultInstance()) {
+                if (startHoneyTimer) {
+                    if (honeyTimer < MAX_HONEY_TIMER) honeyTimer++;
+                    else {
+                        eatFoodInHisMouth(getFoodPick());
+                        warnBeesAround(10);
+                    }
+                }
+            }
         }
     }
 
     protected void pickupItemInHisMouth(ItemStack itemStack) {
         setFoodPick(itemStack);
         if (!itemStack.isEmpty()) this.playSound(SoundEvents.ITEM_PICKUP);
+    }
+
+    protected void lookForHoneyInTheBeeNest() {
+        pickupItemInHisMouth(Items.HONEYCOMB.getDefaultInstance());
+        this.playSound(SoundEvents.HONEY_BLOCK_PLACE);
+
+        if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+            double x = this.getX();
+            double y = this.getY() + 0.5;
+            double z = this.getZ();
+
+            serverLevel.sendParticles(ParticleTypes.DRIPPING_HONEY, x, y, z, 15, 0.5, 0.3, 0.5, 0.1);
+        }
+    }
+
+    protected void warnBeesAround(int radius) {
+        List<Bee> bees = this.level().getEntitiesOfClass(Bee.class, this.getBoundingBox().inflate(radius));
+
+        for (Bee bee : bees) {
+            bee.setTarget(this);
+        }
     }
 
     protected void eatFoodInHisMouth(ItemStack itemStack) {
@@ -160,6 +198,7 @@ public abstract class AIKodiak extends OWEntity {
         private final AIKodiak aiKodiak;
         private final KodiakEntity kodiak;
         private final T target;
+        private final float speedModifier;
         private final int radiusToSearch;
         private final float attractionFrequencyMultiplier;
         private final Runnable actionAtTheEnd;
@@ -169,10 +208,11 @@ public abstract class AIKodiak extends OWEntity {
         protected List<ItemStack> campfireItems = new ArrayList<>();
         private ItemStack foodPick = ItemStack.EMPTY;
 
-        public KodiakAttractedToGoal(AIKodiak aiKodiak, KodiakEntity kodiak, T target, int radiusToSearch, float attractionFrequencyMultiplier, Runnable actionAtTheEnd, boolean conditionToWork) {
+        public KodiakAttractedToGoal(AIKodiak aiKodiak, KodiakEntity kodiak, T target, float speedModifier, int radiusToSearch, float attractionFrequencyMultiplier, Runnable actionAtTheEnd, boolean conditionToWork) {
             this.aiKodiak = aiKodiak;
             this.kodiak = kodiak;
             this.target = target;
+            this.speedModifier = speedModifier;
             this.radiusToSearch = radiusToSearch;
             this.conditionToWork = conditionToWork;
             this.actionAtTheEnd = actionAtTheEnd;
@@ -193,7 +233,7 @@ public abstract class AIKodiak extends OWEntity {
                     if (blockEntity instanceof CampfireBlockEntity campfire) {
                         campfireItems = campfire.getItems();
                         if (!campfireItems.isEmpty() || kodiak.level().isNight()) {
-                            kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0f);
+                            kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
 
                             double distanceBetweenKodiakAndTarget = distanceRest(kodiak, targetPos);
                             boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
@@ -220,7 +260,7 @@ public abstract class AIKodiak extends OWEntity {
                         }
                     }
                 } else {
-                    kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1.0f);
+                    kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
                     double distanceBetweenKodiakAndTarget = distanceRest(kodiak, targetPos);
                     boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
 
@@ -247,12 +287,19 @@ public abstract class AIKodiak extends OWEntity {
             if (targetPos == null || !conditionToWork) return false;
 
             double distance = distanceRest(kodiak, targetPos);
-            return distance > 2 && kodiak.getFoodPick().isEmpty();
+
+            if (target instanceof Block && ((Block) target) == Blocks.CAMPFIRE) {
+                return distance > 2 && kodiak.getFoodPick().isEmpty();
+            } else {
+                return distance > 3;
+            }
         }
 
         @Override
         public boolean canUse() {
-            return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 && conditionToWork;
+            return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0
+                    && kodiak.getTarget() == null && kodiak.onGround()
+                    && !kodiak.isNapping() && conditionToWork;
         }
 
         public T getTarget() {
@@ -268,7 +315,11 @@ public abstract class AIKodiak extends OWEntity {
                         BlockPos pos = kodiakPos.offset(x, y, z);
                         if (target instanceof Block) {
                             if (kodiak.level().getBlockState(pos).is((Block) target)) {
-                                if (distanceRest(kodiak, pos) >= (float) radiusToSearch / 3) {
+                                if (kodiak.level().getBlockState(pos).is(Blocks.CAMPFIRE)) {
+                                    if (distanceRest(kodiak, pos) >= (float) radiusToSearch / 3) {
+                                        return pos;
+                                    }
+                                } else {
                                     return pos;
                                 }
                             }

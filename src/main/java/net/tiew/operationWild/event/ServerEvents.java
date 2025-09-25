@@ -8,11 +8,13 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -33,17 +35,6 @@ import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManu
 
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class ServerEvents {
-
-    @SubscribeEvent
-    public static void onServerTick(ServerTickEvent.Post event) {
-        if (ClientEvents.tamingExperience >= 165) {
-
-        } else if (ClientEvents.tamingExperience >= 80) {
-
-        } else if (ClientEvents.tamingExperience >= 25) {
-
-        }
-    }
 
     @SubscribeEvent
     public static void onPlayerTrySleep(CanPlayerSleepEvent event) {
