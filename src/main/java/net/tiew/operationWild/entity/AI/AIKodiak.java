@@ -124,6 +124,29 @@ public abstract class AIKodiak extends OWEntity {
     protected void lookForHoneyInTheBeeNest() {
         pickupItemInHisMouth(Items.HONEYCOMB.getDefaultInstance());
         this.playSound(SoundEvents.HONEY_BLOCK_PLACE);
+
+        if (!this.level().isClientSide()) {
+            ServerLevel serverLevel = (ServerLevel) this.level();
+
+            Vec3 lookDirection = this.getLookAngle();
+            double spawnX = this.getX() + lookDirection.x * 2.0;
+            double spawnY = this.getY() + 0.8;
+            double spawnZ = this.getZ() + lookDirection.z * 2.0;
+
+            for (int i = 0; i < 16; i++) {
+                serverLevel.sendParticles(
+                        new ItemParticleOption(ParticleTypes.ITEM, Items.HONEYCOMB.getDefaultInstance()),
+                        spawnX + (this.random.nextDouble() - 0.5) * 0.5,
+                        spawnY,
+                        spawnZ + (this.random.nextDouble() - 0.5) * 0.5,
+                        1,
+                        (this.random.nextDouble() - 0.5) * 0.1,
+                        this.random.nextDouble() * 0.1,
+                        (this.random.nextDouble() - 0.5) * 0.1,
+                        0.0
+                );
+            }
+        }
     }
 
     protected void warnBeesAround(int radius) {
