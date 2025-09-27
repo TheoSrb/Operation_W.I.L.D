@@ -110,7 +110,7 @@ public abstract class AIKodiak extends OWEntity {
         this.goalSelector.addGoal(4, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.BEE_NEST,
                 1.75f, 25, 2.0f, this::lookForHoneyInTheBeeNest, this.getFoodPick().isEmpty()));
 
-        this.goalSelector.addGoal(3, new NapGoal((KodiakEntity) this, 1.5f, 700, true));
+        this.goalSelector.addGoal(3, new NapGoal((KodiakEntity) this, 1.0f, 700, true));
 
         this.goalSelector.addGoal(5, new KodiakRollGoal(this, (KodiakEntity) this, 1.0f));
 
