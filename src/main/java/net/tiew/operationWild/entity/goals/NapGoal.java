@@ -1,6 +1,7 @@
 package net.tiew.operationWild.entity.goals;
 
 import com.google.common.base.Enums;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
@@ -20,6 +21,7 @@ public class NapGoal extends Goal {
     private int NAP_DURATION_MAX;
     private final int napTimerMax;
     private int napTimer = 0;
+    private int napTickCounter = 0;
 
     public NapGoal(OWEntity entity, float wantNapMultiplier, int napTimerMax, boolean conditionToWork) {
         this.entity = entity;
@@ -36,12 +38,12 @@ public class NapGoal extends Goal {
 
         if (entity.isNapping()) {
             napTimer--;
+            napTickCounter++;
 
             if (napTimer <= 0) {
                 startAwaken();
                 stop();
             }
-
 
             handleNappingEffects();
         }
@@ -56,22 +58,29 @@ public class NapGoal extends Goal {
     public void start() {
         super.start();
         generateMaxNapTimer();
+        napTickCounter = 0;
         startNapping();
+
+        if (entity instanceof KodiakEntity kodiak) {
+            if (kodiak.getFoodPick() != null && !kodiak.getFoodPick().isEmpty()) {
+                kodiak.eatFoodInHisMouth(kodiak.getFoodPick());
+            }
+        }
     }
 
     @Override
     public void stop() {
         super.stop();
         napTimer = 0;
+        napTickCounter = 0;
     }
 
     @Override
     public boolean canUse() {
-        return entity.getRandom().nextInt((int) (800 / wantNapMultiplier)) == 0 && canNap() && conditionToWork;
+        return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork;
     }
 
     private boolean canNap() {
-        if (entity instanceof KodiakEntity kodiak && !kodiak.getFoodPick().isEmpty()) return false;
         return !entity.isTame()
                 && !entity.isDeadOrDying()
                 && entity.getTarget() == null
@@ -82,7 +91,8 @@ public class NapGoal extends Goal {
 
     private void handleNappingEffects() {
         entity.setTarget(null);
-        if (!entity.level().isClientSide && entity.tickCount % 20 == 0) {
+
+        if (napTickCounter % 20 == 0) {
             Vec3 lookDirection = entity.getLookAngle();
             double entityX = entity.getX();
             double entityY = entity.getY() + 1.15;
@@ -91,17 +101,34 @@ public class NapGoal extends Goal {
             double fixedY = entityY;
             double fixedZ = entityZ + lookDirection.z * 1.25;
 
-            if (entity.level() instanceof ServerLevel serverLevel) {
-                serverLevel.sendParticles(OWParticles.NAP_PARTICLES.get(),
-                        fixedX, fixedY, fixedZ,
-                        1,
-                        0.1,
-                        0.1,
-                        0.1,
-                        0.0);
+            if (!entity.level().isClientSide) {
+                if (entity.level() instanceof ServerLevel serverLevel) {
+                    serverLevel.sendParticles(OWParticles.NAP_PARTICLES.get(),
+                            fixedX, fixedY, fixedZ,
+                            1,
+                            0.1,
+                            0.1,
+                            0.1,
+                            0.0);
+                }
+            } else {
+                if (entity.level() instanceof ClientLevel clientLevel) {
+                    for (int i = 0; i < 1; i++) {
+                        double offsetX = (entity.getRandom().nextDouble() - 0.5) * 0.2;
+                        double offsetY = (entity.getRandom().nextDouble() - 0.5) * 0.2;
+                        double offsetZ = (entity.getRandom().nextDouble() - 0.5) * 0.2;
+
+                        clientLevel.addParticle(OWParticles.NAP_PARTICLES.get(),
+                                fixedX + offsetX,
+                                fixedY + offsetY,
+                                fixedZ + offsetZ,
+                                0.0, 0.0, 0.0);
+                    }
+                }
             }
         }
     }
+
     private void generateMaxNapTimer() {
         NAP_DURATION_MAX = napTimerMax + entity.getRandom().nextInt(napTimerMax);
         napTimer = NAP_DURATION_MAX;

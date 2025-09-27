@@ -66,6 +66,8 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_SHADE_SKIN = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
 
+    private static final EntityDataAccessor<Boolean> IS_ROLLING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+
 
     public AnimationState transitionIdleStandingUp = new AnimationState();
     public AnimationState transitionStandingUpIdle = new AnimationState();
@@ -74,11 +76,15 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     public final AnimationState attack2Combo = new AnimationState();
     public final AnimationState attack3Combo = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
+    public final AnimationState rollingAnimationState = new AnimationState();
 
     public int attack1ComboTimer = 0;
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
     public int napAnimationTimeout = 0;
+    public int rollingAnimationTimeout = 0;
+
+    public int rollTimer = 0;
 
     public KodiakEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -102,6 +108,7 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(IS_SHADE_SKIN, false);
+        builder.define(IS_ROLLING, false);
     }
 
     // Entity Methods
@@ -202,7 +209,7 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
 
     protected @Nullable SoundEvent getAmbientSound() {
         if (isNapping()) return null;
-        return RANDOM(2) ? RANDOM(2) ? OWSounds.KODIAK_IDLE_1.get() : RANDOM(2) ? OWSounds.KODIAK_IDLE_2.get() : OWSounds.KODIAK_IDLE_3.get() : null;
+        return  RANDOM(2) ? OWSounds.KODIAK_IDLE_1.get() : RANDOM(2) ? OWSounds.KODIAK_IDLE_2.get() : OWSounds.KODIAK_IDLE_3.get();
     }
 
     @Override
@@ -216,7 +223,7 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
-    protected void playStepSound(BlockPos blockPos, BlockState blockState) {
+    public void playStepSound(BlockPos blockPos, BlockState blockState) {
         if (!isRunning()) super.playStepSound(blockPos, blockState);
     }
 
@@ -370,12 +377,6 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
-    public InteractionResult mobInteract(Player player, InteractionHand hand) {
-        ItemStack itemStack = player.getItemInHand(hand);
-        return super.mobInteract(player, hand);
-    }
-
-    @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
         if (mobSpawnType != MobSpawnType.BREEDING) {
             this.setRandomAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH), this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
@@ -386,7 +387,7 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
             this.setVariant(chooseKodiakVariant());
             this.setInitialVariant(this.getVariant());
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(10, 16);
+        this.foodWanted = (int) OWUtils.generateRandomInterval(6, 11);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
@@ -458,6 +459,18 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
             this.napAnimationState.stop();
         }
 
+        if (this.isRolling()) {
+            if (this.rollingAnimationTimeout <= 0) {
+                this.rollingAnimationTimeout = 80;
+                this.rollingAnimationState.start(this.tickCount);
+            } else --this.rollingAnimationTimeout;
+        }
+
+        if (!this.isRolling()) {
+            this.rollingAnimationTimeout = 0;
+            this.rollingAnimationState.stop();
+        }
+
 
         setupComboAnimations();
     }
@@ -507,6 +520,10 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     public void setSkinShade(boolean isShade) { this.entityData.set(IS_SHADE_SKIN, isShade);}
 
     public boolean isShade() { return this.entityData.get(IS_SHADE_SKIN);}
+
+    public void setRolling(boolean isRolling) { this.entityData.set(IS_ROLLING, isRolling);}
+
+    public boolean isRolling() { return this.entityData.get(IS_ROLLING);}
 
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);

@@ -206,6 +206,11 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			return;
 		}
 
+		if (kodiak.isRolling()) {
+			this.animate(kodiak.rollingAnimationState, KodiakAnimations.ROLL, ageInTicks, 1.0f);
+			return;
+		}
+
 
 		if (kodiak.isSitting()) {
 			this.animate(kodiak.sittingAnimationState, KodiakAnimations.SIT, ageInTicks, 1.0f);
@@ -243,14 +248,24 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
 		this.head.translateAndRotate(poseStack);
 
-		poseStack.translate(0.0D, 0.75, -1.3D);
-		poseStack.scale(1.5f, 1.5f, 1.5f);
+		poseStack.translate(0.0D, 0.7D, -1.05D);
 
 		poseStack.mulPose(Axis.XP.rotationDegrees(90));
+		poseStack.mulPose(Axis.ZP.rotationDegrees(180));
+
+		poseStack.scale(1.2f, 1.2f, 1.2f);
 
 		MultiBufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-
-		Minecraft.getInstance().getItemRenderer().renderStatic(kodiak.getFoodPick(), ItemDisplayContext.GROUND, packedLight, OverlayTexture.NO_OVERLAY, poseStack, bufferSource, kodiak.level(), 0);
+		Minecraft.getInstance().getItemRenderer().renderStatic(
+				kodiak.getFoodPick(),
+				ItemDisplayContext.GROUND,
+				packedLight,
+				OverlayTexture.NO_OVERLAY,
+				poseStack,
+				bufferSource,
+				kodiak.level(),
+				0
+		);
 
 		poseStack.popPose();
 	}

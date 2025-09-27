@@ -118,5 +118,9 @@ public class OWItemTagProvider extends ItemTagsProvider {
 
         tag(OWTags.Items.KODIAK_FOOD)
                 .add(Items.SALMON);
+
+        tag(OWTags.Items.KODIAK_DANGEROUS_FOOD)
+                .add(Items.POISONOUS_POTATO)
+                .add(Items.PUFFERFISH);
     }
 }

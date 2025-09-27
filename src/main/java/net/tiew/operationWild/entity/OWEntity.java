@@ -53,6 +53,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.storage.LevelResource;
@@ -74,6 +75,7 @@ import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.OWFollowOwnerGoal;
+import net.tiew.operationWild.entity.goals.OWLookAtPlayerGoal;
 import net.tiew.operationWild.entity.misc.*;
 import net.tiew.operationWild.entity.quests.ascent.AscentMission;
 import net.tiew.operationWild.entity.variants.*;
@@ -274,7 +276,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 30f, 15, 3));
         this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25));
-        this.goalSelector.addGoal(6, new LookAtPlayerGoal(this, Player.class, 6.0F));
+        this.goalSelector.addGoal(6, new OWLookAtPlayerGoal(this, Player.class, 6.0F));
 
         this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
@@ -2152,6 +2154,46 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         yOffset /= 16.0F;
 
         return yOffset;
+    }
+
+    public void openChestAnimation(ChestBlockEntity chestBlockEntity) {
+        if (chestBlockEntity.getLevel() != null && !chestBlockEntity.getLevel().isClientSide()) {
+            chestBlockEntity.getLevel().playSound(
+                    null,
+                    chestBlockEntity.getBlockPos(),
+                    SoundEvents.CHEST_OPEN,
+                    SoundSource.BLOCKS,
+                    0.5F,
+                    chestBlockEntity.getLevel().random.nextFloat() * 0.1F + 0.9F
+            );
+
+            chestBlockEntity.getLevel().blockEvent(
+                    chestBlockEntity.getBlockPos(),
+                    chestBlockEntity.getBlockState().getBlock(),
+                    1,
+                    1
+            );
+        }
+    }
+
+    public void closeChestAnimation(ChestBlockEntity chestBlockEntity) {
+        if (chestBlockEntity.getLevel() != null && !chestBlockEntity.getLevel().isClientSide()) {
+            chestBlockEntity.getLevel().playSound(
+                    null,
+                    chestBlockEntity.getBlockPos(),
+                    SoundEvents.CHEST_CLOSE,
+                    SoundSource.BLOCKS,
+                    0.5F,
+                    chestBlockEntity.getLevel().random.nextFloat() * 0.1F + 0.9F
+            );
+
+            chestBlockEntity.getLevel().blockEvent(
+                    chestBlockEntity.getBlockPos(),
+                    chestBlockEntity.getBlockState().getBlock(),
+                    1,
+                    0
+            );
+        }
     }
 
     public void tickRidden(Player player, Vec3 vec3) {

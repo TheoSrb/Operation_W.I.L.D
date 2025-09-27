@@ -16,6 +16,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -33,8 +35,46 @@ import net.tiew.operationWild.networking.packets.to_client.BookNotificationPacke
 import net.tiew.operationWild.networking.packets.to_server.SyncKillDataPacket;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManuscriptScreen;
 
+import java.util.List;
+
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class ServerEvents {
+
+    @SubscribeEvent
+    public static void onBeeIncomingDamage(LivingIncomingDamageEvent event) {
+        if (!(event.getEntity() instanceof Bee bee)) {
+            return;
+        }
+
+        DamageSource source = event.getSource();
+        if (source == null) {
+            return;
+        }
+
+        LivingEntity attacker = null;
+
+        if (source.getDirectEntity() instanceof LivingEntity directEntity) {
+            attacker = directEntity;
+        }
+        else if (source.getEntity() instanceof LivingEntity sourceEntity) {
+            attacker = sourceEntity;
+        }
+
+        if (attacker == null) {
+            return;
+        }
+
+        if (attacker instanceof Player player && (player.isCreative() || player.isSpectator())) {
+            return;
+        }
+
+        List<KodiakEntity> kodiaks = bee.level().getEntitiesOfClass(KodiakEntity.class,
+                bee.getBoundingBox().inflate(18));
+
+        for (KodiakEntity kodiak : kodiaks) {
+            kodiak.setTarget(attacker);
+        }
+    }
 
     @SubscribeEvent
     public static void onPlayerTrySleep(CanPlayerSleepEvent event) {
