@@ -1,6 +1,5 @@
 package net.tiew.operationWild.entity.AI;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -12,37 +11,27 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.ai.goal.target.*;
 import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.monster.Pillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.CampfireBlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.EventHooks;
@@ -51,15 +40,27 @@ import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.goals.*;
-import net.tiew.operationWild.entity.variants.KodiakVariant;
-import net.tiew.operationWild.item.OWItems;
+import net.tiew.operationWild.entity.goals.kodiak.KodiakAttractedToGoal;
+import net.tiew.operationWild.entity.goals.kodiak.KodiakRollGoal;
+import net.tiew.operationWild.entity.goals.kodiak.KodiakSearchInsideChestGoal;
+import net.tiew.operationWild.entity.goals.kodiak.KodiakTemptGoal;
 import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 public abstract class AIKodiak extends OWEntity {
+
+    public enum KodiakState {
+        IDLE,
+        GOING_TO_BEE_NEST,
+        GOING_TO_CROPS,
+        GOING_TO_CHEST,
+        GOING_TO_CAMPFIRE,
+        GOING_TO_ITEMS,
+        ROLLING,
+        NAPPING;
+    }
 
     protected KodiakEntity kodiak;
 
@@ -80,11 +81,15 @@ public abstract class AIKodiak extends OWEntity {
     private BlockPos targetCrop = null;
     private int cropRadiusSearch = 0;
 
-    private final int DIRT_MAX_TIMER = 1200;
+    private final int MAX_DIRTY_TIMER = 1200;
     private int dirtyTimer = 0;
 
-    private ChestBlockEntity chestBlockEntity = null;
-    private boolean isSearchingInsideChest = false;
+    public ChestBlockEntity chestBlockEntity = null;
+    public boolean isSearchingInsideChest = false;
+
+    protected KodiakState currentKodiakState = KodiakState.IDLE;
+    private int goalCommitmentTicks = 0;
+    private final int COMMITMENT_DURATION = 200;
 
     private static final EntityDataAccessor<ItemStack> FOOD_PICK = SynchedEntityData.defineId(AIKodiak.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<Boolean> IS_DIRTY = SynchedEntityData.defineId(AIKodiak.class, EntityDataSerializers.BOOLEAN);
@@ -101,20 +106,22 @@ public abstract class AIKodiak extends OWEntity {
 
         this.goalSelector.addGoal(2, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, ItemEntity.class,
                 1.75f, 15, 5.0f, () -> pickupItemInHisMouth(foodPick), this.getFoodPick().isEmpty()));
+
         this.goalSelector.addGoal(4, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.BEE_NEST,
                 1.75f, 25, 2.0f, this::lookForHoneyInTheBeeNest, this.getFoodPick().isEmpty()));
 
+        this.goalSelector.addGoal(3, new NapGoal((KodiakEntity) this, 1.5f, 700, true));
+
         this.goalSelector.addGoal(5, new KodiakRollGoal(this, (KodiakEntity) this, 1.0f));
 
-        this.goalSelector.addGoal(6, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.CAMPFIRE,
-                1.0f, 60, 1.0f, () -> pickupItemInHisMouth(foodPick), this.getFoodPick().isEmpty()));
-        this.goalSelector.addGoal(7, new KodiakSearchInsideChestGoal(this, (KodiakEntity) this, 3.0f, 35,
+        this.goalSelector.addGoal(6, new KodiakSearchInsideChestGoal(this, (KodiakEntity) this, 3.0f, 35,
                 1.0f, () -> openChest(chestBlockEntity)));
+
+        this.goalSelector.addGoal(7, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.CAMPFIRE,
+                1.0f, 60, 1.0f, () -> pickupItemInHisMouth(foodPick), this.getFoodPick().isEmpty()));
+
         this.goalSelector.addGoal(8, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, BlockTags.CROPS,
                 1.15f, 80, 0.5f, () -> goToNewCropBlock(20), this.getFoodPick().isEmpty()));
-
-        this.goalSelector.addGoal(9, new NapGoal((KodiakEntity) this, 1.5f, 700, true));
-
     }
 
     private void registerBasicsGoals() {
@@ -167,7 +174,13 @@ public abstract class AIKodiak extends OWEntity {
                                 this.setSleeping(false);
                                 resetSleepBar();
                             } else {
-                                this.setTarget(target);
+                                if (target instanceof Player player) {
+                                    if (!player.isCreative()) {
+                                        this.setTarget(player);
+                                    }
+                                } else {
+                                    this.setTarget(target);
+                                }
                                 this.foodGiven++;
                                 this.playSound(SoundEvents.GENERIC_EAT);
 
@@ -312,6 +325,13 @@ public abstract class AIKodiak extends OWEntity {
 
         handleTamingSystem();
 
+        if (goalCommitmentTicks > 0) {
+            goalCommitmentTicks--;
+            if (goalCommitmentTicks == 0) {
+                currentKodiakState = KodiakState.IDLE;
+            }
+        }
+
         if (isSearchingInsideChest) this.setNap(false);
 
         if (hasSomethingInHisMouth) {
@@ -391,6 +411,14 @@ public abstract class AIKodiak extends OWEntity {
             }
         }
 
+        if (isSearchingInsideChest) {
+            this.setDeltaMovement(0,0,0);
+
+            if (chestBlockEntity != null) {
+                BlockPos chestPos = chestBlockEntity.getBlockPos();
+                this.setLookAt(chestPos.getX(), chestPos.getY(), chestPos.getZ());
+            }
+        }
 
         if (cropCheckTimer > 0) {
             cropCheckTimer--;
@@ -410,7 +438,7 @@ public abstract class AIKodiak extends OWEntity {
         }
 
         if (this.isDirty()) {
-            if (dirtyTimer <= DIRT_MAX_TIMER) {
+            if (dirtyTimer <= MAX_DIRTY_TIMER) {
                 dirtyTimer++;
             } else {
                 dirtyTimer = 0;
@@ -694,329 +722,31 @@ public abstract class AIKodiak extends OWEntity {
         this.canAttack = canAttack;
     }
 
+    public KodiakState getKodiakState() {
+        return currentKodiakState;
+    }
+
+    public void setKodiakState(KodiakState kodiakState) {
+        this.currentKodiakState = kodiakState;
+        this.goalCommitmentTicks = COMMITMENT_DURATION;
+    }
+
+    public boolean isCommittedToGoal() {
+        return goalCommitmentTicks > 0 && currentKodiakState != KodiakState.IDLE;
+    }
+
+    public boolean canStartNewGoal(KodiakState newState) {
+        if (currentKodiakState == KodiakState.NAPPING && newState != KodiakState.NAPPING) {
+            return false;
+        }
+        return currentKodiakState == KodiakState.IDLE || !isCommittedToGoal();
+    }
+
     public static float distanceRest(LivingEntity livingEntity, BlockPos target) {
         float f = (float) (livingEntity.getX() - target.getX());
         float f1 = (float) (livingEntity.getY() - target.getY());
         float f2 = (float) (livingEntity.getZ() - target.getZ());
         return Mth.sqrt(f * f + f1 * f1 + f2 * f2);
-    }
-
-    public static class KodiakAttractedToGoal<T> extends Goal {
-
-        private final AIKodiak aiKodiak;
-        private final KodiakEntity kodiak;
-        private final T target;
-        private final float speedModifier;
-        private final int radiusToSearch;
-        private final float attractionFrequencyMultiplier;
-        private final Runnable actionAtTheEnd;
-        private final boolean conditionToWork;
-
-        private BlockPos targetPos;
-        protected List<ItemStack> campfireItems = new ArrayList<>();
-        private ItemStack foodPick = ItemStack.EMPTY;
-
-        public KodiakAttractedToGoal(AIKodiak aiKodiak, KodiakEntity kodiak, T target, float speedModifier, int radiusToSearch, float attractionFrequencyMultiplier, Runnable actionAtTheEnd, boolean conditionToWork) {
-            this.aiKodiak = aiKodiak;
-            this.kodiak = kodiak;
-            this.target = target;
-            this.speedModifier = speedModifier;
-            this.radiusToSearch = radiusToSearch;
-            this.conditionToWork = conditionToWork;
-            this.actionAtTheEnd = actionAtTheEnd;
-            this.attractionFrequencyMultiplier = attractionFrequencyMultiplier;
-
-            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
-        }
-
-        @Override
-        public void tick() {
-            if (!kodiak.getFoodPick().isEmpty()) {
-                stop();
-                return;
-            }
-            if (targetPos != null) {
-                if (target instanceof Block && ((Block) target) == Blocks.CAMPFIRE) {
-                    BlockEntity blockEntity = kodiak.level().getBlockEntity(targetPos);
-                    if (blockEntity instanceof CampfireBlockEntity campfire) {
-                        campfireItems = campfire.getItems();
-                        if (!campfireItems.isEmpty() || kodiak.level().isNight()) {
-                            kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
-
-                            double distanceBetweenKodiakAndTarget = distanceRest(kodiak, targetPos);
-                            boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
-
-                            if (isArrived) {
-                                if (campfireItems != null) {
-                                    int $$0 = kodiak.getRandom().nextInt(campfireItems.size());
-                                    foodPick = campfireItems.get($$0);
-                                    campfire.getItems().set($$0, ItemStack.EMPTY);
-                                    campfire.setChanged();
-                                    if (!kodiak.level().isClientSide) {
-                                        BlockState state = kodiak.level().getBlockState(targetPos);
-                                        kodiak.level().sendBlockUpdated(targetPos, state, state, Block.UPDATE_CLIENTS);
-                                    }
-                                    aiKodiak.foodPick = foodPick;
-                                }
-                                actionAtTheEnd.run();
-                                stop();
-                            }
-
-                        } else {
-                            stop();
-                            return;
-                        }
-                    }
-                } else if (target instanceof Class<?> && target == ItemEntity.class) {
-                    List<ItemEntity> items = kodiak.level().getEntitiesOfClass(ItemEntity.class,
-                            new AABB(targetPos).inflate(2.0));
-
-                    kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
-                    double distanceBetweenKodiakAndTarget = distanceRest(kodiak, targetPos);
-                    boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
-
-                    if (isArrived && !items.isEmpty()) {
-                        ItemEntity itemEntity = items.getFirst();
-                        aiKodiak.foodPick = itemEntity.getItem().copy();
-                        itemEntity.discard();
-
-                        actionAtTheEnd.run();
-                        stop();
-                    } else if (items.isEmpty()) {
-                        stop();
-                    }
-                } else {
-                    kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
-                    double distanceBetweenKodiakAndTarget = distanceRest(kodiak, targetPos);
-                    boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
-
-                    if (isArrived) {
-                        actionAtTheEnd.run();
-                        stop();
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void start() {
-            targetPos = findTargetPos(target);
-        }
-
-        @Override
-        public void stop() {
-            super.stop();
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            if (targetPos == null || !conditionToWork || kodiak.isDirty() || aiKodiak.isSearchingInsideChest) return false;
-
-            if (target instanceof Block) {
-                if (!kodiak.level().getBlockState(targetPos).is((Block) target)) {
-                    return false;
-                }
-            }
-
-            double distance = distanceRest(kodiak, targetPos);
-
-            if (target instanceof Block && ((Block) target) == Blocks.CAMPFIRE) {
-                return distance > 2 && kodiak.getFoodPick().isEmpty();
-            } else {
-                return distance > 3;
-            }
-        }
-
-        @Override
-        public boolean canUse() {
-            return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0
-                    && kodiak.getTarget() == null && kodiak.onGround()
-                    && !kodiak.isNapping() && conditionToWork && !kodiak.isDirty() && !aiKodiak.isSearchingInsideChest;
-        }
-
-        public T getTarget() {
-            return target;
-        }
-
-        private BlockPos findTargetPos(T target) {
-            BlockPos kodiakPos = kodiak.blockPosition();
-
-            if (target instanceof Class<?> && target == ItemEntity.class) {
-                List<ItemEntity> items = kodiak.level().getEntitiesOfClass(ItemEntity.class,
-                        kodiak.getBoundingBox().inflate(radiusToSearch));
-                for (ItemEntity item : items) {
-                    if (item.getItem().is(Tags.Items.FOODS) || item.getItem().is(Items.HONEYCOMB)) {
-                        return item.blockPosition();
-                    }
-                }
-            }
-
-            for (int x = -radiusToSearch; x <= radiusToSearch; x++) {
-                for (int y = -radiusToSearch; y <= radiusToSearch; y++) {
-                    for (int z = -radiusToSearch; z <= radiusToSearch; z++) {
-                        BlockPos pos = kodiakPos.offset(x, y, z);
-                        BlockState blockState = kodiak.level().getBlockState(pos);
-
-                        if (target instanceof Block) {
-                            if (kodiak.level().getBlockState(pos).is((Block) target)) {
-                                if (kodiak.level().getBlockState(pos).is(Blocks.CAMPFIRE)) {
-                                    if (distanceRest(kodiak, pos) >= (float) radiusToSearch / 3) {
-                                        return pos;
-                                    }
-                                } else {
-                                    return pos;
-                                }
-                            }
-                        } else if (target instanceof TagKey<?>) {
-                            if (blockState.is((TagKey<Block>) target)) {
-                                return pos;
-                            }
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-    }
-
-    public static class KodiakRollGoal extends Goal {
-
-        private final AIKodiak aiKodiak;
-        private final KodiakEntity kodiak;
-        private final float rollFrequencyMultiplier;
-
-        public KodiakRollGoal(AIKodiak aiKodiak, KodiakEntity kodiak, float rollFrequencyMultiplier) {
-            this.aiKodiak = aiKodiak;
-            this.kodiak = kodiak;
-            this.rollFrequencyMultiplier = rollFrequencyMultiplier;
-
-            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Flag.JUMP, Flag.LOOK));
-        }
-
-        @Override
-        public void start() {
-            super.start();
-            float pitch = (float) OWUtils.generateRandomInterval(0.8f, 1.1f);
-            kodiak.setRolling(true);
-            kodiak.playSound(OWSounds.KODIAK_MISC.get(), 1.5f, pitch);
-            if (kodiak.getFoodPick() != null && !kodiak.getFoodPick().isEmpty()) {
-                kodiak.eatFoodInHisMouth(kodiak.getFoodPick());
-            }
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            if (aiKodiak.isSearchingInsideChest) return false;
-            return super.canContinueToUse();
-        }
-
-        @Override
-        public boolean canUse() {
-            return kodiak.getRandom().nextInt((int) ((kodiak.isDirty() ? 350 : 550) / rollFrequencyMultiplier)) == 0 && !kodiak.isTame()
-                    && !kodiak.isDeadOrDying()
-                    && kodiak.getTarget() == null
-                    && !kodiak.isInWater()
-                    && kodiak.onGround()
-                    && kodiak.getHealth() > (kodiak.getMaxHealth() * 0.5f)
-                    && !kodiak.isNapping()
-                    && !aiKodiak.isSearchingInsideChest;
-        }
-
-    }
-
-    public static class KodiakSearchInsideChestGoal extends Goal {
-
-        private final AIKodiak aiKodiak;
-        private final KodiakEntity kodiak;
-        private final float attractionFrequencyMultiplier;
-        private final int radius;
-        private final float speedMultiplier;
-        private final Runnable action;
-
-        private BlockPos targetPos;
-        private int cooldownTicks = 0;
-
-        public KodiakSearchInsideChestGoal(AIKodiak aiKodiak, KodiakEntity kodiak, float attractionFrequencyMultiplier, int radius, float speedMultiplier, Runnable action) {
-            this.aiKodiak = aiKodiak;
-            this.kodiak = kodiak;
-            this.attractionFrequencyMultiplier = attractionFrequencyMultiplier;
-            this.radius = radius;
-            this.speedMultiplier = speedMultiplier;
-            this.action = action;
-
-            this.setFlags(EnumSet.of(Goal.Flag.MOVE, Flag.JUMP, Flag.LOOK));
-        }
-
-        @Override
-        public void tick() {
-            super.tick();
-
-            if (cooldownTicks > 0) {
-                cooldownTicks--;
-                return;
-            }
-
-            if (targetPos != null) {
-                if (!kodiak.level().getBlockState(targetPos).is(Blocks.CHEST)) {
-                    stop();
-                    return;
-                }
-
-                kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedMultiplier);
-
-                if (distanceRest(kodiak, targetPos) <= 3) {
-                    if (kodiak.level().getBlockEntity(targetPos) instanceof ChestBlockEntity chestEntity) {
-                        aiKodiak.chestBlockEntity = chestEntity;
-                    }
-                    action.run();
-                    cooldownTicks = 300;
-                    aiKodiak.isSearchingInsideChest = true;
-                    stop();
-                }
-            }
-        }
-
-        @Override
-        public void stop() {
-            super.stop();
-            targetPos = null;
-        }
-
-        @Override
-        public void start() {
-            super.start();
-            targetPos = findChestPos(radius);
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return super.canContinueToUse() && targetPos != null && cooldownTicks == 0 && kodiak.level().getBlockState(targetPos).is(Blocks.CHEST) && distanceRest(kodiak, targetPos) >= 1 &&
-                    kodiak.getFoodPick().isEmpty() ;
-        }
-
-        @Override
-        public boolean canUse() {
-            return cooldownTicks == 0 && kodiak.getRandom().nextInt((int) (250 / attractionFrequencyMultiplier)) == 0
-                    && kodiak.getTarget() == null && kodiak.onGround()
-                    && !kodiak.isNapping() && !kodiak.isDirty();
-        }
-
-        private BlockPos findChestPos(int radiusToSearch) {
-            BlockPos kodiakPos = kodiak.blockPosition();
-
-            for (int x = -radiusToSearch; x <= radiusToSearch; x++) {
-                for (int y = -radiusToSearch; y <= radiusToSearch; y++) {
-                    for (int z = -radiusToSearch; z <= radiusToSearch; z++) {
-                        BlockPos pos = kodiakPos.offset(x, y, z);
-                        if (kodiak.level().getBlockState(pos).is(Blocks.CHEST)) {
-                            return pos;
-                        }
-                    }
-                }
-            }
-            return null;
-        }
-
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {

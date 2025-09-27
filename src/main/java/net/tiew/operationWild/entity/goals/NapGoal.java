@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.effect.OWEffects;
+import net.tiew.operationWild.entity.AI.AIKodiak;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.particle.OWParticles;
@@ -37,6 +38,7 @@ public class NapGoal extends Goal {
         super.tick();
 
         if (entity.isNapping()) {
+
             napTimer--;
             napTickCounter++;
 
@@ -61,6 +63,10 @@ public class NapGoal extends Goal {
         napTickCounter = 0;
         startNapping();
 
+        if (entity instanceof KodiakEntity kodiak && kodiak instanceof AIKodiak aiKodiak) {
+            aiKodiak.setKodiakState(AIKodiak.KodiakState.NAPPING);
+        }
+
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.getFoodPick() != null && !kodiak.getFoodPick().isEmpty()) {
                 kodiak.eatFoodInHisMouth(kodiak.getFoodPick());
@@ -73,6 +79,12 @@ public class NapGoal extends Goal {
         super.stop();
         napTimer = 0;
         napTickCounter = 0;
+
+        if (entity instanceof KodiakEntity kodiak && kodiak instanceof AIKodiak aiKodiak) {
+            if (aiKodiak.getKodiakState() == AIKodiak.KodiakState.NAPPING) {
+                aiKodiak.setKodiakState(AIKodiak.KodiakState.IDLE);
+            }
+        }
     }
 
     @Override
@@ -101,7 +113,7 @@ public class NapGoal extends Goal {
             double fixedY = entityY;
             double fixedZ = entityZ + lookDirection.z * 1.25;
 
-            if (!entity.level().isClientSide) {
+            if (!entity.level().isClientSide()) {
                 if (entity.level() instanceof ServerLevel serverLevel) {
                     serverLevel.sendParticles(OWParticles.NAP_PARTICLES.get(),
                             fixedX, fixedY, fixedZ,
@@ -125,6 +137,7 @@ public class NapGoal extends Goal {
                                 0.0, 0.0, 0.0);
                     }
                 }
+                System.out.println("----- 3 -----");
             }
         }
     }

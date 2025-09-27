@@ -1,4 +1,4 @@
-package net.tiew.operationWild.entity.goals;
+package net.tiew.operationWild.entity.goals.kodiak;
 
 import net.minecraft.world.entity.ai.goal.TemptGoal;
 import net.minecraft.world.item.crafting.Ingredient;

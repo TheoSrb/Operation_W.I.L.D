@@ -1,0 +1,119 @@
+package net.tiew.operationWild.entity.goals.kodiak;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
+import net.tiew.operationWild.entity.AI.AIKodiak;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+
+import java.util.EnumSet;
+
+public class KodiakSearchInsideChestGoal extends Goal {
+
+    private final AIKodiak aiKodiak;
+    private final KodiakEntity kodiak;
+    private final float attractionFrequencyMultiplier;
+    private final int radius;
+    private final float speedMultiplier;
+    private final Runnable action;
+
+    private BlockPos targetPos;
+    private int cooldownTicks = 0;
+
+    public KodiakSearchInsideChestGoal(AIKodiak aiKodiak, KodiakEntity kodiak, float attractionFrequencyMultiplier, int radius, float speedMultiplier, Runnable action) {
+        this.aiKodiak = aiKodiak;
+        this.kodiak = kodiak;
+        this.attractionFrequencyMultiplier = attractionFrequencyMultiplier;
+        this.radius = radius;
+        this.speedMultiplier = speedMultiplier;
+        this.action = action;
+
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Flag.JUMP, Flag.LOOK));
+    }
+
+    @Override
+    public void start() {
+        super.start();
+        targetPos = findChestPos(radius);
+        if (targetPos != null) {
+            aiKodiak.setKodiakState(AIKodiak.KodiakState.GOING_TO_CHEST);
+        }
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        targetPos = null;
+        if (aiKodiak.getKodiakState() == AIKodiak.KodiakState.GOING_TO_CHEST) {
+            aiKodiak.setKodiakState(AIKodiak.KodiakState.IDLE);
+        }
+    }
+
+    @Override
+    public boolean canUse() {
+        if (kodiak instanceof AIKodiak aiKodiak) {
+            if (aiKodiak.getKodiakState() == AIKodiak.KodiakState.NAPPING) {
+                return false;
+            }
+        }
+        return aiKodiak.canStartNewGoal(AIKodiak.KodiakState.GOING_TO_CHEST) &&
+                cooldownTicks == 0 && kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
+                kodiak.getTarget() == null && kodiak.onGround() &&
+                !kodiak.isNapping() && !kodiak.isDirty();
+    }
+
+    @Override
+    public boolean canContinueToUse() {
+        if (aiKodiak.getKodiakState() != AIKodiak.KodiakState.GOING_TO_CHEST && aiKodiak.isCommittedToGoal()) {
+            return false;
+        }
+        return super.canContinueToUse() && targetPos != null && cooldownTicks == 0 && kodiak.level().getBlockState(targetPos).is(Blocks.CHEST) && AIKodiak.distanceRest(kodiak, targetPos) >= 1 &&
+                kodiak.getFoodPick().isEmpty() ;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+
+        if (cooldownTicks > 0) {
+            cooldownTicks--;
+            return;
+        }
+
+        if (targetPos != null) {
+            if (!kodiak.level().getBlockState(targetPos).is(Blocks.CHEST)) {
+                stop();
+                return;
+            }
+
+            kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedMultiplier);
+
+            if (AIKodiak.distanceRest(kodiak, targetPos) <= 3) {
+                if (kodiak.level().getBlockEntity(targetPos) instanceof ChestBlockEntity chestEntity) {
+                    aiKodiak.chestBlockEntity = chestEntity;
+                }
+                action.run();
+                cooldownTicks = 300;
+                aiKodiak.isSearchingInsideChest = true;
+                stop();
+            }
+        }
+    }
+
+    private BlockPos findChestPos(int radiusToSearch) {
+        BlockPos kodiakPos = kodiak.blockPosition();
+
+        for (int x = -radiusToSearch; x <= radiusToSearch; x++) {
+            for (int y = -radiusToSearch; y <= radiusToSearch; y++) {
+                for (int z = -radiusToSearch; z <= radiusToSearch; z++) {
+                    BlockPos pos = kodiakPos.offset(x, y, z);
+                    if (kodiak.level().getBlockState(pos).is(Blocks.CHEST)) {
+                        return pos;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+}
