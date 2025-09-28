@@ -104,23 +104,23 @@ public abstract class AIKodiak extends OWEntity {
         super.registerGoals();
         this.registerBasicsGoals();
 
-        this.goalSelector.addGoal(2, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, ItemEntity.class,
+        this.goalSelector.addGoal(1, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, ItemEntity.class,
                 1.75f, 15, 5.0f, () -> pickupItemInHisMouth(foodPick), this.getFoodPick().isEmpty()));
 
-        this.goalSelector.addGoal(4, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.BEE_NEST,
+        this.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(this, (KodiakEntity) this, 2.0f, 35,
+                1.5f, () -> openChest(chestBlockEntity)));
+
+        this.goalSelector.addGoal(3, new NapGoal((KodiakEntity) this, 0.5f, 700, true));
+
+        this.goalSelector.addGoal(5, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.BEE_NEST,
                 1.75f, 25, 2.0f, this::lookForHoneyInTheBeeNest, this.getFoodPick().isEmpty()));
 
-        this.goalSelector.addGoal(3, new NapGoal((KodiakEntity) this, 1.0f, 700, true));
+        this.goalSelector.addGoal(7, new KodiakRollGoal(this, (KodiakEntity) this, 0.9f));
 
-        this.goalSelector.addGoal(5, new KodiakRollGoal(this, (KodiakEntity) this, 1.0f));
-
-        this.goalSelector.addGoal(6, new KodiakSearchInsideChestGoal(this, (KodiakEntity) this, 3.0f, 35,
-                1.0f, () -> openChest(chestBlockEntity)));
-
-        this.goalSelector.addGoal(7, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.CAMPFIRE,
+        this.goalSelector.addGoal(11, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, Blocks.CAMPFIRE,
                 1.0f, 60, 1.0f, () -> pickupItemInHisMouth(foodPick), this.getFoodPick().isEmpty()));
 
-        this.goalSelector.addGoal(8, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, BlockTags.CROPS,
+        this.goalSelector.addGoal(13, new KodiakAttractedToGoal<>(this, (KodiakEntity) this, BlockTags.CROPS,
                 1.15f, 80, 0.5f, () -> goToNewCropBlock(20), this.getFoodPick().isEmpty()));
     }
 

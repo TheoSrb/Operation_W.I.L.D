@@ -7,7 +7,10 @@ import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.tiew.operationWild.entity.AI.AIKodiak;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Random;
 
 public class KodiakSearchInsideChestGoal extends Goal {
 
@@ -35,7 +38,7 @@ public class KodiakSearchInsideChestGoal extends Goal {
     @Override
     public void start() {
         super.start();
-        targetPos = findChestPos(radius);
+        targetPos = findRandomChestPos(radius);
         if (targetPos != null) {
             aiKodiak.setKodiakState(AIKodiak.KodiakState.GOING_TO_CHEST);
         }
@@ -89,31 +92,38 @@ public class KodiakSearchInsideChestGoal extends Goal {
 
             kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedMultiplier);
 
-            if (AIKodiak.distanceRest(kodiak, targetPos) <= 3) {
+            if (AIKodiak.distanceRest(kodiak, targetPos) <= 4) {
                 if (kodiak.level().getBlockEntity(targetPos) instanceof ChestBlockEntity chestEntity) {
                     aiKodiak.chestBlockEntity = chestEntity;
                 }
                 action.run();
                 cooldownTicks = 300;
                 aiKodiak.isSearchingInsideChest = true;
-                stop();
             }
         }
     }
 
-    private BlockPos findChestPos(int radiusToSearch) {
+    private BlockPos findRandomChestPos(int radiusToSearch) {
         BlockPos kodiakPos = kodiak.blockPosition();
+        List<BlockPos> chestPositions = new ArrayList<>();
 
         for (int x = -radiusToSearch; x <= radiusToSearch; x++) {
             for (int y = -radiusToSearch; y <= radiusToSearch; y++) {
                 for (int z = -radiusToSearch; z <= radiusToSearch; z++) {
                     BlockPos pos = kodiakPos.offset(x, y, z);
                     if (kodiak.level().getBlockState(pos).is(Blocks.CHEST)) {
-                        return pos;
+                        chestPositions.add(pos);
                     }
                 }
             }
         }
-        return null;
+
+        if (chestPositions.isEmpty()) {
+            return null;
+        }
+
+        Random random = new Random();
+        int randomIndex = random.nextInt(chestPositions.size());
+        return chestPositions.get(randomIndex);
     }
 }

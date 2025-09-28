@@ -246,14 +246,6 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
-    public void travel(Vec3 vec3) {
-        super.travel(vec3);
-        if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) {
-            this.jumpFromGround();
-        }
-    }
-
-    @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
 

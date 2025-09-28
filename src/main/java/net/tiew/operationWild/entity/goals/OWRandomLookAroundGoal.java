@@ -2,6 +2,7 @@ package net.tiew.operationWild.entity.goals;
 
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
 import java.util.EnumSet;
 
@@ -17,10 +18,12 @@ public class OWRandomLookAroundGoal extends Goal {
     }
 
     public boolean canUse() {
+        if (owEntity instanceof KodiakEntity kodiak && kodiak.isRolling()) return false;
         return this.owEntity.getRandom().nextFloat() < 0.02F;
     }
 
     public boolean canContinueToUse() {
+        if (owEntity instanceof KodiakEntity kodiak && kodiak.isRolling()) return false;
         return this.lookTime >= 0;
     }
 

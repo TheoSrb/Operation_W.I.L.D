@@ -137,7 +137,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public static float comboSpeedMultiplier = 1.0f;
 
-    public static final float SAVAGE_ENTITY_DAMAGE_MULITPLIER = 1.4f;
+    public static final float SAVAGE_ENTITY_DAMAGE_MULTIPLIER = 1.4f;
 
     private static int killCounter = 0;
     private static int killCounter2 = 0;
@@ -1915,7 +1915,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 return;
             }
             if (attackTimer == timeToHit - (this instanceof ElephantEntity ? 3 : 0)) {
-                attackEntitiesInFront((float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULITPLIER)), sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
+                attackEntitiesInFront((float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER)), sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
                 if (spawnBlurr) {
                     OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
                 }

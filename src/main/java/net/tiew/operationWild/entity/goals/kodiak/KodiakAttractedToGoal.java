@@ -189,7 +189,6 @@ public class KodiakAttractedToGoal<T> extends Goal {
                         beeNestCooldown = MAX_BEE_NEST_COOLDOWN;
                     }
                     actionAtTheEnd.run();
-                    stop();
                 }
             }
         }
