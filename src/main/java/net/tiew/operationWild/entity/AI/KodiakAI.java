@@ -6,6 +6,7 @@ public class KodiakAI {
 
     private KodiakEntity kodiak;
     private KodiakState kodiakState = KodiakState.IDLE;
+    private final int UPDATE_STATE_COOLDOWN = 100;
 
     public enum KodiakState {
         IDLE,
@@ -22,7 +23,15 @@ public class KodiakAI {
     }
 
     public void tick() {
+        if (kodiak.tickCount % this.UPDATE_STATE_COOLDOWN == 0) {
+            updateState();
+        }
+    }
 
+    private void updateState() {
+        if (getKodiakState() == KodiakState.IDLE) {
+
+        }
     }
 
     public KodiakState getKodiakState() {
