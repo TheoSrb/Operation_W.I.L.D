@@ -41,6 +41,8 @@ import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.AI.AIKodiak;
+import net.tiew.operationWild.entity.AI.KodiakAI;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
@@ -59,7 +61,9 @@ import java.util.*;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOWRideable {
+public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
+
+    public KodiakAI kodiakAI;
 
     public static final double TAMING_EXPERIENCE = 180.0;
 
@@ -88,6 +92,8 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
 
     public KodiakEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+
+        this.kodiakAI = new KodiakAI(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -229,6 +235,7 @@ public class KodiakEntity extends AIKodiak implements IOWEntity, IOWTamable, IOW
 
     public void tick() {
         super.tick();
+        kodiakAI.tick();
         createCombo((int) (20 / comboSpeedMultiplier), (int) (12 / comboSpeedMultiplier), random.nextInt(2) == 0 ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get(), 3.0, 2, 2.25, false, 2);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 

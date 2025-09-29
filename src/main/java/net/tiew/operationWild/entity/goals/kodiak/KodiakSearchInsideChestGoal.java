@@ -39,38 +39,23 @@ public class KodiakSearchInsideChestGoal extends Goal {
     public void start() {
         super.start();
         targetPos = findRandomChestPos(radius);
-        if (targetPos != null) {
-            aiKodiak.setKodiakState(AIKodiak.KodiakState.GOING_TO_CHEST);
-        }
     }
 
     @Override
     public void stop() {
         super.stop();
         targetPos = null;
-        if (aiKodiak.getKodiakState() == AIKodiak.KodiakState.GOING_TO_CHEST) {
-            aiKodiak.setKodiakState(AIKodiak.KodiakState.IDLE);
-        }
     }
 
     @Override
     public boolean canUse() {
-        if (kodiak instanceof AIKodiak aiKodiak) {
-            if (aiKodiak.getKodiakState() == AIKodiak.KodiakState.NAPPING) {
-                return false;
-            }
-        }
-        return aiKodiak.canStartNewGoal(AIKodiak.KodiakState.GOING_TO_CHEST) &&
-                cooldownTicks == 0 && kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
+        return cooldownTicks == 0 && kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
                 kodiak.getTarget() == null && kodiak.onGround() &&
                 !kodiak.isNapping() && !kodiak.isDirty();
     }
 
     @Override
     public boolean canContinueToUse() {
-        if (aiKodiak.getKodiakState() != AIKodiak.KodiakState.GOING_TO_CHEST && aiKodiak.isCommittedToGoal()) {
-            return false;
-        }
         return super.canContinueToUse() && targetPos != null && cooldownTicks == 0 && kodiak.level().getBlockState(targetPos).is(Blocks.CHEST) && AIKodiak.distanceRest(kodiak, targetPos) >= 1 &&
                 kodiak.getFoodPick().isEmpty() ;
     }

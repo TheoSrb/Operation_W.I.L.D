@@ -30,7 +30,6 @@ public class KodiakAttractedToGoal<T> extends Goal {
     private final float attractionFrequencyMultiplier;
     private final Runnable actionAtTheEnd;
     private final boolean conditionToWork;
-    private final AIKodiak.KodiakState associatedState;
 
     private BlockPos targetPos;
     protected List<ItemStack> campfireItems = new ArrayList<>();
@@ -48,50 +47,26 @@ public class KodiakAttractedToGoal<T> extends Goal {
         this.actionAtTheEnd = actionAtTheEnd;
         this.attractionFrequencyMultiplier = attractionFrequencyMultiplier;
 
-        if (target instanceof Block && target == Blocks.BEE_NEST) {
-            this.associatedState = AIKodiak.KodiakState.GOING_TO_BEE_NEST;
-        } else if (target instanceof Block && target == Blocks.CAMPFIRE) {
-            this.associatedState = AIKodiak.KodiakState.GOING_TO_CAMPFIRE;
-        } else if (target instanceof Class<?> && target == ItemEntity.class) {
-            this.associatedState = AIKodiak.KodiakState.GOING_TO_ITEMS;
-        } else if (target instanceof TagKey<?>) {
-            this.associatedState = AIKodiak.KodiakState.GOING_TO_CROPS;
-        } else {
-            this.associatedState = AIKodiak.KodiakState.IDLE;
-        }
-
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }
 
     @Override
     public void start() {
         targetPos = findTargetPos(target);
-        if (targetPos != null) {
-            aiKodiak.setKodiakState(associatedState);
-        }
     }
 
     @Override
     public void stop() {
         super.stop();
-        if (aiKodiak.getKodiakState() == associatedState) {
-            aiKodiak.setKodiakState(AIKodiak.KodiakState.IDLE);
-        }
     }
 
     @Override
     public boolean canUse() {
-        if (kodiak instanceof AIKodiak aiKodiak) {
-            if (aiKodiak.getKodiakState() == AIKodiak.KodiakState.NAPPING) {
-                return false;
-            }
-        }
         if (target instanceof Block && target == Blocks.BEE_NEST && beeNestCooldown > 0) {
             return false;
         }
 
-        return aiKodiak.canStartNewGoal(associatedState) &&
-                kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
+        return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
                 kodiak.getTarget() == null && kodiak.onGround() &&
                 !kodiak.isNapping() && conditionToWork && !kodiak.isDirty() && !aiKodiak.isSearchingInsideChest;
     }
@@ -99,10 +74,6 @@ public class KodiakAttractedToGoal<T> extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (targetPos == null || !conditionToWork || kodiak.isDirty() || aiKodiak.isSearchingInsideChest) return false;
-
-        if (aiKodiak.getKodiakState() != associatedState && aiKodiak.isCommittedToGoal()) {
-            return false;
-        }
 
         if (target instanceof Block) {
             if (!kodiak.level().getBlockState(targetPos).is((Block) target)) {

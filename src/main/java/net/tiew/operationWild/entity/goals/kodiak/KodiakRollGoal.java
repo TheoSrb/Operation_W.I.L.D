@@ -25,7 +25,6 @@ public class KodiakRollGoal extends Goal {
     @Override
     public void start() {
         super.start();
-        aiKodiak.setKodiakState(AIKodiak.KodiakState.ROLLING);
         float pitch = (float) OWUtils.generateRandomInterval(0.8f, 1.1f);
         kodiak.setRolling(true);
         if (kodiak.getRandom().nextInt(2) == 0) {
@@ -39,20 +38,11 @@ public class KodiakRollGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
-        if (aiKodiak.getKodiakState() == AIKodiak.KodiakState.ROLLING) {
-            aiKodiak.setKodiakState(AIKodiak.KodiakState.IDLE);
-        }
     }
 
     @Override
     public boolean canUse() {
-        if (kodiak instanceof AIKodiak aiKodiak) {
-            if (aiKodiak.getKodiakState() == AIKodiak.KodiakState.NAPPING) {
-                return false;
-            }
-        }
-        return aiKodiak.canStartNewGoal(AIKodiak.KodiakState.ROLLING) &&
-                kodiak.getRandom().nextInt((int) ((kodiak.isDirty() ? 350 : 550) / rollFrequencyMultiplier)) == 0 && !kodiak.isTame() &&
+        return kodiak.getRandom().nextInt((int) ((kodiak.isDirty() ? 350 : 550) / rollFrequencyMultiplier)) == 0 && !kodiak.isTame() &&
                 !kodiak.isDeadOrDying() &&
                 kodiak.getTarget() == null &&
                 !kodiak.isInWater() &&
@@ -65,9 +55,6 @@ public class KodiakRollGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (aiKodiak.isSearchingInsideChest) return false;
-        if (aiKodiak.getKodiakState() != AIKodiak.KodiakState.ROLLING && aiKodiak.isCommittedToGoal()) {
-            return false;
-        }
         return super.canContinueToUse();
     }
 }

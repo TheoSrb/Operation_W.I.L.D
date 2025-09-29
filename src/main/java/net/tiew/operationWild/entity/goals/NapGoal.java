@@ -63,10 +63,6 @@ public class NapGoal extends Goal {
         napTickCounter = 0;
         startNapping();
 
-        if (entity instanceof KodiakEntity kodiak && kodiak instanceof AIKodiak aiKodiak) {
-            aiKodiak.setKodiakState(AIKodiak.KodiakState.NAPPING);
-        }
-
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.getFoodPick() != null && !kodiak.getFoodPick().isEmpty()) {
                 kodiak.eatFoodInHisMouth(kodiak.getFoodPick());
@@ -79,12 +75,6 @@ public class NapGoal extends Goal {
         super.stop();
         napTimer = 0;
         napTickCounter = 0;
-
-        if (entity instanceof KodiakEntity kodiak && kodiak instanceof AIKodiak aiKodiak) {
-            if (aiKodiak.getKodiakState() == AIKodiak.KodiakState.NAPPING) {
-                aiKodiak.setKodiakState(AIKodiak.KodiakState.IDLE);
-            }
-        }
     }
 
     @Override

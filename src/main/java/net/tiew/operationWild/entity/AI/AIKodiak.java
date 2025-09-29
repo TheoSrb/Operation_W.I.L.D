@@ -51,17 +51,6 @@ import java.util.*;
 
 public abstract class AIKodiak extends OWEntity {
 
-    public enum KodiakState {
-        IDLE,
-        GOING_TO_BEE_NEST,
-        GOING_TO_CROPS,
-        GOING_TO_CHEST,
-        GOING_TO_CAMPFIRE,
-        GOING_TO_ITEMS,
-        ROLLING,
-        NAPPING;
-    }
-
     protected KodiakEntity kodiak;
 
     protected boolean canAttack = false;
@@ -86,10 +75,6 @@ public abstract class AIKodiak extends OWEntity {
 
     public ChestBlockEntity chestBlockEntity = null;
     public boolean isSearchingInsideChest = false;
-
-    protected KodiakState currentKodiakState = KodiakState.IDLE;
-    private int goalCommitmentTicks = 0;
-    private final int COMMITMENT_DURATION = 200;
 
     private static final EntityDataAccessor<ItemStack> FOOD_PICK = SynchedEntityData.defineId(AIKodiak.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<Boolean> IS_DIRTY = SynchedEntityData.defineId(AIKodiak.class, EntityDataSerializers.BOOLEAN);
@@ -324,13 +309,6 @@ public abstract class AIKodiak extends OWEntity {
         boolean hasSomethingInHisMouth = getFoodPick() != null && !getFoodPick().isEmpty();
 
         handleTamingSystem();
-
-        if (goalCommitmentTicks > 0) {
-            goalCommitmentTicks--;
-            if (goalCommitmentTicks == 0) {
-                currentKodiakState = KodiakState.IDLE;
-            }
-        }
 
         if (isSearchingInsideChest) this.setNap(false);
 
@@ -720,26 +698,6 @@ public abstract class AIKodiak extends OWEntity {
 
     protected void setCanAttack(boolean canAttack) {
         this.canAttack = canAttack;
-    }
-
-    public KodiakState getKodiakState() {
-        return currentKodiakState;
-    }
-
-    public void setKodiakState(KodiakState kodiakState) {
-        this.currentKodiakState = kodiakState;
-        this.goalCommitmentTicks = COMMITMENT_DURATION;
-    }
-
-    public boolean isCommittedToGoal() {
-        return goalCommitmentTicks > 0 && currentKodiakState != KodiakState.IDLE;
-    }
-
-    public boolean canStartNewGoal(KodiakState newState) {
-        if (currentKodiakState == KodiakState.NAPPING && newState != KodiakState.NAPPING) {
-            return false;
-        }
-        return currentKodiakState == KodiakState.IDLE || !isCommittedToGoal();
     }
 
     public static float distanceRest(LivingEntity livingEntity, BlockPos target) {
