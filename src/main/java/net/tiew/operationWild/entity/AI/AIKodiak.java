@@ -59,9 +59,7 @@ public class AIKodiak extends AIOWEntity {
                 goalTimeoutTimer++;
 
                 boolean isGoalRunning = kodiak.goalSelector.getAvailableGoals().stream()
-                        .anyMatch(goal -> (goal.getGoal() instanceof NapGoal ||
-                                goal.getGoal() instanceof KodiakRollGoal ||
-                                goal.getGoal() instanceof KodiakSearchInsideChestGoal ||
+                        .anyMatch(goal -> (goal.getGoal() instanceof KodiakSearchInsideChestGoal ||
                                 goal.getGoal() instanceof KodiakAttractedToGoal)
                                 && goal.isRunning());
 
@@ -130,24 +128,24 @@ public class AIKodiak extends AIOWEntity {
 
             case GOING_TO_CAMPFIRE:
                 kodiak.goalSelector.addGoal(4, new KodiakAttractedToGoal<>(kodiak, Blocks.CAMPFIRE,
-                        1.0f, 60, 2.0f, () -> kodiakManagement.pickupItemInHisMouth(kodiak.foodPick), kodiak.getFoodPick().isEmpty()));
+                        1.0f, 60, 5.0f, () -> kodiakManagement.pickupItemInHisMouth(kodiak.foodPick), kodiak.getFoodPick().isEmpty()));
                 break;
 
             case GOING_TO_BEE_NEST:
                 kodiak.goalSelector.addGoal(6, new KodiakAttractedToGoal<>(kodiak, Blocks.BEE_NEST,
-                        1.75f, 25, 3.0f, kodiakManagement::lookForHoneyInTheBeeNest, kodiak.getFoodPick().isEmpty()));
+                        1.75f, 25, 5.0f, kodiakManagement::lookForHoneyInTheBeeNest, kodiak.getFoodPick().isEmpty()));
                 break;
 
             case GOING_TO_CROPS:
                 kodiak.goalSelector.addGoal(8, new KodiakAttractedToGoal<>(kodiak, BlockTags.CROPS,
-                        1.15f, 80, 1.5f, () -> kodiakManagement.goToNewCropBlock(20), kodiak.getFoodPick().isEmpty()));
+                        1.15f, 80, 5f, () -> kodiakManagement.goToNewCropBlock(20), kodiak.getFoodPick().isEmpty()));
                 break;
         }
     }
 
     public KodiakState getRandomState() {
         KodiakState[] states = KodiakState.values();
-        int maxValue = states.length - 1;
+        int maxValue = states.length;
 
         int totalWeight = 0;
         for (KodiakState state : states) {

@@ -22,6 +22,7 @@ public class KodiakSearchInsideChestGoal extends Goal {
 
     private BlockPos targetPos;
     private int cooldownTicks = 0;
+    private boolean hasReachedChest = false;
 
     public KodiakSearchInsideChestGoal(KodiakEntity kodiak, float attractionFrequencyMultiplier, int radius, float speedMultiplier, Runnable action) {
         this.kodiak = kodiak;
@@ -37,12 +38,17 @@ public class KodiakSearchInsideChestGoal extends Goal {
     public void start() {
         super.start();
         targetPos = findRandomChestPos(radius);
+        hasReachedChest = false;
+        System.out.println("[KodiakChestGoal] Start - Target: " + targetPos);
     }
 
     @Override
     public void stop() {
         super.stop();
+        System.out.println("[KodiakChestGoal] Stop - HasReached: " + hasReachedChest);
         targetPos = null;
+        hasReachedChest = false;
+        kodiak.getNavigation().stop();
         kodiak.kodiakAI.resetKodiakState();
     }
 
@@ -55,8 +61,31 @@ public class KodiakSearchInsideChestGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return super.canContinueToUse() && targetPos != null && cooldownTicks == 0 && kodiak.level().getBlockState(targetPos).is(Blocks.CHEST) && OWUtils.distanceRest(kodiak, targetPos) >= 1 &&
-                kodiak.getFoodPick().isEmpty() ;
+        if (cooldownTicks > 0) {
+            return false;
+        }
+
+        if (targetPos == null) {
+            return false;
+        }
+
+        // Si le coffre n'existe plus, arrêter
+        if (!kodiak.level().getBlockState(targetPos).is(Blocks.CHEST)) {
+            System.out.println("[KodiakChestGoal] Chest no longer exists");
+            return false;
+        }
+
+        // Si on a déjà atteint le coffre et ouvert, on peut arrêter
+        if (hasReachedChest) {
+            return false;
+        }
+
+        // Si on a de la nourriture dans la bouche, arrêter
+        if (!kodiak.getFoodPick().isEmpty()) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -68,21 +97,39 @@ public class KodiakSearchInsideChestGoal extends Goal {
             return;
         }
 
-        if (targetPos != null) {
-            if (!kodiak.level().getBlockState(targetPos).is(Blocks.CHEST)) {
-                stop();
-                return;
-            }
+        if (targetPos != null && !hasReachedChest) {
+            double distance = OWUtils.distanceRest(kodiak, targetPos);
 
-            kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedMultiplier);
+            // Navigation continue jusqu'à atteindre la distance
+            if (distance > 2.5) {
+                kodiak.getNavigation().moveTo(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5, speedMultiplier);
+            } else {
+                // On a atteint le coffre
+                kodiak.getNavigation().stop();
 
-            if (OWUtils.distanceRest(kodiak, targetPos) <= 4) {
                 if (kodiak.level().getBlockEntity(targetPos) instanceof ChestBlockEntity chestEntity) {
+                    System.out.println("[KodiakChestGoal] Reached chest at distance: " + distance);
                     kodiak.chestBlockEntity = chestEntity;
+
+                    // Faire regarder le Kodiak vers le coffre
+                    kodiak.getLookControl().setLookAt(
+                            targetPos.getX() + 0.5,
+                            targetPos.getY() + 0.5,
+                            targetPos.getZ() + 0.5
+                    );
+
+                    // Exécuter l'action d'ouverture
+                    action.run();
+
+                    // Marquer comme atteint
+                    hasReachedChest = true;
+                    kodiak.isSearchingInsideChest = true;
+
+                    // Cooldown pour éviter de réutiliser immédiatement ce goal
+                    cooldownTicks = 300;
+
+                    System.out.println("[KodiakChestGoal] Chest opened successfully");
                 }
-                action.run();
-                cooldownTicks = 300;
-                kodiak.isSearchingInsideChest = true;
             }
         }
     }
@@ -103,11 +150,14 @@ public class KodiakSearchInsideChestGoal extends Goal {
         }
 
         if (chestPositions.isEmpty()) {
+            System.out.println("[KodiakChestGoal] No chest found in radius " + radiusToSearch);
             return null;
         }
 
         Random random = new Random();
         int randomIndex = random.nextInt(chestPositions.size());
-        return chestPositions.get(randomIndex);
+        BlockPos selected = chestPositions.get(randomIndex);
+        System.out.println("[KodiakChestGoal] Found " + chestPositions.size() + " chests, selected: " + selected);
+        return selected;
     }
 }

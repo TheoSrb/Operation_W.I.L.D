@@ -50,7 +50,7 @@ public class NapGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return conditionToWork && napTimer > 0;
+        return conditionToWork && entity.isNapping();
     }
 
     @Override
@@ -80,6 +80,7 @@ public class NapGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (entity instanceof KodiakEntity kodiak && kodiak.isRolling()) return false;
         return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork;
     }
 
