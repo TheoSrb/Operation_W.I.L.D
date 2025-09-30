@@ -20,6 +20,7 @@ public class NapGoal extends Goal {
     private final int napTimerMax;
     private int napTimer = 0;
     private int napTickCounter = 0;
+    private boolean shouldStop = false;
 
     public NapGoal(OWEntity entity, float wantNapMultiplier, int napTimerMax, boolean conditionToWork) {
         this.entity = entity;
@@ -34,6 +35,11 @@ public class NapGoal extends Goal {
     public void tick() {
         super.tick();
 
+        if (shouldStop) {
+            startAwaken();
+            return;
+        }
+
         if (entity.isNapping()) {
 
             napTimer--;
@@ -41,16 +47,18 @@ public class NapGoal extends Goal {
 
             if (napTimer <= 0) {
                 startAwaken();
-                stop();
+                shouldStop = true;
             }
 
             handleNappingEffects();
+        } else {
+            shouldStop = true;
         }
     }
 
     @Override
     public boolean canContinueToUse() {
-        return conditionToWork && entity.isNapping();
+        return !shouldStop && conditionToWork && entity.isNapping();
     }
 
     @Override
@@ -58,6 +66,7 @@ public class NapGoal extends Goal {
         super.start();
         generateMaxNapTimer();
         napTickCounter = 0;
+        shouldStop = false;
         startNapping();
 
         if (entity instanceof KodiakEntity kodiak) {
@@ -72,6 +81,7 @@ public class NapGoal extends Goal {
         super.stop();
         napTimer = 0;
         napTickCounter = 0;
+        shouldStop = false;
 
         if (entity instanceof KodiakEntity kodiak) {
             kodiak.kodiakAI.resetKodiakState();
@@ -129,7 +139,6 @@ public class NapGoal extends Goal {
                                 0.0, 0.0, 0.0);
                     }
                 }
-                System.out.println("----- 3 -----");
             }
         }
     }

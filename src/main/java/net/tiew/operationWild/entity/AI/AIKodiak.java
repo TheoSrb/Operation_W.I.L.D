@@ -122,23 +122,23 @@ public class AIKodiak extends AIOWEntity {
                 break;
 
             case GOING_TO_CHEST:
-                kodiak.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(kodiak, 5.0f, 35,
+                kodiak.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(kodiak, 6.0f, 35,
                         1.5f, () -> kodiakManagement.openChest(kodiak.chestBlockEntity)));
                 break;
 
             case GOING_TO_CAMPFIRE:
                 kodiak.goalSelector.addGoal(4, new KodiakAttractedToGoal<>(kodiak, Blocks.CAMPFIRE,
-                        1.0f, 60, 5.0f, () -> kodiakManagement.pickupItemInHisMouth(kodiak.foodPick), kodiak.getFoodPick().isEmpty()));
+                        1.0f, 60, 8.0f, () -> kodiakManagement.pickupItemInHisMouth(kodiak.foodPick), kodiak.getFoodPick().isEmpty()));
                 break;
 
             case GOING_TO_BEE_NEST:
                 kodiak.goalSelector.addGoal(6, new KodiakAttractedToGoal<>(kodiak, Blocks.BEE_NEST,
-                        1.75f, 25, 5.0f, kodiakManagement::lookForHoneyInTheBeeNest, kodiak.getFoodPick().isEmpty()));
+                        1.75f, 25, 4.0f, kodiakManagement::lookForHoneyInTheBeeNest, kodiak.getFoodPick().isEmpty()));
                 break;
 
             case GOING_TO_CROPS:
                 kodiak.goalSelector.addGoal(8, new KodiakAttractedToGoal<>(kodiak, BlockTags.CROPS,
-                        1.15f, 80, 5f, () -> kodiakManagement.goToNewCropBlock(20), kodiak.getFoodPick().isEmpty()));
+                        1.15f, 80, 10f, () -> kodiakManagement.goToNewCropBlock(20), kodiak.getFoodPick().isEmpty()));
                 break;
         }
     }

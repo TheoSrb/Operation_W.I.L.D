@@ -1459,6 +1459,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         lastVisibleTarget = (LivingEntity) damageSource.getEntity();
         quest10Progression = 0;
         this.setNap(false);
+        if (this instanceof KodiakEntity kodiak) {
+            kodiak.kodiakAI.resetKodiakState();
+        }
+
         fightingTime = 200;
         this.setFighting(true);
         hurtAmount = (int) amount;
