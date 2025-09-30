@@ -26,10 +26,10 @@ public class AIKodiak extends AIOWEntity {
 
     public enum KodiakState {
         IDLE(-1),
-        GOING_TO_CHEST(2),
-        GOING_TO_CAMPFIRE(3),
+        GOING_TO_CHEST(1),
+        GOING_TO_CAMPFIRE(2),
         GOING_TO_BEE_NEST(1),
-        GOING_TO_CROPS(4);
+        GOING_TO_CROPS(2);
 
         private int priority;
 
@@ -124,7 +124,7 @@ public class AIKodiak extends AIOWEntity {
                 break;
 
             case GOING_TO_CHEST:
-                kodiak.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(kodiak, 4.0f, 35,
+                kodiak.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(kodiak, 5.0f, 35,
                         1.5f, () -> kodiakManagement.openChest(kodiak.chestBlockEntity)));
                 break;
 
