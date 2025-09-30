@@ -24,6 +24,11 @@ import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
 import java.util.*;
 
+/**
+ * This class only manages methods and functions that are useful and necessary for the proper functioning of Kodiak's artificial intelligence.
+ * It is a complementary class to the latter.
+ */
+
 public class AIKodiakManagement {
 
     private KodiakEntity kodiak;

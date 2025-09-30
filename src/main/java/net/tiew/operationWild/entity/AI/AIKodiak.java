@@ -9,7 +9,12 @@ import net.tiew.operationWild.entity.goals.kodiak.KodiakAttractedToGoal;
 import net.tiew.operationWild.entity.goals.kodiak.KodiakRollGoal;
 import net.tiew.operationWild.entity.goals.kodiak.KodiakSearchInsideChestGoal;
 
-public class AIKodiak {
+/**
+ * This class mainly manages the Kodiak's artificial intelligence.
+ * In particular, it manages how goals are distributed based on the Kodiak's current status and assigns the appropriate behavior to it.
+ */
+
+public class AIKodiak extends AIOWEntity {
 
     private KodiakEntity kodiak;
     public AIKodiakManagement kodiakManagement;
@@ -38,8 +43,14 @@ public class AIKodiak {
     }
 
     public AIKodiak(KodiakEntity kodiak) {
+        super(kodiak);
         this.kodiak = kodiak;
         this.kodiakManagement = new AIKodiakManagement(kodiak, this);
+    }
+
+    @Override
+    public Temperament getTemperament() {
+        return Temperament.NEUTRAL;
     }
 
     public void tick() {

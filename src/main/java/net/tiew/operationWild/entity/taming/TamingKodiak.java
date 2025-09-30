@@ -15,6 +15,11 @@ import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
 import java.util.List;
 
+/**
+ * This class primarily manages the taming process for the Kodiak.
+ * It manages the taming method from start to finish.
+ */
+
 public class TamingKodiak {
 
     private KodiakEntity kodiak;

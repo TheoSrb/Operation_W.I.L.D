@@ -66,6 +66,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.tiew.operationWild.entity.AI.AIOWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
@@ -108,6 +109,13 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 import static net.tiew.operationWild.core.OWUtils.generateRandomInterval;
 
 public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, IOWTamable, IOWRideable {
+
+    public AIOWEntity AI = new AIOWEntity(this) {
+        @Override
+        public Temperament getTemperament() {
+            return null;
+        }
+    };
 
     public float averageScale;
     public static final Random RANDOM = new Random();
@@ -1646,6 +1654,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public void tick() {
         super.tick();
+        AI.tick();
 
         if (this.level().isClientSide) {
             handleClientAnimationSync();
