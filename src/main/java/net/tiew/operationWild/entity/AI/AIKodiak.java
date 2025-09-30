@@ -1,18 +1,11 @@
 package net.tiew.operationWild.entity.AI;
 
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.Blocks;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
-import net.tiew.operationWild.entity.goals.NapGoal;
 import net.tiew.operationWild.entity.goals.kodiak.KodiakAttractedToGoal;
-import net.tiew.operationWild.entity.goals.kodiak.KodiakRollGoal;
 import net.tiew.operationWild.entity.goals.kodiak.KodiakSearchInsideChestGoal;
-
-/**
- * This class mainly manages the Kodiak's artificial intelligence.
- * In particular, it manages how goals are distributed based on the Kodiak's current status and assigns the appropriate behavior to it.
- */
 
 public class AIKodiak extends AIOWEntity {
 
@@ -23,6 +16,11 @@ public class AIKodiak extends AIOWEntity {
 
     private int goalTimeoutTimer = 0;
     private boolean goalHasStarted = false;
+
+    private KodiakSearchInsideChestGoal chestGoal;
+    private KodiakAttractedToGoal<?> campfireGoal;
+    private KodiakAttractedToGoal<?> beeNestGoal;
+    private KodiakAttractedToGoal<?> cropsGoal;
 
     public enum KodiakState {
         IDLE(-1),
@@ -48,6 +46,23 @@ public class AIKodiak extends AIOWEntity {
         this.kodiakManagement = new AIKodiakManagement(kodiak, this);
     }
 
+    private void initializeGoals() {
+        chestGoal = new KodiakSearchInsideChestGoal(kodiak, 6.0f, 35,
+                1.5f, () -> kodiakManagement.openChest(kodiak.chestBlockEntity));
+
+        campfireGoal = new KodiakAttractedToGoal<>(kodiak, Blocks.CAMPFIRE,
+                1.0f, 60, 8.0f, () -> kodiakManagement.pickupItemInHisMouth(kodiak.foodPick),
+                kodiak.getFoodPick().isEmpty());
+
+        beeNestGoal = new KodiakAttractedToGoal<>(kodiak, Blocks.BEE_NEST,
+                1.75f, 25, 4.0f, kodiakManagement::lookForHoneyInTheBeeNest,
+                kodiak.getFoodPick().isEmpty());
+
+        cropsGoal = new KodiakAttractedToGoal<>(kodiak, BlockTags.CROPS,
+                1.15f, 80, 10f, () -> kodiakManagement.goToNewCropBlock(20),
+                kodiak.getFoodPick().isEmpty());
+    }
+
     @Override
     public Temperament getTemperament() {
         return Temperament.NEUTRAL;
@@ -58,10 +73,7 @@ public class AIKodiak extends AIOWEntity {
             if (kodiak.getKodiakState() != KodiakState.IDLE && !goalHasStarted) {
                 goalTimeoutTimer++;
 
-                boolean isGoalRunning = kodiak.goalSelector.getAvailableGoals().stream()
-                        .anyMatch(goal -> (goal.getGoal() instanceof KodiakSearchInsideChestGoal ||
-                                goal.getGoal() instanceof KodiakAttractedToGoal)
-                                && goal.isRunning());
+                boolean isGoalRunning = isCurrentGoalRunning();
 
                 if (isGoalRunning) {
                     goalHasStarted = true;
@@ -80,10 +92,45 @@ public class AIKodiak extends AIOWEntity {
         }
     }
 
+    private boolean isCurrentGoalRunning() {
+        KodiakState state = kodiak.getKodiakState();
+
+        switch (state) {
+            case GOING_TO_CHEST:
+                return isGoalRunning(chestGoal);
+            case GOING_TO_CAMPFIRE:
+                return isGoalRunning(campfireGoal);
+            case GOING_TO_BEE_NEST:
+                return isGoalRunning(beeNestGoal);
+            case GOING_TO_CROPS:
+                return isGoalRunning(cropsGoal);
+            default:
+                return false;
+        }
+    }
+
+    private boolean isGoalRunning(Goal goal) {
+        if (goal == null) return false;
+
+        try {
+            for (var wrappedGoal : kodiak.goalSelector.getAvailableGoals()) {
+                if (wrappedGoal != null && wrappedGoal.getGoal() == goal) {
+                    return wrappedGoal.isRunning();
+                }
+            }
+        } catch (Exception e) {
+            return false;
+        }
+
+        return false;
+    }
+
     private void updateState() {
         KodiakState currentState = kodiak.getKodiakState();
 
         if (currentState == KodiakState.IDLE) {
+            initializeGoals();
+
             KodiakState state = getRandomState();
             kodiak.setKodiakState(state);
 
@@ -98,10 +145,10 @@ public class AIKodiak extends AIOWEntity {
     }
 
     public void resetKodiakState() {
-        kodiak.goalSelector.getAvailableGoals().removeIf(goal ->
-                        goal.getGoal() instanceof KodiakSearchInsideChestGoal ||
-                        goal.getGoal() instanceof KodiakAttractedToGoal
-        );
+        kodiak.goalSelector.removeGoal(chestGoal);
+        kodiak.goalSelector.removeGoal(campfireGoal);
+        kodiak.goalSelector.removeGoal(beeNestGoal);
+        kodiak.goalSelector.removeGoal(cropsGoal);
 
         kodiak.setKodiakState(KodiakState.IDLE);
 
@@ -110,10 +157,10 @@ public class AIKodiak extends AIOWEntity {
     }
 
     private void adaptGoalsToStatement(KodiakState state) {
-        kodiak.goalSelector.getAvailableGoals().removeIf(goal ->
-                        goal.getGoal() instanceof KodiakSearchInsideChestGoal ||
-                        goal.getGoal() instanceof KodiakAttractedToGoal
-        );
+        kodiak.goalSelector.removeGoal(chestGoal);
+        kodiak.goalSelector.removeGoal(campfireGoal);
+        kodiak.goalSelector.removeGoal(beeNestGoal);
+        kodiak.goalSelector.removeGoal(cropsGoal);
 
         System.out.println("State: " + state);
 
@@ -122,23 +169,19 @@ public class AIKodiak extends AIOWEntity {
                 break;
 
             case GOING_TO_CHEST:
-                kodiak.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(kodiak, 6.0f, 35,
-                        1.5f, () -> kodiakManagement.openChest(kodiak.chestBlockEntity)));
+                kodiak.goalSelector.addGoal(2, chestGoal);
                 break;
 
             case GOING_TO_CAMPFIRE:
-                kodiak.goalSelector.addGoal(4, new KodiakAttractedToGoal<>(kodiak, Blocks.CAMPFIRE,
-                        1.0f, 60, 8.0f, () -> kodiakManagement.pickupItemInHisMouth(kodiak.foodPick), kodiak.getFoodPick().isEmpty()));
+                kodiak.goalSelector.addGoal(4, campfireGoal);
                 break;
 
             case GOING_TO_BEE_NEST:
-                kodiak.goalSelector.addGoal(6, new KodiakAttractedToGoal<>(kodiak, Blocks.BEE_NEST,
-                        1.75f, 25, 4.0f, kodiakManagement::lookForHoneyInTheBeeNest, kodiak.getFoodPick().isEmpty()));
+                kodiak.goalSelector.addGoal(6, beeNestGoal);
                 break;
 
             case GOING_TO_CROPS:
-                kodiak.goalSelector.addGoal(8, new KodiakAttractedToGoal<>(kodiak, BlockTags.CROPS,
-                        1.15f, 80, 10f, () -> kodiakManagement.goToNewCropBlock(20), kodiak.getFoodPick().isEmpty()));
+                kodiak.goalSelector.addGoal(8, cropsGoal);
                 break;
         }
     }

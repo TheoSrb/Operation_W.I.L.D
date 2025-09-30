@@ -159,8 +159,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         this.goalSelector.addGoal(1, new KodiakAttractedToGoal<>(this, ItemEntity.class,
                 1.75f, 15, 5.0f, () -> kodiakManagement.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
-        this.goalSelector.addGoal(2, new KodiakRollGoal(this, 0.9f));
-        this.goalSelector.addGoal(3, new NapGoal(this, 1.5f, 700, true));
+        this.goalSelector.addGoal(2, new KodiakRollGoal(this, 1.0f));
+        this.goalSelector.addGoal(3, new NapGoal(this, 1.2f, 700, true));
     }
 
     private void registerBasicsGoals() {

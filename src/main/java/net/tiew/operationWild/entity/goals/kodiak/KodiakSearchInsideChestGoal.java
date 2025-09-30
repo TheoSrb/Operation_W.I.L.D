@@ -69,18 +69,14 @@ public class KodiakSearchInsideChestGoal extends Goal {
             return false;
         }
 
-        // Si le coffre n'existe plus, arrêter
         if (!kodiak.level().getBlockState(targetPos).is(Blocks.CHEST)) {
-            System.out.println("[KodiakChestGoal] Chest no longer exists");
             return false;
         }
 
-        // Si on a déjà atteint le coffre et ouvert, on peut arrêter
         if (hasReachedChest) {
             return false;
         }
 
-        // Si on a de la nourriture dans la bouche, arrêter
         if (!kodiak.getFoodPick().isEmpty()) {
             return false;
         }
@@ -100,33 +96,26 @@ public class KodiakSearchInsideChestGoal extends Goal {
         if (targetPos != null && !hasReachedChest) {
             double distance = OWUtils.distanceRest(kodiak, targetPos);
 
-            // Navigation continue jusqu'à atteindre la distance
-            if (distance > 2.5) {
+            if (distance > 3) {
                 kodiak.getNavigation().moveTo(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5, speedMultiplier);
             } else {
-                // On a atteint le coffre
                 kodiak.getNavigation().stop();
 
                 if (kodiak.level().getBlockEntity(targetPos) instanceof ChestBlockEntity chestEntity) {
-                    System.out.println("[KodiakChestGoal] Reached chest at distance: " + distance);
                     kodiak.chestBlockEntity = chestEntity;
 
-                    // Faire regarder le Kodiak vers le coffre
                     kodiak.getLookControl().setLookAt(
                             targetPos.getX() + 0.5,
                             targetPos.getY() + 0.5,
                             targetPos.getZ() + 0.5
                     );
 
-                    // Exécuter l'action d'ouverture
                     action.run();
 
-                    // Marquer comme atteint
                     hasReachedChest = true;
                     kodiak.isSearchingInsideChest = true;
 
-                    // Cooldown pour éviter de réutiliser immédiatement ce goal
-                    cooldownTicks = 300;
+                    cooldownTicks = 600;
 
                     System.out.println("[KodiakChestGoal] Chest opened successfully");
                 }
