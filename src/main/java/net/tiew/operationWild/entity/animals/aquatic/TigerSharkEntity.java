@@ -44,7 +44,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.entity.OWTameImplementation;
-import net.tiew.operationWild.entity.config.FoodsPreference;
+import net.tiew.operationWild.entity.config.IOWFoodsPreference;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.goals.*;
@@ -63,7 +63,7 @@ import net.tiew.operationWild.core.OWUtils;
 
 import java.util.List;
 
-public class TigerSharkEntity extends OWWaterEntity implements FoodsPreference, OWEntityUtils, OWTameImplementation {
+public class TigerSharkEntity extends OWWaterEntity implements IOWFoodsPreference, OWEntityUtils, OWTameImplementation {
 
     public static final double TAMING_EXPERIENCE = 115.0;
 

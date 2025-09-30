@@ -43,7 +43,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.entity.OWTameImplementation;
-import net.tiew.operationWild.entity.config.FoodsPreference;
+import net.tiew.operationWild.entity.config.IOWFoodsPreference;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.OWEgg;
@@ -66,7 +66,7 @@ import java.util.TimerTask;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class PeacockEntity extends OWEntity implements FoodsPreference, OWEntityUtils, OWTameImplementation {
+public class PeacockEntity extends OWEntity implements IOWFoodsPreference, OWEntityUtils, OWTameImplementation {
 
     public static final double TAMING_EXPERIENCE = 25.0;
 
