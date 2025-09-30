@@ -43,6 +43,7 @@ public class KodiakSearchInsideChestGoal extends Goal {
     public void stop() {
         super.stop();
         targetPos = null;
+        kodiak.kodiakAI.resetKodiakState();
     }
 
     @Override

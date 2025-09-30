@@ -51,7 +51,6 @@ public class AIKodiakManagement {
         double spawnZ = kodiak.getZ() + lookDirection.z * 2.0;
 
         OWUtils.spawnItemParticles(kodiak, Items.HONEYCOMB.getDefaultInstance(), spawnX, spawnY, spawnZ);
-
     }
 
     public void openChest(ChestBlockEntity chestBlockEntity) {

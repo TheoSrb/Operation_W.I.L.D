@@ -68,7 +68,6 @@ public class TamingKodiak {
                                 double spawnZ = kodiak.getZ() + lookDirection.z * 2.0;
 
                                 OWUtils.spawnItemParticles(kodiak, itemStack, spawnX, spawnY, spawnZ);
-
                                 OWUtils.spawnComposterParticlesAround(kodiak, ParticleTypes.COMPOSTER);
                             }
                             item.discard();

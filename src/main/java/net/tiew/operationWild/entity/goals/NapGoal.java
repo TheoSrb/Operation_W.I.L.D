@@ -72,6 +72,10 @@ public class NapGoal extends Goal {
         super.stop();
         napTimer = 0;
         napTickCounter = 0;
+
+        if (entity instanceof KodiakEntity kodiak) {
+            kodiak.kodiakAI.resetKodiakState();
+        }
     }
 
     @Override

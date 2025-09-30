@@ -35,6 +35,7 @@ public class KodiakRollGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
+        kodiak.kodiakAI.resetKodiakState();
     }
 
     @Override
