@@ -1,12 +1,9 @@
 package net.tiew.operationWild.entity.goals;
 
-import com.google.common.base.Enums;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
-import net.tiew.operationWild.effect.OWEffects;
-import net.tiew.operationWild.entity.AI.AIKodiak;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.particle.OWParticles;
@@ -65,7 +62,7 @@ public class NapGoal extends Goal {
 
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.getFoodPick() != null && !kodiak.getFoodPick().isEmpty()) {
-                kodiak.eatFoodInHisMouth(kodiak.getFoodPick());
+                kodiak.kodiakManagement.eatFoodInHisMouth(kodiak.getFoodPick());
             }
         }
     }

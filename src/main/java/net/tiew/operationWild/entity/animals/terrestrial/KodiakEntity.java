@@ -1,61 +1,73 @@
 package net.tiew.operationWild.entity.animals.terrestrial;
 
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.DifficultyInstance;
+import net.tiew.operationWild.core.OWUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Bee;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.event.EventHooks;
+import net.neoforged.neoforge.common.Tags;
 import net.tiew.operationWild.advancements.OWAdvancements;
-import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.AI.AIKodiak;
-import net.tiew.operationWild.entity.AI.KodiakAI;
+import net.tiew.operationWild.entity.AI.AIKodiakManagement;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
-import net.tiew.operationWild.particle.OWParticles;
+import net.tiew.operationWild.entity.goals.NapGoal;
+import net.tiew.operationWild.entity.goals.OWAttackGoal;
+import net.tiew.operationWild.entity.goals.OWBreedGoal;
+import net.tiew.operationWild.entity.goals.OWRandomLookAroundGoal;
+import net.tiew.operationWild.entity.goals.kodiak.KodiakAttractedToGoal;
+import net.tiew.operationWild.entity.goals.kodiak.KodiakRollGoal;
+import net.tiew.operationWild.entity.goals.kodiak.KodiakSearchInsideChestGoal;
+import net.tiew.operationWild.entity.goals.kodiak.KodiakTemptGoal;
+import net.tiew.operationWild.entity.taming.TamingKodiak;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.core.OWTags;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
-import net.tiew.operationWild.core.OWUtils;
 
 import java.util.*;
 
@@ -63,15 +75,11 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
 
-    public KodiakAI kodiakAI;
+    public AIKodiak kodiakAI;
+    public AIKodiakManagement kodiakManagement;
+    public TamingKodiak kodiakTaming;
 
     public static final double TAMING_EXPERIENCE = 180.0;
-
-    private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Boolean> IS_SHADE_SKIN = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
-
-    private static final EntityDataAccessor<Boolean> IS_ROLLING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
-
 
     public AnimationState transitionIdleStandingUp = new AnimationState();
     public AnimationState transitionStandingUpIdle = new AnimationState();
@@ -90,10 +98,46 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public int rollTimer = 0;
 
+    protected boolean canAttack = false;
+    public ItemStack foodPick = ItemStack.EMPTY;
+
+    public boolean startEatingTimer = false;
+    private boolean startHoneyTimer = false;
+    private static final int MAX_EATING_TIMER = 400;
+    private static final int MAX_HONEY_TIMER = 750;
+    public int eatingTimer = 0;
+    private int honeyTimer = 0;
+
+    public Player lastPlayerWhoFeedHim = null;
+    public int numberOfBonusSearching = 0;
+    private int numberOfBonusSearchingMax = this.random.nextInt(7) + 5;
+    public int cropCheckTimer = 0;
+    public BlockPos targetCrop = null;
+    public int cropRadiusSearch = 0;
+
+    private final int MAX_DIRTY_TIMER = 1200;
+    private int dirtyTimer = 0;
+
+    public ChestBlockEntity chestBlockEntity = null;
+    public boolean isSearchingInsideChest = false;
+
+    private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_SHADE_SKIN = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private static final EntityDataAccessor<Boolean> IS_ROLLING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private static final EntityDataAccessor<ItemStack> FOOD_PICK = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.ITEM_STACK);
+    private static final EntityDataAccessor<Boolean> IS_DIRTY = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+
     public KodiakEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+        createKodiakAI();
+    }
 
-        this.kodiakAI = new KodiakAI(this);
+    private void createKodiakAI() {
+        this.kodiakAI = new AIKodiak(this);
+        this.kodiakManagement = new AIKodiakManagement(this, kodiakAI);
+        this.kodiakTaming = new TamingKodiak(this, kodiakManagement);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -108,6 +152,45 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     protected void registerGoals() {
         super.registerGoals();
+        this.registerBasicsGoals();
+
+        createKodiakAI(); // Create the AI before the goals, otherwise null error
+
+        this.kodiakAI = new AIKodiak(this);
+        this.kodiakManagement = new AIKodiakManagement(this, kodiakAI);
+        this.kodiakTaming = new TamingKodiak(this, kodiakManagement);
+
+        this.goalSelector.addGoal(1, new KodiakAttractedToGoal<>(this, ItemEntity.class,
+                1.75f, 15, 5.0f, () -> kodiakManagement.pickupItemInHisMouth(foodPick), this.getFoodPick().isEmpty()));
+
+        this.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(this, 2.0f, 35,
+                1.5f, () -> kodiakManagement.openChest(chestBlockEntity)));
+
+        this.goalSelector.addGoal(3, new NapGoal(this, 0.5f, 700, true));
+
+        this.goalSelector.addGoal(5, new KodiakAttractedToGoal<>(this, Blocks.BEE_NEST,
+                1.75f, 25, 2.0f, kodiakManagement::lookForHoneyInTheBeeNest, this.getFoodPick().isEmpty()));
+
+        this.goalSelector.addGoal(7, new KodiakRollGoal(this, 0.9f));
+
+        this.goalSelector.addGoal(11, new KodiakAttractedToGoal<>(this, Blocks.CAMPFIRE,
+                1.0f, 60, 1.0f, () -> kodiakManagement.pickupItemInHisMouth(foodPick), this.getFoodPick().isEmpty()));
+
+        this.goalSelector.addGoal(13, new KodiakAttractedToGoal<>(this, BlockTags.CROPS,
+                1.15f, 80, 0.5f, () -> kodiakManagement.goToNewCropBlock(20), this.getFoodPick().isEmpty()));
+    }
+
+    private void registerBasicsGoals() {
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(2, new KodiakTemptGoal(this, 2D, Ingredient.of(Tags.Items.FOODS), false));
+        this.goalSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, canAttack()));
+        this.goalSelector.addGoal(6, new OWBreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
+        this.goalSelector.addGoal(7, new RandomStrollGoal(this, 0.8D));
+
+        /*this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
+        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(7, new NearestAttackableTargetGoal<>(this, Monster.class, true));*/
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -115,6 +198,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(IS_SHADE_SKIN, false);
         builder.define(IS_ROLLING, false);
+        builder.define(FOOD_PICK, ItemStack.EMPTY);
+        builder.define(IS_DIRTY, false);
     }
 
     // Entity Methods
@@ -233,23 +318,143 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (!isRunning()) super.playStepSound(blockPos, blockState);
     }
 
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        if (this.onGround()) {
+            kodiakManagement.trampleCrops(this.blockPosition());
+            kodiakManagement.trampleCrops(this.blockPosition().below());
+        }
+    }
+
     public void tick() {
         super.tick();
         kodiakAI.tick();
+        kodiakTaming.tick();
+
+        boolean hasSomethingInHisMouth = getFoodPick() != null && !getFoodPick().isEmpty();
+
         createCombo((int) (20 / comboSpeedMultiplier), (int) (12 / comboSpeedMultiplier), random.nextInt(2) == 0 ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get(), 3.0, 2, 2.25, false, 2);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
+        if (isSearchingInsideChest) this.setNap(false);
+
+        if (hasSomethingInHisMouth) {
+            if (startEatingTimer) {
+                if (eatingTimer < MAX_EATING_TIMER) eatingTimer++;
+                else {
+                    kodiakManagement.eatFoodInHisMouth(getFoodPick());
+                }
+            }
+
+            if (getFoodPick() == Items.HONEYCOMB.getDefaultInstance()) {
+                if (startHoneyTimer) {
+                    if (honeyTimer < MAX_HONEY_TIMER) honeyTimer++;
+                    else {
+                        kodiakManagement.eatFoodInHisMouth(getFoodPick());
+                    }
+                }
+            }
+        }
+
+        if (this.isRolling()) {
+            this.rollTimer++;
+
+            kodiakManagement.trampleCrops(this.blockPosition());
+            kodiakManagement.trampleCrops(this.blockPosition().below());
+
+            Vec3 lookDirection = this.getLookAngle();
+            Vec3 leftDirection = new Vec3(lookDirection.z, 0, -lookDirection.x);
+
+            double rollSpeed = 0.075;
+            this.setDeltaMovement(leftDirection.scale(rollSpeed));
+            this.setDeltaMovement(this.getDeltaMovement().x, -1, this.getDeltaMovement().z);
+
+            if (this.tickCount % 15 == 0) {
+                this.playStepSound(this.blockPosition(), this.getBlockStateOn());
+
+                double particleX = this.getX();
+                double particleY = this.getY();
+                double particleZ = this.getZ();
+
+                if (!this.level().isClientSide) {
+                    if (this.level() instanceof ServerLevel serverLevel) {
+                        BlockParticleOption dirtParticle = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
+                        serverLevel.sendParticles(dirtParticle,
+                                particleX, particleY, particleZ,
+                                8,
+                                0.5, 0.1, 0.5,
+                                0.2);
+                    }
+                } else {
+                    if (this.level() instanceof ClientLevel clientLevel) {
+                        BlockParticleOption dirtParticle = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
+
+                        for (int i = 0; i < 8; i++) {
+                            double offsetX = (this.getRandom().nextDouble() - 0.5) * 1.0;
+                            double offsetY = (this.getRandom().nextDouble() - 0.5) * 0.2;
+                            double offsetZ = (this.getRandom().nextDouble() - 0.5) * 1.0;
+
+                            double velocityX = (this.getRandom().nextDouble() - 0.5) * 0.4;
+                            double velocityY = this.getRandom().nextDouble() * 0.2;
+                            double velocityZ = (this.getRandom().nextDouble() - 0.5) * 0.4;
+
+                            clientLevel.addParticle(dirtParticle,
+                                    particleX + offsetX,
+                                    particleY + offsetY,
+                                    particleZ + offsetZ,
+                                    velocityX, velocityY, velocityZ);
+                        }
+                    }
+                }
+            }
+
+            if (this.rollTimer >= 80) {
+                this.rollTimer = 0;
+                this.setRolling(false);
+            }
+        }
+
+        if (isSearchingInsideChest) {
+            this.setDeltaMovement(0,0,0);
+
+            if (chestBlockEntity != null) {
+                BlockPos chestPos = chestBlockEntity.getBlockPos();
+                this.setLookAt(chestPos.getX(), chestPos.getY(), chestPos.getZ());
+            }
+        }
+
+        if (cropCheckTimer > 0) {
+            cropCheckTimer--;
+            if (cropCheckTimer == 0 && targetCrop != null) {
+                if (OWUtils.distanceRest(this, targetCrop) <= 3) {
+                    numberOfBonusSearching++;
+
+                    if (numberOfBonusSearching >= numberOfBonusSearchingMax) {
+                        numberOfBonusSearching = 0;
+                        this.getNavigation().stop();
+                    } else {
+                        kodiakManagement.goToNewCropBlock(cropRadiusSearch);
+                    }
+                }
+                targetCrop = null;
+            }
+        }
+
+        if (this.isDirty()) {
+            if (dirtyTimer <= MAX_DIRTY_TIMER) {
+                dirtyTimer++;
+            } else {
+                dirtyTimer = 0;
+                setDirty(false);
+            }
+        }
+
         handleRunningEffects(29, SoundEvents.HORSE_STEP, 0.5f, new int[]{5, 19});
         handleGoldVariantEffects();
-    }
-
-    private void handleGoldVariantEffects() {
-        if (this.getVariant() == KodiakVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
-            OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
-        }
     }
 
     @Override
@@ -263,7 +468,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         }
 
         if (this.isSaddled()) {
-            this.spawnAtLocation(OWItems.KODIAK_SADDLE.get());
+            this.spawnAtLocation(acceptSaddle());
         }
     }
 
@@ -293,6 +498,12 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public void setTarget(@Nullable LivingEntity target) {
         if (isNapping()) return;
         super.setTarget(target);
+
+        if (target != null) {
+            if (this.getFoodPick() != null && !this.getFoodPick().isEmpty()) {
+                kodiakManagement.eatFoodInHisMouth(this.getFoodPick());
+            }
+        }
     }
 
     @Override
@@ -376,6 +587,36 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        ItemStack itemStack = player.getItemInHand(hand);
+        Item heldItem = itemStack.getItem();
+        if (this.getTarget() == null && !this.isNapping() && (this.getFoodPick() == ItemStack.EMPTY || this.getFoodPick() == null)) {
+            if (itemStack.is(Tags.Items.FOODS) || itemStack.is(Items.HONEYCOMB)) {
+                kodiakManagement.pickupItemInHisMouth(heldItem.getDefaultInstance().copy());
+                itemStack.shrink(1);
+                lastPlayerWhoFeedHim = player;
+
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        if (this.getFoodPick() != null && !this.getFoodPick().isEmpty()) {
+            if (player.getMainHandItem().isEmpty()) {
+                player.setItemInHand(InteractionHand.MAIN_HAND, this.getFoodPick().copy());
+                this.setFoodPick(ItemStack.EMPTY);
+                this.playSound(SoundEvents.ITEM_PICKUP);
+                this.playSound((OWUtils.RANDOM(2) ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get()), 1.0f, (float) OWUtils.generateRandomInterval(0.9f, 1.1f));
+                setNap(false);
+                this.setTarget(player);
+
+                return InteractionResult.SUCCESS;
+            }
+        }
+
+        return super.mobInteract(player, hand);
+    }
+
+    @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
         if (mobSpawnType != MobSpawnType.BREEDING) {
             this.setRandomAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH), this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
@@ -432,6 +673,12 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.level().addParticle(particleOption, px, py, pz, 0, 0, 0);
         }
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ROOTED_DIRT_HIT, SoundSource.AMBIENT, 1.0f, 1.0f);
+    }
+
+    private void handleGoldVariantEffects() {
+        if (this.getVariant() == KodiakVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
+            OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
+        }
     }
 
     private KodiakVariant chooseKodiakVariant() {
@@ -520,9 +767,37 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public boolean isShade() { return this.entityData.get(IS_SHADE_SKIN);}
 
+    protected boolean canAttack() {
+        return canAttack;
+    }
+
+    protected void setCanAttack(boolean canAttack) {
+        this.canAttack = canAttack;
+    }
+
+    public boolean isDirty() {
+        return this.entityData.get(IS_DIRTY);
+    }
+
+    public void setDirty(boolean isDirty) {
+        this.entityData.set(IS_DIRTY, isDirty);
+        this.playSound(SoundEvents.HONEY_BLOCK_PLACE);
+    }
+
     public void setRolling(boolean isRolling) { this.entityData.set(IS_ROLLING, isRolling);}
 
     public boolean isRolling() { return this.entityData.get(IS_ROLLING);}
+
+    public ItemStack getFoodPick() {
+        return this.entityData.get(FOOD_PICK);
+    }
+
+    public void setFoodPick(ItemStack food) {
+        this.entityData.set(FOOD_PICK, food);
+        if (!food.isEmpty()) {
+            startEatingTimer = true;
+        }
+    }
 
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
@@ -532,6 +807,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         tag.putInt("foodWanted", this.foodWanted);
 
         tag.putBoolean("isShade", this.isShade());
+
+        if (lastPlayerWhoFeedHim != null) {
+            tag.putUUID("LastFeederUUID", lastPlayerWhoFeedHim.getUUID());
+        }
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -542,5 +821,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.foodWanted = tag.getInt("foodWanted");
 
         this.entityData.set(IS_SHADE_SKIN, tag.getBoolean("isShade"));
+
+        if (tag.hasUUID("LastFeederUUID")) {
+            UUID feederUUID = tag.getUUID("LastFeederUUID");
+            lastPlayerWhoFeedHim = this.level().getPlayerByUUID(feederUUID);
+        }
     }
 }

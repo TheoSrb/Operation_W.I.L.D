@@ -2,7 +2,6 @@ package net.tiew.operationWild.entity.goals.kodiak;
 
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.tiew.operationWild.core.OWUtils;
-import net.tiew.operationWild.entity.AI.AIKodiak;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.sound.OWSounds;
 
@@ -10,12 +9,10 @@ import java.util.EnumSet;
 
 public class KodiakRollGoal extends Goal {
 
-    private final AIKodiak aiKodiak;
     private final KodiakEntity kodiak;
     private final float rollFrequencyMultiplier;
 
-    public KodiakRollGoal(AIKodiak aiKodiak, KodiakEntity kodiak, float rollFrequencyMultiplier) {
-        this.aiKodiak = aiKodiak;
+    public KodiakRollGoal(KodiakEntity kodiak, float rollFrequencyMultiplier) {
         this.kodiak = kodiak;
         this.rollFrequencyMultiplier = rollFrequencyMultiplier;
 
@@ -31,7 +28,7 @@ public class KodiakRollGoal extends Goal {
             kodiak.playSound(OWSounds.KODIAK_MISC.get(), 1.5f, pitch);
         }
         if (kodiak.getFoodPick() != null && !kodiak.getFoodPick().isEmpty()) {
-            kodiak.eatFoodInHisMouth(kodiak.getFoodPick());
+            kodiak.kodiakManagement.eatFoodInHisMouth(kodiak.getFoodPick());
         }
     }
 
@@ -49,12 +46,12 @@ public class KodiakRollGoal extends Goal {
                 kodiak.onGround() &&
                 kodiak.getHealth() > (kodiak.getMaxHealth() * 0.5f) &&
                 !kodiak.isNapping() &&
-                !aiKodiak.isSearchingInsideChest;
+                !kodiak.isSearchingInsideChest;
     }
 
     @Override
     public boolean canContinueToUse() {
-        if (aiKodiak.isSearchingInsideChest) return false;
+        if (kodiak.isSearchingInsideChest) return false;
         return super.canContinueToUse();
     }
 }

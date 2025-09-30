@@ -1,19 +1,27 @@
 package net.tiew.operationWild.core;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.tiew.operationWild.entity.OWEntity;
 import org.joml.Math;
 import org.joml.Vector3f;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+
+import java.util.Random;
 
 public class OWUtils {
 
@@ -25,6 +33,13 @@ public class OWUtils {
         int min = (int) (average * (1 - (percent / 100)));
         int max = (int) (average * (1 + percent / 100));
         return OWUtils.generateRandomInterval(min, max);
+    }
+
+    public static float distanceRest(LivingEntity livingEntity, BlockPos target) {
+        float f = (float) (livingEntity.getX() - target.getX());
+        float f1 = (float) (livingEntity.getY() - target.getY());
+        float f2 = (float) (livingEntity.getZ() - target.getZ());
+        return Mth.sqrt(f * f + f1 * f1 + f2 * f2);
     }
 
     public static void showMode(ServerPlayer player, boolean isAggressive) {
@@ -128,5 +143,121 @@ public class OWUtils {
         }
     }
 
+    public static void spawnItemParticles(OWEntity owEntity, ItemStack itemStack, double x, double y, double z) {
+        if (!owEntity.level().isClientSide()) {
+            ServerLevel serverLevel = (ServerLevel) owEntity.level();
+            for (int i = 0; i < 16; i++) {
+                serverLevel.sendParticles(
+                        new ItemParticleOption(ParticleTypes.ITEM, (itemStack != null && !itemStack.isEmpty()) ? itemStack : Items.APPLE.getDefaultInstance()),
+                        x + (owEntity.getRandom().nextDouble() - 0.5) * 0.5,
+                        y,
+                        z + (owEntity.getRandom().nextDouble() - 0.5) * 0.5,
+                        1,
+                        (owEntity.getRandom().nextDouble() - 0.5) * 0.1,
+                        owEntity.getRandom().nextDouble() * 0.1,
+                        (owEntity.getRandom().nextDouble() - 0.5) * 0.1,
+                        0.0
+                );
+            }
+        } else {
+            for (int i = 0; i < 16; i++) {
+                owEntity.level().addParticle(
+                        new ItemParticleOption(ParticleTypes.ITEM, (itemStack != null && !itemStack.isEmpty()) ? itemStack : Items.APPLE.getDefaultInstance()),
+                        x + (owEntity.getRandom().nextDouble() - 0.5) * 0.5,
+                        y,
+                        z + (owEntity.getRandom().nextDouble() - 0.5) * 0.5,
+                        (owEntity.getRandom().nextDouble() - 0.5) * 0.1,
+                        owEntity.getRandom().nextDouble() * 0.1,
+                        (owEntity.getRandom().nextDouble() - 0.5) * 0.1
+                );
+            }
+        }
+    }
+
+    public static void spawnComposterParticlesAround(OWEntity owEntity, ParticleOptions particleOptions) {
+        double centerX = owEntity.getX();
+        double centerY = owEntity.getY();
+        double centerZ = owEntity.getZ();
+
+        Random random = (Random) owEntity.getRandom();
+
+        if (!owEntity.level().isClientSide()) {
+            ServerLevel serverLevel = (ServerLevel) owEntity.level();
+
+            for (int i = 0; i < 100; i++) {
+                double angle = (2 * java.lang.Math.PI * i) / 100.0;
+                double radius = 0.5 + random.nextDouble() * 1.5;
+
+                double particleX = centerX + java.lang.Math.cos(angle) * radius;
+                double particleZ = centerZ + java.lang.Math.sin(angle) * radius;
+                double particleY = centerY + random.nextDouble() * 2.0;
+
+                serverLevel.sendParticles(
+                        particleOptions,
+                        particleX,
+                        particleY,
+                        particleZ,
+                        1,
+                        (random.nextDouble() - 0.5) * 0.2,
+                        random.nextDouble() * 0.2,
+                        (random.nextDouble() - 0.5) * 0.2,
+                        0.1
+                );
+            }
+
+            for (int i = 0; i < 50; i++) {
+                double randomX = centerX + (random.nextDouble() - 0.5) * 6.0;
+                double randomY = centerY + random.nextDouble() * 3.0;
+                double randomZ = centerZ + (random.nextDouble() - 0.5) * 6.0;
+
+                serverLevel.sendParticles(
+                        particleOptions,
+                        randomX,
+                        randomY,
+                        randomZ,
+                        1,
+                        (random.nextDouble() - 0.5) * 0.3,
+                        random.nextDouble() * 0.3,
+                        (random.nextDouble() - 0.5) * 0.3,
+                        0.15
+                );
+            }
+        } else {
+            for (int i = 0; i < 100; i++) {
+                double angle = (2 * java.lang.Math.PI * i) / 100.0;
+                double radius = 0.5 + random.nextDouble() * 1.5;
+
+                double particleX = centerX + java.lang.Math.cos(angle) * radius;
+                double particleZ = centerZ + java.lang.Math.sin(angle) * radius;
+                double particleY = centerY + random.nextDouble() * 2.0;
+
+                owEntity.level().addParticle(
+                        particleOptions,
+                        particleX,
+                        particleY,
+                        particleZ,
+                        (random.nextDouble() - 0.5) * 0.2,
+                        random.nextDouble() * 0.2,
+                        (random.nextDouble() - 0.5) * 0.2
+                );
+            }
+
+            for (int i = 0; i < 50; i++) {
+                double randomX = centerX + (random.nextDouble() - 0.5) * 6.0;
+                double randomY = centerY + random.nextDouble() * 3.0;
+                double randomZ = centerZ + (random.nextDouble() - 0.5) * 6.0;
+
+                owEntity.level().addParticle(
+                        particleOptions,
+                        randomX,
+                        randomY,
+                        randomZ,
+                        (random.nextDouble() - 0.5) * 0.3,
+                        random.nextDouble() * 0.3,
+                        (random.nextDouble() - 0.5) * 0.3
+                );
+            }
+        }
+    }
 
 }

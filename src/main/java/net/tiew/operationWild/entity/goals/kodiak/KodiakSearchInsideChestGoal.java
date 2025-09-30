@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
-import net.tiew.operationWild.entity.AI.AIKodiak;
+import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
 import java.util.ArrayList;
@@ -14,7 +14,6 @@ import java.util.Random;
 
 public class KodiakSearchInsideChestGoal extends Goal {
 
-    private final AIKodiak aiKodiak;
     private final KodiakEntity kodiak;
     private final float attractionFrequencyMultiplier;
     private final int radius;
@@ -24,8 +23,7 @@ public class KodiakSearchInsideChestGoal extends Goal {
     private BlockPos targetPos;
     private int cooldownTicks = 0;
 
-    public KodiakSearchInsideChestGoal(AIKodiak aiKodiak, KodiakEntity kodiak, float attractionFrequencyMultiplier, int radius, float speedMultiplier, Runnable action) {
-        this.aiKodiak = aiKodiak;
+    public KodiakSearchInsideChestGoal(KodiakEntity kodiak, float attractionFrequencyMultiplier, int radius, float speedMultiplier, Runnable action) {
         this.kodiak = kodiak;
         this.attractionFrequencyMultiplier = attractionFrequencyMultiplier;
         this.radius = radius;
@@ -56,7 +54,7 @@ public class KodiakSearchInsideChestGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return super.canContinueToUse() && targetPos != null && cooldownTicks == 0 && kodiak.level().getBlockState(targetPos).is(Blocks.CHEST) && AIKodiak.distanceRest(kodiak, targetPos) >= 1 &&
+        return super.canContinueToUse() && targetPos != null && cooldownTicks == 0 && kodiak.level().getBlockState(targetPos).is(Blocks.CHEST) && OWUtils.distanceRest(kodiak, targetPos) >= 1 &&
                 kodiak.getFoodPick().isEmpty() ;
     }
 
@@ -77,13 +75,13 @@ public class KodiakSearchInsideChestGoal extends Goal {
 
             kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedMultiplier);
 
-            if (AIKodiak.distanceRest(kodiak, targetPos) <= 4) {
+            if (OWUtils.distanceRest(kodiak, targetPos) <= 4) {
                 if (kodiak.level().getBlockEntity(targetPos) instanceof ChestBlockEntity chestEntity) {
-                    aiKodiak.chestBlockEntity = chestEntity;
+                    kodiak.chestBlockEntity = chestEntity;
                 }
                 action.run();
                 cooldownTicks = 300;
-                aiKodiak.isSearchingInsideChest = true;
+                kodiak.isSearchingInsideChest = true;
             }
         }
     }
