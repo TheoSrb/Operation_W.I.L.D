@@ -57,10 +57,7 @@ import net.tiew.operationWild.entity.goals.NapGoal;
 import net.tiew.operationWild.entity.goals.OWAttackGoal;
 import net.tiew.operationWild.entity.goals.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.OWRandomLookAroundGoal;
-import net.tiew.operationWild.entity.goals.kodiak.KodiakAttractedToGoal;
-import net.tiew.operationWild.entity.goals.kodiak.KodiakRollGoal;
-import net.tiew.operationWild.entity.goals.kodiak.KodiakSearchInsideChestGoal;
-import net.tiew.operationWild.entity.goals.kodiak.KodiakTemptGoal;
+import net.tiew.operationWild.entity.goals.kodiak.*;
 import net.tiew.operationWild.entity.taming.TamingKodiak;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.core.OWTags;
@@ -157,14 +154,19 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         createKodiakAI(); // Create the AI before the goals, otherwise, null error
 
-        this.goalSelector.addGoal(1, new KodiakAttractedToGoal<>(this, ItemEntity.class,
+        this.goalSelector.addGoal(5, new KodiakAttractedToGoal<>(this, ItemEntity.class,
                 1.75f, 15, 5.0f, () -> kodiakManagement.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
-        this.goalSelector.addGoal(2, new KodiakRollGoal(this, 1.0f));
-        this.goalSelector.addGoal(3, new NapGoal(this, 1.2f, 700, true));
+
+        this.goalSelector.addGoal(0, new KodiakAttractedToCampfireGoal(this,
+                1.0f, 60, 200.0f, () -> kodiakManagement.pickupItemInHisMouth(this.foodPick),
+                true));
+
+        this.goalSelector.addGoal(3, new KodiakRollGoal(this, 1.15f));
+        this.goalSelector.addGoal(4, new NapGoal(this, 1.0f, 700, true));
     }
 
     private void registerBasicsGoals() {
-        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(2, new KodiakTemptGoal(this, 2D, Ingredient.of(Tags.Items.FOODS), false));
         this.goalSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, canAttack()));
         this.goalSelector.addGoal(6, new OWBreedGoal(this, 1.0D));

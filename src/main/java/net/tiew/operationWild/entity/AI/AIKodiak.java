@@ -1,7 +1,6 @@
 package net.tiew.operationWild.entity.AI;
 
 import net.minecraft.tags.BlockTags;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.Blocks;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.goals.kodiak.KodiakAttractedToGoal;
@@ -11,16 +10,14 @@ public class AIKodiak extends AIOWEntity {
 
     private KodiakEntity kodiak;
     public AIKodiakManagement kodiakManagement;
-    private final int UPDATE_STATE_COOLDOWN = 20;
-    private final int GOAL_START_TIMEOUT = 600;
-
-    private int goalTimeoutTimer = 0;
-    private boolean goalHasStarted = false;
+    private static final int STATE_CHANGE_INTERVAL = 400;
 
     private KodiakSearchInsideChestGoal chestGoal;
     private KodiakAttractedToGoal<?> campfireGoal;
     private KodiakAttractedToGoal<?> beeNestGoal;
     private KodiakAttractedToGoal<?> cropsGoal;
+
+    private boolean forceGoalActivation = false;
 
     public enum KodiakState {
         IDLE(-1),
@@ -44,23 +41,24 @@ public class AIKodiak extends AIOWEntity {
         super(kodiak);
         this.kodiak = kodiak;
         this.kodiakManagement = new AIKodiakManagement(kodiak, this);
+        initializeGoals();
     }
 
     private void initializeGoals() {
-        chestGoal = new KodiakSearchInsideChestGoal(kodiak, 6.0f, 35,
+        chestGoal = new KodiakSearchInsideChestGoal(kodiak, 20.0f, 35,
                 1.5f, () -> kodiakManagement.openChest(kodiak.chestBlockEntity));
 
         campfireGoal = new KodiakAttractedToGoal<>(kodiak, Blocks.CAMPFIRE,
-                1.0f, 60, 8.0f, () -> kodiakManagement.pickupItemInHisMouth(kodiak.foodPick),
-                kodiak.getFoodPick().isEmpty());
+                1.0f, 60, 200.0f, () -> kodiakManagement.pickupItemInHisMouth(kodiak.foodPick),
+                true);
 
         beeNestGoal = new KodiakAttractedToGoal<>(kodiak, Blocks.BEE_NEST,
-                1.75f, 25, 4.0f, kodiakManagement::lookForHoneyInTheBeeNest,
-                kodiak.getFoodPick().isEmpty());
+                1.75f, 25, 200.0f, kodiakManagement::lookForHoneyInTheBeeNest,
+                true);
 
         cropsGoal = new KodiakAttractedToGoal<>(kodiak, BlockTags.CROPS,
-                1.15f, 80, 10f, () -> kodiakManagement.goToNewCropBlock(20),
-                kodiak.getFoodPick().isEmpty());
+                1.15f, 80, 200.0f, () -> kodiakManagement.goToNewCropBlock(20),
+                true);
     }
 
     @Override
@@ -69,79 +67,48 @@ public class AIKodiak extends AIOWEntity {
     }
 
     public void tick() {
-        if (!kodiak.level().isClientSide()) {
-            if (kodiak.getKodiakState() != KodiakState.IDLE && !goalHasStarted) {
-                goalTimeoutTimer++;
-
-                boolean isGoalRunning = isCurrentGoalRunning();
-
-                if (isGoalRunning) {
-                    goalHasStarted = true;
-                    System.out.println("Goal démarré !");
-                }
-
-                if (goalTimeoutTimer >= GOAL_START_TIMEOUT) {
-                    System.out.println("TIMEOUT: Le goal n'a pas démarré après 30s, reset...");
-                    resetKodiakState();
-                }
+        /*if (!kodiak.level().isClientSide()) {
+            if (kodiak.tickCount % STATE_CHANGE_INTERVAL == 0) {
+                changeToRandomState();
             }
-
-            if (kodiak.tickCount % this.UPDATE_STATE_COOLDOWN == 0) {
-                updateState();
-            }
-        }
+        }*/
     }
 
-    private boolean isCurrentGoalRunning() {
-        KodiakState state = kodiak.getKodiakState();
+    private void changeToRandomState() {
+        KodiakState newState = getRandomState();
+        kodiak.setKodiakState(newState);
+        adaptGoalsToState(newState);
+    }
+
+    private void adaptGoalsToState(KodiakState state) {
+        kodiak.goalSelector.removeGoal(chestGoal);
+        kodiak.goalSelector.removeGoal(campfireGoal);
+        kodiak.goalSelector.removeGoal(beeNestGoal);
+        kodiak.goalSelector.removeGoal(cropsGoal);
 
         switch (state) {
             case GOING_TO_CHEST:
-                return isGoalRunning(chestGoal);
+                kodiak.goalSelector.addGoal(1, chestGoal);
+                chestGoal.start();
+                break;
             case GOING_TO_CAMPFIRE:
-                return isGoalRunning(campfireGoal);
+                kodiak.goalSelector.addGoal(1, campfireGoal);
+                campfireGoal.start();
+                break;
             case GOING_TO_BEE_NEST:
-                return isGoalRunning(beeNestGoal);
+                kodiak.goalSelector.addGoal(1, beeNestGoal);
+                beeNestGoal.start();
+                break;
             case GOING_TO_CROPS:
-                return isGoalRunning(cropsGoal);
+                kodiak.goalSelector.addGoal(1, cropsGoal);
+                cropsGoal.start();
+                break;
+            case IDLE:
             default:
-                return false;
-        }
-    }
-
-    private boolean isGoalRunning(Goal goal) {
-        if (goal == null) return false;
-
-        try {
-            for (var wrappedGoal : kodiak.goalSelector.getAvailableGoals()) {
-                if (wrappedGoal != null && wrappedGoal.getGoal() == goal) {
-                    return wrappedGoal.isRunning();
-                }
-            }
-        } catch (Exception e) {
-            return false;
+                break;
         }
 
-        return false;
-    }
-
-    private void updateState() {
-        KodiakState currentState = kodiak.getKodiakState();
-
-        if (currentState == KodiakState.IDLE) {
-            initializeGoals();
-
-            KodiakState state = getRandomState();
-            kodiak.setKodiakState(state);
-
-            System.out.println("----- Changement d'état -----");
-            System.out.println(kodiak.getKodiakState());
-
-            adaptGoalsToStatement(state);
-
-            goalTimeoutTimer = 0;
-            goalHasStarted = false;
-        }
+        System.out.println("Etat changé -> " + kodiak.getKodiakState());
     }
 
     public void resetKodiakState() {
@@ -149,41 +116,7 @@ public class AIKodiak extends AIOWEntity {
         kodiak.goalSelector.removeGoal(campfireGoal);
         kodiak.goalSelector.removeGoal(beeNestGoal);
         kodiak.goalSelector.removeGoal(cropsGoal);
-
         kodiak.setKodiakState(KodiakState.IDLE);
-
-        goalTimeoutTimer = 0;
-        goalHasStarted = false;
-    }
-
-    private void adaptGoalsToStatement(KodiakState state) {
-        kodiak.goalSelector.removeGoal(chestGoal);
-        kodiak.goalSelector.removeGoal(campfireGoal);
-        kodiak.goalSelector.removeGoal(beeNestGoal);
-        kodiak.goalSelector.removeGoal(cropsGoal);
-
-        System.out.println("State: " + state);
-
-        switch (state) {
-            case IDLE:
-                break;
-
-            case GOING_TO_CHEST:
-                kodiak.goalSelector.addGoal(2, chestGoal);
-                break;
-
-            case GOING_TO_CAMPFIRE:
-                kodiak.goalSelector.addGoal(4, campfireGoal);
-                break;
-
-            case GOING_TO_BEE_NEST:
-                kodiak.goalSelector.addGoal(6, beeNestGoal);
-                break;
-
-            case GOING_TO_CROPS:
-                kodiak.goalSelector.addGoal(8, cropsGoal);
-                break;
-        }
     }
 
     public KodiakState getRandomState() {

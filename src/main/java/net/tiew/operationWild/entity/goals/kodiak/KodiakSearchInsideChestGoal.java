@@ -39,13 +39,11 @@ public class KodiakSearchInsideChestGoal extends Goal {
         super.start();
         targetPos = findRandomChestPos(radius);
         hasReachedChest = false;
-        System.out.println("[KodiakChestGoal] Start - Target: " + targetPos);
     }
 
     @Override
     public void stop() {
         super.stop();
-        System.out.println("[KodiakChestGoal] Stop - HasReached: " + hasReachedChest);
         targetPos = null;
         hasReachedChest = false;
         kodiak.getNavigation().stop();
@@ -116,8 +114,6 @@ public class KodiakSearchInsideChestGoal extends Goal {
                     kodiak.isSearchingInsideChest = true;
 
                     cooldownTicks = 600;
-
-                    System.out.println("[KodiakChestGoal] Chest opened successfully");
                 }
             }
         }
@@ -139,14 +135,12 @@ public class KodiakSearchInsideChestGoal extends Goal {
         }
 
         if (chestPositions.isEmpty()) {
-            System.out.println("[KodiakChestGoal] No chest found in radius " + radiusToSearch);
             return null;
         }
 
         Random random = new Random();
         int randomIndex = random.nextInt(chestPositions.size());
         BlockPos selected = chestPositions.get(randomIndex);
-        System.out.println("[KodiakChestGoal] Found " + chestPositions.size() + " chests, selected: " + selected);
         return selected;
     }
 }
