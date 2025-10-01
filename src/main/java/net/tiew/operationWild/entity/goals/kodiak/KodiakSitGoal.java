@@ -7,27 +7,22 @@ import net.tiew.operationWild.sound.OWSounds;
 
 import java.util.EnumSet;
 
-public class KodiakRollGoal extends Goal {
+public class KodiakSitGoal extends Goal {
 
     private final KodiakEntity kodiak;
-    private final float rollFrequencyMultiplier;
+    private final float sitFrequencyMultiplier;
 
-    public KodiakRollGoal(KodiakEntity kodiak, float rollFrequencyMultiplier) {
+    public KodiakSitGoal(KodiakEntity kodiak, float sitFrequencyMultiplier) {
         this.kodiak = kodiak;
-        this.rollFrequencyMultiplier = rollFrequencyMultiplier;
+        this.sitFrequencyMultiplier = sitFrequencyMultiplier;
 
-        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Flag.JUMP, Flag.LOOK));
+        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
     }
 
     @Override
     public void start() {
         super.start();
-        float pitch = (float) OWUtils.generateRandomInterval(0.8f, 1.1f);
-        kodiak.setRolling(true);
-        kodiak.rollingAnimationState.start(kodiak.tickCount);
-        if (kodiak.getRandom().nextInt(2) == 0) {
-            kodiak.playSound(OWSounds.KODIAK_MISC.get(), 1.5f, pitch);
-        }
+        kodiak.setSitting(true);
         if (kodiak.getFoodPick() != null && !kodiak.getFoodPick().isEmpty()) {
             kodiak.kodiakBehaviorHandler.eatFoodInHisMouth(kodiak.getFoodPick());
         }
@@ -36,25 +31,23 @@ public class KodiakRollGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
-        kodiak.setRolling(false);
     }
 
     @Override
     public boolean canUse() {
-        return kodiak.getRandom().nextInt((int) (((kodiak.isDirty() || kodiak.kodiakBehaviorHandler.isCropsAround(10)) ? 350 : 550) / rollFrequencyMultiplier)) == 0 && !kodiak.isTame() &&
+        return kodiak.getRandom().nextInt((int) (((kodiak.isDirty()) ? 300 : 500) / sitFrequencyMultiplier)) == 0 && !kodiak.isTame() &&
                 !kodiak.isDeadOrDying() &&
                 kodiak.getTarget() == null &&
                 !kodiak.isInWater() &&
                 kodiak.onGround() &&
                 kodiak.getHealth() > (kodiak.getMaxHealth() * 0.5f) &&
                 !kodiak.isNapping() &&
-                !kodiak.isSearchingInsideChest &&
-                !kodiak.isSitting();
+                !kodiak.isSearchingInsideChest && !kodiak.isRolling();
     }
 
     @Override
     public boolean canContinueToUse() {
         if (kodiak.isSearchingInsideChest) return false;
-        return kodiak.isRolling();
+        return kodiak.isSitting() && kodiak.getTarget() == null;
     }
 }

@@ -92,6 +92,7 @@ public class KodiakSearchInsideChestGoal extends Goal {
 
         if (targetPos != null && !hasReachedChest) {
             double distance = OWUtils.distanceRest(kodiak, targetPos);
+            kodiak.setSitting(false);
 
             if (distance > 3) {
                 kodiak.getNavigation().moveTo(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5, speedMultiplier);

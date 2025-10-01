@@ -106,6 +106,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public int rollTimer = 0;
     public int itemRejectionTimer = 0;
+    public int sitTimer = 0;
+    public final int MAX_SITTING_TIMER = 600;
 
     protected boolean canAttack = false;
 
@@ -153,7 +155,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
-        this.goalSelector.addGoal(1, new KodiakRollGoal(this, 1.5f));
+        this.goalSelector.addGoal(1, new KodiakRollGoal(this, 1.8f));
         this.goalSelector.addGoal(1, new KodiakAttractedToFoodItemGoal(this, 1.75f, 15, 7.5f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
         this.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(this, 2.0f, 35, 1.75f, () -> kodiakBehaviorHandler.openChest(chestBlockEntity)));
         this.goalSelector.addGoal(3, new KodiakAttractedToBeeNestGoal(this, 1.75f, 25, 2.0f, kodiakBehaviorHandler::lookForHoneyInTheBeeNest, true));
@@ -162,6 +164,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.goalSelector.addGoal(6, new KodiakTemptGoal(this, 2D, Ingredient.of(Tags.Items.FOODS), false));
         this.goalSelector.addGoal(7, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, canAttack()));
         this.goalSelector.addGoal(9, new NapGoal(this, 1.15f, 700, true));
+        this.goalSelector.addGoal(10, new KodiakSitGoal(this, 0.25f));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
         this.goalSelector.addGoal(11, new RandomStrollGoal(this, 0.8D));
@@ -406,6 +409,17 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
+        if (!this.isTame()) {
+            if (this.isSitting()) {
+                this.sitTimer++;
+
+                if (sitTimer >= MAX_SITTING_TIMER) {
+                    sitTimer = 0;
+                    this.setSitting(false);
+                }
+            }
+        }
+
         if (cropCheckTimer > 0) {
             cropCheckTimer--;
             if (cropCheckTimer == 0 && targetCrop != null) {
@@ -517,6 +531,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public boolean hurt(DamageSource damageSource, float v) {
         if (damageSource.getDirectEntity() instanceof Bee) return false;
+        if (!this.isTame()) {
+            if (this.isSitting()) this.setSitting(false);
+        }
         return super.hurt(damageSource, v);
     }
 

@@ -87,7 +87,7 @@ public class KodiakCatchFishGoal extends Goal {
                         0.5F, 1.0F);
             }
 
-            serverLevel.sendParticles(ParticleTypes.FISHING, fishPosition.x, fishPosition.y - 0.5, fishPosition.z, 10, fishVelocity.x, fishVelocity.y, fishVelocity.z, 0.02);
+            serverLevel.sendParticles(ParticleTypes.FISHING, fishPosition.x, fishPosition.y - 0.15, fishPosition.z, 10, fishVelocity.x, fishVelocity.y, fishVelocity.z, 0.02);
 
             this.fishPosition = this.fishPosition.add(this.fishVelocity);
 

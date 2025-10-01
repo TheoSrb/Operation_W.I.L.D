@@ -98,7 +98,7 @@ public class KodiakAttractedToCampfireGoal extends Goal {
                     if (!campfireItems.isEmpty()) {
                         kodiak.setSniffing(true);
                     }
-
+                    kodiak.setSitting(false);
                     double distanceBetweenKodiakAndTarget = OWUtils.distanceRest(kodiak, targetPos);
                     boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
 

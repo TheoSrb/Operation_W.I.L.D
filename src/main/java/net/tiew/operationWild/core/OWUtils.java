@@ -10,6 +10,7 @@ import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -179,7 +180,7 @@ public class OWUtils {
         double centerY = owEntity.getY();
         double centerZ = owEntity.getZ();
 
-        Random random = (Random) owEntity.getRandom();
+        RandomSource random = owEntity.getRandom();
 
         if (!owEntity.level().isClientSide()) {
             ServerLevel serverLevel = (ServerLevel) owEntity.level();

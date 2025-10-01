@@ -71,6 +71,7 @@ public class KodiakAttractedToBeeNestGoal extends Goal {
         if (targetPos != null) {
             kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
             kodiak.setSniffing(true);
+            kodiak.setSitting(false);
             double distanceBetweenKodiakAndTarget = OWUtils.distanceRest(kodiak, targetPos);
             boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
 
