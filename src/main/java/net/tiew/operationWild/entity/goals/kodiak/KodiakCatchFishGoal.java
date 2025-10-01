@@ -26,7 +26,7 @@ public class KodiakCatchFishGoal extends Goal {
     private boolean fishArrived = false;
     private int cooldownTicks = 0;
 
-    private static final int COOLDOWN_DURATION = 800;
+    private static final int COOLDOWN_DURATION = 400;
 
     public KodiakCatchFishGoal(KodiakEntity kodiak, float attractionFrequencyMultiplier, Runnable action) {
         this.kodiak = kodiak;
