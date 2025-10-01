@@ -627,7 +627,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 this.playSound(SoundEvents.ITEM_PICKUP);
                 this.playSound((OWUtils.RANDOM(2) ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get()), 1.0f, (float) OWUtils.generateRandomInterval(0.9f, 1.1f));
                 setNap(false);
-                this.setTarget(player);
+                if (!player.isCreative() && !player.isSpectator()) {
+                    this.setTarget(player);
+                }
 
                 return InteractionResult.SUCCESS;
             }
