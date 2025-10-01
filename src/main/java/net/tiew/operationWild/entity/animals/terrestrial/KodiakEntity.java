@@ -80,6 +80,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private static final EntityDataAccessor<Boolean> IS_ROLLING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<ItemStack> FOOD_PICK = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<Boolean> IS_DIRTY = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_SNIFFING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> REJECT_ITEM = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
 
     public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
@@ -91,14 +93,19 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public final AnimationState attack3Combo = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
     public final AnimationState rollingAnimationState = new AnimationState();
+    public final AnimationState sniffingAnimationState = new AnimationState();
+    public final AnimationState rejectingAnimationState = new AnimationState();
 
     public int attack1ComboTimer = 0;
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
     public int napAnimationTimeout = 0;
     public int rollingAnimationTimeout = 0;
+    public int sniffingAnimationTimeout = 0;
+    public int rejectingAnimationTimeout = 0;
 
     public int rollTimer = 0;
+    public int itemRejectionTimer = 0;
 
     protected boolean canAttack = false;
 
@@ -146,6 +153,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
+        this.goalSelector.addGoal(1, new KodiakRollGoal(this, 1.5f));
         this.goalSelector.addGoal(1, new KodiakAttractedToFoodItemGoal(this, 1.75f, 15, 7.5f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
         this.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(this, 2.0f, 35, 1.75f, () -> kodiakBehaviorHandler.openChest(chestBlockEntity)));
         this.goalSelector.addGoal(3, new KodiakAttractedToBeeNestGoal(this, 1.75f, 25, 2.0f, kodiakBehaviorHandler::lookForHoneyInTheBeeNest, true));
@@ -153,7 +161,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.goalSelector.addGoal(5, new KodiakAttractedToCropsGoal(this, 1.15f, 80, 2.25f, () -> kodiakBehaviorHandler.goToNewCropBlock(20), true));
         this.goalSelector.addGoal(6, new KodiakTemptGoal(this, 2D, Ingredient.of(Tags.Items.FOODS), false));
         this.goalSelector.addGoal(7, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, canAttack()));
-        this.goalSelector.addGoal(8, new KodiakRollGoal(this, 1.5f));
         this.goalSelector.addGoal(9, new NapGoal(this, 1.15f, 700, true));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
@@ -171,6 +178,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(IS_ROLLING, false);
         builder.define(FOOD_PICK, ItemStack.EMPTY);
         builder.define(IS_DIRTY, false);
+        builder.define(IS_SNIFFING, false);
+        builder.define(REJECT_ITEM, false);
     }
 
     // Entity Methods
@@ -423,6 +432,26 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
+        if (this.isSniffing()) {
+            if (this.tickCount % 12 == 0) {
+                float pitch = (float) (OWUtils.generateExponentialExp(0.7, 0.9));
+                this.playSound(RANDOM(2) ? OWSounds.KODIAK_SNIFF_1.get() : RANDOM(2) ? OWSounds.KODIAK_SNIFF_2.get() : OWSounds.KODIAK_SNIFF_3.get(), 0.5f, pitch);
+            }
+        }
+
+        if (this.isRejectingItem()) {
+            itemRejectionTimer++;
+
+            if (!this.level().isClientSide && itemRejectionTimer % 5 == 0) {
+                ((ServerLevel) this.level()).sendParticles(ParticleTypes.ANGRY_VILLAGER, this.getX(), this.getY() + 1, this.getZ(), 10, 0f, 0f, 0f, 0.02);
+            }
+
+            if (itemRejectionTimer >= 21) {
+                itemRejectionTimer = 0;
+                this.setRejectItem(false);
+            }
+        }
+
         handleRunningEffects(29, SoundEvents.HORSE_STEP, 0.5f, new int[]{5, 19});
         handleGoldVariantEffects();
     }
@@ -439,6 +468,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         if (this.isSaddled()) {
             this.spawnAtLocation(acceptSaddle());
+        }
+
+        if (this.getFoodPick() != null && !this.getFoodPick().isEmpty()) {
+            this.spawnAtLocation(this.getFoodPick());
         }
     }
 
@@ -687,6 +720,30 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.rollingAnimationState.stop();
         }
 
+        if (this.isSniffing()) {
+            if (this.sniffingAnimationTimeout <= 0) {
+                this.sniffingAnimationTimeout = 12;
+                this.sniffingAnimationState.start(this.tickCount);
+            } else --this.sniffingAnimationTimeout;
+        }
+
+        if (!this.isSniffing()) {
+            this.sniffingAnimationTimeout = 0;
+            this.sniffingAnimationState.stop();
+        }
+
+        if (this.isRejectingItem()) {
+            if (this.rejectingAnimationTimeout <= 0) {
+                this.rejectingAnimationTimeout = 21;
+                this.rejectingAnimationState.start(this.tickCount);
+            } else --this.rejectingAnimationTimeout;
+        }
+
+        if (!this.isRejectingItem()) {
+            this.rejectingAnimationTimeout = 0;
+            this.rejectingAnimationState.stop();
+        }
+
 
         setupComboAnimations();
     }
@@ -757,6 +814,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public void setRolling(boolean isRolling) { this.entityData.set(IS_ROLLING, isRolling);}
 
     public boolean isRolling() { return this.entityData.get(IS_ROLLING);}
+
+    public void setSniffing(boolean isSniffing) { this.entityData.set(IS_SNIFFING, isSniffing);}
+
+    public boolean isSniffing() { return this.entityData.get(IS_SNIFFING);}
+
+    public void setRejectItem(boolean isRejectingItem) { this.entityData.set(REJECT_ITEM, isRejectingItem);}
+
+    public boolean isRejectingItem() { return this.entityData.get(REJECT_ITEM);}
 
     public ItemStack getFoodPick() {
         return this.entityData.get(FOOD_PICK);

@@ -80,14 +80,14 @@ public class KodiakCatchFishGoal extends Goal {
         if (!this.fishArrived) {
             ServerLevel serverLevel = (ServerLevel) kodiak.level();
 
-            if (kodiak.tickCount % 20 == 0) {
+            if (kodiak.tickCount % 30 == 0) {
                 kodiak.level().playSound(null, fishPosition.x, fishPosition.y, fishPosition.z,
                         net.minecraft.sounds.SoundEvents.FISH_SWIM,
                         net.minecraft.sounds.SoundSource.NEUTRAL,
                         0.5F, 1.0F);
             }
 
-            serverLevel.sendParticles(ParticleTypes.FISHING, fishPosition.x, fishPosition.y, fishPosition.z, 10, fishVelocity.x, fishVelocity.y, fishVelocity.z, 0.02);
+            serverLevel.sendParticles(ParticleTypes.FISHING, fishPosition.x, fishPosition.y - 0.5, fishPosition.z, 10, fishVelocity.x, fishVelocity.y, fishVelocity.z, 0.02);
 
             this.fishPosition = this.fishPosition.add(this.fishVelocity);
 
@@ -114,7 +114,7 @@ public class KodiakCatchFishGoal extends Goal {
         boolean isValidBiome = kodiak.level().getBiome(posBelow).is(Biomes.RIVER) || kodiak.level().getBiome(posBelow).is(OWBiomes.REDWOOD_FOREST_BIOME);
 
         return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
-                (kodiak.isInWater() || isWaterBelow) && isValidBiome && kodiak.getTarget() == null && !kodiak.isNapping() && !kodiak.isRolling() && !kodiak.isTame();
+                (kodiak.isInWater() || isWaterBelow) && isValidBiome && kodiak.getTarget() == null && !kodiak.isNapping() && !kodiak.isRolling() && !kodiak.isTame() && kodiak.getFoodPick().isEmpty();
     }
 
     @Override

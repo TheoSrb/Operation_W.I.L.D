@@ -53,6 +53,7 @@ public class KodiakRollGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return true;
+        if (kodiak.isSearchingInsideChest) return false;
+        return kodiak.isRolling();
     }
 }

@@ -42,6 +42,7 @@ public class KodiakAttractedToFoodItemGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
+        kodiak.setSniffing(false);
     }
 
     @Override
@@ -69,6 +70,7 @@ public class KodiakAttractedToFoodItemGoal extends Goal {
                     new AABB(targetPos).inflate(2.0));
 
             kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
+            kodiak.setSniffing(true);
             double distanceBetweenKodiakAndTarget = OWUtils.distanceRest(kodiak, targetPos);
             boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
 

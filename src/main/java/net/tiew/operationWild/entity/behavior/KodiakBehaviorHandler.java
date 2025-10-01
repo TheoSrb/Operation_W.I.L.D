@@ -18,6 +18,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.sound.OWSounds;
 
 import java.util.*;
 
@@ -221,10 +222,10 @@ public class KodiakBehaviorHandler {
     protected boolean canEatItem(ItemStack stack) {
         for (ItemStack s : itemsCatchInWater) {
             if (stack.getItem() == s.getItem()) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     public void eatFoodInHisMouth(ItemStack itemStack) {
@@ -253,8 +254,17 @@ public class KodiakBehaviorHandler {
                 kodiak.setDirty(true);
             }
         } else {
-            kodiak.spawnAtLocation(itemStack.copy());
-            kodiak.playSound(SoundEvents.ITEM_PICKUP);
+            kodiak.setRejectItem(true);
+
+            new Timer().schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    float pitch = (float) (OWUtils.generateRandomInterval(0.8, 1.0));
+                    kodiak.spawnAtLocation(itemStack.copy());
+                    kodiak.playSound(SoundEvents.ITEM_PICKUP);
+                    kodiak.playSound(OWSounds.KODIAK_HURTING.get(), 1.0f, pitch);
+                }
+            }, 500);
         }
 
         kodiak.setFoodPick(ItemStack.EMPTY);

@@ -38,6 +38,7 @@ public class KodiakAttractedToCropsGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
+        kodiak.setSniffing(false);
     }
 
     @Override
@@ -64,6 +65,7 @@ public class KodiakAttractedToCropsGoal extends Goal {
         }
         if (targetPos != null) {
             kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
+            kodiak.setSniffing(true);
             double distanceBetweenKodiakAndTarget = OWUtils.distanceRest(kodiak, targetPos);
             boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
 

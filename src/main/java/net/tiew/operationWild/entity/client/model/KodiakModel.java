@@ -217,6 +217,13 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			return;
 		}
 
+		if (kodiak.isSniffing()) {
+			this.animate(kodiak.sniffingAnimationState, KodiakAnimations.SNIFFS, ageInTicks, 1.0f);
+		}
+
+		if (kodiak.isRejectingItem()) {
+			this.animate(kodiak.rejectingAnimationState, KodiakAnimations.REJECTION, ageInTicks, 1.0f);
+		}
 
 
 		this.animate(kodiak.idleAnimationState, KodiakAnimations.MISC_IDLE, ageInTicks, 1.0f);
@@ -248,7 +255,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
 		this.head.translateAndRotate(poseStack);
 
-		poseStack.translate(0.0D, 0.7D, -1.05D);
+		poseStack.translate(0.0D, 0.7D, -1D);
 
 		poseStack.mulPose(Axis.XP.rotationDegrees(90));
 		poseStack.mulPose(Axis.ZP.rotationDegrees(180));

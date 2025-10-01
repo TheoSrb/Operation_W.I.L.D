@@ -46,6 +46,7 @@ public class KodiakAttractedToCampfireGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
+        kodiak.setSniffing(false);
     }
 
     @Override
@@ -94,6 +95,9 @@ public class KodiakAttractedToCampfireGoal extends Goal {
                 campfireItems = campfire.getItems();
                 if (!campfireItems.isEmpty() || kodiak.level().isNight()) {
                     kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
+                    if (!campfireItems.isEmpty()) {
+                        kodiak.setSniffing(true);
+                    }
 
                     double distanceBetweenKodiakAndTarget = OWUtils.distanceRest(kodiak, targetPos);
                     boolean isArrived = distanceBetweenKodiakAndTarget <= 4;
