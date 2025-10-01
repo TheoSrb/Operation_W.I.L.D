@@ -15,7 +15,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.DifficultyInstance;
 import net.tiew.operationWild.core.OWUtils;
 import net.minecraft.world.InteractionHand;
@@ -45,8 +44,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
 import net.tiew.operationWild.advancements.OWAdvancements;
-import net.tiew.operationWild.entity.AI.AIKodiak;
-import net.tiew.operationWild.entity.AI.AIKodiakManagement;
+import net.tiew.operationWild.entity.behavior.KodiakBehaviorHandler;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.config.IOWEntity;
@@ -83,11 +81,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private static final EntityDataAccessor<ItemStack> FOOD_PICK = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<Boolean> IS_DIRTY = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
 
-    public AIKodiak kodiakAI;
-    public AIKodiakManagement kodiakManagement;
+    public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
-
-    private AIKodiak.KodiakState kodiakState = AIKodiak.KodiakState.IDLE;
 
     public final AnimationState transitionIdleStandingUp = new AnimationState();
     public final AnimationState transitionStandingUpIdle = new AnimationState();
@@ -127,15 +122,12 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public KodiakEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
-        createKodiakAI();
+        initKodiakBehaviorAndTaming();
     }
 
-    private void createKodiakAI() {
-        this.kodiakAI = new AIKodiak(this);
-        this.kodiakManagement = new AIKodiakManagement(this, kodiakAI);
-        this.kodiakTaming = new TamingKodiak(this, kodiakManagement);
-
-        this.setKodiakState(AIKodiak.KodiakState.IDLE);
+    private void initKodiakBehaviorAndTaming() {
+        this.kodiakBehaviorHandler = new KodiakBehaviorHandler(this);
+        this.kodiakTaming = new TamingKodiak(this, kodiakBehaviorHandler);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -150,28 +142,21 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.registerBasicsGoals();
+        initKodiakBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
-        createKodiakAI(); // Create the AI before the goals, otherwise, null error
-
-        this.goalSelector.addGoal(5, new KodiakAttractedToGoal<>(this, ItemEntity.class,
-                1.75f, 15, 5.0f, () -> kodiakManagement.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
-
-        this.goalSelector.addGoal(0, new KodiakAttractedToCampfireGoal(this,
-                1.0f, 60, 200.0f, () -> kodiakManagement.pickupItemInHisMouth(this.foodPick),
-                true));
-
-        this.goalSelector.addGoal(3, new KodiakRollGoal(this, 1.15f));
-        this.goalSelector.addGoal(4, new NapGoal(this, 1.0f, 700, true));
-    }
-
-    private void registerBasicsGoals() {
-        this.goalSelector.addGoal(1, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new KodiakTemptGoal(this, 2D, Ingredient.of(Tags.Items.FOODS), false));
-        this.goalSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, canAttack()));
-        this.goalSelector.addGoal(6, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
-        this.goalSelector.addGoal(7, new RandomStrollGoal(this, 0.8D));
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new KodiakAttractedToFoodItemGoal(this, 1.75f, 15, 7.5f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
+        this.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(this, 2.0f, 35, 1.75f, () -> kodiakBehaviorHandler.openChest(chestBlockEntity)));
+        this.goalSelector.addGoal(3, new KodiakAttractedToBeeNestGoal(this, 1.75f, 25, 2.0f, kodiakBehaviorHandler::lookForHoneyInTheBeeNest, true));
+        this.goalSelector.addGoal(4, new KodiakAttractedToCampfireGoal(this, 1.0f, 60, 2.25f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), true));
+        this.goalSelector.addGoal(5, new KodiakAttractedToCropsGoal(this, 1.15f, 80, 2.25f, () -> kodiakBehaviorHandler.goToNewCropBlock(20), true));
+        this.goalSelector.addGoal(6, new KodiakTemptGoal(this, 2D, Ingredient.of(Tags.Items.FOODS), false));
+        this.goalSelector.addGoal(7, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, canAttack()));
+        this.goalSelector.addGoal(8, new KodiakRollGoal(this, 1.5f));
+        this.goalSelector.addGoal(9, new NapGoal(this, 1.15f, 700, true));
+        this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
+        this.goalSelector.addGoal(11, new RandomStrollGoal(this, 0.8D));
 
         /*this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Player.class, true));
@@ -307,14 +292,13 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public void aiStep() {
         super.aiStep();
         if (this.onGround()) {
-            kodiakManagement.trampleCrops(this.blockPosition());
-            kodiakManagement.trampleCrops(this.blockPosition().below());
+            kodiakBehaviorHandler.trampleCrops(this.blockPosition());
+            kodiakBehaviorHandler.trampleCrops(this.blockPosition().below());
         }
     }
 
     public void tick() {
         super.tick();
-        kodiakAI.tick();
         kodiakTaming.tick();
 
         boolean hasSomethingInHisMouth = getFoodPick() != null && !getFoodPick().isEmpty();
@@ -331,7 +315,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             if (startEatingTimer) {
                 if (eatingTimer < MAX_EATING_TIMER) eatingTimer++;
                 else {
-                    kodiakManagement.eatFoodInHisMouth(getFoodPick());
+                    kodiakBehaviorHandler.eatFoodInHisMouth(getFoodPick());
                 }
             }
 
@@ -339,7 +323,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 if (startHoneyTimer) {
                     if (honeyTimer < MAX_HONEY_TIMER) honeyTimer++;
                     else {
-                        kodiakManagement.eatFoodInHisMouth(getFoodPick());
+                        kodiakBehaviorHandler.eatFoodInHisMouth(getFoodPick());
                     }
                 }
             }
@@ -348,8 +332,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.isRolling()) {
             this.rollTimer++;
 
-            kodiakManagement.trampleCrops(this.blockPosition());
-            kodiakManagement.trampleCrops(this.blockPosition().below());
+            kodiakBehaviorHandler.trampleCrops(this.blockPosition());
+            kodiakBehaviorHandler.trampleCrops(this.blockPosition().below());
 
             Vec3 lookDirection = this.getLookAngle();
             Vec3 leftDirection = new Vec3(lookDirection.z, 0, -lookDirection.x);
@@ -422,7 +406,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                         numberOfBonusSearching = 0;
                         this.getNavigation().stop();
                     } else {
-                        kodiakManagement.goToNewCropBlock(cropRadiusSearch);
+                        kodiakBehaviorHandler.goToNewCropBlock(cropRadiusSearch);
                     }
                 }
                 targetCrop = null;
@@ -486,7 +470,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         if (target != null) {
             if (this.getFoodPick() != null && !this.getFoodPick().isEmpty()) {
-                kodiakManagement.eatFoodInHisMouth(this.getFoodPick());
+                kodiakBehaviorHandler.eatFoodInHisMouth(this.getFoodPick());
             }
         }
     }
@@ -577,7 +561,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         Item heldItem = itemStack.getItem();
         if (this.getTarget() == null && !this.isNapping() && (this.getFoodPick() == ItemStack.EMPTY || this.getFoodPick() == null)) {
             if (itemStack.is(Tags.Items.FOODS) || itemStack.is(Items.HONEYCOMB)) {
-                kodiakManagement.pickupItemInHisMouth(heldItem.getDefaultInstance().copy());
+                kodiakBehaviorHandler.pickupItemInHisMouth(heldItem.getDefaultInstance().copy());
                 itemStack.shrink(1);
                 lastPlayerWhoFeedHim = player;
 
@@ -767,14 +751,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public void setDirty(boolean isDirty) {
         this.entityData.set(IS_DIRTY, isDirty);
         this.playSound(SoundEvents.HONEY_BLOCK_PLACE);
-    }
-
-    public AIKodiak.KodiakState getKodiakState() {
-        return kodiakState;
-    }
-
-    public void setKodiakState(AIKodiak.KodiakState kodiakState) {
-        this.kodiakState = kodiakState;
     }
 
     public void setRolling(boolean isRolling) { this.entityData.set(IS_ROLLING, isRolling);}

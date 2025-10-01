@@ -38,7 +38,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FollowParentGoal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
@@ -66,7 +65,6 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
-import net.tiew.operationWild.entity.AI.AIOWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
@@ -109,13 +107,6 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 import static net.tiew.operationWild.core.OWUtils.generateRandomInterval;
 
 public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, IOWTamable, IOWRideable {
-
-    public AIOWEntity AI = new AIOWEntity(this) {
-        @Override
-        public Temperament getTemperament() {
-            return null;
-        }
-    };
 
     public float averageScale;
     public static final Random RANDOM = new Random();
@@ -1459,10 +1450,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         lastVisibleTarget = (LivingEntity) damageSource.getEntity();
         quest10Progression = 0;
         this.setNap(false);
-        if (this instanceof KodiakEntity kodiak) {
-            kodiak.kodiakAI.resetKodiakState();
-        }
-
         fightingTime = 200;
         this.setFighting(true);
         hurtAmount = (int) amount;
@@ -1658,7 +1645,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public void tick() {
         super.tick();
-        AI.tick();
 
         if (this.level().isClientSide) {
             handleClientAnimationSync();

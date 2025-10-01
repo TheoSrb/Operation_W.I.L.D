@@ -47,7 +47,6 @@ public class KodiakSearchInsideChestGoal extends Goal {
         targetPos = null;
         hasReachedChest = false;
         kodiak.getNavigation().stop();
-        kodiak.kodiakAI.resetKodiakState();
     }
 
     @Override

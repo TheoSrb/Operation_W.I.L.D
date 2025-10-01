@@ -71,7 +71,7 @@ public class NapGoal extends Goal {
 
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.getFoodPick() != null && !kodiak.getFoodPick().isEmpty()) {
-                kodiak.kodiakManagement.eatFoodInHisMouth(kodiak.getFoodPick());
+                kodiak.kodiakBehaviorHandler.eatFoodInHisMouth(kodiak.getFoodPick());
             }
         }
     }
@@ -82,10 +82,6 @@ public class NapGoal extends Goal {
         napTimer = 0;
         napTickCounter = 0;
         shouldStop = false;
-
-        if (entity instanceof KodiakEntity kodiak) {
-            kodiak.kodiakAI.resetKodiakState();
-        }
     }
 
     @Override

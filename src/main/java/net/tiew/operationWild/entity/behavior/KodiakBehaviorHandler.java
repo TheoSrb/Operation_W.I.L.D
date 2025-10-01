@@ -1,9 +1,6 @@
-package net.tiew.operationWild.entity.AI;
+package net.tiew.operationWild.entity.behavior;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ItemParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -29,19 +26,35 @@ import java.util.*;
  * It is a complementary class to the latter.
  */
 
-public class AIKodiakManagement {
+public class KodiakBehaviorHandler {
 
     private KodiakEntity kodiak;
-    private AIKodiak AIKodiak;
 
-    public AIKodiakManagement(KodiakEntity kodiak, AIKodiak AIKodiak) {
+    public KodiakBehaviorHandler(KodiakEntity kodiak) {
         this.kodiak = kodiak;
-        this.AIKodiak = AIKodiak;
     }
 
     public void pickupItemInHisMouth(ItemStack itemStack) {
         kodiak.setFoodPick(itemStack);
         if (!itemStack.isEmpty()) kodiak.playSound(SoundEvents.ITEM_PICKUP);
+    }
+
+    public boolean isCropsAround(int radiusToSearch) {
+        BlockPos kodiakPos = kodiak.blockPosition();
+
+        for (int x = -radiusToSearch; x <= radiusToSearch; x++) {
+            for (int y = -radiusToSearch; y <= radiusToSearch; y++) {
+                for (int z = -radiusToSearch; z <= radiusToSearch; z++) {
+                    BlockPos pos = kodiakPos.offset(x, y, z);
+                    BlockState blockState = kodiak.level().getBlockState(pos);
+
+                    if (blockState.is(BlockTags.CROPS)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public void lookForHoneyInTheBeeNest() {

@@ -46,7 +46,6 @@ public class KodiakAttractedToCampfireGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
-        kodiak.kodiakAI.resetKodiakState();
     }
 
     @Override

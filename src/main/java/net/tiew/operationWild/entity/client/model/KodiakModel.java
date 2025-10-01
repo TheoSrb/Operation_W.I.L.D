@@ -171,6 +171,11 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		}
 
 
+		if (kodiak.isRolling()) {
+			this.animate(kodiak.rollingAnimationState, KodiakAnimations.ROLL, ageInTicks, 1.0f);
+			return;
+		}
+
 		if (kodiak.transitionIdleSit.isStarted()) {
 			this.animate(kodiak.transitionIdleSit, KodiakAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
 			return;
@@ -203,11 +208,6 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
 		if (kodiak.isNapping()) {
 			this.animate(kodiak.napAnimationState, KodiakAnimations.SLEEP, ageInTicks, 1.0f);
-			return;
-		}
-
-		if (kodiak.isRolling()) {
-			this.animate(kodiak.rollingAnimationState, KodiakAnimations.ROLL, ageInTicks, 1.0f);
 			return;
 		}
 

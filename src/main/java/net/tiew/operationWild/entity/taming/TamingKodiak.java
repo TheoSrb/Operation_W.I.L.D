@@ -10,7 +10,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.core.OWUtils;
-import net.tiew.operationWild.entity.AI.AIKodiakManagement;
+import net.tiew.operationWild.entity.behavior.KodiakBehaviorHandler;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
 import java.util.List;
@@ -23,9 +23,9 @@ import java.util.List;
 public class TamingKodiak {
 
     private KodiakEntity kodiak;
-    private AIKodiakManagement kodiakManagement;
+    private KodiakBehaviorHandler kodiakManagement;
 
-    public TamingKodiak(KodiakEntity kodiak, AIKodiakManagement kodiakManagement) {
+    public TamingKodiak(KodiakEntity kodiak, KodiakBehaviorHandler kodiakManagement) {
         this.kodiak = kodiak;
         this.kodiakManagement = kodiakManagement;
     }
