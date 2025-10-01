@@ -30,6 +30,20 @@ public class KodiakBehaviorHandler {
 
     private KodiakEntity kodiak;
 
+    public ItemStack[] itemsCatchInWater = {
+            Items.NAUTILUS_SHELL.getDefaultInstance(),
+            Items.ENCHANTED_BOOK.getDefaultInstance(),
+            Items.KELP.getDefaultInstance(),
+            Items.DRIED_KELP_BLOCK.getDefaultInstance(),
+            Items.NAME_TAG.getDefaultInstance(),
+            Items.LEATHER_BOOTS.getDefaultInstance(),
+            Items.LEATHER.getDefaultInstance(),
+            Items.STRING.getDefaultInstance(),
+            Items.LILY_PAD.getDefaultInstance(),
+            Items.BOWL.getDefaultInstance()
+    };
+
+
     public KodiakBehaviorHandler(KodiakEntity kodiak) {
         this.kodiak = kodiak;
     }
@@ -69,6 +83,26 @@ public class KodiakBehaviorHandler {
         double spawnZ = kodiak.getZ() + lookDirection.z * 2.0;
 
         OWUtils.spawnItemParticles(kodiak, Items.HONEYCOMB.getDefaultInstance(), spawnX, spawnY, spawnZ);
+    }
+
+    public void catchSalmon() {
+        this.kodiak.setCombo(true, 1);
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                pickupItemInHisMouth(chooseWhatItemCatchInWater());
+            }
+        }, 750);
+    }
+
+    protected ItemStack chooseWhatItemCatchInWater() {
+        if (kodiak.chance >= 25) {
+            return Items.SALMON.getDefaultInstance();
+        } else {
+            int randomItemIndex = kodiak.getRandom().nextInt(itemsCatchInWater.length - 1);
+            return itemsCatchInWater[randomItemIndex];
+        }
     }
 
     public void openChest(ChestBlockEntity chestBlockEntity) {
@@ -184,28 +218,43 @@ public class KodiakBehaviorHandler {
         }
     }
 
+    protected boolean canEatItem(ItemStack stack) {
+        for (ItemStack s : itemsCatchInWater) {
+            if (stack.getItem() == s.getItem()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void eatFoodInHisMouth(ItemStack itemStack) {
         kodiak.eatingTimer = 0;
         kodiak.startEatingTimer = false;
-        kodiak.playSound(SoundEvents.GENERIC_EAT);
 
         Vec3 lookDirection = kodiak.getLookAngle();
         double spawnX = kodiak.getX() + lookDirection.x * 2.0;
         double spawnY = kodiak.getY() + 0.8;
         double spawnZ = kodiak.getZ() + lookDirection.z * 2.0;
 
-        OWUtils.spawnItemParticles(kodiak, itemStack != null ? itemStack : Items.APPLE.getDefaultInstance(), spawnX, spawnY, spawnZ);
+        if (canEatItem(itemStack)) {
+            OWUtils.spawnItemParticles(kodiak, itemStack != null ? itemStack : Items.APPLE.getDefaultInstance(), spawnX, spawnY, spawnZ);
 
-        if (kodiak.getFoodPick().is(OWTags.Items.KODIAK_DANGEROUS_FOOD)) {
-            kodiak.addEffect(new MobEffectInstance(MobEffects.POISON, 350, 0));
+            kodiak.playSound(SoundEvents.GENERIC_EAT);
 
-            if (kodiak.lastPlayerWhoFeedHim != null) {
-                kodiak.setTarget(kodiak.lastPlayerWhoFeedHim);
+            if (kodiak.getFoodPick().is(OWTags.Items.KODIAK_DANGEROUS_FOOD)) {
+                kodiak.addEffect(new MobEffectInstance(MobEffects.POISON, 350, 0));
+
+                if (kodiak.lastPlayerWhoFeedHim != null) {
+                    kodiak.setTarget(kodiak.lastPlayerWhoFeedHim);
+                }
+            } else kodiak.lastPlayerWhoFeedHim = null;
+
+            if (kodiak.getFoodPick().is(Items.HONEYCOMB)) {
+                kodiak.setDirty(true);
             }
-        } else kodiak.lastPlayerWhoFeedHim = null;
-
-        if (kodiak.getFoodPick().is(Items.HONEYCOMB)) {
-            kodiak.setDirty(true);
+        } else {
+            kodiak.spawnAtLocation(itemStack.copy());
+            kodiak.playSound(SoundEvents.ITEM_PICKUP);
         }
 
         kodiak.setFoodPick(ItemStack.EMPTY);
