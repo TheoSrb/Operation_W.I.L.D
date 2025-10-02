@@ -30,5 +30,4 @@ public class KodiakRubsAgainstTreeGoal extends Goal {
     public boolean canUse() {
         return true;
     }
-
 }
