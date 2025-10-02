@@ -33,7 +33,6 @@ public class KodiakBehaviorHandler {
 
     private KodiakEntity kodiak;
     public boolean isCatchSalmon = false;
-    public Salmon salmonCatched;
 
     public ItemStack[] itemsCatchInWater = {
             Items.NAUTILUS_SHELL.getDefaultInstance(),
@@ -169,6 +168,10 @@ public class KodiakBehaviorHandler {
         }
 
         kodiak.isSearchingInsideChest = false;
+    }
+
+    public void startingRubsAgainstTree() {
+        System.out.println("Se gratte à l'arbre");
     }
 
     public void scheduleNextCropCheck(BlockPos target, int radiusToSearch) {

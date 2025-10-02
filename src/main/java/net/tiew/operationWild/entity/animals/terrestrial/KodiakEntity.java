@@ -83,8 +83,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private static final EntityDataAccessor<Boolean> IS_DIRTY = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_SNIFFING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> REJECT_ITEM = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Integer> SALMON_ID = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_CATCHING_SALMON = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_RUBS = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
 
     public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
@@ -159,6 +159,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         super.registerGoals();
         initKodiakBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
+        this.goalSelector.addGoal(0, new KodiakRubsAgainstTreeGoal(this, 1.5f, 20,
+                200, () -> kodiakBehaviorHandler.startingRubsAgainstTree()));
+
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
         this.goalSelector.addGoal(1, new KodiakRollGoal(this, 1.8f));
@@ -189,8 +192,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(IS_DIRTY, false);
         builder.define(IS_SNIFFING, false);
         builder.define(REJECT_ITEM, false);
-        builder.define(SALMON_ID, -1);
         builder.define(IS_CATCHING_SALMON, false);
+        builder.define(IS_RUBS, false);
     }
 
     // Entity Methods
@@ -888,18 +891,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.entityData.set(IS_CATCHING_SALMON, catching);
     }
 
-    @Nullable
-    public Salmon getSalmonCatched() {
-        int id = getSalmonCatchedId();
-        if (id == -1) return null;
-
-        Entity entity = this.level().getEntity(id);
-        if (entity instanceof Salmon) {
-            return (Salmon) entity;
-        }
-        return null;
-    }
-
     public void setRolling(boolean isRolling) { this.entityData.set(IS_ROLLING, isRolling);}
 
     public boolean isRolling() { return this.entityData.get(IS_ROLLING);}
@@ -912,16 +903,12 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public boolean isRejectingItem() { return this.entityData.get(REJECT_ITEM);}
 
+    public void setRubs(boolean isRubs) { this.entityData.set(IS_RUBS, isRubs);}
+
+    public boolean isRubs() { return this.entityData.get(IS_RUBS);}
+
     public ItemStack getFoodPick() {
         return this.entityData.get(FOOD_PICK);
-    }
-
-    public void setSalmonCatchedId(int entityId) {
-        this.entityData.set(SALMON_ID, entityId);
-    }
-
-    public int getSalmonCatchedId() {
-        return this.entityData.get(SALMON_ID);
     }
 
     public void setFoodPick(ItemStack food) {
