@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.entity.animal.Salmon;
 import net.tiew.operationWild.core.OWUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -82,6 +83,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private static final EntityDataAccessor<Boolean> IS_DIRTY = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_SNIFFING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> REJECT_ITEM = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> SALMON_ID = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_CATCHING_SALMON = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
 
     public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
@@ -108,6 +111,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int itemRejectionTimer = 0;
     public int sitTimer = 0;
     public final int MAX_SITTING_TIMER = 600;
+    public int salmonCatchedTimer = 0;
 
     protected boolean canAttack = false;
 
@@ -183,6 +187,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(IS_DIRTY, false);
         builder.define(IS_SNIFFING, false);
         builder.define(REJECT_ITEM, false);
+        builder.define(SALMON_ID, -1);
+        builder.define(IS_CATCHING_SALMON, false);
     }
 
     // Entity Methods
@@ -339,6 +345,27 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                         kodiakBehaviorHandler.eatFoodInHisMouth(getFoodPick());
                     }
                 }
+            }
+        }
+
+        if (isCatchingSalmon()) {
+            this.setCatchingSalmon(true);
+
+            Vec3 lookDirection = this.getLookAngle();
+            double spawnX = this.getX() + lookDirection.x * 2.0;
+            double spawnY = this.getY() + 0.8;
+            double spawnZ = this.getZ() + lookDirection.z * 2.0;
+
+            salmonCatchedTimer++;
+
+            if (salmonCatchedTimer >= 400) {
+                salmonCatchedTimer = 0;
+                kodiakBehaviorHandler.isCatchSalmon = false;
+                this.setCatchingSalmon(false);
+
+                OWUtils.spawnItemParticles(this, Items.SALMON.getDefaultInstance(), spawnX, spawnY, spawnZ);
+
+                this.playSound(SoundEvents.GENERIC_EAT);
             }
         }
 
@@ -635,6 +662,21 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
+        if (this.isCatchingSalmon()) {
+            if (player.getMainHandItem().is(Items.WATER_BUCKET)) {
+                player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.SALMON_BUCKET));
+                this.setCatchingSalmon(false);
+                this.playSound(SoundEvents.BUCKET_FILL_FISH);
+                this.playSound((OWUtils.RANDOM(2) ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get()), 1.0f, (float) OWUtils.generateRandomInterval(0.9f, 1.1f));
+                setNap(false);
+                if (!player.isCreative() && !player.isSpectator()) {
+                    this.setTarget(player);
+                }
+
+                return InteractionResult.SUCCESS;
+            }
+        }
+
         return super.mobInteract(player, hand);
     }
 
@@ -830,6 +872,26 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.playSound(SoundEvents.HONEY_BLOCK_PLACE);
     }
 
+    public boolean isCatchingSalmon() {
+        return this.entityData.get(IS_CATCHING_SALMON);
+    }
+
+    public void setCatchingSalmon(boolean catching) {
+        this.entityData.set(IS_CATCHING_SALMON, catching);
+    }
+
+    @Nullable
+    public Salmon getSalmonCatched() {
+        int id = getSalmonCatchedId();
+        if (id == -1) return null;
+
+        Entity entity = this.level().getEntity(id);
+        if (entity instanceof Salmon) {
+            return (Salmon) entity;
+        }
+        return null;
+    }
+
     public void setRolling(boolean isRolling) { this.entityData.set(IS_ROLLING, isRolling);}
 
     public boolean isRolling() { return this.entityData.get(IS_ROLLING);}
@@ -844,6 +906,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public ItemStack getFoodPick() {
         return this.entityData.get(FOOD_PICK);
+    }
+
+    public void setSalmonCatchedId(int entityId) {
+        this.entityData.set(SALMON_ID, entityId);
+    }
+
+    public int getSalmonCatchedId() {
+        return this.entityData.get(SALMON_ID);
     }
 
     public void setFoodPick(ItemStack food) {

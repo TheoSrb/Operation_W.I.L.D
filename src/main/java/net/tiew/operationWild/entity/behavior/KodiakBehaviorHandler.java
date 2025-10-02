@@ -5,7 +5,9 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Bee;
+import net.minecraft.world.entity.animal.Salmon;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -30,18 +32,20 @@ import java.util.*;
 public class KodiakBehaviorHandler {
 
     private KodiakEntity kodiak;
+    public boolean isCatchSalmon = false;
+    public Salmon salmonCatched;
 
     public ItemStack[] itemsCatchInWater = {
             Items.NAUTILUS_SHELL.getDefaultInstance(),
-            Items.ENCHANTED_BOOK.getDefaultInstance(),
-            Items.KELP.getDefaultInstance(),
-            Items.DRIED_KELP_BLOCK.getDefaultInstance(),
-            Items.NAME_TAG.getDefaultInstance(),
             Items.LEATHER_BOOTS.getDefaultInstance(),
             Items.LEATHER.getDefaultInstance(),
             Items.STRING.getDefaultInstance(),
+            Items.STICK.getDefaultInstance(),
+            Items.ROTTEN_FLESH.getDefaultInstance(),
+            Items.BONE.getDefaultInstance(),
+            Items.BOWL.getDefaultInstance(),
             Items.LILY_PAD.getDefaultInstance(),
-            Items.BOWL.getDefaultInstance()
+            Items.KELP.getDefaultInstance()
     };
 
 
@@ -99,7 +103,10 @@ public class KodiakBehaviorHandler {
 
     protected ItemStack chooseWhatItemCatchInWater() {
         if (kodiak.chance >= 25) {
-            return Items.SALMON.getDefaultInstance();
+            kodiak.setCatchingSalmon(true);
+            isCatchSalmon = true;
+
+            return ItemStack.EMPTY;
         } else {
             int randomItemIndex = kodiak.getRandom().nextInt(itemsCatchInWater.length - 1);
             return itemsCatchInWater[randomItemIndex];

@@ -13,6 +13,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.animal.Salmon;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
@@ -241,15 +243,65 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		}
     }
 
-    @Override
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
-        this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+	@Override
+	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
+		this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 
-		if (this.currentEntity != null && !this.currentEntity.getFoodPick().isEmpty()) {
-			renderItemOnHead(this.currentEntity, poseStack, packedLight);
+		if (this.currentEntity != null) {
+			if (!this.currentEntity.getFoodPick().isEmpty()) {
+				renderItemOnHead(this.currentEntity, poseStack, packedLight);
+			}
+
+			if (this.currentEntity.isCatchingSalmon()) {
+				renderSalmonInMouth(this.currentEntity, poseStack, vertexConsumer, packedLight, packedOverlay);
+			}
 		}
-    }
+	}
 
+	private void renderSalmonInMouth(KodiakEntity kodiak, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay) {
+		Salmon fakeSalmon = new Salmon(EntityType.SALMON, kodiak.level());
+
+		poseStack.pushPose();
+
+		this.head.translateAndRotate(poseStack);
+
+		poseStack.translate(0.0D, 0.75f, -1.05D);
+
+		poseStack.mulPose(Axis.YP.rotationDegrees(90));
+		poseStack.mulPose(Axis.ZP.rotationDegrees(180));
+
+		poseStack.scale(0.8f, 0.8f, 0.8f);
+
+		fakeSalmon.yBodyRot = 0;
+		fakeSalmon.yBodyRotO = 0;
+		fakeSalmon.yHeadRot = 0;
+		fakeSalmon.yHeadRotO = 0;
+		fakeSalmon.setXRot(0);
+		fakeSalmon.xRotO = 0;
+		fakeSalmon.setYRot(0);
+		fakeSalmon.yRotO = 0;
+
+		fakeSalmon.setAirSupply(fakeSalmon.getMaxAirSupply());
+		fakeSalmon.tickCount = kodiak.tickCount;
+
+		var entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+		var salmonRenderer = entityRenderDispatcher.getRenderer(fakeSalmon);
+
+		MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+
+		salmonRenderer.render(
+				fakeSalmon,
+				0,
+				1.0f,
+				poseStack,
+				bufferSource,
+				packedLight
+		);
+
+		bufferSource.endBatch();
+
+		poseStack.popPose();
+	}
 	private void renderItemOnHead(KodiakEntity kodiak, PoseStack poseStack, int packedLight) {
 		poseStack.pushPose();
 
