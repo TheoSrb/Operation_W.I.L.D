@@ -130,6 +130,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     private int dirtyTimer = 0;
 
+    private boolean isSettingTarget = false;
+
     public ChestBlockEntity chestBlockEntity = null;
     public boolean isSearchingInsideChest = false;
 
@@ -540,13 +542,19 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public void setTarget(@Nullable LivingEntity target) {
-        if (isNapping()) return;
-        super.setTarget(target);
+        if (isNapping() || isSettingTarget) return;
 
-        if (target != null) {
-            if (this.getFoodPick() != null && !this.getFoodPick().isEmpty()) {
-                kodiakBehaviorHandler.eatFoodInHisMouth(this.getFoodPick());
+        isSettingTarget = true;
+        try {
+            super.setTarget(target);
+
+            if (target != null) {
+                if (this.getFoodPick() != null && !this.getFoodPick().isEmpty()) {
+                    kodiakBehaviorHandler.eatFoodInHisMouth(this.getFoodPick());
+                }
             }
+        } finally {
+            isSettingTarget = false;
         }
     }
 

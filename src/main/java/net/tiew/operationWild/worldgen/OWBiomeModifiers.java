@@ -17,6 +17,7 @@ import net.neoforged.neoforge.common.world.BiomeModifiers;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.worldgen.biome.OWBiomes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,7 @@ public class OWBiomeModifiers {
     public static final ResourceKey<BiomeModifier> SPAWN_BOA = registerKey("spawn_boa");
     public static final ResourceKey<BiomeModifier> SPAWN_PEACOCK = registerKey("spawn_peacock");
     public static final ResourceKey<BiomeModifier> SPAWN_JELLYFISH = registerKey("spawn_jellyfish");
+    public static final ResourceKey<BiomeModifier> SPAWN_KODIAK = registerKey("spawn_kodiak");
 
     public static final ArrayList<ResourceKey<Biome>> TIGER_BIOMES = new ArrayList<>(
             List.of(Biomes.BAMBOO_JUNGLE, Biomes.JUNGLE)
@@ -47,6 +49,10 @@ public class OWBiomeModifiers {
 
     public static final ArrayList<ResourceKey<Biome>> JELLYFISH_BIOMES = new ArrayList<>(
             List.of(Biomes.DEEP_OCEAN, Biomes.OCEAN, Biomes.DEEP_LUKEWARM_OCEAN, Biomes.LUKEWARM_OCEAN, Biomes.DEEP_COLD_OCEAN, Biomes.COLD_OCEAN, Biomes.WARM_OCEAN)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> KODIAK_BIOMES = new ArrayList<>(
+            List.of(OWBiomes.REDWOOD_FOREST_BIOME)
     );
 
     public static int veryCommonEntitySpawnChance = 60;
@@ -74,6 +80,7 @@ public class OWBiomeModifiers {
         spawnEntity(context, SPAWN_BOA, BOA_BIOMES, OWEntityRegistry.BOA, commonEntitySpawnChance, 1, 2);
         spawnEntity(context, SPAWN_PEACOCK, PEACOCK_BIOMES, OWEntityRegistry.PEACOCK, veryRareEntitySpawnChance, 1, 2);
         spawnEntity(context, SPAWN_JELLYFISH, JELLYFISH_BIOMES, OWEntityRegistry.JELLYFISH, rareEntitySpawnChance, 3, 6);
+        spawnEntity(context, SPAWN_KODIAK, KODIAK_BIOMES, OWEntityRegistry.KODIAK, uncommonEntitySpawnChance, 1, 1);
 
 
 

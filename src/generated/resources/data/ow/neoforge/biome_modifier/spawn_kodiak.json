@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "ow:redwood_forest",
+  "spawners": {
+    "type": "ow:kodiak",
+    "maxCount": 1,
+    "minCount": 1,
+    "weight": 28
+  }
+}
