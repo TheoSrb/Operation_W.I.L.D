@@ -13,7 +13,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Salmon;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.tiew.operationWild.OperationWild;
@@ -253,13 +255,14 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			}
 
 			if (this.currentEntity.isCatchingSalmon()) {
-				renderSalmonInMouth(this.currentEntity, poseStack, vertexConsumer, packedLight, packedOverlay);
+				renderSalmonInMouth(this.currentEntity, poseStack, packedLight, new Salmon(EntityType.SALMON, currentEntity.level()));
 			}
 		}
 	}
 
-	private void renderSalmonInMouth(KodiakEntity kodiak, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay) {
-		Salmon fakeSalmon = new Salmon(EntityType.SALMON, kodiak.level());
+	private void renderSalmonInMouth(KodiakEntity kodiak, PoseStack poseStack, int packedLight, LivingEntity livingEntity) {
+		LivingEntity fakeEntity = (LivingEntity) livingEntity.getType().create(kodiak.level());
+		if (fakeEntity == null) return;
 
 		poseStack.pushPose();
 
@@ -272,31 +275,24 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
 		poseStack.scale(0.8f, 0.8f, 0.8f);
 
-		fakeSalmon.yBodyRot = 0;
-		fakeSalmon.yBodyRotO = 0;
-		fakeSalmon.yHeadRot = 0;
-		fakeSalmon.yHeadRotO = 0;
-		fakeSalmon.setXRot(0);
-		fakeSalmon.xRotO = 0;
-		fakeSalmon.setYRot(0);
-		fakeSalmon.yRotO = 0;
+		fakeEntity.yBodyRot = 0;
+		fakeEntity.yBodyRotO = 0;
+		fakeEntity.yHeadRot = 0;
+		fakeEntity.yHeadRotO = 0;
+		fakeEntity.setXRot(0);
+		fakeEntity.xRotO = 0;
+		fakeEntity.setYRot(0);
+		fakeEntity.yRotO = 0;
 
-		fakeSalmon.setAirSupply(fakeSalmon.getMaxAirSupply());
-		fakeSalmon.tickCount = kodiak.tickCount;
+		fakeEntity.setAirSupply(fakeEntity.getMaxAirSupply());
+		fakeEntity.tickCount = kodiak.tickCount;
 
 		var entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-		var salmonRenderer = entityRenderDispatcher.getRenderer(fakeSalmon);
+		var salmonRenderer = entityRenderDispatcher.getRenderer(fakeEntity);
 
 		MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
 
-		salmonRenderer.render(
-				fakeSalmon,
-				0,
-				1.0f,
-				poseStack,
-				bufferSource,
-				packedLight
-		);
+		salmonRenderer.render(fakeEntity, 0, 1.0f, poseStack, bufferSource, packedLight);
 
 		bufferSource.endBatch();
 

@@ -1,6 +1,7 @@
 package net.tiew.operationWild.entity.animals.terrestrial;
 
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.resources.sounds.Sound;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -363,7 +364,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
             salmonCatchedTimer++;
 
-            if (salmonCatchedTimer >= 400) {
+            if (this.tickCount % 15 == 0) {
+                this.playSound(SoundEvents.SALMON_FLOP);
+            }
+
+            if (salmonCatchedTimer >= 800) {
                 salmonCatchedTimer = 0;
                 kodiakBehaviorHandler.isCatchSalmon = false;
                 this.setCatchingSalmon(false);
