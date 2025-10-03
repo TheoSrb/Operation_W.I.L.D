@@ -59,7 +59,7 @@ public class NapGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (entity instanceof KodiakEntity kodiak) {
-            if (kodiak.isRolling() || kodiak.isSniffing() || kodiak.isCatchingSalmon()) return false;
+            if (kodiak.isRolling() || kodiak.isSniffing() || kodiak.isCatchingSalmon() || kodiak.isHungry()) return false;
         }
         return !shouldStop && conditionToWork && entity.isNapping() && !entity.isTame();
     }
@@ -90,7 +90,7 @@ public class NapGoal extends Goal {
     @Override
     public boolean canUse() {
         if (entity instanceof KodiakEntity kodiak) {
-            if (kodiak.isRolling() || kodiak.isSniffing() || kodiak.isCatchingSalmon()) return false;
+            if (kodiak.isRolling() || kodiak.isSniffing() || kodiak.isCatchingSalmon() || kodiak.isHungry()) return false;
         }
         return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork && !entity.isTame();
     }

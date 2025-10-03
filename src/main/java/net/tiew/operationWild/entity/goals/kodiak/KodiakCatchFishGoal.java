@@ -4,6 +4,7 @@ import com.google.common.base.Enums;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.biome.Biomes;
@@ -27,6 +28,7 @@ public class KodiakCatchFishGoal extends Goal {
     private int cooldownTicks = 0;
 
     private static final int COOLDOWN_DURATION = 400;
+    private static final int MAX_ATTEMPTS = 20;
 
     public KodiakCatchFishGoal(KodiakEntity kodiak, float attractionFrequencyMultiplier, Runnable action) {
         this.kodiak = kodiak;
@@ -36,30 +38,48 @@ public class KodiakCatchFishGoal extends Goal {
         this.setFlags(EnumSet.of(Flag.LOOK));
     }
 
+    private Vec3 findValidWaterPosition() {
+        for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+            float angle = Mth.nextFloat(kodiak.getRandom(), 0.0F, 360.0F);
+            float f = angle * ((float)Math.PI / 180F);
+            float f1 = Mth.sin(f);
+            float f2 = Mth.cos(f);
+
+            float distance = Mth.nextFloat(kodiak.getRandom(), 6.0F, 12.0F);
+
+            double startX = kodiak.getX() + (double)(f1 * distance);
+            double startY = kodiak.getY() + 0.5;
+            double startZ = kodiak.getZ() + (double)(f2 * distance);
+
+            BlockPos checkPos = new BlockPos((int)startX, (int)startY, (int)startZ);
+
+            if (kodiak.level().getFluidState(checkPos).is(FluidTags.WATER)) {
+                return new Vec3(startX, startY, startZ);
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public void start() {
         super.start();
         this.fishArrived = false;
 
-        float angle = Mth.nextFloat(kodiak.getRandom(), 0.0F, 360.0F);
-        float f = angle * ((float)Math.PI / 180F);
-        float f1 = Mth.sin(f);
-        float f2 = Mth.cos(f);
+        Vec3 validPosition = findValidWaterPosition();
 
-        float distance = Mth.nextFloat(kodiak.getRandom(), 8.0F, 15.0F);
+        if (validPosition == null) {
+            return;
+        }
 
-        double startX = kodiak.getX() + (double)(f1 * distance);
-        double startY = kodiak.getY() + 0.5;
-        double startZ = kodiak.getZ() + (double)(f2 * distance);
+        this.fishPosition = validPosition;
 
-        this.fishPosition = new Vec3(startX, startY, startZ);
-
-        double dirX = kodiak.getX() - startX;
-        double dirY = (kodiak.getY() + 0.5) - startY;
-        double dirZ = kodiak.getZ() - startZ;
+        double dirX = kodiak.getX() - fishPosition.x;
+        double dirY = (kodiak.getY() + 0.5) - fishPosition.y;
+        double dirZ = kodiak.getZ() - fishPosition.z;
 
         double dist = Math.sqrt(dirX * dirX + dirY * dirY + dirZ * dirZ);
-        double speed = OWUtils.generateRandomInterval(0.075, 0.1);
+        double speed = OWUtils.generateRandomInterval(0.1, 0.125);
 
         this.fishVelocity = new Vec3(
                 (dirX / dist) * speed,
@@ -77,7 +97,7 @@ public class KodiakCatchFishGoal extends Goal {
             return;
         }
 
-        if (!this.fishArrived) {
+        if (!this.fishArrived && this.fishPosition != null) {
             ServerLevel serverLevel = (ServerLevel) kodiak.level();
 
             if (kodiak.tickCount % 30 == 0) {
@@ -87,7 +107,10 @@ public class KodiakCatchFishGoal extends Goal {
                         0.5F, 1.0F);
             }
 
-            serverLevel.sendParticles(ParticleTypes.FISHING, fishPosition.x, fishPosition.y - 0.15, fishPosition.z, 10, fishVelocity.x, fishVelocity.y, fishVelocity.z, 0.02);
+            BlockPos particlePos = new BlockPos((int)fishPosition.x, (int)fishPosition.y, (int)fishPosition.z);
+            if (kodiak.level().getFluidState(particlePos).is(FluidTags.WATER)) {
+                serverLevel.sendParticles(ParticleTypes.FISHING, fishPosition.x, fishPosition.y - 0.15, fishPosition.z, 10, fishVelocity.x, fishVelocity.y, fishVelocity.z, 0.02);
+            }
 
             this.fishPosition = this.fishPosition.add(this.fishVelocity);
 
@@ -111,18 +134,25 @@ public class KodiakCatchFishGoal extends Goal {
 
         BlockPos posBelow = kodiak.blockPosition().below();
         boolean isWaterBelow = kodiak.level().getBlockState(posBelow).is(Blocks.WATER);
-        boolean isValidBiome = kodiak.level().getBiome(posBelow).is(Biomes.RIVER) || kodiak.level().getBiome(posBelow).is(OWBiomes.REDWOOD_FOREST_BIOME);
 
-        return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
-                (kodiak.isInWater() || isWaterBelow) && !kodiak.isTame() && isValidBiome && kodiak.getTarget() == null
-                && !kodiak.isNapping() && !kodiak.isRolling() && !kodiak.isTame() && kodiak.getFoodPick().isEmpty() && !kodiak.isCatchingSalmon();
+        if (kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
+                (kodiak.isInWater() || isWaterBelow) && !kodiak.isTame() && kodiak.getTarget() == null
+                && !kodiak.isNapping() && !kodiak.isRolling() && !kodiak.isTame() && kodiak.getFoodPick().isEmpty() && !kodiak.isCatchingSalmon()) {
+
+            return findValidWaterPosition() != null;
+        }
+
+        return false;
     }
 
     @Override
     public boolean canContinueToUse() {
+        if (this.fishPosition == null) {
+            return false;
+        }
+
         BlockPos posBelow = kodiak.blockPosition().below();
         boolean isWaterBelow = kodiak.level().getBlockState(posBelow).is(Blocks.WATER);
-        boolean isValidBiome = kodiak.level().getBiome(posBelow).is(Biomes.RIVER) || kodiak.level().getBiome(posBelow).is(OWBiomes.REDWOOD_FOREST_BIOME);
-        return !this.fishArrived && (kodiak.isInWater() || isWaterBelow) && isValidBiome && !kodiak.isCatchingSalmon() && !kodiak.isTame();
+        return !this.fishArrived && (kodiak.isInWater() || isWaterBelow) && !kodiak.isCatchingSalmon() && !kodiak.isTame();
     }
 }

@@ -255,6 +255,9 @@ public class KodiakBehaviorHandler {
 
             kodiak.playSound(SoundEvents.GENERIC_EAT);
 
+            int foodValue = 5;
+            kodiak.setFoodBarValue(kodiak.getFoodBarValue() + foodValue);
+
             if (kodiak.getFoodPick().is(OWTags.Items.KODIAK_DANGEROUS_FOOD)) {
                 kodiak.addEffect(new MobEffectInstance(MobEffects.POISON, 350, 0));
 

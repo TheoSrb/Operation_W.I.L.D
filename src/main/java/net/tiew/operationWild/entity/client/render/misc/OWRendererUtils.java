@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.core.OWUtils;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -220,6 +221,9 @@ public class OWRendererUtils {
                 .append(Component.translatable("tooltip.lvlImage").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
                 .append(Component.literal(String.valueOf(entity.getLevel())).withStyle(style -> style.withColor(entity.getLevel() >= 50 ? 0xdd9847 : entity.getLevelPoints() > 0 ? 0xb8e45a : 0x8e9eb9).withBold(false)));
 
+        Component foodComponent = Component.empty()
+                .append(Component.literal(String.valueOf(entity instanceof KodiakEntity kodiak ? (int)((kodiak.getFoodBarValue() / 10.0) * 100) + "%" : "")).withStyle(style -> style.withColor(0x8e9eb9).withBold(false)));
+
         String ownerName = Minecraft.getInstance().level != null && entity.getOwnerUUID() != null ?
                 Optional.ofNullable(Minecraft.getInstance().level.getPlayerByUUID(entity.getOwnerUUID()))
                         .map(player -> player.getName().getString())
@@ -263,6 +267,8 @@ public class OWRendererUtils {
         font.drawInBatch(animalLevelComponent, animalLevelTextX + 11, textY + (rightPadding * 1), entity.getLevelPoints() > 0 ? 0xb8e45a : 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
 
         if (entity.getOwner() != null) font.drawInBatch(animalOwnerComponent, animalOwnerTextX + 11, textY + (rightPadding * 2), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+
+        if (entity instanceof KodiakEntity) font.drawInBatch(foodComponent, animalOwnerTextX + 30, textY + (rightPadding * 2.5f), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
 
         poseStack.popPose();
 
