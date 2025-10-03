@@ -79,7 +79,10 @@ public class KodiakBehaviorHandler {
         pickupItemInHisMouth(Items.HONEYCOMB.getDefaultInstance());
         kodiak.playSound(SoundEvents.HONEY_BLOCK_PLACE);
         kodiak.setDirty(true);
-        warnBeesAround(10);
+
+        if (kodiak.getRandom().nextInt(2) == 0) {
+            warnBeesAround(10);
+        }
 
         Vec3 lookDirection = kodiak.getLookAngle();
         double spawnX = kodiak.getX() + lookDirection.x * 2.0;

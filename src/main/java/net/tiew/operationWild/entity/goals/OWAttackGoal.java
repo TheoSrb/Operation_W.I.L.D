@@ -1,9 +1,12 @@
 package net.tiew.operationWild.entity.goals;
 
+import com.google.common.base.Enums;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
+
+import java.util.EnumSet;
 
 public class OWAttackGoal extends Goal {
     private OWEntity attacker;
@@ -21,18 +24,23 @@ public class OWAttackGoal extends Goal {
         this.timeAttackMax = timeAttackMax;
         this.distanceToAttack = distanceToAttack;
         this.conditionToWork = conditionToWork;
+
+        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP));
     }
+
+    public OWAttackGoal(OWEntity attacker, float speedModifier, int timeAttackMax, double distanceToAttack) {
+        this.attacker = attacker;
+        this.speedModifier = speedModifier;
+        this.timeAttackMax = timeAttackMax;
+        this.distanceToAttack = distanceToAttack;
+
+        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP));
+    }
+
 
     @Override
     public void tick() {
         super.tick();
-
-        if (!conditionToWork || attacker.isBaby() || attacker.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) return;
-
-        if (this.target == null || !this.target.isAlive()) {
-            stop();
-            return;
-        }
 
         double targetX = this.target.getX();
         double targetY = this.target.getY();
@@ -70,8 +78,29 @@ public class OWAttackGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (attacker.isBaby() || attacker.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) {
+            return false;
+        }
+
         LivingEntity potentialTarget = this.attacker.getTarget();
-        return potentialTarget != null && potentialTarget.isAlive() && conditionToWork;
+        if (potentialTarget == null || !potentialTarget.isAlive()) {
+            return false;
+        }
+
+        return this.attacker.canAttack() && conditionToWork;
+    }
+
+    @Override
+    public boolean canContinueToUse() {
+        if (attacker.isBaby() || attacker.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) {
+            return false;
+        }
+
+        if (this.target == null || !this.target.isAlive() || !conditionToWork) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override

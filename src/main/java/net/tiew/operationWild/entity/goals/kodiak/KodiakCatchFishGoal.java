@@ -114,7 +114,8 @@ public class KodiakCatchFishGoal extends Goal {
         boolean isValidBiome = kodiak.level().getBiome(posBelow).is(Biomes.RIVER) || kodiak.level().getBiome(posBelow).is(OWBiomes.REDWOOD_FOREST_BIOME);
 
         return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
-                (kodiak.isInWater() || isWaterBelow) && isValidBiome && kodiak.getTarget() == null && !kodiak.isNapping() && !kodiak.isRolling() && !kodiak.isTame() && kodiak.getFoodPick().isEmpty();
+                (kodiak.isInWater() || isWaterBelow) && !kodiak.isTame() && isValidBiome && kodiak.getTarget() == null
+                && !kodiak.isNapping() && !kodiak.isRolling() && !kodiak.isTame() && kodiak.getFoodPick().isEmpty() && !kodiak.isCatchingSalmon();
     }
 
     @Override
@@ -122,6 +123,6 @@ public class KodiakCatchFishGoal extends Goal {
         BlockPos posBelow = kodiak.blockPosition().below();
         boolean isWaterBelow = kodiak.level().getBlockState(posBelow).is(Blocks.WATER);
         boolean isValidBiome = kodiak.level().getBiome(posBelow).is(Biomes.RIVER) || kodiak.level().getBiome(posBelow).is(OWBiomes.REDWOOD_FOREST_BIOME);
-        return !this.fishArrived && (kodiak.isInWater() || isWaterBelow) && isValidBiome;
+        return !this.fishArrived && (kodiak.isInWater() || isWaterBelow) && isValidBiome && !kodiak.isCatchingSalmon() && !kodiak.isTame();
     }
 }

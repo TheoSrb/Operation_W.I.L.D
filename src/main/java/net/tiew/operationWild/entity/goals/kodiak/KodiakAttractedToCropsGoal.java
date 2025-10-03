@@ -45,16 +45,16 @@ public class KodiakAttractedToCropsGoal extends Goal {
     public boolean canUse() {
         return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
                 kodiak.getTarget() == null && kodiak.onGround() &&
-                !kodiak.isNapping() && conditionToWork && !kodiak.isDirty() && !kodiak.isSearchingInsideChest;
+                !kodiak.isNapping() && !kodiak.isTame() && conditionToWork && !kodiak.isDirty() && !kodiak.isSearchingInsideChest && !kodiak.isCatchingSalmon();
     }
 
     @Override
     public boolean canContinueToUse() {
-        if (targetPos == null || !conditionToWork || kodiak.isDirty() || kodiak.isSearchingInsideChest) return false;
+        if (targetPos == null || kodiak.isTame() || !conditionToWork || kodiak.isDirty() || kodiak.isSearchingInsideChest) return false;
         BlockState blockState = kodiak.level().getBlockState(targetPos);
         if (!blockState.is(BlockTags.CROPS)) return false;
         double distance = OWUtils.distanceRest(kodiak, targetPos);
-        return distance > 3;
+        return distance > 3 && !kodiak.isCatchingSalmon();
     }
 
     @Override

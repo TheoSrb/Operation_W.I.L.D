@@ -49,12 +49,13 @@ public class KodiakRollGoal extends Goal {
                 kodiak.getHealth() > (kodiak.getMaxHealth() * 0.5f) &&
                 !kodiak.isNapping() &&
                 !kodiak.isSearchingInsideChest &&
-                !kodiak.isSitting();
+                !kodiak.isSitting() && !kodiak.isCatchingSalmon()
+                && !kodiak.isTame();
     }
 
     @Override
     public boolean canContinueToUse() {
         if (kodiak.isSearchingInsideChest) return false;
-        return kodiak.isRolling();
+        return kodiak.isRolling() && !kodiak.isTame();
     }
 }

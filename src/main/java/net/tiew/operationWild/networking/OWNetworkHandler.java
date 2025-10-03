@@ -34,6 +34,7 @@ public class OWNetworkHandler {
         registrar.playToServer(StopNipsBoaPacket.TYPE, StopNipsBoaPacket.STREAM_CODEC, StopNipsBoaPacket::handle);
         registrar.playToServer(StopShakingSharkPacket.TYPE, StopShakingSharkPacket.STREAM_CODEC, StopShakingSharkPacket::handle);
         registrar.playToServer(ElephantFootstepPacket.TYPE, ElephantFootstepPacket.STREAM_CODEC, ElephantFootstepPacket::handle);
+        registrar.playToServer(CheckManuscriptEntityPacket.TYPE, CheckManuscriptEntityPacket.STREAM_CODEC, CheckManuscriptEntityPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);
@@ -47,6 +48,7 @@ public class OWNetworkHandler {
         registrar.playToClient(SyncKillDataPacket.TYPE, SyncKillDataPacket.STREAM_CODEC, SyncKillDataPacket::handle);
         registrar.playToClient(ChameleonUtilsSendToClient.TYPE, ChameleonUtilsSendToClient.STREAM_CODEC, ChameleonUtilsSendToClient::handle);
         registrar.playToClient(OWFoodPacketClient.TYPE, OWFoodPacketClient.STREAM_CODEC, OWFoodPacketClient::handle);
+        registrar.playToClient(AddEntityToManuscriptPacket.TYPE, AddEntityToManuscriptPacket.STREAM_CODEC, AddEntityToManuscriptPacket::handle);
     }
 
     public static void sendToServer(CustomPacketPayload packet) {

@@ -44,18 +44,18 @@ public class KodiakAttractedToBeeNestGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (beeNestCooldown > 0) return false;
+        if (beeNestCooldown > 0 || kodiak.isTame()) return false;
         return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
                 kodiak.getTarget() == null && kodiak.onGround() &&
-                !kodiak.isNapping() && conditionToWork && !kodiak.isDirty() && !kodiak.isSearchingInsideChest;
+                !kodiak.isNapping() && conditionToWork && !kodiak.isDirty() && !kodiak.isSearchingInsideChest && !kodiak.isCatchingSalmon();
     }
 
     @Override
     public boolean canContinueToUse() {
-        if (targetPos == null || !conditionToWork || kodiak.isDirty() || kodiak.isSearchingInsideChest) return false;
+        if (kodiak.isTame() || targetPos == null || !conditionToWork || kodiak.isDirty() || kodiak.isSearchingInsideChest) return false;
         if (!kodiak.level().getBlockState(targetPos).is(Blocks.BEE_NEST)) return false;
         double distance = OWUtils.distanceRest(kodiak, targetPos);
-        return distance > 3;
+        return distance > 3 && !kodiak.isCatchingSalmon();
     }
 
     @Override

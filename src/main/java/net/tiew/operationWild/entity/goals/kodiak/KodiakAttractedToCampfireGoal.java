@@ -58,11 +58,14 @@ public class KodiakAttractedToCampfireGoal extends Goal {
         boolean notDirty = !kodiak.isDirty();
         boolean notSearching = !kodiak.isSearchingInsideChest;
 
-        return random && noTarget && onGround && notNapping && conditionToWork && notDirty && notSearching;
+        return random && !kodiak.isTame() && noTarget && onGround && notNapping && conditionToWork && notDirty && notSearching && !kodiak.isCatchingSalmon();
     }
 
     @Override
     public boolean canContinueToUse() {
+        if (kodiak.isTame()) {
+            return false;
+        }
         if (targetPos == null) {
             return false;
         }
@@ -80,7 +83,7 @@ public class KodiakAttractedToCampfireGoal extends Goal {
         }
         double distance = OWUtils.distanceRest(kodiak, targetPos);
         boolean canContinue = distance > 2 && kodiak.getFoodPick().isEmpty();
-        return canContinue;
+        return canContinue && !kodiak.isCatchingSalmon();
     }
 
     @Override

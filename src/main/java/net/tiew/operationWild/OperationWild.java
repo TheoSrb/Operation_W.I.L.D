@@ -215,7 +215,7 @@ public class OperationWild {
         } else if (entityType == OWEntityRegistry.HYENA.get()) {
             return 2;
         } else if (entityType == OWEntityRegistry.KODIAK.get()) {
-            return 3;
+            return 4;
         } else if (entityType == OWEntityRegistry.RED_PANDA.get()) {
             return 2;
         } else if (entityType == OWEntityRegistry.CHAMELEON.get()) {

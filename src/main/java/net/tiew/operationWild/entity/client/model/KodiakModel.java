@@ -175,6 +175,16 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		}
 
 
+		if (kodiak.isMad()) {
+			this.left_eyeBall.xScale = 0;
+			this.left_eyeBall.yScale = 0;
+			this.left_eyeBall.zScale = 0;
+
+			this.right_eyeBall.xScale = 0;
+			this.right_eyeBall.yScale = 0;
+			this.right_eyeBall.zScale = 0;
+		}
+
 		if (kodiak.isRolling()) {
 			this.animate(kodiak.rollingAnimationState, KodiakAnimations.ROLL, ageInTicks, 1.0f);
 			return;
@@ -233,7 +243,11 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		this.animate(kodiak.idleAnimationState, KodiakAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 		if (kodiak.isRunning() || kodiak.getState() == 2) {
-			this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.0f, 1.0f);
+			if (kodiak.isVehicle()) {
+				this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.0f, 1.0f);
+			} else {
+				this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.25f, 1.35f);
+			}
 		} else {
 			this.animateWalk(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
 		}

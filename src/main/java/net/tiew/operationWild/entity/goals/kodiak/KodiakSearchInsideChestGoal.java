@@ -53,12 +53,16 @@ public class KodiakSearchInsideChestGoal extends Goal {
     public boolean canUse() {
         return cooldownTicks == 0 && kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
                 kodiak.getTarget() == null && kodiak.onGround() &&
-                !kodiak.isNapping() && !kodiak.isDirty();
+                !kodiak.isNapping() && !kodiak.isDirty() && !kodiak.isCatchingSalmon() && !kodiak.isTame();
     }
 
     @Override
     public boolean canContinueToUse() {
         if (cooldownTicks > 0) {
+            return false;
+        }
+
+        if (kodiak.isTame()) {
             return false;
         }
 
@@ -78,7 +82,7 @@ public class KodiakSearchInsideChestGoal extends Goal {
             return false;
         }
 
-        return true;
+        return !kodiak.isCatchingSalmon();
     }
 
     @Override

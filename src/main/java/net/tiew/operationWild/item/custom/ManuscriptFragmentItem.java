@@ -13,10 +13,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.networking.packets.to_server.CheckManuscriptEntityPacket;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManuscriptScreen;
 
 import java.util.List;
@@ -85,18 +87,25 @@ public class ManuscriptFragmentItem extends Item {
             EntityType<? extends OWEntity> entityType = OWEntityRegistry.getEntityTypeFromName(entityName);
 
             if (entityType != null) {
-                if (!level.isClientSide()) {
-                    stack.shrink(1);
-                    return InteractionResultHolder.success(stack);
-                } else {
-                    if (AdventurerManuscriptScreen.tempMap.containsKey(entityType) || AdventurerManuscriptScreen.OW_ENTITIES.containsKey(entityType)) {
+                if (level.isClientSide()) {
+                    boolean hasEntity = AdventurerManuscriptScreen.tempMap.containsKey(entityType) ||
+                            AdventurerManuscriptScreen.OW_ENTITIES.containsKey(entityType);
+
+                    if (hasEntity) {
                         OWEntity entity = entityType.create(level);
-                        player.displayClientMessage(Component.translatable("tooltip.haveEntityChapter",
-                                Component.translatable(String.valueOf(entityType)).setStyle(Style.EMPTY.withColor(entity != null ? 0xFF0000 : 0xFFFFFF))).setStyle(Style.EMPTY.withColor(0xFF0000)), true);
-                        return InteractionResultHolder.fail(stack);
+                        player.displayClientMessage(
+                                Component.translatable("tooltip.haveEntityChapter",
+                                                Component.translatable(String.valueOf(entityType))
+                                                        .setStyle(Style.EMPTY.withColor(entity != null ? 0xFF0000 : 0xFFFFFF)))
+                                        .setStyle(Style.EMPTY.withColor(0xFF0000)),
+                                true
+                        );
+                    } else {
+                        player.playSound(net.minecraft.sounds.SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
                     }
-                    OperationWild.addEntityToManuscript(entityType, OperationWild.getMaxPageForEntityInManuscript(entityType), player);
-                    player.playSound(net.minecraft.sounds.SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
+
+                    PacketDistributor.sendToServer(new CheckManuscriptEntityPacket(entityName, hasEntity));
+
                     return InteractionResultHolder.success(stack);
                 }
             }

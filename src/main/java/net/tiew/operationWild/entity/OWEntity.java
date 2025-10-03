@@ -123,6 +123,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int runTime;
     public int chance = random.nextInt(100);
     private int fightingTime = 200;
+    public boolean canAttack = true;
     private BlockPos lastPosition;
     public LivingEntity lastVisibleTarget = null;
     public int questsReUpdatingTimer = 10;
@@ -1380,6 +1381,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
+    }
+
+    public boolean canAttack() {
+        return canAttack;
+    }
+
+    public void setCanAttack(boolean canAttack) {
+        this.canAttack = canAttack;
     }
 
     private void updateFallFlying() {

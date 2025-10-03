@@ -17,7 +17,10 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.entity.animal.Salmon;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.NonTameRandomTargetGoal;
+import net.minecraft.world.entity.animal.*;
 import net.tiew.operationWild.core.OWUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -27,8 +30,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
-import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -86,6 +87,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private static final EntityDataAccessor<Boolean> REJECT_ITEM = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_CATCHING_SALMON = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_RUBS = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
 
     public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
@@ -113,8 +115,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int sitTimer = 0;
     public final int MAX_SITTING_TIMER = 600;
     public int salmonCatchedTimer = 0;
-
-    protected boolean canAttack = false;
 
     public ItemStack foodPick = ItemStack.EMPTY;
     public boolean startEatingTimer = false;
@@ -160,11 +160,12 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         super.registerGoals();
         initKodiakBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
-        this.goalSelector.addGoal(0, new KodiakRubsAgainstTreeGoal(this, 1.5f, 20,
-                200, () -> kodiakBehaviorHandler.startingRubsAgainstTree()));
+        /*this.goalSelector.addGoal(0, new KodiakRubsAgainstTreeGoal(this, 1.5f, 20,
+                200, () -> kodiakBehaviorHandler.startingRubsAgainstTree()));*/
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
+        this.goalSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 25f, 8, 3, true));
         this.goalSelector.addGoal(1, new KodiakRollGoal(this, 1.8f));
         this.goalSelector.addGoal(1, new KodiakAttractedToFoodItemGoal(this, 1.75f, 15, 7.5f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
         this.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(this, 2.0f, 35, 1.75f, () -> kodiakBehaviorHandler.openChest(chestBlockEntity)));
@@ -172,16 +173,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.goalSelector.addGoal(4, new KodiakAttractedToCampfireGoal(this, 1.0f, 60, 2.25f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), true));
         this.goalSelector.addGoal(5, new KodiakAttractedToCropsGoal(this, 1.15f, 80, 2.25f, () -> kodiakBehaviorHandler.goToNewCropBlock(20), true));
         this.goalSelector.addGoal(6, new KodiakTemptGoal(this, 2D, Ingredient.of(Tags.Items.FOODS), false));
-        this.goalSelector.addGoal(7, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, canAttack()));
         this.goalSelector.addGoal(9, new NapGoal(this, 1.15f, 700, true));
         this.goalSelector.addGoal(10, new KodiakSitGoal(this, 0.25f));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
         this.goalSelector.addGoal(11, new RandomStrollGoal(this, 0.8D));
 
-        /*this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.addGoal(7, new NearestAttackableTargetGoal<>(this, Monster.class, true));*/
+        this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new NonTameRandomTargetGoal<>(this, Pig.class, false, null));
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -195,6 +194,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(REJECT_ITEM, false);
         builder.define(IS_CATCHING_SALMON, false);
         builder.define(IS_RUBS, false);
+        builder.define(IS_MAD, false);
     }
 
     // Entity Methods
@@ -335,6 +335,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (isSearchingInsideChest) this.setNap(false);
+
+        if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo());
 
         if (hasSomethingInHisMouth) {
             if (startEatingTimer) {
@@ -564,6 +566,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         } finally {
             isSettingTarget = false;
         }
+
+        if (!isTame()) setMad(!isBaby() && target != null && getSleepBarPercent() < 75 && !this.isSitting() && lastVisibleTarget != null);
     }
 
     @Override
@@ -653,7 +657,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
         Item heldItem = itemStack.getItem();
-        if (this.getTarget() == null && !this.isNapping() && (this.getFoodPick() == ItemStack.EMPTY || this.getFoodPick() == null)) {
+        if (!this.isTame() && !this.isRolling() && !this.isSearchingInsideChest && !this.isSitting()
+                && this.getTarget() == null && !this.isNapping() && (this.getFoodPick() == ItemStack.EMPTY ||
+                this.getFoodPick() == null)) {
             if (itemStack.is(Tags.Items.FOODS) || itemStack.is(Items.HONEYCOMB)) {
                 kodiakBehaviorHandler.pickupItemInHisMouth(heldItem.getDefaultInstance().copy());
                 itemStack.shrink(1);
@@ -663,7 +669,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
-        if (this.getFoodPick() != null && !this.getFoodPick().isEmpty()) {
+        if (!this.isTame() && this.getFoodPick() != null && !this.getFoodPick().isEmpty()) {
             if (player.getMainHandItem().isEmpty()) {
                 player.setItemInHand(InteractionHand.MAIN_HAND, this.getFoodPick().copy());
                 this.setFoodPick(ItemStack.EMPTY);
@@ -871,14 +877,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public boolean isShade() { return this.entityData.get(IS_SHADE_SKIN);}
 
-    protected boolean canAttack() {
-        return canAttack;
-    }
-
-    protected void setCanAttack(boolean canAttack) {
-        this.canAttack = canAttack;
-    }
-
     public boolean isDirty() {
         return this.entityData.get(IS_DIRTY);
     }
@@ -911,6 +909,13 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public void setRubs(boolean isRubs) { this.entityData.set(IS_RUBS, isRubs);}
 
     public boolean isRubs() { return this.entityData.get(IS_RUBS);}
+
+    public void setMad(boolean isMad) {
+        if (isMad) if (this.getCurrentMode() == Mode.Passive) return;
+        this.entityData.set(IS_MAD, isMad);
+    }
+
+    public boolean isMad() { return this.entityData.get(IS_MAD);}
 
     public ItemStack getFoodPick() {
         return this.entityData.get(FOOD_PICK);

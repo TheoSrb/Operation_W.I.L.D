@@ -14,7 +14,7 @@ public class KodiakTemptGoal extends TemptGoal {
 
     @Override
     public boolean canUse() {
-        if (this.kodiak.isNapping() || !this.kodiak.getFoodPick().isEmpty() || this.kodiak.isRolling()) {
+        if (this.kodiak.isNapping() || kodiak.isTame() || !this.kodiak.getFoodPick().isEmpty() || this.kodiak.isRolling() || kodiak.isCatchingSalmon()) {
             return false;
         }
         return super.canUse();
@@ -22,7 +22,7 @@ public class KodiakTemptGoal extends TemptGoal {
 
     @Override
     public boolean canContinueToUse() {
-        if (this.kodiak.isNapping() || !this.kodiak.getFoodPick().isEmpty() || this.kodiak.isRolling()) {
+        if (this.kodiak.isNapping() || kodiak.isTame() || !this.kodiak.getFoodPick().isEmpty() || this.kodiak.isRolling() || kodiak.isCatchingSalmon()) {
             return false;
         }
         return super.canContinueToUse();
