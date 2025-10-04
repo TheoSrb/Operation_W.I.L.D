@@ -79,6 +79,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private static final int MAX_EATING_TIMER = 400;
     private static final int MAX_HONEY_TIMER = 750;
     public static final int MAX_DIRTY_TIMER = 1200;
+    public final int MAX_SITTING_TIMER = 600;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_SHADE_SKIN = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
@@ -120,7 +121,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int rollTimer = 0;
     public int itemRejectionTimer = 0;
     public int sitTimer = 0;
-    public final int MAX_SITTING_TIMER = 600;
     public int salmonCatchedTimer = 0;
     private int rubTimer = 0;
 
@@ -260,6 +260,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public boolean isChangeSpeedDuringCombo() {
+        return false;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return OWItems.KODIAK_SADDLE.get();
     }
@@ -358,16 +363,16 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo());
 
         if (hasSomethingInHisMouth) {
-            if (startEatingTimer) {
-                if (eatingTimer < MAX_EATING_TIMER) eatingTimer++;
-                else {
-                    kodiakBehaviorHandler.eatFoodInHisMouth(getFoodPick());
-                }
-            }
-
             if (getFoodPick() == Items.HONEYCOMB.getDefaultInstance()) {
                 if (startHoneyTimer) {
                     if (honeyTimer < MAX_HONEY_TIMER) honeyTimer++;
+                    else {
+                        kodiakBehaviorHandler.eatFoodInHisMouth(getFoodPick());
+                    }
+                }
+            } else {
+                if (startEatingTimer) {
+                    if (eatingTimer < MAX_EATING_TIMER) eatingTimer++;
                     else {
                         kodiakBehaviorHandler.eatFoodInHisMouth(getFoodPick());
                     }
@@ -567,11 +572,12 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
-        handleRunningEffects(29, SoundEvents.HORSE_STEP, 0.5f, new int[]{5, 19});
+        handleRunningEffects(29, this.getVariant() == KodiakVariant.SKIN_SKELETON ? SoundEvents.SKELETON_STEP : SoundEvents.HORSE_STEP, this.getVariant() == KodiakVariant.SKIN_SKELETON ? 0.8f : 0.5f, new int[]{5, 19});
         handleGoldVariantEffects();
     }
 
     protected void handleFoodBarSystem() {
+        if (isTame()) return;
         if (this.tickCount % 1200 == 0) {
             this.setFoodBarValue(this.getFoodBarValue() - 1);
         }
@@ -873,7 +879,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         if (this.isSniffing()) {
             if (this.sniffingAnimationTimeout <= 0) {
-                this.sniffingAnimationTimeout = 12;
+                this.sniffingAnimationTimeout = 15;
                 this.sniffingAnimationState.start(this.tickCount);
             } else --this.sniffingAnimationTimeout;
         }
@@ -1025,6 +1031,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.entityData.set(FOOD_PICK, food);
         if (!food.isEmpty()) {
             startEatingTimer = true;
+            startHoneyTimer = true;
         }
     }
 

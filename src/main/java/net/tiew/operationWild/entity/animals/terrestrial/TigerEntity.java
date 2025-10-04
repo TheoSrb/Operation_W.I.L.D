@@ -202,6 +202,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     @Override
+    public boolean isChangeSpeedDuringCombo() {
+        return true;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return OWItems.TIGER_SADDLE.get();
     }

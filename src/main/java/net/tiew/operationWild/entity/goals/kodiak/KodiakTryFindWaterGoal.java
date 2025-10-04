@@ -40,12 +40,12 @@ public class KodiakTryFindWaterGoal extends Goal {
             return false;
         }
 
-        return kodiak.getRandom().nextInt(150) == 0 && this.kodiak.onGround() && !kodiak.isRubs() && !this.kodiak.level().getFluidState(this.kodiak.blockPosition()).is(FluidTags.WATER) && !kodiak.isCatchingSalmon();
+        return kodiak.getRandom().nextInt(150) == 0 && !this.kodiak.isTame() && this.kodiak.onGround() && !kodiak.isRubs() && !this.kodiak.level().getFluidState(this.kodiak.blockPosition()).is(FluidTags.WATER) && !kodiak.isCatchingSalmon();
     }
 
     @Override
     public boolean canContinueToUse() {
-        return blockpos != null && !kodiak.isRubs();
+        return blockpos != null && !kodiak.isRubs() && !this.kodiak.isTame();
     }
 
     public void start() {

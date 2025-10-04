@@ -8,6 +8,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.animal.Salmon;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -256,7 +257,13 @@ public class KodiakBehaviorHandler {
 
             kodiak.playSound(SoundEvents.GENERIC_EAT);
 
-            int foodValue = 5;
+            int foodValue = 2;
+            if (itemStack != null) {
+                FoodProperties foodProperties = itemStack.getFoodProperties(kodiak);
+                if (foodProperties != null) {
+                    foodValue = foodProperties.nutrition();
+                }
+            }
             kodiak.setFoodBarValue(kodiak.getFoodBarValue() + foodValue);
 
             if (kodiak.getFoodPick().is(OWTags.Items.KODIAK_DANGEROUS_FOOD)) {

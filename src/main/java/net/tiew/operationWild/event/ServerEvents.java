@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
@@ -142,7 +143,7 @@ public class ServerEvents {
         if (source.getEntity() instanceof KodiakEntity) {
             for (ItemEntity itemEntity : event.getDrops()) {
                 ItemStack drop = itemEntity.getItem();
-                if (isMeat(drop.getItem())) {
+                if (drop.is(Tags.Items.FOODS)) {
                     int additionalDrops = entity.getRandom().nextInt(2);
                     for (int i = 0; i < additionalDrops; i++) {
                         entity.spawnAtLocation(drop.copy());
@@ -151,10 +152,6 @@ public class ServerEvents {
                 }
             }
         }
-    }
-
-    private static boolean isMeat(Item item) {
-        return OWEntity.FOOD_FOR_HEALING_MEAT.contains(item);
     }
 
     public static void sendNotificationBook(ServerPlayer player, String entityType, boolean isTaming) {

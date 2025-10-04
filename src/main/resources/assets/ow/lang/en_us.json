@@ -491,6 +491,11 @@
   "attacks.title2.PeacockEntity": "- ? -",
   "attacks.title3.PeacockEntity": "- ? -",
 
+  "attacks.title1.KodiakEntity": "- Bonebreaker -",
+  "attacks.title2.KodiakEntity": "- ? -",
+  "attacks.title3.KodiakEntity": "- ? -",
+
+
   "attacks.description1.TigerEntity": "Make your %1$s bite every %2$s seconds, dealing %3$s damage with each bite.",
   "attacks.description2.TigerEntity": "Make your %1$s leap a long distance every %2$s seconds. If it comes into contact with an entity, it will trap it in its claws and devour it, causing you to dismount.",
   "attacks.description3.TigerEntity": "Make your %1$s enter an intense rage for %2$s seconds, increasing its resistance by %3$s%, its damage by %4$s%, its size by %5$s%, and its speed by %6$s%, every %7$s minutes.",
@@ -501,6 +506,10 @@
 
   "attacks.description1.PeacockEntity": "Make your %1$s peck every %2$s seconds, dealing %3$s damage with each peak.",
   "attacks.description2.PeacockEntity": "?",
-  "attacks.description3.PeacockEntity": "?"
+  "attacks.description3.PeacockEntity": "?",
+
+  "attacks.description1.KodiakEntity": "Crush your enemies' bones with your %1$s every %2$s seconds, dealing %3$s damage with each strike.",
+  "attacks.description2.KodiakEntity": "?",
+  "attacks.description3.KodiakEntity": "?"
 
 }

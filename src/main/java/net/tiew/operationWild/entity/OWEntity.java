@@ -25,6 +25,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -134,6 +136,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int noJumpDelay;
     private float currentSpeed = 0;
     private float targetSpeed = 0;
+
+    public int continueComboMaxTimer = 0;
+    public int actualAttackNumber = 0;
+    public final int MAX_ATTACKS_IN_COMBO = 3;
 
     public static float comboSpeedMultiplier = 1.0f;
 
@@ -304,14 +310,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             OWEntityRegistry.PEACOCK.get(),
             OWEntityRegistry.RED_PANDA.get()
     );
-
-    public static final List<Item> FOOD_FOR_HEALING_MEAT = List.of(Items.MUTTON, Items.COOKED_MUTTON, Items.CHICKEN, Items.COOKED_CHICKEN, Items.RABBIT, Items.COOKED_RABBIT, Items.BEEF, Items.COOKED_BEEF, Items.PORKCHOP, Items.COOKED_PORKCHOP, OWItems.RAW_TIGER.get(), OWItems.COOKED_TIGER.get(), OWItems.RAW_BOA.get(), OWItems.COOKED_BOA.get(), OWItems.RAW_PEACOCK.get(), OWItems.COOKED_PEACOCK.get(), OWItems.RAW_KODIAK.get(), OWItems.COOKED_KODIAK.get().asItem());
-
-    public static final List<Item> RAW_MEATS_ITEMS = List.of(Items.MUTTON, Items.CHICKEN, Items.RABBIT, Items.BEEF, Items.PORKCHOP, OWItems.RAW_TIGER.get(), OWItems.RAW_BOA.get(), OWItems.RAW_PEACOCK.get(), OWItems.RAW_KODIAK.get());
-
-    public static final List<Item> COOKED_MEATS_ITEMS = List.of(Items.COOKED_MUTTON, Items.COOKED_CHICKEN, Items.COOKED_RABBIT, Items.COOKED_BEEF, Items.COOKED_PORKCHOP, OWItems.COOKED_TIGER.get(), OWItems.COOKED_BOA.get(), OWItems.COOKED_PEACOCK.get());
-
-    public static final List<Item> FOOD_FOR_HEALING_VEGETABLES = List.of(Items.APPLE, Items.POTATO, Items.CARROT, Items.BEETROOT, Items.BROWN_MUSHROOM, Items.RED_MUSHROOM, Items.BREAD, Items.PUMPKIN_PIE, Items.MELON, Items.COOKIE, OWItems.SAVAGE_BERRIES.get(), Items.GLOW_BERRIES, Items.SWEET_BERRIES);
 
     public float getBaseHealth() { return this.entityData.get(BASE_HEALTH);}
     public void setBaseHealth(float health) { this.entityData.set(BASE_HEALTH, health);}
@@ -650,9 +648,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void healWithFavoriteFood(float healMultiplier, boolean preferRawMeat, boolean preferCookedMeat) {
         ItemStack food = this.getItemFood();
         if (CARNIVOROUS_ENTITIES.contains(this.getType())) {
-            if (FOOD_FOR_HEALING_MEAT.contains(food.getItem())) {
+            if (food.is(ItemTags.MEAT) || food.is(ItemTags.FISHES)) {
                 if (preferRawMeat) {
-                    if (RAW_MEATS_ITEMS.contains(food.getItem())) {
+                    if (food.is(Tags.Items.FOODS_RAW_MEAT) || food.is(Tags.Items.FOODS_RAW_FISH)) {
                         this.heal(4 * healMultiplier);
                         healAmount = (int) (4 * healMultiplier);
                         if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
@@ -667,7 +665,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     }
                     this.playSound(SoundEvents.CAMEL_EAT);
                 } else if (preferCookedMeat) {
-                    if (COOKED_MEATS_ITEMS.contains(food.getItem())) {
+                    if (food.is(Tags.Items.FOODS_COOKED_MEAT) || food.is(Tags.Items.FOODS_COOKED_FISH)) {
                         this.playSound(SoundEvents.CAMEL_EAT);
                         this.heal(4 * healMultiplier);
                         healAmount = (int) (4 * healMultiplier);
@@ -684,7 +682,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     this.playSound(SoundEvents.CAMEL_EAT);
                 }
             }
-        } else if (FOOD_FOR_HEALING_VEGETABLES.contains(food.getItem())) {
+        } else if (food.is(Tags.Items.FOODS_VEGETABLE)) {
             this.playSound(SoundEvents.CAMEL_EAT);
             this.heal(3 * healMultiplier);
             healAmount = (int) (3 * healMultiplier);
@@ -861,10 +859,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             Item item = itemStack.getItem();
             if (this.getHealth() < getMaxHealth()) {
                 if (CARNIVOROUS_ENTITIES.contains(this.getType())) {
-                    if (FOOD_FOR_HEALING_MEAT.contains(item)) {
+                    if (itemStack.is(ItemTags.MEAT)) {
                         itemStack.shrink(1);
-                        boolean itemIsCookedMeat = COOKED_MEATS_ITEMS.contains(item);
-                        boolean itemIsRawMeat = RAW_MEATS_ITEMS.contains(item);
+                        boolean itemIsCookedMeat = itemStack.is(Tags.Items.FOODS_RAW_MEAT) || itemStack.is(Tags.Items.FOODS_RAW_FISH);
+                        boolean itemIsRawMeat = itemStack.is(Tags.Items.FOODS_COOKED_MEAT) || itemStack.is(Tags.Items.FOODS_COOKED_FISH);
                         if (itemIsRawMeat) {
                             if (preferRawMeat) {
                                 heal(4 * healingMultiplier);
@@ -903,7 +901,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     return InteractionResult.SUCCESS;
                 }
                 if (VEGETARIAN_ENTITIES.contains(this.getType())) {
-                    if (FOOD_FOR_HEALING_VEGETABLES.contains(item)) {
+                    if (itemStack.is(Tags.Items.FOODS_VEGETABLE)) {
                         if (preferRawMeat) {
                             itemStack.shrink(1);
                             this.heal(4 * healingMultiplier);
@@ -1108,7 +1106,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     return (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 4);
                 }
             }
-            if (vehicleComboSpeedMultiplier() != -1) targetSpeed = (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 3);
+            if (vehicleComboSpeedMultiplier() != -1) {
+                if (isChangeSpeedDuringCombo()) {
+                    targetSpeed = (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 3);
+                } else {
+                    return currentSpeed;
+                }
+            }
         }
 
         else if (isRunning()) {
@@ -1678,6 +1682,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
+        if (this.getArchetype() == OWEntityConfig.Archetypes.BERSERKER) {
+            if (this.getHealth() <= (this.getMaxHealth() * 0.25)) {
+                comboSpeedMultiplier = 1.3f;
+            } else comboSpeedMultiplier = 1.0f;
+        } else comboSpeedMultiplier = 1.0f;
+
         if (!this.level().isClientSide()) {
             if (this.isRunning() && this.isVehicle()) {
                 setVitalEnergy(getVitalEnergy() + 1);
@@ -1769,7 +1779,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     choosenQuest = /*keys.get(random.nextInt(keys.size()))*/ 0;
                     choosenQuestStr = values.get(choosenQuest);
                     if (choosenQuest == 0) {
-                        choosenFood = VEGETARIAN_ENTITIES.contains(this.getType()) ? FOOD_FOR_HEALING_VEGETABLES.get(random.nextInt(FOOD_FOR_HEALING_VEGETABLES.size())) : FOOD_FOR_HEALING_MEAT.get(random.nextInt(FOOD_FOR_HEALING_MEAT.size()));
+
+                        choosenFood = VEGETARIAN_ENTITIES.contains(this.getType())
+                                ? getRandomItemFromTag(Tags.Items.FOODS_VEGETABLE)
+                                : getRandomItemFromTag(this.random.nextBoolean()
+                                ? (this.random.nextBoolean() ? Tags.Items.FOODS_COOKED_MEAT : Tags.Items.FOODS_RAW_MEAT)
+                                : (this.random.nextBoolean() ? Tags.Items.FOODS_COOKED_FISH : Tags.Items.FOODS_RAW_FISH));
+
                         System.out.println(choosenFood);
                     }
                     babyQuestIsInProgress = true;
@@ -1908,9 +1924,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    public int continueComboMaxTimer = 0;
-    public int actualAttackNumber = 0;
-    public final int MAX_ATTACKS_IN_COMBO = 3;
+    private Item getRandomItemFromTag(TagKey<Item> tag) {
+        List<Item> items = BuiltInRegistries.ITEM.stream()
+                .filter(item -> item.getDefaultInstance().is(tag))
+                .toList();
+
+        if (items.isEmpty()) {
+            return Items.APPLE;
+        }
+
+        return items.get(this.random.nextInt(items.size()));
+    }
 
     public void createComboAttackSystem(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
         if (this.isCombo()) {
@@ -2373,7 +2397,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return InteractionResult.SUCCESS;
         }
 
-        if (this.getHealth() < this.getMaxHealth() && (FOOD_FOR_HEALING_MEAT.contains(item) || FOOD_FOR_HEALING_VEGETABLES.contains(item)) && this.isTame()) {
+        if (this.getHealth() < this.getMaxHealth() && itemstack.is(Tags.Items.FOODS) && this.isTame()) {
             itemstack.shrink(1);
             healWithFavoriteFood(1.5f, preferRawMeat(), preferCookedMeat());
             return InteractionResult.SUCCESS;
@@ -2417,7 +2441,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
                 return InteractionResult.SUCCESS;
             } else {
-                if (!this.isSitting() && !this.isInResurrection() && !FOOD_FOR_HEALING_MEAT.contains(itemstack.getItem()) && !FOOD_FOR_HEALING_VEGETABLES.contains(itemstack.getItem())) {
+                if (!this.isSitting() && !this.isInResurrection() && !itemstack.is(Tags.Items.FOODS)) {
                     if (!this.isBaby()) player.startRiding(this);
                 }
             }
@@ -2436,7 +2460,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     if ((runTime == runTimeSound[0] || runTime == runTimeSound[1]) && this.onGround()) {
                         this.level().playLocalSound(
                                 this.getX(), this.getY(), this.getZ(),
-                                SoundEvents.HORSE_STEP,
+                                soundEvent,
                                 this.getSoundSource(),
                                 0.8f, pitch,
                                 false
@@ -2719,6 +2743,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     @Override
+    public boolean isChangeSpeedDuringCombo() {
+        return false;
+    }
+
+
+    @Override
     public Item acceptSaddle() {
         return null;
     }
@@ -2814,11 +2844,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         double yaw = Math.toRadians(this.getYRot());
         double centerX = this.getX() - Math.sin(yaw) * reach;
         double centerZ = this.getZ() + Math.cos(yaw) * reach;
-        double centerY = this.getY() + 1.0;
+        double centerY = this.getY() + 0.5;
+
+        double extendedHeight = height * 2;
 
         AABB attackBox = new AABB(
-                centerX - width / 2, centerY - height / 2, centerZ - width / 2,
-                centerX + width / 2, centerY + height / 2, centerZ + width / 2
+                centerX - width / 2, centerY - extendedHeight / 2, centerZ - width / 2,
+                centerX + width / 2, centerY + extendedHeight / 2, centerZ + width / 2
         );
 
         List<Entity> entitiesInRange = this.level().getEntities(

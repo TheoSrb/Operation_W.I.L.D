@@ -80,7 +80,7 @@ public class OWRendererUtils {
         float tamingBarProgress = entity.getTamingPercentage() / 100.0F;
 
         poseStack.pushPose();
-        poseStack.translate(0.0D, 0.0D, 0.002D);
+        poseStack.translate(0.0D, 0.0D, 0.003D);
 
         VertexConsumer tamingBarVertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(barTexture));
         Matrix4f tamingBarMatrix = poseStack.last().pose();
@@ -103,7 +103,7 @@ public class OWRendererUtils {
         float secondBarProgress = entity.isBaby() ? entity.getMaturationPercentage() / 100.0F : entity.getSleepBarPercent() / 100.0F;
 
         poseStack.pushPose();
-        poseStack.translate(0.0D, 0.0D, 0.002D);
+        poseStack.translate(0.0D, 0.0D, 0.003D);
 
         VertexConsumer secondBarVertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(barTexture));
         Matrix4f secondBarMatrix = poseStack.last().pose();
@@ -124,12 +124,8 @@ public class OWRendererUtils {
 
         poseStack.popPose();
 
-
-
-
-
         poseStack.pushPose();
-        poseStack.translate(0.0D, 0.0D, 0.002D);
+        poseStack.translate(0.0D, 0.0D, 0.003D);
 
         int iconU = 0;
         int iconV = entity.isMale() ? 48 : 36;
@@ -139,9 +135,9 @@ public class OWRendererUtils {
         VertexConsumer iconVertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(ICONS));
         Matrix4f iconMatrix = poseStack.last().pose();
 
-        float iconScale = 0.004F;
-        float renderedIconWidth = iconWidth * iconScale;
-        float renderedIconHeight = iconHeight * iconScale;
+        float iconScale2 = 0.004F;
+        float renderedIconWidth = iconWidth * iconScale2;
+        float renderedIconHeight = iconHeight * iconScale2;
         float iconX = 0.215F;
         float iconY = 0.47F;
 
@@ -158,8 +154,54 @@ public class OWRendererUtils {
         poseStack.popPose();
 
 
+        if (entity instanceof KodiakEntity kodiak && !kodiak.isTame()) {
+            poseStack.pushPose();
+            poseStack.translate(-0.03D, 0.285D, 0.003D);
+
+            float foodValue = kodiak.getFoodBarValue();
+            int fullDrumsticks = (int) (foodValue / 2.0F);
+            boolean hasHalfDrumstick = (foodValue % 2.0F) >= 1.0F;
+
+            float iconScale = 0.004F;
+            float drumstickWidth = 9.0F * iconScale;
+            float drumstickHeight = 9.0F * iconScale;
+            float startX = -0.43F;
+            float startY = 0.04F;
+            float spacing = 0.038F;
+
+            for (int i = 0; i < 5; i++) {
+                float x = startX + (i * spacing);
+
+                ResourceLocation spriteLocation;
+
+                if (kodiak.isHungry()) {
+                    spriteLocation = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_empty_hunger.png");
+                } else {
+                    int reverseIndex = 4 - i;
+
+                    if (reverseIndex < fullDrumsticks) {
+                        spriteLocation = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_full.png");
+                    } else if (reverseIndex == fullDrumsticks && hasHalfDrumstick) {
+                        spriteLocation = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_half.png");
+                    } else {
+                        spriteLocation = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_empty.png");
+                    }
+                }
+
+                VertexConsumer foodBarVertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(spriteLocation));
+                Matrix4f foodBarMatrix = poseStack.last().pose();
+
+                foodBarVertexConsumer.addVertex(foodBarMatrix, x, startY, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+                foodBarVertexConsumer.addVertex(foodBarMatrix, x + drumstickWidth, startY, 0.0F).setColor(255, 255, 255, opacity).setUv(1.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+                foodBarVertexConsumer.addVertex(foodBarMatrix, x + drumstickWidth, startY - drumstickHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(1.0F, 1.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+                foodBarVertexConsumer.addVertex(foodBarMatrix, x, startY - drumstickHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, 1.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+            }
+
+            poseStack.popPose();
+        }
+
         poseStack.scale(0.0035F, -0.0035F, 0.0035F);
-        poseStack.translate(0.0D, 0.0D, 0.001D);
+        poseStack.translate(0.0D, 0.0D, 0.003D);
 
         Component healthComponent = Component.empty()
                 .append(Component.translatable("imageHealth").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
@@ -221,9 +263,6 @@ public class OWRendererUtils {
                 .append(Component.translatable("tooltip.lvlImage").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
                 .append(Component.literal(String.valueOf(entity.getLevel())).withStyle(style -> style.withColor(entity.getLevel() >= 50 ? 0xdd9847 : entity.getLevelPoints() > 0 ? 0xb8e45a : 0x8e9eb9).withBold(false)));
 
-        Component foodComponent = Component.empty()
-                .append(Component.literal(String.valueOf(entity instanceof KodiakEntity kodiak ? (int)((kodiak.getFoodBarValue() / 10.0) * 100) + "%" : "")).withStyle(style -> style.withColor(0x8e9eb9).withBold(false)));
-
         String ownerName = Minecraft.getInstance().level != null && entity.getOwnerUUID() != null ?
                 Optional.ofNullable(Minecraft.getInstance().level.getPlayerByUUID(entity.getOwnerUUID()))
                         .map(player -> player.getName().getString())
@@ -267,8 +306,6 @@ public class OWRendererUtils {
         font.drawInBatch(animalLevelComponent, animalLevelTextX + 11, textY + (rightPadding * 1), entity.getLevelPoints() > 0 ? 0xb8e45a : 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
 
         if (entity.getOwner() != null) font.drawInBatch(animalOwnerComponent, animalOwnerTextX + 11, textY + (rightPadding * 2), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
-
-        if (entity instanceof KodiakEntity) font.drawInBatch(foodComponent, animalOwnerTextX + 30, textY + (rightPadding * 2.5f), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
 
         poseStack.popPose();
 

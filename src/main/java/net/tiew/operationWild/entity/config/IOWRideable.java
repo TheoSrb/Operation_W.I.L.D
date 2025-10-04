@@ -7,6 +7,7 @@ public interface IOWRideable {
     float vehicleComboSpeedMultiplier();
     float vehicleWaterSpeedDivider();
     boolean canIncreasesSpeedDuringSprint();
+    boolean isChangeSpeedDuringCombo();
     Item acceptSaddle();
     float getMaxVitalEnergy();
     float getVitalEnergyRecuperation();

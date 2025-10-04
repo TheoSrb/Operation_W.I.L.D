@@ -36,6 +36,7 @@ public class OWAttacksInformation {
             case "TigerEntity": return 0.65f;
             case "BoaEntity": return 0.55f;
             case "PeacockEntity": return 0.50f;
+            case "KodiakEntity": return 0.60f;
             default: return 0f;
         }
     }
@@ -45,6 +46,7 @@ public class OWAttacksInformation {
             case "TigerEntity": return "entity.ow.tiger";
             case "BoaEntity": return "entity.ow.boa";
             case "PeacockEntity": return "entity.ow.peacock";
+            case "KodiakEntity": return "entity.ow.kodiak";
             default: return "entity.ow.tiger";
         }
     }
@@ -54,6 +56,7 @@ public class OWAttacksInformation {
             case "TigerEntity": return 30;
             case "BoaEntity": return 40;
             case "PeacockEntity": return 0;
+            case "KodiakEntity": return 0;
             default: return 0;
         }
     }
@@ -83,6 +86,7 @@ public class OWAttacksInformation {
             case "TigerEntity" -> entityCardPosition = 40;
             case "PeacockEntity" -> entityCardPosition = 80;
             case "BoaEntity" -> entityCardPosition = 0;
+            case "KodiakEntity" -> entityCardPosition = 120;
             default -> entityCardPosition = 0;
         }
 
@@ -103,7 +107,7 @@ public class OWAttacksInformation {
         Component attackDescription1 = Component.translatable("attacks.description1." + owEntity.getClass().getSimpleName(),
                 Component.translatable(chooseAnimalType(owEntity)).setStyle(Style.EMPTY.withBold(true).withColor(owEntity.getEntityColor())),
                 Component.literal(String.valueOf(getEntityAttackSpeed(owEntity))).setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)),
-                Component.literal(String.valueOf(Math.round(owEntity.getDamageToClient() * 10.0) / 10.0)).setStyle(Style.EMPTY.withBold(true)).setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)),
+                Component.literal(String.valueOf(Math.round((owEntity.getDamageToClient() / 3) * 10.0) / 10.0)).setStyle(Style.EMPTY.withBold(true)).setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)),
                 Component.literal("33").setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)),
                 Component.literal("8.8").setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)),
                 Component.literal("17.6").setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)));

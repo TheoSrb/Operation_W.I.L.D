@@ -154,6 +154,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public boolean isChangeSpeedDuringCombo() {
+        return true;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return OWItems.ELEPHANT_SADDLE.get();
     }

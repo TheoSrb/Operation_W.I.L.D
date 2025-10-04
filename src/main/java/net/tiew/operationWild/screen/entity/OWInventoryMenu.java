@@ -1,12 +1,14 @@
 package net.tiew.operationWild.screen.entity;
 
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
@@ -24,7 +26,7 @@ public class OWInventoryMenu extends AbstractContainerMenu {
     private OWEntity entity;
 
     private boolean itemIsMeat(ItemStack item) {
-        return OWEntity.CARNIVOROUS_ENTITIES.contains(entity.getType()) ? OWEntity.FOOD_FOR_HEALING_MEAT.contains(item.getItem()) : OWEntity.FOOD_FOR_HEALING_VEGETABLES.contains(item.getItem());
+        return OWEntity.CARNIVOROUS_ENTITIES.contains(entity.getType()) ? (item.is(ItemTags.MEAT) || item.is(ItemTags.FISHES)) : item.is(Tags.Items.FOODS_VEGETABLE);
     }
 
     public OWInventoryMenu(int containerId, Inventory playerInventory, IItemHandler dataInventory) {

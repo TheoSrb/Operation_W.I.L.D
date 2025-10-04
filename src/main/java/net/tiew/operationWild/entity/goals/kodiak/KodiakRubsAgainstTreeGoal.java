@@ -106,7 +106,7 @@ public class KodiakRubsAgainstTreeGoal extends Goal {
         }
 
         double distance = OWUtils.distanceRest(kodiak, targetPos);
-        return distance > 1.5 && !kodiak.isCatchingSalmon() && !kodiak.isTame() && !kodiak.isHungry() && !kodiak.isRubs();
+        return distance > 1.5 && !kodiak.isCatchingSalmon() && !kodiak.isTame() && !kodiak.isHungry() && !kodiak.isRubs() && (kodiak.getFoodPick().isEmpty() || kodiak.getFoodPick() == null);
     }
 
     @Override
@@ -115,7 +115,8 @@ public class KodiakRubsAgainstTreeGoal extends Goal {
 
         return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
                 kodiak.getTarget() == null && kodiak.onGround() &&
-                !kodiak.isNapping() && !kodiak.isSearchingInsideChest && !kodiak.isInWater() && !kodiak.isCatchingSalmon() && !kodiak.isTame() && !kodiak.isHungry() && !kodiak.isRubs();
+                !kodiak.isNapping() && !kodiak.isSearchingInsideChest && !kodiak.isInWater() && !kodiak.isCatchingSalmon() && !kodiak.isTame() && !kodiak.isHungry() && !kodiak.isRubs()
+                && (kodiak.getFoodPick().isEmpty() || kodiak.getFoodPick() == null);
     }
 
     private BlockPos findNearestTreeLog() {

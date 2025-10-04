@@ -127,6 +127,11 @@ public class HyenaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     @Override
+    public boolean isChangeSpeedDuringCombo() {
+        return false;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return OWItems.KODIAK_SADDLE.get();
     }

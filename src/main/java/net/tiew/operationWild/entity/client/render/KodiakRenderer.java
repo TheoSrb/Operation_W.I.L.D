@@ -70,7 +70,7 @@ public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<Kodiak
                         OWRendererUtils.displayTimeLeftBeforeBabyTaskAboveEntity(kodiak, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, kodiak.distanceTo(player) > 4 ? 0 : Minecraft.getInstance().options.hideGui ? 0 : 0.75f);
                         OWRendererUtils.displayImageAboveEntity(ICONS, 0, 154, 48, 256, -2.5f, kodiak.distanceTo(player) > 4 ? 2.6f : Minecraft.getInstance().options.hideGui ? 2.6f : 5.5f, kodiak, poseStack, bufferSource, packedLight, false);
                     }
-                    if (player != null && kodiak.distanceTo(player) > 3.0D) {
+                    if (player != null && kodiak.distanceTo(player) > 4.0D) {
                         OWRendererUtils.displayOwnerAboveEntity(kodiak, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
                         OWRendererUtils.displayLevelAboveEntity(kodiak, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
                         OWRendererUtils.displayImageAboveEntity(ICONS, 0, genderPosition, 12, 256, 0, 0, kodiak, poseStack, bufferSource, packedLight, true);
@@ -88,7 +88,7 @@ public class KodiakRenderer extends MobRenderer<KodiakEntity, KodiakModel<Kodiak
                 }
             }
         }
-        OWRendererUtils.createInformationImage(kodiak, poseStack, bufferSource, packedLight, 0, kodiak.isSitting() ? 1.5f : 0.75f, 0, 0, 3);
+        OWRendererUtils.createInformationImage(kodiak, poseStack, bufferSource, packedLight, 0, (kodiak.isSitting() || kodiak.isRubs()) ? 2f : 0.75f, 0, 0, 3);
     }
 
     @Override

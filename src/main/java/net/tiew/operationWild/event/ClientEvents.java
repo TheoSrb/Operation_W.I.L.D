@@ -975,6 +975,7 @@ public class ClientEvents {
         boolean renderTiger = targetedEntity instanceof TigerEntity;
         boolean renderSeabug = targetedEntity instanceof SeaBugEntity;
         boolean renderBoa = targetedEntity instanceof BoaEntity;
+        boolean renderKodiak = targetedEntity instanceof KodiakEntity;
         boolean renderPeacock = targetedEntity instanceof PeacockEntity;
         boolean renderFoodOverlay = targetedEntity instanceof OWEntity ow && !ow.getItemFood().isEmpty();
 
@@ -1028,6 +1029,12 @@ public class ClientEvents {
 
             if (renderBoa) {
                 BoaOverlay.render(event.getGuiGraphics(),
+                        event.getGuiGraphics().guiWidth(),
+                        event.getGuiGraphics().guiHeight());
+            }
+
+            if (renderKodiak) {
+                KodiakOverlay.render(event.getGuiGraphics(),
                         event.getGuiGraphics().guiWidth(),
                         event.getGuiGraphics().guiHeight());
             }

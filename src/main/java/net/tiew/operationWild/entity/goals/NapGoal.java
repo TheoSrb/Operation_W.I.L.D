@@ -72,6 +72,10 @@ public class NapGoal extends Goal {
         shouldStop = false;
         startNapping();
 
+        entity.setYRot(entity.getYRot());
+        entity.yRotO = entity.getYRot();
+        entity.setYHeadRot(entity.getYRot());
+
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.getFoodPick() != null && !kodiak.getFoodPick().isEmpty()) {
                 kodiak.kodiakBehaviorHandler.eatFoodInHisMouth(kodiak.getFoodPick());

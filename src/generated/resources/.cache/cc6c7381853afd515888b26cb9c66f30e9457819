@@ -1,5 +1,8 @@
-// 1.21	2025-09-27T11:37:37.3801655	Tags for minecraft:item mod id ow
+// 1.21	2025-10-04T17:25:33.4812632	Tags for minecraft:item mod id ow
 ac05fb97b8a10e0240f5df28bfd2335e56b849a2 data/c/tags/item/foods.json
+f8d501a36ea77641a87cf4a609abbe712de43220 data/c/tags/item/foods/cooked_meat.json
+ab3e0a596f197aa4eb83eb43165511a904cee0c6 data/c/tags/item/foods/raw_meat.json
+30abbc6f3a289b0e53594972404ae21a5fc9b058 data/c/tags/item/foods/vegetable.json
 a95e41043c88f7255d524b559e13744ab52905bf data/minecraft/tags/item/arrows.json
 eaf8ca4ec63ce59020fe02cb2de6fa99ae85b6b4 data/minecraft/tags/item/axes.json
 eaef426a95f0a6b733a243ad602caeb95bf795f2 data/minecraft/tags/item/chest_armor.json

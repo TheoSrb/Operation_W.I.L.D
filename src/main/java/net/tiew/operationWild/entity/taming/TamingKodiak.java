@@ -55,26 +55,27 @@ public class TamingKodiak {
 
                                 kodiak.setSleeping(false);
                                 kodiak.resetSleepBar();
-                            } else {
-                                if (target instanceof Player player) {
-                                    if (!player.isCreative()) {
-                                        kodiak.setTarget(player);
-                                    }
-                                } else {
-                                    kodiak.setTarget(target);
-                                }
-                                kodiak.foodGiven++;
-                                kodiak.playSound(SoundEvents.GENERIC_EAT);
-
-                                ItemStack itemStack = item.getItem();
-                                Vec3 lookDirection = kodiak.getLookAngle();
-                                double spawnX = kodiak.getX() + lookDirection.x * 2.0;
-                                double spawnY = kodiak.getY() + 0.8;
-                                double spawnZ = kodiak.getZ() + lookDirection.z * 2.0;
-
-                                OWUtils.spawnItemParticles(kodiak, itemStack, spawnX, spawnY, spawnZ);
-                                OWUtils.spawnComposterParticlesAround(kodiak, ParticleTypes.COMPOSTER);
                             }
+
+                            if (target instanceof Player player) {
+                                if (!player.isCreative()) {
+                                    kodiak.setTarget(player);
+                                }
+                            } else {
+                                kodiak.setTarget(target);
+                            }
+                            kodiak.foodGiven++;
+                            kodiak.playSound(SoundEvents.GENERIC_EAT);
+
+                            ItemStack itemStack = item.getItem();
+                            Vec3 lookDirection = kodiak.getLookAngle();
+                            double spawnX = kodiak.getX() + lookDirection.x * 2.0;
+                            double spawnY = kodiak.getY() + 0.8;
+                            double spawnZ = kodiak.getZ() + lookDirection.z * 2.0;
+
+                            OWUtils.spawnItemParticles(kodiak, itemStack, spawnX, spawnY, spawnZ);
+                            OWUtils.spawnComposterParticlesAround(kodiak, ParticleTypes.COMPOSTER);
+
                             item.discard();
                             break;
                         }

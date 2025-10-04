@@ -506,6 +506,10 @@
   "attacks.title2.PeacockEntity": "- ? -",
   "attacks.title3.PeacockEntity": "- ? -",
 
+  "attacks.title1.KodiakEntity": "- Broiement d’Os -",
+  "attacks.title2.KodiakEntity": "- ? -",
+  "attacks.title3.KodiakEntity": "- ? -",
+
   "attacks.description1.TigerEntity": "Faites mordre votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque morsure.",
   "attacks.description2.TigerEntity": "Faites bondir votre %1$s sur une longue distance toutes les %2$s secondes. S’il entre en contact avec une entité, il l’emprisonnera dans ses griffes et la dévorera, ce qui vous fera descendre de votre monture.",
   "attacks.description3.TigerEntity": "Faites entrer votre %1$s dans une rage intense durant %2$s secondes, augmentant sa resistance de %3$s%% ses dégâts de %4$s%%, sa taille de %5$s%% ainsi que sa vitesse de %6$s%%, toutes les %7$s minutes.",
@@ -517,6 +521,11 @@
   "attacks.description1.PeacockEntity": "Faites picorer votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque coup de bec.",
   "attacks.description2.PeacockEntity": "?",
   "attacks.description3.PeacockEntity": "?",
+
+  "attacks.description1.KodiakEntity": "Broyez les os de vos ennemis avec votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque coup.",
+  "attacks.description2.KodiakEntity": "?",
+  "attacks.description3.KodiakEntity": "?",
+
 
 
 

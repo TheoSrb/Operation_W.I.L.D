@@ -175,6 +175,11 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
     }
 
     @Override
+    public boolean isChangeSpeedDuringCombo() {
+        return false;
+    }
+
+    @Override
     public Item acceptSaddle() {
         return OWItems.BOA_SADDLE.get();
     }

@@ -237,7 +237,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		}
 
 		if (kodiak.isSniffing()) {
-			this.animate(kodiak.sniffingAnimationState, KodiakAnimations.SNIFFS, ageInTicks, 1.0f);
+			this.animate(kodiak.sniffingAnimationState, KodiakAnimations.SNIFFS, ageInTicks, 0.75f);
 		}
 
 		if (kodiak.isRejectingItem()) {

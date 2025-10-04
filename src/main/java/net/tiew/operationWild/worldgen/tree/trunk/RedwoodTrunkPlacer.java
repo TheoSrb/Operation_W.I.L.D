@@ -61,7 +61,7 @@ public class RedwoodTrunkPlacer extends TrunkPlacer {
         }
 
         // Spawn Bee Nest
-        if (random.nextFloat() < 0.05f) {
+        if (random.nextFloat() < 0.035f) {
             int randomSide = random.nextInt(4);
             Direction facing;
             BlockPos beehivePos;
