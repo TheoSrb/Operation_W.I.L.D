@@ -168,9 +168,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         super.registerGoals();
         initKodiakBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
-        this.goalSelector.addGoal(0, new KodiakRubsAgainstTreeGoal(this, 1.0f, 20,
-                200, () -> kodiakBehaviorHandler.startingRubsAgainstTree()));
-
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
         this.goalSelector.addGoal(1, new KodiakRollGoal(this, 1.5f));
@@ -182,6 +179,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.goalSelector.addGoal(4, new KodiakAttractedToCampfireGoal(this, 1.0f, 60, 2.25f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), true));
         this.goalSelector.addGoal(5, new KodiakAttractedToCropsGoal(this, 1.15f, 80, 2.25f, () -> kodiakBehaviorHandler.goToNewCropBlock(20), true));
         this.goalSelector.addGoal(6, new KodiakTemptGoal(this, 2D, Ingredient.of(Tags.Items.FOODS), false));
+        this.goalSelector.addGoal(7, new KodiakRubsAgainstTreeGoal(this, 1.0f, 20, 4.0f, () -> kodiakBehaviorHandler.startingRubsAgainstTree()));
         this.goalSelector.addGoal(9, new NapGoal(this, 1.15f, 700, true));
         this.goalSelector.addGoal(10, new KodiakSitGoal(this, 0.25f));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
@@ -471,16 +469,21 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.isRubs()) {
             rubTimer++;
 
-            System.out.println(rubTimer);
 
-            float oppositeYaw = (this.rubYaw + 360) % 360;
-            this.setYRot(oppositeYaw);
-            this.yRotO = oppositeYaw;
-            this.setYHeadRot(oppositeYaw);
+            if (!this.level().isClientSide()) {
+                this.setYRot(getRubYaw() + 180);
+                this.yRotO = getRubYaw() + 180;
+                this.setYHeadRot(getRubYaw() + 180);
+            }
 
             if (tickCount % 20 == 0) {
                 if (this.random.nextFloat() <= 0.1f) {
+                    this.playSound(SoundEvents.ITEM_PICKUP);
                     this.spawnAtLocation(OWItems.KODIAK_COAT.get());
+                }
+
+                if (this.random.nextInt(2) == 0) {
+                    this.playAmbientSound();
                 }
             }
 

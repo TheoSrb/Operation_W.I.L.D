@@ -18,12 +18,16 @@ public class OWRandomLookAroundGoal extends Goal {
     }
 
     public boolean canUse() {
-        if (owEntity instanceof KodiakEntity kodiak && kodiak.isRolling()) return false;
+        if (owEntity instanceof KodiakEntity kodiak) {
+            if (kodiak.isRolling() || kodiak.isRubs()) return false;
+        }
         return this.owEntity.getRandom().nextFloat() < 0.02F;
     }
 
     public boolean canContinueToUse() {
-        if (owEntity instanceof KodiakEntity kodiak && kodiak.isRolling()) return false;
+        if (owEntity instanceof KodiakEntity kodiak) {
+            if (kodiak.isRolling() || kodiak.isRubs()) return false;
+        }
         return this.lookTime >= 0;
     }
 

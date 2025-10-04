@@ -175,6 +175,7 @@ public class KodiakBehaviorHandler {
 
     public void startingRubsAgainstTree() {
         kodiak.setRubs(true);
+        kodiak.setRubYaw(kodiak.getYRot());
     }
 
     public void scheduleNextCropCheck(BlockPos target, int radiusToSearch) {

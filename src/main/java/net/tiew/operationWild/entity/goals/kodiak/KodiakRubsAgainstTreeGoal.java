@@ -68,9 +68,6 @@ public class KodiakRubsAgainstTreeGoal extends Goal {
             kodiak.setLookAt(targetVec.x, targetVec.y, targetVec.z);
 
             if (distance <= 2.0 && isAdjacentToLog()) {
-                float blockYaw = kodiak.getYRot();
-                kodiak.setRubYaw(blockYaw);
-
                 action.run();
 
                 kodiak.getNavigation().stop();
