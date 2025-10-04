@@ -174,7 +174,7 @@ public class KodiakBehaviorHandler {
     }
 
     public void startingRubsAgainstTree() {
-        System.out.println("Se gratte à l'arbre");
+        kodiak.setRubs(true);
     }
 
     public void scheduleNextCropCheck(BlockPos target, int radiusToSearch) {

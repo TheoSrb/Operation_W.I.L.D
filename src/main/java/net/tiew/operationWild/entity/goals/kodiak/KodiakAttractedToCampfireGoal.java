@@ -58,12 +58,15 @@ public class KodiakAttractedToCampfireGoal extends Goal {
         boolean notDirty = !kodiak.isDirty();
         boolean notSearching = !kodiak.isSearchingInsideChest;
 
-        return random && !kodiak.isTame() && noTarget && onGround && notNapping && conditionToWork && notDirty && notSearching && !kodiak.isCatchingSalmon();
+        return random && !kodiak.isTame() && noTarget && onGround && notNapping && conditionToWork && notDirty && notSearching && !kodiak.isCatchingSalmon() && !kodiak.isRubs();
     }
 
     @Override
     public boolean canContinueToUse() {
         if (kodiak.isTame()) {
+            return false;
+        }
+        if (kodiak.isRubs()) {
             return false;
         }
         if (targetPos == null) {

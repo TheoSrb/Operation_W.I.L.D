@@ -185,6 +185,11 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			this.right_eyeBall.zScale = 0;
 		}
 
+		if (kodiak.isRubs()) {
+			this.animate(kodiak.rubsAnimationState, KodiakAnimations.RUBS, ageInTicks, 1.0f);
+			return;
+		}
+
 		if (kodiak.isRolling()) {
 			this.animate(kodiak.rollingAnimationState, KodiakAnimations.ROLL, ageInTicks, 1.0f);
 			return;

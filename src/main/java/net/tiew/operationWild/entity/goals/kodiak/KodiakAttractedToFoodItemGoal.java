@@ -49,14 +49,14 @@ public class KodiakAttractedToFoodItemGoal extends Goal {
     public boolean canUse() {
         return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
                 kodiak.getTarget() == null && kodiak.onGround() &&
-                !kodiak.isNapping() && !kodiak.isTame() && conditionToWork && !kodiak.isDirty() && !kodiak.isSearchingInsideChest && !kodiak.isCatchingSalmon();
+                !kodiak.isNapping() && !kodiak.isTame() && conditionToWork && !kodiak.isDirty() && !kodiak.isSearchingInsideChest && !kodiak.isCatchingSalmon() && !kodiak.isRubs();
     }
 
     @Override
     public boolean canContinueToUse() {
         if (targetPos == null || !conditionToWork || kodiak.isDirty() || kodiak.isTame() || kodiak.isSearchingInsideChest) return false;
         double distance = OWUtils.distanceRest(kodiak, targetPos);
-        return distance > 3 && !kodiak.isCatchingSalmon();
+        return distance > 3 && !kodiak.isCatchingSalmon() && !kodiak.isRubs();
     }
 
     @Override

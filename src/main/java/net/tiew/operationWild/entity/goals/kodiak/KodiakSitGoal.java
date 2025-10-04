@@ -42,12 +42,12 @@ public class KodiakSitGoal extends Goal {
                 kodiak.onGround() &&
                 kodiak.getHealth() > (kodiak.getMaxHealth() * 0.5f) &&
                 !kodiak.isNapping() &&
-                !kodiak.isSearchingInsideChest && !kodiak.isRolling() && !kodiak.isCatchingSalmon() && !kodiak.isTame() && !kodiak.isHungry();
+                !kodiak.isSearchingInsideChest && !kodiak.isRolling() && !kodiak.isCatchingSalmon() && !kodiak.isTame() && !kodiak.isHungry() && !kodiak.isRubs();
     }
 
     @Override
     public boolean canContinueToUse() {
         if (kodiak.isSearchingInsideChest) return false;
-        return kodiak.isSitting() && kodiak.getTarget() == null && !kodiak.isCatchingSalmon() && !kodiak.isTame() && !kodiak.isHungry();
+        return kodiak.isSitting() && kodiak.getTarget() == null && !kodiak.isCatchingSalmon() && !kodiak.isTame() && !kodiak.isHungry() && !kodiak.isRubs();
     }
 }

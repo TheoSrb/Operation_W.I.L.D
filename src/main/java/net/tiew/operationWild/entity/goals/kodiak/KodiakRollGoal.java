@@ -50,7 +50,7 @@ public class KodiakRollGoal extends Goal {
                 !kodiak.isNapping() &&
                 !kodiak.isSearchingInsideChest &&
                 !kodiak.isSitting() && !kodiak.isCatchingSalmon()
-                && !kodiak.isTame() && !kodiak.isHungry();
+                && !kodiak.isTame() && !kodiak.isHungry() && !kodiak.isRubs();
     }
 
     @Override

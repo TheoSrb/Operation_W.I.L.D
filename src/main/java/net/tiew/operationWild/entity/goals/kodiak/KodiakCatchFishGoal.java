@@ -137,7 +137,7 @@ public class KodiakCatchFishGoal extends Goal {
 
         if (kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
                 (kodiak.isInWater() || isWaterBelow) && !kodiak.isTame() && kodiak.getTarget() == null
-                && !kodiak.isNapping() && !kodiak.isRolling() && !kodiak.isTame() && kodiak.getFoodPick().isEmpty() && !kodiak.isCatchingSalmon()) {
+                && !kodiak.isNapping() && !kodiak.isRolling() && !kodiak.isTame() && kodiak.getFoodPick().isEmpty() && !kodiak.isCatchingSalmon() && !kodiak.isRubs()) {
 
             return findValidWaterPosition() != null;
         }
@@ -153,6 +153,6 @@ public class KodiakCatchFishGoal extends Goal {
 
         BlockPos posBelow = kodiak.blockPosition().below();
         boolean isWaterBelow = kodiak.level().getBlockState(posBelow).is(Blocks.WATER);
-        return !this.fishArrived && (kodiak.isInWater() || isWaterBelow) && !kodiak.isCatchingSalmon() && !kodiak.isTame();
+        return !this.fishArrived && (kodiak.isInWater() || isWaterBelow) && !kodiak.isCatchingSalmon() && !kodiak.isTame() && !kodiak.isRubs();
     }
 }

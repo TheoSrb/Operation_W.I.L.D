@@ -104,6 +104,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public final AnimationState rollingAnimationState = new AnimationState();
     public final AnimationState sniffingAnimationState = new AnimationState();
     public final AnimationState rejectingAnimationState = new AnimationState();
+    public final AnimationState rubsAnimationState = new AnimationState();
 
     public int attack1ComboTimer = 0;
     public int attack2ComboTimer = 0;
@@ -112,12 +113,16 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int rollingAnimationTimeout = 0;
     public int sniffingAnimationTimeout = 0;
     public int rejectingAnimationTimeout = 0;
+    public int rubsAnimationTimeout = 0;
+
+    private float rubYaw = 0f;
 
     public int rollTimer = 0;
     public int itemRejectionTimer = 0;
     public int sitTimer = 0;
     public final int MAX_SITTING_TIMER = 600;
     public int salmonCatchedTimer = 0;
+    private int rubTimer = 0;
 
     public ItemStack foodPick = ItemStack.EMPTY;
     public boolean startEatingTimer = false;
@@ -163,8 +168,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         super.registerGoals();
         initKodiakBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
-        /*this.goalSelector.addGoal(0, new KodiakRubsAgainstTreeGoal(this, 1.5f, 20,
-                200, () -> kodiakBehaviorHandler.startingRubsAgainstTree()));*/
+        this.goalSelector.addGoal(0, new KodiakRubsAgainstTreeGoal(this, 1.0f, 20,
+                200, () -> kodiakBehaviorHandler.startingRubsAgainstTree()));
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
@@ -333,7 +338,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public void travel(Vec3 vec3) {
         super.travel(vec3);
-        if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
+        if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle() && !isRubs()) this.jumpFromGround();
     }
 
     public void tick() {
@@ -458,6 +463,41 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
+        if (this.getTarget() != null) {
+            rubTimer = 0;
+            this.setRubs(false);
+        }
+
+        if (this.isRubs()) {
+            rubTimer++;
+
+            System.out.println(rubTimer);
+
+            float oppositeYaw = (this.rubYaw + 360) % 360;
+            this.setYRot(oppositeYaw);
+            this.yRotO = oppositeYaw;
+            this.setYHeadRot(oppositeYaw);
+
+            if (tickCount % 20 == 0) {
+                if (this.random.nextFloat() <= 0.1f) {
+                    this.spawnAtLocation(OWItems.KODIAK_COAT.get());
+                }
+            }
+
+            if (this.onGround()) {
+                this.setDeltaMovement(0, 0, 0);
+            }
+            this.getNavigation().stop();
+
+            this.setJumping(false);
+            this.jumping = false;
+
+            if (rubTimer >= 300) {
+                rubTimer = 0;
+                this.setRubs(false);
+            }
+        }
+
         if (isSearchingInsideChest) {
             this.setDeltaMovement(0,0,0);
 
@@ -505,7 +545,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         }
 
         if (this.isSniffing()) {
-            if (this.tickCount % 12 == 0) {
+            if (this.tickCount % 15 == 0) {
                 float pitch = (float) (OWUtils.generateExponentialExp(0.7, 0.9));
                 this.playSound(RANDOM(2) ? OWSounds.KODIAK_SNIFF_1.get() : RANDOM(2) ? OWSounds.KODIAK_SNIFF_2.get() : OWSounds.KODIAK_SNIFF_3.get(), 0.5f, pitch);
             }
@@ -852,6 +892,18 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.rejectingAnimationState.stop();
         }
 
+        if (this.isRubs()) {
+            if (this.rubsAnimationTimeout <= 0) {
+                this.rubsAnimationTimeout = 28;
+                this.rubsAnimationState.start(this.tickCount);
+            } else --this.rubsAnimationTimeout;
+        }
+
+        if (!this.isRubs()) {
+            this.rubsAnimationTimeout = 0;
+            this.rubsAnimationState.stop();
+        }
+
 
         setupComboAnimations();
     }
@@ -934,6 +986,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public void setRubs(boolean isRubs) { this.entityData.set(IS_RUBS, isRubs);}
 
     public boolean isRubs() { return this.entityData.get(IS_RUBS);}
+
+    public void setRubYaw(float yaw) {
+        this.rubYaw = yaw;
+    }
+
+    public float getRubYaw() {
+        return this.rubYaw;
+    }
 
     public void setFoodBarValue(int getFoodBarValue) {
         this.entityData.set(FOOD_BAR_VALUE, getFoodBarValue);
