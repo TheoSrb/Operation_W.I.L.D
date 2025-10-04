@@ -169,11 +169,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         initKodiakBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(0, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, false));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
         this.goalSelector.addGoal(1, new KodiakRollGoal(this, 1.5f));
         this.goalSelector.addGoal(1, new KodiakAttractedToFoodItemGoal(this, 1.75f, 15, 7.5f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
         this.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(this, 2.0f, 35, 1.75f, () -> kodiakBehaviorHandler.openChest(chestBlockEntity)));
-        this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 4, false));
         this.goalSelector.addGoal(3, new KodiakTryFindWaterGoal(this));
         this.goalSelector.addGoal(3, new KodiakAttractedToBeeNestGoal(this, 1.75f, 25, 2.0f, kodiakBehaviorHandler::lookForHoneyInTheBeeNest, true));
         this.goalSelector.addGoal(4, new KodiakAttractedToCampfireGoal(this, 1.0f, 60, 2.25f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), true));
@@ -347,8 +347,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public void tick() {
         super.tick();
         kodiakTaming.tick();
-
-        System.out.println("Target: " + this.getTarget());
 
         boolean hasSomethingInHisMouth = getFoodPick() != null && !getFoodPick().isEmpty();
 

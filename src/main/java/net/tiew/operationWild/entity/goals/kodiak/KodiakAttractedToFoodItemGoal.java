@@ -47,7 +47,7 @@ public class KodiakAttractedToFoodItemGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return kodiak.getRandom().nextInt((int) (200 / attractionFrequencyMultiplier)) == 0 &&
+        return kodiak.getRandom().nextInt((int) ((kodiak.isHungry() ? 100 : 200) / attractionFrequencyMultiplier)) == 0 &&
                 kodiak.getTarget() == null && kodiak.onGround() &&
                 !kodiak.isNapping() && !kodiak.isTame() && conditionToWork && !kodiak.isDirty() && !kodiak.isSearchingInsideChest && !kodiak.isCatchingSalmon() && !kodiak.isRubs();
     }

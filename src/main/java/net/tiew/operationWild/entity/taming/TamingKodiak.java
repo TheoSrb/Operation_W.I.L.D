@@ -60,9 +60,11 @@ public class TamingKodiak {
                             if (target instanceof Player player) {
                                 if (!player.isCreative()) {
                                     kodiak.setTarget(player);
+                                    kodiak.setAggressive(false);
                                 }
                             } else {
                                 kodiak.setTarget(target);
+                                kodiak.setAggressive(false);
                             }
                             kodiak.foodGiven++;
                             kodiak.playSound(SoundEvents.GENERIC_EAT);

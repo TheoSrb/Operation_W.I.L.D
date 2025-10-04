@@ -42,6 +42,10 @@ public class NapGoal extends Goal {
             napTimer--;
             napTickCounter++;
 
+            if (entity.onGround()) {
+                entity.setDeltaMovement(0, 0, 0);
+            }
+
             if (napTimer <= 0) {
                 startAwaken();
                 shouldStop = true;
@@ -58,7 +62,7 @@ public class NapGoal extends Goal {
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.isRolling() || kodiak.isSniffing() || kodiak.isCatchingSalmon() || kodiak.isHungry()) return false;
         }
-        return !shouldStop && conditionToWork && entity.isNapping() && !entity.isTame();
+        return !shouldStop && conditionToWork && entity.isNapping() && !entity.isTame() && entity.getTarget() == null;
     }
 
     @Override
@@ -93,7 +97,7 @@ public class NapGoal extends Goal {
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.isRolling() || kodiak.isSniffing() || kodiak.isCatchingSalmon() || kodiak.isHungry()) return false;
         }
-        return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork && !entity.isTame();
+        return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork && !entity.isTame() && entity.getTarget() == null;
     }
 
     private boolean canNap() {
