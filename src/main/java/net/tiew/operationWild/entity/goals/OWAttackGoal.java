@@ -3,6 +3,7 @@ package net.tiew.operationWild.entity.goals;
 import com.google.common.base.Enums;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 
@@ -17,24 +18,25 @@ public class OWAttackGoal extends Goal {
     private boolean canHurt = true;
     private boolean conditionToWork;
     private double distanceToAttack;
+    private boolean followingTargetEvenIfNotSeen;
 
-    public OWAttackGoal(OWEntity attacker, float speedModifier, int timeAttackMax, double distanceToAttack, boolean conditionToWork) {
+    public OWAttackGoal(OWEntity attacker, float speedModifier, int timeAttackMax, double distanceToAttack, boolean conditionToWork, boolean followingTargetEvenIfNotSeen) {
         this.attacker = attacker;
         this.speedModifier = speedModifier;
         this.timeAttackMax = timeAttackMax;
         this.distanceToAttack = distanceToAttack;
         this.conditionToWork = conditionToWork;
+        this.followingTargetEvenIfNotSeen = followingTargetEvenIfNotSeen;
 
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP));
     }
 
-    public OWAttackGoal(OWEntity attacker, float speedModifier, int timeAttackMax, double distanceToAttack) {
-        this.attacker = attacker;
-        this.speedModifier = speedModifier;
-        this.timeAttackMax = timeAttackMax;
-        this.distanceToAttack = distanceToAttack;
+    public OWAttackGoal(OWEntity attacker, float speedModifier, int timeAttackMax, double distanceToAttack, boolean conditionToWork) {
+        this(attacker, speedModifier, timeAttackMax, distanceToAttack, conditionToWork, false);
+    }
 
-        this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK, Flag.JUMP));
+    public OWAttackGoal(OWEntity attacker, float speedModifier, int timeAttackMax, double distanceToAttack) {
+        this(attacker, speedModifier, timeAttackMax, distanceToAttack, true, false);
     }
 
 
@@ -100,7 +102,22 @@ public class OWAttackGoal extends Goal {
             return false;
         }
 
-        return true;
+        if (!this.followingTargetEvenIfNotSeen) {
+            return !this.attacker.getNavigation().isDone();
+        } else {
+            if (!this.attacker.isWithinRestriction(this.target.blockPosition())) {
+                return false;
+            }
+
+            if (this.target instanceof Player) {
+                Player player = (Player) this.target;
+                if (player.isSpectator() || player.isCreative()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 
     @Override
