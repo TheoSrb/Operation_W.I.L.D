@@ -192,7 +192,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.targetSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 20f, 8, 5, true));
+        this.targetSelector.addGoal(3, new OWAttackGoal(this, this.getSpeed() * 20f, 8, 5, false));
         this.goalSelector.addGoal(4, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));

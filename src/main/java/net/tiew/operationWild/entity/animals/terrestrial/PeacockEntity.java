@@ -171,7 +171,7 @@ public class PeacockEntity extends OWEntity implements IOWFoodsPreference, OWEnt
         this.goalSelector.addGoal(1, new PeacockBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(3, new TemptGoal(this, 1.25D, Ingredient.of(OWItems.SAVAGE_BERRIES.get()), false));
 
-        this.targetSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 15f,15, 1, true));
+        this.targetSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 15f,15, 1, false));
 
     }
 

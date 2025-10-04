@@ -215,7 +215,7 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
     protected void registerGoals() {
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
         this.targetSelector.addGoal(1, (new HurtByTargetGoal(this)).setAlertOthers(new Class[0]));
-        this.targetSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 9f,20, 3,true));
+        this.targetSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 9f,20, 3,false));
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Animal.class, true));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Monster.class, true));

@@ -27,8 +27,6 @@ public class NapGoal extends Goal {
         this.wantNapMultiplier = wantNapMultiplier;
         this.napTimerMax = napTimerMax;
         this.conditionToWork = conditionToWork;
-
-        this.setFlags(EnumSet.of(Flag.LOOK, Flag.MOVE, Flag.JUMP));
     }
 
     @Override
@@ -41,7 +39,6 @@ public class NapGoal extends Goal {
         }
 
         if (entity.isNapping()) {
-
             napTimer--;
             napTickCounter++;
 
