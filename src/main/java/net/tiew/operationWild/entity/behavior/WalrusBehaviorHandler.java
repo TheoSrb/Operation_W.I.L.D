@@ -16,7 +16,27 @@ public class WalrusBehaviorHandler {
         this.walrus = walrus;
     }
 
+    public boolean canPlayIdleAnimation() {
+        return walrus.getTarget() == null &&
+                !walrus.isNapping() &&
+                !walrus.isMoving() && !walrus.isVehicle();
+    }
+
     public boolean canScratch() {
-        return walrus.getTarget() == null && !walrus.isNapping() && !walrus.isMoving();
+        return canPlayIdleAnimation();
+    }
+
+    public boolean canStretches() {
+        return canPlayIdleAnimation();
+    }
+
+    public boolean canLaugh() {
+        return canPlayIdleAnimation();
+    }
+
+    public boolean isAnyIdleAnimationPlaying() {
+        return walrus.scratchAnimationState.isStarted() ||
+                walrus.stretchesAnimationState.isStarted() ||
+                walrus.laughAnimationState.isStarted();
     }
 }

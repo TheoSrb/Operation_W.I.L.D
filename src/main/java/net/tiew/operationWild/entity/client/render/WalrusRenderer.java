@@ -21,6 +21,7 @@ import java.util.Map;
 public class WalrusRenderer extends MobRenderer<WalrusEntity, WalrusModel<WalrusEntity>> {
     private static final Map<WalrusVariant, ResourceLocation> LOCATION_BY_VARIANT = Util.make(Maps.newEnumMap(WalrusVariant.class), map -> {
         map.put(WalrusVariant.DEFAULT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/walrus/walrus_default.png"));
+        map.put(WalrusVariant.RED, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/walrus/walrus_red.png"));
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
@@ -36,7 +37,7 @@ public class WalrusRenderer extends MobRenderer<WalrusEntity, WalrusModel<Walrus
 
     @Override
     public void render(WalrusEntity walrus, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-        float scale = walrus.getScale() / 1.4f;
+        float scale = walrus.getScale() / 1.5f;
         float babyScale = scale / 2.25f;
         int genderPosition = walrus.isFemale() ? 36 : walrus.isMale() ? 48 : 0;
         Player player = walrus.level().getNearestPlayer(walrus, 64.0D);

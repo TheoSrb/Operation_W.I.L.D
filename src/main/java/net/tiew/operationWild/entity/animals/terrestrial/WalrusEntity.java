@@ -49,6 +49,7 @@ import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomStrollGoal;
 import net.tiew.operationWild.entity.taming.TamingWalrus;
+import net.tiew.operationWild.entity.variants.KodiakVariant;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.variants.WalrusVariant;
@@ -69,11 +70,20 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public TamingWalrus walrusTaming;
 
     public final AnimationState scratchAnimationState = new AnimationState();
+    public final AnimationState stretchesAnimationState = new AnimationState();
+    public final AnimationState laughAnimationState = new AnimationState();
 
-    public int scratchAnimationTimeout = 0;
+    private long scratchAnimationStartTime = 0;
+    private long stretchesAnimationStartTime = 0;
+    private long laughAnimationStartTime = 0;
 
+    private static final int SCRATCH_DURATION = 50;
+    private static final int STRETCHES_DURATION = 150;
+    private static final int LAUGH_DURATION = 120;
 
     private int scratchInterval = (int) OWUtils.generateRandomInterval(400, 800);
+    private int stretchesInterval = (int) OWUtils.generateRandomInterval(300, 900);
+    private int laughInterval = (int) OWUtils.generateRandomInterval(800, 1300);
 
     public WalrusEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -151,7 +161,7 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public float vehicleRunSpeedMultiplier() {
-        return 3f;
+        return 2f;
     }
 
     @Override
@@ -166,7 +176,7 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public float vehicleWaterSpeedDivider() {
-        return 0.5f;
+        return 0.6f;
     }
 
     @Override
@@ -239,7 +249,7 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     protected float nextStep() {
-        return this.moveDist + 0.4F;
+        return this.moveDist + 0.5F;
     }
 
     @Override
@@ -262,10 +272,6 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         setTamingPercentage(this.foodGiven, this.foodWanted);
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
-
-        if (this.level().isClientSide()) {
-            handleMiscIdleAnimations();
-        }
 
         handleGoldVariantEffects();
     }
@@ -338,14 +344,14 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     protected void positionRider(Entity entity, MoveFunction function) {
         super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY() - 1, entity.getZ());
+        function.accept(entity, entity.getX(), entity.getY() - 0.8, entity.getZ());
     }
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        if (/*itemStack.is(OWItems.SAVAGE_BERRIES.get()) &&*/ !this.isTame() && this.isBaby()) {
+        if (isFood(itemStack) && !this.isTame()) {
             foodGiven++;
             this.playSound(SoundEvents.CAMEL_EAT);
             itemStack.shrink(1);
@@ -371,7 +377,7 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
             this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
-            this.setVariant(WalrusVariant.DEFAULT);
+            this.setVariant(chooseWalrusVariant());
             this.setInitialVariant(this.getVariant());
         }
 
@@ -401,6 +407,13 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         }
     }
 
+    private WalrusVariant chooseWalrusVariant() {
+        WalrusVariant variant;
+        if (chance >= 50) variant = WalrusVariant.RED;
+        else variant = WalrusVariant.DEFAULT;
+        return variant;
+    }
+
     public void setBuyingSkin(int skinIndex) {
         switch (skinIndex) {
             default -> throw new IllegalArgumentException("Invalid skin index: " + skinIndex);
@@ -408,18 +421,52 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     protected void handleMiscIdleAnimations() {
+        if (this.scratchAnimationState.isStarted() &&
+                this.tickCount - scratchAnimationStartTime > SCRATCH_DURATION) {
+            this.scratchAnimationState.stop();
+        }
+        if (this.stretchesAnimationState.isStarted() &&
+                this.tickCount - stretchesAnimationStartTime > STRETCHES_DURATION) {
+            this.stretchesAnimationState.stop();
+        }
+        if (this.laughAnimationState.isStarted() &&
+                this.tickCount - laughAnimationStartTime > LAUGH_DURATION) {
+            this.laughAnimationState.stop();
+        }
+
         if (tickCount % scratchInterval == 0) {
-            if (walrusBehaviorHandler.canScratch() && !this.scratchAnimationState.isStarted()) {
+            if (walrusBehaviorHandler.canScratch() && walrusBehaviorHandler.canPlayIdleAnimation() && !walrusBehaviorHandler.isAnyIdleAnimationPlaying()) {
                 this.scratchAnimationState.start(this.tickCount);
+                scratchAnimationStartTime = this.tickCount;
             }
 
             scratchInterval = (int) OWUtils.generateRandomInterval(400, 800);
+        }
+
+        if (tickCount % stretchesInterval == 0) {
+            if (walrusBehaviorHandler.canStretches() && walrusBehaviorHandler.canPlayIdleAnimation() && !walrusBehaviorHandler.isAnyIdleAnimationPlaying()) {
+                this.stretchesAnimationState.start(this.tickCount);
+                stretchesAnimationStartTime = this.tickCount;
+            }
+
+            stretchesInterval = (int) OWUtils.generateRandomInterval(300, 900);
+        }
+
+        if (tickCount % laughInterval == 0) {
+            if (walrusBehaviorHandler.canLaugh() && walrusBehaviorHandler.canPlayIdleAnimation() && !walrusBehaviorHandler.isAnyIdleAnimationPlaying()) {
+                this.laughAnimationState.start(this.tickCount);
+                laughAnimationStartTime = this.tickCount;
+            }
+
+            laughInterval = (int) OWUtils.generateRandomInterval(500, 1100);
         }
     }
 
     private void setupAnimationState() {
         createIdleAnimation(57, true);
         createSitAnimation(80, true);
+
+        handleMiscIdleAnimations();
     }
 
     public WalrusVariant getVariant() {
