@@ -261,6 +261,11 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public int getMaxAirSupply() {
+        return 300 * 20;
+    }
+
+    @Override
     public float getBlockSpeedFactor() {
         return 1.0F;
     }

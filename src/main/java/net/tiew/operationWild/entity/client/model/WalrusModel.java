@@ -139,6 +139,11 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 		this.animate(walrus.idleAnimationState, WalrusAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 		this.animateWalk(WalrusAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
+
+		if (walrus.level().isClientSide()) {
+			walrus.setBodyZRot((float) Math.toDegrees(this.body.zRot));
+			walrus.setBodyXRot((float) Math.toDegrees(this.body.xRot));
+		}
 	}
 
     @Override
