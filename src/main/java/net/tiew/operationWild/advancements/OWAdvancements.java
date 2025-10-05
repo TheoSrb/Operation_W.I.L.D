@@ -6,6 +6,7 @@ import net.tiew.operationWild.OperationWild;
 public class OWAdvancements {
 
     public static final ResourceLocation KODIAK_TAMED_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "big_fuzzball");
+    public static final ResourceLocation WALRUS_TAMED_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "large_teeth");
     public static final ResourceLocation BOA_TAMED_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "arms_what_for");
     public static final ResourceLocation ELEPHANT_TAMED_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "trailer");
     public static final ResourceLocation TIGER_TAMED_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "wild_meow");

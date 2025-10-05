@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -19,92 +20,274 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.TemptGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
+import net.tiew.operationWild.advancements.OWAdvancements;
+import net.tiew.operationWild.core.OWTags;
+import net.tiew.operationWild.core.OWUtils;
+import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.behavior.WalrusBehaviorHandler;
+import net.tiew.operationWild.entity.config.IOWEntity;
+import net.tiew.operationWild.entity.config.IOWRideable;
+import net.tiew.operationWild.entity.config.IOWTamable;
+import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
+import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
+import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
+import net.tiew.operationWild.entity.goals.global.OWRandomStrollGoal;
+import net.tiew.operationWild.entity.taming.TamingWalrus;
 import org.jetbrains.annotations.Nullable;
-import net.tiew.operationWild.entity.goals.OWFollowOwnerGoal;
-import net.tiew.operationWild.entity.goals.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.OWEntityUtils;
 import net.tiew.operationWild.entity.variants.WalrusVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 
+import java.util.List;
+
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class WalrusEntity extends OWEntity implements OWEntityUtils {
+public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
 
     public static final double TAMING_EXPERIENCE = 165.0;
 
-    public String[] quests = {};
-    public int foodGiven = 0;
-    public int foodWanted;
-
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(WalrusEntity.class, EntityDataSerializers.INT);
 
-    public WalrusVariant getVariant() { return WalrusVariant.byId(this.getTypeVariant() & 255);}
-    public void setVariant(WalrusVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
-    public WalrusVariant getInitialVariant() { return WalrusVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
-    public void setInitialVariant(WalrusVariant variant) { this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());}
+    public WalrusBehaviorHandler walrusBehaviorHandler;
+    public TamingWalrus walrusTaming;
+
+    public final AnimationState scratchAnimationState = new AnimationState();
+
+    public int scratchAnimationTimeout = 0;
+
+
+    private int scratchInterval = (int) OWUtils.generateRandomInterval(400, 800);
 
     public WalrusEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+        initWalrusBehaviorAndTaming();
     }
 
-
-    // Entity's AI
-    protected void registerGoals() {
-        this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
-        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 20f, 15, 3));
-        this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 0.8));
+    private void initWalrusBehaviorAndTaming() {
+        this.walrusBehaviorHandler = new WalrusBehaviorHandler(this);
+        this.walrusTaming = new TamingWalrus(this, walrusBehaviorHandler);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 40.0D).add(Attributes.MOVEMENT_SPEED, 0.14D).add(Attributes.FOLLOW_RANGE, 25.0D).add(Attributes.ATTACK_DAMAGE, 4.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
+        return Animal.createLivingAttributes()
+                .add(Attributes.MAX_HEALTH, 27.0D)
+                .add(Attributes.MOVEMENT_SPEED, 0.165D)
+                .add(Attributes.FOLLOW_RANGE, 25.0D)
+                .add(Attributes.ATTACK_DAMAGE, 7.0D)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.6D)
+                .add(Attributes.ARMOR, 0.15D);
+    }
+
+    @Override
+    protected void registerGoals() {
+        initWalrusBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
+
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 15f, 8, 3, false));
+        this.goalSelector.addGoal(2, new TemptGoal(this, 2D, Ingredient.of(OWTags.Items.WALRUS_FOOD), false));
+        //this.goalSelector.addGoal(3, new NapGoal(this, 1.15f, 700, true));
+        this.goalSelector.addGoal(4, new OWBreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(5, new OWRandomStrollGoal(this, 1.0D, 10));
+        this.goalSelector.addGoal(6, new OWRandomLookAroundGoal(this));
+    }
+
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_INITIAL_VARIANT, -1);
+    }
+
+    // Entity Methods
+    @Override
+    public int getEntityColor() {
+        return 8215109;
+    }
+
+    @Override
+    public float getTheoreticalScale() {
+        return 8;
+    }
+
+    @Override
+    public double getTamingExperience() {
+        return TAMING_EXPERIENCE;
+    }
+
+    @Override
+    public OWEntityConfig.Archetypes getArchetype() {
+        return OWEntityConfig.Archetypes.TANK;
+    }
+
+    @Override
+    public OWEntityConfig.Diet getDiet() {
+        return OWEntityConfig.Diet.CARNIVOROUS;
+    }
+
+    @Override
+    public OWEntityConfig.Temperament getTemperament() {
+        return OWEntityConfig.Temperament.NEUTRAL;
+    }
+
+    @Override
+    public List<Class<?>> getFavoriteTargetsByBeingNonTame() {
+        return List.of(Drowned.class);
+    }
+
+    @Override
+    public float vehicleRunSpeedMultiplier() {
+        return 3f;
+    }
+
+    @Override
+    public float vehicleWalkSpeedMultiplier() {
+        return 1.5f;
+    }
+
+    @Override
+    public float vehicleComboSpeedMultiplier() {
+        return 2f;
+    }
+
+    @Override
+    public float vehicleWaterSpeedDivider() {
+        return 0.5f;
+    }
+
+    @Override
+    public boolean canIncreasesSpeedDuringSprint() {
+        return false;
+    }
+
+    @Override
+    public boolean isChangeSpeedDuringCombo() {
+        return true;
+    }
+
+    @Override
+    public Item acceptSaddle() {
+        return OWItems.KODIAK_SADDLE.get();
+    }
+
+    @Override
+    public ResourceLocation getTamingAdvancement() {
+        return OWAdvancements.WALRUS_TAMED_ADVANCEMENT;
+    }
+
+    @Override
+    public float getMaxVitalEnergy() {
+        return 275 * (1 + ((float) this.getLevel() / 50));
+    }
+
+    @Override
+    public float getVitalEnergyRecuperation() {
+        return 0.9f * (1 + ((float) this.getLevel() / 50));
+    }
+
+    @Override
+    public boolean preferRawMeat() {
+        return true;
+    }
+
+    @Override
+    public boolean preferCookedMeat() {
+        return false;
+    }
+
+    @Override
+    public boolean preferVegetables() {
+        return false;
+    }
+
+    @Override
+    public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) {
+        return OWEntityRegistry.WALRUS.get().create(serverLevel);
+    }
+
+    @Override
+    public boolean isFood(ItemStack itemStack) {
+        return itemStack.is(OWTags.Items.WALRUS_FOOD);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
         return RANDOM(5) ? null : null;
     }
 
-    protected float getSoundVolume() { return 1f;}
+    protected float getSoundVolume() {
+        return 1f;
+    }
 
     @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {
         super.playStepSound(blockPos, blockState);
     }
 
-    public void setBuyingSkin(int skinIndex) {
-        switch (skinIndex) {
-            default -> throw new IllegalArgumentException("Invalid skin index: " + skinIndex);
-        }
+    @Override
+    protected float nextStep() {
+        return this.moveDist + 0.4F;
     }
-    
+
     @Override
     public void travel(Vec3 vec3) {
         super.travel(vec3);
-        //if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
+        if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) {
+            this.jumpFromGround();
+        }
+    }
+
+    @Override
+    public float getBlockSpeedFactor() {
+        return 1.0F;
+    }
+
+    public void tick() {
+        super.tick();
+        walrusTaming.tick();
+
+        setTamingPercentage(this.foodGiven, this.foodWanted);
+        if (this.level().isClientSide()) setupAnimationState();
+        if (this.isInResurrection()) this.setSleeping(true);
+
+        if (this.level().isClientSide()) {
+            handleMiscIdleAnimations();
+        }
+
+        handleGoldVariantEffects();
     }
 
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
-        ItemStack soulStack = new ItemStack(OWItems.ANIMAL_SOUL.get());
+        ItemStack soulStack = createSoulStack();
 
+        if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
+            this.spawnAtLocation(soulStack);
+        }
+        if (this.isSaddled()) this.spawnAtLocation(acceptSaddle());
+    }
+
+    private ItemStack createSoulStack() {
+        ItemStack soulStack = new ItemStack(OWItems.ANIMAL_SOUL.get());
         Item item = soulStack.getItem();
+
         if (item instanceof AnimalSoulItem animalSoulItem) {
-            UseOnContext fakeContext = new UseOnContext(this.level(), null, InteractionHand.MAIN_HAND, soulStack, new BlockHitResult(this.position(), Direction.UP, this.blockPosition(), false));
+            UseOnContext fakeContext = new UseOnContext(this.level(), null, InteractionHand.MAIN_HAND, soulStack,
+                    new BlockHitResult(this.position(), Direction.UP, this.blockPosition(), false));
 
             animalSoulItem.saveEntityType(fakeContext, Component.nullToEmpty(this.getClass().getSimpleName()));
             animalSoulItem.saveEntityOwner(fakeContext, Component.nullToEmpty(this.getOwner() != null ? this.getOwner().getName().getString() : ""));
@@ -117,50 +300,12 @@ public class WalrusEntity extends OWEntity implements OWEntityUtils {
             animalSoulItem.saveEntityVariant(fakeContext, this.getVariant().getId());
         }
 
-        if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
-            this.spawnAtLocation(soulStack);
-        }
-        /*if (this.isSaddled()) this.spawnAtLocation(OWItems.WALRUS_SADDLE.get());*/
+        return soulStack;
     }
 
     @Override
     public void setTarget(@Nullable LivingEntity target) {
         super.setTarget(target);
-    }
-
-
-    public void changeSkin(int skinIndex) {
-        this.setVariant(getInitialVariant());
-        
-        if (!this.level().isClientSide()) {
-            Level world = this.level();
-            if (world instanceof ServerLevel) {
-                ServerLevel serverWorld = (ServerLevel) world;
-                serverWorld.sendParticles(ParticleTypes.ITEM_SLIME,
-                        this.getX(), this.getY() + 1, this.getZ(),
-                        100,
-                        0.5, 0.5, 0.5,
-                        0.02
-                );
-            }
-        }
-    }
-
-    public void tick() {
-        super.tick();
-        setTamingPercentage(this.foodGiven, this.foodWanted);
-        if (this.level().isClientSide()) setupAnimationState();
-        if (this.isInResurrection()) this.setSleeping(true);
-        
-        
-        
-        
-        
-        
-
-        /*if (this.getVariant() == WalrusVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
-            OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
-        }*/
     }
 
     @Override
@@ -174,12 +319,6 @@ public class WalrusEntity extends OWEntity implements OWEntityUtils {
     }
 
     @Override
-    protected void positionRider(Entity entity, MoveFunction function) {
-        super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY() - 1, entity.getZ());
-    }
-
-    @Override
     public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {
         return super.killedEntity(serverLevel, entity);
     }
@@ -187,10 +326,19 @@ public class WalrusEntity extends OWEntity implements OWEntityUtils {
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof WalrusEntity otherWalrus) {
-            if (this.isTame()) return otherWalrus.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherWalrus.getOwnerUUID());
-            else return !otherWalrus.isTame();
+            if (this.isTame()) {
+                return otherWalrus.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherWalrus.getOwnerUUID());
+            } else {
+                return !otherWalrus.isTame();
+            }
         }
         return super.isAlliedTo(entity);
+    }
+
+    @Override
+    protected void positionRider(Entity entity, MoveFunction function) {
+        super.positionRider(entity, function);
+        function.accept(entity, entity.getX(), entity.getY() - 1, entity.getZ());
     }
 
     @Override
@@ -212,7 +360,6 @@ public class WalrusEntity extends OWEntity implements OWEntityUtils {
             return InteractionResult.SUCCESS;
         }
 
-        if (itemStack.is(OWItems.SAVAGE_BERRIES.get())) return InteractionResult.PASS;
         return super.mobInteract(player, hand);
     }
 
@@ -224,7 +371,6 @@ public class WalrusEntity extends OWEntity implements OWEntityUtils {
             this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
             this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
 
-
             this.setVariant(WalrusVariant.DEFAULT);
             this.setInitialVariant(this.getVariant());
         }
@@ -232,15 +378,64 @@ public class WalrusEntity extends OWEntity implements OWEntityUtils {
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
+    private void handleGoldVariantEffects() {
+        /*if (this.getVariant() == WalrusVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
+            OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
+        }*/
+    }
+
+    public void changeSkin(int skinIndex) {
+        this.setVariant(getInitialVariant());
+
+        if (!this.level().isClientSide()) {
+            Level world = this.level();
+            if (world instanceof ServerLevel) {
+                ServerLevel serverWorld = (ServerLevel) world;
+                serverWorld.sendParticles(ParticleTypes.ITEM_SLIME,
+                        this.getX(), this.getY() + 1, this.getZ(),
+                        100,
+                        0.5, 0.5, 0.5,
+                        0.02
+                );
+            }
+        }
+    }
+
+    public void setBuyingSkin(int skinIndex) {
+        switch (skinIndex) {
+            default -> throw new IllegalArgumentException("Invalid skin index: " + skinIndex);
+        }
+    }
+
+    protected void handleMiscIdleAnimations() {
+        if (tickCount % scratchInterval == 0) {
+            if (walrusBehaviorHandler.canScratch() && !this.scratchAnimationState.isStarted()) {
+                this.scratchAnimationState.start(this.tickCount);
+            }
+
+            scratchInterval = (int) OWUtils.generateRandomInterval(400, 800);
+        }
+    }
 
     private void setupAnimationState() {
-        createIdleAnimation(54, true);
+        createIdleAnimation(57, true);
         createSitAnimation(80, true);
     }
 
-    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        super.defineSynchedData(builder);
-        builder.define(DATA_INITIAL_VARIANT, -1);
+    public WalrusVariant getVariant() {
+        return WalrusVariant.byId(this.getTypeVariant() & 255);
+    }
+
+    public void setVariant(WalrusVariant variant) {
+        this.entityData.set(VARIANT, variant.getId() & 255);
+    }
+
+    public WalrusVariant getInitialVariant() {
+        return WalrusVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));
+    }
+
+    public void setInitialVariant(WalrusVariant variant) {
+        this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {
@@ -248,8 +443,6 @@ public class WalrusEntity extends OWEntity implements OWEntityUtils {
         tag.putInt("getInitialVariant", this.getInitialVariant().getId());
         tag.putInt("Variant", this.getTypeVariant());
         tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
-        tag.putInt("numberFeedsGiven", this.numberFeedsGiven);
-
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -257,17 +450,5 @@ public class WalrusEntity extends OWEntity implements OWEntityUtils {
         this.entityData.set(DATA_INITIAL_VARIANT, tag.getInt("getInitialVariant"));
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
-        this.numberFeedsGiven = tag.getInt("numberFeedsGiven");
-    }
-
-    @Override
-    public int getEntityColor() {
-        return 8349268;
-    }
-
-    @Override
-    public float getEntityScale() {
-        return 0;
     }
 }
-

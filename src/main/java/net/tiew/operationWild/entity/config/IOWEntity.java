@@ -4,7 +4,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NonTameRandomTargetGoal;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.goals.OWHurtByTargetGoal;
+import net.tiew.operationWild.entity.goals.global.OWHurtByTargetGoal;
 
 import java.util.List;
 

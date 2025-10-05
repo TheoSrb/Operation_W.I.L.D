@@ -53,8 +53,12 @@ public class OWTags {
         public static final TagKey<Item> SLINGSHOT_PROJECTILES = tag("slingshot_projectiles");
         public static final TagKey<Item> BLOWPIPE_PROJECTILES = tag("blowpipe_projectiles");
 
+
+
+
         public static final TagKey<Item> KODIAK_FOOD = tag("kodiak_food");
         public static final TagKey<Item> KODIAK_DANGEROUS_FOOD = tag("kodiak_dangerous_food");
+        public static final TagKey<Item> WALRUS_FOOD = tag("walrus_food");
 
 
         private static TagKey<Item> tag(String name) {

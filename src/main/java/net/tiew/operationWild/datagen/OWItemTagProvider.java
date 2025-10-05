@@ -131,11 +131,18 @@ public class OWItemTagProvider extends ItemTagsProvider {
         tag(Tags.Items.FOODS_VEGETABLE)
                 .add(OWItems.SAVAGE_BERRIES.get());
 
+
+
+
+
         tag(OWTags.Items.KODIAK_FOOD)
                 .add(Items.SALMON);
 
         tag(OWTags.Items.KODIAK_DANGEROUS_FOOD)
                 .add(Items.POISONOUS_POTATO)
                 .add(Items.PUFFERFISH);
+
+        tag(OWTags.Items.WALRUS_FOOD)
+                .add(Items.NAUTILUS_SHELL);
     }
 }

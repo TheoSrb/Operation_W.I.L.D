@@ -1,4 +1,4 @@
-// 1.21	2025-10-04T17:25:33.4812632	Tags for minecraft:item mod id ow
+// 1.21	2025-10-05T17:24:51.5236285	Tags for minecraft:item mod id ow
 ac05fb97b8a10e0240f5df28bfd2335e56b849a2 data/c/tags/item/foods.json
 f8d501a36ea77641a87cf4a609abbe712de43220 data/c/tags/item/foods/cooked_meat.json
 ab3e0a596f197aa4eb83eb43165511a904cee0c6 data/c/tags/item/foods/raw_meat.json
@@ -20,3 +20,4 @@ fcba97bcde9580dafa244fdd4254d48777a6994e data/minecraft/tags/item/hoes.json
 838da6170554c6370a5a98dfe912af516920d23f data/minecraft/tags/item/swords.json
 d47129685f4cff2843892f180a9d38430d2fb4c5 data/ow/tags/item/kodiak_dangerous_food.json
 3fe6df0882f02c83c296f5dfaed148dab475c556 data/ow/tags/item/kodiak_food.json
+cc00bbed348ce6b8e46cead36a307a09ac4f7353 data/ow/tags/item/walrus_food.json

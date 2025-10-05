@@ -60,6 +60,7 @@ import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.goals.global.*;
 import net.tiew.operationWild.entity.quests.ascent.TigerAscensionMissions;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.goals.*;

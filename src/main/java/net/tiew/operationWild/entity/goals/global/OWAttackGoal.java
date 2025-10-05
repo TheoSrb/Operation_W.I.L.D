@@ -1,4 +1,4 @@
-package net.tiew.operationWild.entity.goals;
+package net.tiew.operationWild.entity.goals.global;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;

@@ -1,4 +1,4 @@
-package net.tiew.operationWild.entity.goals;
+package net.tiew.operationWild.entity.goals.global;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -7,6 +7,7 @@ import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.goals.AquaticPathNavigator;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
