@@ -80,6 +80,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private static final int MAX_HONEY_TIMER = 750;
     public static final int MAX_DIRTY_TIMER = 1200;
     public final int MAX_SITTING_TIMER = 600;
+    private static final int INTERACTION_TARGET_DURATION = 400;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_SHADE_SKIN = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
@@ -95,6 +96,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
+
+    private int interactionTargetTimer = 0;
 
     public final AnimationState transitionIdleStandingUp = new AnimationState();
     public final AnimationState transitionStandingUpIdle = new AnimationState();
@@ -354,6 +357,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         handleFoodBarSystem();
+        handleInteractionTarget();
 
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
@@ -587,6 +591,29 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         }
     }
 
+    private void handleInteractionTarget() {
+        if (interactionTargetTimer > 0) {
+            interactionTargetTimer--;
+            LivingEntity currentTarget = this.getTarget();
+
+            if (currentTarget != null) {
+                boolean shouldRemoveTarget = false;
+
+                if (interactionTargetTimer <= 0) {
+                    shouldRemoveTarget = true;
+                } else if (!this.getSensing().hasLineOfSight(currentTarget) && this.distanceTo(currentTarget) > 48.0) {
+                    shouldRemoveTarget = true;
+                }
+
+                if (shouldRemoveTarget) {
+                    this.setTarget(null);
+                    this.setAggressive(false);
+                    interactionTargetTimer = 0;
+                }
+            }
+        }
+    }
+
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
@@ -756,6 +783,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 setNap(false);
                 if (!player.isCreative() && !player.isSpectator()) {
                     this.setTarget(player);
+                    interactionTargetTimer = INTERACTION_TARGET_DURATION;
                 }
 
                 return InteractionResult.SUCCESS;
@@ -771,6 +799,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 setNap(false);
                 if (!player.isCreative() && !player.isSpectator()) {
                     this.setTarget(player);
+                    interactionTargetTimer = INTERACTION_TARGET_DURATION;
                 }
 
                 return InteractionResult.SUCCESS;

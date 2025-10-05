@@ -30,6 +30,7 @@ public class OWAttackGoal extends Goal {
     private boolean canPenalize = false;
 
     private boolean canHurt = true;
+    private int ticksUntilCanHurtAgain = 0;
     private final int timeAttackMax;
     private final double distanceToAttack;
 
@@ -75,7 +76,10 @@ public class OWAttackGoal extends Goal {
         } else if (!livingentity.isAlive()) {
             return false;
         } else if (!this.followingTargetEvenIfNotSeen) {
-            return this.mob.distanceTo(livingentity) <= 48 && !this.mob.getNavigation().isDone() && this.mob.getSensing().hasLineOfSight(livingentity);
+            if (!this.mob.getSensing().hasLineOfSight(livingentity) && this.mob.distanceTo(livingentity) > 48.0 && this.mob.getNavigation().isDone()) {
+                return false;
+            }
+            return true;
         } else {
             return !this.mob.isWithinRestriction(livingentity.blockPosition()) ? false : !(livingentity instanceof Player) || !livingentity.isSpectator() && !((Player)livingentity).isCreative();
         }
@@ -107,7 +111,13 @@ public class OWAttackGoal extends Goal {
         LivingEntity livingentity = this.mob.getTarget();
         if (livingentity != null) {
             this.mob.getLookControl().setLookAt(livingentity, 30.0F, 30.0F);
-            System.out.println(livingentity);
+            if (!canHurt) {
+                ticksUntilCanHurtAgain--;
+                if (ticksUntilCanHurtAgain <= 0) {
+                    canHurt = true;
+                }
+            }
+
             this.ticksUntilNextPathRecalculation = Math.max(this.ticksUntilNextPathRecalculation - 1, 0);
             if ((this.followingTargetEvenIfNotSeen || this.mob.getSensing().hasLineOfSight(livingentity)) && this.ticksUntilNextPathRecalculation <= 0 && (this.pathedTargetX == (double)0.0F && this.pathedTargetY == (double)0.0F && this.pathedTargetZ == (double)0.0F || livingentity.distanceToSqr(this.pathedTargetX, this.pathedTargetY, this.pathedTargetZ) >= (double)1.0F || this.mob.getRandom().nextFloat() < 0.05F)) {
                 this.pathedTargetX = livingentity.getX();
@@ -165,6 +175,7 @@ public class OWAttackGoal extends Goal {
                             this.mob.playerContinueCombo = true;
                         }
                         canHurt = false;
+                        ticksUntilCanHurtAgain = timeAttackMax;
                     }
                 }
             }

@@ -68,7 +68,7 @@ public abstract class SubmarineMixin {
      * @author Tiew_37
      * @reason X
      */
-    @Inject(method = "renderAirLevel", at = @At("HEAD"))
+    @Inject(method = "renderAirLevel", at = @At("HEAD"), cancellable = true)
     private void modifyAirLevelPosition(GuiGraphics guiGraphics, CallbackInfo ci) {
         if (Minecraft.getInstance().player != null) {
             Entity vehicle = Minecraft.getInstance().player.getVehicle();

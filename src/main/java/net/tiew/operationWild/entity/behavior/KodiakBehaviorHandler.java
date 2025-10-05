@@ -6,6 +6,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.animal.Salmon;
 import net.minecraft.world.food.FoodProperties;
@@ -34,6 +35,8 @@ public class KodiakBehaviorHandler {
 
     private KodiakEntity kodiak;
     public boolean isCatchSalmon = false;
+    private int dangerousFoodTargetTimer = 0;
+    private static final int DANGEROUS_FOOD_TARGET_DURATION = 400;
 
     public ItemStack[] itemsCatchInWater = {
             Items.NAUTILUS_SHELL.getDefaultInstance(),
@@ -48,9 +51,35 @@ public class KodiakBehaviorHandler {
             Items.KELP.getDefaultInstance()
     };
 
-
     public KodiakBehaviorHandler(KodiakEntity kodiak) {
         this.kodiak = kodiak;
+    }
+
+    public void tick() {
+        handleDangerousFoodTarget();
+    }
+
+    private void handleDangerousFoodTarget() {
+        if (dangerousFoodTargetTimer > 0) {
+            dangerousFoodTargetTimer--;
+            LivingEntity currentTarget = kodiak.getTarget();
+
+            if (currentTarget != null) {
+                boolean shouldRemoveTarget = false;
+
+                if (dangerousFoodTargetTimer <= 0) {
+                    shouldRemoveTarget = true;
+                } else if (!kodiak.getSensing().hasLineOfSight(currentTarget) && kodiak.distanceTo(currentTarget) > 48.0) {
+                    shouldRemoveTarget = true;
+                }
+
+                if (shouldRemoveTarget) {
+                    kodiak.setTarget(null);
+                    kodiak.setAggressive(false);
+                    dangerousFoodTargetTimer = 0;
+                }
+            }
+        }
     }
 
     public void pickupItemInHisMouth(ItemStack itemStack) {
@@ -271,6 +300,7 @@ public class KodiakBehaviorHandler {
 
                 if (kodiak.lastPlayerWhoFeedHim != null) {
                     kodiak.setTarget(kodiak.lastPlayerWhoFeedHim);
+                    dangerousFoodTargetTimer = DANGEROUS_FOOD_TARGET_DURATION;
                 }
             } else kodiak.lastPlayerWhoFeedHim = null;
 
