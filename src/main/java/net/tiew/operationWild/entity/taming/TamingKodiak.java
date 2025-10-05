@@ -24,8 +24,6 @@ public class TamingKodiak {
 
     private KodiakEntity kodiak;
     private KodiakBehaviorHandler kodiakManagement;
-    private int tamingTargetTimer = 0;
-    private static final int TAMING_TARGET_DURATION = 600;
 
     public TamingKodiak(KodiakEntity kodiak, KodiakBehaviorHandler kodiakManagement) {
         this.kodiak = kodiak;
@@ -61,12 +59,14 @@ public class TamingKodiak {
 
                             if (target instanceof Player player) {
                                 if (!player.isCreative()) {
-                                    kodiak.setTarget(player);
-                                    tamingTargetTimer = TAMING_TARGET_DURATION;
+                                    if (!kodiak.level().isClientSide()) {
+                                        kodiak.setTarget(target);
+                                    }
                                 }
                             } else {
-                                kodiak.setTarget(target);
-                                tamingTargetTimer = TAMING_TARGET_DURATION;
+                                if (!kodiak.level().isClientSide()) {
+                                    kodiak.setTarget(target);
+                                }
                             }
                             kodiak.foodGiven++;
                             kodiak.playSound(SoundEvents.GENERIC_EAT);
@@ -84,27 +84,6 @@ public class TamingKodiak {
                             break;
                         }
                     }
-                }
-            }
-        }
-
-        if (tamingTargetTimer > 0) {
-            tamingTargetTimer--;
-            LivingEntity currentTarget = kodiak.getTarget();
-
-            if (currentTarget != null) {
-                boolean shouldRemoveTarget = false;
-
-                if (tamingTargetTimer <= 0) {
-                    shouldRemoveTarget = true;
-                } else if (!kodiak.getSensing().hasLineOfSight(currentTarget) && kodiak.distanceTo(currentTarget) > 48.0) {
-                    shouldRemoveTarget = true;
-                }
-
-                if (shouldRemoveTarget) {
-                    kodiak.setTarget(null);
-                    kodiak.setAggressive(false);
-                    tamingTargetTimer = 0;
                 }
             }
         }

@@ -83,9 +83,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     public static final double TAMING_EXPERIENCE = 195.0;
 
-
     private TigerAscensionMissions mission1 = TigerAscensionMissions.MISSION_1;
-
 
     public String[] quests = {};
     public boolean wantToScarifyWood = false;
@@ -174,6 +172,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public OWEntityConfig.Diet getDiet() {
         return OWEntityConfig.Diet.CARNIVOROUS;
+    }
+
+    @Override
+    public OWEntityConfig.Temperament getTemperament() {
+        return OWEntityConfig.Temperament.AGGRESSIVE;
     }
 
     @Override

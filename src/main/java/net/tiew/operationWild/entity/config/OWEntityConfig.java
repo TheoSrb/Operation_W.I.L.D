@@ -48,4 +48,10 @@ public class OWEntityConfig {
             return saturationMultiplier;
         }
     }
+
+    public enum Temperament {
+        PASSIVE,
+        NEUTRAL,
+        AGGRESSIVE
+    }
 }

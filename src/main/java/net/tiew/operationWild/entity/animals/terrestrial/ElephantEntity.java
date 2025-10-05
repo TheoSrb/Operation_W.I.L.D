@@ -129,6 +129,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public OWEntityConfig.Temperament getTemperament() {
+        return OWEntityConfig.Temperament.NEUTRAL;
+    }
+
+    @Override
     public float vehicleRunSpeedMultiplier() {
         return 4f;
     }

@@ -150,6 +150,11 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
     }
 
     @Override
+    public OWEntityConfig.Temperament getTemperament() {
+        return OWEntityConfig.Temperament.AGGRESSIVE;
+    }
+
+    @Override
     public float vehicleRunSpeedMultiplier() {
         return 2f;
     }

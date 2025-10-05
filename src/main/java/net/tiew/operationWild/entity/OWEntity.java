@@ -279,6 +279,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     protected void registerGoals() {
+        this.registerBehaviorGoals(this);
+
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 30f, 15, 3));
         this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25));
@@ -1582,12 +1584,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return;
         }
 
-        if (isSleeping()) {
-            super.setTarget(null);
-            return;
-        }
-
-        if (isInResurrection()) {
+        if (isSleeping() || isInResurrection()) {
             super.setTarget(null);
             return;
         }
@@ -1610,7 +1607,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return;
         }
 
-        if (!hasCamouflage && !isBaby()) setFighting(!ownerIsRiding() && target != null);
+        if (!hasCamouflage && !isBaby()) {
+            setFighting(!ownerIsRiding() && target != null);
+        }
 
         if (this.isTame() && this.getCurrentMode() == Mode.Passive) {
             super.setTarget(null);
@@ -1623,13 +1622,33 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (!this.level().isClientSide()) {
-            if (target != null) {
-                setRunning(true);
-            } else setRunning(false);
+            setRunning(target != null);
         }
 
-        lastVisibleTarget = target;
+        if (target == null) {
+            lastVisibleTarget = null;
+        }
+
         super.setTarget(target);
+    }
+
+    public void forceSetTarget(@Nullable LivingEntity target) {
+        try {
+            java.lang.reflect.Field targetField = Mob.class.getDeclaredField("target");
+            targetField.setAccessible(true);
+            targetField.set(this, target);
+
+            this.setTarget(null);
+            this.setRunning(false);
+
+            if (target == null) {
+                this.lastVisibleTarget = null;
+                this.setRunning(false);
+                this.setFighting(false);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void resetBabyQuest(boolean win) {
@@ -2714,6 +2733,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     @Override
     public OWEntityConfig.Diet getDiet() {
+        return null;
+    }
+
+    @Override
+    public OWEntityConfig.Temperament getTemperament() {
         return null;
     }
 

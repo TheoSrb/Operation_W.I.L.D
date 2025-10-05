@@ -33,8 +33,28 @@ public class KodiakNearestAttackableTargetGoal<T extends LivingEntity> extends N
             if (!kodiak.isHungry()) {
                 return false;
             }
+
+            LivingEntity currentTarget = kodiak.getTarget();
+            if (currentTarget != null) {
+                if (kodiak.getSensing().hasLineOfSight(currentTarget) || kodiak.distanceTo(currentTarget) <= 48.0) {
+                    return false;
+                }
+            }
         }
 
         return super.canUse();
+    }
+
+    @Override
+    public boolean canContinueToUse() {
+        if (this.mob instanceof KodiakEntity) {
+            KodiakEntity kodiak = (KodiakEntity) this.mob;
+
+            if (!kodiak.isHungry()) {
+                return false;
+            }
+        }
+
+        return super.canContinueToUse();
     }
 }
