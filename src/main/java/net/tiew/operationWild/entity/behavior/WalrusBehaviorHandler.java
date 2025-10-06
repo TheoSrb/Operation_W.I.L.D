@@ -19,7 +19,7 @@ public class WalrusBehaviorHandler {
     public boolean canPlayIdleAnimation() {
         return walrus.getTarget() == null &&
                 !walrus.isNapping() &&
-                !walrus.isMoving() && !walrus.isVehicle();
+                !walrus.isMoving() && !walrus.isVehicle() && !walrus.isInWater();
     }
 
     public boolean canScratch() {

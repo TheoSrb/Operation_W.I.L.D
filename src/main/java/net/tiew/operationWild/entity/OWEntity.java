@@ -1708,7 +1708,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (!this.level().isClientSide()) {
             if (this.isRunning() && this.isVehicle()) {
-                setVitalEnergy(getVitalEnergy() + 1);
+                boolean isWalrusInWater = this instanceof WalrusEntity walrus && walrus.isInWater();
+                setVitalEnergy(getVitalEnergy() + (!isWalrusInWater ? 1 : 0.5f));
             }
 
             if (!isRunning() && getVitalEnergy() > 0 && !isCombo()) {
