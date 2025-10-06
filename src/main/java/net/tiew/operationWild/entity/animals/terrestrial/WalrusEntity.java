@@ -114,7 +114,7 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.goalSelector.addGoal(2, new TemptGoal(this, 2D, Ingredient.of(OWTags.Items.WALRUS_FOOD), false));
         //this.goalSelector.addGoal(3, new NapGoal(this, 1.15f, 700, true));
         this.goalSelector.addGoal(4, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(5, new OWRandomStrollGoal(this, 1.0D, 10));
+        this.goalSelector.addGoal(5, new OWRandomStrollGoal(this, 1.0D, 60));
         this.goalSelector.addGoal(6, new OWRandomLookAroundGoal(this));
     }
 
