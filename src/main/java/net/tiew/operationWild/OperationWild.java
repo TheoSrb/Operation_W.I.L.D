@@ -14,11 +14,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.block.FlowerPotBlock;
 import net.minecraft.world.level.levelgen.SurfaceRules;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.common.util.TriState;
@@ -26,6 +29,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.component.OWDataComponentTypes;
+import net.tiew.operationWild.core.OWCommands;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.enchantment.OWEnchantmentsEffects;
@@ -236,8 +240,9 @@ public class OperationWild {
 
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
-        AddExperienceCommand.register(event.getDispatcher());
-        SetPrestigeCommand.register(event.getDispatcher());
+        OWCommands.AddExperienceCommand.register(event.getDispatcher());
+        OWCommands.SetPrestigeCommand.register(event.getDispatcher());
+        OWCommands.ForceTameCommand.register(event.getDispatcher());
     }
 
     @EventBusSubscriber(modid = MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -287,50 +292,6 @@ public class OperationWild {
         public static void registerParticleFactories(RegisterParticleProvidersEvent event) {
             event.registerSpriteSet(OWParticles.ELECTRIC_PARTICLES.get(), ElectricParticles.Provider::new);
             event.registerSpriteSet(OWParticles.NAP_PARTICLES.get(), NapParticles.Provider::new);
-        }
-    }
-
-    public static class AddExperienceCommand {
-        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-            dispatcher.register(
-                    Commands.literal("addexperience").then(Commands.argument("amount", IntegerArgumentType.integer(1)).executes(AddExperienceCommand::execute))
-            );
-        }
-
-        private static int execute(CommandContext<CommandSourceStack> context) {
-            CommandSourceStack source = context.getSource();
-            int amount = IntegerArgumentType.getInteger(context, "amount");
-            try {
-                ServerPlayer player = source.getPlayerOrException();
-                if (player.getRootVehicle() != null && player.getRootVehicle() != player) {
-                    OWEntity.addExperienceCommand((OWEntity) player.getRootVehicle(), amount);
-                    source.sendSuccess(() -> Component.translatable("addExperienceCommandWork", amount).setStyle(Style.EMPTY.withColor(0x00FF00)), false);
-                } else source.sendSuccess(() -> Component.translatable("addExperienceCommandError").setStyle(Style.EMPTY.withColor(0xFF0000)), false);
-            } catch (Exception ignored) {
-            }
-            return 1;
-        }
-    }
-
-    public static class SetPrestigeCommand {
-        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
-            dispatcher.register(
-                    Commands.literal("setprestige").then(Commands.argument("amount", IntegerArgumentType.integer(0, 999)).executes(SetPrestigeCommand::execute))
-            );
-        }
-
-        private static int execute(CommandContext<CommandSourceStack> context) {
-            CommandSourceStack source = context.getSource();
-            int amount = IntegerArgumentType.getInteger(context, "amount");
-            try {
-                ServerPlayer player = source.getPlayerOrException();
-                if (player.getRootVehicle() != null && player.getRootVehicle() != player) {
-                    if (player.getRootVehicle() instanceof OWEntity owEntity) owEntity.setPrestigeLevel(amount);
-                    source.sendSuccess(() -> Component.translatable("addPrestigeCommandWork", amount).setStyle(Style.EMPTY.withColor(0x00FF00)), false);
-                } else source.sendSuccess(() -> Component.translatable("addPrestigeCommandError").setStyle(Style.EMPTY.withColor(0xFF0000)), false);
-            } catch (Exception ignored) {
-            }
-            return 1;
         }
     }
 }

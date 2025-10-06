@@ -140,7 +140,7 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 
 		if (!walrus.isInWater()) {
 			this.animateWalk(WalrusAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
-		} else this.animateWalk(WalrusAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 2f, 2f);
+		} else this.animateWalk(WalrusAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 1.5f, 1.5f);
 
 		if (walrus.level().isClientSide()) {
 			if (walrus.isInWater()) {

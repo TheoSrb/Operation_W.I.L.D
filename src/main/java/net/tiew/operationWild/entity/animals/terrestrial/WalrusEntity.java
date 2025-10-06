@@ -50,6 +50,7 @@ import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomStrollGoal;
 import net.tiew.operationWild.entity.taming.TamingWalrus;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
+import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.variants.WalrusVariant;
@@ -274,7 +275,9 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         super.tick();
         walrusTaming.tick();
 
+        createCombo(23, 15, OWSounds.KODIAK_HURTING_2.get(), 4.0, 2, 2.35, false, 1.5f);
         setTamingPercentage(this.foodGiven, this.foodWanted);
+
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 

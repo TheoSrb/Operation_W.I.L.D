@@ -5,6 +5,9 @@
   "addExperienceCommandWork": "Donate %s of experience points to your entity.",
   "addPrestigeCommandError": "You need to set up an entity to add prestige levels to it.",
   "addPrestigeCommandWork": "Donate %s of prestige levels points to your entity.",
+  "forceTameCommandSuccess": "Successfully tamed %s.",
+  "forceTameCommandTooFar": "The targeted entity is too far away, get closer.",
+  "forceTameCommandNoTarget": "Please aim at an entity to tame it.",
 
   "biome.ow.redwood_forest": "Redwood Forest",
 

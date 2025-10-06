@@ -5,6 +5,9 @@
   "addExperienceCommandWork": "Don de %s points d'expérience à votre entité.",
   "addPrestigeCommandError": "Vous devez monter une entité pour lui ajouter des niveaux de prestige.",
   "addPrestigeCommandWork": "Don de %s niveaux de prestige à votre entité.",
+  "forceTameCommandSuccess": "Apprivoisement de %s.",
+  "forceTameCommandTooFar": "L'entité ciblée est trop loin, rapprochez-vous.",
+  "forceTameCommandNoTarget": "Veuillez viser une entité pour l'apprivoiser.",
 
   "biome.ow.redwood_forest": "Forêt de séquoias",
 
