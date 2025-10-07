@@ -1687,8 +1687,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
         createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
-        createTransitionAnimation("idleSleep", transitionIdleSleep, this.isNapping(), 20);
-        createTransitionAnimation("sleepIdle", transitionSleepIdle, !this.isNapping(), 20);
+        createTransitionAnimation("idleSleep", transitionIdleSleep, this.isNapping(), 20 * (this instanceof WalrusEntity ? 2 : 1));
+        createTransitionAnimation("sleepIdle", transitionSleepIdle, !this.isNapping(), 20 * (this instanceof WalrusEntity ? 2 : 1));
 
         if (sittingCooldown > 0) sittingCooldown--;
 
