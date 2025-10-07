@@ -44,6 +44,7 @@ import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.goals.NapGoal;
 import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
@@ -73,10 +74,12 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public final AnimationState scratchAnimationState = new AnimationState();
     public final AnimationState stretchesAnimationState = new AnimationState();
     public final AnimationState laughAnimationState = new AnimationState();
+    public final AnimationState napAnimationState = new AnimationState();
 
     private long scratchAnimationStartTime = 0;
     private long stretchesAnimationStartTime = 0;
     private long laughAnimationStartTime = 0;
+    private long napAnimationTimeout = 0;
 
     private static final int SCRATCH_DURATION = 50;
     private static final int STRETCHES_DURATION = 150;
@@ -113,7 +116,7 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 15f, 8, 3, false));
         this.goalSelector.addGoal(2, new TemptGoal(this, 2D, Ingredient.of(OWTags.Items.WALRUS_FOOD), false));
-        //this.goalSelector.addGoal(3, new NapGoal(this, 1.15f, 700, true));
+        this.goalSelector.addGoal(3, new NapGoal(this, 1.15f, 150, true));
         this.goalSelector.addGoal(4, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(5, new OWRandomStrollGoal(this, 1.0D, 60));
         this.goalSelector.addGoal(6, new OWRandomLookAroundGoal(this));
@@ -475,6 +478,18 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         createSitAnimation(80, true);
 
         handleMiscIdleAnimations();
+
+        if (this.isNapping()) {
+            if (this.napAnimationTimeout <= 0) {
+                this.napAnimationTimeout = 80;
+                this.napAnimationState.start(this.tickCount);
+            } else --this.napAnimationTimeout;
+        }
+
+        if (!this.isNapping()) {
+            this.napAnimationTimeout = 0;
+            this.napAnimationState.stop();
+        }
     }
 
     public WalrusVariant getVariant() {
