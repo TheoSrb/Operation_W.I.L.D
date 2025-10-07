@@ -127,12 +127,12 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
         this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (walrus.transitionIdleSleep.isStarted()) {
-			this.animate(walrus.transitionIdleSleep, WalrusAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 1.75f);
+			this.animate(walrus.transitionIdleSleep, WalrusAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 2f);
 			return;
 		}
 
 		if (walrus.transitionSleepIdle.isStarted()) {
-			this.animate(walrus.transitionSleepIdle, WalrusAnimations.TRANSITION_SLEEP_IDLE, ageInTicks, 1.75f);
+			this.animate(walrus.transitionSleepIdle, WalrusAnimations.TRANSITION_SLEEP_IDLE, ageInTicks, 2f);
 			return;
 		}
 
