@@ -113,6 +113,7 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
 
     @Override
     protected void registerGoals() {
+        super.registerGoals();
         initWalrusBehaviorAndTaming();
 
         this.goalSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 15f, 8, 3, false));

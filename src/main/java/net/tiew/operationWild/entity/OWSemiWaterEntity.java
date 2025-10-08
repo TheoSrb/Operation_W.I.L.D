@@ -15,6 +15,7 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 
 import java.util.EnumSet;
@@ -23,6 +24,10 @@ import java.util.TimerTask;
 
 public abstract class OWSemiWaterEntity extends OWEntity {
 
+    public float i = 0;
+    protected float interval = 0;
+    public boolean changeDirection = false;
+
     public OWSemiWaterEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
@@ -30,7 +35,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        this.goalSelector.addGoal(0, new OWSwimmingGoal(this, 1.0f));
+        //this.goalSelector.addGoal(0, new OWSwimmingGoal(this, 0.2f));
     }
 
     public abstract int getMaxDepth();
@@ -62,6 +67,25 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         super.tick();
         switchNavigation();
         handleUnderwaterMovement();
+
+        float rotationSpeed = (float) (OWUtils.generateRandomInterval(0.1, 0.8));
+
+        if (tickCount % 100 == 0) {
+            interval = 300 + this.getRandom().nextInt(501);
+        }
+
+        if (changeDirection) {
+            i -= rotationSpeed;
+        } else {
+            i += rotationSpeed;
+        }
+
+        if (tickCount % interval == 0) {
+            changeDirection = !changeDirection;
+        }
+
+        this.setYHeadRot(i);
+        this.setYRot(i);
     }
 
     protected boolean isAtSurface() {
@@ -110,7 +134,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
                 }
             }
 
-            double wave = Math.sin(this.tickCount * 0.05) * 0.005;
+            double wave = Math.sin(this.tickCount * 0.05) * 0.01;
             this.setDeltaMovement(this.getDeltaMovement().add(0.0D, wave, 0.0D));
 
             if (this.getTarget() == null && this.getNavigation().getPath() == null) {
@@ -142,7 +166,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         }
     }
 
-    public static class OWSwimmingGoal extends Goal {
+    /*public static class OWSwimmingGoal extends Goal {
         OWEntity entity;
         float speed;
         float circlingTime = 0;
@@ -151,9 +175,16 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         boolean clockwise = false;
         boolean forceAttack = false;
 
-        public OWSwimmingGoal(OWEntity shark, float speed) {
+        private double centerX;
+        private double centerZ;
+        private int directionChangeTimer = 0;
+        private boolean changingDirection = false;
+        private int transitionTime = 0;
+        private static final int TRANSITION_DURATION = 60;
+
+        public OWSwimmingGoal(OWEntity entity, float speed) {
             this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-            this.entity = shark;
+            this.entity = entity;
             this.speed = speed;
         }
 
@@ -169,40 +200,84 @@ public abstract class OWSemiWaterEntity extends OWEntity {
 
         public void start(){
             circlingTime = 0;
-            maxCirclingTime = 360 + this.entity.getRandom().nextInt(80);
+            maxCirclingTime = 500 + this.entity.getRandom().nextInt(300);
             circleDistance = 15 + this.entity.getRandom().nextFloat() * 15;
             clockwise = this.entity.getRandom().nextBoolean();
             forceAttack = false;
+            directionChangeTimer = 400 + this.entity.getRandom().nextInt(400);
+            changingDirection = false;
+            transitionTime = 0;
+
+            centerX = entity.getX();
+            centerZ = entity.getZ();
         }
 
         public void stop(){
             circlingTime = 0;
-            maxCirclingTime = 360 + this.entity.getRandom().nextInt(80);
+            maxCirclingTime = 500 + this.entity.getRandom().nextInt(300);
             circleDistance = 15 + this.entity.getRandom().nextFloat() * 15;
             clockwise = this.entity.getRandom().nextBoolean();
             forceAttack = false;
-            Timer timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    entity.resetState();
-                }
-            }, 480);
+            directionChangeTimer = 400 + this.entity.getRandom().nextInt(400);
+            changingDirection = false;
+            transitionTime = 0;
         }
 
-        public void tick(){
-            LivingEntity prey = this.entity.getTarget();
-            if (!entity.isSleeping()) {
-                if (prey != null) {
-                    double angle = (circlingTime * 0.1) % (2 * Math.PI);
-                    double circleRadius = 100.0;
-                    double targetX = prey.getX() + Math.cos(angle) * circleRadius;
-                    double targetZ = prey.getZ() + Math.sin(angle) * circleRadius;
+        public void tick() {
+            directionChangeTimer--;
 
-                    entity.getNavigation().moveTo(targetX, prey.getY(), targetZ, 1D);
-                    circlingTime++;
+            if (directionChangeTimer <= 0 && !changingDirection) {
+                changingDirection = true;
+                transitionTime = 0;
+                directionChangeTimer = 400 + this.entity.getRandom().nextInt(400);
+            }
+
+            double angleDirection = clockwise ? 1.0 : -1.0;
+
+            if (changingDirection) {
+                transitionTime++;
+                float progress = (float) transitionTime / TRANSITION_DURATION;
+                progress = (float) (1.0 - Math.cos(progress * Math.PI)) / 2.0f;
+
+                double oldDirection = clockwise ? 1.0 : -1.0;
+                double newDirection = clockwise ? -1.0 : 1.0;
+                angleDirection = oldDirection + (newDirection - oldDirection) * progress;
+
+                if (transitionTime >= TRANSITION_DURATION) {
+                    changingDirection = false;
+                    clockwise = !clockwise;
                 }
             }
+
+            double angle = (circlingTime * 0.03 * angleDirection);
+            double targetX = centerX + Math.cos(angle) * circleDistance;
+            double targetZ = centerZ + Math.sin(angle) * circleDistance;
+
+            entity.getNavigation().moveTo(targetX, entity.getY(), targetZ, speed);
+
+            double deltaX = targetX - entity.getX();
+            double deltaZ = targetZ - entity.getZ();
+
+            if (deltaX * deltaX + deltaZ * deltaZ > 0.01) {
+                float desiredYaw = (float) (Math.atan2(deltaZ, deltaX) * 57.2957795) - 90.0F;
+                float currentYaw = entity.getYRot();
+                float yawDiff = desiredYaw - currentYaw;
+
+                while (yawDiff > 180.0F) yawDiff -= 360.0F;
+                while (yawDiff < -180.0F) yawDiff += 360.0F;
+
+                float smoothYaw = currentYaw + yawDiff * 0.15F;
+                entity.setYRot(smoothYaw);
+                entity.yRotO = smoothYaw;
+            }
+
+            circlingTime++;
+
+            if (circlingTime > maxCirclingTime) {
+                centerX = entity.getX();
+                centerZ = entity.getZ();
+                circlingTime = 0;
+            }
         }
-    }
+    }*/
 }
