@@ -1,23 +1,36 @@
 package net.tiew.operationWild.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidType;
+import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
+
+import java.util.EnumSet;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public abstract class OWSemiWaterEntity extends OWEntity {
 
     public OWSemiWaterEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+    }
+
+    @Override
+    protected void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(0, new OWSwimmingGoal(this, 1.0f));
     }
 
     public abstract int getMaxDepth();
@@ -126,6 +139,70 @@ public abstract class OWSemiWaterEntity extends OWEntity {
                     this.getDeltaMovement().y,
                     newLookAngle.z * 0.15
             );
+        }
+    }
+
+    public static class OWSwimmingGoal extends Goal {
+        OWEntity entity;
+        float speed;
+        float circlingTime = 0;
+        float circleDistance = 15;
+        float maxCirclingTime = 80;
+        boolean clockwise = false;
+        boolean forceAttack = false;
+
+        public OWSwimmingGoal(OWEntity shark, float speed) {
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+            this.entity = shark;
+            this.speed = speed;
+        }
+
+        @Override
+        public boolean canUse() {
+            return entity.isInWater();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return entity.isInWater();
+        }
+
+        public void start(){
+            circlingTime = 0;
+            maxCirclingTime = 360 + this.entity.getRandom().nextInt(80);
+            circleDistance = 15 + this.entity.getRandom().nextFloat() * 15;
+            clockwise = this.entity.getRandom().nextBoolean();
+            forceAttack = false;
+        }
+
+        public void stop(){
+            circlingTime = 0;
+            maxCirclingTime = 360 + this.entity.getRandom().nextInt(80);
+            circleDistance = 15 + this.entity.getRandom().nextFloat() * 15;
+            clockwise = this.entity.getRandom().nextBoolean();
+            forceAttack = false;
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    entity.resetState();
+                }
+            }, 480);
+        }
+
+        public void tick(){
+            LivingEntity prey = this.entity.getTarget();
+            if (!entity.isSleeping()) {
+                if (prey != null) {
+                    double angle = (circlingTime * 0.1) % (2 * Math.PI);
+                    double circleRadius = 100.0;
+                    double targetX = prey.getX() + Math.cos(angle) * circleRadius;
+                    double targetZ = prey.getZ() + Math.sin(angle) * circleRadius;
+
+                    entity.getNavigation().moveTo(targetX, prey.getY(), targetZ, 1D);
+                    circlingTime++;
+                }
+            }
         }
     }
 }
