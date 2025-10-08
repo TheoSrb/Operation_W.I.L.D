@@ -149,12 +149,6 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 			this.animate(walrus.laughAnimationState, WalrusAnimations.LAUGH, ageInTicks, 1.1f);
 		}
 
-		if (walrus.isInWater()) {
-			this.animate(walrus.idleWaterAnimationState, WalrusAnimations.MISC_IDLE_UNDER_WATER, ageInTicks, 1.0f);
-		} else {
-			this.animate(walrus.idleAnimationState, WalrusAnimations.MISC_IDLE, ageInTicks, 1.0f);
-		}
-
 		if (!walrus.isInWater()) {
 			this.animateWalk(WalrusAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
 		} else {
@@ -163,6 +157,14 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 			} else {
 				this.animateWalk(WalrusAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 2f, 2f);
 			}
+		}
+
+		if (walrus.isInWater()) {
+			if (limbSwingAmount < 0.01f) {
+				this.animate(walrus.idleWaterAnimationState, WalrusAnimations.MISC_IDLE_UNDER_WATER, ageInTicks, 1.0f);
+			}
+		} else {
+			this.animate(walrus.idleAnimationState, WalrusAnimations.MISC_IDLE, ageInTicks, 1.0f);
 		}
 
 		if (walrus.level().isClientSide()) {

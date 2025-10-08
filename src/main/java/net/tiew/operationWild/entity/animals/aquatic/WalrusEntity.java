@@ -498,14 +498,14 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
 
         handleMiscIdleAnimations();
 
-        if (this.isInWater() && !this.isMoving()) {
+        if (this.isInWater()) {
             if (this.idleWaterAnimationTimeout <= 0) {
                 this.idleWaterAnimationTimeout = 51;
                 this.idleWaterAnimationState.start(this.tickCount);
             } else --this.idleWaterAnimationTimeout;
         }
 
-        if (!this.isInWater() || this.isMoving()) {
+        if (!this.isInWater()) {
             this.idleWaterAnimationTimeout = 0;
             this.idleWaterAnimationState.stop();
         }

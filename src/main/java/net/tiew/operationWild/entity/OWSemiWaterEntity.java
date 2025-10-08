@@ -86,6 +86,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
 
         this.setYHeadRot(i);
         this.setYRot(i);
+        this.setYBodyRot(i);
     }
 
     protected boolean isAtSurface() {
