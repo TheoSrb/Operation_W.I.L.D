@@ -65,28 +65,31 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     @Override
     public void tick() {
         super.tick();
-        switchNavigation();
-        handleUnderwaterMovement();
+        if (this.isInWater()) {
+            switchNavigation();
 
-        float rotationSpeed = (float) (OWUtils.generateRandomInterval(0.1, 0.8));
+            float rotationSpeed = 0.5f;
 
-        if (tickCount % 100 == 0) {
-            interval = 300 + this.getRandom().nextInt(501);
+            if (tickCount % 100 == 0) {
+                interval = 300 + this.getRandom().nextInt(501);
+            }
+
+            if (changeDirection) {
+                i -= rotationSpeed;
+            } else {
+                i += rotationSpeed;
+            }
+
+            if (tickCount % interval == 0) {
+                changeDirection = !changeDirection;
+            }
+
+            this.setYHeadRot(i);
+            this.setYRot(i);
+            this.setYBodyRot(i);
+
+            handleUnderwaterMovement();
         }
-
-        if (changeDirection) {
-            i -= rotationSpeed;
-        } else {
-            i += rotationSpeed;
-        }
-
-        if (tickCount % interval == 0) {
-            changeDirection = !changeDirection;
-        }
-
-        this.setYHeadRot(i);
-        this.setYRot(i);
-        this.setYBodyRot(i);
     }
 
     protected boolean isAtSurface() {
@@ -108,6 +111,10 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             int maxAir = this.getMaxAirSupply();
             double airPercentage = (double) currentAir / maxAir * 100.0;
 
+            double yawRadians = Math.toRadians(i);
+            double moveX = -Math.sin(yawRadians) * 0.01;
+            double moveZ = Math.cos(yawRadians) * 0.01;
+
             if (airPercentage < 10.0 && !isAtSurface()) {
                 this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.1D, 0.0D));
                 return;
@@ -118,9 +125,11 @@ public abstract class OWSemiWaterEntity extends OWEntity {
                 double yDiff = target.getY() - this.getY();
 
                 if (yDiff > 1.0D) {
-                    this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.04D, 0.0D));
+                    this.setDeltaMovement(this.getDeltaMovement().add(moveX * 2, 0.04D, moveZ * 2));
                 } else if (yDiff < -1.0D) {
-                    this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.04D, 0.0D));
+                    this.setDeltaMovement(this.getDeltaMovement().add(moveX * 2, -0.04D, moveZ * 2));
+                } else {
+                    this.setDeltaMovement(this.getDeltaMovement().add(moveX * 2, 0.0D, moveZ * 2));
                 }
             } else if (this.getNavigation().getPath() != null) {
                 BlockPos targetPos = this.getNavigation().getTargetPos();
@@ -128,42 +137,17 @@ public abstract class OWSemiWaterEntity extends OWEntity {
                     double yDiff = targetPos.getY() - this.getY();
 
                     if (yDiff > 0.5D) {
-                        this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.03D, 0.0D));
+                        this.setDeltaMovement(this.getDeltaMovement().add(moveX * 1.5, 0.03D, moveZ * 1.5));
                     } else if (yDiff < -0.5D) {
-                        this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.03D, 0.0D));
+                        this.setDeltaMovement(this.getDeltaMovement().add(moveX * 1.5, -0.03D, moveZ * 1.5));
+                    } else {
+                        this.setDeltaMovement(this.getDeltaMovement().add(moveX * 1.5, 0.0D, moveZ * 1.5));
                     }
                 }
+            } else {
+                double wave = Math.sin(this.tickCount * 0.05) * 0.01;
+                this.setDeltaMovement(this.getDeltaMovement().add(moveX, wave, moveZ));
             }
-
-            double wave = Math.sin(this.tickCount * 0.05) * 0.01;
-            this.setDeltaMovement(this.getDeltaMovement().add(0.0D, wave, 0.0D));
-
-            if (this.getTarget() == null && this.getNavigation().getPath() == null) {
-                Vec3 lookAngle = this.getLookAngle();
-                this.setDeltaMovement(this.getDeltaMovement().add(
-                        lookAngle.x * 0.01,
-                        0.0D,
-                        lookAngle.z * 0.01
-                ));
-            }
-        }
-        this.handleUnderwaterCollisions();
-    }
-
-    protected void handleUnderwaterCollisions() {
-        if (this.isInWater() && this.horizontalCollision) {
-            float randomYaw = (float) (this.getRandom().nextDouble() * 360.0 - 180.0);
-            this.setYRot(this.getYRot() + randomYaw);
-            this.yRotO = this.getYRot();
-
-            this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.02D, 0.0D));
-
-            Vec3 newLookAngle = this.getLookAngle();
-            this.setDeltaMovement(
-                    newLookAngle.x * 0.15,
-                    this.getDeltaMovement().y,
-                    newLookAngle.z * 0.15
-            );
         }
     }
 

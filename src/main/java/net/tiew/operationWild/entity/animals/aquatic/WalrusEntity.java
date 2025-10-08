@@ -26,6 +26,8 @@ import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -248,7 +250,7 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
 
     @Override
     public float getBlockSpeedFactor() {
-        return 1.15f;
+        return this.isInWater() ? 1.15f : 0.75f;
     }
 
     @Override
@@ -337,6 +339,24 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
         }
 
         return soulStack;
+    }
+
+    @Override
+    public boolean isInvulnerableTo(DamageSource source) {
+        if (source.getDirectEntity() instanceof AbstractArrow) {
+            return true;
+        }
+
+        if (source.getDirectEntity() instanceof ThrowableItemProjectile throwable) {
+            String name = throwable.getClass().getSimpleName();
+            boolean isExcluded = name.equals("Snowball") || name.equals("ThrownEgg") ||
+                    name.equals("ThrownEnderpearl") || name.equals("ThrownPotion") ||
+                    name.equals("ThrownExperienceBottle");
+
+            return !isExcluded;
+        }
+
+        return super.isInvulnerableTo(source);
     }
 
     @Override
