@@ -15,6 +15,7 @@ import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.client.model.*;
 import net.tiew.operationWild.entity.client.model.misc.*;

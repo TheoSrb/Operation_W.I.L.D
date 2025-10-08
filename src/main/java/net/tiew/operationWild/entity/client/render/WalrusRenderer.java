@@ -13,7 +13,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.layer.WalrusLayer;
 import net.tiew.operationWild.entity.client.model.WalrusModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
-import net.tiew.operationWild.entity.animals.terrestrial.WalrusEntity;
+import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.variants.WalrusVariant;
 
 import java.util.Map;

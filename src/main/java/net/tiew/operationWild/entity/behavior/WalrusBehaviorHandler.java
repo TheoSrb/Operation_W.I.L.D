@@ -1,7 +1,6 @@
 package net.tiew.operationWild.entity.behavior;
 
-import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.WalrusEntity;
+import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 
 /**
  * This class only manages methods and functions that are useful and necessary for the proper functioning of Walrus's artificial intelligence.

@@ -6,10 +6,8 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.WalrusEntity;
+import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.particle.OWParticles;
-
-import java.util.EnumSet;
 
 public class NapGoal extends Goal {
 

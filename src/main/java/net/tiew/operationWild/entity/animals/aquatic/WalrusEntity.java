@@ -1,4 +1,4 @@
-package net.tiew.operationWild.entity.animals.terrestrial;
+package net.tiew.operationWild.entity.animals.aquatic;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,9 +19,10 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.TemptGoal;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Drowned;
 import net.minecraft.world.entity.player.Player;
@@ -40,17 +41,14 @@ import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.behavior.WalrusBehaviorHandler;
-import net.tiew.operationWild.entity.config.IOWEntity;
-import net.tiew.operationWild.entity.config.IOWRideable;
-import net.tiew.operationWild.entity.config.IOWTamable;
-import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.config.*;
 import net.tiew.operationWild.entity.goals.NapGoal;
 import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomStrollGoal;
+import net.tiew.operationWild.entity.goals.walrus.WalrusFollowSeabugGoal;
 import net.tiew.operationWild.entity.taming.TamingWalrus;
-import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
@@ -62,7 +60,7 @@ import java.util.List;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
+public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, IOWSemiAquatic {
 
     public static final double TAMING_EXPERIENCE = 165.0;
 
@@ -75,11 +73,13 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public final AnimationState stretchesAnimationState = new AnimationState();
     public final AnimationState laughAnimationState = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
+    public final AnimationState idleWaterAnimationState = new AnimationState();
 
     private long scratchAnimationStartTime = 0;
     private long stretchesAnimationStartTime = 0;
     private long laughAnimationStartTime = 0;
     private long napAnimationTimeout = 0;
+    private long idleWaterAnimationTimeout = 0;
 
     private static final int SCRATCH_DURATION = 50;
     private static final int STRETCHES_DURATION = 150;
@@ -106,20 +106,21 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 .add(Attributes.FOLLOW_RANGE, 25.0D)
                 .add(Attributes.ATTACK_DAMAGE, 7.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.6D)
-                .add(Attributes.ARMOR, 0.15D);
+                .add(Attributes.ARMOR, 0.15D)
+                .add(Attributes.WATER_MOVEMENT_EFFICIENCY, 0.7D);
     }
 
     @Override
     protected void registerGoals() {
-        initWalrusBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
+        initWalrusBehaviorAndTaming();
 
-        this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 15f, 8, 3, false));
-        this.goalSelector.addGoal(2, new TemptGoal(this, 2D, Ingredient.of(OWTags.Items.WALRUS_FOOD), false));
-        this.goalSelector.addGoal(3, new NapGoal(this, 1.15f, 150, true));
-        this.goalSelector.addGoal(4, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(5, new OWRandomStrollGoal(this, 1.0D, 60));
-        this.goalSelector.addGoal(6, new OWRandomLookAroundGoal(this));
+        this.goalSelector.addGoal(2, new WalrusFollowSeabugGoal(this));
+        this.goalSelector.addGoal(3, new TemptGoal(this, 2D, Ingredient.of(OWTags.Items.WALRUS_FOOD), false));
+        this.goalSelector.addGoal(4, new NapGoal(this, 1.15f, 150, true));
+        this.goalSelector.addGoal(5, new OWBreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(6, new OWRandomStrollGoal(this, 1.0D, 40));
+        this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -238,6 +239,16 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return itemStack.is(OWTags.Items.WALRUS_FOOD);
     }
 
+    @Override
+    public boolean isPushedByFluid() {
+        return false;
+    }
+
+    @Override
+    public float getWaterSlowDown() {
+        return 0.98F;
+    }
+
     protected @Nullable SoundEvent getAmbientSound() {
         return RANDOM(5) ? null : null;
     }
@@ -256,11 +267,36 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return this.moveDist + 0.5F;
     }
 
+    protected void switchNavigation() {
+        if (this.isInWater()) {
+            this.navigation = new WaterBoundPathNavigation(this, this.level());
+        } else {
+            this.navigation = new GroundPathNavigation(this, this.level());
+        }
+    }
+
     @Override
     public void travel(Vec3 vec3) {
-        super.travel(vec3);
-        if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) {
-            this.jumpFromGround();
+        if (this.isEffectiveAi() && this.isInWater()) {
+            this.moveRelative(0.1F, vec3);
+            this.move(MoverType.SELF, this.getDeltaMovement());
+            this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
+
+            int currentAir = this.getAirSupply();
+            int maxAir = this.getMaxAirSupply();
+            double airPercentage = (double) currentAir / maxAir * 100.0;
+
+            if (airPercentage < 10.0) {
+                if (!this.isAtSurface(this)) {
+                    this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.005D, 0.0D));
+                }
+            }
+        } else {
+            super.travel(vec3);
+
+            if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) {
+                this.jumpFromGround();
+            }
         }
     }
 
@@ -274,6 +310,7 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return 1.0F;
     }
 
+    @Override
     public void tick() {
         super.tick();
         walrusTaming.tick();
@@ -285,6 +322,10 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.isInResurrection()) this.setSleeping(true);
 
         handleGoldVariantEffects();
+
+
+        switchNavigation();
+        handleUnderwaterMovement(this);
     }
 
     @Override
@@ -478,6 +519,18 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         createSitAnimation(80, true);
 
         handleMiscIdleAnimations();
+
+        if (this.isInWater() && !this.isMoving()) {
+            if (this.idleWaterAnimationTimeout <= 0) {
+                this.idleWaterAnimationTimeout = 51;
+                this.idleWaterAnimationState.start(this.tickCount);
+            } else --this.idleWaterAnimationTimeout;
+        }
+
+        if (!this.isInWater() || this.isMoving()) {
+            this.idleWaterAnimationTimeout = 0;
+            this.idleWaterAnimationState.stop();
+        }
 
         if (this.isNapping()) {
             if (this.napAnimationTimeout <= 0) {

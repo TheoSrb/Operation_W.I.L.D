@@ -10,9 +10,7 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.animals.terrestrial.WalrusEntity;
-import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
-import net.tiew.operationWild.entity.client.animation.TigerAnimations;
+import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.client.animation.WalrusAnimations;
 
 public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
@@ -151,11 +149,21 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 			this.animate(walrus.laughAnimationState, WalrusAnimations.LAUGH, ageInTicks, 1.1f);
 		}
 
-		this.animate(walrus.idleAnimationState, WalrusAnimations.MISC_IDLE, ageInTicks, 1.0f);
+		if (walrus.isInWater()) {
+			this.animate(walrus.idleWaterAnimationState, WalrusAnimations.MISC_IDLE_UNDER_WATER, ageInTicks, 1.0f);
+		} else {
+			this.animate(walrus.idleAnimationState, WalrusAnimations.MISC_IDLE, ageInTicks, 1.0f);
+		}
 
 		if (!walrus.isInWater()) {
 			this.animateWalk(WalrusAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
-		} else this.animateWalk(WalrusAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 1.5f, 1.5f);
+		} else {
+			if (walrus.isVehicle()) {
+				this.animateWalk(WalrusAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 1.5f, 1.5f);
+			} else {
+				this.animateWalk(WalrusAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 2f, 2f);
+			}
+		}
 
 		if (walrus.level().isClientSide()) {
 			if (walrus.isInWater()) {
