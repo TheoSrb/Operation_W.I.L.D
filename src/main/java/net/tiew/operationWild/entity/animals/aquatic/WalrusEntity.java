@@ -40,6 +40,7 @@ import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.behavior.WalrusBehaviorHandler;
 import net.tiew.operationWild.entity.config.*;
 import net.tiew.operationWild.entity.goals.NapGoal;
@@ -60,7 +61,7 @@ import java.util.List;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, IOWSemiAquatic {
+public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable {
 
     public static final double TAMING_EXPERIENCE = 165.0;
 
@@ -230,16 +231,6 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
-    public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) {
-        return OWEntityRegistry.WALRUS.get().create(serverLevel);
-    }
-
-    @Override
-    public boolean isFood(ItemStack itemStack) {
-        return itemStack.is(OWTags.Items.WALRUS_FOOD);
-    }
-
-    @Override
     public boolean isPushedByFluid() {
         return false;
     }
@@ -247,6 +238,31 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public float getWaterSlowDown() {
         return 0.98F;
+    }
+
+    @Override
+    public int getMaxAirSupply() {
+        return 300 * 20;
+    }
+
+    @Override
+    public float getBlockSpeedFactor() {
+        return 1.15f;
+    }
+
+    @Override
+    public int getMaxDepth() {
+        return 10;
+    }
+
+    @Override
+    public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) {
+        return OWEntityRegistry.WALRUS.get().create(serverLevel);
+    }
+
+    @Override
+    public boolean isFood(ItemStack itemStack) {
+        return itemStack.is(OWTags.Items.WALRUS_FOOD);
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
@@ -267,47 +283,12 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return this.moveDist + 0.5F;
     }
 
-    protected void switchNavigation() {
-        if (this.isInWater()) {
-            this.navigation = new WaterBoundPathNavigation(this, this.level());
-        } else {
-            this.navigation = new GroundPathNavigation(this, this.level());
-        }
-    }
-
     @Override
     public void travel(Vec3 vec3) {
-        if (this.isEffectiveAi() && this.isInWater()) {
-            this.moveRelative(0.1F, vec3);
-            this.move(MoverType.SELF, this.getDeltaMovement());
-            this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
-
-            int currentAir = this.getAirSupply();
-            int maxAir = this.getMaxAirSupply();
-            double airPercentage = (double) currentAir / maxAir * 100.0;
-
-            if (airPercentage < 10.0) {
-                if (!this.isAtSurface(this)) {
-                    this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.005D, 0.0D));
-                }
-            }
-        } else {
-            super.travel(vec3);
-
-            if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) {
-                this.jumpFromGround();
-            }
+        super.travel(vec3);
+        if (this.onGround() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) {
+            this.jumpFromGround();
         }
-    }
-
-    @Override
-    public int getMaxAirSupply() {
-        return 300 * 20;
-    }
-
-    @Override
-    public float getBlockSpeedFactor() {
-        return 1.0F;
     }
 
     @Override
@@ -322,10 +303,6 @@ public class WalrusEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.isInResurrection()) this.setSleeping(true);
 
         handleGoldVariantEffects();
-
-
-        switchNavigation();
-        handleUnderwaterMovement(this);
     }
 
     @Override
