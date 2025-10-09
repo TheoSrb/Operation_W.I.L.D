@@ -201,7 +201,7 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
 
     @Override
     public boolean isChangeSpeedDuringCombo() {
-        return !isInWater();
+        return !isInWater() && this.getComboAttack() == 3;
     }
 
     @Override
@@ -295,7 +295,7 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
         super.tick();
         walrusTaming.tick();
 
-        createCombo(22, 10, OWSounds.KODIAK_HURTING_2.get(), 4.0, 2, 2.35, false, getComboAttack() == 3 ? 3 : 1);
+        createCombo(22, 10, OWSounds.KODIAK_HURTING_2.get(), 4.0, 3, 2.5, false, getComboAttack() == 3 ? 3 : 1);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();

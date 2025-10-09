@@ -1168,6 +1168,10 @@ public class ClientEvents {
             return;
         }
 
+        if (event.getEntity().getVehicle() instanceof WalrusEntity walrus && walrus.getComboAttack() == 3) {
+            return;
+        }
+
         if (event.getEntity().getVehicle() instanceof SeaBugEntity seaBug) {
 
             PoseStack poseStack = event.getPoseStack();
@@ -1205,6 +1209,10 @@ public class ClientEvents {
             return;
         }
 
+        if (event.getEntity().getVehicle() instanceof WalrusEntity walrus && walrus.getComboAttack() == 3) {
+            return;
+        }
+
         PoseStack poseStack = event.getPoseStack();
         poseStack.popPose();
     }
@@ -1228,8 +1236,10 @@ public class ClientEvents {
                 event.setRoll(event.getRoll() + (hyena.getBodyZRot() / 3));
                 event.setPitch(event.getPitch() + (hyena.getBodyXRot() / 3));
             } else if (rootVehicle instanceof WalrusEntity walrus) {
-                event.setRoll(event.getRoll() + (walrus.getBodyZRot() / (walrus.isInWater() ? 4 : 2)));
-                event.setPitch(event.getPitch() + (walrus.getBodyXRot() / (walrus.isInWater() ? 4 : 2)));
+                if (walrus.getComboAttack() < 3) {
+                    event.setRoll(event.getRoll() + (walrus.getBodyZRot() / (walrus.isInWater() ? 4 : 2)));
+                    event.setPitch(event.getPitch() + (walrus.getBodyXRot() / (walrus.isInWater() ? 4 : 2)));
+                }
             }
         }
     }
