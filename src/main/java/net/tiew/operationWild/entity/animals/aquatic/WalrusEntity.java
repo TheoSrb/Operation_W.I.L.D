@@ -295,7 +295,7 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
         super.tick();
         walrusTaming.tick();
 
-        createCombo(22, 10, OWSounds.KODIAK_HURTING_2.get(), 4.0, 3, 2.5, false, getComboAttack() == 3 ? 3 : 1);
+        createCombo(22, 8, OWSounds.KODIAK_HURTING_2.get(), 4.0, 3, 2, false, getComboAttack() == 3 ? 3 : 1);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();

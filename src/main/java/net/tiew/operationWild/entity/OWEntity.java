@@ -2017,6 +2017,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
+        if (this instanceof WalrusEntity walrus) {
+            if (attackTimer == timeToHit) {
+                float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
+                walrus.level().playSound(null, walrus.getX(), walrus.getY(), walrus.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
+            }
+        }
+
         if (this instanceof TigerEntity tiger) {
             if (attackTimer == timeToHit) {
                 if (this.getComboAttack() < 3) {
