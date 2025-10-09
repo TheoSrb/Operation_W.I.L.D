@@ -1,44 +1,58 @@
 package net.tiew.operationWild.entity;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
-import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.fluids.FluidType;
-import net.tiew.operationWild.core.OWUtils;
-import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
-
-import java.util.EnumSet;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public abstract class OWSemiWaterEntity extends OWEntity {
 
-    public float i = 0;
-    protected float interval = 0;
-    public boolean changeDirection = false;
+    private float swimYaw = 0;
+    private float targetYaw = 0;
+    private float yawChangeTimer = 0;
+    private float verticalWave = 0;
+    private float targetDepth = 0;
+    private float depthChangeTimer = 0;
+
+    private final float YAW_CHANGE_INTERVAL;
+    private final float YAW_SMOOTH_SPEED;
+    private final float HORIZONTAL_SPEED;
+    private final float VERTICAL_WAVE_SPEED = 0.03f;
+    private final float VERTICAL_WAVE_AMPLITUDE = 0.008f;
+    private final float DEPTH_CHANGE_INTERVAL;
+    private final float DEPTH_CHANGE_SPEED;
+    private final float SURFACE_RISE_SPEED;
 
     public OWSemiWaterEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+
+        this.YAW_SMOOTH_SPEED = 0.015f * getSwimSpeed();
+        this.HORIZONTAL_SPEED = 0.015f * getSwimSpeed();
+        this.DEPTH_CHANGE_SPEED = 0.02f * getSwimSpeed();
+        this.SURFACE_RISE_SPEED = 0.02f * getSwimSpeed();
+
+        this.swimYaw = this.random.nextFloat() * 360f;
+        this.targetYaw = this.random.nextFloat() * 360f;
+        this.yawChangeTimer = this.random.nextFloat() * 200f;
+        this.verticalWave = this.random.nextFloat() * (float)(Math.PI * 2);
+        this.depthChangeTimer = this.random.nextFloat() * 300f;
+
+        this.YAW_CHANGE_INTERVAL = 150f + this.random.nextFloat() * 100f;
+        this.DEPTH_CHANGE_INTERVAL = 250f + this.random.nextFloat() * 100f;
     }
 
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        //this.goalSelector.addGoal(0, new OWSwimmingGoal(this, 0.2f));
     }
 
     public abstract int getMaxDepth();
+    public abstract float getSwimSpeed();
 
     @Override
     public void travel(Vec3 vec3) {
@@ -51,7 +65,6 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             int currentAir = this.getAirSupply();
             int maxAir = this.getMaxAirSupply();
             double airPercentage = (double) currentAir / maxAir * 100.0;
-
             int depth = (int) (this.level().getSeaLevel() - this.getY());
 
             if (airPercentage < 10.0 || depth >= getMaxDepth()) {
@@ -63,33 +76,152 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     }
 
     @Override
+    public boolean isPushedByFluid() {
+        return false;
+    }
+
+    @Override
+    public float getWaterSlowDown() {
+        return 0.98F;
+    }
+
+    @Override
     public void tick() {
         super.tick();
-        if (this.isInWater()) {
+
+        if (this.isInWater() && this.isEffectiveAi() && !this.isVehicle()) {
             switchNavigation();
-
-            float rotationSpeed = 0.5f;
-
-            if (tickCount % 100 == 0) {
-                interval = 300 + this.getRandom().nextInt(501);
-            }
-
-            if (changeDirection) {
-                i -= rotationSpeed;
-            } else {
-                i += rotationSpeed;
-            }
-
-            if (tickCount % interval == 0) {
-                changeDirection = !changeDirection;
-            }
-
-            this.setYHeadRot(i);
-            this.setYRot(i);
-            this.setYBodyRot(i);
-
-            handleUnderwaterMovement();
+            handleSmoothSwimming();
         }
+    }
+
+    protected void handleSmoothSwimming() {
+        yawChangeTimer++;
+        if (yawChangeTimer >= YAW_CHANGE_INTERVAL) {
+            targetYaw = this.getRandom().nextFloat() * 360f;
+            yawChangeTimer = 0;
+        }
+
+        depthChangeTimer++;
+        if (depthChangeTimer >= DEPTH_CHANGE_INTERVAL) {
+            int maxDepthLimit = Math.max((int)(this.level().getSeaLevel() - getMaxDepth()), -64);
+            int surfaceLevel = (int)this.level().getSeaLevel();
+            float safeMinY = Math.max(maxDepthLimit, (float)this.getY() - 5f);
+            float safeMaxY = Math.min(surfaceLevel, (float)this.getY() + 5f);
+            targetDepth = safeMinY + this.getRandom().nextFloat() * (safeMaxY - safeMinY);
+            depthChangeTimer = 0;
+        }
+
+        if (this.horizontalCollision) {
+            targetYaw = swimYaw + 90f + (this.getRandom().nextFloat() * 180f - 90f);
+            yawChangeTimer = 0;
+        }
+
+        float yawDiff = targetYaw - swimYaw;
+        while (yawDiff > 180f) yawDiff -= 360f;
+        while (yawDiff < -180f) yawDiff += 360f;
+
+        swimYaw += yawDiff * YAW_SMOOTH_SPEED;
+        if (swimYaw > 360f) swimYaw -= 360f;
+        if (swimYaw < 0f) swimYaw += 360f;
+
+        this.setYRot(swimYaw);
+        this.setYHeadRot(swimYaw);
+        this.setYBodyRot(swimYaw);
+
+        int currentAir = this.getAirSupply();
+        int maxAir = this.getMaxAirSupply();
+        double airPercentage = (double) currentAir / maxAir * 100.0;
+        int depth = (int) (this.level().getSeaLevel() - this.getY());
+
+        if (airPercentage < 15.0 || depth >= getMaxDepth()) {
+            if (!this.isAtSurface()) {
+                double yawRadians = Math.toRadians(swimYaw);
+                double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 0.5;
+                double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED * 0.5;
+                this.setDeltaMovement(this.getDeltaMovement().add(moveX, SURFACE_RISE_SPEED, moveZ));
+                return;
+            }
+        }
+
+        if (this.getTarget() != null) {
+            handleTargetSwimming();
+            return;
+        }
+
+        if (this.getNavigation().getPath() != null) {
+            handlePathSwimming();
+            return;
+        }
+
+        handleFreeSwimming();
+    }
+
+    protected void handleFreeSwimming() {
+        double yawRadians = Math.toRadians(swimYaw);
+        double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED;
+        double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED;
+
+        verticalWave += VERTICAL_WAVE_SPEED;
+        double verticalMove = Math.sin(verticalWave) * VERTICAL_WAVE_AMPLITUDE;
+
+        double currentY = this.getY();
+        double depthDiff = targetDepth - currentY;
+
+        if (Math.abs(depthDiff) > 1.0) {
+            if (depthDiff > 0) {
+                verticalMove += DEPTH_CHANGE_SPEED;
+            } else {
+                verticalMove -= DEPTH_CHANGE_SPEED;
+            }
+        } else if (Math.abs(depthDiff) > 0.3) {
+            double smoothFactor = Math.abs(depthDiff);
+            if (depthDiff > 0) {
+                verticalMove += DEPTH_CHANGE_SPEED * smoothFactor;
+            } else {
+                verticalMove -= DEPTH_CHANGE_SPEED * smoothFactor;
+            }
+        }
+
+        this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove, moveZ));
+    }
+
+    protected void handleTargetSwimming() {
+        LivingEntity target = this.getTarget();
+        if (target == null) return;
+
+        double yDiff = target.getY() - this.getY();
+        double yawRadians = Math.toRadians(swimYaw);
+        double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 2;
+        double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED * 2;
+
+        double verticalMove = 0;
+        if (yDiff > 1.0D) {
+            verticalMove = 0.04D;
+        } else if (yDiff < -1.0D) {
+            verticalMove = -0.04D;
+        }
+
+        this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove, moveZ));
+    }
+
+    protected void handlePathSwimming() {
+        BlockPos targetPos = this.getNavigation().getTargetPos();
+        if (targetPos == null) return;
+
+        double yDiff = targetPos.getY() - this.getY();
+        double yawRadians = Math.toRadians(swimYaw);
+        double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 1.5;
+        double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED * 1.5;
+
+        double verticalMove = 0;
+        if (yDiff > 0.5D) {
+            verticalMove = 0.03D;
+        } else if (yDiff < -0.5D) {
+            verticalMove = -0.03D;
+        }
+
+        this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove, moveZ));
     }
 
     protected boolean isAtSurface() {
@@ -104,165 +236,4 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             this.navigation = new GroundPathNavigation(this, this.level());
         }
     }
-
-    protected void handleUnderwaterMovement() {
-        if (this.isInWater() && this.isEffectiveAi() && !this.isVehicle()) {
-            int currentAir = this.getAirSupply();
-            int maxAir = this.getMaxAirSupply();
-            double airPercentage = (double) currentAir / maxAir * 100.0;
-
-            double yawRadians = Math.toRadians(i);
-            double moveX = -Math.sin(yawRadians) * 0.01;
-            double moveZ = Math.cos(yawRadians) * 0.01;
-
-            if (airPercentage < 10.0 && !isAtSurface()) {
-                this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.1D, 0.0D));
-                return;
-            }
-
-            if (this.getTarget() != null) {
-                LivingEntity target = this.getTarget();
-                double yDiff = target.getY() - this.getY();
-
-                if (yDiff > 1.0D) {
-                    this.setDeltaMovement(this.getDeltaMovement().add(moveX * 2, 0.04D, moveZ * 2));
-                } else if (yDiff < -1.0D) {
-                    this.setDeltaMovement(this.getDeltaMovement().add(moveX * 2, -0.04D, moveZ * 2));
-                } else {
-                    this.setDeltaMovement(this.getDeltaMovement().add(moveX * 2, 0.0D, moveZ * 2));
-                }
-            } else if (this.getNavigation().getPath() != null) {
-                BlockPos targetPos = this.getNavigation().getTargetPos();
-                if (targetPos != null) {
-                    double yDiff = targetPos.getY() - this.getY();
-
-                    if (yDiff > 0.5D) {
-                        this.setDeltaMovement(this.getDeltaMovement().add(moveX * 1.5, 0.03D, moveZ * 1.5));
-                    } else if (yDiff < -0.5D) {
-                        this.setDeltaMovement(this.getDeltaMovement().add(moveX * 1.5, -0.03D, moveZ * 1.5));
-                    } else {
-                        this.setDeltaMovement(this.getDeltaMovement().add(moveX * 1.5, 0.0D, moveZ * 1.5));
-                    }
-                }
-            } else {
-                double wave = Math.sin(this.tickCount * 0.05) * 0.01;
-                this.setDeltaMovement(this.getDeltaMovement().add(moveX, wave, moveZ));
-            }
-        }
-    }
-
-    /*public static class OWSwimmingGoal extends Goal {
-        OWEntity entity;
-        float speed;
-        float circlingTime = 0;
-        float circleDistance = 15;
-        float maxCirclingTime = 80;
-        boolean clockwise = false;
-        boolean forceAttack = false;
-
-        private double centerX;
-        private double centerZ;
-        private int directionChangeTimer = 0;
-        private boolean changingDirection = false;
-        private int transitionTime = 0;
-        private static final int TRANSITION_DURATION = 60;
-
-        public OWSwimmingGoal(OWEntity entity, float speed) {
-            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-            this.entity = entity;
-            this.speed = speed;
-        }
-
-        @Override
-        public boolean canUse() {
-            return entity.isInWater();
-        }
-
-        @Override
-        public boolean canContinueToUse() {
-            return entity.isInWater();
-        }
-
-        public void start(){
-            circlingTime = 0;
-            maxCirclingTime = 500 + this.entity.getRandom().nextInt(300);
-            circleDistance = 15 + this.entity.getRandom().nextFloat() * 15;
-            clockwise = this.entity.getRandom().nextBoolean();
-            forceAttack = false;
-            directionChangeTimer = 400 + this.entity.getRandom().nextInt(400);
-            changingDirection = false;
-            transitionTime = 0;
-
-            centerX = entity.getX();
-            centerZ = entity.getZ();
-        }
-
-        public void stop(){
-            circlingTime = 0;
-            maxCirclingTime = 500 + this.entity.getRandom().nextInt(300);
-            circleDistance = 15 + this.entity.getRandom().nextFloat() * 15;
-            clockwise = this.entity.getRandom().nextBoolean();
-            forceAttack = false;
-            directionChangeTimer = 400 + this.entity.getRandom().nextInt(400);
-            changingDirection = false;
-            transitionTime = 0;
-        }
-
-        public void tick() {
-            directionChangeTimer--;
-
-            if (directionChangeTimer <= 0 && !changingDirection) {
-                changingDirection = true;
-                transitionTime = 0;
-                directionChangeTimer = 400 + this.entity.getRandom().nextInt(400);
-            }
-
-            double angleDirection = clockwise ? 1.0 : -1.0;
-
-            if (changingDirection) {
-                transitionTime++;
-                float progress = (float) transitionTime / TRANSITION_DURATION;
-                progress = (float) (1.0 - Math.cos(progress * Math.PI)) / 2.0f;
-
-                double oldDirection = clockwise ? 1.0 : -1.0;
-                double newDirection = clockwise ? -1.0 : 1.0;
-                angleDirection = oldDirection + (newDirection - oldDirection) * progress;
-
-                if (transitionTime >= TRANSITION_DURATION) {
-                    changingDirection = false;
-                    clockwise = !clockwise;
-                }
-            }
-
-            double angle = (circlingTime * 0.03 * angleDirection);
-            double targetX = centerX + Math.cos(angle) * circleDistance;
-            double targetZ = centerZ + Math.sin(angle) * circleDistance;
-
-            entity.getNavigation().moveTo(targetX, entity.getY(), targetZ, speed);
-
-            double deltaX = targetX - entity.getX();
-            double deltaZ = targetZ - entity.getZ();
-
-            if (deltaX * deltaX + deltaZ * deltaZ > 0.01) {
-                float desiredYaw = (float) (Math.atan2(deltaZ, deltaX) * 57.2957795) - 90.0F;
-                float currentYaw = entity.getYRot();
-                float yawDiff = desiredYaw - currentYaw;
-
-                while (yawDiff > 180.0F) yawDiff -= 360.0F;
-                while (yawDiff < -180.0F) yawDiff += 360.0F;
-
-                float smoothYaw = currentYaw + yawDiff * 0.15F;
-                entity.setYRot(smoothYaw);
-                entity.yRotO = smoothYaw;
-            }
-
-            circlingTime++;
-
-            if (circlingTime > maxCirclingTime) {
-                centerX = entity.getX();
-                centerZ = entity.getZ();
-                circlingTime = 0;
-            }
-        }
-    }*/
 }

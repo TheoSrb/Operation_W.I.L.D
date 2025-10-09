@@ -159,13 +159,7 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 			}
 		}
 
-		if (walrus.isInWater()) {
-			if (limbSwingAmount < 0.01f) {
-				this.animate(walrus.idleWaterAnimationState, WalrusAnimations.MISC_IDLE_UNDER_WATER, ageInTicks, 1.0f);
-			}
-		} else {
-			this.animate(walrus.idleAnimationState, WalrusAnimations.MISC_IDLE, ageInTicks, 1.0f);
-		}
+		this.animate(walrus.idleAnimationState, WalrusAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 		if (walrus.level().isClientSide()) {
 			if (walrus.isInWater()) {

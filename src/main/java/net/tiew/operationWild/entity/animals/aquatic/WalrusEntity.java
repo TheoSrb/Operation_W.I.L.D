@@ -234,28 +234,18 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
     }
 
     @Override
-    public boolean isPushedByFluid() {
-        return false;
-    }
-
-    @Override
-    public float getWaterSlowDown() {
-        return 0.98F;
-    }
-
-    @Override
     public int getMaxAirSupply() {
         return 300 * 20;
     }
 
     @Override
-    public float getBlockSpeedFactor() {
-        return this.isInWater() ? 1.15f : 0.75f;
+    public int getMaxDepth() {
+        return 10;
     }
 
     @Override
-    public int getMaxDepth() {
-        return 10;
+    public float getSwimSpeed() {
+        return this.getSpeed() * 10;
     }
 
     @Override
