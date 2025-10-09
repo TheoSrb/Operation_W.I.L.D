@@ -2049,7 +2049,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 actualAttackNumber++;
 
                 resetCombo(actualAttackNumber);
-                setCombo(true, actualAttackNumber + 1);
+                if (this instanceof WalrusEntity walrus) {
+                    if (walrus.isInWater()) {
+                        if (getComboAttack() < 2) {
+                            setCombo(true, actualAttackNumber + 1);
+                        }
+                    } else {
+                        setCombo(true, actualAttackNumber + 1);
+                    }
+                } else {
+                    setCombo(true, actualAttackNumber + 1);
+                }
 
                 setPauseCombo(false);
             }
@@ -2059,6 +2069,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 actualAttackNumber = 0;
             }
         } else {
+            if (this instanceof WalrusEntity && getComboAttack() == 3) {
+                timeToHit = 10;
+            }
             createComboAttackSystem(timeMax, timeToHit, sound, width, height, reach, spawnBlurr, backMultiplier);
         }
     }

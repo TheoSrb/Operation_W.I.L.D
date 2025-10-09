@@ -10,7 +10,9 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
+import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
 import net.tiew.operationWild.entity.client.animation.WalrusAnimations;
 
 public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
@@ -34,7 +36,8 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 	private final ModelPart left_leg;
 	private final ModelPart right_leg;
 
-    public WalrusModel(ModelPart root) {
+
+	public WalrusModel(ModelPart root) {
 		this.ALL2 = root.getChild("ALL2");
 		this.ALL = this.ALL2.getChild("ALL");
 		this.left_arm = this.ALL.getChild("left_arm");
@@ -76,16 +79,25 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 
 		PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create(), PartPose.offset(0.0F, -1.0F, -7.0F));
 
-		PartDefinition cube_r3 = body.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(0, 0).addBox(-12.0F, -2.0F, -6.0F, 24.0F, 22.0F, 33.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -7.0F, -9.0F, -0.0873F, 0.0F, 0.0F));
+		PartDefinition cube_r3 = body.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(172, 229).addBox(-9.0F, -2.0F, 2.0F, 18.0F, 3.0F, 24.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -10.0F, -9.0F, -0.0873F, 0.0F, 0.0F));
+
+		PartDefinition cube_r4 = body.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(0, 201).addBox(-12.0F, -2.0F, -6.0F, 24.0F, 22.0F, 33.0F, new CubeDeformation(0.5F))
+				.texOffs(0, 0).addBox(-12.0F, -2.0F, -6.0F, 24.0F, 22.0F, 33.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -7.0F, -9.0F, -0.0873F, 0.0F, 0.0F));
 
 		PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(82, 55).addBox(-8.0F, -23.0F, -9.0F, 16.0F, 24.0F, 18.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 3.0F, -8.0F, 0.1745F, 0.0F, 0.0F));
 
-		PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(114, 0).addBox(-6.0F, -12.0F, -7.0F, 12.0F, 13.0F, 14.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, -21.0F, -2.0F, -0.1745F, 0.0F, 0.0F));
+		PartDefinition cube_r5 = neck.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(202, 131).mirror().addBox(-10.0F, -6.0F, -10.0F, 0.0F, 17.0F, 27.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(0.3F, -23.0F, -2.0F, 0.0F, -0.3054F, 0.0F));
 
-		PartDefinition cube_r4 = head.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(102, 133).addBox(-6.0F, -5.0F, -16.0F, 5.0F, 6.0F, 5.0F, new CubeDeformation(0.0F))
+		PartDefinition cube_r6 = neck.addOrReplaceChild("cube_r6", CubeListBuilder.create().texOffs(202, 131).addBox(10.0F, -6.0F, -10.0F, 0.0F, 17.0F, 27.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(-0.3F, -23.0F, -2.0F, 0.0F, 0.3054F, 0.0F));
+
+		PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(114, 0).addBox(-6.0F, -12.0F, -7.0F, 12.0F, 13.0F, 14.0F, new CubeDeformation(0.0F))
+				.texOffs(125, 195).addBox(-6.0F, -12.0F, -7.0F, 12.0F, 13.0F, 14.0F, new CubeDeformation(0.5F)), PartPose.offsetAndRotation(0.0F, -21.0F, -2.0F, -0.1745F, 0.0F, 0.0F));
+
+		PartDefinition cube_r7 = head.addOrReplaceChild("cube_r7", CubeListBuilder.create().texOffs(102, 133).addBox(-6.0F, -5.0F, -16.0F, 5.0F, 6.0F, 5.0F, new CubeDeformation(0.0F))
 				.texOffs(124, 110).addBox(2.0F, -5.0F, -16.0F, 5.0F, 6.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.5F, 0.0F, -0.025F, 0.1309F, 0.0F, 0.0F));
 
-		PartDefinition cube_r5 = head.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(114, 27).addBox(-6.0F, -11.0F, -16.0F, 11.0F, 11.0F, 11.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.5F, 0.0F, 0.0F, 0.1309F, 0.0F, 0.0F));
+		PartDefinition cube_r8 = head.addOrReplaceChild("cube_r8", CubeListBuilder.create().texOffs(212, 195).addBox(-6.0F, -11.0F, -16.0F, 11.0F, 11.0F, 11.0F, new CubeDeformation(0.5F))
+				.texOffs(114, 27).addBox(-6.0F, -11.0F, -16.0F, 11.0F, 11.0F, 11.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.5F, 0.0F, 0.0F, 0.1309F, 0.0F, 0.0F));
 
 		PartDefinition left_eyeBall = head.addOrReplaceChild("left_eyeBall", CubeListBuilder.create().texOffs(142, 12).addBox(0.0F, -1.0F, -1.5F, 0.0F, 2.0F, 3.0F, new CubeDeformation(0.05F)), PartPose.offset(6.05F, -10.0F, -3.5F));
 
@@ -93,11 +105,11 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 
 		PartDefinition left_tooth = head.addOrReplaceChild("left_tooth", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
-		PartDefinition cube_r6 = left_tooth.addOrReplaceChild("cube_r6", CubeListBuilder.create().texOffs(130, 133).addBox(2.0F, 1.0F, -14.0F, 2.0F, 17.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.5F, 0.0F, 0.0F, 0.1309F, 0.0F, 0.0F));
+		PartDefinition cube_r9 = left_tooth.addOrReplaceChild("cube_r9", CubeListBuilder.create().texOffs(130, 133).addBox(2.0F, 1.0F, -14.0F, 2.0F, 17.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.5F, 0.0F, 0.0F, 0.1309F, 0.0F, 0.0F));
 
 		PartDefinition right_tooth = head.addOrReplaceChild("right_tooth", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
-		PartDefinition cube_r7 = right_tooth.addOrReplaceChild("cube_r7", CubeListBuilder.create().texOffs(130, 133).mirror().addBox(-4.0F, 1.0F, -14.0F, 2.0F, 17.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(-0.5F, 0.0F, 0.0F, 0.1309F, 0.0F, 0.0F));
+		PartDefinition cube_r10 = right_tooth.addOrReplaceChild("cube_r10", CubeListBuilder.create().texOffs(130, 133).mirror().addBox(-4.0F, 1.0F, -14.0F, 2.0F, 17.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(-0.5F, 0.0F, 0.0F, 0.1309F, 0.0F, 0.0F));
 
 		PartDefinition tail_1 = body.addOrReplaceChild("tail_1", CubeListBuilder.create().texOffs(0, 55).addBox(-10.0F, -7.0F, 0.0F, 20.0F, 18.0F, 21.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 4.0F, 16.0F));
 
@@ -123,6 +135,16 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
             this.head.zScale *= headScale;
         }
         this.applyHeadRotation(netHeadYaw, headPitch);
+
+		if (walrus.isCombo(1)) {
+			this.animate(walrus.attack1Combo, WalrusAnimations.ATTACK_STRIKE, ageInTicks, 0.9f);
+		}
+		if (walrus.isCombo(2)) {
+			this.animate(walrus.attack2Combo, WalrusAnimations.ATTACK_STRIKE2, ageInTicks, 0.9f);
+		}
+		if (walrus.isCombo(3)) {
+			this.animate(walrus.attack3Combo, WalrusAnimations.ATTACK_STRIKE3, ageInTicks, 1.0f);
+		}
 
 		if (walrus.transitionIdleSleep.isStarted()) {
 			this.animate(walrus.transitionIdleSleep, WalrusAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 1f);

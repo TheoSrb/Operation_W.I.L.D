@@ -72,12 +72,18 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
     public WalrusBehaviorHandler walrusBehaviorHandler;
     public TamingWalrus walrusTaming;
 
+    public final AnimationState attack1Combo = new AnimationState();
+    public final AnimationState attack2Combo = new AnimationState();
+    public final AnimationState attack3Combo = new AnimationState();
     public final AnimationState scratchAnimationState = new AnimationState();
     public final AnimationState stretchesAnimationState = new AnimationState();
     public final AnimationState laughAnimationState = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
     public final AnimationState idleWaterAnimationState = new AnimationState();
 
+    public int attack1ComboTimer = 0;
+    public int attack2ComboTimer = 0;
+    public int attack3ComboTimer = 0;
     private long scratchAnimationStartTime = 0;
     private long stretchesAnimationStartTime = 0;
     private long laughAnimationStartTime = 0;
@@ -195,7 +201,7 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
 
     @Override
     public boolean isChangeSpeedDuringCombo() {
-        return true;
+        return !isInWater();
     }
 
     @Override
@@ -289,7 +295,7 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
         super.tick();
         walrusTaming.tick();
 
-        createCombo(23, 15, OWSounds.KODIAK_HURTING_2.get(), 4.0, 2, 2.35, false, 1.5f);
+        createCombo(22, 10, OWSounds.KODIAK_HURTING_2.get(), 4.0, 2, 2.35, false, getComboAttack() == 3 ? 3 : 1);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();
@@ -384,7 +390,8 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
     @Override
     protected void positionRider(Entity entity, MoveFunction function) {
         super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY() - 0.8, entity.getZ());
+        Vec3 look = this.getLookAngle();
+        function.accept(entity, entity.getX() - look.x * 0.5, entity.getY() - 0.6, entity.getZ() - look.z * 0.5);
     }
 
     @Override
@@ -530,6 +537,34 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
         if (!this.isNapping()) {
             this.napAnimationTimeout = 0;
             this.napAnimationState.stop();
+        }
+
+        setupComboAnimations();
+    }
+
+    private void setupComboAnimations() {
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, 28);
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, 28);
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, 22);
+    }
+
+    private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
+        if (this.isCombo(comboNumber)) {
+            if (timer <= 0) {
+                timer = maxTimer;
+                animationState.start(this.tickCount);
+            } else {
+                --timer;
+            }
+        } else {
+            timer = 0;
+            animationState.stop();
+        }
+
+        switch (comboNumber) {
+            case 1: attack1ComboTimer = timer; break;
+            case 2: attack2ComboTimer = timer; break;
+            case 3: attack3ComboTimer = timer; break;
         }
     }
 

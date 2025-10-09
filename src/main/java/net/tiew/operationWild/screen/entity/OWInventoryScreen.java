@@ -202,9 +202,9 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         this.renderEffects(graphics, mouseX, mouseY);
         this.renderTooltip(graphics, mouseX, mouseY);
 
-        float upgradeHealthLimit = 1 + entity.getArchetype().getHealthMultiplier();
-        float upgradeDamageLimit = 1 + entity.getArchetype().getDamageMultiplier();
-        float upgradeSpeedLimit = 1 + entity.getArchetype().getSpeedMultiplier();
+        float upgradeHealthLimit = 0.75f + entity.getArchetype().getHealthMultiplier();
+        float upgradeDamageLimit = 0.75f + entity.getArchetype().getDamageMultiplier();
+        float upgradeSpeedLimit = 0.5f + entity.getArchetype().getSpeedMultiplier();
         int color = (entity.tickCount / 7) % 2 == 0 ? 0xb8e45a : 0x8b8b8b;
 
         boolean hasLevelPoints = entity.getLevelPoints() > 0;

@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
+import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 
 public class OWEntityHud {
@@ -46,6 +47,7 @@ public class OWEntityHud {
             case "MandrillEntity": return 5;
             case "KodiakEntity": return 6;
             case "HyenaEntity": return 7;
+            case "WalrusEntity": return 8;
             default: return 0;
         }
     }
@@ -90,6 +92,7 @@ public class OWEntityHud {
         else if (entity instanceof MandrillEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (15 / 2), yPlacement - 12, 241, 79, 15, 21);
         else if (entity instanceof KodiakEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 7, 239, 100, 17, 16);
         else if (entity instanceof HyenaEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 7, 239, 116, 17, 16);
+        else if (entity instanceof WalrusEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (12 / 2), yPlacement - 7, 244, 132, 12, 21);
     }
 
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
