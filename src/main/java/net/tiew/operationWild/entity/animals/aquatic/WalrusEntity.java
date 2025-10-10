@@ -50,9 +50,11 @@ import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomStrollGoal;
+import net.tiew.operationWild.entity.goals.walrus.WalrusCaughtGoal;
 import net.tiew.operationWild.entity.goals.walrus.WalrusFollowSeabugGoal;
 import net.tiew.operationWild.entity.taming.TamingWalrus;
 import net.tiew.operationWild.sound.OWSounds;
+import org.checkerframework.checker.units.qual.C;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.variants.WalrusVariant;
@@ -68,6 +70,9 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
     public static final double TAMING_EXPERIENCE = 165.0;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(WalrusEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> COLOR = SynchedEntityData.defineId(WalrusEntity.class, EntityDataSerializers.FLOAT);
+
+    private static final EntityDataAccessor<Boolean> IS_SURFING = SynchedEntityData.defineId(WalrusEntity.class, EntityDataSerializers.BOOLEAN);
 
     public WalrusBehaviorHandler walrusBehaviorHandler;
     public TamingWalrus walrusTaming;
@@ -98,6 +103,9 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
     private int stretchesInterval = (int) OWUtils.generateRandomInterval(300, 900);
     private int laughInterval = (int) OWUtils.generateRandomInterval(800, 1300);
 
+    private float colorPhase = 0f;
+    private float colorPhaseSpeed = 0.05f;
+
     public WalrusEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
         initWalrusBehaviorAndTaming();
@@ -124,6 +132,7 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
         super.registerGoals();
         initWalrusBehaviorAndTaming();
 
+        this.goalSelector.addGoal(0, new WalrusCaughtGoal(this));
         this.goalSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 15f, 8, 3, false));
         this.goalSelector.addGoal(2, new WalrusFollowSeabugGoal(this));
         this.goalSelector.addGoal(3, new TemptGoal(this, 2D, Ingredient.of(OWTags.Items.WALRUS_FOOD), false));
@@ -136,6 +145,8 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
+        builder.define(COLOR, 0f);
+        builder.define(IS_SURFING, false);
     }
 
     // Entity Methods
@@ -582,6 +593,22 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
 
     public void setInitialVariant(WalrusVariant variant) {
         this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());
+    }
+
+    public float getColor() {
+        return this.entityData.get(COLOR);
+    }
+
+    public void setColor(float color) {
+        this.entityData.set(COLOR, color);
+    }
+
+    public boolean isSurfing() {
+        return this.entityData.get(IS_SURFING);
+    }
+
+    public void setSurfing(boolean isSurfing) {
+        this.entityData.set(IS_SURFING, isSurfing);
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {

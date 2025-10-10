@@ -13,6 +13,8 @@ import net.tiew.operationWild.entity.client.render.WalrusRenderer;
 import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 
 public class WalrusLayer extends RenderLayer<WalrusEntity, WalrusModel<WalrusEntity>> {
+    private final WalrusRenderer walrusRenderer;
+
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/walrus/in_resurrection.png");
     private static final ResourceLocation RESURRECTION_GLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/walrus/skins/walrus_skin_gold_glowing.png");
     private static final ResourceLocation BLOODY_STAGE_0_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/walrus/walrus_bloody_stage_0.png");
@@ -22,6 +24,7 @@ public class WalrusLayer extends RenderLayer<WalrusEntity, WalrusModel<WalrusEnt
 
     public WalrusLayer(WalrusRenderer walrusRenderer) {
         super(walrusRenderer);
+        this.walrusRenderer = walrusRenderer;
     }
 
     @Override
@@ -36,6 +39,9 @@ public class WalrusLayer extends RenderLayer<WalrusEntity, WalrusModel<WalrusEnt
         if (walrus.getHealth() < walrusHealthTier) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
         else if (walrus.getHealth() < (walrusHealthTier * 2)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);
         else if (walrus.getHealth() < (walrusHealthTier * 3)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);
+
+        /*renderOverlayWithColorShift(poseStack, multiBufferSource, walrusRenderer.getTextureLocation(walrus), false, packedLight, walrus.getColor(),
+                0xc6c6c6, 0xbea3ff);*/
     }
 
     private void renderOverlay(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, boolean glowLayer, int packedLight) {
@@ -47,6 +53,39 @@ public class WalrusLayer extends RenderLayer<WalrusEntity, WalrusModel<WalrusEnt
         RenderType renderType = glowLayer ? RenderType.eyes(texture) : RenderType.entityCutoutNoCull(texture);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
         this.getParentModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY, color);
+    }
+
+    private void renderOverlayWithColorShift(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, boolean glowLayer, int packedLight, float colorShift, int colorAtMinusOne, int colorAtPlusOne) {
+        int finalColor;
+        if (colorShift < 0) {
+            float amount = Math.abs(colorShift);
+
+            int minR = (colorAtMinusOne >> 16) & 0xFF;
+            int minG = (colorAtMinusOne >> 8) & 0xFF;
+            int minB = colorAtMinusOne & 0xFF;
+
+            int r = (int) (255 * (1 - amount) + minR * amount);
+            int g = (int) (255 * (1 - amount) + minG * amount);
+            int b = (int) (255 * (1 - amount) + minB * amount);
+
+            finalColor = (0xFF << 24) | (r << 16) | (g << 8) | b;
+        } else {
+            float amount = colorShift;
+
+            int maxR = (colorAtPlusOne >> 16) & 0xFF;
+            int maxG = (colorAtPlusOne >> 8) & 0xFF;
+            int maxB = colorAtPlusOne & 0xFF;
+
+            int r = (int) (255 * (1 - amount) + maxR * amount);
+            int g = (int) (255 * (1 - amount) + maxG * amount);
+            int b = (int) (255 * (1 - amount) + maxB * amount);
+
+            finalColor = (0xFF << 24) | (r << 16) | (g << 8) | b;
+        }
+
+        RenderType renderType = glowLayer ? RenderType.eyes(texture) : RenderType.entityCutoutNoCull(texture);
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
+        this.getParentModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY, finalColor);
     }
 
     private void renderOverlayWithOpacity(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, boolean glowLayer, int packedLight, float opacity) {
