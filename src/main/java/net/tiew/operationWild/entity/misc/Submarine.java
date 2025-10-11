@@ -103,7 +103,7 @@ public class Submarine extends OWEntity {
             Component message = Component.translatable("tooHighPressure")
                     .setStyle(Style.EMPTY
                             .withColor(ChatFormatting.YELLOW));
-            Minecraft.getInstance().gui.setOverlayMessage(message, true);
+            //Minecraft.getInstance().gui.setOverlayMessage(message, true); /!\ SERVER DON'T WORK
             firstTimeToDeep = false;
         }
     }
@@ -133,9 +133,10 @@ public class Submarine extends OWEntity {
 
     @Override
     public Vec3 getDismountLocationForPassenger(LivingEntity living) {
-        if (this.level().isClientSide) {
+        /*if (this.level().isClientSide) {
             Minecraft.getInstance().getSoundManager().stop(OWSounds.SUBMARINE_MOVE_LOOP.get().getLocation(), null);
-        }
+        }*/
+        // /!\ SERVER DON'T WORK
         this.isPlayingMoveSound = false;
         this.soundTimer = 0;
         return super.getDismountLocationForPassenger(living);
@@ -180,15 +181,15 @@ public class Submarine extends OWEntity {
         }
 
         if (!ownerFound) {
-            if (level().isClientSide) {
-                Player clientPlayer = Minecraft.getInstance().player;
-                if (clientPlayer != null && clientPlayer.getUUID().equals(ownerUUID)) {
+            if (!level().isClientSide()) {
+                Player owner = level().getPlayerByUUID(ownerUUID);
+                if (owner != null && owner.distanceToSqr(this) < 64.0) { // Dans un rayon raisonnable
                     this.addEffect(new MobEffectInstance(MobEffects.GLOWING, 10, 0, false, false, false));
                 }
             }
             this.setSitting(true);
         } else {
-            if (level().isClientSide) {
+            if (!level().isClientSide()) {
                 this.removeEffect(MobEffects.GLOWING);
             }
             this.setSitting(false);
@@ -241,9 +242,10 @@ public class Submarine extends OWEntity {
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
-        if (this.level().isClientSide) {
+        /*if (this.level().isClientSide) {
             Minecraft.getInstance().getSoundManager().stop(OWSounds.SUBMARINE_MOVE_LOOP.get().getLocation(), null);
-        }
+        }*/
+        // /!\ SERVER DON'T WORK
         this.isPlayingMoveSound = false;
         this.soundTimer = 0;
     }

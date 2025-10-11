@@ -86,6 +86,7 @@ public class OWCommands {
                     double distance = player.distanceTo(owEntity);
                     if (distance <= 10) {
                         owEntity.setTame(true, player);
+                        owEntity.addTamingExperience(owEntity.getTamingExperience() / 2, player);
                         source.sendSuccess(() -> Component.translatable("forceTameCommandSuccess", Component.translatable(String.valueOf("entity.ow." + owEntity.getClass().getSimpleName().toLowerCase().split("entity")[0])))
                                 .setStyle(Style.EMPTY.withColor(0x00FF00)), false);
                     } else {

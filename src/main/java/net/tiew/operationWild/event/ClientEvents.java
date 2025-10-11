@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -20,6 +21,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -95,12 +97,13 @@ public class ClientEvents {
             if (ridingEntity instanceof OWEntity entity &&
                     entity.isAlive() && entity.isTame() && entity.isSaddled()) {
                 if (leftButtonIsPressed) {
-                    OWNetworkHandler.sendToServer(new ClientPressedLeftClick());
-                } else if (rightButtonIsPressed && canUseRightClick(Minecraft.getInstance())) {
+                    boolean isScreenOpen = minecraft.screen != null;
+                    OWNetworkHandler.sendToServer(new ClientPressedLeftClick(isScreenOpen));
+                } else if (rightButtonIsPressed && canUseRightClick(minecraft)) {
                     OWNetworkHandler.sendToServer(new ClientPressedRightClick());
                 }
             } else if (ridingEntity instanceof Submarine) {
-                if (rightButtonIsPressed && canUseRightClick(Minecraft.getInstance())) {
+                if (rightButtonIsPressed && canUseRightClick(minecraft)) {
                     OWNetworkHandler.sendToServer(new ClientPressedRightClick());
                 }
             }
@@ -297,6 +300,38 @@ public class ClientEvents {
         return "unknown_world";
     }
 
+    @SubscribeEvent
+    public static void onRenderHand(RenderHandEvent event) {
+        ItemStack stack = event.getItemStack();
+
+        if (stack.getItem() instanceof MayaBlowpipeItem) {
+            LocalPlayer player = Minecraft.getInstance().player;
+
+            if (player != null && player.isUsingItem() && player.getUseItem() == stack) {
+                float chargeProgress = MayaBlowpipeItem.getChargeProgress(stack, player);
+                applyBlowpipeRotation(event.getPoseStack(), chargeProgress, event.getHand());
+            }
+        }
+    }
+
+    private static void applyBlowpipeRotation(PoseStack poseStack, float chargeProgress, InteractionHand hand) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return;
+
+        double yTranslate = 1.0D - (chargeProgress * 0.25D);
+        double zTranslate = 0.9D - (chargeProgress * 0.125D);
+
+        if (hand == InteractionHand.OFF_HAND) {
+            poseStack.mulPose(Axis.YP.rotationDegrees(-110));
+            poseStack.mulPose(Axis.ZP.rotationDegrees(90));
+            poseStack.translate(0.35D, yTranslate, zTranslate);
+        } else {
+            poseStack.mulPose(Axis.YP.rotationDegrees(110));
+            poseStack.mulPose(Axis.ZP.rotationDegrees(-90));
+            poseStack.translate(-0.35D, yTranslate, zTranslate);
+        }
+    }
+
     private static void loadTamingExperience(Player player) {
         try {
             String worldName = getWorldName(player);
@@ -355,7 +390,8 @@ public class ClientEvents {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level != null && minecraft.level.isClientSide()) {
             if (minecraft.player != null && minecraft.player.getVehicle() instanceof OWEntity) {
-                OWNetworkHandler.sendToServer(new OWRunningPacket());
+                boolean isSprintKeyDown = minecraft.options.keySprint.isDown();
+                OWNetworkHandler.sendToServer(new OWRunningPacket(isSprintKeyDown));
             }
         }
     }

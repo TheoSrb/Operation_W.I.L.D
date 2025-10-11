@@ -591,13 +591,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         if (((this.isVehicle() && this.isRunning()) || getTarget() != null)) {
             if (this.level().isClientSide()) {
-                Player player = Minecraft.getInstance().player;
-                if (player != null && player.zza > 0) {
+                if (this.getDeltaMovement().horizontalDistanceSqr() > 0.01) {
                     runTime++;
                     if (runTime % 12 == 0 && runTime != 0 && this.onGround()) {
-                        Minecraft.getInstance().getSoundManager().play(
-                                SimpleSoundInstance.forUI(SoundEvents.HORSE_STEP, 1.0F, 0.3f)
-                        );
+                        this.playSound(SoundEvents.HORSE_STEP, 1.0F, 0.3f);
                     }
                 } else {
                     runTime = 0;

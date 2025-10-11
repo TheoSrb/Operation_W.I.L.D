@@ -268,16 +268,13 @@ public class HyenaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         if (((this.isVehicle() && this.isRunning()) || getTarget() != null)) {
             if (this.level().isClientSide()) {
-                Player player = Minecraft.getInstance().player;
-                if (player != null && player.zza > 0) {
+                if (this.getDeltaMovement().horizontalDistanceSqr() > 0.01) {
                     runTime++;
 
                     if (runTime >= 10) runTime = 0;
 
                     if (runTime == 5 && this.onGround()) {
-                        Minecraft.getInstance().getSoundManager().play(
-                                SimpleSoundInstance.forUI(SoundEvents.HORSE_STEP, 1.2f, 0.5f)
-                        );
+                        this.playSound(SoundEvents.HORSE_STEP, 1.2f, 0.5f);
                     }
                 } else {
                     runTime = 0;

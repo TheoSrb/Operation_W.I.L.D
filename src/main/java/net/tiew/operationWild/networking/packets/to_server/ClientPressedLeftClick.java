@@ -1,6 +1,5 @@
 package net.tiew.operationWild.networking.packets.to_server;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,13 +13,20 @@ import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.core.OWUtils;
 
-public record ClientPressedLeftClick() implements CustomPacketPayload {
+public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<ClientPressedLeftClick> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "client_pressed_left_click"));
 
     public static final StreamCodec<FriendlyByteBuf, ClientPressedLeftClick> STREAM_CODEC =
-            StreamCodec.unit(new ClientPressedLeftClick());
+            StreamCodec.composite(
+                    StreamCodec.of(
+                            (buf, value) -> buf.writeBoolean(value),
+                            buf -> buf.readBoolean()
+                    ),
+                    ClientPressedLeftClick::isScreenOpen,
+                    ClientPressedLeftClick::new
+            );
 
     @Override
     public CustomPacketPayload.Type<ClientPressedLeftClick> type() {
@@ -58,7 +64,7 @@ public record ClientPressedLeftClick() implements CustomPacketPayload {
                         showTiredMessage = true;
                     }
 
-                    if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5) && Minecraft.getInstance().screen == null) {
+                    if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5) && !packet.isScreenOpen()) {
                         owEntity.setCombo(true, 1);
                         owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 5);
                         owEntity.setAcceleration(0);

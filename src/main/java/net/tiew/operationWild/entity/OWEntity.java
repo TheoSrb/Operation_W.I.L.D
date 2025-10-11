@@ -2497,8 +2497,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void handleRunningEffects(int maxRunTime, SoundEvent soundEvent, float pitch, int[] runTimeSound) {
         if (((this.isRunning()) || getTarget() != null)) {
             if (this.level().isClientSide()) {
-                Player player = Minecraft.getInstance().player;
-                if (player != null && player.zza > 0) {
+                if (this.getDeltaMovement().horizontalDistanceSqr() > 0.01) {
                     runTime++;
                     if (runTime >= maxRunTime) runTime = 0;
                     if ((runTime == runTimeSound[0] || runTime == runTimeSound[1]) && this.onGround()) {
@@ -2584,7 +2583,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public static void saveTamingExperience(Player player) {
         try {
-            String worldName = getWorldName(player);
+            String worldName = ClientEvents.getWorldName(player);
             String filePath = "saves/" + worldName + "/owDatas.properties";
 
             Properties props = new Properties();
@@ -2608,29 +2607,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static String getWorldName(Player player) {
-        if (player != null && player.level() != null) {
-            Minecraft minecraft = Minecraft.getInstance();
-
-            if (minecraft.hasSingleplayerServer()) {
-                MinecraftServer server = minecraft.getSingleplayerServer();
-
-                if (server != null) {
-                    File worldDir = server.getWorldPath(LevelResource.ROOT).toAbsolutePath().toFile();
-                    String pathStr = worldDir.getAbsolutePath();
-                    String[] parts = pathStr.split("\\\\");
-                    return parts[parts.length - 2];
-                }
-            }
-
-            if (minecraft.getCurrentServer() != null) {
-                return "multiplayer:" + minecraft.getCurrentServer().name;
-            }
-        }
-
-        return "unknown_world";
     }
 
     @Override

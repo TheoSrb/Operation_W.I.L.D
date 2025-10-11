@@ -64,7 +64,9 @@ public class ManuscriptFragmentItem extends Item {
         if (fragmentEntityComponent != null) {
             String entityName = fragmentEntityComponent.getString();
             EntityType<? extends OWEntity> entityType = OWEntityRegistry.getEntityTypeFromName(entityName);
-            OWEntity entity = entityType != null ? entityType.create(Minecraft.getInstance().level) : null;
+
+            Level level = context.level();
+            OWEntity entity = entityType != null && level != null ? entityType.create(level) : null;
 
             Component entityDisplayName = entityType != null ?
                     Component.translatable(entityType.getDescriptionId()).setStyle(Style.EMPTY.withBold(true).withColor(entity != null ? entity.getEntityColor() : 0xFFFFFF)) :

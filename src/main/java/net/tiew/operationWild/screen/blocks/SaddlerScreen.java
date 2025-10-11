@@ -74,12 +74,19 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
         tigerSharkSaddleButton = createTransparentButton("item.ow.tiger_shark_saddle", 0x8b8b8b, 0, 0, 105, 19, this::tigerSharkButtonClick);
         kodiakSaddleButton = createTransparentButton("item.ow.kodiak_saddle", 0x8b8b8b, 0, 0, 105, 19, this::kodiakButtonClick);
 
-        if (ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(boaSaddleButton));
+        /*if (ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(boaSaddleButton));
         if (ClientEvents.tamingExperience >= TigerEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(tigerSaddleButton));
         if (ClientEvents.tamingExperience >= PeacockEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(peacockSaddleButton));
         if (ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(tigerSharkSaddleButton));
         if (ClientEvents.tamingExperience >= ElephantEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(elephantSaddleButton));
-        if (ClientEvents.tamingExperience >= KodiakEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(kodiakSaddleButton));
+        if (ClientEvents.tamingExperience >= KodiakEntity.TAMING_EXPERIENCE) this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(kodiakSaddleButton));*/
+
+        this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(boaSaddleButton));
+        this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(tigerSaddleButton));
+        this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(peacockSaddleButton));
+        this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(tigerSharkSaddleButton));
+        this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(elephantSaddleButton));
+        this.buttonList.addButtonEntry(new ButtonListWidget.ButtonEntry(kodiakSaddleButton));
 
         this.addRenderableWidget(this.buttonList);
     }

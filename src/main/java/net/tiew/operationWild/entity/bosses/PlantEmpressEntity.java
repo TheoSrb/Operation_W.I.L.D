@@ -124,7 +124,6 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
-        Minecraft.getInstance().getSoundManager().stop();
         musicPlayed = false;
         musicTimer = 0;
         this.playSound(OWSounds.PLANT_EMPRESS_DEFEATED_THEME.get(), 1.0f, 1.0f);
