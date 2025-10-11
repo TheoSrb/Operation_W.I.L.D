@@ -646,6 +646,22 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             if (target != null) {
                 if (this.getFoodPick() != null && !this.getFoodPick().isEmpty()) {
                     kodiakBehaviorHandler.eatFoodInHisMouth(this.getFoodPick());
+
+                    Vec3 lookDirection = this.getLookAngle();
+                    double spawnX = this.getX() + lookDirection.x * 2.0;
+                    double spawnY = this.getY() + 0.8;
+                    double spawnZ = this.getZ() + lookDirection.z * 2.0;
+
+                    salmonCatchedTimer = 0;
+                    kodiakBehaviorHandler.isCatchSalmon = false;
+                    this.setCatchingSalmon(false);
+
+                    OWUtils.spawnItemParticles(this, Items.SALMON.getDefaultInstance(), spawnX, spawnY, spawnZ);
+
+                    this.playSound(SoundEvents.GENERIC_EAT);
+
+                    int foodValue = 5;
+                    this.setFoodBarValue(this.getFoodBarValue() + foodValue);
                 }
             }
         } finally {

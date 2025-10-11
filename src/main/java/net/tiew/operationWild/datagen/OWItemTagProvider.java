@@ -128,6 +128,16 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(OWItems.COOKED_TIGER.get())
                 .add(OWItems.COOKED_BOA.get());
 
+        tag(ItemTags.MEAT)
+                .add(OWItems.RAW_KODIAK.get())
+                .add(OWItems.RAW_PEACOCK.get())
+                .add(OWItems.RAW_TIGER.get())
+                .add(OWItems.RAW_BOA.get())
+                .add(OWItems.COOKED_PEACOCK.get())
+                .add(OWItems.COOKED_KODIAK.get())
+                .add(OWItems.COOKED_TIGER.get())
+                .add(OWItems.COOKED_BOA.get());
+
         tag(Tags.Items.FOODS_VEGETABLE)
                 .add(OWItems.SAVAGE_BERRIES.get());
 
@@ -144,5 +154,8 @@ public class OWItemTagProvider extends ItemTagsProvider {
 
         tag(OWTags.Items.WALRUS_FOOD)
                 .add(Items.NAUTILUS_SHELL);
+
+        tag(OWTags.Items.CROCODILE_FOOD)
+                .add(OWItems.RAW_TIGER.get());
     }
 }

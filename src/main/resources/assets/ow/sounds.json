@@ -77,6 +77,8 @@
   "kodiak_sniff_2": { "subtitle": "sounds.ow.kodiak_sniff_2", "sounds": [ "ow:kodiak/kodiak_sniff_2" ] },
   "kodiak_sniff_3": { "subtitle": "sounds.ow.kodiak_sniff_3", "sounds": [ "ow:kodiak/kodiak_sniff_3" ] },
 
+  "crocodile_mouth_crush": { "subtitle": "sounds.ow.crocodile_mouth_crush", "sounds": [ "ow:crocodile/crocodile_mouth_crush" ] },
+
 
 
 

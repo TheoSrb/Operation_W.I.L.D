@@ -26,7 +26,10 @@ public class OWInventoryMenu extends AbstractContainerMenu {
     private OWEntity entity;
 
     private boolean itemIsMeat(ItemStack item) {
-        return OWEntity.CARNIVOROUS_ENTITIES.contains(entity.getType()) ? (item.is(ItemTags.MEAT) || item.is(ItemTags.FISHES)) : item.is(Tags.Items.FOODS_VEGETABLE);
+        if (entity.isOmnivorous()) {
+            return item.is(ItemTags.MEAT) || item.is(ItemTags.FISHES) || item.is(Tags.Items.FOODS_VEGETABLE) || item.is(Tags.Items.FOODS_FRUIT);
+        }
+        return entity.isCarnivorous() ? (item.is(ItemTags.MEAT) || item.is(ItemTags.FISHES)) : (item.is(Tags.Items.FOODS_VEGETABLE) || item.is(Tags.Items.FOODS_FRUIT));
     }
 
     public OWInventoryMenu(int containerId, Inventory playerInventory, IItemHandler dataInventory) {

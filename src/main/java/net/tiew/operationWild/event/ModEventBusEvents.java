@@ -12,10 +12,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntityRegistry;
-import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
-import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
-import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
-import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
+import net.tiew.operationWild.entity.animals.aquatic.*;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.client.model.*;
 import net.tiew.operationWild.entity.client.model.misc.*;
@@ -44,6 +41,7 @@ public class ModEventBusEvents {
         event.registerLayerDefinition(TigerModel.LAYER_LOCATION, TigerModel::createBodyLayer);
         event.registerLayerDefinition(MandrillModel.LAYER_LOCATION, MandrillModel::createBodyLayer);
         event.registerLayerDefinition(ElephantModel.LAYER_LOCATION, ElephantModel::createBodyLayer);
+        event.registerLayerDefinition(CrocodileModel.LAYER_LOCATION, CrocodileModel::createBodyLayer);
         event.registerLayerDefinition(WalrusModel.LAYER_LOCATION, WalrusModel::createBodyLayer);
         event.registerLayerDefinition(MantaModel.LAYER_LOCATION, MantaModel::createBodyLayer);
         event.registerLayerDefinition(JellyfishModel.LAYER_LOCATION, JellyfishModel::createBodyLayer);
@@ -75,6 +73,7 @@ public class ModEventBusEvents {
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(OWEntityRegistry.TIGER.get(), TigerEntity.createAttributes().build());
         event.put(OWEntityRegistry.MANDRILL.get(), MandrillEntity.createAttributes().build());
+        event.put(OWEntityRegistry.CROCODILE.get(), CrocodileEntity.createAttributes().build());
         event.put(OWEntityRegistry.ELEPHANT.get(), ElephantEntity.createAttributes().build());
         event.put(OWEntityRegistry.WALRUS.get(), WalrusEntity.createAttributes().build());
         event.put(OWEntityRegistry.MANTA.get(), MantaEntity.createAttributes().build());

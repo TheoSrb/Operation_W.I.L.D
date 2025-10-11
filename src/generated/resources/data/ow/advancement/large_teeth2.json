@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_walrus": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:walrus"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.large_teeth2.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:crocodile_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.large_teeth2.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_walrus"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

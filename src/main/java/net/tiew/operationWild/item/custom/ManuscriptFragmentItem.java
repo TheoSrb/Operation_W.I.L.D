@@ -31,6 +31,7 @@ public class ManuscriptFragmentItem extends Item {
             OWEntityRegistry.PEACOCK.get(),
             OWEntityRegistry.ELEPHANT.get(),
             OWEntityRegistry.MANDRILL.get(),
+            OWEntityRegistry.CROCODILE.get(),
             OWEntityRegistry.KODIAK.get(),
             OWEntityRegistry.JELLYFISH.get(),
             OWEntityRegistry.TIGER_SHARK.get(),
@@ -127,6 +128,7 @@ public class ManuscriptFragmentItem extends Item {
         if (entityType == OWEntityRegistry.WALRUS.get()) return "walrus";
         if (entityType == OWEntityRegistry.ELEPHANT.get()) return "elephant";
         if (entityType == OWEntityRegistry.MANDRILL.get()) return "mandrill";
+        if (entityType == OWEntityRegistry.CROCODILE.get()) return "crocodile";
         return "unknown";
     }
 }

@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.block.OWBlocks;
+import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.item.OWItems;
 
@@ -29,6 +30,10 @@ public class OWEntityTypeTagProvider extends EntityTypeTagsProvider {
                 .add(OWEntityRegistry.JELLYFISH.get())
                 .add(OWEntityRegistry.TIGER_SHARK.get())
                 .add(OWEntityRegistry.MANTA.get());
+
+        tag(OWTags.Entities.REPTILES)
+                .add(OWEntityRegistry.BOA.get())
+                .add(OWEntityRegistry.CROCODILE.get());
 
     }
 }

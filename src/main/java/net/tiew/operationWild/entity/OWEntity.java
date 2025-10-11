@@ -67,10 +67,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
-import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
-import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
-import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
-import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
+import net.tiew.operationWild.entity.animals.aquatic.*;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
@@ -2014,6 +2011,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (getComboAttack() == 3) {
                     kodiak.createMiniShockwave();
                 }
+            }
+        }
+
+        if (this instanceof CrocodileEntity crocodile) {
+            if (attackTimer == timeToHit) {
+                float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
+                crocodile.level().playSound(null, crocodile.getX(), crocodile.getY(), crocodile.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
             }
         }
 

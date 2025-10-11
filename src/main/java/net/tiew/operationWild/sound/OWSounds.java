@@ -90,6 +90,8 @@ public class OWSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_SNIFF_2 = registerSoundEvent("kodiak_sniff_2");
     public static final DeferredHolder<SoundEvent, SoundEvent> KODIAK_SNIFF_3 = registerSoundEvent("kodiak_sniff_3");
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_MOUTH_CRUSH = registerSoundEvent("crocodile_mouth_crush");
+
 
 
     public static final DeferredHolder<SoundEvent, SoundEvent> SUBMARINE_MOVE_LOOP = registerSoundEvent("submarine_move_loop");

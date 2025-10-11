@@ -30,6 +30,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
@@ -1235,6 +1236,9 @@ public class ClientEvents {
             } else if (rootVehicle instanceof HyenaEntity hyena) {
                 event.setRoll(event.getRoll() + (hyena.getBodyZRot() / 3));
                 event.setPitch(event.getPitch() + (hyena.getBodyXRot() / 3));
+            } else if (rootVehicle instanceof CrocodileEntity crocodile) {
+                event.setRoll(event.getRoll() + (crocodile.getBodyZRot() / 2));
+                event.setPitch(event.getPitch() + (crocodile.getBodyXRot() / 2));
             } else if (rootVehicle instanceof WalrusEntity walrus) {
                 if (walrus.getComboAttack() < 3) {
                     event.setRoll(event.getRoll() + (walrus.getBodyZRot() / (walrus.isInWater() ? 4 : 2)));

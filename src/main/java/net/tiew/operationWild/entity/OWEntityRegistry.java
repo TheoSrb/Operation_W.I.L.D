@@ -5,10 +5,7 @@ import net.minecraft.world.entity.MobCategory;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
-import net.tiew.operationWild.entity.animals.aquatic.MantaEntity;
-import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
-import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
+import net.tiew.operationWild.entity.animals.aquatic.*;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 import net.tiew.operationWild.entity.misc.*;
@@ -34,6 +31,7 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<WalrusEntity>> WALRUS = ENTITY_TYPES.register("walrus", () -> EntityType.Builder.<WalrusEntity>of((type, world) -> new WalrusEntity(type, world, 1.0f, 4500, 1), MobCategory.WATER_CREATURE).sized(2.1f, 1.7f).build("walrus"));
     public static final DeferredHolder<EntityType<?>, EntityType<ElephantEntity>> ELEPHANT = ENTITY_TYPES.register("elephant", () -> EntityType.Builder.<ElephantEntity>of((type, world) -> new ElephantEntity(type, world, 1.025f, 7000, 5), MobCategory.CREATURE).sized(2.5f, 3f).build("elephant"));
     public static final DeferredHolder<EntityType<?>, EntityType<MandrillEntity>> MANDRILL = ENTITY_TYPES.register("mandrill", () -> EntityType.Builder.<MandrillEntity>of((type, world) -> new MandrillEntity(type, world, 1f, 1900, 1), MobCategory.CREATURE).sized(1f, 1.2f).build("mandrill"));
+    public static final DeferredHolder<EntityType<?>, EntityType<CrocodileEntity>> CROCODILE = ENTITY_TYPES.register("crocodile", () -> EntityType.Builder.<CrocodileEntity>of((type, world) -> new CrocodileEntity(type, world, 1.0f, 5000, 2), MobCategory.CREATURE).sized(2.1f, 1.1f).build("crocodile"));
 
 
 
@@ -75,6 +73,7 @@ public class OWEntityRegistry {
             case "walrus": return OWEntityRegistry.WALRUS.get();
             case "elephant": return OWEntityRegistry.ELEPHANT.get();
             case "mandrill": return OWEntityRegistry.MANDRILL.get();
+            case "crocodile": return OWEntityRegistry.CROCODILE.get();
             default: return null;
         }
     }
