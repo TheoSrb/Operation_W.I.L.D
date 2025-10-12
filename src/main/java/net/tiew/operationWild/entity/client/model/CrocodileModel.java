@@ -198,6 +198,10 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animate(crocodile.growlsAnimationState, CrocodileAnimations.MISC_IDLE2, ageInTicks, 1.0f);
 		}
 
+		if (crocodile.gruntAnimationState.isStarted()) {
+			this.animate(crocodile.gruntAnimationState, CrocodileAnimations.MISC_IDLE3, ageInTicks, 1.0f);
+		}
+
 
 		if (!crocodile.isInWater()) {
 			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);
@@ -212,8 +216,8 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
 			}
 		} else {
-			this.animate(crocodile.idleWaterAnimationState, CrocodileAnimations.MOVE_SWIM, ageInTicks, 1.0f);
-			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 5f, 8f);
+			//this.animate(crocodile.idleWaterAnimationState, CrocodileAnimations.MOVE_SWIM, ageInTicks, 1.0f);
+			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 4f, 15f);
 		}
 
 

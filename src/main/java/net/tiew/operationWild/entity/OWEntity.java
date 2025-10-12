@@ -1707,7 +1707,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (!this.level().isClientSide()) {
             if (this.isRunning() && this.isVehicle()) {
                 boolean isWalrusInWater = this instanceof WalrusEntity walrus && walrus.isInWater();
-                setVitalEnergy(getVitalEnergy() + (!isWalrusInWater ? 1 : 0.5f));
+                boolean isCrocodileInWater = this instanceof CrocodileEntity crocodile && crocodile.isInWater();
+                setVitalEnergy(getVitalEnergy() + ((!isWalrusInWater && !isCrocodileInWater) ? 1 : 0.5f));
             }
 
             if (!isRunning() && getVitalEnergy() > 0 && !isCombo()) {
@@ -2016,7 +2017,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (this instanceof CrocodileEntity crocodile) {
             if (attackTimer == timeToHit) {
-                float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
+                float pitch = (float) (OWUtils.generateRandomInterval(0.8, 1.0));
                 crocodile.level().playSound(null, crocodile.getX(), crocodile.getY(), crocodile.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
             }
         }

@@ -84,19 +84,23 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public final AnimationState idleWaterAnimationState = new AnimationState();
     public final AnimationState growlsAnimationState = new AnimationState();
+    public final AnimationState gruntAnimationState = new AnimationState();
     public final AnimationState attack1Combo = new AnimationState();
     public final AnimationState attack2Combo = new AnimationState();
     public final AnimationState attack3Combo = new AnimationState();
 
     public int idleWaterAnimationTimeout = 0;
-    private long growlsAnimationStartTime = 0;
+    private int growlsAnimationStartTime = 0;
+    private int gruntAnimationStartTime = 0;
     public int attack1ComboTimer = 0;
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
 
     private static final int GROWLS_DURATION = 75;
+    private static final int GRUNT_DURATION = 55;
 
     private int growlsInterval = (int) OWUtils.generateRandomInterval(400, 800);
+    private int gruntInterval = (int) OWUtils.generateRandomInterval(300, 500);
 
     public CrocodileEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -477,18 +481,32 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.growlsAnimationState.stop();
         }
 
+        if (this.gruntAnimationState.isStarted() &&
+                this.tickCount - gruntAnimationStartTime > GRUNT_DURATION) {
+            this.gruntAnimationState.stop();
+        }
+
         if (tickCount % growlsInterval == 0) {
-            if (crocodileBehaviorHandler.canScratch() && crocodileBehaviorHandler.canPlayIdleAnimation() && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying()) {
+            if (crocodileBehaviorHandler.canGrowl() && crocodileBehaviorHandler.canPlayIdleAnimation() && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying()) {
                 this.growlsAnimationState.start(this.tickCount);
                 growlsAnimationStartTime = this.tickCount;
             }
 
             growlsInterval = (int) OWUtils.generateRandomInterval(400, 800);
         }
+
+        if (tickCount % gruntInterval == 0) {
+            if (crocodileBehaviorHandler.canGrunt() && crocodileBehaviorHandler.canPlayIdleAnimation() && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying()) {
+                this.gruntAnimationState.start(this.tickCount);
+                gruntAnimationStartTime = this.tickCount;
+            }
+
+            gruntInterval = (int) OWUtils.generateRandomInterval(300, 500);
+        }
     }
 
     private void setupAnimationState() {
-        createIdleAnimation(48, true);
+        createIdleAnimation(96, true);
         createSitAnimation(58, true);
 
         handleMiscIdleAnimations();
@@ -509,9 +527,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, 32);
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, 32);
-        setupComboAnimation(3, attack3Combo, attack3ComboTimer, 32);
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, 37);
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, 37);
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, 37);
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {

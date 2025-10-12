@@ -44,11 +44,15 @@ public class CrocodileBehaviorHandler {
         return crocodile.getTarget() == null && !crocodile.isNapping() && !crocodile.isMoving() && !crocodile.isVehicle() && !crocodile.isInWater();
     }
 
-    public boolean canScratch() {
+    public boolean canGrowl() {
+        return canPlayIdleAnimation();
+    }
+
+    public boolean canGrunt() {
         return canPlayIdleAnimation();
     }
 
     public boolean isAnyIdleAnimationPlaying() {
-        return crocodile.growlsAnimationState.isStarted();
+        return crocodile.growlsAnimationState.isStarted() || crocodile.gruntAnimationState.isStarted();
     }
 }
