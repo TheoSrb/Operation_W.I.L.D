@@ -210,14 +210,14 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 				if (crocodile.isVehicle()) {
 					this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.3f, 1.4f);
 				} else {
-					this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.85f, 1.9f);
+					this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 2.15f, 2.0f);
 				}
 			} else {
-				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
+				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 7f, 7f);
 			}
 		} else {
 			//this.animate(crocodile.idleWaterAnimationState, CrocodileAnimations.MOVE_SWIM, ageInTicks, 1.0f);
-			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 4f, 15f);
+			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
 		}
 
 
