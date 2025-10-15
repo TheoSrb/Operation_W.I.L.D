@@ -646,7 +646,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void healWithFavoriteFood(float healMultiplier, boolean preferRawMeat, boolean preferCookedMeat) {
         ItemStack food = this.getItemFood();
-        if (CARNIVOROUS_ENTITIES.contains(this.getType())) {
+        if (this.isCarnivorous() || this.isOmnivorous()) {
             if (food.is(ItemTags.MEAT) || food.is(ItemTags.FISHES)) {
                 if (preferRawMeat) {
                     if (food.is(Tags.Items.FOODS_RAW_MEAT) || food.is(Tags.Items.FOODS_RAW_FISH)) {
@@ -681,12 +681,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     this.playSound(SoundEvents.CAMEL_EAT);
                 }
             }
-        } else if (food.is(Tags.Items.FOODS_VEGETABLE)) {
-            this.playSound(SoundEvents.CAMEL_EAT);
-            this.heal(3 * healMultiplier);
-            healAmount = (int) (3 * healMultiplier);
-            if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
-                this.executeQuestProgression((byte) 2);
+        }
+        if (this.isVegetarian() || this.isOmnivorous()) {
+            if (food.is(Tags.Items.FOODS_VEGETABLE) || food.is(Tags.Items.FOODS_FRUIT)) {
+                this.playSound(SoundEvents.CAMEL_EAT);
+                this.heal(3 * healMultiplier);
+                healAmount = (int) (3 * healMultiplier);
+                if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
+                    this.executeQuestProgression((byte) 2);
+                }
             }
         }
     }
@@ -1108,13 +1111,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (vehicleComboSpeedMultiplier() != -1) {
                 if (isChangeSpeedDuringCombo()) {
                     targetSpeed = (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 3);
-                } else {
-                    return currentSpeed;
                 }
             }
         }
 
-        else if (isRunning()) {
+        if (isRunning()) {
             if (canIncreasesSpeedDuringSprint()) {
                 return ((this.getSpeed() / 3) * ((this.vehicleRunSpeedMultiplier() * (0.5f + ((float) (Math.min(100, getAcceleration())) / 100))) / 2) * 1.75f);
             }
@@ -2016,7 +2017,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (this instanceof CrocodileEntity crocodile) {
-            if (attackTimer == timeToHit) {
+            if (attackTimer == timeToHit - 3) {
                 float pitch = (float) (OWUtils.generateRandomInterval(0.8, 1.0));
                 crocodile.level().playSound(null, crocodile.getX(), crocodile.getY(), crocodile.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
             }

@@ -36,6 +36,7 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
+import net.tiew.operationWild.entity.client.model.CrocodileModel;
 import net.tiew.operationWild.networking.ClientKillData;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManuscriptScreen;
 import org.joml.Quaternionf;
@@ -1013,6 +1014,7 @@ public class ClientEvents {
         boolean renderSeabug = targetedEntity instanceof SeaBugEntity;
         boolean renderBoa = targetedEntity instanceof BoaEntity;
         boolean renderKodiak = targetedEntity instanceof KodiakEntity;
+        boolean renderCrocodile = targetedEntity instanceof CrocodileEntity;
         boolean renderPeacock = targetedEntity instanceof PeacockEntity;
         boolean renderFoodOverlay = targetedEntity instanceof OWEntity ow && !ow.getItemFood().isEmpty();
 
@@ -1072,6 +1074,12 @@ public class ClientEvents {
 
             if (renderKodiak) {
                 KodiakOverlay.render(event.getGuiGraphics(),
+                        event.getGuiGraphics().guiWidth(),
+                        event.getGuiGraphics().guiHeight());
+            }
+
+            if (renderCrocodile) {
+                CrocodileOverlay.render(event.getGuiGraphics(),
                         event.getGuiGraphics().guiWidth(),
                         event.getGuiGraphics().guiHeight());
             }

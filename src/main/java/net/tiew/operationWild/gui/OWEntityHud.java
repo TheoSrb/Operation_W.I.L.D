@@ -34,6 +34,7 @@ public class OWEntityHud {
 
     public static void createHUD(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
         createHealthBar(guiGraphics, entity, x, y);
+        createAirBar(guiGraphics, entity, x, y);
         createVitalEnergyBar(guiGraphics, entity, x, y);
         createBar(guiGraphics, entity, x, y);
     }
@@ -95,7 +96,7 @@ public class OWEntityHud {
         else if (entity instanceof KodiakEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 7, 239, 100, 17, 16);
         else if (entity instanceof HyenaEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 7, 239, 116, 17, 16);
         else if (entity instanceof WalrusEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (12 / 2), yPlacement - 7, 244, 132, 12, 21);
-        else if (entity instanceof CrocodileEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (13 / 2), yPlacement - 7, 243, 153, 13, 14);
+        else if (entity instanceof CrocodileEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (13 / 2), yPlacement - 9, 243, 153, 13, 14);
     }
 
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
@@ -111,5 +112,36 @@ public class OWEntityHud {
         } else guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, ((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())) >= 0.75 && (entity.tickCount / 5) % 2 == 0 ? 13 : 1, 244, 6, 12);
 
         guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 7, 244, 6, (int) (12 * (((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())))));
+    }
+
+    public static void createAirBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
+        int barSize = 15;
+
+        int xPlacement = x / 2 - (barSize / 2);
+        int yPlacement = y - 50;
+
+        int air = Math.max(0, entity.getAirSupply());
+        int maxAir = entity.getMaxAirSupply();
+
+        if (air < maxAir || entity.isInWater()) {
+            ResourceLocation EMPTY_AIR = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/empty_air.png");
+            ResourceLocation MAX_AIR = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/max_air.png");
+
+            guiGraphics.blit(EMPTY_AIR, xPlacement, yPlacement, 0, 0, barSize, barSize, barSize, barSize);
+
+            if (air > 0) {
+                int fillHeight = Math.max(1, (int) Math.ceil(barSize * ((double) air / (double) maxAir)));
+                int startY = yPlacement + (barSize - fillHeight);
+                int textureY = barSize - fillHeight;
+
+                if ((entity.tickCount / 5) % 2 == 0 && ((double) air / (double) maxAir) < 0.25) {
+                    RenderSystem.setShaderColor(1.0f, 0.0f, 0.0f, 0.75f);
+                    guiGraphics.blit(MAX_AIR, xPlacement, startY, 0, textureY, barSize, fillHeight, barSize, barSize);
+                    RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+                } else {
+                    guiGraphics.blit(MAX_AIR, xPlacement, startY, 0, textureY, barSize, fillHeight, barSize, barSize);
+                }
+            }
+        }
     }
 }

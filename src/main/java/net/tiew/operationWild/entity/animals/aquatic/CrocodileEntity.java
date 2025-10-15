@@ -126,7 +126,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         super.registerGoals();
         initCrocodileBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
-        this.goalSelector.addGoal(0, new OWAttackGoal(this, this.getSpeed() * 15f, 8, 3, false));
+        this.goalSelector.addGoal(0, new OWAttackGoal(this, this.getSpeed() * 15f, 15, 4, false));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.7D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
@@ -242,6 +242,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public int getMaxAirSupply() {
         return 300 * 10;
+    }
+
+    @Override
+    protected int increaseAirSupply(int currentAir) {
+        return currentAir + 10;
     }
 
     @Override

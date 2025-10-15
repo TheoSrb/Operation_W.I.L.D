@@ -33,8 +33,8 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     private final float DEPTH_CHANGE_SPEED;
     private final float SURFACE_RISE_SPEED;
 
-    private final float TARGET_YAW_SPEED = 0.03f; // Vitesse de rotation vers la cible (smooth)
-    private final float PITCH_SMOOTH_SPEED = 0.08f; // Vitesse de rotation du pitch
+    private final float TARGET_YAW_SPEED = 0.03f;
+    private final float PITCH_SMOOTH_SPEED = 0.08f;
     private final float TARGET_TRANSITION_SPEED = 0.05f;
     private float targetModeBlend = 0.0f;
 
@@ -113,7 +113,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     public void tick() {
         super.tick();
 
-        if (this.isInWater() && this.isEffectiveAi() && !this.isVehicle()) {
+        if (this.isInWater() && this.isEffectiveAi() && !this.isVehicle() && !this.isSitting()) {
             switchNavigation();
             handleSmoothSwimming();
         }
@@ -123,14 +123,12 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         LivingEntity target = this.getTarget();
         boolean hasTarget = target != null;
 
-        // Transition smooth entre mode libre et mode cible
         if (hasTarget) {
             targetModeBlend = Math.min(1.0f, targetModeBlend + TARGET_TRANSITION_SPEED);
         } else {
             targetModeBlend = Math.max(0.0f, targetModeBlend - TARGET_TRANSITION_SPEED);
         }
 
-        // Calcule le yaw cible
         if (hasTarget) {
             double deltaX = target.getX() - this.getX();
             double deltaZ = target.getZ() - this.getZ();
@@ -148,11 +146,9 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             }
         }
 
-        // Normalise targetYaw
         while (targetYaw > 360f) targetYaw -= 360f;
         while (targetYaw < 0f) targetYaw += 360f;
 
-        // Rotation smooth
         float yawDiff = targetYaw - swimYaw;
         while (yawDiff > 180f) yawDiff -= 360f;
         while (yawDiff < -180f) yawDiff += 360f;
@@ -167,7 +163,6 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         this.setYHeadRot(swimYaw);
         this.setYBodyRot(swimYaw);
 
-        // Gestion du pitch
         if (hasTarget) {
             double deltaY = target.getY() - this.getY();
             double deltaX = target.getX() - this.getX();
@@ -192,7 +187,6 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             }
         }
 
-        // Gestion de la profondeur
         if (!hasTarget) {
             depthChangeTimer++;
             if (depthChangeTimer >= DEPTH_CHANGE_INTERVAL) {
@@ -205,7 +199,6 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             }
         }
 
-        // Gestion de l'air
         int currentAir = this.getAirSupply();
         int maxAir = this.getMaxAirSupply();
         double airPercentage = (double) currentAir / maxAir * 100.0;
@@ -221,7 +214,6 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             }
         }
 
-        // Mouvement
         if (hasTarget) {
             handleTargetSwimming(target);
             return;

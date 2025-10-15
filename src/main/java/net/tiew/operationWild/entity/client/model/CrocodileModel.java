@@ -222,8 +222,13 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 
 		if (crocodile.level().isClientSide()) {
-			crocodile.setBodyZRot((float) Math.toDegrees(this.body.zRot));
-			crocodile.setBodyXRot((float) Math.toDegrees(this.body.xRot));
+			if (crocodile.isInWater()) {
+				crocodile.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));
+				crocodile.setBodyXRot((float) Math.toDegrees(this.ALL.xRot));
+			} else {
+				crocodile.setBodyZRot((float) Math.toDegrees(this.body.zRot));
+				crocodile.setBodyXRot((float) Math.toDegrees(this.body.xRot));
+			}
 		}
     }
 
