@@ -395,6 +395,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return super.isAlliedTo(entity);
     }
 
+    @Override
+    protected void positionRider(Entity passenger, MoveFunction function) {
+        super.positionRider(passenger, function);
+        function.accept(passenger, this.getX(), this.getY() + 0.35f, this.getZ());
+    }
+
     private void positionFirstPassenger(Entity entity, MoveFunction moveFunction, Vec3 look, double dot) {
         if (entity instanceof Player player) {
             float comboOffset = getComboAttack() == 3 ? 0.35f : 0;

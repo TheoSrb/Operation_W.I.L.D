@@ -96,7 +96,7 @@ public class OWEntityHud {
         else if (entity instanceof KodiakEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 7, 239, 100, 17, 16);
         else if (entity instanceof HyenaEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 7, 239, 116, 17, 16);
         else if (entity instanceof WalrusEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (12 / 2), yPlacement - 7, 244, 132, 12, 21);
-        else if (entity instanceof CrocodileEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (13 / 2), yPlacement - 9, 243, 153, 13, 14);
+        else if (entity instanceof CrocodileEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (13 / 2), yPlacement - 5, 243, 153, 13, 14);
     }
 
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
@@ -120,7 +120,7 @@ public class OWEntityHud {
         int xPlacement = x / 2 - (barSize / 2);
         int yPlacement = y - 50;
 
-        int air = Math.max(0, entity.getAirSupply());
+        int air = entity.getAirSupply();
         int maxAir = entity.getMaxAirSupply();
 
         if (air < maxAir || entity.isInWater()) {
@@ -129,12 +129,24 @@ public class OWEntityHud {
 
             guiGraphics.blit(EMPTY_AIR, xPlacement, yPlacement, 0, 0, barSize, barSize, barSize, barSize);
 
-            if (air > 0) {
-                int fillHeight = Math.max(1, (int) Math.ceil(barSize * ((double) air / (double) maxAir)));
+            int offset = 180;
+            int visualAir = Math.max(0, air + offset);
+            int visualMaxAir = maxAir + offset;
+
+            visualAir = Math.min(visualAir, visualMaxAir);
+
+            double fillRatio = (double) visualAir / (double) visualMaxAir;
+            int fillHeight = (int) Math.ceil(barSize * fillRatio);
+
+            if (visualAir > 0 && fillHeight == 0) {
+                fillHeight = 1;
+            }
+
+            if (fillHeight > 0 && visualAir > 0) {
                 int startY = yPlacement + (barSize - fillHeight);
                 int textureY = barSize - fillHeight;
 
-                if ((entity.tickCount / 5) % 2 == 0 && ((double) air / (double) maxAir) < 0.25) {
+                if ((entity.tickCount / 5) % 2 == 0 && fillRatio < 0.25) {
                     RenderSystem.setShaderColor(1.0f, 0.0f, 0.0f, 0.75f);
                     guiGraphics.blit(MAX_AIR, xPlacement, startY, 0, textureY, barSize, fillHeight, barSize, barSize);
                     RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
