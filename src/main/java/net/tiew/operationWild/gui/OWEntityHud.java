@@ -118,7 +118,7 @@ public class OWEntityHud {
         int barSize = 15;
 
         int xPlacement = x / 2 - (barSize / 2);
-        int yPlacement = y - 50;
+        int yPlacement = y - 51;
 
         int air = entity.getAirSupply();
         int maxAir = entity.getMaxAirSupply();
