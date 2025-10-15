@@ -1,6 +1,9 @@
 package net.tiew.operationWild.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
@@ -11,6 +14,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class OWSemiWaterEntity extends OWEntity {
+
+    private static final EntityDataAccessor<Float> TARGET_PITCH = SynchedEntityData.defineId(OWSemiWaterEntity.class, EntityDataSerializers.FLOAT);
 
     private float swimYaw = 0;
     private float targetYaw = 0;
@@ -28,6 +33,11 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     private final float DEPTH_CHANGE_SPEED;
     private final float SURFACE_RISE_SPEED;
 
+    private final float TARGET_YAW_SPEED = 0.03f; // Vitesse de rotation vers la cible (smooth)
+    private final float PITCH_SMOOTH_SPEED = 0.08f; // Vitesse de rotation du pitch
+    private final float TARGET_TRANSITION_SPEED = 0.05f;
+    private float targetModeBlend = 0.0f;
+
     public OWSemiWaterEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
 
@@ -44,6 +54,20 @@ public abstract class OWSemiWaterEntity extends OWEntity {
 
         this.YAW_CHANGE_INTERVAL = 150f + this.random.nextFloat() * 100f;
         this.DEPTH_CHANGE_INTERVAL = 250f + this.random.nextFloat() * 100f;
+    }
+
+    @Override
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(TARGET_PITCH, 0.0f);
+    }
+
+    public float getTargetPitch() {
+        return this.entityData.get(TARGET_PITCH);
+    }
+
+    public void setTargetPitch(float pitch) {
+        this.entityData.set(TARGET_PITCH, pitch);
     }
 
     @Override
@@ -96,39 +120,92 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     }
 
     protected void handleSmoothSwimming() {
-        yawChangeTimer++;
-        if (yawChangeTimer >= YAW_CHANGE_INTERVAL) {
-            targetYaw = this.getRandom().nextFloat() * 360f;
-            yawChangeTimer = 0;
+        LivingEntity target = this.getTarget();
+        boolean hasTarget = target != null;
+
+        // Transition smooth entre mode libre et mode cible
+        if (hasTarget) {
+            targetModeBlend = Math.min(1.0f, targetModeBlend + TARGET_TRANSITION_SPEED);
+        } else {
+            targetModeBlend = Math.max(0.0f, targetModeBlend - TARGET_TRANSITION_SPEED);
         }
 
-        depthChangeTimer++;
-        if (depthChangeTimer >= DEPTH_CHANGE_INTERVAL) {
-            int maxDepthLimit = Math.max((int)(this.level().getSeaLevel() - getMaxDepth()), -64);
-            int surfaceLevel = (int)this.level().getSeaLevel();
-            float safeMinY = Math.max(maxDepthLimit, (float)this.getY() - 5f);
-            float safeMaxY = Math.min(surfaceLevel, (float)this.getY() + 5f);
-            targetDepth = safeMinY + this.getRandom().nextFloat() * (safeMaxY - safeMinY);
-            depthChangeTimer = 0;
+        // Calcule le yaw cible
+        if (hasTarget) {
+            double deltaX = target.getX() - this.getX();
+            double deltaZ = target.getZ() - this.getZ();
+            targetYaw = (float)(Math.toDegrees(Math.atan2(deltaZ, deltaX))) - 90f;
+        } else {
+            yawChangeTimer++;
+            if (yawChangeTimer >= YAW_CHANGE_INTERVAL) {
+                targetYaw = this.getRandom().nextFloat() * 360f;
+                yawChangeTimer = 0;
+            }
+
+            if (this.horizontalCollision) {
+                targetYaw = swimYaw + 90f + (this.getRandom().nextFloat() * 180f - 90f);
+                yawChangeTimer = 0;
+            }
         }
 
-        if (this.horizontalCollision) {
-            targetYaw = swimYaw + 90f + (this.getRandom().nextFloat() * 180f - 90f);
-            yawChangeTimer = 0;
-        }
+        // Normalise targetYaw
+        while (targetYaw > 360f) targetYaw -= 360f;
+        while (targetYaw < 0f) targetYaw += 360f;
 
+        // Rotation smooth
         float yawDiff = targetYaw - swimYaw;
         while (yawDiff > 180f) yawDiff -= 360f;
         while (yawDiff < -180f) yawDiff += 360f;
 
-        swimYaw += yawDiff * YAW_SMOOTH_SPEED;
-        if (swimYaw > 360f) swimYaw -= 360f;
-        if (swimYaw < 0f) swimYaw += 360f;
+        float yawSpeed = hasTarget ? TARGET_YAW_SPEED : YAW_SMOOTH_SPEED;
+        swimYaw += yawDiff * yawSpeed;
+
+        while (swimYaw > 360f) swimYaw -= 360f;
+        while (swimYaw < 0f) swimYaw += 360f;
 
         this.setYRot(swimYaw);
         this.setYHeadRot(swimYaw);
         this.setYBodyRot(swimYaw);
 
+        // Gestion du pitch
+        if (hasTarget) {
+            double deltaY = target.getY() - this.getY();
+            double deltaX = target.getX() - this.getX();
+            double deltaZ = target.getZ() - this.getZ();
+            double distance3D = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
+
+            if (distance3D > 0.1) {
+                float desiredPitch = (float)Math.toDegrees(Math.asin(-deltaY / distance3D));
+                float currentPitch = this.getTargetPitch();
+                float pitchDiff = desiredPitch - currentPitch;
+                float newPitch = currentPitch + pitchDiff * PITCH_SMOOTH_SPEED;
+                newPitch = Math.max(-90f, Math.min(90f, newPitch));
+                this.setTargetPitch(newPitch);
+            }
+        } else {
+            float currentPitch = this.getTargetPitch();
+            if (Math.abs(currentPitch) > 0.5f) {
+                float newPitch = currentPitch * (1.0f - PITCH_SMOOTH_SPEED);
+                this.setTargetPitch(newPitch);
+            } else {
+                this.setTargetPitch(0.0f);
+            }
+        }
+
+        // Gestion de la profondeur
+        if (!hasTarget) {
+            depthChangeTimer++;
+            if (depthChangeTimer >= DEPTH_CHANGE_INTERVAL) {
+                int maxDepthLimit = Math.max((int)(this.level().getSeaLevel() - getMaxDepth()), -64);
+                int surfaceLevel = (int)this.level().getSeaLevel();
+                float safeMinY = Math.max(maxDepthLimit, (float)this.getY() - 5f);
+                float safeMaxY = Math.min(surfaceLevel, (float)this.getY() + 5f);
+                targetDepth = safeMinY + this.getRandom().nextFloat() * (safeMaxY - safeMinY);
+                depthChangeTimer = 0;
+            }
+        }
+
+        // Gestion de l'air
         int currentAir = this.getAirSupply();
         int maxAir = this.getMaxAirSupply();
         double airPercentage = (double) currentAir / maxAir * 100.0;
@@ -144,8 +221,9 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             }
         }
 
-        if (this.getTarget() != null) {
-            handleTargetSwimming();
+        // Mouvement
+        if (hasTarget) {
+            handleTargetSwimming(target);
             return;
         }
 
@@ -183,23 +261,18 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             }
         }
 
-        this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove, moveZ));
+        this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove + 0.001, moveZ));
     }
 
-    protected void handleTargetSwimming() {
-        LivingEntity target = this.getTarget();
-        if (target == null) return;
-
-        double yDiff = target.getY() - this.getY();
+    protected void handleTargetSwimming(LivingEntity target) {
         double yawRadians = Math.toRadians(swimYaw);
-        double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 2;
-        double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED * 2;
+        double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 1.25f;
+        double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED * 1.25f;
 
+        double deltaY = target.getY() - this.getY();
         double verticalMove = 0;
-        if (yDiff > 1.0D) {
-            verticalMove = 0.04D;
-        } else if (yDiff < -1.0D) {
-            verticalMove = -0.04D;
+        if (Math.abs(deltaY) > 0.5) {
+            verticalMove = Math.signum(deltaY) * 0.04D * targetModeBlend;
         }
 
         this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove, moveZ));

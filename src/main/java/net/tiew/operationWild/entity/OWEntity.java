@@ -2076,7 +2076,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 setPauseCombo(false);
             }
 
-            if (continueComboMaxTimer >= 10) {
+            int comboContinueWindow = timeMax - timeToHit;
+            if (continueComboMaxTimer >= comboContinueWindow) {
                 resetCombo(0);
                 actualAttackNumber = 0;
             }

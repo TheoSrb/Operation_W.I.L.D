@@ -246,7 +246,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public int getMaxDepth() {
-        return 50;
+        return this.isTame() ? 50 : 5;
     }
 
     @Override
