@@ -206,7 +206,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		if (!crocodile.isInWater()) {
 			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
-			if (crocodile.isRunning() || crocodile.getState() == 2) {
+			if ((crocodile.isRunning() || crocodile.getState() == 2) && !crocodile.isChargingMouth()) {
 				if (crocodile.isVehicle()) {
 					this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.3f, 1.4f);
 				} else {
@@ -215,6 +215,8 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			} else {
 				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 7f, 7f);
 			}
+
+			handleChargingMouth(crocodile);
 		} else {
 			//this.animate(crocodile.idleWaterAnimationState, CrocodileAnimations.MOVE_SWIM, ageInTicks, 1.0f);
 			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
@@ -231,6 +233,21 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			}
 		}
     }
+
+	private void handleChargingMouth(CrocodileEntity crocodile) {
+		if (crocodile.isChargingMouth()) {
+			float mouthOpeningRadius = Math.min(40, Math.max(15, crocodile.getChargingMouthTimer() / 1.2f));
+
+			this.head.y = -Math.min(5, Math.max(0.5f, 5 * (crocodile.getChargingMouthTimer() / 40)));
+
+			this.mouth_up.xRot = (float) Math.toRadians(-mouthOpeningRadius);
+			this.mouth_up.y = -Math.min(3, Math.max(0.5f, 3 * (crocodile.getChargingMouthTimer() / 40)));
+
+			this.mouth_down.xRot = (float) Math.toRadians(mouthOpeningRadius / 2);
+			this.mouth_down.z = Math.min(2, Math.max(0.3f, 2 * (crocodile.getChargingMouthTimer() / 40)));
+			this.mouth_down.y = Math.min(3, Math.max(0.5f, 3 * (crocodile.getChargingMouthTimer() / 40)));
+		}
+	}
 
 	@Override
 	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {

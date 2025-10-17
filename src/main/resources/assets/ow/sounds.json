@@ -78,6 +78,9 @@
   "kodiak_sniff_3": { "subtitle": "sounds.ow.kodiak_sniff_3", "sounds": [ "ow:kodiak/kodiak_sniff_3" ] },
 
   "crocodile_mouth_crush": { "subtitle": "sounds.ow.crocodile_mouth_crush", "sounds": [ "ow:crocodile/crocodile_mouth_crush" ] },
+  "crocodile_idle_1": { "subtitle": "sounds.ow.crocodile_idle_1", "sounds": [ "ow:crocodile/crocodile_idle_1" ] },
+  "crocodile_idle_2": { "subtitle": "sounds.ow.crocodile_idle_2", "sounds": [ "ow:crocodile/crocodile_idle_2" ] },
+  "crocodile_idle_3": { "subtitle": "sounds.ow.crocodile_idle_3", "sounds": [ "ow:crocodile/crocodile_idle_3" ] },
 
 
 

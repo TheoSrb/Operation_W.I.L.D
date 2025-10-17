@@ -4,7 +4,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
+import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 
 import java.util.EnumSet;
 
@@ -94,7 +96,7 @@ public class OWAttackGoal extends Goal {
     @Override
     public void tick() {
         LivingEntity target = this.mob.getTarget();
-        if (target == null) {
+        if (target == null || this.mob.hasEffect(OWEffects.FRACTURE.getDelegate())) {
             return;
         }
 
@@ -116,6 +118,8 @@ public class OWAttackGoal extends Goal {
     }
 
     private void performAttack(LivingEntity target) {
+        if (this.mob.hasEffect(OWEffects.FRACTURE.getDelegate())) return;
+        if (this.mob instanceof CrocodileEntity crocodile && crocodile.isChargingMouth()) return;
         if (!this.mob.isCombo()) {
             this.mob.setCombo(true, 1);
         } else if (this.mob.isPauseCombo()) {

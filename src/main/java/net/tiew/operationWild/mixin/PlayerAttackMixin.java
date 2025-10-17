@@ -2,6 +2,7 @@ package net.tiew.operationWild.mixin;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.item.OWItems;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,7 +23,7 @@ public class PlayerAttackMixin {
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
         Minecraft minecraft = (Minecraft) (Object) this;
         if (minecraft.player != null && ((minecraft.player.getMainHandItem().is(OWItems.SEABUG.get()) || minecraft.player.getOffhandItem().is(OWItems.SEABUG.get())) ||
-                minecraft.player.getRootVehicle() instanceof OWEntity)) {
+                minecraft.player.getRootVehicle() instanceof OWEntity || minecraft.player.hasEffect(OWEffects.FRACTURE.getDelegate()))) {
             cir.setReturnValue(false);
         }
     }
@@ -31,7 +32,7 @@ public class PlayerAttackMixin {
     private void onContinueAttack(boolean leftClick, CallbackInfo ci) {
         Minecraft minecraft = (Minecraft) (Object) this;
         if (minecraft.player != null && ((minecraft.player.getMainHandItem().is(OWItems.SEABUG.get()) || minecraft.player.getOffhandItem().is(OWItems.SEABUG.get())) ||
-                minecraft.player.getRootVehicle() instanceof OWEntity)) {
+                minecraft.player.getRootVehicle() instanceof OWEntity || minecraft.player.hasEffect(OWEffects.FRACTURE.getDelegate()))) {
             ci.cancel();
         }
     }

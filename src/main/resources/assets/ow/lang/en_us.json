@@ -112,6 +112,7 @@
   "effect.ow.water_pressure": "Water Pressure",
   "effect.ow.bleeding": "Bleeding",
   "effect.ow.occupied_territory": "Occupied Territory",
+  "effect.ow.fracture": "Fracture",
 
   "tooltip.fearStarted": "Your entity is frightened and out of control.",
 

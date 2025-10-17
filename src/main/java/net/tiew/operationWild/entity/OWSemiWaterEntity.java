@@ -38,11 +38,17 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     private final float TARGET_TRANSITION_SPEED = 0.05f;
     private float targetModeBlend = 0.0f;
 
+    private GroundPathNavigation groundNavigation;
+    private WaterBoundPathNavigation waterNavigation;
+
     public OWSemiWaterEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
 
+        this.groundNavigation = new GroundPathNavigation(this, level);
+        this.waterNavigation = new WaterBoundPathNavigation(this, level);
+
         this.YAW_SMOOTH_SPEED = 0.015f * getSwimSpeed();
-        this.HORIZONTAL_SPEED = 0.015f * getSwimSpeed();
+        this.HORIZONTAL_SPEED = 0.02f * getSwimSpeed();
         this.DEPTH_CHANGE_SPEED = 0.02f * getSwimSpeed();
         this.SURFACE_RISE_SPEED = 0.02f * getSwimSpeed();
 
@@ -80,7 +86,6 @@ public abstract class OWSemiWaterEntity extends OWEntity {
 
     @Override
     public void travel(Vec3 vec3) {
-        super.travel(vec3);
         if (this.isEffectiveAi() && this.isInWater()) {
             this.moveRelative(0.1F, vec3);
             this.move(MoverType.SELF, this.getDeltaMovement());
@@ -96,6 +101,12 @@ public abstract class OWSemiWaterEntity extends OWEntity {
                     this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.015D, 0.0D));
                 }
             }
+
+            if (this.horizontalCollision && this.getDeltaMovement().y < 0.1) {
+                this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.3D, 0.0D));
+            }
+        } else {
+            super.travel(vec3);
         }
     }
 
@@ -113,9 +124,12 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     public void tick() {
         super.tick();
 
-        if (this.isInWater() && this.isEffectiveAi() && !this.isVehicle() && !this.isSitting()) {
+        if (this.isEffectiveAi() && !this.isVehicle() && !this.isSitting()) {
             switchNavigation();
-            handleSmoothSwimming();
+
+            if (this.isInWater()) {
+                handleSmoothSwimming();
+            }
         }
     }
 
@@ -296,9 +310,13 @@ public abstract class OWSemiWaterEntity extends OWEntity {
 
     protected void switchNavigation() {
         if (this.isInWater()) {
-            this.navigation = new WaterBoundPathNavigation(this, this.level());
+            if (this.navigation != this.waterNavigation) {
+                this.navigation = this.waterNavigation;
+            }
         } else {
-            this.navigation = new GroundPathNavigation(this, this.level());
+            if (this.navigation != this.groundNavigation) {
+                this.navigation = this.groundNavigation;
+            }
         }
     }
 }

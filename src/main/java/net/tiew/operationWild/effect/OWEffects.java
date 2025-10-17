@@ -21,4 +21,5 @@ public class OWEffects {
     public static final DeferredHolder<MobEffect, MobEffect> WATER_PRESSURE_EFFECT = MOB_EFFECTS.register("water_pressure", () -> new WaterPressureEffect(MobEffectCategory.HARMFUL, 0x56b8ff));
     public static final DeferredHolder<MobEffect, MobEffect> BLEEDING_EFFECT = MOB_EFFECTS.register("bleeding", () -> new BleedingEffect(MobEffectCategory.HARMFUL, 0xa7392d));
     public static final DeferredHolder<MobEffect, MobEffect> OCCUPIED_TERRITORY = MOB_EFFECTS.register("occupied_territory", () -> new OccupiedTerritoryEffect(MobEffectCategory.NEUTRAL, 0xc27452));
+    public static final DeferredHolder<MobEffect, MobEffect> FRACTURE = MOB_EFFECTS.register("fracture", () -> new FractureEffect(MobEffectCategory.NEUTRAL, 0xefe5c9));
 }

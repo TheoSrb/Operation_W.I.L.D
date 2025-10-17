@@ -43,6 +43,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
 import net.tiew.operationWild.advancements.OWAdvancements;
+import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.behavior.CrocodileBehaviorHandler;
@@ -54,6 +55,7 @@ import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.*;
+import net.tiew.operationWild.entity.goals.crocodile.CrocodileChargingMouthGoal;
 import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
@@ -78,6 +80,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private static final EntityDataAccessor<Boolean> IS_CHARGING_MOUTH = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> CHARGING_MOUTH_TIMER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
+
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -127,6 +133,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         initCrocodileBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
         this.goalSelector.addGoal(0, new OWAttackGoal(this, this.getSpeed() * 15f, 15, 4, false));
+        this.goalSelector.addGoal(1, new CrocodileChargingMouthGoal(this));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.7D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
@@ -136,6 +143,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(IS_MAD, false);
+        builder.define(IS_CHARGING_MOUTH, false);
+        builder.define(CHARGING_MOUTH_TIMER, 0.0f);
     }
 
     // Entity Methods
@@ -171,7 +180,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public List<Class<?>> getFavoriteTargets() {
-        return List.of(Animal.class, Monster.class, Player.class);
+        return List.of(Player.class, Animal.class, Monster.class);
     }
 
     @Override
@@ -271,17 +280,17 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     protected @Nullable SoundEvent getAmbientSound() {
         if (isNapping()) return null;
-        return RANDOM(2) ? OWSounds.KODIAK_IDLE_1.get() : RANDOM(2) ? OWSounds.KODIAK_IDLE_2.get() : OWSounds.KODIAK_IDLE_3.get();
+        return RANDOM(2) ? RANDOM(2) ? OWSounds.CROCODILE_IDLE_1.get() : RANDOM(2) ? OWSounds.CROCODILE_IDLE_2.get() : OWSounds.CROCODILE_IDLE_3.get() : null;
     }
 
     @Override
     protected @Nullable SoundEvent getDeathSound() {
-        return OWSounds.KODIAK_MISC.get();
+        return OWSounds.CROCODILE_IDLE_2.get();
     }
 
     @Override
     protected @Nullable SoundEvent getHurtSound(DamageSource damageSource) {
-        return RANDOM(2) ? OWSounds.KODIAK_HURT.get() : OWSounds.KODIAK_MISC.get();
+        return null;
     }
 
     @Override
@@ -291,6 +300,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public void travel(Vec3 vec3) {
+        if (this.isChargingMouth()) {
+            Vec3 movement = this.getDeltaMovement();
+            this.setDeltaMovement(movement.x * 0.15, movement.y, movement.z * 0.15);
+        }
         super.travel(vec3);
         if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
     }
@@ -299,7 +312,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         super.tick();
         crocodileTaming.tick();
 
-        createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, false, 1.5f);
+        if (!this.isChargingMouth()) {
+            createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, this.isTame() ? 2.25 : 1.5, false, 0.15f);
+        }
+
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();
@@ -307,6 +323,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo());
 
+        if (this.getTarget() != null && this.getTarget().hasEffect(OWEffects.FRACTURE.getDelegate())) {
+            this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
+        }
 
         handleRunningEffects(20, SoundEvents.HORSE_STEP, 0.2f, new int[]{10, 10});
         handleGoldVariantEffects();
@@ -372,6 +391,21 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (!this.isTame()) {
             if (this.isSitting()) this.setSitting(false);
         }
+
+        if (this.isInWater()) {
+            Vec3 knockback = this.getDeltaMovement();
+            boolean wasHurt = super.hurt(damageSource, v);
+
+            if (wasHurt) {
+                Vec3 newKnockback = this.getDeltaMovement();
+                Vec3 appliedKnockback = newKnockback.subtract(knockback);
+
+                this.setDeltaMovement(knockback.add(appliedKnockback.scale(0.2)));
+            }
+
+            return wasHurt;
+        }
+
         return super.hurt(damageSource, v);
     }
 
@@ -585,6 +619,18 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public boolean isMad() { return this.entityData.get(IS_MAD);}
+
+    public void setChargingMouth(boolean isChargingMouth) {
+        this.entityData.set(IS_CHARGING_MOUTH, isChargingMouth);
+    }
+
+    public boolean isChargingMouth() { return this.entityData.get(IS_CHARGING_MOUTH);}
+
+    public void setChargingMouthTimer(float chargingMouthTimer) {
+        this.entityData.set(CHARGING_MOUTH_TIMER, chargingMouthTimer);
+    }
+
+    public float getChargingMouthTimer() { return this.entityData.get(CHARGING_MOUTH_TIMER);}
 
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);

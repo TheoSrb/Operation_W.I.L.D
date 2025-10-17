@@ -21,12 +21,14 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.block.OWBlocks;
+import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.misc.SeabugShard;
@@ -40,6 +42,28 @@ import java.util.List;
 
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class ServerEvents {
+
+    @SubscribeEvent
+    public static void onLivingEntityTick(EntityTickEvent.Post event) {
+        if (event.getEntity() instanceof LivingEntity livingEntity) {
+            if (livingEntity.hasEffect(OWEffects.FRACTURE.getDelegate())) {
+                if (livingEntity.onGround()) {
+                    if (livingEntity.tickCount % 20 <= 15 && livingEntity.tickCount >= 0) {
+                        livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().multiply(0.025, 1.0, 0.025));
+                    }
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingAttack(LivingIncomingDamageEvent event) {
+        if (event.getSource().getEntity() instanceof LivingEntity attacker) {
+            if (attacker.hasEffect(OWEffects.FRACTURE.getDelegate())) {
+                event.setCanceled(true);
+            }
+        }
+    }
 
     @SubscribeEvent
     public static void onBeeIncomingDamage(LivingIncomingDamageEvent event) {
