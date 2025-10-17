@@ -2053,6 +2053,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void createCombo(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
+        if (!this.isAlive()) return;
         if (isPauseCombo()) {
             continueComboMaxTimer++;
 

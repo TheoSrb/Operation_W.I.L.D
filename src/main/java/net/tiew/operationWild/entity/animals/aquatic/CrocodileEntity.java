@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.monster.Monster;
@@ -137,6 +138,15 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.7D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
+
+        this.lookControl = new LookControl(this) {
+            @Override
+            public void tick() {
+                if (this.mob.getTarget() == null) {
+                    super.tick();
+                }
+            }
+        };
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -400,7 +410,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 Vec3 newKnockback = this.getDeltaMovement();
                 Vec3 appliedKnockback = newKnockback.subtract(knockback);
 
-                this.setDeltaMovement(knockback.add(appliedKnockback.scale(0.2)));
+                this.setDeltaMovement(knockback.add(appliedKnockback.scale(0.1)));
             }
 
             return wasHurt;

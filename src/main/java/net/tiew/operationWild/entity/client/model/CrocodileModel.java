@@ -216,7 +216,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 7f, 7f);
 			}
 
-			handleChargingMouth(crocodile);
+			handleChargingMouth(crocodile, ageInTicks);
 		} else {
 			//this.animate(crocodile.idleWaterAnimationState, CrocodileAnimations.MOVE_SWIM, ageInTicks, 1.0f);
 			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
@@ -234,7 +234,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		}
     }
 
-	private void handleChargingMouth(CrocodileEntity crocodile) {
+	private void handleChargingMouth(CrocodileEntity crocodile, float ageInTicks) {
 		if (crocodile.isChargingMouth()) {
 			float mouthOpeningRadius = Math.min(40, Math.max(15, crocodile.getChargingMouthTimer() / 1.2f));
 
@@ -246,6 +246,10 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.mouth_down.xRot = (float) Math.toRadians(mouthOpeningRadius / 2);
 			this.mouth_down.z = Math.min(2, Math.max(0.3f, 2 * (crocodile.getChargingMouthTimer() / 40)));
 			this.mouth_down.y = Math.min(3, Math.max(0.5f, 3 * (crocodile.getChargingMouthTimer() / 40)));
+
+
+			this.mouth_up.xRot -= Math.toRadians(Math.sin(ageInTicks * 2f) * 2.5);
+			this.mouth_down.xRot += Math.toRadians(Math.sin(ageInTicks * 2f) * 2.5);
 		}
 	}
 

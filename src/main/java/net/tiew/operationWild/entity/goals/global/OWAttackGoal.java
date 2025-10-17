@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.goals.global;
 
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
@@ -17,6 +18,15 @@ public class OWAttackGoal extends Goal {
     private final double attackRange;
     private static final double MAX_CHASE_DISTANCE = 48.0;
 
+    // Paramètres de rotation fluide
+    private static final float MAX_HEAD_ROTATION_SPEED = 15.0F; // Degrés par tick pour la tête
+    private static final float MAX_BODY_ROTATION_SPEED = 5.0F;  // Degrés par tick pour le corps
+    private static final float HEAD_BODY_ANGLE_THRESHOLD = 75.0F; // Angle max avant rotation du corps
+
+    private float targetYaw;
+    private float targetPitch;
+    private boolean isRotatingToTarget;
+
     private Path path;
     private int ticksUntilNextAttack;
     private int ticksUntilNextPathRecalc;
@@ -27,6 +37,7 @@ public class OWAttackGoal extends Goal {
         this.attackCooldown = attackCooldown;
         this.attackRange = attackRange;
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        this.isRotatingToTarget = false;
     }
 
     @Override
@@ -73,12 +84,14 @@ public class OWAttackGoal extends Goal {
         this.mob.setAggressive(true);
         this.ticksUntilNextAttack = 0;
         this.ticksUntilNextPathRecalc = 0;
+        this.isRotatingToTarget = false;
     }
 
     @Override
     public void stop() {
         this.mob.setAggressive(false);
         this.mob.getNavigation().stop();
+        this.isRotatingToTarget = false;
 
         if (this.mob instanceof OWEntity owEntity) {
             owEntity.forceSetTarget(null);
@@ -100,13 +113,14 @@ public class OWAttackGoal extends Goal {
             return;
         }
 
-        this.mob.setLookAt(target.getX(), target.getY(), target.getZ());
-
         this.ticksUntilNextPathRecalc--;
         if (this.ticksUntilNextPathRecalc <= 0) {
             this.ticksUntilNextPathRecalc = 4 + this.mob.getRandom().nextInt(7);
             this.mob.getNavigation().moveTo(target, this.speedModifier);
         }
+
+        // Rotation fluide APRÈS la navigation pour ne pas être écrasée
+        this.updateSmoothLookAt(target);
 
         this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
 
@@ -115,6 +129,61 @@ public class OWAttackGoal extends Goal {
             this.performAttack(target);
             this.ticksUntilNextAttack = this.attackCooldown;
         }
+    }
+
+    /**
+     * Gère la rotation fluide de la tête et du corps vers la cible
+     */
+    private void updateSmoothLookAt(LivingEntity target) {
+        // Calculer la direction vers la cible
+        double dx = target.getX() - this.mob.getX();
+        double dy = target.getY() + target.getEyeHeight() - (this.mob.getY() + this.mob.getEyeHeight());
+        double dz = target.getZ() - this.mob.getZ();
+        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
+
+        // Calculer les angles cibles
+        this.targetYaw = (float)(Mth.atan2(dz, dx) * (180.0 / Math.PI)) - 90.0F;
+        this.targetPitch = (float)(-(Mth.atan2(dy, horizontalDist) * (180.0 / Math.PI)));
+
+        // Normaliser les angles
+        this.targetYaw = Mth.wrapDegrees(this.targetYaw);
+        this.targetPitch = Mth.clamp(this.targetPitch, -90.0F, 90.0F);
+
+        // Rotation de la tête
+        float currentHeadYaw = this.mob.getYHeadRot();
+        float headYawDiff = Mth.wrapDegrees(this.targetYaw - currentHeadYaw);
+
+        // Limiter la vitesse de rotation de la tête
+        float headYawChange = Mth.clamp(headYawDiff, -MAX_HEAD_ROTATION_SPEED, MAX_HEAD_ROTATION_SPEED);
+        float newHeadYaw = currentHeadYaw + headYawChange;
+
+        this.mob.setYHeadRot(newHeadYaw);
+        this.mob.yHeadRotO = newHeadYaw;
+
+        // Rotation du corps si la tête tourne trop
+        float currentBodyYaw = this.mob.getYRot();
+        float bodyHeadDiff = Mth.wrapDegrees(newHeadYaw - currentBodyYaw);
+
+        // Si l'angle entre la tête et le corps est trop grand, faire tourner le corps
+        if (Math.abs(bodyHeadDiff) > HEAD_BODY_ANGLE_THRESHOLD) {
+            float bodyYawDiff = Mth.wrapDegrees(this.targetYaw - currentBodyYaw);
+            float bodyYawChange = Mth.clamp(bodyYawDiff, -MAX_BODY_ROTATION_SPEED, MAX_BODY_ROTATION_SPEED);
+            float newBodyYaw = currentBodyYaw + bodyYawChange;
+
+            this.mob.setYRot(newBodyYaw);
+            this.mob.yRotO = newBodyYaw;
+            this.mob.yBodyRot = newBodyYaw;
+            this.mob.yBodyRotO = newBodyYaw;
+        }
+
+        // Gestion du pitch (inclinaison de la tête)
+        float currentPitch = this.mob.getXRot();
+        float pitchDiff = this.targetPitch - currentPitch;
+        float pitchChange = Mth.clamp(pitchDiff, -MAX_HEAD_ROTATION_SPEED * 0.5F, MAX_HEAD_ROTATION_SPEED * 0.5F);
+        float newPitch = currentPitch + pitchChange;
+
+        this.mob.setXRot(newPitch);
+        this.mob.xRotO = newPitch;
     }
 
     private void performAttack(LivingEntity target) {
