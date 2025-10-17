@@ -12,7 +12,9 @@ public class VenomEffect extends MobEffect {
     }
 
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        entity.hurt(entity.damageSources().magic(), 1.0F);
+        if (entity.getHealth() > 1.0f) {
+            entity.hurt(entity.damageSources().magic(), 1.0F);
+        }
         return true;
     }
 
