@@ -75,7 +75,8 @@ public class OWBlockTagProvider extends BlockTagsProvider {
                 .add(OWBlocks.JADE_ORE.get())
                 .add(OWBlocks.DEEPSLATE_JADE_ORE.get())
                 .add(OWBlocks.RUBY_ORE.get())
-                .add(OWBlocks.DEEPSLATE_RUBY_ORE.get());
+                .add(OWBlocks.DEEPSLATE_RUBY_ORE.get())
+                .add(OWBlocks.ANIMAL_CARCASS.get());
 
     }
 }

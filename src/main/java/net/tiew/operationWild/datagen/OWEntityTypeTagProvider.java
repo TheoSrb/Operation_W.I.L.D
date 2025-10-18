@@ -6,6 +6,7 @@ import net.minecraft.data.tags.EntityTypeTagsProvider;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.tiew.operationWild.OperationWild;
@@ -34,6 +35,19 @@ public class OWEntityTypeTagProvider extends EntityTypeTagsProvider {
         tag(OWTags.Entities.REPTILES)
                 .add(OWEntityRegistry.BOA.get())
                 .add(OWEntityRegistry.CROCODILE.get());
+
+        tag(OWTags.Entities.DROP_CARCASS)
+                .add(EntityType.HORSE)
+                .add(EntityType.PIG)
+                .add(EntityType.COW)
+                .add(EntityType.SHEEP)
+                .add(EntityType.LLAMA)
+                .add(OWEntityRegistry.MANDRILL.get())
+                .add(OWEntityRegistry.CROCODILE.get())
+                .add(OWEntityRegistry.TIGER.get())
+                .add(OWEntityRegistry.WALRUS.get())
+                .add(OWEntityRegistry.HYENA.get())
+                .add(OWEntityRegistry.KODIAK.get());
 
     }
 }

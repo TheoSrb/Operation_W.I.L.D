@@ -65,7 +65,7 @@ public class CrocodileChargingMouthGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return crocodile.getTarget() != null && crocodile.isChargingMouth() && !this.crocodile.isInWater();
+        return crocodile.getTarget() != null && crocodile.isChargingMouth() && !this.crocodile.isInWater() && this.crocodile.getTarget().distanceTo(this.crocodile) <= 20;
     }
 
     @Override

@@ -1,20 +1,27 @@
 package net.tiew.operationWild.event;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
@@ -28,9 +35,12 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.block.OWBlocks;
+import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.goals.crocodile.MonstersAvoidCrocodileGoal;
 import net.tiew.operationWild.entity.misc.SeabugShard;
 import net.tiew.operationWild.entity.misc.Submarine;
 import net.tiew.operationWild.networking.OWNetworkHandler;
@@ -42,6 +52,45 @@ import java.util.List;
 
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class ServerEvents {
+
+    @SubscribeEvent
+    public static void onEntityDeath(LivingDeathEvent event) {
+        if (event.getEntity().level().isClientSide) {
+            return;
+        }
+
+        LivingEntity victim = event.getEntity();
+        DamageSource source = event.getSource();
+
+        if (source.getEntity() instanceof CrocodileEntity) {
+            if (!victim.isInWater() && victim.getType().is(OWTags.Entities.DROP_CARCASS) && !victim.isBaby()) {
+                if (victim.level().getRandom().nextFloat() < 0.25f) {
+                    BlockPos pos = victim.blockPosition();
+                    Level level = victim.level();
+
+                    if (level.getBlockState(pos.below()).isSolid() &&
+                            level.getBlockState(pos).canBeReplaced()) {
+
+                        Direction facing = Direction.Plane.HORIZONTAL.getRandomDirection(level.getRandom());
+                        BlockState carcassState = OWBlocks.ANIMAL_CARCASS.get().defaultBlockState()
+                                .setValue(HorizontalDirectionalBlock.FACING, facing);
+
+                        level.setBlock(pos, carcassState, 3);
+
+                        level.playSound(null, pos, SoundEvents.SKELETON_DEATH,
+                                SoundSource.BLOCKS, 1.0f, 0.8f);
+                    }
+                }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onEntitySpawn(EntityJoinLevelEvent event) {
+        if (event.getEntity() instanceof Monster monster) {
+            monster.goalSelector.addGoal(3, new MonstersAvoidCrocodileGoal(monster));
+        }
+    }
 
     @SubscribeEvent
     public static void onLivingEntityTick(EntityTickEvent.Post event) {

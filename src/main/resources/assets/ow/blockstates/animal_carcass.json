@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "ow:block/animal_carcass"
+    },
+    "facing=south": {
+      "model": "ow:block/animal_carcass",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "ow:block/animal_carcass",
+      "y": 90
+    },
+    "facing=west": {
+      "model": "ow:block/animal_carcass",
+      "y": 270
+    }
+  }
+}

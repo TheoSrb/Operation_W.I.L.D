@@ -73,12 +73,16 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
 		PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-8.5F, -5.0F, -14.0F, 17.0F, 12.0F, 26.0F, new CubeDeformation(0.0F))
+				.texOffs(170, 218).addBox(-8.5F, -5.0F, -14.0F, 17.0F, 12.0F, 26.0F, new CubeDeformation(0.5F))
+				.texOffs(0, 239).addBox(-6.5F, -7.0F, -11.0F, 13.0F, 2.0F, 15.0F, new CubeDeformation(0.0F))
 				.texOffs(0, 67).addBox(-5.5F, -8.0F, -14.0F, 0.0F, 3.0F, 26.0F, new CubeDeformation(0.05F))
 				.texOffs(0, 67).mirror().addBox(5.5F, -8.0F, -14.0F, 0.0F, 3.0F, 26.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(0.0F, -1.0F, 3.0F));
 
-		PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(116, 23).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 2.0F, -14.0F));
+		PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(116, 23).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.0F))
+				.texOffs(75, 219).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.5F)), PartPose.offset(0.0F, 2.0F, -14.0F));
 
 		PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(114, 65).addBox(-5.5F, -5.0F, -9.0F, 11.0F, 9.0F, 9.0F, new CubeDeformation(0.0F))
+				.texOffs(144, 168).addBox(-5.5F, -5.0F, -9.0F, 11.0F, 9.0F, 9.0F, new CubeDeformation(0.25F))
 				.texOffs(40, 96).addBox(1.5F, -7.0F, -7.0F, 2.0F, 2.0F, 4.0F, new CubeDeformation(0.0F))
 				.texOffs(40, 96).mirror().addBox(-3.5F, -7.0F, -7.0F, 2.0F, 2.0F, 4.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(0.0F, 0.0F, -7.0F));
 
@@ -91,15 +95,22 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		PartDefinition mouth = head.addOrReplaceChild("mouth", CubeListBuilder.create(), PartPose.offset(0.0F, 1.0F, -9.0F));
 
 		PartDefinition mouth_down = mouth.addOrReplaceChild("mouth_down", CubeListBuilder.create().texOffs(40, 117).addBox(-3.5F, -2.0F, -10.0F, 7.0F, 3.0F, 10.0F, new CubeDeformation(0.0F))
+				.texOffs(59, 181).addBox(-3.5F, -2.0F, -10.0F, 7.0F, 3.0F, 10.0F, new CubeDeformation(0.25F))
 				.texOffs(91, -10).addBox(-3.4F, -5.0F, -10.0F, 0.0F, 3.0F, 10.0F, new CubeDeformation(0.05F))
 				.texOffs(91, -10).mirror().addBox(3.4F, -5.0F, -10.0F, 0.0F, 3.0F, 10.0F, new CubeDeformation(0.05F)).mirror(false)
 				.texOffs(94, 13).addBox(-3.5F, -5.0F, -9.5F, 7.0F, 3.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(0.0F, 2.0F, 0.0F));
 
 		PartDefinition mouth_up = mouth.addOrReplaceChild("mouth_up", CubeListBuilder.create().texOffs(116, 40).addBox(-3.5F, -2.0F, -10.0F, 7.0F, 4.0F, 10.0F, new CubeDeformation(0.0F))
+				.texOffs(0, 170).addBox(-3.5F, -2.0F, -10.0F, 7.0F, 4.0F, 10.0F, new CubeDeformation(0.25F))
+				.texOffs(123, 252).addBox(-7.5F, 1.0F, -2.0F, 15.0F, 2.0F, 2.0F, new CubeDeformation(0.0F))
 				.texOffs(97, 128).addBox(-3.5F, -2.0F, -10.5F, 7.0F, 4.0F, 3.0F, new CubeDeformation(0.5F))
 				.texOffs(94, 9).addBox(-3.5F, 2.0F, -10.5F, 7.0F, 3.0F, 0.0F, new CubeDeformation(0.025F))
 				.texOffs(91, -6).addBox(-3.4F, 2.0F, -10.0F, 0.0F, 3.0F, 10.0F, new CubeDeformation(0.05F))
 				.texOffs(91, -6).mirror().addBox(3.4F, 2.0F, -10.0F, 0.0F, 3.0F, 10.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(0.0F, -2.0F, 0.0F));
+
+		PartDefinition cube_r1 = mouth_up.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(205, 123).mirror().addBox(0.0F, -14.0F, -1.0F, 0.0F, 15.0F, 22.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(-6.5F, 2.0F, -1.0F, -0.1262F, -0.3435F, 0.4134F));
+
+		PartDefinition cube_r2 = mouth_up.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(205, 123).addBox(0.0F, -14.0F, -1.0F, 0.0F, 15.0F, 22.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(6.5F, 2.0F, -1.0F, -0.1262F, 0.3435F, -0.4134F));
 
 		PartDefinition tail1 = body.addOrReplaceChild("tail1", CubeListBuilder.create().texOffs(0, 38).addBox(-5.5F, -4.0F, 0.0F, 11.0F, 9.0F, 20.0F, new CubeDeformation(0.0F))
 				.texOffs(3, 70).addBox(-3.5F, -7.0F, 0.0F, 0.0F, 3.0F, 20.0F, new CubeDeformation(0.05F))
@@ -136,6 +147,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
+
         this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (crocodile.isCombo(1)) {
@@ -146,6 +158,11 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		}
 		if (crocodile.isCombo(3)) {
 			this.animate(crocodile.attack3Combo, CrocodileAnimations.ATTACK_STRIKE3, ageInTicks, 1.0f);
+		}
+
+		if (crocodile.isSitting()) {
+			this.animate(crocodile.sittingAnimationState, CrocodileAnimations.SIT, ageInTicks, 1.0f);
+			return;
 		}
 
 		if (crocodile.isMad()) {

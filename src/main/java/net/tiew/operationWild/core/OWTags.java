@@ -15,6 +15,7 @@ public class OWTags {
     public static class Entities {
         public static final TagKey<EntityType<?>> FAWNS = tag("fawns");
         public static final TagKey<EntityType<?>> REPTILES = tag("reptiles");
+        public static final TagKey<EntityType<?>> DROP_CARCASS = tag("drop_carcass");
 
         private static TagKey<EntityType<?>> tag(String name) {
             return TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, name));

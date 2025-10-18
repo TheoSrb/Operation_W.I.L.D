@@ -39,6 +39,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.ai.goal.FollowParentGoal;
 import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
@@ -285,6 +286,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
+
+        this.lookControl = new LookControl(this) {
+            @Override
+            public void tick() {
+                if (this.mob.getTarget() == null) {
+                    super.tick();
+                }
+            }
+        };
     }
 
     public static final List<Class<?>> TANK_ENTITIES = new ArrayList<>();

@@ -137,6 +137,7 @@ public class OWCreativeTabs {
                         output.accept(OWBlocks.CAMELLIA.get());
                         output.accept(OWBlocks.PEACOCK_EGG.get());
                         output.accept(OWBlocks.TEDDY_BEAR.get());
+                        output.accept(OWBlocks.ANIMAL_CARCASS.get());
                         output.accept(OWItems.PLANT_EMPRESS_MUSIC_DISC.get());
 
                     })).build());

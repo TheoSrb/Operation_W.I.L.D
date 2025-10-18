@@ -20,6 +20,7 @@ import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.tiew.operationWild.core.OWUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -138,15 +139,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.7D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
-
-        this.lookControl = new LookControl(this) {
-            @Override
-            public void tick() {
-                if (this.mob.getTarget() == null) {
-                    super.tick();
-                }
-            }
-        };
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -190,7 +182,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public List<Class<?>> getFavoriteTargets() {
-        return List.of(Player.class, Animal.class, Monster.class);
+        return List.of(Boat.class, Player.class, Animal.class, Monster.class);
     }
 
     @Override
@@ -562,7 +554,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private void setupAnimationState() {
         createIdleAnimation(96, true);
-        createSitAnimation(58, true);
+        createSitAnimation(96, true);
 
         handleMiscIdleAnimations();
 
