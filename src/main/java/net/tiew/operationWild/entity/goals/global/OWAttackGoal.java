@@ -18,10 +18,9 @@ public class OWAttackGoal extends Goal {
     private final double attackRange;
     private static final double MAX_CHASE_DISTANCE = 48.0;
 
-    // Paramètres de rotation fluide
-    private static final float MAX_HEAD_ROTATION_SPEED = 15.0F; // Degrés par tick pour la tête
-    private static final float MAX_BODY_ROTATION_SPEED = 5.0F;  // Degrés par tick pour le corps
-    private static final float HEAD_BODY_ANGLE_THRESHOLD = 75.0F; // Angle max avant rotation du corps
+    private static final float MAX_HEAD_ROTATION_SPEED = 15.0F;
+    private static final float MAX_BODY_ROTATION_SPEED = 5.0F;
+    private static final float HEAD_BODY_ANGLE_THRESHOLD = 75.0F;
 
     private float targetYaw;
     private float targetPitch;
@@ -119,7 +118,6 @@ public class OWAttackGoal extends Goal {
             this.mob.getNavigation().moveTo(target, this.speedModifier);
         }
 
-        // Rotation fluide APRÈS la navigation pour ne pas être écrasée
         this.updateSmoothLookAt(target);
 
         this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
@@ -131,40 +129,30 @@ public class OWAttackGoal extends Goal {
         }
     }
 
-    /**
-     * Gère la rotation fluide de la tête et du corps vers la cible
-     */
     private void updateSmoothLookAt(LivingEntity target) {
-        // Calculer la direction vers la cible
         double dx = target.getX() - this.mob.getX();
         double dy = target.getY() + target.getEyeHeight() - (this.mob.getY() + this.mob.getEyeHeight());
         double dz = target.getZ() - this.mob.getZ();
         double horizontalDist = Math.sqrt(dx * dx + dz * dz);
 
-        // Calculer les angles cibles
         this.targetYaw = (float)(Mth.atan2(dz, dx) * (180.0 / Math.PI)) - 90.0F;
         this.targetPitch = (float)(-(Mth.atan2(dy, horizontalDist) * (180.0 / Math.PI)));
 
-        // Normaliser les angles
         this.targetYaw = Mth.wrapDegrees(this.targetYaw);
         this.targetPitch = Mth.clamp(this.targetPitch, -90.0F, 90.0F);
 
-        // Rotation de la tête
         float currentHeadYaw = this.mob.getYHeadRot();
         float headYawDiff = Mth.wrapDegrees(this.targetYaw - currentHeadYaw);
 
-        // Limiter la vitesse de rotation de la tête
         float headYawChange = Mth.clamp(headYawDiff, -MAX_HEAD_ROTATION_SPEED, MAX_HEAD_ROTATION_SPEED);
         float newHeadYaw = currentHeadYaw + headYawChange;
 
         this.mob.setYHeadRot(newHeadYaw);
         this.mob.yHeadRotO = newHeadYaw;
 
-        // Rotation du corps si la tête tourne trop
         float currentBodyYaw = this.mob.getYRot();
         float bodyHeadDiff = Mth.wrapDegrees(newHeadYaw - currentBodyYaw);
 
-        // Si l'angle entre la tête et le corps est trop grand, faire tourner le corps
         if (Math.abs(bodyHeadDiff) > HEAD_BODY_ANGLE_THRESHOLD) {
             float bodyYawDiff = Mth.wrapDegrees(this.targetYaw - currentBodyYaw);
             float bodyYawChange = Mth.clamp(bodyYawDiff, -MAX_BODY_ROTATION_SPEED, MAX_BODY_ROTATION_SPEED);
@@ -176,7 +164,6 @@ public class OWAttackGoal extends Goal {
             this.mob.yBodyRotO = newBodyYaw;
         }
 
-        // Gestion du pitch (inclinaison de la tête)
         float currentPitch = this.mob.getXRot();
         float pitchDiff = this.targetPitch - currentPitch;
         float pitchChange = Mth.clamp(pitchDiff, -MAX_HEAD_ROTATION_SPEED * 0.5F, MAX_HEAD_ROTATION_SPEED * 0.5F);

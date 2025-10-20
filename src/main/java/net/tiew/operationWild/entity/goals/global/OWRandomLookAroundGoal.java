@@ -2,6 +2,7 @@ package net.tiew.operationWild.entity.goals.global;
 
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 
 import java.util.EnumSet;
@@ -18,6 +19,7 @@ public class OWRandomLookAroundGoal extends Goal {
     }
 
     public boolean canUse() {
+        if (owEntity instanceof CrocodileEntity crocodile && (crocodile.isFakeNap())) return false;
         if (owEntity instanceof KodiakEntity kodiak) {
             if (kodiak.isRolling() || kodiak.isRubs()) return false;
         }
@@ -25,6 +27,7 @@ public class OWRandomLookAroundGoal extends Goal {
     }
 
     public boolean canContinueToUse() {
+        if (owEntity instanceof CrocodileEntity crocodile && (crocodile.isFakeNap())) return false;
         if (owEntity instanceof KodiakEntity kodiak) {
             if (kodiak.isRolling() || kodiak.isRubs()) return false;
         }

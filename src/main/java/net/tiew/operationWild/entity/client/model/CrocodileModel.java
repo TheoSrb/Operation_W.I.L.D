@@ -79,7 +79,12 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 				.texOffs(0, 67).mirror().addBox(5.5F, -8.0F, -14.0F, 0.0F, 3.0F, 26.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(0.0F, -1.0F, 3.0F));
 
 		PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(116, 23).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.0F))
-				.texOffs(75, 219).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.5F)), PartPose.offset(0.0F, 2.0F, -14.0F));
+				.texOffs(75, 219).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.5F))
+				.texOffs(190, 29).addBox(-7.5F, -7.0F, -1.5F, 15.0F, 12.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(228, 49).addBox(7.5F, -7.0F, -1.0F, 4.0F, 12.0F, 0.0F, new CubeDeformation(0.05F))
+				.texOffs(228, 49).mirror().addBox(-11.5F, -7.0F, -1.0F, 4.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false)
+				.texOffs(192, 50).addBox(-7.5F, -11.0F, -1.0F, 15.0F, 4.0F, 0.0F, new CubeDeformation(0.05F))
+				.texOffs(192, 57).addBox(-7.5F, 5.0F, -1.0F, 15.0F, 4.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(0.0F, 2.0F, -14.0F));
 
 		PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(114, 65).addBox(-5.5F, -5.0F, -9.0F, 11.0F, 9.0F, 9.0F, new CubeDeformation(0.0F))
 				.texOffs(144, 168).addBox(-5.5F, -5.0F, -9.0F, 11.0F, 9.0F, 9.0F, new CubeDeformation(0.25F))
@@ -160,11 +165,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animate(crocodile.attack3Combo, CrocodileAnimations.ATTACK_STRIKE3, ageInTicks, 1.0f);
 		}
 
-		if (crocodile.isSitting()) {
-			this.animate(crocodile.sittingAnimationState, CrocodileAnimations.SIT, ageInTicks, 1.0f);
-			return;
-		}
-
 		if (crocodile.isMad()) {
 			this.left_eyeball.xScale = 0;
 			this.left_eyeball.yScale = 0;
@@ -175,7 +175,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.right_eyeball.zScale = 0;
 		}
 
-		/*if (crocodile.transitionIdleSit.isStarted()) {
+		if (crocodile.transitionIdleSit.isStarted()) {
 			this.animate(crocodile.transitionIdleSit, CrocodileAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
 			return;
 		}
@@ -186,30 +186,14 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		}
 
 		if (crocodile.transitionIdleSleep.isStarted()) {
-			this.animate(crocodile.transitionIdleSleep, CrocodileAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 2.0f);
+			this.animate(crocodile.transitionIdleSleep, CrocodileAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
 			return;
 		}
 
 		if (crocodile.transitionSleepIdle.isStarted()) {
-			this.animate(crocodile.transitionSleepIdle, CrocodileAnimations.TRANSITION_SLEEP_IDLE, ageInTicks, 2.0f);
+			this.animate(crocodile.transitionSleepIdle, CrocodileAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
 			return;
 		}
-
-		if (crocodile.transitionIdleStandingUp.isStarted()) {
-			this.animate(crocodile.transitionIdleStandingUp, CrocodileAnimations.TRANSITION_IDLE_STAND_UP, ageInTicks, 1.0f);
-			return;
-		}
-
-		if (crocodile.transitionStandingUpIdle.isStarted()) {
-			this.animate(crocodile.transitionStandingUpIdle, CrocodileAnimations.TRANSITION_STAND_UP_IDLE, ageInTicks, 1.0f);
-			return;
-		}
-
-
-		if (crocodile.isSitting()) {
-			this.animate(crocodile.sittingAnimationState, CrocodileAnimations.SIT, ageInTicks, 1.0f);
-			return;
-		}*/
 
 		if (crocodile.growlsAnimationState.isStarted()) {
 			this.animate(crocodile.growlsAnimationState, CrocodileAnimations.MISC_IDLE2, ageInTicks, 1.0f);
@@ -219,6 +203,20 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animate(crocodile.gruntAnimationState, CrocodileAnimations.MISC_IDLE3, ageInTicks, 1.0f);
 		}
 
+		if (crocodile.isNapping()) {
+			this.animate(crocodile.napAnimationState, CrocodileAnimations.NAP, ageInTicks, 1.0f);
+			return;
+		}
+
+		if (crocodile.isFakeNap()) {
+			this.animate(crocodile.fakeNapAnimationState, CrocodileAnimations.FAKE_NAP, ageInTicks, 1.0f);
+			return;
+		}
+
+		if (crocodile.isSitting()) {
+			this.animate(crocodile.sittingAnimationState, CrocodileAnimations.SIT, ageInTicks, 1.0f);
+			return;
+		}
 
 		if (!crocodile.isInWater()) {
 			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);

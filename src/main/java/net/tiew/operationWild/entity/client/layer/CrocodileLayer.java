@@ -42,10 +42,10 @@ public class CrocodileLayer extends RenderLayer<CrocodileEntity, CrocodileModel<
         double kodiakHealthTier = crocodile.getMaxHealth() / 4;
 
         if (crocodile.getMaturationPercentage() < 60 && crocodile.getMaturationPercentage() > 0) renderOverlay(poseStack, multiBufferSource, BABY_EYES, false, packedLight);
-        /*else if (crocodile.isTame() && !crocodile.isInResurrection()) {
+        else if (crocodile.isTame() && !crocodile.isInResurrection()) {
             renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, crocodile.getNecklaceColor());
             renderOverlay(poseStack, multiBufferSource, NECKLACE_SPIKES_TEXTURE, false, packedLight);
-        }*/
+        }
 
         if (crocodile.isInResurrection()) {
             float opacity = (float) (0.75 * (1 - crocodile.getResurrectionPercentage() / 100.0f));

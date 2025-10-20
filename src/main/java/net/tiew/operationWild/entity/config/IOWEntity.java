@@ -4,6 +4,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NonTameRandomTargetGoal;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.goals.global.OWHurtByTargetGoal;
 
 import java.util.List;
@@ -90,7 +91,12 @@ public interface IOWEntity {
                 int priority = 3;
                 for (Class<?> targetClass : favoriteTargets) {
                     if (LivingEntity.class.isAssignableFrom(targetClass)) {
-                        owEntity.targetSelector.addGoal(priority, new NearestAttackableTargetGoal<>(owEntity, (Class<? extends LivingEntity>) targetClass, true));
+                        boolean entityIsCrocodile = owEntity instanceof CrocodileEntity;
+                        if (entityIsCrocodile) {
+                            owEntity.targetSelector.addGoal(priority, new CrocodileEntity.CrocodileNearestAttackableTargetGoal(owEntity, targetClass, true, 1.0f));
+                        } else {
+                            owEntity.targetSelector.addGoal(priority, new NearestAttackableTargetGoal<>(owEntity, (Class<? extends LivingEntity>) targetClass, true));
+                        }
                         priority++;
                     }
                 }
