@@ -16,6 +16,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.FarmBlock;
+import net.minecraft.world.level.block.WaterlilyBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -60,6 +61,14 @@ public class CrocodileBehaviorHandler {
 
     public boolean isAnyIdleAnimationPlaying() {
         return crocodile.growlsAnimationState.isStarted() || crocodile.gruntAnimationState.isStarted();
+    }
+
+    public void trampleLilyPads(BlockPos pos) {
+        BlockState blockState = crocodile.level().getBlockState(pos);
+
+        if (blockState.getBlock() instanceof WaterlilyBlock) {
+            crocodile.level().destroyBlock(pos, true);
+        }
     }
 
     public void makeBigHurt(float attackDamage, SoundEvent sound, double width, double height, double reach) {

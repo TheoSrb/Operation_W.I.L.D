@@ -344,6 +344,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     @Override
+    public void aiStep() {
+        super.aiStep();
+        if (this.isInWater() || this.onGround()) {
+            BlockPos currentPos = this.blockPosition();
+            crocodileBehaviorHandler.trampleLilyPads(currentPos);
+            crocodileBehaviorHandler.trampleLilyPads(currentPos.above());
+        }
+    }
+
+    @Override
     public void travel(Vec3 vec3) {
         if (this.isChargingMouth()) {
             Vec3 movement = this.getDeltaMovement();
