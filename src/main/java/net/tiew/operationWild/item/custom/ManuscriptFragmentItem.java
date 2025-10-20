@@ -91,8 +91,7 @@ public class ManuscriptFragmentItem extends Item {
 
             if (entityType != null) {
                 if (level.isClientSide()) {
-                    boolean hasEntity = AdventurerManuscriptScreen.tempMap.containsKey(entityType) ||
-                            AdventurerManuscriptScreen.OW_ENTITIES.containsKey(entityType);
+                    boolean hasEntity = AdventurerManuscriptScreen.OW_ENTITIES.containsKey(entityType);
 
                     if (hasEntity) {
                         OWEntity entity = entityType.create(level);

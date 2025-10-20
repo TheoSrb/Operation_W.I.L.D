@@ -32,6 +32,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.tiew.operationWild.core.AdventurerManuscriptCore;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
@@ -313,6 +314,11 @@ public class ClientEvents {
                 applyBlowpipeRotation(event.getPoseStack(), chargeProgress, event.getHand());
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(ClientPlayerNetworkEvent.LoggingIn event) {
+        AdventurerManuscriptCore.loadFromFile();
     }
 
     private static void applyBlowpipeRotation(PoseStack poseStack, float chargeProgress, InteractionHand hand) {

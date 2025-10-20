@@ -23,6 +23,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.core.AdventurerManuscriptCore;
 import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
@@ -33,6 +34,9 @@ import net.tiew.operationWild.screen.player.adventurer_manuscript.chapter.OWChap
 import net.tiew.operationWild.screen.player.adventurer_manuscript.chapter.OWChapters;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.Collator;
 import java.util.*;
 
@@ -80,42 +84,23 @@ public class AdventurerManuscriptScreen extends Screen {
     private EntityType<? extends OWEntity> lastEntityTypeFound = null;
 
     public static Map<EntityType<? extends OWEntity>, Integer> OW_ENTITIES = new LinkedHashMap<>();
-    public static Map<EntityType<? extends OWEntity>, Integer> tempMap = new HashMap<>();
 
     public AdventurerManuscriptScreen() {
         super(Component.literal(""));
     }
 
     public static InteractionResult addEntityToManuscript(EntityType<? extends OWEntity> entityType, int page, Player player) {
-        if (tempMap.containsKey(entityType) || OW_ENTITIES.containsKey(entityType)) return InteractionResult.PASS;
-
-        tempMap.put(entityType, page);
-
-        Collator collator = Collator.getInstance();
-        collator.setStrength(Collator.PRIMARY);
-
-        tempMap.entrySet().stream()
-                .sorted((entry1, entry2) -> {
-                    String translationKey1 = entry1.getKey().getDescriptionId();
-                    String translationKey2 = entry2.getKey().getDescriptionId();
-
-                    String translatedName1 = Component.translatable(translationKey1).getString();
-                    String translatedName2 = Component.translatable(translationKey2).getString();
-
-                    return collator.compare(translatedName1, translatedName2);
-                });
+        String str = entityType.toString().split("entity.ow.")[1];
+        AdventurerManuscriptCore.addToManuscript(AdventurerManuscriptCore.owDatas, str);
 
         ClientEvents.isNotifiedOWBook = true;
         player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP);
-
 
         if (player.level().isClientSide()) {
             OWEntity entity = entityType.create(Minecraft.getInstance().level);
 
             player.displayClientMessage(Component.translatable("tooltip.newEntity",
                     Component.translatable(String.valueOf(entityType)).setStyle(Style.EMPTY.withBold(true).withColor(entity != null ? entity.getEntityColor() : 0xFFFFFF))), true);
-
-            ManuscriptPersistence.saveClient();
         }
         return InteractionResult.SUCCESS;
     }
@@ -154,7 +139,6 @@ public class AdventurerManuscriptScreen extends Screen {
 
     @Override
     public void onClose() {
-        ManuscriptPersistence.saveClient();
         super.onClose();
         OW_ENTITIES.clear();
         LEFT_PAGE = null;
@@ -169,21 +153,25 @@ public class AdventurerManuscriptScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        ManuscriptPersistence.loadClient();
+
+        String worldName = ClientEvents.getWorldName(Minecraft.getInstance().player);
+        File propertiesFile = new File("saves/" + worldName + "/OWDataCore.properties");
+
+        if (propertiesFile.exists()) {
+            try (FileInputStream input = new FileInputStream(propertiesFile)) {
+                AdventurerManuscriptCore.owDatas.load(input);
+
+                for (String key : AdventurerManuscriptCore.owDatas.stringPropertyNames()) {
+                    EntityType<? extends OWEntity> entityType = OWEntityRegistry.getEntityTypeFromName(key);
+                    OW_ENTITIES.put(entityType, OperationWild.getMaxPageForEntityInManuscript(entityType));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
         Collator collator = Collator.getInstance();
         collator.setStrength(Collator.PRIMARY);
-
-        tempMap.entrySet().stream()
-                .sorted((entry1, entry2) -> {
-                    String translationKey1 = entry1.getKey().getDescriptionId();
-                    String translationKey2 = entry2.getKey().getDescriptionId();
-
-                    String translatedName1 = Component.translatable(translationKey1).getString();
-                    String translatedName2 = Component.translatable(translationKey2).getString();
-
-                    return collator.compare(translatedName1, translatedName2);
-                })
-                .forEach(entry -> OW_ENTITIES.put(entry.getKey(), entry.getValue()));
 
         if (this.cachedBookEntity == null) {
             this.cachedBookEntity = new AdventurerManuscript(
@@ -208,7 +196,7 @@ public class AdventurerManuscriptScreen extends Screen {
         return false;
     }
 
-    private void updateTime(float partialTick) {
+    private void updateTime() {
         long currentTime = System.currentTimeMillis();
         float elapsedSeconds = (currentTime - this.initTime) / 1000.0f;
         this.totalElapsedTime = elapsedSeconds * animationSpeed;
@@ -373,7 +361,7 @@ public class AdventurerManuscriptScreen extends Screen {
             lastEntityTypeFound = entityType;
         }
 
-        updateTime(partialTick);
+        updateTime();
 
         if (this.cachedBookEntity != null) {
             this.cachedBookEntity.tickCount = (int)(this.totalElapsedTime * 20);
@@ -416,7 +404,6 @@ public class AdventurerManuscriptScreen extends Screen {
 
     @Override
     public void removed() {
-        ManuscriptPersistence.saveClient();
         super.removed();
         this.cachedBookEntity = null;
         this.totalElapsedTime = 0;
