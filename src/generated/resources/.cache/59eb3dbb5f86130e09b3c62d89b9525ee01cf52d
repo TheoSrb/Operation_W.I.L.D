@@ -1,10 +1,11 @@
-// 1.21	2025-10-18T13:15:02.0862887	Loot Tables
+// 1.21	2025-10-20T11:53:03.3242091	Loot Tables
 39411953e31428b0099044fec99043fae3ff3335 data/ow/loot_table/blocks/animal_carcass.json
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
 5b5fcfe0ecc7270dbed936f1c5d59ab6a543b479 data/ow/loot_table/blocks/deepslate_jade_ore.json
 06da0d1a496415bacabd90b29e9205b4df505f5e data/ow/loot_table/blocks/deepslate_ruby_ore.json
 bd866344effa488fde0a0635a9ea55425b493f5d data/ow/loot_table/blocks/jade_ore.json
 89d10d9f29a2364dfaac3519c5beedeb4a189a20 data/ow/loot_table/blocks/lavender.json
+86ca0c3208280e76f5dd11f0e9112c54070b41eb data/ow/loot_table/blocks/marked_mud.json
 a3ee4806afdcdbd2b8178c6c470eabd35c93c447 data/ow/loot_table/blocks/peacock_egg.json
 f153345ba251e42d4f98c012380b83a543500022 data/ow/loot_table/blocks/potted_camellia.json
 fa4b923c43bc9c7ea4fd7eded1bd12a288098520 data/ow/loot_table/blocks/potted_lavender.json

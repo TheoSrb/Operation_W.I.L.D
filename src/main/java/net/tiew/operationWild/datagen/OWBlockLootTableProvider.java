@@ -73,6 +73,9 @@ public class OWBlockLootTableProvider extends BlockLootSubProvider {
         this.add(OWBlocks.SCARIFIED_JUNGLE_LOG.get(), block -> createMultipleOreDrops(OWBlocks.SCARIFIED_JUNGLE_LOG.get(), Item.byBlock(Blocks.JUNGLE_LOG), 1, 1));
 
 
+        this.add(OWBlocks.MARKED_MUD.get(), block -> createMultipleOreDrops(OWBlocks.MARKED_MUD.get(), Item.byBlock(Blocks.MUD), 1, 1));
+
+
         dropSelf(OWBlocks.PEACOCK_EGG.get());
 
         dropSelf(OWBlocks.TEDDY_BEAR.get());

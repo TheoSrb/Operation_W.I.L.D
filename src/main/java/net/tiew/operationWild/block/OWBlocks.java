@@ -75,6 +75,8 @@ public class OWBlocks {
 
     public static final DeferredBlock<Block> ANIMAL_CARCASS = registerBlock("animal_carcass", () -> new AnimalCarcassBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.BONE_BLOCK).strength(0.75f).noOcclusion()));
 
+    public static final DeferredBlock<Block> MARKED_MUD = registerBlock("marked_mud", () -> new MarkedMudBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.MUD)));
+
 
     public static final DeferredBlock<Block> JADE_ORE = registerBlock("jade_ore", () -> new DropExperienceBlock(ConstantInt.of(0), BlockBehaviour.Properties.of().mapColor(MapColor.STONE).instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().strength(4.0F, 4.0F)));
     public static final DeferredBlock<Block> DEEPSLATE_JADE_ORE = registerBlock("deepslate_jade_ore", () -> new DropExperienceBlock(ConstantInt.of(0), BlockBehaviour.Properties.ofLegacyCopy(OWBlocks.JADE_ORE.get()).mapColor(MapColor.DEEPSLATE).strength(6F, 3.0F).sound(SoundType.DEEPSLATE)));

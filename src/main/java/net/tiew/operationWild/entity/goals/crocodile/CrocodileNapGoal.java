@@ -114,7 +114,7 @@ public class CrocodileNapGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        int randomValue = crocodile.getRandom().nextInt((int) (200 / wantNapMultiplier));
+        int randomValue = crocodile.getRandom().nextInt((int) (500 / wantNapMultiplier));
         boolean randomCheck = randomValue == 0;
         boolean canNapCheck = canNap();
         boolean conditionCheck = conditionToWork;

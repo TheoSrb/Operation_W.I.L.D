@@ -39,6 +39,8 @@ public class OWBlockStateProvider extends BlockStateProvider {
 
         makeBush(((SavageBerryBushBlock) OWBlocks.SAVAGE_BERRY_BUSH.get()), "savage_berry_bush_stage", "savage_berry_bush_stage");
 
+        blockWithItem(OWBlocks.MARKED_MUD);
+
 
 
 

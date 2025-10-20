@@ -22,6 +22,9 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.tiew.operationWild.block.OWBlocks;
+import net.tiew.operationWild.block.custom.MarkedMudBlock;
 import net.tiew.operationWild.core.OWUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -94,7 +97,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public final AnimationState growlsAnimationState = new AnimationState();
     public final AnimationState gruntAnimationState = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
-    public final AnimationState fakeNapAnimationState = new AnimationState();
     public final AnimationState attack1Combo = new AnimationState();
     public final AnimationState attack2Combo = new AnimationState();
     public final AnimationState attack3Combo = new AnimationState();
@@ -103,7 +105,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private int growlsAnimationStartTime = 0;
     private int gruntAnimationStartTime = 0;
     private int napAnimationStartTime = 0;
-    private int fakeNapAnimationStartTime = 0;
     public int attack1ComboTimer = 0;
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
@@ -142,9 +143,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.goalSelector.addGoal(0, new OWAttackGoal(this, this.getSpeed() * 15f, 15, 4, false));
         this.goalSelector.addGoal(1, new CrocodileChargingMouthGoal(this));
         this.goalSelector.addGoal(2, new CrocodileNapGoal(this, 1.15f, 500, true));
-        this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.7D));
-        this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
+        this.goalSelector.addGoal(3, new OWBreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(4, new RandomStrollGoal(this, 0.7D));
+        this.goalSelector.addGoal(5, new OWRandomLookAroundGoal(this));
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -312,7 +313,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             Vec3 movement = this.getDeltaMovement();
             this.setDeltaMovement(movement.x * 0.15, movement.y, movement.z * 0.15);
         }
+
         super.travel(vec3);
+
         if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
     }
 
@@ -334,6 +337,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (this.getTarget() != null && this.getTarget().hasEffect(OWEffects.FRACTURE.getDelegate())) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
         }
+
+        markMudWithFootprints();
 
         handleRunningEffects(20, SoundEvents.HORSE_STEP, 0.2f, new int[]{10, 10});
         handleGoldVariantEffects();
@@ -487,6 +492,20 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
         this.foodWanted = (int) OWUtils.generateRandomInterval(6, 11);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
+    }
+
+    private void markMudWithFootprints() {
+        if (this.getTarget() == null && this.tickCount % 20 == 0) {
+            BlockPos blockPos = this.blockPosition();
+            BlockState blockState = this.level().getBlockState(blockPos);
+
+            if (blockState.is(Blocks.MUD)) {
+                Direction facing = Direction.Plane.HORIZONTAL.getRandomDirection(this.level().getRandom());
+                BlockState mudState = OWBlocks.MARKED_MUD.get().defaultBlockState().setValue(MarkedMudBlock.FACING, facing);
+
+                this.level().setBlockAndUpdate(blockPos, mudState);
+            }
+        }
     }
 
     public void changeSkin(int skinIndex) {
