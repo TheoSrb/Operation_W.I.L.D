@@ -88,7 +88,7 @@ public class CrocodileNapGoal extends Goal {
         boolean tameCheck = !crocodile.isTame();
         boolean targetCheck = crocodile.getTarget() == null;
 
-        return shouldStopCheck && conditionCheck && timerCheck && tameCheck && targetCheck;
+        return shouldStopCheck && conditionCheck && timerCheck && tameCheck && targetCheck && !this.crocodile.isInWater();
     }
 
     @Override

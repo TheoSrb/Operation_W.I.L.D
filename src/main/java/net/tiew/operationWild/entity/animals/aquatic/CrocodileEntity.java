@@ -15,6 +15,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
@@ -22,6 +24,8 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.MarkedMudBlock;
@@ -154,6 +158,38 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(IS_MAD, false);
         builder.define(IS_CHARGING_MOUTH, false);
         builder.define(CHARGING_MOUTH_TIMER, 0.0f);
+    }
+
+    public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+        BlockState blockBelow = level.getBlockState(pos.below());
+        Block blockType = blockBelow.getBlock();
+
+        boolean validBlock = blockType == Blocks.MUD || blockType == Blocks.GRASS_BLOCK || blockType == Blocks.WATER;
+
+        if (!validBlock) {
+            return false;
+        }
+
+        boolean waterNearby = false;
+        int searchRadius = 16;
+
+        for (int x = -searchRadius; x <= searchRadius; x++) {
+            for (int y = -4; y <= 4; y++) {
+                for (int z = -searchRadius; z <= searchRadius; z++) {
+                    BlockPos checkPos = pos.offset(x, y, z);
+                    BlockState state = level.getBlockState(checkPos);
+
+                    if (state.getBlock() == Blocks.WATER) {
+                        waterNearby = true;
+                        break;
+                    }
+                }
+                if (waterNearby) break;
+            }
+            if (waterNearby) break;
+        }
+
+        return waterNearby;
     }
 
     // Entity Methods

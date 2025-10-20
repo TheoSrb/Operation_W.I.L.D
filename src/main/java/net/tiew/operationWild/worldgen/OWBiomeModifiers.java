@@ -34,6 +34,7 @@ public class OWBiomeModifiers {
     public static final ResourceKey<BiomeModifier> SPAWN_PEACOCK = registerKey("spawn_peacock");
     public static final ResourceKey<BiomeModifier> SPAWN_JELLYFISH = registerKey("spawn_jellyfish");
     public static final ResourceKey<BiomeModifier> SPAWN_KODIAK = registerKey("spawn_kodiak");
+    public static final ResourceKey<BiomeModifier> SPAWN_CROCODILE = registerKey("spawn_crocodile");
 
     public static final ArrayList<ResourceKey<Biome>> TIGER_BIOMES = new ArrayList<>(
             List.of(Biomes.BAMBOO_JUNGLE, Biomes.JUNGLE)
@@ -53,6 +54,10 @@ public class OWBiomeModifiers {
 
     public static final ArrayList<ResourceKey<Biome>> KODIAK_BIOMES = new ArrayList<>(
             List.of(OWBiomes.REDWOOD_FOREST_BIOME)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> CROCODILE_BIOMES = new ArrayList<>(
+            List.of(Biomes.MANGROVE_SWAMP, Biomes.SWAMP)
     );
 
     public static int veryCommonEntitySpawnChance = 60;
@@ -81,6 +86,7 @@ public class OWBiomeModifiers {
         spawnEntity(context, SPAWN_PEACOCK, PEACOCK_BIOMES, OWEntityRegistry.PEACOCK, veryRareEntitySpawnChance, 1, 2);
         spawnEntity(context, SPAWN_JELLYFISH, JELLYFISH_BIOMES, OWEntityRegistry.JELLYFISH, rareEntitySpawnChance, 3, 6);
         spawnEntity(context, SPAWN_KODIAK, KODIAK_BIOMES, OWEntityRegistry.KODIAK, uncommonEntitySpawnChance, 1, 1);
+        spawnEntity(context, SPAWN_CROCODILE, CROCODILE_BIOMES, OWEntityRegistry.CROCODILE, 80, 2, 4);
 
 
 
