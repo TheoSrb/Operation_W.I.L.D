@@ -311,7 +311,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public void travel(Vec3 vec3) {
         if (this.isChargingMouth()) {
             Vec3 movement = this.getDeltaMovement();
-            this.setDeltaMovement(movement.x * 0.15, movement.y, movement.z * 0.15);
+            float multiplier = this.isVehicle() ? 0.45f : 0.15f;
+            this.setDeltaMovement(movement.x * multiplier, movement.y, movement.z * multiplier);
         }
 
         super.travel(vec3);
@@ -495,7 +496,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     private void markMudWithFootprints() {
-        if (this.getTarget() == null && this.tickCount % 20 == 0) {
+        if (this.getTarget() == null && this.tickCount % 40 == 0 && isMoving()) {
             BlockPos blockPos = this.blockPosition();
             BlockState blockState = this.level().getBlockState(blockPos);
 

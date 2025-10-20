@@ -390,9 +390,14 @@ public class ClientEvents {
     public static void onClientTick(PlayerTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level != null && minecraft.level.isClientSide()) {
-            if (minecraft.player != null && minecraft.player.getVehicle() instanceof OWEntity) {
+            if (minecraft.player != null && minecraft.player.getVehicle() instanceof OWEntity owEntity) {
                 boolean isSprintKeyDown = minecraft.options.keySprint.isDown();
                 OWNetworkHandler.sendToServer(new OWRunningPacket(isSprintKeyDown));
+
+                if (owEntity instanceof CrocodileEntity crocodile) {
+                    boolean isRightClickDown = minecraft.options.keyUse.isDown();
+                    OWNetworkHandler.sendToServer(new CrocodileRightClickPacket(isRightClickDown));
+                }
             }
         }
     }

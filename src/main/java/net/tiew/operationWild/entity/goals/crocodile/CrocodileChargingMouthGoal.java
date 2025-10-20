@@ -41,7 +41,7 @@ public class CrocodileChargingMouthGoal extends Goal {
 
         if (this.crocodile.distanceTo(this.crocodile.getTarget()) <= 3) {
             if (this.crocodile.getChargingMouthTimer() >= 30) {
-                makeBigHurt(this.crocodile.getDamage() * (crocodile.getChargingMouthTimer() / 60), OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0f, 2.0f, 2.25f);
+                crocodile.crocodileBehaviorHandler.makeBigHurt(this.crocodile.getDamage() * (crocodile.getChargingMouthTimer() / 60), OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0f, 2.0f, 2.25f);
                 stop();
             }
         }
@@ -82,37 +82,5 @@ public class CrocodileChargingMouthGoal extends Goal {
         if (target == null) return false;
         if (target.isInWater() || this.crocodile.isInWater()) return false;
         return crocodile.getRandom().nextInt(20) == 0 && this.crocodile.getHealth() >= this.crocodile.getMaxHealth() / 2 && this.crocodile.distanceTo(target) >= 10;
-    }
-
-    public void makeBigHurt(float attackDamage, SoundEvent sound, double width, double height, double reach) {
-        double yaw = Math.toRadians(this.crocodile.getYRot());
-        double centerX = this.crocodile.getX() - Math.sin(yaw) * reach;
-        double centerZ = this.crocodile.getZ() + Math.cos(yaw) * reach;
-        double centerY = this.crocodile.getY() + 0.5;
-
-        AABB attackBox = new AABB(
-                centerX - width / 2, centerY - height, centerZ - width / 2,
-                centerX + width / 2, centerY + height, centerZ + width / 2
-        );
-
-        List<LivingEntity> targets = this.crocodile.level().getEntitiesOfClass(
-                LivingEntity.class,
-                attackBox,
-                entity -> entity != crocodile && !this.crocodile.isAlliedTo(entity)
-        );
-
-        for (LivingEntity target : targets) {
-            if (target.getHealth() < target.getMaxHealth() * 0.3f) {
-                this.crocodile.killedEntity((ServerLevel) this.crocodile.level(), target);
-            } else target.hurt(this.crocodile.damageSources().mobAttack(this.crocodile), attackDamage);
-
-            Vec3 knockbackDirection = target.position().subtract(this.crocodile.position()).normalize();
-            Vec3 knockback = knockbackDirection.scale(2.5);
-            target.setDeltaMovement(target.getDeltaMovement().add(knockback.x, knockback.y * 0.5, knockback.z));
-
-            target.addEffect(new MobEffectInstance(OWEffects.FRACTURE.getDelegate(), OWUtils.generateExponentialExp(150, 300), 0));
-        }
-
-        this.crocodile.level().playSound(null, this.crocodile.getX(), this.crocodile.getY(), this.crocodile.getZ(), sound, SoundSource.NEUTRAL, 1.0F, 0.75f);
     }
 }
