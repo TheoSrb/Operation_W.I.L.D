@@ -233,6 +233,8 @@ public class OperationWild {
             return 3;
         } else if (entityType == OWEntityRegistry.MANDRILL.get()) {
             return 2;
+        } else if (entityType == OWEntityRegistry.CROCODILE.get()) {
+            return 4;
         }
         return -1;
     }

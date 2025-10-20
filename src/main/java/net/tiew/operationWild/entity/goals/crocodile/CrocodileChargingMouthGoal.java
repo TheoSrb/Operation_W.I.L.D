@@ -66,7 +66,7 @@ public class CrocodileChargingMouthGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         return crocodile.getTarget() != null && crocodile.isChargingMouth() && !this.crocodile.isInWater() && this.crocodile.getTarget().distanceTo(this.crocodile) <= 20
-                && !crocodile.isNapping() && !crocodile.isFakeNap();
+                && !crocodile.isNapping();
     }
 
     @Override
@@ -75,7 +75,7 @@ public class CrocodileChargingMouthGoal extends Goal {
             cooldown--;
             return false;
         }
-        return isValidTarget(this.crocodile.getTarget()) && !crocodile.isTame() && !crocodile.isSitting() && !crocodile.isNapping() && !crocodile.isFakeNap();
+        return isValidTarget(this.crocodile.getTarget()) && !crocodile.isTame() && !crocodile.isSitting() && !crocodile.isNapping();
     }
 
     private boolean isValidTarget(LivingEntity target) {

@@ -25,6 +25,8 @@ public class CrocodileNapGoal extends Goal {
     private int napTickCounter = 0;
     private boolean shouldStop = false;
 
+    private boolean isFakeNap = false;
+
     public CrocodileNapGoal(CrocodileEntity crocodile, float wantNapMultiplier, int napTimerMax, boolean conditionToWork) {
         this.crocodile = crocodile;
         this.wantNapMultiplier = wantNapMultiplier;
@@ -41,8 +43,8 @@ public class CrocodileNapGoal extends Goal {
             return;
         }
 
-        if (crocodile.isNapping() || crocodile.isFakeNap()) {
-            if (crocodile.isFakeNap()) {
+        if (crocodile.isNapping()) {
+            if (isFakeNap) {
                 List<LivingEntity> entities = this.crocodile.level().getEntitiesOfClass(LivingEntity.class, this.crocodile.getBoundingBox().inflate(4));
 
                 for (LivingEntity entity : entities) {
@@ -68,7 +70,7 @@ public class CrocodileNapGoal extends Goal {
                 shouldStop = true;
             }
 
-            if (!crocodile.isFakeNap()) {
+            if (!isFakeNap) {
                 handleNappingEffects();
             }
 
@@ -185,16 +187,23 @@ public class CrocodileNapGoal extends Goal {
     }
 
     private void startNapping() {
-        if (this.crocodile.getRandom().nextInt(2) == 0) {
-            this.crocodile.setFakeNap(true);
-        } else this.crocodile.setNap(true);
+        List<LivingEntity> entities = this.crocodile.level().getEntitiesOfClass(LivingEntity.class, this.crocodile.getBoundingBox().inflate(15));
 
-        this.crocodile.playAmbientSound();
+        for (LivingEntity entity : entities) {
+            if (entity instanceof Player player && player.isCreative()) {
+                continue;
+            }
+            if (entity.isAlive() && !(entity instanceof CrocodileEntity)) {
+                this.isFakeNap = true;
+                break;
+            }
+        }
+        this.crocodile.setNap(true);
     }
 
     private void startAwaken() {
         crocodile.setNap(false);
-        crocodile.setFakeNap(false);
+        this.isFakeNap = false;
         stop();
     }
 }

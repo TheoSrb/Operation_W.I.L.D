@@ -291,11 +291,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             @Override
             public void tick() {
                 if (this.mob.getTarget() == null) {
-                    if (this.mob instanceof CrocodileEntity crocodile && !crocodile.isFakeNap()) {
-                        super.tick();
-                    } else {
-                        super.tick();
-                    }
+                    super.tick();
                 }
             }
         };
@@ -1700,8 +1696,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
         createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
-        createTransitionAnimation("idleSleep", transitionIdleSleep, this instanceof CrocodileEntity crocodile ? (crocodile.isFakeNap()) : this.isNapping(), 20 * (this instanceof WalrusEntity ? 2 : 1));
-        createTransitionAnimation("sleepIdle", transitionSleepIdle, this instanceof CrocodileEntity crocodile ? (!crocodile.isFakeNap()) : !this.isNapping(), 20 * (this instanceof WalrusEntity ? 2 : 1));
+        createTransitionAnimation("idleSleep", transitionIdleSleep, this.isNapping(), 20 * (this instanceof WalrusEntity ? 2 : 1));
+        createTransitionAnimation("sleepIdle", transitionSleepIdle, !this.isNapping(), 20 * (this instanceof WalrusEntity ? 2 : 1));
 
         if (sittingCooldown > 0) sittingCooldown--;
 
@@ -2659,10 +2655,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 this.level().broadcastEntityEvent(this, (byte) 7);
                 this.setSitting(false);
                 this.setNap(false);
-
-                if (this instanceof CrocodileEntity crocodile) {
-                    crocodile.setFakeNap(false);
-                }
 
                 this.setHealth(this.getMaxHealth());
                 double pitch = OWUtils.generateRandomInterval(0.8, 1.0);

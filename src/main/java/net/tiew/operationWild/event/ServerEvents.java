@@ -63,7 +63,7 @@ public class ServerEvents {
         DamageSource source = event.getSource();
 
         if (source.getEntity() instanceof CrocodileEntity) {
-            if (!victim.isInWater() && victim.getType().is(OWTags.Entities.DROP_CARCASS) && !victim.isBaby()) {
+            if (!victim.isInWater() && (victim.getType().is(OWTags.Entities.DROP_CARCASS) || victim instanceof Player) && !victim.isBaby()) {
                 if (victim.level().getRandom().nextFloat() < 0.25f) {
                     BlockPos pos = victim.blockPosition();
                     Level level = victim.level();

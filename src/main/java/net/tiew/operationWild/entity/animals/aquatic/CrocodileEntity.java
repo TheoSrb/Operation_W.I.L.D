@@ -86,7 +86,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_CHARGING_MOUTH = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> CHARGING_MOUTH_TIMER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Boolean> IS_FAKE_NAP = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -153,7 +152,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(IS_MAD, false);
         builder.define(IS_CHARGING_MOUTH, false);
-        builder.define(IS_FAKE_NAP, false);
         builder.define(CHARGING_MOUTH_TIMER, 0.0f);
     }
 
@@ -289,7 +287,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     protected @Nullable SoundEvent getAmbientSound() {
-        if (isNapping() || isFakeNap()) return null;
+        if (isNapping()) return null;
         return RANDOM(2) ? RANDOM(2) ? OWSounds.CROCODILE_IDLE_1.get() : RANDOM(2) ? OWSounds.CROCODILE_IDLE_2.get() : OWSounds.CROCODILE_IDLE_3.get() : null;
     }
 
@@ -315,7 +313,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.setDeltaMovement(movement.x * 0.15, movement.y, movement.z * 0.15);
         }
         super.travel(vec3);
-        if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !isFakeNap() && !this.isVehicle()) this.jumpFromGround();
+        if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
     }
 
     public void tick() {
@@ -335,11 +333,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (this.getTarget() != null && this.getTarget().hasEffect(OWEffects.FRACTURE.getDelegate())) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
-        }
-
-        if (this.isFakeNap()) {
-            getNavigation().stop();
-            getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0);
         }
 
         handleRunningEffects(20, SoundEvents.HORSE_STEP, 0.2f, new int[]{10, 10});
@@ -385,7 +378,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public void setTarget(@Nullable LivingEntity target) {
-        if (this.isFakeNap() || this.isNapping()) {
+        if (this.isNapping()) {
             return;
         }
 
@@ -421,7 +414,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             return wasHurt;
         }
 
-        this.setFakeNap(false);
         return super.hurt(damageSource, v);
     }
 
@@ -596,18 +588,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.napAnimationState.stop();
         }
 
-        if (this.isFakeNap()) {
-            if (this.fakeNapAnimationStartTime <= 0) {
-                this.fakeNapAnimationStartTime = 200;
-                this.fakeNapAnimationState.start(this.tickCount);
-            } else --this.fakeNapAnimationStartTime;
-        }
-
-        if (!this.isFakeNap()) {
-            this.fakeNapAnimationStartTime = 0;
-            this.fakeNapAnimationState.stop();
-        }
-
         setupComboAnimations();
     }
 
@@ -666,12 +646,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public boolean isChargingMouth() { return this.entityData.get(IS_CHARGING_MOUTH);}
 
-    public void setFakeNap(boolean isFakeNap) {
-        this.entityData.set(IS_FAKE_NAP, isFakeNap);
-    }
-
-    public boolean isFakeNap() { return this.entityData.get(IS_FAKE_NAP);}
-
     public void setChargingMouthTimer(float chargingMouthTimer) {
         this.entityData.set(CHARGING_MOUTH_TIMER, chargingMouthTimer);
     }
@@ -711,13 +685,13 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 return false;
             }
 
-            if (this.target == null || this.crocodile.isFakeNap()) return false;
+            if (this.target == null || this.crocodile.isNapping()) return false;
 
             if (this.crocodile.distanceTo(this.target) <= 6) {
                 return true;
             }
 
-            if (this.crocodile.level().isDay()) {
+            if (this.crocodile.level().isDay() && !this.target.isInWater()) {
                 return this.crocodile.getRandom().nextInt((int) (50 / this.attacksMultiplier)) == 0;
             }
 

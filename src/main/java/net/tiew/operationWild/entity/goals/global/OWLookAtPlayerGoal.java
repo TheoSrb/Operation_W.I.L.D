@@ -16,7 +16,6 @@ public class OWLookAtPlayerGoal extends LookAtPlayerGoal {
     public boolean canContinueToUse() {
         if (mob instanceof KodiakEntity kodiak && kodiak.isRolling()) return false;
         if (mob instanceof OWEntity owEntity && (owEntity.isNapping())) return false;
-        if (mob instanceof CrocodileEntity crocodile && (crocodile.isFakeNap())) return false;
         return super.canContinueToUse();
     }
 
@@ -24,7 +23,6 @@ public class OWLookAtPlayerGoal extends LookAtPlayerGoal {
     public boolean canUse() {
         if (mob instanceof KodiakEntity kodiak && kodiak.isRolling()) return false;
         if (mob instanceof OWEntity owEntity && (owEntity.isNapping())) return false;
-        if (mob instanceof CrocodileEntity crocodile && (crocodile.isFakeNap())) return false;
         return super.canUse();
     }
 }

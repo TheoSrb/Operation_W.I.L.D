@@ -176,12 +176,12 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		}
 
 		if (crocodile.transitionIdleSit.isStarted()) {
-			this.animate(crocodile.transitionIdleSit, CrocodileAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
+			this.animate(crocodile.transitionIdleSit, CrocodileAnimations.TRANSITION_IDLE_SIT, ageInTicks, 2.0f);
 			return;
 		}
 
 		if (crocodile.transitionSitIdle.isStarted()) {
-			this.animate(crocodile.transitionSitIdle, CrocodileAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
+			this.animate(crocodile.transitionSitIdle, CrocodileAnimations.TRANSITION_SIT_IDLE, ageInTicks, 2.0f);
 			return;
 		}
 
@@ -205,11 +205,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		if (crocodile.isNapping()) {
 			this.animate(crocodile.napAnimationState, CrocodileAnimations.NAP, ageInTicks, 1.0f);
-			return;
-		}
-
-		if (crocodile.isFakeNap()) {
-			this.animate(crocodile.fakeNapAnimationState, CrocodileAnimations.FAKE_NAP, ageInTicks, 1.0f);
 			return;
 		}
 

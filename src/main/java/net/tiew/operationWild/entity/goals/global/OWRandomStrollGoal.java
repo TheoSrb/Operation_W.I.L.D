@@ -15,13 +15,11 @@ public class OWRandomStrollGoal extends RandomStrollGoal {
 
     @Override
     public boolean canUse() {
-        if (mob instanceof CrocodileEntity crocodile && (crocodile.isFakeNap())) return false;
         return super.canUse() && !owEntity.isNapping();
     }
 
     @Override
     public boolean canContinueToUse() {
-        if (mob instanceof CrocodileEntity crocodile && (crocodile.isFakeNap())) return false;
         return super.canContinueToUse() && !owEntity.isNapping();
     }
 }

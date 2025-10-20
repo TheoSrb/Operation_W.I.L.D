@@ -19,7 +19,6 @@ public class OWRandomLookAroundGoal extends Goal {
     }
 
     public boolean canUse() {
-        if (owEntity instanceof CrocodileEntity crocodile && (crocodile.isFakeNap())) return false;
         if (owEntity instanceof KodiakEntity kodiak) {
             if (kodiak.isRolling() || kodiak.isRubs()) return false;
         }
@@ -27,7 +26,6 @@ public class OWRandomLookAroundGoal extends Goal {
     }
 
     public boolean canContinueToUse() {
-        if (owEntity instanceof CrocodileEntity crocodile && (crocodile.isFakeNap())) return false;
         if (owEntity instanceof KodiakEntity kodiak) {
             if (kodiak.isRolling() || kodiak.isRubs()) return false;
         }
