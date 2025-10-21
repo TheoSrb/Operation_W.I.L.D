@@ -244,6 +244,7 @@ public class OperationWild {
         OWCommands.AddExperienceCommand.register(event.getDispatcher());
         OWCommands.SetPrestigeCommand.register(event.getDispatcher());
         OWCommands.ForceTameCommand.register(event.getDispatcher());
+        OWCommands.GetTamingExperienceCommand.register(event.getDispatcher());
     }
 
     @EventBusSubscriber(modid = MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

@@ -12,6 +12,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.event.ClientEvents;
 
 public class OWCommands {
     public static class AddExperienceCommand {
@@ -97,6 +98,24 @@ public class OWCommands {
                     source.sendSuccess(() -> Component.translatable("forceTameCommandNoTarget")
                             .setStyle(Style.EMPTY.withColor(0xFF0000)), false);
                 }
+            } catch (Exception ignored) {
+            }
+            return 1;
+        }
+    }
+
+    public static class GetTamingExperienceCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(
+                    Commands.literal("tamingexperience").executes(GetTamingExperienceCommand::execute)
+            );
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            CommandSourceStack source = context.getSource();
+            try {
+                ServerPlayer player = source.getPlayerOrException();
+                player.sendSystemMessage(Component.translatable(String.valueOf(ClientEvents.tamingExperience)));
             } catch (Exception ignored) {
             }
             return 1;
