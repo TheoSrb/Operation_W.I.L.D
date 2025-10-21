@@ -356,8 +356,6 @@ public class ClientEvents {
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
 
-        System.out.println(tamingExperience);
-
         boolean useKeyIsPressed = Minecraft.getInstance().options.keyUse.isDown();
         boolean forwardKeyIsPressed = Minecraft.getInstance().options.keyUp.isDown();
         boolean rightKeyIsPressed = Minecraft.getInstance().options.keyRight.isDown();
