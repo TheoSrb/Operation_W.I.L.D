@@ -23,6 +23,7 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -140,10 +141,14 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
             List<Entity> livingEntitiesCanBeHurt = this.level().getEntitiesOfClass(Entity.class, this.getBoundingBox().inflate(2));
 
             for (Entity entity : livingEntitiesCanBeHurt) {
+                if (entity instanceof ItemEntity) continue;
+                if (entity instanceof Player player && player.getVehicle() instanceof WalrusEntity) continue;
                 if (!entity.isInvulnerable() && entity.isAlive() && !(entity instanceof JellyfishEntity)) {
                     if (!this.level().isClientSide() && tickCount % 20 == 0) {
                         DamageSource electricDamages = OWDamageSources.createElectrifiedDamage((ServerLevel) this.level(), this);
-                        entity.hurt(electricDamages, this.getDamage());
+                        if (!(entity instanceof WalrusEntity)) {
+                            entity.hurt(electricDamages, this.getDamage());
+                        }
                         if (entity instanceof LivingEntity livingEntity && livingEntity.getVehicle() == null) {
                             if (livingEntity instanceof Player player && player.isCreative()) return;
                             livingEntity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 40, 255, false, false, false));
@@ -223,7 +228,8 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
 
     @Override
     public boolean hurt(DamageSource damageSource, float v) {
-        return super.hurt(damageSource, v);
+        boolean hurtByWalrus = damageSource.getEntity() instanceof WalrusEntity;
+        return super.hurt(damageSource, v * (hurtByWalrus ? 1.5f : 1.0f));
     }
 
     @Override

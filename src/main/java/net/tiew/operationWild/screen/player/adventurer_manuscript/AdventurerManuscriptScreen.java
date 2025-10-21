@@ -186,6 +186,7 @@ public class AdventurerManuscriptScreen extends Screen {
 
         Map<EntityType<? extends OWEntity>, Integer> sortedEntities = OW_ENTITIES.entrySet()
                 .stream()
+                .filter(entry -> entry.getKey() != null && entry.getValue() != null)
                 .sorted((entry1, entry2) -> {
                     String translatedName1 = Component.translatable(entry1.getKey().getDescriptionId()).getString();
                     String translatedName2 = Component.translatable(entry2.getKey().getDescriptionId()).getString();
