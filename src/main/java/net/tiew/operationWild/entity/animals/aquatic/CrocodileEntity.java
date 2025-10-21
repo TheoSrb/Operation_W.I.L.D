@@ -66,6 +66,7 @@ import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileChargingMouthGoal;
+import net.tiew.operationWild.entity.goals.crocodile.CrocodileGoToWaterWithFoodGoal;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileNapGoal;
 import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
@@ -93,6 +94,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_CHARGING_MOUTH = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> CHARGING_MOUTH_TIMER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> IS_GRABBING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> GRABBED_TARGET_ID = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -145,11 +148,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         initCrocodileBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
         this.goalSelector.addGoal(0, new OWAttackGoal(this, this.getSpeed() * 15f, 15, 4, false));
-        this.goalSelector.addGoal(1, new CrocodileChargingMouthGoal(this));
-        this.goalSelector.addGoal(2, new CrocodileNapGoal(this, 1.15f, 500, true));
-        this.goalSelector.addGoal(3, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(4, new RandomStrollGoal(this, 0.7D));
-        this.goalSelector.addGoal(5, new OWRandomLookAroundGoal(this));
+        this.goalSelector.addGoal(1, new CrocodileGoToWaterWithFoodGoal(this));
+        this.goalSelector.addGoal(2, new CrocodileChargingMouthGoal(this));
+        this.goalSelector.addGoal(3, new CrocodileNapGoal(this, 1.15f, 500, true));
+        this.goalSelector.addGoal(4, new OWBreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(5, new RandomStrollGoal(this, 0.7D));
+        this.goalSelector.addGoal(6, new OWRandomLookAroundGoal(this));
 
         this.lookControl = new LookControl(this) {
             @Override
@@ -167,6 +171,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(IS_MAD, false);
         builder.define(IS_CHARGING_MOUTH, false);
         builder.define(CHARGING_MOUTH_TIMER, 0.0f);
+        builder.define(IS_GRABBING, false);
+        builder.define(GRABBED_TARGET_ID, -1);
     }
 
     public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
@@ -349,7 +355,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public void playStepSound(BlockPos blockPos, BlockState blockState) {
-        if (!isRunning()) super.playStepSound(blockPos, blockState);
+        if (!isRunning() && !isInWater()) super.playStepSound(blockPos, blockState);
     }
 
     @Override
@@ -392,6 +398,18 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (this.getTarget() != null && this.getTarget().hasEffect(OWEffects.FRACTURE.getDelegate())) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
+        }
+
+        if (hasSomeoneInHisMouth()) {
+            LivingEntity grabbed = this.getGrabbedTarget();
+
+            if (!this.getGrabbedTarget().isAlive() || (this.getGrabbedTarget() instanceof Player player && player.isCreative())) {
+                grabbed.stopRiding();
+                this.setGrabbing(false, null);
+                this.setTarget(null);
+            } else {
+                if (grabbed != null) grabbed.startRiding(this);
+            }
         }
 
         markMudWithFootprints();
@@ -456,6 +474,17 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     @Override
+    public void hurtAfterCombo(LivingEntity entity) {
+        boolean targetIsNearOfWater = crocodileBehaviorHandler.isNearOfWater(10);
+        boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() /*&& this.random.nextInt(3) == 0*/ &&
+                !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth();
+
+        if (canGrab) {
+            this.setGrabbing(true, entity);
+        }
+    }
+
+    @Override
     public boolean hurt(DamageSource damageSource, float v) {
         if (!this.isTame()) {
             if (this.isSitting()) this.setSitting(false);
@@ -500,8 +529,15 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     protected void positionRider(Entity passenger, MoveFunction function) {
-        super.positionRider(passenger, function);
-        function.accept(passenger, this.getX(), this.getY() + 0.35f, this.getZ());
+        Vec3 look = this.getLookAngle();
+
+        if (passenger == this.getGrabbedTarget()) {
+            function.accept(passenger, this.getX() + look.x * 1.5f , this.getY() - 0.15, this.getZ() + look.z * 1.5f);
+        } else {
+            super.positionRider(passenger, function);
+
+            function.accept(passenger, this.getX(), this.getY() + 0.35f, this.getZ());
+        }
     }
 
     private void positionFirstPassenger(Entity entity, MoveFunction moveFunction, Vec3 look, double dot) {
@@ -720,6 +756,29 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public boolean isChargingMouth() { return this.entityData.get(IS_CHARGING_MOUTH);}
+
+    public void setGrabbing(boolean isGrabbing, LivingEntity entity) {
+        this.entityData.set(IS_GRABBING, isGrabbing);
+        this.setGrabbedTarget(entity);
+    }
+
+    public boolean isGrabbing() { return this.entityData.get(IS_GRABBING);}
+
+    public boolean hasSomeoneInHisMouth() {
+        if (this.level().isClientSide()) return false;
+        return this.getGrabbedTarget() != null && this.isGrabbing();
+    }
+
+    public LivingEntity getGrabbedTarget() {
+        int id = this.entityData.get(GRABBED_TARGET_ID);
+        if (id == -1) return null;
+        Entity entity = this.level().getEntity(id);
+        return entity instanceof LivingEntity ? (LivingEntity) entity : null;
+    }
+
+    public void setGrabbedTarget(LivingEntity target) {
+        this.entityData.set(GRABBED_TARGET_ID, target == null ? -1 : target.getId());
+    }
 
     public void setChargingMouthTimer(float chargingMouthTimer) {
         this.entityData.set(CHARGING_MOUTH_TIMER, chargingMouthTimer);

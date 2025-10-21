@@ -80,6 +80,27 @@ public class ClientEvents {
     private static final long CLICK_COOLDOWN = 50;
 
 
+    private static int debateClick = 0;
+
+    @SubscribeEvent
+    public static void onDebate(InputEvent.MouseButton.Pre event) {
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+
+        if (player != null) {
+
+            if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != player && crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player) {
+                if (debateClick >= 20) {
+                    debateClick = 0;
+                    OWNetworkHandler.sendToServer(new StopGrabPacket());
+                } else {
+                    debateClick++;
+                }
+            }
+        }
+    }
+
+
     @SubscribeEvent
     public static void onMouseClick(InputEvent.MouseButton.Pre event) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -974,17 +995,17 @@ public class ClientEvents {
         boolean renderPeacock = targetedEntity instanceof PeacockEntity;
         boolean renderFoodOverlay = targetedEntity instanceof OWEntity ow && !ow.getItemFood().isEmpty();
 
+        boolean isGrabByBoa = player.getPassengers().stream().anyMatch(passenger -> passenger instanceof BoaEntity);
+        boolean isGrabByShark = player.level().getEntitiesOfClass(TigerSharkEntity.class, player.getBoundingBox().inflate(5.0)).stream().anyMatch(tigerShark -> tigerShark.isShakingPrey() && tigerShark.getTarget() == player);
+        boolean isGrabByCrocodile = player.level().getEntitiesOfClass(CrocodileEntity.class, player.getBoundingBox().inflate(5.0)).stream().anyMatch(crocodile -> crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player);
+
         if (player != null) {
             PlantEmpressBossBar.render(event.getGuiGraphics(),
                     event.getGuiGraphics().guiWidth(),
                     event.getGuiGraphics().guiHeight());
 
-            if (player.getPassengers().stream().anyMatch(passenger -> passenger instanceof BoaEntity) ||
-                    player.level().getEntitiesOfClass(TigerSharkEntity.class, player.getBoundingBox().inflate(5.0))
-                            .stream()
-                            .anyMatch(tigerShark -> tigerShark.isShakingPrey() && tigerShark.getTarget() == player)) {
-                RightClickAlertOverlay.render(event.getGuiGraphics(),
-                        event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
+            if (isGrabByBoa || isGrabByShark || isGrabByCrocodile) {
+                RightClickAlertOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
             if (player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine)) {
@@ -1186,6 +1207,23 @@ public class ClientEvents {
             poseStack.rotateAround(rotation, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
 
             poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
+        } else if (event.getEntity().getVehicle() instanceof CrocodileEntity crocodile) {
+            if (event.getEntity() == crocodile.getGrabbedTarget()) {
+
+                PoseStack poseStack = event.getPoseStack();
+                poseStack.pushPose();
+
+                Vec3 pivotPoint = new Vec3(0, 0, 0);
+
+                poseStack.mulPose(Axis.YP.rotationDegrees(-event.getEntity().getYRot()));
+
+                Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.getBodyZRot());
+                Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot());
+                poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+                poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+
+                poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
+            }
         } else if (event.getEntity().getVehicle() instanceof OWEntity owEntity) {
 
             PoseStack poseStack = event.getPoseStack();
@@ -1212,6 +1250,12 @@ public class ClientEvents {
 
         if (event.getEntity().getVehicle() instanceof WalrusEntity walrus && walrus.getComboAttack() == 3) {
             return;
+        }
+
+        if (event.getEntity().getVehicle() instanceof CrocodileEntity crocodile) {
+            if (event.getEntity() != crocodile.getGrabbedTarget()) {
+                return;
+            }
         }
 
         PoseStack poseStack = event.getPoseStack();

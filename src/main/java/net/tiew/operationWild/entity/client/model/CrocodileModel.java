@@ -171,6 +171,11 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animate(crocodile.attack3Combo, CrocodileAnimations.ATTACK_STRIKE_3, ageInTicks, 1.0f);
 		}
 
+		if (crocodile.isGrabbing()) {
+			this.mouth_down.xRot = (float) Math.toRadians(20);
+			this.mouth_up.xRot = (float) Math.toRadians(-20);
+		}
+
 		if (crocodile.isMad()) {
 			this.left_eyeball.xScale = 0;
 			this.left_eyeball.yScale = 0;
@@ -240,12 +245,17 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 
 		if (crocodile.level().isClientSide()) {
-			if (crocodile.isInWater()) {
-				crocodile.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));
-				crocodile.setBodyXRot((float) Math.toDegrees(this.ALL.xRot));
+			if (crocodile.isGrabbing()) {
+				crocodile.setBodyZRot((float) ((float) Math.toDegrees(this.head.zRot) + Math.toDegrees(this.neck.zRot)));
+				crocodile.setBodyXRot((float) ((float) Math.toDegrees(this.head.xRot) + Math.toDegrees(this.neck.xRot)));
 			} else {
-				crocodile.setBodyZRot((float) Math.toDegrees(this.body.zRot));
-				crocodile.setBodyXRot((float) Math.toDegrees(this.body.xRot));
+				if (crocodile.isInWater()) {
+					crocodile.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));
+					crocodile.setBodyXRot((float) Math.toDegrees(this.ALL.xRot));
+				} else {
+					crocodile.setBodyZRot((float) Math.toDegrees(this.body.zRot));
+					crocodile.setBodyXRot((float) Math.toDegrees(this.body.xRot));
+				}
 			}
 		}
     }

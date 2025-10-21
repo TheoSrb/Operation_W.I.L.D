@@ -2729,6 +2729,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     @Override
+    public void hurtAfterCombo(LivingEntity entity) {
+
+    }
+
+    @Override
     public float vehicleRunSpeedMultiplier() {
         return 0;
     }
@@ -2893,7 +2898,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 } else {
                     boolean isTigerInUltimate = this instanceof TigerEntity tiger && tiger.isUltimate();
                     if (this instanceof BoaEntity boa) boa.doHurtTarget(livingEntity);
-                    else livingEntity.hurt(this.damageSources().mobAttack(this), isTigerInUltimate ? attackDamage * 1.5f : attackDamage);
+                    else {
+                        livingEntity.hurt(this.damageSources().mobAttack(this), isTigerInUltimate ? attackDamage * 1.5f : attackDamage);
+                        this.hurtAfterCombo(livingEntity);
+                    }
 
                     if ($$1 > 0) {
                         Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();

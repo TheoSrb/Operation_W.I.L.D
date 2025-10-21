@@ -23,6 +23,8 @@ public interface IOWEntity {
         return null;
     }
 
+    void hurtAfterCombo(LivingEntity entity);
+
     boolean preferRawMeat();
     boolean preferCookedMeat();
     boolean preferVegetables();

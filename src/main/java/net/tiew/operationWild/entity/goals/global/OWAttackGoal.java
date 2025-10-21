@@ -43,6 +43,8 @@ public class OWAttackGoal extends Goal {
     public boolean canUse() {
         LivingEntity target = this.mob.getTarget();
 
+        if (this.mob instanceof CrocodileEntity crocodile && crocodile.hasSomeoneInHisMouth()) return false;
+
         if (target == null || !target.isAlive()) {
             return false;
         }
@@ -54,6 +56,8 @@ public class OWAttackGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         LivingEntity target = this.mob.getTarget();
+
+        if (this.mob instanceof CrocodileEntity crocodile && crocodile.hasSomeoneInHisMouth()) return false;
 
         if (target == null || !target.isAlive()) {
             return false;

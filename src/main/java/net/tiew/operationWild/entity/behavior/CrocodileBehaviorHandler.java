@@ -71,6 +71,28 @@ public class CrocodileBehaviorHandler {
         }
     }
 
+    public boolean isNearOfWater(int searchRadius) {
+        boolean waterNearby = false;
+
+        for (int x = -searchRadius; x <= searchRadius; x++) {
+            for (int y = -4; y <= 4; y++) {
+                for (int z = -searchRadius; z <= searchRadius; z++) {
+                    BlockPos checkPos = this.crocodile.blockPosition().offset(x, y, z);
+                    BlockState state = this.crocodile.level().getBlockState(checkPos);
+
+                    if (state.getBlock() == Blocks.WATER) {
+                        waterNearby = true;
+                        break;
+                    }
+                }
+                if (waterNearby) break;
+            }
+            if (waterNearby) break;
+        }
+
+        return waterNearby;
+    }
+
     public void makeBigHurt(float attackDamage, SoundEvent sound, double width, double height, double reach) {
         double yaw = Math.toRadians(this.crocodile.getYRot());
         double centerX = this.crocodile.getX() - Math.sin(yaw) * reach;
