@@ -27,6 +27,8 @@ public class CrocodileNapGoal extends Goal {
 
     private boolean isFakeNap = false;
 
+    private float yaw = 0.0f;
+
     public CrocodileNapGoal(CrocodileEntity crocodile, float wantNapMultiplier, int napTimerMax, boolean conditionToWork) {
         this.crocodile = crocodile;
         this.wantNapMultiplier = wantNapMultiplier;
@@ -73,10 +75,6 @@ public class CrocodileNapGoal extends Goal {
             if (!isFakeNap) {
                 handleNappingEffects();
             }
-
-            crocodile.setYRot(crocodile.getYRot());
-            crocodile.yRotO = crocodile.getYRot();
-            crocodile.setYHeadRot(crocodile.getYRot());
         }
     }
 
@@ -199,6 +197,7 @@ public class CrocodileNapGoal extends Goal {
             }
         }
         this.crocodile.setNap(true);
+        yaw = this.crocodile.getYRot();
     }
 
     private void startAwaken() {

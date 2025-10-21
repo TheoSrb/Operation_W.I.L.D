@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.component.OWDataComponentTypes;
+import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.networking.packets.to_server.CheckManuscriptEntityPacket;
@@ -91,7 +92,7 @@ public class ManuscriptFragmentItem extends Item {
 
             if (entityType != null) {
                 if (level.isClientSide()) {
-                    boolean hasEntity = AdventurerManuscriptScreen.OW_ENTITIES.containsKey(entityType);
+                    boolean hasEntity = OWDatasSave.owDatas.containsKey(entityName);
 
                     if (hasEntity) {
                         OWEntity entity = entityType.create(level);
@@ -102,8 +103,8 @@ public class ManuscriptFragmentItem extends Item {
                                         .setStyle(Style.EMPTY.withColor(0xFF0000)),
                                 true
                         );
-                    } else {
-                        player.playSound(net.minecraft.sounds.SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F, 1.0F);
+
+                        return InteractionResultHolder.fail(stack);
                     }
 
                     PacketDistributor.sendToServer(new CheckManuscriptEntityPacket(entityName, hasEntity));

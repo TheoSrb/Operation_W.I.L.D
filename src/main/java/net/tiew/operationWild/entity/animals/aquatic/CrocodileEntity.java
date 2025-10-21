@@ -150,6 +150,15 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.goalSelector.addGoal(3, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(4, new RandomStrollGoal(this, 0.7D));
         this.goalSelector.addGoal(5, new OWRandomLookAroundGoal(this));
+
+        this.lookControl = new LookControl(this) {
+            @Override
+            public void tick() {
+                if (this.mob instanceof CrocodileEntity crocodile && !crocodile.isSleeping()) {
+                    super.tick();
+                }
+            }
+        };
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {

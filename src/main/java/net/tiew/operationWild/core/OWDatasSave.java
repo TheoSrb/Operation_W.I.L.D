@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-public class AdventurerManuscriptCore {
+public class OWDatasSave {
 
     public static Properties owDatas = new Properties();
 
@@ -26,6 +26,11 @@ public class AdventurerManuscriptCore {
         updateFile(properties);
     }
 
+    public static void saveTamingExperience(Properties properties, double experience) {
+        properties.setProperty("tamingExp", String.valueOf(experience));
+        updateFile(properties);
+    }
+
     public static void loadFromFile() {
         String worldName = ClientEvents.getWorldName(Minecraft.getInstance().player);
         File propertiesFile = new File("saves/" + worldName + "/OWDataCore.properties");
@@ -35,12 +40,16 @@ public class AdventurerManuscriptCore {
         if (propertiesFile.exists()) {
             try (FileInputStream input = new FileInputStream(propertiesFile)) {
                 owDatas.load(input);
-                System.out.println("Données chargées depuis : " + propertiesFile.getAbsolutePath());
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+
+        String tamingExpStr = owDatas.getProperty("tamingExp");
+        if (tamingExpStr != null && !tamingExpStr.trim().isEmpty()) {
+            ClientEvents.tamingExperience = Double.parseDouble(tamingExpStr);
         } else {
-            System.out.println("Aucun fichier trouvé, nouveau monde vide.");
+            ClientEvents.tamingExperience = 0.0;
         }
     }
 
@@ -48,7 +57,6 @@ public class AdventurerManuscriptCore {
         String worldName = ClientEvents.getWorldName(Minecraft.getInstance().player);
 
         try (FileOutputStream output = new FileOutputStream("saves/" + worldName + "/" + "OWDataCore.properties")) {
-            System.out.println("Fichier sauvegardé à : " + new File("saves/" + worldName + "/OWDataCore.properties").getAbsolutePath());
             properties.store(output, "Operation W.I.L.D Local Datas");
         } catch (IOException e) {
             e.printStackTrace();

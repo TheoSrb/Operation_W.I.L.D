@@ -6,7 +6,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.model.geom.EntityModelSet;
@@ -16,15 +15,12 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.core.AdventurerManuscriptCore;
-import net.tiew.operationWild.core.OWUtils;
+import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.client.model.AdventurerManuscriptModel;
@@ -41,6 +37,8 @@ import java.text.Collator;
 import java.util.*;
 
 public class AdventurerManuscriptScreen extends Screen {
+
+    public static Map<EntityType<? extends OWEntity>, Integer> OW_ENTITIES = new LinkedHashMap<>();
 
     public static String leftChapterPage = "";
     public static String LEFT_PAGE;
@@ -83,15 +81,13 @@ public class AdventurerManuscriptScreen extends Screen {
 
     private EntityType<? extends OWEntity> lastEntityTypeFound = null;
 
-    public static Map<EntityType<? extends OWEntity>, Integer> OW_ENTITIES = new LinkedHashMap<>();
-
     public AdventurerManuscriptScreen() {
         super(Component.literal(""));
     }
 
     public static InteractionResult addEntityToManuscript(EntityType<? extends OWEntity> entityType, int page, Player player) {
         String str = entityType.toString().split("entity.ow.")[1];
-        AdventurerManuscriptCore.addToManuscript(AdventurerManuscriptCore.owDatas, str);
+        OWDatasSave.addToManuscript(OWDatasSave.owDatas, str);
 
         ClientEvents.isNotifiedOWBook = true;
         player.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP);
@@ -154,25 +150,57 @@ public class AdventurerManuscriptScreen extends Screen {
     protected void init() {
         super.init();
 
+        loadAndSortEntities();
+        initializeBookEntity();
+        resetTimers();
+        updatePageContent();
+    }
+
+    private void loadAndSortEntities() {
         String worldName = ClientEvents.getWorldName(Minecraft.getInstance().player);
         File propertiesFile = new File("saves/" + worldName + "/OWDataCore.properties");
 
         if (propertiesFile.exists()) {
-            try (FileInputStream input = new FileInputStream(propertiesFile)) {
-                AdventurerManuscriptCore.owDatas.load(input);
-
-                for (String key : AdventurerManuscriptCore.owDatas.stringPropertyNames()) {
-                    EntityType<? extends OWEntity> entityType = OWEntityRegistry.getEntityTypeFromName(key);
-                    OW_ENTITIES.put(entityType, OperationWild.getMaxPageForEntityInManuscript(entityType));
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            loadEntitiesFromFile(propertiesFile);
         }
 
+        sortEntitiesAlphabetically();
+    }
+
+    private void loadEntitiesFromFile(File propertiesFile) {
+        try (FileInputStream input = new FileInputStream(propertiesFile)) {
+            OWDatasSave.owDatas.load(input);
+
+            for (String key : OWDatasSave.owDatas.stringPropertyNames()) {
+                EntityType<? extends OWEntity> entityType = OWEntityRegistry.getEntityTypeFromName(key);
+                OW_ENTITIES.put(entityType, OperationWild.getMaxPageForEntityInManuscript(entityType));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sortEntitiesAlphabetically() {
         Collator collator = Collator.getInstance();
         collator.setStrength(Collator.PRIMARY);
 
+        Map<EntityType<? extends OWEntity>, Integer> sortedEntities = OW_ENTITIES.entrySet()
+                .stream()
+                .sorted((entry1, entry2) -> {
+                    String translatedName1 = Component.translatable(entry1.getKey().getDescriptionId()).getString();
+                    String translatedName2 = Component.translatable(entry2.getKey().getDescriptionId()).getString();
+
+                    return collator.compare(translatedName1, translatedName2);
+                })
+                .collect(LinkedHashMap::new,
+                        (map, entry) -> map.put(entry.getKey(), entry.getValue()),
+                        LinkedHashMap::putAll);
+
+        OW_ENTITIES.clear();
+        OW_ENTITIES.putAll(sortedEntities);
+    }
+
+    private void initializeBookEntity() {
         if (this.cachedBookEntity == null) {
             this.cachedBookEntity = new AdventurerManuscript(
                     OWEntityRegistry.ADVENTURER_MANUSCRIPT.get(),
@@ -180,15 +208,15 @@ public class AdventurerManuscriptScreen extends Screen {
             );
             this.cachedBookEntity.tickCount = 1;
         }
+    }
 
+    private void resetTimers() {
         this.initTime = System.currentTimeMillis();
         this.totalElapsedTime = 0.0f;
         this.fadeStartTime = 0;
         this.isFading = false;
         this.pageCooldownStartTime = System.currentTimeMillis();
-
         this.maxPage = getAllAnimalPages();
-        updatePageContent();
     }
 
     @Override

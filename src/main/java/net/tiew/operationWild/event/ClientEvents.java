@@ -32,12 +32,11 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.tiew.operationWild.core.AdventurerManuscriptCore;
+import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
-import net.tiew.operationWild.entity.client.model.CrocodileModel;
 import net.tiew.operationWild.networking.ClientKillData;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManuscriptScreen;
 import org.joml.Quaternionf;
@@ -199,42 +198,8 @@ public class ClientEvents {
         }
     }
 
-    public static boolean hasPlayerKilledOWEntity(Player player, String entityNameId) {
-        File file = new File("saves/" + getWorldName(player) + "/owDatas.properties");
-        if (file.exists()) {
-            try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
-                String line = "";
-                while (line != null) {
-                    if (line.contains(entityNameId + "=")) return true;
-                    line = buffer.readLine();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
-    }
-
-    public static boolean hasPlayerTamedOWEntity(Player player, String entityNameId) {
-        File file = new File("saves/" + getWorldName(player) + "/owDatas.properties");
-        if (file.exists()) {
-            try (BufferedReader buffer = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"))) {
-                String line = "";
-                while (line != null) {
-                    if (line.contains(entityNameId + "_tamed" + "=")) return true;
-                    line = buffer.readLine();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
-    }
-
     @SubscribeEvent
     public static void onPlayerJoinWorld(ClientPlayerNetworkEvent.LoggingIn event) {
-        loadTamingExperience(event.getPlayer());
-
         if (DailyQuestsDate.isAlreadyChanged) {
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -318,7 +283,7 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(ClientPlayerNetworkEvent.LoggingIn event) {
-        AdventurerManuscriptCore.loadFromFile();
+        OWDatasSave.loadFromFile();
     }
 
     private static void applyBlowpipeRotation(PoseStack poseStack, float chargeProgress, InteractionHand hand) {
@@ -336,27 +301,6 @@ public class ClientEvents {
             poseStack.mulPose(Axis.YP.rotationDegrees(110));
             poseStack.mulPose(Axis.ZP.rotationDegrees(-90));
             poseStack.translate(-0.35D, yTranslate, zTranslate);
-        }
-    }
-
-    private static void loadTamingExperience(Player player) {
-        try {
-            String worldName = getWorldName(player);
-            String filePath = "saves/" + worldName + "/owDatas.properties";
-
-            File file = new File(filePath);
-            if (file.exists()) {
-                Properties props = new Properties();
-                try (FileInputStream fis = new FileInputStream(filePath)) {
-                    props.load(fis);
-                    String value = props.getProperty("tamingExperience", "0.0");
-                    tamingExperience = Float.parseFloat(value);
-                }
-            } else {
-                tamingExperience = 0.0f;
-            }
-        } catch (IOException | NumberFormatException e) {
-            tamingExperience = 0.0f;
         }
     }
 
@@ -411,6 +355,9 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
+
+        System.out.println(tamingExperience);
+
         boolean useKeyIsPressed = Minecraft.getInstance().options.keyUse.isDown();
         boolean forwardKeyIsPressed = Minecraft.getInstance().options.keyUp.isDown();
         boolean rightKeyIsPressed = Minecraft.getInstance().options.keyRight.isDown();

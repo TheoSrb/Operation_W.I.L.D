@@ -1,7 +1,6 @@
 package net.tiew.operationWild.entity;
 
 import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -18,7 +17,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -58,7 +56,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -68,6 +65,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.entity.animals.aquatic.*;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.config.IOWEntity;
@@ -93,14 +91,9 @@ import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.ConsumeItemPacket;
 import net.tiew.operationWild.screen.entity.OWInventoryMenu;
 import net.tiew.operationWild.screen.entity.submarine.SeaBugInventoryMenu;
-import net.tiew.operationWild.screen.player.OWEntityJournalScreen;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.core.OWUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.*;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
@@ -2550,10 +2543,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean isTame() { return (this.entityData.get(DATA_FLAGS_ID) & 4) != 0;}
 
     public void addTamingExperience(double experience, Player player) {
-        double oldExperience = ClientEvents.tamingExperience;
         ClientEvents.tamingExperience += experience;
 
-        for (double threshold : OWEntityJournalScreen.THRESHOLDS) {
+        /*for (double threshold : OWEntityJournalScreen.THRESHOLDS) {
             if (threshold > OWEntityJournalScreen.lastReachedThreshold && oldExperience < threshold && ClientEvents.tamingExperience >= threshold) {
                 OWEntityJournalScreen.lastReachedThreshold = threshold;
 
@@ -2579,12 +2571,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
                 break;
             }
-        }
+        }*/
 
         if (player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(), "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectTamingAdvancement(ClientEvents.tamingExperience));
+            serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(),
+                    "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectTamingAdvancement(ClientEvents.tamingExperience));
         }
-        saveTamingExperience(player);
+
+        OWDatasSave.saveTamingExperience(OWDatasSave.owDatas, ClientEvents.tamingExperience);
     }
 
     private String selectTamingAdvancement(double tamingExperience) {
@@ -2593,34 +2587,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         else if (tamingExperience >= 1500) return "renowned_tamer";
         else if (tamingExperience >= 300) return "novice_tamer";
         return "";
-    }
-
-    public static void saveTamingExperience(Player player) {
-        try {
-            String worldName = ClientEvents.getWorldName(player);
-            String filePath = "saves/" + worldName + "/owDatas.properties";
-
-            Properties props = new Properties();
-            File file = new File(filePath);
-
-            if (file.exists()) {
-                try (FileInputStream input = new FileInputStream(filePath)) {
-                    props.load(input);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            props.setProperty("tamingExperience", String.valueOf(ClientEvents.tamingExperience));
-
-            file.getParentFile().mkdirs();
-
-            try (FileOutputStream output = new FileOutputStream(filePath)) {
-                props.store(output, "Operation Wild - Data");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
