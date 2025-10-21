@@ -140,10 +140,10 @@ public class WalrusModel<T extends WalrusEntity> extends HierarchicalModel<T> {
 			this.animate(walrus.attack1Combo, WalrusAnimations.ATTACK_STRIKE, ageInTicks, 0.75f);
 		}
 		if (walrus.isCombo(2)) {
-			this.animate(walrus.attack2Combo, WalrusAnimations.ATTACK_STRIKE2, ageInTicks, 0.75f);
+			this.animate(walrus.attack2Combo, WalrusAnimations.ATTACK_STRIKE_2, ageInTicks, 0.75f);
 		}
 		if (walrus.isCombo(3)) {
-			this.animate(walrus.attack3Combo, WalrusAnimations.ATTACK_STRIKE3, ageInTicks, 0.85f);
+			this.animate(walrus.attack3Combo, WalrusAnimations.ATTACK_STRIKE_3, ageInTicks, 0.85f);
 		}
 
 		if (walrus.transitionIdleSleep.isStarted()) {
