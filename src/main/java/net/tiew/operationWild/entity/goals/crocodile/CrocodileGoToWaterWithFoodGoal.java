@@ -46,7 +46,7 @@ public class CrocodileGoToWaterWithFoodGoal extends Goal {
     @Override
     public void start() {
         super.start();
-        targetPos = findNearestWaterSource(20);
+        targetPos = crocodile.crocodileBehaviorHandler.findNearestWaterSource(20);
     }
 
     @Override
@@ -62,48 +62,5 @@ public class CrocodileGoToWaterWithFoodGoal extends Goal {
     @Override
     public boolean canUse() {
         return this.crocodile.hasSomeoneInHisMouth();
-    }
-
-    private BlockPos findNearestWaterSource(int searchRadius) {
-        BlockPos crocodilePos = this.crocodile.blockPosition();
-        BlockPos nearestWater = null;
-        double nearestDistance = Double.MAX_VALUE;
-
-        for (BlockPos pos : BlockPos.betweenClosed(
-                crocodilePos.offset(-searchRadius, -searchRadius, -searchRadius),
-                crocodilePos.offset(searchRadius, searchRadius, searchRadius))) {
-
-            if (this.crocodile.level().getBlockState(pos).getFluidState().is(Fluids.WATER)) {
-                if (isValidWaterArea(pos)) {
-                    double distance = crocodilePos.distSqr(pos);
-                    if (distance < nearestDistance) {
-                        nearestDistance = distance;
-                        nearestWater = pos.immutable();
-                    }
-                }
-            }
-        }
-
-        return nearestWater;
-    }
-
-    private boolean isValidWaterArea(BlockPos center) {
-        int minWaterBlocks = 4;
-        int waterCount = 0;
-        int checkRadius = 2;
-
-        for (BlockPos pos : BlockPos.betweenClosed(
-                center.offset(-checkRadius, -1, -checkRadius),
-                center.offset(checkRadius, 1, checkRadius))) {
-
-            if (this.crocodile.level().getFluidState(pos).is(Fluids.WATER)) {
-                waterCount++;
-                if (waterCount >= minWaterBlocks) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 }

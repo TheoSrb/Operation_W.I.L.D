@@ -475,9 +475,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public void hurtAfterCombo(LivingEntity entity) {
-        boolean targetIsNearOfWater = crocodileBehaviorHandler.isNearOfWater(10);
+        boolean targetIsNearOfWater = crocodileBehaviorHandler.findNearestWaterSource(10) != null;
         boolean isAlreadyGrabbed = entity.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != entity;
-        boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() && this.random.nextInt(3) == 0 &&
+        boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() && this.getComboAttack() == 3 &&
                 !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed;
 
         if (canGrab) {

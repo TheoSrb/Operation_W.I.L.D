@@ -248,6 +248,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			if (crocodile.isGrabbing()) {
 				crocodile.setBodyZRot((float) ((float) Math.toDegrees(this.head.zRot) + Math.toDegrees(this.neck.zRot)));
 				crocodile.setBodyXRot((float) ((float) Math.toDegrees(this.head.xRot) + Math.toDegrees(this.neck.xRot)));
+				crocodile.setBodyYRot((float) ((float) Math.toDegrees(this.head.yRot) + Math.toDegrees(this.neck.yRot)));
 			} else {
 				if (crocodile.isInWater()) {
 					crocodile.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));

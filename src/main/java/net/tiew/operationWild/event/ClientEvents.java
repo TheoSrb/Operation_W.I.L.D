@@ -100,7 +100,6 @@ public class ClientEvents {
         }
     }
 
-
     @SubscribeEvent
     public static void onMouseClick(InputEvent.MouseButton.Pre event) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -1125,57 +1124,73 @@ public class ClientEvents {
     }
 
     @SubscribeEvent
-    public static void renderRedBorder(RenderGuiEvent.Post event) {
+    public static void renderBorders(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 
         if (mc.player != null) {
             OWEntity vehicle = (OWEntity) mc.player.getVehicle();
+            boolean isGrabbedByCrocodile = mc.player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == mc.player;
 
             if (vehicle != null) {
-                if ((((float) (vehicle.getHealth() / vehicle.getMaxHealth())) <= 0.25f) || vehicle.canShowVitalEnergyLack) {
-                    float opacityPercent = ((float) (vehicle.getHealth() / vehicle.getMaxHealth()) > 0.25 && vehicle.canShowVitalEnergyLack) ? (float) 1 : ((float) (-2.8 * (float) (vehicle.getHealth() / vehicle.getMaxHealth())) + 1) * 1.5f;
+                boolean isLowHealth = ((float) (vehicle.getHealth() / vehicle.getMaxHealth())) <= 0.25f;
+                boolean showVitalEnergyLack = vehicle.canShowVitalEnergyLack;
 
-                    if (mc.screen == null && !mc.options.hideGui) {
-                        GuiGraphics graphics = event.getGuiGraphics();
-                        int screenWidth = mc.getWindow().getGuiScaledWidth();
-                        int screenHeight = mc.getWindow().getGuiScaledHeight();
-
-                        float centerX = screenWidth / 2.0f;
-                        float centerY = screenHeight / 2.0f;
-                        int steps = 40;
-
-                        for (int step = 0; step < steps; step++) {
-                            float progress = (float) step / steps;
-                            float time = (System.currentTimeMillis() % 2000) / 2000.0f;
-                            float oscillation = 0.4f + 0.1f * (float) Math.sin(time * 2 * Math.PI);
-                            float size = progress * Math.min(screenWidth, screenHeight) * oscillation * ((1 + opacityPercent) / 2);
-                            float alpha = ((1.0f - progress) * 0.075f) * opacityPercent;
-
-                            int alphaInt = (int) (alpha * 255);
-                            int color = (alphaInt << 24) | (((float) (vehicle.getHealth() / vehicle.getMaxHealth()) > 0.25 && vehicle.canShowVitalEnergyLack) ? 0x6442ac : 0xbc0c0c);
-
-                            int topHeight = (int) (size * (1.0f - Math.abs(centerY - size) / centerY));
-                            if (topHeight > 0) {
-                                graphics.fill(0, 0, screenWidth, Math.min(topHeight, screenHeight), color);
-                            }
-
-                            int bottomStart = (int) (screenHeight - size * (1.0f - Math.abs(centerY - (screenHeight - size)) / centerY));
-                            if (bottomStart < screenHeight) {
-                                graphics.fill(0, Math.max(bottomStart, 0), screenWidth, screenHeight, color);
-                            }
-
-                            int leftWidth = (int) (size * (1.0f - Math.abs(centerX - size) / centerX));
-                            if (leftWidth > 0) {
-                                graphics.fill(0, 0, Math.min(leftWidth, screenWidth), screenHeight, color);
-                            }
-
-                            int rightStart = (int) (screenWidth - size * (1.0f - Math.abs(centerX - (screenWidth - size)) / centerX));
-                            if (rightStart < screenWidth) {
-                                graphics.fill(Math.max(rightStart, 0), 0, screenWidth, screenHeight, color);
-                            }
-                        }
-                    }
+                if (isLowHealth) {
+                    float opacityPercent = ((float) (-2.8 * (float) (vehicle.getHealth() / vehicle.getMaxHealth())) + 1) * 1.5f;
+                    renderBorder(event.getGuiGraphics(), mc, 0xbc0c0c, opacityPercent, 1.0f);
                 }
+
+                if (showVitalEnergyLack) {
+                    renderBorder(event.getGuiGraphics(), mc, 0x6442ac, 1.0f, 1.0f);
+                }
+            }
+
+            if (isGrabbedByCrocodile) {
+                float sizeMultiplier = 1.5f;
+                renderBorder(event.getGuiGraphics(), mc, 0x000000, 1.0f, sizeMultiplier);
+            }
+        }
+    }
+
+    private static void renderBorder(GuiGraphics graphics, Minecraft mc, int baseColor, float opacityPercent, float sizeMultiplier) {
+        if (mc.screen != null || mc.options.hideGui) {
+            return;
+        }
+
+        int screenWidth = mc.getWindow().getGuiScaledWidth();
+        int screenHeight = mc.getWindow().getGuiScaledHeight();
+        float centerX = screenWidth / 2.0f;
+        float centerY = screenHeight / 2.0f;
+        int steps = 40;
+
+        for (int step = 0; step < steps; step++) {
+            float progress = (float) step / steps;
+            float time = (System.currentTimeMillis() % 2000) / 2000.0f;
+            float oscillation = 0.4f + 0.1f * (float) Math.sin(time * 2 * Math.PI);
+            float size = progress * Math.min(screenWidth, screenHeight) * oscillation * ((1 + opacityPercent) / 2) * sizeMultiplier;
+            float alpha = ((1.0f - progress) * 0.075f) * opacityPercent;
+
+            int alphaInt = (int) (alpha * 255);
+            int color = (alphaInt << 24) | baseColor;
+
+            int topHeight = (int) (size * (1.0f - Math.abs(centerY - size) / centerY));
+            if (topHeight > 0) {
+                graphics.fill(0, 0, screenWidth, Math.min(topHeight, screenHeight), color);
+            }
+
+            int bottomStart = (int) (screenHeight - size * (1.0f - Math.abs(centerY - (screenHeight - size)) / centerY));
+            if (bottomStart < screenHeight) {
+                graphics.fill(0, Math.max(bottomStart, 0), screenWidth, screenHeight, color);
+            }
+
+            int leftWidth = (int) (size * (1.0f - Math.abs(centerX - size) / centerX));
+            if (leftWidth > 0) {
+                graphics.fill(0, 0, Math.min(leftWidth, screenWidth), screenHeight, color);
+            }
+
+            int rightStart = (int) (screenWidth - size * (1.0f - Math.abs(centerX - (screenWidth - size)) / centerX));
+            if (rightStart < screenWidth) {
+                graphics.fill(Math.max(rightStart, 0), 0, screenWidth, screenHeight, color);
             }
         }
     }
@@ -1214,15 +1229,14 @@ public class ClientEvents {
                 poseStack.pushPose();
 
                 Vec3 pivotPoint = new Vec3(0, 0, 0);
-
-                poseStack.mulPose(Axis.YP.rotationDegrees(-event.getEntity().getYRot()));
+                Vec3 look = crocodile.getLookAngle();
 
                 Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.getBodyZRot());
                 Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot());
+                Quaternionf rotationY = Axis.YP.rotationDegrees(-crocodile.getBodyYRot());
                 poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-
-                poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
+                poseStack.rotateAround(rotationY, (float) ((float) pivotPoint.x - (look.x * 0.75f)), (float) pivotPoint.y, (float) ((float) pivotPoint.z - (look.z * 0.75f)));
             }
         } else if (event.getEntity().getVehicle() instanceof OWEntity owEntity) {
 
@@ -1283,6 +1297,9 @@ public class ClientEvents {
             } else if (rootVehicle instanceof CrocodileEntity crocodile) {
                 event.setRoll(event.getRoll() + (crocodile.getBodyZRot() / 2));
                 event.setPitch(event.getPitch() + (crocodile.getBodyXRot() / 2));
+                if (crocodile.getGrabbedTarget() == cameraEntity) {
+                    event.setYaw(event.getYaw() + (crocodile.getBodyYRot()));
+                }
             } else if (rootVehicle instanceof WalrusEntity walrus) {
                 if (walrus.getComboAttack() < 3) {
                     event.setRoll(event.getRoll() + (walrus.getBodyZRot() / (walrus.isInWater() ? 4 : 2)));

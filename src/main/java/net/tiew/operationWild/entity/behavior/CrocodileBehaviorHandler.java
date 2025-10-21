@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.WaterlilyBlock;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
@@ -69,6 +70,49 @@ public class CrocodileBehaviorHandler {
         if (blockState.getBlock() instanceof WaterlilyBlock) {
             crocodile.level().destroyBlock(pos, true);
         }
+    }
+
+    public BlockPos findNearestWaterSource(int searchRadius) {
+        BlockPos crocodilePos = this.crocodile.blockPosition();
+        BlockPos nearestWater = null;
+        double nearestDistance = Double.MAX_VALUE;
+
+        for (BlockPos pos : BlockPos.betweenClosed(
+                crocodilePos.offset(-searchRadius, -searchRadius, -searchRadius),
+                crocodilePos.offset(searchRadius, searchRadius, searchRadius))) {
+
+            if (this.crocodile.level().getBlockState(pos).getFluidState().is(Fluids.WATER)) {
+                if (isValidWaterArea(pos)) {
+                    double distance = crocodilePos.distSqr(pos);
+                    if (distance < nearestDistance) {
+                        nearestDistance = distance;
+                        nearestWater = pos.immutable();
+                    }
+                }
+            }
+        }
+
+        return nearestWater;
+    }
+
+    public boolean isValidWaterArea(BlockPos center) {
+        int minWaterBlocks = 4;
+        int waterCount = 0;
+        int checkRadius = 2;
+
+        for (BlockPos pos : BlockPos.betweenClosed(
+                center.offset(-checkRadius, -1, -checkRadius),
+                center.offset(checkRadius, 1, checkRadius))) {
+
+            if (this.crocodile.level().getFluidState(pos).is(Fluids.WATER)) {
+                waterCount++;
+                if (waterCount >= minWaterBlocks) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public boolean isNearOfWater(int searchRadius) {

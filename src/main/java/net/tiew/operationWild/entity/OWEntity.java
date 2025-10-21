@@ -207,6 +207,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static final EntityDataAccessor<Boolean> IS_COMBO = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> BODY_Z_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> BODY_X_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> BODY_Y_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> BODY_Y_OFFSET = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Boolean> IS_COMBO_PAUSED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Integer> GET_COMBO_ATTACK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
@@ -775,17 +776,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public int getActualSleepingBar() { return this.entityData.get(ACTUAL_SLEEPING_BAR);}
 
-    public void setBodyZRot(float getBodyZRot) {
-        if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) this.entityData.set(BODY_Z_ROT, 0.0f);
-        else this.entityData.set(BODY_Z_ROT, getBodyZRot);
-    }
-    public float getBodyZRot() { return this.entityData.get(BODY_Z_ROT);}
-
     public void setBodyXRot(float getBodyXRot) {
         if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) this.entityData.set(BODY_X_ROT, 0.0f);
         else this.entityData.set(BODY_X_ROT, getBodyXRot);
     }
     public float getBodyXRot() { return this.entityData.get(BODY_X_ROT);}
+
+    public void setBodyYRot(float getBodYXRot) {
+        if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) this.entityData.set(BODY_Y_ROT, 0.0f);
+        else this.entityData.set(BODY_Y_ROT, getBodYXRot);
+    }
+    public float getBodyYRot() { return this.entityData.get(BODY_Y_ROT);}
+
+    public void setBodyZRot(float getBodyZRot) {
+        if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) this.entityData.set(BODY_Z_ROT, 0.0f);
+        else this.entityData.set(BODY_Z_ROT, getBodyZRot);
+    }
+    public float getBodyZRot() { return this.entityData.get(BODY_Z_ROT);}
 
     public void setBodyYOffset(float getBodyXRot) { this.entityData.set(BODY_Y_OFFSET, getBodyXRot);}
     public float getBodyYOffset() { return this.entityData.get(BODY_Y_OFFSET);}
@@ -3063,6 +3070,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(IS_PASSIVE, false);
         builder.define(BODY_Z_ROT, 0.0f);
         builder.define(BODY_X_ROT, 0.0f);
+        builder.define(BODY_Y_ROT, 0.0f);
         builder.define(BODY_Y_OFFSET, 0.0f);
         builder.define(IS_FALLING, false);
         builder.define(IS_FED, false);
