@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -147,9 +148,9 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
     public void setupAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-		spawnFootstepParticles(crocodile, ageInTicks, limbSwing);
+		spawnFootstepParticles(crocodile, limbSwing);
 
-        if (crocodile.isBaby()) {
+		if (crocodile.isBaby()) {
             float maturationPercent = (float) crocodile.getMaturationPercentage() / 100f;
             float headScale = 1.6f - (1.6f - 1.0f) * maturationPercent;
 
@@ -249,7 +250,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		}
     }
 
-	private void spawnFootstepParticles(CrocodileEntity crocodile, float ageInTicks, float limbSwing) {
+	private void spawnFootstepParticles(CrocodileEntity crocodile, float limbSwing) {
 		float leftArmRightLegImpact = 0.28f;
 		float rightArmLeftLegImpact = 0.72f;
 
@@ -260,18 +261,18 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		if (crocodile.level().isClientSide()) {
 			if (Math.abs(normalizedTime - leftArmRightLegImpact) < tolerance) {
-				spawnParticleAtLimb(crocodile, this.left_arm, "LEFT_ARM");
-				spawnParticleAtLimb(crocodile, this.right_leg, "RIGHT_LEG");
+				spawnParticleAtLimb(crocodile, this.left_arm);
+				spawnParticleAtLimb(crocodile, this.right_leg);
 			}
 
 			if (Math.abs(normalizedTime - rightArmLeftLegImpact) < tolerance) {
-				spawnParticleAtLimb(crocodile, this.right_arm, "RIGHT_ARM");
-				spawnParticleAtLimb(crocodile, this.left_leg, "LEFT_LEG");
+				spawnParticleAtLimb(crocodile, this.right_arm);
+				spawnParticleAtLimb(crocodile, this.left_leg);
 			}
 		}
 	}
 
-	private void spawnParticleAtLimb(CrocodileEntity crocodile, ModelPart limb, String limbName) {
+	private void spawnParticleAtLimb(CrocodileEntity crocodile, ModelPart limb) {
 		if (crocodile.getBlockStateOn().is(Blocks.MUD)) {
 			BlockParticleOption particleOption = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.MUD.defaultBlockState());
 

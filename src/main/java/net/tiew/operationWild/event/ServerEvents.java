@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -39,10 +41,12 @@ import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.goals.crocodile.MonstersAvoidCrocodileGoal;
 import net.tiew.operationWild.entity.misc.SeabugShard;
 import net.tiew.operationWild.entity.misc.Submarine;
+import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_client.BookNotificationPacket;
 import net.tiew.operationWild.networking.packets.to_server.SyncKillDataPacket;
@@ -178,46 +182,21 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
-    public static void onPlayerKill(LivingDeathEvent event) {
-        Entity source = event.getSource().getEntity();
-        if (source == null) {
-            source = event.getSource().getDirectEntity();
-        }
-        Entity target = event.getEntity();
-
-        /*if (source instanceof ServerPlayer player) {
-            if (target instanceof OWEntity owEntity && !owEntity.isTame() && !(owEntity instanceof Submarine) && !(owEntity instanceof SeabugShard)) {
-                boolean wasAlreadyKilled = false;
-                String entityType = "";
-
-                ResourceLocation entityKey = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
-                if (entityKey != null && entityKey.getNamespace().equals("ow")) {
-                    entityType = entityKey.getPath();
-
-                    wasAlreadyKilled = ClientEvents.hasPlayerKilledOWEntity(player, entityType);
-                }
-
-                if (!entityType.isEmpty()) {
-                    String worldName = ClientEvents.getWorldName(player);
-                    SyncKillDataPacket packet = new SyncKillDataPacket(entityType, worldName);
-                    OWNetworkHandler.sendToClient(packet, player);
-                }
-
-                if (!wasAlreadyKilled) sendNotificationBook(player, entityType, false);
-            }
-        }*/
-    }
-
-    @SubscribeEvent
     public static void onLivingDrops(LivingDropsEvent event) {
-        LivingEntity entity = event.getEntity();
         DamageSource source = event.getSource();
 
-        if (source.getEntity() instanceof KodiakEntity) {
+        if (source.getEntity() instanceof KodiakEntity) createMultiDrop(event, Tags.Items.FOODS, 2);
+        else if (source.getEntity() instanceof WalrusEntity) createMultiDrop(event, OWItems.STINGING_FILAMENT.get(), 3);
+    }
+
+    private static void createMultiDrop(LivingDropsEvent event, Item item, int amount) {
+        DamageSource source = event.getSource();
+        LivingEntity entity = event.getEntity();
+        if (source.getEntity() instanceof WalrusEntity) {
             for (ItemEntity itemEntity : event.getDrops()) {
                 ItemStack drop = itemEntity.getItem();
-                if (drop.is(Tags.Items.FOODS)) {
-                    int additionalDrops = entity.getRandom().nextInt(2);
+                if (drop.is(item)) {
+                    int additionalDrops = entity.getRandom().nextInt(amount);
                     for (int i = 0; i < additionalDrops; i++) {
                         entity.spawnAtLocation(drop.copy());
                     }
@@ -227,8 +206,20 @@ public class ServerEvents {
         }
     }
 
-    public static void sendNotificationBook(ServerPlayer player, String entityType, boolean isTaming) {
-        BookNotificationPacket packet = new BookNotificationPacket(entityType, isTaming);
-        OWNetworkHandler.sendToClient(packet, player);
+    private static void createMultiDrop(LivingDropsEvent event, TagKey<Item> item, int amount) {
+        DamageSource source = event.getSource();
+        LivingEntity entity = event.getEntity();
+        if (source.getEntity() instanceof WalrusEntity) {
+            for (ItemEntity itemEntity : event.getDrops()) {
+                ItemStack drop = itemEntity.getItem();
+                if (drop.is(item)) {
+                    int additionalDrops = entity.getRandom().nextInt(amount);
+                    for (int i = 0; i < additionalDrops; i++) {
+                        entity.spawnAtLocation(drop.copy());
+                    }
+                    break;
+                }
+            }
+        }
     }
 }

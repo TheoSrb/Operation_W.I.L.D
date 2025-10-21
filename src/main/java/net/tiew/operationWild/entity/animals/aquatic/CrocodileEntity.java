@@ -396,7 +396,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         markMudWithFootprints();
 
-        handleRunningEffects(20, SoundEvents.HORSE_STEP, 0.2f, new int[]{10, 10});
+        handleRunningEffects(17, SoundEvents.HORSE_STEP, 0.2f, new int[]{4, 9});
         handleGoldVariantEffects();
     }
 
