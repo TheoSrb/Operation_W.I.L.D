@@ -24,7 +24,7 @@ public class CrocodileGoToWaterWithFoodGoal extends Goal {
         super.tick();
 
         if (targetPos != null && !this.crocodile.isInWater()) {
-            this.crocodile.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 2.5f);
+            this.crocodile.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 3.0f);
         }
 
         if (this.crocodile.isInWater()) {
@@ -35,6 +35,10 @@ public class CrocodileGoToWaterWithFoodGoal extends Goal {
 
             if (timer % 20 == 0) {
                 this.crocodile.getGrabbedTarget().hurt(this.crocodile.damageSources().mobAttack(this.crocodile), 5);
+            }
+        } else {
+            if (crocodile.tickCount % 20 == 0) {
+                this.crocodile.getGrabbedTarget().hurt(this.crocodile.damageSources().mobAttack(this.crocodile), 3);
             }
         }
     }

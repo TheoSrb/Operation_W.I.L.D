@@ -80,7 +80,7 @@ public class ClientEvents {
     private static final long CLICK_COOLDOWN = 50;
 
 
-    private static int debateClick = 0;
+    public static int debateClick = 0;
 
     @SubscribeEvent
     public static void onDebate(InputEvent.MouseButton.Pre event) {
@@ -90,7 +90,7 @@ public class ClientEvents {
         if (player != null) {
 
             if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != player && crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player) {
-                if (debateClick >= 20) {
+                if (debateClick >= 40) {
                     debateClick = 0;
                     OWNetworkHandler.sendToServer(new StopGrabPacket());
                 } else {

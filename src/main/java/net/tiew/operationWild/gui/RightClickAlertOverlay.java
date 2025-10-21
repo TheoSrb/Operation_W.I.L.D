@@ -20,7 +20,7 @@ public class RightClickAlertOverlay {
             Component questsUpdated = Component.translatable("tooltip.rightClickAlert")
                     .setStyle(Style.EMPTY.withBold(true).withColor(color).withUnderlined(true));
 
-            float scale = (float) ClientEvents.rightClickNips / 10 + 1.0f;
+            float scale = (float) ClientEvents.debateClick / 40 + 1.0f;
 
             int textWidth = font.width(questsUpdated);
             int textHeight = font.lineHeight;
