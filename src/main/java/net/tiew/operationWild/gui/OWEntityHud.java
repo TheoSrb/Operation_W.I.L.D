@@ -8,6 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
@@ -27,15 +28,15 @@ public class OWEntityHud {
         if (rider != null) {
             LivingEntity entity = (LivingEntity) rider.getVehicle();
             if (entity != null) {
-                if (entity instanceof OWEntity owEntity) {
+                if (entity instanceof OWSemiWaterEntity owEntity) {
                     createHUD(guiGraphics, owEntity, screenWidth, screenHeight);
 
                     if (owEntity.isInWater()) {
                         int actualDepth = (int) (owEntity.level().getSeaLevel() - owEntity.getY());
-                        boolean isTooDeep = actualDepth >= SeaBugEntity.MAX_DEPTH;
+                        boolean isTooDeep = actualDepth >= owEntity.getMaxDepth();
 
                         guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(actualDepth) + "m", (screenWidth / 2) - 23, 9, isTooDeep ? 0xf3c83b : 0xFFFFFF);
-                        guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(SeaBugEntity.MAX_DEPTH), (screenWidth / 2) + 12, 9, 0xf3c83b);
+                        guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(owEntity.getMaxDepth()), (screenWidth / 2) + 12, 9, 0xf3c83b);
                         guiGraphics.blit(TEXTURE, (screenWidth / 2) - 23, 20, 40, 52, 46, 7);
                     }
                 }
