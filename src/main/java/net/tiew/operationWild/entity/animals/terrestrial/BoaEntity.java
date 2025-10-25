@@ -458,8 +458,8 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
             }
         }
 
-        if (this.isNips() && !isBaby()) {
-            LivingEntity trappedEntity = (LivingEntity) this.getRootVehicle();
+        /*if (this.isNips() && !isBaby()) {
+            LivingEntity trappedEntity = (LivingEntity) this.getVehicle();
             float damages = nipsTimer / 70f;
             this.nipsTimer++;
 
@@ -490,7 +490,7 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
             } else stopNips();
 
             this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 1, false, false, false));
-        }
+        }*/
 
         if (this.getTarget() != null && !this.isRunning()) {
             this.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ()));

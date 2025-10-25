@@ -330,7 +330,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     protected float nextStep() {
-        return this.moveDist + 0.35F;
+        return this.moveDist + 0.4F;
     }
 
     @Override
@@ -644,8 +644,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private CrocodileVariant chooseCrocodileVariant() {
         CrocodileVariant variant;
-        if (chance >= 80) variant = CrocodileVariant.BLACK;
-        else if (chance >= 60) variant = CrocodileVariant.GREY;
+        if (chance >= 95) variant = CrocodileVariant.BLACK;
+        else if (chance >= 85) variant = CrocodileVariant.GREY;
         else if (chance >= 40) variant = CrocodileVariant.GREEN;
         else if (chance >= 20) variant = CrocodileVariant.DARK;
         else variant = CrocodileVariant.DEFAULT;
