@@ -44,6 +44,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 	private final ModelPart mouth_up;
 	private final ModelPart tail1;
 	private final ModelPart tail2;
+	private final ModelPart tail3;
 	private final ModelPart left_arm;
 	private final ModelPart left_leg;
 	private final ModelPart right_leg;
@@ -62,6 +63,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		this.mouth_up = this.mouth.getChild("mouth_up");
 		this.tail1 = this.body.getChild("tail1");
 		this.tail2 = this.tail1.getChild("tail2");
+		this.tail3 = this.tail2.getChild("tail3");
 		this.left_arm = this.ALL.getChild("left_arm");
 		this.left_leg = this.ALL.getChild("left_leg");
 		this.right_leg = this.ALL.getChild("right_leg");
@@ -128,6 +130,8 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		PartDefinition tail2 = tail1.addOrReplaceChild("tail2", CubeListBuilder.create().texOffs(62, 38).addBox(-3.5F, -2.0F, 0.0F, 7.0F, 7.0F, 20.0F, new CubeDeformation(0.0F))
 				.texOffs(3, 70).addBox(-2.5F, -5.0F, 0.0F, 0.0F, 3.0F, 20.0F, new CubeDeformation(0.05F))
 				.texOffs(3, 70).mirror().addBox(2.5F, -5.0F, 0.0F, 0.0F, 3.0F, 20.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(0.0F, 0.0F, 20.0F));
+
+		PartDefinition tail3 = tail2.addOrReplaceChild("tail3", CubeListBuilder.create().texOffs(153, 32).addBox(0.0F, -6.0F, 0.0F, 0.0F, 9.0F, 22.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, 2.0F, 20.0F));
 
 		PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(86, 23).addBox(-2.5F, -2.0F, -3.0F, 5.0F, 7.0F, 6.0F, new CubeDeformation(0.0F))
 				.texOffs(114, 83).addBox(-2.5F, 4.9F, -7.0F, 8.0F, 0.0F, 10.0F, new CubeDeformation(0.05F)), PartPose.offset(9.0F, 5.0F, -7.0F));

@@ -229,7 +229,7 @@ public class JellyfishEntity extends OWWaterEntity implements OWEntityUtils {
     @Override
     public boolean hurt(DamageSource damageSource, float v) {
         boolean hurtByWalrus = damageSource.getEntity() instanceof WalrusEntity;
-        return super.hurt(damageSource, v * (hurtByWalrus ? 1.5f : 1.0f));
+        return super.hurt(damageSource, v * (hurtByWalrus ? 3.0f : 1.0f));
     }
 
     @Override

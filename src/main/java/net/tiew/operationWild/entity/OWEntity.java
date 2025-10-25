@@ -2736,7 +2736,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     @Override
-    public void hurtAfterCombo(LivingEntity entity) {
+    public void hurtAfterCombo(LivingEntity entity, int comboAttack) {
 
     }
 
@@ -2907,7 +2907,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     if (this instanceof BoaEntity boa) boa.doHurtTarget(livingEntity);
                     else {
                         livingEntity.hurt(this.damageSources().mobAttack(this), isTigerInUltimate ? attackDamage * 1.5f : attackDamage);
-                        this.hurtAfterCombo(livingEntity);
+                        this.hurtAfterCombo(livingEntity, this.getComboAttack());
                     }
 
                     if ($$1 > 0) {

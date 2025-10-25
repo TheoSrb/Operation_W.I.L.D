@@ -23,7 +23,7 @@ public interface IOWEntity {
         return null;
     }
 
-    void hurtAfterCombo(LivingEntity entity);
+    void hurtAfterCombo(LivingEntity entity, int comboAttack);
 
     boolean preferRawMeat();
     boolean preferCookedMeat();

@@ -366,7 +366,9 @@ public class ClientEvents {
 
                 if (owEntity instanceof CrocodileEntity crocodile) {
                     boolean isRightClickDown = minecraft.options.keyUse.isDown();
-                    OWNetworkHandler.sendToServer(new CrocodileRightClickPacket(isRightClickDown));
+                    if (canUseRightClick(minecraft) && !crocodile.isInWater()) {
+                        OWNetworkHandler.sendToServer(new CrocodileRightClickPacket(isRightClickDown));
+                    }
                 }
             }
         }

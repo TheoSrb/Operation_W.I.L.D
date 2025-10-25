@@ -1,17 +1,25 @@
 package net.tiew.operationWild.entity;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.core.OWDamageSources;
+import net.tiew.operationWild.event.ClientEvents;
 
 public abstract class OWSemiWaterEntity extends OWEntity {
 
@@ -23,6 +31,9 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     private float verticalWave = 0;
     private float targetDepth = 0;
     private float depthChangeTimer = 0;
+
+    public float damageTimer = 0;
+    public boolean firstTimeToDeep = true;
 
     private final float YAW_CHANGE_INTERVAL;
     private final float YAW_SMOOTH_SPEED;
@@ -124,12 +135,26 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     public void tick() {
         super.tick();
 
+        Player rider = (Player) this.getControllingPassenger();
+        int depth = (int) (this.level().getSeaLevel() - this.getY());
+
         if (this.isEffectiveAi() && !this.isVehicle() && !this.isSitting()) {
             switchNavigation();
 
             if (this.isInWater()) {
                 handleSmoothSwimming();
             }
+        }
+
+        if (depth >= this.getMaxDepth()) {
+            if (rider != null) {
+                if (!rider.isCreative()) {
+                    applyWaterPressureDamage(depth, rider);
+                }
+            } else applyWaterPressureDamage(depth, null);
+        } else {
+            damageTimer = 0.0f;
+            firstTimeToDeep = true;
         }
     }
 
@@ -282,6 +307,39 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         }
 
         this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove, moveZ));
+    }
+
+    public void applyWaterPressureDamage(int depth, Player player) {
+        int waterPressure = (int) ClientEvents.getWaterPressure(depth);
+        float damageInterval = (Math.max((-1.25f * waterPressure + 65) / 30.0f, 0.1f));
+        float normalizedPressure = waterPressure / 4.0f;
+        float intensity = 0.05f * (float) Math.pow(normalizedPressure, 2f);
+
+        ClientEvents.shakeCamera(intensity, player);
+
+        if (this.level().isClientSide) {
+            return;
+        }
+
+        damageTimer += 0.05f;
+
+        if (damageTimer >= damageInterval) {
+            this.invulnerableTime = 0;
+
+            DamageSource waterPressureDamage = OWDamageSources.createWaterPressureDamage((ServerLevel) this.level());
+            this.hurt(waterPressureDamage, 4);
+
+            this.invulnerableTime = 0;
+            damageTimer = 0.0f;
+        }
+
+        if (this.tickCount % 100 == 0 || firstTimeToDeep) {
+            Component message = Component.translatable("tooHighPressure")
+                    .setStyle(Style.EMPTY
+                            .withColor(ChatFormatting.YELLOW));
+            //Minecraft.getInstance().gui.setOverlayMessage(message, true); /!\ SERVER DON'T WORK
+            firstTimeToDeep = false;
+        }
     }
 
     protected void handlePathSwimming() {

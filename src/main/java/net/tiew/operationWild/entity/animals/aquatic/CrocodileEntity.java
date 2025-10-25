@@ -119,7 +119,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final int GROWLS_DURATION = 75;
     private static final int GRUNT_DURATION = 55;
 
-    private int growlsInterval = (int) OWUtils.generateRandomInterval(400, 800);
+    private int growlsInterval = (int) OWUtils.generateRandomInterval(400, 1200);
     private int gruntInterval = (int) OWUtils.generateRandomInterval(300, 500);
 
     public CrocodileEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
@@ -320,12 +320,17 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public int getMaxDepth() {
-        return this.isTame() ? 50 : 5;
+        return this.isTame() ? 30 : 5;
     }
 
     @Override
     public float getSwimSpeed() {
         return this.getSpeed() * 5;
+    }
+
+    @Override
+    protected float nextStep() {
+        return this.moveDist + 0.35F;
     }
 
     @Override
@@ -340,17 +345,17 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     protected @Nullable SoundEvent getAmbientSound() {
         if (isNapping()) return null;
-        return RANDOM(2) ? RANDOM(2) ? OWSounds.CROCODILE_IDLE_1.get() : RANDOM(2) ? OWSounds.CROCODILE_IDLE_2.get() : OWSounds.CROCODILE_IDLE_3.get() : null;
+        return RANDOM(3) ? OWSounds.CROCODILE_IDLE_2.get() : null;
     }
 
     @Override
     protected @Nullable SoundEvent getDeathSound() {
-        return OWSounds.CROCODILE_IDLE_2.get();
+        return OWSounds.CROCODILE_DEATH.get();
     }
 
     @Override
     protected @Nullable SoundEvent getHurtSound(DamageSource damageSource) {
-        return null;
+        return OWSounds.CROCODILE_HURT.get();
     }
 
     @Override
@@ -398,6 +403,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (this.getTarget() != null && this.getTarget().hasEffect(OWEffects.FRACTURE.getDelegate())) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
+        }
+
+        if (this.isInWater()) {
+            this.setChargingMouth(false);
+            this.setChargingMouthTimer(0);
         }
 
         if (hasSomeoneInHisMouth()) {
@@ -474,14 +484,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     @Override
-    public void hurtAfterCombo(LivingEntity entity) {
+    public void hurtAfterCombo(LivingEntity entity, int comboAttack) {
         boolean targetIsNearOfWater = crocodileBehaviorHandler.findNearestWaterSource(10) != null;
         boolean isAlreadyGrabbed = entity.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != entity;
-        boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() && this.getComboAttack() == 3 &&
-                !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed;
+        boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() && comboAttack == 3 &&
+                !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity);
 
         if (canGrab) {
-            this.setGrabbing(true, entity);
+            if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() <= 20) {
+                this.setGrabbing(true, entity);
+            }
         }
     }
 
@@ -652,6 +664,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         if (tickCount % growlsInterval == 0) {
+            if (this.level().isClientSide) {
+                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), OWSounds.CROCODILE_IDLE_3.get(), this.getSoundSource(), 1.0F, 1.0F, false);
+            }
             if (crocodileBehaviorHandler.canGrowl() && crocodileBehaviorHandler.canPlayIdleAnimation() && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying()) {
                 this.growlsAnimationState.start(this.tickCount);
                 growlsAnimationStartTime = this.tickCount;
@@ -661,6 +676,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         if (tickCount % gruntInterval == 0) {
+            if (this.level().isClientSide) {
+                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), OWSounds.CROCODILE_IDLE_1.get(), this.getSoundSource(), 1.0F, 1.0F, false);
+            }
             if (crocodileBehaviorHandler.canGrunt() && crocodileBehaviorHandler.canPlayIdleAnimation() && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying()) {
                 this.gruntAnimationState.start(this.tickCount);
                 gruntAnimationStartTime = this.tickCount;
