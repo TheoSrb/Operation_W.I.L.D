@@ -19,6 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.core.OWDamageSources;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.event.ClientEvents;
 
 public abstract class OWSemiWaterEntity extends OWEntity {
@@ -44,7 +45,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     private final float DEPTH_CHANGE_SPEED;
     private final float SURFACE_RISE_SPEED;
 
-    private final float TARGET_YAW_SPEED = 0.03f;
+    private final float TARGET_YAW_SPEED = 0.035f;
     private final float PITCH_SMOOTH_SPEED = 0.08f;
     private final float TARGET_TRANSITION_SPEED = 0.05f;
     private float targetModeBlend = 0.0f;
@@ -134,6 +135,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     @Override
     public void tick() {
         super.tick();
+        if (this instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() != null && !crocodile.isTame()) return;
 
         Player rider = (Player) this.getControllingPassenger();
         int depth = (int) (this.level().getSeaLevel() - this.getY());
@@ -310,6 +312,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     }
 
     public void applyWaterPressureDamage(int depth, Player player) {
+        if (!this.isTame()) return;
         int waterPressure = (int) ClientEvents.getWaterPressure(depth);
         float damageInterval = (Math.max((-1.25f * waterPressure + 65) / 30.0f, 0.1f));
         float normalizedPressure = waterPressure / 4.0f;

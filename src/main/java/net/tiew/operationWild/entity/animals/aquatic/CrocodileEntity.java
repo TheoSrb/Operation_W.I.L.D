@@ -19,6 +19,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.ai.control.LookControl;
+import net.minecraft.world.entity.ai.goal.FollowBoatGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.*;
@@ -65,6 +66,7 @@ import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.*;
+import net.tiew.operationWild.entity.goals.crocodile.CrocodileAttackGoal;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileChargingMouthGoal;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileGoToWaterWithFoodGoal;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileNapGoal;
@@ -96,6 +98,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Float> CHARGING_MOUTH_TIMER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> IS_GRABBING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> GRABBED_TARGET_ID = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_DEATH_ROLLING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> CAN_GRAB_UNDERWATER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_ATTACKING_GRAB = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -107,6 +112,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public final AnimationState attack1Combo = new AnimationState();
     public final AnimationState attack2Combo = new AnimationState();
     public final AnimationState attack3Combo = new AnimationState();
+    public final AnimationState deathRollAnimationState = new AnimationState();
 
     public int idleWaterAnimationTimeout = 0;
     private int growlsAnimationStartTime = 0;
@@ -115,7 +121,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public int attack1ComboTimer = 0;
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
+    public int deathRollAnimationTimeout = 0;
 
+    private int attackingGrabTimer = 0;
+
+    private int deathRollingTimer = 0;
     private static final int GROWLS_DURATION = 75;
     private static final int GRUNT_DURATION = 55;
 
@@ -147,10 +157,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         super.registerGoals();
         initCrocodileBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
 
-        this.goalSelector.addGoal(0, new OWAttackGoal(this, this.getSpeed() * 15f, 15, 4, false));
-        this.goalSelector.addGoal(1, new CrocodileGoToWaterWithFoodGoal(this));
+        this.goalSelector.addGoal(0, new CrocodileGoToWaterWithFoodGoal(this));
+        this.goalSelector.addGoal(0, new JumpOutOfTheWaterGoal(this));
+        this.goalSelector.addGoal(0, new FollowBoatGoal(this));
+        this.goalSelector.addGoal(1, new CrocodileAttackGoal(this, this.getSpeed() * 15f, 15, 4, false));
         this.goalSelector.addGoal(2, new CrocodileChargingMouthGoal(this));
-        this.goalSelector.addGoal(3, new CrocodileNapGoal(this, 1.15f, 500, true));
+        this.goalSelector.addGoal(3, new CrocodileNapGoal(this, 1.25f, 500, true));
         this.goalSelector.addGoal(4, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(5, new RandomStrollGoal(this, 0.7D));
         this.goalSelector.addGoal(6, new OWRandomLookAroundGoal(this));
@@ -158,7 +170,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.lookControl = new LookControl(this) {
             @Override
             public void tick() {
-                if (this.mob instanceof CrocodileEntity crocodile && !crocodile.isSleeping()) {
+                if (this.mob instanceof CrocodileEntity crocodile && !crocodile.isSleeping() && !crocodile.isNapping() && crocodile.getGrabbedTarget() == null) {
                     super.tick();
                 }
             }
@@ -173,6 +185,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(CHARGING_MOUTH_TIMER, 0.0f);
         builder.define(IS_GRABBING, false);
         builder.define(GRABBED_TARGET_ID, -1);
+        builder.define(IS_DEATH_ROLLING, false);
+        builder.define(CAN_GRAB_UNDERWATER, false);
+        builder.define(IS_ATTACKING_GRAB, false);
     }
 
     public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
@@ -345,7 +360,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     protected @Nullable SoundEvent getAmbientSound() {
         if (isNapping()) return null;
-        return RANDOM(3) ? OWSounds.CROCODILE_IDLE_2.get() : null;
+        return RANDOM(3) ? RANDOM(2) ? OWSounds.CROCODILE_IDLE_2.get() : OWSounds.CROCODILE_IDLE_4.get() : null;
     }
 
     @Override
@@ -405,13 +420,101 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
         }
 
+        if (this.isAttackingGrab()) {
+            attackingGrabTimer++;
+
+            if (this.getTarget() != null) {
+                this.setLookAt(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ());
+            }
+
+            if (this.getTarget() != null && this.distanceTo(this.getTarget()) <= 1.0) {
+                this.playSound(OWSounds.CROCODILE_MOUTH_CRUSH.get());
+                this.getTarget().hurt(this.damageSource, 2);
+                this.grabEntity(this.getTarget());
+                attackingGrabTimer = 0;
+                this.setAttackingGrab(false);
+                return;
+            }
+
+            if (attackingGrabTimer > 13) {
+                this.hasImpulse = true;
+
+                if (this.getTarget() != null) {
+                    Vec3 targetPos = this.getTarget().position();
+                    Vec3 entityPos = this.position();
+
+                    double dx = targetPos.x - entityPos.x;
+                    double dy = targetPos.y - entityPos.y;
+                    double dz = targetPos.z - entityPos.z;
+                    double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                    this.setDeltaMovement(dx / distance * 1.25, dy / distance * 0.7 + 0.3, dz / distance * 1.25);
+                    this.setDeltaMovement(this.getDeltaMovement().scale(0.99));
+                }
+            }
+
+            if (attackingGrabTimer >= 20 || !this.isInWater()) {
+                attackingGrabTimer = 0;
+                this.setAttackingGrab(false);
+            }
+        }
+
         if (this.isInWater()) {
             this.setChargingMouth(false);
             this.setChargingMouthTimer(0);
+
+            if (this.getTarget() != null && !this.isTame()) {
+                if (this.tickCount % 150 == 0) {
+                    this.setCanGrabUnderwater(!this.canGrabUnderwater());
+                }
+            }
+
+            if (this.getGrabbedTarget() != null) {
+                if (this.tickCount % 70 == 0) {
+                    this.setDeathRolling(true);
+                }
+            }
+        } else {
+            this.setCanGrabUnderwater(false);
+        }
+
+        if (this.isDeathRolling()) {
+            this.deathRollingTimer++;
+            this.setDeltaMovement(0, 0.02, 0);
+
+            try {
+                this.getGrabbedTarget().invulnerableTime = 0;
+
+                if (this.deathRollingTimer % 5 == 0) {
+                    this.getGrabbedTarget().hurt(this.damageSource, 1);
+
+                    if (this.level() instanceof ServerLevel serverLevel) {
+                        serverLevel.sendParticles(ParticleTypes.SPLASH,
+                                this.getX(), this.getY() + 0.5, this.getZ(),
+                                10,
+                                0.5, 0.3, 0.5,
+                                0.1);
+                    }
+                }
+
+            } catch (NullPointerException e) {
+            }
+
+            if (this.deathRollingTimer >= 40) {
+                this.deathRollingTimer = 0;
+                this.setDeathRolling(false);
+            }
         }
 
         if (hasSomeoneInHisMouth()) {
             LivingEntity grabbed = this.getGrabbedTarget();
+
+            try {
+                if (this.isInWater()) {
+                    this.setLookAt(this.getGrabbedTarget().getX(), this.getGrabbedTarget().getY(), this.getGrabbedTarget().getZ());
+                }
+            } catch (NullPointerException e) {
+            }
 
             if (!this.getGrabbedTarget().isAlive() || (this.getGrabbedTarget() instanceof Player player && player.isCreative())) {
                 grabbed.stopRiding();
@@ -487,12 +590,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public void hurtAfterCombo(LivingEntity entity, int comboAttack) {
         boolean targetIsNearOfWater = crocodileBehaviorHandler.findNearestWaterSource(10) != null;
         boolean isAlreadyGrabbed = entity.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != entity;
-        boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() && comboAttack == 3 &&
+        boolean canGrab = targetIsNearOfWater && !this.level().isClientSide()  &&
                 !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity);
 
         if (canGrab) {
-            if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() <= 20) {
-                this.setGrabbing(true, entity);
+            if (this.onGround()) {
+                if (comboAttack == 3) {
+                    this.grabEntity(entity);
+                }
             }
         }
     }
@@ -545,7 +650,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         Vec3 look = this.getLookAngle();
 
         if (passenger == this.getGrabbedTarget()) {
-            function.accept(passenger, this.getX() + look.x * 1.5f , this.getY() - 0.15, this.getZ() + look.z * 1.5f);
+            function.accept(passenger, this.getX() + look.x * 1.75f , this.getY() - 0.2, this.getZ() + look.z * 1.75f);
         } else {
             super.positionRider(passenger, function);
 
@@ -636,6 +741,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
     }
 
+    private void grabEntity(LivingEntity entity) {
+        if (entity instanceof OWEntity owEntity) {
+            if (owEntity.getTheoreticalScale() <= 20) {
+                this.setGrabbing(true, entity);
+            }
+        } else {
+            this.setGrabbing(true, entity);
+        }
+    }
+
     private void handleGoldVariantEffects() {
         if (this.getVariant() == CrocodileVariant.SKIN_GOLD && this.tickCount % 150 == 0) {
             OWUtils.spawnParticles(this, ParticleTypes.END_ROD, 0, 0, 0, 5, 2);
@@ -718,6 +833,18 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.napAnimationState.stop();
         }
 
+        if (this.isDeathRolling()) {
+            if (this.deathRollAnimationTimeout <= 0) {
+                this.deathRollAnimationTimeout = 40;
+                this.deathRollAnimationState.start(this.tickCount);
+            } else --this.deathRollAnimationTimeout;
+        }
+
+        if (!this.isDeathRolling()) {
+            this.deathRollAnimationTimeout = 0;
+            this.deathRollAnimationState.stop();
+        }
+
         setupComboAnimations();
     }
 
@@ -782,6 +909,24 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public boolean isGrabbing() { return this.entityData.get(IS_GRABBING);}
+
+    public void setCanGrabUnderwater(boolean canGrabUnderwater) {
+        this.entityData.set(CAN_GRAB_UNDERWATER, canGrabUnderwater);
+    }
+
+    public boolean canGrabUnderwater() { return this.entityData.get(CAN_GRAB_UNDERWATER);}
+
+    public void setAttackingGrab(boolean isAttackingGrab) {
+        this.entityData.set(IS_ATTACKING_GRAB, isAttackingGrab);
+    }
+
+    public boolean isAttackingGrab() { return this.entityData.get(IS_ATTACKING_GRAB);}
+
+    public void setDeathRolling(boolean isDeathRolling) {
+        this.entityData.set(IS_DEATH_ROLLING, isDeathRolling);
+    }
+
+    public boolean isDeathRolling() { return this.entityData.get(IS_DEATH_ROLLING);}
 
     public boolean hasSomeoneInHisMouth() {
         if (this.level().isClientSide()) return false;

@@ -175,6 +175,10 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animate(crocodile.attack3Combo, CrocodileAnimations.ATTACK_STRIKE_3, ageInTicks, 1.0f);
 		}
 
+		if (crocodile.isDeathRolling()) {
+			this.animate(crocodile.deathRollAnimationState, CrocodileAnimations.ATTACK_DEATH_ROLL, ageInTicks, 1.0f);
+		}
+
 		if (crocodile.isGrabbing()) {
 			this.mouth_down.xRot = (float) Math.toRadians(20);
 			this.mouth_up.xRot = (float) Math.toRadians(-20);
@@ -211,11 +215,11 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		}
 
 		if (crocodile.growlsAnimationState.isStarted()) {
-			this.animate(crocodile.growlsAnimationState, CrocodileAnimations.MISC_IDLE2, ageInTicks, 1.0f);
+			this.animate(crocodile.growlsAnimationState, CrocodileAnimations.MISC_IDLE_2, ageInTicks, 1.0f);
 		}
 
 		if (crocodile.gruntAnimationState.isStarted()) {
-			this.animate(crocodile.gruntAnimationState, CrocodileAnimations.MISC_IDLE3, ageInTicks, 1.0f);
+			this.animate(crocodile.gruntAnimationState, CrocodileAnimations.MISC_IDLE_3, ageInTicks, 1.0f);
 		}
 
 		if (crocodile.isNapping()) {
@@ -247,12 +251,21 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
 		}
 
+		if (crocodile.isAttackingGrab()) {
+			this.mouth_up.xRot = (float) Math.toRadians(-50);
+		}
 
 		if (crocodile.level().isClientSide()) {
 			if (crocodile.isGrabbing()) {
-				crocodile.setBodyZRot((float) ((float) Math.toDegrees(this.head.zRot) + Math.toDegrees(this.neck.zRot)));
-				crocodile.setBodyXRot((float) ((float) Math.toDegrees(this.head.xRot) + Math.toDegrees(this.neck.xRot)));
-				crocodile.setBodyYRot((float) ((float) Math.toDegrees(this.head.yRot) + Math.toDegrees(this.neck.yRot)));
+				if (!crocodile.isInWater()) {
+					crocodile.setBodyZRot((float) ((float) Math.toDegrees(this.head.zRot) + Math.toDegrees(this.neck.zRot)));
+					crocodile.setBodyXRot((float) ((float) Math.toDegrees(this.head.xRot) + Math.toDegrees(this.neck.xRot)));
+					crocodile.setBodyYRot((float) ((float) Math.toDegrees(this.head.yRot) + Math.toDegrees(this.neck.yRot)));
+				} else {
+					crocodile.setBodyZRot((float) Math.toDegrees(0));
+					crocodile.setBodyYRot((float) Math.toDegrees(0));
+					crocodile.setBodyXRot((float) Math.toDegrees(0));
+				}
 			} else {
 				if (crocodile.isInWater()) {
 					crocodile.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));

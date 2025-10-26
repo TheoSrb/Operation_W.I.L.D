@@ -93,8 +93,11 @@ public class OWSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_IDLE_1 = registerSoundEvent("crocodile_idle_1");
     public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_IDLE_2 = registerSoundEvent("crocodile_idle_2");
     public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_IDLE_3 = registerSoundEvent("crocodile_idle_3");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_IDLE_4 = registerSoundEvent("crocodile_idle_4");
     public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_MOUTH_CRUSH = registerSoundEvent("crocodile_mouth_crush");
     public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_HURT = registerSoundEvent("crocodile_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_HIT_1 = registerSoundEvent("crocodile_hit_1");
+    public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_HIT_2 = registerSoundEvent("crocodile_hit_2");
     public static final DeferredHolder<SoundEvent, SoundEvent> CROCODILE_DEATH = registerSoundEvent("crocodile_death");
 
 

@@ -81,8 +81,11 @@
   "crocodile_idle_1": { "subtitle": "sounds.ow.crocodile_idle_1", "sounds": [ "ow:crocodile/crocodile_idle_1" ] },
   "crocodile_idle_2": { "subtitle": "sounds.ow.crocodile_idle_2", "sounds": [ "ow:crocodile/crocodile_idle_2" ] },
   "crocodile_idle_3": { "subtitle": "sounds.ow.crocodile_idle_3", "sounds": [ "ow:crocodile/crocodile_idle_3" ] },
-  "crocodile_hurt": { "subtitle": "sounds.ow.crocodile_idle_3", "sounds": [ "ow:crocodile/crocodile_hurt" ] },
-  "crocodile_death": { "subtitle": "sounds.ow.crocodile_idle_3", "sounds": [ "ow:crocodile/crocodile_death" ] },
+  "crocodile_idle_4": { "subtitle": "sounds.ow.crocodile_idle_4", "sounds": [ "ow:crocodile/crocodile_idle_4" ] },
+  "crocodile_hurt": { "subtitle": "sounds.ow.crocodile_hurt", "sounds": [ "ow:crocodile/crocodile_hurt" ] },
+  "crocodile_hit_1": { "subtitle": "sounds.ow.crocodile_hit_1", "sounds": [ "ow:crocodile/crocodile_hit_1" ] },
+  "crocodile_hit_2": { "subtitle": "sounds.ow.crocodile_hit_2", "sounds": [ "ow:crocodile/crocodile_hit_2" ] },
+  "crocodile_death": { "subtitle": "sounds.ow.crocodile_death", "sounds": [ "ow:crocodile/crocodile_death" ] },
 
 
 

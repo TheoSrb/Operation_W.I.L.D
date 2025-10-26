@@ -28,16 +28,22 @@ public class OWEntityHud {
         if (rider != null) {
             LivingEntity entity = (LivingEntity) rider.getVehicle();
             if (entity != null) {
-                if (entity instanceof OWSemiWaterEntity owEntity) {
+                if (entity instanceof OWEntity owEntity) {
+
+                    if (owEntity.getOwner() != rider) return;
+
                     createHUD(guiGraphics, owEntity, screenWidth, screenHeight);
 
-                    if (owEntity.isInWater()) {
-                        int actualDepth = (int) (owEntity.level().getSeaLevel() - owEntity.getY());
-                        boolean isTooDeep = actualDepth >= owEntity.getMaxDepth();
+                    if (entity instanceof OWSemiWaterEntity waterEntity) {
 
-                        guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(actualDepth) + "m", (screenWidth / 2) - 23, 9, isTooDeep ? 0xf3c83b : 0xFFFFFF);
-                        guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(owEntity.getMaxDepth()), (screenWidth / 2) + 12, 9, 0xf3c83b);
-                        guiGraphics.blit(TEXTURE, (screenWidth / 2) - 23, 20, 40, 52, 46, 7);
+                        if (waterEntity.isInWater()) {
+                            int actualDepth = (int) (waterEntity.level().getSeaLevel() - waterEntity.getY());
+                            boolean isTooDeep = actualDepth >= waterEntity.getMaxDepth();
+
+                            guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(actualDepth) + "m", (screenWidth / 2) - 23, 9, isTooDeep ? 0xf3c83b : 0xFFFFFF);
+                            guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(waterEntity.getMaxDepth()), (screenWidth / 2) + 12, 9, 0xf3c83b);
+                            guiGraphics.blit(TEXTURE, (screenWidth / 2) - 23, 20, 40, 52, 46, 7);
+                        }
                     }
                 }
             }

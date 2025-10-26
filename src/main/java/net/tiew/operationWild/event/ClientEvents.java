@@ -31,6 +31,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
@@ -97,6 +98,26 @@ public class ClientEvents {
                     debateClick++;
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerInput(MovementInputUpdateEvent event) {
+        Entity entity = event.getEntity();
+
+        if (entity != null && entity instanceof Player player) {
+            if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player) {
+                event.getInput().shiftKeyDown = false;
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        Player player = event.getEntity();
+
+        if (player.isPassenger()) {
+            player.stopRiding();
         }
     }
 
@@ -1133,7 +1154,7 @@ public class ClientEvents {
             OWEntity vehicle = (OWEntity) mc.player.getVehicle();
             boolean isGrabbedByCrocodile = mc.player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == mc.player;
 
-            if (vehicle != null) {
+            if (vehicle != null && vehicle.getOwner() == mc.player) {
                 boolean isLowHealth = ((float) (vehicle.getHealth() / vehicle.getMaxHealth())) <= 0.25f;
                 boolean showVitalEnergyLack = vehicle.canShowVitalEnergyLack;
 
@@ -1145,11 +1166,6 @@ public class ClientEvents {
                 if (showVitalEnergyLack) {
                     renderBorder(event.getGuiGraphics(), mc, 0x6442ac, 1.0f, 1.0f);
                 }
-            }
-
-            if (isGrabbedByCrocodile) {
-                float sizeMultiplier = 1.5f;
-                renderBorder(event.getGuiGraphics(), mc, 0x000000, 1.0f, sizeMultiplier);
             }
         }
     }
@@ -1297,8 +1313,13 @@ public class ClientEvents {
                 event.setRoll(event.getRoll() + (hyena.getBodyZRot() / 3));
                 event.setPitch(event.getPitch() + (hyena.getBodyXRot() / 3));
             } else if (rootVehicle instanceof CrocodileEntity crocodile) {
-                event.setRoll(event.getRoll() + (crocodile.getBodyZRot() / 2));
-                event.setPitch(event.getPitch() + (crocodile.getBodyXRot() / 2));
+                if (crocodile.isDeathRolling()) {
+                    event.setRoll(event.getRoll() + crocodile.getBodyZRot());
+                    event.setPitch(event.getPitch() + crocodile.getBodyXRot());
+                } else {
+                    event.setRoll(event.getRoll() + (crocodile.getBodyZRot() / 2));
+                    event.setPitch(event.getPitch() + (crocodile.getBodyXRot() / 2));
+                }
                 if (crocodile.getGrabbedTarget() == cameraEntity) {
                     event.setYaw(event.getYaw() + (crocodile.getBodyYRot()));
                 }

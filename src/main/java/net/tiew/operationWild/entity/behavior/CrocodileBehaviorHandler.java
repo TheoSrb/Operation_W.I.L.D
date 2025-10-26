@@ -49,7 +49,7 @@ public class CrocodileBehaviorHandler {
     }
 
     public boolean canPlayIdleAnimation() {
-        return crocodile.getTarget() == null && !crocodile.isChargingMouth() && !crocodile.isNapping() && !crocodile.isMoving() && !crocodile.isVehicle() && !crocodile.isInWater();
+        return crocodile.getTarget() == null && !crocodile.isChargingMouth() && !crocodile.isNapping() && !crocodile.isNapping() && !crocodile.isMoving() && !crocodile.isVehicle() && !crocodile.isInWater();
     }
 
     public boolean canGrowl() {
@@ -65,6 +65,18 @@ public class CrocodileBehaviorHandler {
     }
 
     public void trampleLilyPads(BlockPos pos) {
+        Vec3 lookDirection = crocodile.getLookAngle();
+
+        checkAndBreakLilyPad(pos);
+
+        BlockPos frontPos1 = pos.offset((int)Math.round(lookDirection.x), 0, (int)Math.round(lookDirection.z));
+        checkAndBreakLilyPad(frontPos1);
+
+        BlockPos frontPos2 = pos.offset((int)Math.round(lookDirection.x * 2), 0, (int)Math.round(lookDirection.z * 2));
+        checkAndBreakLilyPad(frontPos2);
+    }
+
+    private void checkAndBreakLilyPad(BlockPos pos) {
         BlockState blockState = crocodile.level().getBlockState(pos);
 
         if (blockState.getBlock() instanceof WaterlilyBlock) {
@@ -74,25 +86,63 @@ public class CrocodileBehaviorHandler {
 
     public BlockPos findNearestWaterSource(int searchRadius) {
         BlockPos crocodilePos = this.crocodile.blockPosition();
-        BlockPos nearestWater = null;
-        double nearestDistance = Double.MAX_VALUE;
+        BlockPos bestWaterPos = null;
+        double bestScore = Double.MIN_VALUE;
 
         for (BlockPos pos : BlockPos.betweenClosed(
                 crocodilePos.offset(-searchRadius, -searchRadius, -searchRadius),
                 crocodilePos.offset(searchRadius, searchRadius, searchRadius))) {
 
-            if (this.crocodile.level().getBlockState(pos).getFluidState().is(Fluids.WATER)) {
+            if (this.crocodile.level().getFluidState(pos).is(Fluids.WATER)) {
                 if (isValidWaterArea(pos)) {
-                    double distance = crocodilePos.distSqr(pos);
-                    if (distance < nearestDistance) {
-                        nearestDistance = distance;
-                        nearestWater = pos.immutable();
+                    double distance = Math.sqrt(crocodilePos.distSqr(pos));
+
+                    int waterDepth = calculateWaterDepth(pos);
+
+                    int waterDensity = countWaterBlocksAround(pos, 3);
+
+                    double score = (waterDepth * 2.0) + (waterDensity * 0.5) - (distance * 0.1);
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestWaterPos = pos.immutable();
                     }
                 }
             }
         }
 
-        return nearestWater;
+        return bestWaterPos;
+    }
+
+    private int calculateWaterDepth(BlockPos pos) {
+        int depth = 0;
+        BlockPos checkPos = pos.mutable();
+
+        for (int i = 0; i < 10; i++) {
+            checkPos = checkPos.below();
+            if (this.crocodile.level().getFluidState(checkPos).is(Fluids.WATER)) {
+                depth++;
+            } else {
+                break;
+            }
+        }
+
+        return depth;
+    }
+
+    private int countWaterBlocksAround(BlockPos pos, int radius) {
+        int count = 0;
+
+        for (BlockPos checkPos : BlockPos.betweenClosed(
+                pos.offset(-radius, -1, -radius),
+                pos.offset(radius, 1, radius))) {
+
+            if (this.crocodile.level().getFluidState(checkPos).is(Fluids.WATER)) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     public boolean isValidWaterArea(BlockPos center) {

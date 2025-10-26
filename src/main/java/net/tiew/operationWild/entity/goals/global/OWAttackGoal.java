@@ -7,28 +7,27 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.Path;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 
 import java.util.EnumSet;
 
 public class OWAttackGoal extends Goal {
-    private final OWEntity mob;
-    private final double speedModifier;
-    private final int attackCooldown;
-    private final double attackRange;
-    private static final double MAX_CHASE_DISTANCE = 48.0;
+    protected final OWEntity mob;
+    protected final double speedModifier;
+    protected final int attackCooldown;
+    protected final double attackRange;
+    protected static final double MAX_CHASE_DISTANCE = 48.0;
 
-    private static final float MAX_HEAD_ROTATION_SPEED = 15.0F;
-    private static final float MAX_BODY_ROTATION_SPEED = 5.0F;
-    private static final float HEAD_BODY_ANGLE_THRESHOLD = 75.0F;
+    protected static final float MAX_HEAD_ROTATION_SPEED = 15.0F;
+    protected static final float MAX_BODY_ROTATION_SPEED = 5.0F;
+    protected static final float HEAD_BODY_ANGLE_THRESHOLD = 75.0F;
 
-    private float targetYaw;
-    private float targetPitch;
-    private boolean isRotatingToTarget;
+    protected float targetYaw;
+    protected float targetPitch;
+    protected boolean isRotatingToTarget;
 
-    private Path path;
-    private int ticksUntilNextAttack;
-    private int ticksUntilNextPathRecalc;
+    protected Path path;
+    protected int ticksUntilNextAttack;
+    protected int ticksUntilNextPathRecalc;
 
     public OWAttackGoal(OWEntity mob, double speedModifier, int attackCooldown, double attackRange, boolean unused) {
         this.mob = mob;
@@ -43,8 +42,6 @@ public class OWAttackGoal extends Goal {
     public boolean canUse() {
         LivingEntity target = this.mob.getTarget();
 
-        if (this.mob instanceof CrocodileEntity crocodile && crocodile.hasSomeoneInHisMouth()) return false;
-
         if (target == null || !target.isAlive()) {
             return false;
         }
@@ -56,8 +53,6 @@ public class OWAttackGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         LivingEntity target = this.mob.getTarget();
-
-        if (this.mob instanceof CrocodileEntity crocodile && crocodile.hasSomeoneInHisMouth()) return false;
 
         if (target == null || !target.isAlive()) {
             return false;
@@ -122,7 +117,7 @@ public class OWAttackGoal extends Goal {
             this.mob.getNavigation().moveTo(target, this.speedModifier);
         }
 
-        this.updateSmoothLookAt(target);
+        this.mob.setLookAt(target.getX(), target.getY(), target.getZ());
 
         this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
 
@@ -133,7 +128,7 @@ public class OWAttackGoal extends Goal {
         }
     }
 
-    private void updateSmoothLookAt(LivingEntity target) {
+    protected void updateSmoothLookAt(LivingEntity target) {
         double dx = target.getX() - this.mob.getX();
         double dy = target.getY() + target.getEyeHeight() - (this.mob.getY() + this.mob.getEyeHeight());
         double dz = target.getZ() - this.mob.getZ();
@@ -177,9 +172,8 @@ public class OWAttackGoal extends Goal {
         this.mob.xRotO = newPitch;
     }
 
-    private void performAttack(LivingEntity target) {
+    protected void performAttack(LivingEntity target) {
         if (this.mob.hasEffect(OWEffects.FRACTURE.getDelegate())) return;
-        if (this.mob instanceof CrocodileEntity crocodile && crocodile.isChargingMouth()) return;
         if (!this.mob.isCombo()) {
             this.mob.setCombo(true, 1);
         } else if (this.mob.isPauseCombo()) {

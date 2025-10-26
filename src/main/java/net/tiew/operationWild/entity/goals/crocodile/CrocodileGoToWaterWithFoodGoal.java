@@ -30,15 +30,10 @@ public class CrocodileGoToWaterWithFoodGoal extends Goal {
         if (this.crocodile.isInWater()) {
             timer++;
 
-            Vec3 lookDirection = this.crocodile.getLookAngle();
-            this.crocodile.setDeltaMovement(lookDirection.x * 0.2f, -0.05, lookDirection.z * 0.2f);
-
-            if (timer % 20 == 0) {
-                this.crocodile.getGrabbedTarget().hurt(this.crocodile.damageSources().mobAttack(this.crocodile), 5);
-            }
+            this.crocodile.getNavigation().stop();
         } else {
             if (crocodile.tickCount % 20 == 0) {
-                this.crocodile.getGrabbedTarget().hurt(this.crocodile.damageSources().mobAttack(this.crocodile), 3);
+                this.crocodile.getGrabbedTarget().hurt(this.crocodile.damageSources().mobAttack(this.crocodile), 2);
             }
         }
     }

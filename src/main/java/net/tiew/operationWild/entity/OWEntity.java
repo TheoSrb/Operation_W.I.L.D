@@ -1972,7 +1972,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void createComboAttackSystem(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
         if (this.isCombo()) {
             boolean isRided = this.getControllingPassenger() != null;
-            if (isRided && this.getTarget() != null) this.setLookAt(this.getTarget().getX(), this.getTarget().getY(),this.getTarget().getZ());
+            if (this.getTarget() != null) this.setLookAt(this.getTarget().getX(), this.getTarget().getY(),this.getTarget().getZ());
             if (attackTimer < timeMax) attackTimer++;
             else {
                 attackTimer = 0;
@@ -2031,6 +2031,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (this instanceof CrocodileEntity crocodile) {
+            if (attackTimer == 1) {
+                float pitch = (float) (OWUtils.generateRandomInterval(1.1, 1.25));
+                SoundEvent sound = RANDOM(2) ? OWSounds.CROCODILE_HIT_1.get() : OWSounds.CROCODILE_HIT_2.get();
+                crocodile.level().playSound(null, crocodile.getX(), crocodile.getY(), crocodile.getZ(), sound, SoundSource.HOSTILE, 1.0f, pitch);
+            }
             if (attackTimer == timeToHit - 3) {
                 float pitch = (float) (OWUtils.generateRandomInterval(0.8, 1.0));
                 crocodile.level().playSound(null, crocodile.getX(), crocodile.getY(), crocodile.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
@@ -2895,6 +2900,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage *= 1.25f);
 
                     if ($$1 > 0) {
+                        if (livingEntity instanceof Player player && player.isCreative()) return;
                         Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
                         Vec3 knockback = knockbackDirection.scale($$1 * 0.5);
                         livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
@@ -2911,6 +2917,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     }
 
                     if ($$1 > 0) {
+                        if (livingEntity instanceof Player player && player.isCreative()) return;
                         Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
                         Vec3 knockback = knockbackDirection.scale($$1 * 0.4);
                         livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
