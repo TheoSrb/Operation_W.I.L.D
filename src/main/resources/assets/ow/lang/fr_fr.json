@@ -410,7 +410,9 @@
   "imageTaming": "Apprivoisement:",
   "sleepingTaming": "Somnolence:",
   "imageMaturation": "Maturation",
-  "tooltip.rightClickAlert": "! Débattez-vous !",
+
+  "tooltip.grabBy": "!! ATTRAPÉ PAR UN %s !!",
+  "tooltip.rightClickAlert": "APPUYEZ RAPIDEMENT SUR CLIC DROIT POUR VOUS DÉBATTRE !",
 
 
   "adventurer_manuscript.entity.tiger.page_1": "Le §l§n§dTigre§r est un §lfélin§r sauvage de taille moyenne, rôdant dans les §lforêts tropicales§r et les §ljungles de bambous§r. Extrêmement agile et territorial, il attaque sans avertissement.",

@@ -24,7 +24,21 @@ public class CrocodileGoToWaterWithFoodGoal extends Goal {
         super.tick();
 
         if (targetPos != null && !this.crocodile.isInWater()) {
-            this.crocodile.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 3.0f);
+            if (this.crocodile.canGrabOnLand) {
+                Vec3 crocodilePos = this.crocodile.position();
+                Vec3 waterPos = new Vec3(targetPos.getX() + 0.5, targetPos.getY(), targetPos.getZ() + 0.5);
+                Vec3 directionToWater = waterPos.subtract(crocodilePos).normalize();
+
+                if (this.crocodile.getGrabbedTarget() != null) {
+                    this.crocodile.getLookControl().setLookAt(this.crocodile.getGrabbedTarget(), 30.0F, 30.0F);
+                }
+
+                Vec3 movement = directionToWater.scale(0.075);
+                this.crocodile.setDeltaMovement(movement.x, this.crocodile.getDeltaMovement().y, movement.z);
+                this.crocodile.setOnGround(true);
+            } else {
+                this.crocodile.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), 3.0f);
+            }
         }
 
         if (this.crocodile.isInWater()) {
@@ -47,6 +61,7 @@ public class CrocodileGoToWaterWithFoodGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
+        crocodile.canGrabOnLand = false;
     }
 
     @Override

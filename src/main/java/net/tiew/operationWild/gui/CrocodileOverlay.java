@@ -24,6 +24,7 @@ public class CrocodileOverlay {
             if (entity != null) {
                 if (entity instanceof OWEntity owEntity) {
                     if (owEntity instanceof CrocodileEntity crocodile && rider.getRootVehicle() == crocodile) {
+                        if (crocodile.getGrabbedTarget() != null && crocodile.getGrabbedTarget() == rider) return;
                         createOverlayCharge(guiGraphics, screenWidth, screenHeight, 256, crocodile, crocodile.isRunning() ? 13 : 9);
                     }
                 }

@@ -65,15 +65,14 @@ public class CrocodileBehaviorHandler {
     }
 
     public void trampleLilyPads(BlockPos pos) {
-        Vec3 lookDirection = crocodile.getLookAngle();
+        int radius = 2;
 
-        checkAndBreakLilyPad(pos);
-
-        BlockPos frontPos1 = pos.offset((int)Math.round(lookDirection.x), 0, (int)Math.round(lookDirection.z));
-        checkAndBreakLilyPad(frontPos1);
-
-        BlockPos frontPos2 = pos.offset((int)Math.round(lookDirection.x * 2), 0, (int)Math.round(lookDirection.z * 2));
-        checkAndBreakLilyPad(frontPos2);
+        for (int xOffset = -radius; xOffset <= radius; xOffset++) {
+            for (int zOffset = -radius; zOffset <= radius; zOffset++) {
+                BlockPos checkPos = pos.offset(xOffset, 0, zOffset);
+                checkAndBreakLilyPad(checkPos);
+            }
+        }
     }
 
     private void checkAndBreakLilyPad(BlockPos pos) {

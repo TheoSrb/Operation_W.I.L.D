@@ -81,7 +81,6 @@ public class ClientEvents {
     private static final long CLICK_COOLDOWN = 50;
 
 
-    public static int debateClick = 0;
 
     @SubscribeEvent
     public static void onDebate(InputEvent.MouseButton.Pre event) {
@@ -89,13 +88,17 @@ public class ClientEvents {
         Player player = mc.player;
 
         if (player != null) {
-
-            if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != player && crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player) {
-                if (debateClick >= 40) {
-                    debateClick = 0;
-                    OWNetworkHandler.sendToServer(new StopGrabPacket());
-                } else {
-                    debateClick++;
+            if (event.getButton() == 1 && event.getAction() == 1) {
+                if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != player && crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player) {
+                    if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
+                        if (crocodile.getGrabTimeout() <= 0) {
+                            OWNetworkHandler.sendToServer(new StopGrabPacket());
+                        } else {
+                            OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
+                            RightClickAlertOverlay.hasClicked = true;
+                            RightClickAlertOverlay.clickAnimationTimer = 3;
+                        }
+                    }
                 }
             }
         }

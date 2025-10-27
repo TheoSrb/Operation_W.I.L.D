@@ -28,6 +28,7 @@ import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.WaterlilyBlock;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.MarkedMudBlock;
 import net.tiew.operationWild.core.OWUtils;
@@ -102,6 +103,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Boolean> CAN_GRAB_UNDERWATER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_ATTACKING_GRAB = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DEATH_ROLLING_PROGRESS = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> GRAB_TIMEOUT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -125,6 +127,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public int deathRollAnimationTimeout = 0;
 
     private int attackingGrabTimer = 0;
+    public int attackingGrabCooldown = 0;
+    private int grabUnderwaterCooldown = 0;
+
+    public boolean canGrabOnLand = false;
 
     private static final int GROWLS_DURATION = 75;
     private static final int GRUNT_DURATION = 55;
@@ -189,6 +195,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(CAN_GRAB_UNDERWATER, false);
         builder.define(IS_ATTACKING_GRAB, false);
         builder.define(DEATH_ROLLING_PROGRESS, 0);
+        builder.define(GRAB_TIMEOUT, 0);
     }
 
     public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
@@ -380,16 +387,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     @Override
-    public void aiStep() {
-        super.aiStep();
-        if (this.isInWater() || this.onGround()) {
-            BlockPos currentPos = this.blockPosition();
-            crocodileBehaviorHandler.trampleLilyPads(currentPos);
-            crocodileBehaviorHandler.trampleLilyPads(currentPos.above());
-        }
-    }
-
-    @Override
     public void travel(Vec3 vec3) {
         if (this.isChargingMouth()) {
             Vec3 movement = this.getDeltaMovement();
@@ -421,6 +418,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
         }
 
+        if (attackingGrabCooldown > 0) {
+            attackingGrabCooldown--;
+        }
+
         if (this.isAttackingGrab() && this.getTarget() != null && this.getTarget().isInWater() && this.isInWater()) {
             attackingGrabTimer++;
 
@@ -449,12 +450,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                     double dz = targetPos.z - entityPos.z;
                     double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-                    this.setDeltaMovement(dx / distance * 1.25, dy / distance * 0.7 + 0.3, dz / distance * 1.25);
+                    this.setDeltaMovement(dx / distance * 1.0, dy / distance * 0.2, dz / distance * 1.0);
                     this.setDeltaMovement(this.getDeltaMovement().scale(0.99));
                 }
             }
 
-            if (attackingGrabTimer >= 20 || !this.isInWater()) {
+            if (attackingGrabTimer >= 20) {
                 attackingGrabTimer = 0;
                 this.setAttackingGrab(false);
             }
@@ -465,7 +466,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.setChargingMouthTimer(0);
 
             if (this.getTarget() != null && !this.isTame()) {
-                if (this.tickCount % 150 == 0) {
+                if (grabUnderwaterCooldown > 0) {
+                    grabUnderwaterCooldown--;
+                }
+
+                if (this.tickCount % 600 == 0 && grabUnderwaterCooldown == 0) {
                     this.setCanGrabUnderwater(!this.canGrabUnderwater());
                 }
             }
@@ -477,25 +482,29 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             }
         } else {
             this.setCanGrabUnderwater(false);
+            this.setAttackingGrab(false);
+            grabUnderwaterCooldown = 0;
         }
 
         if (this.isDeathRolling()) {
             this.setDeathRollProgress(this.getDeathRollProgress() + 1);
             if (this.isInWater()) {
-                this.setDeltaMovement(0, 0.02, 0);
+                if (this.level().getSeaLevel() - this.getY() >= 2) {
+                    this.setDeltaMovement(0, 0.02, 0);
+                }
             }
 
             try {
                 this.getGrabbedTarget().invulnerableTime = 0;
 
                 if (this.getDeathRollProgress() % 5 == 0) {
-                    this.getGrabbedTarget().hurt(this.damageSource, 1);
+                    this.getGrabbedTarget().hurt(this.damageSource, 0.5f);
 
                     if (this.level() instanceof ServerLevel serverLevel) {
                         serverLevel.sendParticles(ParticleTypes.SPLASH,
                                 this.getX(), this.getY() + 0.5, this.getZ(),
-                                10,
-                                0.5, 0.3, 0.5,
+                                20,
+                                0.5, 0.4, 0.5,
                                 0.1);
                     }
                 }
@@ -511,10 +520,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (hasSomeoneInHisMouth()) {
             LivingEntity grabbed = this.getGrabbedTarget();
+            this.setGrabTimeout(this.getGrabTimeout() + 1);
 
             try {
                 if (this.isInWater()) {
                     this.setLookAt(this.getGrabbedTarget().getX(), this.getGrabbedTarget().getY(), this.getGrabbedTarget().getZ());
+                }
+
+                if (this.getGrabTimeout() >= getGrabMaxTimeout()) {
+                    this.setGrabTimeout(0);
+                    this.getGrabbedTarget().kill();
                 }
             } catch (NullPointerException e) {
             }
@@ -547,6 +562,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (this.isSaddled()) {
             this.spawnAtLocation(acceptSaddle());
         }
+    }
+
+    public int getGrabMaxTimeout() {
+        return 600;
     }
 
     private ItemStack createSoulStack() {
@@ -595,6 +614,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         boolean isAlreadyGrabbed = entity.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != entity;
         boolean canGrab = targetIsNearOfWater && !this.level().isClientSide()  &&
                 !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity);
+
+        if (canGrabOnLand) {
+            if (!isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity)) {
+                this.grabEntity(entity);
+            }
+        }
 
         if (canGrab) {
             if (this.onGround()) {
@@ -752,6 +777,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         } else {
             this.setGrabbing(true, entity);
         }
+
+        this.setGrabTimeout(300);
     }
 
     private void handleGoldVariantEffects() {
@@ -908,6 +935,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return Math.min(this.entityData.get(DEATH_ROLLING_PROGRESS), 40);
     }
 
+    public void setGrabTimeout(int getGrabMaxTimeout) {
+        this.entityData.set(GRAB_TIMEOUT, getGrabMaxTimeout);
+    }
+
+    public int getGrabTimeout() {
+        return this.entityData.get(GRAB_TIMEOUT);
+    }
+
     public void setChargingMouth(boolean isChargingMouth) {
         this.entityData.set(IS_CHARGING_MOUTH, isChargingMouth);
     }
@@ -929,6 +964,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public void setAttackingGrab(boolean isAttackingGrab) {
         this.entityData.set(IS_ATTACKING_GRAB, isAttackingGrab);
+        if (!isAttackingGrab) grabUnderwaterCooldown = 600;
     }
 
     public boolean isAttackingGrab() { return this.entityData.get(IS_ATTACKING_GRAB);}

@@ -60,7 +60,10 @@ public class CrocodileAttackGoal extends OWAttackGoal {
     protected void performAttack(LivingEntity target) {
         if (crocodile.isChargingMouth()) return;
         if (this.crocodile.canGrabUnderwater()) {
-            this.crocodile.setAttackingGrab(true);
+            if (this.crocodile.getTarget() != null && this.crocodile.attackingGrabCooldown <= 0) {
+                this.crocodile.setAttackingGrab(true);
+                this.crocodile.attackingGrabCooldown = 400 + this.crocodile.getRandom().nextInt(200);
+            }
         } else {
             super.performAttack(target);
         }

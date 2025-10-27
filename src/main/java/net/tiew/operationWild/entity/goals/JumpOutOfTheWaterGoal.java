@@ -9,6 +9,8 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 public class JumpOutOfTheWaterGoal extends Goal {
 
     private final OWEntity entity;
+    private static final int COOLDOWN_TICKS = 200;
+    private int cooldownTimer = 0;
 
     public JumpOutOfTheWaterGoal(OWEntity entity) {
         this.entity = entity;
@@ -17,7 +19,11 @@ public class JumpOutOfTheWaterGoal extends Goal {
     @Override
     public void start() {
         super.start();
-        if (this.entity instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() != null) return;
+        if (this.entity instanceof CrocodileEntity crocodile) {
+            if (crocodile.getGrabbedTarget() != null || crocodile.canGrabUnderwater()) {
+                return;
+            }
+        }
 
         entity.hasImpulse = true;
 
@@ -29,15 +35,26 @@ public class JumpOutOfTheWaterGoal extends Goal {
             double dz = targetPos.z - entityPos.z;
             double distance = Math.sqrt(dx * dx + dz * dz);
 
-            entity.setDeltaMovement(dx / distance * 0.8, 0.5, dz / distance * 0.8);
+            entity.setDeltaMovement(dx / distance * 0.7, 0.55, dz / distance * 0.7);
+
+            if (entity instanceof CrocodileEntity crocodile) {
+                crocodile.canGrabOnLand = true;
+            }
         }
 
         entity.playSound(SoundEvents.GENERIC_SWIM);
+
+        cooldownTimer = COOLDOWN_TICKS;
     }
 
     @Override
     public void tick() {
         super.tick();
+
+        if (cooldownTimer > 0) {
+            cooldownTimer--;
+        }
+
         if (entity.isInWater()) {
             entity.setDeltaMovement(entity.getDeltaMovement().scale(0.99));
         }
@@ -55,7 +72,11 @@ public class JumpOutOfTheWaterGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (cooldownTimer > 0) {
+            return false;
+        }
+
         return entity.getVehicle() == null && entity.getControllingPassenger() == null && entity.getTarget() != null && entity.isInWater() &&
-                entity.getTarget().onGround() && entity.distanceTo(entity.getTarget()) <= 6 && !entity.isTame();
+                (entity.getTarget().onGround() && !entity.getTarget().isInWater()) && entity.distanceTo(entity.getTarget()) <= 6 && !entity.isTame();
     }
 }
