@@ -235,7 +235,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		if (!crocodile.isInWater()) {
 			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
-			if ((crocodile.isRunning() || crocodile.getState() == 2) && !crocodile.isChargingMouth() && !crocodile.hasSomeoneInHisMouth()) {
+			if ((crocodile.isRunning() || crocodile.getState() == 2) && !crocodile.isChargingMouth() && !crocodile.hasGrabSomething()) {
 				if (crocodile.isVehicle()) {
 					this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.3f, 1.4f);
 				} else {

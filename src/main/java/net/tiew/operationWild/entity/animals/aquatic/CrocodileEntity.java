@@ -1,10 +1,9 @@
 package net.tiew.operationWild.entity.animals.aquatic;
 
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -14,8 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.ai.control.LookControl;
@@ -27,8 +24,6 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.minecraft.world.level.block.WaterlilyBlock;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.MarkedMudBlock;
 import net.tiew.operationWild.core.OWUtils;
@@ -38,50 +33,36 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.Tags;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.effect.OWEffects;
+import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.behavior.CrocodileBehaviorHandler;
-import net.tiew.operationWild.entity.behavior.KodiakBehaviorHandler;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
-import net.tiew.operationWild.entity.config.IOWEntity;
-import net.tiew.operationWild.entity.config.IOWRideable;
-import net.tiew.operationWild.entity.config.IOWTamable;
-import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.config.*;
 import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileAttackGoal;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileChargingMouthGoal;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileGoToWaterWithFoodGoal;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileNapGoal;
-import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
-import net.tiew.operationWild.entity.goals.kodiak.*;
 import net.tiew.operationWild.entity.taming.TamingCrocodile;
-import net.tiew.operationWild.entity.taming.TamingKodiak;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.core.OWTags;
 import org.jetbrains.annotations.Nullable;
-import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 
@@ -89,7 +70,7 @@ import java.util.*;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable {
+public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity {
 
     public static final double TAMING_EXPERIENCE = 205.0;
 
@@ -131,6 +112,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private int grabUnderwaterCooldown = 0;
 
     public boolean canGrabOnLand = false;
+
+    private final int MAX_GRAB_COOLDOWN = 300;
+    private int grabCooldown = 0;
 
     private static final int GROWLS_DURATION = 75;
     private static final int GRUNT_DURATION = 55;
@@ -417,6 +401,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, this.isTame() ? 2.25 : 1.5, false, 0.15f);
         }
 
+        if (grabCooldown > 0) {
+            grabCooldown--;
+        }
+
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();
@@ -528,7 +516,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             }
         }
 
-        if (hasSomeoneInHisMouth()) {
+        if (hasGrabSomething()) {
             LivingEntity grabbed = this.getGrabbedTarget();
             
             if (grabbed instanceof Player) {
@@ -585,10 +573,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (this.isSaddled()) {
             this.spawnAtLocation(acceptSaddle());
         }
-    }
-
-    public int getGrabMaxTimeout() {
-        return 600;
     }
 
     private ItemStack createSoulStack() {
@@ -793,15 +777,48 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     private void grabEntity(LivingEntity entity) {
-        if (entity instanceof OWEntity owEntity) {
-            if (owEntity.getTheoreticalScale() <= 20) {
+        if (grabCooldown > 0) return;
+
+        int[] slidingLevels = getSlidingLevels(entity);
+        float[] slidingMultiplier = OWEnchantments.SLIDING_ARMOR_MULTIPLIERS;
+
+        float chancesToAvoidingGrab = calculateChanceToAvoidingGrab(slidingLevels, slidingMultiplier);
+
+        if (chance >= chancesToAvoidingGrab) {
+            if (entity instanceof OWEntity owEntity) {
+                if (owEntity.getTheoreticalScale() <= 20) {
+                    this.setGrabbing(true, entity);
+                }
+            } else {
                 this.setGrabbing(true, entity);
             }
-        } else {
-            this.setGrabbing(true, entity);
+
+            this.setGrabTimeout(300);
         }
 
-        this.setGrabTimeout(300);
+        this.grabCooldown = MAX_GRAB_COOLDOWN;
+    }
+
+    private float calculateChanceToAvoidingGrab(int[] slidingLevels, float[] slidingMultiplier) {
+        return (slidingLevels[0] * slidingMultiplier[0]) + (slidingLevels[1] * slidingMultiplier[1]) + (slidingLevels[2] * slidingMultiplier[2]) + (slidingLevels[3] * slidingMultiplier[3]);
+    }
+
+    private int[] getSlidingLevels(LivingEntity entity) {
+        int[] slidingLevels = new int[4];
+        EquipmentSlot[] slots = {
+                EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
+        };
+
+        for (int i = 0; i < slots.length; i++) {
+            ItemStack armor = entity.getItemBySlot(slots[i]);
+            if (!armor.isEmpty()) {
+                slidingLevels[i] = armor.getEnchantmentLevel(this.level().registryAccess()
+                        .registryOrThrow(Registries.ENCHANTMENT)
+                        .getHolderOrThrow(OWEnchantments.SLIDING));
+            }
+        }
+
+        return slidingLevels;
     }
 
     private void handleGoldVariantEffects() {
@@ -998,7 +1015,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public boolean isDeathRolling() { return this.entityData.get(IS_DEATH_ROLLING);}
 
-    public boolean hasSomeoneInHisMouth() {
+    public boolean hasGrabSomething() {
         if (this.level().isClientSide()) return false;
         return this.getGrabbedTarget() != null && this.isGrabbing();
     }
@@ -1034,6 +1051,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
+    }
+
+    @Override
+    public int getGrabMaxTimeout() {
+        return 600;
     }
 
     public static class CrocodileNearestAttackableTargetGoal extends NearestAttackableTargetGoal {

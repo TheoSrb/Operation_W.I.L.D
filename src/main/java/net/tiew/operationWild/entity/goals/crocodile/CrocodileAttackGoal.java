@@ -16,7 +16,7 @@ public class CrocodileAttackGoal extends OWAttackGoal {
 
     @Override
     public boolean canUse() {
-        if (crocodile.hasSomeoneInHisMouth()) {
+        if (crocodile.hasGrabSomething()) {
             return false;
         }
         return super.canUse();
@@ -24,7 +24,7 @@ public class CrocodileAttackGoal extends OWAttackGoal {
 
     @Override
     public boolean canContinueToUse() {
-        if (crocodile.hasSomeoneInHisMouth()) {
+        if (crocodile.hasGrabSomething()) {
             return false;
         }
         return super.canContinueToUse();

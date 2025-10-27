@@ -34,6 +34,10 @@ public class OWEnchantments {
     public static final ResourceKey<Enchantment> REPTILIAN_CALAMITY = ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "reptilian_calamity"));
     public static final ResourceKey<Enchantment> PLANT_PROVIDENCE = ResourceKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "plant_providence"));
 
+    public static final float[] SLIDING_ARMOR_MULTIPLIERS = {
+            5.0f, 10.0f, 7.5f, 2.5f
+    };
+
     public static void bootstrap(BootstrapContext<Enchantment> context) {
         var enchantments = context.lookup(Registries.ENCHANTMENT);
         var items = context.lookup(Registries.ITEM);
