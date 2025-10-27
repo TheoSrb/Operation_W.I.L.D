@@ -137,7 +137,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         super.tick();
         if (this instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() != null && !crocodile.isTame()) return;
 
-        Player rider = (Player) this.getControllingPassenger();
+        LivingEntity rider = this.getControllingPassenger();
         int depth = (int) (this.level().getSeaLevel() - this.getY());
 
         if (this.isEffectiveAi() && !this.isVehicle() && !this.isSitting()) {
@@ -150,8 +150,10 @@ public abstract class OWSemiWaterEntity extends OWEntity {
 
         if (depth >= this.getMaxDepth()) {
             if (rider != null) {
-                if (!rider.isCreative()) {
-                    applyWaterPressureDamage(depth, rider);
+                if (rider instanceof Player player) {
+                    if (!player.isCreative()) {
+                        applyWaterPressureDamage(depth, player);
+                    }
                 }
             } else applyWaterPressureDamage(depth, null);
         } else {
