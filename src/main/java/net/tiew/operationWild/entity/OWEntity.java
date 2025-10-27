@@ -2518,6 +2518,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void handleRunningEffects(int maxRunTime, SoundEvent soundEvent, float pitch, int[] runTimeSound) {
+        if (this.isInWater()) return;
         if (((this.isRunning()) || getTarget() != null)) {
             if (this.level().isClientSide()) {
                 if (this.getDeltaMovement().horizontalDistanceSqr() > 0.01) {
