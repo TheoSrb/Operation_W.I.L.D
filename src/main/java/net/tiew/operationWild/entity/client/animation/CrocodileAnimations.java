@@ -1261,7 +1261,9 @@ public class CrocodileAnimations {
         public static final AnimationDefinition ATTACK_DEATH_ROLL = AnimationDefinition.Builder.withLength(2.0097F)
                 .addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.ROTATION,
                         new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(1.9855F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -1080.0F), AnimationChannel.Interpolations.CATMULLROM)
+                        new Keyframe(0.7022F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -717.5F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.4044F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -1302.5F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(2.0097F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -1440.0F), AnimationChannel.Interpolations.CATMULLROM)
                 ))
                 .addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION,
                         new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),

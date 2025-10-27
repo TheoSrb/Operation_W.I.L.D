@@ -101,6 +101,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Boolean> IS_DEATH_ROLLING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> CAN_GRAB_UNDERWATER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_ATTACKING_GRAB = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> DEATH_ROLLING_PROGRESS = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -125,7 +126,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private int attackingGrabTimer = 0;
 
-    private int deathRollingTimer = 0;
     private static final int GROWLS_DURATION = 75;
     private static final int GRUNT_DURATION = 55;
 
@@ -188,6 +188,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(IS_DEATH_ROLLING, false);
         builder.define(CAN_GRAB_UNDERWATER, false);
         builder.define(IS_ATTACKING_GRAB, false);
+        builder.define(DEATH_ROLLING_PROGRESS, 0);
     }
 
     public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
@@ -420,7 +421,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
         }
 
-        if (this.isAttackingGrab()) {
+        if (this.isAttackingGrab() && this.getTarget() != null && this.getTarget().isInWater() && this.isInWater()) {
             attackingGrabTimer++;
 
             if (this.getTarget() != null) {
@@ -479,13 +480,15 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         if (this.isDeathRolling()) {
-            this.deathRollingTimer++;
-            this.setDeltaMovement(0, 0.02, 0);
+            this.setDeathRollProgress(this.getDeathRollProgress() + 1);
+            if (this.isInWater()) {
+                this.setDeltaMovement(0, 0.02, 0);
+            }
 
             try {
                 this.getGrabbedTarget().invulnerableTime = 0;
 
-                if (this.deathRollingTimer % 5 == 0) {
+                if (this.getDeathRollProgress() % 5 == 0) {
                     this.getGrabbedTarget().hurt(this.damageSource, 1);
 
                     if (this.level() instanceof ServerLevel serverLevel) {
@@ -500,8 +503,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             } catch (NullPointerException e) {
             }
 
-            if (this.deathRollingTimer >= 40) {
-                this.deathRollingTimer = 0;
+            if (this.getDeathRollProgress() >= 40) {
+                this.setDeathRollProgress(0);
                 this.setDeathRolling(false);
             }
         }
@@ -896,6 +899,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public boolean isMad() { return this.entityData.get(IS_MAD);}
+
+    public void setDeathRollProgress(int getDeathRollProgress) {
+        this.entityData.set(DEATH_ROLLING_PROGRESS, getDeathRollProgress);
+    }
+
+    public int getDeathRollProgress() {
+        return Math.min(this.entityData.get(DEATH_ROLLING_PROGRESS), 40);
+    }
 
     public void setChargingMouth(boolean isChargingMouth) {
         this.entityData.set(IS_CHARGING_MOUTH, isChargingMouth);
