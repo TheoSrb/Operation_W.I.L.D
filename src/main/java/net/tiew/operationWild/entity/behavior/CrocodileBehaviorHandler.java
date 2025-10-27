@@ -79,7 +79,7 @@ public class CrocodileBehaviorHandler {
         BlockState blockState = crocodile.level().getBlockState(pos);
 
         if (blockState.getBlock() instanceof WaterlilyBlock) {
-            crocodile.level().destroyBlock(pos, true);
+            crocodile.level().destroyBlock(pos, false);
         }
     }
 

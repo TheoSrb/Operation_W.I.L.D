@@ -530,9 +530,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (hasSomeoneInHisMouth()) {
             LivingEntity grabbed = this.getGrabbedTarget();
-            this.setGrabTimeout(this.getGrabTimeout() + 1);
+            
+            if (grabbed instanceof Player) {
+                this.setGrabTimeout(this.getGrabTimeout() + 1);
+            }
 
             try {
+                this.getGrabbedTarget().noPhysics = true;
+
                 if (this.isInWater()) {
                     this.setLookAt(this.getGrabbedTarget().getX(), this.getGrabbedTarget().getY(), this.getGrabbedTarget().getZ());
                 }
@@ -546,11 +551,17 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
             if (!this.getGrabbedTarget().isAlive() || (this.getGrabbedTarget() instanceof Player player && player.isCreative())) {
                 grabbed.stopRiding();
+                this.getGrabbedTarget().noPhysics = false;
                 this.setGrabbing(false, null);
                 this.setTarget(null);
             } else {
                 if (grabbed != null && !grabbed.isPassenger()) {
-                    grabbed.startRiding(this);
+                    if (grabbed instanceof Player) {
+                        grabbed.startRiding(this);
+                    } else {
+                        Vec3 look = this.getLookAngle();
+                        grabbed.setPos(this.getX() + look.x * 1.75f , this.getY() - 0.2, this.getZ() + look.z * 1.75f);
+                    }
                 }
             }
         }
