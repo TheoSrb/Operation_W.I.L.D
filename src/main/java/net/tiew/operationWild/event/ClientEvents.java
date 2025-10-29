@@ -1346,7 +1346,7 @@ public class ClientEvents {
         }
     }
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public static void renderCustomHearts(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL && Minecraft.getInstance().screen == null
                 && !Minecraft.getInstance().options.hideGui && !Minecraft.getInstance().getDebugOverlay().showDebugScreen()) {
@@ -1367,7 +1367,7 @@ public class ClientEvents {
                     removeMinecraftBlurShader();
                 }
 
-                /*if (waterPressure >= 4 && !player.isCreative() && player.isAlive() && minecraft.screen == null && !minecraft.isPaused() && !isInSubmarine(player)) {
+                if (waterPressure >= 4 && !player.isCreative() && player.isAlive() && minecraft.screen == null && !minecraft.isPaused() && !isInSubmarine(player)) {
                     if (waterPressure >= 60)
                         Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur10.json"));
                     else if (waterPressure >= 54)
@@ -1387,42 +1387,50 @@ public class ClientEvents {
                     else if (waterPressure >= 12)
                         Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur2.json"));
                     else if (waterPressure >= 6)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur1.json"));*/
+                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur1.json"));
 
 
+            }
+        }
+    }*/
+
+    private static boolean hasProcessedThisFrame = false;
+
+    @SubscribeEvent
+    public static void onRenderLevelStage(RenderLevelStageEvent event) {
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
+            hasProcessedThisFrame = false;
+        }
+
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) {
+            Minecraft minecraft = Minecraft.getInstance();
+            Player player = minecraft.player;
+
+            if (player != null && minecraft.screen == null) {
+                boolean shouldHaveEffect = shouldActivateSubmarineEffect(player);
+                PostChain currentEffect = minecraft.gameRenderer.currentEffect();
+
+                if (shouldHaveEffect) {
+                    if (currentEffect == null) {
+                        try {
+                            minecraft.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/post/submarine_light.json"));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else if (currentEffect.getName().equals("ow:shaders/post/submarine_light.json") && !hasProcessedThisFrame) {
+                        currentEffect.process(minecraft.getTimer().getGameTimeDeltaPartialTick(true));
+                        hasProcessedThisFrame = true;
+                    }
+                } else if (currentEffect != null) {
+                    minecraft.gameRenderer.shutdownEffect();
+                }
             }
         }
     }
 
     @SubscribeEvent
-    public static void onRenderLevelStage(RenderLevelStageEvent event) {
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL && Minecraft.getInstance().screen == null
-                && !Minecraft.getInstance().options.hideGui && !Minecraft.getInstance().getDebugOverlay().showDebugScreen()) {
-            Minecraft minecraft = Minecraft.getInstance();
-            Player player = minecraft.player;
-
-            if (player != null) {
-                boolean shouldHaveEffect = shouldActivateSubmarineEffect(player);
-                PostChain currentEffect = minecraft.gameRenderer.currentEffect();
-
-                boolean hasSubmarineShader = currentEffect != null && currentEffect.getName().equals("ow:shaders/post/submarine_light.json");
-
-                if (shouldHaveEffect && !hasSubmarineShader) {
-                    if (currentEffect != null) {
-                        minecraft.gameRenderer.shutdownEffect();
-                    }
-
-                    try {
-                        minecraft.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/post/submarine_light.json"));
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else if (!shouldHaveEffect && hasSubmarineShader) {
-                    minecraft.gameRenderer.shutdownEffect();
-                }
-
-            }
-        }
+    public static void onClientTick(ClientTickEvent.Pre event) {
+        hasProcessedThisFrame = false;
     }
 
     private static boolean shouldActivateSubmarineEffect(Player player) {

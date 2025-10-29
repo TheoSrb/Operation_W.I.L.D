@@ -444,7 +444,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 this.getGrabbedTarget().invulnerableTime = 0;
 
                 if (this.getDeathRollProgress() % 5 == 0) {
-                    this.getGrabbedTarget().hurt(this.damageSource, 0.5f);
+                    float damage = this.getGrabbedTarget() instanceof Player ? 0.5f : 1.5f;
+                    this.getGrabbedTarget().hurt(this.damageSource, damage);
 
                     if (this.level() instanceof ServerLevel serverLevel) {
                         serverLevel.sendParticles(ParticleTypes.SPLASH,
@@ -466,7 +467,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (hasGrabSomething()) {
             LivingEntity grabbed = this.getGrabbedTarget();
-            
+
             if (grabbed instanceof Player) {
                 this.setGrabTimeout(this.getGrabTimeout() + 1);
             }
@@ -482,6 +483,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                     this.setGrabTimeout(0);
                     this.getGrabbedTarget().kill();
                 }
+
             } catch (NullPointerException e) {
             }
 

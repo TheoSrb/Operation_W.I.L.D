@@ -13,7 +13,7 @@ out vec4 fragColor;
 
 float near = 0.1;
 float far = 10.0;
-float exposure = 20;
+float exposure = 10;
 float AOE = 15;
 
 vec2 lightPos1 = vec2(0.425, 0.5);

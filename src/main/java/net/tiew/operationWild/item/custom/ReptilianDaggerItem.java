@@ -1,10 +1,13 @@
 package net.tiew.operationWild.item.custom;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
@@ -19,6 +22,16 @@ public class ReptilianDaggerItem extends SwordItem {
 
     public ReptilianDaggerItem(Tier tier, Properties properties) {
         super(tier, properties);
+
+        /*var attributeModifiers = this.components().get(DataComponents.ATTRIBUTE_MODIFIERS);
+
+        if (attributeModifiers != null) {
+            attributeModifiers.modifiers().forEach(modifier -> {
+                if (modifier.attribute().equals(Attributes.ATTACK_SPEED)) {
+                    System.out.println("Attack Speed: " + modifier.modifier().amount());
+                }
+            });
+        }*/
     }
 
     @Override
@@ -40,6 +53,15 @@ public class ReptilianDaggerItem extends SwordItem {
                 player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
                 player.getPersistentData().putBoolean(stateKey, false);
             } else {
+                if (!off.isEmpty()) {
+                    ItemStack offCopy = off.copy();
+                    player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+
+                    if (!player.getInventory().add(offCopy)) {
+                        player.drop(offCopy, false);
+                    }
+                }
+
                 ItemStack newDagger = stack.copy();
                 player.setItemInHand(InteractionHand.OFF_HAND, newDagger);
                 player.getPersistentData().putBoolean(stateKey, true);
@@ -69,7 +91,6 @@ public class ReptilianDaggerItem extends SwordItem {
         }
     }
 
-
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker instanceof Player player) {
@@ -78,7 +99,6 @@ public class ReptilianDaggerItem extends SwordItem {
 
             String lastHand = player.getPersistentData().getString(lastHandKey);
 
-            // Reset invulnerableTime seulement si on change de main ET que l'attaque est chargée
             if (!lastHand.isEmpty() && !lastHand.equals(currentHand) && player.getAttackStrengthScale(1.0f) >= 1.0f) {
                 target.invulnerableTime = 0;
             }
