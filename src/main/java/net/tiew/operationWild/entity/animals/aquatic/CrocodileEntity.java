@@ -425,6 +425,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             if (this.getGrabbedTarget() != null) {
                 if (this.tickCount % 70 == 0) {
                     this.setDeathRolling(true);
+                    this.setDeathRollProgress(0);
                 }
             }
         } else {
@@ -857,14 +858,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         if (this.isDeathRolling()) {
-            if (this.deathRollAnimationTimeout <= 0) {
-                this.deathRollAnimationTimeout = 40;
+            if (this.getDeathRollProgress() == 1) {
                 this.deathRollAnimationState.start(this.tickCount);
-            } else --this.deathRollAnimationTimeout;
-        }
-
-        if (!this.isDeathRolling()) {
-            this.deathRollAnimationTimeout = 0;
+            }
+        } else {
             this.deathRollAnimationState.stop();
         }
 

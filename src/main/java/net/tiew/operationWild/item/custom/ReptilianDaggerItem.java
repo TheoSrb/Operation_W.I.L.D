@@ -6,10 +6,13 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.item.OWItems;
 
 public class ReptilianDaggerItem extends SwordItem {
@@ -29,20 +32,26 @@ public class ReptilianDaggerItem extends SwordItem {
         boolean mainIsDagger = main.is(OWItems.REPTILIAN_DAGGER.get());
         boolean offIsDagger = off.is(OWItems.REPTILIAN_DAGGER.get());
 
+        String stateKey = "reptilian_dagger_dual_wielding";
+        boolean wasDualWielding = player.getPersistentData().getBoolean(stateKey);
+
         if (mainIsDagger && !offIsDagger) {
-            ItemStack newDagger = stack.copy();
-            player.setItemInHand(InteractionHand.OFF_HAND, newDagger);
-            off = newDagger;
-            offIsDagger = true;
+            if (wasDualWielding) {
+                player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+                player.getPersistentData().putBoolean(stateKey, false);
+            } else {
+                ItemStack newDagger = stack.copy();
+                player.setItemInHand(InteractionHand.OFF_HAND, newDagger);
+                player.getPersistentData().putBoolean(stateKey, true);
+            }
         }
-
-        if (!mainIsDagger && offIsDagger) {
+        else if (!mainIsDagger && offIsDagger) {
             player.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-            off = ItemStack.EMPTY;
-            offIsDagger = false;
+            player.getPersistentData().putBoolean(stateKey, false);
         }
+        else if (mainIsDagger && offIsDagger) {
+            player.getPersistentData().putBoolean(stateKey, true);
 
-        if (mainIsDagger && offIsDagger) {
             int mainDamage = main.getDamageValue();
             int offDamage = off.getDamageValue();
             int syncedDamage = Math.max(mainDamage, offDamage);
@@ -55,17 +64,22 @@ public class ReptilianDaggerItem extends SwordItem {
                 player.setItemInHand(InteractionHand.OFF_HAND, off);
             }
         }
+        else {
+            player.getPersistentData().putBoolean(stateKey, false);
+        }
     }
 
 
     @Override
     public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         if (attacker instanceof Player player) {
-            String lastHandKey = "reptilian_last_hand";
+            String lastHandKey = "reptilian_last_hand_" + target.getUUID();
             String currentHand = player.getMainHandItem() == stack ? "main" : "off";
 
             String lastHand = player.getPersistentData().getString(lastHandKey);
-            if (!lastHand.equals(currentHand)) {
+
+            // Reset invulnerableTime seulement si on change de main ET que l'attaque est chargée
+            if (!lastHand.isEmpty() && !lastHand.equals(currentHand) && player.getAttackStrengthScale(1.0f) >= 1.0f) {
                 target.invulnerableTime = 0;
             }
 
@@ -89,11 +103,12 @@ public class ReptilianDaggerItem extends SwordItem {
 
                 Entity target = getTargetEntity(player, level);
                 if (target instanceof LivingEntity livingTarget) {
-                    String lastHandKey = "reptilian_last_hand";
-                    String currentHand = "main";
+                    String lastHandKey = "reptilian_last_hand_" + livingTarget.getUUID();
+                    String currentHand = "off";
 
                     String lastHand = player.getPersistentData().getString(lastHandKey);
-                    if (!lastHand.equals(currentHand)) {
+
+                    if (!lastHand.isEmpty() && !lastHand.equals(currentHand) && player.getAttackStrengthScale(1.0f) >= 1.0f) {
                         livingTarget.invulnerableTime = 0;
                     }
 
@@ -122,6 +137,8 @@ public class ReptilianDaggerItem extends SwordItem {
 
                 player.setItemInHand(InteractionHand.MAIN_HAND, mainHandItem);
                 player.setItemInHand(InteractionHand.OFF_HAND, offHandItem);
+            } else {
+                player.resetAttackStrengthTicker();
             }
         }
         return super.use(level, player, hand);
@@ -129,16 +146,21 @@ public class ReptilianDaggerItem extends SwordItem {
 
 
     private Entity getTargetEntity(Player player, Level level) {
-        double reach = 4.25;
+        double reach = 4.0;
 
-        return level.getEntities(player, player.getBoundingBox().inflate(reach))
-                .stream()
-                .filter(entity -> entity instanceof LivingEntity && entity != player)
-                .filter(player::hasLineOfSight)
-                .min((e1, e2) -> Double.compare(
-                        player.distanceToSqr(e1),
-                        player.distanceToSqr(e2)
-                ))
-                .orElse(null);
+        Vec3 eyePos = player.getEyePosition();
+        Vec3 lookVec = player.getViewVector(1.0F);
+        Vec3 reachVec = eyePos.add(lookVec.scale(reach));
+
+        EntityHitResult hitResult = ProjectileUtil.getEntityHitResult(
+                level,
+                player,
+                eyePos,
+                reachVec,
+                player.getBoundingBox().inflate(reach),
+                entity -> entity instanceof LivingEntity && entity != player
+        );
+
+        return hitResult != null ? hitResult.getEntity() : null;
     }
 }
