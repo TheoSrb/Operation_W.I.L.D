@@ -251,10 +251,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
 		}
 
-		if (crocodile.isAttackingGrab()) {
-			this.mouth_up.xRot = (float) Math.toRadians(-50);
-		}
-
 		if (crocodile.level().isClientSide()) {
 			if (crocodile.isGrabbing()) {
 				if (!crocodile.isInWater()) {

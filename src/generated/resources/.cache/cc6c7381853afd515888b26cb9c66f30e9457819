@@ -1,4 +1,4 @@
-// 1.21	2025-10-11T15:16:55.4796019	Tags for minecraft:item mod id ow
+// 1.21	2025-10-29T08:59:12.5195756	Tags for minecraft:item mod id ow
 ac05fb97b8a10e0240f5df28bfd2335e56b849a2 data/c/tags/item/foods.json
 f8d501a36ea77641a87cf4a609abbe712de43220 data/c/tags/item/foods/cooked_meat.json
 ab3e0a596f197aa4eb83eb43165511a904cee0c6 data/c/tags/item/foods/raw_meat.json
@@ -7,8 +7,8 @@ a95e41043c88f7255d524b559e13744ab52905bf data/minecraft/tags/item/arrows.json
 eaf8ca4ec63ce59020fe02cb2de6fa99ae85b6b4 data/minecraft/tags/item/axes.json
 eaef426a95f0a6b733a243ad602caeb95bf795f2 data/minecraft/tags/item/chest_armor.json
 277349f3bc165ca84546c4a15b01e4f1c7260e3a data/minecraft/tags/item/enchantable/armor.json
-c743d385dedf50e4aaf2096161846ec7f090f8ce data/minecraft/tags/item/enchantable/durability.json
-29eb105e82047b7bad4cc39b611a546ba6cee463 data/minecraft/tags/item/enchantable/weapon.json
+6d9da5943a847b2da69540c2a2b059dd00477a3a data/minecraft/tags/item/enchantable/durability.json
+0d8fa92e3352bfaf7d41b694918fcece69d61ac8 data/minecraft/tags/item/enchantable/weapon.json
 f27bd701851612fbf40ce3e8891e8a2f61cc4c16 data/minecraft/tags/item/foot_armor.json
 9bce1416f67a393bd412648dd12959eecaadf580 data/minecraft/tags/item/head_armor.json
 fcba97bcde9580dafa244fdd4254d48777a6994e data/minecraft/tags/item/hoes.json
@@ -18,7 +18,7 @@ ac26f32b2f697795a207db5976fbff7eb4c42baf data/minecraft/tags/item/meat.json
 3b4cc3aa3765e6333c8af616acd43f74ed6253b0 data/minecraft/tags/item/pickaxes.json
 5a6b6fda74029a60e1c49a42dd474acc74a5ab4f data/minecraft/tags/item/planks.json
 743b0f3104fd2af6316246e49e0c6daee8fad9c9 data/minecraft/tags/item/shovels.json
-838da6170554c6370a5a98dfe912af516920d23f data/minecraft/tags/item/swords.json
+418bfb19ad50ebcdc49f07712559521c6ffe9a0c data/minecraft/tags/item/swords.json
 46dbc842f9f9d1b14cafe87a04be0bbf78c0b582 data/ow/tags/item/crocodile_food.json
 d47129685f4cff2843892f180a9d38430d2fb4c5 data/ow/tags/item/kodiak_dangerous_food.json
 3fe6df0882f02c83c296f5dfaed148dab475c556 data/ow/tags/item/kodiak_food.json

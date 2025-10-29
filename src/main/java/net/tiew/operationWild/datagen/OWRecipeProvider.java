@@ -60,6 +60,13 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .define('F', OWItems.PREDATOR_TOOTH.get())
                 .unlockedBy(getHasName(OWItems.TIGER_FUR.get()), has(OWItems.TIGER_FUR.get())).save(recipeOutput);
 
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.REPTILIAN_DAGGER.get())
+                .pattern("  F")
+                .pattern("CF ")
+                .pattern("CC ")
+                .define('C', OWItems.CROCODILE_SCALE.get())
+                .define('F', OWItems.PREDATOR_TOOTH.get())
+                .unlockedBy(getHasName(OWItems.CROCODILE_SCALE.get()), has(OWItems.CROCODILE_SCALE.get())).save(recipeOutput);
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.TRANQUILIZER_ARROW.get(), 2)
                 .pattern("  T")
@@ -205,50 +212,65 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .pattern("   ")
                 .pattern(" L ")
                 .pattern("   ")
-                .define('L', OWBlocks.SCARIFIED_OAK_LOG).unlockedBy(getHasName(OWBlocks.SCARIFIED_OAK_LOG.get()), has(OWBlocks.SCARIFIED_OAK_LOG.get())).save(recipeOutput);
+                .define('L', OWBlocks.SCARIFIED_OAK_LOG)
+                .unlockedBy(getHasName(OWBlocks.SCARIFIED_OAK_LOG.get()), has(OWBlocks.SCARIFIED_OAK_LOG.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":oak_planks_from_scarified_log");
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Blocks.DARK_OAK_PLANKS, 4)
                 .pattern("   ")
                 .pattern(" L ")
                 .pattern("   ")
-                .define('L', OWBlocks.SCARIFIED_DARK_OAK_LOG).unlockedBy(getHasName(OWBlocks.SCARIFIED_DARK_OAK_LOG.get()), has(OWBlocks.SCARIFIED_DARK_OAK_LOG.get())).save(recipeOutput);
+                .define('L', OWBlocks.SCARIFIED_DARK_OAK_LOG)
+                .unlockedBy(getHasName(OWBlocks.SCARIFIED_DARK_OAK_LOG.get()), has(OWBlocks.SCARIFIED_DARK_OAK_LOG.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":dark_oak_planks_from_scarified_log");
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Blocks.SPRUCE_PLANKS, 4)
                 .pattern("   ")
                 .pattern(" L ")
                 .pattern("   ")
-                .define('L', OWBlocks.SCARIFIED_SPRUCE_LOG).unlockedBy(getHasName(OWBlocks.SCARIFIED_SPRUCE_LOG.get()), has(OWBlocks.SCARIFIED_SPRUCE_LOG.get())).save(recipeOutput);
+                .define('L', OWBlocks.SCARIFIED_SPRUCE_LOG)
+                .unlockedBy(getHasName(OWBlocks.SCARIFIED_SPRUCE_LOG.get()), has(OWBlocks.SCARIFIED_SPRUCE_LOG.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":spruce_planks_from_scarified_log");
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Blocks.MANGROVE_PLANKS, 4)
                 .pattern("   ")
                 .pattern(" L ")
                 .pattern("   ")
-                .define('L', OWBlocks.SCARIFIED_MANGROVE_LOG).unlockedBy(getHasName(OWBlocks.SCARIFIED_MANGROVE_LOG.get()), has(OWBlocks.SCARIFIED_MANGROVE_LOG.get())).save(recipeOutput);
+                .define('L', OWBlocks.SCARIFIED_MANGROVE_LOG)
+                .unlockedBy(getHasName(OWBlocks.SCARIFIED_MANGROVE_LOG.get()), has(OWBlocks.SCARIFIED_MANGROVE_LOG.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":mangrove_planks_from_scarified_log");
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Blocks.CHERRY_PLANKS, 4)
                 .pattern("   ")
                 .pattern(" L ")
                 .pattern("   ")
-                .define('L', OWBlocks.SCARIFIED_CHERRY_LOG).unlockedBy(getHasName(OWBlocks.SCARIFIED_CHERRY_LOG.get()), has(OWBlocks.SCARIFIED_CHERRY_LOG.get())).save(recipeOutput);
+                .define('L', OWBlocks.SCARIFIED_CHERRY_LOG)
+                .unlockedBy(getHasName(OWBlocks.SCARIFIED_CHERRY_LOG.get()), has(OWBlocks.SCARIFIED_CHERRY_LOG.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":cherry_planks_from_scarified_log");
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Blocks.BIRCH_PLANKS, 4)
                 .pattern("   ")
                 .pattern(" L ")
                 .pattern("   ")
-                .define('L', OWBlocks.SCARIFIED_BIRCH_LOG).unlockedBy(getHasName(OWBlocks.SCARIFIED_BIRCH_LOG.get()), has(OWBlocks.SCARIFIED_BIRCH_LOG.get())).save(recipeOutput);
+                .define('L', OWBlocks.SCARIFIED_BIRCH_LOG)
+                .unlockedBy(getHasName(OWBlocks.SCARIFIED_BIRCH_LOG.get()), has(OWBlocks.SCARIFIED_BIRCH_LOG.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":birch_planks_from_scarified_log");
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Blocks.ACACIA_PLANKS, 4)
                 .pattern("   ")
                 .pattern(" L ")
                 .pattern("   ")
-                .define('L', OWBlocks.SCARIFIED_ACACIA_LOG).unlockedBy(getHasName(OWBlocks.SCARIFIED_ACACIA_LOG.get()), has(OWBlocks.SCARIFIED_ACACIA_LOG.get())).save(recipeOutput);
+                .define('L', OWBlocks.SCARIFIED_ACACIA_LOG)
+                .unlockedBy(getHasName(OWBlocks.SCARIFIED_ACACIA_LOG.get()), has(OWBlocks.SCARIFIED_ACACIA_LOG.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":acacia_planks_from_scarified_log");
 
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Blocks.JUNGLE_PLANKS, 4)
                 .pattern("   ")
                 .pattern(" L ")
                 .pattern("   ")
-                .define('L', OWBlocks.SCARIFIED_JUNGLE_LOG).unlockedBy(getHasName(OWBlocks.SCARIFIED_JUNGLE_LOG.get()), has(OWBlocks.SCARIFIED_JUNGLE_LOG.get())).save(recipeOutput);
-
+                .define('L', OWBlocks.SCARIFIED_JUNGLE_LOG)
+                .unlockedBy(getHasName(OWBlocks.SCARIFIED_JUNGLE_LOG.get()), has(OWBlocks.SCARIFIED_JUNGLE_LOG.get()))
+                .save(recipeOutput, OperationWild.MOD_ID + ":jungle_planks_from_scarified_log");
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWBlocks.TEDDY_BEAR.get(), 1)
                 .pattern(" C ")
                 .pattern("CCC")

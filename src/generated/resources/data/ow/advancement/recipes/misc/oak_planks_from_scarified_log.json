@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_scarified_jungle_log": {
+    "has_scarified_oak_log": {
       "conditions": {
         "items": [
           {
-            "items": "ow:scarified_jungle_log"
+            "items": "ow:scarified_oak_log"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:jungle_planks"
+        "recipe": "ow:oak_planks_from_scarified_log"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_scarified_jungle_log"
+      "has_scarified_oak_log"
     ]
   ],
   "rewards": {
     "recipes": [
-      "minecraft:jungle_planks"
+      "ow:oak_planks_from_scarified_log"
     ]
   }
 }

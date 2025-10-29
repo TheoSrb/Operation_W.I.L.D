@@ -42,6 +42,7 @@ public class CrocodileNapGoal extends Goal {
 
         if (shouldStop) {
             startAwaken();
+            stop();
             return;
         }
 
@@ -55,6 +56,7 @@ public class CrocodileNapGoal extends Goal {
                         startAwaken();
                         this.crocodile.setTarget(entity);
                         this.crocodile.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 40, 2, false, false, false));
+                        stop();
                         break;
                     }
                 }
@@ -69,6 +71,7 @@ public class CrocodileNapGoal extends Goal {
 
             if (napTimer <= 0) {
                 startAwaken();
+                stop();
                 shouldStop = true;
             }
 
@@ -108,6 +111,7 @@ public class CrocodileNapGoal extends Goal {
         napTimer = 0;
         napTickCounter = 0;
         shouldStop = false;
+        startAwaken();
     }
 
     @Override
@@ -210,6 +214,5 @@ public class CrocodileNapGoal extends Goal {
     private void startAwaken() {
         crocodile.setNap(false);
         this.isFakeNap = false;
-        stop();
     }
 }

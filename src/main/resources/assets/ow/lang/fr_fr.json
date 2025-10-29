@@ -337,6 +337,7 @@
   "item.ow.stinging_filament": "Filament urticant",
   "item.ow.bioluminescent_jelly": "Gelée bioluminescente",
   "item.ow.kodiak_coat": "Pelage de kodiak",
+  "item.ow.crocodile_scale": "Écaille de crocodile",
   "item.ow.animal_soul": "Âme de %s",
   "item.ow.tiger_saddle": "Selle de tigre",
   "item.ow.crocodile_saddle": "Selle de crocodile",
@@ -373,6 +374,7 @@
   "item.ow.primitive_slingshot": "Lance-pierre primitif",
   "item.ow.primitive_sickle": "Faucille primitive",
   "item.ow.maya_blowpipe": "Sarbacane de Maya",
+  "item.ow.reptilian_dagger": "Dague reptilienne",
 
   "item.ow.seabug_cockpit": "Cockpit de Seabug",
   "item.ow.seabug_hull": "Coque de Seabug",

@@ -8,6 +8,6 @@
     "type": "ow:crocodile",
     "maxCount": 4,
     "minCount": 2,
-    "weight": 80
+    "weight": 40
   }
 }

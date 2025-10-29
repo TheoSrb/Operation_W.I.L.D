@@ -64,6 +64,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.PRIMITIVE_SICKLE.get());
                         output.accept(OWItems.PRIMITIVE_SLINGSHOT.get());
                         output.accept(OWItems.PRIMITIVE_SPEAR.get());
+                        output.accept(OWItems.REPTILIAN_DAGGER.get());
                         output.accept(OWItems.CAMOUFLAGE_HELMET.get());
                         output.accept(OWItems.CAMOUFLAGE_CHESTPLATE.get());
                         output.accept(OWItems.CAMOUFLAGE_LEGGINGS.get());
@@ -82,6 +83,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.VENOMOUS_ARROW.get());
                         output.accept(OWItems.TIGER_FUR.get());
                         output.accept(OWItems.BOA_TONG.get());
+                        output.accept(OWItems.CROCODILE_SCALE.get());
                         output.accept(OWItems.PREDATOR_TOOTH.get());
                         output.accept(OWItems.VENOMOUS_GLANDS.get());
                         output.accept(OWItems.VENOMOUS_TOOTH.get());

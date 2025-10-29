@@ -81,6 +81,6 @@ public class CrocodileChargingMouthGoal extends Goal {
     private boolean isValidTarget(LivingEntity target) {
         if (target == null) return false;
         if (target.isInWater() || this.crocodile.isInWater()) return false;
-        return crocodile.getRandom().nextInt(20) == 0 && this.crocodile.getHealth() >= this.crocodile.getMaxHealth() / 2 && this.crocodile.distanceTo(target) >= 10;
+        return crocodile.getRandom().nextInt(20) == 0 && this.crocodile.getHealth() >= this.crocodile.getMaxHealth() / 2 && this.crocodile.distanceTo(target) >= 8;
     }
 }

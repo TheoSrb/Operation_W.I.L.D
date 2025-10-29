@@ -1,4 +1,4 @@
-// 1.21	2025-10-25T16:12:36.3845763	Registries
+// 1.21	2025-10-29T08:17:50.0439322	Registries
 50ceb8e49f7e83c2dd6bfecce80a0a9483d14b93 data/ow/enchantment/fawns_protection.json
 e156689f884404354ca67120bdc7f8d470c68d2e data/ow/enchantment/lightness.json
 2e18fdc85cbc2b05f000ae62dc5d3d17ab741fae data/ow/enchantment/plant_providence.json
@@ -10,7 +10,7 @@ e3ce45e5600d02815373abfa47e8142a9b305bb3 data/ow/enchantment/venom_protection.js
 f07ddbc1400c4fa533846da495f9a7c507ad7135 data/ow/neoforge/biome_modifier/add_jade_ore.json
 5efea63c8c82749185067eb67da6016e3b2fda56 data/ow/neoforge/biome_modifier/add_ruby_ore.json
 bec05f8beb9a1a5cc6135dc62377fa2f28136f21 data/ow/neoforge/biome_modifier/add_savage_berry_bush.json
-181683111be74018b64096ef4db1f1358f400d8b data/ow/neoforge/biome_modifier/spawn_crocodile.json
+98dad0b18c9648857e0a3f3a9cd8e0a37d4e6493 data/ow/neoforge/biome_modifier/spawn_crocodile.json
 127e885053001978c4da9314bdb7485e63fbea26 data/ow/neoforge/biome_modifier/spawn_jellyfish.json
 461fdf815be200635def326639ae0a04bd65f3a2 data/ow/neoforge/biome_modifier/spawn_kodiak.json
 492562297ad071c4b1ab6b42f33835d24d4f3985 data/ow/neoforge/biome_modifier/spawn_peacock.json

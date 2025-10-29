@@ -98,6 +98,7 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> STINGING_FILAMENT = ITEMS.register("stinging_filament", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> BIOLUMINESCENT_JELLY = ITEMS.register("bioluminescent_jelly", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> KODIAK_COAT = ITEMS.register("kodiak_coat", () -> new Item(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> CROCODILE_SCALE = ITEMS.register("crocodile_scale", () -> new Item(new Item.Properties()));
 
     public static final DeferredHolder<Item, Item> ANIMAL_SOUL = ITEMS.register("animal_soul", () -> new AnimalSoulItem(new Item.Properties().stacksTo(1).fireResistant()));
 
@@ -127,6 +128,8 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> PRIMITIVE_SLINGSHOT = ITEMS.register("primitive_slingshot", () -> new PrimitiveSlingshotItem(new Item.Properties().stacksTo(1).durability(211)));
     public static final DeferredHolder<Item, Item> PRIMITIVE_SICKLE = ITEMS.register("primitive_sickle", () -> new PrimitiveSickleItem(new Item.Properties().stacksTo(1).durability(211)));
     public static final DeferredHolder<Item, Item> MAYA_BLOWPIPE = ITEMS.register("maya_blowpipe", () -> new MayaBlowpipeItem(new Item.Properties().stacksTo(1).durability(211)));
+
+    public static final DeferredHolder<Item, Item> REPTILIAN_DAGGER = ITEMS.register("reptilian_dagger", () -> new ReptilianDaggerItem(OWToolsTiers.PRIMITIVE, new Item.Properties().attributes(SwordItem.createAttributes(OWToolsTiers.PRIMITIVE, 2, -1.6f))));
 
 
     public static final DeferredHolder<Item, Item> WOODEN_STINGER = ITEMS.register("wooden_stinger", () -> new WoodenStingerItem(new Item.Properties()));

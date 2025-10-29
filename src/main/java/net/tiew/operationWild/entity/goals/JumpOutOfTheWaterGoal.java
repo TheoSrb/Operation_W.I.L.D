@@ -20,7 +20,7 @@ public class JumpOutOfTheWaterGoal extends Goal {
     public void start() {
         super.start();
         if (this.entity instanceof CrocodileEntity crocodile) {
-            if (crocodile.getGrabbedTarget() != null || crocodile.canGrabUnderwater()) {
+            if (crocodile.getGrabbedTarget() != null) {
                 return;
             }
         }

@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": {
+      "item": "ow:crocodile_scale"
+    },
+    "F": {
+      "item": "ow:predator_tooth"
+    }
+  },
+  "pattern": [
+    "  F",
+    "CF ",
+    "CC "
+  ],
+  "result": {
+    "count": 1,
+    "id": "ow:reptilian_dagger"
+  }
+}

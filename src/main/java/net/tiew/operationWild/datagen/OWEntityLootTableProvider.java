@@ -77,6 +77,10 @@ public class OWEntityLootTableProvider extends EntityLootSubProvider {
                 .withPool(createRarePool(OWItems.SHARK_FIN.get(), 0.4F, 1, true))
         );
 
+        this.add(OWEntityRegistry.CROCODILE.get(), LootTable.lootTable()
+                .withPool(createBasicPool(OWItems.CROCODILE_SCALE.get(), 1.0F, 2.0F, true))
+        );
+
 
 
 
@@ -87,7 +91,6 @@ public class OWEntityLootTableProvider extends EntityLootSubProvider {
         this.add(OWEntityRegistry.MANTA.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.WALRUS.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.MANDRILL.get(), LootTable.lootTable());
-        this.add(OWEntityRegistry.CROCODILE.get(), LootTable.lootTable());
 
         this.add(OWEntityRegistry.SEABUG.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.SEABUG_SHARD_0.get(), LootTable.lootTable());

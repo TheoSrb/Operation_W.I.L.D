@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_scarified_oak_log": {
+    "has_crocodile_scale": {
       "conditions": {
         "items": [
           {
-            "items": "ow:scarified_oak_log"
+            "items": "ow:crocodile_scale"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:oak_planks"
+        "recipe": "ow:reptilian_dagger"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_scarified_oak_log"
+      "has_crocodile_scale"
     ]
   ],
   "rewards": {
     "recipes": [
-      "minecraft:oak_planks"
+      "ow:reptilian_dagger"
     ]
   }
 }

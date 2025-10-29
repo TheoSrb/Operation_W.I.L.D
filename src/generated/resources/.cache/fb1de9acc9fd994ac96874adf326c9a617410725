@@ -1,4 +1,4 @@
-// 1.21	2025-10-20T08:23:46.9806382	Item Models: ow
+// 1.21	2025-10-29T08:59:12.5106003	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
@@ -56,6 +56,7 @@ adcbfb5ceaa0d9a0a15bae4f5e815587d9060969 assets/ow/models/item/cooked_boa.json
 6564e282637e35db612bc5413e96c9b4b2701b78 assets/ow/models/item/cooked_peacock.json
 46f2291693f07717944a650567537d58a388e1c1 assets/ow/models/item/cooked_tiger.json
 10703854bf24b01093a5adca4104d09d76e9587c assets/ow/models/item/crocodile_saddle.json
+1184f114f6e7dd71c8d373c687162b35754da065 assets/ow/models/item/crocodile_scale.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/crocodile_spawn_egg.json
 6acfec09b74bbd111ce7893a2ce3a2783baf44f8 assets/ow/models/item/elephant_saddle.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/elephant_spawn_egg.json
@@ -143,6 +144,7 @@ a0c5c188425c3c48f55d201cdae78eb09bfd06fa assets/ow/models/item/redwood_door.json
 9aa3bab87987422c483a80cae585666e0d0844c6 assets/ow/models/item/redwood_fence.json
 a06b7748240f480d16517763adb53ece457177e0 assets/ow/models/item/redwood_sapling.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/red_panda_spawn_egg.json
+ee8d54ec9f8a802cde3d7d78d136d04b77375713 assets/ow/models/item/reptilian_dagger.json
 631fe6de1f6f37fd26ed721962a2adde65852b56 assets/ow/models/item/resurrection_amulet.json
 1cd1f606c8bbfd678e4cedcb902ac9d761488c55 assets/ow/models/item/ruby.json
 7d30899902964633abd759d0b832b526608735aa assets/ow/models/item/ruby_axe.json

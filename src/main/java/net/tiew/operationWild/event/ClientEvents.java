@@ -1,5 +1,6 @@
 package net.tiew.operationWild.event;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
@@ -9,6 +10,7 @@ import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -80,8 +82,6 @@ public class ClientEvents {
     private static long lastRightClick = 0;
     private static final long CLICK_COOLDOWN = 50;
 
-
-
     @SubscribeEvent
     public static void onDebate(InputEvent.MouseButton.Pre event) {
         Minecraft mc = Minecraft.getInstance();
@@ -100,6 +100,17 @@ public class ClientEvents {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onAttack(AttackEntityEvent event) {
+        Player player = event.getEntity();
+
+        if (player.getMainHandItem().is(OWItems.REPTILIAN_DAGGER.get())) {
+            if (player.getOffhandItem().is(OWItems.REPTILIAN_DAGGER.get())) {
+                player.swing(InteractionHand.OFF_HAND, true);
             }
         }
     }

@@ -81,8 +81,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Boolean> IS_GRABBING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> GRABBED_TARGET_ID = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_DEATH_ROLLING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Boolean> CAN_GRAB_UNDERWATER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Boolean> IS_ATTACKING_GRAB = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DEATH_ROLLING_PROGRESS = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GRAB_TIMEOUT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
 
@@ -113,8 +111,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public boolean canGrabOnLand = false;
 
-    private final int MAX_GRAB_COOLDOWN = 300;
-    private int grabCooldown = 0;
+    private static final int MAX_GRAB_COOLDOWN = 600;
+    private static long lastGrabTime = 0;
 
     private static final int GROWLS_DURATION = 75;
     private static final int GRUNT_DURATION = 55;
@@ -176,8 +174,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(IS_GRABBING, false);
         builder.define(GRABBED_TARGET_ID, -1);
         builder.define(IS_DEATH_ROLLING, false);
-        builder.define(CAN_GRAB_UNDERWATER, false);
-        builder.define(IS_ATTACKING_GRAB, false);
         builder.define(DEATH_ROLLING_PROGRESS, 0);
         builder.define(GRAB_TIMEOUT, 0);
     }
@@ -401,10 +397,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, this.isTame() ? 2.25 : 1.5, false, 0.15f);
         }
 
-        if (grabCooldown > 0) {
-            grabCooldown--;
-        }
-
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();
@@ -420,45 +412,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             attackingGrabCooldown--;
         }
 
-        if (this.isAttackingGrab() && this.getTarget() != null && this.getTarget().isInWater() && this.isInWater()) {
-            attackingGrabTimer++;
-
-            if (this.getTarget() != null) {
-                this.setLookAt(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ());
-            }
-
-            if (this.getTarget() != null && this.distanceTo(this.getTarget()) <= 1.0) {
-                this.playSound(OWSounds.CROCODILE_MOUTH_CRUSH.get());
-                this.getTarget().hurt(this.damageSource, 2);
-                this.grabEntity(this.getTarget());
-                attackingGrabTimer = 0;
-                this.setAttackingGrab(false);
-                return;
-            }
-
-            if (attackingGrabTimer > 8) {
-                this.hasImpulse = true;
-
-                if (this.getTarget() != null) {
-                    Vec3 targetPos = this.getTarget().position();
-                    Vec3 entityPos = this.position();
-
-                    double dx = targetPos.x - entityPos.x;
-                    double dy = targetPos.y - entityPos.y;
-                    double dz = targetPos.z - entityPos.z;
-                    double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-                    this.setDeltaMovement(dx / distance * 1.0, dy / distance * 0.2, dz / distance * 1.0);
-                    this.setDeltaMovement(this.getDeltaMovement().scale(0.99));
-                }
-            }
-
-            if (attackingGrabTimer >= 15) {
-                attackingGrabTimer = 0;
-                this.setAttackingGrab(false);
-            }
-        }
-
         if (this.isInWater()) {
             this.setChargingMouth(false);
             this.setChargingMouthTimer(0);
@@ -466,10 +419,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             if (this.getTarget() != null && !this.isTame()) {
                 if (grabUnderwaterCooldown > 0) {
                     grabUnderwaterCooldown--;
-                }
-
-                if (this.tickCount % 600 == 0 && grabUnderwaterCooldown == 0) {
-                    this.setCanGrabUnderwater(!this.canGrabUnderwater());
                 }
             }
 
@@ -479,8 +428,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 }
             }
         } else {
-            this.setCanGrabUnderwater(false);
-            this.setAttackingGrab(false);
             grabUnderwaterCooldown = 0;
         }
 
@@ -619,12 +566,13 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public void hurtAfterCombo(LivingEntity entity, int comboAttack) {
         boolean targetIsNearOfWater = crocodileBehaviorHandler.findNearestWaterSource(10) != null;
         boolean isAlreadyGrabbed = entity.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != entity;
-        boolean canGrab = targetIsNearOfWater && !this.level().isClientSide()  &&
+        boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() &&
                 !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity);
 
         if (canGrabOnLand) {
             if (!isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity)) {
                 this.grabEntity(entity);
+                return;
             }
         }
 
@@ -632,7 +580,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             if (this.onGround()) {
                 if (comboAttack == 3) {
                     this.grabEntity(entity);
+                    return;
                 }
+            } else if (this.isInWater()) {
+                this.grabEntity(entity);
+                return;
             }
         }
     }
@@ -777,10 +729,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     private void grabEntity(LivingEntity entity) {
-        if (grabCooldown > 0) return;
+        long currentTime = this.level().getGameTime();
+        if (currentTime - lastGrabTime < MAX_GRAB_COOLDOWN) return;
 
         int[] slidingLevels = getSlidingLevels(entity);
         float[] slidingMultiplier = OWEnchantments.SLIDING_ARMOR_MULTIPLIERS;
+        int chance = this.getRandom().nextInt(100);
 
         float chancesToAvoidingGrab = calculateChanceToAvoidingGrab(slidingLevels, slidingMultiplier);
 
@@ -794,9 +748,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             }
 
             this.setGrabTimeout(300);
+            lastGrabTime = currentTime;
         }
-
-        this.grabCooldown = MAX_GRAB_COOLDOWN;
     }
 
     private float calculateChanceToAvoidingGrab(int[] slidingLevels, float[] slidingMultiplier) {
@@ -995,19 +948,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public boolean isGrabbing() { return this.entityData.get(IS_GRABBING);}
-
-    public void setCanGrabUnderwater(boolean canGrabUnderwater) {
-        this.entityData.set(CAN_GRAB_UNDERWATER, canGrabUnderwater);
-    }
-
-    public boolean canGrabUnderwater() { return this.entityData.get(CAN_GRAB_UNDERWATER);}
-
-    public void setAttackingGrab(boolean isAttackingGrab) {
-        this.entityData.set(IS_ATTACKING_GRAB, isAttackingGrab);
-        if (!isAttackingGrab) grabUnderwaterCooldown = 600;
-    }
-
-    public boolean isAttackingGrab() { return this.entityData.get(IS_ATTACKING_GRAB);}
 
     public void setDeathRolling(boolean isDeathRolling) {
         this.entityData.set(IS_DEATH_ROLLING, isDeathRolling);

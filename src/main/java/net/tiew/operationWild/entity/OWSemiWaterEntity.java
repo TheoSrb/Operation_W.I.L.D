@@ -45,9 +45,9 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     private final float DEPTH_CHANGE_SPEED;
     private final float SURFACE_RISE_SPEED;
 
-    private final float TARGET_YAW_SPEED = 0.035f;
+    private final float TARGET_YAW_SPEED = 0.03f;
     private final float PITCH_SMOOTH_SPEED = 0.08f;
-    private final float TARGET_TRANSITION_SPEED = 0.05f;
+    private final float TARGET_TRANSITION_SPEED = 0.1f;
     private float targetModeBlend = 0.0f;
 
     private GroundPathNavigation groundNavigation;
@@ -279,6 +279,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         double verticalMove = Math.sin(verticalWave) * VERTICAL_WAVE_AMPLITUDE;
 
         double currentY = this.getY();
+        double depth = this.level().getSeaLevel() - this.getY();
         double depthDiff = targetDepth - currentY;
 
         if (Math.abs(depthDiff) > 1.0) {
@@ -296,7 +297,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             }
         }
 
-        this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove + 0.001, moveZ));
+        this.setDeltaMovement(this.getDeltaMovement().add(moveX, depth > 1 ? verticalMove + 0.001 : 0, moveZ));
     }
 
     protected void handleTargetSwimming(LivingEntity target) {
@@ -306,11 +307,12 @@ public abstract class OWSemiWaterEntity extends OWEntity {
 
         double deltaY = target.getY() - this.getY();
         double verticalMove = 0;
+        double depth = this.level().getSeaLevel() - this.getY();
         if (Math.abs(deltaY) > 0.5) {
             verticalMove = Math.signum(deltaY) * 0.04D * targetModeBlend;
         }
 
-        this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove, moveZ));
+        this.setDeltaMovement(this.getDeltaMovement().add(moveX, depth > 1 ? verticalMove + 0.001 : 0, moveZ));
     }
 
     public void applyWaterPressureDamage(int depth, Player player) {
@@ -353,6 +355,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
 
         double yDiff = targetPos.getY() - this.getY();
         double yawRadians = Math.toRadians(swimYaw);
+        double depth = this.level().getSeaLevel() - this.getY();
         double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 1.5;
         double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED * 1.5;
 
@@ -363,7 +366,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             verticalMove = -0.03D;
         }
 
-        this.setDeltaMovement(this.getDeltaMovement().add(moveX, verticalMove, moveZ));
+        this.setDeltaMovement(this.getDeltaMovement().add(moveX, depth > 1 ? verticalMove + 0.001 : 0, moveZ));
     }
 
     protected boolean isAtSurface() {

@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_scarified_spruce_log": {
+    "has_scarified_dark_oak_log": {
       "conditions": {
         "items": [
           {
-            "items": "ow:scarified_spruce_log"
+            "items": "ow:scarified_dark_oak_log"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:spruce_planks"
+        "recipe": "ow:dark_oak_planks_from_scarified_log"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_scarified_spruce_log"
+      "has_scarified_dark_oak_log"
     ]
   ],
   "rewards": {
     "recipes": [
-      "minecraft:spruce_planks"
+      "ow:dark_oak_planks_from_scarified_log"
     ]
   }
 }

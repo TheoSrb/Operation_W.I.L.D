@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_scarified_mangrove_log": {
+    "has_scarified_cherry_log": {
       "conditions": {
         "items": [
           {
-            "items": "ow:scarified_mangrove_log"
+            "items": "ow:scarified_cherry_log"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:mangrove_planks"
+        "recipe": "ow:cherry_planks_from_scarified_log"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_scarified_mangrove_log"
+      "has_scarified_cherry_log"
     ]
   ],
   "rewards": {
     "recipes": [
-      "minecraft:mangrove_planks"
+      "ow:cherry_planks_from_scarified_log"
     ]
   }
 }

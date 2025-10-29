@@ -76,6 +76,8 @@ public class OWItemModelProvider extends ItemModelProvider {
         handheldItem(OWItems.PRIMITIVE_SICKLE);
         handheldItem(OWItems.MAYA_BLOWPIPE);
 
+        handheldItem(OWItems.REPTILIAN_DAGGER);
+
         basicItem(OWItems.TIGER_FUR.get());
         basicItem(OWItems.BOA_TONG.get());
         basicItem(OWItems.PREDATOR_TOOTH.get());
@@ -86,6 +88,7 @@ public class OWItemModelProvider extends ItemModelProvider {
         basicItem(OWItems.STINGING_FILAMENT.get());
         basicItem(OWItems.BIOLUMINESCENT_JELLY.get());
         basicItem(OWItems.KODIAK_COAT.get());
+        basicItem(OWItems.CROCODILE_SCALE.get());
 
         basicItem(OWItems.ANIMAL_SOUL.get());
 

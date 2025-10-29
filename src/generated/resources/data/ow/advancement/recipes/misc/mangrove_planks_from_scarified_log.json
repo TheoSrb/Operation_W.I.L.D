@@ -1,11 +1,11 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_scarified_acacia_log": {
+    "has_scarified_mangrove_log": {
       "conditions": {
         "items": [
           {
-            "items": "ow:scarified_acacia_log"
+            "items": "ow:scarified_mangrove_log"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "minecraft:acacia_planks"
+        "recipe": "ow:mangrove_planks_from_scarified_log"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -21,12 +21,12 @@
   "requirements": [
     [
       "has_the_recipe",
-      "has_scarified_acacia_log"
+      "has_scarified_mangrove_log"
     ]
   ],
   "rewards": {
     "recipes": [
-      "minecraft:acacia_planks"
+      "ow:mangrove_planks_from_scarified_log"
     ]
   }
 }

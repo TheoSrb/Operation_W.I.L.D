@@ -1,4 +1,4 @@
-// 1.21	2025-10-20T11:53:03.3242091	Loot Tables
+// 1.21	2025-10-28T08:51:15.0646417	Loot Tables
 39411953e31428b0099044fec99043fae3ff3335 data/ow/loot_table/blocks/animal_carcass.json
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
 5b5fcfe0ecc7270dbed936f1c5d59ab6a543b479 data/ow/loot_table/blocks/deepslate_jade_ore.json
@@ -38,7 +38,7 @@ b24bafc5cbed78e626c6b2b5c7b9e39a6629d7ab data/ow/loot_table/blocks/scarified_dar
 13d7679ab22070b0d9b56beb22aa65670ebd584c data/ow/loot_table/blocks/teddy_bear.json
 48f05608c5e2c0af04a772af6e673284a76216aa data/ow/loot_table/entities/boa.json
 68e6ba9d250b4688bf942956325153761142fef5 data/ow/loot_table/entities/chameleon.json
-83dabee7bb33d3ac9ebfcad7e7e608d6528f8f08 data/ow/loot_table/entities/crocodile.json
+ae09f7776c5de886119eb2a8361cf101d520afe6 data/ow/loot_table/entities/crocodile.json
 8e0e6d751af4340f3fe60f3a76f8e64a0cfde785 data/ow/loot_table/entities/elephant.json
 4238c881b8578a51822bedc3cf9d414705c1ab95 data/ow/loot_table/entities/hyena.json
 55d34f54fbb4767d2c950ac707c5f110b0a119d0 data/ow/loot_table/entities/jellyfish.json

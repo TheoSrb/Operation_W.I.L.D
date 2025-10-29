@@ -44,7 +44,8 @@ public class OWItemTagProvider extends ItemTagsProvider {
 
         tag(ItemTags.SWORDS)
                 .add(OWItems.JADE_SWORD.get())
-                .add(OWItems.RUBY_SWORD.get());
+                .add(OWItems.RUBY_SWORD.get())
+                .add(OWItems.REPTILIAN_DAGGER.get());
         tag(ItemTags.PICKAXES)
                 .add(OWItems.JADE_PICKAXE.get())
                 .add(OWItems.RUBY_PICKAXE.get());
@@ -79,7 +80,8 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(OWItems.PRIMITIVE_SPEAR.get())
                 .add(OWItems.PRIMITIVE_SICKLE.get())
                 .add(OWItems.PRIMITIVE_SLINGSHOT.get())
-                .add(OWItems.MAYA_BLOWPIPE.get());
+                .add(OWItems.MAYA_BLOWPIPE.get())
+                .add(OWItems.REPTILIAN_DAGGER.get());
         tag(ItemTags.WEAPON_ENCHANTABLE)
                 .add(OWItems.PRIMITIVE_SPEAR.get())
                 .add(OWItems.PRIMITIVE_SICKLE.get())
@@ -87,6 +89,7 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(OWItems.MAYA_BLOWPIPE.get())
                 .add(OWItems.JADE_SWORD.get())
                 .add(OWItems.RUBY_SWORD.get())
+                .add(OWItems.REPTILIAN_DAGGER.get())
                 .add(OWItems.JADE_AXE.get())
                 .add(OWItems.RUBY_AXE.get())
                 .add(OWItems.JADE_PICKAXE.get())
