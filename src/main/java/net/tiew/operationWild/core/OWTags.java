@@ -43,18 +43,15 @@ public class OWTags {
 
     public static class Items {
 
-        public static final TagKey<Item> ARROWS = tag("arrows");
-
         public static final TagKey<Item> TIGER_TAMING_FOOD = tag("tiger_taming_food");
         public static final TagKey<Item> TIGER_SHARK_TAMING_FOOD = tag("tiger_shark_taming_food");
 
         public static final TagKey<Item> ACCEPT_PUTRID = tag("accept_putrid");
         public static final TagKey<Item> ACCEPT_EFFECTIVE_WEEDING = tag("accept_effective_weeding");
-        public static final TagKey<Item> PRIMITIVE_TOOLS = tag("primitive_tools");
         public static final TagKey<Item> SLINGSHOT_PROJECTILES = tag("slingshot_projectiles");
         public static final TagKey<Item> BLOWPIPE_PROJECTILES = tag("blowpipe_projectiles");
 
-
+        public static final TagKey<Item> OW_EGGS = tag("ow_eggs");
 
 
         public static final TagKey<Item> KODIAK_FOOD = tag("kodiak_food");

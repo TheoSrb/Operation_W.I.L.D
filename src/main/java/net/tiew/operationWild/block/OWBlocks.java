@@ -69,6 +69,7 @@ public class OWBlocks {
     public static final DeferredBlock<Block> POTTED_CAMELLIA = registerBlock("potted_camellia", () -> flowerPot(CAMELLIA.get()));
 
     public static final DeferredBlock<Block> PEACOCK_EGG = registerBlock("peacock_egg", () -> new OWEgg(BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BANJO).strength(2.5F).noOcclusion()));
+    public static final DeferredBlock<Block> CROCODILE_EGG = registerBlock("crocodile_egg", () -> new OWEgg(BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BANJO).strength(2.5F).noOcclusion()));
 
 
     public static final DeferredBlock<Block> TEDDY_BEAR = registerBlock("teddy_bear", () -> new TeddyBearBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.WHITE_WOOL).strength(2f).noCollission()));

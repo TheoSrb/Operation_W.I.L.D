@@ -156,7 +156,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		if (crocodile.isBaby()) {
             float maturationPercent = (float) crocodile.getMaturationPercentage() / 100f;
-            float headScale = 1.6f - (1.6f - 1.0f) * maturationPercent;
+            float headScale = 1.5f - (1.6f - 1.0f) * maturationPercent;
 
             this.head.xScale *= headScale;
             this.head.yScale *= headScale;
@@ -184,7 +184,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.mouth_up.xRot = (float) Math.toRadians(-20);
 		}
 
-		if (crocodile.isMad()) {
+		if (crocodile.isMad() || crocodile.isBaby()) {
 			this.left_eyeball.xScale = 0;
 			this.left_eyeball.yScale = 0;
 			this.left_eyeball.zScale = 0;

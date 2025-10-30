@@ -136,7 +136,7 @@ public class ReptilianDaggerItem extends SwordItem {
 
                     player.attack(livingTarget);
 
-                    if (!offHandItem.isEmpty() && offHandItem.isDamageableItem()) {
+                    if (!offHandItem.isEmpty() && offHandItem.isDamageableItem() && !player.isCreative()) {
                         offHandItem.setDamageValue(offHandItem.getDamageValue() + 1);
 
                         if (offHandItem.getDamageValue() >= offHandItem.getMaxDamage()) {

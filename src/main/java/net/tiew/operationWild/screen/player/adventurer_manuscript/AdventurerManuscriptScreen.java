@@ -452,6 +452,10 @@ public class AdventurerManuscriptScreen extends Screen {
             int page = getChapterPageOf(OWEntityRegistry.KODIAK.get(), actualPage);
             OWChapters.KodiakChapter.render(0, 0, 1f, alpha, page);
         }
+        if (entityType == OWEntityRegistry.CROCODILE.get()) {
+            int page = getChapterPageOf(OWEntityRegistry.CROCODILE.get(), actualPage);
+            OWChapters.CrocodileChapter.render(0, 0, 1f, alpha, page);
+        }
     }
 
     private int getChapterPageOf(EntityType<? extends OWEntity> entityType, int actualPage) {

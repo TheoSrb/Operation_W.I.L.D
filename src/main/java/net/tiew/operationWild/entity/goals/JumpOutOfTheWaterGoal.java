@@ -67,11 +67,13 @@ public class JumpOutOfTheWaterGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
+        if (entity.isBaby()) return false;
         return entity.getTarget() != null && entity.distanceTo(entity.getTarget()) <= 1;
     }
 
     @Override
     public boolean canUse() {
+        if (entity.isBaby()) return false;
         if (cooldownTimer > 0) {
             return false;
         }

@@ -65,12 +65,14 @@ public class CrocodileChargingMouthGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
+        if (crocodile.isBaby()) return false;
         return crocodile.getTarget() != null && crocodile.isChargingMouth() && !this.crocodile.isInWater() && this.crocodile.getTarget().distanceTo(this.crocodile) <= 20
                 && !crocodile.isNapping();
     }
 
     @Override
     public boolean canUse() {
+        if (crocodile.isBaby()) return false;
         if (cooldown > 0) {
             cooldown--;
             return false;

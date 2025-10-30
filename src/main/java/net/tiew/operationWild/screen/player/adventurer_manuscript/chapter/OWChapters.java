@@ -251,4 +251,49 @@ public class OWChapters extends OWChapter {
             }
         }
     }
+
+    public static class CrocodileChapter extends OWChapter {
+        public static void render(int x, int y, float scale, float alpha, int page) {
+            Component text_1 = Component.translatable("adventurer_manuscript.entity.crocodile.page_1");
+            Component text_2 = Component.translatable("adventurer_manuscript.entity.crocodile.page_2");
+            Component text_3 = Component.translatable("adventurer_manuscript.entity.crocodile.page_3");
+            Component text_4 = Component.translatable("adventurer_manuscript.entity.crocodile.page_4");
+            Component text_5 = Component.translatable("adventurer_manuscript.entity.crocodile.page_5");
+            Component text_6 = Component.translatable("adventurer_manuscript.entity.crocodile.page_6");
+
+
+            switch (page) {
+                case 1:
+                    drawTextOnRightPage(text_1, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnNextLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnNextRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
+                    break;
+                case 2:
+                    drawTextOnLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnPreviousRightPage(text_1, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnNextLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnNextRightPage(text_5, x, y, scale, alpha, maxLength, 0x887c57);
+                    break;
+                case 3:
+                    drawTextOnLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnRightPage(text_5, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnPreviousLeftPage(text_2, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnPreviousRightPage(text_3, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnNextLeftPage(text_6, x, y, scale, alpha, maxLength, 0x887c57);
+                    break;
+                case 4:
+                    drawTextOnLeftPage(text_6, x, y, scale, alpha, maxLength, 0x887c57);
+
+                    drawTextOnPreviousLeftPage(text_4, x, y, scale, alpha, maxLength, 0x887c57);
+                    drawTextOnPreviousRightPage(text_5, x, y, scale, alpha, maxLength, 0x887c57);
+                    break;
+            }
+        }
+    }
 }

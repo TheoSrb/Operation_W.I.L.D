@@ -27,7 +27,9 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
+import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.PeacockVariant;
 import net.tiew.operationWild.core.OWUtils;
 
@@ -36,12 +38,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public  class OWEgg extends HorizontalDirectionalBlock {
+public class OWEgg extends HorizontalDirectionalBlock {
     private int counter = 0;
     private final int MAX_TIME_TICKS = 100;
     public LivingEntity owner = null;
     public static final MapCodec<OWEgg> CODEC = simpleCodec(OWEgg::new);
     public static final VoxelShape SHAPE = Block.box(5.0, 0.0, 5.0, 11.0, 9.0, 11.0);
+
+    private String itemId = "";
 
     private static final Map<BlockPos, Float> BABY_MAX_HEALTH = new HashMap<>();
     private static final Map<BlockPos, Float> BABY_MAX_DAMAGE = new HashMap<>();
@@ -89,7 +93,9 @@ public  class OWEgg extends HorizontalDirectionalBlock {
         if (counter >= MAX_TIME_TICKS) {
             counter = 0;
             serverLevel.playSound(null, blockPos, SoundEvents.SNIFFER_EGG_HATCH, SoundSource.BLOCKS, 0.7F, 0.9F + randomSource.nextFloat() * 0.2F);
-            PeacockEntity entity = OWEntityRegistry.PEACOCK.get().create(serverLevel);
+
+            OWEntity entity = createEntity(serverLevel, itemId);
+
             if (entity != null) {
                 spawnBaby(entity, serverLevel, blockPos, OWUtils.RANDOM(20));
             }
@@ -98,6 +104,8 @@ public  class OWEgg extends HorizontalDirectionalBlock {
             serverLevel.playSound(null, blockPos, SoundEvents.SNIFFER_EGG_CRACK, SoundSource.BLOCKS, 0.7F, 0.9F + randomSource.nextFloat() * 0.2F);
         }
 
+
+        System.out.println(itemId);
     }
 
     @Override
@@ -111,11 +119,11 @@ public  class OWEgg extends HorizontalDirectionalBlock {
             if (target instanceof Player player) {
                 if (!player.isCreative()) {
                     ((PeacockEntity) entity).peacockIsAggressive = true;
-                    ((PeacockEntity) entity).setTarget(player);
+                    ((OWEntity) entity).setTarget(player);
                 }
             } else {
                 ((PeacockEntity) entity).peacockIsAggressive = true;
-                ((PeacockEntity) entity).setTarget(target);
+                ((OWEntity) entity).setTarget(target);
             }
         }
 
@@ -126,25 +134,35 @@ public  class OWEgg extends HorizontalDirectionalBlock {
         BABY_SCALE.remove(blockPos);
     }
 
+    private void chooseVariantForBaby(OWEntity entity, BlockPos blockPos) {
+        if (entity instanceof PeacockEntity peacock) {
+            peacock.setVariant(PeacockVariant.byId(getVariantForPosition(blockPos)));
+            peacock.setInitialVariant(PeacockVariant.byId(getVariantForPosition(blockPos)));
+
+            if (OWUtils.RANDOM(50)) peacock.setVariant(PeacockVariant.ALBINO);
+        } else if (entity instanceof CrocodileEntity crocodile) {
+            crocodile.setVariant(CrocodileVariant.byId(getVariantForPosition(blockPos)));
+            crocodile.setInitialVariant(CrocodileVariant.byId(getVariantForPosition(blockPos)));
+        }
+    }
+
     public void spawnBaby(OWEntity entity, ServerLevel serverLevel, BlockPos blockPos, boolean spawnTwins) {
         Vec3 vec3 = blockPos.getCenter();
-        float pitch = (float) OWUtils.generateExponentialExp(0.9, 1.1);
         entity.setBaby(true);
         DifficultyInstance difficulty = serverLevel.getCurrentDifficultyAt(blockPos);
         entity.finalizeSpawn(serverLevel, difficulty, MobSpawnType.BREEDING, null);
-        if (entity instanceof PeacockEntity peacock) {
-            peacock.maxHealth = getMaxHealthForPosition(blockPos);
-            peacock.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(getMaxDamageForPosition(blockPos));
-            peacock.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(getMaxSpeedForPosition(blockPos));
-            peacock.setBaseHealth(getMaxHealthForPosition(blockPos));
-            peacock.setDamageToClient(getMaxDamageForPosition(blockPos));
-            peacock.setBaseDamage(getMaxDamageForPosition(blockPos));
-            peacock.setBaseSpeed(getMaxSpeedForPosition(blockPos));
-            peacock.setVariant(PeacockVariant.byId(getVariantForPosition(blockPos)));
-            peacock.setInitialVariant(PeacockVariant.byId(getVariantForPosition(blockPos)));
-            peacock.setScale(getScaleForPosition(blockPos));
+        if (entity instanceof OWEntity entity1) {
+            entity1.maxHealth = getMaxHealthForPosition(blockPos);
+            entity1.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(getMaxDamageForPosition(blockPos));
+            entity1.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(getMaxSpeedForPosition(blockPos));
+            entity1.setBaseHealth(getMaxHealthForPosition(blockPos));
+            entity1.setDamageToClient(getMaxDamageForPosition(blockPos));
+            entity1.setBaseDamage(getMaxDamageForPosition(blockPos));
+            entity1.setBaseSpeed(getMaxSpeedForPosition(blockPos));
 
-            if (OWUtils.RANDOM(50)) peacock.setVariant(PeacockVariant.ALBINO);
+            chooseVariantForBaby(entity1, blockPos);
+
+            entity1.setScale(getScaleForPosition(blockPos));
         }
         entity.moveTo(vec3.x(), vec3.y(), vec3.z(), Mth.wrapDegrees(serverLevel.random.nextFloat() * 360.0F), 0.0F);
         serverLevel.addFreshEntity(entity);
@@ -154,19 +172,19 @@ public  class OWEgg extends HorizontalDirectionalBlock {
             if (secondEntity != null) {
                 secondEntity.setBaby(true);
                 secondEntity.finalizeSpawn(serverLevel, difficulty, MobSpawnType.BREEDING, null);
-                if (secondEntity instanceof PeacockEntity peacock) {
-                    peacock.maxHealth = getMaxHealthForPosition(blockPos);
-                    peacock.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(getMaxDamageForPosition(blockPos));
-                    peacock.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(getMaxSpeedForPosition(blockPos));
-                    peacock.setBaseHealth(getMaxHealthForPosition(blockPos));
-                    peacock.setDamageToClient(getMaxDamageForPosition(blockPos));
-                    peacock.setBaseDamage(getMaxDamageForPosition(blockPos));
-                    peacock.setBaseSpeed(getMaxSpeedForPosition(blockPos));
-                    peacock.setVariant(PeacockVariant.byId(getVariantForPosition(blockPos)));
-                    peacock.setInitialVariant(PeacockVariant.byId(getVariantForPosition(blockPos)));
-                    peacock.setScale(getScaleForPosition(blockPos));
+                if (secondEntity instanceof OWEntity entity2) {
+                    entity2.maxHealth = getMaxHealthForPosition(blockPos);
+                    entity2.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(getMaxDamageForPosition(blockPos));
+                    entity2.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(getMaxSpeedForPosition(blockPos));
+                    entity2.setBaseHealth(getMaxHealthForPosition(blockPos));
+                    entity2.setDamageToClient(getMaxDamageForPosition(blockPos));
+                    entity2.setBaseDamage(getMaxDamageForPosition(blockPos));
+                    entity2.setBaseSpeed(getMaxSpeedForPosition(blockPos));
 
-                    if (OWUtils.RANDOM(50)) peacock.setVariant(PeacockVariant.ALBINO);
+                    chooseVariantForBaby(entity2, blockPos);
+
+                    entity2.setScale(getScaleForPosition(blockPos));
+
                 }
                 double offsetX = (serverLevel.random.nextDouble() - 0.5) * 2.0;
                 double offsetZ = (serverLevel.random.nextDouble() - 0.5) * 2.0;
@@ -174,6 +192,14 @@ public  class OWEgg extends HorizontalDirectionalBlock {
                 serverLevel.addFreshEntity(secondEntity);
             }
         }
+    }
+
+    private OWEntity createEntity(ServerLevel serverLevel, String itemId) {
+        return switch(itemId) {
+            case "crocodile_egg" -> OWEntityRegistry.CROCODILE.get().create(serverLevel);
+            case "peacock_egg" -> OWEntityRegistry.CROCODILE.get().create(serverLevel);
+            default -> OWEntityRegistry.PEACOCK.get().create(serverLevel);
+        };
     }
 
     private boolean canStartCrack(Level world, BlockPos pos) {
@@ -192,6 +218,9 @@ public  class OWEgg extends HorizontalDirectionalBlock {
     public void setPlacedBy(Level level, BlockPos blockPos, BlockState blockState, @org.jetbrains.annotations.Nullable LivingEntity living, ItemStack itemStack) {
         super.setPlacedBy(level, blockPos, blockState, living, itemStack);
         if (living != null) owner = living;
+
+        String itemId = itemStack.getItem().toString();
+        this.itemId = itemId.split("ow.")[1];
     }
 
     @Nullable

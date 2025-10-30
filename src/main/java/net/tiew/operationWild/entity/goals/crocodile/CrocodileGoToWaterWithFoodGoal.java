@@ -66,11 +66,13 @@ public class CrocodileGoToWaterWithFoodGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
+        if (crocodile.isBaby()) return false;
         return this.crocodile.hasGrabSomething() && this.crocodile.getHealth() >= 10;
     }
 
     @Override
     public boolean canUse() {
+        if (crocodile.isBaby()) return false;
         return this.crocodile.hasGrabSomething();
     }
 }

@@ -83,6 +83,7 @@ public class CrocodileNapGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
+        if (crocodile.isBaby()) return false;
         boolean shouldStopCheck = !shouldStop;
         boolean conditionCheck = conditionToWork;
         boolean timerCheck = napTimer > 0;
@@ -116,6 +117,7 @@ public class CrocodileNapGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (crocodile.isBaby()) return false;
         int randomValue = crocodile.getRandom().nextInt((int) (500 / wantNapMultiplier));
         boolean randomCheck = randomValue == 0;
         boolean canNapCheck = canNap();

@@ -281,6 +281,7 @@
   "block.ow.saddler": "Sellier",
 
   "block.ow.peacock_egg": "Oeuf de paon",
+  "block.ow.crocodile_egg": "Oeuf de crocodile",
 
   "block.ow.teddy_bear": "Ours en peluche",
   "block.ow.animal_carcass": "Carcasse animale",
@@ -442,6 +443,14 @@
   "adventurer_manuscript.entity.kodiak.page_5": "§l§nIII. Tranquillité: \n\n§r Le §l§n§dKodiak§r n’est pas toujours une bête §lféroce§r. La plupart du temps, il reste §ncalme§r. On peut le voir §ldormir§r de longues heures, faire des §lroulades§r dans l’herbe, se §lgratter§r paresseusement contre les §ntroncs§r",
   "adventurer_manuscript.entity.kodiak.page_6": "§nd’arbres§r ou encore §ls’asseoir§r simplement pour §nobserver son environnement§r.\n\n\n§l§nIV. Alliance: \n\n§r Le §l§n§dKodiak§r vit en paix avec les §labeilles§r, défend leurs ruches si on",
   "adventurer_manuscript.entity.kodiak.page_7": "les attaque et prend parfois leur §lmiel§r.\n\n §l§nAnalyse§r: Gros mangeur, paisible si on ne l’ennuie pas mais redoutable une fois provoqué.",
+
+
+  "adventurer_manuscript.entity.crocodile.page_1": "Ayant l’une des mâchoires les plus puissantes jamais répertoriées, le §l§n§dCrocodile§r est un prédateur §nrusé et patient§r, rôdant dans les §lzones§r §lmarécageuses§r à proximité des §nsources d’eau§r.",
+  "adventurer_manuscript.entity.crocodile.page_2": "§l§nI. Carcasses: \n\n§r Une fois sa proie dévorée, le §l§n§dCrocodile§r laisse parfois derrière lui la §ncarcasse§r squelettique de son repas. Celle-ci peut être §lextraite§r à l’aide d’une pioche pour en récupérer les os.",
+  "adventurer_manuscript.entity.crocodile.page_3": "§l§nII. Death Roll: \n\n§r Le §l§n§dCrocodile§r peut attraper ses proies aussi bien sur §lterre§r que dans §ll’eau§r. Lorsqu’il agrippe une victime à terre, il la §ltire§r aussitôt dans l’eau pour l’y §nmaintenir§r sous son emprise.",
+  "adventurer_manuscript.entity.crocodile.page_4": "Dans l’eau, il exécute sa redoutable §lDeath Roll§r, une rotation rapide et dévastatrice qui §ldéchire§r la chair de sa proie tout en la désorientant, rendant la fuite §nimpossible§r.",
+  "adventurer_manuscript.entity.crocodile.page_5": "§l§nIII. Gueule Béante: \n\n§r Lorsqu’il repère une cible, le §l§n§dCrocodile§r peut ouvrir §llentement§r sa gueule et s’avancer §nprudemment§r vers elle, prêt à attaquer. S’il parvient à mordre, la victime subit l’effet",
+  "adventurer_manuscript.entity.crocodile.page_6": "§lFracture§r, l’empêchant de §lcourir§r ou §ld’attaquer§r correctement, tandis que le §l§n§dCrocodile§r devient §nplus rapide§r à ses trousses.",
 
 
   "boa.page1": "Le §lBoa§r est un prédateur silencieux se faufilant dans les §lzones§r §lhumides§r et denses attendant impatiemment sa proie.",

@@ -24,6 +24,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.event.EventHooks;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.MarkedMudBlock;
 import net.tiew.operationWild.core.OWUtils;
@@ -369,7 +370,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public void aiStep() {
         super.aiStep();
-        if (this.isInWater() || this.onGround()) {
+        if (this.isInWater() || this.onGround() && !this.isBaby()) {
             BlockPos currentPos = this.blockPosition();
             crocodileBehaviorHandler.trampleLilyPads(currentPos);
             crocodileBehaviorHandler.trampleLilyPads(currentPos.above());
@@ -402,17 +403,17 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
-        if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo());
+        if (this.isVehicle() && this.isTame() && !this.isSitting() && !this.isBaby()) setMad(this.isCombo());
 
         if (this.getTarget() != null && this.getTarget().hasEffect(OWEffects.FRACTURE.getDelegate())) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
         }
 
-        if (attackingGrabCooldown > 0) {
+        if (attackingGrabCooldown > 0 && !this.isBaby()) {
             attackingGrabCooldown--;
         }
 
-        if (this.isInWater()) {
+        if (this.isInWater() && !this.isBaby()) {
             this.setChargingMouth(false);
             this.setChargingMouthTimer(0);
 
@@ -432,7 +433,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             grabUnderwaterCooldown = 0;
         }
 
-        if (this.isDeathRolling()) {
+        if (this.isDeathRolling() && !this.isBaby()) {
             this.setDeathRollProgress(this.getDeathRollProgress() + 1);
             if (this.isInWater()) {
                 if (this.level().getSeaLevel() - this.getY() >= 2) {
@@ -465,7 +466,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             }
         }
 
-        if (hasGrabSomething()) {
+        if (hasGrabSomething() && !this.isBaby()) {
             LivingEntity grabbed = this.getGrabbedTarget();
 
             if (grabbed instanceof Player) {
@@ -549,7 +550,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public void setTarget(@Nullable LivingEntity target) {
-        if (this.isNapping()) {
+        if (this.isNapping() || this.isBaby()) {
             return;
         }
 
@@ -675,7 +676,22 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
-        Item heldItem = itemStack.getItem();
+
+        if (itemStack.is(OWTags.Items.CROCODILE_FOOD) && !this.isTame() && this.isBaby()) {
+            foodGiven++;
+            this.playSound(SoundEvents.CAMEL_EAT);
+            itemStack.shrink(1);
+
+            if (!EventHooks.onAnimalTame(this, player)) {
+                if (!this.level().isClientSide() && foodGiven >= foodWanted) {
+                    addTamingExperience(TAMING_EXPERIENCE / 2, player);
+                    this.setTame(true, player);
+                    this.setSleeping(false);
+                    resetSleepBar();
+                }
+            }
+            return InteractionResult.SUCCESS;
+        }
         return super.mobInteract(player, hand);
     }
 
@@ -691,6 +707,13 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.setInitialVariant(this.getVariant());
         }
         this.foodWanted = (int) OWUtils.generateRandomInterval(6, 11);
+
+        if (this.isBaby()) {
+            maxHealth = (float) this.getAttribute(Attributes.MAX_HEALTH).getValue();
+            maxMaturation = (int) (2000 * maxHealth + 10000 * this.getDamage());
+            this.setHealth(1);
+            foodWanted = (int) this.getMaxHealth();
+        }
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
@@ -732,6 +755,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     private void grabEntity(LivingEntity entity) {
+        if (isBaby()) return;
         long currentTime = this.level().getGameTime();
         if (currentTime - lastGrabTime < MAX_GRAB_COOLDOWN) return;
 
