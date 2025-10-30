@@ -69,7 +69,6 @@ public class OWBlocks {
     public static final DeferredBlock<Block> POTTED_CAMELLIA = registerBlock("potted_camellia", () -> flowerPot(CAMELLIA.get()));
 
     public static final DeferredBlock<Block> PEACOCK_EGG = registerBlock("peacock_egg", () -> new OWEgg(BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BANJO).strength(2.5F).noOcclusion()));
-    public static final DeferredBlock<Block> CROCODILE_EGG = registerBlock("crocodile_egg", () -> new OWEgg(BlockBehaviour.Properties.of().instrument(NoteBlockInstrument.BANJO).strength(2.5F).noOcclusion()));
 
 
     public static final DeferredBlock<Block> TEDDY_BEAR = registerBlock("teddy_bear", () -> new TeddyBearBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.WHITE_WOOL).strength(2f).noCollission()));
@@ -77,6 +76,9 @@ public class OWBlocks {
     public static final DeferredBlock<Block> ANIMAL_CARCASS = registerBlock("animal_carcass", () -> new AnimalCarcassBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.BONE_BLOCK).strength(0.75f).noOcclusion()));
 
     public static final DeferredBlock<Block> MARKED_MUD = registerBlock("marked_mud", () -> new MarkedMudBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.MUD)));
+
+
+    public static final DeferredBlock<Block> BEAR_TRAP = registerBlock("bear_trap", () -> new BearTrapBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK).strength(0.75f).noOcclusion()));
 
 
     public static final DeferredBlock<Block> JADE_ORE = registerBlock("jade_ore", () -> new DropExperienceBlock(ConstantInt.of(0), BlockBehaviour.Properties.of().mapColor(MapColor.STONE).instrument(NoteBlockInstrument.BASEDRUM).requiresCorrectToolForDrops().strength(4.0F, 4.0F)));

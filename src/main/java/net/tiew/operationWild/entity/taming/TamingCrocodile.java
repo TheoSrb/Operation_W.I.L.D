@@ -1,8 +1,12 @@
 package net.tiew.operationWild.entity.taming;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -38,9 +42,19 @@ public class TamingCrocodile {
 
     private void handleTamingSystem() {
 
+        if (!this.crocodile.isTame()) {
+            if (crocodile.getSacrificesUnity() > 0 && crocodile.getSacrificesUnity() < 100) {
+                this.crocodile.setSacrificesUnity(this.crocodile.getSacrificesUnity() - 0.025f);
+            }
+            System.out.println(this.crocodile.getSacrificesUnity() + " %");
+        }
     }
 
     public boolean canBeTamable() {
-        return true;
+        return !crocodile.isTame();
+    }
+
+    public boolean ownerIsNear(Player player, TamableAnimal animal) {
+        return crocodile.distanceTo(player) <= 20 && player.distanceTo(animal) <= 20;
     }
 }

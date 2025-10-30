@@ -17,8 +17,6 @@ import net.tiew.operationWild.entity.client.render.CrocodileRenderer;
 import net.tiew.operationWild.entity.client.render.KodiakRenderer;
 
 public class CrocodileLayer extends RenderLayer<CrocodileEntity, CrocodileModel<CrocodileEntity>> {
-    private static final ResourceLocation BABY_EYES = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/baby_eyes.png");
-
     private static final ResourceLocation RESURRECTION_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/in_resurrection.png");
     private static final ResourceLocation RESURRECTION_GLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/skins/crocodile_skin_gold_glowing.png");
 
@@ -41,8 +39,7 @@ public class CrocodileLayer extends RenderLayer<CrocodileEntity, CrocodileModel<
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, CrocodileEntity crocodile, float v, float v1, float v2, float v3, float v4, float v5) {
         double kodiakHealthTier = crocodile.getMaxHealth() / 4;
 
-        if (crocodile.getMaturationPercentage() < 60 && crocodile.getMaturationPercentage() > 0) renderOverlay(poseStack, multiBufferSource, BABY_EYES, false, packedLight);
-        else if (crocodile.isTame() && !crocodile.isInResurrection()) {
+        if (crocodile.isTame() && !crocodile.isInResurrection()) {
             renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, crocodile.getNecklaceColor());
             renderOverlay(poseStack, multiBufferSource, NECKLACE_SPIKES_TEXTURE, false, packedLight);
         }

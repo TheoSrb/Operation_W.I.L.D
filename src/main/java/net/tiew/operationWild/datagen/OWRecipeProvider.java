@@ -208,6 +208,18 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
                 .define('J', OWItems.JADE.get()).unlockedBy(getHasName(OWItems.JADE.get()), has(OWItems.JADE.get())).save(recipeOutput);
 
 
+
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWBlocks.BEAR_TRAP.get())
+                .pattern("   ")
+                .pattern("TTT")
+                .pattern("IRI")
+                .define('T', OWItems.PREDATOR_TOOTH.get())
+                .define('I', Items.IRON_INGOT)
+                .define('R', Items.REDSTONE)
+                .unlockedBy(getHasName(OWItems.PREDATOR_TOOTH.get()), has(OWItems.PREDATOR_TOOTH.get())).save(recipeOutput);
+
+
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, Blocks.OAK_PLANKS, 4)
                 .pattern("   ")
                 .pattern(" L ")

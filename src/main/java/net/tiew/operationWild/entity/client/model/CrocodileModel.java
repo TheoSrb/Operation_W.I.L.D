@@ -184,7 +184,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.mouth_up.xRot = (float) Math.toRadians(-20);
 		}
 
-		if (crocodile.isMad() || crocodile.isBaby()) {
+		if (crocodile.isMad()) {
 			this.left_eyeball.xScale = 0;
 			this.left_eyeball.yScale = 0;
 			this.left_eyeball.zScale = 0;

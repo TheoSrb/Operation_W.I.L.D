@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "ow:crocodile_egg"
+          "name": "ow:bear_trap"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "ow:blocks/crocodile_egg"
+  "random_sequence": "ow:blocks/bear_trap"
 }

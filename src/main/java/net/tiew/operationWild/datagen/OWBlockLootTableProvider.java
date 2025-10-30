@@ -77,9 +77,10 @@ public class OWBlockLootTableProvider extends BlockLootSubProvider {
 
 
         dropSelf(OWBlocks.PEACOCK_EGG.get());
-        dropSelf(OWBlocks.CROCODILE_EGG.get());
 
         dropSelf(OWBlocks.TEDDY_BEAR.get());
+
+        dropSelf(OWBlocks.BEAR_TRAP.get());
 
         this.add(OWBlocks.ANIMAL_CARCASS.get(), block -> createMultipleOreDrops(OWBlocks.ANIMAL_CARCASS.get(), Items.BONE, 1, 3));
 

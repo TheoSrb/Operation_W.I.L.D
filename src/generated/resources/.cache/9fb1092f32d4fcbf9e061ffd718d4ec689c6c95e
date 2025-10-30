@@ -1,4 +1,4 @@
-// 1.21	2025-10-29T13:23:18.3103511	Recipes
+// 1.21	2025-10-30T20:11:25.3052882	Recipes
 f33c002f0f4ef1baa4167f73e99e52613a4136f5 data/minecraft/advancement/recipes/misc/pink_dye.json
 e3f3a0b671388d6abdeedaefe2fd558cd9d00dac data/minecraft/recipe/pink_dye.json
 aab17de6a0d54f51ff73a206f2dceb5e0346f117 data/ow/advancement/recipes/building_blocks/redwood_slab.json
@@ -17,6 +17,7 @@ ee7f03cc14de2567c00255a78c1111df1e4e5e8e data/ow/advancement/recipes/food/cooked
 6efc2d2517c8c3392dbdb6ba928ef9edaf47b62d data/ow/advancement/recipes/food/cooked_tiger_from_smelting.json
 467cd2fdfd3a582be8f2c1bdcb4a21e4d87b7290 data/ow/advancement/recipes/food/cooked_tiger_from_smoking.json
 ec574908af175c39b2342204af50e522f0966caa data/ow/advancement/recipes/misc/acacia_planks_from_scarified_log.json
+e07b049a10d16d81c0d393843324d86a44ffbea1 data/ow/advancement/recipes/misc/bear_trap.json
 6a6fc044ab6d72a8ba8c620f72ce0bc897aefc4a data/ow/advancement/recipes/misc/birch_planks_from_scarified_log.json
 c35233148b97fd5afb582d6a95e18d4a6c355980 data/ow/advancement/recipes/misc/camouflage_boots.json
 9d4126e7a315f6e1c1158942aec23a2cba825ef9 data/ow/advancement/recipes/misc/camouflage_chestplate.json
@@ -61,6 +62,7 @@ f3e247ba989ef18d5c21412e8d8f24f0ccb3049c data/ow/advancement/recipes/misc/wooden
 526695c6a02f311dc9c73a83dfc83582f4baa41c data/ow/advancement/recipes/redstone/redwood_pressure_plate.json
 d95d7c41bd5ab7c3ae9a1f93ae580538ddecce39 data/ow/advancement/recipes/redstone/redwood_trapdoor.json
 c714608a3d33a1f1dc7cc3e46ccb09aa21ad72b0 data/ow/recipe/acacia_planks_from_scarified_log.json
+3cabb7156af7288b89b9750847d0eb502134cfff data/ow/recipe/bear_trap.json
 b1cd5ecaf4eb78fe6130487e4d455a94eeda1b5f data/ow/recipe/birch_planks_from_scarified_log.json
 1b13f51af5acde64d5d16953a6c064b96137697a data/ow/recipe/camouflage_boots.json
 9d99c36eda5b7dff7c410cbf403c8a70f16bcd25 data/ow/recipe/camouflage_chestplate.json

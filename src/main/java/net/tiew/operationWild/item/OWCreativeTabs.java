@@ -126,6 +126,8 @@ public class OWCreativeTabs {
                         output.accept(OWBlocks.REDWOOD_LEAVES.get());
                         output.accept(OWBlocks.REDWOOD_SAPLING.get());
 
+                        output.accept(OWBlocks.BEAR_TRAP.get());
+
                         output.accept(OWBlocks.SADDLER.get());
                         output.accept(OWBlocks.SCARIFIED_OAK_LOG.get());
                         output.accept(OWBlocks.SCARIFIED_DARK_OAK_LOG.get());
@@ -139,7 +141,6 @@ public class OWCreativeTabs {
                         output.accept(OWBlocks.LAVENDER.get());
                         output.accept(OWBlocks.CAMELLIA.get());
                         output.accept(OWBlocks.PEACOCK_EGG.get());
-                        output.accept(OWBlocks.CROCODILE_EGG.get());
                         output.accept(OWBlocks.TEDDY_BEAR.get());
                         output.accept(OWBlocks.ANIMAL_CARCASS.get());
                         output.accept(OWItems.PLANT_EMPRESS_MUSIC_DISC.get());

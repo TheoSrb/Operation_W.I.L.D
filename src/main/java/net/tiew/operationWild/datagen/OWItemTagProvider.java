@@ -163,7 +163,6 @@ public class OWItemTagProvider extends ItemTagsProvider {
 
 
         tag(OWTags.Items.OW_EGGS)
-                .add(OWBlocks.PEACOCK_EGG.asItem())
-                .add(OWBlocks.CROCODILE_EGG.asItem());
+                .add(OWBlocks.PEACOCK_EGG.asItem());
     }
 }

@@ -1,4 +1,4 @@
-// 1.21	2025-10-18T12:57:22.5477095	Tags for minecraft:block mod id ow
+// 1.21	2025-10-30T20:12:51.3596005	Tags for minecraft:block mod id ow
 cf3608bd187922aeb48c566c19e8482b0dca34c7 data/minecraft/tags/block/animals_spawnable_on.json
 51755a85e43ca3778bdd32a88c1b481b5d0de2e5 data/minecraft/tags/block/fences.json
 4bf1f566b16f66d008e99e45dc77b4c9f00740e3 data/minecraft/tags/block/fence_gates.json
@@ -7,8 +7,8 @@ ce529aea23e6dc844db9f83f1e71ac311298216c data/minecraft/tags/block/flower_pots.j
 cbfafce273850692d0e33d80aeeede1255028bfd data/minecraft/tags/block/leaves.json
 3f6a322fb4a84b331bbfb004ea176a1b36fb570c data/minecraft/tags/block/logs_that_burn.json
 8c001ef528551361f48b3be1c31b96c4b60930c7 data/minecraft/tags/block/mineable/axe.json
-e4046661365c575941d3d94cfb502f083fc6a992 data/minecraft/tags/block/mineable/pickaxe.json
+469053fff86f247f93efb9513d81138c4c9596ef data/minecraft/tags/block/mineable/pickaxe.json
 445664a23f28bc62c5cc6b9f62941659c66af719 data/minecraft/tags/block/needs_diamond_tool.json
 e9859171bfd2c026d313b51e73fe6405b7632e12 data/minecraft/tags/block/needs_iron_tool.json
-97f711f362bc0e285435320921428716adf651c7 data/minecraft/tags/block/needs_stone_tool.json
+61d97644e8a9939a69f21f8ef1c91fde08ac0f6a data/minecraft/tags/block/needs_stone_tool.json
 5a6b6fda74029a60e1c49a42dd474acc74a5ab4f data/minecraft/tags/block/planks.json

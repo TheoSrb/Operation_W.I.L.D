@@ -84,6 +84,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Boolean> IS_DEATH_ROLLING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DEATH_ROLLING_PROGRESS = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GRAB_TIMEOUT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> SACRIFICES_UNITY = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -177,6 +178,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(IS_DEATH_ROLLING, false);
         builder.define(DEATH_ROLLING_PROGRESS, 0);
         builder.define(GRAB_TIMEOUT, 0);
+        builder.define(SACRIFICES_UNITY, 0.0f);
     }
 
     public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
@@ -573,6 +575,24 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() &&
                 !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity);
 
+
+        if (!entity.isAlive() && crocodileTaming.canBeTamable()) {
+            if (entity instanceof TamableAnimal tamableAnimal) {
+                if (tamableAnimal.isTame()) {
+                    LivingEntity owner = tamableAnimal.getOwner();
+
+                    if (owner != null && owner != entity && owner instanceof Player player) {
+                        if (crocodileTaming.ownerIsNear(player, tamableAnimal)) {
+                            float entityHealth = entity.getMaxHealth();
+
+                            this.setSacrificesUnity(this.getSacrificesUnity() + entityHealth);
+                        }
+                    }
+                }
+            }
+        }
+
+
         if (canGrabOnLand) {
             if (!isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity)) {
                 this.grabEntity(entity);
@@ -677,21 +697,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
-        if (itemStack.is(OWTags.Items.CROCODILE_FOOD) && !this.isTame() && this.isBaby()) {
-            foodGiven++;
-            this.playSound(SoundEvents.CAMEL_EAT);
-            itemStack.shrink(1);
-
-            if (!EventHooks.onAnimalTame(this, player)) {
-                if (!this.level().isClientSide() && foodGiven >= foodWanted) {
-                    addTamingExperience(TAMING_EXPERIENCE / 2, player);
-                    this.setTame(true, player);
-                    this.setSleeping(false);
-                    resetSleepBar();
-                }
-            }
-            return InteractionResult.SUCCESS;
-        }
         return super.mobInteract(player, hand);
     }
 
@@ -756,6 +761,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private void grabEntity(LivingEntity entity) {
         if (isBaby()) return;
+
+        if (entity instanceof TamableAnimal tamableAnimal && tamableAnimal.getControllingPassenger() != null)  {
+            entity = tamableAnimal.getControllingPassenger();
+        }
+
         long currentTime = this.level().getGameTime();
         if (currentTime - lastGrabTime < MAX_GRAB_COOLDOWN) return;
 
@@ -830,7 +840,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (tickCount % growlsInterval == 0) {
             if (this.level().isClientSide) {
-                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), OWSounds.CROCODILE_IDLE_3.get(), this.getSoundSource(), 1.0F, 1.0F, false);
+                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), OWSounds.CROCODILE_IDLE_3.get(), this.getSoundSource(), 1.0F, isBaby() ? 2.0F : 1.0F, false);
             }
             if (crocodileBehaviorHandler.canGrowl() && crocodileBehaviorHandler.canPlayIdleAnimation() && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying()) {
                 this.growlsAnimationState.start(this.tickCount);
@@ -842,7 +852,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (tickCount % gruntInterval == 0) {
             if (this.level().isClientSide) {
-                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), OWSounds.CROCODILE_IDLE_1.get(), this.getSoundSource(), 1.0F, 1.0F, false);
+                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), OWSounds.CROCODILE_IDLE_1.get(), this.getSoundSource(), 1.0F, isBaby() ? 2.0F : 1.0F, false);
             }
             if (crocodileBehaviorHandler.canGrunt() && crocodileBehaviorHandler.canPlayIdleAnimation() && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying()) {
                 this.gruntAnimationState.start(this.tickCount);
@@ -971,6 +981,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public boolean isGrabbing() { return this.entityData.get(IS_GRABBING);}
+
+    public void setSacrificesUnity(float sacrificesUnity) {
+        this.entityData.set(SACRIFICES_UNITY, sacrificesUnity);
+    }
+
+    public float getSacrificesUnity() { return this.entityData.get(SACRIFICES_UNITY);}
 
     public void setDeathRolling(boolean isDeathRolling) {
         this.entityData.set(IS_DEATH_ROLLING, isDeathRolling);

@@ -4,6 +4,7 @@
   "spear_lunch": { "subtitle": "sounds.ow.spear_lunch", "sounds": [ "ow:spear_lunch" ] },
   "spear_hurt": { "subtitle": "sounds.ow.spear_hurt", "sounds": [ "ow:spear_hurt" ] },
   "primitive_blowpipe_lunch": { "subtitle": "sounds.ow.primitive_blowpipe_lunch", "sounds": [ "ow:primitive_blowpipe_lunch" ] },
+  "bear_trap_closed": { "subtitle": "sounds.ow.bear_trap_closed", "sounds": [ "ow:bear_trap_closed" ] },
   "mini_earthquake": { "subtitle": "sounds.ow.mini_earthquake", "sounds": [ "ow:mini_earthquake" ] },
 
   "submarine_move_loop": { "subtitle": "sounds.ow.submarine_move_loop", "sounds": [ "ow:submarine/submarine_move_loop" ] },
