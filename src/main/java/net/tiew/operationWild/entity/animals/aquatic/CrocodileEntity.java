@@ -84,7 +84,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Boolean> IS_DEATH_ROLLING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> DEATH_ROLLING_PROGRESS = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GRAB_TIMEOUT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
+
     private static final EntityDataAccessor<Float> SACRIFICES_UNITY = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> START_TAMING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -179,6 +181,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(DEATH_ROLLING_PROGRESS, 0);
         builder.define(GRAB_TIMEOUT, 0);
         builder.define(SACRIFICES_UNITY, 0.0f);
+        builder.define(START_TAMING, false);
     }
 
     public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
@@ -697,6 +700,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemStack = player.getItemInHand(hand);
 
+        crocodileTaming.mobInteract(player, hand);
+
         return super.mobInteract(player, hand);
     }
 
@@ -959,6 +964,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public int getDeathRollProgress() {
         return Math.min(this.entityData.get(DEATH_ROLLING_PROGRESS), 40);
+    }
+
+    public void setStartingTaming(boolean isStartingTaming) {
+        this.entityData.set(START_TAMING, isStartingTaming);
+    }
+
+    public boolean isStartingTaming() {
+        return this.entityData.get(START_TAMING);
     }
 
     public void setGrabTimeout(int getGrabMaxTimeout) {

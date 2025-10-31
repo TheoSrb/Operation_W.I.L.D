@@ -50,6 +50,18 @@ public class TamingCrocodile {
         }
     }
 
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+
+        if (hand == InteractionHand.MAIN_HAND) {
+            if (!this.crocodile.isTame() && !this.crocodile.isInWater() && !this.crocodile.isInLava() && this.crocodile.getSacrificesUnity() >= 100) {
+                this.crocodile.setStartingTaming(true);
+                player.startRiding(this.crocodile);
+            }
+        }
+
+        return InteractionResult.SUCCESS;
+    }
+
     public boolean canBeTamable() {
         return !crocodile.isTame();
     }
