@@ -253,6 +253,7 @@
   "item.ow.venomous_arrow": "Venomous Arrow",
   "item.ow.tiger_spawn_egg": "Tiger Spawn Egg",
   "item.ow.tiger_shark_spawn_egg": "Tiger Shark Spawn Egg",
+  "item.ow.mandrill_spawn_egg": "Mandrill Spawn Egg",
   "item.ow.crocodile_spawn_egg": "Crocodile Spawn Egg",
   "item.ow.boa_spawn_egg": "Boa Spawn Egg",
   "item.ow.elephant_spawn_egg": "Elephant Spawn Egg",
@@ -410,7 +411,9 @@
   "imageTaming": "Taming:",
   "sleepingTaming": "Sleepiness:",
   "imageMaturation": "Maturation",
-  "tooltip.rightClickAlert": "! Fight Back !",
+
+  "tooltip.grabBy": "!! GRABBED BY A %s !!",
+  "tooltip.rightClickAlert": "RAPIDLY RIGHT-CLICK TO STRUGGLE FREE!",
 
 
   "adventurer_manuscript.entity.tiger.page_1": "The §l§n§dTiger§r is a §lmedium-sized§r wild feline, prowling through §ltropical forests§r and §lbamboo jungles§r. Extremely agile and territorial, it attacks without warning.",
@@ -429,6 +432,24 @@
   "adventurer_manuscript.entity.boa.page_5": "§l§nIII. Asphyxiation: \n\n§r The §l§n§dBoa§r doesn't always need to bite. It can §lcoil around§r its prey and §lblock its breathing§r by squeezing with all its strength, dealing increasingly heavy damage over",
   "adventurer_manuscript.entity.boa.page_6": "time, inflicting §lheavy damage§r. \n\n§l§nIV. Molting: \n\n§r When the time comes, the §l§n§dBoa§r begins to §nmolt§r, leaving its §lold skin§r on the ground, which can be §ncollected§r.",
   "adventurer_manuscript.entity.boa.page_7": "§l§nAnalysis§r: Powerful, silent and unpredictable predator, formidable at close range but less tough at distance - avoid.",
+
+
+  "adventurer_manuscript.entity.kodiak.page_1": "Often overlooked, the §l§n§dKodiak§r is one of the most §lpowerful§r and §nimposing§r §lbear§r species one can encounter, especially within the §lredwood forests§r and their §lden§r.",
+  "adventurer_manuscript.entity.kodiak.page_2": "§l§nI. Gluttony: \n\n§r The §l§n§dKodiak§r is a §ngluttonous§r bear, obsessed with food. Nothing escapes it. It can §lrummage§r through your chests to steal food, ravage your §lcrops§r in seconds, and approach",
+  "adventurer_manuscript.entity.kodiak.page_3": "§ncampfires§r to grab §lfood§r cooking on them — even picking up anything §llying§r on the ground. \n\n§l§nII. Fisher: \n\n§r The §l§n§dKodiak§r also excels in the art of §nfishing§r. Once it dives into the water, it",
+  "adventurer_manuscript.entity.kodiak.page_4": "attracts §l§n§dsalmon§r toward itself like a magnet. When one §lgets too close§r, it snaps its §npowerful jaws§r shut, leaving no chance of escape.",
+  "adventurer_manuscript.entity.kodiak.page_5": "§l§nIII. Tranquility: \n\n§r The §l§n§dKodiak§r isn’t always a §lfierce§r beast. Most of the time, it remains §ncalm§r. You can see it §lsleeping§r for hours, §lrolling§r around in the grass, §lscratching§r lazily against §ntree trunks§r",
+  "adventurer_manuscript.entity.kodiak.page_6": "or simply §lsitting§r to §nobserve its surroundings§r.\n\n\n§l§nIV. Alliance: \n\n§r The §l§n§dKodiak§r lives peacefully with §lbees§r, defending their hives if they are",
+  "adventurer_manuscript.entity.kodiak.page_7": "attacked, and occasionally taking their §lhoney§r.\n\n §l§nAnalysis§r: A big eater — peaceful if left alone, but fearsome once provoked.",
+
+
+  "adventurer_manuscript.entity.crocodile.page_1": "Possessing one of the most powerful jaws ever recorded, the §l§n§dCrocodile§r is a §ncunning and patient§r predator, lurking within §lmarshy§r §lareas§r near §nwater sources§r.",
+  "adventurer_manuscript.entity.crocodile.page_2": "§l§nI. Carcasses: \n\n§r Once its prey is devoured, the §l§n§dCrocodile§r sometimes leaves behind the §nskeletal carcass§r of its meal. It can be §lextracted§r with a pickaxe to recover its bones.",
+  "adventurer_manuscript.entity.crocodile.page_3": "§l§nII. Death Roll: \n\n§r The §l§n§dCrocodile§r can grab its prey both on §lland§r and in the §lwater§r. When it seizes a victim on land, it §ldrags§r them into the water to §nkeep§r them under its control.",
+  "adventurer_manuscript.entity.crocodile.page_4": "In the water, it performs its fearsome §lDeath Roll§r — a fast, devastating spin that §ltears apart§r the prey’s flesh while disorienting it, making escape §nimpossible§r.",
+  "adventurer_manuscript.entity.crocodile.page_5": "§l§nIII. Gaping Maw: \n\n§r When it spots a target, the §l§n§dCrocodile§r can slowly open its jaws and §ncautiously§r advance, ready to strike. If it manages to bite, the victim suffers the",
+  "adventurer_manuscript.entity.crocodile.page_6": "§lFracture§r effect, preventing them from §lrunning§r or §lattacking§r properly — while the §l§n§dCrocodile§r becomes §nfaster§r in pursuit.",
+
 
 
   "boa.page1": "The §lBoa§r is a silent predator slithering through dense, §lhumid§r §lareas§r patiently awaiting its prey.",
