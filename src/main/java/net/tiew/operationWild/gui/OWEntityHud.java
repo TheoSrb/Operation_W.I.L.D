@@ -3,6 +3,7 @@ package net.tiew.operationWild.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -14,6 +15,8 @@ import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
 import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.misc.SeaBugEntity;
+
+import java.awt.*;
 
 public class OWEntityHud {
 
@@ -30,9 +33,13 @@ public class OWEntityHud {
             if (entity != null) {
                 if (entity instanceof OWEntity owEntity) {
 
-                    if (owEntity.getOwner() != rider) return;
+                    if (owEntity instanceof CrocodileEntity crocodile && crocodile.isStartingTaming() && !crocodile.isTame()) {
+                        createHUD(guiGraphics, owEntity, screenWidth, screenHeight);
 
-                    createHUD(guiGraphics, owEntity, screenWidth, screenHeight);
+                        createCrocodileTamingHUD(guiGraphics, crocodile, screenWidth, screenHeight);
+                    }
+
+                    if (owEntity.getOwner() != rider) return;
 
                     if (entity instanceof OWSemiWaterEntity waterEntity) {
 
@@ -55,6 +62,21 @@ public class OWEntityHud {
         createAirBar(guiGraphics, entity, x, y);
         createVitalEnergyBar(guiGraphics, entity, x, y);
         createBar(guiGraphics, entity, x, y);
+    }
+
+    public static void createCrocodileTamingHUD(GuiGraphics guiGraphics, CrocodileEntity crocodile, int x, int y) {
+        int xPlacement = x / 2 + 217;
+        int yPlacement = y - 113;
+
+        int tamingTicksRest = crocodile.getTamingTime();
+
+        int totalSeconds = tamingTicksRest / 20;
+        int seconds = totalSeconds % 60;
+        int minutes = (totalSeconds / 60) % 60;
+
+        Component text = Component.literal(String.valueOf(minutes) + ":" + String.valueOf(seconds));
+
+        guiGraphics.drawString(Minecraft.getInstance().font, text, xPlacement, yPlacement, 0xFFFFFF);
     }
 
     public static int getEntitySpace(OWEntity entity) {

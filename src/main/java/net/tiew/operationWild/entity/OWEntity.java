@@ -1720,7 +1720,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         } else comboSpeedMultiplier = 1.0f;
 
         if (!this.level().isClientSide()) {
-            if (this.isRunning() && this.isVehicle()) {
+            if (this.isRunning() && this.isVehicle() && this.isTame()) {
                 boolean isWalrusInWater = this instanceof WalrusEntity walrus && walrus.isInWater();
                 boolean isCrocodileInWater = this instanceof CrocodileEntity crocodile && crocodile.isInWater();
                 setVitalEnergy(getVitalEnergy() + ((!isWalrusInWater && !isCrocodileInWater) ? 1 : 0.5f));
@@ -2913,6 +2913,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     boolean isTigerInUltimate = this instanceof TigerEntity tiger && tiger.isUltimate();
                     if (this instanceof BoaEntity boa) boa.doHurtTarget(livingEntity);
                     else {
+                        System.out.println("he ouiii");
                         livingEntity.hurt(this.damageSources().mobAttack(this), isTigerInUltimate ? attackDamage * 1.5f : attackDamage);
                         this.hurtAfterCombo(livingEntity, this.getComboAttack());
                     }

@@ -9,7 +9,9 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Bee;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -81,6 +83,10 @@ public class CrocodileBehaviorHandler {
         if (blockState.getBlock() instanceof WaterlilyBlock) {
             crocodile.level().destroyBlock(pos, false);
         }
+    }
+
+    public boolean isReadyForTaming() {
+        return this.crocodile.getSacrificesUnity() >= 100;
     }
 
     public BlockPos findNearestWaterSource(int searchRadius) {

@@ -150,13 +150,21 @@ public class ClientEvents {
 
         if (player != null) {
             Entity ridingEntity = player.getRootVehicle();
-            if (ridingEntity instanceof OWEntity entity &&
-                    entity.isAlive() && entity.isTame() && entity.isSaddled()) {
-                if (leftButtonIsPressed) {
-                    boolean isScreenOpen = minecraft.screen != null;
-                    OWNetworkHandler.sendToServer(new ClientPressedLeftClick(isScreenOpen));
-                } else if (rightButtonIsPressed && canUseRightClick(minecraft)) {
-                    OWNetworkHandler.sendToServer(new ClientPressedRightClick());
+            if (ridingEntity instanceof OWEntity entity && entity.isAlive() && entity.isSaddled()) {
+                if (entity instanceof CrocodileEntity crocodile && crocodile.crocodileBehaviorHandler.isReadyForTaming() && !crocodile.isTame()) {
+                    if (leftButtonIsPressed) {
+                        boolean isScreenOpen = minecraft.screen != null;
+                        OWNetworkHandler.sendToServer(new ClientPressedLeftClick(isScreenOpen));
+                    } else if (rightButtonIsPressed && canUseRightClick(minecraft)) {
+                        OWNetworkHandler.sendToServer(new ClientPressedRightClick());
+                    }
+                } else if (entity.isTame()) {
+                    if (leftButtonIsPressed) {
+                        boolean isScreenOpen = minecraft.screen != null;
+                        OWNetworkHandler.sendToServer(new ClientPressedLeftClick(isScreenOpen));
+                    } else if (rightButtonIsPressed && canUseRightClick(minecraft)) {
+                        OWNetworkHandler.sendToServer(new ClientPressedRightClick());
+                    }
                 }
             } else if (ridingEntity instanceof Submarine) {
                 if (rightButtonIsPressed && canUseRightClick(minecraft)) {
@@ -205,7 +213,7 @@ public class ClientEvents {
             int inventoryKey = minecraft.options.keyInventory.getKey().getValue();
             int runKey = minecraft.options.keySprint.getKey().getValue();
 
-            if (event.getKey() == inventoryKey && event.getAction() == GLFW.GLFW_PRESS) {
+            if (event.getKey() == inventoryKey && event.getAction() == GLFW.GLFW_PRESS && owEntity.isTame()) {
                 OWNetworkHandler.sendToServer(new OpenOWInventoryPacket());
             }
 

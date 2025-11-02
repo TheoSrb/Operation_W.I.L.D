@@ -87,6 +87,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private static final EntityDataAccessor<Float> SACRIFICES_UNITY = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> START_TAMING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> ENTITIES_KILLED_DURING_TAMING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> TAMING_TIMER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -182,6 +184,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(GRAB_TIMEOUT, 0);
         builder.define(SACRIFICES_UNITY, 0.0f);
         builder.define(START_TAMING, false);
+        builder.define(ENTITIES_KILLED_DURING_TAMING, 0);
+        builder.define(TAMING_TIMER, 0);
     }
 
     public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
@@ -400,7 +404,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         crocodileTaming.tick();
 
         if (!this.isChargingMouth()) {
-            createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, this.isTame() ? 2.25 : 1.5, false, 0.15f);
+            createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, this.isTame() || this.isStartingTaming() ? 2.25 : 1.5, false, 0.15f);
         }
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
@@ -579,22 +583,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity);
 
 
-        if (!entity.isAlive() && crocodileTaming.canBeTamable()) {
-            if (entity instanceof TamableAnimal tamableAnimal) {
-                if (tamableAnimal.isTame()) {
-                    LivingEntity owner = tamableAnimal.getOwner();
+        this.crocodileTaming.hurtAfterCombo(entity, comboAttack);
 
-                    if (owner != null && owner != entity && owner instanceof Player player) {
-                        if (crocodileTaming.ownerIsNear(player, tamableAnimal)) {
-                            float entityHealth = entity.getMaxHealth();
-
-                            this.setSacrificesUnity(this.getSacrificesUnity() + entityHealth);
-                        }
-                    }
-                }
-            }
-        }
-
+        if (crocodileBehaviorHandler.isReadyForTaming()) return;
 
         if (canGrabOnLand) {
             if (!isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity)) {
@@ -620,6 +611,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public boolean hurt(DamageSource damageSource, float v) {
         if (!this.isTame()) {
             if (this.isSitting()) this.setSitting(false);
+
+            if (isStartingTaming() && this.getEntitiesKilledDuringTaming() > 0) {
+                this.setEntitiesKilledDuringTaming(this.getEntitiesKilledDuringTaming() - 1);
+            }
         }
 
         if (this.isInWater()) {
@@ -766,6 +761,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private void grabEntity(LivingEntity entity) {
         if (isBaby()) return;
+        if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() >= 10) return;
 
         if (entity instanceof TamableAnimal tamableAnimal && tamableAnimal.getControllingPassenger() != null)  {
             entity = tamableAnimal.getControllingPassenger();
@@ -995,6 +991,22 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public boolean isGrabbing() { return this.entityData.get(IS_GRABBING);}
 
+    public void setEntitiesKilledDuringTaming(int getEntitiesKilledDuringTaming) {
+        this.entityData.set(ENTITIES_KILLED_DURING_TAMING, getEntitiesKilledDuringTaming);
+    }
+
+    public int getEntitiesKilledDuringTaming() {
+        return this.entityData.get(ENTITIES_KILLED_DURING_TAMING);
+    }
+
+    public void setTamingTime(int getTamingTime) {
+        this.entityData.set(TAMING_TIMER, getTamingTime);
+    }
+
+    public int getTamingTime() {
+        return this.entityData.get(TAMING_TIMER);
+    }
+
     public void setSacrificesUnity(float sacrificesUnity) {
         this.entityData.set(SACRIFICES_UNITY, sacrificesUnity);
     }
@@ -1035,6 +1047,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         tag.putInt("Variant", this.getTypeVariant());
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
+
+        tag.putInt("getEntitiesKilledDuringTaming", this.getEntitiesKilledDuringTaming());
+        tag.putInt("getTamingTime", this.getTamingTime());
+        tag.putBoolean("isStartingTaming", this.isStartingTaming());
+        tag.putFloat("getSacrificesUnity", this.getSacrificesUnity());
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -1043,6 +1060,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
+
+        this.entityData.set(ENTITIES_KILLED_DURING_TAMING, tag.getInt("getEntitiesKilledDuringTaming"));
+        this.entityData.set(TAMING_TIMER, tag.getInt("getTamingTime"));
+        this.entityData.set(START_TAMING, tag.getBoolean("isStartingTaming"));
+        this.entityData.set(SACRIFICES_UNITY, tag.getFloat("getSacrificesUnity"));
     }
 
     @Override

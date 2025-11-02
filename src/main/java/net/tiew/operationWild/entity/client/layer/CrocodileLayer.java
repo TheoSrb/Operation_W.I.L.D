@@ -54,7 +54,9 @@ public class CrocodileLayer extends RenderLayer<CrocodileEntity, CrocodileModel<
             renderOverlay(poseStack, multiBufferSource, ANGRY_EYES_TEXTURE, false, packedLight);
         }*/
 
-        if (crocodile.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+        if (crocodile.isSaddled() && crocodile.isTame()) {
+            renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+        }
 
         if (crocodile.getHealth() < kodiakHealthTier) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
         else if (crocodile.getHealth() < (kodiakHealthTier * 2)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);

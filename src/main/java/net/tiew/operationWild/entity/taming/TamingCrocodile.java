@@ -5,6 +5,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -43,18 +44,93 @@ public class TamingCrocodile {
     private void handleTamingSystem() {
 
         if (!this.crocodile.isTame()) {
-            if (crocodile.getSacrificesUnity() > 0 && crocodile.getSacrificesUnity() < 100) {
+            if (crocodile.getSacrificesUnity() > 0 && !this.crocodile.isStartingTaming()) {
                 this.crocodile.setSacrificesUnity(this.crocodile.getSacrificesUnity() - 0.025f);
             }
-            System.out.println(this.crocodile.getSacrificesUnity() + " %");
+
+
+            if (this.crocodile.tickCount % 20 == 0) {
+                if (this.crocodile.crocodileBehaviorHandler.isReadyForTaming()) {
+                    System.out.println("Ready");
+                } else {
+                    System.out.println(this.crocodile.getSacrificesUnity() + " %");
+                }
+
+                System.out.println("Entitées tuées: " + this.crocodile.getEntitiesKilledDuringTaming());
+            }
+
+            if (this.crocodile.getTamingTime() > 0) {
+                this.crocodile.setTamingTime(this.crocodile.getTamingTime() - 1);
+
+                if (this.crocodile.getTamingTime() <= 0) {
+                    stopTaming(this.crocodile.getEntitiesKilledDuringTaming());
+                }
+
+                System.out.println(this.crocodile.getTamingTime());
+            }
+        }
+    }
+
+    private void stopTaming(int entitiesKilled) {
+        final int minValue = 1;
+        boolean isSuccessful = entitiesKilled >= minValue;
+
+        Entity controllingPassenger = this.crocodile.getControllingPassenger();
+
+        if (controllingPassenger != null) {
+
+            this.crocodile.setTamingTime(0);
+            this.crocodile.setSaddle(false);
+            this.crocodile.setStartingTaming(false);
+            this.crocodile.setEntitiesKilledDuringTaming(0);
+            this.crocodile.setSacrificesUnity(0);
+
+            if (isSuccessful) {
+                Player tamer = (Player) controllingPassenger;
+                this.crocodile.setTame(true, tamer);
+
+                this.crocodile.setLevelPoints(Math.min((entitiesKilled - minValue) / 2, 5));
+            }
+
+            controllingPassenger.stopRiding();
+        }
+    }
+
+    public void hurtAfterCombo(LivingEntity entity, int comboAttack) {
+        if (!entity.isAlive()) {
+            if (this.crocodile.isStartingTaming()) {
+                crocodile.setEntitiesKilledDuringTaming(crocodile.getEntitiesKilledDuringTaming() + 1);
+            } else if (this.canBeTamable()) {
+                if (entity instanceof TamableAnimal tamableAnimal) {
+                    if (tamableAnimal.isTame()) {
+                        LivingEntity owner = tamableAnimal.getOwner();
+
+                        if (owner != null && owner != entity && owner instanceof Player player) {
+                            if (this.ownerIsNear(player, tamableAnimal)) {
+                                float entityHealth = entity.getMaxHealth();
+
+                                crocodile.setSacrificesUnity(crocodile.getSacrificesUnity() + entityHealth);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
 
         if (hand == InteractionHand.MAIN_HAND) {
-            if (!this.crocodile.isTame() && !this.crocodile.isInWater() && !this.crocodile.isInLava() && this.crocodile.getSacrificesUnity() >= 100) {
+            if (!this.crocodile.isTame() && !this.crocodile.isInWater() && !this.crocodile.isInLava() && this.crocodile.crocodileBehaviorHandler.isReadyForTaming()) {
                 this.crocodile.setStartingTaming(true);
+
+                this.crocodile.setSaddle(true);
+                this.crocodile.setPassive(true);
+
+                if (this.crocodile.getTamingTime() <= 0) {
+                    this.crocodile.setTamingTime(3600);
+                }
+
                 player.startRiding(this.crocodile);
             }
         }

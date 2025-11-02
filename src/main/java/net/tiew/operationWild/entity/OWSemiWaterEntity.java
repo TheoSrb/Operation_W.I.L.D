@@ -316,7 +316,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     }
 
     public void applyWaterPressureDamage(int depth, Player player) {
-        if (!this.isTame()) return;
+        if (!this.isTame() || !this.isInWater()) return;
         int waterPressure = (int) ClientEvents.getWaterPressure(depth);
         float damageInterval = (Math.max((-1.25f * waterPressure + 65) / 30.0f, 0.1f));
         float normalizedPressure = waterPressure / 4.0f;

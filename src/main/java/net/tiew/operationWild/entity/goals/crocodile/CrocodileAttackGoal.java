@@ -16,6 +16,7 @@ public class CrocodileAttackGoal extends OWAttackGoal {
 
     @Override
     public boolean canUse() {
+        if (crocodile.crocodileBehaviorHandler.isReadyForTaming()) return false;
         if (crocodile.isBaby()) return false;
         if (crocodile.hasGrabSomething()) {
             return false;
@@ -25,6 +26,7 @@ public class CrocodileAttackGoal extends OWAttackGoal {
 
     @Override
     public boolean canContinueToUse() {
+        if (crocodile.crocodileBehaviorHandler.isReadyForTaming()) return false;
         if (crocodile.isBaby()) return false;
         if (crocodile.hasGrabSomething()) {
             return false;
