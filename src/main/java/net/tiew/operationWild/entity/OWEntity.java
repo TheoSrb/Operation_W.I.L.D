@@ -1981,6 +1981,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
             if (attackTimer == timeToHit - (this instanceof ElephantEntity ? 3 : 0)) {
                 attackEntitiesInFront((float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER)), sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
+
                 if (spawnBlurr) {
                     OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
                 }
@@ -2121,6 +2122,100 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (attackTimer == timeToHit) {
                 attackEntitiesInFront(this.getDamage(), sound, width, height, reach, 1.0f);
                 if (spawnBlurr) OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
+            }
+        }
+    }
+
+    public void attackEntitiesInFrontSimple(float attackDamage, SoundEvent sound, double width, double height, double reach, float knockbackMultiplier) {
+        if (this.level().isClientSide()) {
+            return;
+        }
+
+        Entity passenger = this.getControllingPassenger();
+        float yawToUse = this.getYRot();
+        Vec3 posToUse = this.position();
+
+        if (passenger != null) {
+            yawToUse = passenger.getYRot();
+            posToUse = passenger.position();
+        }
+
+        float pitch = (float) OWUtils.generateRandomInterval(0.8, 1.1f);
+        double yaw = Math.toRadians(yawToUse);
+        double centerX = posToUse.x - Math.sin(yaw) * reach;
+        double centerZ = posToUse.z + Math.cos(yaw) * reach;
+        double centerY = posToUse.y;
+
+        double extendedHeight = height * 2;
+
+        AABB attackBox = new AABB(
+                centerX - width / 2, centerY - extendedHeight / 2, centerZ - width / 2,
+                centerX + width / 2, centerY + extendedHeight / 2, centerZ + width / 2
+        );
+
+        List<Entity> entitiesInRange = this.level().getEntities(
+                this,
+                attackBox,
+                entity -> entity instanceof LivingEntity
+        );
+
+        for (Entity entity : entitiesInRange) {
+            if (entity instanceof LivingEntity livingEntity) {
+                if (this.isAlliedTo(livingEntity)) {
+                    continue;
+                }
+
+                if (livingEntity instanceof Player player && player.getVehicle() != null) {
+                    continue;
+                }
+
+                boolean hurtResult = livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage);
+
+                if (knockbackMultiplier > 0 && hurtResult) {
+                    if (!(livingEntity instanceof Player player && player.isCreative())) {
+                        Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
+                        Vec3 knockback = knockbackDirection.scale(knockbackMultiplier * 0.4);
+                        livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
+                    }
+                }
+            }
+        }
+
+        this.setFighting(true);
+        fightingTime = 200;
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), sound, SoundSource.NEUTRAL, 1.0F, pitch);
+    }
+
+    public void createComboSimple(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, float backMultiplier) {
+        if (this.isCombo()) {
+            if (this.getTarget() != null) {
+                this.setLookAt(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ());
+            }
+
+            if (attackTimer < timeMax) {
+                attackTimer++;
+            } else {
+                attackTimer = 0;
+                setCombo(false, 0);
+                return;
+            }
+
+            if (attackTimer == timeToHit) {
+                boolean isRided = this.getControllingPassenger() != null;
+                attackEntitiesInFrontSimple(
+                        (float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * SAVAGE_ENTITY_DAMAGE_MULTIPLIER),
+                        sound,
+                        width * (isRided ? 1 : 1.5f),
+                        height * (isRided ? 1 : 1.5f),
+                        reach * (isRided ? 1 : 1.5f),
+                        backMultiplier
+                );
+            }
+
+            applyComboModification(timeToHit);
+
+            if (attackTimer == timeToHit + 2) {
+                setPauseCombo(true);
             }
         }
     }
@@ -2869,11 +2964,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void attackEntitiesInFront(float attackDamage, SoundEvent sound, double width, double height, double reach, float $$1) {
+        System.out.println("=== ATTACK METHOD CALLED ===");
+        System.out.println("AttackDamage: " + attackDamage);
+        System.out.println("Width: " + width + ", Height: " + height + ", Reach: " + reach);
+        System.out.println("This entity: " + this.getName().getString());
+        System.out.println("This position: " + this.position());
+        System.out.println("Is vehicle: " + this.isVehicle());
+        System.out.println("Has passengers: " + !this.getPassengers().isEmpty());
+        System.out.println("Is tame: " + this.isTame());
+
         float pitch = (float) OWUtils.generateRandomInterval(0.8, 1.1f);
         double yaw = Math.toRadians(this.getYRot());
+        System.out.println("Yaw (degrees): " + this.getYRot() + ", Yaw (radians): " + yaw);
+
         double centerX = this.getX() - Math.sin(yaw) * reach;
         double centerZ = this.getZ() + Math.cos(yaw) * reach;
         double centerY = this.getY() + 0.5;
+        System.out.println("Attack center: X=" + centerX + ", Y=" + centerY + ", Z=" + centerZ);
 
         double extendedHeight = height * 2;
 
@@ -2881,91 +2988,173 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 centerX - width / 2, centerY - extendedHeight / 2, centerZ - width / 2,
                 centerX + width / 2, centerY + extendedHeight / 2, centerZ + width / 2
         );
+        System.out.println("Attack box: " + attackBox);
 
         List<Entity> entitiesInRange = this.level().getEntities(
                 this,
                 attackBox,
                 entity -> entity instanceof LivingEntity
         );
+        System.out.println("Entities found in range: " + entitiesInRange.size());
+        for (Entity e : entitiesInRange) {
+            System.out.println("  - Entity: " + e.getName().getString() + " at " + e.position());
+        }
 
         UUID ownerUUID = null;
-        if (this instanceof TamableAnimal tamable) ownerUUID = tamable.getOwnerUUID();
+        if (this instanceof TamableAnimal tamable) {
+            ownerUUID = tamable.getOwnerUUID();
+            System.out.println("Owner UUID: " + ownerUUID);
+        } else {
+            System.out.println("Not a tamable animal, ownerUUID is null");
+        }
 
+        int entitiesProcessed = 0;
         for (Entity entity : entitiesInRange) {
             if (entity instanceof LivingEntity livingEntity) {
-                if (ownerUUID != null && entity instanceof Player player && player.getUUID().equals(ownerUUID)) continue;
-                if (this.isAlliedTo(livingEntity)) continue;
-                if (ownerUUID != null && entity instanceof TamableAnimal otherTamable && otherTamable.getOwnerUUID() != null && otherTamable.getOwnerUUID().equals(ownerUUID)) continue;
-                if (livingEntity instanceof Player player && player.getVehicle() != null) continue;
+                entitiesProcessed++;
+                System.out.println("\n--- Processing entity #" + entitiesProcessed + ": " + livingEntity.getName().getString() + " ---");
+
+                // Check 1: Owner check
+                if (ownerUUID != null && entity instanceof Player player && player.getUUID().equals(ownerUUID)) {
+                    System.out.println("SKIPPED: Is owner");
+                    continue;
+                }
+
+                // Check 2: Allied check
+                if (this.isAlliedTo(livingEntity)) {
+                    System.out.println("SKIPPED: Is allied");
+                    continue;
+                }
+
+                // Check 3: Same owner tamable check
+                if (ownerUUID != null && entity instanceof TamableAnimal otherTamable && otherTamable.getOwnerUUID() != null && otherTamable.getOwnerUUID().equals(ownerUUID)) {
+                    System.out.println("SKIPPED: Same owner tamable");
+                    continue;
+                }
+
+                // Check 4: Player in vehicle check
+                if (livingEntity instanceof Player player && player.getVehicle() != null) {
+                    System.out.println("SKIPPED: Player in vehicle - Vehicle: " + player.getVehicle().getName().getString());
+                    continue;
+                }
+
+                System.out.println("PASSED ALL CHECKS - Applying damage!");
+
+                // Assassin check
                 if (this.isAssassin() && OWUtils.RANDOM(10)) {
-                    livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage *= 1.25f);
+                    System.out.println("ASSASSIN CRIT!");
+
+                    // AJOUTE LE CHECK ICI
+                    if (!this.level().isClientSide()) {
+                        livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage *= 1.25f);
+                    }
 
                     if ($$1 > 0) {
-                        if (livingEntity instanceof Player player && player.isCreative()) return;
+                        if (livingEntity instanceof Player player && player.isCreative()) {
+                            System.out.println("Target is creative, no knockback");
+                            return;
+                        }
                         Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
                         Vec3 knockback = knockbackDirection.scale($$1 * 0.5);
                         livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
+                        System.out.println("Applied assassin knockback");
                     }
 
                     OWUtils.spawnParticles(livingEntity, ParticleTypes.CRIT, 0, 0.5, 0, 20, 3);
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.NEUTRAL, 1.0F, pitch);
                 } else {
+                    System.out.println("NORMAL ATTACK");
                     boolean isTigerInUltimate = this instanceof TigerEntity tiger && tiger.isUltimate();
-                    if (this instanceof BoaEntity boa) boa.doHurtTarget(livingEntity);
-                    else {
+                    System.out.println("Is tiger in ultimate: " + isTigerInUltimate);
+
+                    if (this instanceof BoaEntity boa) {
+                        System.out.println("Is BoaEntity - calling doHurtTarget");
+                        boa.doHurtTarget(livingEntity);
+                    } else {
                         System.out.println("he ouiii");
-                        livingEntity.hurt(this.damageSources().mobAttack(this), isTigerInUltimate ? attackDamage * 1.5f : attackDamage);
+                        System.out.println("Is client side: " + this.level().isClientSide());
+                        System.out.println("Target health BEFORE: " + livingEntity.getHealth() + "/" + livingEntity.getMaxHealth());
+
+                        float finalDamage = isTigerInUltimate ? attackDamage * 1.5f : attackDamage;
+                        System.out.println("Applying damage: " + finalDamage);
+
+                        // AJOUTE LE CHECK ICI
+                        if (!this.level().isClientSide()) {
+                            livingEntity.hurt(this.damageSources().mobAttack(this), finalDamage);
+                        }
+
+                        System.out.println("Target health AFTER: " + livingEntity.getHealth() + "/" + livingEntity.getMaxHealth());
                         this.hurtAfterCombo(livingEntity, this.getComboAttack());
                     }
 
                     if ($$1 > 0) {
-                        if (livingEntity instanceof Player player && player.isCreative()) return;
+                        if (livingEntity instanceof Player player && player.isCreative()) {
+                            System.out.println("Target is creative, no knockback");
+                            return;
+                        }
                         Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
                         Vec3 knockback = knockbackDirection.scale($$1 * 0.4);
                         livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
+                        System.out.println("Applied normal knockback");
                     }
 
                     if (this.isTame() && ownerIsRiding()) {
+                        System.out.println("Setting fighting (tame + owner riding)");
                         this.setFighting(true);
                     }
+
                     if (this instanceof BoaEntity boa) {
+                        System.out.println("BoaEntity venom check - canVenom: " + boa.canVenom);
                         if (boa.canVenom) {
                             livingEntity.addEffect(new MobEffectInstance(OWEffects.VENOM_EFFECT.getDelegate(), (int) generateRandomInterval(3600, 6000), 0));
                             boa.venomCooldown = 800;
                             boa.canVenom = false;
+                            System.out.println("Applied venom effect");
                         }
-                        else if (RANDOM(3))livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, (int) generateRandomInterval(176, 352), 2));
+                        else if (RANDOM(3)) {
+                            livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, (int) generateRandomInterval(176, 352), 2));
+                            System.out.println("Applied poison effect");
+                        }
                         OWUtils.spawnBlurrParticle(this.level(), this, 0.75f, 1f, 0.67f);
                     }
                 }
 
+                // Quest checks
                 if (isQuestInProgress(DailyQuestRegistry.quest1) && !this.level().isClientSide()) {
+                    System.out.println("Quest 1 progression");
                     this.executeQuestProgression((byte) 0);
                 }
                 if (isQuestInProgress(DailyQuestRegistry.quest10) && livingEntity.getMaxHealth() > this.getMaxHealth() && !this.level().isClientSide()) {
+                    System.out.println("Quest 10 progression");
                     this.executeQuestProgression((byte) 9);
                 }
 
+                // Hit counter for quest 5
                 long currentTime = System.currentTimeMillis();
                 if (lastHurtTime == 0 || currentTime - lastHurtTime > 5000) {
                     hitCounter = 1;
+                    System.out.println("Hit counter reset to 1");
                 } else {
                     hitCounter += (int) attackDamage;
+                    System.out.println("Hit counter increased to: " + hitCounter);
                 }
                 lastHurtTime = currentTime;
 
                 if (hitCounter >= 40) {
                     if (isQuestInProgress(DailyQuestRegistry.quest5)) {
+                        System.out.println("Quest 5 progression");
                         this.executeQuestProgression((byte) 4);
                     }
                     hitCounter = 0;
                 }
-
             }
         }
+
         fightingTime = 200;
         this.setFighting(true);
+        System.out.println("Set fighting mode, fightingTime = 200");
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(), sound, SoundSource.NEUTRAL, 1.0F, pitch);
+        System.out.println("=== ATTACK METHOD END ===\n");
     }
 
     public final Map<String, TransitionData> transitions = new HashMap<>();

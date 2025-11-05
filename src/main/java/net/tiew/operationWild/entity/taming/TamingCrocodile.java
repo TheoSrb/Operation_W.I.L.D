@@ -72,7 +72,7 @@ public class TamingCrocodile {
     }
 
     private void stopTaming(int entitiesKilled) {
-        final int minValue = 1;
+        final int minValue = 20;
         boolean isSuccessful = entitiesKilled >= minValue;
 
         Entity controllingPassenger = this.crocodile.getControllingPassenger();

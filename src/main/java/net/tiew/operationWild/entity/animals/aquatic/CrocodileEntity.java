@@ -188,38 +188,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(TAMING_TIMER, 0);
     }
 
-    public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
-        BlockState blockBelow = level.getBlockState(pos.below());
-        Block blockType = blockBelow.getBlock();
-
-        boolean validBlock = blockType == Blocks.MUD || blockType == Blocks.GRASS_BLOCK || blockType == Blocks.WATER;
-
-        if (!validBlock) {
-            return false;
-        }
-
-        boolean waterNearby = false;
-        int searchRadius = 16;
-
-        for (int x = -searchRadius; x <= searchRadius; x++) {
-            for (int y = -4; y <= 4; y++) {
-                for (int z = -searchRadius; z <= searchRadius; z++) {
-                    BlockPos checkPos = pos.offset(x, y, z);
-                    BlockState state = level.getBlockState(checkPos);
-
-                    if (state.getBlock() == Blocks.WATER) {
-                        waterNearby = true;
-                        break;
-                    }
-                }
-                if (waterNearby) break;
-            }
-            if (waterNearby) break;
-        }
-
-        return waterNearby;
-    }
-
     // Entity Methods
     @Override
     public int getEntityColor() {
@@ -404,7 +372,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         crocodileTaming.tick();
 
         if (!this.isChargingMouth()) {
-            createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, this.isTame() || this.isStartingTaming() ? 2.25 : 1.5, false, 0.15f);
+            if (!this.isTame()) {
+                createComboSimple(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, 0.15f);
+            } else {
+                createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, false, 0.15f);
+            }
         }
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
@@ -720,6 +692,38 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             foodWanted = (int) this.getMaxHealth();
         }
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
+    }
+
+    public static boolean checkCrocodileSpawnRules(EntityType<? extends Animal> animal, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+        BlockState blockBelow = level.getBlockState(pos.below());
+        Block blockType = blockBelow.getBlock();
+
+        boolean validBlock = blockType == Blocks.MUD || blockType == Blocks.GRASS_BLOCK || blockType == Blocks.WATER;
+
+        if (!validBlock) {
+            return false;
+        }
+
+        boolean waterNearby = false;
+        int searchRadius = 16;
+
+        for (int x = -searchRadius; x <= searchRadius; x++) {
+            for (int y = -4; y <= 4; y++) {
+                for (int z = -searchRadius; z <= searchRadius; z++) {
+                    BlockPos checkPos = pos.offset(x, y, z);
+                    BlockState state = level.getBlockState(checkPos);
+
+                    if (state.getBlock() == Blocks.WATER) {
+                        waterNearby = true;
+                        break;
+                    }
+                }
+                if (waterNearby) break;
+            }
+            if (waterNearby) break;
+        }
+
+        return waterNearby;
     }
 
     private void markMudWithFootprints() {
