@@ -372,7 +372,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         crocodileTaming.tick();
 
         if (!this.isChargingMouth()) {
-            if (!this.isTame()) {
+            if (!this.isTame() && this.isVehicle()) {
                 createComboSimple(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, 0.15f);
             } else {
                 createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, false, 0.15f);
@@ -553,7 +553,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         boolean isAlreadyGrabbed = entity.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != entity;
         boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() &&
                 !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity);
-
 
         this.crocodileTaming.hurtAfterCombo(entity, comboAttack);
 
