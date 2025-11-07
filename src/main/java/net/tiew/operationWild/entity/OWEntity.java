@@ -2189,35 +2189,68 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void createComboSimple(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, float backMultiplier) {
-        if (this.isCombo()) {
-            if (this.getTarget() != null) {
-                this.setLookAt(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ());
+        if (!this.isAlive()) return;
+
+        if (isPauseCombo()) {
+            continueComboMaxTimer++;
+
+            if (this.playerContinueCombo && actualAttackNumber < (MAX_ATTACKS_IN_COMBO - 1)) {
+                continueComboMaxTimer = 0;
+
+                actualAttackNumber++;
+
+                resetCombo(actualAttackNumber);
+                if (this instanceof WalrusEntity walrus) {
+                    if (walrus.isInWater()) {
+                        if (getComboAttack() < 2) {
+                            setCombo(true, actualAttackNumber + 1);
+                        }
+                    } else {
+                        setCombo(true, actualAttackNumber + 1);
+                    }
+                } else {
+                    setCombo(true, actualAttackNumber + 1);
+                }
+
+                setPauseCombo(false);
             }
 
-            if (attackTimer < timeMax) {
-                attackTimer++;
-            } else {
-                attackTimer = 0;
-                setCombo(false, 0);
-                return;
+            int comboContinueWindow = timeMax - timeToHit;
+            if (continueComboMaxTimer >= comboContinueWindow) {
+                resetCombo(0);
+                actualAttackNumber = 0;
             }
+        } else {
+            if (this.isCombo()) {
+                if (this.getTarget() != null) {
+                    this.setLookAt(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ());
+                }
 
-            if (attackTimer == timeToHit) {
-                boolean isRided = this.getControllingPassenger() != null;
-                attackEntitiesInFrontSimple(
-                        (float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * SAVAGE_ENTITY_DAMAGE_MULTIPLIER),
-                        sound,
-                        width * (isRided ? 1 : 1.5f),
-                        height * (isRided ? 1 : 1.5f),
-                        reach * (isRided ? 1 : 1.5f),
-                        backMultiplier
-                );
-            }
+                if (attackTimer < timeMax) {
+                    attackTimer++;
+                } else {
+                    attackTimer = 0;
+                    setCombo(false, 0);
+                    return;
+                }
 
-            applyComboModification(timeToHit);
+                if (attackTimer == timeToHit) {
+                    boolean isRided = this.getControllingPassenger() != null;
+                    attackEntitiesInFrontSimple(
+                            (float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (this.isVehicle() && !this.isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER)),
+                            sound,
+                            width * (isRided ? 1 : 1.5f),
+                            height * (isRided ? 1 : 1.5f),
+                            reach * (isRided ? 1 : 1.5f),
+                            backMultiplier
+                    );
+                }
 
-            if (attackTimer == timeToHit + 2) {
-                setPauseCombo(true);
+                applyComboModification(timeToHit);
+
+                if (attackTimer == timeToHit + 2) {
+                    setPauseCombo(true);
+                }
             }
         }
     }

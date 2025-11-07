@@ -32,6 +32,9 @@ public class TamingCrocodile {
     private CrocodileEntity crocodile;
     private CrocodileBehaviorHandler crocodileManagement;
 
+    private static final int MAX_TAMING_TIME = 12000;
+    private static final int ENTITIES_REQUIRED = 50;
+
     public TamingCrocodile(CrocodileEntity crocodile, CrocodileBehaviorHandler crocodileManagement) {
         this.crocodile = crocodile;
         this.crocodileManagement = crocodileManagement;
@@ -72,7 +75,7 @@ public class TamingCrocodile {
     }
 
     private void stopTaming(int entitiesKilled) {
-        final int minValue = 20;
+        final int minValue = ENTITIES_REQUIRED;
         boolean isSuccessful = entitiesKilled >= minValue;
 
         Entity controllingPassenger = this.crocodile.getControllingPassenger();
@@ -84,12 +87,15 @@ public class TamingCrocodile {
             this.crocodile.setStartingTaming(false);
             this.crocodile.setEntitiesKilledDuringTaming(0);
             this.crocodile.setSacrificesUnity(0);
+            this.crocodile.setPassive(false);
 
             if (isSuccessful) {
                 Player tamer = (Player) controllingPassenger;
                 this.crocodile.setTame(true, tamer);
 
                 this.crocodile.setLevelPoints(Math.min((entitiesKilled - minValue) / 2, 5));
+            } else {
+                this.crocodile.setTarget(this.crocodile.getControllingPassenger());
             }
 
             controllingPassenger.stopRiding();
@@ -128,7 +134,7 @@ public class TamingCrocodile {
                 this.crocodile.setPassive(true);
 
                 if (this.crocodile.getTamingTime() <= 0) {
-                    this.crocodile.setTamingTime(3600);
+                    this.crocodile.setTamingTime(MAX_TAMING_TIME);
                 }
 
                 player.startRiding(this.crocodile);

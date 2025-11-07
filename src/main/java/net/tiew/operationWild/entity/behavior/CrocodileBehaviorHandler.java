@@ -8,6 +8,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Bee;
@@ -203,10 +204,12 @@ public class CrocodileBehaviorHandler {
                 centerX + width / 2, centerY + height, centerZ + width / 2
         );
 
+        Entity passenger = this.crocodile.getControllingPassenger();
+
         List<LivingEntity> targets = this.crocodile.level().getEntitiesOfClass(
                 LivingEntity.class,
                 attackBox,
-                entity -> entity != crocodile && !this.crocodile.isAlliedTo(entity)
+                entity -> entity != crocodile && !this.crocodile.isAlliedTo(entity) && entity != passenger
         );
 
         for (LivingEntity target : targets) {
@@ -219,6 +222,8 @@ public class CrocodileBehaviorHandler {
             target.setDeltaMovement(target.getDeltaMovement().add(knockback.x, knockback.y * 0.5, knockback.z));
 
             target.addEffect(new MobEffectInstance(OWEffects.FRACTURE.getDelegate(), OWUtils.generateExponentialExp(150, 300), 0));
+
+            this.crocodile.hurtAfterCombo(target, crocodile.getComboAttack());
         }
 
         this.crocodile.setChargingMouthTimer(0);

@@ -1,5 +1,6 @@
 package net.tiew.operationWild.item.custom;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.item.OWItems;
@@ -161,9 +163,13 @@ public class ReptilianDaggerItem extends SwordItem {
                 player.resetAttackStrengthTicker();
             }
         }
-        return super.use(level, player, hand);
+        return InteractionResultHolder.pass(player.getItemInHand(hand));
     }
 
+    @Override
+    public boolean canAttackBlock(BlockState state, Level level, BlockPos pos, Player player) {
+        return false;
+    }
 
     private Entity getTargetEntity(Player player, Level level) {
         double reach = 4.0;
