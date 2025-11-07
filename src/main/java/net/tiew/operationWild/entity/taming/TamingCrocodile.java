@@ -33,7 +33,7 @@ public class TamingCrocodile {
     private CrocodileBehaviorHandler crocodileManagement;
 
     private static final int MAX_TAMING_TIME = 12000;
-    private static final int ENTITIES_REQUIRED = 50;
+    private static final int ENTITIES_REQUIRED = 40;
 
     public TamingCrocodile(CrocodileEntity crocodile, CrocodileBehaviorHandler crocodileManagement) {
         this.crocodile = crocodile;
@@ -127,7 +127,7 @@ public class TamingCrocodile {
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
 
         if (hand == InteractionHand.MAIN_HAND) {
-            if (!this.crocodile.isTame() && !this.crocodile.isInWater() && !this.crocodile.isInLava() && this.crocodile.crocodileBehaviorHandler.isReadyForTaming()) {
+            if (!this.crocodile.isTame() && !this.crocodile.isInLava() && this.crocodile.crocodileBehaviorHandler.isReadyForTaming()) {
                 this.crocodile.setStartingTaming(true);
 
                 this.crocodile.setSaddle(true);
