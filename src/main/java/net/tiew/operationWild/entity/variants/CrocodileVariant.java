@@ -7,10 +7,8 @@ public enum CrocodileVariant {
     DEFAULT(0),
     GREEN(1),
     DARK(2),
-    GREY(3),
-    BLACK(4),
 
-    SKIN_GOLD(5);
+    SKIN_GOLD(3);
 
     public static final CrocodileVariant[] BY_ID = Arrays.stream(values()).sorted(Comparator.comparingInt(CrocodileVariant::getId)).toArray(CrocodileVariant[]::new);
 

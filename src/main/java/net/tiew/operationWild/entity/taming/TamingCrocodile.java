@@ -2,6 +2,8 @@ package net.tiew.operationWild.entity.taming;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -21,6 +23,7 @@ import net.tiew.operationWild.entity.behavior.CrocodileBehaviorHandler;
 import net.tiew.operationWild.entity.behavior.KodiakBehaviorHandler;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * This class primarily manages the taming process for the Crocodile.
@@ -33,7 +36,9 @@ public class TamingCrocodile {
     private CrocodileBehaviorHandler crocodileManagement;
 
     private static final int MAX_TAMING_TIME = 12000;
-    private static final int ENTITIES_REQUIRED = 40;
+    public static final int ENTITIES_REQUIRED = 40;
+
+    public Entity futurOwner = null;
 
     public TamingCrocodile(CrocodileEntity crocodile, CrocodileBehaviorHandler crocodileManagement) {
         this.crocodile = crocodile;
@@ -77,10 +82,9 @@ public class TamingCrocodile {
     private void stopTaming(int entitiesKilled) {
         final int minValue = ENTITIES_REQUIRED;
         boolean isSuccessful = entitiesKilled >= minValue;
+        int levelPoints = Math.min((entitiesKilled - minValue) / 4, 5);
 
-        Entity controllingPassenger = this.crocodile.getControllingPassenger();
-
-        if (controllingPassenger != null) {
+        if (futurOwner != null) {
 
             this.crocodile.setTamingTime(0);
             this.crocodile.setSaddle(false);
@@ -90,15 +94,15 @@ public class TamingCrocodile {
             this.crocodile.setPassive(false);
 
             if (isSuccessful) {
-                Player tamer = (Player) controllingPassenger;
+                Player tamer = (Player) futurOwner;
                 this.crocodile.setTame(true, tamer);
 
-                this.crocodile.setLevelPoints(Math.min((entitiesKilled - minValue) / 2, 5));
+                this.crocodile.setLevelPoints(levelPoints);
             } else {
                 this.crocodile.setTarget(this.crocodile.getControllingPassenger());
             }
 
-            controllingPassenger.stopRiding();
+            futurOwner.stopRiding();
         }
     }
 
@@ -137,6 +141,8 @@ public class TamingCrocodile {
                     this.crocodile.setTamingTime(MAX_TAMING_TIME);
                 }
 
+                futurOwner = player;
+
                 player.startRiding(this.crocodile);
             }
         }
@@ -150,5 +156,20 @@ public class TamingCrocodile {
 
     public boolean ownerIsNear(Player player, TamableAnimal animal) {
         return crocodile.distanceTo(player) <= 20 && player.distanceTo(animal) <= 20;
+    }
+
+    public void addAdditionalSaveData(CompoundTag tag) {
+        if (this.futurOwner != null) {
+            tag.putUUID("futurOwnerUUID", this.futurOwner.getUUID());
+        }
+    }
+
+    public void readAdditionalSaveData(CompoundTag tag) {
+        if (tag.hasUUID("futurOwnerUUID")) {
+            UUID ownerUUID = tag.getUUID("futurOwnerUUID");
+            if (crocodile.level() != null) {
+                this.futurOwner = ((ServerLevel) crocodile.level()).getEntity(ownerUUID);
+            }
+        }
     }
 }

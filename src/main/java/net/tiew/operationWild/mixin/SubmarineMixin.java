@@ -129,6 +129,24 @@ public abstract class SubmarineMixin {
             if (player.getVehicle() instanceof Submarine) {
                 ci.cancel();
             }
+
+            if (player.getVehicle() instanceof CrocodileEntity crocodile && !crocodile.isTame()) {
+                ci.cancel();
+            }
+        }
+    }
+
+    /**
+     * @author Tiew_37
+     * @reason X
+     */
+    @Inject(method = "renderExperienceLevel", at = @At("HEAD"), cancellable = true)
+    private void cancelExperienceLevel(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        Player player = Minecraft.getInstance().player;
+        if (player != null) {
+            if (player.getVehicle() instanceof CrocodileEntity crocodile && !crocodile.isTame()) {
+                ci.cancel();
+            }
         }
     }
 

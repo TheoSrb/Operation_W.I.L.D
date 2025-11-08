@@ -488,7 +488,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         markMudWithFootprints();
 
-        handleRunningEffects(17, SoundEvents.HORSE_STEP, 0.2f, new int[]{4, 9});
+        if (this.isStartingTaming()) {
+            if (this.isVehicle()) {
+                handleRunningEffects(17, SoundEvents.HORSE_STEP, 0.2f, new int[]{4, 9});
+            }
+        } else handleRunningEffects(17, SoundEvents.HORSE_STEP, 0.2f, new int[]{4, 9});
         handleGoldVariantEffects();
     }
 
@@ -823,10 +827,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private CrocodileVariant chooseCrocodileVariant() {
         CrocodileVariant variant;
-        if (chance >= 95) variant = CrocodileVariant.BLACK;
-        else if (chance >= 85) variant = CrocodileVariant.GREY;
-        else if (chance >= 40) variant = CrocodileVariant.GREEN;
-        else if (chance >= 20) variant = CrocodileVariant.DARK;
+        if (chance >= 66) variant = CrocodileVariant.GREEN;
+        else if (chance >= 33) variant = CrocodileVariant.DARK;
         else variant = CrocodileVariant.DEFAULT;
         return variant;
     }
@@ -1055,6 +1057,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         tag.putInt("getTamingTime", this.getTamingTime());
         tag.putBoolean("isStartingTaming", this.isStartingTaming());
         tag.putFloat("getSacrificesUnity", this.getSacrificesUnity());
+
+        crocodileTaming.addAdditionalSaveData(tag);
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -1068,6 +1072,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.entityData.set(TAMING_TIMER, tag.getInt("getTamingTime"));
         this.entityData.set(START_TAMING, tag.getBoolean("isStartingTaming"));
         this.entityData.set(SACRIFICES_UNITY, tag.getFloat("getSacrificesUnity"));
+
+        crocodileTaming.readAdditionalSaveData(tag);
     }
 
     @Override
