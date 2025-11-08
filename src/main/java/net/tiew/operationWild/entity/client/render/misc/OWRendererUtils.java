@@ -562,6 +562,41 @@ public class OWRendererUtils {
         poseStack.popPose();
     }
 
+    public static void displayImageAboveEntity(ResourceLocation image, float positionX, float positionY, float elementScaleX, float elementScaleY, float imageScale, float scale, float rightOffset, float upOffset, float zOffset, OWEntity entity, PoseStack poseStack, MultiBufferSource buffer, int packedLight, boolean followCamera) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Font font = minecraft.font;
+        Component tooltip = Component.translatable("tooltip.lvl");
+        int textWidthPx = font.width(tooltip);
+        float offsetX = textWidthPx * (1.0F / 9.0F);
+        poseStack.pushPose();
+        poseStack.translate(0.0D, entity.getBbHeight() + 0.5D, 0.0D);
+        if (followCamera) poseStack.mulPose(minecraft.getEntityRenderDispatcher().cameraOrientation());
+        else {
+            Quaternionf cameraOrientation = minecraft.getEntityRenderDispatcher().cameraOrientation();
+            float yaw = cameraOrientation.getEulerAnglesYXZ(new Vector3f()).y;
+            poseStack.mulPose(Axis.YP.rotation(yaw));
+        }
+        poseStack.scale(0.25F * scale, 0.25F * scale, 0.25F * scale);
+        poseStack.translate(offsetX - 1.25f + rightOffset, 0.1D + upOffset, zOffset);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, image);
+        VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityCutout(image));
+        Matrix4f matrix = poseStack.last().pose();
+        float width = 1.0F;
+        float height = 1.0F;
+        float u0 = positionX / imageScale;
+        float u1 = u0 + elementScaleX / imageScale;
+        float v0 = positionY / imageScale;
+        float v1 = v0 + elementScaleY / imageScale;
+        int lightU = packedLight & 0xFFFF;
+        int lightV = (packedLight >> 16) & 0xFFFF;
+        vertexConsumer.addVertex(matrix, -width / 2, -height / 2, 0.0F).setColor(255, 255, 255, 255).setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0.0F, 1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix, width / 2, -height / 2, 0.0F).setColor(255, 255, 255, 255).setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0.0F, 1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix, width / 2, height / 2, 0.0F).setColor(255, 255, 255, 255).setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0.0F, 1.0F, 0.0F);
+        vertexConsumer.addVertex(matrix, -width / 2, height / 2, 0.0F).setColor(255, 255, 255, 255).setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0.0F, 1.0F, 0.0F);
+        poseStack.popPose();
+    }
+
     public static void displayOwnerAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher) {
         int textColor = 0xdfdfdf;
         int ownerColor = 0xFFFFFF;

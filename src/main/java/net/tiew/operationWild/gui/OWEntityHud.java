@@ -40,8 +40,6 @@ public class OWEntityHud {
 
                     createHUD(guiGraphics, owEntity, screenWidth, screenHeight);
 
-                    if (owEntity.getOwner() != rider) return;
-
                     if (entity instanceof OWSemiWaterEntity waterEntity) {
 
                         if (waterEntity.isInWater()) {
@@ -68,8 +66,8 @@ public class OWEntityHud {
     public static void createCrocodileTamingHUD(GuiGraphics guiGraphics, CrocodileEntity crocodile, int x, int y, Player player) {
         ResourceLocation CROCODILE_TAMING = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/crocodile_taming.png");
 
-        int xPlacement = x / 2 + 217;
-        int yPlacement = y - 113;
+        int xPlacement = x / 2;
+        int yPlacement = y - 245;
 
         int tamingTicksRest = crocodile.getTamingTime();
 
@@ -77,9 +75,9 @@ public class OWEntityHud {
         int seconds = totalSeconds % 60;
         int minutes = (totalSeconds / 60) % 60;
 
-        Component text = Component.literal(String.valueOf(minutes) + ":" + String.valueOf(seconds));
+        Component timer = Component.literal(String.valueOf(minutes) + ":" + String.valueOf(seconds));
 
-        guiGraphics.drawString(Minecraft.getInstance().font, text, xPlacement, yPlacement, 0xFFFFFF);
+        guiGraphics.drawString(Minecraft.getInstance().font, timer, xPlacement - (timer.toString().length() / 2), yPlacement, getBlinkingColorForTimer(player.tickCount, crocodile));
 
         int barHeight = 5;
         int barWidth = Math.min((crocodile.getEntitiesKilledDuringTaming() * 182) / TamingCrocodile.ENTITIES_REQUIRED, 182);
@@ -89,7 +87,7 @@ public class OWEntityHud {
 
         guiGraphics.blit(CROCODILE_TAMING, startX, startY, 0, 5, 182, 5);
 
-        guiGraphics.blit(CROCODILE_TAMING, startX, startY, textureY, 0, barWidth, barHeight);
+        guiGraphics.blit(CROCODILE_TAMING, startX, startY, textureY, crocodile.getEntitiesKilledDuringTaming() >= TamingCrocodile.ENTITIES_REQUIRED ? 10 : 0, barWidth, barHeight);
 
 
         Component entitiesBonus = Component.literal("+" + String.valueOf(Math.min((crocodile.getEntitiesKilledDuringTaming() - TamingCrocodile.ENTITIES_REQUIRED), 20)));
@@ -99,15 +97,20 @@ public class OWEntityHud {
         if (crocodile.getEntitiesKilledDuringTaming() >= TamingCrocodile.ENTITIES_REQUIRED) {
             guiGraphics.drawString(Minecraft.getInstance().font, entitiesBonus, startX + (183 / 2) - (entitiesBonus.toString().length() / 2), startY - 10, color, true);
         } else {
-            guiGraphics.drawString(Minecraft.getInstance().font, tamingPercentage, startX + (183 / 2) - (tamingPercentage.toString().length() / 2), startY - 10, 0xFFFFFF, true);
+            guiGraphics.drawString(Minecraft.getInstance().font, tamingPercentage, startX + (183 / 2) - (tamingPercentage.toString().length() / 2), startY - 10, 0x888888, true);
         }
     }
 
     private static int getBlinkingColor(int tickCount, CrocodileEntity crocodile) {
         if (crocodile.getEntitiesKilledDuringTaming() >= 60) {
-            return (tickCount / 10) % 2 == 0 ? 0xefb02a : 0x8e540c;
+            return 0xefb02a;
         }
         return (tickCount / 10) % 2 == 0 ? 0xFFFFFF : 0x888888;
+    }
+
+    private static int getBlinkingColorForTimer(int tickCount, CrocodileEntity crocodile) {
+        int frequency = Math.max(1, (int) (((float) crocodile.getTamingTime() / TamingCrocodile.MAX_TAMING_TIME) * 40));
+        return (tickCount / frequency) % 2 == 0 ? 0xFFFFFF : 0xFF0000;
     }
 
     public static int getEntitySpace(OWEntity entity) {

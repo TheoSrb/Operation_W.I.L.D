@@ -35,7 +35,7 @@ public class TamingCrocodile {
     private CrocodileEntity crocodile;
     private CrocodileBehaviorHandler crocodileManagement;
 
-    private static final int MAX_TAMING_TIME = 12000;
+    public static final int MAX_TAMING_TIME = 12000;
     public static final int ENTITIES_REQUIRED = 40;
 
     public Entity futurOwner = null;

@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
+
 /**
  * This class only manages methods and functions that are useful and necessary for the proper functioning of Crocodile's artificial intelligence.
  * It is a complementary class to the latter.
@@ -229,5 +231,9 @@ public class CrocodileBehaviorHandler {
         this.crocodile.setChargingMouthTimer(0);
         this.crocodile.setChargingMouth(false);
         this.crocodile.level().playSound(null, this.crocodile.getX(), this.crocodile.getY(), this.crocodile.getZ(), sound, SoundSource.NEUTRAL, 1.0F, 0.75f);
+
+        float pitch = (float) (OWUtils.generateRandomInterval(1.1, 1.25));
+        SoundEvent sound2 = RANDOM(2) ? OWSounds.CROCODILE_HIT_1.get() : OWSounds.CROCODILE_HIT_2.get();
+        crocodile.level().playSound(null, crocodile.getX(), crocodile.getY(), crocodile.getZ(), sound2, SoundSource.HOSTILE, 1.0f, pitch);
     }
 }

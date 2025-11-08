@@ -34,6 +34,7 @@ public class CrocodileRenderer extends MobRenderer<CrocodileEntity, CrocodileMod
         map.put(CrocodileVariant.SKIN_GOLD, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/skin/crocodile_skin_gold.png"));
     });
     private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
+    private static final ResourceLocation CROCODILE_TAMING = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/crocodile_taming.png");
 
     public CrocodileRenderer(EntityRendererProvider.Context context) {
         super(context, new CrocodileModel<>(context.bakeLayer(CrocodileModel.LAYER_LOCATION)), 1.2f);
@@ -91,7 +92,20 @@ public class CrocodileRenderer extends MobRenderer<CrocodileEntity, CrocodileMod
                 }
             }
         }
-        OWRendererUtils.createInformationImage(crocodile, poseStack, bufferSource, packedLight, 0, 0.75f, 0, 0, 3);
+        OWRendererUtils.createInformationImage(crocodile, poseStack, bufferSource, packedLight, 0, 0.80f, -0.01f, 0, 3);
+
+
+        if (!crocodile.isTame() && crocodile.getSacrificesUnity() > 0 && !crocodile.isVehicle()) {
+            OWRendererUtils.displayImageAboveEntity(CROCODILE_TAMING, 0, 15, 23, 21, 256, 2, -1.85f, -0.1f, 0, crocodile, poseStack, bufferSource, packedLight, true);
+
+            int step = getSacrificesSteps(crocodile);
+
+            OWRendererUtils.displayImageAboveEntity(CROCODILE_TAMING, 23 + (step * 21), 15, 21, 19, 256, 1.85f, 0.05f - 1.85f, -0.1f, 0.01f, crocodile, poseStack, bufferSource, packedLight, true);
+        }
+    }
+
+    private int getSacrificesSteps(CrocodileEntity crocodile) {
+        return Math.min((int)(crocodile.getSacrificesUnity() / 11) - 1, 11);
     }
 
     @Override
