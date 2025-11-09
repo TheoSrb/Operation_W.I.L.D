@@ -95,9 +95,9 @@ public class OWEntityHud {
         int color = getBlinkingColor(player.tickCount, crocodile);
 
         if (crocodile.getEntitiesKilledDuringTaming() >= TamingCrocodile.ENTITIES_REQUIRED) {
-            guiGraphics.drawString(Minecraft.getInstance().font, entitiesBonus, startX + (183 / 2) - (entitiesBonus.toString().length() / 2), startY - 10, color, true);
+            guiGraphics.drawString(Minecraft.getInstance().font, entitiesBonus, startX + (183 / 2) - (entitiesBonus.toString().length() / 2), startY - 10, 0x888888, true);
         } else {
-            guiGraphics.drawString(Minecraft.getInstance().font, tamingPercentage, startX + (183 / 2) - (tamingPercentage.toString().length() / 2), startY - 10, 0x888888, true);
+            guiGraphics.drawString(Minecraft.getInstance().font, tamingPercentage, startX + (183 / 2) - (tamingPercentage.toString().length() / 2), startY - 10, color, true);
         }
     }
 

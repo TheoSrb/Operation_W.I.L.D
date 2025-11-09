@@ -100,12 +100,29 @@ public class CrocodileRenderer extends MobRenderer<CrocodileEntity, CrocodileMod
 
             int step = getSacrificesSteps(crocodile);
 
-            OWRendererUtils.displayImageAboveEntity(CROCODILE_TAMING, 23 + (step * 21), 15, 21, 19, 256, 1.85f, 0.05f - 1.85f, -0.1f, 0.01f, crocodile, poseStack, bufferSource, packedLight, true);
+            System.out.println("Step: " + step);
+
+            OWRendererUtils.displayImageAboveEntity(CROCODILE_TAMING, 23 + ((step - 1) * 21), 15, 21, 19, 256, 1.85f, 0.05f - 1.85f, -0.1f, 0.01f, crocodile, poseStack, bufferSource, packedLight, true);
         }
     }
 
     private int getSacrificesSteps(CrocodileEntity crocodile) {
-        return Math.min((int)(crocodile.getSacrificesUnity() / 11) - 1, 11);
+        int step = 0;
+        float sacrificesUnity = crocodile.getSacrificesUnity();
+
+        if (sacrificesUnity >= 100) step = 11;
+        else if (sacrificesUnity >= 90) step = 10;
+        else if (sacrificesUnity >= 80) step = 9;
+        else if (sacrificesUnity >= 70) step = 8;
+        else if (sacrificesUnity >= 60) step = 7;
+        else if (sacrificesUnity >= 50) step = 6;
+        else if (sacrificesUnity >= 40) step = 5;
+        else if (sacrificesUnity >= 30) step = 4;
+        else if (sacrificesUnity >= 20) step = 3;
+        else if (sacrificesUnity >= 10) step = 2;
+        else if (sacrificesUnity >= 0) step = 1;
+
+        return step;
     }
 
     @Override

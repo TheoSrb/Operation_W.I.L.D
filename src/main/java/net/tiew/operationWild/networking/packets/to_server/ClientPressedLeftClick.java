@@ -12,6 +12,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.core.OWUtils;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 
 public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPacketPayload {
 
@@ -63,6 +64,8 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
                     if (entity.getRandom().nextInt(3) == 0) {
                         showTiredMessage = true;
                     }
+
+                    if (owEntity instanceof CrocodileEntity crocodile && crocodile.isChargingMouth()) return;
 
                     if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5) && !packet.isScreenOpen()) {
                         owEntity.setCombo(true, 1);
