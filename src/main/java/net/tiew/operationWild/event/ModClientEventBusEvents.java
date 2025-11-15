@@ -28,6 +28,7 @@ public class ModClientEventBusEvents {
         event.registerLayerDefinition(MandrillModel.LAYER_LOCATION, MandrillModel::createBodyLayer);
         event.registerLayerDefinition(ElephantModel.LAYER_LOCATION, ElephantModel::createBodyLayer);
         event.registerLayerDefinition(CrocodileModel.LAYER_LOCATION, CrocodileModel::createBodyLayer);
+        event.registerLayerDefinition(LionModel.LAYER_LOCATION, LionModel::createBodyLayer);
         event.registerLayerDefinition(WalrusModel.LAYER_LOCATION, WalrusModel::createBodyLayer);
         event.registerLayerDefinition(MantaModel.LAYER_LOCATION, MantaModel::createBodyLayer);
         event.registerLayerDefinition(JellyfishModel.LAYER_LOCATION, JellyfishModel::createBodyLayer);

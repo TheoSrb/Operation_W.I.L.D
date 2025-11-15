@@ -36,6 +36,10 @@ public class OWEntityTypeTagProvider extends EntityTypeTagsProvider {
                 .add(OWEntityRegistry.BOA.get())
                 .add(OWEntityRegistry.CROCODILE.get());
 
+        tag(OWTags.Entities.FAWNS)
+                .add(OWEntityRegistry.TIGER.get())
+                .add(OWEntityRegistry.LION.get());
+
         tag(OWTags.Entities.DROP_CARCASS)
                 .add(EntityType.HORSE)
                 .add(EntityType.PIG)

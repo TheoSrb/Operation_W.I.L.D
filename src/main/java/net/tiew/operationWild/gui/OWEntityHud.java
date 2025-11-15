@@ -125,6 +125,7 @@ public class OWEntityHud {
             case "HyenaEntity": return 7;
             case "WalrusEntity": return 8;
             case "CrocodileEntity": return 9;
+            case "LionEntity": return 10;
             default: return 0;
         }
     }
@@ -171,6 +172,7 @@ public class OWEntityHud {
         else if (entity instanceof HyenaEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 7, 239, 116, 17, 16);
         else if (entity instanceof WalrusEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (12 / 2), yPlacement - 7, 244, 132, 12, 21);
         else if (entity instanceof CrocodileEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (13 / 2), yPlacement - 5, 243, 153, 13, 14);
+        else if (entity instanceof LionEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 8, 239, 166, 17, 17);
     }
 
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {

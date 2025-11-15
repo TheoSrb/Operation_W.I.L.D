@@ -1,4 +1,5 @@
-// 1.21	2025-10-18T13:05:42.1943164	Tags for minecraft:entity_type mod id ow
+// 1.21	2025-11-15T18:37:20.0820993	Tags for minecraft:entity_type mod id ow
 62a97c42931d2e2031a019bc367c32bbd26e51ae data/minecraft/tags/entity_type/aquatic.json
 c7b442c4a7eeaaa9f8b3673b584291561ec79bd7 data/ow/tags/entity_type/drop_carcass.json
+f049397b72c44f3172ff0d5e72c6daf4db90c3f9 data/ow/tags/entity_type/fawns.json
 e25a2f62c4c6d757d693b91df5936c1c9ca10fcc data/ow/tags/entity_type/reptiles.json

@@ -81,6 +81,9 @@ public class OWEntityLootTableProvider extends EntityLootSubProvider {
                 .withPool(createBasicPool(OWItems.CROCODILE_SCALE.get(), 1.0F, 2.0F, true))
         );
 
+        this.add(OWEntityRegistry.LION.get(), LootTable.lootTable()
+        );
+
 
 
 

@@ -1350,6 +1350,9 @@ public class ClientEvents {
                     event.setRoll(event.getRoll() + (walrus.getBodyZRot() / (walrus.isInWater() ? 4 : 2)));
                     event.setPitch(event.getPitch() + (walrus.getBodyXRot() / (walrus.isInWater() ? 4 : 2)));
                 }
+            } else if (rootVehicle instanceof LionEntity lion) {
+                event.setRoll(event.getRoll() + (lion.getBodyZRot() / 3));
+                event.setPitch(event.getPitch() + (lion.getBodyXRot() / 3));
             }
         }
     }

@@ -29,6 +29,7 @@ public class ModEventBusEvents {
         event.put(OWEntityRegistry.TIGER.get(), TigerEntity.createAttributes().build());
         event.put(OWEntityRegistry.MANDRILL.get(), MandrillEntity.createAttributes().build());
         event.put(OWEntityRegistry.CROCODILE.get(), CrocodileEntity.createAttributes().build());
+        event.put(OWEntityRegistry.LION.get(), LionEntity.createAttributes().build());
         event.put(OWEntityRegistry.ELEPHANT.get(), ElephantEntity.createAttributes().build());
         event.put(OWEntityRegistry.WALRUS.get(), WalrusEntity.createAttributes().build());
         event.put(OWEntityRegistry.MANTA.get(), MantaEntity.createAttributes().build());

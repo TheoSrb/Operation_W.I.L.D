@@ -82,6 +82,7 @@ import net.tiew.operationWild.entity.misc.*;
 import net.tiew.operationWild.entity.quests.ascent.AscentMission;
 import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.networking.packets.to_client.*;
+import net.tiew.operationWild.screen.entity.OWChooseNameScreen;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import net.tiew.operationWild.OperationWild;
@@ -237,6 +238,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final EntityDataAccessor<Boolean> IS_BABY = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> ATTACK_ANIMATION_ID = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ATTACK_ANIMATION_TICK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
 
     public int quest0Progression = 0;
     public int quest1Progression = 0;
@@ -732,6 +734,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public boolean isRunning() { return this.entityData.get(IS_RUNNING);}
 
+    public String getNickname() { return this.entityData.get(NAME);}
+
+    public void setNickname(String getNickname) { this.entityData.set(NAME, getNickname);}
+
     public float getVitalEnergy() { return this.entityData.get(VITAL_ENERGY);}
 
     public void setVitalEnergy(float getVitalEnergy) { this.entityData.set(VITAL_ENERGY, getVitalEnergy);}
@@ -1125,6 +1131,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (vehicleComboSpeedMultiplier() != -1) {
                 if (isChangeSpeedDuringCombo()) {
                     targetSpeed = (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 3);
+                    return targetSpeed;
                 }
             }
         }
@@ -1155,7 +1162,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         Vec3 vec3 = this.getRiddenInput(player, travelVector);
         this.tickRidden(player, vec3);
         if (this.isControlledByLocalInstance()) {
-            Vec3 lookDirection = Vec3.directionFromRotation(isInWater() ? player.getXRot() : 0, player.getYRot()).normalize();
+            Vec3 lookDirection = Vec3.directionFromRotation(isInWater() ? this.getXRot() : 0, this.getYRot()).normalize();
             double speedPerTick = getRiddenSpeedVehicle(player) / (isInWater() ? vehicleWaterSpeedDivider() : 1);
 
             Vec3 currentMovement = this.getDeltaMovement();
@@ -2031,6 +2038,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
+        if (this instanceof LionEntity lion) {
+            if (attackTimer == timeToHit) {
+                lion.createMiniShockwave();
+            }
+
+            if (attackTimer == 6) {
+                float pitch = (float) (OWUtils.generateRandomInterval(1.3, 1.5));
+                this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
+            }
+        }
+
         if (this instanceof CrocodileEntity crocodile) {
             if (attackTimer == 1) {
                 float pitch = (float) (OWUtils.generateRandomInterval(1.1, 1.25));
@@ -2429,8 +2447,32 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         super.tickRidden(player, vec3);
         Vec2 vec2 = this.getRiddenRotation(player);
         if (!(this instanceof SeaBugEntity)) {
-            this.setRot(vec2.y, vec2.x);
-            this.yRotO = this.yBodyRot = this.yHeadRot = this.getYRot();
+
+            if (this instanceof LionEntity lion) {
+                if (lion.isTame() && lion.isCombo()) {
+                    LivingEntity target = null;
+                    List<LivingEntity> entities = lion.level().getEntitiesOfClass(LivingEntity.class, lion.getBoundingBox().inflate(3));
+
+                    for (LivingEntity entity : entities) {
+                        if (entity != lion && entity != lion.getControllingPassenger() && !entity.isAlliedTo(player)) {
+                            target = entity;
+                        }
+                    }
+
+                    if (target != null && target.isAlive()) {
+                        lion.setLookAt(target.getX(), target.getY(), target.getZ());
+                    } else {
+                        this.setRot(vec2.y, vec2.x);
+                        this.yRotO = this.yBodyRot = this.yHeadRot = this.getYRot();
+                    }
+                } else {
+                    this.setRot(vec2.y, vec2.x);
+                    this.yRotO = this.yBodyRot = this.yHeadRot = this.getYRot();
+                }
+            } else {
+                this.setRot(vec2.y, vec2.x);
+                this.yRotO = this.yBodyRot = this.yHeadRot = this.getYRot();
+            }
         }
         player.resetFallDistance();
     }
@@ -2786,6 +2828,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     }
                 }
 
+                if (this.getOwner() != null) {
+                    boolean isOwnerNearby = this.getOwner().distanceTo(this) <= 20;
+
+                    if (isOwnerNearby) {
+                        OWNetworkHandler.sendToClient(new OpenChooseNameScreen(this.getId()), (ServerPlayer) player);
+                    } else this.setNickname(String.valueOf(Component.translatable("entity.ow." + this.getClass().getSimpleName().toLowerCase().split("entity")[0])));
+                }
             } else {
                 this.entityData.set(DATA_FLAGS_ID, (byte) (b0 & -5));
             }
@@ -2906,7 +2955,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
-
     @Override
     public Item acceptSaddle() {
         return null;
@@ -2980,7 +3028,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         setMaxSleepingBarTo((int) OWUtils.determinateMinAndMax(maxSleepBar, 20));
         if (!(this instanceof SeaBugEntity) && !(this instanceof JellyfishEntity)) this.setRandomScale(averageScale, 0.95, 1.05);
         else this.setScale(1.0f);
-        this.setGender(this.random.nextInt(2));
+        if (!(this instanceof LionEntity)) this.setGender(this.random.nextInt(2));
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
@@ -3262,6 +3310,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(ACTUAL_SLEEPING_BAR, 0);
         builder.define(MAX_SLEEPING_BAR, 0);
         builder.define(RESURRECTION_MAX_TIMER, 0);
+        builder.define(NAME, "");
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {
@@ -3314,6 +3363,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putBoolean("isInResurrection", this.isInResurrection());
         tag.putBoolean("canDropSoul", this.canDropSoul());
         tag.putInt("getResurrectionMaxTimer", this.getResurrectionMaxTimer());
+        tag.putString("getNickname", this.getNickname());
 
         tag.putFloat("actualMaturation", this.actualMaturation);
 
@@ -3425,6 +3475,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(IS_IN_RESURRECTION, tag.getBoolean("isInResurrection"));
         this.entityData.set(CAN_DROP_SOUL, tag.getBoolean("canDropSoul"));
         this.entityData.set(RESURRECTION_MAX_TIMER, tag.getInt("getResurrectionMaxTimer"));
+        this.entityData.set(NAME, tag.getString("getNickname"));
 
         if (tag.contains("ItemFood", Tag.TAG_COMPOUND)) {
             CompoundTag itemTag = tag.getCompound("ItemFood");

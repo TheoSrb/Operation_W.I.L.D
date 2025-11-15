@@ -52,6 +52,7 @@ public class OWNetworkHandler {
         registrar.playToClient(ChameleonUtilsSendToClient.TYPE, ChameleonUtilsSendToClient.STREAM_CODEC, ChameleonUtilsSendToClient::handle);
         registrar.playToClient(OWFoodPacketClient.TYPE, OWFoodPacketClient.STREAM_CODEC, OWFoodPacketClient::handle);
         registrar.playToClient(AddEntityToManuscriptPacket.TYPE, AddEntityToManuscriptPacket.STREAM_CODEC, AddEntityToManuscriptPacket::handle);
+        registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, OpenChooseNameScreen::handle);
     }
 
     public static void sendToServer(CustomPacketPayload packet) {

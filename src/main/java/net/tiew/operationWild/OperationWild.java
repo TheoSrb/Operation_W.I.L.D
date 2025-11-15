@@ -235,6 +235,8 @@ public class OperationWild {
             return 2;
         } else if (entityType == OWEntityRegistry.CROCODILE.get()) {
             return 4;
+        } else if (entityType == OWEntityRegistry.LION.get()) {
+            return 4;
         }
         return -1;
     }
@@ -256,6 +258,7 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.MANDRILL.get(), MandrillRenderer::new);
             EntityRenderers.register(OWEntityRegistry.ELEPHANT.get(), ElephantRenderer::new);
             EntityRenderers.register(OWEntityRegistry.CROCODILE.get(), CrocodileRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.LION.get(), LionRenderer::new);
             EntityRenderers.register(OWEntityRegistry.WALRUS.get(), WalrusRenderer::new);
             EntityRenderers.register(OWEntityRegistry.MANTA.get(), MantaRenderer::new);
             EntityRenderers.register(OWEntityRegistry.JELLYFISH.get(), JellyfishRenderer::new);

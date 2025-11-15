@@ -58,6 +58,7 @@ public class OWTags {
         public static final TagKey<Item> KODIAK_DANGEROUS_FOOD = tag("kodiak_dangerous_food");
         public static final TagKey<Item> WALRUS_FOOD = tag("walrus_food");
         public static final TagKey<Item> CROCODILE_FOOD = tag("crocodile_food");
+        public static final TagKey<Item> LION_FOOD = tag("lion_food");
 
 
         private static TagKey<Item> tag(String name) {

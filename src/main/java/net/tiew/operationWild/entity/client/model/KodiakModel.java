@@ -93,6 +93,10 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 				.texOffs(121, 36).mirror().addBox(10.9F, 4.0F, -12.0F, 0.0F, 5.0F, 20.0F, new CubeDeformation(0.075F)).mirror(false)
 				.texOffs(0, 127).addBox(-7.0F, -18.0F, -10.0F, 14.0F, 5.0F, 14.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 5.0F, 12.0F));
 
+		PartDefinition cube_r1 = body_2.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(225, 76).mirror().addBox(-6.0F, -11.0F, 0.0F, 12.0F, 22.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(-12.0F, -7.0F, -2.0F, -1.6107F, 0.0948F, -1.5274F));
+
+		PartDefinition cube_r2 = body_2.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(225, 76).addBox(-6.0F, -11.0F, 0.0F, 12.0F, 22.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(12.0F, -7.0F, -2.0F, -1.6107F, -0.0948F, 1.5274F));
+
 		PartDefinition body_1 = body_2.addOrReplaceChild("body_1", CubeListBuilder.create().texOffs(0, 39).addBox(-9.0F, -9.0F, -14.0F, 18.0F, 17.0F, 14.0F, new CubeDeformation(0.0F))
 				.texOffs(192, 0).addBox(-9.0F, -9.0F, -14.0F, 18.0F, 17.0F, 14.0F, new CubeDeformation(0.1F))
 				.texOffs(0, 170).addBox(-9.0F, -9.0F, -14.0F, 18.0F, 17.0F, 14.0F, new CubeDeformation(0.5F))
@@ -117,15 +121,15 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 				.texOffs(230, 0).addBox(-4.0F, 1.0F, -17.025F, 8.0F, 6.0F, 5.0F, new CubeDeformation(0.1F))
 				.texOffs(4, 158).addBox(-7.0F, 5.0F, -17.0F, 14.0F, 1.0F, 1.0F, new CubeDeformation(0.1F)), PartPose.offset(0.0F, -1.0F, -14.025F));
 
-		PartDefinition cube_r1 = head.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(0, 213).mirror().addBox(6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(1.25F, -1.5F, 1.0F, 0.0F, -0.2618F, 0.0F));
+		PartDefinition cube_r3 = head.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(0, 213).mirror().addBox(6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(1.25F, -1.5F, 1.0F, 0.0F, -0.2618F, 0.0F));
 
-		PartDefinition cube_r2 = head.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(0, 213).addBox(-6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(-1.25F, -1.5F, 1.0F, 0.0F, 0.2618F, 0.0F));
+		PartDefinition cube_r4 = head.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(0, 213).addBox(-6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(-1.25F, -1.5F, 1.0F, 0.0F, 0.2618F, 0.0F));
 
-		PartDefinition cube_r3 = head.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(0, 229).addBox(-6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(-2.0F, 8.0F, -8.0F, 0.0F, -0.2618F, 0.0F));
+		PartDefinition cube_r5 = head.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(0, 229).addBox(-6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(-2.0F, 8.0F, -8.0F, 0.0F, -0.2618F, 0.0F));
 
-		PartDefinition cube_r4 = head.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(0, 229).mirror().addBox(6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(2.0F, 8.0F, -8.0F, 0.0F, 0.2618F, 0.0F));
+		PartDefinition cube_r6 = head.addOrReplaceChild("cube_r6", CubeListBuilder.create().texOffs(0, 229).mirror().addBox(6.0F, -13.0F, -9.0F, 0.0F, 11.0F, 14.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offsetAndRotation(2.0F, 8.0F, -8.0F, 0.0F, 0.2618F, 0.0F));
 
-		PartDefinition cube_r5 = head.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(231, 181).addBox(-6.0F, -12.0F, 6.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(0.0F, 7.0F, -6.5F, 0.0F, 0.0F, -3.1416F));
+		PartDefinition cube_r7 = head.addOrReplaceChild("cube_r7", CubeListBuilder.create().texOffs(231, 181).addBox(-6.0F, -12.0F, 6.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offsetAndRotation(0.0F, 7.0F, -6.5F, 0.0F, 0.0F, -3.1416F));
 
 		PartDefinition left_ear = head.addOrReplaceChild("left_ear", CubeListBuilder.create().texOffs(40, 70).addBox(-2.0F, -2.0F, -0.5F, 4.0F, 4.0F, 1.0F, new CubeDeformation(0.0F))
 				.texOffs(246, 0).addBox(-2.0F, -2.0F, -0.5F, 4.0F, 4.0F, 1.0F, new CubeDeformation(0.1F)), PartPose.offset(6.0F, -5.0F, -4.5F));

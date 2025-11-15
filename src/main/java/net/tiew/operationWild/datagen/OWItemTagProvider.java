@@ -161,6 +161,9 @@ public class OWItemTagProvider extends ItemTagsProvider {
         tag(OWTags.Items.CROCODILE_FOOD)
                 .add(OWItems.RAW_TIGER.get());
 
+        tag(OWTags.Items.LION_FOOD)
+                .add(OWItems.RAW_TIGER.get());
+
 
         tag(OWTags.Items.OW_EGGS)
                 .add(OWBlocks.PEACOCK_EGG.asItem());
