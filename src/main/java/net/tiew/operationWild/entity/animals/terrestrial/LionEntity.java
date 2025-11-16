@@ -140,11 +140,11 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     @Override
     public OWEntityConfig.Temperament getTemperament() {
-        return OWEntityConfig.Temperament.NEUTRAL;
+        return OWEntityConfig.Temperament.AGGRESSIVE;
     }
 
     @Override
-    public List<Class<?>> getFavoriteTargetsByBeingNonTame() {
+    public List<Class<?>> getFavoriteTargets() {
         return List.of(Animal.class);
     }
 
