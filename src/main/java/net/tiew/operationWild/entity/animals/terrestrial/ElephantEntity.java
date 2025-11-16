@@ -195,6 +195,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return true;
     }
 
+    @Override
+    public float getRotationSpeed() {
+        return 0.05f;
+    }
+
 
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));

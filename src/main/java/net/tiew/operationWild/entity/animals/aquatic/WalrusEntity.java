@@ -251,6 +251,11 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
     }
 
     @Override
+    public float getRotationSpeed() {
+        return 0.075f;
+    }
+
+    @Override
     public int getMaxAirSupply() {
         return 300 * 20;
     }

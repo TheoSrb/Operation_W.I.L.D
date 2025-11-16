@@ -301,6 +301,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public float getRotationSpeed() {
+        return 0.115f;
+    }
+
+    @Override
     public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) {
         return OWEntityRegistry.KODIAK.get().create(serverLevel);
     }

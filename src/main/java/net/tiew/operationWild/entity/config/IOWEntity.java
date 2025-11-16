@@ -29,6 +29,8 @@ public interface IOWEntity {
     boolean preferCookedMeat();
     boolean preferVegetables();
 
+    float getRotationSpeed();
+
     default boolean isTank() {
         return getArchetype() == OWEntityConfig.Archetypes.TANK;
     }

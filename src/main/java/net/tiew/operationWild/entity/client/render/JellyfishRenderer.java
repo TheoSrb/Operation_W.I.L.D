@@ -9,7 +9,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +22,7 @@ import net.tiew.operationWild.entity.variants.JellyfishVariant;
 
 import java.util.Map;
 
-public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishModel<JellyfishEntity>> {
+public class JellyfishRenderer extends OWEntityRenderer<JellyfishEntity, JellyfishModel<JellyfishEntity>> {
     private static final Map<JellyfishVariant, ResourceLocation> LOCATION_BY_VARIANT = Util.make(Maps.newEnumMap(JellyfishVariant.class), map -> {
         map.put(JellyfishVariant.DEFAULT, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_default.png"));
         map.put(JellyfishVariant.PINK, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_pink.png"));
@@ -33,11 +32,20 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
         map.put(JellyfishVariant.WHITE, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_white.png"));
         map.put(JellyfishVariant.ELECTRIFIED, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/jellyfish/jellyfish_electrified.png"));
     });
-    private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
     public JellyfishRenderer(EntityRendererProvider.Context context) {
         super(context, new JellyfishModel<>(context.bakeLayer(JellyfishModel.LAYER_LOCATION)), 0.4f);
         this.addLayer(new JellyfishLayer(this));
+    }
+
+    @Override
+    public double distanceToShowRealInfos() {
+        return 4.0D;
+    }
+
+    @Override
+    public double infosUpOffset() {
+        return 0.0D;
     }
 
     @Override
@@ -88,7 +96,6 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
 
         float scale = jellyfish.getScale();
         float babyScale = scale / 2.25f;
-        int genderPosition = jellyfish.isFemale() ? 36 : jellyfish.isMale() ? 48 : 0;
         Player player = jellyfish.level().getNearestPlayer(jellyfish, 64.0D);
 
         poseStack.pushPose();
@@ -147,35 +154,19 @@ public class JellyfishRenderer extends MobRenderer<JellyfishEntity, JellyfishMod
             poseStack.popPose();
         }
 
-        if (!jellyfish.isInResurrection()) {
-            if (jellyfish.isAlive() && !jellyfish.isVehicle()) {
-                if (jellyfish.isTame()) {
-                    if (player != null && jellyfish.distanceTo(player) > 4.0D) {
-                        OWRendererUtils.displayOwnerAboveEntity(jellyfish, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
-                        OWRendererUtils.displayLevelAboveEntity(jellyfish, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
-                        OWRendererUtils.displayImageAboveEntity(ICONS, 0, genderPosition, 12, 256, 0, 0, jellyfish, poseStack, bufferSource, packedLight, true);
-                        if (jellyfish.isPassive())
-                            OWRendererUtils.displayImageAboveEntity(ICONS, 0, 60, 14, 256, 1.5f, 0f, jellyfish, poseStack, bufferSource, packedLight, true);
-                        if (jellyfish.getLevel() >= 50) {
-                            OWRendererUtils.displayImageAboveEntity(ICONS, 0, 143, 10, 256, -1f, 1f, jellyfish, poseStack, bufferSource, packedLight, true);
-                            OWRendererUtils.displayPrestigeLevelAboveEntity(jellyfish, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
-                        }
-                    }
-                } else {
-                    if (jellyfish.isSleeping()) {
-                        OWRendererUtils.displayBonusPointAboveEntity(jellyfish, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, 0);
-                    }
+        renderEntityInfo(jellyfish, poseStack, bufferSource, packedLight, player);
+
+        if (!jellyfish.isInResurrection() && jellyfish.isAlive() && !jellyfish.isVehicle() && jellyfish.isTame()) {
+            if (player != null && jellyfish.distanceTo(player) > distanceToShowRealInfos()) {
+                int genderPosition = jellyfish.isFemale() ? 36 : jellyfish.isMale() ? 48 : 0;
+                OWRendererUtils.displayImageAboveEntity(ICONS, 0, genderPosition, 12, 256, 0, 0, jellyfish, poseStack, bufferSource, packedLight, true);
+                if (jellyfish.isPassive())
+                    OWRendererUtils.displayImageAboveEntity(ICONS, 0, 60, 14, 256, 1.5f, 0f, jellyfish, poseStack, bufferSource, packedLight, true);
+                if (jellyfish.getLevel() >= 50) {
+                    OWRendererUtils.displayImageAboveEntity(ICONS, 0, 143, 10, 256, -1f, 1f, jellyfish, poseStack, bufferSource, packedLight, true);
+                    OWRendererUtils.displayPrestigeLevelAboveEntity(jellyfish, poseStack, bufferSource, packedLight, this.entityRenderDispatcher);
                 }
             }
         }
-        OWRendererUtils.createInformationImage(jellyfish, poseStack, bufferSource, packedLight, 0, 0.5, 0, 0, 2);
-    }
-
-    @Override
-    protected void renderNameTag(JellyfishEntity jellyfish, Component component, PoseStack poseStack, MultiBufferSource bufferSource, int i, float v) {
-        poseStack.pushPose();
-        poseStack.translate(0.0D, 0.65D, 0.0D);
-        super.renderNameTag(jellyfish, component, poseStack, bufferSource, i, v);
-        poseStack.popPose();
     }
 }

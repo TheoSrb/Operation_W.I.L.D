@@ -245,6 +245,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         return false;
     }
 
+    @Override
+    public float getRotationSpeed() {
+        return 0.165f;
+    }
+
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(7, new OWRandomLookAroundGoal(this));

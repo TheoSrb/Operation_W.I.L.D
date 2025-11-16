@@ -9,9 +9,17 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.gui.OWEntityHud;
+import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_server.OWNameEntityPacket;
 import net.tiew.operationWild.screen.entity.skins.*;
+
+import java.util.List;
+
+import static net.tiew.operationWild.gui.OWEntityHud.getEntityIconData;
 
 public class OWChooseNameScreen extends Screen {
 
@@ -41,11 +49,14 @@ public class OWChooseNameScreen extends Screen {
     @Override
     protected void init() {
         super.init();
+        int buttonWidth = 20;
+        int buttonHeight = 20;
 
-        this.nameInput = new EditBox(this.font, (this.width - 80) / 2, (this.height - 20) / 2, 80, 20, Component.literal("Name"));
+        this.nameInput = new EditBox(this.font, (this.width - 80) / 2, (this.height - 20) / 2 + 25, 80, 20, Component.literal("Name"));
+        this.nameInput.setMaxLength(15);
 
-        sendButton = createButton("Valid", 0x00FF00, (this.width - 80) / 2 - 50, (this.height - 20) / 2 + 50, 20, 20, this::sendButton);
-        closeButton = createButton("Close", 0xFF0000, (this.width - 80) / 2 + 50, (this.height - 20) / 2 + 50, 20, 20, this::onClose);
+        sendButton = createButton("✔", 0x00FF00, (this.imageWidth / 2) - (buttonWidth / 2) - 35, this.imageHeight - (buttonHeight / 2) - 20, buttonWidth, buttonHeight, this::sendButton);
+        closeButton = createButton("✘", 0xFF0000, (this.imageWidth / 2) - (buttonWidth / 2) + 35, this.imageHeight - (buttonHeight / 2) - 20, buttonWidth, buttonHeight, this::onClose);
 
         this.addRenderableWidget(this.nameInput);
         this.addRenderableWidget(sendButton);
@@ -53,7 +64,7 @@ public class OWChooseNameScreen extends Screen {
     }
 
     private void sendButton() {
-        entity.setNickname(this.enteredName);
+        OWNetworkHandler.sendToServer(new OWNameEntityPacket(entity.getId(), this.enteredName));
         this.onClose();
     }
 
@@ -72,6 +83,35 @@ public class OWChooseNameScreen extends Screen {
         this.yMouse = mouseY;
 
         graphics.blit(TEXTURE, i, j, 0, 0, imageWidth, imageHeight);
+
+        Component c1 = Component.translatable("ow.advancements." + entity.getTamingAdvancement().getPath() + ".description");
+
+        int maxWidth = this.imageWidth - 10;
+        int startY = j + 10;
+        int currentY = startY;
+
+        List<FormattedCharSequence> c1Lines = this.font.split(c1, maxWidth);
+        for (FormattedCharSequence line : c1Lines) {
+            int lineWidth = this.font.width(line);
+            graphics.drawString(this.font, line, i + (this.imageWidth / 2) - (lineWidth / 2), currentY, 0xFFFFFF);
+            currentY += 10;
+        }
+
+        OWEntityHud.EntityIconData iconData = getEntityIconData(entity);
+        if (iconData != null) {
+            float scale = 2f;
+            graphics.pose().pushPose();
+            graphics.pose().scale(scale, scale, scale);
+
+            float scaledWidth = iconData.width * scale;
+            float scaledHeight = iconData.height * scale;
+
+            int scaledX = (int) ((i + (this.imageWidth / 2f) - (scaledWidth / 2f)) / scale);
+            int scaledY = (int) ((j + 40) / scale);
+
+            graphics.blit(OWEntityHud.HUD, scaledX, scaledY, iconData.textureX, iconData.textureY, iconData.width, iconData.height);
+            graphics.pose().popPose();
+        }
 
         super.render(graphics, mouseX, mouseY, partialTick);
 

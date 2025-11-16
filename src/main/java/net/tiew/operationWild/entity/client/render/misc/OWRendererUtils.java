@@ -383,19 +383,40 @@ public class OWRendererUtils {
         poseStack.popPose();
     }
 
-    public static void displayLevelAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher) {
+    public static void displayLevelAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher, double upOffset) {
         int textColor = 0xdfdfdf;
         int levelColor = entity.getLevel() >= 50 ? 0xdd9847 : entity.getLevelPoints() > 0 ? 0xb8e45a : 0xFFFFFF;
         Component level = Component.literal(String.valueOf(entity.getLevel())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(levelColor).getValue()).withBold(true));
-        Component text = Component.translatable("tooltip.lvl", level).withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue());
+        Component t0 = Component.literal(entity.getNickname()).withStyle(Style.EMPTY.withBold(true)).withColor(TextColor.fromRgb(entity.getEntityColor()).getValue());
+        Component t1 = Component.translatable("tooltip.lvl", level).withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue());
+
         poseStack.pushPose();
-        poseStack.translate(0, entity.getBbHeight() + (entity instanceof ElephantEntity ? 1.6F : 0.6F), 0);
+        poseStack.translate(0, entity.getBbHeight() + 0.75f + upOffset, 0);
         poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
         poseStack.scale(0.025F, -0.025F, 0.025F);
         Matrix4f matrix4f = poseStack.last().pose();
         Font font = Minecraft.getInstance().font;
-        float textWidth = (float)(-font.width(text) / 2);
-        font.drawInBatch(text, textWidth, 0, -1, false, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+
+        float t0Width = font.width(t0);
+        float t1Width = font.width(t1) * 0.8F;
+        float totalWidth = t0Width + t1Width + font.width(" ");
+        float textStartX = -totalWidth / 2;
+
+        font.drawInBatch(t0, textStartX, 0, -1, true, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+
+        float spaceX = textStartX + t0Width;
+        font.drawInBatch(Component.literal(" "), spaceX, 0, -1, false, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+        poseStack.pushPose();
+
+        float scale = 0.65F;
+        float t1X = (spaceX + font.width(" ")) / scale - 4;
+        float t1Y = 0 / scale + 2;
+        poseStack.translate(t1X, t1Y, 0);
+        poseStack.scale(scale, scale, scale);
+        Matrix4f matrix4fScaled = poseStack.last().pose();
+        font.drawInBatch(t1, 0, 0, -1, false, matrix4fScaled, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+        poseStack.popPose();
+
         poseStack.popPose();
     }
 
@@ -600,14 +621,14 @@ public class OWRendererUtils {
         poseStack.popPose();
     }
 
-    public static void displayOwnerAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher) {
+    public static void displayOwnerAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher, double upOffset) {
         int textColor = 0xdfdfdf;
         int ownerColor = 0xFFFFFF;
 
         Component owner = Component.literal(String.valueOf(Objects.requireNonNull(Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getPlayerByUUID(Objects.requireNonNull(entity.getOwnerUUID())) : null).getName().getString())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(ownerColor).getValue()).withBold(true));
         Component text = Component.translatable("tooltip.owner", owner).withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue());
         poseStack.pushPose();
-        poseStack.translate(0,  entity.getBbHeight() + (entity instanceof ElephantEntity ? 1.35F : 0.35F), 0);
+        poseStack.translate(0, entity.getBbHeight() + 0.5F + upOffset, 0);
         poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
         poseStack.scale(0.0175F, -0.0175F, 0.0175F);
         Matrix4f matrix4f = poseStack.last().pose();

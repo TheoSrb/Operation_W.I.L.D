@@ -190,7 +190,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     @Override
     public float getMaxVitalEnergy() {
-        return 400 * (1 + ((float) this.getLevel() / 50));
+        return 450 * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
@@ -211,6 +211,11 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     @Override
     public boolean preferVegetables() {
         return false;
+    }
+
+    @Override
+    public float getRotationSpeed() {
+        return 0.15f;
     }
 
     @Override

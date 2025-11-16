@@ -290,6 +290,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     @Override
+    public float getRotationSpeed() {
+        return 0.1f;
+    }
+
+    @Override
     public int getMaxAirSupply() {
         return 300 * 10;
     }

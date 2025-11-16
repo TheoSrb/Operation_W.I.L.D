@@ -152,9 +152,9 @@ public class ElephantModel<T extends ElephantEntity> extends HierarchicalModel<T
 		PartDefinition tail2 = tail.addOrReplaceChild("tail2", CubeListBuilder.create().texOffs(45, 190).addBox(-3.5F, -1.0F, 0.05F, 7.0F, 28.0F, 0.0F, new CubeDeformation(0.1F))
 				.texOffs(45, 183).addBox(0.05F, -1.0F, -3.5F, 0.0F, 28.0F, 7.0F, new CubeDeformation(0.1F)), PartPose.offset(0.0F, 15.0F, 0.0F));
 
-		PartDefinition demon_left_wing = body.addOrReplaceChild("demon_left_wing", CubeListBuilder.create().texOffs(44, 191).addBox(-30.0F, 0.0F, -16.0F, 30.0F, 0.0F, 36.0F, new CubeDeformation(0.05F)), PartPose.offset(-13.5F, -8.0F, -10.0F));
+		PartDefinition demon_left_wing = body.addOrReplaceChild("demon_left_wing", CubeListBuilder.create().texOffs(44, 191).addBox(-30.0F, 0.0F, -16.0F, 30.0F, 0.0F, 36.0F, new CubeDeformation(0.01F)), PartPose.offset(-13.5F, -8.0F, -10.0F));
 
-		PartDefinition demon_right_wing = body.addOrReplaceChild("demon_right_wing", CubeListBuilder.create().texOffs(44, 191).mirror().addBox(0.0F, 0.0F, -16.0F, 30.0F, 0.0F, 36.0F, new CubeDeformation(0.05F)).mirror(false), PartPose.offset(13.5F, -8.0F, -10.0F));
+		PartDefinition demon_right_wing = body.addOrReplaceChild("demon_right_wing", CubeListBuilder.create().texOffs(44, 191).mirror().addBox(0.0F, 0.0F, -16.0F, 30.0F, 0.0F, 36.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offset(13.5F, -8.0F, -10.0F));
 
 		return LayerDefinition.create(meshdefinition, 256, 256);
     }

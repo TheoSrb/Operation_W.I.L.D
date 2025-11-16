@@ -162,6 +162,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public int babyQuestProgressTimer = 0;
     public Item choosenFood = null;
     public int ultimateCooldown = 0;
+    private float targetYRot = 0;
 
     public Map<Integer, String> babyQuests = new HashMap<>();
     public int choosenQuest;
@@ -1697,6 +1698,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void tick() {
         super.tick();
 
+        if (this.isTame()) {
+            this.setCustomName(Component.nullToEmpty(this.getNickname()));
+        }
+
         if (this.level().isClientSide) {
             handleClientAnimationSync();
         }
@@ -2462,19 +2467,33 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     if (target != null && target.isAlive()) {
                         lion.setLookAt(target.getX(), target.getY(), target.getZ());
                     } else {
-                        this.setRot(vec2.y, vec2.x);
-                        this.yRotO = this.yBodyRot = this.yHeadRot = this.getYRot();
+                        smoothRotation(vec2, player);
                     }
                 } else {
-                    this.setRot(vec2.y, vec2.x);
-                    this.yRotO = this.yBodyRot = this.yHeadRot = this.getYRot();
+                    smoothRotation(vec2, player);
                 }
             } else {
-                this.setRot(vec2.y, vec2.x);
-                this.yRotO = this.yBodyRot = this.yHeadRot = this.getYRot();
+                smoothRotation(vec2, player);
             }
         }
         player.resetFallDistance();
+    }
+
+    private void smoothRotation(Vec2 vec2, Player player) {
+        targetYRot = vec2.y;
+
+        float currentYRot = this.getYRot();
+        float deltaRot = Mth.wrapDegrees(targetYRot - currentYRot);
+
+        float newYRot = currentYRot + deltaRot * getRotationSpeed();
+
+        if (player.zza == 0 && player.xxa == 0 && !this.isCombo()) {
+            this.yHeadRot = newYRot;
+            this.setXRot(vec2.x);
+        } else {
+            this.setRot(newYRot, vec2.x);
+            this.yRotO = this.yBodyRot = this.yHeadRot = newYRot;
+        }
     }
 
     public Vec2 getRiddenRotation(LivingEntity livingEntity) { return new Vec2(livingEntity.getXRot() * 0.5F, livingEntity.getYRot());}
@@ -2510,8 +2529,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void die(DamageSource damageSource) {
         super.die(damageSource);
         ItemStack stack = this.itemStackHandler.getStackInSlot(1);
-
-        System.out.println(damageSource);
 
         if (!stack.isEmpty() && !this.level().isClientSide()) {
             this.spawnAtLocation(stack);
@@ -2988,6 +3005,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public boolean preferVegetables() {
         return false;
+    }
+
+    @Override
+    public float getRotationSpeed() {
+        return 0;
     }
 
     public enum Mode {

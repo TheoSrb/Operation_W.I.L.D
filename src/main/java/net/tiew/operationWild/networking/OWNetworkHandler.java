@@ -38,6 +38,7 @@ public class OWNetworkHandler {
         registrar.playToServer(CrocodileRightClickPacket.TYPE, CrocodileRightClickPacket.STREAM_CODEC, CrocodileRightClickPacket::handle);
         registrar.playToServer(StopGrabPacket.TYPE, StopGrabPacket.STREAM_CODEC, StopGrabPacket::handle);
         registrar.playToServer(OWEntityGrabManagerPacket.TYPE, OWEntityGrabManagerPacket.STREAM_CODEC, OWEntityGrabManagerPacket::handle);
+        registrar.playToServer(OWNameEntityPacket.TYPE, OWNameEntityPacket.STREAM_CODEC, OWNameEntityPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);

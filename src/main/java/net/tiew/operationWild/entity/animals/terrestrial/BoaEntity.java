@@ -215,6 +215,11 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
         return true;
     }
 
+    @Override
+    public float getRotationSpeed() {
+        return 0.065f;
+    }
+
 
     // Entity's AI
     protected void registerGoals() {

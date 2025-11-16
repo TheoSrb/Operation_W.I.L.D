@@ -170,6 +170,11 @@ public class HyenaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         return false;
     }
 
+    @Override
+    public float getRotationSpeed() {
+        return 0.225f;
+    }
+
     // Entity's AI
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));

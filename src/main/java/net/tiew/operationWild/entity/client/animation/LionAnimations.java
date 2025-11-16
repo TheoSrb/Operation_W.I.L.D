@@ -141,19 +141,6 @@ public class LionAnimations {
                     new Keyframe(1.0286F, KeyframeAnimations.posVec(-1.0F, 0.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
                     new Keyframe(1.6F, KeyframeAnimations.posVec(-2.5F, 0.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
             ))
-            .addAnimation("tail_1", new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                    new Keyframe(0.0F, KeyframeAnimations.degreeVec(-68.4349F, 14.4775F, -26.5651F), AnimationChannel.Interpolations.CATMULLROM),
-                    new Keyframe(0.7429F, KeyframeAnimations.degreeVec(-68.4349F, -14.4775F, 26.5651F), AnimationChannel.Interpolations.CATMULLROM),
-                    new Keyframe(1.4286F, KeyframeAnimations.degreeVec(-68.4349F, 14.4775F, -26.5651F), AnimationChannel.Interpolations.CATMULLROM)
-            ))
-            .addAnimation("tail_1", new AnimationChannel(AnimationChannel.Targets.POSITION,
-                    new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 1.0F, -2.0F), AnimationChannel.Interpolations.LINEAR)
-            ))
-            .addAnimation("tail_2", new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                    new Keyframe(0.1714F, KeyframeAnimations.degreeVec(0.0F, 35.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                    new Keyframe(0.9143F, KeyframeAnimations.degreeVec(0.0F, -35.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                    new Keyframe(1.6F, KeyframeAnimations.degreeVec(0.0F, 35.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
-            ))
             .addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION,
                     new Keyframe(0.0F, KeyframeAnimations.degreeVec(-0.218F, 2.4905F, -5.0047F), AnimationChannel.Interpolations.CATMULLROM),
                     new Keyframe(0.4F, KeyframeAnimations.degreeVec(14.782F, -2.4905F, 5.0047F), AnimationChannel.Interpolations.CATMULLROM),

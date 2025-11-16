@@ -162,17 +162,44 @@ public class OWEntityHud {
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         } else guiGraphics.blit(HUD, xPlacement + 1 + (79 - healthWidth), yPlacement + 1, 80 - healthWidth, 10 + (7 * getEntitySpace(entity)), healthWidth, 7);
 
-        if (entity instanceof TigerEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (15 / 2), yPlacement - 7, 241, 21, 15, 15);
-        else if (entity instanceof ElephantEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (31 / 2), yPlacement - 12, 225, 0, 31, 21);
-        else if (entity instanceof BoaEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 2, 239, 36,17, 11);
-        else if (entity instanceof PeacockEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (9 / 2), yPlacement - 10, 247, 47, 9, 19);
-        else if (entity instanceof TigerSharkEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (19 / 2), yPlacement - 4, 237, 66, 19, 13);
-        else if (entity instanceof MandrillEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (15 / 2), yPlacement - 12, 241, 79, 15, 21);
-        else if (entity instanceof KodiakEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 7, 239, 100, 17, 16);
-        else if (entity instanceof HyenaEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 7, 239, 116, 17, 16);
-        else if (entity instanceof WalrusEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (12 / 2), yPlacement - 7, 244, 132, 12, 21);
-        else if (entity instanceof CrocodileEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (13 / 2), yPlacement - 5, 243, 153, 13, 14);
-        else if (entity instanceof LionEntity) guiGraphics.blit(HUD, xPlacement + 9 + 31 - (17 / 2), yPlacement - 8, 239, 166, 17, 17);
+        EntityIconData iconData = getEntityIconData(entity);
+        if (iconData != null) {
+            guiGraphics.blit(HUD,
+                    xPlacement + 9 + 31 + iconData.offsetX,
+                    yPlacement + iconData.offsetY,
+                    iconData.textureX,
+                    iconData.textureY,
+                    iconData.width,
+                    iconData.height
+            );
+        }
+    }
+
+    public static EntityIconData getEntityIconData(OWEntity entity) {
+        if (entity instanceof TigerEntity) {
+            return new EntityIconData(241, 21, 15, 15, -(15 / 2), -7);
+        } else if (entity instanceof ElephantEntity) {
+            return new EntityIconData(225, 0, 31, 21, -(31 / 2), -12);
+        } else if (entity instanceof BoaEntity) {
+            return new EntityIconData(239, 36, 17, 11, -(17 / 2), -2);
+        } else if (entity instanceof PeacockEntity) {
+            return new EntityIconData(247, 47, 9, 19, -(9 / 2), -10);
+        } else if (entity instanceof TigerSharkEntity) {
+            return new EntityIconData(237, 66, 19, 13, -(19 / 2), -4);
+        } else if (entity instanceof MandrillEntity) {
+            return new EntityIconData(241, 79, 15, 21, -(15 / 2), -12);
+        } else if (entity instanceof KodiakEntity) {
+            return new EntityIconData(239, 100, 17, 16, -(17 / 2), -7);
+        } else if (entity instanceof HyenaEntity) {
+            return new EntityIconData(239, 116, 17, 16, -(17 / 2), -7);
+        } else if (entity instanceof WalrusEntity) {
+            return new EntityIconData(244, 132, 12, 21, -(12 / 2), -7);
+        } else if (entity instanceof CrocodileEntity) {
+            return new EntityIconData(243, 153, 13, 14, -(13 / 2), -5);
+        } else if (entity instanceof LionEntity) {
+            return new EntityIconData(239, 167, 17, 17, -(17 / 2), -8);
+        }
+        return null;
     }
 
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
@@ -230,6 +257,24 @@ public class OWEntityHud {
                     guiGraphics.blit(MAX_AIR, xPlacement, startY, 0, textureY, barSize, fillHeight, barSize, barSize);
                 }
             }
+        }
+    }
+
+    public static class EntityIconData {
+        public final int textureX;
+        public final int textureY;
+        public final int width;
+        public final int height;
+        public final int offsetX;
+        public final int offsetY;
+
+        public EntityIconData(int textureX, int textureY, int width, int height, int offsetX, int offsetY) {
+            this.textureX = textureX;
+            this.textureY = textureY;
+            this.width = width;
+            this.height = height;
+            this.offsetX = offsetX;
+            this.offsetY = offsetY;
         }
     }
 }
