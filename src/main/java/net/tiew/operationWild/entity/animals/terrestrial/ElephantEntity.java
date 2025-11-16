@@ -197,7 +197,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float getRotationSpeed() {
-        return 0.05f;
+        return 0.025f;
     }
 
 
