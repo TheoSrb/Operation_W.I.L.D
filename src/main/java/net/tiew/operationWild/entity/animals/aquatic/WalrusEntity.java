@@ -407,7 +407,7 @@ public class WalrusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTam
     protected void positionRider(Entity entity, MoveFunction function) {
         super.positionRider(entity, function);
         Vec3 look = this.getLookAngle();
-        function.accept(entity, entity.getX() - look.x * 0.5, entity.getY() - 0.6, entity.getZ() - look.z * 0.5);
+        function.accept(entity, entity.getX() - look.x * 0.5, entity.getY(), entity.getZ() - look.z * 0.5);
     }
 
     @Override
