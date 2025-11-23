@@ -97,6 +97,7 @@
   "tooltip.resurrectionTime": "Time Remaining: ",
   "tooltip.resurrection": "Résurrection in progress...",
   "tooltip.resurrection_failed": "The attempt to resurrect your %s has failed.",
+  "lionClan": "Clan: ",
 
   "tooltip.mobTypesTank": "§b§lTank§r §lType§r: Reduces melee damage taken.",
   "tooltip.mobTypesAssassin": "§4§lAssassin§r §lType§r: Can land a critical hit dealing extra damage.",

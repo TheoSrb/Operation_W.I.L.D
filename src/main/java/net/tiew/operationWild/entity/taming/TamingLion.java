@@ -1,9 +1,7 @@
 package net.tiew.operationWild.entity.taming;
 
-import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
-import net.tiew.operationWild.entity.behavior.KodiakBehaviorHandler;
-import net.tiew.operationWild.entity.behavior.LionBehaviorHandler;
+import net.tiew.operationWild.entity.behavior.lion.LionBehaviorHandler;
 
 /**
  * This class primarily manages the taming process for the Lion.

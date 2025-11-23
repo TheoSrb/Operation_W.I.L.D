@@ -1,4 +1,4 @@
-package net.tiew.operationWild.entity.behavior;
+package net.tiew.operationWild.entity.behavior.lion;
 
 import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
 

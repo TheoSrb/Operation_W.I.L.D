@@ -1992,7 +1992,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 return;
             }
             if (attackTimer == timeToHit - (this instanceof ElephantEntity ? 3 : 0)) {
-                attackEntitiesInFront((float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER)), sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
+                float d0 = (float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
+                if (this instanceof LionEntity lion && lion.isFemale()) {
+                    d0 = d0 / 1.5f;
+                }
+                attackEntitiesInFront(d0, sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
 
                 if (spawnBlurr) {
                     OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
@@ -2452,29 +2456,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         super.tickRidden(player, vec3);
         Vec2 vec2 = this.getRiddenRotation(player);
         if (!(this instanceof SeaBugEntity)) {
-
-            if (this instanceof LionEntity lion) {
-                if (lion.isTame() && lion.isCombo()) {
-                    LivingEntity target = null;
-                    List<LivingEntity> entities = lion.level().getEntitiesOfClass(LivingEntity.class, lion.getBoundingBox().inflate(3));
-
-                    for (LivingEntity entity : entities) {
-                        if (entity != lion && entity != lion.getControllingPassenger() && !entity.isAlliedTo(player)) {
-                            target = entity;
-                        }
-                    }
-
-                    if (target != null && target.isAlive()) {
-                        lion.setLookAt(target.getX(), target.getY(), target.getZ());
-                    } else {
-                        smoothRotation(vec2, player);
-                    }
-                } else {
-                    smoothRotation(vec2, player);
-                }
-            } else {
-                smoothRotation(vec2, player);
-            }
+            smoothRotation(vec2, player);
         }
         player.resetFallDistance();
     }
@@ -3048,8 +3030,19 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
         setMaxSleepingBarTo((int) OWUtils.determinateMinAndMax(maxSleepBar, 20));
-        if (!(this instanceof SeaBugEntity) && !(this instanceof JellyfishEntity)) this.setRandomScale(averageScale, 0.95, 1.05);
-        else this.setScale(1.0f);
+        if (!(this instanceof SeaBugEntity) && !(this instanceof JellyfishEntity)) {
+            if (this instanceof LionEntity lion) {
+                if (lion.isMale()) {
+                    this.setRandomScale(averageScale, 0.975, 1.075);
+                } else {
+                    this.setRandomScale(averageScale, 0.95, 1.0);
+                }
+            } else {
+                this.setRandomScale(averageScale, 0.95, 1.05);
+            }
+        } else {
+            this.setScale(1.0f);
+        }
         if (!(this instanceof LionEntity)) this.setGender(this.random.nextInt(2));
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }

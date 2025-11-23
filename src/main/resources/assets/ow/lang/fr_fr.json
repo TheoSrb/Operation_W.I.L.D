@@ -97,6 +97,7 @@
   "tooltip.resurrectionTime": "Temps Restant: ",
   "tooltip.resurrection": "Résurrection en cours...",
   "tooltip.resurrection_failed": "La tentative de résurrection de votre %s a échoué.",
+  "lionClan": "Clan: ",
 
   "tooltip.mobTypesTank": "§lType§r §b§lTank§r : Réduction des dégâts de mêlée subis.",
   "tooltip.mobTypesAssassin": "§lType§r §4§lAssassin§r : Peut infliger un coup critique causant plus de dégâts.",

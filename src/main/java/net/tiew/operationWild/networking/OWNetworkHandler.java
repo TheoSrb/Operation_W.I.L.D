@@ -39,6 +39,7 @@ public class OWNetworkHandler {
         registrar.playToServer(StopGrabPacket.TYPE, StopGrabPacket.STREAM_CODEC, StopGrabPacket::handle);
         registrar.playToServer(OWEntityGrabManagerPacket.TYPE, OWEntityGrabManagerPacket.STREAM_CODEC, OWEntityGrabManagerPacket::handle);
         registrar.playToServer(OWNameEntityPacket.TYPE, OWNameEntityPacket.STREAM_CODEC, OWNameEntityPacket::handle);
+        registrar.playToServer(LionHealLionessesPacket.TYPE, LionHealLionessesPacket.STREAM_CODEC, LionHealLionessesPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);
@@ -54,6 +55,7 @@ public class OWNetworkHandler {
         registrar.playToClient(OWFoodPacketClient.TYPE, OWFoodPacketClient.STREAM_CODEC, OWFoodPacketClient::handle);
         registrar.playToClient(AddEntityToManuscriptPacket.TYPE, AddEntityToManuscriptPacket.STREAM_CODEC, AddEntityToManuscriptPacket::handle);
         registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, OpenChooseNameScreen::handle);
+        registrar.playToClient(LionClanSyncPacket.TYPE, LionClanSyncPacket.STREAM_CODEC, LionClanSyncPacket::handle);
     }
 
     public static void sendToServer(CustomPacketPayload packet) {

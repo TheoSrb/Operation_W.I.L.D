@@ -147,6 +147,11 @@ public class LionModel<T extends LionEntity> extends HierarchicalModel<T> {
 			this.right_eyeBall.zScale = 0;
 		}
 
+		if (lion.isRoaring()) {
+			this.animate(lion.roarAnimationState, LionAnimations.ROAR, ageInTicks, 1.0f);
+			return;
+		}
+
 		if (lion.isCombo()) {
 			if (lion.isCombo(1)) {
 				this.animate(lion.attack1Combo, LionAnimations.ATTACK_STRIKE, ageInTicks, 0.925f * OWEntity.comboSpeedMultiplier);
