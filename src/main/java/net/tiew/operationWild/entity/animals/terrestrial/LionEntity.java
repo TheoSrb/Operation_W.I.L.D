@@ -24,6 +24,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -130,6 +131,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         this.goalSelector.addGoal(0, new LionAttackGoal(this, this.getSpeed() * (this.isMale() ? 20.0f : 23.5f), 8, 3, false));
         this.goalSelector.addGoal(1, new LionessFollowAlphaGoal(this));
         this.goalSelector.addGoal(3, new OWBreedGoal(this, 1.0D));
+        this.goalSelector.addGoal(3, new RandomStrollGoal(this, 0.7D));
         this.goalSelector.addGoal(4, new OWRandomLookAroundGoal(this));
     }
 

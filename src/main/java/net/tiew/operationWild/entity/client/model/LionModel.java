@@ -202,7 +202,7 @@ public class LionModel<T extends LionEntity> extends HierarchicalModel<T> {
 				this.animateWalk(LionAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.25f, 1.35f);
 			}
 		} else {
-			this.animateWalk(LionAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
+			this.animateWalk(LionAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 4f, 4f);
 		}
 
 
