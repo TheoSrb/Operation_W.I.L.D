@@ -210,10 +210,8 @@ public class ClientEvents {
     public static void onKeyInput(InputEvent.Key event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null && minecraft.player.getRootVehicle() instanceof OWEntity owEntity) {
-            int inventoryKey = minecraft.options.keyInventory.getKey().getValue();
-            int runKey = minecraft.options.keySprint.getKey().getValue();
 
-            if (event.getKey() == inventoryKey && event.getAction() == GLFW.GLFW_PRESS && owEntity.isTame()) {
+            if (OWKeysBinding.PET_INVENTORY.isDown() && event.getAction() == GLFW.GLFW_PRESS && owEntity.isTame()) {
                 OWNetworkHandler.sendToServer(new OpenOWInventoryPacket());
             }
 
