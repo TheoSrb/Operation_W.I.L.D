@@ -67,7 +67,10 @@ public class KodiakAttractedToFoodItemGoal extends Goal {
         }
         if (targetPos != null) {
             List<ItemEntity> items = kodiak.level().getEntitiesOfClass(ItemEntity.class,
-                    new AABB(targetPos).inflate(2.0));
+                    new AABB(targetPos).inflate(2.0))
+                    .stream()
+                    .filter(itemEntity -> itemEntity.getItem().is(Tags.Items.FOODS))
+                    .toList();
 
             kodiak.getNavigation().moveTo(targetPos.getX(), targetPos.getY(), targetPos.getZ(), speedModifier);
             kodiak.setSitting(false);
