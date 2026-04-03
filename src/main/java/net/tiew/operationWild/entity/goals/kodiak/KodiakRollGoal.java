@@ -22,9 +22,9 @@ public class KodiakRollGoal extends Goal {
     @Override
     public void start() {
         super.start();
+        kodiak.rollTimer = 0;
         float pitch = (float) OWUtils.generateRandomInterval(0.8f, 1.1f);
         kodiak.setRolling(true);
-        kodiak.rollingAnimationState.start(kodiak.tickCount);
         if (kodiak.getRandom().nextInt(2) == 0) {
             kodiak.playSound(OWSounds.KODIAK_MISC.get(), 1.5f, pitch);
         }

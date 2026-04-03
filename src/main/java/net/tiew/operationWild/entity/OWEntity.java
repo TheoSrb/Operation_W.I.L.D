@@ -1860,6 +1860,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
+        if (this.isNapping()) {
+            getNavigation().stop();
+            getMoveControl().setWantedPosition(getX(), getY(), getZ(), 0);
+            if (this.onGround()) {
+                this.setDeltaMovement(0, 0, 0);
+                this.hasImpulse = false;
+                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 5, 255, false, false, false));
+            }
+        }
 
         if (getActualSleepingBar() > 0 && !(this instanceof PlantEmpressEntity)) {
             int decreaseRate = isSleeping() ? sleepBarDownSpeed * 2 : sleepBarDownSpeed;

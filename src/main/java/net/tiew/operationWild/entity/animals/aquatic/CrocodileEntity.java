@@ -469,6 +469,15 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 if (this.getGrabTimeout() >= getGrabMaxTimeout()) {
                     this.setGrabTimeout(0);
                     this.getGrabbedTarget().kill();
+
+                    if (!this.level().isClientSide()) {
+                        this.level().getEntitiesOfClass(CrocodileEntity.class, this.getBoundingBox().inflate(30))
+                                .forEach(otherCroc -> {
+                                    if (otherCroc != this && otherCroc.getTarget() == this) {
+                                        otherCroc.setTarget(null);
+                                    }
+                                });
+                    }
                 }
 
             } catch (NullPointerException e) {
@@ -479,6 +488,15 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 this.getGrabbedTarget().noPhysics = false;
                 this.setGrabbing(false, null);
                 this.setTarget(null);
+
+                if (!this.level().isClientSide()) {
+                    this.level().getEntitiesOfClass(CrocodileEntity.class, this.getBoundingBox().inflate(30))
+                            .forEach(otherCroc -> {
+                                if (otherCroc != this && otherCroc.getTarget() == this) {
+                                    otherCroc.setTarget(null);
+                                }
+                            });
+                }
             } else {
                 if (grabbed != null && !grabbed.isPassenger()) {
                     if (grabbed instanceof Player) {

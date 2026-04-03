@@ -109,6 +109,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int rejectingAnimationTimeout = 0;
     public int rubsAnimationTimeout = 0;
 
+    private boolean wasRolling = false;
+
     private float rubYaw = 0f;
 
     public int rollTimer = 0;
@@ -348,6 +350,12 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public void travel(Vec3 vec3) {
         super.travel(vec3);
         if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle() && !isRubs()) this.jumpFromGround();
+    }
+
+    @Override
+    public boolean isPushable() {
+        if (isRubs() || (isSitting() && !isTame())) return false;
+        return super.isPushable();
     }
 
     public void tick() {
@@ -908,17 +916,21 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.napAnimationState.stop();
         }
 
-        if (this.isRolling()) {
-            if (this.rollingAnimationTimeout <= 0) {
-                this.rollingAnimationTimeout = 80;
-                this.rollingAnimationState.start(this.tickCount);
-            } else --this.rollingAnimationTimeout;
+        boolean isRollingNow = this.isRolling();
+
+        if (isRollingNow && !wasRolling) {
+            this.rollingAnimationTimeout = 80;
+            this.rollingAnimationState.start(this.tickCount);
+        } else if (isRollingNow && this.rollingAnimationTimeout > 0) {
+            this.rollingAnimationTimeout--;
         }
 
-        if (!this.isRolling()) {
+        if (!isRollingNow) {
             this.rollingAnimationTimeout = 0;
             this.rollingAnimationState.stop();
         }
+
+        wasRolling = isRollingNow;
 
         if (this.isSniffing()) {
             if (this.sniffingAnimationTimeout <= 0) {

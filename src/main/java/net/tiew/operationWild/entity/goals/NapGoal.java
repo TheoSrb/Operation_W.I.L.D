@@ -9,6 +9,8 @@ import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.particle.OWParticles;
 
+import java.util.EnumSet;
+
 public class NapGoal extends Goal {
 
     private final OWEntity entity;
@@ -26,6 +28,8 @@ public class NapGoal extends Goal {
         this.wantNapMultiplier = wantNapMultiplier;
         this.napTimerMax = napTimerMax;
         this.conditionToWork = conditionToWork;
+
+        this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK, Goal.Flag.JUMP));
     }
 
     @Override
@@ -90,6 +94,7 @@ public class NapGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
+        startAwaken();
         napTimer = 0;
         napTickCounter = 0;
         shouldStop = false;
@@ -122,7 +127,6 @@ public class NapGoal extends Goal {
             double entityZ = entity.getZ();
 
             Vec3 rightDirection = new Vec3(-lookDirection.z, 0, lookDirection.x).normalize();
-
             double rightOffset = entity instanceof WalrusEntity ? 1.5 : 0.0;
 
             double fixedX = entityX + lookDirection.x * 1.25 + rightDirection.x * rightOffset;
@@ -133,25 +137,7 @@ public class NapGoal extends Goal {
                 if (entity.level() instanceof ServerLevel serverLevel) {
                     serverLevel.sendParticles(OWParticles.NAP_PARTICLES.get(),
                             fixedX, fixedY, fixedZ,
-                            1,
-                            0.1,
-                            0.1,
-                            0.1,
-                            0.0);
-                }
-            } else {
-                if (entity.level() instanceof ClientLevel clientLevel) {
-                    for (int i = 0; i < 1; i++) {
-                        double offsetX = (entity.getRandom().nextDouble() - 0.5) * 0.2;
-                        double offsetY = (entity.getRandom().nextDouble() - 0.5) * 0.2;
-                        double offsetZ = (entity.getRandom().nextDouble() - 0.5) * 0.2;
-
-                        clientLevel.addParticle(OWParticles.NAP_PARTICLES.get(),
-                                fixedX + offsetX,
-                                fixedY + offsetY,
-                                fixedZ + offsetZ,
-                                0.0, 0.0, 0.0);
-                    }
+                            1, 0.1, 0.1, 0.1, 0.0);
                 }
             }
         }
