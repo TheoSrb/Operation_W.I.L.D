@@ -2,16 +2,10 @@ package net.tiew.operationWild.event;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -19,20 +13,15 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
-import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -40,19 +29,10 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.effect.OWEffects;
-import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
-import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.goals.crocodile.MonstersAvoidCrocodileGoal;
-import net.tiew.operationWild.entity.misc.SeabugShard;
-import net.tiew.operationWild.entity.misc.Submarine;
 import net.tiew.operationWild.item.OWItems;
-import net.tiew.operationWild.item.custom.ReptilianDaggerItem;
-import net.tiew.operationWild.networking.OWNetworkHandler;
-import net.tiew.operationWild.networking.packets.to_client.BookNotificationPacket;
-import net.tiew.operationWild.networking.packets.to_server.SyncKillDataPacket;
-import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManuscriptScreen;
 
 import java.util.List;
 
@@ -181,47 +161,5 @@ public class ServerEvents {
             }
         }
         return false;
-    }
-
-    @SubscribeEvent
-    public static void onLivingDrops(LivingDropsEvent event) {
-        DamageSource source = event.getSource();
-
-        if (source.getEntity() instanceof KodiakEntity) createMultiDrop(event, Tags.Items.FOODS, 2);
-        else if (source.getEntity() instanceof WalrusEntity) createMultiDrop(event, OWItems.STINGING_FILAMENT.get(), 3);
-    }
-
-    private static void createMultiDrop(LivingDropsEvent event, Item item, int amount) {
-        DamageSource source = event.getSource();
-        LivingEntity entity = event.getEntity();
-        if (source.getEntity() instanceof WalrusEntity) {
-            for (ItemEntity itemEntity : event.getDrops()) {
-                ItemStack drop = itemEntity.getItem();
-                if (drop.is(item)) {
-                    int additionalDrops = entity.getRandom().nextInt(amount);
-                    for (int i = 0; i < additionalDrops; i++) {
-                        entity.spawnAtLocation(drop.copy());
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
-    private static void createMultiDrop(LivingDropsEvent event, TagKey<Item> item, int amount) {
-        DamageSource source = event.getSource();
-        LivingEntity entity = event.getEntity();
-        if (source.getEntity() instanceof WalrusEntity) {
-            for (ItemEntity itemEntity : event.getDrops()) {
-                ItemStack drop = itemEntity.getItem();
-                if (drop.is(item)) {
-                    int additionalDrops = entity.getRandom().nextInt(amount);
-                    for (int i = 0; i < additionalDrops; i++) {
-                        entity.spawnAtLocation(drop.copy());
-                    }
-                    break;
-                }
-            }
-        }
     }
 }

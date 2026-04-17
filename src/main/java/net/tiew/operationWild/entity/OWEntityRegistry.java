@@ -18,21 +18,9 @@ public class OWEntityRegistry {
 
 
 
-    public static final DeferredHolder<EntityType<?>, EntityType<TigerEntity>> TIGER = ENTITY_TYPES.register("tiger", () -> EntityType.Builder.<TigerEntity>of((type, world) -> new TigerEntity(type, world, 1.05f, 4000, 2), MobCategory.CREATURE).sized(1.3f, 1.3f).build("tiger"));
-    public static final DeferredHolder<EntityType<?>, EntityType<BoaEntity>> BOA = ENTITY_TYPES.register("boa", () -> EntityType.Builder.<BoaEntity>of((type, world) -> new BoaEntity(type, world, 1.0f, 2000, 4), MobCategory.CREATURE).sized(1.5f, 0.5f).build("boa"));
-    public static final DeferredHolder<EntityType<?>, EntityType<PeacockEntity>> PEACOCK = ENTITY_TYPES.register("peacock", () -> EntityType.Builder.<PeacockEntity>of((type, world) -> new PeacockEntity(type, world, 1.1f, 650, 2), MobCategory.CREATURE).sized(0.7f, 1.0f).build("peacock"));
-    public static final DeferredHolder<EntityType<?>, EntityType<TigerSharkEntity>> TIGER_SHARK = ENTITY_TYPES.register("tiger_shark", () -> EntityType.Builder.<TigerSharkEntity>of((type, world) -> new TigerSharkEntity(type, world, 1.0f, 2850, 1), MobCategory.WATER_CREATURE).sized(2.1f, 0.8f).build("tiger_shark"));
-    public static final DeferredHolder<EntityType<?>, EntityType<HyenaEntity>> HYENA = ENTITY_TYPES.register("hyena", () -> EntityType.Builder.<HyenaEntity>of((type, world) -> new HyenaEntity(type, world, 1.05f, 1750, 3), MobCategory.CREATURE).sized(1.1f, 1.2f).build("hyena"));
     public static final DeferredHolder<EntityType<?>, EntityType<KodiakEntity>> KODIAK = ENTITY_TYPES.register("kodiak", () -> EntityType.Builder.<KodiakEntity>of((type, world) -> new KodiakEntity(type, world, 1.0f, 6500, 10), MobCategory.CREATURE).sized(1.9f, 1.9f).build("kodiak"));
-    public static final DeferredHolder<EntityType<?>, EntityType<RedPandaEntity>> RED_PANDA = ENTITY_TYPES.register("red_panda", () -> EntityType.Builder.<RedPandaEntity>of((type, world) -> new RedPandaEntity(type, world, 1.05f, 550, 3), MobCategory.CREATURE).sized(0.7f, 0.6f).build("red_panda"));
-    public static final DeferredHolder<EntityType<?>, EntityType<ChameleonEntity>> CHAMELEON = ENTITY_TYPES.register("chameleon", () -> EntityType.Builder.<ChameleonEntity>of((type, world) -> new ChameleonEntity(type, world, 0.9f, 285, 5), MobCategory.CREATURE).sized(0.7f, 0.6f).build("chameleon"));
-    public static final DeferredHolder<EntityType<?>, EntityType<JellyfishEntity>> JELLYFISH = ENTITY_TYPES.register("jellyfish", () -> EntityType.Builder.<JellyfishEntity>of((type, world) -> new JellyfishEntity(type, world, 0.95f, 1250, 15), MobCategory.WATER_AMBIENT).sized(0.9f, 1.7f).build("jellyfish"));
-    public static final DeferredHolder<EntityType<?>, EntityType<MantaEntity>> MANTA = ENTITY_TYPES.register("manta", () -> EntityType.Builder.<MantaEntity>of((type, world) -> new MantaEntity(type, world, 1.1f, 2800, 2), MobCategory.WATER_CREATURE).sized(2.2f, 0.4f).build("manta"));
-    public static final DeferredHolder<EntityType<?>, EntityType<WalrusEntity>> WALRUS = ENTITY_TYPES.register("walrus", () -> EntityType.Builder.<WalrusEntity>of((type, world) -> new WalrusEntity(type, world, 0.8f, 4500, 1), MobCategory.WATER_CREATURE).sized(2.1f, 1.7f).build("walrus"));
-    public static final DeferredHolder<EntityType<?>, EntityType<ElephantEntity>> ELEPHANT = ENTITY_TYPES.register("elephant", () -> EntityType.Builder.<ElephantEntity>of((type, world) -> new ElephantEntity(type, world, 1.025f, 7000, 5), MobCategory.CREATURE).sized(2.5f, 3f).build("elephant"));
-    public static final DeferredHolder<EntityType<?>, EntityType<MandrillEntity>> MANDRILL = ENTITY_TYPES.register("mandrill", () -> EntityType.Builder.<MandrillEntity>of((type, world) -> new MandrillEntity(type, world, 1f, 1900, 1), MobCategory.CREATURE).sized(1f, 1.2f).build("mandrill"));
+    public static final DeferredHolder<EntityType<?>, EntityType<TigerEntity>> TIGER = ENTITY_TYPES.register("tiger", () -> EntityType.Builder.<TigerEntity>of((type, world) -> new TigerEntity(type, world, 1.0f, 4000, 1), MobCategory.CREATURE).sized(1.3f, 1.4f).build("tiger"));
     public static final DeferredHolder<EntityType<?>, EntityType<CrocodileEntity>> CROCODILE = ENTITY_TYPES.register("crocodile", () -> EntityType.Builder.<CrocodileEntity>of((type, world) -> new CrocodileEntity(type, world, 1.0f, 5000, 2), MobCategory.CREATURE).sized(1.9f, 1.1f).build("crocodile"));
-    public static final DeferredHolder<EntityType<?>, EntityType<LionEntity>> LION = ENTITY_TYPES.register("lion", () -> EntityType.Builder.<LionEntity>of((type, world) -> new LionEntity(type, world, 1.025f, 1850, 1), MobCategory.CREATURE).sized(1.0f, 1.2f).build("lion"));
 
 
 
@@ -61,19 +49,7 @@ public class OWEntityRegistry {
 
     public static EntityType<? extends OWEntity> getEntityTypeFromName(String name) {
         switch (name) {
-            case "tiger_shark": return OWEntityRegistry.TIGER_SHARK.get();
-            case "tiger": return OWEntityRegistry.TIGER.get();
-            case "boa": return OWEntityRegistry.BOA.get();
-            case "peacock": return OWEntityRegistry.PEACOCK.get();
-            case "hyena": return OWEntityRegistry.HYENA.get();
             case "kodiak": return OWEntityRegistry.KODIAK.get();
-            case "red_panda": return OWEntityRegistry.RED_PANDA.get();
-            case "chameleon": return OWEntityRegistry.CHAMELEON.get();
-            case "jellyfish": return OWEntityRegistry.JELLYFISH.get();
-            case "manta": return OWEntityRegistry.MANTA.get();
-            case "walrus": return OWEntityRegistry.WALRUS.get();
-            case "elephant": return OWEntityRegistry.ELEPHANT.get();
-            case "mandrill": return OWEntityRegistry.MANDRILL.get();
             case "crocodile": return OWEntityRegistry.CROCODILE.get();
             default: return null;
         }

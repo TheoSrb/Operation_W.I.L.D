@@ -1,6 +1,5 @@
 package net.tiew.operationWild.event;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
@@ -10,7 +9,6 @@ import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -37,8 +35,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
-import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
-import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.networking.ClientKillData;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManuscriptScreen;
@@ -60,7 +56,6 @@ import net.tiew.operationWild.core.OWDamageSources;
 import net.tiew.operationWild.core.OWKeysBinding;
 
 import java.io.*;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -99,6 +94,16 @@ public class ClientEvents {
                             RightClickAlertOverlay.clickAnimationTimer = 3;
                         }
                     }
+                } else if (player.getVehicle() instanceof TigerEntity tiger && tiger.isGrabbing() && tiger.getGrabbedTarget() == player) {
+                    if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
+                        if (tiger.getGrabTimeout() <= 0) {
+                            OWNetworkHandler.sendToServer(new StopGrabPacket());
+                        } else {
+                            OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
+                            RightClickAlertOverlay.hasClicked = true;
+                            RightClickAlertOverlay.clickAnimationTimer = 3;
+                        }
+                    }
                 }
             }
         }
@@ -120,7 +125,8 @@ public class ClientEvents {
         Entity entity = event.getEntity();
 
         if (entity != null && entity instanceof Player player) {
-            if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player) {
+            if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player ||
+                    player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player) {
                 event.getInput().shiftKeyDown = false;
             }
         }
@@ -171,38 +177,6 @@ public class ClientEvents {
                     OWNetworkHandler.sendToServer(new ClientPressedRightClick());
                 }
             }
-
-
-            if (rightButtonIsPressed) {
-                long currentTime = System.currentTimeMillis();
-                if (currentTime - lastRightClick < CLICK_COOLDOWN) return;
-                lastRightClick = currentTime;
-                BoaEntity boaEntity = player.getPassengers().stream()
-                        .filter(passenger -> passenger instanceof BoaEntity)
-                        .map(passenger -> (BoaEntity) passenger)
-                        .findFirst()
-                        .orElse(null);
-
-                if (boaEntity != null) {
-                    rightClickNips++;
-                    int $$0 = (int) (boaEntity.getMaxHealth() / 1.25f);
-
-                    if (rightClickNips >= $$0) {
-                        rightClickNips = 0;
-                        OWNetworkHandler.sendToServer(new StopNipsBoaPacket());
-                    }
-                }
-
-                if (isPlayerBeingShaken(player)) {
-                    rightClickNips++;
-                    int $$0 = 20;
-
-                    if (rightClickNips >= $$0) {
-                        rightClickNips = 0;
-                        OWNetworkHandler.sendToServer(new StopShakingSharkPacket());
-                    }
-                }
-            }
         }
     }
 
@@ -213,12 +187,6 @@ public class ClientEvents {
 
             if (OWKeysBinding.PET_INVENTORY.isDown() && event.getAction() == GLFW.GLFW_PRESS && owEntity.isTame()) {
                 OWNetworkHandler.sendToServer(new OpenOWInventoryPacket());
-            }
-
-            if (owEntity instanceof TigerEntity entity) {
-                if (OWKeysBinding.OW_ULTIMATE.isDown() && entity.ultimateCooldown <= 0) {
-                    OWNetworkHandler.sendToServer(new SendUltimateCapacityPacket());
-                }
             }
         }
         if (minecraft.player != null && OWKeysBinding.OW_ENTITY_JOURNAL.isDown()) {
@@ -235,26 +203,6 @@ public class ClientEvents {
         if (player.getMainHandItem().is(OWItems.SEABUG.get()) || player.getOffhandItem().is(OWItems.SEABUG.get())) {
             if (!player.isCreative()) {
                 event.getInput().jumping = false;
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public static void onMouseInput(InputEvent.MouseButton.Pre event) {
-        Minecraft minecraft = Minecraft.getInstance();
-        boolean canUse = minecraft.player != null && (minecraft.player.getMainHandItem().isEmpty() ||
-                !(minecraft.player.getMainHandItem().is(ItemTags.MEAT) ||
-                        minecraft.player.getMainHandItem().getItem() instanceof EggItem ||
-                        minecraft.player.getMainHandItem().getItem() instanceof SpawnEggItem ||
-                        minecraft.player.getMainHandItem().getItem() instanceof ProjectileWeaponItem ||
-                        minecraft.player.getMainHandItem().getItem() instanceof TridentItem ||
-                        minecraft.player.getMainHandItem().getUseAnimation() != UseAnim.NONE));
-        if (minecraft.player != null && minecraft.player.getRootVehicle() instanceof OWEntity entity) {
-            if (event.getButton() == 1 && event.getAction() == GLFW.GLFW_PRESS && canUse) {
-
-                if (entity instanceof BoaEntity boa) {
-                    if (!boa.canVenom && boa.venomCooldown == 801) OWNetworkHandler.sendToServer(new BoaVenomPacket());
-                }
             }
         }
     }
@@ -726,254 +674,6 @@ public class ClientEvents {
                 submarine.soundTimer = 0;
             }
         }
-
-        if (ridingEntity instanceof TigerSharkEntity tigerShark && tigerShark.isSaddled()) {
-            double baseSpeed = 0.35 * (tigerShark.getSpeed() * 5.2);
-            Vec3 newMovement = Vec3.ZERO;
-
-            if (forwardKeyIsPressed) {
-                tigerShark.backwardAccelerationLevel = 0;
-
-                if (tigerShark.accelerationLevel < 100) {
-                    tigerShark.accelerationLevel += 1.0f;
-                }
-
-                float normalizedAccel = tigerShark.accelerationLevel / 100.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                Vec3 lookDirection = tigerShark.getViewVector(1.0f);
-                newMovement = new Vec3(
-                        lookDirection.x * (baseSpeed * currentSpeed),
-                        lookDirection.y * (baseSpeed * currentSpeed),
-                        lookDirection.z * (baseSpeed * currentSpeed)
-                );
-            }
-            else if (backKeyIsPressed) {
-                tigerShark.accelerationLevel = 0;
-
-                if (tigerShark.backwardAccelerationLevel < 100) {
-                    tigerShark.backwardAccelerationLevel += 1.0f;
-                }
-
-                float normalizedAccel = tigerShark.backwardAccelerationLevel / 100.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                Vec3 lookDirection = tigerShark.getViewVector(1.0f);
-                newMovement = new Vec3(
-                        -lookDirection.x * (baseSpeed * currentSpeed * 0.5),
-                        -lookDirection.y * (baseSpeed * currentSpeed * 0.5),
-                        -lookDirection.z * (baseSpeed * currentSpeed * 0.5)
-                );
-            }
-            else {
-                if (tigerShark.accelerationLevel > 0) {
-                    tigerShark.accelerationLevel -= 1.0f;
-                    tigerShark.accelerationLevel = Math.max(0, tigerShark.accelerationLevel);
-
-                    if (tigerShark.accelerationLevel > 0) {
-                        float normalizedAccel = tigerShark.accelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        Vec3 lookDirection = tigerShark.getViewVector(1.0f);
-                        newMovement = new Vec3(
-                                lookDirection.x * (baseSpeed * currentSpeed * 0.7),
-                                lookDirection.y * (baseSpeed * currentSpeed * 0.7),
-                                lookDirection.z * (baseSpeed * currentSpeed * 0.7)
-                        );
-                    }
-                }
-
-                if (tigerShark.backwardAccelerationLevel > 0) {
-                    tigerShark.backwardAccelerationLevel -= 1.0f;
-                    tigerShark.backwardAccelerationLevel = Math.max(0, tigerShark.backwardAccelerationLevel);
-
-                    if (tigerShark.backwardAccelerationLevel > 0) {
-                        float normalizedAccel = tigerShark.backwardAccelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        Vec3 lookDirection = tigerShark.getViewVector(1.0f);
-                        Vec3 backwardMovement = new Vec3(
-                                -lookDirection.x * (baseSpeed * currentSpeed * 0.5 * 0.7),
-                                -lookDirection.y * (baseSpeed * currentSpeed * 0.5 * 0.7),
-                                -lookDirection.z * (baseSpeed * currentSpeed * 0.5 * 0.7)
-                        );
-                        newMovement = newMovement.add(backwardMovement);
-                    }
-                }
-            }
-
-            if (rightKeyIsPressed) {
-                tigerShark.leftAccelerationLevel = 0;
-
-                if (tigerShark.rightAccelerationLevel < 100) {
-                    tigerShark.rightAccelerationLevel += 1.0f;
-                }
-
-                float normalizedAccel = tigerShark.rightAccelerationLevel / 100.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                float yaw = tigerShark.getYRot();
-                float angle = yaw + 90.0F;
-                Vec3 rightDirection = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0F), 0, Mth.cos(angle * (float) Math.PI / 180.0F));
-
-                Vec3 rightMovement = new Vec3(
-                        rightDirection.x * (0.5 * baseSpeed * currentSpeed),
-                        rightDirection.y * (0.5 * baseSpeed * currentSpeed),
-                        rightDirection.z * (0.5 * baseSpeed * currentSpeed)
-                );
-                newMovement = newMovement.add(rightMovement);
-            } else {
-                if (tigerShark.rightAccelerationLevel > 0) {
-                    tigerShark.rightAccelerationLevel -= 1.0f;
-                    tigerShark.rightAccelerationLevel = Math.max(0, tigerShark.rightAccelerationLevel);
-
-                    if (tigerShark.rightAccelerationLevel > 0) {
-                        float normalizedAccel = tigerShark.rightAccelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        float yaw = tigerShark.getYRot();
-                        float angle = yaw + 90.0F;
-                        Vec3 rightDirection = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0F), 0, Mth.cos(angle * (float) Math.PI / 180.0F));
-
-                        Vec3 rightMovement = new Vec3(
-                                rightDirection.x * (0.5 * baseSpeed * currentSpeed * 0.7),
-                                rightDirection.y * (0.5 * baseSpeed * currentSpeed * 0.7),
-                                rightDirection.z * (0.5 * baseSpeed * currentSpeed * 0.7)
-                        );
-                        newMovement = newMovement.add(rightMovement);
-                    }
-                }
-            }
-
-            if (leftKeyIsPressed) {
-                tigerShark.rightAccelerationLevel = 0;
-
-                if (tigerShark.leftAccelerationLevel < 100) {
-                    tigerShark.leftAccelerationLevel += 1.0f;
-                }
-
-                float normalizedAccel = tigerShark.leftAccelerationLevel / 100.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                float yaw = tigerShark.getYRot();
-                float angle = yaw - 90.0F;
-                Vec3 leftDirection = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0F), 0, Mth.cos(angle * (float) Math.PI / 180.0F));
-
-                Vec3 leftMovement = new Vec3(
-                        leftDirection.x * (0.5 * baseSpeed * currentSpeed),
-                        leftDirection.y * (0.5 * baseSpeed * currentSpeed),
-                        leftDirection.z * (0.5 * baseSpeed * currentSpeed)
-                );
-                newMovement = newMovement.add(leftMovement);
-            } else {
-                if (tigerShark.leftAccelerationLevel > 0) {
-                    tigerShark.leftAccelerationLevel -= 1.0f;
-                    tigerShark.leftAccelerationLevel = Math.max(0, tigerShark.leftAccelerationLevel);
-
-                    if (tigerShark.leftAccelerationLevel > 0) {
-                        float normalizedAccel = tigerShark.leftAccelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        float yaw = tigerShark.getYRot();
-                        float angle = yaw - 90.0F;
-                        Vec3 leftDirection = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0F), 0, Mth.cos(angle * (float) Math.PI / 180.0F));
-
-                        Vec3 leftMovement = new Vec3(
-                                leftDirection.x * (0.5 * baseSpeed * currentSpeed * 0.7),
-                                leftDirection.y * (0.5 * baseSpeed * currentSpeed * 0.7),
-                                leftDirection.z * (0.5 * baseSpeed * currentSpeed * 0.7)
-                        );
-                        newMovement = newMovement.add(leftMovement);
-                    }
-                }
-            }
-
-            if (upKeyIsPressed) {
-                if (tigerShark.upAccelerationLevel < 100) {
-                    tigerShark.upAccelerationLevel += 1f;
-                }
-
-                float normalizedAccel = tigerShark.upAccelerationLevel / 150.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                Vec3 upMovement = new Vec3(0, 0.2 * currentSpeed, 0);
-                newMovement = newMovement.add(upMovement);
-            } else {
-                if (tigerShark.upAccelerationLevel > 0) {
-                    tigerShark.upAccelerationLevel -= 1.0f;
-                    tigerShark.upAccelerationLevel = Math.max(0, tigerShark.upAccelerationLevel);
-
-                    if (tigerShark.upAccelerationLevel > 0) {
-                        float normalizedAccel = tigerShark.upAccelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        Vec3 upMovement = new Vec3(0, 0.125 * currentSpeed * 0.7, 0);
-                        newMovement = newMovement.add(upMovement);
-                    }
-                }
-            }
-
-            if (tigerShark.isAlive() && tigerShark.isInWater()) tigerShark.setDeltaMovement(newMovement);
-        }
-
-        if (ridingEntity instanceof TigerEntity tiger) {
-            int maxTime = 200;
-            if (forwardKeyIsPressed && tiger.isRunning() && !tiger.isInWater() && tiger.cooldownJump <= 0) {
-                if (tiger.chargeTimer < maxTime) tiger.chargeTimer++;
-            } else tiger.chargeTimer = 0;
-            if (useKeyIsPressed && canUseRightClick(Minecraft.getInstance()) && tiger.chargeTimer >= maxTime && tiger.cooldownJump <= 0) {
-                OWNetworkHandler.sendToServer(new TigerChargePacket());
-                tiger.chargeTimer = 0;
-            }
-        }
-
-        if (ridingEntity instanceof BoaEntity boa) {
-            int soundTimeMax = 277;
-            handleBoaSound(boa, forwardKeyIsPressed, player, soundTimeMax);
-
-            if (forwardKeyIsPressed && boa.isInWater() && player == Minecraft.getInstance().player) {
-                updateWaterMovement(boa, player, 15, 0.9);
-            }
-        } else if (ridingEntity instanceof TigerEntity tiger) {
-            if (forwardKeyIsPressed && tiger.isInWater() && player == Minecraft.getInstance().player) {
-                updateWaterMovement(tiger, player, 12, 0.9);
-            }
-        }
-    }
-
-    private static void handleBoaSound(BoaEntity boa, boolean isMoving, Player player, int soundTimeMax) {
-        if (!isMoving) {
-            stopBoaSound(boa);
-            return;
-        }
-
-        if (boa.getSoundTime() < soundTimeMax) {
-            boa.setSoundTime(boa.getSoundTime() + 1);
-        }
-
-        if (boa.getSoundTime() >= soundTimeMax && !boa.isInWater()) {
-            boa.level().playSound(null, boa, OWSounds.BOA_SLITHER.get(), SoundSource.PLAYERS, 1.0F, 1.2f);
-            boa.setSoundTime(0);
-        }
-
-        if (boa.isInWater()) {
-            stopBoaSound(boa);
-        }
-    }
-
-    private static void stopBoaSound(BoaEntity boa) {
-        boa.setSoundTime(276);
-        Minecraft.getInstance().getSoundManager().stop(OWSounds.BOA_SLITHER.get().getLocation(), SoundSource.PLAYERS);
     }
 
     private static void updateWaterMovement(OWEntity entity, Player player, int speed, double VERTICAL_DRAG) {
@@ -1012,13 +712,6 @@ public class ClientEvents {
         entity.setDeltaMovement(newMotion);
     }
 
-    private static boolean isPlayerBeingShaken(Player player) {
-        return player.level().getEntitiesOfClass(TigerSharkEntity.class,
-                        player.getBoundingBox().inflate(5.0))
-                .stream()
-                .anyMatch(tigerShark -> tigerShark.isShakingPrey() && tigerShark.getTarget() == player);
-    }
-
     @SubscribeEvent
     public static void onRenderStage(RenderGuiLayerEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
@@ -1029,30 +722,34 @@ public class ClientEvents {
         boolean hasVenom = player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()) || (vehicle != null && vehicle instanceof LivingEntity livingEntity && livingEntity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()));
         boolean canShowAttacksInformation = OWKeysBinding.OW_ATTACKS_INFO.isDown();
         boolean questsAreUpdated = targetedEntity instanceof OWEntity owEntity && owEntity.questsAreUpdated();
-        boolean renderTiger = targetedEntity instanceof TigerEntity;
         boolean renderSeabug = targetedEntity instanceof SeaBugEntity;
-        boolean renderBoa = targetedEntity instanceof BoaEntity;
         boolean renderKodiak = targetedEntity instanceof KodiakEntity;
         boolean renderCrocodile = targetedEntity instanceof CrocodileEntity;
-        boolean renderPeacock = targetedEntity instanceof PeacockEntity;
         boolean renderFoodOverlay = targetedEntity instanceof OWEntity ow && !ow.getItemFood().isEmpty();
 
-        boolean isGrabByBoa = player.getPassengers().stream().anyMatch(passenger -> passenger instanceof BoaEntity);
-        boolean isGrabByShark = player.level().getEntitiesOfClass(TigerSharkEntity.class, player.getBoundingBox().inflate(5.0)).stream().anyMatch(tigerShark -> tigerShark.isShakingPrey() && tigerShark.getTarget() == player);
-        boolean isGrabByCrocodile = player.level().getEntitiesOfClass(CrocodileEntity.class, player.getBoundingBox().inflate(5.0)).stream().anyMatch(crocodile -> crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player);
+        boolean isGrabByCrocodile = player.level().getEntitiesOfClass(CrocodileEntity.class, player.getBoundingBox().inflate(5.0)).stream().anyMatch(
+                crocodile -> crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player
+        );
+
+        boolean isGrabByTiger = player.level().getEntitiesOfClass(TigerEntity.class, player.getBoundingBox().inflate(5.0)).stream().anyMatch(
+                tiger -> tiger.isGrabbing() && tiger.getGrabbedTarget() == player
+        );
+
+        boolean isGrabBySomething = isGrabByCrocodile || isGrabByTiger;
 
         if (player != null) {
             PlantEmpressBossBar.render(event.getGuiGraphics(),
                     event.getGuiGraphics().guiWidth(),
                     event.getGuiGraphics().guiHeight());
 
-            if (isGrabByBoa || isGrabByShark || isGrabByCrocodile) {
+            if (isGrabBySomething) {
                 RightClickAlertOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
             if (player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine)) {
+                if (player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player) return;
+                if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player) return;
                 OWEntityHud.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
-                TigerOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
             if (isNotifiedOWBook) {
@@ -1085,12 +782,6 @@ public class ClientEvents {
                         event.getGuiGraphics().guiHeight());
             }
 
-            if (renderBoa) {
-                BoaOverlay.render(event.getGuiGraphics(),
-                        event.getGuiGraphics().guiWidth(),
-                        event.getGuiGraphics().guiHeight());
-            }
-
             if (renderKodiak) {
                 KodiakOverlay.render(event.getGuiGraphics(),
                         event.getGuiGraphics().guiWidth(),
@@ -1099,12 +790,6 @@ public class ClientEvents {
 
             if (renderCrocodile) {
                 CrocodileOverlay.render(event.getGuiGraphics(),
-                        event.getGuiGraphics().guiWidth(),
-                        event.getGuiGraphics().guiHeight());
-            }
-
-            if (renderPeacock) {
-                PeacockOverlay.render(event.getGuiGraphics(),
                         event.getGuiGraphics().guiWidth(),
                         event.getGuiGraphics().guiHeight());
             }
@@ -1243,10 +928,6 @@ public class ClientEvents {
             return;
         }
 
-        if (event.getEntity().getVehicle() instanceof WalrusEntity walrus && walrus.getComboAttack() == 3) {
-            return;
-        }
-
         if (event.getEntity().getVehicle() instanceof SeaBugEntity seaBug) {
 
             PoseStack poseStack = event.getPoseStack();
@@ -1300,10 +981,6 @@ public class ClientEvents {
             return;
         }
 
-        if (event.getEntity().getVehicle() instanceof WalrusEntity walrus && walrus.getComboAttack() == 3) {
-            return;
-        }
-
         if (event.getEntity().getVehicle() instanceof CrocodileEntity crocodile) {
             if (event.getEntity() != crocodile.getGrabbedTarget()) {
                 return;
@@ -1320,18 +997,9 @@ public class ClientEvents {
         if (cameraEntity != null) {
             Entity rootVehicle = cameraEntity.getRootVehicle();
 
-            if (rootVehicle instanceof ElephantEntity elephant) {
-                event.setRoll(event.getRoll() + (elephant.getBodyZRot() / 4));
-                event.setPitch(event.getPitch() + (elephant.getBodyXRot() / 2));
-            } else if (rootVehicle instanceof KodiakEntity kodiak) {
+            if (rootVehicle instanceof KodiakEntity kodiak) {
                 event.setRoll(event.getRoll() + (kodiak.getBodyZRot() / (kodiak.isRunning() ? 1 : 2)));
                 event.setPitch(event.getPitch() + (kodiak.getBodyXRot() / (kodiak.isRunning() ? 1 : 2)));
-            } else if (rootVehicle instanceof TigerEntity tiger) {
-                event.setRoll(event.getRoll() + (tiger.getBodyZRot()));
-                event.setPitch(event.getPitch() + (tiger.getBodyXRot()));
-            } else if (rootVehicle instanceof HyenaEntity hyena) {
-                event.setRoll(event.getRoll() + (hyena.getBodyZRot() / 3));
-                event.setPitch(event.getPitch() + (hyena.getBodyXRot() / 3));
             } else if (rootVehicle instanceof CrocodileEntity crocodile) {
                 if (crocodile.isDeathRolling()) {
                     event.setRoll(event.getRoll() + crocodile.getBodyZRot());
@@ -1343,14 +1011,9 @@ public class ClientEvents {
                 if (crocodile.getGrabbedTarget() == cameraEntity) {
                     event.setYaw(event.getYaw() + (crocodile.getBodyYRot()));
                 }
-            } else if (rootVehicle instanceof WalrusEntity walrus) {
-                if (walrus.getComboAttack() < 3) {
-                    event.setRoll(event.getRoll() + (walrus.getBodyZRot() / (walrus.isInWater() ? 4 : 2)));
-                    event.setPitch(event.getPitch() + (walrus.getBodyXRot() / (walrus.isInWater() ? 4 : 2)));
-                }
-            } else if (rootVehicle instanceof LionEntity lion) {
-                event.setRoll(event.getRoll() + (lion.getBodyZRot() / 3));
-                event.setPitch(event.getPitch() + (lion.getBodyXRot() / 3));
+            } else if (rootVehicle instanceof TigerEntity tiger) {
+                event.setRoll(event.getRoll() + (tiger.getBodyZRot() / (tiger.isRunning() ? 4 : 2)));
+                event.setPitch(event.getPitch() + (tiger.getBodyXRot() / (tiger.isRunning() ? 4 : 2)));
             }
         }
     }

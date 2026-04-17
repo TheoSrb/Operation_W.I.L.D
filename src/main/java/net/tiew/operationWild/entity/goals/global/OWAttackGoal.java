@@ -54,26 +54,13 @@ public class OWAttackGoal extends Goal {
     public boolean canContinueToUse() {
         LivingEntity target = this.mob.getTarget();
 
-        if (target == null || !target.isAlive()) {
-            return false;
-        }
+        if (target == null || !target.isAlive()) return false;
 
-        if (target instanceof Player && (target.isSpectator() || ((Player)target).isCreative())) {
-            return false;
-        }
+        if (target instanceof Player player && (player.isSpectator() || player.isCreative())) return false;
 
-        boolean canSeeTarget = this.mob.getSensing().hasLineOfSight(target);
-        double distance = this.mob.distanceTo(target);
+        if (this.mob.distanceTo(target) > MAX_CHASE_DISTANCE) return false;
 
-        if (distance > MAX_CHASE_DISTANCE) {
-            return false;
-        }
-
-        if (!canSeeTarget) {
-            return false;
-        }
-
-        return true;
+        return !this.mob.getNavigation().isDone() || this.mob.distanceTo(target) <= this.attackRange;
     }
 
     @Override
@@ -107,9 +94,7 @@ public class OWAttackGoal extends Goal {
     @Override
     public void tick() {
         LivingEntity target = this.mob.getTarget();
-        if (target == null || this.mob.hasEffect(OWEffects.FRACTURE.getDelegate())) {
-            return;
-        }
+        if (target == null || this.mob.hasEffect(OWEffects.FRACTURE.getDelegate())) return;
 
         this.ticksUntilNextPathRecalc--;
         if (this.ticksUntilNextPathRecalc <= 0) {

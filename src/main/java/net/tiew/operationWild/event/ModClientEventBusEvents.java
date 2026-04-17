@@ -10,6 +10,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.client.model.*;
 import net.tiew.operationWild.entity.client.model.misc.*;
+import net.tiew.operationWild.entity.client.model.skin.TigerModelSkins;
+import net.tiew.operationWild.entity.client.skin.SkinRegistry;
 
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -24,23 +26,11 @@ public class ModClientEventBusEvents {
 
     @SubscribeEvent
     public static void registerLayer(EntityRenderersEvent.RegisterLayerDefinitions event) {
-        event.registerLayerDefinition(TigerModel.LAYER_LOCATION, TigerModel::createBodyLayer);
-        event.registerLayerDefinition(MandrillModel.LAYER_LOCATION, MandrillModel::createBodyLayer);
-        event.registerLayerDefinition(ElephantModel.LAYER_LOCATION, ElephantModel::createBodyLayer);
         event.registerLayerDefinition(CrocodileModel.LAYER_LOCATION, CrocodileModel::createBodyLayer);
-        event.registerLayerDefinition(LionModel.LAYER_LOCATION, LionModel::createBodyLayer);
-        event.registerLayerDefinition(WalrusModel.LAYER_LOCATION, WalrusModel::createBodyLayer);
-        event.registerLayerDefinition(MantaModel.LAYER_LOCATION, MantaModel::createBodyLayer);
-        event.registerLayerDefinition(JellyfishModel.LAYER_LOCATION, JellyfishModel::createBodyLayer);
-        event.registerLayerDefinition(ChameleonModel.LAYER_LOCATION, ChameleonModel::createBodyLayer);
-        event.registerLayerDefinition(RedPandaModel.LAYER_LOCATION, RedPandaModel::createBodyLayer);
         event.registerLayerDefinition(KodiakModel.LAYER_LOCATION, KodiakModel::createBodyLayer);
-        event.registerLayerDefinition(HyenaModel.LAYER_LOCATION, HyenaModel::createBodyLayer);
+        event.registerLayerDefinition(TigerModel.LAYER_LOCATION, TigerModel::createBodyLayer);
         event.registerLayerDefinition(SeaBugModel.LAYER_LOCATION, SeaBugModel::createBodyLayer);
         event.registerLayerDefinition(PlantEmpressModel.LAYER_LOCATION, PlantEmpressModel::createBodyLayer);
-        event.registerLayerDefinition(BoaModel.LAYER_LOCATION, BoaModel::createBodyLayer);
-        event.registerLayerDefinition(PeacockModel.LAYER_LOCATION, PeacockModel::createBodyLayer);
-        event.registerLayerDefinition(TigerSharkModel.LAYER_LOCATION, TigerSharkModel::createBodyLayer);
 
         event.registerLayerDefinition(SeaBugShard0Model.LAYER_LOCATION, SeaBugShard0Model::createBodyLayer);
         event.registerLayerDefinition(SeaBugShard1Model.LAYER_LOCATION, SeaBugShard1Model::createBodyLayer);
@@ -54,5 +44,8 @@ public class ModClientEventBusEvents {
         event.registerLayerDefinition(SlingshotProjectileModel.LAYER_LOCATION, SlingshotProjectileModel::createBodyLayer);
 
         event.registerLayerDefinition(AdventurerManuscriptModel.LAYER_LOCATION, AdventurerManuscriptModel::createBodyLayer);
+
+
+        SkinRegistry.TigerSkins.registerAllLayerDefinitions(event);
     }
 }

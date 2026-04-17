@@ -10,9 +10,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 import net.tiew.operationWild.entity.client.animation.AdventurerManuscriptAnimations;
-import net.tiew.operationWild.entity.client.animation.JellyfishAnimations;
 import net.tiew.operationWild.entity.misc.AdventurerManuscript;
 
 public class AdventurerManuscriptModel<T extends AdventurerManuscript> extends HierarchicalModel<T> {

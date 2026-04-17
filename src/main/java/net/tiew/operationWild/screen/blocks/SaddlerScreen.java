@@ -20,9 +20,6 @@ import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.*;
-import net.tiew.operationWild.event.ClientEvents;
 
 import java.util.Collections;
 import java.util.List;

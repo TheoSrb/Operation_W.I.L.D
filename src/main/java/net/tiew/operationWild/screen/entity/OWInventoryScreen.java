@@ -1,20 +1,11 @@
 package net.tiew.operationWild.screen.entity;
 
-import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.model.PigModel;
-import net.minecraft.client.model.geom.EntityModelSet;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.MobEffectTextureManager;
 import net.minecraft.core.Holder;
@@ -23,7 +14,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
-import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -32,11 +22,6 @@ import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtensions;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.OWEntityRegistry;
-import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
-import net.tiew.operationWild.entity.client.model.AdventurerManuscriptModel;
-import net.tiew.operationWild.entity.client.model.TigerModel;
-import net.tiew.operationWild.entity.misc.AdventurerManuscript;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.LevelUpOWInventoryPacket;
 import net.tiew.operationWild.screen.entity.skins.*;
@@ -86,11 +71,8 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
 
     private void chooseSkinsScreenForEntity(OWEntity entity) {
         switch (entity.getClass().getSimpleName()) {
-            case "TigerEntity" -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
-            case "BoaEntity" -> Minecraft.getInstance().setScreen(new BoaSkinsScreen());
-            case "PeacockEntity" -> Minecraft.getInstance().setScreen(new PeacockSkinsScreen());
-            case "ElephantEntity" -> Minecraft.getInstance().setScreen(new ElephantSkinsScreen());
             case "KodiakEntity" -> Minecraft.getInstance().setScreen(new KodiakSkinsScreen());
+            case "TigerEntity" -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
             default -> Minecraft.getInstance().player.sendSystemMessage(Component.translatable("tooltip.noSkins").withStyle(Style.EMPTY).withColor(0xFF0000));
         }
     }

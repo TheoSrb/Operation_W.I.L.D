@@ -1,0 +1,46 @@
+// ============================================================
+// HOW TO ADD A NEW SKIN
+// ============================================================
+//
+// 1. Add a value to TigerVariant.
+//
+// 2. In SkinRegistry.static{}, add ONE of:
+//
+//    a) Simple texture swap (no model change):
+//       register(TigerVariant.MY_VARIANT, TigerSkin.base(tex("tiger_myskin.png")));
+//
+//    b) Overlay on top of the existing tiger:
+//       register(TigerVariant.MY_VARIANT, TigerSkin.overlay(
+//           tex("tiger_default.png"),    // base stays visible
+//           tex("skins/myskin.png"),     // overlaid on top
+//           MyModelSkins.LAYER_MY,
+//           MyModelSkins::createMySkin
+//       ));
+//
+//    c) Full model replacement:
+//       register(TigerVariant.MY_VARIANT, TigerSkin.replacement(
+//           tex("skins/myskin.png"),
+//           MyModelSkins.LAYER_MY,
+//           MyModelSkins::createMySkin
+//       ));
+//
+//    d) Custom rendering (glow, animations…):
+//       Create a class that extends TigerSkin:
+//
+//       public class MyTigerSkin extends TigerSkin {
+//           public MyTigerSkin() {
+//               super(Mode.BASE, TEXTURE, null, null, null);
+//           }
+//           @Override
+//           public void renderExtraLayers(PoseStack ps, MultiBufferSource buf,
+//                                         int light, TigerEntity tiger,
+//                                         TigerModel<TigerEntity> model) {
+//               renderGlow(ps, buf, MY_GLOW_TEXTURE, model);
+//           }
+//       }
+//
+//       Then: register(TigerVariant.MY_VARIANT, new MyTigerSkin());
+//
+// 3. That's it. No changes to TigerRenderer, TigerSkinRenderLayer,
+//    TigerModel, or ModClientEventBusEvents.
+// ============================================================

@@ -5,11 +5,14 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
+import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.core.OWDatasSave;
+import net.tiew.operationWild.quests.CosmeticsQuestsRegistry;
 import net.tiew.operationWild.screen.entity.OWSkinsInterface;
 
 @OnlyIn(Dist.CLIENT)
 public class TigerSkinsScreen extends OWSkinsInterface {
+
     private Button skinButton1;
     private Button skinButton2;
     private Button skinButton3;
@@ -19,33 +22,53 @@ public class TigerSkinsScreen extends OWSkinsInterface {
     private Button skinButton7;
     private Button skinButton8;
 
-    private int numberOfSkins = 8;
+    private final int numberOfSkins = 8;
 
-    public TigerSkinsScreen() {
-        super();
+    public TigerSkinsScreen() { super(); }
+
+    @Override
+    protected void prepareGhostEntity(OWEntity ghost) {
+        ghost.setSaddle(false);
     }
 
     @Override
     protected void initEntityScale() {
         if (this.entity != null && "TigerEntity".equals(this.entity.getClass().getSimpleName())) {
-            entityScale = (int) (22 * 2.5f);
+            entityScale = (int)(20 * 2.5f);
         }
     }
 
     @Override
     protected void initLockedSkins() {
-        for (int i = 1; i <= numberOfSkins; i++) {
-            lockedSkins.put(i, false);
-        }
+        for (int i = 1; i <= numberOfSkins; i++) lockedSkins.put(i, false);
     }
 
     @Override
     protected void initSkinPrices() {
-        skinPrices.put(3, 300);
-        skinPrices.put(5, 200);
-        skinPrices.put(6, 500);
+        skinPrices.put(3, 50); // skin 3 coûte 50 prestige
     }
 
+    // =========================================================================
+    // Données du panel de détails
+    // =========================================================================
+    @Override
+    protected SkinInfo getSkinInfo(int skinIndex) {
+        return switch (skinIndex) {
+            case 1 -> SkinInfo.level(    "tooltip.tigerSkin1", "tooltip.tigerSkin1.desc", 50);
+            case 2 -> SkinInfo.free(     "tooltip.tigerSkin2", "tooltip.tigerSkin2.desc");
+            case 3 -> SkinInfo.prestige( "tooltip.tigerSkin3", "tooltip.tigerSkin3.desc", 50);
+            case 4 -> SkinInfo.free(     "tooltip.tigerSkin4", "tooltip.tigerSkin4.desc");
+            case 5 -> SkinInfo.free(     "tooltip.tigerSkin5", "tooltip.tigerSkin5.desc");
+            case 6 -> SkinInfo.quest("tooltip.tigerSkin6", "tooltip.tigerSkin6.desc", 0);
+            case 7 -> SkinInfo.free(     "tooltip.tigerSkin7", "tooltip.tigerSkin7.desc");
+            case 8 -> SkinInfo.free(     "tooltip.tigerSkin8", "tooltip.tigerSkin8.desc");
+            default -> null;
+        };
+    }
+
+    // =========================================================================
+    // Boutons
+    // =========================================================================
     @Override
     protected void createAndAddButtons() {
         LEGENDARY_SKIN.clear();
@@ -57,11 +80,11 @@ public class TigerSkinsScreen extends OWSkinsInterface {
         skinButton1 = createSkinButton(Component.translatable("tooltip.tigerSkin1"), 1, LEGENDARY_SKIN);
         skinButton2 = createSkinButton(Component.translatable("tooltip.tigerSkin2"), 2, RARE_SKIN);
         skinButton3 = createSkinButton(Component.translatable("tooltip.tigerSkin3"), 3, EPIC_SKIN);
-        skinButton4 = createSkinButton(Component.translatable("tooltip.tigerSkin4"), 4, RARE_SKIN);
-        skinButton5 = createSkinButton(Component.translatable("tooltip.tigerSkin5"), 5, RARE_SKIN);
-        skinButton6 = createSkinButton(Component.translatable("tooltip.tigerSkin6"), 6, LEGENDARY_SKIN);
-        skinButton7 = createSkinButton(Component.translatable("tooltip.tigerSkin7"), 7, COMMON_SKIN);
-        skinButton8 = createSkinButton(Component.translatable("tooltip.tigerSkin8"), 8, EPIC_SKIN);
+        skinButton4 = createSkinButton(Component.translatable("tooltip.tigerSkin4"), 4, EPIC_SKIN);
+        skinButton5 = createSkinButton(Component.translatable("tooltip.tigerSkin5"), 5, EPIC_SKIN);
+        skinButton6 = createSkinButton(Component.translatable("tooltip.tigerSkin6"), 6, COMMON_SKIN);
+        skinButton7 = createSkinButton(Component.translatable("tooltip.tigerSkin7"), 7, RARE_SKIN);
+        skinButton8 = createSkinButton(Component.translatable("tooltip.tigerSkin8"), 8, COMMON_SKIN);
 
         updateButtonColors();
         addButtonsToList();
@@ -82,24 +105,21 @@ public class TigerSkinsScreen extends OWSkinsInterface {
 
     @Override
     protected void addTooltipsToButtons() {
-        if (isLocked(1)) skinButton1.setTooltip(Tooltip.create(Component.translatable("tooltip.tigerSkin1Indication")));
-        if (isLocked(2)) skinButton2.setTooltip(Tooltip.create(Component.translatable("tooltip.tigerSkin2Indication")));
-        if (isLocked(3)) skinButton3.setTooltip(Tooltip.create(Component.translatable("tooltip.tigerSkin3Indication", getSkinPrice(3))));
-        if (isLocked(4)) skinButton4.setTooltip(Tooltip.create(Component.translatable("tooltip.tigerSkin4Indication")));
-        if (isLocked(5)) skinButton5.setTooltip(Tooltip.create(Component.translatable("tooltip.tigerSkin5Indication", getSkinPrice(5))));
-        if (isLocked(6)) skinButton6.setTooltip(Tooltip.create(Component.translatable("tooltip.tigerSkin6Indication", getSkinPrice(6))));
-        if (isLocked(8)) skinButton7.setTooltip(Tooltip.create(Component.translatable("tooltip.tigerSkin8Indication")));
+        if (isLocked(1))
+            skinButton1.setTooltip(Tooltip.create(Component.translatable("tooltip.tigerSkin1Indication")));
     }
 
     @Override
     protected void updateLockStates() {
         if (this.entity != null) {
-            setLockState(1, this.entity.getLevel() < 50);
+            CosmeticsQuestsRegistry.getById(0).update(entity.getUUID());
+
+            setLockState(1, entity.getLevel() < 50);
             setLockState(2, false);
-            setLockState(3, entity instanceof TigerEntity tigerEntity && !tigerEntity.skinPizzaChefIsAlreadyBuying());
+            setLockState(3, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 3));
             setLockState(4, false);
-            setLockState(5, entity instanceof TigerEntity tigerEntity && !tigerEntity.skinDetectiveIsAlreadyBuying());
-            setLockState(6, entity instanceof TigerEntity tigerEntity && !tigerEntity.skinVirusIsAlreadyBuying());
+            setLockState(5, false);
+            setLockState(6, !CosmeticsQuestsRegistry.isCompleted(0, entity.getUUID()));
             setLockState(7, false);
             setLockState(8, false);
         }

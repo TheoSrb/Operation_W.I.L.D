@@ -20,9 +20,6 @@ import net.minecraft.world.level.block.Block;
 import net.tiew.operationWild.entity.OWEntity;
 import org.joml.Math;
 import org.joml.Vector3f;
-import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
-
-import java.util.Random;
 
 public class OWUtils {
 
@@ -97,7 +94,7 @@ public class OWUtils {
 
             world.addParticle(
                     new DustParticleOptions(new Vector3f(red, green, blue), 1.0F),
-                    startX, entity instanceof BoaEntity ? startY + 1 : startY, startZ,
+                    startX, startY, startZ,
                     directionX * speed * (0.8 + Math.random() * 0.4) + (Math.random() - 0.5) * spreadFactor,
                     directionY * speed * (0.8 + Math.random() * 0.4) + (Math.random() - 0.5) * spreadFactor,
                     directionZ * speed * (0.8 + Math.random() * 0.4) + (Math.random() - 0.5) * spreadFactor
@@ -121,6 +118,26 @@ public class OWUtils {
             double posZ = entity.getRandomZ(spawnZ) + offsetZ;
 
             entity.level().addParticle(particleoptions, posX, posY, posZ, speedX, speedY, speedZ);
+        }
+    }
+
+    public static void spawnServerParticles(Entity entity, SimpleParticleType particleTypes, double spawnX, double spawnY, double spawnZ, int amount, double dispersionMultiplier) {
+        if (!(entity.level() instanceof ServerLevel serverLevel)) return;
+
+        for (int i = 0; i < amount; ++i) {
+            double offsetX = OWEntity.RANDOM.nextDouble() * (0.5D * dispersionMultiplier) - (0.25D * dispersionMultiplier);
+            double offsetY = OWEntity.RANDOM.nextDouble() * (0.5D * dispersionMultiplier) - (0.25D * dispersionMultiplier);
+            double offsetZ = OWEntity.RANDOM.nextDouble() * (0.5D * dispersionMultiplier) - (0.25D * dispersionMultiplier);
+
+            double speedX = OWEntity.RANDOM.nextGaussian() * 0.02D;
+            double speedY = OWEntity.RANDOM.nextGaussian() * 0.02D;
+            double speedZ = OWEntity.RANDOM.nextGaussian() * 0.02D;
+
+            double posX = entity.getRandomX(spawnX) + offsetX;
+            double posY = entity.getRandomY() + spawnY + offsetY;
+            double posZ = entity.getRandomZ(spawnZ) + offsetZ;
+
+            serverLevel.sendParticles(particleTypes, posX, posY, posZ, 1, speedX, speedY, speedZ, 0.0);
         }
     }
 

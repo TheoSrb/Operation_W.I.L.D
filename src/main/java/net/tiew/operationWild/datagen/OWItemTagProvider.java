@@ -155,14 +155,15 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.POISONOUS_POTATO)
                 .add(Items.PUFFERFISH);
 
-        tag(OWTags.Items.WALRUS_FOOD)
-                .add(Items.NAUTILUS_SHELL);
 
         tag(OWTags.Items.CROCODILE_FOOD)
                 .add(OWItems.RAW_TIGER.get());
 
-        tag(OWTags.Items.LION_FOOD)
-                .add(OWItems.RAW_TIGER.get());
+        tag(OWTags.Items.TIGER_FOOD)
+                .add(OWItems.RAW_KODIAK.get())
+                .add(OWItems.RAW_BOA.get())
+                .add(OWItems.RAW_PEACOCK.get())
+                .add(Items.BEEF);
 
 
         tag(OWTags.Items.OW_EGGS)

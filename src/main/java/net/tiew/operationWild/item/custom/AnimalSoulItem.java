@@ -148,13 +148,8 @@ public class AnimalSoulItem extends Item {
     private OWEntity getOWEntity(ItemStack stack, Level level) {
         OWEntity owEntity;
         switch (getEntityType(stack).getString()) {
-            case "TigerEntity" -> owEntity = OWEntityRegistry.TIGER.get().create(level);
-            case "BoaEntity" -> owEntity = OWEntityRegistry.BOA.get().create(level);
-            case "PeacockEntity" -> owEntity = OWEntityRegistry.PEACOCK.get().create(level);
-            case "TigerSharkEntity" -> owEntity = OWEntityRegistry.TIGER_SHARK.get().create(level);
-            case "ElephantEntity" -> owEntity = OWEntityRegistry.ELEPHANT.get().create(level);
             case "KodiakEntity" -> owEntity = OWEntityRegistry.KODIAK.get().create(level);
-            default -> owEntity = OWEntityRegistry.TIGER.get().create(level);
+            default -> owEntity = OWEntityRegistry.CROCODILE.get().create(level);
         }
 
         return owEntity;
@@ -185,23 +180,7 @@ public class AnimalSoulItem extends Item {
                 owEntity.setBaseSpeed((float) owEntity.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
                 owEntity.setResurrectionMaxTimer(((int) (125 * owEntity.getMaxHealth() * owEntity.getDamage() * (1 + 10 * owEntity.getSpeed()) * ((float) Math.sqrt(owEntity.getLevel() + 1) / 5f + 1))) / 2);
 
-                if (owEntity instanceof TigerEntity tiger) {
-                    TigerVariant variant = TigerVariant.byId(variantId);
-                    tiger.setVariant(variant);
-                    tiger.setInitialVariant(variant);
-                } else if (owEntity instanceof BoaEntity boa) {
-                    BoaVariant variant = BoaVariant.byId(variantId);
-                    boa.setVariant(variant);
-                    boa.setInitialVariant(variant);
-                } else if (owEntity instanceof PeacockEntity peacock) {
-                    PeacockVariant variant = PeacockVariant.byId(variantId);
-                    peacock.setVariant(variant);
-                    peacock.setInitialVariant(variant);
-                } else if (owEntity instanceof ElephantEntity elephant) {
-                    ElephantVariant variant = ElephantVariant.byId(variantId);
-                    elephant.setVariant(variant);
-                    elephant.setInitialVariant(variant);
-                } else if (owEntity instanceof KodiakEntity kodiak) {
+                if (owEntity instanceof KodiakEntity kodiak) {
                     KodiakVariant variant = KodiakVariant.byId(variantId);
                     kodiak.setVariant(variant);
                     kodiak.setInitialVariant(variant);

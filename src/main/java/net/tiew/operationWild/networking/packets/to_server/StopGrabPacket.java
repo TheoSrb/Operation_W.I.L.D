@@ -9,7 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 
 public record StopGrabPacket() implements CustomPacketPayload {
 
@@ -34,6 +34,10 @@ public record StopGrabPacket() implements CustomPacketPayload {
                         crocodile.getGrabbedTarget().stopRiding();
                         crocodile.setGrabbing(false, null);
                         crocodile.setTarget(null);
+                    } else if (entity instanceof TigerEntity tiger) {
+                        tiger.getGrabbedTarget().stopRiding();
+                        tiger.setGrabbing(false, null);
+                        tiger.setTarget(null);
                     }
                 }
             }

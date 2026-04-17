@@ -10,7 +10,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.core.OWKeysBinding;
 
 import java.util.List;
@@ -114,7 +113,7 @@ public class OWAttacksInformation {
 
         Component attackDescription2 = Component.translatable("attacks.description2." + owEntity.getClass().getSimpleName(),
                 Component.translatable(chooseAnimalType(owEntity)).setStyle(Style.EMPTY.withBold(true).withColor(owEntity.getEntityColor())),
-                Component.literal(owEntity instanceof TigerEntity ? String.valueOf(getSecondAttackCooldown(owEntity)) : "3").setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)),
+                Component.literal("3").setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)),
                 Component.literal("5").setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)),
                 Component.literal("40").setStyle(Style.EMPTY.withBold(true).withColor(0xFFFFFF)));
 

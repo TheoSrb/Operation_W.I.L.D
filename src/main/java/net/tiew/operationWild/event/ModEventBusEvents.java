@@ -26,23 +26,11 @@ public class ModEventBusEvents {
 
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
-        event.put(OWEntityRegistry.TIGER.get(), TigerEntity.createAttributes().build());
-        event.put(OWEntityRegistry.MANDRILL.get(), MandrillEntity.createAttributes().build());
         event.put(OWEntityRegistry.CROCODILE.get(), CrocodileEntity.createAttributes().build());
-        event.put(OWEntityRegistry.LION.get(), LionEntity.createAttributes().build());
-        event.put(OWEntityRegistry.ELEPHANT.get(), ElephantEntity.createAttributes().build());
-        event.put(OWEntityRegistry.WALRUS.get(), WalrusEntity.createAttributes().build());
-        event.put(OWEntityRegistry.MANTA.get(), MantaEntity.createAttributes().build());
-        event.put(OWEntityRegistry.JELLYFISH.get(), JellyfishEntity.createAttributes().build());
-        event.put(OWEntityRegistry.CHAMELEON.get(), ChameleonEntity.createAttributes().build());
-        event.put(OWEntityRegistry.RED_PANDA.get(), RedPandaEntity.createAttributes().build());
         event.put(OWEntityRegistry.KODIAK.get(), KodiakEntity.createAttributes().build());
-        event.put(OWEntityRegistry.HYENA.get(), HyenaEntity.createAttributes().build());
+        event.put(OWEntityRegistry.TIGER.get(), TigerEntity.createAttributes().build());
         event.put(OWEntityRegistry.SEABUG.get(), SeaBugEntity.createAttributes().build());
         event.put(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressEntity.createAttributes().build());
-        event.put(OWEntityRegistry.BOA.get(), BoaEntity.createAttributes().build());
-        event.put(OWEntityRegistry.PEACOCK.get(), PeacockEntity.createAttributes().build());
-        event.put(OWEntityRegistry.TIGER_SHARK.get(), TigerSharkEntity.createAttributes().build());
 
         event.put(OWEntityRegistry.SEABUG_SHARD_0.get(), SeaBugShard0Entity.createAttributes().build());
         event.put(OWEntityRegistry.SEABUG_SHARD_1.get(), SeaBugShard1Entity.createAttributes().build());
@@ -53,14 +41,6 @@ public class ModEventBusEvents {
 
     @SubscribeEvent
     public static void registerSpawnPlacements(RegisterSpawnPlacementsEvent event) {
-        event.register(OWEntityRegistry.TIGER.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
-        event.register(OWEntityRegistry.BOA.get(), SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
-        event.register(OWEntityRegistry.PEACOCK.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
-        event.register(OWEntityRegistry.JELLYFISH.get(), SpawnPlacementTypes.IN_WATER, Heightmap.Types.OCEAN_FLOOR,
-                JellyfishEntity::checkSurfaceWaterAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.REPLACE);
         event.register(OWEntityRegistry.KODIAK.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
         event.register(OWEntityRegistry.CROCODILE.get(), SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,

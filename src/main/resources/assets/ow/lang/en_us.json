@@ -141,16 +141,34 @@
   "tooltip.delayBeforeBabyTask": "%s",
 
 
+  "tooltip.equipSkin": "Equip",
+  "tooltip.buySkin": "Unlock",
+  "tooltip.skinObtention": "Obtained via:",
 
+  "tooltip.skinUnlockFree": "Available by default",
+  "tooltip.skinUnlockLevel": "Requires level %s",
+  "tooltip.skinUnlockPrestige": "Exchange for %s prestige points",
+  "tooltip.skinUnlockQuest": "Quest: %s",
+
+  "tooltip.tigerSkin1.desc": "Make your Tiger shine like gold!",
+  "tooltip.tigerSkin2.desc": "Make your Tiger as classy as the Godfather!",
+  "tooltip.tigerSkin3.desc": "Make your Tiger as dangerous as a computer virus!",
+  "tooltip.tigerSkin4.desc": "Make your Tiger as stylish as a pirate of the seven seas!",
+  "tooltip.tigerSkin5.desc": "Make your Tiger as elegant as a scarlet corsair!",
+  "tooltip.tigerSkin6.desc": "Make your Tiger as funny as a cartoon!",
+  "tooltip.tigerSkin7.desc": "Make your Tiger as skilled in cooking as in combat!",
+  "tooltip.tigerSkin8.desc": "Return your Tiger to its default look!",
+
+  "skin.unlock.quest.0": "Stripes & Pencil Strokes",
 
   "tooltip.tigerSkin1": "Golden Tiger",
   "tooltip.tigerSkin2": "Godfather",
-  "tooltip.tigerSkin3": "Pizza Chef",
-  "tooltip.tigerSkin4": "Magmatic",
-  "tooltip.tigerSkin5": "Detective",
-  "tooltip.tigerSkin6": "Virus",
-  "tooltip.tigerSkin7": "Default Tiger",
-  "tooltip.tigerSkin8": "Damned",
+  "tooltip.tigerSkin3": "Virus",
+  "tooltip.tigerSkin4": "Seven Seas",
+  "tooltip.tigerSkin5": "Scarlet Pirate",
+  "tooltip.tigerSkin6": "Cartoon",
+  "tooltip.tigerSkin7": "Pizza Chef",
+  "tooltip.tigerSkin8": "Default Tiger",
 
   "tooltip.boaSkin1": "Golden Boa",
   "tooltip.boaSkin2": "Viking Boa",
@@ -552,6 +570,10 @@
 
   "attacks.description1.KodiakEntity": "Crush your enemies' bones with your %1$s every %2$s seconds, dealing %3$s damage with each strike.",
   "attacks.description2.KodiakEntity": "?",
-  "attacks.description3.KodiakEntity": "?"
+  "attacks.description3.KodiakEntity": "?",
+
+  "quest.completed": "Quest completed!",
+  "quest.tiger_hunter.title": "Tiger Hunter",
+  "quest.tiger_hunter.desc": "Kill 10 entities with your tamed Tiger."
 
 }

@@ -1,7 +1,6 @@
 package net.tiew.operationWild.entity.misc;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -26,7 +25,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidType;
-import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.event.ClientEvents;
@@ -253,14 +251,6 @@ public class Submarine extends OWEntity {
     @Override
     public void tick() {
         super.tick();
-
-        List<JellyfishEntity> jellyfishEntities = this.level().getEntitiesOfClass(JellyfishEntity.class, getBoundingBox().inflate(1));
-
-        if (jellyfishEntities.isEmpty()) {
-            setOff(getEnergy() <= 0);
-        }
-
-
 
         if (isOff()) {
             if (!canDesactivateLight) {

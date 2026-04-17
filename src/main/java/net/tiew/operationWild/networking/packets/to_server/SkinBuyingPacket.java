@@ -10,8 +10,8 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
+import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_client.SkinUnlockedPacket;
 
 public record SkinBuyingPacket(int price, int skinIndex) implements CustomPacketPayload {
 
@@ -32,21 +32,13 @@ public record SkinBuyingPacket(int price, int skinIndex) implements CustomPacket
 
     public static void handle(SkinBuyingPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer player) {
-                Entity entity = player.getRootVehicle();
+            if (!(context.player() instanceof ServerPlayer player)) return;
+            Entity entity = player.getRootVehicle();
+            if (!(entity instanceof OWEntity owEntity)) return;
+            if (owEntity.getPrestigeLevel() < packet.price()) return;
 
-                if (entity instanceof OWEntity owEntity && owEntity instanceof TigerEntity tiger) {
-                    if (owEntity.getPrestigeLevel() >= packet.price()) {
-                        owEntity.setPrestigeLevel(owEntity.getPrestigeLevel() - packet.price());
-                        tiger.setBuyingSkin(packet.skinIndex());
-                    }
-                } else if (entity instanceof OWEntity owEntity && owEntity instanceof BoaEntity boa) {
-                    if (owEntity.getPrestigeLevel() >= packet.price()) {
-                        owEntity.setPrestigeLevel(owEntity.getPrestigeLevel() - packet.price());
-                        boa.setBuyingSkin(packet.skinIndex());
-                    }
-                }
-            }
+            owEntity.setPrestigeLevel(owEntity.getPrestigeLevel() - packet.price());
+            OWNetworkHandler.sendToClient(new SkinUnlockedPacket(owEntity.getUUID(), packet.skinIndex()), player);
         });
     }
 }

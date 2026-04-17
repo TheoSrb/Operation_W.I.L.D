@@ -85,20 +85,8 @@ public class OWAdvancementProvider extends AdvancementProvider {
                     createImpossibleAdvancement(rootOW, saver, OWItems.SEABUG.get(), "captain", AdvancementType.CHALLENGE);
 
 
-            AdvancementHolder tigerTamingAdvancement =
-                    createNewTamingAdvancement(renownedTamer, saver, OWItems.TIGER_SPAWN_EGG.get(), OWEntityRegistry.TIGER.get(), "wild_meow", AdvancementType.GOAL);
-            AdvancementHolder peacockTamingAdvancement =
-                    createNewTamingAdvancement(noviceTamer, saver, OWItems.PEACOCK_SPAWN_EGG.get(), OWEntityRegistry.PEACOCK.get(), "colors", AdvancementType.GOAL);
-            AdvancementHolder boaTamingAdvancement =
-                    createNewTamingAdvancement(noviceTamer, saver, OWItems.BOA_SPAWN_EGG.get(), OWEntityRegistry.BOA.get(), "arms_what_for", AdvancementType.GOAL);
             AdvancementHolder kodiakTamingAdvancement =
                     createNewTamingAdvancement(renownedTamer, saver, OWItems.KODIAK_SPAWN_EGG.get(), OWEntityRegistry.KODIAK.get(), "big_fuzzball", AdvancementType.GOAL);
-            AdvancementHolder walrusTamingAdvancement =
-                    createNewTamingAdvancement(renownedTamer, saver, OWItems.KODIAK_SPAWN_EGG.get(), OWEntityRegistry.WALRUS.get(), "large_teeth", AdvancementType.GOAL);
-            AdvancementHolder crocodileTamingAdvancement =
-                    createNewTamingAdvancement(renownedTamer, saver, OWItems.CROCODILE_SPAWN_EGG.get(), OWEntityRegistry.WALRUS.get(), "large_teeth2", AdvancementType.GOAL);
-            AdvancementHolder elephantTamingAdvancement =
-                    createNewTamingAdvancement(renownedTamer, saver, OWItems.ELEPHANT_SPAWN_EGG.get(), OWEntityRegistry.ELEPHANT.get(), "trailer", AdvancementType.GOAL);
 
 
         }

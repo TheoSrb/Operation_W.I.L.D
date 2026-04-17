@@ -17,6 +17,7 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import org.joml.Matrix4f;
 
 public class RightClickAlertOverlay {
@@ -148,42 +149,50 @@ public class RightClickAlertOverlay {
     }
 
     private static void renderGauge(GuiGraphics guiGraphics, int screenWidth, int y, int tickCount, OWEntity entity) {
+        int grabTimeout;
+        int grabMaxTimeout;
+
         if (entity instanceof CrocodileEntity crocodile) {
-            maxProgress = crocodile.getGrabMaxTimeout();
-
-            int x = (screenWidth - GAUGE_SIZE) / 2;
-
-            float speed = 0.02f * ((float) crocodile.getGrabTimeout() / 30);
-            float oscillation = Mth.sin(tickCount * speed) * (2.0f * ((float) crocodile.getGrabTimeout() / ((float) crocodile.getGrabMaxTimeout() / 5.0f)));
-
-            float scale = 1.0f;
-            if (clickAnimationTimer > 0) {
-                if (clickAnimationTimer == 3) scale = 1.15f;
-                else if (clickAnimationTimer == 2) scale = 1.3f;
-                else if (clickAnimationTimer == 1) scale = 1.15f;
-            }
-
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(x + (GAUGE_SIZE / 2f), (y - 15) + oscillation + (GAUGE_SIZE / 2f), 0);
-            guiGraphics.pose().scale(scale, scale, 1.0f);
-            guiGraphics.pose().translate(-(GAUGE_SIZE / 2f), -(GAUGE_SIZE / 2f), 0);
-
-            guiGraphics.blit(GAUGE_TEXTURE, 0, 0, 0, 50, GAUGE_SIZE, GAUGE_SIZE, GAUGE_SIZE, 100);
-
-            float rawProgress = crocodile.getGrabTimeout();
-            if (rawProgress > 0) {
-                float progress = Mth.clamp(rawProgress / (float) maxProgress, 0.0f, 1.0f);
-                int fillWidth = (int) (FILL_WIDTH * progress);
-
-                applyGaugeColor(progress);
-
-                guiGraphics.blit(GAUGE_TEXTURE, 4, 4, 0, 0, fillWidth, FILL_HEIGHT, GAUGE_SIZE, 100);
-
-                RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-            }
-
-            guiGraphics.pose().popPose();
+            grabTimeout = crocodile.getGrabTimeout();
+            grabMaxTimeout = crocodile.getGrabMaxTimeout();
+        } else if (entity instanceof TigerEntity tiger) {
+            grabTimeout = tiger.getGrabTimeout();
+            grabMaxTimeout = tiger.getGrabMaxTimeout();
+        } else {
+            return;
         }
+
+        maxProgress = grabMaxTimeout;
+
+        int x = (screenWidth - GAUGE_SIZE) / 2;
+
+        float speed = 0.02f * ((float) grabTimeout / 30);
+        float oscillation = Mth.sin(tickCount * speed) * (2.0f * ((float) grabTimeout / ((float) grabMaxTimeout / 5.0f)));
+
+        float scale = 1.0f;
+        if (clickAnimationTimer > 0) {
+            if (clickAnimationTimer == 3) scale = 1.15f;
+            else if (clickAnimationTimer == 2) scale = 1.3f;
+            else if (clickAnimationTimer == 1) scale = 1.15f;
+        }
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(x + (GAUGE_SIZE / 2f), (y - 15) + oscillation + (GAUGE_SIZE / 2f), 0);
+        guiGraphics.pose().scale(scale, scale, 1.0f);
+        guiGraphics.pose().translate(-(GAUGE_SIZE / 2f), -(GAUGE_SIZE / 2f), 0);
+
+        guiGraphics.blit(GAUGE_TEXTURE, 0, 0, 0, 50, GAUGE_SIZE, GAUGE_SIZE, GAUGE_SIZE, 100);
+
+        if (grabTimeout > 0) {
+            float progress = Mth.clamp(grabTimeout / (float) grabMaxTimeout, 0.0f, 1.0f);
+            int fillWidth = (int) (FILL_WIDTH * progress);
+
+            applyGaugeColor(progress);
+            guiGraphics.blit(GAUGE_TEXTURE, 4, 4, 0, 0, fillWidth, FILL_HEIGHT, GAUGE_SIZE, 100);
+            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        }
+
+        guiGraphics.pose().popPose();
     }
 
     private static void applyGaugeColor(float progress) {

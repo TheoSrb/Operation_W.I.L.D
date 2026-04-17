@@ -11,13 +11,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
-import net.tiew.operationWild.entity.animals.aquatic.TigerSharkEntity;
-import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
-import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.entity.taming.TamingCrocodile;
-
-import java.awt.*;
 
 public class OWEntityHud {
 
@@ -176,28 +171,10 @@ public class OWEntityHud {
     }
 
     public static EntityIconData getEntityIconData(OWEntity entity) {
-        if (entity instanceof TigerEntity) {
-            return new EntityIconData(241, 21, 15, 15, -(15 / 2), -7);
-        } else if (entity instanceof ElephantEntity) {
-            return new EntityIconData(225, 0, 31, 21, -(31 / 2), -12);
-        } else if (entity instanceof BoaEntity) {
-            return new EntityIconData(239, 36, 17, 11, -(17 / 2), -2);
-        } else if (entity instanceof PeacockEntity) {
-            return new EntityIconData(247, 47, 9, 19, -(9 / 2), -10);
-        } else if (entity instanceof TigerSharkEntity) {
-            return new EntityIconData(237, 66, 19, 13, -(19 / 2), -4);
-        } else if (entity instanceof MandrillEntity) {
-            return new EntityIconData(241, 79, 15, 21, -(15 / 2), -12);
-        } else if (entity instanceof KodiakEntity) {
+        if (entity instanceof KodiakEntity) {
             return new EntityIconData(239, 100, 17, 16, -(17 / 2), -7);
-        } else if (entity instanceof HyenaEntity) {
-            return new EntityIconData(239, 116, 17, 16, -(17 / 2), -7);
-        } else if (entity instanceof WalrusEntity) {
-            return new EntityIconData(244, 132, 12, 21, -(12 / 2), -7);
         } else if (entity instanceof CrocodileEntity) {
             return new EntityIconData(243, 153, 13, 14, -(13 / 2), -5);
-        } else if (entity instanceof LionEntity) {
-            return new EntityIconData(239, 167, 17, 17, -(17 / 2), -8);
         }
         return null;
     }

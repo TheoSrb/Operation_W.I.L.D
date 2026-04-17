@@ -4,7 +4,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
-import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 
 public class AquaticMoveController extends MoveControl {
     private final PathfinderMob entity;
@@ -25,7 +24,7 @@ public class AquaticMoveController extends MoveControl {
     }
 
     public void tick() {
-        if ((this.entity.isInWater() || entity.isInLava()) && !(entity instanceof JellyfishEntity)) {
+        if ((this.entity.isInWater() || entity.isInLava())) {
             this.entity.setDeltaMovement(this.entity.getDeltaMovement().add(0.0D, 0.003D, 0.0D));
         }
         if (this.operation == Operation.MOVE_TO && !this.entity.getNavigation().isDone()) {

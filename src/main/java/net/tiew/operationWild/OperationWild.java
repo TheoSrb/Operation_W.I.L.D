@@ -207,35 +207,9 @@ public class OperationWild {
     }
 
     public static int getMaxPageForEntityInManuscript(EntityType<? extends OWEntity> entityType) {
-        if (entityType == OWEntityRegistry.TIGER.get()) {
+       if (entityType == OWEntityRegistry.KODIAK.get()) {
             return 4;
-        } else if (entityType == OWEntityRegistry.BOA.get()) {
-            return 4;
-        } else if (entityType == OWEntityRegistry.PEACOCK.get()) {
-            return 3;
-        } else if (entityType == OWEntityRegistry.TIGER_SHARK.get()) {
-            return 3;
-        } else if (entityType == OWEntityRegistry.HYENA.get()) {
-            return 2;
-        } else if (entityType == OWEntityRegistry.KODIAK.get()) {
-            return 4;
-        } else if (entityType == OWEntityRegistry.RED_PANDA.get()) {
-            return 2;
-        } else if (entityType == OWEntityRegistry.CHAMELEON.get()) {
-            return 2;
-        } else if (entityType == OWEntityRegistry.JELLYFISH.get()) {
-            return 2;
-        } else if (entityType == OWEntityRegistry.MANTA.get()) {
-            return 2;
-        } else if (entityType == OWEntityRegistry.WALRUS.get()) {
-            return 3;
-        } else if (entityType == OWEntityRegistry.ELEPHANT.get()) {
-            return 3;
-        } else if (entityType == OWEntityRegistry.MANDRILL.get()) {
-            return 2;
         } else if (entityType == OWEntityRegistry.CROCODILE.get()) {
-            return 4;
-        } else if (entityType == OWEntityRegistry.LION.get()) {
             return 4;
         }
         return -1;
@@ -254,23 +228,11 @@ public class OperationWild {
 
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
-            EntityRenderers.register(OWEntityRegistry.TIGER.get(), TigerRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.MANDRILL.get(), MandrillRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.ELEPHANT.get(), ElephantRenderer::new);
             EntityRenderers.register(OWEntityRegistry.CROCODILE.get(), CrocodileRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.LION.get(), LionRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.WALRUS.get(), WalrusRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.MANTA.get(), MantaRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.JELLYFISH.get(), JellyfishRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.CHAMELEON.get(), ChameleonRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.RED_PANDA.get(), RedPandaRenderer::new);
             EntityRenderers.register(OWEntityRegistry.KODIAK.get(), KodiakRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.HYENA.get(), HyenaRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.TIGER.get(), TigerRenderer::new);
             EntityRenderers.register(OWEntityRegistry.SEABUG.get(), SeaBugRenderer::new);
             EntityRenderers.register(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.BOA.get(), BoaRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.PEACOCK.get(), PeacockRenderer::new);
-            EntityRenderers.register(OWEntityRegistry.TIGER_SHARK.get(), TigerSharkRenderer::new);
             EntityRenderers.register(OWEntityRegistry.PRIMITIVE_SPEAR_PROJECTILE.get(), PrimitiveSpearProjectileRenderer::new);
             EntityRenderers.register(OWEntityRegistry.TRANQUILIZER_ARROW.get(), TranquilizerArrowRenderer::new);
             EntityRenderers.register(OWEntityRegistry.WOODEN_STINGER.get(), WoodenStingerRenderer::new);

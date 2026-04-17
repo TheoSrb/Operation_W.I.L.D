@@ -266,7 +266,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public float getMaxVitalEnergy() {
-        return 300 * (1 + ((float) this.getLevel() / 50));
+        return 290 * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
@@ -767,6 +767,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public void changeSkin(int skinIndex) {
+        super.changeSkin(skinIndex, false);
         this.setVariant(getInitialVariant());
 
         if (skinIndex == 1) {
@@ -775,18 +776,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             setVariant(getInitialVariant());
         }
 
-        if (!this.level().isClientSide()) {
-            Level world = this.level();
-            if (world instanceof ServerLevel) {
-                ServerLevel serverWorld = (ServerLevel) world;
-                serverWorld.sendParticles(ParticleTypes.ITEM_SLIME,
-                        this.getX(), this.getY() + 1, this.getZ(),
-                        100,
-                        0.5, 0.5, 0.5,
-                        0.02
-                );
-            }
-        }
+        playSkinChangeEffect();
     }
 
     private void grabEntity(LivingEntity entity) {
@@ -1097,6 +1087,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.entityData.set(SACRIFICES_UNITY, tag.getFloat("getSacrificesUnity"));
 
         crocodileTaming.readAdditionalSaveData(tag);
+        if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex()); this.nbtRestoring = false; }
     }
 
     @Override

@@ -9,6 +9,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.sound.OWSounds;
 
 public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements CustomPacketPayload {
@@ -40,6 +41,10 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
                 if (entity instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() != null && crocodile.getGrabbedTarget() == player) {
                     if (packet.isRightClickDown()) {
                         crocodile.setGrabTimeout(crocodile.getGrabTimeout() - 15);
+                    }
+                } else if (entity instanceof TigerEntity tiger && tiger.getGrabbedTarget() != null && tiger.getGrabbedTarget() == player) {
+                    if (packet.isRightClickDown()) {
+                        tiger.setGrabTimeout(tiger.getGrabTimeout() - 15);
                     }
                 }
             }

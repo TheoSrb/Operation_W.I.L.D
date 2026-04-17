@@ -153,36 +153,12 @@ public class OWItems {
 
 
     // Mob Spawn Eggs
-    public static final DeferredHolder<Item, Item> TIGER_SPAWN_EGG = ITEMS.register("tiger_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.TIGER, 0xc47037, 0x482716, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> BOA_SPAWN_EGG = ITEMS.register("boa_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.BOA, 0x9c9e5d, 0x534612, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> PEACOCK_SPAWN_EGG = ITEMS.register("peacock_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.PEACOCK, 0x506acf, 0x73c656, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> TIGER_SHARK_SPAWN_EGG = ITEMS.register("tiger_shark_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.TIGER_SHARK, 0x565047, 0xc6bca4, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> WALRUS_SPAWN_EGG = ITEMS.register("walrus_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.WALRUS, 0x8b745f, 0x5f4539, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> CHAMELEON_SPAWN_EGG = ITEMS.register("chameleon_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.CHAMELEON, 0x7c9550, 0x567134, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> HYENA_SPAWN_EGG = ITEMS.register("hyena_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.HYENA, 0x936e49, 0x653f29, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> JELLYFISH_SPAWN_EGG = ITEMS.register("jellyfish_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.JELLYFISH, 0x648fce, 0x5568ba, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> MANTA_SPAWN_EGG = ITEMS.register("manta_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.MANTA, 0x3d4c60, 0xcbe3e8, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> RED_PANDA_SPAWN_EGG = ITEMS.register("red_panda_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.RED_PANDA, 0xcc7e4e, 0xe7ddd7, new Item.Properties()));
     public static final DeferredHolder<Item, Item> KODIAK_SPAWN_EGG = ITEMS.register("kodiak_spawn_egg",
             () -> new DeferredSpawnEggItem(OWEntityRegistry.KODIAK, 0x7d5a45, 0x4e3225, new Item.Properties()));
+    public static final DeferredHolder<Item, Item> TIGER_SPAWN_EGG = ITEMS.register("tiger_spawn_egg",
+            () -> new DeferredSpawnEggItem(OWEntityRegistry.TIGER, 0xd97733, 0x61341b, new Item.Properties()));
     public static final DeferredHolder<Item, Item> CROCODILE_SPAWN_EGG = ITEMS.register("crocodile_spawn_egg",
             () -> new DeferredSpawnEggItem(OWEntityRegistry.CROCODILE, 0x54523e, 0x85895c, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> LION_SPAWN_EGG = ITEMS.register("lion_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.LION, 0xc59963, 0x7c4b2a, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> ELEPHANT_SPAWN_EGG = ITEMS.register("elephant_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.ELEPHANT, 0x7e7a76, 0x5a5350, new Item.Properties()));
-    public static final DeferredHolder<Item, Item> MANDRILL_SPAWN_EGG = ITEMS.register("mandrill_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.MANDRILL, 0x35312f, 0x94c7d0, new Item.Properties()));
 
 
     public static void register(IEventBus eventBus) { ITEMS.register(eventBus);}

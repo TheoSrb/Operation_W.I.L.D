@@ -18,10 +18,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -300,16 +298,6 @@ public class OWRendererUtils {
         font.drawInBatch(damagesComponent, lefttextX, textY + (leftPadding * 1), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         font.drawInBatch(speedComponent, lefttextX, textY + (leftPadding * 2), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
 
-        if (entity instanceof LionEntity lion) {
-            int i0 = lion.isTame() ? 4 : 3;
-
-            Component lionClanComponent = Component.empty()
-                    .append(Component.translatable("lionClan").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
-                    .append(Component.literal(lion.clan != null ? "■" : "X").withStyle(style -> style.withColor(lion.clan != null ? lion.getClanColor() : 0xFFFFFF)));
-
-            font.drawInBatch(lionClanComponent, lefttextX, textY + (leftPadding * i0), entity.isPassive() ? 0x55FF55 : 0xFF5555, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
-        }
-
         if (entity.isTame()) {
             font.drawInBatch(stateComponent, lefttextX, textY + (leftPadding * 3), entity.isPassive() ? 0x55FF55 : 0xFF5555, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         }
@@ -389,7 +377,7 @@ public class OWRendererUtils {
         int levelColor = 0xc8f6ff;
         Component level = Component.literal(String.valueOf(entity.getPrestigeLevel())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(levelColor).getValue()).withBold(true));
         poseStack.pushPose();
-        poseStack.translate(0,  entity.getBbHeight() + (entity instanceof ElephantEntity ? 1.8F : 0.8F), 0);
+        poseStack.translate(0,  entity.getBbHeight() + 0.8F, 0);
         poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
         poseStack.scale(0.015F, -0.015F, 0.015F);
         Matrix4f matrix4f = poseStack.last().pose();

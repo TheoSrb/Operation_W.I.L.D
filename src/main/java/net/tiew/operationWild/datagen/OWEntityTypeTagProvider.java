@@ -27,18 +27,13 @@ public class OWEntityTypeTagProvider extends EntityTypeTagsProvider {
     @Override
     protected void addTags(HolderLookup.Provider provider) {
 
-        tag(EntityTypeTags.AQUATIC)
-                .add(OWEntityRegistry.JELLYFISH.get())
-                .add(OWEntityRegistry.TIGER_SHARK.get())
-                .add(OWEntityRegistry.MANTA.get());
+        tag(EntityTypeTags.AQUATIC);
+
 
         tag(OWTags.Entities.REPTILES)
-                .add(OWEntityRegistry.BOA.get())
                 .add(OWEntityRegistry.CROCODILE.get());
 
-        tag(OWTags.Entities.FAWNS)
-                .add(OWEntityRegistry.TIGER.get())
-                .add(OWEntityRegistry.LION.get());
+        tag(OWTags.Entities.FAWNS);
 
         tag(OWTags.Entities.DROP_CARCASS)
                 .add(EntityType.HORSE)
@@ -46,11 +41,7 @@ public class OWEntityTypeTagProvider extends EntityTypeTagsProvider {
                 .add(EntityType.COW)
                 .add(EntityType.SHEEP)
                 .add(EntityType.LLAMA)
-                .add(OWEntityRegistry.MANDRILL.get())
                 .add(OWEntityRegistry.CROCODILE.get())
-                .add(OWEntityRegistry.TIGER.get())
-                .add(OWEntityRegistry.WALRUS.get())
-                .add(OWEntityRegistry.HYENA.get())
                 .add(OWEntityRegistry.KODIAK.get());
 
     }

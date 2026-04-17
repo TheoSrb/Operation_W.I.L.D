@@ -10,6 +10,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -52,6 +53,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.AirBlock;
@@ -70,6 +73,7 @@ import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.tiew.operationWild.core.OWDatasSave;
+import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.animals.aquatic.*;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.config.IOWEntity;
@@ -303,22 +307,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static final List<Class<?>> MARAUDER_ENTITIES = new ArrayList<>();
 
     public static final List<Object> CARNIVOROUS_ENTITIES = List.of(
-            OWEntityRegistry.TIGER.get(),
-            OWEntityRegistry.HYENA.get(),
-            OWEntityRegistry.BOA.get(),
-            OWEntityRegistry.CHAMELEON.get(),
-            OWEntityRegistry.JELLYFISH.get(),
             OWEntityRegistry.KODIAK.get(),
-            OWEntityRegistry.MANDRILL.get(),
-            OWEntityRegistry.TIGER_SHARK.get(),
-            OWEntityRegistry.WALRUS.get()
+            OWEntityRegistry.CROCODILE.get()
     );
 
     public static final List<Object> VEGETARIAN_ENTITIES = List.of(
-            OWEntityRegistry.ELEPHANT.get(),
-            OWEntityRegistry.MANTA.get(),
-            OWEntityRegistry.PEACOCK.get(),
-            OWEntityRegistry.RED_PANDA.get()
+
     );
 
     public float getBaseHealth() { return this.entityData.get(BASE_HEALTH);}
@@ -507,6 +501,76 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public int getNecklaceColor() { return this.entityData.get(NECKLACE_COLOR);}
 
     public void setNecklaceColor(int necklaceColor) { this.entityData.set(NECKLACE_COLOR, necklaceColor);}
+
+    public static final EntityDataAccessor<Integer> SKIN_INDEX = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    public boolean nbtRestoring = false;
+
+    public int getSkinIndex() {
+        return this.entityData.get(SKIN_INDEX);
+    }
+
+    public void changeSkin(int skinIndex, boolean playingEffects) {
+        this.entityData.set(SKIN_INDEX, skinIndex);
+        if (playingEffects) playSkinChangeEffect();
+    }
+
+    public void changeSkinSilent(int skinIndex) {
+        this.entityData.set(SKIN_INDEX, skinIndex);
+    }
+
+    protected void playSkinChangeEffect() {
+        if (nbtRestoring) return;
+        double cx = this.getX();
+        double cy = this.getY();
+        double cz = this.getZ();
+        double halfHeight = this.getBbHeight() / 2.0;
+        double ringRadius = this.getBbWidth() * 1.4;
+
+        if (this.level() instanceof ServerLevel serverWorld) {
+            serverWorld.sendParticles(ParticleTypes.FLASH, cx, cy + halfHeight, cz, 1, 0, 0, 0, 0);
+            serverWorld.sendParticles(ParticleTypes.TOTEM_OF_UNDYING, cx, cy + halfHeight, cz, 200, 0.4, 0.6, 0.4, 0.35);
+            for (int i = 0; i < 80; i++) {
+                double angle = (2 * Math.PI * i) / 16;
+                serverWorld.sendParticles(ParticleTypes.END_ROD, cx + ringRadius * Math.cos(angle), cy + 0.1, cz + ringRadius * Math.sin(angle), 4, 0.05, 0.3, 0.05, 0.02);
+            }
+            for (int i = 0; i < 120; i++) {
+                double t = (double) i / 24;
+                double angle = t * 4 * Math.PI;
+                double r = ringRadius * (1.0 - t * 0.5);
+                serverWorld.sendParticles(ParticleTypes.ENCHANT, cx + r * Math.cos(angle), cy + t * this.getBbHeight() * 1.5, cz + r * Math.sin(angle), 2, 0.05, 0.05, 0.05, 0.01);
+            }
+            float pitch = (float) OWUtils.generateRandomInterval(0.9, 1.1);
+            this.level().playSound(null, cx, cy, cz, SoundEvents.SLIME_JUMP, SoundSource.NEUTRAL, 0.6f, pitch);
+        } else {
+            var rand = this.getRandom();
+            this.level().addParticle(ParticleTypes.FLASH, cx, cy + halfHeight, cz, 0, 0, 0);
+            for (int i = 0; i < 200; i++) {
+                this.level().addParticle(ParticleTypes.TOTEM_OF_UNDYING, cx, cy + halfHeight, cz,
+                        (rand.nextDouble() - 0.5) * 0.7, (rand.nextDouble() - 0.5) * 1.2, (rand.nextDouble() - 0.5) * 0.7);
+            }
+            for (int i = 0; i < 80; i++) {
+                double angle = (2 * Math.PI * i) / 16;
+                double rx = cx + ringRadius * Math.cos(angle);
+                double rz = cz + ringRadius * Math.sin(angle);
+                for (int j = 0; j < 4; j++) {
+                    this.level().addParticle(ParticleTypes.END_ROD, rx, cy + 0.1, rz,
+                            (rand.nextDouble() - 0.5) * 0.1, rand.nextDouble() * 0.3, (rand.nextDouble() - 0.5) * 0.1);
+                }
+            }
+            for (int i = 0; i < 120; i++) {
+                double t = (double) i / 24;
+                double angle = t * 4 * Math.PI;
+                double r = ringRadius * (1.0 - t * 0.5);
+                for (int j = 0; j < 2; j++) {
+                    this.level().addParticle(ParticleTypes.ENCHANT,
+                            cx + r * Math.cos(angle), cy + t * this.getBbHeight() * 1.5, cz + r * Math.sin(angle),
+                            (rand.nextDouble() - 0.5) * 0.1, (rand.nextDouble() - 0.5) * 0.1, (rand.nextDouble() - 0.5) * 0.1);
+                }
+            }
+            float pitch = (float) OWUtils.generateRandomInterval(0.9, 1.1);
+            this.level().playLocalSound(cx, cy, cz, SoundEvents.SLIME_JUMP, SoundSource.NEUTRAL, 0.6f, pitch, false);
+        }
+    }
 
     public void setSitting(boolean sitting) {
         this.entityData.set(SITTING, sitting); this.setOrderedToSit(sitting);
@@ -768,9 +832,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void setSleeping(boolean isSleeping) {
         this.entityData.set(IS_SLEEPING, isSleeping);
-        if (isSleeping) {
-            if (this instanceof TigerEntity tiger) tiger.setMad(false);
-        }
     }
 
     public boolean isSleeping() { return this.entityData.get(IS_SLEEPING);}
@@ -1082,9 +1143,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public long gameTime() { return this.level().getGameTime();}
 
     public void swing(InteractionHand hand) {
-        if (this instanceof TigerEntity tigerEntity) {
-            if (tigerEntity.isTrappingEntity() || tigerEntity.isJumpingOnTarget()) return;
-        }
         this.setState(1);
         this.lastPlay = gameTime();
         super.swing(hand);
@@ -1120,11 +1178,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (!this.onGround() && !this.isInWater()) return this.getSpeed();
 
         if (isCombo()) {
-            if (this instanceof ElephantEntity elephant) {
-                if (elephant.getComboAttack() == 3) {
-                    return 0;
-                }
-            } else if (this instanceof KodiakEntity kodiak) {
+            if (this instanceof KodiakEntity kodiak) {
                 if (kodiak.getComboAttack() == 3) {
                     return (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 4);
                 }
@@ -1569,23 +1623,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void setVariant(OWEntity entity, int variant) {
-        if (entity instanceof TigerEntity tiger) {
-            tiger.setVariant(TigerVariant.byId(variant));
-            tiger.setInitialVariant(TigerVariant.byId(variant));
-        }
-        else if (entity instanceof BoaEntity boa) {
-            boa.setVariant(BoaVariant.byId(variant));
-            boa.setInitialVariant(BoaVariant.byId(variant));
-        }
-        else if (entity instanceof PeacockEntity peacock) {
-            peacock.setVariant(PeacockVariant.byId(variant));
-            peacock.setInitialVariant(PeacockVariant.byId(variant));
-        }
-        else if (entity instanceof ElephantEntity elephant) {
-            elephant.setVariant(ElephantVariant.byId(variant));
-            elephant.setInitialVariant(ElephantVariant.byId(variant));
-        }
-        else if (entity instanceof KodiakEntity kodiak) {
+        if (entity instanceof KodiakEntity kodiak) {
             kodiak.setVariant(KodiakVariant.byId(variant));
             kodiak.setInitialVariant(KodiakVariant.byId(variant));
         }
@@ -1712,8 +1750,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
         createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
-        createTransitionAnimation("idleSleep", transitionIdleSleep, this.isNapping(), 20 * (this instanceof WalrusEntity ? 2 : 1));
-        createTransitionAnimation("sleepIdle", transitionSleepIdle, !this.isNapping(), 20 * (this instanceof WalrusEntity ? 2 : 1));
+        createTransitionAnimation("idleSleep", transitionIdleSleep, this.isNapping(), 20);
+        createTransitionAnimation("sleepIdle", transitionSleepIdle, !this.isNapping(), 20);
 
         if (sittingCooldown > 0) sittingCooldown--;
 
@@ -1733,9 +1771,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (!this.level().isClientSide()) {
             if (this.isRunning() && this.isVehicle() && this.isTame()) {
-                boolean isWalrusInWater = this instanceof WalrusEntity walrus && walrus.isInWater();
                 boolean isCrocodileInWater = this instanceof CrocodileEntity crocodile && crocodile.isInWater();
-                setVitalEnergy(getVitalEnergy() + ((!isWalrusInWater && !isCrocodileInWater) ? 1 : 0.5f));
+                setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 1 : 0.5f));
             }
 
             if (!isRunning() && getVitalEnergy() > 0 && !isCombo()) {
@@ -1847,12 +1884,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (isSleeping()) {
-            if (tickCount % 200 == 0) {
-                if (this instanceof TigerEntity) {
-                    SoundEvent sound = RANDOM(3) ? OWSounds.TIGER_SNORE_1.get() : RANDOM(2) ? OWSounds.TIGER_SNORE_2.get() : OWSounds.TIGER_SNORE_3.get() ;
-                    this.playSound(sound);
-                }
-            }
             if (this.onGround()) {
                 this.setDeltaMovement(0, 0, 0);
                 this.hasImpulse = false;
@@ -2000,11 +2031,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 setCombo(false, 0);
                 return;
             }
-            if (attackTimer == timeToHit - (this instanceof ElephantEntity ? 3 : 0)) {
+            if (attackTimer == timeToHit) {
                 float d0 = (float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
-                if (this instanceof LionEntity lion && lion.isFemale()) {
-                    d0 = d0 / 1.5f;
-                }
                 attackEntitiesInFront(d0, sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
 
                 if (spawnBlurr) {
@@ -2021,31 +2049,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void applyComboModification(int timeToHit) {
-
-        if (this instanceof TigerEntity tiger) {
-            if (attackTimer >= timeToHit - 1 && attackTimer < timeToHit + 1) {
-                if (tiger.getComboAttack() == 3) {
-                    Vec3 lookDirection = this.getLookAngle();
-                    Vec3 forwardPush = lookDirection.scale(1.5);
-
-                    this.move(MoverType.SELF, forwardPush);
-
-                    this.hasImpulse = true;
-                    OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
-                }
-            }
-        }
-
-        if (this instanceof ElephantEntity elephant) {
-            if (attackTimer == timeToHit) {
-                float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
-                elephant.level().playSound(null, elephant.getX(), elephant.getY(), elephant.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
-                if (elephant.getComboAttack() == 3) {
-                    elephant.createShockWave();
-                }
-            }
-        }
-
         if (this instanceof KodiakEntity kodiak) {
             if (attackTimer == timeToHit) {
                 float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
@@ -2055,18 +2058,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
             }
         }
-
-        if (this instanceof LionEntity lion) {
-            if (attackTimer == timeToHit) {
-                lion.createMiniShockwave();
-            }
-
-            if (attackTimer == 6) {
-                float pitch = (float) (OWUtils.generateRandomInterval(1.3, 1.5));
-                this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
-            }
-        }
-
         if (this instanceof CrocodileEntity crocodile) {
             if (attackTimer == 1) {
                 float pitch = (float) (OWUtils.generateRandomInterval(1.1, 1.25));
@@ -2078,26 +2069,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 crocodile.level().playSound(null, crocodile.getX(), crocodile.getY(), crocodile.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
             }
         }
-
-        if (this instanceof WalrusEntity walrus) {
-            if (attackTimer == timeToHit) {
-                float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
-                walrus.level().playSound(null, walrus.getX(), walrus.getY(), walrus.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
-            }
-        }
-
-        if (this instanceof TigerEntity tiger) {
-            if (attackTimer == timeToHit) {
-                if (this.getComboAttack() < 3) {
-                    float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
-                    tiger.level().playSound(null, tiger.getX(), tiger.getY(), tiger.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
-                } else if (this.getComboAttack() == 3) {
-                    float pitch = (float) (OWUtils.generateRandomInterval(1.15, 1.4));
-                    tiger.level().playSound(null, tiger.getX(), tiger.getY(), tiger.getZ(), OWSounds.TIGER_SHARK_CRUSH_MOUTH.get(), SoundSource.HOSTILE, 1.0f, pitch);
-                }
-            }
-        }
-
     }
 
     public void resetCombo(int numberOfAttacks) {
@@ -2109,7 +2080,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void createCombo(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
-        if (!this.isAlive()) return;
+        if (!this.isAlive() || (this.getTarget() != null && this.getTarget().getHealth() <= 0.0F)) return;
         if (isPauseCombo()) {
             continueComboMaxTimer++;
 
@@ -2119,18 +2090,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 actualAttackNumber++;
 
                 resetCombo(actualAttackNumber);
-                if (this instanceof WalrusEntity walrus) {
-                    if (walrus.isInWater()) {
-                        if (getComboAttack() < 2) {
-                            setCombo(true, actualAttackNumber + 1);
-                        }
-                    } else {
-                        setCombo(true, actualAttackNumber + 1);
-                    }
-                } else {
-                    setCombo(true, actualAttackNumber + 1);
-                }
-
+                setCombo(true, actualAttackNumber + 1);
                 setPauseCombo(false);
             }
 
@@ -2140,9 +2100,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 actualAttackNumber = 0;
             }
         } else {
-            if (this instanceof WalrusEntity && getComboAttack() == 3) {
-                timeToHit = 10;
-            }
             createComboAttackSystem(timeMax, timeToHit, sound, width, height, reach, spawnBlurr, backMultiplier);
         }
     }
@@ -2236,17 +2193,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 actualAttackNumber++;
 
                 resetCombo(actualAttackNumber);
-                if (this instanceof WalrusEntity walrus) {
-                    if (walrus.isInWater()) {
-                        if (getComboAttack() < 2) {
-                            setCombo(true, actualAttackNumber + 1);
-                        }
-                    } else {
-                        setCombo(true, actualAttackNumber + 1);
-                    }
-                } else {
-                    setCombo(true, actualAttackNumber + 1);
-                }
+
+                setCombo(true, actualAttackNumber + 1);
+
 
                 setPauseCombo(false);
             }
@@ -2630,7 +2579,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return InteractionResult.SUCCESS;
     }
 
-
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack itemstack = player.getItemInHand(hand);
@@ -2669,23 +2617,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (player.isSteppingCarefully() && !this.isInResurrection()) {
                 if (this.sittingCooldown > 0) return InteractionResult.PASS;
 
-                if (this instanceof TigerEntity tiger) {
-                    if (!tiger.isJumpingOnTarget() && !tiger.isTrappingEntity()) {
-                        tiger.setSitting(!isSitting());
-                        this.sittingCooldown = 20;
-                        if (player instanceof ServerPlayer serverPlayer) {
-                            if (!this.isSitting()) OWUtils.showMessage(serverPlayer, "tooltip.following", TextColor.fromRgb(0xFFFFFF), false);
-                            else OWUtils.showMessage(serverPlayer, "tooltip.sitting", TextColor.fromRgb(0xFFFFFF), false);
-                        }
-                    }
-                } else {
-                    this.setSitting(!isSitting());
-                    this.sittingCooldown = 20;
-                    if (player instanceof ServerPlayer serverPlayer) {
-                        if (!this.isSitting()) OWUtils.showMessage(serverPlayer, "tooltip.following", TextColor.fromRgb(0xFFFFFF), false);
-                        else OWUtils.showMessage(serverPlayer, "tooltip.sitting", TextColor.fromRgb(0xFFFFFF), false);
-                    }
+                this.setSitting(!isSitting());
+                this.sittingCooldown = 20;
+                if (player instanceof ServerPlayer serverPlayer) {
+                    if (!this.isSitting())
+                        OWUtils.showMessage(serverPlayer, "tooltip.following", TextColor.fromRgb(0xFFFFFF), false);
+                    else OWUtils.showMessage(serverPlayer, "tooltip.sitting", TextColor.fromRgb(0xFFFFFF), false);
                 }
+
                 return InteractionResult.SUCCESS;
             } else {
                 if (!this.isSitting() && !this.isInResurrection() && !itemstack.is(Tags.Items.FOODS)) {
@@ -2805,11 +2744,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (tame) {
                 setNecklaceColor(0x993333);
                 int levelPointsBonus = 0;
-                if (!(this instanceof BoaEntity boa)) {
-                    levelPointsBonus = this.getHealth() < this.getMaxHealth() / 2 ? 0 : (int) ((this.getHealth() - (this.getMaxHealth() / 2)) / (this.getMaxHealth() / 10));
-                } else {
-                    levelPointsBonus = boa.numberOfError >= 5 ? 0 : 5 - boa.numberOfError;
-                }
+                levelPointsBonus = this.getHealth() < this.getMaxHealth() / 2 ? 0 : (int) ((this.getHealth() - (this.getMaxHealth() / 2)) / (this.getMaxHealth() / 10));
                 if (!isBaby()) this.setLevelPoints(levelPointsBonus);
                 this.entityData.set(DATA_FLAGS_ID, (byte) (b0 | 4));
                 this.setTamedAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH));
@@ -2893,7 +2828,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public boolean shouldTryTeleportToOwner() {
         if (this.isBaby()) return false;
-        if (this instanceof TigerEntity tiger) if (tiger.isJumpingOnTarget() || tiger.isTrappingEntity()) return false;
         LivingEntity livingentity = this.getOwner();
         return livingentity != null && this.distanceToSqr(this.getOwner()) >= (double) 432.0F;
     }
@@ -3039,20 +2973,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
         setMaxSleepingBarTo((int) OWUtils.determinateMinAndMax(maxSleepBar, 20));
-        if (!(this instanceof SeaBugEntity) && !(this instanceof JellyfishEntity)) {
-            if (this instanceof LionEntity lion) {
-                if (lion.isMale()) {
-                    this.setRandomScale(averageScale, 0.975, 1.075);
-                } else {
-                    this.setRandomScale(averageScale, 0.95, 1.0);
-                }
-            } else {
-                this.setRandomScale(averageScale, 0.95, 1.05);
-            }
+        if (!(this instanceof SeaBugEntity)) {
         } else {
             this.setScale(1.0f);
         }
-        if (!(this instanceof LionEntity)) this.setGender(this.random.nextInt(2));
+        this.setGender(this.random.nextInt(2));
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
@@ -3135,19 +3060,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     OWUtils.spawnParticles(livingEntity, ParticleTypes.CRIT, 0, 0.5, 0, 20, 3);
                     this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.NEUTRAL, 1.0F, pitch);
                 } else {
-                    boolean isTigerInUltimate = this instanceof TigerEntity tiger && tiger.isUltimate();
 
-                    if (this instanceof BoaEntity boa) {
-                        boa.doHurtTarget(livingEntity);
-                    } else {
-                        float finalDamage = isTigerInUltimate ? attackDamage * 1.5f : attackDamage;
+                    float finalDamage = attackDamage;
 
-                        if (!this.level().isClientSide()) {
-                            livingEntity.hurt(this.damageSources().mobAttack(this), finalDamage);
-                        }
-
-                        this.hurtAfterCombo(livingEntity, this.getComboAttack());
+                    if (!this.level().isClientSide()) {
+                        livingEntity.hurt(this.damageSources().mobAttack(this), finalDamage);
                     }
+
+                    this.hurtAfterCombo(livingEntity, this.getComboAttack());
 
                     if ($$1 > 0) {
                         if (livingEntity instanceof Player player && player.isCreative()) {
@@ -3160,18 +3080,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                     if (this.isTame() && ownerIsRiding()) {
                         this.setFighting(true);
-                    }
-
-                    if (this instanceof BoaEntity boa) {
-                        if (boa.canVenom) {
-                            livingEntity.addEffect(new MobEffectInstance(OWEffects.VENOM_EFFECT.getDelegate(), (int) generateRandomInterval(3600, 6000), 0));
-                            boa.venomCooldown = 800;
-                            boa.canVenom = false;
-                        }
-                        else if (RANDOM(3)) {
-                            livingEntity.addEffect(new MobEffectInstance(MobEffects.POISON, (int) generateRandomInterval(176, 352), 2));
-                        }
-                        OWUtils.spawnBlurrParticle(this.level(), this, 0.75f, 1f, 0.67f);
                     }
                 }
 
@@ -3335,6 +3243,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(MAX_SLEEPING_BAR, 0);
         builder.define(RESURRECTION_MAX_TIMER, 0);
         builder.define(NAME, "");
+        builder.define(SKIN_INDEX, 0);
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {
@@ -3445,6 +3354,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putBoolean("quest8isLocked", this.quest8isLocked);
         tag.putBoolean("quest9isLocked", this.quest9isLocked);
         tag.putBoolean("quest10isLocked", this.quest10isLocked);
+        tag.putInt("skinIndex", this.getSkinIndex());
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -3554,5 +3464,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.quest8isLocked = tag.getBoolean("quest8isLocked");
         this.quest9isLocked = tag.getBoolean("quest9isLocked");
         this.quest10isLocked = tag.getBoolean("quest10isLocked");
+        this.entityData.set(SKIN_INDEX, tag.getInt("skinIndex"));
     }
 }

@@ -1,9 +1,8 @@
-// 1.21	2025-11-15T18:36:18.9172007	Item Models: ow
+// 1.21	2026-04-03T21:27:15.3957177	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
 b0d713a4fcaeee3e3f8c82f5ae5b8d42ccfcf53e assets/ow/models/item/boa_saddle.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/boa_spawn_egg.json
 df830b15e454d59f16cd74758c6de75119214acc assets/ow/models/item/boa_tong.json
 12a3bdd4067f7f853e2635c77fcb868f14ba580a assets/ow/models/item/camellia.json
 fc6eaf4a60355efb8e649e3610e44eaa427a467e assets/ow/models/item/camouflage_boots.json
@@ -50,7 +49,6 @@ fab65a437d5443e130ef221c1ab7315dd8ea8171 assets/ow/models/item/camouflage_leggin
 8fd0e895b4ab105c5a21a34a9cec7daaebf44716 assets/ow/models/item/camouflage_leggings_netherite_trim.json
 9a4b95df7e7d07e662d92400fa9f5a7d92ffac9b assets/ow/models/item/camouflage_leggings_quartz_trim.json
 be0ab2dc0a07b69332d05173c4792eca447ffd28 assets/ow/models/item/camouflage_leggings_redstone_trim.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/chameleon_spawn_egg.json
 adcbfb5ceaa0d9a0a15bae4f5e815587d9060969 assets/ow/models/item/cooked_boa.json
 0ead5c5ce6a49f4c3f942c85e7182cd9e27fcb3a assets/ow/models/item/cooked_kodiak.json
 6564e282637e35db612bc5413e96c9b4b2701b78 assets/ow/models/item/cooked_peacock.json
@@ -59,8 +57,6 @@ adcbfb5ceaa0d9a0a15bae4f5e815587d9060969 assets/ow/models/item/cooked_boa.json
 1184f114f6e7dd71c8d373c687162b35754da065 assets/ow/models/item/crocodile_scale.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/crocodile_spawn_egg.json
 6acfec09b74bbd111ce7893a2ce3a2783baf44f8 assets/ow/models/item/elephant_saddle.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/elephant_spawn_egg.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/hyena_spawn_egg.json
 b69eeee753a6359c8db1bbfa417adb15e820c348 assets/ow/models/item/jade.json
 87aca1381e079a50f6f081841c74981e7a073ec1 assets/ow/models/item/jade_axe.json
 fbdb90272bf022892c9cac11da66272abae6ad1e assets/ow/models/item/jade_boots.json
@@ -111,15 +107,11 @@ d2ef57d2c19fc294361ed586a8bebc427a4a70e1 assets/ow/models/item/jade_leggings_red
 192f86fb5e96c73f3cd5abca6a4e4ab5a2b57553 assets/ow/models/item/jade_pickaxe.json
 329edb5cf347ec99712a279bc558537f31e460dc assets/ow/models/item/jade_shovel.json
 517bff5cd41ea8b41e167ff630bedd9aac0a437d assets/ow/models/item/jade_sword.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/jellyfish_spawn_egg.json
 b9f588931c962f38b673267ebbdff7855ca20e4c assets/ow/models/item/kodiak_coat.json
 829274c8f30369513be87ba81371515fa78dcfa7 assets/ow/models/item/kodiak_saddle.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/kodiak_spawn_egg.json
 1ebdb833b170887c5e8cc6f4c60041866cfd435b assets/ow/models/item/lavender.json
 2f2c77bb01e9cfde96dce90c8443bac2830e566c assets/ow/models/item/lavender_bouquet.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/lion_spawn_egg.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/mandrill_spawn_egg.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/manta_spawn_egg.json
 5ee26aee0c479e1c21be56c00ebabcbe6480af0a assets/ow/models/item/manuscript_fragment.json
 14ba2d933a14ae784d51244b62dac6d9ebb2e038 assets/ow/models/item/maya_blowpipe.json
 372d9ad2d39f64664c0f0362cf401cc536c7fc07 assets/ow/models/item/medal_0.json
@@ -128,7 +120,6 @@ b9f588931c962f38b673267ebbdff7855ca20e4c assets/ow/models/item/kodiak_coat.json
 47888553d069304abe1dd165eec254be5ec30c27 assets/ow/models/item/medal_3.json
 c34229071fd3f458d89fa76967dc053a6067157c assets/ow/models/item/peacock_feather.json
 60f003eb2bc19731a164bc15351d2a92713c95ae assets/ow/models/item/peacock_saddle.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/peacock_spawn_egg.json
 5302aff3131faaebb0b99040becc4ed29fcd77c2 assets/ow/models/item/plant_empress_music_disc.json
 d53db43b06849e3d4cce48e9095252433924ac17 assets/ow/models/item/plant_fiber.json
 5966d2d5f7628d375962654d62b04f3746b4d121 assets/ow/models/item/platinum_ingot.json
@@ -144,7 +135,6 @@ fae65b4191eb45cd7bfe7c2e3d86c1d8539852fc assets/ow/models/item/raw_kodiak.json
 a0c5c188425c3c48f55d201cdae78eb09bfd06fa assets/ow/models/item/redwood_door.json
 9aa3bab87987422c483a80cae585666e0d0844c6 assets/ow/models/item/redwood_fence.json
 a06b7748240f480d16517763adb53ece457177e0 assets/ow/models/item/redwood_sapling.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/red_panda_spawn_egg.json
 ee8d54ec9f8a802cde3d7d78d136d04b77375713 assets/ow/models/item/reptilian_dagger.json
 631fe6de1f6f37fd26ed721962a2adde65852b56 assets/ow/models/item/resurrection_amulet.json
 1cd1f606c8bbfd678e4cedcb902ac9d761488c55 assets/ow/models/item/ruby.json
@@ -162,12 +152,10 @@ da176b702c605ca0b627c127597ae13976f945c5 assets/ow/models/item/ruby_sword.json
 34f07399d58eb0af6afba1e9a085e1e0fbfee456 assets/ow/models/item/tiger_fur.json
 135021268f83660d3517f8ec557302c0940f73da assets/ow/models/item/tiger_saddle.json
 e008bc0a4532b510141dca8152831a04d78c0cc0 assets/ow/models/item/tiger_shark_saddle.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/tiger_shark_spawn_egg.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/tiger_spawn_egg.json
 e01cb91b93296f005444cce53e14f1f8a5b4bd26 assets/ow/models/item/tranquilizer_arrow.json
 e89e5016d8fb6eb2227fa544689d8b5d2ef02a69 assets/ow/models/item/tranquilizer_wooden_stinger.json
 1d913d85a318b101171b2050f58c3db52a885ffe assets/ow/models/item/venomous_arrow.json
 9ab1461c36ff4337672605e5be7deae831ddb842 assets/ow/models/item/venomous_glands.json
 c44ba10e0d12d7cf41d01a2320a8e156f93f401c assets/ow/models/item/venomous_tooth.json
-63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/walrus_spawn_egg.json
 570ab83c80bd52c25812d9ad71be20f7f09e54a8 assets/ow/models/item/wooden_stinger.json

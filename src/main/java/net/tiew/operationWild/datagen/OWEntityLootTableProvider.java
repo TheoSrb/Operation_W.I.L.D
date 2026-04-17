@@ -53,47 +53,10 @@ public class OWEntityLootTableProvider extends EntityLootSubProvider {
                 .withPool(createRarePool(OWItems.PREDATOR_TOOTH.get(), 0.65F, 1, false))
         );
 
-        this.add(OWEntityRegistry.BOA.get(), LootTable.lootTable()
-                .withPool(createBasicPool(OWItems.VENOMOUS_GLANDS.get(), 1.0F, 3.0F, true))
-                .withPool(createBasicPool(OWItems.RAW_BOA.get(), 1.0F, 3.0F, true, true))
-                .withPool(createRarePool(OWItems.BOA_TONG.get(), 0.6F, 1, true))
-        );
-
-        this.add(OWEntityRegistry.JELLYFISH.get(), LootTable.lootTable()
-                .withPool(createRarePool(OWItems.STINGING_FILAMENT.get(), 0.9F, 1, true))
-                .withPool(createRarePool(OWItems.STINGING_FILAMENT.get(), 0.5F, 1, true))
-                .withPool(createRarePool(OWItems.STINGING_FILAMENT.get(), 0.3F, 1, true))
-                .withPool(createRarePool(OWItems.BIOLUMINESCENT_JELLY.get(), 0.65F, 1, true))
-        );
-
-        this.add(OWEntityRegistry.PEACOCK.get(), LootTable.lootTable()
-                .withPool(createBasicPool(OWItems.RAW_PEACOCK.get(), 1.0F, 3.0F, true, true))
-                .withPool(createRarePool(OWItems.PEACOCK_FEATHER.get(), 0.75F, 1, true))
-                .withPool(createRarePool(OWItems.PEACOCK_FEATHER.get(), 0.4F, 1, true))
-        );
-
-        this.add(OWEntityRegistry.TIGER_SHARK.get(), LootTable.lootTable()
-                .withPool(createRarePool(OWItems.PREDATOR_TOOTH.get(), 0.8F, 1, false))
-                .withPool(createRarePool(OWItems.SHARK_FIN.get(), 0.4F, 1, true))
-        );
-
         this.add(OWEntityRegistry.CROCODILE.get(), LootTable.lootTable()
                 .withPool(createBasicPool(OWItems.CROCODILE_SCALE.get(), 1.0F, 2.0F, true))
         );
 
-        this.add(OWEntityRegistry.LION.get(), LootTable.lootTable()
-        );
-
-
-
-
-        this.add(OWEntityRegistry.HYENA.get(), LootTable.lootTable());
-        this.add(OWEntityRegistry.ELEPHANT.get(), LootTable.lootTable());
-        this.add(OWEntityRegistry.CHAMELEON.get(), LootTable.lootTable());
-        this.add(OWEntityRegistry.RED_PANDA.get(), LootTable.lootTable());
-        this.add(OWEntityRegistry.MANTA.get(), LootTable.lootTable());
-        this.add(OWEntityRegistry.WALRUS.get(), LootTable.lootTable());
-        this.add(OWEntityRegistry.MANDRILL.get(), LootTable.lootTable());
 
         this.add(OWEntityRegistry.SEABUG.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.SEABUG_SHARD_0.get(), LootTable.lootTable());

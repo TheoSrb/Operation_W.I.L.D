@@ -109,8 +109,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int rejectingAnimationTimeout = 0;
     public int rubsAnimationTimeout = 0;
 
-    private boolean wasRolling = false;
-
     private float rubYaw = 0f;
 
     public int rollTimer = 0;
@@ -843,6 +841,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     public void changeSkin(int skinIndex) {
+        super.changeSkin(skinIndex, false);
         this.setVariant(getInitialVariant());
         this.setSkinShade(false);
 
@@ -856,18 +855,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             setVariant(getInitialVariant());
         }
 
-        if (!this.level().isClientSide()) {
-            Level world = this.level();
-            if (world instanceof ServerLevel) {
-                ServerLevel serverWorld = (ServerLevel) world;
-                serverWorld.sendParticles(ParticleTypes.ITEM_SLIME,
-                        this.getX(), this.getY() + 1, this.getZ(),
-                        100,
-                        0.5, 0.5, 0.5,
-                        0.02
-                );
-            }
-        }
+        playSkinChangeEffect();
     }
 
     public void createMiniShockwave() {
@@ -918,19 +906,17 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         boolean isRollingNow = this.isRolling();
 
-        if (isRollingNow && !wasRolling) {
-            this.rollingAnimationTimeout = 80;
-            this.rollingAnimationState.start(this.tickCount);
-        } else if (isRollingNow && this.rollingAnimationTimeout > 0) {
-            this.rollingAnimationTimeout--;
+        if (isRollingNow) {
+            if (this.rollingAnimationTimeout <= 0) {
+                this.rollingAnimationTimeout = 80;
+                this.rollingAnimationState.start(this.tickCount);
+            } else --this.rollingAnimationTimeout;
         }
 
         if (!isRollingNow) {
             this.rollingAnimationTimeout = 0;
             this.rollingAnimationState.stop();
         }
-
-        wasRolling = isRollingNow;
 
         if (this.isSniffing()) {
             if (this.sniffingAnimationTimeout <= 0) {
@@ -1121,5 +1107,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             UUID feederUUID = tag.getUUID("LastFeederUUID");
             lastPlayerWhoFeedHim = this.level().getPlayerByUUID(feederUUID);
         }
+        if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex()); this.nbtRestoring = false; }
     }
 }

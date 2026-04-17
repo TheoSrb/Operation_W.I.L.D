@@ -440,14 +440,6 @@ public class AdventurerManuscriptScreen extends Screen {
     }
 
     private void handleChapterText(EntityType<? extends OWEntity> entityType, int x, int y, float alpha) {
-        if (entityType == OWEntityRegistry.TIGER.get()) {
-            int page = getChapterPageOf(OWEntityRegistry.TIGER.get(), actualPage);
-            OWChapters.TigerChapter.render(0, 0, 1f, alpha, page);
-        }
-        if (entityType == OWEntityRegistry.BOA.get()) {
-            int page = getChapterPageOf(OWEntityRegistry.BOA.get(), actualPage);
-            OWChapters.BoaChapter.render(0, 0, 1f, alpha, page);
-        }
         if (entityType == OWEntityRegistry.KODIAK.get()) {
             int page = getChapterPageOf(OWEntityRegistry.KODIAK.get(), actualPage);
             OWChapters.KodiakChapter.render(0, 0, 1f, alpha, page);

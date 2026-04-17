@@ -27,20 +27,8 @@ import java.util.List;
 public class ManuscriptFragmentItem extends Item {
 
     private static final List<EntityType<? extends OWEntity>> OW_ENTITIES = List.of(
-            OWEntityRegistry.TIGER.get(),
-            OWEntityRegistry.BOA.get(),
-            OWEntityRegistry.PEACOCK.get(),
-            OWEntityRegistry.ELEPHANT.get(),
-            OWEntityRegistry.MANDRILL.get(),
             OWEntityRegistry.CROCODILE.get(),
-            OWEntityRegistry.KODIAK.get(),
-            OWEntityRegistry.JELLYFISH.get(),
-            OWEntityRegistry.TIGER_SHARK.get(),
-            OWEntityRegistry.MANTA.get(),
-            OWEntityRegistry.HYENA.get(),
-            OWEntityRegistry.RED_PANDA.get(),
-            OWEntityRegistry.WALRUS.get(),
-            OWEntityRegistry.CHAMELEON.get()
+            OWEntityRegistry.KODIAK.get()
     );
 
     public ManuscriptFragmentItem(Properties properties) {
@@ -117,19 +105,7 @@ public class ManuscriptFragmentItem extends Item {
     }
 
     private String getSimpleNameFromEntityType(EntityType<? extends OWEntity> entityType) {
-        if (entityType == OWEntityRegistry.TIGER_SHARK.get()) return "tiger_shark";
-        if (entityType == OWEntityRegistry.TIGER.get()) return "tiger";
-        if (entityType == OWEntityRegistry.BOA.get()) return "boa";
-        if (entityType == OWEntityRegistry.PEACOCK.get()) return "peacock";
-        if (entityType == OWEntityRegistry.HYENA.get()) return "hyena";
         if (entityType == OWEntityRegistry.KODIAK.get()) return "kodiak";
-        if (entityType == OWEntityRegistry.RED_PANDA.get()) return "red_panda";
-        if (entityType == OWEntityRegistry.CHAMELEON.get()) return "chameleon";
-        if (entityType == OWEntityRegistry.JELLYFISH.get()) return "jellyfish";
-        if (entityType == OWEntityRegistry.MANTA.get()) return "manta";
-        if (entityType == OWEntityRegistry.WALRUS.get()) return "walrus";
-        if (entityType == OWEntityRegistry.ELEPHANT.get()) return "elephant";
-        if (entityType == OWEntityRegistry.MANDRILL.get()) return "mandrill";
         if (entityType == OWEntityRegistry.CROCODILE.get()) return "crocodile";
         return "unknown";
     }

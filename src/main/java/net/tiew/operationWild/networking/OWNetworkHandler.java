@@ -25,37 +25,29 @@ public class OWNetworkHandler {
         registrar.playToServer(OWRunningPacket.TYPE, OWRunningPacket.STREAM_CODEC, OWRunningPacket::handle);
         registrar.playToServer(OWVariantsSkinsPacket.TYPE, OWVariantsSkinsPacket.STREAM_CODEC, OWVariantsSkinsPacket::handle);
         registrar.playToServer(SkinBuyingPacket.TYPE, SkinBuyingPacket.STREAM_CODEC, SkinBuyingPacket::handle);
-        registrar.playToServer(TigerChargePacket.TYPE, TigerChargePacket.STREAM_CODEC, TigerChargePacket::handle);
         registrar.playToServer(ConsumeItemPacket.TYPE, ConsumeItemPacket.STREAM_CODEC, ConsumeItemPacket::handle);
-        registrar.playToServer(BoaVenomPacket.TYPE, BoaVenomPacket.STREAM_CODEC, BoaVenomPacket::handle);
         registrar.playToServer(OpenDailyQuestScreen.TYPE, OpenDailyQuestScreen.STREAM_CODEC, OpenDailyQuestScreen::handle);
         registrar.playToServer(SendUltimateCapacityPacket.TYPE, SendUltimateCapacityPacket.STREAM_CODEC, SendUltimateCapacityPacket::handle);
         registrar.playToServer(CreateNewFilePacket.TYPE, CreateNewFilePacket.STREAM_CODEC, CreateNewFilePacket::handle);
-        registrar.playToServer(StopNipsBoaPacket.TYPE, StopNipsBoaPacket.STREAM_CODEC, StopNipsBoaPacket::handle);
-        registrar.playToServer(StopShakingSharkPacket.TYPE, StopShakingSharkPacket.STREAM_CODEC, StopShakingSharkPacket::handle);
         registrar.playToServer(ElephantFootstepPacket.TYPE, ElephantFootstepPacket.STREAM_CODEC, ElephantFootstepPacket::handle);
         registrar.playToServer(CheckManuscriptEntityPacket.TYPE, CheckManuscriptEntityPacket.STREAM_CODEC, CheckManuscriptEntityPacket::handle);
         registrar.playToServer(CrocodileRightClickPacket.TYPE, CrocodileRightClickPacket.STREAM_CODEC, CrocodileRightClickPacket::handle);
         registrar.playToServer(StopGrabPacket.TYPE, StopGrabPacket.STREAM_CODEC, StopGrabPacket::handle);
         registrar.playToServer(OWEntityGrabManagerPacket.TYPE, OWEntityGrabManagerPacket.STREAM_CODEC, OWEntityGrabManagerPacket::handle);
         registrar.playToServer(OWNameEntityPacket.TYPE, OWNameEntityPacket.STREAM_CODEC, OWNameEntityPacket::handle);
-        registrar.playToServer(LionHealLionessesPacket.TYPE, LionHealLionessesPacket.STREAM_CODEC, LionHealLionessesPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);
         registrar.playToClient(OWQuestProgressToClient.TYPE, OWQuestProgressToClient.STREAM_CODEC, OWQuestProgressToClient::handle);
-        registrar.playToClient(BoaFoodsSendToClient.TYPE, BoaFoodsSendToClient.STREAM_CODEC, BoaFoodsSendToClient::handle);
-        registrar.playToClient(PeacockFoodsSendToClient.TYPE, PeacockFoodsSendToClient.STREAM_CODEC, PeacockFoodsSendToClient::handle);
         registrar.playToClient(OWPacketSendToClient.TYPE, OWPacketSendToClient.STREAM_CODEC, OWPacketSendToClient::handle);
-        registrar.playToClient(TigerUtilsSendToClientPacket.TYPE, TigerUtilsSendToClientPacket.STREAM_CODEC, TigerUtilsSendToClientPacket::handle);
         registrar.playToClient(BookNotificationPacket.TYPE, BookNotificationPacket.STREAM_CODEC, BookNotificationPacket::handle);
-        registrar.playToClient(TigerSharkDatasSendToClient.TYPE, TigerSharkDatasSendToClient.STREAM_CODEC, TigerSharkDatasSendToClient::handle);
         registrar.playToClient(SyncKillDataPacket.TYPE, SyncKillDataPacket.STREAM_CODEC, SyncKillDataPacket::handle);
-        registrar.playToClient(ChameleonUtilsSendToClient.TYPE, ChameleonUtilsSendToClient.STREAM_CODEC, ChameleonUtilsSendToClient::handle);
         registrar.playToClient(OWFoodPacketClient.TYPE, OWFoodPacketClient.STREAM_CODEC, OWFoodPacketClient::handle);
         registrar.playToClient(AddEntityToManuscriptPacket.TYPE, AddEntityToManuscriptPacket.STREAM_CODEC, AddEntityToManuscriptPacket::handle);
         registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, OpenChooseNameScreen::handle);
-        registrar.playToClient(LionClanSyncPacket.TYPE, LionClanSyncPacket.STREAM_CODEC, LionClanSyncPacket::handle);
+        registrar.playToClient(TigerLeapStatePacket.TYPE, TigerLeapStatePacket.STREAM_CODEC, TigerLeapStatePacket::handle);
+        registrar.playToClient(SkinUnlockedPacket.TYPE, SkinUnlockedPacket.STREAM_CODEC, SkinUnlockedPacket::handle);
+
     }
 
     public static void sendToServer(CustomPacketPayload packet) {

@@ -28,9 +28,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
-import net.tiew.operationWild.entity.variants.PeacockVariant;
 import net.tiew.operationWild.core.OWUtils;
 
 import javax.annotation.Nullable;
@@ -113,16 +111,14 @@ public class OWEgg extends HorizontalDirectionalBlock {
         super.destroy(levelAccessor, blockPos, blockState);
         int radius = 20;
         LivingEntity target = levelAccessor.getNearestPlayer(blockPos.getX(), blockPos.getY(), blockPos.getZ(), 10.0, false);
-        List<LivingEntity> nearbyEntities = levelAccessor.getEntitiesOfClass(LivingEntity.class, new AABB(blockPos.getX() - radius, blockPos.getY() - radius, blockPos.getZ() - radius, blockPos.getX() + radius, blockPos.getY() + radius, blockPos.getZ() + radius), entity -> entity instanceof PeacockEntity && !((PeacockEntity) entity).isBaby());
+        List<LivingEntity> nearbyEntities = levelAccessor.getEntitiesOfClass(LivingEntity.class, new AABB(blockPos.getX() - radius, blockPos.getY() - radius, blockPos.getZ() - radius, blockPos.getX() + radius, blockPos.getY() + radius, blockPos.getZ() + radius), (entity) -> !((OWEntity) entity).isBaby());
 
         for (LivingEntity entity : nearbyEntities) {
             if (target instanceof Player player) {
                 if (!player.isCreative()) {
-                    ((PeacockEntity) entity).peacockIsAggressive = true;
                     ((OWEntity) entity).setTarget(player);
                 }
             } else {
-                ((PeacockEntity) entity).peacockIsAggressive = true;
                 ((OWEntity) entity).setTarget(target);
             }
         }
@@ -135,12 +131,7 @@ public class OWEgg extends HorizontalDirectionalBlock {
     }
 
     private void chooseVariantForBaby(OWEntity entity, BlockPos blockPos) {
-        if (entity instanceof PeacockEntity peacock) {
-            peacock.setVariant(PeacockVariant.byId(getVariantForPosition(blockPos)));
-            peacock.setInitialVariant(PeacockVariant.byId(getVariantForPosition(blockPos)));
-
-            if (OWUtils.RANDOM(50)) peacock.setVariant(PeacockVariant.ALBINO);
-        } else if (entity instanceof CrocodileEntity crocodile) {
+        if (entity instanceof CrocodileEntity crocodile) {
             crocodile.setVariant(CrocodileVariant.byId(getVariantForPosition(blockPos)));
             crocodile.setInitialVariant(CrocodileVariant.byId(getVariantForPosition(blockPos)));
         }
@@ -198,7 +189,7 @@ public class OWEgg extends HorizontalDirectionalBlock {
         return switch(itemId) {
             case "crocodile_egg" -> OWEntityRegistry.CROCODILE.get().create(serverLevel);
             case "peacock_egg" -> OWEntityRegistry.CROCODILE.get().create(serverLevel);
-            default -> OWEntityRegistry.PEACOCK.get().create(serverLevel);
+            default -> OWEntityRegistry.CROCODILE.get().create(serverLevel);
         };
     }
 

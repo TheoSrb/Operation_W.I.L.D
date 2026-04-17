@@ -1,12 +1,11 @@
 package net.tiew.operationWild.entity.goals;
 
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
-import net.tiew.operationWild.entity.animals.aquatic.WalrusEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.particle.OWParticles;
 
 import java.util.EnumSet;
@@ -105,6 +104,9 @@ public class NapGoal extends Goal {
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.isRolling() || kodiak.isSniffing() || kodiak.isCatchingSalmon() || kodiak.isHungry()) return false;
         }
+        if (entity instanceof TigerEntity tiger) {
+            if (tiger.level().isNight()) return false;
+        }
         return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork && !entity.isTame() && entity.getTarget() == null;
     }
 
@@ -127,10 +129,10 @@ public class NapGoal extends Goal {
             double entityZ = entity.getZ();
 
             Vec3 rightDirection = new Vec3(-lookDirection.z, 0, lookDirection.x).normalize();
-            double rightOffset = entity instanceof WalrusEntity ? 1.5 : 0.0;
+            double rightOffset = 0.0;
 
             double fixedX = entityX + lookDirection.x * 1.25 + rightDirection.x * rightOffset;
-            double fixedY = entityY - (entity instanceof WalrusEntity ? 0.65 : 0.0);
+            double fixedY = entityY;
             double fixedZ = entityZ + lookDirection.z * 1.25 + rightDirection.z * rightOffset;
 
             if (!entity.level().isClientSide()) {

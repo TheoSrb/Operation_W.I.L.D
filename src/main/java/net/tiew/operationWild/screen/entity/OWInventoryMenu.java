@@ -14,7 +14,6 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.item.custom.ElephantSaddle;
 import net.tiew.operationWild.screen.OWMenuRegister;
 
@@ -51,19 +50,8 @@ public class OWInventoryMenu extends AbstractContainerMenu {
                 if (this.getItem().is(chooseSaddleWithEntity(entity))) {
                     entity.setSaddle(true);
                     entity.playSound(SoundEvents.HORSE_ARMOR, 0.5F, 1.0F);
-
-                    if (entity instanceof ElephantEntity elephant) {
-                        ItemStack saddle = dataInventory.getStackInSlot(0);
-                        if (saddle.getItem() instanceof ElephantSaddle) {
-                            List<Item> wools = saddle.get(OWDataComponentTypes.SADDLE_WOOLS.get());
-                            elephant.setSaddleWools(wools != null ? wools : new ArrayList<>());
-                        }
-                    }
                 } else {
                     entity.setSaddle(false);
-                    if (entity instanceof ElephantEntity elephant) {
-                        elephant.setSaddleWools(new ArrayList<>());
-                    }
                     entity.playSound(SoundEvents.HORSE_ARMOR, 0.5F, 1.0F);
                 }
             }

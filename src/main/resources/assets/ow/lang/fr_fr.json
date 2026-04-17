@@ -140,16 +140,39 @@
   "tooltip.sitting": "Votre entité est assise",
   "tooltip.delayBeforeBabyTask": "%s",
 
+  "tooltip.currentSkin": "Skin équipé",
+  "tooltip.skinPreview": "Aperçu",
+
+  "tooltip.equipSkin": "Équiper",
+  "tooltip.buySkin": "Débloquer",
+  "tooltip.skinObtention": "Obtention :",
+
+  "tooltip.skinUnlockFree": "Disponible par défaut",
+  "tooltip.skinUnlockLevel": "Niveau %s requis",
+  "tooltip.skinUnlockPrestige": "Échange de %s points de prestige",
+  "tooltip.skinUnlockQuest": "Quête : %s",
+
+  "tooltip.tigerSkin1.desc": "Rendez votre Tigre aussi brillant que l'or !",
+  "tooltip.tigerSkin2.desc": "Rendez votre Tigre aussi élégant que le parrain !",
+  "tooltip.tigerSkin3.desc": "Rendez votre Tigre aussi dangereux qu'un virus informatique !",
+  "tooltip.tigerSkin4.desc": "Rendez votre Tigre aussi élégant qu'un pirate des septs mers !",
+  "tooltip.tigerSkin5.desc": "Rendez votre Tigre aussi élégant qu'un corsaire écarlate !",
+  "tooltip.tigerSkin6.desc": "Rendez votre Tigre aussi drôle qu'un dessin animé !",
+  "tooltip.tigerSkin7.desc": "Rendez votre Tigre aussi bon en cuisine qu'en combat !",
+  "tooltip.tigerSkin8.desc": "Rendez votre Tigre par défaut !",
+
+
+  "skin.unlock.quest.0": "Rayures & Coups de crayon",
 
 
   "tooltip.tigerSkin1": "Tigre Doré",
   "tooltip.tigerSkin2": "Parrain",
-  "tooltip.tigerSkin3": "Pizzaiolo",
-  "tooltip.tigerSkin4": "Magmatique",
-  "tooltip.tigerSkin5": "Détective",
-  "tooltip.tigerSkin6": "Virus",
-  "tooltip.tigerSkin7": "Tigre Par Défaut",
-  "tooltip.tigerSkin8": "Damné",
+  "tooltip.tigerSkin3": "Virus",
+  "tooltip.tigerSkin4": "Sept Mers",
+  "tooltip.tigerSkin5": "Corsaire Écarlate",
+  "tooltip.tigerSkin6": "Dessin Animé",
+  "tooltip.tigerSkin7": "Pizzaiolo",
+  "tooltip.tigerSkin8": "Tigre Par Défaut",
 
   "tooltip.boaSkin1": "Boa Doré",
   "tooltip.boaSkin2": "Boa Viking",
@@ -561,6 +584,11 @@
 
 
 
-  "ascent.mission.tiger.1": "Sautez et attrapez un total de %s entités avec votre Tigre."
+  "ascent.mission.tiger.1": "Sautez et attrapez un total de %s entités avec votre Tigre.",
+  "entity.ow.primitive_slingshot": "Primitive Slingshot",
+
+  "quest.completed": "Quête accomplie !",
+  "quest.tiger_hunter.title": "Chasseur Tigré",
+  "quest.tiger_hunter.desc": "Tuez 10 entités avec votre Tigre apprivoisé."
 
 }

@@ -19,7 +19,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.tiew.operationWild.entity.OWEntityUtils;
-import net.tiew.operationWild.entity.animals.aquatic.JellyfishEntity;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.variants.SeaBugVariant;
 import net.tiew.operationWild.item.OWItems;
@@ -99,7 +98,6 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
 
     public void tick() {
         super.tick();
-        List<JellyfishEntity> jellyfishEntities = this.level().getEntitiesOfClass(JellyfishEntity.class, getBoundingBox().inflate(1));
 
         Player rider = (Player) this.getControllingPassenger();
         int depth = (int) (this.level().getSeaLevel() - this.getY());
@@ -139,7 +137,7 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
         }
 
 
-        if (!this.level().isClientSide() && jellyfishEntities.isEmpty()) {
+        if (!this.level().isClientSide()) {
             ItemStack stack1 = getItemInSlot(0);
             ItemStack stack2 = getItemInSlot(1);
 
