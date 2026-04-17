@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.client.model.TigerModel;
@@ -51,7 +52,8 @@ public class TigerSkinRenderLayer extends RenderLayer<TigerEntity, TigerModel<Ti
         }
 
         // Extra custom layers (glow, animated face textures, etc.)
-        skin.renderExtraLayers(poseStack, bufferSource, packedLight, tiger, this.getParentModel());
+        int packedOverlay = LivingEntityRenderer.getOverlayCoords(tiger, 0.0f);
+        skin.renderExtraLayers(poseStack, bufferSource, packedLight, packedOverlay, tiger, this.getParentModel());
     }
 
     private TigerModel<TigerEntity> getOrBakeModel(ModelLayerLocation layer) {

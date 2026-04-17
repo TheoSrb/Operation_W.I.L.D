@@ -45,7 +45,10 @@ public class TigerSkinsScreen extends OWSkinsInterface {
 
     @Override
     protected void initSkinPrices() {
-        skinPrices.put(3, 50); // skin 3 coûte 50 prestige
+        skinPrices.put(2, 200);
+        skinPrices.put(3, 300);
+        skinPrices.put(4, 300);
+        skinPrices.put(7, 200);
     }
 
     // =========================================================================
@@ -55,12 +58,12 @@ public class TigerSkinsScreen extends OWSkinsInterface {
     protected SkinInfo getSkinInfo(int skinIndex) {
         return switch (skinIndex) {
             case 1 -> SkinInfo.level(    "tooltip.tigerSkin1", "tooltip.tigerSkin1.desc", 50);
-            case 2 -> SkinInfo.free(     "tooltip.tigerSkin2", "tooltip.tigerSkin2.desc");
-            case 3 -> SkinInfo.prestige( "tooltip.tigerSkin3", "tooltip.tigerSkin3.desc", 50);
-            case 4 -> SkinInfo.free(     "tooltip.tigerSkin4", "tooltip.tigerSkin4.desc");
-            case 5 -> SkinInfo.free(     "tooltip.tigerSkin5", "tooltip.tigerSkin5.desc");
+            case 2 -> SkinInfo.prestige(     "tooltip.tigerSkin2", "tooltip.tigerSkin2.desc", 200);
+            case 3 -> SkinInfo.prestige( "tooltip.tigerSkin3", "tooltip.tigerSkin3.desc", 300);
+            case 4 -> SkinInfo.prestige(     "tooltip.tigerSkin4", "tooltip.tigerSkin4.desc", 300);
+            case 5 -> SkinInfo.quest(     "tooltip.tigerSkin5", "tooltip.tigerSkin5.desc", 1);
             case 6 -> SkinInfo.quest("tooltip.tigerSkin6", "tooltip.tigerSkin6.desc", 0);
-            case 7 -> SkinInfo.free(     "tooltip.tigerSkin7", "tooltip.tigerSkin7.desc");
+            case 7 -> SkinInfo.prestige(     "tooltip.tigerSkin7", "tooltip.tigerSkin7.desc", 200);
             case 8 -> SkinInfo.free(     "tooltip.tigerSkin8", "tooltip.tigerSkin8.desc");
             default -> null;
         };
@@ -115,12 +118,12 @@ public class TigerSkinsScreen extends OWSkinsInterface {
             CosmeticsQuestsRegistry.getById(0).update(entity.getUUID());
 
             setLockState(1, entity.getLevel() < 50);
-            setLockState(2, false);
+            setLockState(2, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 2));
             setLockState(3, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 3));
-            setLockState(4, false);
-            setLockState(5, false);
+            setLockState(4, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 4));
+            setLockState(5, !CosmeticsQuestsRegistry.isCompleted(1, entity.getUUID()));
             setLockState(6, !CosmeticsQuestsRegistry.isCompleted(0, entity.getUUID()));
-            setLockState(7, false);
+            setLockState(7, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 7));
             setLockState(8, false);
         }
     }

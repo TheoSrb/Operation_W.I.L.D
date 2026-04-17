@@ -40,7 +40,7 @@ public class VirusTigerSkin extends TigerSkin {
     }
 
     @Override
-    public void renderExtraLayers(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, TigerEntity tiger, TigerModel<TigerEntity> model) {
+    public void renderExtraLayers(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, TigerEntity tiger, TigerModel<TigerEntity> model) {
         // Always render the glowing body
         renderGlow(poseStack, bufferSource, GLOW, model);
 

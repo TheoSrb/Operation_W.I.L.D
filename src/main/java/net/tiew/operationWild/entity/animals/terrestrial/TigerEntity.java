@@ -1072,4 +1072,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.foodWanted = tag.getInt("foodWanted");
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
+
+    @Override
+    protected int getDefaultSkinIndex() { return 8; }
 }

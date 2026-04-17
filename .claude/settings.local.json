@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep *)",
+      "Bash(xargs -I{} sh -c 'jar tf \"{}\" 2>/dev/null | grep -q \"ServerGamePacketListenerImpl\" && echo \"{}\"')",
+      "Read(//c/tmp/**)",
+      "Bash(jar xf *)",
+      "Bash(mkdir -p /tmp/nfsrc)",
+      "Read(//tmp/**)",
+      "Bash(find /tmp/nfsrc -name \"ServerGamePacketListenerImpl.java\")",
+      "Bash(python3 *)",
+      "Bash(unzip \"C:/Users/Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar\" -d /tmp/nfsrc)",
+      "Bash(grep \"\\\\.jar$\")",
+      "Bash(xargs -I{} sh -c 'unzip -l \"{}\" 2>/dev/null | grep -q \"ServerGamePacketListenerImpl\" && echo \"{}\"')",
+      "Bash(unzip \"C:/Users/Tiew_37/.gradle/caches/neoformruntime/intermediate_results/compiledWithNeoForge_6d5a55e57d23afad856e9897590be48206355407_output.jar\" \"net/minecraft/server/network/ServerGamePacketListenerImpl.class\" -d /tmp/mcout)",
+      "Bash(javap -c /tmp/mcout/net/minecraft/server/network/ServerGamePacketListenerImpl.class)",
+      "Bash(javap -verbose /tmp/mcout/net/minecraft/server/network/ServerGamePacketListenerImpl.class)",
+      "Bash(xargs -I{} sh -c 'unzip -l \"{}\" 2>/dev/null | grep -q \"ServerGamePacketListenerImpl.java\" && echo \"{}\"')",
+      "Bash(unzip \"C:/Users/Tiew_37/.gradle/caches/neoformruntime/artifacts/minecraft_1.21_server.jar\" \"net/minecraft/server/network/ServerGamePacketListenerImpl.class\" -d /tmp/mc21)"
+    ]
+  }
+}

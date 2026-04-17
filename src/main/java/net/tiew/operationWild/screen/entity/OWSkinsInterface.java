@@ -572,7 +572,7 @@ public class OWSkinsInterface extends Screen {
 
         // ── Preview 3D en PREMIER — le texte sera dessiné par-dessus ─────────
         int previewTop    = py + ph - 112;
-        int previewBottom = py + ph - 30;
+        int previewBottom = confirmingPurchase ? py + ph - 62 : py + ph - 30;
 
         g.fill(px + 4, previewTop - 2,    px + pw - 4, previewBottom + 2, 0x22FFFFFF);
         g.fill(px + 4, previewTop - 2,    px + pw - 4, previewTop - 1,    0xFF4A4A4A);
@@ -580,7 +580,9 @@ public class OWSkinsInterface extends Screen {
 
         OWEntity ghost = getOrCreatePreviewEntity(selectedSkinIndex);
         if (ghost != null) {
-            int previewScale = Math.min(Math.max((int)(entityScale * 0.8f), 22), 52);
+            int previewScale = confirmingPurchase
+                    ? Math.min(Math.max((int)(entityScale * 0.6f), 16), 38)
+                    : Math.min(Math.max((int)(entityScale * 0.8f), 22), 52);
             g.enableScissor(px + 4, previewTop - 2, px + pw - 4, previewBottom + 2);
             InventoryScreen.renderEntityInInventoryFollowsMouse(
                     g,

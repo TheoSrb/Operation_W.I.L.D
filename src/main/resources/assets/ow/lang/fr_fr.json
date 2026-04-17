@@ -162,8 +162,6 @@
   "tooltip.tigerSkin8.desc": "Rendez votre Tigre par défaut !",
 
 
-  "skin.unlock.quest.0": "Rayures & Coups de crayon",
-
 
   "tooltip.tigerSkin1": "Tigre Doré",
   "tooltip.tigerSkin2": "Parrain",
@@ -588,7 +586,14 @@
   "entity.ow.primitive_slingshot": "Primitive Slingshot",
 
   "quest.completed": "Quête accomplie !",
-  "quest.tiger_hunter.title": "Chasseur Tigré",
-  "quest.tiger_hunter.desc": "Tuez 10 entités avec votre Tigre apprivoisé."
+
+  "skin.unlock.quest.0": "Rayures & Coups de crayon",
+  "skin.unlock.quest.1": "La Chasse au Trésor",
+
+  "quest.scratches_and_pencil_marks.title": "Rayures & Coups de crayon",
+  "quest.scratches_and_pencil_marks.desc": "Tuez 10 entités avec votre Tigre apprivoisé.",
+
+  "quest.the_treasure_hunt.title": "La Chasse au Trésor",
+  "quest.the_treasure_hunt.desc": "Tuez 20 entités avec votre Tigre apprivoisé."
 
 }

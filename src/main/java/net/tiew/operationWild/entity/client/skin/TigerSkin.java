@@ -134,6 +134,7 @@ public class TigerSkin {
             PoseStack poseStack,
             MultiBufferSource bufferSource,
             int packedLight,
+            int packedOverlay,
             TigerEntity tiger,
             TigerModel<TigerEntity> model
     ) {
@@ -157,9 +158,10 @@ public class TigerSkin {
             MultiBufferSource bufferSource,
             ResourceLocation texture,
             int packedLight,
+            int packedOverlay,
             TigerModel<TigerEntity> model
     ) {
         VertexConsumer vc = bufferSource.getBuffer(RenderType.entityCutout(texture));
-        model.renderToBuffer(poseStack, vc, packedLight, OverlayTexture.NO_OVERLAY);
+        model.renderToBuffer(poseStack, vc, packedLight, packedOverlay);
     }
 }

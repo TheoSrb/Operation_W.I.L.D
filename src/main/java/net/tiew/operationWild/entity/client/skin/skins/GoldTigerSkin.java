@@ -18,8 +18,8 @@ public class GoldTigerSkin extends TigerSkin {
     }
 
     @Override
-    public void renderExtraLayers(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, TigerEntity tiger, TigerModel<TigerEntity> model) {
-        renderCutout(poseStack, bufferSource, TEXTURE, packedLight, model);
+    public void renderExtraLayers(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, TigerEntity tiger, TigerModel<TigerEntity> model) {
+        renderCutout(poseStack, bufferSource, TEXTURE, packedLight, packedOverlay, model);
         renderGlow(poseStack, bufferSource, EYES, model);
     }
 }

@@ -159,7 +159,9 @@ public class TigerModelSkins {
                 .texOffs(118, 0).addBox(-2.5F, 4.0F, -10.0F, 5.0F, 6.0F, 0.0F, new CubeDeformation(0.01F))
                 .texOffs(109, 126).addBox(-3.5F, 4.0F, -9.5F, 7.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
                 .texOffs(124, 122).addBox(-5.5F, 4.0F, -9.0F, 2.0F, 1.0F, 0.0F, new CubeDeformation(0.01F))
-                .texOffs(124, 122).mirror().addBox(3.5F, 4.0F, -9.0F, 2.0F, 1.0F, 0.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offset(0.0F, -4.0F, -11.0F));
+                .texOffs(124, 122).mirror().addBox(3.5F, 4.0F, -9.0F, 2.0F, 1.0F, 0.0F, new CubeDeformation(0.01F)).mirror(false)
+                .texOffs(57, 66).addBox(-5.0F, -4.0F, -1.2F, 10.0F, 8.0F, 1.0F, new CubeDeformation(0.25F))
+                .texOffs(28, 87).addBox(-7.0F, -6.0F, -0.7F, 14.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(0.0F, -4.0F, -11.0F));
 
         PartDefinition cube_r4 = head.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(48, 86).addBox(0.0F, -12.5F, 0.0F, 0.0F, 12.0F, 17.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(-5.5F, 5.5F, -9.0F, 0.0F, -0.1309F, 0.1745F));
 
@@ -205,7 +207,7 @@ public class TigerModelSkins {
         PartDefinition cube_r13 = back_tail.addOrReplaceChild("cube_r13", CubeListBuilder.create().texOffs(73, 33).addBox(0.0F, -1.5F, 0.0F, 0.0F, 3.0F, 3.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(-0.5F, 0.0F, 2.0F, 0.0F, 0.0F, -1.5708F));
 
         PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(34, 36).addBox(-2.5F, -1.0F, -2.5F, 4.0F, 11.0F, 5.0F, new CubeDeformation(0.0F))
-                .texOffs(51, 63).addBox(-2.5F, 10.0F, -2.5F, 4.0F, 2.0F, 5.0F, new CubeDeformation(0.0F))
+                .texOffs(34, 61).addBox(-2.5F, 10.0F, -2.5F, 4.0F, 2.0F, 5.0F, new CubeDeformation(0.0F))
                 .texOffs(97, 40).addBox(-0.5F, 12.0F, -2.5F, 0.0F, 4.0F, 5.0F, new CubeDeformation(0.01F))
                 .texOffs(110, 27).addBox(-2.5F, -1.0F, -2.5F, 4.0F, 10.0F, 5.0F, new CubeDeformation(0.25F)), PartPose.offset(4.5F, 0.0F, -7.5F));
 

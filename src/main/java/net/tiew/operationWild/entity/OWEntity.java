@@ -509,6 +509,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.entityData.get(SKIN_INDEX);
     }
 
+    protected int getDefaultSkinIndex() { return 0; }
+
     public void changeSkin(int skinIndex, boolean playingEffects) {
         this.entityData.set(SKIN_INDEX, skinIndex);
         if (playingEffects) playSkinChangeEffect();
@@ -1216,22 +1218,38 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private void travelRidden(Player player, Vec3 travelVector) {
         Vec3 vec3 = this.getRiddenInput(player, travelVector);
         this.tickRidden(player, vec3);
+
         if (this.isControlledByLocalInstance()) {
             Vec3 lookDirection = Vec3.directionFromRotation(isInWater() ? this.getXRot() : 0, this.getYRot()).normalize();
             double speedPerTick = getRiddenSpeedVehicle(player) / (isInWater() ? vehicleWaterSpeedDivider() : 1);
-
             Vec3 currentMovement = this.getDeltaMovement();
             double yMovement = isInWater() ? lookDirection.y * speedPerTick - 0.01 : currentMovement.y;
-
-            Vec3 newMovement = new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick);
-
-            this.setDeltaMovement(newMovement);
+            this.setDeltaMovement(new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick));
             this.travel(vec3);
-        } else {
+
+        } else if (this.level().isClientSide()) {
             this.calculateEntityAnimation(false);
             this.setDeltaMovement(Vec3.ZERO);
             this.tryCheckInsideBlocks();
+
+        } else {
+            this.tryCheckInsideBlocks();
         }
+    }
+
+    @Override
+    public boolean isControlledByLocalInstance() {
+        return super.isControlledByLocalInstance();
+    }
+
+    @Override
+    public boolean canCollideWith(Entity entity) {
+        return super.canCollideWith(entity);
+    }
+
+    @Override
+    protected double getDefaultGravity() {
+        return super.getDefaultGravity();
     }
 
     @Override
@@ -2763,6 +2781,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 this.setDamageToClient(this.getDamage());
                 this.setCurrentMode(Mode.Passive);
                 this.setPassive(true);
+                int defaultSkin = this.getDefaultSkinIndex();
+                if (this.getSkinIndex() == 0 && defaultSkin > 0) this.changeSkin(defaultSkin, false);
 
                 if (player instanceof ServerPlayer serverPlayer) {
                     AdvancementHolder advancement = player.getServer().getAdvancements().get(this.getTamingAdvancement());

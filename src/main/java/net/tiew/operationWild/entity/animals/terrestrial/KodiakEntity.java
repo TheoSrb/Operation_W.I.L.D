@@ -1109,4 +1109,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         }
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex()); this.nbtRestoring = false; }
     }
+
+    @Override
+    protected int getDefaultSkinIndex() { return 4; }
 }

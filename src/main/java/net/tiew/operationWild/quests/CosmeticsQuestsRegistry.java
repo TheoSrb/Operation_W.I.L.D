@@ -20,12 +20,8 @@ public class CosmeticsQuestsRegistry {
     // Définitions des quêtes
     // =========================================================================
 
-    /**
-     * Quête id=0 — Tiger Skin 6
-     * "Chasseur Tigré" : tuer 10 entités avec CE Tigre apprivoisé.
-     */
-    public static final CosmeticsQuest TIGER_HUNTER = register(
-        new CosmeticsQuest(0, "quest.tiger_hunter.title", "quest.tiger_hunter.desc", 10) {
+    public static final CosmeticsQuest SCRATCHES_AND_PENCIL_MARKS = register(
+        new CosmeticsQuest(0, "quest.scratches_and_pencil_marks.title", "quest.scratches_and_pencil_marks.desc", 10) {
             @Override
             public void update(UUID entityId) {
                 if (isCompleted(entityId)) return;
@@ -33,6 +29,17 @@ public class CosmeticsQuestsRegistry {
                 setProgress(entityId, counter != null ? counter.get() : 0);
             }
         }
+    );
+
+    public static final CosmeticsQuest THE_TREASURE_HUNT = register(
+            new CosmeticsQuest(1, "quest.the_treasure_hunt.title", "quest.the_treasure_hunt.desc", 20) {
+                @Override
+                public void update(UUID entityId) {
+                    if (isCompleted(entityId)) return;
+                    AtomicInteger counter = OWDatasSave.tigerKillCounts.get(entityId);
+                    setProgress(entityId, counter != null ? counter.get() : 0);
+                }
+            }
     );
 
     // =========================================================================
