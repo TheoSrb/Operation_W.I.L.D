@@ -18,6 +18,7 @@ import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.ScarifiedWoodLogBlock;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
+import net.tiew.operationWild.entity.variants.TigerVariant;
 import net.tiew.operationWild.sound.OWSounds;
 
 import java.util.EnumSet;
@@ -217,7 +218,7 @@ public class TigerScarifyTreeGoal extends Goal {
                                         this.mob.level().setBlock(aboveBlock, block.defaultBlockState(), 3);
                                     }
 
-                                    this.mob.playSound(OWSounds.TIGER_IDLE.get(), 2.0f, 1.1f);
+                                    this.mob.playSound(this.mob.getVariant() == TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_IDLE_VIRUS.get() : OWSounds.TIGER_IDLE.get(), 2.0f, 1.1f);
                                     this.mob.playSound(SoundEvents.AXE_STRIP);
                                 }
                             }

@@ -16,7 +16,9 @@
       "Bash(javap -c /tmp/mcout/net/minecraft/server/network/ServerGamePacketListenerImpl.class)",
       "Bash(javap -verbose /tmp/mcout/net/minecraft/server/network/ServerGamePacketListenerImpl.class)",
       "Bash(xargs -I{} sh -c 'unzip -l \"{}\" 2>/dev/null | grep -q \"ServerGamePacketListenerImpl.java\" && echo \"{}\"')",
-      "Bash(unzip \"C:/Users/Tiew_37/.gradle/caches/neoformruntime/artifacts/minecraft_1.21_server.jar\" \"net/minecraft/server/network/ServerGamePacketListenerImpl.class\" -d /tmp/mc21)"
+      "Bash(unzip \"C:/Users/Tiew_37/.gradle/caches/neoformruntime/artifacts/minecraft_1.21_server.jar\" \"net/minecraft/server/network/ServerGamePacketListenerImpl.class\" -d /tmp/mc21)",
+      "Read(//d C:/Users/Tiew_37/IdeaProjects/**)",
+      "Bash(./gradlew build *)"
     ]
   }
 }

@@ -347,7 +347,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         // ------------ FONCTIONNEMENT GLOBAL ------------
 
-        if (!this.isGrabbing()) createCombo(16, 10, OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 2 : 0);
+        if (!this.isGrabbing()) createCombo(16, 10, getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_HURTING.get() : OWSounds.TIGER_HURTING_VIRUS.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 2 : 0);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         handleRunningEffects(13, SoundEvents.HORSE_STEP, 0.75f, new int[]{4, 6});
@@ -666,7 +666,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
             // Avertissement sonore à la moitié de la jauge
             if (this.suspicionLevel == MAX_SUSPICION / 2) {
-                this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_3.get(), SoundSource.HOSTILE, 1.0f, 0.8f);
+                this.level().playSound(null, this.getX(), this.getY(), this.getZ(), getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_3.get() : OWSounds.TIGER_3_VIRUS.get(), SoundSource.HOSTILE, 1.0f, 0.8f);
             }
 
             // Réveil !
@@ -693,7 +693,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             }
 
             if (this.roarTimer == 15) {
-                this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_ROAR.get(), SoundSource.AMBIENT, 3.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
+                this.level().playSound(null, this.getX(), this.getY(), this.getZ(), getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_ROAR.get() : OWSounds.TIGER_ROAR_VIRUS.get(), SoundSource.AMBIENT, 3.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
 
                 double radius = 15.0D;
                 List<LivingEntity> nearbyEntities = this.level().getEntitiesOfClass(
@@ -725,7 +725,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             }
         }
     }
-
     /**
      * Fait bondir le tigre vers sa cible.
      * @param maxDistance distance max de projection (plus c'est grand, plus le bond est loin)
@@ -751,7 +750,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         OWUtils.spawnServerParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, -0.75, 0.5, 10,1);
 
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_JUMP.get(), SoundSource.AMBIENT, 3.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_JUMP.get() : OWSounds.TIGER_JUMP_VIRUS.get(), SoundSource.AMBIENT, 3.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
     }
 
     @Override
@@ -895,7 +894,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         if (this.level().isClientSide) {
             this.level().playLocalSound(this.getX(), this.getY(), this.getZ(),
-                    OWSounds.TIGER_3.get(), this.getSoundSource(),
+                    getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_3.get() : OWSounds.TIGER_3_VIRUS.get(), this.getSoundSource(),
                     1.0F, isBaby() ? 2.0F : 1.0F, false);
         }
 

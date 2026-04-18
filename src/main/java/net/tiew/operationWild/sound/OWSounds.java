@@ -42,6 +42,7 @@ public class OWSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_SNORE_3 = registerSoundEvent("tiger_snore_3");
 
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_ROAR_VIRUS = registerSoundEvent("tiger_roar_virus");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_ROAR_ULTIMATE_VIRUS = registerSoundEvent("tiger_roar_ultimate_virus");
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_JUMP_VIRUS = registerSoundEvent("tiger_jump_virus");
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_IDLE_VIRUS = registerSoundEvent("tiger_idle_virus");
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_IDLE_2_VIRUS = registerSoundEvent("tiger_idle_2_virus");
