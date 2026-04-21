@@ -1,7 +1,11 @@
 package net.tiew.operationWild.event;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.world.phys.AABB;
+import org.joml.Matrix4f;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -34,10 +38,13 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.tiew.operationWild.core.OWDatasSave;
+import net.tiew.operationWild.quests.CosmeticsQuestsRegistry;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.networking.ClientKillData;
 import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManuscriptScreen;
+import net.tiew.operationWild.entity.variants.TigerVariant;
+import net.tiew.operationWild.particle.OWParticles;
 import org.joml.Quaternionf;
 import org.lwjgl.glfw.GLFW;
 import net.tiew.operationWild.OperationWild;
@@ -49,6 +56,8 @@ import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestsDate;
 import net.tiew.operationWild.gui.*;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.MayaBlowpipeItem;
+import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
+import net.tiew.operationWild.entity.attacks.OWPassive;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.*;
 import net.tiew.operationWild.sound.OWSounds;
@@ -56,6 +65,8 @@ import net.tiew.operationWild.core.OWDamageSources;
 import net.tiew.operationWild.core.OWKeysBinding;
 
 import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -76,6 +87,7 @@ public class ClientEvents {
     public static int rightClickNips = 0;
     private static long lastRightClick = 0;
     private static final long CLICK_COOLDOWN = 50;
+    private static int questUpdateTick = 0;
 
     @SubscribeEvent
     public static void onDebate(InputEvent.MouseButton.Pre event) {
@@ -366,6 +378,36 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
+
+        if (player.level().isClientSide() && ++questUpdateTick >= 20) {
+            questUpdateTick = 0;
+            player.level().getEntitiesOfClass(TigerEntity.class,
+                    player.getBoundingBox().inflate(64),
+                    e -> e.isTame() && e.isOwnedBy(player)
+            ).forEach(tiger -> CosmeticsQuestsRegistry.getAllQuests().forEach(q -> q.update(tiger.getUUID())));
+        }
+
+        // Trainée dorée — SKIN_GOLD en mouvement
+        if (player.level().isClientSide()) {
+            player.level().getEntitiesOfClass(TigerEntity.class,
+                    player.getBoundingBox().inflate(32),
+                    e -> e.isTame() && e.getVariant() == TigerVariant.SKIN_GOLD && !e.isDeadOrDying()
+            ).forEach(tiger -> {
+                if (tiger.getDeltaMovement().horizontalDistanceSqr() > 4e-4) {
+                    var rand = tiger.getRandom();
+                    float yaw = (float) Math.toRadians(tiger.getYRot());
+                    for (int p = 0; p < 18; p++) {
+                        double bx = tiger.getX() - Math.sin(yaw) * (0.3 + rand.nextDouble() * 0.8) + (rand.nextDouble() - 0.5) * 0.8;
+                        double by = tiger.getY() + rand.nextDouble() * 1.0;
+                        double bz = tiger.getZ() + Math.cos(yaw) * (0.3 + rand.nextDouble() * 0.8) + (rand.nextDouble() - 0.5) * 0.8;
+                        player.level().addParticle(
+                                OWParticles.GOLD_TRAIL_PARTICLE.get(),
+                                bx, by, bz,
+                                (rand.nextDouble() - 0.5) * 0.05, 0.02 + rand.nextDouble() * 0.04, (rand.nextDouble() - 0.5) * 0.05);
+                    }
+                }
+            });
+        }
 
         boolean useKeyIsPressed = Minecraft.getInstance().options.keyUse.isDown();
         boolean forwardKeyIsPressed = Minecraft.getInstance().options.keyUp.isDown();
@@ -720,7 +762,7 @@ public class ClientEvents {
         Entity vehicle = player.getVehicle();
         boolean screenOpen = minecraft.screen != null;
         boolean hasVenom = player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()) || (vehicle != null && vehicle instanceof LivingEntity livingEntity && livingEntity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()));
-        boolean canShowAttacksInformation = OWKeysBinding.OW_ATTACKS_INFO.isDown();
+        boolean canShowAttacksInformation = OWAttacksInformation.shouldRender();
         boolean questsAreUpdated = targetedEntity instanceof OWEntity owEntity && owEntity.questsAreUpdated();
         boolean renderSeabug = targetedEntity instanceof SeaBugEntity;
         boolean renderKodiak = targetedEntity instanceof KodiakEntity;
@@ -750,6 +792,7 @@ public class ClientEvents {
                 if (player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player) return;
                 if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player) return;
                 OWEntityHud.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
+                OWAttacksOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
             if (isNotifiedOWBook) {
@@ -769,6 +812,7 @@ public class ClientEvents {
                         event.getGuiGraphics().guiWidth(),
                         event.getGuiGraphics().guiHeight());
             }
+
 
             if (questsAreUpdated) {
                 OWUtilsOverlay.render(event.getGuiGraphics(),
@@ -925,8 +969,18 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onPlayerRenderPre(RenderPlayerEvent.Pre event) {
         if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof OWEntity)) {
+            shadowStrikeHiddenRiders.remove(event.getEntity().getId());
             return;
         }
+
+        // Shadow Strike : cacher complètement le joueur qui chevauche le tigre
+        if (event.getEntity().getRootVehicle() instanceof TigerEntity tiger
+                && tiger.isShadowStrikeActive()) {
+            event.setCanceled(true);
+            shadowStrikeHiddenRiders.add(event.getEntity().getId());
+            return;
+        }
+        shadowStrikeHiddenRiders.remove(event.getEntity().getId());
 
         if (event.getEntity().getVehicle() instanceof SeaBugEntity seaBug) {
 
@@ -977,6 +1031,9 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onPlayerRenderPost(RenderPlayerEvent.Post event) {
+        // Si le render Pre a été annulé (Shadow Strike), ne pas dépiler la PoseStack
+        if (shadowStrikeHiddenRiders.contains(event.getEntity().getId())) return;
+
         if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof OWEntity)) {
             return;
         }
@@ -1012,8 +1069,8 @@ public class ClientEvents {
                     event.setYaw(event.getYaw() + (crocodile.getBodyYRot()));
                 }
             } else if (rootVehicle instanceof TigerEntity tiger) {
-                event.setRoll(event.getRoll() + (tiger.getBodyZRot() / (tiger.isRunning() ? 4 : 2)));
-                event.setPitch(event.getPitch() + (tiger.getBodyXRot() / (tiger.isRunning() ? 4 : 2)));
+                event.setRoll(event.getRoll() + (tiger.getBodyZRot() / 4));
+                event.setPitch(event.getPitch() + (tiger.getBodyXRot() / 4));
             }
         }
     }
@@ -1066,12 +1123,20 @@ public class ClientEvents {
         }
     }*/
 
+    // IDs des joueurs dont le render a été annulé par Shadow Strike (pour éviter un popPose orphelin)
+    private static final Set<Integer> shadowStrikeHiddenRiders = new HashSet<>();
+
     private static boolean hasProcessedThisFrame = false;
 
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
             hasProcessedThisFrame = false;
+        }
+
+        // ── Passif ESP ─────────────────────────────────────────────────────────
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
+            renderPassiveEsp(event);
         }
 
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) {
@@ -1103,9 +1168,98 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Pre event) {
         hasProcessedThisFrame = false;
+        OWAttacksInformation.tick();
     }
 
     private static boolean shouldActivateSubmarineEffect(Player player) {
         return Minecraft.getInstance().options.getCameraType().isFirstPerson() && player.getVehicle() instanceof Submarine submarine && submarine.isLightOn() && submarine.isInWater() && player.isInWater() && !submarine.isOff();
+    }
+
+    // ── Passive ESP rendering ─────────────────────────────────────────────────
+
+    private static void renderPassiveEsp(RenderLevelStageEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) return;
+        if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+
+        OWPassive passive = OWAttacksHandler.getPassive(owEntity.getClass());
+        if (passive == null) return;
+
+        java.util.Set<Integer> ids = passive.getHighlightEntityIds(owEntity, mc.level);
+        if (ids.isEmpty()) return;
+
+        // Vecteurs caméra (right / up) pour les billboards toujours face au joueur
+        org.joml.Quaternionf camRot = event.getCamera().rotation();
+        org.joml.Vector3f jRight = new org.joml.Vector3f(1f, 0f, 0f);
+        org.joml.Vector3f jUp    = new org.joml.Vector3f(0f, 1f, 0f);
+        camRot.transform(jRight);
+        camRot.transform(jUp);
+
+        Vec3 cam = event.getCamera().getPosition();
+        PoseStack pose = event.getPoseStack();
+        pose.pushPose();
+        pose.translate(-cam.x, -cam.y, -cam.z);
+        Matrix4f matrix = pose.last().pose();
+
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.disableDepthTest();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
+        Tesselator tes = Tesselator.getInstance();
+        BufferBuilder buf = tes.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+
+        boolean anyVertex = false;
+        for (int id : ids) {
+            if (!(mc.level.getEntity(id) instanceof LivingEntity le) || !le.isAlive()) continue;
+            Vec3 center = le.getBoundingBox().getCenter();
+            addEspGlow(buf, matrix, center, jRight, jUp);
+            anyVertex = true;
+        }
+
+        if (anyVertex) {
+            MeshData mesh = buf.build();
+            if (mesh != null) BufferUploader.drawWithShader(mesh);
+        }
+
+        RenderSystem.disableBlend();
+        RenderSystem.enableDepthTest();
+        pose.popPose();
+    }
+
+    /**
+     * Dessine plusieurs quads billboard superposés, du halo externe vers le coeur lumineux.
+     * Dégradé : rouge sombre → rouge vif → orange → jaune-blanc.
+     */
+    private static void addEspGlow(BufferBuilder buf, Matrix4f matrix, Vec3 center,
+                                    org.joml.Vector3f right, org.joml.Vector3f up) {
+        long t = System.currentTimeMillis();
+        float pulse = 0.70f + 0.30f * (float) Math.abs(Math.sin(t * Math.PI / 700.0));
+
+        // { taille, r, g, b, alpha }
+        float[][] layers = {
+            { 0.55f, 0.45f, 0.00f, 0.00f, 0.10f * pulse },  // halo rouge sombre
+            { 0.38f, 0.80f, 0.04f, 0.00f, 0.20f * pulse },  // rouge profond
+            { 0.24f, 1.00f, 0.16f, 0.00f, 0.36f * pulse },  // rouge vif
+            { 0.14f, 1.00f, 0.42f, 0.00f, 0.58f * pulse },  // orange-rouge
+            { 0.07f, 1.00f, 0.75f, 0.10f, 0.82f * pulse },  // orange chaud
+            { 0.03f, 1.00f, 1.00f, 0.65f, 0.95f * pulse },  // coeur jaune-blanc
+        };
+
+        for (float[] l : layers) {
+            espBillboard(buf, matrix, center, right, up, l[0], l[1], l[2], l[3], l[4]);
+        }
+    }
+
+    private static void espBillboard(BufferBuilder buf, Matrix4f m, Vec3 center,
+                                      org.joml.Vector3f right, org.joml.Vector3f up,
+                                      float size, float r, float g, float b, float a) {
+        float cx = (float) center.x, cy = (float) center.y, cz = (float) center.z;
+        float rx = right.x * size, ry = right.y * size, rz = right.z * size;
+        float ux = up.x * size,    uy = up.y * size,    uz = up.z * size;
+        buf.addVertex(m, cx - rx - ux, cy - ry - uy, cz - rz - uz).setColor(r, g, b, a);
+        buf.addVertex(m, cx + rx - ux, cy + ry - uy, cz + rz - uz).setColor(r, g, b, a);
+        buf.addVertex(m, cx + rx + ux, cy + ry + uy, cz + rz + uz).setColor(r, g, b, a);
+        buf.addVertex(m, cx - rx + ux, cy - ry + uy, cz - rz + uz).setColor(r, g, b, a);
     }
 }

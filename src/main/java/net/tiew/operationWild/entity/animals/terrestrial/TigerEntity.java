@@ -44,6 +44,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -57,6 +59,7 @@ import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.config.*;
 import net.tiew.operationWild.entity.goals.NapGoal;
 import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
@@ -99,6 +102,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     private static final EntityDataAccessor<Boolean> IS_GRABBING = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> GRABBED_TARGET_ID = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GRAB_TIMEOUT = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_PLAYER_GRAB = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> GRAB_PUNCH_TIMER = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.INT);
+    // Shadow Strike : synchés pour que le client connaisse l'état (vitesse, overlay)
+    private static final EntityDataAccessor<Boolean> IS_SHADOW_STRIKE_ACTIVE = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> SHADOW_STRIKE_KILL_COUNT = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.INT);
     // ==================================================
     //             COMPTEURS ET ANIMATIONS
     // ==================================================
@@ -127,6 +135,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     // ==================================================
 
     private static final ResourceLocation NIGHT_RANGE_MODIFIER = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "tiger_night_range");
+    private static final ResourceLocation SHADOW_STRIKE_DAMAGE_MODIFIER = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "tiger_shadow_strike_damage");
 
     public boolean wantToScarifyWood = false;
     public boolean goAway = false;
@@ -136,6 +145,25 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     public boolean isLeaping = false;
     public boolean isPreparing = false;
+
+    // Client-side: animated Y delta of the bone chain (model units), written in TigerModel.setupAnim.
+    // Negative = body visually UP (Blockbench Y axis is inverted vs Minecraft model Y).
+    public volatile float bodyAnimY = 0f;
+
+    // Jump attack (player-controlled)
+    private boolean isJumpCharging = false;
+    private int jumpAttackCooldown = 0;
+    private boolean isPlayerLeaping = false;
+    private int leapJumpTimer = 0;
+
+    // Shadow Strike (ultime — serveur uniquement sauf IS_SHADOW_STRIKE_ACTIVE et SHADOW_STRIKE_KILL_COUNT qui sont synchés)
+    private int shadowStrikeDurationTimer = 0;   // ticks restants dans la phase cachée
+    private int shadowStrikeDamageBonusTimer = 0; // ticks restants de bonus dégâts post-révélation
+
+    // Player grab (triggered on jump landing)
+    public boolean isPlayerGrab = false;
+    private int playerGrabPunchCooldown = 0;
+    private int playerGrabDuration = 0;   // ticks elapsed since player-grab started; auto-releases at 100
 
     private int roarTimer = 0;
     private int grabDamageTimer = 0;
@@ -209,6 +237,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         builder.define(IS_GRABBING, false);
         builder.define(GRABBED_TARGET_ID, -1);
         builder.define(GRAB_TIMEOUT, 0);
+        builder.define(IS_PLAYER_GRAB, false);
+        builder.define(GRAB_PUNCH_TIMER, 0);
+        builder.define(IS_SHADOW_STRIKE_ACTIVE, false);
+        builder.define(SHADOW_STRIKE_KILL_COUNT, 0);
     }
 
 
@@ -253,12 +285,16 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     public float vehicleRunSpeedMultiplier() {
-        return 4.5f;
+        return isShadowStrikeActive()
+                ? 5f * OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_SPEED_FACTOR
+                : 5f;
     }
 
     @Override
     public float vehicleWalkSpeedMultiplier() {
-        return 2;
+        return isShadowStrikeActive()
+                ? 2f * OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_SPEED_FACTOR
+                : 2f;
     }
 
     @Override
@@ -318,7 +354,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     public float getRotationSpeed() {
-        return 0.35f;
+        return isPreparing ? 1 : 0.35f;
     }
 
     @Override
@@ -347,15 +383,52 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         // ------------ FONCTIONNEMENT GLOBAL ------------
 
+        if (jumpAttackCooldown > 0) jumpAttackCooldown--;
+        if (isJumpCharging && !this.isVehicle()) cancelJumpCharge();
+        if (!this.level().isClientSide() && this.entityData.get(GRAB_PUNCH_TIMER) > 0)
+            this.entityData.set(GRAB_PUNCH_TIMER, this.entityData.get(GRAB_PUNCH_TIMER) - 1);
+
+        if (!this.level().isClientSide()) {
+            // Phase cachée : décompte et révélation automatique si le timer expire sans coup
+            if (isShadowStrikeActive()) {
+                shadowStrikeDurationTimer--;
+                if (shadowStrikeDurationTimer <= 0) revealShadowStrike(false);
+            }
+            // Bonus dégâts post-révélation : retire le modificateur quand il expire
+            if (shadowStrikeDamageBonusTimer > 0) {
+                shadowStrikeDamageBonusTimer--;
+                if (shadowStrikeDamageBonusTimer == 0) {
+                    var dmgAttr = this.getAttribute(Attributes.ATTACK_DAMAGE);
+                    if (dmgAttr != null) dmgAttr.removeModifier(SHADOW_STRIKE_DAMAGE_MODIFIER);
+                }
+            }
+        }
+
+        // Landing detection — reset isLeaping when player-triggered jump ends (ground or water)
+        if (isPlayerLeaping) {
+            leapJumpTimer++;
+            boolean landed = leapJumpTimer > 5 && this.onGround();
+            boolean hitWater = this.isInWater();
+            if (landed || hitWater) {
+                isPlayerLeaping = false;
+                leapJumpTimer = 0;
+                this.isLeaping = false;
+                if (!this.level().isClientSide()) {
+                    syncLeapState(false, false);
+                    if (landed) tryPlayerGrab();
+                }
+            }
+        } else {
+            leapJumpTimer = 0;
+        }
+
         if (!this.isGrabbing()) createCombo(16, 10, getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_HURTING.get() : OWSounds.TIGER_HURTING_VIRUS.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 2 : 0);
         setTamingPercentage(this.foodGiven, this.foodWanted);
-
-        handleRunningEffects(13, SoundEvents.HORSE_STEP, 0.75f, new int[]{4, 6});
 
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
-        if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo());
+        if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo() || this.isLeaping);
 
         // ------------ FONCTIONNEMENT PROPRE ------------
 
@@ -406,7 +479,50 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.setGrabbing(false, null);
         this.setGrabTimeout(0);
         grabDamageTimer = 0;
+        isPlayerGrab = false;
+        playerGrabPunchCooldown = 0;
+        playerGrabDuration = 0;
+        this.entityData.set(IS_PLAYER_GRAB, false);
+        this.entityData.set(GRAB_PUNCH_TIMER, 0);
         this.setTarget(null);
+    }
+
+    private void tryPlayerGrab() {
+        if (isGrabbing()) return;
+        float radius = this.getBbWidth() + 1.5f;
+        List<LivingEntity> candidates = this.level().getEntitiesOfClass(
+                LivingEntity.class, this.getBoundingBox().inflate(radius));
+        for (LivingEntity target : candidates) {
+            if (!isEnemyForOwner(target)) continue;
+            if (!canGrabEntity(target)) continue;
+            setGrabbing(true, target);
+            isPlayerGrab = true;
+            this.entityData.set(IS_PLAYER_GRAB, true);
+            this.entityData.set(GRAB_PUNCH_TIMER, 0);
+            return;
+        }
+    }
+
+    private boolean isEnemyForOwner(LivingEntity target) {
+        if (target == this.getFirstPassenger()) return false;
+        LivingEntity owner = this.getOwner();
+        if (owner != null && target == owner) return false;
+        if (target instanceof TamableAnimal tamed && tamed.isOwnedBy(owner)) return false;
+        return true;
+    }
+
+    public void playerGrabPunch() {
+        if (!isGrabbing() || !isPlayerGrab) return;
+        if (playerGrabPunchCooldown > 0) return;
+        LivingEntity grabbed = getGrabbedTarget();
+        if (grabbed == null) return;
+        grabbed.invulnerableTime = 0;
+        grabbed.hurt(this.damageSource, this.getDamage() / 6f);
+        playerGrabPunchCooldown = 10;
+        this.entityData.set(GRAB_PUNCH_TIMER, 8);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.TIGER_HURTING.get(), SoundSource.AMBIENT, 1.5f,
+                (float) OWUtils.generateRandomInterval(0.9, 1.1));
     }
 
     public void disarmTarget(LivingEntity target) {
@@ -451,6 +567,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         }
 
         super.setTarget(target);
+    }
+
+    public float getRiddenSpeedVehicle(Player player) {
+        return this.isImmobile() || this.isPreparing ? 0 : super.getRiddenSpeedVehicle(player);
     }
 
     @Override
@@ -525,15 +645,46 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     public void hurtAfterCombo(LivingEntity entity, int comboAttack) {
-        if (entity instanceof LivingEntity living && RANDOM(7)) {
-            disarmTarget(living);
-        }
         super.hurtAfterCombo(entity, comboAttack);
+    }
+
+    /** Triggered on every successful hit (all combo attacks, mounted or not). */
+    @Override
+    protected void onSuccessfulHit(LivingEntity entity) {
+        if (RANDOM(7)) disarmTarget(entity);
+
+        // Shadow Strike : one-shot toute entité blessée (≤ seuil du passif PREDATOR_SENSE)
+        if (isShadowStrikeActive() && !this.level().isClientSide() && !entity.isDeadOrDying()) {
+            float hpRatio = entity.getHealth() / entity.getMaxHealth();
+            if (hpRatio <= OWAttacksHandler.TigerPassives.PREDATOR_THRESHOLD) {
+                entity.kill();
+                // entity.kill() utilise genericKill (sans attaquant) donc killedEntity n'est pas appelé
+                // automatiquement — on crédite le kill manuellement pour charger la prochaine ultime
+                if (this.level() instanceof ServerLevel sl) {
+                    this.killedEntity(sl, entity);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean killedEntity(ServerLevel level, LivingEntity target) {
+        // Incrémenter le compteur de kills pour charger le Shadow Strike
+        int kills = getShadowStrikeKillCount();
+        if (kills < OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_KILLS_REQUIRED) {
+            setShadowStrikeKillCount(kills + 1);
+        }
+        return super.killedEntity(level, target);
     }
 
     @Override
     protected boolean isImmobile() {
-        return this.isRoaring();
+        return this.isRoaring() || this.isJumpCharging || this.isPlayerGrab || this.isGrabbing();
+    }
+
+    @Override
+    protected boolean isLeapingVehicle() {
+        return this.isLeaping;
     }
 
     private InteractionHand getHandWithItem(LivingEntity entity) {
@@ -553,7 +704,8 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
      */
     private void handleCamouflage() {
         if (this.isTame() || this.isBaby() || this.isNapping() || (this.getTarget() != null && this.level().isDay())) {
-            if (this.isHidden()) this.setHidden(false);
+            // Ne pas forcer la révélation si le Shadow Strike est actif
+            if (this.isHidden() && !isShadowStrikeActive()) this.setHidden(false);
             return;
         }
 
@@ -586,10 +738,25 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             return;
         }
 
-        this.getLookControl().setLookAt(grabbed, 30f, 30f);
-        this.setLookAt(grabbed.getX(), grabbed.getY(), grabbed.getZ());
+        if (!isPlayerGrab || this.entityData.get(GRAB_PUNCH_TIMER) > 0) {
+            this.getLookControl().setLookAt(grabbed, 30f, 30f);
+            this.setLookAt(grabbed.getX(), grabbed.getY(), grabbed.getZ());
+        }
 
         grabbed.noPhysics = true;
+
+        // Freeze tiger movement during player-initiated grab + auto-release after 5 s (100 ticks)
+        if (isPlayerGrab && !this.level().isClientSide()) {
+            Vec3 cur = this.getDeltaMovement();
+            this.setDeltaMovement(0, cur.y, 0);
+            if (playerGrabPunchCooldown > 0) playerGrabPunchCooldown--;
+
+            playerGrabDuration++;
+            if (playerGrabDuration >= 100) {
+                releaseGrab();
+                return;
+            }
+        }
 
         if (grabbed instanceof Player) {
             if (!this.level().isClientSide()) {
@@ -600,11 +767,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                     return;
                 }
 
-                grabDamageTimer++;
-                if (grabDamageTimer >= 10) {
-                    grabDamageTimer = 0;
-                    grabbed.invulnerableTime = 0;
-                    grabbed.hurt(this.damageSource, this.getDamage() * 0.1f);
+                if (!isPlayerGrab) {
+                    grabDamageTimer++;
+                    if (grabDamageTimer >= 10) {
+                        grabDamageTimer = 0;
+                        grabbed.invulnerableTime = 0;
+                        grabbed.hurt(this.damageSource, this.getDamage() * 0.2f);
+                    }
                 }
             }
             if (!grabbed.isPassenger()) {
@@ -628,7 +797,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             );
             grabbed.setPos(newX, newY, newZ);
 
-            if (!this.level().isClientSide()) {
+            if (!this.level().isClientSide() && !isPlayerGrab) {
                 grabDamageTimer++;
                 if (grabDamageTimer >= 8) {
                     grabDamageTimer = 0;
@@ -725,10 +894,164 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             }
         }
     }
+
+
+    /**
+     * Démarre la charge du saut joueur : immobilise le tigre et joue l'animation PREPARING.
+     * Appelé côté serveur via OWAttackPacket(1).
+     */
+    public void startJumpCharge() {
+        if (jumpAttackCooldown > 0) return;
+        if (isJumpCharging) return;
+        isJumpCharging = true;
+        this.isPreparing = true;
+        this.setDeltaMovement(0, 0, 0);
+        this.getNavigation().stop();
+        syncLeapState(false, true);
+    }
+
+    /**
+     * Annule la charge (relâchement trop court ou démontage). Appelé via OWAttackPacket(2).
+     */
+    public void cancelJumpCharge() {
+        isJumpCharging = false;
+        this.isPreparing = false;
+        syncLeapState(false, false);
+    }
+
+    // ==================================================
+    //               SHADOW STRIKE (ultime)
+    // ==================================================
+
+    /**
+     * Active le Shadow Strike : rend le Tigre invisible, accélère le véhicule pendant
+     * {@link OWAttacksHandler.TigerAttacks#SHADOW_STRIKE_DURATION_TICKS} ticks.
+     * Le premier coup de combo révèle le Tigre et active un bonus de dégâts pour la
+     * durée restante. Appelé côté serveur via OWAttackPacket(ACTION_EXECUTE).
+     */
+    public void activateShadowStrike() {
+        // Double-check serveur (la vérification client peut être contournée)
+        if (getShadowStrikeKillCount() < OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_KILLS_REQUIRED) return;
+
+        float cost = OWAttacksHandler.TigerAttacks.SHADOW_STRIKE.getEnergyRequired();
+        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+            canShowVitalEnergyLack = true;
+            return;
+        }
+        setVitalEnergy(0);
+
+        setShadowStrikeKillCount(0);
+        setShadowStrikeActive(true);
+        shadowStrikeDurationTimer = OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_DURATION_TICKS;
+        this.setHidden(true);
+
+        // Bonus dégâts actif dès l'activation pour toute la durée de l'ultime
+        shadowStrikeDamageBonusTimer = OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_DURATION_TICKS;
+        var dmgAttr = this.getAttribute(Attributes.ATTACK_DAMAGE);
+        if (dmgAttr != null) {
+            dmgAttr.removeModifier(SHADOW_STRIKE_DAMAGE_MODIFIER);
+            dmgAttr.addOrUpdateTransientModifier(new AttributeModifier(
+                    SHADOW_STRIKE_DAMAGE_MODIFIER,
+                    OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_DAMAGE_BONUS,
+                    AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        }
+
+        // Particules wow effect côté serveur
+        OWUtils.spawnServerParticles(this, ParticleTypes.FLASH, 0, 0.5, 0, 1, 0);
+        OWUtils.spawnServerParticles(this, ParticleTypes.END_ROD, 1.5, 0.75, 1.5, 20, 0.2);
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                getVariant() != TigerVariant.Cosmetics.VIRUS.variant
+                        ? OWSounds.TIGER_ROAR.get() : OWSounds.TIGER_ROAR_VIRUS.get(),
+                SoundSource.AMBIENT, 1.5f,
+                (float) OWUtils.generateRandomInterval(0.9, 1.1));
+    }
+
+    /**
+     * Révèle le Tigre à la fin du Shadow Strike.
+     * @param applyDamageBonus true si révélé par un coup (bonus dégâts actif pour le temps restant),
+     *                         false si le timer a expiré naturellement.
+     */
+    private void revealShadowStrike(boolean applyDamageBonus) {
+        int remainingTicks = shadowStrikeDurationTimer;
+        setShadowStrikeActive(false);
+        shadowStrikeDurationTimer = 0;
+        this.setHidden(false);
+
+        if (applyDamageBonus) {
+            // Durée du bonus = temps restant (minimum 1 seconde)
+            shadowStrikeDamageBonusTimer = Math.max(remainingTicks, 20);
+            var dmgAttr = this.getAttribute(Attributes.ATTACK_DAMAGE);
+            if (dmgAttr != null) {
+                dmgAttr.removeModifier(SHADOW_STRIKE_DAMAGE_MODIFIER);
+                dmgAttr.addOrUpdateTransientModifier(new AttributeModifier(
+                        SHADOW_STRIKE_DAMAGE_MODIFIER,
+                        OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_DAMAGE_BONUS,
+                        AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            }
+        }
+    }
+
+    /**
+     * Exécute le saut joueur après une charge valide (≥ 1s).
+     * @param chargeFactor 0.0 = charge minimale (1s), 1.0 = charge maximale (3s)
+     */
+    public void performJumpAttack(float chargeFactor) {
+        if (!isJumpCharging) return;
+
+        isJumpCharging = false;
+
+        float energyRequired = OWAttacksHandler.TigerAttacks.JUMP_ATTACK.getEnergyRequired();
+        if (getVitalEnergy() > getMaxVitalEnergy() - energyRequired) {
+            canShowVitalEnergyLack = true;
+            cancelJumpCharge();
+            return;
+        }
+        setVitalEnergy(getVitalEnergy() + energyRequired);
+
+        jumpAttackCooldown = OWAttacksHandler.TigerAttacks.JUMP_ATTACK_COOLDOWN_TICKS;
+
+        Vec3 lookDir;
+        Entity rider = this.getFirstPassenger();
+        if (rider instanceof LivingEntity living) {
+            Vec3 look = living.getLookAngle();
+            lookDir = new Vec3(look.x, 0, look.z);
+        } else {
+            lookDir = this.getLookAngle().multiply(1, 0, 1);
+        }
+        if (lookDir.lengthSqr() > 1.0E-7D) {
+            lookDir = lookDir.normalize();
+        }
+
+        this.setYRot(-(float) (Mth.atan2(lookDir.x, lookDir.z)) * Mth.RAD_TO_DEG);
+        this.yBodyRot = this.getYRot();
+
+        this.isPreparing = false;
+        this.isLeaping = true;
+        this.isPlayerLeaping = true;
+        this.leapJumpTimer = 0;
+
+        OWUtils.spawnServerParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, -0.75, 0.5, 10, 1);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_JUMP.get() : OWSounds.TIGER_JUMP_VIRUS.get(),
+                SoundSource.AMBIENT, 3.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
+
+        syncLeapState(true, false);
+    }
+
+    private void syncLeapState(boolean leaping, boolean preparing) {
+        if (this.level() instanceof ServerLevel serverLevel) {
+            for (net.minecraft.server.level.ServerPlayer sp : serverLevel.players()) {
+                net.tiew.operationWild.networking.OWNetworkHandler.sendToClient(
+                        new TigerLeapStatePacket(this.getId(), leaping, preparing), sp);
+            }
+        }
+    }
+
     /**
      * Fait bondir le tigre vers sa cible.
      * @param maxDistance distance max de projection (plus c'est grand, plus le bond est loin)
-     * @param verticalBoost boost vertical supplémentaire (0.3f par défaut dans Alex's Mobs)
+     * @param verticalBoost boost vertical supplémentaire
      */
     public void leapToTarget(LivingEntity target, float maxDistance, float verticalBoost) {
         if (target == null || !target.isAlive()) return;
@@ -754,13 +1077,89 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     @Override
+    protected double getBaseRiderYOffset() {
+        return 0.9;
+    }
+
+    @Override
+    protected float getRiderAnimYOffset() {
+        return -bodyAnimY / 16.0f * this.getScale();
+    }
+
+    /**
+     * Suppresses the vanilla automatic step sound (fired by Entity.move() every block traversed).
+     * Footstep sounds are handled exclusively by animation events in TigerModel.
+     */
+    @Override
+    protected void playStepSound(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
+        // Intentionally empty — replaced by onLeftFootDown() / onRightFootDown()
+    }
+
+    /**
+     * Called by TigerModel (render thread) when the left paw touches the ground.
+     * Plays the step sound of the block under the tiger with a slightly lower pitch.
+     */
+    public void onLeftFootDown() {
+        playPawStepSound(0.9f);
+    }
+
+    /**
+     * Called by TigerModel (render thread) when the right paw touches the ground.
+     * Plays the step sound of the block under the tiger with a slightly higher pitch.
+     */
+    public void onRightFootDown() {
+        playPawStepSound(1.1f);
+    }
+
+    private long lastPawStepSoundMs = 0L;
+
+    private void playPawStepSound(float pitchMod) {
+        if (!this.onGround()) return;
+        if (this.isInWater()) return;
+        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
+        long now = System.currentTimeMillis();
+        if (now - lastPawStepSoundMs < 100L) return;
+        lastPawStepSoundMs = now;
+
+        // Get the block the tiger is standing on (try centre first, then one block below for ledges)
+        var pos = this.blockPosition();
+        BlockState blockState = this.level().getBlockState(pos);
+        if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
+
+        SoundType sound = blockState.getSoundType();
+        this.level().playLocalSound(
+                this.getX(), this.getY(), this.getZ(),
+                sound.getStepSound(),
+                this.getSoundSource(),
+                sound.getVolume() * 0.5f,
+                sound.getPitch() * pitchMod * (0.9f + this.random.nextFloat() * 0.2f),
+                false
+        );
+    }
+
+    @Override
+    @Nullable
+    public LivingEntity getControllingPassenger() {
+        if (isPlayerGrab && isGrabbing()) return null;
+        return super.getControllingPassenger();
+    }
+
+    @Override
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (passenger == this.getGrabbedTarget()) {
             Vec3 look = this.getLookAngle();
             function.accept(passenger, this.getX() + look.x * 2.65f, this.getY() - 1.0, this.getZ() + look.z * 2.65f);
-        } else {
-            super.positionRider(passenger, function);
+            return;
         }
+        if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
+
+        Vec3 seatOffset = new Vec3(0, 0, 0).yRot((float) Math.toRadians(-this.yBodyRot));
+        double baseY  = getBaseRiderYOffset();
+        float  animY  = getRiderAnimYOffset();
+        double riderY = this.getY() + baseY + animY;
+
+        passenger.fallDistance = 0f;
+        function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);
     }
 
     @Nullable
@@ -848,14 +1247,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             this.preparingLeapAnimationState.stop();
         }
 
-        if (this.isLeaping) {
+        if (this.isLeaping && !this.isGrabbing()) {
             if (this.leapAnimationTimeout <= 0) {
                 this.leapAnimationTimeout = 40;
                 this.leapAnimationState.start(this.tickCount);
             } else --this.leapAnimationTimeout;
         }
 
-        if (!this.isLeaping) {
+        if (!this.isLeaping || this.isGrabbing()) {
             this.leapAnimationTimeout = 0;
             this.leapAnimationState.stop();
         }
@@ -1030,11 +1429,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             }
         }
 
-
-
-
-
-
         this.entityData.set(IS_GRABBING, isGrabbing);
         this.entityData.set(GRABBED_TARGET_ID, entity == null ? -1 : entity.getId());
     }
@@ -1050,6 +1444,16 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public int getGrabTimeout() {
         return this.entityData.get(GRAB_TIMEOUT);
     }
+
+    public int getGrabPunchTimer() {
+        return this.entityData.get(GRAB_PUNCH_TIMER);
+    }
+
+    public boolean isShadowStrikeActive() { return this.entityData.get(IS_SHADOW_STRIKE_ACTIVE); }
+    private void setShadowStrikeActive(boolean active) { this.entityData.set(IS_SHADOW_STRIKE_ACTIVE, active); }
+
+    public int getShadowStrikeKillCount() { return this.entityData.get(SHADOW_STRIKE_KILL_COUNT); }
+    private void setShadowStrikeKillCount(int count) { this.entityData.set(SHADOW_STRIKE_KILL_COUNT, count); }
 
     // ==================================================
     //              DONNÉES SAUVEGARDÉES

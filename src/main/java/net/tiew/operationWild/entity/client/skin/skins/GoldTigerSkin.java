@@ -1,11 +1,15 @@
 package net.tiew.operationWild.entity.client.skin.skins;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.client.model.TigerModel;
+import net.tiew.operationWild.entity.client.render.TigerRenderer;
 import net.tiew.operationWild.entity.client.skin.TigerSkin;
 
 public class GoldTigerSkin extends TigerSkin {
@@ -19,7 +23,14 @@ public class GoldTigerSkin extends TigerSkin {
 
     @Override
     public void renderExtraLayers(PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay, TigerEntity tiger, TigerModel<TigerEntity> model) {
-        renderCutout(poseStack, bufferSource, TEXTURE, packedLight, packedOverlay, model);
+        float alpha = TigerRenderer.currentAlpha;
+        if (alpha < 1f) {
+            int color = ((int)(alpha * 255) << 24) | 0x00FFFFFF;
+            VertexConsumer vc = bufferSource.getBuffer(RenderType.entityTranslucent(TEXTURE));
+            model.renderToBuffer(poseStack, vc, packedLight, OverlayTexture.NO_OVERLAY, color);
+        } else {
+            renderCutout(poseStack, bufferSource, TEXTURE, packedLight, packedOverlay, model);
+        }
         renderGlow(poseStack, bufferSource, EYES, model);
     }
 }

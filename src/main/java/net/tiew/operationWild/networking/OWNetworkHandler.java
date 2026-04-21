@@ -14,6 +14,9 @@ public class OWNetworkHandler {
     public static final String PROTOCOL_VERSION = "1";
 
     public static void register(RegisterPayloadHandlersEvent event) {
+        // Populate the attack registry before any packets can be received
+        net.tiew.operationWild.entity.attacks.OWAttacksHandler.registerAll();
+
         final PayloadRegistrar registrar = event.registrar(OperationWild.MOD_ID)
                 .versioned(PROTOCOL_VERSION);
 
@@ -35,6 +38,7 @@ public class OWNetworkHandler {
         registrar.playToServer(StopGrabPacket.TYPE, StopGrabPacket.STREAM_CODEC, StopGrabPacket::handle);
         registrar.playToServer(OWEntityGrabManagerPacket.TYPE, OWEntityGrabManagerPacket.STREAM_CODEC, OWEntityGrabManagerPacket::handle);
         registrar.playToServer(OWNameEntityPacket.TYPE, OWNameEntityPacket.STREAM_CODEC, OWNameEntityPacket::handle);
+        registrar.playToServer(OWAttackPacket.TYPE, OWAttackPacket.STREAM_CODEC, OWAttackPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);

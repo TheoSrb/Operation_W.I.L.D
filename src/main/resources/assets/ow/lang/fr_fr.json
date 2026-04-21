@@ -594,6 +594,18 @@
   "quest.scratches_and_pencil_marks.desc": "Tuez 10 entités avec votre Tigre apprivoisé.",
 
   "quest.the_treasure_hunt.title": "La Chasse au Trésor",
-  "quest.the_treasure_hunt.desc": "Tuez 20 entités avec votre Tigre apprivoisé."
+  "quest.the_treasure_hunt.desc": "Tuez 20 entités avec votre Tigre apprivoisé.",
+
+  "ow.attacks.passive_label": "Passif · ",
+
+  "ow.attacks.tiger.combo.title": "Déchiquetage",
+  "ow.attacks.tiger.bond.title": "Bond Bestial",
+  "ow.attacks.tiger.shadow_strike.title": "Cruauté Féline",
+  "ow.attacks.tiger.predator_sense.title": "Odeur de Sang",
+
+  "ow.attacks.tiger.combo.desc": "Faites mordre votre Tigre toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
+  "ow.attacks.tiger.bond.desc": "Faites bondir votre Tigre sur un ennemi en chargeant l'attaque toutes les %s secondes. Si une cible est saisie, mordez-la depuis votre monture.",
+  "ow.attacks.tiger.shadow_strike.desc": "Votre Tigre devient camouflé pendant %s secondes, augmentant sa vitesse de %s%%, ses dégâts de %s%% et tuant en un seul coup les entités blessées. À recharger avec %s kills toutes les %s secondes.",
+  "ow.attacks.tiger.predator_sense.desc": "Révèle les entités blessées à moins de %s%% PV à travers les murs dans un rayon de %s blocs."
 
 }

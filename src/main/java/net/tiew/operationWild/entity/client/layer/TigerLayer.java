@@ -37,6 +37,9 @@ public class TigerLayer extends RenderLayer<TigerEntity, TigerModel<TigerEntity>
 
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, TigerEntity tiger, float v, float v1, float v2, float v3, float v4, float v5) {
+        // Pendant le Shadow Strike tous les layers disparaissent avec le Tigre
+        if (tiger.isShadowStrikeActive()) return;
+
         double kodiakHealthTier = tiger.getMaxHealth() / 4;
 
         if (tiger.isTame() && !tiger.isInResurrection()) {

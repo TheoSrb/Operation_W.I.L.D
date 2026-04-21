@@ -21,6 +21,8 @@ import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.OpenOWInventoryPacket;
 import net.tiew.operationWild.networking.packets.to_server.OWVariantsSkinsPacket;
 import net.tiew.operationWild.networking.packets.to_server.SkinBuyingPacket;
+import net.tiew.operationWild.quests.CosmeticsQuest;
+import net.tiew.operationWild.quests.CosmeticsQuestsRegistry;
 import net.tiew.operationWild.screen.OWScreenUtils;
 
 import java.util.ArrayList;
@@ -628,6 +630,35 @@ public class OWSkinsInterface extends Screen {
                 this.font.split(getUnlockDescription(info), pw - 18)) {
             g.drawString(this.font, line, textX, curY, 0xDDDDDD);
             curY += 9;
+        }
+
+        // Barre de progression pour les quêtes cosmétiques
+        if (info.unlockType == SkinInfo.UnlockType.QUEST && info.questId != -1 && entity != null) {
+            CosmeticsQuest quest = CosmeticsQuestsRegistry.getById(info.questId);
+            if (quest != null) {
+                curY += 5;
+                boolean completed = quest.isCompleted(entity.getUUID());
+                int     current   = quest.getProgress(entity.getUUID());
+                int     max       = quest.getMaxProgress();
+                float   frac      = quest.getProgressFraction(entity.getUUID());
+
+                int barX = px + 12;
+                int barW = pw - 24;
+                int barH = 5;
+
+                g.fill(barX - 1, curY - 1, barX + barW + 1, curY + barH + 1, 0xFF2A2A2A);
+                g.fill(barX, curY, barX + barW, curY + barH, 0xFF111111);
+
+                int fillW = (int)(barW * Math.min(frac, 1.0f));
+                if (fillW > 0)
+                    g.fill(barX, curY, barX + fillW, curY + barH, completed ? 0xFF44CC66 : 0xFFE8901A);
+
+                int pct = Math.round(frac * 100f);
+                Component statusText = Component.literal(pct + "%")
+                        .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xDDDDDD)));
+                g.drawString(this.font, statusText,
+                        px + pw / 2 - this.font.width(statusText) / 2, curY - 2, 0xFFFFFF, false);
+            }
         }
 
         // Label preview (au-dessus de la case, dessiné en dernier)

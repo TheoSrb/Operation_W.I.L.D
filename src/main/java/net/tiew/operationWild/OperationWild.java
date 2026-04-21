@@ -44,6 +44,7 @@ import net.tiew.operationWild.item.OWCreativeTabs;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.MayaBlowpipeItem;
 import net.tiew.operationWild.particle.ElectricParticles;
+import net.tiew.operationWild.particle.GoldTrailParticle;
 import net.tiew.operationWild.particle.NapParticles;
 import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.screen.OWMenuRegister;
@@ -260,6 +261,7 @@ public class OperationWild {
         public static void registerParticleFactories(RegisterParticleProvidersEvent event) {
             event.registerSpriteSet(OWParticles.ELECTRIC_PARTICLES.get(), ElectricParticles.Provider::new);
             event.registerSpriteSet(OWParticles.NAP_PARTICLES.get(), NapParticles.Provider::new);
+            event.registerSpriteSet(OWParticles.GOLD_TRAIL_PARTICLE.get(), GoldTrailParticle.Provider::new);
         }
     }
 }

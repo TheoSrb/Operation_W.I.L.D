@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -13,6 +14,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Salmon;
@@ -31,6 +33,9 @@ import net.tiew.operationWild.entity.variants.TigerVariant;
 public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "tiger_default"), "main");
+
+    // Tracks the limbSwing value from the previous frame to detect animation crossings.
+    private float prevLimbSwing = 0f;
 
 	private final ModelPart ALL2;
 	private final ModelPart ALL;
@@ -136,14 +141,17 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		if (!tiger.isGrabbing()) {
 			if (tiger.isCombo(1)) {
 				this.animate(tiger.attack1Combo, TigerAnimations.ATTACK_STRIKE, ageInTicks, 0.925f * OWEntity.comboSpeedMultiplier);
+				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 				return;
 			}
 			if (tiger.isCombo(2)) {
 				this.animate(tiger.attack2Combo, TigerAnimations.ATTACK_STRIKE_2, ageInTicks, 1.05f * OWEntity.comboSpeedMultiplier);
+				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 				return;
 			}
 			if (tiger.isCombo(3)) {
 				this.animate(tiger.attack3Combo, TigerAnimations.ATTACK_STRIKE_3, ageInTicks, 1.15f * OWEntity.comboSpeedMultiplier);
+				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 				return;
 			}
 		}
@@ -179,37 +187,62 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
 		if (tiger.transitionIdleSleep.isStarted()) {
 			this.animate(tiger.transitionIdleSleep, TigerAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (tiger.transitionSleepIdle.isStarted()) {
 			this.animate(tiger.transitionSleepIdle, TigerAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
+		if (tiger.transitionSitIdle.isStarted()) {
+			this.animate(tiger.transitionSitIdle, TigerAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
+		if (tiger.transitionIdleSit.isStarted()) {
+			this.animate(tiger.transitionIdleSit, TigerAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (tiger.isNapping()) {
 			this.animate(tiger.napAnimationState, TigerAnimations.NAP, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (tiger.isRoaring()) {
 			this.animate(tiger.roaringAnimationState, TigerAnimations.ROAR, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
-		if (tiger.isPreparing || tiger.isGrabbing()) {
+		if (tiger.isPreparing && !tiger.isGrabbing()) {
+			this.animate(tiger.preparingLeapAnimationState, TigerAnimations.PREPARING_LEAP, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
+		if (tiger.isGrabbing()) {
 			this.animate(tiger.preparingLeapAnimationState, TigerAnimations.PREPARING_LEAP, ageInTicks, 1.0f);
 		}
 
 		if (tiger.isGrabbing() || tiger.isEating()) {
-			float chewSpeed = 0.75f;
-			float chewAmplitude = 0.5f;
+			boolean isRiddenPlayerGrab = tiger.isTame() && tiger.isVehicle() && tiger.isGrabbing();
+			if (!isRiddenPlayerGrab || tiger.getGrabPunchTimer() > 0) {
+				float chewSpeed = 0.75f;
+				float chewAmplitude = 0.5f;
 
-			float chew = Mth.sin(ageInTicks * chewSpeed) * chewAmplitude;
-			float tear = Mth.sin(ageInTicks * chewSpeed * 0.7f + 1.2f) * 0.08f;
+				float chew = Mth.sin(ageInTicks * chewSpeed) * chewAmplitude;
+				float tear = Mth.sin(ageInTicks * chewSpeed * 0.7f + 1.2f) * 0.08f;
 
-			this.head.xRot += chew;
-			this.head.yRot += tear;
+				this.head.xRot += chew;
+				this.head.yRot += tear;
+			}
 		}
 
 		if (tiger.isEating()) {
@@ -221,33 +254,100 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
 		if (tiger.isLeaping) {
 			this.animate(tiger.leapAnimationState, TigerAnimations.LEAP, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 
-		/*if (tiger.isSitting()) {
+		if (tiger.isSitting()) {
 			this.animate(tiger.sittingAnimationState, TigerAnimations.SIT, ageInTicks, 1.0f);
 			return;
-		}*/
+		}
 
 
 		this.animate(tiger.idleAnimationState, TigerAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 		if (tiger.isRunning() || tiger.getState() == 2) {
-			if (tiger.isVehicle()) {
-				this.animateWalk(TigerAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.1f, 1.25f);
-			} else {
-				this.animateWalk(TigerAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.1f, 1.25f);
-			}
+			this.animateWalk(TigerAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.1f, 1.25f);
+
+			if (walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 150L)) tiger.onRightFootDown();
+			if (walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 340L)) tiger.onLeftFootDown();
+
 		} else {
 			this.animateWalk(TigerAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 4.5f, 4.5f);
+
+			if (walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 300L)) tiger.onRightFootDown();
+			if (walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 1000L)) tiger.onLeftFootDown();
 		}
 
+		// Must be updated AFTER the event checks above, so they see the previous frame's value.
+		this.prevLimbSwing = limbSwing;
 
-		if (tiger.level().isClientSide()) {
-			tiger.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));
-			tiger.setBodyXRot((float) Math.toDegrees(this.ALL.xRot));
-		}
+		captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+    }
+
+    /**
+     * Captures the animated bone-chain Y delta into {@code tiger.bodyAnimY} so that
+     * {@code positionRider()} (game thread) can read it without re-running setupAnim.
+     * Must be called at every exit point of setupAnim, including early returns.
+     *
+     * @param tiger        the entity whose fields are written
+     * @param restPoseYSum sum of the <em>rest-pose</em> Y offsets for every bone in the chain
+     *                     (e.g. ALL2=8, ALL=0, body=1 → pass 9f)
+     * @param boneChain    the bones from root down to the seat bone, in order
+     *                     (e.g. {@code this.ALL2, this.ALL, this.body})
+     */
+    private void captureBodyState(TigerEntity tiger, float restPoseYSum, ModelPart... boneChain) {
+        if (!tiger.level().isClientSide()) return;
+        tiger.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));
+        tiger.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot));
+        // Sum current Y positions of every bone in the chain, then subtract the rest-pose sum
+        // to get the pure animated delta. Negative = bone visually UP (Blockbench Y inverted).
+        float ySum = 0f;
+        for (ModelPart bone : boneChain) ySum += bone.y;
+        tiger.bodyAnimY = ySum - restPoseYSum;
+    }
+
+    /**
+     * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.
+     * Use this to fire one-shot events (sounds, particles) at precise moments of a walk cycle.
+     *
+     * <p>How to find {@code triggerTimeMs}: open Blockbench, look at the keyframe timestamp of the
+     * moment you want (e.g. foot hits the ground), multiply seconds × 1000.</p>
+     *
+     * @param animation     the AnimationDefinition played via {@code animateWalk()}
+     * @param limbSwing     current limbSwing value (first param of setupAnim)
+     * @param speedScale    the {@code maxAnimationCycles} value passed to {@code animateWalk()}
+     * @param triggerTimeMs keyframe time in <strong>milliseconds</strong> to fire at
+     */
+    private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
+        long durationMs = (long)(animation.lengthInSeconds() * 1000f);
+        if (durationMs <= 0) return false;
+
+        long cur  = ((long)(limbSwing     * 50f * speedScale)) % durationMs;
+        long prev = ((long)(prevLimbSwing * 50f * speedScale)) % durationMs;
+
+        // Normal case: no wrap-around in this frame
+        if (prev <= cur) return prev < triggerTimeMs && cur >= triggerTimeMs;
+        // Wrap-around: the cycle looped between prev and cur → target in [0, cur] OR in (prev, duration)
+        return triggerTimeMs <= cur || triggerTimeMs > prev;
+    }
+
+    /**
+     * Returns {@code true} on every frame a named (non-looping) animation is within
+     * {@code toleranceMs} milliseconds of {@code triggerTimeMs}.
+     *
+     * <p>A tolerance of 25 ms ensures the event fires exactly once at ~60 fps.
+     * Use a wider tolerance if the animation is sped up and you risk missing the window.</p>
+     *
+     * @param animState     the AnimationState of the animation
+     * @param triggerTimeMs keyframe time in <strong>milliseconds</strong> to fire at
+     * @param toleranceMs   half-window size in ms (25 is a safe default for 60 fps)
+     */
+    private boolean namedAnimAt(AnimationState animState, long triggerTimeMs, long toleranceMs) {
+        if (!animState.isStarted()) return false;
+        long elapsed = animState.getAccumulatedTime();
+        return Math.abs(elapsed - triggerTimeMs) <= toleranceMs;
     }
 
 	@Override

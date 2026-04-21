@@ -123,6 +123,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public int attackTimer;
     public int comboTimer;
     private int runTime;
+    // Position sampled each tick to detect actual displacement (robust vs getDeltaMovement() which
+    // reflects intended velocity before collision, not real movement).
+    private double prevTickX, prevTickZ;
     public int chance = random.nextInt(100);
     private int fightingTime = 200;
     public boolean canAttack = true;
@@ -1165,7 +1168,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this instanceof SeaBugEntity ? new SeaBugInventoryMenu(id, inventory, this.itemStackHandlerSeaBug) : new OWInventoryMenu(id, inventory, this.itemStackHandler);
     }
 
-    private float getRiddenSpeedVehicle(Player player) {
+    public float getRiddenSpeedVehicle(Player player) {
         if (this.isSitting() || this.jumping) return 0.0f;
 
         if (player.zza == 0 && !this.isCombo()) {
@@ -1220,12 +1223,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.tickRidden(player, vec3);
 
         if (this.isControlledByLocalInstance()) {
-            Vec3 lookDirection = Vec3.directionFromRotation(isInWater() ? this.getXRot() : 0, this.getYRot()).normalize();
-            double speedPerTick = getRiddenSpeedVehicle(player) / (isInWater() ? vehicleWaterSpeedDivider() : 1);
-            Vec3 currentMovement = this.getDeltaMovement();
-            double yMovement = isInWater() ? lookDirection.y * speedPerTick - 0.01 : currentMovement.y;
-            this.setDeltaMovement(new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick));
-            this.travel(vec3);
+            if (!this.isLeapingVehicle()) {
+                Vec3 lookDirection = Vec3.directionFromRotation(isInWater() ? this.getXRot() : 0, this.getYRot()).normalize();
+                double speedPerTick = getRiddenSpeedVehicle(player) / (isInWater() ? vehicleWaterSpeedDivider() : 1);
+                Vec3 currentMovement = this.getDeltaMovement();
+                double yMovement = isInWater() ? lookDirection.y * speedPerTick - 0.01 : currentMovement.y;
+                this.setDeltaMovement(new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick));
+            }
+            // Pendant un saut du rider, on ignore son input pour ne pas dévier la trajectoire
+            this.travel(this.isLeapingVehicle() ? Vec3.ZERO : vec3);
 
         } else if (this.level().isClientSide()) {
             this.calculateEntityAnimation(false);
@@ -1788,7 +1794,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         } else comboSpeedMultiplier = 1.0f;
 
         if (!this.level().isClientSide()) {
-            if (this.isRunning() && this.isVehicle() && this.isTame()) {
+            double dx = this.getX() - prevTickX;
+            double dz = this.getZ() - prevTickZ;
+            boolean isActuallyMoving = dx * dx + dz * dz > 0.00005;
+
+            if (this.isRunning() && this.isVehicle() && this.isTame() && isActuallyMoving) {
                 boolean isCrocodileInWater = this instanceof CrocodileEntity crocodile && crocodile.isInWater();
                 setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 1 : 0.5f));
             }
@@ -1796,6 +1806,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (!isRunning() && getVitalEnergy() > 0 && !isCombo()) {
                 setVitalEnergy(getVitalEnergy() - getVitalEnergyRecuperation());
             }
+
+            prevTickX = this.getX();
+            prevTickZ = this.getZ();
         }
 
         if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) {
@@ -2182,6 +2195,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                 boolean hurtResult = livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage);
 
+                if (hurtResult && !(livingEntity instanceof Player player && player.isCreative())) {
+                    this.onSuccessfulHit(livingEntity);
+                }
+
                 if (knockbackMultiplier > 0 && hurtResult) {
                     if (!(livingEntity instanceof Player player && player.isCreative())) {
                         this.hurtAfterCombo(livingEntity, this.getComboAttack());
@@ -2445,7 +2462,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         float newYRot = currentYRot + deltaRot * getRotationSpeed();
 
-        if (player.zza == 0 && player.xxa == 0 && !this.isCombo()) {
+        if (player.zza == 0 && player.xxa == 0 && !this.isCombo() && getRotationSpeed() < 1.0f) {
             this.yHeadRot = newYRot;
             this.setXRot(vec2.x);
         } else {
@@ -2455,6 +2472,25 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public Vec2 getRiddenRotation(LivingEntity livingEntity) { return new Vec2(livingEntity.getXRot() * 0.5F, livingEntity.getYRot());}
+
+    @Override
+    protected void positionRider(Entity passenger, MoveFunction function) {
+        if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
+        double riderY = this.getY() + getBaseRiderYOffset() + getRiderAnimYOffset();
+        passenger.fallDistance = 0f;
+        function.accept(passenger, this.getX(), riderY, this.getZ());
+    }
+
+    // Static Y offset (world units) from entity feet when body is at its rest pose.
+    // Override per entity to match the saddle/body position in Blockbench.
+    protected double getBaseRiderYOffset() {
+        return this.getBbHeight() * 0.75;
+    }
+
+    // Dynamic Y offset (world units) from animation; set client-side in setupAnim.
+    protected float getRiderAnimYOffset() {
+        return 0f;
+    }
 
     @javax.annotation.Nullable
     public LivingEntity getControllingPassenger() {
@@ -2887,6 +2923,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     }
 
+    /**
+     * Called on every successful melee hit (regardless of knockback multiplier).
+     * Override in subclasses to add per-hit effects (e.g. disarm, status effects).
+     * Default implementation does nothing.
+     */
+    protected void onSuccessfulHit(LivingEntity entity) {
+
+    }
+
     @Override
     public float vehicleRunSpeedMultiplier() {
         return 0;
@@ -2905,6 +2950,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public float vehicleWaterSpeedDivider() {
         return 0;
+    }
+
+    /**
+     * When true, travelRidden skips the speed-based setDeltaMovement override so the
+     * entity's existing velocity (e.g. a player-triggered leap) is preserved through the air.
+     */
+    protected boolean isLeapingVehicle() {
+        return false;
     }
 
     @Override
@@ -3065,7 +3118,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (this.isAssassin() && OWUtils.RANDOM(10)) {
 
                     if (!this.level().isClientSide()) {
-                        livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage *= 1.25f);
+                        boolean hurtResult = livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage *= 1.25f);
+                        if (hurtResult && !(livingEntity instanceof Player p && p.isCreative())) {
+                            this.onSuccessfulHit(livingEntity);
+                        }
                     }
 
                     if ($$1 > 0) {
@@ -3084,7 +3140,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     float finalDamage = attackDamage;
 
                     if (!this.level().isClientSide()) {
-                        livingEntity.hurt(this.damageSources().mobAttack(this), finalDamage);
+                        boolean hurtResult = livingEntity.hurt(this.damageSources().mobAttack(this), finalDamage);
+                        if (hurtResult && !(livingEntity instanceof Player p && p.isCreative())) {
+                            this.onSuccessfulHit(livingEntity);
+                        }
                     }
 
                     this.hurtAfterCombo(livingEntity, this.getComboAttack());

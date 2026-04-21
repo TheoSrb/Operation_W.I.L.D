@@ -105,13 +105,13 @@ public class CosmeticsQuestsRegistry {
             } catch (Exception ignored) {}
         }
 
-        // Synchronise tigerKillCounts depuis la progression sauvegardée
-        CosmeticsQuest q0 = REGISTRY.get(0);
-        if (q0 != null) {
-            for (Map.Entry<UUID, Integer> e : q0.getAllProgress().entrySet()) {
-                OWDatasSave.tigerKillCounts.put(e.getKey(), new AtomicInteger(e.getValue()));
-            }
+        // Synchronise tigerKillCounts depuis la progression sauvegardée (max des deux quêtes de kills)
+        Map<UUID, Integer> combined = new HashMap<>();
+        for (int id : new int[]{0, 1}) {
+            CosmeticsQuest q = REGISTRY.get(id);
+            if (q != null) q.getAllProgress().forEach((uuid, val) -> combined.merge(uuid, val, Math::max));
         }
+        combined.forEach((uuid, val) -> OWDatasSave.tigerKillCounts.put(uuid, new AtomicInteger(val)));
     }
 
     /**

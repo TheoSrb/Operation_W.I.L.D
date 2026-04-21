@@ -172,9 +172,11 @@ public class OWEntityHud {
 
     public static EntityIconData getEntityIconData(OWEntity entity) {
         if (entity instanceof KodiakEntity) {
-            return new EntityIconData(239, 100, 17, 16, -(17 / 2), -7);
-        } else if (entity instanceof CrocodileEntity) {
-            return new EntityIconData(243, 153, 13, 14, -(13 / 2), -5);
+            return new EntityIconData(239, 102, 17, 16, -(17 / 2), -7);
+        } else if (entity instanceof TigerEntity) {
+            return new EntityIconData(237, 21, 19, 17, -(19 / 2), -8);
+        }  else if (entity instanceof CrocodileEntity) {
+            return new EntityIconData(243, 155, 13, 14, -(13 / 2), -5);
         }
         return null;
     }
@@ -185,7 +187,11 @@ public class OWEntityHud {
 
         guiGraphics.blit(HUD, xPlacement + 81 + 5, yPlacement, 0, 230, 8, 14);
 
-        if ((entity.tickCount / 5) % 2 == 0 && (entity.isRunning() || entity.isCombo()) && ((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())) < 0.75) {
+        boolean isActuallySpendingEnergy = entity.isCombo()
+                || (entity.isRunning() && entity.isVehicle() && entity.isTame()
+                    && entity.getDeltaMovement().horizontalDistanceSqr() > 0.00005);
+
+        if ((entity.tickCount / 5) % 2 == 0 && isActuallySpendingEnergy && ((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())) < 0.75) {
             RenderSystem.setShaderColor(0.81f, 0.85f, 0.91f, 0.75f);
             guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 1, 244, 6, 12);
             RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);

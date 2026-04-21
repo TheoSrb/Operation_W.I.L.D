@@ -160,6 +160,12 @@
   "tooltip.tigerSkin8.desc": "Return your Tiger to its default look!",
 
   "skin.unlock.quest.0": "Stripes & Pencil Strokes",
+  "skin.unlock.quest.1": "The Treasure Hunt",
+
+  "quest.scratches_and_pencil_marks.title": "Stripes & Pencil Strokes",
+  "quest.scratches_and_pencil_marks.desc": "Kill 10 entities with your tamed Tiger.",
+  "quest.the_treasure_hunt.title": "The Treasure Hunt",
+  "quest.the_treasure_hunt.desc": "Kill 20 entities with your tamed Tiger.",
 
   "tooltip.tigerSkin1": "Golden Tiger",
   "tooltip.tigerSkin2": "Godfather",
@@ -574,6 +580,18 @@
 
   "quest.completed": "Quest completed!",
   "quest.tiger_hunter.title": "Tiger Hunter",
-  "quest.tiger_hunter.desc": "Kill 10 entities with your tamed Tiger."
+  "quest.tiger_hunter.desc": "Kill 10 entities with your tamed Tiger.",
+
+  "ow.attacks.passive_label": "Passive · ",
+
+  "ow.attacks.tiger.combo.title": "Shred",
+  "ow.attacks.tiger.bond.title": "Feral Pounce",
+  "ow.attacks.tiger.shadow_strike.title": "Feline Cruelty",
+  "ow.attacks.tiger.predator_sense.title": "Scent of Blood",
+
+  "ow.attacks.tiger.combo.desc": "Command your Tiger to bite every %s seconds, dealing %s damage with each bite.",
+  "ow.attacks.tiger.bond.desc": "Charge the attack to lunge your Tiger onto an enemy every %s seconds. If a target is seized, bite it from your mount.",
+  "ow.attacks.tiger.shadow_strike.desc": "Your Tiger becomes camouflaged for %s seconds, increasing its speed by %s%%, its damage by %s%%, and one-shotting injured entities. Recharge by getting %s kills every %s seconds.",
+  "ow.attacks.tiger.predator_sense.desc": "Reveal injured entities below %s%% HP through walls within a radius of %s blocks."
 
 }

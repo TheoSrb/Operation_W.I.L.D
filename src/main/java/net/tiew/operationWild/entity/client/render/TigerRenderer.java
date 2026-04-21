@@ -23,6 +23,9 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
     private static final Map<Integer, Float> ALPHA_BY_ENTITY = new HashMap<>();
     public static float currentAlpha = 1f;
 
+    // When > 0, bypasses normal fade and forces this alpha (used by ghost tiger renderer)
+    public static float ghostAlpha = 0f;
+
     private final EntityRendererProvider.Context context;
     private final Map<ModelLayerLocation, TigerModel<TigerEntity>> modelCache = new HashMap<>();
 
@@ -40,21 +43,35 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
     ) {
         TigerSkin skin = SkinRegistry.TigerSkins.get(entity.getVariant());
 
-        // Set model: REPLACEMENT uses its own model, everything else uses the base
         this.model = skin.getMode() == TigerSkin.Mode.REPLACEMENT
                 ? skin.getModelLayer().map(this::getOrBakeModel).orElse(getOrBakeModel(TigerModel.LAYER_LOCATION))
                 : getOrBakeModel(TigerModel.LAYER_LOCATION);
 
-        // Alpha fade for hidden tigers
-        float targetAlpha = entity.isHidden() ? 0.1f : 1f;
-        float alpha = ALPHA_BY_ENTITY.getOrDefault(entity.getId(), 1f);
-        alpha = alpha < targetAlpha
-                ? Math.min(alpha + ALPHA_SPEED, targetAlpha)
-                : Math.max(alpha - ALPHA_SPEED, targetAlpha);
-        ALPHA_BY_ENTITY.put(entity.getId(), alpha);
-        currentAlpha = alpha;
+        if (ghostAlpha > 0f) {
+            currentAlpha = ghostAlpha;
+        } else {
+            float targetAlpha = entity.isHidden() ? 0.1f : 1f;
+            float alpha = ALPHA_BY_ENTITY.getOrDefault(entity.getId(), 1f);
+            boolean fastFade = entity.isShadowStrikeActive()
+                    || (alpha < 0.9f && !entity.isHidden());
+            float speed = fastFade ? ALPHA_SPEED * 4f : ALPHA_SPEED;
+            alpha = alpha < targetAlpha
+                    ? Math.min(alpha + speed, targetAlpha)
+                    : Math.max(alpha - speed, targetAlpha);
+            alpha = Math.max(alpha, entity.isHidden() ? 0.1f : 0f);
+            ALPHA_BY_ENTITY.put(entity.getId(), alpha);
+            currentAlpha = alpha;
+        }
 
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+    }
+
+    @Override
+    protected RenderType getRenderType(TigerEntity entity, boolean bodyVisible, boolean translucent, boolean glowing) {
+        if (currentAlpha < 1f) {
+            return RenderType.entityTranslucentEmissive(this.getTextureLocation(entity));
+        }
+        return RenderType.entityTranslucent(this.getTextureLocation(entity));
     }
 
     @Override
@@ -66,15 +83,6 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
             return SkinRegistry.TigerSkins.get(tiger.getInitialVariant()).getTexture();
         }
         return skin.getTexture();
-    }
-
-    @Override
-    protected RenderType getRenderType(TigerEntity entity, boolean bodyVisible, boolean translucent, boolean glowing) {
-        if (currentAlpha < 1f) {
-            // Reuse the same translucent render type logic from before
-            return RenderType.entityTranslucent(this.getTextureLocation(entity));
-        }
-        return RenderType.entityTranslucent(this.getTextureLocation(entity));
     }
 
     private TigerModel<TigerEntity> getOrBakeModel(ModelLayerLocation layer) {

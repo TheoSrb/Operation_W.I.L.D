@@ -58,6 +58,7 @@ public enum TigerVariant {
     }
 
     public static TigerVariant byId(int id) {
-        return BY_ID[id % BY_ID.length];
+        if (id < 0 || id >= BY_ID.length) return BY_ID[0];
+        return BY_ID[id];
     }
 }

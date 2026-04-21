@@ -1,0 +1,278 @@
+============================================================
+  OPERATION W.I.L.D — SYSTÈME D'ATTAQUES
+============================================================
+
+IDs d'attaque déjà pris :
+  1 → Tiger  JUMP_ATTACK
+  2 → Tiger  SHADOW_STRIKE  (ultime — touche X, 5 kills requis)
+
+------------------------------------------------------------
+ARCHITECTURE — CLIENT vs SERVEUR
+------------------------------------------------------------
+
+Le système repose sur un seul packet universel (OWAttackPacket).
+Aucun nouveau packet n'est jamais nécessaire.
+
+Flux d'une attaque chargée :
+
+  [CLIENT] Appui touche
+      → OWAttackLogic envoie ACTION_CHARGE_START au serveur
+      → Serveur appelle chargeStartAction  (ex : startJumpCharge())
+
+  [CLIENT] Maintien de la touche
+      → OWAttackLogic calcule chargeProgress [0..1] à chaque tick
+      → Les effets visuels (FOV, roll, fantôme) sont mis à jour en temps réel
+
+  [CLIENT] Relâchement valide (≥ minChargeMs)
+      → chargeFactor = (elapsed - min) / (max - min), clampé à [0..1]
+      → Vérification énergie : si insuffisante → cooldown ignoré, attaque annulée
+      → ACTION_CHARGE_RELEASE envoyé au serveur avec chargeFactor
+      → Serveur appelle chargeReleaseAction  (ex : performJumpAttack(factor))
+      → applyLocalEffect exécuté côté client du rider (physique véhicule)
+
+  [CLIENT] Relâchement trop tôt (< minChargeMs)
+      → ACTION_CHARGE_CANCEL envoyé au serveur
+      → Serveur appelle chargeCancelAction  (ex : cancelJumpCharge())
+
+IMPORTANT — qui gère la vélocité ?
+  Le client du rider est propriétaire de la physique du véhicule monté.
+  La vélocité doit être appliquée UNIQUEMENT dans localEffect (côté client).
+  Le serveur ne doit PAS appeler setDeltaMovement — sinon la vélocité
+  est appliquée deux fois et la puissance du saut devient aléatoire.
+  Le serveur gère uniquement l'état (flags, cooldown, sons, particles, syncs).
+
+------------------------------------------------------------
+ÉNERGIE VITALE
+------------------------------------------------------------
+
+L'énergie est INVERSÉE : haute valeur = fatigué, basse valeur = plein d'énergie.
+
+  • Augmente (+1/tick) quand l'animal court en étant monté
+  • Diminue (-getVitalEnergyRecuperation()/tick) quand il ne court pas
+  • Maximum : getMaxVitalEnergy()  (ex : 300 * (1 + level/50) pour le tigre)
+
+Vérifier si l'animal a assez d'énergie pour une attaque qui coûte X :
+
+    getVitalEnergy() <= getMaxVitalEnergy() - X   →  assez d'énergie
+
+Consommer X d'énergie :
+
+    setVitalEnergy(getVitalEnergy() + X)
+
+Le troisième paramètre de OWChargedAttack / OWAttack est float energyRequired.
+OWChargedAttack.applyLocalEffect() et OWAttackLogic font ce check automatiquement.
+Côté serveur, implémenter manuellement dans la chargeReleaseAction :
+
+    float cost = OWAttacksHandler.MonAnimalAttacks.MON_ATTACK.getEnergyRequired();
+    if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+        canShowVitalEnergyLack = true;
+        cancelMonAttaque();   // reset tous les flags (isPreparing, etc.)
+        return;
+    }
+    setVitalEnergy(getVitalEnergy() + cost);
+
+Ne pas oublier de reset TOUS les flags dans la méthode cancel (voir cancelJumpCharge
+comme référence) sinon l'entité peut rester bloquée en isPreparing.
+
+------------------------------------------------------------
+ÉVÉNEMENTS DISPONIBLES SUR OWChargedAttack
+------------------------------------------------------------
+
+Chaque lambda est documenté ci-dessous avec son contexte d'exécution.
+
+  chargeStartAction    Consumer<OWEntity>
+  ─────────────────────────────────────────
+  Contexte : SERVEUR, au moment où le joueur appuie sur la touche.
+  Utilisation typique : passer l'entité en état de préparation,
+  démarrer une animation, jouer un son de début.
+
+      entity -> ((CrocodileEntity) entity).startBiteCharge()
+
+  chargeCancelAction   Consumer<OWEntity>
+  ─────────────────────────────────────────
+  Contexte : SERVEUR, si le joueur relâche avant minChargeMs.
+  Utilisation typique : annuler l'état de préparation, reset des flags.
+
+      entity -> ((CrocodileEntity) entity).cancelBiteCharge()
+
+  chargeReleaseAction  BiConsumer<OWEntity, Float>   (Float = chargeFactor [0..1])
+  ─────────────────────────────────────────
+  Contexte : SERVEUR, si le joueur relâche après minChargeMs.
+  chargeFactor = 0.0 → charge minimale, 1.0 → charge maximale.
+  Utilisation typique : appliquer l'attaque, gérer le cooldown,
+  déduire l'énergie, jouer le son final.
+
+      (entity, factor) -> ((CrocodileEntity) entity).performBite(factor)
+
+  localEffect          LocalEffect (OWEntity, float chargeFactor, Vec3 chargeDirection)
+  ─────────────────────────────────────────
+  Contexte : CLIENT du rider uniquement, au moment du relâchement valide.
+  Utilisation typique : appliquer la vélocité du saut/bond (SEUL endroit
+  où setDeltaMovement doit être appelé pour un véhicule monté).
+  Le check énergie est fait automatiquement avant d'appeler ce lambda.
+  Peut être null si l'attaque ne déplace pas l'entité.
+
+      (entity, factor, dir) -> {
+          Vec3 h = new Vec3(dir.x, 0, dir.z).normalize();
+          float speed = (0.4f + 0.6f * factor) * 1.5f;
+          entity.setDeltaMovement(h.x * speed, 0.3f + 0.1f * factor, h.z * speed);
+          entity.hasImpulse = true;
+      }
+
+  showGhost            boolean
+  ─────────────────────────────────────────
+  Affiche un GhostRenderer pendant le chargement.
+  Nécessite un renderer dédié (voir TigerGhostRenderer).
+  Mettre false si l'entité n'a pas de GhostRenderer.
+
+  hasCameraEffect      boolean
+  ─────────────────────────────────────────
+  Active la réduction de FOV + roll de caméra progressifs pendant la charge
+  (géré automatiquement par OWAttackLogic).
+
+------------------------------------------------------------
+EXEMPLE COMPLET — Crocodile : attaque de morsure chargée
+------------------------------------------------------------
+
+Objectif : le crocodile ouvre progressivement la gueule pendant la charge
+(via une animation/flag), puis inflige des dégâts proportionnels au facteur
+de charge au relâchement.
+
+── 1. Flags à ajouter dans CrocodileEntity ──────────────────
+
+    public boolean isBiteCharging = false;
+    public float   biteChargeProgress = 0f;   // [0..1], lu par le modèle pour l'animation
+
+── 2. Méthodes dans CrocodileEntity ─────────────────────────
+
+    public void startBiteCharge() {
+        isBiteCharging = true;
+        biteChargeProgress = 0f;
+    }
+
+    public void cancelBiteCharge() {
+        isBiteCharging = false;
+        biteChargeProgress = 0f;
+    }
+
+    public void performBite(float chargeFactor) {
+        if (!isBiteCharging) return;
+
+        float cost = OWAttacksHandler.CrocodileAttacks.BITE_ATTACK.getEnergyRequired();
+        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+            canShowVitalEnergyLack = true;
+            cancelBiteCharge();
+            return;
+        }
+        setVitalEnergy(getVitalEnergy() + cost);
+
+        isBiteCharging = false;
+        biteChargeProgress = 0f;
+
+        // Dégâts proportionnels à la charge (5 à 15 PV)
+        float damage = 5f + 10f * chargeFactor;
+        AABB hitBox = this.getBoundingBox().inflate(1.5);
+        this.level().getEntitiesOfClass(LivingEntity.class, hitBox).forEach(target -> {
+            if (target != this && target != this.getFirstPassenger()) {
+                target.hurt(this.damageSources().mobAttack(this), damage);
+            }
+        });
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.CROCODILE_BITE.get(), SoundSource.AMBIENT, 2.0f, 1.0f);
+    }
+
+── 3. Mise à jour du progress dans le tick (CrocodileEntity) ─
+
+    // Appelé dans tick() ou customServerAiStep()
+    if (isBiteCharging) {
+        // OWAttackLogic.getChargeProgress() n'est dispo que côté client.
+        // Côté serveur, synchroniser biteChargeProgress via entityData
+        // ou laisser le modèle le calculer côté client depuis OWAttackLogic.
+    }
+
+    // ALTERNATIVE plus simple — côté client uniquement (dans le modèle/renderer) :
+    // lire OWAttackLogic.getChargeProgress() directement dans setupAnim()
+    // pour animer la mâchoire sans aucune synchro serveur.
+
+── 4. Animation dans CrocodileModel.setupAnim() ─────────────
+
+    // Récupérer le progress de charge côté client (0 à 1)
+    float biteOpen = 0f;
+    if (entity.isBiteCharging) {
+        biteOpen = OWAttackLogic.getChargeProgress();  // 0 = début, 1 = charge max
+    }
+    // Appliquer la rotation de la mâchoire supérieure
+    this.upperJaw.xRot = -biteOpen * (float)(Math.PI / 4);  // ouvre jusqu'à 45°
+
+── 5. Déclarer l'attaque dans OWAttacksHandler ───────────────
+
+    public static class CrocodileAttacks {
+
+        public static final OWChargedAttack BITE_ATTACK = new OWChargedAttack(
+                2,                   // ID unique
+                OW_ATTACK_0,         // clic droit
+                60f,                 // énergie requise
+                300,                 // cooldown : 15 secondes
+                500L,                // charge min : 0.5 s
+                2000L,               // charge max : 2 s
+                entity -> ((CrocodileEntity) entity).startBiteCharge(),
+                entity -> ((CrocodileEntity) entity).cancelBiteCharge(),
+                (entity, factor) -> ((CrocodileEntity) entity).performBite(factor),
+                null,                // pas de déplacement → localEffect null
+                false,               // pas de fantôme
+                true                 // effet de caméra pendant la charge
+        );
+    }
+
+── 6. Enregistrer dans registerAll() ────────────────────────
+
+    registerEntityRow(CrocodileEntity.class, 1);  // rangée 1 dans l'overlay
+    register(CrocodileEntity.class, CrocodileAttacks.BITE_ATTACK);
+
+------------------------------------------------------------
+ÉTAPES GÉNÉRIQUES — RÉSUMÉ
+------------------------------------------------------------
+
+  1. Ajouter flags + méthodes (start / cancel / perform) dans l'entité.
+  2. Dans perform : vérifier l'énergie, la consommer, appliquer l'effet.
+     NE PAS appeler setDeltaMovement ici si l'entité est un véhicule monté.
+  3. Déclarer OWChargedAttack dans OWAttacksHandler (inner class par animal).
+  4. Enregistrer dans registerAll() avec registerEntityRow + register.
+  5. Si l'attaque déplace le véhicule : implémenter localEffect (setDeltaMovement).
+  6. Si animation pendant la charge : lire OWAttackLogic.getChargeProgress()
+     dans setupAnim() côté client.
+  7. Si fantôme voulu : créer un GhostRenderer et câbler showGhost = true.
+
+------------------------------------------------------------
+CONSEILS ET PIÈGES
+------------------------------------------------------------
+
+• Les IDs d'attaque doivent être uniques pour TOUS les animaux.
+  Tenir à jour le bloc "IDs pris" en haut de ce fichier.
+
+• Ne JAMAIS appeler setDeltaMovement côté serveur pour un véhicule monté.
+  Toujours passer par localEffect côté client. Sinon la vélocité est
+  appliquée deux fois et la puissance devient aléatoire.
+
+• La méthode cancel doit toujours réinitialiser TOUS les flags de l'entité
+  (isPreparing, isCharging, biteChargeProgress…). Si un flag est oublié,
+  l'entité reste bloquée dans un état intermédiaire après un échec d'énergie.
+
+• Le cooldown côté serveur (jumpAttackCooldown, etc.) doit être géré dans
+  l'entité elle-même. Le cooldown côté client (OWAttackLogic) est géré
+  automatiquement, et n'est pas appliqué si l'énergie est insuffisante.
+
+• OWAttackLogic gère :
+  - Les OWChargedAttack sur inputs souris via onMouseInput().
+  - Les OWAttack instantanées sur touches clavier via onKeyInput()
+    (unlock condition + énergie vérifiés côté client avant envoi du packet).
+
+• OWAttackLogic.getChargeProgress() et OWAttackLogic.isCharging sont
+  disponibles de partout côté client — pratique pour les renderers
+  et les animations sans avoir besoin de synchro serveur.
+
+• hasCameraEffect active automatiquement la réduction de FOV et le roll.
+  Aucun code supplémentaire requis.
+
+============================================================

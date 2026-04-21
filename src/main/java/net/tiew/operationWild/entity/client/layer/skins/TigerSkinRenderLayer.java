@@ -45,8 +45,15 @@ public class TigerSkinRenderLayer extends RenderLayer<TigerEntity, TigerModel<Ti
                     skin.getOverlayTexture().ifPresent(overlayTex -> {
                         TigerModel<TigerEntity> overlayModel = getOrBakeModel(layer);
                         overlayModel.setupAnim(tiger, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-                        VertexConsumer vc = bufferSource.getBuffer(RenderType.entityCutoutNoCull(overlayTex));
-                        overlayModel.renderToBuffer(poseStack, vc, packedLight, OverlayTexture.NO_OVERLAY);
+                        float alpha = TigerRenderer.currentAlpha;
+                        RenderType renderType = alpha < 1f
+                                ? RenderType.entityTranslucent(overlayTex)
+                                : RenderType.entityCutoutNoCull(overlayTex);
+                        int color = alpha < 1f
+                                ? ((int)(alpha * 255) << 24) | 0x00FFFFFF
+                                : 0xFFFFFFFF;
+                        VertexConsumer vc = bufferSource.getBuffer(renderType);
+                        overlayModel.renderToBuffer(poseStack, vc, packedLight, OverlayTexture.NO_OVERLAY, color);
                     })
             );
         }

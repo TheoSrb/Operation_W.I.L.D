@@ -111,6 +111,8 @@ public class TigerLeapingGoal extends Goal {
                 isPreparing = false;
                 isLeaping = true;
                 leapTick = 0;
+                tiger.isPreparing = false;
+                tiger.isLeaping = true;
                 tiger.leapToTarget(target, 30f, 0.25f);
             }
             return;
@@ -122,6 +124,7 @@ public class TigerLeapingGoal extends Goal {
             if (tiger.distanceTo(target) < (tiger.getBbWidth() + target.getBbWidth() + 1.0f)) {
                 leapSuccess = true;
                 isLeaping = false;
+                tiger.isLeaping = false;
                 if (tiger.canGrabEntity(target)) {
                     tiger.setGrabbing(true, target);
                 }
@@ -129,6 +132,7 @@ public class TigerLeapingGoal extends Goal {
 
             if (leapTick > 5 && tiger.onGround()) {
                 isLeaping = false;
+                tiger.isLeaping = false;
             }
         }
     }
