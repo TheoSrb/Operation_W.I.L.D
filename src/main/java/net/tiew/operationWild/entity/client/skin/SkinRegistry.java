@@ -4,6 +4,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.skin.skins.*;
+import net.tiew.operationWild.entity.variants.CrocodileVariant;
+import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.entity.variants.TigerVariant;
 
 import java.util.EnumMap;
@@ -11,7 +13,107 @@ import java.util.Map;
 
 public final class SkinRegistry {
 
+    // ──────────────────────────────────────────────────────────────────────────
+    //  CROCODILE SKINS
+    // ──────────────────────────────────────────────────────────────────────────
 
+    public static class CrocodileSkins {
+
+        private static final Map<CrocodileVariant, CrocodileSkin> REGISTRY = new EnumMap<>(CrocodileVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/" + path);
+        }
+
+        static {
+            // --- Base skins: texture swap only ---
+            register(CrocodileVariant.DEFAULT, CrocodileSkin.base(tex("crocodile_default.png")));
+            register(CrocodileVariant.GREEN,   CrocodileSkin.base(tex("crocodile_green.png")));
+            register(CrocodileVariant.DARK,    CrocodileSkin.base(tex("crocodile_dark.png")));
+
+            // --- SKIN_GOLD: base model + glowing overlay layer ---
+            register(CrocodileVariant.Cosmetics.GOLD.variant, new GoldCrocodileSkin());
+
+            register(CrocodileVariant.Cosmetics.VERMILION_GUARDIAN.variant, new VermilionGuardianCrocodileSkin());
+            register(CrocodileVariant.Cosmetics.TOY.variant, new ToyCrocodileSkin());
+
+        }
+
+        public static void register(CrocodileVariant variant, CrocodileSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static CrocodileSkin get(CrocodileVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(CrocodileVariant.DEFAULT));
+        }
+
+        /**
+         * Called from ModClientEventBusEvents to register model layers declared by skins.
+         * No need to touch that file when adding new skins with model layers.
+         */
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    //  KODIAK SKINS
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public static class KodiakSkins {
+
+        private static final Map<KodiakVariant, KodiakSkin> REGISTRY = new EnumMap<>(KodiakVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/" + path);
+        }
+
+        static {
+            // --- Base skins: texture swap only ---
+            register(KodiakVariant.DEFAULT,  KodiakSkin.base(tex("kodiak_default.png")));
+            register(KodiakVariant.BLACK,    KodiakSkin.base(tex("kodiak_black.png")));
+            register(KodiakVariant.GREY,     KodiakSkin.base(tex("kodiak_grey.png")));
+
+            // --- SKIN_GOLD: base model + glowing overlay layer ---
+            register(KodiakVariant.Cosmetics.GOLD.variant,     new GoldKodiakSkin());
+
+            // --- SKIN_SKELETON: base model + glowing overlay layer ---
+            register(KodiakVariant.Cosmetics.SKELETON.variant, new SkeletonKodiakSkin());
+            // Note: SHADE (skinIndex 3) is not a variant — handled via isShade() in KodiakSkinRenderLayer
+        }
+
+        public static void register(KodiakVariant variant, KodiakSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static KodiakSkin get(KodiakVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(KodiakVariant.DEFAULT));
+        }
+
+        /**
+         * Called from ModClientEventBusEvents to register model layers declared by skins.
+         * No need to touch that file when adding new skins with model layers.
+         */
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    //  TIGER SKINS
+    // ──────────────────────────────────────────────────────────────────────────
 
     public static class TigerSkins {
 

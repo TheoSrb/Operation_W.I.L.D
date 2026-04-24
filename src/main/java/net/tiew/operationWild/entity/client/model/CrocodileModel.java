@@ -3,6 +3,7 @@ package net.tiew.operationWild.entity.client.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -15,10 +16,15 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.attacks.OWAttackLogic;
+import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.client.animation.CrocodileAnimations;
+import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
 public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "crocodile_default"), "main");
+
+	private float prevLimbSwing = 0f;
 
 	private final ModelPart ALL2;
 	private final ModelPart ALL;
@@ -184,21 +190,25 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		if (crocodile.transitionIdleSit.isStarted()) {
 			this.animate(crocodile.transitionIdleSit, CrocodileAnimations.TRANSITION_IDLE_SIT, ageInTicks, 2.0f);
+			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.transitionSitIdle.isStarted()) {
 			this.animate(crocodile.transitionSitIdle, CrocodileAnimations.TRANSITION_SIT_IDLE, ageInTicks, 2.0f);
+			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.transitionIdleSleep.isStarted()) {
 			this.animate(crocodile.transitionIdleSleep, CrocodileAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
+			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.transitionSleepIdle.isStarted()) {
 			this.animate(crocodile.transitionSleepIdle, CrocodileAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
+			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
@@ -212,58 +222,59 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		if (crocodile.isNapping()) {
 			this.animate(crocodile.napAnimationState, CrocodileAnimations.NAP, ageInTicks, 1.0f);
+			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.isSitting()) {
 			this.animate(crocodile.sittingAnimationState, CrocodileAnimations.SIT, ageInTicks, 1.0f);
+			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (!crocodile.isInWater()) {
 			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
-			if ((crocodile.isRunning() || crocodile.getState() == 2) && !crocodile.isChargingMouth() && !crocodile.hasGrabSomething()) {
-				if (crocodile.isVehicle()) {
-					this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.3f, 1.4f);
-				} else {
-					if (!crocodile.isStartingTaming()) {
-						this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 2.15f, 2.0f);
-					} else {
-						this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 7f, 7f);
-					}
-				}
+			if (crocodile.isRunning() || crocodile.getState() == 2 && !crocodile.hasGrabSomething()) {
+				this.animateWalk(TigerAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.1f, 1.25f);
+
+				if (walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 150L)) crocodile.onRightFootDown();
+				if (walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 340L)) crocodile.onLeftFootDown();
+
 			} else {
-				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 7f, 7f);
+				this.animateWalk(TigerAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 4.5f, 4.5f);
+
+				if (walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 300L)) crocodile.onRightFootDown();
+				if (walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 1000L)) crocodile.onLeftFootDown();
 			}
 
-			handleChargingMouth(crocodile, ageInTicks);
+			// Animation ouverture de gueule pendant la charge (Mouth Slam)
+			Minecraft mc = Minecraft.getInstance();
+			if (mc.player != null && mc.player.getVehicle() == crocodile
+					&& OWAttackLogic.isCharging
+					&& OWAttackLogic.getCurrentAttackId() == OWAttacksHandler.CrocodileAttacks.MOUTH_SLAM_ID) {
+				applyMouthSlamAnimation(OWAttackLogic.getChargeProgress(), ageInTicks);
+			}
 		} else {
 			//this.animate(crocodile.idleWaterAnimationState, CrocodileAnimations.MOVE_SWIM, ageInTicks, 1.0f);
 			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
 		}
 
-		if (crocodile.level().isClientSide()) {
-			if (crocodile.isGrabbing()) {
-				if (!crocodile.isInWater()) {
-					crocodile.setBodyZRot((float) ((float) Math.toDegrees(this.head.zRot) + Math.toDegrees(this.neck.zRot)));
-					crocodile.setBodyXRot((float) ((float) Math.toDegrees(this.head.xRot) + Math.toDegrees(this.neck.xRot)));
-					crocodile.setBodyYRot((float) ((float) Math.toDegrees(this.head.yRot) + Math.toDegrees(this.neck.yRot)));
-				} else {
-					crocodile.setBodyZRot((float) Math.toDegrees(0));
-					crocodile.setBodyYRot((float) Math.toDegrees(0));
-					crocodile.setBodyXRot((float) Math.toDegrees(0));
-				}
+		this.prevLimbSwing = limbSwing;
+
+		captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
+
+		/*if (crocodile.level().isClientSide() && crocodile.isGrabbing()) {
+			if (!crocodile.isInWater()) {
+				crocodile.setBodyZRot((float) ((float) Math.toDegrees(this.head.zRot) + Math.toDegrees(this.neck.zRot)));
+				crocodile.setBodyXRot((float) ((float) Math.toDegrees(this.head.xRot) + Math.toDegrees(this.neck.xRot)));
+				crocodile.setBodyYRot((float) ((float) Math.toDegrees(this.head.yRot) + Math.toDegrees(this.neck.yRot)));
 			} else {
-				if (crocodile.isInWater()) {
-					crocodile.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));
-					crocodile.setBodyXRot((float) Math.toDegrees(this.ALL.xRot));
-				} else {
-					crocodile.setBodyZRot((float) Math.toDegrees(this.body.zRot));
-					crocodile.setBodyXRot((float) Math.toDegrees(this.body.xRot));
-				}
+				crocodile.setBodyZRot(0);
+				crocodile.setBodyYRot(0);
+				crocodile.setBodyXRot(0);
 			}
-		}
+		}*/
     }
 
 	private void spawnFootstepParticles(CrocodileEntity crocodile, float limbSwing) {
@@ -307,22 +318,30 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		}
 	}
 
-	private void handleChargingMouth(CrocodileEntity crocodile, float ageInTicks) {
-		if (crocodile.isChargingMouth()) {
-			float mouthOpeningRadius = Math.min(40, Math.max(15, crocodile.getChargingMouthTimer() / 1.2f));
+	/**
+	 * Ouvre progressivement la gueule en fonction de la progression de charge [0..1].
+	 * Angles réalistes : la mâchoire inférieure descend davantage que la supérieure ne monte.
+	 */
+	private void applyMouthSlamAnimation(float charge, float ageInTicks) {
+		// Mâchoire supérieure : légère élévation
+		this.mouth_up.xRot = (float) Math.toRadians(-5f - charge * 20f);
+		this.mouth_up.y    = -(charge * 2.5f);
 
-			this.head.y = -Math.min(5, Math.max(0.5f, 5 * (crocodile.getChargingMouthTimer() / 40)));
+		// Mâchoire inférieure : descend plus franchement
+		this.mouth_down.xRot = (float) Math.toRadians(5f + charge * 22f);
+		this.mouth_down.y    =  charge * 2.5f;
+		this.mouth_down.z    =  charge * 1.5f;
 
-			this.mouth_up.xRot = (float) Math.toRadians(-mouthOpeningRadius);
-			this.mouth_up.y = -Math.min(3, Math.max(0.5f, 3 * (crocodile.getChargingMouthTimer() / 40)));
+		// Tête qui recule légèrement pour l'élan
+		this.head.xRot = (float) Math.toRadians(-charge * 8f);
+		this.head.y    = -(charge * 3f);
 
-			this.mouth_down.xRot = (float) Math.toRadians(mouthOpeningRadius / 2);
-			this.mouth_down.z = Math.min(2, Math.max(0.3f, 2 * (crocodile.getChargingMouthTimer() / 40)));
-			this.mouth_down.y = Math.min(3, Math.max(0.5f, 3 * (crocodile.getChargingMouthTimer() / 40)));
-
-
-			this.mouth_up.xRot -= Math.toRadians(Math.sin(ageInTicks * 2f) * 2.5);
-			this.mouth_down.xRot += Math.toRadians(Math.sin(ageInTicks * 2f) * 2.5);
+		// Tremblement quand la charge est au maximum
+		if (charge >= 1.0f) {
+			float tremble = (float) Math.sin(ageInTicks * 3.0) * 0.05f;
+			this.mouth_up.xRot   += tremble;
+			this.mouth_down.xRot -= tremble;
+			this.head.xRot       += tremble * 0.5f;
 		}
 	}
 
@@ -330,6 +349,15 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
 		this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 	}
+
+    private void captureBodyState(CrocodileEntity crocodile, float restPoseYSum, ModelPart... boneChain) {
+        if (!crocodile.level().isClientSide()) return;
+		crocodile.setBodyZRot((float) Math.toDegrees(this.ALL.zRot + this.body.zRot));
+		crocodile.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot));
+        float ySum = 0f;
+        for (ModelPart bone : boneChain) ySum += bone.y;
+        crocodile.bodyAnimY = ySum - restPoseYSum;
+    }
 
     private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
         pNetHeadYaw = Mth.clamp(pNetHeadYaw, -30.0F, 30.0F);
@@ -343,4 +371,29 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
     public ModelPart root() {
         return this.ALL2;
     }
+
+	/**
+	 * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.
+	 * Use this to fire one-shot events (sounds, particles) at precise moments of a walk cycle.
+	 *
+	 * <p>How to find {@code triggerTimeMs}: open Blockbench, look at the keyframe timestamp of the
+	 * moment you want (e.g. foot hits the ground), multiply seconds × 1000.</p>
+	 *
+	 * @param animation     the AnimationDefinition played via {@code animateWalk()}
+	 * @param limbSwing     current limbSwing value (first param of setupAnim)
+	 * @param speedScale    the {@code maxAnimationCycles} value passed to {@code animateWalk()}
+	 * @param triggerTimeMs keyframe time in <strong>milliseconds</strong> to fire at
+	 */
+	private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
+		long durationMs = (long)(animation.lengthInSeconds() * 1000f);
+		if (durationMs <= 0) return false;
+
+		long cur  = ((long)(limbSwing     * 50f * speedScale)) % durationMs;
+		long prev = ((long)(prevLimbSwing * 50f * speedScale)) % durationMs;
+
+		// Normal case: no wrap-around in this frame
+		if (prev <= cur) return prev < triggerTimeMs && cur >= triggerTimeMs;
+		// Wrap-around: the cycle looped between prev and cur → target in [0, cur] OR in (prev, duration)
+		return triggerTimeMs <= cur || triggerTimeMs > prev;
+	}
 }

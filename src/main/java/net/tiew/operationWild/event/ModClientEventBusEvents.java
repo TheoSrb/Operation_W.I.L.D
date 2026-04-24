@@ -47,5 +47,7 @@ public class ModClientEventBusEvents {
 
 
         SkinRegistry.TigerSkins.registerAllLayerDefinitions(event);
+        SkinRegistry.CrocodileSkins.registerAllLayerDefinitions(event);
+        SkinRegistry.KodiakSkins.registerAllLayerDefinitions(event);
     }
 }

@@ -8,7 +8,21 @@ public enum CrocodileVariant {
     GREEN(1),
     DARK(2),
 
-    SKIN_GOLD(3);
+    @Deprecated SKIN_GOLD(3),
+    @Deprecated SKIN_VERMILION_GUARDIAN(4),
+    @Deprecated SKIN_TOY(5);
+
+    public enum Cosmetics {
+        GOLD(CrocodileVariant.SKIN_GOLD),
+        VERMILION_GUARDIAN(CrocodileVariant.SKIN_VERMILION_GUARDIAN),
+        TOY(CrocodileVariant.SKIN_TOY);
+
+        public final CrocodileVariant variant;
+
+        Cosmetics(CrocodileVariant variant) {
+            this.variant = variant;
+        }
+    }
 
     public static final CrocodileVariant[] BY_ID = Arrays.stream(values()).sorted(Comparator.comparingInt(CrocodileVariant::getId)).toArray(CrocodileVariant[]::new);
 

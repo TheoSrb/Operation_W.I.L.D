@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -189,52 +190,62 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
 		if (kodiak.isRubs()) {
 			this.animate(kodiak.rubsAnimationState, KodiakAnimations.RUBS, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
 		if (kodiak.isRolling()) {
 			this.animate(kodiak.rollingAnimationState, KodiakAnimations.ROLL, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
 		if (kodiak.transitionIdleSit.isStarted()) {
 			this.animate(kodiak.transitionIdleSit, KodiakAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
 		if (kodiak.transitionSitIdle.isStarted()) {
 			this.animate(kodiak.transitionSitIdle, KodiakAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
 		if (kodiak.transitionIdleSleep.isStarted()) {
 			this.animate(kodiak.transitionIdleSleep, KodiakAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 2.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
 		if (kodiak.transitionSleepIdle.isStarted()) {
 			this.animate(kodiak.transitionSleepIdle, KodiakAnimations.TRANSITION_SLEEP_IDLE, ageInTicks, 2.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
 		if (kodiak.transitionIdleStandingUp.isStarted()) {
 			this.animate(kodiak.transitionIdleStandingUp, KodiakAnimations.TRANSITION_IDLE_STAND_UP, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
 		if (kodiak.transitionStandingUpIdle.isStarted()) {
 			this.animate(kodiak.transitionStandingUpIdle, KodiakAnimations.TRANSITION_STAND_UP_IDLE, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
 		if (kodiak.isNapping()) {
 			this.animate(kodiak.napAnimationState, KodiakAnimations.SLEEP, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
 
 		if (kodiak.isSitting()) {
 			this.animate(kodiak.sittingAnimationState, KodiakAnimations.SIT, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			return;
 		}
 
@@ -259,11 +270,8 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			this.animateWalk(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
 		}
 
-
-		if (kodiak.level().isClientSide()) {
-			kodiak.setBodyZRot((float) Math.toDegrees(this.body_2.zRot));
-			kodiak.setBodyXRot((float) Math.toDegrees(this.body_2.xRot));
-		}
+		this.prevLimbSwing = limbSwing;
+		captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
     }
 
 	@Override
@@ -344,6 +352,42 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		);
 
 		poseStack.popPose();
+	}
+
+	private float prevLimbSwing = 0f;
+
+    private void captureBodyState(KodiakEntity kodiak, float restPoseYSum, ModelPart... boneChain) {
+        if (!kodiak.level().isClientSide()) return;
+        kodiak.setBodyZRot((float) Math.toDegrees(this.body_2.zRot));
+        kodiak.setBodyXRot((float) -Math.toDegrees(this.body_2.xRot));
+        float ySum = 0f;
+        for (ModelPart bone : boneChain) ySum += bone.y;
+        kodiak.bodyAnimY = ySum - restPoseYSum;
+    }
+
+	/**
+	 * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.
+	 * Use this to fire one-shot events (sounds, particles) at precise moments of a walk cycle.
+	 *
+	 * <p>How to find {@code triggerTimeMs}: open Blockbench, look at the keyframe timestamp of the
+	 * moment you want (e.g. foot hits the ground), multiply seconds × 1000.</p>
+	 *
+	 * @param animation     the AnimationDefinition played via {@code animateWalk()}
+	 * @param limbSwing     current limbSwing value (first param of setupAnim)
+	 * @param speedScale    the {@code maxAnimationCycles} value passed to {@code animateWalk()}
+	 * @param triggerTimeMs keyframe time in <strong>milliseconds</strong> to fire at
+	 */
+	private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
+		long durationMs = (long)(animation.lengthInSeconds() * 1000f);
+		if (durationMs <= 0) return false;
+
+		long cur  = ((long)(limbSwing     * 50f * speedScale)) % durationMs;
+		long prev = ((long)(prevLimbSwing * 50f * speedScale)) % durationMs;
+
+		// Normal case: no wrap-around in this frame
+		if (prev <= cur) return prev < triggerTimeMs && cur >= triggerTimeMs;
+		// Wrap-around: the cycle looped between prev and cur → target in [0, cur] OR in (prev, duration)
+		return triggerTimeMs <= cur || triggerTimeMs > prev;
 	}
 
     private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {

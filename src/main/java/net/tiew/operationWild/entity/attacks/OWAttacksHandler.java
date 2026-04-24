@@ -9,6 +9,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
 import org.lwjgl.glfw.GLFW;
@@ -100,14 +102,23 @@ public class OWAttacksHandler {
      * Ajouter ici un appel par nouvelle entité/attaque.
      */
     public static void registerAll() {
+        // ── Tigre — rangée 0 (Y=0 / Y=20) ───────────────────────────────────────
         registerEntityRow(TigerEntity.class, 0);
-        registerComboMaxTimer(TigerEntity.class, 12); // timeToHit(10) + 2 : valeur réelle où le timer se fige
+        registerComboMaxTimer(TigerEntity.class, 12); // timeToHit(10) + 2
         register(TigerEntity.class, TigerAttacks.JUMP_ATTACK);
         register(TigerEntity.class, TigerAttacks.SHADOW_STRIKE);
         registerPassive(TigerEntity.class, TigerPassives.PREDATOR_SENSE);
-        // registerEntityRow(WolfEntity.class, 1);
-        // registerComboMaxTimer(WolfEntity.class, 14);
-        // register(WolfEntity.class, WolfAttacks.BITE_ATTACK);
+
+        // ── Kodiak — rangée 1 (Y=40 / Y=60) ─────────────────────────────────────
+        registerEntityRow(KodiakEntity.class, 1);
+        registerComboMaxTimer(KodiakEntity.class, 14); // timeToHit(12) + 2
+
+        // ── Crocodile — rangée 2 (Y=80 / Y=100) ──────────────────────────────────
+        registerEntityRow(CrocodileEntity.class, 2);
+        registerComboMaxTimer(CrocodileEntity.class, 17); // timeToHit(15) + 2
+        register(CrocodileEntity.class, CrocodileAttacks.MOUTH_SLAM);
+        register(CrocodileEntity.class, CrocodileAttacks.PRIMAL_DIVE);
+        registerPassive(CrocodileEntity.class, CrocodilePassives.PRIMAL_DIVE_SENSE);
     }
 
     // ── Queries ───────────────────────────────────────────────────────────────
@@ -212,6 +223,73 @@ public class OWAttacksHandler {
                 true, // afficher le fantôme pendant la charge
                 true  // effet de caméra pendant la charge
         );
+    }
+
+    // ── Kodiak attacks ────────────────────────────────────────────────────────
+    public static class KodiakAttacks {
+        // À déclarer ici (OWAttack / OWChargedAttack) et à register() dans registerAll()
+    }
+
+    // ── Crocodile attacks ─────────────────────────────────────────────────────
+    public static class CrocodileAttacks {
+
+        public static final int MOUTH_SLAM_ID             = 3;
+        public static final int MOUTH_SLAM_COOLDOWN_TICKS = 600; // 30 secondes
+
+        // Charge RMB : 1 s minimum → 3 s maximum.
+        // 5 dégâts à factor=0, 15 dégâts à factor=1 + gros recul + saignement 10 s au max.
+        public static final OWChargedAttack MOUTH_SLAM = new OWChargedAttack(
+                MOUTH_SLAM_ID,
+                OW_ATTACK_0,
+                100f,
+                MOUTH_SLAM_COOLDOWN_TICKS,
+                1000L,
+                3000L,
+                entity -> ((CrocodileEntity) entity).startMouthSlamCharge(),
+                entity -> ((CrocodileEntity) entity).cancelMouthSlamCharge(),
+                (entity, factor) -> ((CrocodileEntity) entity).performMouthSlam(factor),
+                (entity, factor, dir) -> {},
+                false,
+                true
+        ).withCanUsePredicate(entity -> !entity.isInWater());
+
+        // Primal Dive — ultime
+        public static final int PRIMAL_DIVE_ID             = 4;
+        public static final int PRIMAL_DIVE_KILLS_REQUIRED = 5;
+        public static final int PRIMAL_DIVE_COOLDOWN_TICKS = 1200; // 60 s
+        public static final long PRIMAL_DIVE_TARGETING_MS  = 10_000L; // 10 s
+
+        public static final OWAttack PRIMAL_DIVE = new OWAttack(
+                PRIMAL_DIVE_ID,
+                OW_ATTACK_1,
+                100f,
+                entity -> ((net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity) entity).activatePrimalDive(),
+                PRIMAL_DIVE_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc
+                        && croc.getUltimateKillCount() >= PRIMAL_DIVE_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc
+                        ? (float) croc.getUltimateKillCount() / PRIMAL_DIVE_KILLS_REQUIRED
+                        : 0f
+        ).withUltimateDuration(PRIMAL_DIVE_TARGETING_MS);
+    }
+
+    // ── Crocodile passive ─────────────────────────────────────────────────────
+    public static class CrocodilePassives {
+        public static final OWPassive PRIMAL_DIVE_SENSE = new OWPassive() {
+            @Override
+            public Set<Integer> getHighlightEntityIds(OWEntity entity, Level level) {
+                if (!OWAttackLogic.isCrocTargeting) return Set.of();
+                int id = OWAttackLogic.crocTargetEntityId;
+                if (id == -1) return Set.of();
+                Entity e = level.getEntity(id);
+                if (!(e instanceof LivingEntity le) || !le.isAlive()) return Set.of();
+                return Set.of(id);
+            }
+            @Override
+            public int highlightColor() { return 0x00FF55; }
+        };
     }
 
     // ── Tiger passive ─────────────────────────────────────────────────────────

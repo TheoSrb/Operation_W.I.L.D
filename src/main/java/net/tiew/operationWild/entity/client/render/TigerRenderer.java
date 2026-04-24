@@ -33,7 +33,7 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
         super(context, new TigerModel<>(context.bakeLayer(TigerModel.LAYER_LOCATION)), 0.8f);
         this.context = context;
         this.addLayer(new TigerLayer(this));
-        this.addLayer(new TigerSkinRenderLayer(this, context)); // replaces TigerSkins
+        this.addLayer(new TigerSkinRenderLayer(this, context));
     }
 
     @Override

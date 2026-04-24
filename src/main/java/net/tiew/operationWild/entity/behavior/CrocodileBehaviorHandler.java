@@ -54,7 +54,7 @@ public class CrocodileBehaviorHandler {
     }
 
     public boolean canPlayIdleAnimation() {
-        return crocodile.getTarget() == null && !crocodile.isChargingMouth() && !crocodile.isNapping() && !crocodile.isNapping() && !crocodile.isMoving() && !crocodile.isVehicle() && !crocodile.isInWater();
+        return crocodile.getTarget() == null && !crocodile.isNapping() && !crocodile.isMoving() && !crocodile.isVehicle() && !crocodile.isInWater();
     }
 
     public boolean canGrowl() {
@@ -195,6 +195,57 @@ public class CrocodileBehaviorHandler {
         return waterNearby;
     }
 
+    /**
+     * Version puissante de makeBigHurt pour le Mouth Slam chargé.
+     * Zone plus large, gros recul horizontal + léger vertical, saignement optionnel au max.
+     */
+    public void performMouthSlamAttack(float attackDamage, float knockbackPower, boolean applyBleed) {
+        double yaw = Math.toRadians(this.crocodile.getYRot());
+        double reach  = 3.0;
+        double width  = 3.5;
+        double height = 2.5;
+
+        double centerX = this.crocodile.getX() - Math.sin(yaw) * reach;
+        double centerZ = this.crocodile.getZ() + Math.cos(yaw) * reach;
+        double centerY = this.crocodile.getY() + 0.5;
+
+        double extendedHeight = height * 2;
+        AABB attackBox = new AABB(
+                centerX - width / 2, centerY - extendedHeight / 2, centerZ - width / 2,
+                centerX + width / 2, centerY + extendedHeight / 2, centerZ + width / 2
+        );
+
+        Entity passenger = this.crocodile.getControllingPassenger();
+        List<LivingEntity> targets = this.crocodile.level().getEntitiesOfClass(
+                LivingEntity.class, attackBox,
+                entity -> entity != crocodile && !this.crocodile.isAlliedTo(entity) && entity != passenger
+        );
+
+        for (LivingEntity target : targets) {
+            target.invulnerableTime = 0;
+            target.hurt(this.crocodile.damageSources().mobAttack(this.crocodile), attackDamage);
+
+            Vec3 dir = target.position().subtract(this.crocodile.position()).normalize();
+            target.setDeltaMovement(
+                    dir.x * knockbackPower,
+                    0.25 + knockbackPower * 0.07,
+                    dir.z * knockbackPower
+            );
+
+            if (applyBleed) {
+                target.addEffect(new MobEffectInstance(OWEffects.BLEEDING_EFFECT.getDelegate(), 200, 0));
+            }
+        }
+
+        this.crocodile.level().playSound(null, this.crocodile.getX(), this.crocodile.getY(), this.crocodile.getZ(),
+                OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.NEUTRAL, 2.0F, 0.65f);
+
+        float pitch = (float) OWUtils.generateRandomInterval(1.1, 1.25);
+        SoundEvent hitSound = RANDOM(2) ? OWSounds.CROCODILE_HIT_1.get() : OWSounds.CROCODILE_HIT_2.get();
+        this.crocodile.level().playSound(null, this.crocodile.getX(), this.crocodile.getY(), this.crocodile.getZ(),
+                hitSound, SoundSource.HOSTILE, 1.2f, pitch);
+    }
+
     public void makeBigHurt(float attackDamage, SoundEvent sound, double width, double height, double reach) {
         double yaw = Math.toRadians(this.crocodile.getYRot());
         double centerX = this.crocodile.getX() - Math.sin(yaw) * reach;
@@ -228,8 +279,6 @@ public class CrocodileBehaviorHandler {
             this.crocodile.hurtAfterCombo(target, crocodile.getComboAttack());
         }
 
-        this.crocodile.setChargingMouthTimer(0);
-        this.crocodile.setChargingMouth(false);
         this.crocodile.level().playSound(null, this.crocodile.getX(), this.crocodile.getY(), this.crocodile.getZ(), sound, SoundSource.NEUTRAL, 1.0F, 0.75f);
 
         float pitch = (float) (OWUtils.generateRandomInterval(1.1, 1.25));

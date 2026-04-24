@@ -35,7 +35,10 @@ public class TigerGhostRenderer {
         // Auto-clear if the player is no longer riding a tiger
         if (!(mc.player.getRootVehicle() instanceof TigerEntity tiger)) {
             ghostEntity = null;
-            OWAttackLogic.isCharging = false;
+            // Only reset isCharging if a tiger ghost attack was active — do NOT touch it for other entities (croc, etc.)
+            if (OWAttackLogic.isShowGhost()) {
+                OWAttackLogic.isCharging = false;
+            }
             return;
         }
 

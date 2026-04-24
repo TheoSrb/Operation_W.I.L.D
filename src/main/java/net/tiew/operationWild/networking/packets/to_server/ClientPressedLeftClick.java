@@ -71,8 +71,6 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
                         return;
                     }
 
-                    if (owEntity instanceof CrocodileEntity crocodile && crocodile.isChargingMouth()) return;
-
                     if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5) && !packet.isScreenOpen()) {
                         owEntity.setCombo(true, 1);
                         owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 5);

@@ -111,6 +111,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     private float rubYaw = 0f;
 
+    public volatile float bodyAnimY = 0f;
+
     public int rollTimer = 0;
     public int itemRejectionTimer = 0;
     public int sitTimer = 0;
@@ -330,9 +332,64 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return RANDOM(2) ? OWSounds.KODIAK_HURT.get() : OWSounds.KODIAK_MISC.get();
     }
 
+    // ==================================================
+    //             SONS DE PAS (animation-driven)
+    // ==================================================
+
+    private long lastStepSoundMs = 0L;
+
+    /**
+     * Suppresses the vanilla automatic step sound (fired by Entity.move() every block traversed).
+     * Footstep sounds are handled exclusively by animation events in KodiakModel
+     * via onLeftFootDown() / onRightFootDown().
+     */
     @Override
     public void playStepSound(BlockPos blockPos, BlockState blockState) {
-        if (!isRunning()) super.playStepSound(blockPos, blockState);
+        // Intentionally empty — replaced by animation callbacks below
+    }
+
+    /**
+     * Called by KodiakModel (render thread) when the left paw touches the ground.
+     * Plays the step sound of the block under the kodiak with a slightly lower pitch.
+     */
+    public void onLeftFootDown() {
+        playStepSoundFromAnimation(0.8f);
+    }
+
+    /**
+     * Called by KodiakModel (render thread) when the right paw touches the ground.
+     * Plays the step sound of the block under the kodiak with a slightly higher pitch.
+     */
+    public void onRightFootDown() {
+        playStepSoundFromAnimation(1.0f);
+    }
+
+    private void playStepSoundFromAnimation(float pitchMod) {
+        if (!this.onGround()) return;
+        if (this.isInWater()) return;
+        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
+        long now = System.currentTimeMillis();
+        if (now - lastStepSoundMs < 120L) return; // kodiak is heavy, slightly slower steps
+        lastStepSoundMs = now;
+
+        var pos = this.blockPosition();
+        BlockState blockState = this.level().getBlockState(pos);
+        if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
+
+        net.minecraft.world.level.block.SoundType sound = blockState.getSoundType();
+        this.level().playLocalSound(
+                this.getX(), this.getY(), this.getZ(),
+                sound.getStepSound(),
+                this.getSoundSource(),
+                sound.getVolume() * 0.7f,
+                sound.getPitch() * pitchMod * (0.88f + this.random.nextFloat() * 0.24f),
+                false
+        );
+    }
+
+    @Override
+    protected float getRiderAnimYOffset() {
+        return -bodyAnimY / 16.0f * this.getScale();
     }
 
     @Override
@@ -840,22 +897,26 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
-    public void changeSkin(int skinIndex) {
-        super.changeSkin(skinIndex, false);
+    @Override
+    public void changeSkin(int skinIndex, boolean playingEffects) {
+        super.changeSkin(skinIndex, playingEffects);
         this.setVariant(getInitialVariant());
         this.setSkinShade(false);
 
-        if (skinIndex == 1) {
-            setVariant(KodiakVariant.SKIN_GOLD);
-        } else if (skinIndex == 2) {
-            setVariant(KodiakVariant.SKIN_SKELETON);
-        } else if (skinIndex == 3) {
-            setSkinShade(true);
-        } else if (skinIndex == 7) {
-            setVariant(getInitialVariant());
+        switch (skinIndex) {
+            case 1 -> this.setVariant(KodiakVariant.Cosmetics.GOLD.variant);
+            case 2 -> this.setVariant(KodiakVariant.Cosmetics.SKELETON.variant);
+            case 3 -> this.setSkinShade(true);
+            // Réserver les indices 4-7 pour de futurs skins cosmétiques
+            default -> this.setVariant(getInitialVariant());
         }
 
-        playSkinChangeEffect();
+        if (playingEffects) playSkinChangeEffect();
+    }
+
+    @Override
+    public void changeSkinSilent(int skinIndex) {
+        changeSkin(skinIndex, false);
     }
 
     public void createMiniShockwave() {
@@ -1107,7 +1168,13 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             UUID feederUUID = tag.getUUID("LastFeederUUID");
             lastPlayerWhoFeedHim = this.level().getPlayerByUUID(feederUUID);
         }
-        if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex()); this.nbtRestoring = false; }
+        if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
+    }
+
+    @Override
+    protected boolean isImmobile() {
+        // Immobile quand le Kodiak se frotte contre un arbre (position figée par le goal)
+        return this.isRubs();
     }
 
     @Override

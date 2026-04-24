@@ -5,6 +5,8 @@ import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.AABB;
+import net.tiew.operationWild.entity.variants.CrocodileVariant;
+import net.tiew.operationWild.entity.variants.KodiakVariant;
 import org.joml.Matrix4f;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -56,6 +58,7 @@ import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestsDate;
 import net.tiew.operationWild.gui.*;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.MayaBlowpipeItem;
+import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.attacks.OWPassive;
 import net.tiew.operationWild.networking.OWNetworkHandler;
@@ -365,12 +368,22 @@ public class ClientEvents {
                 boolean isSprintKeyDown = minecraft.options.keySprint.isDown();
                 OWNetworkHandler.sendToServer(new OWRunningPacket(isSprintKeyDown));
 
-                if (owEntity instanceof CrocodileEntity crocodile) {
-                    boolean isRightClickDown = minecraft.options.keyUse.isDown();
-                    if (canUseRightClick(minecraft) && !crocodile.isInWater()) {
-                        OWNetworkHandler.sendToServer(new CrocodileRightClickPacket(isRightClickDown));
-                    }
-                }
+            }
+        }
+    }
+
+    private static void spawnGoldTrailParticles(Player player, LivingEntity entity, float yRot) {
+        if (entity.getDeltaMovement().horizontalDistanceSqr() > 4e-4) {
+            var rand = entity.getRandom();
+            float yaw = (float) Math.toRadians(yRot);
+            for (int p = 0; p < 18; p++) {
+                double bx = entity.getX() - Math.sin(yaw) * (0.3 + rand.nextDouble() * 0.8) + (rand.nextDouble() - 0.5) * 0.8;
+                double by = entity.getY() + rand.nextDouble() * 1.0;
+                double bz = entity.getZ() + Math.cos(yaw) * (0.3 + rand.nextDouble() * 0.8) + (rand.nextDouble() - 0.5) * 0.8;
+                player.level().addParticle(
+                        OWParticles.GOLD_TRAIL_PARTICLE.get(),
+                        bx, by, bz,
+                        (rand.nextDouble() - 0.5) * 0.05, 0.02 + rand.nextDouble() * 0.04, (rand.nextDouble() - 0.5) * 0.05);
             }
         }
     }
@@ -389,24 +402,23 @@ public class ClientEvents {
 
         // Trainée dorée — SKIN_GOLD en mouvement
         if (player.level().isClientSide()) {
+            // Tiger SKIN_GOLD
             player.level().getEntitiesOfClass(TigerEntity.class,
                     player.getBoundingBox().inflate(32),
-                    e -> e.isTame() && e.getVariant() == TigerVariant.SKIN_GOLD && !e.isDeadOrDying()
-            ).forEach(tiger -> {
-                if (tiger.getDeltaMovement().horizontalDistanceSqr() > 4e-4) {
-                    var rand = tiger.getRandom();
-                    float yaw = (float) Math.toRadians(tiger.getYRot());
-                    for (int p = 0; p < 18; p++) {
-                        double bx = tiger.getX() - Math.sin(yaw) * (0.3 + rand.nextDouble() * 0.8) + (rand.nextDouble() - 0.5) * 0.8;
-                        double by = tiger.getY() + rand.nextDouble() * 1.0;
-                        double bz = tiger.getZ() + Math.cos(yaw) * (0.3 + rand.nextDouble() * 0.8) + (rand.nextDouble() - 0.5) * 0.8;
-                        player.level().addParticle(
-                                OWParticles.GOLD_TRAIL_PARTICLE.get(),
-                                bx, by, bz,
-                                (rand.nextDouble() - 0.5) * 0.05, 0.02 + rand.nextDouble() * 0.04, (rand.nextDouble() - 0.5) * 0.05);
-                    }
-                }
-            });
+                    e -> e.isTame() && e.getVariant() == TigerVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
+            ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
+
+            // Kodiak SKIN_GOLD
+            player.level().getEntitiesOfClass(KodiakEntity.class,
+                    player.getBoundingBox().inflate(32),
+                    e -> e.isTame() && e.getVariant() == KodiakVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
+            ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
+
+            // Crocodile SKIN_GOLD
+            player.level().getEntitiesOfClass(CrocodileEntity.class,
+                    player.getBoundingBox().inflate(32),
+                    e -> e.isTame() && e.getVariant() == CrocodileVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
+            ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
         }
 
         boolean useKeyIsPressed = Minecraft.getInstance().options.keyUse.isDown();
@@ -825,18 +837,6 @@ public class ClientEvents {
                         event.getGuiGraphics().guiWidth(),
                         event.getGuiGraphics().guiHeight());
             }
-
-            if (renderKodiak) {
-                KodiakOverlay.render(event.getGuiGraphics(),
-                        event.getGuiGraphics().guiWidth(),
-                        event.getGuiGraphics().guiHeight());
-            }
-
-            if (renderCrocodile) {
-                CrocodileOverlay.render(event.getGuiGraphics(),
-                        event.getGuiGraphics().guiWidth(),
-                        event.getGuiGraphics().guiHeight());
-            }
         }
     }
 
@@ -996,20 +996,26 @@ public class ClientEvents {
 
             poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
         } else if (event.getEntity().getVehicle() instanceof CrocodileEntity crocodile) {
+            PoseStack poseStack = event.getPoseStack();
+            poseStack.pushPose();
+
+            Vec3 pivotPoint = new Vec3(0, 0, 0);
+
             if (event.getEntity() == crocodile.getGrabbedTarget()) {
-
-                PoseStack poseStack = event.getPoseStack();
-                poseStack.pushPose();
-
-                Vec3 pivotPoint = new Vec3(0, 0, 0);
                 Vec3 look = crocodile.getLookAngle();
-
                 Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.getBodyZRot());
                 Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot());
                 Quaternionf rotationY = Axis.YP.rotationDegrees(-crocodile.getBodyYRot());
                 poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationY, (float) ((float) pivotPoint.x - (look.x * 0.75f)), (float) pivotPoint.y, (float) ((float) pivotPoint.z - (look.z * 0.75f)));
+            } else {
+                poseStack.mulPose(Axis.YP.rotationDegrees(-event.getEntity().getYRot()));
+                Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.getBodyZRot());
+                Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot());
+                poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+                poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+                poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
             }
         } else if (event.getEntity().getVehicle() instanceof OWEntity owEntity) {
 
@@ -1038,12 +1044,6 @@ public class ClientEvents {
             return;
         }
 
-        if (event.getEntity().getVehicle() instanceof CrocodileEntity crocodile) {
-            if (event.getEntity() != crocodile.getGrabbedTarget()) {
-                return;
-            }
-        }
-
         PoseStack poseStack = event.getPoseStack();
         poseStack.popPose();
     }
@@ -1057,21 +1057,14 @@ public class ClientEvents {
             if (rootVehicle instanceof KodiakEntity kodiak) {
                 event.setRoll(event.getRoll() + (kodiak.getBodyZRot() / (kodiak.isRunning() ? 1 : 2)));
                 event.setPitch(event.getPitch() + (kodiak.getBodyXRot() / (kodiak.isRunning() ? 1 : 2)));
-            } else if (rootVehicle instanceof CrocodileEntity crocodile) {
-                if (crocodile.isDeathRolling()) {
-                    event.setRoll(event.getRoll() + crocodile.getBodyZRot());
-                    event.setPitch(event.getPitch() + crocodile.getBodyXRot());
-                } else {
-                    event.setRoll(event.getRoll() + (crocodile.getBodyZRot() / 2));
-                    event.setPitch(event.getPitch() + (crocodile.getBodyXRot() / 2));
-                }
-                if (crocodile.getGrabbedTarget() == cameraEntity) {
-                    event.setYaw(event.getYaw() + (crocodile.getBodyYRot()));
-                }
             } else if (rootVehicle instanceof TigerEntity tiger) {
                 event.setRoll(event.getRoll() + (tiger.getBodyZRot() / 4));
                 event.setPitch(event.getPitch() + (tiger.getBodyXRot() / 4));
+            } else if (rootVehicle instanceof CrocodileEntity crocodile) {
+                event.setRoll(event.getRoll() + (crocodile.getBodyZRot() / 4));
+                event.setPitch(event.getPitch() + (crocodile.getBodyXRot() / 4));
             }
+
         }
     }
 
@@ -1169,6 +1162,56 @@ public class ClientEvents {
     public static void onClientTick(ClientTickEvent.Pre event) {
         hasProcessedThisFrame = false;
         OWAttacksInformation.tick();
+
+        if (OWAttackLogic.isCrocTargeting) {
+            Minecraft mcT = Minecraft.getInstance();
+            if (mcT.player == null || mcT.level == null
+                    || !(mcT.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity crocT)
+                    || System.currentTimeMillis() - OWAttackLogic.crocTargetingStartMs
+                       >= OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_TARGETING_MS) {
+                OWAttackLogic.cancelCrocTargeting(OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID);
+            } else {
+                updateCrocTargeting(crocT, mcT.player, mcT.level);
+            }
+        }
+    }
+
+    private static void updateCrocTargeting(
+            net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc,
+            Player player, net.minecraft.client.multiplayer.ClientLevel level) {
+
+        Vec3 crocPos  = croc.position();
+        Vec3 lookVec  = player.getLookAngle();
+        double radius = 3.0;
+
+        AABB box = new AABB(crocPos.x - radius, crocPos.y - radius, crocPos.z - radius,
+                            crocPos.x + radius, crocPos.y + radius, crocPos.z + radius);
+
+        LivingEntity best  = null;
+        double bestDot = Double.NEGATIVE_INFINITY;
+
+        for (LivingEntity candidate : level.getEntitiesOfClass(LivingEntity.class, box, e -> {
+            if (e == croc || e == player) return false;
+            if (!e.isAlive() || !e.isInWater()) return false;
+            if (croc.isAlliedTo(e)) return false;
+            if (e instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity) return false;
+            if (e instanceof net.tiew.operationWild.entity.OWEntity ow && ow.getTheoreticalScale() >= 10) return false;
+            return true;
+        })) {
+            Vec3 dir = candidate.getBoundingBox().getCenter().subtract(crocPos).normalize();
+            double dot = lookVec.dot(dir);
+            if (dot > bestDot) { bestDot = dot; best = candidate; }
+        }
+
+        if (best != null && bestDot > 0.3) {
+            OWAttackLogic.crocTargetEntityId = best.getId();
+        }
+
+        if (OWAttackLogic.crocTargetEntityId != -1) {
+            Entity cur = level.getEntity(OWAttackLogic.crocTargetEntityId);
+            if (!(cur instanceof LivingEntity le) || !le.isAlive() || !le.isInWater())
+                OWAttackLogic.crocTargetEntityId = -1;
+        }
     }
 
     private static boolean shouldActivateSubmarineEffect(Player player) {
@@ -1213,7 +1256,7 @@ public class ClientEvents {
         for (int id : ids) {
             if (!(mc.level.getEntity(id) instanceof LivingEntity le) || !le.isAlive()) continue;
             Vec3 center = le.getBoundingBox().getCenter();
-            addEspGlow(buf, matrix, center, jRight, jUp);
+            addEspGlow(buf, matrix, center, jRight, jUp, passive.highlightColor());
             anyVertex = true;
         }
 
@@ -1227,27 +1270,25 @@ public class ClientEvents {
         pose.popPose();
     }
 
-    /**
-     * Dessine plusieurs quads billboard superposés, du halo externe vers le coeur lumineux.
-     * Dégradé : rouge sombre → rouge vif → orange → jaune-blanc.
-     */
     private static void addEspGlow(BufferBuilder buf, Matrix4f matrix, Vec3 center,
-                                    org.joml.Vector3f right, org.joml.Vector3f up) {
+                                    org.joml.Vector3f right, org.joml.Vector3f up, int rgb) {
+        float br = ((rgb >> 16) & 0xFF) / 255f;
+        float bg = ((rgb >> 8)  & 0xFF) / 255f;
+        float bb = (rgb         & 0xFF) / 255f;
         long t = System.currentTimeMillis();
         float pulse = 0.70f + 0.30f * (float) Math.abs(Math.sin(t * Math.PI / 700.0));
 
-        // { taille, r, g, b, alpha }
         float[][] layers = {
-            { 0.55f, 0.45f, 0.00f, 0.00f, 0.10f * pulse },  // halo rouge sombre
-            { 0.38f, 0.80f, 0.04f, 0.00f, 0.20f * pulse },  // rouge profond
-            { 0.24f, 1.00f, 0.16f, 0.00f, 0.36f * pulse },  // rouge vif
-            { 0.14f, 1.00f, 0.42f, 0.00f, 0.58f * pulse },  // orange-rouge
-            { 0.07f, 1.00f, 0.75f, 0.10f, 0.82f * pulse },  // orange chaud
-            { 0.03f, 1.00f, 1.00f, 0.65f, 0.95f * pulse },  // coeur jaune-blanc
+            { 0.44f, 0.10f * pulse },
+            { 0.30f, 0.20f * pulse },
+            { 0.19f, 0.36f * pulse },
+            { 0.11f, 0.58f * pulse },
+            { 0.06f, 0.82f * pulse },
         };
-
-        for (float[] l : layers) {
-            espBillboard(buf, matrix, center, right, up, l[0], l[1], l[2], l[3], l[4]);
+        float[] intensities = { 0.45f, 0.80f, 1.00f, 1.00f, 1.00f };
+        for (int i = 0; i < layers.length; i++) {
+            float sz = layers[i][0], a = layers[i][1], f = intensities[i];
+            espBillboard(buf, matrix, center, right, up, sz, br * f, bg * f, bb * f, a);
         }
     }
 

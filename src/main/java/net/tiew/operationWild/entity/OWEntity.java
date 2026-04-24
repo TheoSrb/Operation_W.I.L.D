@@ -136,6 +136,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private float customWidth = 1.0F;
     private float customHeight = 1.0F;
     public boolean canShowVitalEnergyLack = false;
+    public boolean isChargingAttack = false;
     private int noJumpDelay;
     private float currentSpeed = 0;
     private float targetSpeed = 0;
@@ -803,6 +804,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public boolean isRunning() { return this.entityData.get(IS_RUNNING);}
+
+    public boolean isPlayerControlledDeathRoll() { return false; }
 
     public String getNickname() { return this.entityData.get(NAME);}
 
@@ -3047,6 +3050,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
         setMaxSleepingBarTo((int) OWUtils.determinateMinAndMax(maxSleepBar, 20));
         if (!(this instanceof SeaBugEntity)) {
+            this.setRandomScale(this.averageScale, 0.95, 1.05);
         } else {
             this.setScale(1.0f);
         }

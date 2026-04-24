@@ -60,13 +60,6 @@ public class OWBiomeModifiers {
             List.of(Biomes.MANGROVE_SWAMP, Biomes.SWAMP)
     );
 
-    public static int veryCommonEntitySpawnChance = 60;
-    public static int commonEntitySpawnChance = 40;
-    public static int uncommonEntitySpawnChance = 28;
-    public static int rareEntitySpawnChance = 12;
-    public static int veryRareEntitySpawnChance = 6;
-    public static int legendaryEntitySpawnChance = 2;
-
     public static void bootstrap(BootstrapContext<BiomeModifier> context) {
         var placedFeature = context.lookup(Registries.PLACED_FEATURE);
         var biomes = context.lookup(Registries.BIOME);
@@ -81,8 +74,9 @@ public class OWBiomeModifiers {
 
 
 
-        spawnEntity(context, SPAWN_KODIAK, KODIAK_BIOMES, OWEntityRegistry.KODIAK, uncommonEntitySpawnChance, 1, 1);
-        spawnEntity(context, SPAWN_CROCODILE, CROCODILE_BIOMES, OWEntityRegistry.CROCODILE, commonEntitySpawnChance, 2, 4);
+        spawnEntity(context, SPAWN_TIGER, TIGER_BIOMES, OWEntityRegistry.TIGER, 30, 1, 1);
+        spawnEntity(context, SPAWN_KODIAK, KODIAK_BIOMES, OWEntityRegistry.KODIAK, 35, 1, 1);
+        spawnEntity(context, SPAWN_CROCODILE, CROCODILE_BIOMES, OWEntityRegistry.CROCODILE, 48, 2, 4);
 
 
 

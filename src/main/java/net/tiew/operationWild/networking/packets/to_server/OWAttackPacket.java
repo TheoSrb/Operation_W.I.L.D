@@ -25,10 +25,12 @@ import java.util.Map;
  */
 public record OWAttackPacket(int attackId, byte action, float value) implements CustomPacketPayload {
 
-    public static final byte ACTION_EXECUTE        = 0;
-    public static final byte ACTION_CHARGE_START   = 1;
-    public static final byte ACTION_CHARGE_CANCEL  = 2;
-    public static final byte ACTION_CHARGE_RELEASE = 3;
+    public static final byte ACTION_EXECUTE              = 0;
+    public static final byte ACTION_CHARGE_START         = 1;
+    public static final byte ACTION_CHARGE_CANCEL        = 2;
+    public static final byte ACTION_CHARGE_RELEASE       = 3;
+    public static final byte ACTION_EXECUTE_WITH_TARGET  = 4;
+    public static final byte ACTION_TRIGGER_DEATH_ROLL   = 5;
 
     public static final CustomPacketPayload.Type<OWAttackPacket> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "ow_attack"));
@@ -58,6 +60,16 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             if (!(context.player() instanceof ServerPlayer player)) return;
             if (!(player.getRootVehicle() instanceof OWEntity entity)) return;
 
+            if (packet.action() == ACTION_TRIGGER_DEATH_ROLL) {
+                if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
+                    if (croc.isTame() && croc.isGrabbing() && !croc.isDeathRolling()) {
+                        croc.setDeathRolling(true);
+                        croc.setDeathRollProgress(0);
+                    }
+                }
+                return;
+            }
+
             OWAttack attack = REGISTRY.get(packet.attackId());
             if (attack == null) return;
 
@@ -65,15 +77,31 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 case ACTION_EXECUTE -> attack.trigger(entity);
 
                 case ACTION_CHARGE_START -> {
-                    if (attack instanceof OWChargedAttack c) c.onChargeStart(entity);
+                    if (attack instanceof OWChargedAttack c) {
+                        entity.isChargingAttack = true;
+                        c.onChargeStart(entity);
+                    }
                 }
 
                 case ACTION_CHARGE_CANCEL -> {
-                    if (attack instanceof OWChargedAttack c) c.onChargeCancel(entity);
+                    if (attack instanceof OWChargedAttack c) {
+                        entity.isChargingAttack = false;
+                        c.onChargeCancel(entity);
+                    }
                 }
 
                 case ACTION_CHARGE_RELEASE -> {
-                    if (attack instanceof OWChargedAttack c) c.onChargeRelease(entity, packet.value());
+                    if (attack instanceof OWChargedAttack c) {
+                        entity.isChargingAttack = false;
+                        c.onChargeRelease(entity, packet.value());
+                    }
+                }
+
+                case ACTION_EXECUTE_WITH_TARGET -> {
+                    if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
+                        int targetId = Float.floatToRawIntBits(packet.value());
+                        croc.executePrimalDive(targetId);
+                    }
                 }
             }
         });

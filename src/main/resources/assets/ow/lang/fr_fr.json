@@ -161,6 +161,11 @@
   "tooltip.tigerSkin7.desc": "Rendez votre Tigre aussi bon en cuisine qu'en combat !",
   "tooltip.tigerSkin8.desc": "Rendez votre Tigre par défaut !",
 
+  "tooltip.crocodileSkin1.desc": "Rendez votre Crocodile aussi brillant que l'or !",
+  "tooltip.crocodileSkin2.desc": "Rendez votre Crocodile aussi sage qu'un dragon chinois !",
+  "tooltip.crocodileSkin3.desc": "Rendez votre Crocodile aussi plastifié qu'un jouet !",
+  "tooltip.crocodileSkin7.desc": "Rendez votre Crocodile par défaut !",
+
 
 
   "tooltip.tigerSkin1": "Tigre Doré",
@@ -171,6 +176,11 @@
   "tooltip.tigerSkin6": "Dessin Animé",
   "tooltip.tigerSkin7": "Pizzaiolo",
   "tooltip.tigerSkin8": "Tigre Par Défaut",
+
+  "tooltip.crocodileSkin1": "Crocodile Doré",
+  "tooltip.crocodileSkin2": "Gardien Vermillon",
+  "tooltip.crocodileSkin3": "Jouet",
+  "tooltip.crocodileSkin7": "Crocodile Par Défaut",
 
   "tooltip.boaSkin1": "Boa Doré",
   "tooltip.boaSkin2": "Boa Viking",
@@ -221,6 +231,8 @@
   "tooltip.elephantSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
 
   "tooltip.kodiakSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
+
+  "tooltip.crocodileSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
 
   "tooltip.baby": "Bébé",
   "tooltip.juvenile": "Juvénile",

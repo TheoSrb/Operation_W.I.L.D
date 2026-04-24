@@ -5,6 +5,6 @@
     "type": "ow:kodiak",
     "maxCount": 1,
     "minCount": 1,
-    "weight": 28
+    "weight": 35
   }
 }

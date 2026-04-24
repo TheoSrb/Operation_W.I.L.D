@@ -6,6 +6,7 @@ import net.tiew.operationWild.entity.OWEntity;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class OWChargedAttack extends OWAttack {
 
@@ -22,6 +23,10 @@ public class OWChargedAttack extends OWAttack {
     private final LocalEffect localEffect;
     private final boolean showGhost;
     private final boolean hasCameraEffect;
+
+    // Prédicat optionnel — vérifié côté client avant de démarrer la charge.
+    // Ex : entity -> !entity.isInWater() pour bloquer la charge en eau.
+    private Predicate<OWEntity> canUsePredicate = null;
 
     public OWChargedAttack(
             int id,
@@ -63,6 +68,16 @@ public class OWChargedAttack extends OWAttack {
     public void applyLocalEffect(OWEntity entity, float chargeFactor, Vec3 chargeDirection) {
         if (entity.getVitalEnergy() > entity.getMaxVitalEnergy() - getEnergyRequired()) return;
         if (localEffect != null) localEffect.apply(entity, chargeFactor, chargeDirection);
+    }
+
+    public OWChargedAttack withCanUsePredicate(Predicate<OWEntity> predicate) {
+        this.canUsePredicate = predicate;
+        return this;
+    }
+
+    /** Retourne true si la charge peut démarrer pour cette entité (vérifié côté client). */
+    public boolean canUse(OWEntity entity) {
+        return canUsePredicate == null || canUsePredicate.test(entity);
     }
 
     public long getMinChargeMs()     { return minChargeMs; }

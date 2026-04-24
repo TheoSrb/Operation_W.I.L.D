@@ -372,6 +372,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         return 300;
     }
 
+    @Override
+    public float getScale() {
+        return super.getScale() <= 0 ? 1f : super.getScale();
+    }
+
     // ==================================================
     //             CORPS DU FONCTIONNEMENT
     // ==================================================
@@ -379,7 +384,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public void tick() {
         super.tick();
-
 
         // ------------ FONCTIONNEMENT GLOBAL ------------
 
@@ -648,18 +652,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         super.hurtAfterCombo(entity, comboAttack);
     }
 
-    /** Triggered on every successful hit (all combo attacks, mounted or not). */
     @Override
     protected void onSuccessfulHit(LivingEntity entity) {
         if (RANDOM(7)) disarmTarget(entity);
 
-        // Shadow Strike : one-shot toute entité blessée (≤ seuil du passif PREDATOR_SENSE)
         if (isShadowStrikeActive() && !this.level().isClientSide() && !entity.isDeadOrDying()) {
             float hpRatio = entity.getHealth() / entity.getMaxHealth();
             if (hpRatio <= OWAttacksHandler.TigerPassives.PREDATOR_THRESHOLD) {
                 entity.kill();
-                // entity.kill() utilise genericKill (sans attaquant) donc killedEntity n'est pas appelé
-                // automatiquement — on crédite le kill manuellement pour charger la prochaine ultime
                 if (this.level() instanceof ServerLevel sl) {
                     this.killedEntity(sl, entity);
                 }
@@ -1078,7 +1078,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     protected double getBaseRiderYOffset() {
-        return 0.9;
+        return 0.9 * this.getScale();
     }
 
     @Override

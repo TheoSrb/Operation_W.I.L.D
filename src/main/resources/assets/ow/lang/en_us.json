@@ -176,6 +176,11 @@
   "tooltip.tigerSkin7": "Pizza Chef",
   "tooltip.tigerSkin8": "Default Tiger",
 
+  "tooltip.crocodileSkin1": "Golden Crocodile",
+  "tooltip.crocodileSkin2": "Vermilion Guardian",
+  "tooltip.crocodileSkin3": "Toy",
+  "tooltip.crocodileSkin7": "Default Crocodile",
+
   "tooltip.boaSkin1": "Golden Boa",
   "tooltip.boaSkin2": "Viking Boa",
   "tooltip.boaSkin3": "Minor Boa",
@@ -221,6 +226,8 @@
   "tooltip.elephantSkin1Indication": "Reach level 50 to unlock this skin.",
 
   "tooltip.kodiakSkin1Indication": "Reach level 50 to unlock this skin.",
+
+  "tooltip.crocodileSkin1Indication": "Reach level 50 to unlock this skin.",
 
   "tooltip.baby": "Baby",
   "tooltip.juvenile": "Juvenile",

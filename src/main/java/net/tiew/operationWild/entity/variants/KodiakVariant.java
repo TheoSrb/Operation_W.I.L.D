@@ -26,4 +26,17 @@ public enum KodiakVariant {
     public static KodiakVariant byId(int id) {
         return BY_ID[id % BY_ID.length];
     }
+
+    /** Cosmetic skins unlockable via the skin system (skin index ≥ 1). */
+    public enum Cosmetics {
+        GOLD(SKIN_GOLD),
+        SKELETON(SKIN_SKELETON);
+        // SHADE (skinIndex 3) est géré séparément via le flag isShade() — pas un variant
+
+        public final KodiakVariant variant;
+
+        Cosmetics(KodiakVariant variant) {
+            this.variant = variant;
+        }
+    }
 }

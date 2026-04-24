@@ -73,6 +73,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         switch (entity.getClass().getSimpleName()) {
             case "KodiakEntity" -> Minecraft.getInstance().setScreen(new KodiakSkinsScreen());
             case "TigerEntity" -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
+            case "CrocodileEntity" -> Minecraft.getInstance().setScreen(new CrocodileSkinsScreen());
             default -> Minecraft.getInstance().player.sendSystemMessage(Component.translatable("tooltip.noSkins").withStyle(Style.EMPTY).withColor(0xFF0000));
         }
     }
@@ -120,6 +121,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
 
         switch (this.entity.getClass().getSimpleName()) {
             case "TigerEntity" -> entityScale = 22;
+            case "CrocodileEntity" -> entityScale = 18;
             case "PeacockEntity" -> entityScale = 35;
             case "ElephantEntity" -> entityScale = 12;
             case "HyenaEntity" -> entityScale = 30;
