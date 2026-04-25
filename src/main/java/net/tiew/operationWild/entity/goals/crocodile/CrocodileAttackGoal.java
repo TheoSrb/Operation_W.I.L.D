@@ -18,9 +18,8 @@ public class CrocodileAttackGoal extends OWAttackGoal {
     public boolean canUse() {
         if (crocodile.crocodileBehaviorHandler.isReadyForTaming()) return false;
         if (crocodile.isBaby()) return false;
-        if (crocodile.hasGrabSomething()) {
-            return false;
-        }
+        if (crocodile.hasGrabSomething()) return false;
+        if (crocodile.isChargingAttack) return false;
         return super.canUse();
     }
 
@@ -28,9 +27,8 @@ public class CrocodileAttackGoal extends OWAttackGoal {
     public boolean canContinueToUse() {
         if (crocodile.crocodileBehaviorHandler.isReadyForTaming()) return false;
         if (crocodile.isBaby()) return false;
-        if (crocodile.hasGrabSomething()) {
-            return false;
-        }
+        if (crocodile.hasGrabSomething()) return false;
+        if (crocodile.isChargingAttack) return false;
         return super.canContinueToUse();
     }
 
@@ -61,6 +59,6 @@ public class CrocodileAttackGoal extends OWAttackGoal {
 
     @Override
     protected void performAttack(LivingEntity target) {
-        super.performAttack(target);
+        crocodile.crocodileBehaviorHandler.performMouthSlamAttack(8f, 1.8f, false);
     }
 }

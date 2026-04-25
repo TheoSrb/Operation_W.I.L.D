@@ -106,6 +106,11 @@ public class OWAttacksOverlay {
             int cardX = baseX + (i + 1) * CARD_SPACING;
             int texX  = (i + 1) * CARD_SIZE;
 
+            // ── Primal Dive special states ────────────────────────────────────
+            boolean isPrimalDive = attack.getId() == OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID;
+            boolean isTargeting  = isPrimalDive && OWAttackLogic.isCrocTargeting;
+            float   grabProgress = isPrimalDive ? OWAttackLogic.getCrocGrabActiveProgress() : 0f;
+
             boolean isCharging = attack instanceof OWChargedAttack
                     && OWAttackLogic.isCharging
                     && OWAttackLogic.getCurrentAttackId() == attack.getId();
@@ -116,6 +121,9 @@ public class OWAttacksOverlay {
             if (isCharging) {
                 fillProgress = OWAttackLogic.getChargeProgress();
                 isGlowing    = fillProgress >= 1.0f;
+            } else if (grabProgress > 0f) {
+                // Phase 2 active: drain 1→0 over 10 s (like tiger ultimate timer)
+                fillProgress = grabProgress;
             } else if (attack.isUltimate()) {
                 float activeProgress = OWAttackLogic.getUltimateActiveProgress(attack.getId());
                 if (activeProgress > 0f) {
@@ -139,11 +147,15 @@ public class OWAttacksOverlay {
             final int   fColoredH  = (int)(CARD_SIZE * fillProgress);
             final int   fGrayH     = CARD_SIZE - fColoredH;
             final boolean fGlowing = isGlowing;
-            final int fBorderRgb   = attack.isUltimate() ? GLOW_BORDER_ULTIMATE : GLOW_BORDER_CHARGED;
+            // Targeting phase → green pulsing border ("still clickable"); else normal border
+            final boolean fShowBorder = fGlowing || isTargeting;
+            final int fBorderRgb = isTargeting
+                    ? 0x00FF55                                             // green
+                    : (attack.isUltimate() ? GLOW_BORDER_ULTIMATE : GLOW_BORDER_CHARGED);
 
-            // Quand la carte brille, le scale pulse doucement ; le clic override si actif.
+            // Pulse scale: glow or targeting both trigger the pulse animation
             float clickScale = OWAttackLogic.getAttackClickScale(attack.getId());
-            float cardScale  = fGlowing && clickScale == 1f
+            float cardScale  = (fGlowing || isTargeting) && clickScale == 1f
                     ? OWAttackLogic.getGlowPulseScale()
                     : clickScale;
 
@@ -162,7 +174,7 @@ public class OWAttacksOverlay {
                             CARD_SIZE, fColoredH,
                             TEX_SIZE, TEX_SIZE);
                 }
-                if (fGlowing) {
+                if (fShowBorder) {
                     drawGlowBorder(g, cardX, baseY, fBorderRgb);
                 }
 
@@ -176,6 +188,7 @@ public class OWAttacksOverlay {
                 }
             });
         }
+
     }
 
     /**

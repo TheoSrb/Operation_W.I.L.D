@@ -355,8 +355,11 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		crocodile.setBodyZRot((float) Math.toDegrees(this.ALL.zRot + this.body.zRot));
 		crocodile.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot));
         float ySum = 0f;
-        for (ModelPart bone : boneChain) ySum += bone.y;
+        float xSum = 0f;
+        for (ModelPart bone : boneChain) { ySum += bone.y; xSum += bone.x; }
         crocodile.bodyAnimY = ySum - restPoseYSum;
+        // restPoseXSum = ALL2.x(0) + ALL.x(0) + body.x(-0.8383) = -0.8383
+        crocodile.bodyAnimX = xSum - (-0.8383f);
     }
 
     private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {

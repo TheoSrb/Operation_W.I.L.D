@@ -74,10 +74,11 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             if (attack == null) return;
 
             switch (packet.action()) {
-                case ACTION_EXECUTE -> attack.trigger(entity);
+                case ACTION_EXECUTE -> { if (!entity.isCombo() && !entity.isChargingAttack) attack.trigger(entity); }
 
                 case ACTION_CHARGE_START -> {
                     if (attack instanceof OWChargedAttack c) {
+                        if (entity.isCombo()) return;
                         entity.isChargingAttack = true;
                         c.onChargeStart(entity);
                     }

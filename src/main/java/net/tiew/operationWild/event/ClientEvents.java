@@ -173,14 +173,14 @@ public class ClientEvents {
             Entity ridingEntity = player.getRootVehicle();
             if (ridingEntity instanceof OWEntity entity && entity.isAlive() && entity.isSaddled()) {
                 if (entity instanceof CrocodileEntity crocodile && crocodile.crocodileBehaviorHandler.isReadyForTaming() && !crocodile.isTame()) {
-                    if (leftButtonIsPressed) {
+                    if (leftButtonIsPressed && !OWAttackLogic.isCharging) {
                         boolean isScreenOpen = minecraft.screen != null;
                         OWNetworkHandler.sendToServer(new ClientPressedLeftClick(isScreenOpen));
                     } else if (rightButtonIsPressed && canUseRightClick(minecraft)) {
                         OWNetworkHandler.sendToServer(new ClientPressedRightClick());
                     }
                 } else if (entity.isTame()) {
-                    if (leftButtonIsPressed) {
+                    if (leftButtonIsPressed && !OWAttackLogic.isCharging) {
                         boolean isScreenOpen = minecraft.screen != null;
                         OWNetworkHandler.sendToServer(new ClientPressedLeftClick(isScreenOpen));
                     } else if (rightButtonIsPressed && canUseRightClick(minecraft)) {

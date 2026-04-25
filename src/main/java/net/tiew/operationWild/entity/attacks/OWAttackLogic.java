@@ -55,11 +55,13 @@ public class OWAttackLogic {
     public static long comboAttackCooldownEndMs = -1L;
 
     // ── Croc Primal Dive targeting state ─────────────────────────────────────
-    public static boolean isCrocTargeting    = false;
-    public static int     crocTargetEntityId = -1;
+    public static boolean isCrocTargeting      = false;
+    public static int     crocTargetEntityId   = -1;
     public static long    crocTargetingStartMs = -1L;
+    /** Start timestamp of the grab phase (phase 2), used to show the 10s drain on the card. */
+    public static long    crocGrabActiveStartMs = -1L;
 
-    private static long deathRollCooldownEndMs = -1L;
+    public static long deathRollCooldownEndMs = -1L;
 
     private static final long   CLICK_ANIM_DURATION_MS = 200L;
     private static final float  CLICK_ANIM_PEAK_SCALE  = 1.22f;
@@ -303,6 +305,11 @@ public class OWAttackLogic {
         OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getKey());
         if (attack == null) return;
 
+        if (isCharging || owEntity.isCombo()) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
         if (attack.getId() == OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID) {
             handleCrocPrimalDiveKey(attack, owEntity);
             return;
@@ -342,10 +349,26 @@ public class OWAttackLogic {
         }
     }
 
+    /**
+     * Remaining progress [1..0] of the Primal Dive grab phase.
+     * 1.0 = grab just started, 0.0 = finished / not active.
+     * Drives the 10-s drain on the Primal Dive card after the second click.
+     */
+    public static float getCrocGrabActiveProgress() {
+        if (crocGrabActiveStartMs < 0) return 0f;
+        long elapsed = System.currentTimeMillis() - crocGrabActiveStartMs;
+        if (elapsed >= OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_TARGETING_MS) {
+            crocGrabActiveStartMs = -1L;
+            return 0f;
+        }
+        return 1f - (float) elapsed / OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_TARGETING_MS;
+    }
+
     public static void cancelCrocTargeting(int attackId) {
-        isCrocTargeting = false;
-        crocTargetEntityId = -1;
+        isCrocTargeting      = false;
+        crocTargetEntityId   = -1;
         crocTargetingStartMs = -1L;
+        crocGrabActiveStartMs = -1L;
         ultimateActiveStartByAttackId.remove(attackId);
     }
 
@@ -398,6 +421,7 @@ public class OWAttackLogic {
             }
 
             ultimateWowEffectStartMs = System.currentTimeMillis();
+            crocGrabActiveStartMs    = System.currentTimeMillis();
 
             ultimateActiveStartByAttackId.remove(attack.getId());
             cooldownEndByAttackId.put(attack.getId(),
@@ -431,6 +455,7 @@ public class OWAttackLogic {
                 event.setCanceled(true);
                 return;
             }
+            if (isCharging) return; // no combo while charging an attack
             boolean onCooldown = comboAttackCooldownEndMs > System.currentTimeMillis();
             recordComboClick(onCooldown);
             if (!onCooldown) {
@@ -449,6 +474,10 @@ public class OWAttackLogic {
                 return;
             }
             if (isCharging) {
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
+            if (owEntity.isCombo()) {
                 recordAttackClick(attack.getId(), true);
                 return;
             }

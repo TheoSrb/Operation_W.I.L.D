@@ -14,6 +14,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.ai.control.LookControl;
@@ -113,10 +114,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public int deathRollAnimationTimeout = 0;
 
     public volatile float bodyAnimY = 0f;
+    public volatile float bodyAnimX = 0f;
 
     private int attackingGrabTimer = 0;
     public int attackingGrabCooldown = 0;
     private int grabUnderwaterCooldown = 0;
+    private int wildMouthSlamCooldown = 0;
 
     public boolean canGrabOnLand = false;
 
@@ -440,10 +443,17 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         super.tick();
         crocodileTaming.tick();
 
-        if (!this.isTame() && this.isVehicle()) {
-            createComboSimple(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, 0.15f);
-        } else {
-            createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, false, 0.15f);
+        if (!this.isChargingAttack) {
+            if (!this.isTame() && this.isVehicle()) {
+                if (wildMouthSlamCooldown > 0) {
+                    wildMouthSlamCooldown--;
+                } else if (this.getTarget() != null || this.isVehicle()) {
+                    crocodileBehaviorHandler.performMouthSlamAttack(8f, 1.8f, false);
+                    wildMouthSlamCooldown = 32;
+                }
+            } else {
+                createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, false, 0.15f);
+            }
         }
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
@@ -559,14 +569,30 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                             });
                 }
             } else {
-                if (grabbed != null && !grabbed.isPassenger()) {
-                    if (grabbed instanceof Player) {
-                        grabbed.startRiding(this);
-                    } else {
-                        Vec3 look = this.getLookAngle();
-                        grabbed.setPos(this.getX() + look.x * 1.75f , this.getY() - 0.2, this.getZ() + look.z * 1.75f);
-                    }
+                if (grabbed instanceof Player && !grabbed.isPassenger()) {
+                    grabbed.startRiding(this);
                 }
+            }
+        }
+
+        // ── Position non-player grabbed entity (client + server) ─────────────
+        // Mirrors tiger's handleGrab() logic so the client runs the same setPos
+        // each tick → no network-sync lag.
+        if (this.isGrabbing() && !this.isBaby()) {
+            LivingEntity grabbed = this.getGrabbedTarget();
+            if (grabbed != null && !(grabbed instanceof Player) && grabbed.isAlive()) {
+                grabbed.noPhysics = true;
+                Vec3 look = this.getLookAngle();
+                double targetX = this.getX() + look.x * 1.75;
+                double targetY = this.getY() - 0.2;
+                double targetZ = this.getZ() + look.z * 1.75;
+
+                double newX = Mth.lerp(0.35, grabbed.getX(), targetX);
+                double newY = Mth.lerp(0.35, grabbed.getY(), targetY);
+                double newZ = Mth.lerp(0.35, grabbed.getZ(), targetZ);
+
+                grabbed.setDeltaMovement(newX - grabbed.getX(), newY - grabbed.getY(), newZ - grabbed.getZ());
+                grabbed.setPos(newX, newY, newZ);
             }
         }
 
@@ -721,18 +747,41 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (passenger == this.getGrabbedTarget()) {
             Vec3 look = this.getLookAngle();
-            function.accept(passenger, this.getX() + look.x * 2.65f, this.getY() - 1.0, this.getZ() + look.z * 2.65f);
+            if (passenger instanceof Player) {
+                function.accept(passenger, this.getX() + look.x * 2.65f, this.getY() - 1.0, this.getZ() + look.z * 2.65f);
+            } else {
+                function.accept(passenger, this.getX() + look.x * 1.75f, this.getY() - 0.2, this.getZ() + look.z * 1.75f);
+            }
             return;
         }
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
-        Vec3 seatOffset = new Vec3(0, 0, 0).yRot((float) Math.toRadians(-this.yBodyRot));
-        double baseY  = getBaseRiderYOffset();
-        float  animY  = getRiderAnimYOffset();
-        double riderY = this.getY() + baseY + animY;
+        double seatX = bodyAnimX / 16.0f * this.getScale();
+        double seatY = getBaseRiderYOffset() + getRiderAnimYOffset();
+        double seatZ = 0.0;
+
+        if (this.isInWater()) {
+            double pitchRad = Math.toRadians(-this.getBodyXRot());
+            double rollRad  = Math.toRadians(-this.getBodyZRot());
+
+            // Pitch: rotate seat around X axis
+            double py = seatY * Math.cos(pitchRad) - seatZ * Math.sin(pitchRad);
+            double pz = seatY * Math.sin(pitchRad) + seatZ * Math.cos(pitchRad);
+            seatY = py; seatZ = pz;
+
+            // Roll: rotate seat around Z axis
+            double rx = seatX * Math.cos(rollRad) - seatY * Math.sin(rollRad);
+            double ry = seatX * Math.sin(rollRad) + seatY * Math.cos(rollRad);
+            seatX = rx; seatY = ry;
+        }
+
+        // Local entity space → world space via yBodyRot
+        double yRad = Math.toRadians(-this.yBodyRot);
+        double worldX = seatX * Math.cos(yRad) + seatZ * Math.sin(yRad);
+        double worldZ = -seatX * Math.sin(yRad) + seatZ * Math.cos(yRad);
 
         passenger.fallDistance = 0f;
-        function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);
+        function.accept(passenger, this.getX() + worldX, this.getY() + seatY, this.getZ() + worldZ);
     }
 
     @Override
