@@ -1011,12 +1011,15 @@ public class ClientEvents {
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationY, (float) ((float) pivotPoint.x - (look.x * 0.75f)), (float) pivotPoint.y, (float) ((float) pivotPoint.z - (look.z * 0.75f)));
             } else {
-                poseStack.mulPose(Axis.YP.rotationDegrees(-event.getEntity().getYRot()));
+                // Aligner dans le repère du croco (pas du joueur) pour que le pitch
+                // soit toujours appliqué sur l'axe avant/arrière du croco,
+                // indépendamment de la direction dans laquelle le rider regarde.
+                poseStack.mulPose(Axis.YP.rotationDegrees(-crocodile.yBodyRot));
                 Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.getBodyZRot());
-                Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot());
+                Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot() + crocodile.getRiderControlPitch());
                 poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-                poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
+                poseStack.mulPose(Axis.YP.rotationDegrees(crocodile.yBodyRot));
             }
         } else if (event.getEntity().getVehicle() instanceof OWEntity owEntity) {
 

@@ -145,6 +145,14 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
     public void setupAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
+        // Inclinaison verticale pilotée par le regard du rider (eau uniquement, ±45°, smooth)
+        if (crocodile.isTame() && crocodile.isVehicle() && !crocodile.isSitting() && crocodile.isInWater()) {
+            float riderPitch = crocodile.getRiderControlPitch();
+            if (riderPitch != 0f) {
+                this.ALL2.xRot = (float) Math.toRadians(riderPitch);
+            }
+        }
+
 		spawnFootstepParticles(crocodile, limbSwing);
 
 		if (crocodile.isBaby()) {
@@ -241,7 +249,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, 1.2f, 480L)) crocodile.onLeftFootDown();
 
 			} else {
-				float speed = crocodile.getControllingPassenger() != null ? 10f : 5f;
+				float speed = crocodile.getControllingPassenger() != null ? 8.5f : 5f;
 				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, speed, speed);
 
 				if (walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 300L)) crocodile.onRightFootDown();

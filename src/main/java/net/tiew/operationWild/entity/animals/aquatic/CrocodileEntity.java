@@ -93,6 +93,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_LUNGING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> LUNGE_TARGET_ID = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> RIDER_CONTROL_PITCH = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -201,6 +202,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(ULTIMATE_KILL_COUNT, 0);
         builder.define(IS_LUNGING, false);
         builder.define(LUNGE_TARGET_ID, -1);
+        builder.define(RIDER_CONTROL_PITCH, 0.0f);
     }
 
     // Entity Methods
@@ -479,6 +481,24 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (this.isVehicle() && this.isTame() && !this.isSitting() && !this.isBaby()) setMad(this.isCombo());
 
+        if (!this.level().isClientSide()) {
+            if (this.isTame() && this.isVehicle() && !this.isSitting() && !this.isBaby() && this.isInWater()) {
+                LivingEntity rider = this.getControllingPassenger();
+                if (rider != null) {
+                    float target = Mth.clamp(rider.getXRot(), -45f, 45f);
+                    float smoothed = Mth.lerp(0.08f, this.entityData.get(RIDER_CONTROL_PITCH), target);
+                    this.entityData.set(RIDER_CONTROL_PITCH, smoothed);
+                }
+            } else {
+                float current = this.entityData.get(RIDER_CONTROL_PITCH);
+                if (Math.abs(current) > 0.05f) {
+                    this.entityData.set(RIDER_CONTROL_PITCH, current * 0.92f);
+                } else if (current != 0f) {
+                    this.entityData.set(RIDER_CONTROL_PITCH, 0f);
+                }
+            }
+        }
+
         if (this.getTarget() != null && this.getTarget().hasEffect(OWEffects.FRACTURE.getDelegate())) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.25, 1.0, 1.25));
         }
@@ -640,24 +660,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                                 });
                     }
                 } else {
-                    if (grabbed instanceof Player && !grabbed.isPassenger()) {
+                    if (!grabbed.isPassenger()) {
                         grabbed.startRiding(this, true);
                     }
                 }
-            }
-        }
-
-        if (this.isGrabbing() && !this.isBaby()) {
-            LivingEntity grabbed = this.getGrabbedTarget();
-            if (grabbed != null && !(grabbed instanceof Player) && grabbed.isAlive()) {
-                grabbed.noPhysics = true;
-                Vec3 look = this.getLookAngle();
-                grabbed.setPos(
-                        this.getX() + look.x * 1.75,
-                        this.getY() - 0.2,
-                        this.getZ() + look.z * 1.75
-                );
-                grabbed.setDeltaMovement(Vec3.ZERO);
             }
         }
 
@@ -1227,6 +1233,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public boolean isGrabbing() { return this.entityData.get(IS_GRABBING);}
+
+    public float getRiderControlPitch() { return this.entityData.get(RIDER_CONTROL_PITCH); }
 
     public void setEntitiesKilledDuringTaming(int getEntitiesKilledDuringTaming) {
         this.entityData.set(ENTITIES_KILLED_DURING_TAMING, getEntitiesKilledDuringTaming);
