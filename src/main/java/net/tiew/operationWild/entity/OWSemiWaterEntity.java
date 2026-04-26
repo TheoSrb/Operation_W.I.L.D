@@ -135,9 +135,6 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     @Override
     public void tick() {
         super.tick();
-        if (this.isVehicle() && this.isInWater()) {
-            this.setDeltaMovement(this.getDeltaMovement().add(0.0, 0.005, 0.0));
-        }
         if (this instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() != null && !crocodile.isTame()) return;
 
         LivingEntity rider = this.getControllingPassenger();
