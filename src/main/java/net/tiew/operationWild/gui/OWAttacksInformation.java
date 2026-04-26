@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 
@@ -143,6 +144,36 @@ public class OWAttacksInformation {
                         val("30"),
                         val("32"))
             )
+
+        ));
+
+
+
+        PROFILES.put(CrocodileEntity.class, new EntityProfile(
+
+                new AttackSlot(0, 0, "LMB",
+                        title("ow.attacks.crocodile.combo.title"),
+                        e -> desc("ow.attacks.crocodile.combo.desc",
+                                val("0.65"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(20, 0, "RMB",
+                        title("ow.attacks.crocodile.mouth.title"),
+                        e -> desc("ow.attacks.crocodile.mouth.desc",
+                                val("3"), val(OWAttacksHandler.CrocodileAttacks.MOUTH_SLAM_COOLDOWN_TICKS / 20), val(e.getDamageToClient()))
+                ),
+
+                new AttackSlot(40, 0, "X",
+                        title("ow.attacks.crocodile.primal_dive.title"),
+                        e -> desc("ow.attacks.crocodile.primal_dive.desc",
+                                val("5"), val("5"), val(OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.crocodile.reptilian.title"),
+                        e -> desc("ow.attacks.crocodile.reptilian.desc",
+                                val("10"))
+                )
 
         ));
 

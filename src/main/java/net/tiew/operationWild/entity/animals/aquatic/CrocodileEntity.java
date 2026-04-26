@@ -129,6 +129,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final int MAX_GRAB_COOLDOWN = 600;
     private static long lastGrabTime = 0;
 
+    private int passiveGrabTimer = 0;
+
     private static final int GROWLS_DURATION = 75;
     private static final int GRUNT_DURATION = 55;
 
@@ -528,21 +530,52 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (hasGrabSomething() && !this.isBaby()) {
             LivingEntity grabbed = this.getGrabbedTarget();
+            boolean passiveReleased = false;
 
-            if (grabbed instanceof Player) {
-                this.setGrabTimeout(this.getGrabTimeout() + 1);
+            // Passif apprivoisé : libération automatique après 10 s (200 ticks), joueur ou entité
+            if (!this.level().isClientSide() && this.isTame() && passiveGrabTimer > 0) {
+                passiveGrabTimer--;
+                if (passiveGrabTimer <= 0) {
+                    releaseGrab();
+                    this.level().getEntitiesOfClass(CrocodileEntity.class, this.getBoundingBox().inflate(30))
+                            .forEach(otherCroc -> {
+                                if (otherCroc != this && otherCroc.getTarget() == this) otherCroc.setTarget(null);
+                            });
+                    passiveReleased = true;
+                }
             }
 
-            try {
-                this.getGrabbedTarget().noPhysics = true;
-
-                if (this.isInWater()) {
-                    this.setLookAt(this.getGrabbedTarget().getX(), this.getGrabbedTarget().getY(), this.getGrabbedTarget().getZ());
+            if (!passiveReleased) {
+                if (grabbed instanceof Player) {
+                    this.setGrabTimeout(this.getGrabTimeout() + 1);
                 }
 
-                if (this.getGrabTimeout() >= getGrabMaxTimeout()) {
-                    this.setGrabTimeout(0);
-                    this.getGrabbedTarget().kill();
+                try {
+                    this.getGrabbedTarget().noPhysics = true;
+
+                    if (this.isInWater()) {
+                        this.setLookAt(this.getGrabbedTarget().getX(), this.getGrabbedTarget().getY(), this.getGrabbedTarget().getZ());
+                    }
+
+                    if (this.getGrabTimeout() >= getGrabMaxTimeout()) {
+                        this.setGrabTimeout(0);
+                        this.getGrabbedTarget().kill();
+
+                        if (!this.level().isClientSide()) {
+                            this.level().getEntitiesOfClass(CrocodileEntity.class, this.getBoundingBox().inflate(30))
+                                    .forEach(otherCroc -> {
+                                        if (otherCroc != this && otherCroc.getTarget() == this) {
+                                            otherCroc.setTarget(null);
+                                        }
+                                    });
+                        }
+                    }
+
+                } catch (NullPointerException e) {
+                }
+
+                if (!this.getGrabbedTarget().isAlive() || (this.getGrabbedTarget() instanceof Player player && player.isCreative())) {
+                    releaseGrab();
 
                     if (!this.level().isClientSide()) {
                         this.level().getEntitiesOfClass(CrocodileEntity.class, this.getBoundingBox().inflate(30))
@@ -552,25 +585,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                                     }
                                 });
                     }
-                }
-
-            } catch (NullPointerException e) {
-            }
-
-            if (!this.getGrabbedTarget().isAlive() || (this.getGrabbedTarget() instanceof Player player && player.isCreative())) {
-                releaseGrab();
-
-                if (!this.level().isClientSide()) {
-                    this.level().getEntitiesOfClass(CrocodileEntity.class, this.getBoundingBox().inflate(30))
-                            .forEach(otherCroc -> {
-                                if (otherCroc != this && otherCroc.getTarget() == this) {
-                                    otherCroc.setTarget(null);
-                                }
-                            });
-                }
-            } else {
-                if (grabbed instanceof Player && !grabbed.isPassenger()) {
-                    grabbed.startRiding(this);
+                } else {
+                    if (grabbed instanceof Player && !grabbed.isPassenger()) {
+                        grabbed.startRiding(this);
+                    }
                 }
             }
         }
@@ -688,6 +706,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             } else if (this.isInWater()) {
                 this.grabEntity(entity);
                 return;
+            }
+        }
+
+        if (this.isTame() && !this.level().isClientSide() && !this.isGrabbing()) {
+            boolean nearWaterTamed = crocodileBehaviorHandler.findNearestWaterSource(10) != null;
+            boolean alreadyGrabbed = entity.getVehicle() instanceof CrocodileEntity croc && croc.getOwner() != entity;
+            if (nearWaterTamed && !alreadyGrabbed && !this.isSleeping() && !this.isNapping()
+                    && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity)
+                    && this.getRandom().nextInt(100) < 20) {
+                grabEntityPassive(entity);
             }
         }
     }
@@ -885,6 +913,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.setDeathRolling(false);
         this.setDeathRollProgress(0);
         this.setTarget(null);
+        passiveGrabTimer = 0;
     }
 
     @Override
@@ -921,6 +950,22 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.setGrabTimeout(300);
             lastGrabTime = currentTime;
         }
+    }
+
+    private void grabEntityPassive(LivingEntity entity) {
+        if (isBaby()) return;
+        if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() >= 10) return;
+
+        if (entity instanceof TamableAnimal tamableAnimal && tamableAnimal.getControllingPassenger() instanceof LivingEntity rider) {
+            entity = rider;
+        }
+
+        long currentTime = this.level().getGameTime();
+        if (currentTime - lastGrabTime < MAX_GRAB_COOLDOWN) return;
+
+        this.setGrabbing(true, entity);
+        passiveGrabTimer = 200;
+        lastGrabTime = currentTime;
     }
 
     private float calculateChanceToAvoidingGrab(int[] slidingLevels, float[] slidingMultiplier) {
@@ -1315,7 +1360,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
         setVitalEnergy(getVitalEnergy() + energyRequired);
 
-        float damage        = 5f + factor * 10f;
+        float damage = Mth.lerp(factor, 5.0f, this.getDamage());
         float knockbackPower = 1.5f + factor * 2.0f;
         boolean applyBleed  = factor >= 1.0f;
 

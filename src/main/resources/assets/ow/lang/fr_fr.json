@@ -618,6 +618,16 @@
   "ow.attacks.tiger.combo.desc": "Faites mordre votre Tigre toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
   "ow.attacks.tiger.bond.desc": "Faites bondir votre Tigre sur un ennemi en chargeant l'attaque toutes les %s secondes. Si une cible est saisie, mordez-la depuis votre monture.",
   "ow.attacks.tiger.shadow_strike.desc": "Votre Tigre devient camouflé pendant %s secondes, augmentant sa vitesse de %s%%, ses dégâts de %s%% et tuant en un seul coup les entités blessées. À recharger avec %s kills toutes les %s secondes.",
-  "ow.attacks.tiger.predator_sense.desc": "Révèle les entités blessées à moins de %s%% PV à travers les murs dans un rayon de %s blocs."
+  "ow.attacks.tiger.predator_sense.desc": "Révèle les entités blessées à moins de %s%% PV à travers les murs dans un rayon de %s blocs.",
+
+  "ow.attacks.crocodile.combo.title": "Broyage",
+  "ow.attacks.crocodile.mouth.title": "Gueule Béante",
+  "ow.attacks.crocodile.primal_dive.title": "Roulade de la Mort",
+  "ow.attacks.crocodile.reptilian.title": "Accrochage Reptilien",
+
+  "ow.attacks.crocodile.combo.desc": "Faites mordre votre Crocodile toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
+  "ow.attacks.crocodile.mouth.desc": "Chargez l'attaque pour ouvrir lentement la gueule de votre Crocodile pendant %s secondes toutes les %s secondes, puis relâchez pour la refermer violemment, infligeant jusqu'à %s points de dégâts.",
+  "ow.attacks.crocodile.primal_dive.desc": "Désignez une entité et faites bondir votre Crocodile dessus pour entamer une Roulade de la Mort, infligeant %s points de dégâts par rotation. À recharger avec %s kills toutes les %s secondes.",
+  "ow.attacks.crocodile.reptilian.desc": "À proximité de l'eau, les entités de taille moyenne touchées par une attaque Broyage peuvent être saisies par votre Crocodile et maintenues pendant %s secondes avant d'être relâchées."
 
 }

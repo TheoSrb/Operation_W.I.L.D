@@ -37,6 +37,10 @@ public class OWChooseNameScreen extends Screen {
     private Button sendButton;
     private Button closeButton;
 
+    private String errorMessage = null;
+    private long errorDisplayTime = 0;
+    private static final int ERROR_DURATION_MS = 5000;
+
     public OWChooseNameScreen(int entityID) {
         super(Component.literal("OWChooseNameScreen"));
         if (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getEntity(entityID) instanceof OWEntity owEntity) {
@@ -64,6 +68,11 @@ public class OWChooseNameScreen extends Screen {
     }
 
     private void sendButton() {
+        if (this.enteredName == null || this.enteredName.trim().isEmpty()) {
+            this.errorMessage = "Le nom ne peut pas être vide.";
+            this.errorDisplayTime = System.currentTimeMillis();
+            return;
+        }
         OWNetworkHandler.sendToServer(new OWNameEntityPacket(entity.getId(), this.enteredName));
         this.onClose();
     }
@@ -114,6 +123,21 @@ public class OWChooseNameScreen extends Screen {
         }
 
         super.render(graphics, mouseX, mouseY, partialTick);
+
+        if (errorMessage != null) {
+            long elapsed = System.currentTimeMillis() - errorDisplayTime;
+            if (elapsed < ERROR_DURATION_MS) {
+                int alpha = 255;
+                if (elapsed > ERROR_DURATION_MS - 1000) {
+                    alpha = (int) (255 * (1.0 - (elapsed - (ERROR_DURATION_MS - 1000)) / 1000.0));
+                }
+                int color = (alpha << 24) | 0xFF0000;
+                int textWidth = this.font.width(errorMessage);
+                graphics.drawString(this.font, errorMessage, i + (this.imageWidth / 2) - (textWidth / 2), j + this.imageHeight - 35, color);
+            } else {
+                errorMessage = null;
+            }
+        }
 
         this.enteredName = this.nameInput.getValue();
     }

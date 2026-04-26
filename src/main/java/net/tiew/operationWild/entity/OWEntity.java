@@ -1233,7 +1233,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 double yMovement = isInWater() ? lookDirection.y * speedPerTick - 0.01 : currentMovement.y;
                 this.setDeltaMovement(new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick));
             }
-            // Pendant un saut du rider, on ignore son input pour ne pas dévier la trajectoire
             this.travel(this.isLeapingVehicle() ? Vec3.ZERO : vec3);
 
         } else if (this.level().isClientSide()) {
@@ -1242,12 +1241,43 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.tryCheckInsideBlocks();
 
         } else {
+            Vec3 cur = this.getDeltaMovement();
+            double yVel;
+
+            if (!this.onGround() && !this.isInWater() && !this.isNoGravity() && !this.hasEffect(MobEffects.LEVITATION)) {
+                yVel = Math.max(cur.y - this.getGravity(), -0.08);
+                this.setDeltaMovement(0, yVel, 0);
+                this.move(MoverType.SELF, new Vec3(0, yVel, 0));
+            } else {
+                yVel = cur.y;
+                this.setDeltaMovement(0, yVel, 0);
+            }
+
             this.tryCheckInsideBlocks();
         }
     }
 
+    /**
+     * Sur le SERVEUR, quand un passager contrôle l'entité, on retourne false pour
+     * empêcher le serveur d'appeler travel() de son côté.
+     *
+     * Comportement vanilla LivingEntity (super) :
+     *   - Passager LocalPlayer  → true  (client du rider)
+     *   - Sinon                 → isEffectiveAi() → TRUE côté serveur pour tout mob vivant
+     *
+     * Problème : le serveur et le client appellent tous les deux travel() avec des
+     * données légèrement différentes → positions divergentes → "moved wrongly" en boucle.
+     *
+     * Fix (même pattern que AbstractHorse vanilla) :
+     *   - Passager présent + côté serveur → false  (le client fait autorité)
+     *   - Passager présent + côté client  → super  (LocalPlayer check)
+     *   - Pas de passager                 → super  (IA serveur normale)
+     */
     @Override
     public boolean isControlledByLocalInstance() {
+        if (this.getFirstPassenger() instanceof Player && !this.level().isClientSide()) {
+            return false;
+        }
         return super.isControlledByLocalInstance();
     }
 
@@ -2476,6 +2506,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public Vec2 getRiddenRotation(LivingEntity livingEntity) { return new Vec2(livingEntity.getXRot() * 0.5F, livingEntity.getYRot());}
 
+    /**
+     * Quand l'entité est chevauchée, stepHeight = 1.0 (identique aux chevaux vanilla).
+     *
+     * Sans ça : l'entité ne peut pas franchir un mur d'1 bloc automatiquement
+     * (maxUpStep vanilla = 0.6).  Le rider doit sauter, ce qui crée une position
+     * "mi-hauteur contre la face du bloc".  Le serveur fait absMoveTo() sur cette
+     * position puis lance noCollision(BB.inflate(-0.0625)) → collision détectée →
+     * entité téléportée en arrière en boucle ("moved wrongly").
+     *
+     * Avec stepHeight = 1.0 : le move() client résout le step en 1 tick (sol → dessus
+     * du bloc) sans position intermédiaire invalide.  La vitesse est inchangée.
+     */
+    @Override
+    public float maxUpStep() {
+        return this.getFirstPassenger() instanceof Player ? 1.0f : super.maxUpStep();
+    }
+
     @Override
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
@@ -2495,7 +2542,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return 0f;
     }
 
-    @javax.annotation.Nullable
+@javax.annotation.Nullable
     public LivingEntity getControllingPassenger() {
         if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) return null;
 
