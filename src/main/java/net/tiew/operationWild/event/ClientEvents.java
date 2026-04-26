@@ -48,6 +48,7 @@ import net.tiew.operationWild.screen.player.adventurer_manuscript.AdventurerManu
 import net.tiew.operationWild.entity.variants.TigerVariant;
 import net.tiew.operationWild.particle.OWParticles;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
@@ -1182,7 +1183,7 @@ public class ClientEvents {
 
         Vec3 crocPos  = croc.position();
         Vec3 lookVec  = player.getLookAngle();
-        double radius = 3.0;
+        double radius = 10.0;
 
         AABB box = new AABB(crocPos.x - radius, crocPos.y - radius, crocPos.z - radius,
                             crocPos.x + radius, crocPos.y + radius, crocPos.z + radius);
@@ -1256,7 +1257,7 @@ public class ClientEvents {
         for (int id : ids) {
             if (!(mc.level.getEntity(id) instanceof LivingEntity le) || !le.isAlive()) continue;
             Vec3 center = le.getBoundingBox().getCenter();
-            addEspGlow(buf, matrix, center, jRight, jUp, passive.highlightColor());
+            addEspGlowGradient(buf, matrix, center, jRight, jUp);
             anyVertex = true;
         }
 
@@ -1268,6 +1269,43 @@ public class ClientEvents {
         RenderSystem.disableBlend();
         RenderSystem.enableDepthTest();
         pose.popPose();
+    }
+
+    private static void addEspGlowGradient(BufferBuilder buf, Matrix4f matrix,
+                                           Vec3 center, Vector3f right, Vector3f up) {
+        // Couches : de l'extérieur (rouge) vers l'intérieur (jaune)
+        float[][] layers = {
+                // { size,  R,    G,    B,    A   }
+                { 0.30f, 1.0f, 0.0f, 0.0f, 0.20f }, // Rouge     — couche externe
+                { 0.20f, 1.0f, 0.35f,0.0f, 0.25f }, // Orange
+                { 0.12f, 1.0f, 0.75f,0.0f, 0.30f }, // Jaune-orangé
+                { 0.06f, 1.0f, 1.0f, 0.0f, 0.40f }, // Jaune pur — cœur
+        };
+
+        for (float[] l : layers) {
+            float s = l[0], r = l[1], g = l[2], b = l[3], a = l[4];
+            addQuad(buf, matrix, center, right, up, s, r, g, b, a);
+        }
+    }
+
+    private static void addQuad(BufferBuilder buf, Matrix4f matrix,
+                                Vec3 center, Vector3f right, Vector3f up,
+                                float size, float r, float g, float b, float a) {
+        float cx = (float) center.x;
+        float cy = (float) center.y;
+        float cz = (float) center.z;
+
+        // 4 coins du quad billboard (toujours face caméra)
+        float[][] corners = {
+                { cx + (-right.x - up.x) * size, cy + (-right.y - up.y) * size, cz + (-right.z - up.z) * size },
+                { cx + ( right.x - up.x) * size, cy + ( right.y - up.y) * size, cz + ( right.z - up.z) * size },
+                { cx + ( right.x + up.x) * size, cy + ( right.y + up.y) * size, cz + ( right.z + up.z) * size },
+                { cx + (-right.x + up.x) * size, cy + (-right.y + up.y) * size, cz + (-right.z + up.z) * size },
+        };
+
+        for (float[] c : corners) {
+            buf.addVertex(matrix, c[0], c[1], c[2]).setColor(r, g, b, a);
+        }
     }
 
     private static void addEspGlow(BufferBuilder buf, Matrix4f matrix, Vec3 center,

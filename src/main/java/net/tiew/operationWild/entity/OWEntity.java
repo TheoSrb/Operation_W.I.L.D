@@ -807,6 +807,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public boolean isPlayerControlledDeathRoll() { return false; }
 
+    public boolean isGrabbing() { return false; }
+
     public String getNickname() { return this.entityData.get(NAME);}
 
     public void setNickname(String getNickname) { this.entityData.set(NAME, getNickname);}
@@ -1241,19 +1243,29 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.tryCheckInsideBlocks();
 
         } else {
-            Vec3 cur = this.getDeltaMovement();
-            double yVel;
+            if (this instanceof CrocodileEntity) {
+                Vec3 cur = this.getDeltaMovement();
+                double yVel;
 
-            if (!this.onGround() && !this.isInWater() && !this.isNoGravity() && !this.hasEffect(MobEffects.LEVITATION)) {
-                yVel = Math.max(cur.y - this.getGravity(), -0.08);
-                this.setDeltaMovement(0, yVel, 0);
-                this.move(MoverType.SELF, new Vec3(0, yVel, 0));
-            } else {
-                yVel = cur.y;
-                this.setDeltaMovement(0, yVel, 0);
+                if (this.isLeapingVehicle()) {
+                    if (!this.onGround() && !this.isInWater() && !this.isNoGravity() && !this.hasEffect(MobEffects.LEVITATION)) {
+                        yVel = Math.max(cur.y - this.getGravity(), -0.08);
+                    } else {
+                        yVel = cur.y;
+                    }
+                    this.setDeltaMovement(cur.x, yVel, cur.z);
+                    this.move(MoverType.SELF, new Vec3(cur.x, yVel, cur.z));
+                } else if (!this.onGround() && !this.isInWater() && !this.isNoGravity() && !this.hasEffect(MobEffects.LEVITATION)) {
+                    yVel = Math.max(cur.y - this.getGravity(), -0.08);
+                    this.setDeltaMovement(0, yVel, 0);
+                    this.move(MoverType.SELF, new Vec3(0, yVel, 0));
+                } else {
+                    yVel = cur.y;
+                    this.setDeltaMovement(0, yVel, 0);
+                }
+
+                this.tryCheckInsideBlocks();
             }
-
-            this.tryCheckInsideBlocks();
         }
     }
 

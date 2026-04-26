@@ -15,6 +15,7 @@ import net.neoforged.neoforge.client.event.ViewportEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
 import org.lwjgl.glfw.GLFW;
 
@@ -41,10 +42,15 @@ public class OWAttackLogic {
     public static final long ULTIMATE_WOW_DURATION_MS = 700L;
 
     private static OWChargedAttack currentAttack = null;
-    // Cooldown end timestamp per attack ID (milliseconds)
-    private static final Map<Integer, Long> cooldownEndByAttackId = new HashMap<>();
-    // Timestamp de déclenchement des ultimes actifs (pour l'animation de drain dans l'overlay)
-    private static final Map<Integer, Long> ultimateActiveStartByAttackId = new HashMap<>();
+    // Cooldown end timestamp — clé = pack(entityId, attackId), valeur = System.currentTimeMillis() de fin
+    private static final Map<Long, Long> cooldownEndMs = new HashMap<>();
+    // Timestamp de déclenchement des ultimes actifs — même clé packée
+    private static final Map<Long, Long> ultimateActiveMs = new HashMap<>();
+    // Cooldown de combo par entité — clé = entityId
+    private static final Map<Integer, Long> comboEndMsByEntity = new HashMap<>();
+    // ID de l'entité dont le Primal Dive targeting est actif (pour nettoyer ultimateActiveMs à l'annulation)
+    public static int crocRidingEntityId = -1;
+
     // Timestamps des clics pour l'animation de rebond de la carte (toutes attaques)
     public static final Map<Integer, Long> clickAnimTimeByAttackId = new HashMap<>();
     public static long comboClickAnimTimeMs = -1L; // carte 0 (combo)
@@ -52,7 +58,25 @@ public class OWAttackLogic {
     public static final Map<Integer, Boolean> clickAnimInvalidByAttackId = new HashMap<>();
     public static boolean comboClickAnimInvalid = false;
 
-    public static long comboAttackCooldownEndMs = -1L;
+    // ── Helpers per-entity ────────────────────────────────────────────────────
+    private static long packKey(int entityId, int attackId) {
+        return ((long) entityId << 32) | (attackId & 0xFFFFFFFFL);
+    }
+    private static long getCooldownEnd(int entityId, int attackId) {
+        return cooldownEndMs.getOrDefault(packKey(entityId, attackId), -1L);
+    }
+    private static void setCooldownEnd(int entityId, int attackId, long endMs) {
+        cooldownEndMs.put(packKey(entityId, attackId), endMs);
+    }
+    private static long getUltimateStart(int entityId, int attackId) {
+        return ultimateActiveMs.getOrDefault(packKey(entityId, attackId), -1L);
+    }
+    private static void setUltimateStart(int entityId, int attackId, long startMs) {
+        ultimateActiveMs.put(packKey(entityId, attackId), startMs);
+    }
+    private static void removeUltimateStart(int entityId, int attackId) {
+        ultimateActiveMs.remove(packKey(entityId, attackId));
+    }
 
     // ── Croc Primal Dive targeting state ─────────────────────────────────────
     public static boolean isCrocTargeting      = false;
@@ -88,26 +112,26 @@ public class OWAttackLogic {
      * 1.0 = vient d'être déclenché, 0.0 = terminé (ou pas actif).
      * Utilisé par l'overlay pour l'animation de drain de haut en bas.
      */
-    public static float getUltimateActiveProgress(int attackId) {
-        Long startMs = ultimateActiveStartByAttackId.get(attackId);
-        if (startMs == null) return 0f;
+    public static float getUltimateActiveProgress(int entityId, int attackId) {
+        long startMs = getUltimateStart(entityId, attackId);
+        if (startMs == -1L) return 0f;
         OWAttack attack = OWAttackPacket.getAttack(attackId);
         if (attack == null || attack.getUltimateDurationMs() <= 0) return 0f;
         long elapsed = System.currentTimeMillis() - startMs;
         if (elapsed >= attack.getUltimateDurationMs()) {
-            ultimateActiveStartByAttackId.remove(attackId);
+            removeUltimateStart(entityId, attackId);
             return 0f;
         }
         return 1f - (float) elapsed / attack.getUltimateDurationMs();
     }
 
     /**
-     * Cooldown fraction remaining for a given attack ID.
+     * Cooldown fraction remaining for a given entity + attack.
      * 0.0 = ready to use, 1.0 = just triggered (full cooldown remaining).
      */
-    public static float getCooldownProgress(int attackId) {
-        Long endMs = cooldownEndByAttackId.get(attackId);
-        if (endMs == null) return 0f;
+    public static float getCooldownProgress(int entityId, int attackId) {
+        long endMs = getCooldownEnd(entityId, attackId);
+        if (endMs == -1L) return 0f;
         long remaining = endMs - System.currentTimeMillis();
         if (remaining <= 0) return 0f;
         OWAttack attack = OWAttackPacket.getAttack(attackId);
@@ -292,63 +316,6 @@ public class OWAttackLogic {
         return false;
     }
 
-    // ── Attaques instantanées (touches clavier) ───────────────────────────────
-
-    @SubscribeEvent
-    public static void onKeyInput(InputEvent.Key event) {
-        if (event.getAction() != GLFW.GLFW_PRESS) return;
-
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.screen != null) return;
-        if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
-
-        OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getKey());
-        if (attack == null) return;
-
-        if (isCharging || owEntity.isCombo()) {
-            recordAttackClick(attack.getId(), true);
-            return;
-        }
-
-        if (attack.getId() == OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID) {
-            handleCrocPrimalDiveKey(attack, owEntity);
-            return;
-        }
-
-        // Cooldown client
-        Long endMs = cooldownEndByAttackId.get(attack.getId());
-        if (endMs != null && System.currentTimeMillis() < endMs) {
-            recordAttackClick(attack.getId(), true); // ← invalide
-            return;
-        }
-
-        if (!attack.isUnlocked(owEntity)) {
-            recordAttackClick(attack.getId(), true); // ← invalide
-            return;
-        }
-
-        if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
-            owEntity.canShowVitalEnergyLack = true;
-            recordAttackClick(attack.getId(), true); // ← invalide
-            return;
-        }
-
-        // Valide
-        PacketDistributor.sendToServer(
-                new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
-
-        long now = System.currentTimeMillis();
-        cooldownEndByAttackId.put(attack.getId(), now + (long) attack.getCooldownTicks() * 50L);
-        recordAttackClick(attack.getId(), false); // ← valide
-
-        if (attack.isUltimate()) {
-            ultimateWowEffectStartMs = now;
-            if (attack.getUltimateDurationMs() > 0) {
-                ultimateActiveStartByAttackId.put(attack.getId(), now);
-            }
-        }
-    }
-
     /**
      * Remaining progress [1..0] of the Primal Dive grab phase.
      * 1.0 = grab just started, 0.0 = finished / not active.
@@ -369,13 +336,15 @@ public class OWAttackLogic {
         crocTargetEntityId   = -1;
         crocTargetingStartMs = -1L;
         crocGrabActiveStartMs = -1L;
-        ultimateActiveStartByAttackId.remove(attackId);
+        if (crocRidingEntityId != -1) removeUltimateStart(crocRidingEntityId, attackId);
+        crocRidingEntityId   = -1;
     }
 
     private static void handleCrocPrimalDiveKey(OWAttack attack, OWEntity owEntity) {
+        int eid = owEntity.getId();
         if (!isCrocTargeting) {
-            Long endMs = cooldownEndByAttackId.get(attack.getId());
-            if (endMs != null && System.currentTimeMillis() < endMs) {
+            long endMs = getCooldownEnd(eid, attack.getId());
+            if (endMs != -1L && System.currentTimeMillis() < endMs) {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
@@ -396,8 +365,9 @@ public class OWAttackLogic {
             isCrocTargeting      = true;
             crocTargetingStartMs = System.currentTimeMillis();
             crocTargetEntityId   = -1;
+            crocRidingEntityId   = eid;
 
-            ultimateActiveStartByAttackId.put(attack.getId(), System.currentTimeMillis());
+            setUltimateStart(eid, attack.getId(), System.currentTimeMillis());
 
             PacketDistributor.sendToServer(
                     new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
@@ -423,8 +393,8 @@ public class OWAttackLogic {
             ultimateWowEffectStartMs = System.currentTimeMillis();
             crocGrabActiveStartMs    = System.currentTimeMillis();
 
-            ultimateActiveStartByAttackId.remove(attack.getId());
-            cooldownEndByAttackId.put(attack.getId(),
+            removeUltimateStart(eid, attack.getId());
+            setCooldownEnd(eid, attack.getId(),
                     System.currentTimeMillis() + (long) attack.getCooldownTicks() * 50L);
 
             PacketDistributor.sendToServer(new OWAttackPacket(
@@ -435,7 +405,68 @@ public class OWAttackLogic {
             isCrocTargeting      = false;
             crocTargetEntityId   = -1;
             crocTargetingStartMs = -1L;
+            crocRidingEntityId   = -1;
             recordAttackClick(attack.getId(), false);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onKeyInput(InputEvent.Key event) {
+        if (event.getAction() != GLFW.GLFW_PRESS) return;
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.screen != null) return;
+        if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+
+        OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getKey());
+        if (attack == null) return;
+
+        boolean isGrabBlocked = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
+        if (isGrabBlocked
+                || (isCrocTargeting && attack.getId() != OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID)) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        if (isCharging || owEntity.isCombo()) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        if (attack.getId() == OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID) {
+            handleCrocPrimalDiveKey(attack, owEntity);
+            return;
+        }
+
+        long endMs = getCooldownEnd(owEntity.getId(), attack.getId());
+        if (endMs != -1L && System.currentTimeMillis() < endMs) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        if (!attack.isUnlocked(owEntity)) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+            owEntity.canShowVitalEnergyLack = true;
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        PacketDistributor.sendToServer(
+                new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+
+        long now = System.currentTimeMillis();
+        setCooldownEnd(owEntity.getId(), attack.getId(), now + (long) attack.getCooldownTicks() * 50L);
+        recordAttackClick(attack.getId(), false);
+
+        if (attack.isUltimate()) {
+            ultimateWowEffectStartMs = now;
+            if (attack.getUltimateDurationMs() > 0) {
+                setUltimateStart(owEntity.getId(), attack.getId(), now);
+            }
         }
     }
 
@@ -444,6 +475,8 @@ public class OWAttackLogic {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.screen != null) return;
         if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+
+        boolean isCrocGrabbing = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
 
         if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT && event.getAction() == GLFW.GLFW_PRESS) {
             if (owEntity.isPlayerControlledDeathRoll()) {
@@ -455,21 +488,32 @@ public class OWAttackLogic {
                 event.setCanceled(true);
                 return;
             }
-            if (isCharging) return; // no combo while charging an attack
-            boolean onCooldown = comboAttackCooldownEndMs > System.currentTimeMillis();
+            if (isCrocGrabbing || isCrocTargeting) {
+                recordComboClick(true);
+                event.setCanceled(true);
+                return;
+            }
+            if (isCharging) return;
+            long comboEnd = comboEndMsByEntity.getOrDefault(owEntity.getId(), -1L);
+            boolean onCooldown = comboEnd > System.currentTimeMillis();
             recordComboClick(onCooldown);
             if (!onCooldown) {
                 int comboMaxTicks = OWAttacksHandler.getComboMaxTimer(owEntity.getClass());
-                comboAttackCooldownEndMs = System.currentTimeMillis() + comboMaxTicks * 50L;
+                comboEndMsByEntity.put(owEntity.getId(), System.currentTimeMillis() + comboMaxTicks * 50L);
             }
+        }
+
+        if (isCrocGrabbing || isCrocTargeting) {
+            event.setCanceled(true);
+            return;
         }
 
         OWChargedAttack attack = OWAttacksHandler.findChargedAttack(owEntity.getClass(), event.getButton());
         if (attack == null) return;
 
         if (event.getAction() == GLFW.GLFW_PRESS) {
-            Long endMs = cooldownEndByAttackId.get(attack.getId());
-            if (endMs != null && System.currentTimeMillis() < endMs) {
+            long endMs = getCooldownEnd(owEntity.getId(), attack.getId());
+            if (endMs != -1L && System.currentTimeMillis() < endMs) {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
@@ -485,12 +529,10 @@ public class OWAttackLogic {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
-            // Vérifie le prédicat canUse de l'attaque (ex : pas en eau pour le croco)
             if (!attack.canUse(owEntity)) {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
-            // Vérifie l'énergie avant de démarrer la charge
             if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
                 owEntity.canShowVitalEnergyLack = true;
                 recordAttackClick(attack.getId(), true);
@@ -526,7 +568,7 @@ public class OWAttackLogic {
                     recordAttackClick(attack.getId(), !hasEnergy);
 
                     if (hasEnergy) {
-                        cooldownEndByAttackId.put(attack.getId(),
+                        setCooldownEnd(entity.getId(), attack.getId(),
                                 System.currentTimeMillis() + (long) attack.getCooldownTicks() * 50L);
                     }
                     attack.applyLocalEffect(entity, chargeFactor, chargeDirection);

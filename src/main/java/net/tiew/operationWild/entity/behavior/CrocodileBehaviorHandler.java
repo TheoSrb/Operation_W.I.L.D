@@ -218,7 +218,12 @@ public class CrocodileBehaviorHandler {
         Entity passenger = this.crocodile.getControllingPassenger();
         List<LivingEntity> targets = this.crocodile.level().getEntitiesOfClass(
                 LivingEntity.class, attackBox,
-                entity -> entity != crocodile && !this.crocodile.isAlliedTo(entity) && entity != passenger
+                entity -> entity != crocodile
+                        && !this.crocodile.isAlliedTo(entity)
+                        && entity != passenger
+                        && !(entity instanceof TamableAnimal tamable
+                        && tamable.getOwnerUUID() != null
+                        && tamable.getOwnerUUID().equals(this.crocodile.getOwnerUUID()))
         );
 
         for (LivingEntity target : targets) {

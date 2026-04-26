@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.attacks.OWAttack;
 import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
@@ -70,8 +71,15 @@ public class OWAttacksOverlay {
         int normalTexY = entityRow * 40;        // rangée colorée dans la texture
         int grayTexY   = entityRow * 40 + 20;  // rangée grisée (juste en dessous)
 
+        boolean isGrabbing = entity instanceof CrocodileEntity && entity.isGrabbing();
+
         // ── Carte 0 : combo ───────────────────────────────────────────────────
         applyCardScale(g, baseX, baseY, OWAttackLogic.getComboClickScale(), () -> {
+            if (isGrabbing) {
+                // Tout gris quand grab actif
+                g.blit(TEXTURE, baseX, baseY, 0, grayTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
+                return;
+            }
             g.blit(TEXTURE, baseX, baseY, 0, normalTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
 
             if (entity.attackTimer >= 1) {
@@ -125,13 +133,13 @@ public class OWAttacksOverlay {
                 // Phase 2 active: drain 1→0 over 10 s (like tiger ultimate timer)
                 fillProgress = grabProgress;
             } else if (attack.isUltimate()) {
-                float activeProgress = OWAttackLogic.getUltimateActiveProgress(attack.getId());
+                float activeProgress = OWAttackLogic.getUltimateActiveProgress(entity.getId(), attack.getId());
                 if (activeProgress > 0f) {
                     fillProgress = activeProgress;
                 } else if (!attack.isUnlocked(entity)) {
                     fillProgress = attack.getUnlockProgress(entity);
                 } else {
-                    float cooldownRemaining = OWAttackLogic.getCooldownProgress(attack.getId());
+                    float cooldownRemaining = OWAttackLogic.getCooldownProgress(entity.getId(), attack.getId());
                     if (cooldownRemaining > 0f) {
                         fillProgress = 1.0f - cooldownRemaining;
                     } else {
@@ -140,8 +148,13 @@ public class OWAttacksOverlay {
                     }
                 }
             } else {
-                float cooldownRemaining = OWAttackLogic.getCooldownProgress(attack.getId());
+                float cooldownRemaining = OWAttackLogic.getCooldownProgress(entity.getId(), attack.getId());
                 fillProgress = cooldownRemaining > 0f ? 1.0f - cooldownRemaining : 0f;
+            }
+
+            if (isGrabbing) {
+                fillProgress = 0f;
+                isGlowing    = false;
             }
 
             final int   fColoredH  = (int)(CARD_SIZE * fillProgress);

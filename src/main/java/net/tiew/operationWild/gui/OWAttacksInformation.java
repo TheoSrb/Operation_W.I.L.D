@@ -119,7 +119,7 @@ public class OWAttacksInformation {
             new AttackSlot(0, 0, "LMB",
                 title("ow.attacks.tiger.combo.title"),
                 e -> desc("ow.attacks.tiger.combo.desc",
-                    val("0.65"), val(e.getDamageToClient() / 3))
+                    val("0.5"), val(e.getDamageToClient() / 3))
             ),
 
             new AttackSlot(20, 0, "RMB",
@@ -154,7 +154,7 @@ public class OWAttacksInformation {
                 new AttackSlot(0, 0, "LMB",
                         title("ow.attacks.crocodile.combo.title"),
                         e -> desc("ow.attacks.crocodile.combo.desc",
-                                val("0.65"), val(e.getDamageToClient() / 3))
+                                val("0.75"), val(e.getDamageToClient() / 3))
                 ),
 
                 new AttackSlot(20, 0, "RMB",
