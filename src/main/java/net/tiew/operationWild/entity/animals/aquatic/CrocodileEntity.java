@@ -135,6 +135,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private int passiveGrabTimer = 0;
     private boolean isPrimalDiveGrab = false;
+    private net.minecraft.world.phys.Vec3 lastPitchCheckPos = null;
 
     private static final int GROWLS_DURATION = 75;
     private static final int GRUNT_DURATION = 55;
@@ -423,7 +424,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     protected double getBaseRiderYOffset() {
-        float height = this.getVariant() == CrocodileVariant.Cosmetics.VERMILION_GUARDIAN.variant ? 0.4f : 0.5f;
+        float height = this.getVariant() == CrocodileVariant.Cosmetics.VERMILION_GUARDIAN.variant ? 0.4f : 0.6f;
         return height * this.getScale();
     }
 
@@ -482,17 +483,23 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (this.isVehicle() && this.isTame() && !this.isSitting() && !this.isBaby()) setMad(this.isCombo());
 
         if (!this.level().isClientSide()) {
+            Vec3 currentPos = this.position();
+            boolean isMovingHorizontally = lastPitchCheckPos != null
+                    && (Math.pow(currentPos.x - lastPitchCheckPos.x, 2)
+                        + Math.pow(currentPos.z - lastPitchCheckPos.z, 2)) > 1e-6;
+            lastPitchCheckPos = currentPos;
+
             if (this.isTame() && this.isVehicle() && !this.isSitting() && !this.isBaby() && this.isInWater()) {
                 LivingEntity rider = this.getControllingPassenger();
-                if (rider != null) {
+                if (rider != null && isMovingHorizontally) {
                     float target = Mth.clamp(rider.getXRot(), -45f, 45f);
-                    float smoothed = Mth.lerp(0.08f, this.entityData.get(RIDER_CONTROL_PITCH), target);
+                    float smoothed = Mth.lerp(0.15f, this.entityData.get(RIDER_CONTROL_PITCH), target);
                     this.entityData.set(RIDER_CONTROL_PITCH, smoothed);
                 }
             } else {
                 float current = this.entityData.get(RIDER_CONTROL_PITCH);
                 if (Math.abs(current) > 0.05f) {
-                    this.entityData.set(RIDER_CONTROL_PITCH, current * 0.92f);
+                    this.entityData.set(RIDER_CONTROL_PITCH, current * 0.95f);
                 } else if (current != 0f) {
                     this.entityData.set(RIDER_CONTROL_PITCH, 0f);
                 }
@@ -836,10 +843,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         double seatZ = 0.0;
 
         if (this.isInWater()) {
-            double pitchRad = Math.toRadians(-this.getBodyXRot());
+            double pitchRad = Math.toRadians(-this.getBodyXRot() + this.getRiderControlPitch());
             double rollRad  = Math.toRadians(-this.getBodyZRot());
 
-            // Pitch: rotate seat around X axis
+            // Pitch: rotate seat around X axis (inclut bodyXRot + riderControlPitch)
             double py = seatY * Math.cos(pitchRad) - seatZ * Math.sin(pitchRad);
             double pz = seatY * Math.sin(pitchRad) + seatZ * Math.cos(pitchRad);
             seatY = py; seatZ = pz;
