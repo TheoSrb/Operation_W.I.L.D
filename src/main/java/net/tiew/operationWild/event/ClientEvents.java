@@ -1257,7 +1257,11 @@ public class ClientEvents {
         for (int id : ids) {
             if (!(mc.level.getEntity(id) instanceof LivingEntity le) || !le.isAlive()) continue;
             Vec3 center = le.getBoundingBox().getCenter();
-            addEspGlowGradient(buf, matrix, center, jRight, jUp);
+            if (owEntity instanceof CrocodileEntity) {
+                addEspGreenDot(buf, matrix, center, jRight, jUp);
+            } else {
+                addEspGlowGradient(buf, matrix, center, jRight, jUp);
+            }
             anyVertex = true;
         }
 
@@ -1286,6 +1290,11 @@ public class ClientEvents {
             float s = l[0], r = l[1], g = l[2], b = l[3], a = l[4];
             addQuad(buf, matrix, center, right, up, s, r, g, b, a);
         }
+    }
+
+    private static void addEspGreenDot(BufferBuilder buf, Matrix4f matrix,
+                                       Vec3 center, Vector3f right, Vector3f up) {
+        addQuad(buf, matrix, center, right, up, 0.06f, 0.0f, 1.0f, 0.2f, 0.50f);
     }
 
     private static void addQuad(BufferBuilder buf, Matrix4f matrix,
