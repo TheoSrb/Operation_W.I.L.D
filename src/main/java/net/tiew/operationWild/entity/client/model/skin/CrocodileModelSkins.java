@@ -16,13 +16,13 @@ public class CrocodileModelSkins {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
 
-        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 14.0F, 3.0F));
+        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.8F, 14.0F, 3.0F));
 
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
         PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(64, 84).addBox(0.0F, -7.0F, -14.0F, 0.0F, 4.0F, 27.0F, new CubeDeformation(0.01F))
                 .texOffs(4, 0).addBox(-4.5F, -3.0F, -14.0F, 9.0F, 9.0F, 26.0F, new CubeDeformation(0.0F))
-                .texOffs(170, 218).addBox(-8.5F, -5.0F, -14.0F, 17.0F, 12.0F, 26.0F, new CubeDeformation(-2.0F))
+                .texOffs(170, 218).addBox(-8.5F, -5.0F, -14.0F, 17.0F, 12.0F, 26.0F, new CubeDeformation(-1.75F))
                 .texOffs(0, 239).addBox(-6.5F, -5.0F, -11.0F, 13.0F, 2.0F, 15.0F, new CubeDeformation(0.0F)), PartPose.offset(-0.8383F, -1.4547F, 3.0F));
 
         PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(118, 23).addBox(-4.5F, -5.0F, -7.0F, 9.0F, 9.0F, 7.0F, new CubeDeformation(0.0F))
@@ -102,7 +102,7 @@ public class CrocodileModelSkins {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
 
-        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 14.0F, 3.0F));
+        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.8F, 14.0F, 3.0F));
 
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 

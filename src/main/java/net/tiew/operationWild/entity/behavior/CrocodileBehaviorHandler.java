@@ -238,7 +238,7 @@ public class CrocodileBehaviorHandler {
             );
 
             if (applyBleed) {
-                target.addEffect(new MobEffectInstance(OWEffects.BLEEDING_EFFECT.getDelegate(), 200, 0));
+                target.addEffect(new MobEffectInstance(OWEffects.FRACTURE.getDelegate(), 200, 0));
             }
         }
 

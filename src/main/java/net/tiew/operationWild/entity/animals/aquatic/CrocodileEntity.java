@@ -246,12 +246,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public float vehicleWalkSpeedMultiplier() {
-        return 1;
+        return 1.25f;
     }
 
     @Override
     public float vehicleComboSpeedMultiplier() {
-        return 3f;
+        return 1f;
     }
 
     @Override
@@ -662,12 +662,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         markMudWithFootprints();
-
-        if (this.isStartingTaming()) {
-            if (this.isVehicle()) {
-                handleRunningEffects(17, SoundEvents.HORSE_STEP, 0.2f, new int[]{4, 9});
-            }
-        } else handleRunningEffects(17, SoundEvents.HORSE_STEP, 0.2f, new int[]{4, 9});
         handleGoldVariantEffects();
     }
 

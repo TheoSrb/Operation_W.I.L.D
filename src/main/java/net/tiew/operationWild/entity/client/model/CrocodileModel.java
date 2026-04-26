@@ -19,7 +19,6 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.client.animation.CrocodileAnimations;
-import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
 public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "crocodile_default"), "main");
@@ -68,7 +67,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 14.0F, 3.0F));
+		PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.9F, 14.0F, 3.0F));
 
 		PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
@@ -81,10 +80,10 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(116, 23).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.0F))
 				.texOffs(75, 219).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.5F))
 				.texOffs(190, 29).addBox(-7.5F, -7.0F, -1.5F, 15.0F, 12.0F, 1.0F, new CubeDeformation(0.0F))
-				.texOffs(220, 170).addBox(7.5F, -7.0F, -1.0F, 4.0F, 12.0F, 0.0F, new CubeDeformation(0.05F))
-				.texOffs(220, 170).mirror().addBox(-11.5F, -7.0F, -1.0F, 4.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false)
-				.texOffs(184, 171).addBox(-7.5F, -11.0F, -1.0F, 15.0F, 4.0F, 0.0F, new CubeDeformation(0.05F))
-				.texOffs(184, 178).addBox(-7.5F, 5.0F, -1.0F, 15.0F, 4.0F, 0.0F, new CubeDeformation(0.05F)), PartPose.offset(0.0F, 2.0F, -14.0F));
+				.texOffs(220, 170).addBox(7.5F, -7.0F, -1.0F, 4.0F, 12.0F, 0.0F, new CubeDeformation(0.01F))
+				.texOffs(220, 170).mirror().addBox(-11.5F, -7.0F, -1.0F, 4.0F, 12.0F, 0.0F, new CubeDeformation(0.01F)).mirror(false)
+				.texOffs(184, 171).addBox(-7.5F, -11.0F, -1.0F, 15.0F, 4.0F, 0.0F, new CubeDeformation(0.01F))
+				.texOffs(184, 178).addBox(-7.5F, 5.0F, -1.0F, 15.0F, 4.0F, 0.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, 2.0F, -14.0F));
 
 		PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(114, 65).addBox(-5.5F, -5.0F, -9.0F, 11.0F, 9.0F, 9.0F, new CubeDeformation(0.0F))
 				.texOffs(144, 168).addBox(-5.5F, -5.0F, -9.0F, 11.0F, 9.0F, 9.0F, new CubeDeformation(0.25F))
@@ -160,13 +159,13 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
         this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (crocodile.isCombo(1)) {
-			this.animate(crocodile.attack1Combo, CrocodileAnimations.ATTACK_STRIKE, ageInTicks, 1.0f);
+			this.animate(crocodile.attack1Combo, CrocodileAnimations.ATTACK_STRIKE, ageInTicks, 1.35f);
 		}
 		if (crocodile.isCombo(2)) {
-			this.animate(crocodile.attack2Combo, CrocodileAnimations.ATTACK_STRIKE_2, ageInTicks, 1.0f);
+			this.animate(crocodile.attack2Combo, CrocodileAnimations.ATTACK_STRIKE_2, ageInTicks, 1.35f);
 		}
 		if (crocodile.isCombo(3)) {
-			this.animate(crocodile.attack3Combo, CrocodileAnimations.ATTACK_STRIKE_3, ageInTicks, 1.0f);
+			this.animate(crocodile.attack3Combo, CrocodileAnimations.ATTACK_STRIKE_3, ageInTicks, 1.35f);
 		}
 
 		if (crocodile.isDeathRolling()) {
@@ -236,16 +235,17 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 			if (crocodile.isRunning() || crocodile.getState() == 2 && !crocodile.hasGrabSomething()) {
-				this.animateWalk(TigerAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.1f, 1.25f);
+				this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.2f, 1.25f);
 
-				if (walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 150L)) crocodile.onRightFootDown();
-				if (walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 340L)) crocodile.onLeftFootDown();
+				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, 1.2f, 200L)) crocodile.onRightFootDown();
+				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, 1.2f, 480L)) crocodile.onLeftFootDown();
 
 			} else {
-				this.animateWalk(TigerAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 4.5f, 4.5f);
+				float speed = crocodile.getControllingPassenger() != null ? 10f : 5f;
+				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, speed, speed);
 
-				if (walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 300L)) crocodile.onRightFootDown();
-				if (walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 1000L)) crocodile.onLeftFootDown();
+				if (walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 300L)) crocodile.onRightFootDown();
+				if (walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 1000L)) crocodile.onLeftFootDown();
 			}
 
 			// Animation ouverture de gueule pendant la charge (Mouth Slam)
@@ -262,7 +262,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		this.prevLimbSwing = limbSwing;
 
-		captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
+		captureBodyState(crocodile, 13f, this.ALL2, this.ALL, this.body);
 
 		/*if (crocodile.level().isClientSide() && crocodile.isGrabbing()) {
 			if (!crocodile.isInWater()) {

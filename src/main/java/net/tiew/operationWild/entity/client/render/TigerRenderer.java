@@ -69,7 +69,7 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
     @Override
     protected RenderType getRenderType(TigerEntity entity, boolean bodyVisible, boolean translucent, boolean glowing) {
         if (currentAlpha < 1f) {
-            return RenderType.entityTranslucentEmissive(this.getTextureLocation(entity));
+            return RenderType.entityTranslucent(this.getTextureLocation(entity));
         }
         return RenderType.entityTranslucent(this.getTextureLocation(entity));
     }

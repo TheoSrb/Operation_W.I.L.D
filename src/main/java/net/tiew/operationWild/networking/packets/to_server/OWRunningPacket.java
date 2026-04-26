@@ -68,7 +68,7 @@ public record OWRunningPacket(boolean isSprintKeyDown) implements CustomPacketPa
                     if (owEntity.isChargingAttack) canSprint = false;
 
                     if (canSprint && packet.isSprintKeyDown() && owEntity.getVitalEnergy() < owEntity.getMaxVitalEnergy() && owEntity.isSaddled()
-                            && owEntity.getControllingPassenger() != null && owEntity.getControllingPassenger().zza != 0) {
+                            && owEntity.getControllingPassenger() != null && owEntity.getControllingPassenger().zza > 0) {
                         owEntity.setRunning(true);
                         owEntity.setAcceleration(owEntity.getAcceleration() + 1);
                     } else {

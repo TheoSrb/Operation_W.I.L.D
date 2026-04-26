@@ -1062,6 +1062,7 @@ public class ClientEvents {
                 event.setRoll(event.getRoll() + (tiger.getBodyZRot() / 4));
                 event.setPitch(event.getPitch() + (tiger.getBodyXRot() / 4));
             } else if (rootVehicle instanceof CrocodileEntity crocodile) {
+                if (crocodile.isDeathRolling()) return;
                 event.setRoll(event.getRoll() + (crocodile.getBodyZRot() / 4));
                 event.setPitch(event.getPitch() + (crocodile.getBodyXRot() / 4));
             }
@@ -1294,7 +1295,7 @@ public class ClientEvents {
 
     private static void addEspGreenDot(BufferBuilder buf, Matrix4f matrix,
                                        Vec3 center, Vector3f right, Vector3f up) {
-        addQuad(buf, matrix, center, right, up, 0.06f, 0.0f, 1.0f, 0.2f, 0.50f);
+        addQuad(buf, matrix, center, right, up, 0.12f, 0.0f, 1.0f, 0.2f, 0.70f);
     }
 
     private static void addQuad(BufferBuilder buf, Matrix4f matrix,

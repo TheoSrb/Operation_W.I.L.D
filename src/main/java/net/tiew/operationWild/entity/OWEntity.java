@@ -1176,6 +1176,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public float getRiddenSpeedVehicle(Player player) {
         if (this.isSitting() || this.jumping) return 0.0f;
 
+        if (player.zza < 0 && !isRunning()) {
+            return -this.getSpeed() * 0.2f;
+        }
+
         if (player.zza == 0 && !this.isCombo()) {
             if (!canIncreasesSpeedDuringSprint()) {
                 currentSpeed *= 0.75f;
@@ -1209,9 +1213,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 targetSpeed = (this.getSpeed() / 3) * (vehicleRunSpeedMultiplier() * 1.75f) * 1.15f;
             }
             targetSpeed = this.getSpeed() * (vehicleRunSpeedMultiplier() / 1.75f);
-        }
-
-        else {
+        } else {
             targetSpeed = (this.getSpeed() / 3) * (vehicleWalkSpeedMultiplier() / 2);
         }
 
