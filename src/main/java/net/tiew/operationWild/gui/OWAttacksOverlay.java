@@ -15,7 +15,7 @@ import net.tiew.operationWild.entity.attacks.OWChargedAttack;
 import java.util.List;
 
 /**
- * Cartes d'attaque affichées en bas à droite (même position que KodiakOverlay).
+ * Cartes d'attaque affichées en bas à droite.
  *
  * ── Texture : ow_tamed_attacksl.png ─────────────────────────────────────────
  *   Colonne X  = index de carte × 20  (0=combo, 20=attaque1, 40=attaque2…)
@@ -24,8 +24,7 @@ import java.util.List;
  *   → 2 rangées de 20px par entité, donc +40 pour chaque nouvelle entité.
  *
  * ── Comportement des cartes ──────────────────────────────────────────────────
- *   Carte 0 (combo)    : toujours colorée ; barre de cooldown (logique KodiakOverlay)
- *                        = gray full → coloré monte de bas en haut selon attackTimer.
+ *   Carte 0 (combo)    : toujours colorée ; barre de cooldown selon attackTimer.
  *   Cartes 1+ (chargée): grisée par défaut.
  *     • En cooldown    : coloré monte de bas en haut à mesure que le cooldown expire.
  *     • En charge      : coloré monte de bas en haut à mesure que la charge augmente.
@@ -63,7 +62,6 @@ public class OWAttacksOverlay {
         Class<?> entityClass = entity.getClass();
         List<OWAttack> attacks = OWAttacksHandler.getAttacks(entityClass);
 
-        // Même position que KodiakOverlay
         int baseX = (screenWidth / 2) + 96;
         int baseY = screenHeight - 22;
 

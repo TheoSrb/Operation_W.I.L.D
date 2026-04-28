@@ -169,15 +169,14 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
         this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (kodiak.isCombo(1)) {
-			this.animate(kodiak.attack1Combo, KodiakAnimations.ATTACK_STRIKE, ageInTicks, 0.925f * OWEntity.comboSpeedMultiplier);
+			this.animate(kodiak.attack1Combo, KodiakAnimations.ATTACK_STRIKE, ageInTicks, 1.0f * OWEntity.comboSpeedMultiplier);
 		}
 		if (kodiak.isCombo(2)) {
-			this.animate(kodiak.attack2Combo, KodiakAnimations.ATTACK_STRIKE2, ageInTicks, 1.05f * OWEntity.comboSpeedMultiplier);
+			this.animate(kodiak.attack2Combo, KodiakAnimations.ATTACK_STRIKE2, ageInTicks, 1.1f * OWEntity.comboSpeedMultiplier);
 		}
 		if (kodiak.isCombo(3)) {
-			this.animate(kodiak.attack3Combo, KodiakAnimations.ATTACK_STRIKE3, ageInTicks, 1.15f * OWEntity.comboSpeedMultiplier);
+			this.animate(kodiak.attack3Combo, KodiakAnimations.ATTACK_STRIKE3, ageInTicks, 1.25f * OWEntity.comboSpeedMultiplier);
 		}
-
 
 		if (kodiak.isMad()) {
 			this.left_eyeBall.xScale = 0;
@@ -278,7 +277,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		}
 
 		this.prevLimbSwing = limbSwing;
-		captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
+		captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_1, this.body_2);
     }
 
 	@Override
@@ -365,8 +364,10 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
     private void captureBodyState(KodiakEntity kodiak, float restPoseYSum, ModelPart... boneChain) {
         if (!kodiak.level().isClientSide()) return;
-        kodiak.setBodyZRot((float) Math.toDegrees(this.body_2.zRot));
-        kodiak.setBodyXRot((float) -Math.toDegrees(this.body_2.xRot));
+        kodiak.setBodyZRot((float) Math.toDegrees(this.ALL.zRot + this.body.zRot));
+        kodiak.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot));
+        kodiak.bodyZRotCamera = (float) Math.toDegrees(this.body.zRot);
+        kodiak.bodyXRotCamera = (float) -Math.toDegrees(this.body.xRot);
         float ySum = 0f;
         for (ModelPart bone : boneChain) ySum += bone.y;
         kodiak.bodyAnimY = ySum - restPoseYSum;

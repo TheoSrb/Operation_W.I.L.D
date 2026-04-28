@@ -124,6 +124,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private float rubYaw = 0f;
 
     public volatile float bodyAnimY = 0f;
+    public volatile float bodyZRotCamera = 0f;
+    public volatile float bodyXRotCamera = 0f;
 
     public int rollTimer = 0;
     public int itemRejectionTimer = 0;
@@ -681,6 +683,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    protected double getBaseRiderYOffset() {
+        return this.getBbHeight() * 0.6;
+    }
+
+    @Override
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
@@ -1014,7 +1021,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.rubsAnimationTimeout = 0;
             this.rubsAnimationState.stop();
         }
-
 
         setupComboAnimations();
     }

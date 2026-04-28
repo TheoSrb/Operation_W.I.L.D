@@ -1059,8 +1059,8 @@ public class ClientEvents {
             Entity rootVehicle = cameraEntity.getRootVehicle();
 
             if (rootVehicle instanceof KodiakEntity kodiak) {
-                event.setRoll(event.getRoll() + (kodiak.getBodyZRot() / (kodiak.isRunning() ? 1 : 2)));
-                event.setPitch(event.getPitch() + (kodiak.getBodyXRot() / (kodiak.isRunning() ? 1 : 2)));
+                event.setRoll(event.getRoll() + (kodiak.bodyZRotCamera / (kodiak.isRunning() ? 3 : 2)));
+                event.setPitch(event.getPitch() + (kodiak.bodyXRotCamera / (kodiak.isRunning() ? 3 : 2)));
             } else if (rootVehicle instanceof TigerEntity tiger) {
                 event.setRoll(event.getRoll() + (tiger.getBodyZRot() / 4));
                 event.setPitch(event.getPitch() + (tiger.getBodyXRot() / 4));
