@@ -188,6 +188,28 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 			this.right_eyeBall.zScale = 0;
 		}
 
+		if (kodiak.isPawSlamCharging()) {
+			this.animate(kodiak.pawSlamChargeAnimState, KodiakAnimations.PAW_SLAM_CHARGE, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
+			// Monte le rider sur les 2.5s de la montée, puis tient au max
+			float chargeProgress = Math.min(kodiak.pawSlamChargeAnimState.getAccumulatedTime() / 2500f, 1.0f);
+			kodiak.pawSlamRiderYExtra = chargeProgress * 0.7f;
+			// Recule le rider de 0.6 blocs progressivement
+			kodiak.pawSlamRiderZExtra = chargeProgress * -0.6f;
+			return;
+		}
+
+		if (kodiak.isPawSlamStriking()) {
+			this.animate(kodiak.pawSlamStrikeAnimState, KodiakAnimations.PAW_SLAM_STRIKE, ageInTicks, 1.0f);
+			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
+			// Délai de 5 ticks (250ms) puis descente rapide en 350ms
+			float strikeElapsed = kodiak.pawSlamStrikeAnimState.getAccumulatedTime() - 250f;
+			float strikeProgress = Math.max(0f, Math.min(strikeElapsed / 350f, 1.0f));
+			kodiak.pawSlamRiderYExtra = (1.0f - strikeProgress) * 0.7f;
+			kodiak.pawSlamRiderZExtra = (1.0f - strikeProgress) * -0.6f;
+			return;
+		}
+
 		if (kodiak.isRubs()) {
 			this.animate(kodiak.rubsAnimationState, KodiakAnimations.RUBS, ageInTicks, 1.0f);
 			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);

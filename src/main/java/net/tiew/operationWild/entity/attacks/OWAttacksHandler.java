@@ -112,6 +112,7 @@ public class OWAttacksHandler {
         // ── Kodiak — rangée 1 (Y=40 / Y=60) ─────────────────────────────────────
         registerEntityRow(KodiakEntity.class, 1);
         registerComboMaxTimer(KodiakEntity.class, 14); // timeToHit(12) + 2
+        register(KodiakEntity.class, KodiakAttacks.PAW_SLAM);
 
         // ── Crocodile — rangée 2 (Y=80 / Y=100) ──────────────────────────────────
         registerEntityRow(CrocodileEntity.class, 2);
@@ -227,7 +228,24 @@ public class OWAttacksHandler {
 
     // ── Kodiak attacks ────────────────────────────────────────────────────────
     public static class KodiakAttacks {
-        // À déclarer ici (OWAttack / OWChargedAttack) et à register() dans registerAll()
+
+        public static final int PAW_SLAM_ID             = 5;
+        public static final int PAW_SLAM_COOLDOWN_TICKS = 800; // 40 secondes
+
+        public static final OWChargedAttack PAW_SLAM = new OWChargedAttack(
+                PAW_SLAM_ID,
+                OW_ATTACK_0,
+                100f,
+                PAW_SLAM_COOLDOWN_TICKS,
+                1000L,   // charge minimale : 1 seconde
+                5000L,   // charge maximale : 5 secondes
+                entity -> ((KodiakEntity) entity).startPawSlamCharge(),
+                entity -> ((KodiakEntity) entity).cancelPawSlamCharge(),
+                (entity, factor) -> ((KodiakEntity) entity).performPawSlam(factor),
+                (entity, factor, dir) -> {},
+                false,
+                true
+        );
     }
 
     // ── Crocodile attacks ─────────────────────────────────────────────────────

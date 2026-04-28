@@ -89,6 +89,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private static final EntityDataAccessor<Boolean> IS_RUBS = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> FOOD_BAR_VALUE = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_PAW_SLAM_CHARGING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_PAW_SLAM_STRIKING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
 
     public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
@@ -107,6 +109,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public final AnimationState sniffingAnimationState = new AnimationState();
     public final AnimationState rejectingAnimationState = new AnimationState();
     public final AnimationState rubsAnimationState = new AnimationState();
+    public final AnimationState pawSlamChargeAnimState = new AnimationState();
+    public final AnimationState pawSlamStrikeAnimState = new AnimationState();
 
     public int attack1ComboTimer = 0;
     public int attack2ComboTimer = 0;
@@ -116,6 +120,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int sniffingAnimationTimeout = 0;
     public int rejectingAnimationTimeout = 0;
     public int rubsAnimationTimeout = 0;
+    public int pawSlamChargeAnimTimer = 0;
+    public int pawSlamStrikeAnimTimer = 0;
+    private int pawSlamStrikeServerTimer = 0;
+    private int pawSlamHitTimer = -1;
+    private float pawSlamPendingFactor = 0f;
 
     // ==================================================
     //                VARIABLES PROPRES
@@ -126,6 +135,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public volatile float bodyAnimY = 0f;
     public volatile float bodyZRotCamera = 0f;
     public volatile float bodyXRotCamera = 0f;
+    public volatile float pawSlamRiderYExtra = 0f;
+    public volatile float pawSlamRiderZExtra = 0f;
 
     public int rollTimer = 0;
     public int itemRejectionTimer = 0;
@@ -236,6 +247,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(IS_RUBS, false);
         builder.define(IS_MAD, false);
         builder.define(FOOD_BAR_VALUE, 10);
+        builder.define(IS_PAW_SLAM_CHARGING, false);
+        builder.define(IS_PAW_SLAM_STRIKING, false);
     }
 
     // ==================================================
@@ -344,7 +357,17 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public float getRotationSpeed() {
-        return 0.115f;
+        return isPawSlamCharging() ? 1f : 0.115f;
+    }
+
+    @Override
+    protected boolean isImmobile() {
+        return this.isRubs() || this.isPawSlamCharging() || this.isPawSlamStriking();
+    }
+
+    @Override
+    public float getRiddenSpeedVehicle(Player player) {
+        return this.isImmobile() ? 0 : super.getRiddenSpeedVehicle(player);
     }
 
     @Override
@@ -403,7 +426,27 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         boolean hasSomethingInHisMouth = getFoodPick() != null && !getFoodPick().isEmpty();
 
-        createCombo((int) (20 / comboSpeedMultiplier), (int) (12 / comboSpeedMultiplier), random.nextInt(2) == 0 ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get(), 3.0, 2, 2.25, false, 2);
+        if (!isPawSlamCharging() && !isPawSlamStriking()) {
+            createCombo((int) (20 / comboSpeedMultiplier), (int) (12 / comboSpeedMultiplier), random.nextInt(2) == 0 ? OWSounds.KODIAK_HURTING.get() : OWSounds.KODIAK_HURTING_2.get(), 3.0, 2, 2.25, false, 2);
+        }
+
+        if (isPawSlamStriking() && !this.level().isClientSide()) {
+            pawSlamStrikeServerTimer++;
+            if (pawSlamStrikeServerTimer >= 35) {
+                pawSlamStrikeServerTimer = 0;
+                setPawSlamStriking(false);
+            }
+        }
+
+        // Dégâts différés : fire 7 ticks après le relâcher (pic d'impact dans l'animation à 0.35s)
+        if (pawSlamHitTimer > 0 && !this.level().isClientSide()) {
+            pawSlamHitTimer--;
+            if (pawSlamHitTimer == 0) {
+                pawSlamHitTimer = -1;
+                executePawSlamHit(pawSlamPendingFactor);
+            }
+        }
+
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         handleFoodBarSystem();
@@ -658,7 +701,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     protected float getRiderAnimYOffset() {
-        return -bodyAnimY / 16.0f * this.getScale();
+        return -bodyAnimY / 16.0f * this.getScale() + pawSlamRiderYExtra;
     }
 
     @Override
@@ -691,7 +734,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
-        Vec3 seatOffset = new Vec3(0, 0, 0).yRot((float) Math.toRadians(-this.yBodyRot));
+        Vec3 seatOffset = new Vec3(0, 0, pawSlamRiderZExtra).yRot((float) Math.toRadians(-this.yBodyRot));
         double baseY  = getBaseRiderYOffset();
         float  animY  = getRiderAnimYOffset();
         double riderY = this.getY() + baseY + animY;
@@ -930,14 +973,18 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         Vec3 look = this.getLookAngle();
         double x = this.getX() + look.x * 2.0;
         double z = this.getZ() + look.z * 2.0;
-        AABB area = new AABB(x - 1, this.getY() - 1, z - 1, x + 1, this.getY() + 1, z + 1);
-
-        for (int i = 0; i < 50; i++) {
-            double px = area.minX + Math.random() * (area.maxX - area.minX);
-            double py = area.minY + Math.random() * (area.maxY - area.minY);
-            double pz = area.minZ + Math.random() * (area.maxZ - area.minZ);
-            BlockParticleOption particleOption = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
-            this.level().addParticle(particleOption, px, py, pz, 0, 0, 0);
+        BlockParticleOption particleOption = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
+        if (this.level() instanceof ServerLevel serverLevel) {
+            // sendParticles : particules au sol (offsetY=0.1, spreadXZ=1.5)
+            serverLevel.sendParticles(particleOption, x, this.getY(), z, 60, 1.5, 0.1, 1.5, 0.25);
+        } else {
+            AABB area = new AABB(x - 1.5, this.getY() - 0.1, z - 1.5, x + 1.5, this.getY() + 0.2, z + 1.5);
+            for (int i = 0; i < 60; i++) {
+                double px = area.minX + Math.random() * (area.maxX - area.minX);
+                double py = area.minY + Math.random() * (area.maxY - area.minY);
+                double pz = area.minZ + Math.random() * (area.maxZ - area.minZ);
+                this.level().addParticle(particleOption, px, py, pz, 0, 0.1, 0);
+            }
         }
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ROOTED_DIRT_HIT, SoundSource.AMBIENT, 1.0f, 1.0f);
     }
@@ -1020,6 +1067,26 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (!this.isRubs()) {
             this.rubsAnimationTimeout = 0;
             this.rubsAnimationState.stop();
+        }
+
+        if (this.isPawSlamCharging()) {
+            if (this.pawSlamChargeAnimTimer <= 0) {
+                this.pawSlamChargeAnimTimer = Integer.MAX_VALUE;
+                this.pawSlamChargeAnimState.start(this.tickCount);
+            } else --this.pawSlamChargeAnimTimer;
+        } else {
+            this.pawSlamChargeAnimTimer = 0;
+            this.pawSlamChargeAnimState.stop();
+        }
+
+        if (this.isPawSlamStriking()) {
+            if (this.pawSlamStrikeAnimTimer <= 0) {
+                this.pawSlamStrikeAnimTimer = 35;
+                this.pawSlamStrikeAnimState.start(this.tickCount);
+            } else --this.pawSlamStrikeAnimTimer;
+        } else {
+            this.pawSlamStrikeAnimTimer = 0;
+            this.pawSlamStrikeAnimState.stop();
         }
 
         setupComboAnimations();
@@ -1177,11 +1244,66 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
 
-    @Override
-    protected boolean isImmobile() {
-        // Immobile quand le Kodiak se frotte contre un arbre (position figée par le goal)
-        return this.isRubs();
+    // ── Paw Slam ──────────────────────────────────────────────────────────────
+
+    public void startPawSlamCharge() {
+        setPawSlamCharging(true);
     }
+
+    public void cancelPawSlamCharge() {
+        setPawSlamCharging(false);
+    }
+
+    public void performPawSlam(float factor) {
+        if (this.level().isClientSide()) return;
+        setPawSlamCharging(false);
+        setPawSlamStriking(true);
+        pawSlamStrikeServerTimer = 0;
+        // Différer les dégâts à 7 ticks (≈ 0.35s = pic d'impact dans l'animation)
+        pawSlamPendingFactor = factor;
+        pawSlamHitTimer = 7;
+    }
+
+    private void executePawSlamHit(float factor) {
+        double yaw     = Math.toRadians(this.getYRot());
+        double reach   = 2.0 + 1.5 * factor;   // distance du centre devant l'ours
+        double width   = 1.5 + 1.0 * factor;   // demi-largeur de la boîte
+        double centerX = this.getX() - Math.sin(yaw) * reach;
+        double centerZ = this.getZ() + Math.cos(yaw) * reach;
+        double centerY = this.getY() + 0.5;
+
+        AABB area = new AABB(
+                centerX - width, centerY - 1.0, centerZ - width,
+                centerX + width, centerY + 2.0, centerZ + width);
+
+        List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area, target ->
+                target != this && target != this.getControllingPassenger() && !isAlliedTo(target));
+
+        // 1 cible → 50 %, 2 → 40 %, 3 → 30 %, 4 → 20 %, 5+ → 10 %
+        float percent = Math.max(0.50f - (targets.size() - 1) * 0.10f, 0.10f);
+
+        for (LivingEntity target : targets) {
+            float damage = target.getMaxHealth() * percent;
+            target.hurt(this.damageSources().mobAttack(this), damage);
+            Vec3 diff = target.position().subtract(this.position()).normalize();
+            target.setDeltaMovement(target.getDeltaMovement().add(diff.x * 1.8, 0.6, diff.z * 1.8));
+            target.hasImpulse = true;
+        }
+
+        createMiniShockwave();
+    }
+
+    public void createBigShockwave() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        BlockParticleOption particleOption = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
+        serverLevel.sendParticles(particleOption, this.getX(), this.getY(), this.getZ(), 250, 5.0, 2.0, 5.0, 0.4);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ROOTED_DIRT_HIT, SoundSource.AMBIENT, 3.0f, 0.5f);
+    }
+
+    public void setPawSlamCharging(boolean value) { this.entityData.set(IS_PAW_SLAM_CHARGING, value); }
+    public boolean isPawSlamCharging() { return this.entityData.get(IS_PAW_SLAM_CHARGING); }
+    public void setPawSlamStriking(boolean value) { this.entityData.set(IS_PAW_SLAM_STRIKING, value); }
+    public boolean isPawSlamStriking() { return this.entityData.get(IS_PAW_SLAM_STRIKING); }
 
     @Override
     protected int getDefaultSkinIndex() { return 4; }
