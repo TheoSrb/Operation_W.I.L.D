@@ -104,7 +104,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     private static final EntityDataAccessor<Integer> GRAB_TIMEOUT = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_PLAYER_GRAB = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> GRAB_PUNCH_TIMER = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.INT);
-    // Shadow Strike : synchés pour que le client connaisse l'état (vitesse, overlay)
+
     private static final EntityDataAccessor<Boolean> IS_SHADOW_STRIKE_ACTIVE = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> SHADOW_STRIKE_KILL_COUNT = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.INT);
     // ==================================================
@@ -146,24 +146,19 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public boolean isLeaping = false;
     public boolean isPreparing = false;
 
-    // Client-side: animated Y delta of the bone chain (model units), written in TigerModel.setupAnim.
-    // Negative = body visually UP (Blockbench Y axis is inverted vs Minecraft model Y).
     public volatile float bodyAnimY = 0f;
 
-    // Jump attack (player-controlled)
     private boolean isJumpCharging = false;
     private int jumpAttackCooldown = 0;
     private boolean isPlayerLeaping = false;
     private int leapJumpTimer = 0;
 
-    // Shadow Strike (ultime — serveur uniquement sauf IS_SHADOW_STRIKE_ACTIVE et SHADOW_STRIKE_KILL_COUNT qui sont synchés)
-    private int shadowStrikeDurationTimer = 0;   // ticks restants dans la phase cachée
-    private int shadowStrikeDamageBonusTimer = 0; // ticks restants de bonus dégâts post-révélation
+    private int shadowStrikeDurationTimer = 0;
+    private int shadowStrikeDamageBonusTimer = 0;
 
-    // Player grab (triggered on jump landing)
     public boolean isPlayerGrab = false;
     private int playerGrabPunchCooldown = 0;
-    private int playerGrabDuration = 0;   // ticks elapsed since player-grab started; auto-releases at 100
+    private int playerGrabDuration = 0;
 
     private int roarTimer = 0;
     private int grabDamageTimer = 0;

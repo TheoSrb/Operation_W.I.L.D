@@ -16,6 +16,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.monster.Monster;
 import net.tiew.operationWild.core.OWUtils;
@@ -67,6 +68,9 @@ import java.util.*;
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
+    // ==================================================
+    //              CONSTANTES PRINCIPALES
+    // ==================================================
 
     public static final double TAMING_EXPERIENCE = 180.0;
     private static final int MAX_EATING_TIMER = 400;
@@ -89,6 +93,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
 
+    // ==================================================
+    //             COMPTEURS ET ANIMATIONS
+    // ==================================================
+
     public final AnimationState transitionIdleStandingUp = new AnimationState();
     public final AnimationState transitionStandingUpIdle = new AnimationState();
     public final AnimationState attack1Combo = new AnimationState();
@@ -108,6 +116,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int sniffingAnimationTimeout = 0;
     public int rejectingAnimationTimeout = 0;
     public int rubsAnimationTimeout = 0;
+
+    // ==================================================
+    //                VARIABLES PROPRES
+    // ==================================================
 
     private float rubYaw = 0f;
 
@@ -139,6 +151,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public ChestBlockEntity chestBlockEntity = null;
     public boolean isSearchingInsideChest = false;
 
+    // ==================================================
+    //            INTÉLLIGENCE ARTIFICIELLE
+    // ==================================================
+
     public KodiakEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
         initKodiakBehaviorAndTaming();
@@ -166,24 +182,43 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
         this.goalSelector.addGoal(0, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, false));
+
         this.goalSelector.addGoal(1, new KodiakRollGoal(this, 1.5f));
         this.goalSelector.addGoal(1, new KodiakAttractedToFoodItemGoal(this, 1.75f, 15, 7.5f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
+
         this.goalSelector.addGoal(2, new KodiakSearchInsideChestGoal(this, 2.0f, 35, 1.75f, () -> kodiakBehaviorHandler.openChest(chestBlockEntity)));
+
         this.goalSelector.addGoal(3, new KodiakTryFindWaterGoal(this));
         this.goalSelector.addGoal(3, new KodiakAttractedToBeeNestGoal(this, 1.75f, 25, 2.0f, kodiakBehaviorHandler::lookForHoneyInTheBeeNest, true));
+
         this.goalSelector.addGoal(4, new KodiakAttractedToCampfireGoal(this, 1.0f, 60, 2.25f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), true));
+
         this.goalSelector.addGoal(5, new KodiakAttractedToCropsGoal(this, 1.15f, 80, 2.25f, () -> kodiakBehaviorHandler.goToNewCropBlock(20), true));
+
         this.goalSelector.addGoal(6, new KodiakTemptGoal(this, 2D, Ingredient.of(Tags.Items.FOODS), false));
+
         this.goalSelector.addGoal(7, new KodiakRubsAgainstTreeGoal(this, 1.0f, 20, 4.0f, () -> kodiakBehaviorHandler.startingRubsAgainstTree()));
+
         this.goalSelector.addGoal(9, new NapGoal(this, 1.15f, 700, true));
+
         this.goalSelector.addGoal(10, new KodiakSitGoal(this, 0.25f));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new KodiakRandomStrollGoal(this, 0.8D));
+
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
 
         this.targetSelector.addGoal(3, new KodiakNearestAttackableTargetGoal<>(this, Player.class, true));
         this.targetSelector.addGoal(4, new KodiakNearestAttackableTargetGoal<>(this, Animal.class, true));
         this.targetSelector.addGoal(5, new KodiakNearestAttackableTargetGoal<>(this, Monster.class, true));
+
+        this.lookControl = new LookControl(this) {
+            @Override
+            public void tick() {
+                if (this.mob instanceof KodiakEntity kodiak && !kodiak.isSleeping() && !kodiak.isNapping()) {
+                    super.tick();
+                }
+            }
+        };
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -201,7 +236,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(FOOD_BAR_VALUE, 10);
     }
 
-    // Entity Methods
+    // ==================================================
+    //             MÉTHODES PRINCIPALES
+    // ==================================================
+
     @Override
     public int getEntityColor() {
         return 8215109;
@@ -317,6 +355,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return itemStack.is(OWTags.Items.KODIAK_FOOD);
     }
 
+    @Override
+    public float getScale() {
+        return super.getScale() <= 0 ? 1f : super.getScale();
+    }
+
     protected @Nullable SoundEvent getAmbientSound() {
         if (isNapping()) return null;
         return  RANDOM(2) ? OWSounds.KODIAK_IDLE_1.get() : RANDOM(2) ? OWSounds.KODIAK_IDLE_2.get() : OWSounds.KODIAK_IDLE_3.get();
@@ -332,86 +375,25 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return RANDOM(2) ? OWSounds.KODIAK_HURT.get() : OWSounds.KODIAK_MISC.get();
     }
 
-    // ==================================================
-    //             SONS DE PAS (animation-driven)
-    // ==================================================
-
     private long lastStepSoundMs = 0L;
 
-    /**
-     * Suppresses the vanilla automatic step sound (fired by Entity.move() every block traversed).
-     * Footstep sounds are handled exclusively by animation events in KodiakModel
-     * via onLeftFootDown() / onRightFootDown().
-     */
     @Override
     public void playStepSound(BlockPos blockPos, BlockState blockState) {
-        // Intentionally empty — replaced by animation callbacks below
+
     }
 
-    /**
-     * Called by KodiakModel (render thread) when the left paw touches the ground.
-     * Plays the step sound of the block under the kodiak with a slightly lower pitch.
-     */
     public void onLeftFootDown() {
         playStepSoundFromAnimation(0.8f);
     }
 
-    /**
-     * Called by KodiakModel (render thread) when the right paw touches the ground.
-     * Plays the step sound of the block under the kodiak with a slightly higher pitch.
-     */
+
     public void onRightFootDown() {
         playStepSoundFromAnimation(1.0f);
     }
 
-    private void playStepSoundFromAnimation(float pitchMod) {
-        if (!this.onGround()) return;
-        if (this.isInWater()) return;
-        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
-        long now = System.currentTimeMillis();
-        if (now - lastStepSoundMs < 120L) return; // kodiak is heavy, slightly slower steps
-        lastStepSoundMs = now;
-
-        var pos = this.blockPosition();
-        BlockState blockState = this.level().getBlockState(pos);
-        if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
-
-        net.minecraft.world.level.block.SoundType sound = blockState.getSoundType();
-        this.level().playLocalSound(
-                this.getX(), this.getY(), this.getZ(),
-                sound.getStepSound(),
-                this.getSoundSource(),
-                sound.getVolume() * 0.7f,
-                sound.getPitch() * pitchMod * (0.88f + this.random.nextFloat() * 0.24f),
-                false
-        );
-    }
-
-    @Override
-    protected float getRiderAnimYOffset() {
-        return -bodyAnimY / 16.0f * this.getScale();
-    }
-
-    @Override
-    public void aiStep() {
-        super.aiStep();
-        if (this.onGround()) {
-            kodiakBehaviorHandler.trampleCrops(this.blockPosition());
-            kodiakBehaviorHandler.trampleCrops(this.blockPosition().below());
-        }
-    }
-
-    @Override
-    public void travel(Vec3 vec3) {
-        super.travel(vec3);
-        if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle() && !isRubs()) this.jumpFromGround();
-    }
-
-    @Override
-    public boolean isPushable() {
-        if (isRubs() || (isSitting() && !isTame())) return false;
-        return super.isPushable();
-    }
+    // ==================================================
+    //             CORPS DU FONCTIONNEMENT
+    // ==================================================
 
     public void tick() {
         super.tick();
@@ -649,6 +631,68 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         handleGoldVariantEffects();
     }
 
+    private void playStepSoundFromAnimation(float pitchMod) {
+        if (!this.onGround()) return;
+        if (this.isInWater()) return;
+        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
+        long now = System.currentTimeMillis();
+        if (now - lastStepSoundMs < 120L) return;
+        lastStepSoundMs = now;
+
+        var pos = this.blockPosition();
+        BlockState blockState = this.level().getBlockState(pos);
+        if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
+
+        net.minecraft.world.level.block.SoundType sound = blockState.getSoundType();
+        this.level().playLocalSound(
+                this.getX(), this.getY(), this.getZ(),
+                sound.getStepSound(),
+                this.getSoundSource(),
+                sound.getVolume() * 0.7f,
+                sound.getPitch() * pitchMod * (0.88f + this.random.nextFloat() * 0.24f),
+                false
+        );
+    }
+
+    @Override
+    protected float getRiderAnimYOffset() {
+        return -bodyAnimY / 16.0f * this.getScale();
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+        if (this.onGround()) {
+            kodiakBehaviorHandler.trampleCrops(this.blockPosition());
+            kodiakBehaviorHandler.trampleCrops(this.blockPosition().below());
+        }
+    }
+
+    @Override
+    public void travel(Vec3 vec3) {
+        super.travel(vec3);
+        if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle() && !isRubs()) this.jumpFromGround();
+    }
+
+    @Override
+    public boolean isPushable() {
+        if (isRubs() || (isSitting() && !isTame())) return false;
+        return super.isPushable();
+    }
+
+    @Override
+    protected void positionRider(Entity passenger, MoveFunction function) {
+        if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
+
+        Vec3 seatOffset = new Vec3(0, 0, 0).yRot((float) Math.toRadians(-this.yBodyRot));
+        double baseY  = getBaseRiderYOffset();
+        float  animY  = getRiderAnimYOffset();
+        double riderY = this.getY() + baseY + animY;
+
+        passenger.fallDistance = 0f;
+        function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);
+    }
+
     protected void handleFoodBarSystem() {
         if (isTame()) return;
         if (this.tickCount % 1200 == 0) {
@@ -778,50 +822,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     protected boolean canAddPassenger(Entity passenger) {
         return this.getPassengers().size() < 2;
-    }
-
-    @Override
-    protected void positionRider(Entity entity, MoveFunction moveFunction) {
-        super.positionRider(entity, moveFunction);
-        Vec3 movement = this.getDeltaMovement();
-        Vec3 look = this.getLookAngle();
-        double dot = movement.normalize().dot(look.normalize());
-        int passengerIndex = this.getPassengers().indexOf(entity);
-
-        if (passengerIndex == 0) {
-            positionFirstPassenger(entity, moveFunction, look, dot);
-        } else if (passengerIndex == 1) {
-            moveFunction.accept(entity, this.getX() - (look.x / 1.5), entity.getY(), this.getZ() - (look.z / 1.5));
-        } else if (this.isRunning() && dot >= 0.1) {
-            float yOffset = calculateAnimatedYOffset(1.44F, 1.0f, 17.0F, 0.0F, 0.6F);
-            moveFunction.accept(entity, this.getX() - (look.x / 1.5), entity.getY() + yOffset, this.getZ() - (look.z / 1.5));
-        } else {
-            moveFunction.accept(entity, this.getX() - (look.x / 1.5), entity.getY(), this.getZ() - (look.z / 1.5));
-        }
-    }
-
-    private void positionFirstPassenger(Entity entity, MoveFunction moveFunction, Vec3 look, double dot) {
-        if (entity instanceof Player player) {
-            float comboOffset = getComboAttack() == 3 ? 0.35f : 0;
-
-            if (player.zza == 0) {
-                moveFunction.accept(entity,
-                        this.getX() + (look.x / 2.5),
-                        entity.getY() + (-0.2f) + comboOffset,
-                        this.getZ() + (look.z / 2.5));
-            } else if (this.isRunning() && dot >= 0.1) {
-                float yOffset = calculateAnimatedYOffset(1.44F, 1.0f, 17.0F, 0.0F, 0.6F);
-                moveFunction.accept(entity,
-                        this.getX(),
-                        entity.getY() + (-0.2f) + yOffset + comboOffset,
-                        this.getZ());
-            } else {
-                moveFunction.accept(entity,
-                        this.getX() + (look.x / 2.5),
-                        entity.getY() + (-0.2f) + comboOffset,
-                        this.getZ() + (look.z / 2.5));
-            }
-        }
     }
 
     @Override

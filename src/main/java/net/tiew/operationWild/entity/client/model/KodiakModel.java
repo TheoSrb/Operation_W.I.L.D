@@ -22,6 +22,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
 public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kodiak_default"), "main");
@@ -261,13 +262,19 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 		this.animate(kodiak.idleAnimationState, KodiakAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 		if (kodiak.isRunning() || kodiak.getState() == 2) {
-			if (kodiak.isVehicle()) {
-				this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.0f, 1.0f);
-			} else {
-				this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.25f, 1.35f);
-			}
+			float animSpeed = kodiak.isVehicle() ? 1.0f : 1.25f;
+
+			this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, animSpeed, 1.35f);
+
+			if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 300L)) kodiak.onRightFootDown();
+			if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 300L)) kodiak.onLeftFootDown();
+			if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 1000L)) kodiak.onLeftFootDown();
+			if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 1000L)) kodiak.onRightFootDown();
 		} else {
 			this.animateWalk(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
+
+			if (walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 650L)) kodiak.onRightFootDown();
+			if (walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 1450L)) kodiak.onLeftFootDown();
 		}
 
 		this.prevLimbSwing = limbSwing;
