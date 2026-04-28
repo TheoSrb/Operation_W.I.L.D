@@ -190,6 +190,9 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
 		if (kodiak.isPawSlamCharging()) {
 			this.animate(kodiak.pawSlamChargeAnimState, KodiakAnimations.PAW_SLAM_CHARGE, ageInTicks, 1.0f);
+			if (kodiak.pawSlamChargeAnimState.getAccumulatedTime() >= 3000L) {
+				this.animate(kodiak.pawSlamChargeFullAnimState, KodiakAnimations.PAW_SLAM_CHARGE_FULL, ageInTicks, 1.0f);
+			}
 			captureBodyState(kodiak, 10f, this.ALL2, this.ALL, this.body, this.body_2);
 			// Monte le rider sur les 2.5s de la montée, puis tient au max
 			float chargeProgress = Math.min(kodiak.pawSlamChargeAnimState.getAccumulatedTime() / 2500f, 1.0f);

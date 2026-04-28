@@ -110,6 +110,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public final AnimationState rejectingAnimationState = new AnimationState();
     public final AnimationState rubsAnimationState = new AnimationState();
     public final AnimationState pawSlamChargeAnimState = new AnimationState();
+    public final AnimationState pawSlamChargeFullAnimState = new AnimationState();
     public final AnimationState pawSlamStrikeAnimState = new AnimationState();
 
     public int attack1ComboTimer = 0;
@@ -121,6 +122,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int rejectingAnimationTimeout = 0;
     public int rubsAnimationTimeout = 0;
     public int pawSlamChargeAnimTimer = 0;
+    public int pawSlamChargeFullAnimTimer = 0;
     public int pawSlamStrikeAnimTimer = 0;
     private int pawSlamStrikeServerTimer = 0;
     private int pawSlamHitTimer = -1;
@@ -1079,6 +1081,17 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.pawSlamChargeAnimState.stop();
         }
 
+        boolean isChargeAtMax = this.isPawSlamCharging() && this.pawSlamChargeAnimState.getAccumulatedTime() >= 3000L;
+        if (isChargeAtMax) {
+            if (this.pawSlamChargeFullAnimTimer <= 0) {
+                this.pawSlamChargeFullAnimTimer = Integer.MAX_VALUE;
+                this.pawSlamChargeFullAnimState.start(this.tickCount);
+            } else --this.pawSlamChargeFullAnimTimer;
+        } else {
+            this.pawSlamChargeFullAnimTimer = 0;
+            this.pawSlamChargeFullAnimState.stop();
+        }
+
         if (this.isPawSlamStriking()) {
             if (this.pawSlamStrikeAnimTimer <= 0) {
                 this.pawSlamStrikeAnimTimer = 35;
@@ -1259,6 +1272,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         setPawSlamCharging(false);
         setPawSlamStriking(true);
         pawSlamStrikeServerTimer = 0;
+        this.playSound(OWSounds.KODIAK_HURT.get(), 1.5f, (float) OWUtils.generateRandomInterval(0.9f, 1.1f));
         // Différer les dégâts à 7 ticks (≈ 0.35s = pic d'impact dans l'animation)
         pawSlamPendingFactor = factor;
         pawSlamHitTimer = 7;
@@ -1276,14 +1290,26 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 centerX - width, centerY - 1.0, centerZ - width,
                 centerX + width, centerY + 2.0, centerZ + width);
 
-        List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area, target ->
-                target != this && target != this.getControllingPassenger() && !isAlliedTo(target));
+        java.util.UUID myOwner = this.getOwnerUUID();
+        List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area, target -> {
+            if (target == this || target == this.getControllingPassenger() || isAlliedTo(target)) return false;
+            if (myOwner != null) {
+                if (target.getUUID().equals(myOwner)) return false;
+                if (target instanceof TamableAnimal ta && myOwner.equals(ta.getOwnerUUID())) return false;
+            }
+            return true;
+        });
 
         // 1 cible → 50 %, 2 → 40 %, 3 → 30 %, 4 → 20 %, 5+ → 10 %
         float percent = Math.max(0.50f - (targets.size() - 1) * 0.10f, 0.10f);
 
         for (LivingEntity target : targets) {
             float damage = target.getHealth() * percent;
+            // Cibles avec plus de 100 pv max : dégâts plafonnés entre 5 (factor=0) et 20 (factor=1)
+            if (target.getMaxHealth() > 100f) {
+                float cap = 5f + factor * 15f;
+                damage = Math.min(damage, cap);
+            }
             target.hurt(this.damageSources().mobAttack(this), damage);
             Vec3 diff = target.position().subtract(this.position()).normalize();
             target.setDeltaMovement(target.getDeltaMovement().add(diff.x * 1.8, 0.6, diff.z * 1.8));
@@ -1291,13 +1317,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         }
 
         createMiniShockwave();
-    }
-
-    public void createBigShockwave() {
-        if (!(this.level() instanceof ServerLevel serverLevel)) return;
-        BlockParticleOption particleOption = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
-        serverLevel.sendParticles(particleOption, this.getX(), this.getY(), this.getZ(), 250, 5.0, 2.0, 5.0, 0.4);
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ROOTED_DIRT_HIT, SoundSource.AMBIENT, 3.0f, 0.5f);
     }
 
     public void setPawSlamCharging(boolean value) { this.entityData.set(IS_PAW_SLAM_CHARGING, value); }

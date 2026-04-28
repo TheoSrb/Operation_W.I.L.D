@@ -1553,6 +1553,89 @@ public class CrocodileAnimations {
                 ))
                 .build();
 
+        // ── Approche sauvage : gueule qui s'ouvre progressivement (overlay additif) ──
+        // Valeurs en delta : 0 = fermée (position normale), ouvre en 0.5s puis pulse léger.
+        public static final AnimationDefinition WILD_STALK_APPROACH = AnimationDefinition.Builder.withLength(2.5F)
+                .looping()
+                .addAnimation("mouth_down", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                        new Keyframe(0.0F,  KeyframeAnimations.degreeVec( 0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.5F,  KeyframeAnimations.degreeVec(20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.5F,  KeyframeAnimations.degreeVec(23.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(2.5F,  KeyframeAnimations.degreeVec(20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)))
+                .addAnimation("mouth_down", new AnimationChannel(AnimationChannel.Targets.POSITION,
+                        new Keyframe(0.0F,  KeyframeAnimations.posVec(0.0F,  0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.5F,  KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(2.5F,  KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)))
+                .addAnimation("mouth_up", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                        new Keyframe(0.0F,  KeyframeAnimations.degreeVec(  0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.5F,  KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.5F,  KeyframeAnimations.degreeVec(-23.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(2.5F,  KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)))
+                .addAnimation("mouth_up", new AnimationChannel(AnimationChannel.Targets.POSITION,
+                        new Keyframe(0.0F,  KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.5F,  KeyframeAnimations.posVec(0.0F, 2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(2.5F,  KeyframeAnimations.posVec(0.0F, 2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)))
+                .addAnimation("neck", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                        new Keyframe(0.0F,  KeyframeAnimations.degreeVec( 0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.5F,  KeyframeAnimations.degreeVec(10.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(2.5F,  KeyframeAnimations.degreeVec(10.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)))
+                .build();
+
+        // ── Mouth Slam hit : impact violent style Deinosuchus (overlay additif, delta depuis 0) ──
+        public static final AnimationDefinition MOUTH_SLAM_HIT = AnimationDefinition.Builder.withLength(1.5F)
+                // body : recul → lunge avant → tremblement → retour
+                .addAnimation("body", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                        new Keyframe(0.0F,  KeyframeAnimations.degreeVec(  0F,  0F,  0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.15F, KeyframeAnimations.degreeVec( -8F,  0F,  0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.4F,  KeyframeAnimations.degreeVec( 12F,  0F,  0F), AnimationChannel.Interpolations.LINEAR),
+                        new Keyframe(0.65F, KeyframeAnimations.degreeVec(  8F,  0F,  5F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.8F,  KeyframeAnimations.degreeVec(  3F,  0F, -8F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.95F, KeyframeAnimations.degreeVec(  2F,  0F,  6F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.1F,  KeyframeAnimations.degreeVec(  1F,  0F, -3F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.5F,  KeyframeAnimations.degreeVec(  0F,  0F,  0F), AnimationChannel.Interpolations.CATMULLROM)))
+                // neck : remonte → frappe violemment vers le bas
+                .addAnimation("neck", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                        new Keyframe(0.0F,  KeyframeAnimations.degreeVec(  0F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.15F, KeyframeAnimations.degreeVec(-22F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.4F,  KeyframeAnimations.degreeVec( 30F, 0F, 0F), AnimationChannel.Interpolations.LINEAR),
+                        new Keyframe(0.65F, KeyframeAnimations.degreeVec( 20F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.9F,  KeyframeAnimations.degreeVec( 10F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.5F,  KeyframeAnimations.degreeVec(  0F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM)))
+                // head : suit le cou en amplifiant
+                .addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                        new Keyframe(0.0F,  KeyframeAnimations.degreeVec(  0F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.15F, KeyframeAnimations.degreeVec(-15F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.4F,  KeyframeAnimations.degreeVec( 25F, 0F, 0F), AnimationChannel.Interpolations.LINEAR),
+                        new Keyframe(0.65F, KeyframeAnimations.degreeVec( 15F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.5F,  KeyframeAnimations.degreeVec(  0F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM)))
+                // mouth_down : ouverture maximale pendant le windup → claquement brutal
+                .addAnimation("mouth_down", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                        new Keyframe(0.0F,  KeyframeAnimations.degreeVec( 0F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.15F, KeyframeAnimations.degreeVec(35F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.4F,  KeyframeAnimations.degreeVec(15F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.55F, KeyframeAnimations.degreeVec( 0F, 0F, 0F), AnimationChannel.Interpolations.LINEAR)))
+                .addAnimation("mouth_down", new AnimationChannel(AnimationChannel.Targets.POSITION,
+                        new Keyframe(0.0F,  KeyframeAnimations.posVec(0F,  0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.15F, KeyframeAnimations.posVec(0F, -2F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.55F, KeyframeAnimations.posVec(0F,  0F, 0F), AnimationChannel.Interpolations.LINEAR)))
+                // mouth_up : miroir de mouth_down
+                .addAnimation("mouth_up", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                        new Keyframe(0.0F,  KeyframeAnimations.degreeVec(  0F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.15F, KeyframeAnimations.degreeVec(-35F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.4F,  KeyframeAnimations.degreeVec(-15F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.55F, KeyframeAnimations.degreeVec(  0F, 0F, 0F), AnimationChannel.Interpolations.LINEAR)))
+                .addAnimation("mouth_up", new AnimationChannel(AnimationChannel.Targets.POSITION,
+                        new Keyframe(0.0F,  KeyframeAnimations.posVec(0F, 0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.15F, KeyframeAnimations.posVec(0F, 2F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.55F, KeyframeAnimations.posVec(0F, 0F, 0F), AnimationChannel.Interpolations.LINEAR)))
+                // tail1 : léger fouet de réaction à l'impact
+                .addAnimation("tail1", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+                        new Keyframe(0.0F,  KeyframeAnimations.degreeVec(0F,   0F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(0.5F,  KeyframeAnimations.degreeVec(5F,  10F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.0F,  KeyframeAnimations.degreeVec(5F,  -5F, 0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.5F,  KeyframeAnimations.degreeVec(0F,   0F, 0F), AnimationChannel.Interpolations.CATMULLROM)))
+                .build();
+
 
 
 }

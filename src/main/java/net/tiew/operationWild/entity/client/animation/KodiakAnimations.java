@@ -2983,35 +2983,29 @@ public class KodiakAnimations {
                             new Keyframe(5.0f, KeyframeAnimations.degreeVec(-15f, 0f, 0f),
                                     AnimationChannel.Interpolations.CATMULLROM))).build();
 
-    // ── Paw Slam : idle loop quand charge à fond (se superpose à PAW_SLAM_CHARGE) ─
+    // ── Paw Slam : idle loop quand charge à fond (DELTA additif par-dessus PAW_SLAM_CHARGE) ─
+    // Toutes les valeurs sont des offsets à zéro : CHARGE a déjà posé les os au plateau,
+    // cette animation ajoute uniquement les petits mouvements d'idle.
     public static final AnimationDefinition PAW_SLAM_CHARGE_FULL = AnimationDefinition.Builder.withLength(1.5f)
             .looping()
-            // body_2 : légère oscillation de respiration
+            // body_2 : oscillation de respiration (delta ±5° autour du plateau)
             .addAnimation("body_2",
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                            new Keyframe(0f,    KeyframeAnimations.degreeVec(-82f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(0.75f, KeyframeAnimations.degreeVec(-87f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(1.5f,  KeyframeAnimations.degreeVec(-82f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM)))
-            // left_arm : tenu à la pose de fin de charge + légère tension
-            .addAnimation("left_arm",
-                    new AnimationChannel(AnimationChannel.Targets.POSITION,
-                            new Keyframe(0f,   KeyframeAnimations.posVec(5f, 0f, -10f), AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(1.5f, KeyframeAnimations.posVec(5f, 0f, -10f), AnimationChannel.Interpolations.CATMULLROM)))
+                            new Keyframe(0f,    KeyframeAnimations.degreeVec(0f,  0f, 0f), AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(0.75f, KeyframeAnimations.degreeVec(-5f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(1.5f,  KeyframeAnimations.degreeVec(0f,  0f, 0f), AnimationChannel.Interpolations.CATMULLROM)))
+            // left_arm : légère tension (delta +5° en X, retour à 0)
             .addAnimation("left_arm",
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                            new Keyframe(0f,    KeyframeAnimations.degreeVec(60f, -12.5f, -55f), AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(0.75f, KeyframeAnimations.degreeVec(65f, -12.5f, -55f), AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(1.5f,  KeyframeAnimations.degreeVec(60f, -12.5f, -55f), AnimationChannel.Interpolations.CATMULLROM)))
+                            new Keyframe(0f,    KeyframeAnimations.degreeVec(0f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(0.75f, KeyframeAnimations.degreeVec(5f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(1.5f,  KeyframeAnimations.degreeVec(0f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM)))
             // right_arm : miroir
             .addAnimation("right_arm",
-                    new AnimationChannel(AnimationChannel.Targets.POSITION,
-                            new Keyframe(0f,   KeyframeAnimations.posVec(-5f, 0f, -10f), AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(1.5f, KeyframeAnimations.posVec(-5f, 0f, -10f), AnimationChannel.Interpolations.CATMULLROM)))
-            .addAnimation("right_arm",
                     new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                            new Keyframe(0f,    KeyframeAnimations.degreeVec(60f, 12.5f, 55f), AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(0.75f, KeyframeAnimations.degreeVec(65f, 12.5f, 55f), AnimationChannel.Interpolations.CATMULLROM),
-                            new Keyframe(1.5f,  KeyframeAnimations.degreeVec(60f, 12.5f, 55f), AnimationChannel.Interpolations.CATMULLROM)))
+                            new Keyframe(0f,    KeyframeAnimations.degreeVec(0f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(0.75f, KeyframeAnimations.degreeVec(5f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM),
+                            new Keyframe(1.5f,  KeyframeAnimations.degreeVec(0f, 0f, 0f), AnimationChannel.Interpolations.CATMULLROM)))
             .build();
 
     // ── Paw Slam : frappe violente (pattes avant s'écrasent au sol) ──────────

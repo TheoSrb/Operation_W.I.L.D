@@ -166,6 +166,14 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
         this.applyHeadRotation(netHeadYaw, headPitch);
 
+		if (crocodile.isWildStalking()) {
+			this.animate(crocodile.wildStalkAnimState, CrocodileAnimations.WILD_STALK_APPROACH, ageInTicks, 1.0f);
+		}
+
+		if (crocodile.isMouthSlamming()) {
+			this.animate(crocodile.mouthSlamAnimState, CrocodileAnimations.MOUTH_SLAM_HIT, ageInTicks, 1.0f);
+		}
+
 		if (crocodile.isCombo(1)) {
 			this.animate(crocodile.attack1Combo, CrocodileAnimations.ATTACK_STRIKE, ageInTicks, 1.35f);
 		}

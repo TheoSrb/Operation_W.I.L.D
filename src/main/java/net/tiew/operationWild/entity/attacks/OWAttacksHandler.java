@@ -238,7 +238,7 @@ public class OWAttacksHandler {
                 100f,
                 PAW_SLAM_COOLDOWN_TICKS,
                 1000L,   // charge minimale : 1 seconde
-                5000L,   // charge maximale : 5 secondes
+                3000L,   // charge maximale : 3 secondes
                 entity -> ((KodiakEntity) entity).startPawSlamCharge(),
                 entity -> ((KodiakEntity) entity).cancelPawSlamCharge(),
                 (entity, factor) -> ((KodiakEntity) entity).performPawSlam(factor),

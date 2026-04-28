@@ -59,6 +59,7 @@ import net.tiew.operationWild.entity.goals.*;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileAttackGoal;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileGoToWaterWithFoodGoal;
 import net.tiew.operationWild.entity.goals.crocodile.CrocodileNapGoal;
+import net.tiew.operationWild.entity.goals.crocodile.CrocodileWildStalkGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.taming.TamingCrocodile;
@@ -94,6 +95,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Boolean> IS_LUNGING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> LUNGE_TARGET_ID = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> RIDER_CONTROL_PITCH = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> IS_WILD_STALKING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_MOUTH_SLAMMING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
@@ -106,6 +109,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public final AnimationState attack2Combo = new AnimationState();
     public final AnimationState attack3Combo = new AnimationState();
     public final AnimationState deathRollAnimationState = new AnimationState();
+    public final AnimationState wildStalkAnimState = new AnimationState();
+    public final AnimationState mouthSlamAnimState = new AnimationState();
 
     public int idleWaterAnimationTimeout = 0;
     private int growlsAnimationStartTime = 0;
@@ -115,6 +120,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
     public int deathRollAnimationTimeout = 0;
+    public int wildStalkAnimTimer = 0;
+    public int mouthSlamAnimTimer = 0;
+    private int mouthSlamServerTimer = 0;
 
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimX = 0f;
@@ -171,7 +179,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.goalSelector.addGoal(0, new CrocodileGoToWaterWithFoodGoal(this));
         this.goalSelector.addGoal(0, new JumpOutOfTheWaterGoal(this));
         this.goalSelector.addGoal(0, new FollowBoatGoal(this));
-        this.goalSelector.addGoal(1, new CrocodileAttackGoal(this, this.getSpeed() * 15f, 15, 4, false));
+        this.goalSelector.addGoal(1, new CrocodileWildStalkGoal(this, this.getSpeed() * 15f));
+        this.goalSelector.addGoal(2, new CrocodileAttackGoal(this, this.getSpeed() * 20f, 15, 4, false));
         this.goalSelector.addGoal(2, new CrocodileNapGoal(this, 1.25f, 500, true));
         this.goalSelector.addGoal(4, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(5, new RandomStrollGoal(this, 0.7D));
@@ -204,6 +213,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(IS_LUNGING, false);
         builder.define(LUNGE_TARGET_ID, -1);
         builder.define(RIDER_CONTROL_PITCH, 0.0f);
+        builder.define(IS_WILD_STALKING, false);
+        builder.define(IS_MOUTH_SLAMMING, false);
     }
 
     // Entity Methods
@@ -483,6 +494,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (this.isVehicle() && this.isTame() && !this.isSitting() && !this.isBaby()) setMad(this.isCombo());
 
         if (!this.level().isClientSide()) {
+            if (this.mouthSlamServerTimer > 0) {
+                this.mouthSlamServerTimer--;
+                if (this.mouthSlamServerTimer == 0) setMouthSlamming(false);
+            }
+
             Vec3 currentPos = this.position();
             boolean isMovingHorizontally = lastPitchCheckPos != null
                     && (Math.pow(currentPos.x - lastPitchCheckPos.x, 2)
@@ -1136,6 +1152,26 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.deathRollAnimationState.stop();
         }
 
+        if (this.isWildStalking()) {
+            if (this.wildStalkAnimTimer <= 0) {
+                this.wildStalkAnimTimer = Integer.MAX_VALUE;
+                this.wildStalkAnimState.start(this.tickCount);
+            } else --this.wildStalkAnimTimer;
+        } else {
+            this.wildStalkAnimTimer = 0;
+            this.wildStalkAnimState.stop();
+        }
+
+        if (this.isMouthSlamming()) {
+            if (this.mouthSlamAnimTimer <= 0) {
+                this.mouthSlamAnimTimer = Integer.MAX_VALUE;
+                this.mouthSlamAnimState.start(this.tickCount);
+            } else --this.mouthSlamAnimTimer;
+        } else {
+            this.mouthSlamAnimTimer = 0;
+            this.mouthSlamAnimState.stop();
+        }
+
         setupComboAnimations();
     }
 
@@ -1202,6 +1238,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public void setInitialVariant(CrocodileVariant variant) {
         this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());
     }
+
+    public void setWildStalking(boolean value) { this.entityData.set(IS_WILD_STALKING, value); }
+    public boolean isWildStalking() { return this.entityData.get(IS_WILD_STALKING); }
+
+    public void setMouthSlamming(boolean value) { this.entityData.set(IS_MOUTH_SLAMMING, value); }
+    public boolean isMouthSlamming() { return this.entityData.get(IS_MOUTH_SLAMMING); }
 
     public void setMad(boolean isMad) {
         if (isMad) if (this.getCurrentMode() == Mode.Passive) return;
@@ -1426,6 +1468,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         this.crocodileBehaviorHandler.performMouthSlamAttack(damage, knockbackPower, applyBleed);
+        setMouthSlamming(true);
+        this.mouthSlamServerTimer = 50;
     }
 
     public static class CrocodileNearestAttackableTargetGoal extends NearestAttackableTargetGoal {
