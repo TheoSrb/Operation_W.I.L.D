@@ -1283,7 +1283,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         float percent = Math.max(0.50f - (targets.size() - 1) * 0.10f, 0.10f);
 
         for (LivingEntity target : targets) {
-            float damage = target.getMaxHealth() * percent;
+            float damage = target.getHealth() * percent;
             target.hurt(this.damageSources().mobAttack(this), damage);
             Vec3 diff = target.position().subtract(this.position()).normalize();
             target.setDeltaMovement(target.getDeltaMovement().add(diff.x * 1.8, 0.6, diff.z * 1.8));
