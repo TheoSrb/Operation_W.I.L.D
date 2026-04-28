@@ -9,6 +9,8 @@
   "forceTameCommandTooFar": "The targeted entity is too far away, get closer.",
   "forceTameCommandNoTarget": "Please aim at an entity to tame it.",
 
+  "config.ow.camera_shake_intensity": "Camera Intensity",
+
   "biome.ow.redwood_forest": "Redwood Forest",
 
   "key.ow.ultimate_key": "Ultimate capacity",

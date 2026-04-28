@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.AABB;
+import net.tiew.operationWild.ClientConfig;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import org.joml.Matrix4f;
@@ -1058,18 +1059,19 @@ public class ClientEvents {
         if (cameraEntity != null) {
             Entity rootVehicle = cameraEntity.getRootVehicle();
 
+            double intensity = ClientConfig.CAMERA_SHAKE_INTENSITY.get();
+
             if (rootVehicle instanceof KodiakEntity kodiak) {
-                event.setRoll(event.getRoll() + (kodiak.bodyZRotCamera / (kodiak.isRunning() ? 3 : 2)));
-                event.setPitch(event.getPitch() + (kodiak.bodyXRotCamera / (kodiak.isRunning() ? 3 : 2)));
+                event.setRoll((float) (event.getRoll() + (kodiak.bodyZRotCamera / (kodiak.isRunning() ? 3 : 2)) * intensity));
+                event.setPitch((float) (event.getPitch() + (kodiak.bodyXRotCamera / (kodiak.isRunning() ? 3 : 2)) * intensity));
             } else if (rootVehicle instanceof TigerEntity tiger) {
-                event.setRoll(event.getRoll() + (tiger.getBodyZRot() / 4));
-                event.setPitch(event.getPitch() + (tiger.getBodyXRot() / 4));
+                event.setRoll((float) (event.getRoll() + (tiger.getBodyZRot() / 4) * intensity));
+                event.setPitch((float) (event.getPitch() + (tiger.getBodyXRot() / 4) * intensity));
             } else if (rootVehicle instanceof CrocodileEntity crocodile) {
                 if (crocodile.isDeathRolling()) return;
-                event.setRoll(event.getRoll() + (crocodile.getBodyZRot() / 4));
-                event.setPitch(event.getPitch() + (crocodile.getBodyXRot() / 4));
+                event.setRoll((float) (event.getRoll() + (crocodile.getBodyZRot() / 4) * intensity));
+                event.setPitch((float) (event.getPitch() + (crocodile.getBodyXRot() / 4) * intensity));
             }
-
         }
     }
 

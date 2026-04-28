@@ -9,6 +9,8 @@
   "forceTameCommandTooFar": "L'entité ciblée est trop loin, rapprochez-vous.",
   "forceTameCommandNoTarget": "Veuillez viser une entité pour l'apprivoiser.",
 
+  "config.ow.camera_shake_intensity": "Intensité Caméra",
+
   "biome.ow.redwood_forest": "Forêt de séquoias",
 
   "key.ow.ultimate_key": "Capacité ultime",
