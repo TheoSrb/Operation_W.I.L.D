@@ -54,7 +54,7 @@ public class CrocodileBehaviorHandler {
     }
 
     public boolean canPlayIdleAnimation() {
-        return crocodile.getTarget() == null && !crocodile.isNapping() && !crocodile.isMoving() && !crocodile.isVehicle() && !crocodile.isInWater();
+        return crocodile.getTarget() == null && !crocodile.isNapping() && !crocodile.isChargingMouth() && !crocodile.isMoving() && !crocodile.isVehicle() && !crocodile.isInWater();
     }
 
     public boolean canGrowl() {
@@ -284,6 +284,8 @@ public class CrocodileBehaviorHandler {
             this.crocodile.hurtAfterCombo(target, crocodile.getComboAttack());
         }
 
+        this.crocodile.setChargingMouthTimer(0);
+        this.crocodile.setChargingMouth(false);
         this.crocodile.level().playSound(null, this.crocodile.getX(), this.crocodile.getY(), this.crocodile.getZ(), sound, SoundSource.NEUTRAL, 1.0F, 0.75f);
 
         float pitch = (float) (OWUtils.generateRandomInterval(1.1, 1.25));

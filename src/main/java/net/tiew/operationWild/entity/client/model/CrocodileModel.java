@@ -166,10 +166,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
         this.applyHeadRotation(netHeadYaw, headPitch);
 
-		if (crocodile.isWildStalking()) {
-			this.animate(crocodile.wildStalkAnimState, CrocodileAnimations.WILD_STALK_APPROACH, ageInTicks, 1.0f);
-		}
-
 		if (crocodile.isMouthSlamming()) {
 			this.animate(crocodile.mouthSlamAnimState, CrocodileAnimations.MOUTH_SLAM_HIT, ageInTicks, 1.0f);
 		}
@@ -250,7 +246,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		if (!crocodile.isInWater()) {
 			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
-			if (crocodile.isRunning() || crocodile.getState() == 2 && !crocodile.hasGrabSomething()) {
+			if ((crocodile.isRunning() || crocodile.getState() == 2) && !crocodile.isChargingMouth() && !crocodile.hasGrabSomething()) {
 				this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.2f, 1.25f);
 
 				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, 1.2f, 200L)) crocodile.onRightFootDown();
@@ -271,6 +267,8 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 					&& OWAttackLogic.getCurrentAttackId() == OWAttacksHandler.CrocodileAttacks.MOUTH_SLAM_ID) {
 				applyMouthSlamAnimation(OWAttackLogic.getChargeProgress(), ageInTicks);
 			}
+
+			handleChargingMouth(crocodile, ageInTicks);
 		} else {
 			//this.animate(crocodile.idleWaterAnimationState, CrocodileAnimations.MOVE_SWIM, ageInTicks, 1.0f);
 			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
@@ -292,6 +290,25 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			}
 		}*/
     }
+
+	private void handleChargingMouth(CrocodileEntity crocodile, float ageInTicks) {
+		if (crocodile.isChargingMouth()) {
+			float mouthOpeningRadius = Math.min(40, Math.max(15, crocodile.getChargingMouthTimer() / 1.2f));
+
+			this.head.y = -Math.min(5, Math.max(0.5f, 5 * (crocodile.getChargingMouthTimer() / 40)));
+
+			this.mouth_up.xRot = (float) Math.toRadians(-mouthOpeningRadius);
+			this.mouth_up.y = -Math.min(3, Math.max(0.5f, 3 * (crocodile.getChargingMouthTimer() / 40)));
+
+			this.mouth_down.xRot = (float) Math.toRadians(mouthOpeningRadius / 2);
+			this.mouth_down.z = Math.min(2, Math.max(0.3f, 2 * (crocodile.getChargingMouthTimer() / 40)));
+			this.mouth_down.y = Math.min(3, Math.max(0.5f, 3 * (crocodile.getChargingMouthTimer() / 40)));
+
+
+			this.mouth_up.xRot -= Math.toRadians(Math.sin(ageInTicks * 2f) * 2.5);
+			this.mouth_down.xRot += Math.toRadians(Math.sin(ageInTicks * 2f) * 2.5);
+		}
+	}
 
 	private void spawnFootstepParticles(CrocodileEntity crocodile, float limbSwing) {
 		float leftArmRightLegImpact = 0.28f;

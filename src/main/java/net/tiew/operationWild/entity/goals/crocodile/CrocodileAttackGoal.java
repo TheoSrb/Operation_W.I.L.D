@@ -59,6 +59,7 @@ public class CrocodileAttackGoal extends OWAttackGoal {
 
     @Override
     protected void performAttack(LivingEntity target) {
+        if (crocodile.isChargingMouth()) return;
         super.performAttack(target);
     }
 }
