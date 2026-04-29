@@ -689,7 +689,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
-        handleRunningEffects(29, this.getVariant() == KodiakVariant.SKIN_SKELETON ? SoundEvents.SKELETON_STEP : SoundEvents.HORSE_STEP, this.getVariant() == KodiakVariant.SKIN_SKELETON ? 0.8f : 0.5f, new int[]{5, 19});
         handleGoldVariantEffects();
     }
 
