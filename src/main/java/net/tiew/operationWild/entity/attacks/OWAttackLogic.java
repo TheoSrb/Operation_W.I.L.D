@@ -16,6 +16,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
 import org.lwjgl.glfw.GLFW;
 
@@ -77,6 +78,10 @@ public class OWAttackLogic {
     private static void removeUltimateStart(int entityId, int attackId) {
         ultimateActiveMs.remove(packKey(entityId, attackId));
     }
+
+    // ── Kodiak Bear Nap (ultime) state ───────────────────────────────────────
+    public static boolean isKodiakNapping    = false;
+    public static int     kodiakNapEntityId  = -1;
 
     // ── Croc Primal Dive targeting state ─────────────────────────────────────
     public static boolean isCrocTargeting      = false;
@@ -340,6 +345,69 @@ public class OWAttackLogic {
         crocRidingEntityId   = -1;
     }
 
+    // ── Kodiak Bear Nap ───────────────────────────────────────────────────────
+
+    /**
+     * Nettoyage côté client quand la sieste expire naturellement (25 s).
+     * Appelé depuis l'overlay dès que getUltimateActiveProgress retourne 0 alors que isKodiakNapping est vrai.
+     */
+    public static void onKodiakNapExpired(int entityId, OWAttack attack) {
+        isKodiakNapping   = false;
+        kodiakNapEntityId = -1;
+        setCooldownEnd(entityId, attack.getId(),
+                System.currentTimeMillis() + (long) attack.getCooldownTicks() * 50L);
+    }
+
+    private static void handleKodiakNapKey(OWAttack attack, OWEntity owEntity) {
+        int eid = owEntity.getId();
+
+        if (isKodiakNapping && kodiakNapEntityId == eid) {
+            // La sieste a peut-être déjà expiré naturellement côté client
+            if (getUltimateActiveProgress(eid, attack.getId()) == 0f) {
+                onKodiakNapExpired(eid, attack);
+                recordAttackClick(attack.getId(), false);
+                return;
+            }
+            // Annulation manuelle par le joueur
+            isKodiakNapping   = false;
+            kodiakNapEntityId = -1;
+            removeUltimateStart(eid, attack.getId());
+            setCooldownEnd(eid, attack.getId(),
+                    System.currentTimeMillis() + (long) attack.getCooldownTicks() * 50L);
+            PacketDistributor.sendToServer(
+                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+            recordAttackClick(attack.getId(), false);
+            return;
+        }
+
+        // Vérifications habituelles avant activation
+        long endMs = getCooldownEnd(eid, attack.getId());
+        if (endMs != -1L && System.currentTimeMillis() < endMs) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        if (!attack.isUnlocked(owEntity)) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+            owEntity.canShowVitalEnergyLack = true;
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        // Activation
+        isKodiakNapping   = true;
+        kodiakNapEntityId = eid;
+        long now = System.currentTimeMillis();
+        setUltimateStart(eid, attack.getId(), now);
+        ultimateWowEffectStartMs = now;
+
+        PacketDistributor.sendToServer(
+                new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+        recordAttackClick(attack.getId(), false);
+    }
+
     private static void handleCrocPrimalDiveKey(OWAttack attack, OWEntity owEntity) {
         int eid = owEntity.getId();
         if (!isCrocTargeting) {
@@ -421,7 +489,18 @@ public class OWAttackLogic {
         OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getKey());
         if (attack == null) return;
 
+        // Kodiak NAP : traité en priorité (peut annuler même si d'autres blocages sont actifs)
+        if (attack.getId() == OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_ID) {
+            handleKodiakNapKey(attack, owEntity);
+            return;
+        }
+
         boolean isGrabBlocked = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
+        // Bloquer toute autre attaque instantanée pendant la sieste ultime du Kodiak
+        if (isKodiakNapping) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
         if (isGrabBlocked
                 || (isCrocTargeting && attack.getId() != OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID)) {
             recordAttackClick(attack.getId(), true);
@@ -477,6 +556,7 @@ public class OWAttackLogic {
         if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
 
         boolean isCrocGrabbing = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
+        boolean isKodiakUltNapping = isKodiakNapping && owEntity instanceof KodiakEntity;
 
         if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT && event.getAction() == GLFW.GLFW_PRESS) {
             if (owEntity.isPlayerControlledDeathRoll()) {
@@ -488,7 +568,7 @@ public class OWAttackLogic {
                 event.setCanceled(true);
                 return;
             }
-            if (isCrocGrabbing || isCrocTargeting) {
+            if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping) {
                 recordComboClick(true);
                 event.setCanceled(true);
                 return;
@@ -503,7 +583,7 @@ public class OWAttackLogic {
             }
         }
 
-        if (isCrocGrabbing || isCrocTargeting) {
+        if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping) {
             event.setCanceled(true);
             return;
         }

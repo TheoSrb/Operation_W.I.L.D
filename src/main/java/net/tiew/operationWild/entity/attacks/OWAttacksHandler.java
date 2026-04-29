@@ -111,8 +111,10 @@ public class OWAttacksHandler {
 
         // ── Kodiak — rangée 1 (Y=40 / Y=60) ─────────────────────────────────────
         registerEntityRow(KodiakEntity.class, 1);
-        registerComboMaxTimer(KodiakEntity.class, 14); // timeToHit(12) + 2
+        registerComboMaxTimer(KodiakEntity.class, 14);
         register(KodiakEntity.class, KodiakAttacks.PAW_SLAM);
+        register(KodiakEntity.class, KodiakAttacks.NAP_ULTIMATE);
+        registerPassive(KodiakEntity.class, KodiakPassives.BUTCHER_INSTINCT); // ← nouveau
 
         // ── Crocodile — rangée 2 (Y=80 / Y=100) ──────────────────────────────────
         registerEntityRow(CrocodileEntity.class, 2);
@@ -246,6 +248,28 @@ public class OWAttacksHandler {
                 false,
                 true
         );
+
+        // ── Bear Nap (ultime) ─────────────────────────────────────────────────
+        public static final int  NAP_ULTIMATE_ID             = 6;
+        public static final int  NAP_ULTIMATE_KILLS_REQUIRED = 5;
+        public static final int  NAP_ULTIMATE_DURATION_TICKS = 500;                          // 25 s de sieste
+        public static final long NAP_ULTIMATE_DURATION_MS    = NAP_ULTIMATE_DURATION_TICKS * 50L; // 25 000 ms
+        public static final int  NAP_ULTIMATE_COOLDOWN_TICKS = 1200;                         // 60 s de cooldown
+
+        public static final OWAttack NAP_ULTIMATE = new OWAttack(
+                NAP_ULTIMATE_ID,
+                OW_ATTACK_1,
+                100f,
+                entity -> ((KodiakEntity) entity).activateUltimateNap(),
+                NAP_ULTIMATE_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof KodiakEntity kodiak
+                        && kodiak.getNapKillCount() >= NAP_ULTIMATE_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof KodiakEntity kodiak
+                        ? (float) kodiak.getNapKillCount() / NAP_ULTIMATE_KILLS_REQUIRED
+                        : 0f
+        ).withUltimateDuration(NAP_ULTIMATE_DURATION_MS);
     }
 
     // ── Crocodile attacks ─────────────────────────────────────────────────────
@@ -333,6 +357,28 @@ public class OWAttacksHandler {
 
             @Override
             public int highlightColor() { return 0xFF2020; }
+        };
+    }
+
+    // ── Kodiak passive ────────────────────────────────────────────────────────
+    public static class KodiakPassives {
+
+        public static final float BUTCHER_INSTINCT_MULTIPLIER = 1.5f;
+
+        /**
+         * Butcher Instinct — passif purement serveur (bonus de loot).
+         * Aucun ESP à afficher côté client.
+         */
+        public static final OWPassive BUTCHER_INSTINCT = new OWPassive() {
+            @Override
+            public Set<Integer> getHighlightEntityIds(OWEntity entity, Level level) {
+                return Set.of(); // pas d'ESP
+            }
+
+            @Override
+            public int highlightColor() {
+                return 0xFF8C00; // orange — couleur de la carte passive dans l'UI
+            }
         };
     }
 }

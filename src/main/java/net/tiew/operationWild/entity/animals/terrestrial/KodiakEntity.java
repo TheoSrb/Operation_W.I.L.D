@@ -51,6 +51,7 @@ import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.*;
+import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
@@ -91,6 +92,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private static final EntityDataAccessor<Integer> FOOD_BAR_VALUE = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_PAW_SLAM_CHARGING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_PAW_SLAM_STRIKING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> ULTIMATE_NAP_KILL_COUNT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_ULTIMATE_NAPPING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
 
     public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
@@ -127,6 +130,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private int pawSlamStrikeServerTimer = 0;
     private int pawSlamHitTimer = -1;
     private float pawSlamPendingFactor = 0f;
+    private int ultimateNapDurationTimer = 0;
 
     // ==================================================
     //                VARIABLES PROPRES
@@ -251,6 +255,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(FOOD_BAR_VALUE, 10);
         builder.define(IS_PAW_SLAM_CHARGING, false);
         builder.define(IS_PAW_SLAM_STRIKING, false);
+        builder.define(ULTIMATE_NAP_KILL_COUNT, 0);
+        builder.define(IS_ULTIMATE_NAPPING, false);
     }
 
     // ==================================================
@@ -294,17 +300,17 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public float vehicleRunSpeedMultiplier() {
-        return 4f;
+        return isUltimateNapping() ? 0f : 4f;
     }
 
     @Override
     public float vehicleWalkSpeedMultiplier() {
-        return 2;
+        return isUltimateNapping() ? 0f : 2f;
     }
 
     @Override
     public float vehicleComboSpeedMultiplier() {
-        return 3f;
+        return isUltimateNapping() ? 0f : 3f;
     }
 
     @Override
@@ -359,7 +365,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public float getRotationSpeed() {
-        return isPawSlamCharging() ? 1f : 0.115f;
+        return isUltimateNapping() ? 0 : isPawSlamCharging() ? 1f : 0.115f;
     }
 
     @Override
@@ -369,6 +375,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public float getRiddenSpeedVehicle(Player player) {
+        if (isUltimateNapping()) return 0f;
         return this.isImmobile() ? 0 : super.getRiddenSpeedVehicle(player);
     }
 
@@ -457,6 +464,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (isSearchingInsideChest) this.setNap(false);
+
+        if (!this.level().isClientSide() && isUltimateNapping()) {
+            this.setHealth(Math.min(this.getMaxHealth(), this.getHealth() + 3f / 20f));
+            ultimateNapDurationTimer--;
+            if (ultimateNapDurationTimer <= 0) {
+                cancelUltimateNap();
+            }
+        }
 
         if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo());
 
@@ -736,6 +751,22 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
+        if (isUltimateNapping()) {
+            float scale = Math.max(this.getScale(), 1f);
+            float napXLocal = 0.42f * scale;
+            Vec3 napSeatOffset = new Vec3(-napXLocal, 0, 0).yRot((float) Math.toRadians(-this.yBodyRot));
+            double napRiderY = this.getY() + 1.05 * scale + getRiderAnimYOffset();
+            passenger.fallDistance = 0f;
+            function.accept(passenger, this.getX() + napSeatOffset.x, napRiderY, this.getZ() + napSeatOffset.z);
+            float fixedYaw = this.getYRot();
+            passenger.setYRot(fixedYaw);
+            if (passenger instanceof LivingEntity living) {
+                living.yBodyRot = fixedYaw;
+                living.yHeadRot = fixedYaw;
+            }
+            return;
+        }
+
         Vec3 seatOffset = new Vec3(0, 0, pawSlamRiderZExtra).yRot((float) Math.toRadians(-this.yBodyRot));
         double baseY  = getBaseRiderYOffset();
         float  animY  = getRiderAnimYOffset();
@@ -845,14 +876,26 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public boolean hurt(DamageSource damageSource, float v) {
         if (damageSource.getDirectEntity() instanceof Bee) return false;
+        if (isUltimateNapping()) {
+            v = v * 0.2f;
+        }
         if (!this.isTame()) {
             if (this.isSitting()) this.setSitting(false);
         }
-        return super.hurt(damageSource, v);
+        boolean result = super.hurt(damageSource, v);
+        // Empêche OWEntity.hurt de réveiller la sieste ultime
+        if (isUltimateNapping() && !isNapping()) {
+            setNap(true);
+        }
+        return result;
     }
 
     @Override
     public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {
+        int kills = getNapKillCount();
+        if (kills < OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_KILLS_REQUIRED) {
+            setNapKillCount(kills + 1);
+        }
         return super.killedEntity(serverLevel, entity);
     }
 
@@ -1234,6 +1277,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         tag.putInt("getFoodBarValue", this.getFoodBarValue());
 
+        tag.putInt("napKillCount", getNapKillCount());
+
         if (lastPlayerWhoFeedHim != null) {
             tag.putUUID("LastFeederUUID", lastPlayerWhoFeedHim.getUUID());
         }
@@ -1250,12 +1295,52 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         this.entityData.set(FOOD_BAR_VALUE, tag.getInt("getFoodBarValue"));
 
+        this.entityData.set(ULTIMATE_NAP_KILL_COUNT, tag.getInt("napKillCount"));
+
         if (tag.hasUUID("LastFeederUUID")) {
             UUID feederUUID = tag.getUUID("LastFeederUUID");
             lastPlayerWhoFeedHim = this.level().getPlayerByUUID(feederUUID);
         }
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
+
+    // ── Bear Nap (ultime) ─────────────────────────────────────────────────────
+
+    /**
+     * Appelé côté serveur via OWAttackPacket(ACTION_EXECUTE).
+     * Premier appel → déclenche la sieste ; second appel (si déjà en sieste) → annule.
+     */
+    public void activateUltimateNap() {
+        if (isUltimateNapping()) {
+            cancelUltimateNap();
+            return;
+        }
+        if (getNapKillCount() < OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_KILLS_REQUIRED) return;
+        float cost = OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE.getEnergyRequired();
+        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+            canShowVitalEnergyLack = true;
+            return;
+        }
+        setVitalEnergy(0);
+        setNapKillCount(0);
+        setUltimateNapping(true);
+        setNap(true);
+        ultimateNapDurationTimer = OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_DURATION_TICKS;
+        this.playSound(OWSounds.KODIAK_HURT.get(), 1.0f, (float) OWUtils.generateRandomInterval(0.9f, 1.1f));
+    }
+
+    private void cancelUltimateNap() {
+        setUltimateNapping(false);
+        setNap(false);
+        ultimateNapDurationTimer = 0;
+        this.playSound(OWSounds.KODIAK_HURT.get(), 1.0f, (float) OWUtils.generateRandomInterval(0.9f, 1.1f));
+    }
+
+    public int getNapKillCount() { return this.entityData.get(ULTIMATE_NAP_KILL_COUNT); }
+    private void setNapKillCount(int count) { this.entityData.set(ULTIMATE_NAP_KILL_COUNT, count); }
+
+    public boolean isUltimateNapping() { return this.entityData.get(IS_ULTIMATE_NAPPING); }
+    private void setUltimateNapping(boolean napping) { this.entityData.set(IS_ULTIMATE_NAPPING, napping); }
 
     // ── Paw Slam ──────────────────────────────────────────────────────────────
 

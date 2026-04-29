@@ -117,6 +117,10 @@ public class OWAttacksOverlay {
             boolean isTargeting  = isPrimalDive && OWAttackLogic.isCrocTargeting;
             float   grabProgress = isPrimalDive ? OWAttackLogic.getCrocGrabActiveProgress() : 0f;
 
+            // ── Bear Nap special state ────────────────────────────────────────
+            boolean isNapUltimate    = attack.getId() == OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_ID;
+            boolean isNapDrainActive = false;
+
             boolean isCharging = attack instanceof OWChargedAttack
                     && OWAttackLogic.isCharging
                     && OWAttackLogic.getCurrentAttackId() == attack.getId();
@@ -134,15 +138,26 @@ public class OWAttacksOverlay {
                 float activeProgress = OWAttackLogic.getUltimateActiveProgress(entity.getId(), attack.getId());
                 if (activeProgress > 0f) {
                     fillProgress = activeProgress;
-                } else if (!attack.isUnlocked(entity)) {
-                    fillProgress = attack.getUnlockProgress(entity);
+                    // NAP : carte toujours glowing (cliquable pour annuler), drain haut→bas
+                    if (isNapUltimate && OWAttackLogic.isKodiakNapping) {
+                        isNapDrainActive = true;
+                        isGlowing        = true;
+                    }
                 } else {
-                    float cooldownRemaining = OWAttackLogic.getCooldownProgress(entity.getId(), attack.getId());
-                    if (cooldownRemaining > 0f) {
-                        fillProgress = 1.0f - cooldownRemaining;
+                    // NAP expirée naturellement → déclencher le cooldown côté client
+                    if (isNapUltimate && OWAttackLogic.isKodiakNapping) {
+                        OWAttackLogic.onKodiakNapExpired(entity.getId(), attack);
+                    }
+                    if (!attack.isUnlocked(entity)) {
+                        fillProgress = attack.getUnlockProgress(entity);
                     } else {
-                        fillProgress = 1.0f;
-                        isGlowing    = true;
+                        float cooldownRemaining = OWAttackLogic.getCooldownProgress(entity.getId(), attack.getId());
+                        if (cooldownRemaining > 0f) {
+                            fillProgress = 1.0f - cooldownRemaining;
+                        } else {
+                            fillProgress = 1.0f;
+                            isGlowing    = true;
+                        }
                     }
                 }
             } else {
@@ -151,13 +166,14 @@ public class OWAttacksOverlay {
             }
 
             if (isGrabbing) {
-                fillProgress = 0f;
-                isGlowing    = false;
+                fillProgress     = 0f;
+                isGlowing        = false;
+                isNapDrainActive = false;
             }
 
-            final int   fColoredH  = (int)(CARD_SIZE * fillProgress);
-            final int   fGrayH     = CARD_SIZE - fColoredH;
-            final boolean fGlowing = isGlowing;
+            final int     fColoredH = (int)(CARD_SIZE * fillProgress);
+            final int     fGrayH    = CARD_SIZE - fColoredH;
+            final boolean fGlowing  = isGlowing;
             // Targeting phase → green pulsing border ("still clickable"); else normal border
             final boolean fShowBorder = fGlowing || isTargeting;
             final int fBorderRgb = isTargeting
@@ -173,6 +189,9 @@ public class OWAttacksOverlay {
             boolean fInvalid = OWAttackLogic.isAttackClickInvalid(attack.getId());
 
             applyCardScale(g, cardX, baseY, cardScale, () -> {
+                // Rendu unifié : grisé haut→bas pour drain (fillProgress 1→0),
+                // coloré bas→haut pour remplissage (fillProgress 0→1).
+                // Le branch NAP utilise le même rendu que les autres ultimes.
                 if (fGrayH > 0) {
                     g.blit(TEXTURE, cardX, baseY,
                             texX, grayTexY,

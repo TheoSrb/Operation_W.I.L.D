@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,6 +32,7 @@ import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.goals.crocodile.MonstersAvoidCrocodileGoal;
 import net.tiew.operationWild.item.OWItems;
 
@@ -68,6 +70,36 @@ public class ServerEvents {
                     }
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onLivingDrops(LivingDropsEvent event) {
+        KodiakEntity kodiak = null;
+
+        if (event.getSource().getEntity() instanceof KodiakEntity k && k.isTame()) {
+            kodiak = k;
+        } else if (event.getSource().getEntity() instanceof Player player
+                && player.getVehicle() instanceof KodiakEntity k && k.isTame()) {
+            kodiak = k;
+        }
+
+        if (kodiak == null) return;
+
+        float multiplier = OWAttacksHandler.KodiakPassives.BUTCHER_INSTINCT_MULTIPLIER;
+
+        for (ItemEntity itemEntity : event.getDrops()) {
+            ItemStack stack = itemEntity.getItem();
+            if (!stack.has(net.minecraft.core.component.DataComponents.FOOD) && !stack.is(Tags.Items.FOODS_RAW_MEAT)) continue;
+
+            int base  = stack.getCount();
+            float raw = base * (multiplier - 1f);
+            int bonus = (int) raw;
+            if (event.getEntity().level().random.nextFloat() < (raw - bonus)) bonus++;
+
+            ItemStack newStack = stack.copy();
+            newStack.setCount(base + bonus);
+            itemEntity.setItem(newStack);
         }
     }
 

@@ -632,6 +632,16 @@
   "ow.attacks.crocodile.combo.desc": "Faites mordre votre Crocodile toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
   "ow.attacks.crocodile.mouth.desc": "Chargez l'attaque pour ouvrir lentement la gueule de votre Crocodile pendant %s secondes toutes les %s secondes, puis relâchez pour la refermer violemment, infligeant jusqu'à %s points de dégâts.",
   "ow.attacks.crocodile.primal_dive.desc": "Désignez une entité et faites bondir votre Crocodile dessus pour entamer une Roulade de la Mort, infligeant %s points de dégâts par rotation. À recharger avec %s kills toutes les %s secondes.",
-  "ow.attacks.crocodile.reptilian.desc": "À proximité de l'eau, les entités de taille moyenne touchées par une attaque Broyage peuvent être saisies par votre Crocodile pendant %s secondes avant d'être relâchées."
+  "ow.attacks.crocodile.reptilian.desc": "À proximité de l'eau, les entités de taille moyenne touchées par une attaque Broyage peuvent être saisies par votre Crocodile pendant %s secondes avant d'être relâchées.",
+
+  "ow.attacks.kodiak.combo.title": "Frappage",
+  "ow.attacks.kodiak.paw_slam.title": "Écrasement",
+  "ow.attacks.kodiak.nap.title": "Sieste Régénératrice",
+  "ow.attacks.kodiak.butcher.title": "Instinct du Boucher",
+
+  "ow.attacks.kodiak.combo.desc": "Faites frapper votre Kodiak toutes les %s secondes, infligeant %s points de dégâts par coup de pattes.",
+  "ow.attacks.kodiak.paw_slam.desc": "Chargez jusqu'à %s s pour que le Kodiak se dresse et frappe le sol, infligeant un pourcentage de la vie actuelle des entités proches (10%% à 50%%). Limité à 15 dégâts sur les grandes créatures. Rechargement toutes les %s secondes.",
+  "ow.attacks.kodiak.nap.desc": "Le Kodiak s'endort jusqu'à %s secondes, se régénérant de %s PV/s et absorbant %s%% des dégâts reçus. Rappuyez sur la touche pour interrompre la sieste à tout moment. Rechargement tous les %s kills et %ss.",
+  "ow.attacks.kodiak.butcher.desc": "Les entités tuées par votre Kodiak lâchent %s%% plus de nourriture crue."
 
 }
