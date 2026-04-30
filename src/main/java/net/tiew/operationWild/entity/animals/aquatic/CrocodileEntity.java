@@ -896,7 +896,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         ItemStack itemStack = player.getItemInHand(hand);
 
         crocodileTaming.mobInteract(player, hand);
-
         return super.mobInteract(player, hand);
     }
 
