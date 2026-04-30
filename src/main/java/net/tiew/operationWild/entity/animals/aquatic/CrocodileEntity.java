@@ -122,6 +122,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public int wildStalkAnimTimer = 0;
     public int mouthSlamAnimTimer = 0;
     private int mouthSlamServerTimer = 0;
+    private int mouthSlamHitTimer = -1;
+    private float mouthSlamPendingDamage = 0f;
+    private float mouthSlamPendingKnockback = 0f;
+    private boolean mouthSlamPendingBleed = false;
 
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimX = 0f;
@@ -499,6 +503,20 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             if (this.mouthSlamServerTimer > 0) {
                 this.mouthSlamServerTimer--;
                 if (this.mouthSlamServerTimer == 0) setMouthSlamming(false);
+            }
+
+            if (this.mouthSlamHitTimer > 0) {
+                this.mouthSlamHitTimer--;
+                if (this.mouthSlamHitTimer == 0) {
+                    mouthSlamHitTimer = -1;
+                    if (this.level() instanceof ServerLevel serverLevel) {
+                        serverLevel.sendParticles(ParticleTypes.SWEEP_ATTACK,
+                                this.getX(), this.getY() + 0.8, this.getZ(),
+                                20, 2.0, 0.4, 2.0, 0.15);
+                    }
+                    this.crocodileBehaviorHandler.performMouthSlamAttack(
+                            mouthSlamPendingDamage, mouthSlamPendingKnockback, mouthSlamPendingBleed);
+                }
             }
 
             Vec3 currentPos = this.position();
@@ -1454,17 +1472,21 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
         setVitalEnergy(getVitalEnergy() + energyRequired);
 
-        float damage = Mth.lerp(factor, 5.0f, this.getDamage());
-        float knockbackPower = 1.5f + factor * 2.0f;
-        boolean applyBleed  = factor >= 1.0f;
+        mouthSlamPendingDamage    = Mth.lerp(factor, 5.0f, this.getDamage());
+        mouthSlamPendingKnockback = 1.5f + factor * 2.0f;
+        mouthSlamPendingBleed     = factor >= 1.0f;
+        mouthSlamHitTimer         = 8; // 0.4 s = frame d'impact dans l'animation
 
-        if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.SWEEP_ATTACK,
-                    this.getX(), this.getY() + 0.8, this.getZ(),
-                    20, 2.0, 0.4, 2.0, 0.15);
-        }
+        setMouthSlamming(true);
+        this.mouthSlamServerTimer = 50;
+    }
 
-        this.crocodileBehaviorHandler.performMouthSlamAttack(damage, knockbackPower, applyBleed);
+    public void performWildMouthSlam(float chargeRatio) {
+        mouthSlamPendingDamage    = this.getDamage() * (0.5f + chargeRatio * 0.5f);
+        mouthSlamPendingKnockback = 2.0f + chargeRatio * 1.5f;
+        mouthSlamPendingBleed     = chargeRatio >= 1.0f;
+        mouthSlamHitTimer         = 8;
+
         setMouthSlamming(true);
         this.mouthSlamServerTimer = 50;
     }

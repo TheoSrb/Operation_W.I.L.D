@@ -196,7 +196,7 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         while (yawDiff > 180f) yawDiff -= 360f;
         while (yawDiff < -180f) yawDiff += 360f;
 
-        float yawSpeed = hasTarget ? TARGET_YAW_SPEED : YAW_SMOOTH_SPEED;
+        float yawSpeed = hasTarget ? 0.18f : YAW_SMOOTH_SPEED;
         swimYaw += yawDiff * yawSpeed;
 
         while (swimYaw > 360f) swimYaw -= 360f;
@@ -219,14 +219,6 @@ public abstract class OWSemiWaterEntity extends OWEntity {
                 float newPitch = currentPitch + pitchDiff * PITCH_SMOOTH_SPEED;
                 newPitch = Math.max(-90f, Math.min(90f, newPitch));
                 this.setTargetPitch(newPitch);
-            }
-        } else {
-            float currentPitch = this.getTargetPitch();
-            if (Math.abs(currentPitch) > 0.5f) {
-                float newPitch = currentPitch * (1.0f - PITCH_SMOOTH_SPEED);
-                this.setTargetPitch(newPitch);
-            } else {
-                this.setTargetPitch(0.0f);
             }
         }
 
@@ -297,22 +289,42 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             }
         }
 
+        // Pitch visuel proportionnel à la direction verticale de nage
+        float desiredPitch;
+        if (Math.abs(depthDiff) > 0.5) {
+            double pitchMagnitude = Math.min(Math.abs(depthDiff) / 6.0, 1.0) * 38.0;
+            desiredPitch = (float)(depthDiff > 0 ? -pitchMagnitude : pitchMagnitude);
+        } else {
+            desiredPitch = 0f;
+        }
+        float newPitch = this.getTargetPitch() + (desiredPitch - this.getTargetPitch()) * PITCH_SMOOTH_SPEED;
+        this.setTargetPitch(newPitch);
+
         this.setDeltaMovement(this.getDeltaMovement().add(moveX, depth > 1 ? verticalMove + 0.001 : 0, moveZ));
     }
 
     protected void handleTargetSwimming(LivingEntity target) {
-        double yawRadians = Math.toRadians(swimYaw);
-        double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 1.25f;
-        double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED * 1.25f;
-
+        double deltaX = target.getX() - this.getX();
         double deltaY = target.getY() - this.getY();
-        double verticalMove = 0;
+        double deltaZ = target.getZ() - this.getZ();
+        double horizDist = Math.sqrt(deltaX * deltaX + deltaZ * deltaZ);
+        double dist3D   = Math.sqrt(horizDist * horizDist + deltaY * deltaY);
+
+        // Burst à courte portée pour le lunge final
+        float speedMult = (float)(horizDist < 4.0 ? 3.5 : 2.5);
+        double yawRadians = Math.toRadians(swimYaw);
+        double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * speedMult;
+        double moveZ =  Math.cos(yawRadians) * HORIZONTAL_SPEED * speedMult;
+
+        // Poursuite verticale proportionnelle — réaction immédiate, pas de blend
         double depth = this.level().getSeaLevel() - this.getY();
-        if (Math.abs(deltaY) > 0.5) {
-            verticalMove = Math.signum(deltaY) * 0.04D * targetModeBlend;
+        double verticalMove = 0;
+        if (dist3D > 0.5) {
+            verticalMove = (deltaY / dist3D) * HORIZONTAL_SPEED * speedMult;
         }
 
-        this.setDeltaMovement(this.getDeltaMovement().add(moveX, depth > 1 ? verticalMove + 0.001 : 0, moveZ));
+        this.setDeltaMovement(this.getDeltaMovement().add(
+                moveX, depth > 1 ? verticalMove + 0.001 : 0, moveZ));
     }
 
     public void applyWaterPressureDamage(int depth, Player player) {

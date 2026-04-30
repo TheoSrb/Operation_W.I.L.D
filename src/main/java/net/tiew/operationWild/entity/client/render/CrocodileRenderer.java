@@ -47,10 +47,14 @@ public class CrocodileRenderer extends OWEntityRenderer<CrocodileEntity, Crocodi
     public void render(CrocodileEntity crocodile, float entityYaw, float partialTicks,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 
-        float pitchTarget = (crocodile.isTame() && crocodile.isVehicle()
-                && !crocodile.isSitting() && crocodile.isInWater())
-                ? Mth.clamp(crocodile.getRiderControlPitch(), -45f, 45f)
-                : 0f;
+        float pitchTarget;
+        if (crocodile.isTame() && crocodile.isVehicle() && !crocodile.isSitting() && crocodile.isInWater()) {
+            pitchTarget = Mth.clamp(crocodile.getRiderControlPitch(), -45f, 45f);
+        } else if (!crocodile.isTame() && crocodile.isInWater()) {
+            pitchTarget = Mth.clamp(crocodile.getTargetPitch(), -40f, 40f);
+        } else {
+            pitchTarget = 0f;
+        }
 
         float lerpSpeed = 1f - (float) Math.pow(0.08f, partialTicks);
         smoothedRiderPitch = Mth.lerp(lerpSpeed, smoothedRiderPitch, pitchTarget);

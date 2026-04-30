@@ -89,9 +89,6 @@ public class ClientEvents {
     public static double tamingExperience = 0;
     private static float damageTimer = 0.0f;
 
-    public static int rightClickNips = 0;
-    private static long lastRightClick = 0;
-    private static final long CLICK_COOLDOWN = 50;
     private static int questUpdateTick = 0;
 
     @SubscribeEvent

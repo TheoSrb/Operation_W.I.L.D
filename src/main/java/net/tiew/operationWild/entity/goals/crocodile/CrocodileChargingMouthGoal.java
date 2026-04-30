@@ -41,7 +41,8 @@ public class CrocodileChargingMouthGoal extends Goal {
 
         if (this.crocodile.distanceTo(this.crocodile.getTarget()) <= 3) {
             if (this.crocodile.getChargingMouthTimer() >= 30) {
-                crocodile.crocodileBehaviorHandler.makeBigHurt(this.crocodile.getDamage() * (crocodile.getChargingMouthTimer() / 60), OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0f, 2.0f, 2.25f);
+                float chargeRatio = crocodile.getChargingMouthTimer() / 60f;
+                crocodile.performWildMouthSlam(chargeRatio);
                 stop();
             }
         }
