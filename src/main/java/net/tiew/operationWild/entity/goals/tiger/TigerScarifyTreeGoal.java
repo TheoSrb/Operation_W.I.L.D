@@ -45,7 +45,7 @@ public class TigerScarifyTreeGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return (this.mob.getDayOrNightTimeInterval(6, 10) || this.mob.getDayOrNightTimeInterval(17, 23))
+        return (this.mob.getDayOrNightTimeInterval(6, 10) || this.mob.getDayOrNightTimeInterval(17, 20))
                 && !this.mob.isTame()
                 && !this.mob.isNapping()
                 && !this.mob.isPreparingNapping()

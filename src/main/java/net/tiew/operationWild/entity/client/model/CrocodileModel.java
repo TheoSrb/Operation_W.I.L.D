@@ -25,6 +25,8 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 	private float prevLimbSwing = 0f;
 
+	public float externalRiderPitch = 0f;
+
 	private final ModelPart ALL2;
 	private final ModelPart ALL;
 	private final ModelPart body;
@@ -145,13 +147,9 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
     public void setupAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-        // Inclinaison verticale pilotée par le regard du rider (eau uniquement, ±45°, smooth)
-        if (crocodile.isTame() && crocodile.isVehicle() && !crocodile.isSitting() && crocodile.isInWater()) {
-            float riderPitch = crocodile.getRiderControlPitch();
-            if (riderPitch != 0f) {
-                this.ALL2.xRot = (float) Math.toRadians(riderPitch);
-            }
-        }
+		if (Math.abs(externalRiderPitch) > 0.01f) {
+			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
+		}
 
 		spawnFootstepParticles(crocodile, limbSwing);
 
@@ -247,13 +245,15 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 			if ((crocodile.isRunning() || crocodile.getState() == 2) && !crocodile.isChargingMouth() && !crocodile.hasGrabSomething()) {
-				this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.2f, 1.25f);
+				float speed = crocodile.getControllingPassenger() != null ? 1.2f : 1.5f;
 
-				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, 1.2f, 200L)) crocodile.onRightFootDown();
-				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, 1.2f, 480L)) crocodile.onLeftFootDown();
+				this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, speed, 1.25f);
+
+				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, speed, 200L)) crocodile.onRightFootDown();
+				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, speed, 480L)) crocodile.onLeftFootDown();
 
 			} else {
-				float speed = crocodile.getControllingPassenger() != null ? 8.5f : 5f;
+				float speed = crocodile.getControllingPassenger() != null ? 8.5f : 6.5f;
 				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, speed, speed);
 
 				if (walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 300L)) crocodile.onRightFootDown();
@@ -276,7 +276,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		this.prevLimbSwing = limbSwing;
 
-		captureBodyState(crocodile, 13f, this.ALL2, this.ALL, this.body);
+		captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
 
 		/*if (crocodile.level().isClientSide() && crocodile.isGrabbing()) {
 			if (!crocodile.isInWater()) {
@@ -383,17 +383,16 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 	}
 
-    private void captureBodyState(CrocodileEntity crocodile, float restPoseYSum, ModelPart... boneChain) {
-        if (!crocodile.level().isClientSide()) return;
-		crocodile.setBodyZRot((float) Math.toDegrees(this.ALL.zRot + this.body.zRot));
-		crocodile.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot));
-        float ySum = 0f;
-        float xSum = 0f;
-        for (ModelPart bone : boneChain) { ySum += bone.y; xSum += bone.x; }
-        crocodile.bodyAnimY = ySum - restPoseYSum;
-        // restPoseXSum = ALL2.x(0) + ALL.x(0) + body.x(-0.8383) = -0.8383
-        crocodile.bodyAnimX = xSum - (-0.8383f);
-    }
+	private void captureBodyState(CrocodileEntity crocodile, float restPoseYSum, ModelPart... boneChain) {
+		if (!crocodile.level().isClientSide()) return;
+		crocodile.setBodyZRot((float) Math.toDegrees(this.ALL2.zRot + this.ALL.zRot + this.body.zRot));
+		crocodile.setBodyXRot((float) -Math.toDegrees(this.ALL2.xRot + this.ALL.xRot + this.body.xRot));
+		float ySum = 0f;
+		float xSum = 0f;
+		for (ModelPart bone : boneChain) { ySum += bone.y; xSum += bone.x; }
+		crocodile.bodyAnimY = ySum - restPoseYSum;
+		crocodile.bodyAnimX = xSum - 0.0617f; // ALL2.x(0.9) + ALL.x(0) + body.x(-0.8383)
+	}
 
     private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
         pNetHeadYaw = Mth.clamp(pNetHeadYaw, -30.0F, 30.0F);

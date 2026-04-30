@@ -35,7 +35,6 @@ public class OWChooseNameScreen extends Screen {
     private String enteredName = "";
 
     private Button sendButton;
-    private Button closeButton;
 
     private String errorMessage = null;
     private long errorDisplayTime = 0;
@@ -53,23 +52,21 @@ public class OWChooseNameScreen extends Screen {
     @Override
     protected void init() {
         super.init();
-        int buttonWidth = 20;
+        int buttonWidth = 60;
         int buttonHeight = 20;
 
         this.nameInput = new EditBox(this.font, (this.width - 80) / 2, (this.height - 20) / 2 + 25, 80, 20, Component.literal("Name"));
         this.nameInput.setMaxLength(15);
 
-        sendButton = createButton("✔", 0x00FF00, (this.imageWidth / 2) - (buttonWidth / 2) - 35, this.imageHeight - (buttonHeight / 2) - 20, buttonWidth, buttonHeight, this::sendButton);
-        closeButton = createButton("✘", 0xFF0000, (this.imageWidth / 2) - (buttonWidth / 2) + 35, this.imageHeight - (buttonHeight / 2) - 20, buttonWidth, buttonHeight, this::onClose);
+        sendButton = createButton("Appliquer", 0xFFFFFF, (this.imageWidth / 2) - (buttonWidth / 2), this.imageHeight - (buttonHeight / 2) - 20, buttonWidth, buttonHeight, this::sendButton);
 
         this.addRenderableWidget(this.nameInput);
         this.addRenderableWidget(sendButton);
-        this.addRenderableWidget(closeButton);
     }
 
     private void sendButton() {
         if (this.enteredName == null || this.enteredName.trim().isEmpty()) {
-            this.errorMessage = "Le nom ne peut pas être vide.";
+            this.errorMessage = "Veuillez renseigner un nom.";
             this.errorDisplayTime = System.currentTimeMillis();
             return;
         }

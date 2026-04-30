@@ -358,16 +358,20 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
 		poseStack.popPose();
 	}
+
 	private void renderItemOnHead(KodiakEntity kodiak, PoseStack poseStack, int packedLight) {
 		poseStack.pushPose();
 
+		this.ALL2.translateAndRotate(poseStack);
+		this.ALL.translateAndRotate(poseStack);
+		this.body.translateAndRotate(poseStack);
+		this.body_2.translateAndRotate(poseStack);
+		this.body_1.translateAndRotate(poseStack);
 		this.head.translateAndRotate(poseStack);
 
-		poseStack.translate(0.0D, 0.7D, -1D);
-
+		poseStack.translate(0.0D, 0.35D, -1D);
 		poseStack.mulPose(Axis.XP.rotationDegrees(90));
 		poseStack.mulPose(Axis.ZP.rotationDegrees(180));
-
 		poseStack.scale(1.2f, 1.2f, 1.2f);
 
 		MultiBufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();

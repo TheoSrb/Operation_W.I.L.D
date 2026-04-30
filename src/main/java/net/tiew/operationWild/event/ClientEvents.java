@@ -968,6 +968,9 @@ public class ClientEvents {
         return entity.getRootVehicle() instanceof Submarine;
     }
 
+    private static float savedXRot = 0f;
+    private static float savedXRotO = 0f;
+
     @SubscribeEvent
     public static void onPlayerRenderPre(RenderPlayerEvent.Pre event) {
         if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof OWEntity)) {
@@ -975,7 +978,16 @@ public class ClientEvents {
             return;
         }
 
-        // Shadow Strike : cacher complètement le joueur qui chevauche le tigre
+        Player player = event.getEntity();
+
+        if (player.getVehicle() instanceof CrocodileEntity croc && croc.isInWater()) {
+            savedXRot  = player.getXRot();
+            savedXRotO = player.xRotO;
+            // Zero out visuellement — la caméra n'est pas affectée
+            player.setXRot(0f);
+            player.xRotO = 0f;
+        }
+
         if (event.getEntity().getRootVehicle() instanceof TigerEntity tiger
                 && tiger.isShadowStrikeActive()) {
             event.setCanceled(true);
@@ -1042,7 +1054,13 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onPlayerRenderPost(RenderPlayerEvent.Post event) {
-        // Si le render Pre a été annulé (Shadow Strike), ne pas dépiler la PoseStack
+
+        Player player = event.getEntity();
+        if (player.getVehicle() instanceof CrocodileEntity croc && croc.isInWater()) {
+            player.setXRot(savedXRot);
+            player.xRotO = savedXRotO;
+        }
+
         if (shadowStrikeHiddenRiders.contains(event.getEntity().getId())) return;
 
         if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof OWEntity)) {

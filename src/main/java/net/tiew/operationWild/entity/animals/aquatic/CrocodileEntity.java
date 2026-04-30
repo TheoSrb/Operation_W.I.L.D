@@ -133,8 +133,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public boolean canGrabOnLand = false;
 
-    private int primalDivePhase = 0; // 0=inactif, 1=ciblage, 2=bond vers la cible
-    private int primalDiveTimer = 0; // ticks restants (200 = 10s)
+    private int primalDivePhase = 0;
+    private int primalDiveTimer = 0;
     private int primalDiveLungeTimer = 0;
 
     private static final int MAX_GRAB_COOLDOWN = 600;
@@ -142,13 +142,13 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private int passiveGrabTimer = 0;
     private boolean isPrimalDiveGrab = false;
-    private net.minecraft.world.phys.Vec3 lastPitchCheckPos = null;
+    private Vec3 lastPitchCheckPos = null;
 
     private static final int GROWLS_DURATION = 75;
     private static final int GRUNT_DURATION = 55;
 
-    private int growlsInterval = (int) OWUtils.generateRandomInterval(400, 1200);
-    private int gruntInterval = (int) OWUtils.generateRandomInterval(300, 500);
+    private int growlsCooldown = (int) OWUtils.generateRandomInterval(400, 1200);
+    private int gruntCooldown  = (int) OWUtils.generateRandomInterval(300, 500);
 
     public CrocodileEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -178,7 +178,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.goalSelector.addGoal(0, new CrocodileGoToWaterWithFoodGoal(this));
         this.goalSelector.addGoal(0, new JumpOutOfTheWaterGoal(this));
         this.goalSelector.addGoal(0, new FollowBoatGoal(this));
-        this.goalSelector.addGoal(1, new CrocodileAttackGoal(this, this.getSpeed() * 15f, 15, 4, false));
+        this.goalSelector.addGoal(1, new CrocodileAttackGoal(this, this.getSpeed() * 20f, 15, 4, false));
         this.goalSelector.addGoal(2, new CrocodileChargingMouthGoal(this));
         this.goalSelector.addGoal(3, new CrocodileNapGoal(this, 1.25f, 500, true));
         this.goalSelector.addGoal(4, new OWBreedGoal(this, 1.0D));
@@ -511,7 +511,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 LivingEntity rider = this.getControllingPassenger();
                 if (rider != null && isMovingHorizontally) {
                     float target = Mth.clamp(rider.getXRot(), -45f, 45f);
-                    float smoothed = Mth.lerp(0.15f, this.entityData.get(RIDER_CONTROL_PITCH), target);
+                    float smoothed = Mth.clamp(Mth.lerp(0.15f, this.entityData.get(RIDER_CONTROL_PITCH), target), -45f, 45f);
                     this.entityData.set(RIDER_CONTROL_PITCH, smoothed);
                 }
             } else {
@@ -863,22 +863,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         double seatY = getBaseRiderYOffset() + getRiderAnimYOffset();
         double seatZ = 0.0;
 
-        if (this.isInWater()) {
-            double pitchRad = Math.toRadians(-this.getBodyXRot() + this.getRiderControlPitch());
-            double rollRad  = Math.toRadians(-this.getBodyZRot());
-
-            // Pitch: rotate seat around X axis (inclut bodyXRot + riderControlPitch)
-            double py = seatY * Math.cos(pitchRad) - seatZ * Math.sin(pitchRad);
-            double pz = seatY * Math.sin(pitchRad) + seatZ * Math.cos(pitchRad);
-            seatY = py; seatZ = pz;
-
-            // Roll: rotate seat around Z axis
-            double rx = seatX * Math.cos(rollRad) - seatY * Math.sin(rollRad);
-            double ry = seatX * Math.sin(rollRad) + seatY * Math.cos(rollRad);
-            seatX = rx; seatY = ry;
-        }
-
-        // Local entity space → world space via yBodyRot
         double yRad = Math.toRadians(-this.yBodyRot);
         double worldX = seatX * Math.cos(yRad) + seatZ * Math.sin(yRad);
         double worldZ = -seatX * Math.sin(yRad) + seatZ * Math.cos(yRad);
@@ -1084,38 +1068,48 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     protected void handleMiscIdleAnimations() {
-        if (this.growlsAnimationState.isStarted() &&
-                this.tickCount - growlsAnimationStartTime > GROWLS_DURATION) {
+        if (this.growlsAnimationState.isStarted()
+                && this.tickCount - growlsAnimationStartTime > GROWLS_DURATION) {
             this.growlsAnimationState.stop();
         }
-
-        if (this.gruntAnimationState.isStarted() &&
-                this.tickCount - gruntAnimationStartTime > GRUNT_DURATION) {
+        if (this.gruntAnimationState.isStarted()
+                && this.tickCount - gruntAnimationStartTime > GRUNT_DURATION) {
             this.gruntAnimationState.stop();
         }
 
-        if (tickCount % growlsInterval == 0) {
-            if (this.level().isClientSide) {
-                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), OWSounds.CROCODILE_IDLE_3.get(), this.getSoundSource(), 1.0F, isBaby() ? 2.0F : 1.0F, false);
-            }
-            if (crocodileBehaviorHandler.canGrowl() && crocodileBehaviorHandler.canPlayIdleAnimation() && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying()) {
-                this.growlsAnimationState.start(this.tickCount);
-                growlsAnimationStartTime = this.tickCount;
-            }
+        if (!this.level().isClientSide()) return;
 
-            growlsInterval = (int) OWUtils.generateRandomInterval(400, 800);
+        boolean canPlay = crocodileBehaviorHandler.canPlayIdleAnimation()
+                && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying();
+
+        if (growlsCooldown > 0) {
+            growlsCooldown--;
+        } else {
+            if (canPlay) {
+                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(),
+                        OWSounds.CROCODILE_IDLE_3.get(), this.getSoundSource(),
+                        1.0F, isBaby() ? 2.0F : 1.0F, false);
+                if (crocodileBehaviorHandler.canGrowl()) {
+                    this.growlsAnimationState.start(this.tickCount);
+                    growlsAnimationStartTime = this.tickCount;
+                }
+            }
+            growlsCooldown = (int) OWUtils.generateRandomInterval(400, 1200);
         }
 
-        if (tickCount % gruntInterval == 0) {
-            if (this.level().isClientSide) {
-                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), OWSounds.CROCODILE_IDLE_1.get(), this.getSoundSource(), 1.0F, isBaby() ? 2.0F : 1.0F, false);
+        if (gruntCooldown > 0) {
+            gruntCooldown--;
+        } else {
+            if (canPlay && !this.growlsAnimationState.isStarted()) {
+                this.level().playLocalSound(this.getX(), this.getY(), this.getZ(),
+                        OWSounds.CROCODILE_IDLE_1.get(), this.getSoundSource(),
+                        1.0F, isBaby() ? 2.0F : 1.0F, false);
+                if (crocodileBehaviorHandler.canGrunt()) {
+                    this.gruntAnimationState.start(this.tickCount);
+                    gruntAnimationStartTime = this.tickCount;
+                }
             }
-            if (crocodileBehaviorHandler.canGrunt() && crocodileBehaviorHandler.canPlayIdleAnimation() && !crocodileBehaviorHandler.isAnyIdleAnimationPlaying()) {
-                this.gruntAnimationState.start(this.tickCount);
-                gruntAnimationStartTime = this.tickCount;
-            }
-
-            gruntInterval = (int) OWUtils.generateRandomInterval(300, 500);
+            gruntCooldown = (int) OWUtils.generateRandomInterval(300, 500);
         }
     }
 

@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.tiew.operationWild.particle.OWParticles;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -120,7 +121,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
     public int napAnimationTimeout = 0;
-    public int rollingAnimationTimeout = 0;
     public int sniffingAnimationTimeout = 0;
     public int rejectingAnimationTimeout = 0;
     public int rubsAnimationTimeout = 0;
@@ -441,7 +441,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         if (isPawSlamStriking() && !this.level().isClientSide()) {
             pawSlamStrikeServerTimer++;
-            if (pawSlamStrikeServerTimer >= 35) {
+            if (pawSlamStrikeServerTimer >= 15) {
                 pawSlamStrikeServerTimer = 0;
                 setPawSlamStriking(false);
             }
@@ -470,6 +470,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             ultimateNapDurationTimer--;
             if (ultimateNapDurationTimer <= 0) {
                 cancelUltimateNap();
+            }
+
+            if (this.tickCount % 20 == 0 && this.level() instanceof ServerLevel serverLevel) {
+                net.minecraft.world.phys.Vec3 look = this.getLookAngle();
+                double px = this.getX() + look.x * 1.25;
+                double py = this.getY() + 1.15;
+                double pz = this.getZ() + look.z * 1.25;
+                serverLevel.sendParticles(OWParticles.NAP_PARTICLES.get(), px, py, pz, 1, 0.1, 0.1, 0.1, 0.0);
             }
         }
 
@@ -697,12 +705,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.isInWater()) return;
         if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
         long now = System.currentTimeMillis();
-        if (now - lastStepSoundMs < 120L) return;
+        if (now - lastStepSoundMs < 450L) return;
         lastStepSoundMs = now;
 
-        var pos = this.blockPosition();
-        BlockState blockState = this.level().getBlockState(pos);
-        if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
+        BlockState blockState = this.getBlockStateOn();
+        if (blockState.isAir()) return;
 
         net.minecraft.world.level.block.SoundType sound = blockState.getSoundType();
         this.level().playLocalSound(
@@ -1063,17 +1070,12 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.napAnimationState.stop();
         }
 
-        boolean isRollingNow = this.isRolling();
-
-        if (isRollingNow) {
-            if (this.rollingAnimationTimeout <= 0) {
-                this.rollingAnimationTimeout = 80;
+        if (this.isRolling()) {
+            if (!this.rollingAnimationState.isStarted()) {
+                this.rollTimer = 0;
                 this.rollingAnimationState.start(this.tickCount);
-            } else --this.rollingAnimationTimeout;
-        }
-
-        if (!isRollingNow) {
-            this.rollingAnimationTimeout = 0;
+            }
+        } else {
             this.rollingAnimationState.stop();
         }
 

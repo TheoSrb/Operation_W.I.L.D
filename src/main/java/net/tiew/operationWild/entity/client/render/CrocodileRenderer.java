@@ -5,6 +5,7 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.client.layer.CrocodileLayer;
 import net.tiew.operationWild.entity.client.layer.skins.CrocodileSkinRenderLayer;
@@ -24,6 +25,8 @@ public class CrocodileRenderer extends OWEntityRenderer<CrocodileEntity, Crocodi
     private final EntityRendererProvider.Context context;
     private final Map<ModelLayerLocation, CrocodileModel<CrocodileEntity>> modelCache = new HashMap<>();
 
+    private float smoothedRiderPitch = 0f;
+
     public CrocodileRenderer(EntityRendererProvider.Context context) {
         super(context, new CrocodileModel<>(context.bakeLayer(CrocodileModel.LAYER_LOCATION)), 1.2f);
         this.context = context;
@@ -34,7 +37,6 @@ public class CrocodileRenderer extends OWEntityRenderer<CrocodileEntity, Crocodi
     @Override
     public ResourceLocation getTextureLocation(CrocodileEntity crocodile) {
         CrocodileSkin skin = SkinRegistry.CrocodileSkins.get(crocodile.getVariant());
-        // For OVERLAY skins, the base model shows the crocodile's natural variant texture
         if (skin.getMode() == CrocodileSkin.Mode.OVERLAY) {
             return SkinRegistry.CrocodileSkins.get(crocodile.getInitialVariant()).getTexture();
         }
@@ -44,6 +46,15 @@ public class CrocodileRenderer extends OWEntityRenderer<CrocodileEntity, Crocodi
     @Override
     public void render(CrocodileEntity crocodile, float entityYaw, float partialTicks,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+
+        float pitchTarget = (crocodile.isTame() && crocodile.isVehicle()
+                && !crocodile.isSitting() && crocodile.isInWater())
+                ? Mth.clamp(crocodile.getRiderControlPitch(), -45f, 45f)
+                : 0f;
+
+        float lerpSpeed = 1f - (float) Math.pow(0.08f, partialTicks);
+        smoothedRiderPitch = Mth.lerp(lerpSpeed, smoothedRiderPitch, pitchTarget);
+        this.model.externalRiderPitch = smoothedRiderPitch;
 
         CrocodileSkin skin = SkinRegistry.CrocodileSkins.get(crocodile.getVariant());
         this.model = skin.getMode() == CrocodileSkin.Mode.REPLACEMENT

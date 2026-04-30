@@ -134,7 +134,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     //                VARIABLES PROPRES
     // ==================================================
 
-    private static final ResourceLocation NIGHT_RANGE_MODIFIER = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "tiger_night_range");
     private static final ResourceLocation SHADOW_STRIKE_DAMAGE_MODIFIER = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "tiger_shadow_strike_damage");
 
     public boolean wantToScarifyWood = false;
@@ -180,7 +179,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         return Animal.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 35.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.18D)
-                .add(Attributes.FOLLOW_RANGE, 25.0D)
+                .add(Attributes.FOLLOW_RANGE, 40.0D)
                 .add(Attributes.ATTACK_DAMAGE, 8.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.5D);
     }
@@ -195,7 +194,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         this.goalSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 32.5f, 8, 2.5, false));
 
-        this.goalSelector.addGoal(2, new TigerScarifyTreeGoal(this, 20, 0.7D));
+        this.goalSelector.addGoal(2, new TigerScarifyTreeGoal(this, 30, 0.7D));
 
         this.goalSelector.addGoal(3, new TigerSmellBloodGoal(this, 32.0));
 
@@ -324,7 +323,8 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     public float getMaxVitalEnergy() {
-        return 300 * (1 + ((float) this.getLevel() / 50));
+        int max = this.level().isNight() ? 400 : 300;
+        return max * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
@@ -434,20 +434,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         if (!this.level().isClientSide()) {
             handleCamouflage();
             handleRoar();
-
-            // Devient plus agressif durant la nuit.
-            var followAttr = this.getAttribute(Attributes.FOLLOW_RANGE);
-            if (this.level().isNight()) {
-                if (!followAttr.hasModifier(NIGHT_RANGE_MODIFIER)) {
-                    followAttr.addOrUpdateTransientModifier(new AttributeModifier(
-                            NIGHT_RANGE_MODIFIER,
-                            15.0,
-                            AttributeModifier.Operation.ADD_VALUE
-                    ));
-                }
-            } else {
-                followAttr.removeModifier(NIGHT_RANGE_MODIFIER);
-            }
         }
 
         handleGrab();
@@ -472,8 +458,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public void releaseGrab() {
         LivingEntity grabbed = this.getGrabbedTarget();
         if (grabbed != null) {
-            grabbed.noPhysics = false;
-            if (grabbed.getVehicle() == this) grabbed.stopRiding();
+            boolean stillHeldByOther = this.level().getEntitiesOfClass(TigerEntity.class,
+                    grabbed.getBoundingBox().inflate(8))
+                    .stream()
+                    .anyMatch(t -> t != this && t.isGrabbing() && t.getGrabbedTarget() == grabbed);
+            if (!stillHeldByOther) {
+                grabbed.noPhysics = false;
+                if (grabbed.getVehicle() == this) grabbed.stopRiding();
+            }
         }
         this.setGrabbing(false, null);
         this.setGrabTimeout(0);
@@ -557,6 +549,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             return;
         }
 
+        if (target != null && this.level().isDay() && this.distanceTo(target) > 25.0) {
+            return;
+        }
+
         if (!isTame()) {
             setMad(!isBaby() && target != null && getSleepBarPercent() < 75 && !this.isSitting());
         }
@@ -574,6 +570,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     public void die(DamageSource damageSource) {
+        if (this.isGrabbing()) releaseGrab();
         super.die(damageSource);
 
         ItemStack soulStack = createSoulStack();
@@ -1111,9 +1108,12 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     private void playPawStepSound(float pitchMod) {
         if (!this.onGround()) return;
         if (this.isInWater()) return;
-        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
+        double speedSq = this.getDeltaMovement().horizontalDistanceSqr();
+        if (speedSq < 0.0001) return;
         long now = System.currentTimeMillis();
-        if (now - lastPawStepSoundMs < 100L) return;
+        // Walking: ~450 ms between steps; running/combat: ~180 ms between steps
+        long minInterval = speedSq > 0.03 ? 180L : 450L;
+        if (now - lastPawStepSoundMs < minInterval) return;
         lastPawStepSoundMs = now;
 
         // Get the block the tiger is standing on (try centre first, then one block below for ledges)
@@ -1202,7 +1202,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     private void setupAnimationState() {
         createIdleAnimation(80, true);
-        createSitAnimation(64, true);
+        createSitAnimation(83, true);
 
         handleMiscIdleAnimations();
 
@@ -1410,6 +1410,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public void setGrabbing(boolean isGrabbing, @Nullable LivingEntity entity) {
 
         if (isGrabbing && entity != null) {
+            // Prevent two tigers from grabbing the same target simultaneously
+            boolean alreadyGrabbedByOther = this.level().getEntitiesOfClass(TigerEntity.class,
+                    entity.getBoundingBox().inflate(8))
+                    .stream()
+                    .anyMatch(t -> t != this && t.isGrabbing() && t.getGrabbedTarget() == entity);
+            if (alreadyGrabbedByOther) return;
+
             Holder<Enchantment> slidingHolder = entity.level().registryAccess()
                     .registryOrThrow(Registries.ENCHANTMENT)
                     .getHolderOrThrow(OWEnchantments.SLIDING);
