@@ -179,7 +179,13 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		}
 
 		if (crocodile.isDeathRolling()) {
-			this.animate(crocodile.deathRollAnimationState, CrocodileAnimations.ATTACK_DEATH_ROLL, ageInTicks, 1.0f);
+			if (limbSwingAmount > 0.01f) {
+				crocodile.idleDeathRollAnimState.stop();
+				this.animate(crocodile.deathRollAnimationState, CrocodileAnimations.ATTACK_DEATH_ROLL, ageInTicks, 1.0f);
+			} else {
+				crocodile.idleDeathRollAnimState.startIfStopped((int) ageInTicks);
+				this.animate(crocodile.idleDeathRollAnimState, CrocodileAnimations.IDLE_DEATH_ROLL, ageInTicks, 1.0f);
+			}
 		}
 
 		if (crocodile.isGrabbing()) {
@@ -270,8 +276,14 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 			handleChargingMouth(crocodile, ageInTicks);
 		} else {
-			//this.animate(crocodile.idleWaterAnimationState, CrocodileAnimations.MOVE_SWIM, ageInTicks, 1.0f);
-			this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
+			// Idle aquatique monté : croco apprivoisé + monté + immobile dans l'eau
+			if (crocodile.isTame() && crocodile.isVehicle() && limbSwingAmount < 0.01f) {
+				crocodile.idleWaterMountedAnimState.startIfStopped((int) ageInTicks);
+				this.animate(crocodile.idleWaterMountedAnimState, CrocodileAnimations.IDLE_WATER_MOUNTED, ageInTicks, 1.0f);
+			} else {
+				crocodile.idleWaterMountedAnimState.stop();
+				this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
+			}
 		}
 
 		this.prevLimbSwing = limbSwing;

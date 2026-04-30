@@ -145,6 +145,14 @@ public abstract class OWSemiWaterEntity extends OWEntity {
 
             if (this.isInWater()) {
                 handleSmoothSwimming();
+            } else if (!this.level().isClientSide()) {
+                // Decay pitch back to 0 smoothly when no longer in water
+                float p = this.getTargetPitch();
+                if (Math.abs(p) > 0.1f) {
+                    this.setTargetPitch(p * 0.82f);
+                } else if (p != 0f) {
+                    this.setTargetPitch(0f);
+                }
             }
         }
 

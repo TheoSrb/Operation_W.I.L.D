@@ -50,20 +50,22 @@ public class CrocodileRenderer extends OWEntityRenderer<CrocodileEntity, Crocodi
         float pitchTarget;
         if (crocodile.isTame() && crocodile.isVehicle() && !crocodile.isSitting() && crocodile.isInWater()) {
             pitchTarget = Mth.clamp(crocodile.getRiderControlPitch(), -45f, 45f);
-        } else if (!crocodile.isTame() && crocodile.isInWater()) {
+        } else if (!crocodile.isTame()) {
+            // Pas de vérification isInWater() ici : elle peut clignoter côté client à la surface
+            // Le serveur gère le retour à 0 du pitch quand le croco sort de l'eau
             pitchTarget = Mth.clamp(crocodile.getTargetPitch(), -40f, 40f);
         } else {
             pitchTarget = 0f;
         }
 
-        float lerpSpeed = 1f - (float) Math.pow(0.08f, partialTicks);
-        smoothedRiderPitch = Mth.lerp(lerpSpeed, smoothedRiderPitch, pitchTarget);
-        this.model.externalRiderPitch = smoothedRiderPitch;
+        // Lerp fixe par frame, sans dépendre de partialTicks comme exposant (évite le saut à chaque tick)
+        smoothedRiderPitch = Mth.lerp(0.18f, smoothedRiderPitch, pitchTarget);
 
         CrocodileSkin skin = SkinRegistry.CrocodileSkins.get(crocodile.getVariant());
         this.model = skin.getMode() == CrocodileSkin.Mode.REPLACEMENT
                 ? skin.getModelLayer().map(this::getOrBakeModel).orElse(getOrBakeModel(CrocodileModel.LAYER_LOCATION))
                 : getOrBakeModel(CrocodileModel.LAYER_LOCATION);
+        this.model.externalRiderPitch = smoothedRiderPitch;
 
         super.render(crocodile, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
 

@@ -101,6 +101,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public TamingCrocodile crocodileTaming;
 
     public final AnimationState idleWaterAnimationState = new AnimationState();
+    public final AnimationState idleWaterMountedAnimState = new AnimationState();
+    public final AnimationState idleDeathRollAnimState = new AnimationState();
     public final AnimationState growlsAnimationState = new AnimationState();
     public final AnimationState gruntAnimationState = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
