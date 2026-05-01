@@ -16,6 +16,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.Blocks;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.client.animation.CrocodileAnimations;
@@ -71,13 +72,13 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.9F, 14.0F, 3.0F));
 
-		PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
+		PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(-0.9F, 0.0F, -3.0F));
 
 		PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-8.5F, -5.0F, -14.0F, 17.0F, 12.0F, 26.0F, new CubeDeformation(0.0F))
 				.texOffs(170, 218).addBox(-8.5F, -5.0F, -14.0F, 17.0F, 12.0F, 26.0F, new CubeDeformation(0.5F))
 				.texOffs(0, 239).addBox(-6.5F, -7.0F, -11.0F, 13.0F, 2.0F, 15.0F, new CubeDeformation(0.0F))
 				.texOffs(0, 67).addBox(-5.5F, -8.0F, -14.0F, 0.0F, 3.0F, 26.0F, new CubeDeformation(0.01F))
-				.texOffs(0, 67).mirror().addBox(5.5F, -8.0F, -14.0F, 0.0F, 3.0F, 26.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offset(-0.8383F, -1.4547F, 3.0F));
+				.texOffs(0, 67).mirror().addBox(5.5F, -8.0F, -14.0F, 0.0F, 3.0F, 26.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offset(0.0617F, -1.4547F, 6.0F));
 
 		PartDefinition neck = body.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(116, 23).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.0F))
 				.texOffs(75, 219).addBox(-6.5F, -6.0F, -7.0F, 13.0F, 10.0F, 7.0F, new CubeDeformation(0.5F))
@@ -129,16 +130,16 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		PartDefinition tail3 = tail2.addOrReplaceChild("tail3", CubeListBuilder.create().texOffs(153, 32).addBox(0.0F, -6.0F, 0.0F, 0.0F, 9.0F, 22.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, 2.0F, 20.0F));
 
 		PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(86, 23).addBox(-2.5F, -2.0F, -3.0F, 5.0F, 7.0F, 6.0F, new CubeDeformation(0.0F))
-				.texOffs(114, 83).addBox(-2.5F, 4.9F, -7.0F, 8.0F, 0.0F, 10.0F, new CubeDeformation(0.05F)), PartPose.offset(8.1617F, 4.5453F, -7.0F));
+				.texOffs(114, 83).addBox(-2.5F, 4.9F, -7.0F, 8.0F, 0.0F, 10.0F, new CubeDeformation(0.05F)), PartPose.offset(9.0617F, 4.5453F, -4.0F));
 
 		PartDefinition left_leg = ALL.addOrReplaceChild("left_leg", CubeListBuilder.create().texOffs(0, 119).addBox(-2.5F, -3.0F, -3.0F, 6.0F, 9.0F, 8.0F, new CubeDeformation(0.0F))
-				.texOffs(114, 83).addBox(-2.5F, 5.9F, -7.0F, 8.0F, 0.0F, 10.0F, new CubeDeformation(0.05F)), PartPose.offset(8.1617F, 3.5453F, 9.0F));
+				.texOffs(114, 83).addBox(-2.5F, 5.9F, -7.0F, 8.0F, 0.0F, 10.0F, new CubeDeformation(0.05F)), PartPose.offset(9.0617F, 3.5453F, 12.0F));
 
 		PartDefinition right_leg = ALL.addOrReplaceChild("right_leg", CubeListBuilder.create().texOffs(114, 83).mirror().addBox(-5.5F, 5.9F, -7.0F, 8.0F, 0.0F, 10.0F, new CubeDeformation(0.05F)).mirror(false)
-				.texOffs(0, 119).mirror().addBox(-3.5F, -3.0F, -3.0F, 6.0F, 9.0F, 8.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-9.8383F, 3.5453F, 9.0F));
+				.texOffs(0, 119).mirror().addBox(-3.5F, -3.0F, -3.0F, 6.0F, 9.0F, 8.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-8.9383F, 3.5453F, 12.0F));
 
 		PartDefinition right_arm = ALL.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(114, 83).mirror().addBox(-5.5F, 4.9F, -7.0F, 8.0F, 0.0F, 10.0F, new CubeDeformation(0.05F)).mirror(false)
-				.texOffs(86, 23).mirror().addBox(-2.5F, -2.0F, -3.0F, 5.0F, 7.0F, 6.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-9.8383F, 4.5453F, -7.0F));
+				.texOffs(86, 23).mirror().addBox(-2.5F, -2.0F, -3.0F, 5.0F, 7.0F, 6.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-8.9383F, 4.5453F, -4.0F));
 
 		return LayerDefinition.create(meshdefinition, 256, 256);
 	}
@@ -146,6 +147,23 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 	@Override
 	public void setupAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
+
+		// Capture ACCUMULÉE (tail2 inclut tail1, tail3 inclut tail1+tail2)
+		crocodile.tail1AnimXRot = this.tail1.xRot;
+		crocodile.tail1AnimYRot = this.tail1.yRot;
+		crocodile.tail1AnimZRot = this.tail1.zRot;
+
+		crocodile.tail2AnimXRot = this.tail1.xRot + this.tail2.xRot;
+		crocodile.tail2AnimYRot = this.tail1.yRot + this.tail2.yRot;
+		crocodile.tail2AnimZRot = this.tail1.zRot + this.tail2.zRot;
+
+		crocodile.tail3AnimXRot = this.tail1.xRot + this.tail2.xRot + this.tail3.xRot;
+		crocodile.tail3AnimYRot = this.tail1.yRot + this.tail2.yRot + this.tail3.yRot;
+		crocodile.tail3AnimZRot = this.tail1.zRot + this.tail2.zRot + this.tail3.zRot;
+
+		this.tail1.visible = false;
+		this.tail2.visible = false;
+		this.tail3.visible = false;
 
 		if (Math.abs(externalRiderPitch) > 0.01f) {
 			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
@@ -205,25 +223,25 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		if (crocodile.transitionIdleSit.isStarted()) {
 			this.animate(crocodile.transitionIdleSit, CrocodileAnimations.TRANSITION_IDLE_SIT, ageInTicks, 2.0f);
-			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.transitionSitIdle.isStarted()) {
 			this.animate(crocodile.transitionSitIdle, CrocodileAnimations.TRANSITION_SIT_IDLE, ageInTicks, 2.0f);
-			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.transitionIdleSleep.isStarted()) {
 			this.animate(crocodile.transitionIdleSleep, CrocodileAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.transitionSleepIdle.isStarted()) {
 			this.animate(crocodile.transitionSleepIdle, CrocodileAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
@@ -237,13 +255,13 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		if (crocodile.isNapping()) {
 			this.animate(crocodile.napAnimationState, CrocodileAnimations.NAP, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.isSitting()) {
 			this.animate(crocodile.sittingAnimationState, CrocodileAnimations.SIT, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
@@ -288,7 +306,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		this.prevLimbSwing = limbSwing;
 
-		captureBodyState(crocodile, 12.5453f, this.ALL2, this.ALL, this.body);
+		captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 
 		/*if (crocodile.level().isClientSide() && crocodile.isGrabbing()) {
 			if (!crocodile.isInWater()) {
@@ -395,15 +413,15 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 	}
 
-	private void captureBodyState(CrocodileEntity crocodile, float restPoseYSum, ModelPart... boneChain) {
+	private void captureBodyState(CrocodileEntity crocodile, float restPoseYSum, float riderRotIntensity, ModelPart... boneChain) {
 		if (!crocodile.level().isClientSide()) return;
-		crocodile.setBodyZRot((float) Math.toDegrees(this.ALL2.zRot + this.ALL.zRot + this.body.zRot));
-		crocodile.setBodyXRot((float) -Math.toDegrees(this.ALL2.xRot + this.ALL.xRot + this.body.xRot));
+		crocodile.setBodyZRot((float) Math.toDegrees((this.ALL2.zRot + this.ALL.zRot + this.body.zRot) * riderRotIntensity));
+		crocodile.setBodyXRot((float) -Math.toDegrees((this.ALL2.xRot + this.ALL.xRot + this.body.xRot) * riderRotIntensity));
 		float ySum = 0f;
 		float xSum = 0f;
 		for (ModelPart bone : boneChain) { ySum += bone.y; xSum += bone.x; }
 		crocodile.bodyAnimY = ySum - restPoseYSum;
-		crocodile.bodyAnimX = xSum - 0.0617f; // ALL2.x(0.9) + ALL.x(0) + body.x(-0.8383)
+		crocodile.bodyAnimX = xSum - 0.0617f;
 	}
 
 	private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {

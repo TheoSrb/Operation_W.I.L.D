@@ -100,6 +100,22 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
 
+    public CrocodileTailPart[] tailParts = new CrocodileTailPart[3];
+
+    private static final float SEG_DIST         = 1.25f;
+    private static final float BODY_TAIL_OFFSET = 0.75f;
+
+    // Rotations animées des os de queue — capturées par CrocodileModel chaque frame
+    public volatile float tail1AnimXRot = 0f, tail1AnimYRot = 0f, tail1AnimZRot = 0f;
+    public volatile float tail2AnimXRot = 0f, tail2AnimYRot = 0f, tail2AnimZRot = 0f;
+    public volatile float tail3AnimXRot = 0f, tail3AnimYRot = 0f, tail3AnimZRot = 0f;
+
+    private final double[] seg1 = new double[3];
+    private final double[] seg2 = new double[3];
+    private final double[] seg3 = new double[3];
+    private float seg1Yaw = 0f, seg2Yaw = 0f, seg3Yaw = 0f;
+    private boolean tailPosInit = false;
+
     public final AnimationState idleWaterAnimationState = new AnimationState();
     public final AnimationState idleWaterMountedAnimState = new AnimationState();
     public final AnimationState idleDeathRollAnimState = new AnimationState();
@@ -717,6 +733,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         markMudWithFootprints();
         handleGoldVariantEffects();
+
+        if (!this.level().isClientSide()) {
+            for (int i = 0; i < 3; i++) {
+                if (tailParts[i] == null || tailParts[i].isRemoved()) {
+                    spawnTailParts();
+                    break;
+                }
+            }
+            updateTailChain();
+        }
     }
 
     @Override
@@ -754,6 +780,102 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         return soulStack;
+    }
+
+    @Override
+    public void onAddedToLevel() {
+        super.onAddedToLevel();
+        if (!this.level().isClientSide()) {
+            spawnTailParts();
+        }
+    }
+
+    private void spawnTailParts() {
+        for (int i = 0; i < 3; i++) {
+            CrocodileTailPart part = new CrocodileTailPart(
+                    net.tiew.operationWild.entity.OWEntityRegistry.CROCODILE_TAIL_PART.get(),
+                    this.level(), this, i);
+            part.setPos(this.getX(), this.getY(), this.getZ());
+            this.level().addFreshEntity(part);
+            tailParts[i] = part;
+        }
+    }
+
+    @Override
+    public void remove(Entity.RemovalReason reason) {
+        super.remove(reason);
+        if (!this.level().isClientSide()) {
+            for (CrocodileTailPart part : tailParts) {
+                if (part != null && !part.isRemoved()) {
+                    part.remove(reason);
+                }
+            }
+        }
+    }
+
+    private void updateTailChain() {
+        float scale   = this.getScale();
+        float segLen  = SEG_DIST * scale;
+        float bodyOff = BODY_TAIL_OFFSET * scale;
+
+        float yawRad   = (float) Math.toRadians(yBodyRot);
+        double attachX = getX() + Math.sin(yawRad) * bodyOff;
+        double attachY = getY();
+        double attachZ = getZ() - Math.cos(yawRad) * bodyOff;
+
+        if (!tailPosInit) {
+            seg1Yaw = seg2Yaw = seg3Yaw = yBodyRot;
+            // Initialise les segments à la bonne position de départ
+            if (tailParts[0] != null) tailParts[0].setPos(
+                    attachX + Math.sin((float)Math.toRadians(yBodyRot)) * segLen,
+                    attachY,
+                    attachZ - Math.cos((float)Math.toRadians(yBodyRot)) * segLen);
+            if (tailParts[1] != null && tailParts[0] != null) tailParts[1].setPos(
+                    tailParts[0].getX() + Math.sin((float)Math.toRadians(yBodyRot)) * segLen,
+                    attachY,
+                    tailParts[0].getZ() - Math.cos((float)Math.toRadians(yBodyRot)) * segLen);
+            if (tailParts[2] != null && tailParts[1] != null) tailParts[2].setPos(
+                    tailParts[1].getX() + Math.sin((float)Math.toRadians(yBodyRot)) * segLen,
+                    attachY,
+                    tailParts[1].getZ() - Math.cos((float)Math.toRadians(yBodyRot)) * segLen);
+            tailPosInit = true;
+        }
+
+        seg1Yaw += Mth.wrapDegrees(yBodyRot - seg1Yaw) * 0.85f;
+        seg2Yaw += Mth.wrapDegrees(seg1Yaw  - seg2Yaw) * 0.65f;
+        seg3Yaw += Mth.wrapDegrees(seg2Yaw  - seg3Yaw) * 0.50f;
+
+        // Ancre seg0 = point d'attache du body (Y réel du body)
+        seg1[0] = attachX; seg1[1] = attachY; seg1[2] = attachZ;
+
+        // Ancre seg1 = position réelle de seg0 après physique
+        seg2[0] = (tailParts[0] != null && !tailParts[0].isRemoved()) ? tailParts[0].getX() : seg1[0];
+        seg2[1] = (tailParts[0] != null && !tailParts[0].isRemoved()) ? tailParts[0].getY() : attachY;
+        seg2[2] = (tailParts[0] != null && !tailParts[0].isRemoved()) ? tailParts[0].getZ() : seg1[2];
+
+        // Ancre seg2 = position réelle de seg1 après physique
+        seg3[0] = (tailParts[1] != null && !tailParts[1].isRemoved()) ? tailParts[1].getX() : seg2[0];
+        seg3[1] = (tailParts[1] != null && !tailParts[1].isRemoved()) ? tailParts[1].getY() : seg2[1];
+        seg3[2] = (tailParts[1] != null && !tailParts[1].isRemoved()) ? tailParts[1].getZ() : seg2[2];
+
+        applyToTailPart(0, seg1, seg1Yaw);
+        applyToTailPart(1, seg2, seg2Yaw);
+        applyToTailPart(2, seg3, seg3Yaw);
+    }
+
+    private void applyToTailPart(int index, double[] pos, float yaw) {
+        CrocodileTailPart part = tailParts[index];
+        if (part == null || part.isRemoved()) {
+            part = new CrocodileTailPart(
+                    OWEntityRegistry.CROCODILE_TAIL_PART.get(),
+                    this.level(), this, index);
+            this.level().addFreshEntity(part);
+            tailParts[index] = part;
+        }
+        part.setPos(pos[0], pos[1], pos[2]);
+        part.refreshDimensions(); // Met à jour la bbox à la nouvelle position
+        part.yRotO = part.getYRot();
+        part.setYRot(yaw);
     }
 
     @Override

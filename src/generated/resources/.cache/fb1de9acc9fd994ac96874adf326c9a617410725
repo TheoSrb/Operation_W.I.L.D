@@ -1,4 +1,4 @@
-// 1.21	2026-04-03T21:27:15.3957177	Item Models: ow
+// 1.21	2026-05-01T16:57:56.4971345	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
@@ -118,6 +118,7 @@ b9f588931c962f38b673267ebbdff7855ca20e4c assets/ow/models/item/kodiak_coat.json
 41ad72e4d465aec64d751126ed1f211cf496eed3 assets/ow/models/item/medal_1.json
 1936813bc6c4ea1c3cc7cd0f365729675030afc1 assets/ow/models/item/medal_2.json
 47888553d069304abe1dd165eec254be5ec30c27 assets/ow/models/item/medal_3.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/orca_spawn_egg.json
 c34229071fd3f458d89fa76967dc053a6067157c assets/ow/models/item/peacock_feather.json
 60f003eb2bc19731a164bc15351d2a92713c95ae assets/ow/models/item/peacock_saddle.json
 5302aff3131faaebb0b99040becc4ed29fcd77c2 assets/ow/models/item/plant_empress_music_disc.json

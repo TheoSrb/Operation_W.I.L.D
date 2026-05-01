@@ -6,6 +6,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.skin.skins.*;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
+import net.tiew.operationWild.entity.variants.OrcaVariant;
 import net.tiew.operationWild.entity.variants.TigerVariant;
 
 import java.util.EnumMap;
@@ -160,6 +161,49 @@ public final class SkinRegistry {
          * Called from ModClientEventBusEvents to register all model layers
          * declared by skins in the registry. No need to touch that file
          * when adding new skins with model layers.
+         */
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
+
+    public static class OrcaSkins {
+
+        private static final Map<OrcaVariant, OrcaSkin> REGISTRY = new EnumMap<>(OrcaVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/orca/" + path);
+        }
+
+        static {
+            // --- Base skins: texture swap only ---
+            register(OrcaVariant.DEFAULT,  OrcaSkin.base(tex("orca_default.png")));
+            register(OrcaVariant.BLACK,    OrcaSkin.base(tex("orca_black.png")));
+            register(OrcaVariant.AQUA,     OrcaSkin.base(tex("orca_aqua.png")));
+
+            // --- SKIN_GOLD: base model + glowing overlay layer ---
+
+            // --- SKIN_SKELETON: base model + glowing overlay layer ---
+            // Note: SHADE (skinIndex 3) is not a variant — handled via isShade() in KodiakSkinRenderLayer
+        }
+
+        public static void register(OrcaVariant variant, OrcaSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static OrcaSkin get(OrcaVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(OrcaVariant.DEFAULT));
+        }
+
+        /**
+         * Called from ModClientEventBusEvents to register model layers declared by skins.
+         * No need to touch that file when adding new skins with model layers.
          */
         public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
             REGISTRY.values().stream()

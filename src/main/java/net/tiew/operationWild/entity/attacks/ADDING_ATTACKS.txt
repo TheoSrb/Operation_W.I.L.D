@@ -5,6 +5,12 @@
 IDs d'attaque déjà pris :
   1 → Tiger  JUMP_ATTACK
   2 → Tiger  SHADOW_STRIKE  (ultime — touche X, 5 kills requis)
+  3 → Croco  MOUTH_SLAM
+  4 → Croco  PRIMAL_DIVE    (ultime — touche X, 5 kills requis)
+  5 → Kodiak PAW_SLAM
+  6 → Kodiak NAP_ULTIMATE   (ultime — touche X, 5 kills requis)
+  7 → Orca   TAIL_SLAM
+  8 → Orca   ORCA_CALL      (ultime — touche X, 5 kills requis)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR

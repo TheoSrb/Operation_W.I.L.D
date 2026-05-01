@@ -1,4 +1,4 @@
-// 1.21	2026-04-03T21:27:15.3987392	Loot Tables
+// 1.21	2026-05-01T16:51:01.7045192	Loot Tables
 39411953e31428b0099044fec99043fae3ff3335 data/ow/loot_table/blocks/animal_carcass.json
 21b0793ae3d401beeb314311ffbd4936db7dfe6d data/ow/loot_table/blocks/bear_trap.json
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
@@ -39,6 +39,7 @@ b24bafc5cbed78e626c6b2b5c7b9e39a6629d7ab data/ow/loot_table/blocks/scarified_dar
 13d7679ab22070b0d9b56beb22aa65670ebd584c data/ow/loot_table/blocks/teddy_bear.json
 ae09f7776c5de886119eb2a8361cf101d520afe6 data/ow/loot_table/entities/crocodile.json
 be73d7ecf6c368985dbc35b3fd75a80fb1a78266 data/ow/loot_table/entities/kodiak.json
+f57f3773458f05cce755ed7d40523663a1cc00a8 data/ow/loot_table/entities/orca.json
 39610dbed52045c08dad942c60325f4a89c2f127 data/ow/loot_table/entities/plant_empress.json
 7e6d2422d023d722aecca73a3b3c8cdd37e4b894 data/ow/loot_table/entities/seabug.json
 d5c54b99a44c09e946b9fae89c9dd591b276777e data/ow/loot_table/entities/seabug_shard_0.json

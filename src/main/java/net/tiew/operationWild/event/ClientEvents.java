@@ -6,6 +6,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.AABB;
 import net.tiew.operationWild.ClientConfig;
+import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import org.joml.Matrix4f;
@@ -1086,6 +1087,9 @@ public class ClientEvents {
                 if (crocodile.isDeathRolling()) return;
                 event.setRoll((float) (event.getRoll() + (crocodile.getBodyZRot() / 4) * intensity));
                 event.setPitch((float) (event.getPitch() + (crocodile.getBodyXRot() / 4) * intensity));
+            } else if (rootVehicle instanceof OrcaEntity orca) {
+                event.setRoll((float) (event.getRoll() + (orca.getBodyZRot() / 4) * intensity));
+                event.setPitch((float) (event.getPitch() + (orca.getBodyXRot() / 4) * intensity));
             }
         }
     }

@@ -10,6 +10,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
@@ -122,6 +123,12 @@ public class OWAttacksHandler {
         register(CrocodileEntity.class, CrocodileAttacks.MOUTH_SLAM);
         register(CrocodileEntity.class, CrocodileAttacks.PRIMAL_DIVE);
         registerPassive(CrocodileEntity.class, CrocodilePassives.PRIMAL_DIVE_SENSE);
+
+        // ── Orca — rangée 4 (Y=160 / Y=180) ─────────────────────────────────────
+        registerEntityRow(OrcaEntity.class, 4);
+        registerComboMaxTimer(OrcaEntity.class, 24); // timeToHit(22) + 2
+        register(OrcaEntity.class, OrcaAttacks.TAIL_SLAM);
+        register(OrcaEntity.class, OrcaAttacks.ORCA_CALL);
     }
 
     // ── Queries ───────────────────────────────────────────────────────────────
@@ -381,4 +388,48 @@ public class OWAttacksHandler {
             }
         };
     }
+
+    // ── Orca attacks ──────────────────────────────────────────────────────────
+    public static class OrcaAttacks {
+
+        public static final int TAIL_SLAM_ID             = 7;
+        public static final int TAIL_SLAM_COOLDOWN_TICKS = 600; // 30 secondes
+
+        public static final OWChargedAttack TAIL_SLAM = new OWChargedAttack(
+                TAIL_SLAM_ID,
+                OW_ATTACK_0,
+                100f,
+                TAIL_SLAM_COOLDOWN_TICKS,
+                500L,    // charge minimale : 0.5 s
+                2500L,   // charge maximale : 2.5 s
+                entity -> ((OrcaEntity) entity).startTailSlamCharge(),
+                entity -> ((OrcaEntity) entity).cancelTailSlamCharge(),
+                (entity, factor) -> ((OrcaEntity) entity).performTailSlam(factor),
+                (entity, factor, dir) -> {},
+                false,
+                true
+        );
+
+        // ── Orca Call (ultime) ────────────────────────────────────────────────
+        public static final int  ORCA_CALL_ID             = 8;
+        public static final int  ORCA_CALL_KILLS_REQUIRED = 5;
+        public static final int  ORCA_CALL_COOLDOWN_TICKS = 1200;                         // 60 s
+        public static final long ORCA_CALL_DURATION_MS    = 3_000L;                       // 3 s d'animation active
+
+        public static final OWAttack ORCA_CALL = new OWAttack(
+                ORCA_CALL_ID,
+                OW_ATTACK_1,
+                100f,
+                entity -> ((OrcaEntity) entity).activateOrcaCall(),
+                ORCA_CALL_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof OrcaEntity orca
+                        && orca.getOrcaUltimateKillCount() >= ORCA_CALL_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof OrcaEntity orca
+                        ? (float) orca.getOrcaUltimateKillCount() / ORCA_CALL_KILLS_REQUIRED
+                        : 0f
+        ).withUltimateDuration(ORCA_CALL_DURATION_MS);
+    }
+
 }

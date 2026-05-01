@@ -21,8 +21,16 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<KodiakEntity>> KODIAK = ENTITY_TYPES.register("kodiak", () -> EntityType.Builder.<KodiakEntity>of((type, world) -> new KodiakEntity(type, world, 1.0f, 6500, 10), MobCategory.CREATURE).sized(1.9f, 1.9f).build("kodiak"));
     public static final DeferredHolder<EntityType<?>, EntityType<TigerEntity>> TIGER = ENTITY_TYPES.register("tiger", () -> EntityType.Builder.<TigerEntity>of((type, world) -> new TigerEntity(type, world, 1.0f, 4000, 1), MobCategory.CREATURE).sized(1.3f, 1.4f).build("tiger"));
     public static final DeferredHolder<EntityType<?>, EntityType<CrocodileEntity>> CROCODILE = ENTITY_TYPES.register("crocodile", () -> EntityType.Builder.<CrocodileEntity>of((type, world) -> new CrocodileEntity(type, world, 1.0f, 5000, 2), MobCategory.CREATURE).sized(1.9f, 1.1f).build("crocodile"));
+    public static final DeferredHolder<EntityType<?>, EntityType<OrcaEntity>> ORCA = ENTITY_TYPES.register("orca", () -> EntityType.Builder.<OrcaEntity>of((type, world) -> new OrcaEntity(type, world, 1.0f, 7500, 2), MobCategory.CREATURE).sized(2.2f, 2.0f).build("orca"));
 
-
+    public static final DeferredHolder<EntityType<?>, EntityType<CrocodileTailPart>> CROCODILE_TAIL_PART =
+            ENTITY_TYPES.register("crocodile_tail_part", () -> EntityType.Builder
+                    .<CrocodileTailPart>of(CrocodileTailPart::new, MobCategory.MISC)
+                    .noSave()
+                    .noSummon()
+                    .clientTrackingRange(10)
+                    .sized(0.7f, 0.55f)
+                    .build("crocodile_tail_part"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<SeaBugEntity>> SEABUG = ENTITY_TYPES.register("seabug", () -> EntityType.Builder.<SeaBugEntity>of((type, world) -> new SeaBugEntity(type, world, 1.1f, 0, 0), MobCategory.WATER_CREATURE).sized(2.0f, 2.1f).build("SeaBug"));
 
@@ -42,6 +50,7 @@ public class OWEntityRegistry {
 
 
     public static final DeferredHolder<EntityType<?>, EntityType<AdventurerManuscript>> ADVENTURER_MANUSCRIPT = ENTITY_TYPES.register("adventurer_manuscript", () -> EntityType.Builder.<AdventurerManuscript>of(AdventurerManuscript::new, MobCategory.MISC).sized(0.5f, 0.5f).build("adventurer_manuscript"));
+
 
 
 

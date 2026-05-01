@@ -12,7 +12,8 @@
     "PlayerAttackMixin",
     "PlayerModelRotationMixin",
     "SubmarineArmMixin",
-    "SubmarineMixin"
+    "SubmarineMixin",
+    "CameraMixin"
   ],
   "mixins": [
   ]

@@ -27,6 +27,7 @@ public class ModEventBusEvents {
     @SubscribeEvent
     public static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(OWEntityRegistry.CROCODILE.get(), CrocodileEntity.createAttributes().build());
+        event.put(OWEntityRegistry.ORCA.get(), OrcaEntity.createAttributes().build());
         event.put(OWEntityRegistry.KODIAK.get(), KodiakEntity.createAttributes().build());
         event.put(OWEntityRegistry.TIGER.get(), TigerEntity.createAttributes().build());
         event.put(OWEntityRegistry.SEABUG.get(), SeaBugEntity.createAttributes().build());
