@@ -21,7 +21,7 @@ import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.client.animation.CrocodileAnimations;
 
 public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel<T> {
-    public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "crocodile_default"), "main");
+	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "crocodile_default"), "main");
 
 	private float prevLimbSwing = 0f;
 
@@ -45,7 +45,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 	private final ModelPart right_leg;
 	private final ModelPart right_arm;
 
-    public CrocodileModel(ModelPart root) {
+	public CrocodileModel(ModelPart root) {
 		this.ALL2 = root.getChild("ALL2");
 		this.ALL = this.ALL2.getChild("ALL");
 		this.body = this.ALL.getChild("body");
@@ -63,9 +63,9 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		this.left_leg = this.ALL.getChild("left_leg");
 		this.right_leg = this.ALL.getChild("right_leg");
 		this.right_arm = this.ALL.getChild("right_arm");
-    }
+	}
 
-    public static LayerDefinition createBodyLayer() {
+	public static LayerDefinition createBodyLayer() {
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
@@ -141,11 +141,11 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 				.texOffs(86, 23).mirror().addBox(-2.5F, -2.0F, -3.0F, 5.0F, 7.0F, 6.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-9.8383F, 4.5453F, -7.0F));
 
 		return LayerDefinition.create(meshdefinition, 256, 256);
-    }
+	}
 
-    @Override
-    public void setupAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        this.root().getAllParts().forEach(ModelPart::resetPose);
+	@Override
+	public void setupAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+		this.root().getAllParts().forEach(ModelPart::resetPose);
 
 		if (Math.abs(externalRiderPitch) > 0.01f) {
 			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
@@ -154,15 +154,15 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		spawnFootstepParticles(crocodile, limbSwing);
 
 		if (crocodile.isBaby()) {
-            float maturationPercent = (float) crocodile.getMaturationPercentage() / 100f;
-            float headScale = 1.5f - (1.6f - 1.0f) * maturationPercent;
+			float maturationPercent = (float) crocodile.getMaturationPercentage() / 100f;
+			float headScale = 1.5f - (1.6f - 1.0f) * maturationPercent;
 
-            this.head.xScale *= headScale;
-            this.head.yScale *= headScale;
-            this.head.zScale *= headScale;
-        }
+			this.head.xScale *= headScale;
+			this.head.yScale *= headScale;
+			this.head.zScale *= headScale;
+		}
 
-        this.applyHeadRotation(netHeadYaw, headPitch);
+		this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (crocodile.isMouthSlamming()) {
 			this.animate(crocodile.mouthSlamAnimState, CrocodileAnimations.MOUTH_SLAM_HIT, ageInTicks, 1.0f);
@@ -301,7 +301,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 				crocodile.setBodyXRot(0);
 			}
 		}*/
-    }
+	}
 
 	private void handleChargingMouth(CrocodileEntity crocodile, float ageInTicks) {
 		if (crocodile.isChargingMouth()) {
@@ -406,18 +406,18 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		crocodile.bodyAnimX = xSum - 0.0617f; // ALL2.x(0.9) + ALL.x(0) + body.x(-0.8383)
 	}
 
-    private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
-        pNetHeadYaw = Mth.clamp(pNetHeadYaw, -30.0F, 30.0F);
-        pHeadPitch = Mth.clamp(pHeadPitch, -30.0F, 30.0F);
+	private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
+		pNetHeadYaw = Mth.clamp(pNetHeadYaw, -30.0F, 30.0F);
+		pHeadPitch = Mth.clamp(pHeadPitch, -30.0F, 30.0F);
 
-        this.head.yRot = pNetHeadYaw * ((float)Math.PI / 180F);
-        this.head.xRot = pHeadPitch * ((float)Math.PI / 180F);
-    }
+		this.head.yRot = pNetHeadYaw * ((float)Math.PI / 180F);
+		this.head.xRot = pHeadPitch * ((float)Math.PI / 180F);
+	}
 
-    @Override
-    public ModelPart root() {
-        return this.ALL2;
-    }
+	@Override
+	public ModelPart root() {
+		return this.ALL2;
+	}
 
 	/**
 	 * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.

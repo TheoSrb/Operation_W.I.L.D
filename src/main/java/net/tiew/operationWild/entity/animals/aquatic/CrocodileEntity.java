@@ -524,7 +524,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             Vec3 currentPos = this.position();
             boolean isMovingHorizontally = lastPitchCheckPos != null
                     && (Math.pow(currentPos.x - lastPitchCheckPos.x, 2)
-                        + Math.pow(currentPos.z - lastPitchCheckPos.z, 2)) > 1e-6;
+                    + Math.pow(currentPos.z - lastPitchCheckPos.z, 2)) > 1e-6;
             lastPitchCheckPos = currentPos;
 
             if (this.isTame() && this.isVehicle() && !this.isSitting() && !this.isBaby() && this.isInWater()) {

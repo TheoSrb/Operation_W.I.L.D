@@ -215,7 +215,7 @@ public class OperationWild {
     }
 
     public static int getMaxPageForEntityInManuscript(EntityType<? extends OWEntity> entityType) {
-       if (entityType == OWEntityRegistry.KODIAK.get()) {
+        if (entityType == OWEntityRegistry.KODIAK.get()) {
             return 4;
         } else if (entityType == OWEntityRegistry.CROCODILE.get()) {
             return 4;
