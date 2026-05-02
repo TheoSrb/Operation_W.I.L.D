@@ -1088,8 +1088,8 @@ public class ClientEvents {
                 event.setRoll((float) (event.getRoll() + (crocodile.getBodyZRot() / 4) * intensity));
                 event.setPitch((float) (event.getPitch() + (crocodile.getBodyXRot() / 4) * intensity));
             } else if (rootVehicle instanceof OrcaEntity orca) {
-                event.setRoll((float) (event.getRoll() + (orca.getBodyZRot() / 4) * intensity));
-                event.setPitch((float) (event.getPitch() + (orca.getBodyXRot() / 4) * intensity));
+                event.setRoll((float) (event.getRoll() + (orca.getBodyZRot() / 6) * intensity));
+                event.setPitch((float) (event.getPitch() + (orca.getBodyXRot() / 6) * intensity));
             }
         }
     }

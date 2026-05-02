@@ -289,7 +289,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.registerBehaviorGoals(this);
 
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
-        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * 30f, 15, 3));
+        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * (this instanceof OWWaterEntity ? 5 : 20), 15, 3));
         this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25));
         this.goalSelector.addGoal(6, new OWLookAtPlayerGoal(this, Player.class, 6.0F));
 

@@ -30,9 +30,6 @@ public class OWFollowOwnerGoal extends Goal {
         this.startDistance = distanceMin;
         this.stopDistance = distanceMax;
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-        if (!(entity.getNavigation() instanceof GroundPathNavigation) && !(entity.getNavigation() instanceof FlyingPathNavigation) && !(entity.getNavigation() instanceof AquaticPathNavigator)) {
-            throw new IllegalArgumentException("Unsupported mob type for FollowOwnerGoal");
-        }
     }
 
     public boolean canUse() {

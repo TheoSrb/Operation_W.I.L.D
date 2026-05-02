@@ -65,22 +65,22 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 7.0F, 0.0F));
+		PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 7.0F, -2.0F));
 
 		PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
-		PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-12.0F, -14.0F, -19.0F, 24.0F, 30.0F, 38.0F, new CubeDeformation(0.0F))
-				.texOffs(237, 0).addBox(-12.0F, -14.0F, -19.0F, 24.0F, 30.0F, 38.0F, new CubeDeformation(0.5F))
-				.texOffs(161, 38).addBox(-11.0F, -16.0F, 5.0F, 10.0F, 2.0F, 12.0F, new CubeDeformation(0.0F))
-				.texOffs(178, 79).addBox(-11.0F, -28.0F, 17.0F, 10.0F, 14.0F, 2.0F, new CubeDeformation(0.0F))
-				.texOffs(178, 79).mirror().addBox(1.0F, -28.0F, 17.0F, 10.0F, 14.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false)
-				.texOffs(148, 79).mirror().addBox(-6.0F, -28.0F, -8.0F, 12.0F, 14.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false)
-				.texOffs(161, 38).mirror().addBox(1.0F, -16.0F, 5.0F, 10.0F, 2.0F, 12.0F, new CubeDeformation(0.0F)).mirror(false)
-				.texOffs(154, 21).addBox(-6.0F, -16.0F, -19.0F, 12.0F, 2.0F, 11.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+		PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-12.0F, -14.0F, -7.0F, 24.0F, 30.0F, 38.0F, new CubeDeformation(0.0F))
+				.texOffs(237, 0).addBox(-12.0F, -14.0F, -7.0F, 24.0F, 30.0F, 38.0F, new CubeDeformation(0.5F))
+				.texOffs(161, 38).addBox(-11.0F, -16.0F, 17.0F, 10.0F, 2.0F, 12.0F, new CubeDeformation(0.0F))
+				.texOffs(178, 79).addBox(-11.0F, -28.0F, 29.0F, 10.0F, 14.0F, 2.0F, new CubeDeformation(0.0F))
+				.texOffs(178, 79).mirror().addBox(1.0F, -28.0F, 29.0F, 10.0F, 14.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false)
+				.texOffs(148, 79).mirror().addBox(-6.0F, -28.0F, 4.0F, 12.0F, 14.0F, 2.0F, new CubeDeformation(0.0F)).mirror(false)
+				.texOffs(161, 38).mirror().addBox(1.0F, -16.0F, 17.0F, 10.0F, 2.0F, 12.0F, new CubeDeformation(0.0F)).mirror(false)
+				.texOffs(154, 21).addBox(-6.0F, -16.0F, -7.0F, 12.0F, 2.0F, 11.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
-		PartDefinition cube_r1 = body.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(124, 28).addBox(-1.0F, -44.0F, 20.0F, 3.0F, 17.0F, 12.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.5F, 6.0F, -35.6F, -0.3054F, 0.0F, 0.0F));
+		PartDefinition cube_r1 = body.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(124, 28).addBox(-1.0F, -44.0F, 20.0F, 3.0F, 17.0F, 12.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(-0.5F, 6.0F, -23.6F, -0.3054F, 0.0F, 0.0F));
 
-		PartDefinition head = body.addOrReplaceChild("head", CubeListBuilder.create().texOffs(252, 136).addBox(-15.0F, -2.4F, -9.0F, 30.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 5.0F, -19.0F));
+		PartDefinition head = body.addOrReplaceChild("head", CubeListBuilder.create().texOffs(252, 136).addBox(-15.0F, -2.4F, -9.0F, 30.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 5.0F, -7.0F));
 
 		PartDefinition cube_r2 = head.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(228, 92).mirror().addBox(0.0F, -28.0F, -1.0F, 0.0F, 29.0F, 12.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offsetAndRotation(15.0F, -2.0F, -7.0F, -0.2712F, -0.0482F, -0.1276F));
 
@@ -98,15 +98,15 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 				.texOffs(60, 120).mirror().addBox(8.0F, 4.0F, -20.9F, 0.0F, 3.0F, 23.0F, new CubeDeformation(0.025F)).mirror(false)
 				.texOffs(60, 135).addBox(-8.0F, 4.0F, -20.5F, 16.0F, 3.0F, 0.0F, new CubeDeformation(0.025F)), PartPose.offset(0.0F, -4.0F, -3.0F));
 
-		PartDefinition tail = body.addOrReplaceChild("tail", CubeListBuilder.create(), PartPose.offset(0.0F, 1.0F, 19.0F));
+		PartDefinition tail = body.addOrReplaceChild("tail", CubeListBuilder.create(), PartPose.offset(0.0F, 1.0F, 31.0F));
 
 		PartDefinition front_tail = tail.addOrReplaceChild("front_tail", CubeListBuilder.create().texOffs(0, 68).addBox(-8.0F, -11.0F, 0.0F, 16.0F, 23.0F, 35.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
 		PartDefinition back_tail = tail.addOrReplaceChild("back_tail", CubeListBuilder.create().texOffs(102, 113).addBox(-15.0F, -1.0F, -3.0F, 30.0F, 2.0F, 21.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 5.0F, 34.0F));
 
-		PartDefinition left_fan = body.addOrReplaceChild("left_fan", CubeListBuilder.create().texOffs(124, 0).addBox(0.0F, -1.0F, -6.0F, 21.0F, 2.0F, 12.0F, new CubeDeformation(0.0F)), PartPose.offset(12.0F, 10.0F, -10.0F));
+		PartDefinition left_fan = body.addOrReplaceChild("left_fan", CubeListBuilder.create().texOffs(124, 0).addBox(0.0F, -1.0F, -6.0F, 21.0F, 2.0F, 12.0F, new CubeDeformation(0.0F)), PartPose.offset(12.0F, 10.0F, 2.0F));
 
-		PartDefinition right_fan = body.addOrReplaceChild("right_fan", CubeListBuilder.create().texOffs(124, 0).mirror().addBox(-21.0F, -1.0F, -6.0F, 21.0F, 2.0F, 12.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-12.0F, 10.0F, -10.0F));
+		PartDefinition right_fan = body.addOrReplaceChild("right_fan", CubeListBuilder.create().texOffs(124, 0).mirror().addBox(-21.0F, -1.0F, -6.0F, 21.0F, 2.0F, 12.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-12.0F, 10.0F, 2.0F));
 
 		return LayerDefinition.create(meshdefinition, 512, 512);
 	}
@@ -184,34 +184,26 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 			return;
 		}*/
 
-		LivingEntity rider = orca.getControllingPassenger();
+		if ((orca.isRunning() || orca.getState() == 2)) {
+			float speed = orca.getControllingPassenger() != null ? 1.2f : 1.0f;
+			this.animateWalk(OrcaAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, speed, speed);
 
-		if (rider instanceof Player player && player.zza != 0) {
-			if ((orca.isRunning() || orca.getState() == 2)) {
-				float speed = orca.getControllingPassenger() != null ? 1.2f : 1.5f;
-
-				this.animateWalk(OrcaAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, speed, 1.0f);
-
-				if (walkAnimCrossed(OrcaAnimations.MOVE_SWIM, limbSwing, speed, 300L)) orca.onRightFootDown();
-				if (walkAnimCrossed(OrcaAnimations.MOVE_SWIM, limbSwing, speed, 300L)) orca.onLeftFootDown();
-
-			} else {
-				float speed = orca.getControllingPassenger() != null ? 1.5f : 1f;
-				this.animateWalk(OrcaAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, speed, speed);
-
-				if (walkAnimCrossed(OrcaAnimations.MOVE_SWIM, limbSwing, speed, 300L)) orca.onRightFootDown();
-				if (walkAnimCrossed(OrcaAnimations.MOVE_SWIM, limbSwing, speed, 300L)) orca.onLeftFootDown();
-			}
-
+			if (walkAnimCrossed(OrcaAnimations.MOVE_SWIM, limbSwing, speed, 300L)) orca.onRightFootDown();
+			if (walkAnimCrossed(OrcaAnimations.MOVE_SWIM, limbSwing, speed, 300L)) orca.onLeftFootDown();
 
 		} else {
-			this.animate(orca.idleAnimationState, OrcaAnimations.MISC_IDLE, ageInTicks, 1.0f);
+			float speed = orca.getControllingPassenger() != null ? 1.5f : 0.85f;
+			this.animateWalk(OrcaAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, speed, speed);
+
+			if (walkAnimCrossed(OrcaAnimations.MOVE_SWIM, limbSwing, speed, 300L)) orca.onRightFootDown();
+			if (walkAnimCrossed(OrcaAnimations.MOVE_SWIM, limbSwing, speed, 300L)) orca.onLeftFootDown();
 		}
 
+		this.animate(orca.idleAnimationState, OrcaAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
 		this.prevLimbSwing = limbSwing;
 
-		captureBodyState(orca, 7f, 2.0f, this.ALL2, this.ALL, this.body);
+		captureBodyState(orca, 7f, orca.isCombo() ? 1.0f : 1.0f, this.ALL2, this.ALL, this.body);
 
 
 		/*if (orca.level().isClientSide() && orca.isGrabbing()) {

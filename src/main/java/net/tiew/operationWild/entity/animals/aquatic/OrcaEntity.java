@@ -13,7 +13,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.entity.ai.control.SmoothSwimmingLookControl;
 import net.minecraft.world.entity.ai.goal.FollowBoatGoal;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.RandomSwimmingGoal;
+import net.minecraft.world.entity.ai.goal.TryFindWaterGoal;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.vehicle.Boat;
@@ -41,6 +46,7 @@ import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.config.*;
 import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
+import net.tiew.operationWild.entity.navigation.SwimmerJumpPathNavigator;
 import net.tiew.operationWild.entity.variants.OrcaVariant;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.core.OWTags;
@@ -70,16 +76,16 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimX = 0f;
 
-    // ── TAIL_SLAM ───────────────────────────────────────────────────────────────
     public boolean isTailSlamCharging = false;
 
-    // ── ORCA_CALL (ultimate) ────────────────────────────────────────────────────
     private int orcaUltimateKillCount = 0;
 
     private Vec3 lastPitchCheckPos = null;
 
     public OrcaEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+        this.moveControl = new OWSwimMoveControl(this);
+        this.lookControl = new SmoothSwimmingLookControl(this, 10);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -95,14 +101,20 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     protected void registerGoals() {
         super.registerGoals();
 
-        this.goalSelector.addGoal(0, new FollowBoatGoal(this));
-        this.goalSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 20f, 28, 4, false));
+        this.goalSelector.addGoal(0, new TryFindWaterGoal(this));
+        this.goalSelector.addGoal(1, new FollowBoatGoal(this));
+        this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 20f, 28, 4, false));
+        this.goalSelector.addGoal(4, new OrcaWanderGoal(this));
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(RIDER_CONTROL_PITCH, 0.0f);
+    }
+
+    protected PathNavigation createNavigation(Level worldIn) {
+        return new SwimmerJumpPathNavigator(this, worldIn);
     }
 
     // Entity Methods
@@ -459,7 +471,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.AMBIENT, 2.0f, 0.8f);
     }
 
-    // ── ORCA_CALL (ultimate) ────────────────────────────────────────────────────
 
     public void activateOrcaCall() {
         float damage = 15f + 10f * (this.getLevel() / 50f);
@@ -509,16 +520,13 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
-        double seatX = bodyAnimX / 16.0f * this.getScale();
-        double seatY = getBaseRiderYOffset() + getRiderAnimYOffset();
-        double seatZ = 0.65;
-
-        double yRad = Math.toRadians(-this.yBodyRot);
-        double worldX = seatX * Math.cos(yRad) + seatZ * Math.sin(yRad);
-        double worldZ = -seatX * Math.sin(yRad) + seatZ * Math.cos(yRad);
+        Vec3 seatOffset = new Vec3(0, 0, 0).yRot((float) Math.toRadians(-this.yBodyRot));
+        double baseY  = getBaseRiderYOffset();
+        float  animY  = getRiderAnimYOffset();
+        double riderY = this.getY() + baseY + animY;
 
         passenger.fallDistance = 0f;
-        function.accept(passenger, this.getX() + worldX, this.getY() + seatY, this.getZ() + worldZ);
+        function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);
     }
 
     @Override
@@ -656,5 +664,108 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         this.orcaUltimateKillCount = tag.getInt("orcaUltimateKillCount");
 
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
+    }
+
+    static class OrcaWanderGoal extends Goal {
+
+        private final OrcaEntity orca;
+        private double targetX, targetY, targetZ;
+
+        private boolean isVerticalPhase = false;
+        private int verticalTimer = 0;
+        private boolean goingUp = false;
+
+        OrcaWanderGoal(OrcaEntity orca) {
+            this.orca = orca;
+            this.setFlags(EnumSet.of(Flag.MOVE));
+        }
+
+        @Override
+        public boolean canUse() {
+            if (!orca.isInWater()) return false;
+            if (orca.getTarget() != null) return false;
+            if (orca.isVehicle()) return false;
+            if (orca.isSitting()) return false;
+            if (orca.isNapping()) return false;
+            pickHorizontalTarget();
+            return true;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            if (!orca.isInWater()) return false;
+            if (orca.getTarget() != null) return false;
+            if (orca.isVehicle()) return false;
+            if (orca.isSitting()) return false;
+            double dx = orca.getX() - targetX;
+            double dz = orca.getZ() - targetZ;
+            if (dx * dx + dz * dz <= 6.25) pickHorizontalTarget();
+            return true;
+        }
+
+        @Override
+        public void tick() {
+            if (isVerticalPhase) {
+                verticalTimer--;
+
+                double seaLevel = orca.level().getSeaLevel();
+                double currentY = orca.getY();
+                double minY = seaLevel - orca.getMaxDepth() + 5;
+                double maxY = seaLevel - 2;
+
+                boolean hitCeiling = goingUp  && currentY >= maxY;
+                boolean hitFloor   = !goingUp && currentY <= minY;
+
+                if (verticalTimer <= 0 || hitCeiling || hitFloor) {
+                    isVerticalPhase = false;
+                    orca.setTargetPitch(0f);
+                    pickHorizontalTarget();
+                } else {
+                    double force = goingUp ? 0.025 : -0.025;
+                    orca.setDeltaMovement(orca.getDeltaMovement().add(0, force, 0));
+
+                    float pitchTarget = goingUp ? -25f : 25f;
+                    float smooth = orca.getTargetPitch() + (pitchTarget - orca.getTargetPitch()) * 0.1f;
+                    orca.setTargetPitch(smooth);
+                }
+
+            } else {
+                if (orca.getRandom().nextInt(100) == 0) {
+                    startVerticalPhase();
+                    return;
+                }
+                float p = orca.getTargetPitch();
+                if (Math.abs(p) > 0.1f) orca.setTargetPitch(p * 0.9f);
+                else orca.setTargetPitch(0f);
+            }
+
+            orca.getMoveControl().setWantedPosition(targetX, targetY, targetZ, 1.0);
+        }
+
+        private void startVerticalPhase() {
+            isVerticalPhase = true;
+            verticalTimer = 60 + orca.getRandom().nextInt(100);
+            goingUp = orca.getRandom().nextBoolean();
+
+            double angle = orca.getRandom().nextDouble() * Math.PI * 2;
+            double dist  = 4 + orca.getRandom().nextDouble() * 6;
+            targetX = orca.getX() + Math.sin(angle) * dist;
+            targetZ = orca.getZ() + Math.cos(angle) * dist;
+            targetY = orca.getY();
+        }
+
+        private void pickHorizontalTarget() {
+            isVerticalPhase = false;
+
+            double angle = orca.getRandom().nextDouble() * Math.PI * 2;
+            double dist  = 8 + orca.getRandom().nextDouble() * 12;
+            targetX = orca.getX() + Math.sin(angle) * dist;
+            targetZ = orca.getZ() + Math.cos(angle) * dist;
+
+            double seaLevel = orca.level().getSeaLevel();
+            double minY = seaLevel - orca.getMaxDepth() + 5;
+            double maxY = seaLevel - 2;
+            targetY = Mth.clamp(orca.getY() + (orca.getRandom().nextDouble() - 0.5) * 4, minY, maxY);
+        }
     }
 }
