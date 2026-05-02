@@ -74,6 +74,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public int attack3ComboTimer = 0;
 
     public volatile float bodyAnimY = 0f;
+    public volatile float bodyAnimXRot = 0f;
     public volatile float bodyAnimX = 0f;
 
     public boolean isTailSlamCharging = false;
@@ -520,10 +521,17 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
-        Vec3 seatOffset = new Vec3(0, 0, 0.65).yRot((float) Math.toRadians(-this.yBodyRot));
-        double baseY  = getBaseRiderYOffset();
-        float  animY  = getRiderAnimYOffset();
-        double riderY = this.getY() + baseY + animY;
+        float seatZ = 0.65f;
+
+        float pitch = this.bodyAnimXRot;
+        float rotatedY = -seatZ * Mth.sin(pitch);
+        float rotatedZ = seatZ * Mth.cos(pitch);
+
+        Vec3 seatOffset = new Vec3(0, rotatedY, rotatedZ).yRot((float) Math.toRadians(-this.yBodyRot));
+
+        double baseY = getBaseRiderYOffset();
+        float animY = getRiderAnimYOffset();
+        double riderY = this.getY() + baseY + animY + seatOffset.y;
 
         passenger.fallDistance = 0f;
         function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);

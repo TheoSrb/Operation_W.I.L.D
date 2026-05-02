@@ -228,9 +228,17 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 		if (!orca.level().isClientSide()) return;
 		orca.setBodyZRot((float) Math.toDegrees((this.ALL2.zRot + this.ALL.zRot + this.body.zRot) * riderRotIntensity));
 		orca.setBodyXRot((float) -Math.toDegrees((this.ALL2.xRot + this.ALL.xRot + this.body.xRot) * riderRotIntensity));
+
+		orca.bodyAnimXRot = this.ALL2.xRot + this.ALL.xRot + this.body.xRot;
+
 		float ySum = 0f;
 		float xSum = 0f;
-		for (ModelPart bone : boneChain) { ySum += bone.y; xSum += bone.x; }
+
+		for (ModelPart bone : boneChain) {
+			ySum += bone.y;
+			xSum += bone.x;
+		}
+
 		orca.bodyAnimY = ySum - restPoseYSum;
 		orca.bodyAnimX = xSum - 0;
 	}
