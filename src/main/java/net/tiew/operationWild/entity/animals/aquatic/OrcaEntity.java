@@ -520,7 +520,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
-        Vec3 seatOffset = new Vec3(0, 0, 0).yRot((float) Math.toRadians(-this.yBodyRot));
+        Vec3 seatOffset = new Vec3(0, 0, 0.65).yRot((float) Math.toRadians(-this.yBodyRot));
         double baseY  = getBaseRiderYOffset();
         float  animY  = getRiderAnimYOffset();
         double riderY = this.getY() + baseY + animY;
