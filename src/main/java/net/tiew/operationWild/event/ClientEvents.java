@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.AABB;
 import net.tiew.operationWild.ClientConfig;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import org.joml.Matrix4f;
@@ -1194,8 +1195,8 @@ public class ClientEvents {
             if (mcT.player == null || mcT.level == null
                     || !(mcT.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity crocT)
                     || System.currentTimeMillis() - OWAttackLogic.crocTargetingStartMs
-                       >= OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_TARGETING_MS) {
-                OWAttackLogic.cancelCrocTargeting(OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID);
+                       >= OWAttacksConstants.Crocodile.PRIMAL_DIVE_TARGETING_MS) {
+                OWAttackLogic.cancelCrocTargeting(OWAttacksHandler.PRIMAL_DIVE_ID);
             } else {
                 updateCrocTargeting(crocT, mcT.player, mcT.level);
             }

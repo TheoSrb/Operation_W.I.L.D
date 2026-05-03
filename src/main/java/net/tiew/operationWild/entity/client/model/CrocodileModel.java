@@ -288,7 +288,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			Minecraft mc = Minecraft.getInstance();
 			if (mc.player != null && mc.player.getVehicle() == crocodile
 					&& OWAttackLogic.isCharging
-					&& OWAttackLogic.getCurrentAttackId() == OWAttacksHandler.CrocodileAttacks.MOUTH_SLAM_ID) {
+					&& OWAttackLogic.getCurrentAttackId() == OWAttacksHandler.MOUTH_SLAM_ID) {
 				applyMouthSlamAnimation(OWAttackLogic.getChargeProgress(), ageInTicks);
 			}
 

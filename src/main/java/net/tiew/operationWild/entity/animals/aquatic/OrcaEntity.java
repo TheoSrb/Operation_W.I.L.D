@@ -40,6 +40,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.entity.OWWaterEntity;
@@ -497,7 +498,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     // ── TIDAL RUSH ─────────────────────────────────────────────────────────────
 
     public void performOrcaDash() {
-        float cost = OWAttacksHandler.OrcaAttacks.TIDAL_RUSH.getEnergyRequired();
+        float cost = OWAttacksConstants.Orca.TIDAL_RUSH_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
             canShowVitalEnergyLack = true;
             return;

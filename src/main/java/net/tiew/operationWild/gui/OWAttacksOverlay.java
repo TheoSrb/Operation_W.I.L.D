@@ -113,12 +113,12 @@ public class OWAttacksOverlay {
             int texX  = (i + 1) * CARD_SIZE;
 
             // ── Primal Dive special states ────────────────────────────────────
-            boolean isPrimalDive = attack.getId() == OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID;
+            boolean isPrimalDive = attack.getId() == OWAttacksHandler.PRIMAL_DIVE_ID;
             boolean isTargeting  = isPrimalDive && OWAttackLogic.isCrocTargeting;
             float   grabProgress = isPrimalDive ? OWAttackLogic.getCrocGrabActiveProgress() : 0f;
 
             // ── Bear Nap special state ────────────────────────────────────────
-            boolean isNapUltimate    = attack.getId() == OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_ID;
+            boolean isNapUltimate    = attack.getId() == OWAttacksHandler.NAP_ULTIMATE_ID;
             boolean isNapDrainActive = false;
 
             boolean isCharging = attack instanceof OWChargedAttack

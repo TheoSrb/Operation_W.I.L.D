@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.particle.OWParticles;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -750,12 +751,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     protected double getBaseRiderYOffset() {
-        return this.getBbHeight() * 0.6;
+        return this.getBbHeight() * 0.55 * this.getScale();
     }
 
     @Override
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
+
+        int idx = this.getPassengers().indexOf(passenger);
 
         if (isUltimateNapping()) {
             float scale = Math.max(this.getScale(), 1f);
@@ -772,14 +775,34 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
             return;
         }
+        float seatZ, seatX;
+        switch (idx) {
+            case 1  -> { seatZ = -0.65f; seatX = 0f; }
+            default -> { seatZ =  0.35f; seatX = 0f; }
+        }
 
-        Vec3 seatOffset = new Vec3(0, 0, pawSlamRiderZExtra).yRot((float) Math.toRadians(-this.yBodyRot));
-        double baseY  = getBaseRiderYOffset();
-        float  animY  = getRiderAnimYOffset();
+        float pawZ = (idx == 0) ? pawSlamRiderZExtra : 0f;
+        seatZ += pawZ;
+
+        Vec3 seatOffset = new Vec3(seatX, 0, seatZ)
+                .yRot((float) Math.toRadians(-this.yBodyRot));
+
+        double baseY = getBaseRiderYOffset();
+        float animY = (idx == 0) ? getRiderAnimYOffset() : 0f;
         double riderY = this.getY() + baseY + animY;
 
         passenger.fallDistance = 0f;
         function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);
+    }
+
+    @Override
+    protected boolean canAddPassenger(Entity passenger) {
+        return this.getPassengers().size() < 2;
+    }
+
+    @Override
+    public boolean isControlledByLocalInstance() {
+        return this.getPassengers().indexOf(this.getControllingPassenger()) == 0;
     }
 
     protected void handleFoodBarSystem() {
@@ -899,7 +922,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {
         int kills = getNapKillCount();
-        if (kills < OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_KILLS_REQUIRED) {
+        if (kills < OWAttacksConstants.Kodiak.NAP_KILLS_REQUIRED) {
             setNapKillCount(kills + 1);
         }
         return super.killedEntity(serverLevel, entity);
@@ -918,11 +941,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
         return super.isAlliedTo(entity);
-    }
-
-    @Override
-    protected boolean canAddPassenger(Entity passenger) {
-        return this.getPassengers().size() < 2;
     }
 
     @Override
@@ -1307,26 +1325,24 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     // ── Bear Nap (ultime) ─────────────────────────────────────────────────────
 
-    /**
-     * Appelé côté serveur via OWAttackPacket(ACTION_EXECUTE).
-     * Premier appel → déclenche la sieste ; second appel (si déjà en sieste) → annule.
-     */
     public void activateUltimateNap() {
         if (isUltimateNapping()) {
             cancelUltimateNap();
             return;
         }
-        if (getNapKillCount() < OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_KILLS_REQUIRED) return;
-        float cost = OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE.getEnergyRequired();
+        if (getNapKillCount() < OWAttacksConstants.Kodiak.NAP_KILLS_REQUIRED) return;
+        float cost = OWAttacksConstants.Kodiak.NAP_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
             canShowVitalEnergyLack = true;
+            setUltimateNapping(false);
+            setNap(false);
             return;
         }
         setVitalEnergy(0);
         setNapKillCount(0);
         setUltimateNapping(true);
         setNap(true);
-        ultimateNapDurationTimer = OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_DURATION_TICKS;
+        ultimateNapDurationTimer = OWAttacksConstants.Kodiak.NAP_DURATION_TICKS;
         this.playSound(OWSounds.KODIAK_HURT.get(), 1.0f, (float) OWUtils.generateRandomInterval(0.9f, 1.1f));
     }
 
@@ -1346,6 +1362,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     // ── Paw Slam ──────────────────────────────────────────────────────────────
 
     public void startPawSlamCharge() {
+        if (getVitalEnergy() > getMaxVitalEnergy() - OWAttacksConstants.Kodiak.PAW_SLAM_ENERGY) {
+            canShowVitalEnergyLack = true;
+            return;
+        }
         setPawSlamCharging(true);
     }
 
@@ -1355,11 +1375,19 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public void performPawSlam(float factor) {
         if (this.level().isClientSide()) return;
+
+        float energyRequired = OWAttacksConstants.Kodiak.PAW_SLAM_ENERGY;
+        if (getVitalEnergy() > getMaxVitalEnergy() - energyRequired) {
+            canShowVitalEnergyLack = true;
+            return;
+        }
+
+        setVitalEnergy(getVitalEnergy() + energyRequired);
+
         setPawSlamCharging(false);
         setPawSlamStriking(true);
         pawSlamStrikeServerTimer = 0;
         this.playSound(OWSounds.KODIAK_HURT.get(), 1.5f, (float) OWUtils.generateRandomInterval(0.9f, 1.1f));
-        // Différer les dégâts à 7 ticks (≈ 0.35s = pic d'impact dans l'animation)
         pawSlamPendingFactor = factor;
         pawSlamHitTimer = 7;
     }

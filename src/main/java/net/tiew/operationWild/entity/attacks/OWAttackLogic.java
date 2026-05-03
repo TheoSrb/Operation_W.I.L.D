@@ -364,11 +364,11 @@ public class OWAttackLogic {
     public static float getCrocGrabActiveProgress() {
         if (crocGrabActiveStartMs < 0) return 0f;
         long elapsed = System.currentTimeMillis() - crocGrabActiveStartMs;
-        if (elapsed >= OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_TARGETING_MS) {
+        if (elapsed >= OWAttacksConstants.Crocodile.PRIMAL_DIVE_TARGETING_MS) {
             crocGrabActiveStartMs = -1L;
             return 0f;
         }
-        return 1f - (float) elapsed / OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_TARGETING_MS;
+        return 1f - (float) elapsed / OWAttacksConstants.Crocodile.PRIMAL_DIVE_TARGETING_MS;
     }
 
     public static void cancelCrocTargeting(int attackId) {
@@ -479,7 +479,7 @@ public class OWAttackLogic {
         } else {
             long elapsed = System.currentTimeMillis() - crocTargetingStartMs;
 
-            if (elapsed >= OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_TARGETING_MS) {
+            if (elapsed >= OWAttacksConstants.Crocodile.PRIMAL_DIVE_TARGETING_MS) {
                 cancelCrocTargeting(attack.getId());
                 recordAttackClick(attack.getId(), true);
                 return;
@@ -525,7 +525,7 @@ public class OWAttackLogic {
         if (attack == null) return;
 
         // Kodiak NAP : traité en priorité (peut annuler même si d'autres blocages sont actifs)
-        if (attack.getId() == OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_ID) {
+        if (attack.getId() == OWAttacksHandler.NAP_ULTIMATE_ID) {
             handleKodiakNapKey(attack, owEntity);
             return;
         }
@@ -537,7 +537,7 @@ public class OWAttackLogic {
             return;
         }
         if (isGrabBlocked
-                || (isCrocTargeting && attack.getId() != OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID)) {
+                || (isCrocTargeting && attack.getId() != OWAttacksHandler.PRIMAL_DIVE_ID)) {
             recordAttackClick(attack.getId(), true);
             return;
         }
@@ -547,7 +547,7 @@ public class OWAttackLogic {
             return;
         }
 
-        if (attack.getId() == OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_ID) {
+        if (attack.getId() == OWAttacksHandler.PRIMAL_DIVE_ID) {
             handleCrocPrimalDiveKey(attack, owEntity);
             return;
         }
@@ -699,7 +699,7 @@ public class OWAttackLogic {
                     attack.applyLocalEffect(entity, chargeFactor, chargeDirection);
 
                     // Orca Tidal Rush — déclenchement de l'effet caméra côté client
-                    if (attack.getId() == OWAttacksHandler.OrcaAttacks.TIDAL_RUSH_ID && hasEnergy) {
+                    if (attack.getId() == OWAttacksHandler.TIDAL_RUSH_ID && hasEnergy) {
                         orcaDashEffectStartMs = System.currentTimeMillis();
                     }
                 }

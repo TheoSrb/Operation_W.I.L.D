@@ -15,6 +15,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 
 import java.util.HashMap;
@@ -126,17 +127,17 @@ public class OWAttacksInformation {
             new AttackSlot(20, 0, "RMB",
                 title("ow.attacks.tiger.bond.title"),
                 e -> desc("ow.attacks.tiger.bond.desc",
-                    val(OWAttacksHandler.TigerAttacks.JUMP_ATTACK_COOLDOWN_TICKS / 20))
+                    val(OWAttacksConstants.Tiger.JUMP_ATTACK_COOLDOWN_TICKS / 20))
             ),
 
             new AttackSlot(40, 0, "X",
                 title("ow.attacks.tiger.shadow_strike.title"),
                 e -> desc("ow.attacks.tiger.shadow_strike.desc",
-                    val(OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_DURATION_TICKS / 20),
+                    val(OWAttacksConstants.Tiger.SHADOW_STRIKE_DURATION_TICKS / 20),
                     val("15"),
                     val("25"),
-                    val(String.valueOf(OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_KILLS_REQUIRED)),
-                    val(String.valueOf(OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_COOLDOWN_TICKS / 20)))
+                    val(String.valueOf(OWAttacksConstants.Tiger.SHADOW_STRIKE_KILLS_REQUIRED)),
+                    val(String.valueOf(OWAttacksConstants.Tiger.SHADOW_STRIKE_COOLDOWN_TICKS / 20)))
             ),
 
             new AttackSlot(-1, -1, "",
@@ -161,13 +162,13 @@ public class OWAttacksInformation {
                 new AttackSlot(20, 0, "RMB",
                         title("ow.attacks.crocodile.mouth.title"),
                         e -> desc("ow.attacks.crocodile.mouth.desc",
-                                val("3"), val(OWAttacksHandler.CrocodileAttacks.MOUTH_SLAM_COOLDOWN_TICKS / 20), val(e.getDamageToClient()))
+                                val("3"), val(OWAttacksConstants.Crocodile.MOUTH_SLAM_COOLDOWN_TICKS / 20), val(e.getDamageToClient()))
                 ),
 
                 new AttackSlot(40, 0, "X",
                         title("ow.attacks.crocodile.primal_dive.title"),
                         e -> desc("ow.attacks.crocodile.primal_dive.desc",
-                                val("5"), val("5"), val(OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_COOLDOWN_TICKS / 20))
+                                val("5"), val("5"), val(OWAttacksConstants.Crocodile.PRIMAL_DIVE_COOLDOWN_TICKS / 20))
                 ),
 
                 new AttackSlot(-1, -1, "",
@@ -190,16 +191,16 @@ public class OWAttacksInformation {
                 new AttackSlot(20, 0, "RMB",
                         title("ow.attacks.kodiak.paw_slam.title"),
                         e -> desc("ow.attacks.kodiak.paw_slam.desc",
-                                val("3"), val(OWAttacksHandler.KodiakAttacks.PAW_SLAM_COOLDOWN_TICKS / 20))
+                                val("3"), val(OWAttacksConstants.Kodiak.PAW_SLAM_COOLDOWN_TICKS / 20))
                 ),
 
                 new AttackSlot(40, 0, "X",
                         title("ow.attacks.kodiak.nap.title"),
                         e -> desc("ow.attacks.kodiak.nap.desc",
-                                val(OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_DURATION_TICKS / 20),
+                                val(OWAttacksConstants.Kodiak.NAP_DURATION_TICKS / 20),
                                 val("3"), val("80"),
-                                val(OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_KILLS_REQUIRED),
-                                val(OWAttacksHandler.KodiakAttacks.NAP_ULTIMATE_COOLDOWN_TICKS / 20))
+                                val(OWAttacksConstants.Kodiak.NAP_KILLS_REQUIRED),
+                                val(OWAttacksConstants.Kodiak.NAP_COOLDOWN_TICKS / 20))
                 ),
 
                 new AttackSlot(-1, -1, "",

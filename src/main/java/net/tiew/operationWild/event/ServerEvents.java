@@ -32,6 +32,7 @@ import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.goals.crocodile.MonstersAvoidCrocodileGoal;
 import net.tiew.operationWild.item.OWItems;
@@ -86,7 +87,7 @@ public class ServerEvents {
 
         if (kodiak == null) return;
 
-        float multiplier = OWAttacksHandler.KodiakPassives.BUTCHER_INSTINCT_MULTIPLIER;
+        float multiplier = OWAttacksConstants.Kodiak.BUTCHER_INSTINCT_MULTIPLIER;;
 
         for (ItemEntity itemEntity : event.getDrops()) {
             ItemStack stack = itemEntity.getItem();

@@ -59,6 +59,7 @@ import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.config.*;
 import net.tiew.operationWild.entity.goals.NapGoal;
@@ -280,14 +281,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public float vehicleRunSpeedMultiplier() {
         return isShadowStrikeActive()
-                ? 5f * OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_SPEED_FACTOR
+                ? 5f * OWAttacksConstants.Tiger.SHADOW_STRIKE_SPEED_FACTOR
                 : 5f;
     }
 
     @Override
     public float vehicleWalkSpeedMultiplier() {
         return isShadowStrikeActive()
-                ? 2f * OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_SPEED_FACTOR
+                ? 2f * OWAttacksConstants.Tiger.SHADOW_STRIKE_SPEED_FACTOR
                 : 2f;
     }
 
@@ -650,7 +651,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         if (isShadowStrikeActive() && !this.level().isClientSide() && !entity.isDeadOrDying()) {
             float hpRatio = entity.getHealth() / entity.getMaxHealth();
-            if (hpRatio <= OWAttacksHandler.TigerPassives.PREDATOR_THRESHOLD) {
+            if (hpRatio <= OWAttacksConstants.Tiger.PREDATOR_THRESHOLD) {
                 entity.kill();
                 if (this.level() instanceof ServerLevel sl) {
                     this.killedEntity(sl, entity);
@@ -661,9 +662,8 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     public boolean killedEntity(ServerLevel level, LivingEntity target) {
-        // Incrémenter le compteur de kills pour charger le Shadow Strike
         int kills = getShadowStrikeKillCount();
-        if (kills < OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_KILLS_REQUIRED) {
+        if (kills < OWAttacksConstants.Tiger.SHADOW_STRIKE_KILLS_REQUIRED) {
             setShadowStrikeKillCount(kills + 1);
         }
         return super.killedEntity(level, target);
@@ -724,6 +724,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         if (!this.isGrabbing() || this.isBaby()) return;
 
         LivingEntity grabbed = this.getGrabbedTarget();
+
+        if (this.level().isClientSide()) {
+            if (grabbed != null && (!isPlayerGrab || this.entityData.get(GRAB_PUNCH_TIMER) > 0)) {
+                this.setLookAt(grabbed.getX(), grabbed.getY(), grabbed.getZ());
+            }
+            return;
+        }
 
         if (grabbed == null || !grabbed.isAlive() || (grabbed instanceof Player p && p.isCreative())) {
             releaseGrab();
@@ -944,17 +951,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     //               SHADOW STRIKE (ultime)
     // ==================================================
 
-    /**
-     * Active le Shadow Strike : rend le Tigre invisible, accélère le véhicule pendant
-     * {@link OWAttacksHandler.TigerAttacks#SHADOW_STRIKE_DURATION_TICKS} ticks.
-     * Le premier coup de combo révèle le Tigre et active un bonus de dégâts pour la
-     * durée restante. Appelé côté serveur via OWAttackPacket(ACTION_EXECUTE).
-     */
     public void activateShadowStrike() {
-        // Double-check serveur (la vérification client peut être contournée)
-        if (getShadowStrikeKillCount() < OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_KILLS_REQUIRED) return;
+        if (getShadowStrikeKillCount() < OWAttacksConstants.Tiger.SHADOW_STRIKE_KILLS_REQUIRED) return;
 
-        float cost = OWAttacksHandler.TigerAttacks.SHADOW_STRIKE.getEnergyRequired();
+        float cost = OWAttacksConstants.Tiger.SHADOW_STRIKE_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
             canShowVitalEnergyLack = true;
             return;
@@ -963,17 +963,17 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         setShadowStrikeKillCount(0);
         setShadowStrikeActive(true);
-        shadowStrikeDurationTimer = OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_DURATION_TICKS;
+        shadowStrikeDurationTimer = OWAttacksConstants.Tiger.SHADOW_STRIKE_DURATION_TICKS;
         this.setHidden(true);
 
         // Bonus dégâts actif dès l'activation pour toute la durée de l'ultime
-        shadowStrikeDamageBonusTimer = OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_DURATION_TICKS;
+        shadowStrikeDamageBonusTimer = OWAttacksConstants.Tiger.SHADOW_STRIKE_DURATION_TICKS;
         var dmgAttr = this.getAttribute(Attributes.ATTACK_DAMAGE);
         if (dmgAttr != null) {
             dmgAttr.removeModifier(SHADOW_STRIKE_DAMAGE_MODIFIER);
             dmgAttr.addOrUpdateTransientModifier(new AttributeModifier(
                     SHADOW_STRIKE_DAMAGE_MODIFIER,
-                    OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_DAMAGE_BONUS,
+                    OWAttacksConstants.Tiger.SHADOW_STRIKE_DAMAGE_BONUS,
                     AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
         }
 
@@ -1007,7 +1007,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                 dmgAttr.removeModifier(SHADOW_STRIKE_DAMAGE_MODIFIER);
                 dmgAttr.addOrUpdateTransientModifier(new AttributeModifier(
                         SHADOW_STRIKE_DAMAGE_MODIFIER,
-                        OWAttacksHandler.TigerAttacks.SHADOW_STRIKE_DAMAGE_BONUS,
+                        OWAttacksConstants.Tiger.SHADOW_STRIKE_DAMAGE_BONUS,
                         AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
             }
         }
@@ -1022,7 +1022,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         isJumpCharging = false;
 
-        float energyRequired = OWAttacksHandler.TigerAttacks.JUMP_ATTACK.getEnergyRequired();
+        float energyRequired = OWAttacksConstants.Tiger.JUMP_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - energyRequired) {
             canShowVitalEnergyLack = true;
             cancelJumpCharge();
@@ -1030,7 +1030,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         }
         setVitalEnergy(getVitalEnergy() + energyRequired);
 
-        jumpAttackCooldown = OWAttacksHandler.TigerAttacks.JUMP_ATTACK_COOLDOWN_TICKS;
+        jumpAttackCooldown = OWAttacksConstants.Tiger.JUMP_ATTACK_COOLDOWN_TICKS;
 
         Vec3 lookDir;
         Entity rider = this.getFirstPassenger();
@@ -1101,7 +1101,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     protected double getBaseRiderYOffset() {
-        return 0.9 * this.getScale();
+        return this.getBbHeight() * 0.6 * this.getScale();
     }
 
     @Override
@@ -1186,6 +1186,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         passenger.fallDistance = 0f;
         function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);
+    }
+
+    @Override
+    public void setTame(boolean tame, Player player) {
+        super.setTame(tame, player);
+        if (tame) {
+            this.setMad(false);
+        }
     }
 
     @Nullable

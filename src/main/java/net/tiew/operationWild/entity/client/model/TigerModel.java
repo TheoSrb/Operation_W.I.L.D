@@ -307,7 +307,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
         // to get the pure animated delta. Negative = bone visually UP (Blockbench Y inverted).
         float ySum = 0f;
         for (ModelPart bone : boneChain) ySum += bone.y;
-        tiger.bodyAnimY = ySum - restPoseYSum;
+        tiger.bodyAnimY = ySum - (restPoseYSum * tiger.getScale());
     }
 
     /**

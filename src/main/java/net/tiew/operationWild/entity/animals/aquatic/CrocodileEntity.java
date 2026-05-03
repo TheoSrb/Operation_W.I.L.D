@@ -48,6 +48,7 @@ import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.behavior.CrocodileBehaviorHandler;
 import net.tiew.operationWild.entity.OWEntity;
@@ -459,7 +460,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     protected double getBaseRiderYOffset() {
         float height = this.getVariant() == CrocodileVariant.Cosmetics.VERMILION_GUARDIAN.variant ? 0.4f : 0.5f;
-        return height * this.getScale();
+        return this.getBbHeight() * height * this.getScale();
     }
 
     @Override
@@ -967,7 +968,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {
         int kills = getUltimateKillCount();
-        if (kills < OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_KILLS_REQUIRED) {
+        if (kills < OWAttacksConstants.Crocodile.PRIMAL_DIVE_KILLS_REQUIRED) {
             setUltimateKillCount(kills + 1);
         }
         return super.killedEntity(serverLevel, entity);
@@ -1522,9 +1523,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     // ==================================================
 
     public void activatePrimalDive() {
-        if (getUltimateKillCount() < OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE_KILLS_REQUIRED) return;
+        if (getUltimateKillCount() < OWAttacksConstants.Crocodile.PRIMAL_DIVE_KILLS_REQUIRED) return;
         if (!this.isInWater()) return;
-        float cost = OWAttacksHandler.CrocodileAttacks.PRIMAL_DIVE.getEnergyRequired();
+        float cost = OWAttacksConstants.Crocodile.PRIMAL_DIVE_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
             canShowVitalEnergyLack = true;
             return;
@@ -1588,7 +1589,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
      * @param factor 0.0 = 1 s de charge, 1.0 = 3 s de charge
      */
     public void performMouthSlam(float factor) {
-        float energyRequired = OWAttacksHandler.CrocodileAttacks.MOUTH_SLAM.getEnergyRequired();
+        float energyRequired = OWAttacksConstants.Crocodile.MOUTH_SLAM_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - energyRequired) {
             canShowVitalEnergyLack = true;
             return;

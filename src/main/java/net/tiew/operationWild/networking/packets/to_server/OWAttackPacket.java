@@ -74,38 +74,81 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 return;
             }
 
-            OWAttack attack = REGISTRY.get(packet.attackId());
-            if (attack == null) return;
-
             switch (packet.action()) {
-                case ACTION_EXECUTE -> { if (!entity.isCombo() && (!entity.isChargingAttack || attack.isUltimate())) attack.trigger(entity); }
+                case ACTION_EXECUTE -> {
+                    if (entity.isCombo()) return;
+                    switch (packet.attackId()) {
+                        case 2 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
+                                tiger.activateShadowStrike();
+                        }
+                        case 6 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak)
+                                kodiak.activateUltimateNap();
+                        }
+                        case 8 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)
+                                orca.activateOrcaCall();
+                        }
+                    }
+                }
 
                 case ACTION_CHARGE_START -> {
-                    if (attack instanceof OWChargedAttack c) {
-                        if (entity.isCombo()) return;
-                        entity.isChargingAttack = true;
-                        c.onChargeStart(entity);
+                    if (entity.isCombo()) return;
+                    entity.isChargingAttack = true;
+                    switch (packet.attackId()) {
+                        case 1 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
+                                tiger.startJumpCharge();
+                        }
+                        case 5 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak)
+                                kodiak.startPawSlamCharge();
+                        }
+                        case 3 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc)
+                                croc.startMouthSlamCharge();
+                        }
                     }
                 }
 
                 case ACTION_CHARGE_CANCEL -> {
-                    if (attack instanceof OWChargedAttack c) {
-                        entity.isChargingAttack = false;
-                        c.onChargeCancel(entity);
+                    entity.isChargingAttack = false;
+                    switch (packet.attackId()) {
+                        case 1 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
+                                tiger.cancelJumpCharge();
+                        }
+                        case 5 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak)
+                                kodiak.cancelPawSlamCharge();
+                        }
+                        case 3 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc)
+                                croc.cancelMouthSlamCharge();
+                        }
                     }
                 }
 
                 case ACTION_CHARGE_RELEASE -> {
-                    if (attack instanceof OWChargedAttack c) {
-                        entity.isChargingAttack = false;
-                        c.onChargeRelease(entity, packet.value());
-                    }
-                }
-
-                case ACTION_EXECUTE_WITH_TARGET -> {
-                    if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
-                        int targetId = Float.floatToRawIntBits(packet.value());
-                        croc.executePrimalDive(targetId);
+                    entity.isChargingAttack = false;
+                    switch (packet.attackId()) {
+                        case 1 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
+                                tiger.performJumpAttack(packet.value());
+                        }
+                        case 5 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak)
+                                kodiak.performPawSlam(packet.value());
+                        }
+                        case 3 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc)
+                                croc.performMouthSlam(packet.value());
+                        }
+                        case 7 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)
+                                orca.performOrcaDash();
+                        }
                     }
                 }
             }

@@ -399,7 +399,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
         kodiak.bodyXRotCamera = (float) -Math.toDegrees(this.body.xRot);
         float ySum = 0f;
         for (ModelPart bone : boneChain) ySum += bone.y;
-        kodiak.bodyAnimY = ySum - restPoseYSum;
+        kodiak.bodyAnimY = ySum - (restPoseYSum * kodiak.getScale());
     }
 
 	/**
