@@ -63,7 +63,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public static final double TAMING_EXPERIENCE = 270.0;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Float> RIDER_CONTROL_PITCH = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float>   RIDER_CONTROL_PITCH  = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> IS_DASHING           = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private int dashTicksLeft = 0;
+    private Vec3 dashDirection = Vec3.ZERO;
 
     public final AnimationState attack1Combo = new AnimationState();
     public final AnimationState attack2Combo = new AnimationState();
@@ -76,8 +80,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimXRot = 0f;
     public volatile float bodyAnimX = 0f;
-
-    public boolean isTailSlamCharging = false;
 
     private int orcaUltimateKillCount = 0;
 
@@ -112,6 +114,16 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(RIDER_CONTROL_PITCH, 0.0f);
+        builder.define(IS_DASHING, false);
+    }
+
+    @Override
+    protected boolean isLeapingVehicle() {
+        return this.entityData.get(IS_DASHING);
+    }
+
+    public void setDashing(boolean dashing) {
+        this.entityData.set(IS_DASHING, dashing);
     }
 
     protected PathNavigation createNavigation(Level worldIn) {
@@ -378,6 +390,51 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         }
 
 
+        if (!this.level().isClientSide()) {
+            if (this.dashTicksLeft > 0) {
+                float t = this.dashTicksLeft / 30f;
+                float speed = 3.8f * (t * t * t);
+
+                if (this.dashTicksLeft > 20) {
+                    Vec3 look = this.getLookAngle();
+                    Vec3 front = this.position().add(look.scale(2.5));
+                    AABB hitBox = new AABB(
+                            front.x - 2.2, front.y - 1.5, front.z - 2.2,
+                            front.x + 2.2, front.y + 1.5, front.z + 2.2
+                    );
+                    this.level().getEntitiesOfClass(LivingEntity.class, hitBox).forEach(target -> {
+                        if (target != this && target != this.getFirstPassenger()) {
+                            target.hurt(this.damageSources().mobAttack(this), this.getDamage());
+                            Vec3 knockback = look.scale(1.2);
+                            target.setDeltaMovement(target.getDeltaMovement().add(knockback.x, 0.25, knockback.z));
+                        }
+                    });
+                }
+
+                Entity rider = this.getFirstPassenger();
+                if (rider instanceof Player player && player.zza > 0 && this.dashTicksLeft <= 15) {
+                    this.dashTicksLeft = 0;
+                    this.entityData.set(IS_DASHING, false);
+                    return;
+                }
+
+                Vec3 current = this.getDeltaMovement();
+                if (speed > 0.08f) {
+                    this.setDeltaMovement(
+                            this.dashDirection.x * speed,
+                            current.y,
+                            this.dashDirection.z * speed
+                    );
+                }
+
+                this.dashTicksLeft--;
+
+                if (this.dashTicksLeft == 0) {
+                    this.entityData.set(IS_DASHING, false);
+                }
+            }
+        }
+
         handleGoldVariantEffects();
     }
 
@@ -437,39 +494,52 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     }
 
-    // ── TAIL_SLAM ───────────────────────────────────────────────────────────────
+    // ── TIDAL RUSH ─────────────────────────────────────────────────────────────
 
-    public void startTailSlamCharge() {
-        isTailSlamCharging = true;
-    }
-
-    public void cancelTailSlamCharge() {
-        isTailSlamCharging = false;
-    }
-
-    public void performTailSlam(float chargeFactor) {
-        if (!isTailSlamCharging) return;
-
-        float cost = OWAttacksHandler.OrcaAttacks.TAIL_SLAM.getEnergyRequired();
+    public void performOrcaDash() {
+        float cost = OWAttacksHandler.OrcaAttacks.TIDAL_RUSH.getEnergyRequired();
         if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
             canShowVitalEnergyLack = true;
-            cancelTailSlamCharge();
             return;
         }
         setVitalEnergy(getVitalEnergy() + cost);
-        isTailSlamCharging = false;
 
-        float damage = 12f + 18f * chargeFactor;
-        double radius = 2.5 + 2.5 * chargeFactor;
-        AABB hitBox = this.getBoundingBox().inflate(radius);
+        // Sauvegarde la direction horizontale pour le tick handler
+        Vec3 look = this.getLookAngle();
+        this.dashDirection = new Vec3(look.x, 0, look.z).normalize();
+
+        // Kick initial — vitesse max dès le premier frame
+        this.setDeltaMovement(this.dashDirection.scale(3.8));
+
+        this.entityData.set(IS_DASHING, true);
+        this.dashTicksLeft = 30; // 1.5s au lieu de 1s
+
+        // Dégâts
+        Vec3 front = this.position().add(look.scale(2.5));
+        AABB hitBox = new AABB(
+                front.x - 2.2, front.y - 1.5, front.z - 2.2,
+                front.x + 2.2, front.y + 1.5, front.z + 2.2
+        );
         this.level().getEntitiesOfClass(LivingEntity.class, hitBox).forEach(target -> {
             if (target != this && target != this.getFirstPassenger()) {
-                target.hurt(this.damageSources().mobAttack(this), damage);
+                target.hurt(this.damageSources().mobAttack(this), this.getDamage());
+                Vec3 knockback = look.scale(1.2);
+                target.setDeltaMovement(target.getDeltaMovement().add(knockback.x, 0.25, knockback.z));
             }
         });
 
+        // Particules & sons (inchangés)
+        if (this.level() instanceof ServerLevel serverLevel) {
+            Vec3 pos = this.position();
+            serverLevel.sendParticles(ParticleTypes.SPLASH,
+                    pos.x, pos.y + 0.5, pos.z, 35, 1.1, 0.4, 1.1, 0.25);
+            serverLevel.sendParticles(ParticleTypes.BUBBLE,
+                    pos.x, pos.y + 0.2, pos.z, 25, 0.9, 0.3, 0.9, 0.08);
+        }
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.AMBIENT, 2.0f, 0.8f);
+                net.minecraft.sounds.SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.AMBIENT, 2.5f, 0.8f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                net.minecraft.sounds.SoundEvents.DOLPHIN_SPLASH, SoundSource.AMBIENT, 1.8f, 1.0f);
     }
 
 
@@ -521,20 +591,38 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
-        float seatZ = 0.65f;
+        int idx = this.getPassengers().indexOf(passenger);
+
+        float seatZ, seatX;
+        switch (idx) {
+            case 1  -> { seatZ = -0.7f; seatX =  0.45f; }
+            case 2  -> { seatZ = -0.7f; seatX = -0.45f; }
+            default -> { seatZ =  0.65f; seatX = 0f;    }
+        }
 
         float pitch = this.bodyAnimXRot;
         float rotatedY = -seatZ * Mth.sin(pitch);
-        float rotatedZ = seatZ * Mth.cos(pitch);
+        float rotatedZ =  seatZ * Mth.cos(pitch);
 
-        Vec3 seatOffset = new Vec3(0, rotatedY, rotatedZ).yRot((float) Math.toRadians(-this.yBodyRot));
+        Vec3 seatOffset = new Vec3(seatX, rotatedY, rotatedZ)
+                .yRot((float) Math.toRadians(-this.yBodyRot));
 
         double baseY = getBaseRiderYOffset();
-        float animY = getRiderAnimYOffset();
+        float  animY = idx == 0 ? getRiderAnimYOffset() : 0f; // anim Y uniquement pour le rider
         double riderY = this.getY() + baseY + animY + seatOffset.y;
 
         passenger.fallDistance = 0f;
         function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);
+    }
+
+    @Override
+    protected boolean canAddPassenger(Entity passenger) {
+        return this.getPassengers().size() < 3;
+    }
+
+    @Override
+    public boolean isControlledByLocalInstance() {
+        return this.getPassengers().indexOf(this.getControllingPassenger()) == 0;
     }
 
     @Override

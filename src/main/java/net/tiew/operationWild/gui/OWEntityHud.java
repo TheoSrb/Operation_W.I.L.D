@@ -11,6 +11,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.taming.TamingCrocodile;
 
@@ -121,6 +122,7 @@ public class OWEntityHud {
             case "WalrusEntity": return 8;
             case "CrocodileEntity": return 9;
             case "LionEntity": return 10;
+            case "OrcaEntity": return 11;
             default: return 0;
         }
     }
@@ -175,8 +177,10 @@ public class OWEntityHud {
             return new EntityIconData(239, 102, 17, 16, -(17 / 2), -7);
         } else if (entity instanceof TigerEntity) {
             return new EntityIconData(237, 21, 19, 17, -(19 / 2), -8);
-        }  else if (entity instanceof CrocodileEntity) {
+        } else if (entity instanceof CrocodileEntity) {
             return new EntityIconData(243, 155, 13, 14, -(13 / 2), -5);
+        } else if (entity instanceof OrcaEntity) {
+            return new EntityIconData(241, 186, 15, 17, -(15 / 2), -8);
         }
         return null;
     }

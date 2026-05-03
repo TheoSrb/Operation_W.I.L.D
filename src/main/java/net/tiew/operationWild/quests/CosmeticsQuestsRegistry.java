@@ -3,6 +3,7 @@ package net.tiew.operationWild.quests;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.core.OWDatasSave;
+import net.tiew.operationWild.core.OWServerData;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,7 +26,7 @@ public class CosmeticsQuestsRegistry {
             @Override
             public void update(UUID entityId) {
                 if (isCompleted(entityId)) return;
-                AtomicInteger counter = OWDatasSave.tigerKillCounts.get(entityId);
+                AtomicInteger counter = OWServerData.tigerKillCounts.get(entityId);
                 setProgress(entityId, counter != null ? counter.get() : 0);
             }
         }
@@ -36,7 +37,7 @@ public class CosmeticsQuestsRegistry {
                 @Override
                 public void update(UUID entityId) {
                     if (isCompleted(entityId)) return;
-                    AtomicInteger counter = OWDatasSave.tigerKillCounts.get(entityId);
+                    AtomicInteger counter = OWServerData.tigerKillCounts.get(entityId);
                     setProgress(entityId, counter != null ? counter.get() : 0);
                 }
             }
@@ -74,7 +75,7 @@ public class CosmeticsQuestsRegistry {
         CosmeticsQuest quest = REGISTRY.get(questId);
         if (quest == null) return;
         quest.reset(entityId);
-        OWDatasSave.tigerKillCounts.remove(entityId);
+        OWServerData.tigerKillCounts.remove(entityId);
     }
 
     // =========================================================================
@@ -111,7 +112,7 @@ public class CosmeticsQuestsRegistry {
             CosmeticsQuest q = REGISTRY.get(id);
             if (q != null) q.getAllProgress().forEach((uuid, val) -> combined.merge(uuid, val, Math::max));
         }
-        combined.forEach((uuid, val) -> OWDatasSave.tigerKillCounts.put(uuid, new AtomicInteger(val)));
+        combined.forEach((uuid, val) -> OWServerData.tigerKillCounts.put(uuid, new AtomicInteger(val)));
     }
 
     /**

@@ -8,12 +8,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
+import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
+import org.jline.keymap.KeyMap;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -37,22 +39,9 @@ public class OWAttacksHandler {
 
     public static final String OW_CATEGORY = "key.categories.operationwild";
 
-    // ── Shared key bindings ────────────────────────────────────────────────────
-    public static final KeyMapping OW_ATTACK_0 = new KeyMapping(
-            "key.ow.attack_0",
-            KeyConflictContext.IN_GAME,
-            InputConstants.Type.MOUSE,
-            GLFW.GLFW_MOUSE_BUTTON_RIGHT,
-            OW_CATEGORY
-    );
+    public static final KeyMapping OW_ATTACK_0 = OWKeysBinding.OW_ATTACK_0;
+    public static final KeyMapping OW_ATTACK_1 = OWKeysBinding.OW_ATTACK_1;
 
-    public static final KeyMapping OW_ATTACK_1 = new KeyMapping(
-            "key.ow.attack_1",
-            KeyConflictContext.IN_GAME,
-            InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_X,
-            OW_CATEGORY
-    );
 
     // ── Internal registries ───────────────────────────────────────────────────
     private static final Map<Class<? extends OWEntity>, List<OWAttack>>  ENTITY_ATTACKS    = new HashMap<>();
@@ -127,7 +116,7 @@ public class OWAttacksHandler {
         // ── Orca — rangée 4 (Y=160 / Y=180) ─────────────────────────────────────
         registerEntityRow(OrcaEntity.class, 4);
         registerComboMaxTimer(OrcaEntity.class, 24); // timeToHit(22) + 2
-        register(OrcaEntity.class, OrcaAttacks.TAIL_SLAM);
+        register(OrcaEntity.class, OrcaAttacks.TIDAL_RUSH);
         register(OrcaEntity.class, OrcaAttacks.ORCA_CALL);
     }
 
@@ -226,9 +215,13 @@ public class OWAttacksHandler {
                     float vert  = (float) (((0.30f + 0.12f * factor) * JUMP_POWER) / 1.25);
                     entity.setDeltaMovement(horizontal.x * speed, vert, horizontal.z * speed);
                     entity.hasImpulse = true;
-                    // Flag leaping immediately on the rider's client so travelRidden
-                    // doesn't overwrite the jump velocity before the server sync arrives.
-                    if (entity instanceof TigerEntity tiger) tiger.isLeaping = true;
+                    if (entity instanceof TigerEntity tiger) {
+                        tiger.isLeaping = true;
+                        tiger.isPreparing = false;
+                        tiger.setPlayerLeaping(true);
+                        tiger.playJumpSound();
+                        tiger.playJumpParticles();
+                    }
                 },
                 true, // afficher le fantôme pendant la charge
                 true  // effet de caméra pendant la charge
@@ -392,22 +385,30 @@ public class OWAttacksHandler {
     // ── Orca attacks ──────────────────────────────────────────────────────────
     public static class OrcaAttacks {
 
-        public static final int TAIL_SLAM_ID             = 7;
-        public static final int TAIL_SLAM_COOLDOWN_TICKS = 600; // 30 secondes
+        public static final int TIDAL_RUSH_ID             = 7;
+        public static final int TIDAL_RUSH_COOLDOWN_TICKS = 400; // 20 secondes
+        private static final float TIDAL_RUSH_SPEED       = 3.5f;
 
-        public static final OWChargedAttack TAIL_SLAM = new OWChargedAttack(
-                TAIL_SLAM_ID,
+        // Charge minimale à 0 ms → le dash se déclenche à l'instant où le rider lâche le clic droit.
+        // La vélocité est appliquée uniquement dans localEffect (client) conformément à l'architecture.
+        public static final OWChargedAttack TIDAL_RUSH = new OWChargedAttack(
+                TIDAL_RUSH_ID,
                 OW_ATTACK_0,
                 100f,
-                TAIL_SLAM_COOLDOWN_TICKS,
-                500L,    // charge minimale : 0.5 s
-                2500L,   // charge maximale : 2.5 s
-                entity -> ((OrcaEntity) entity).startTailSlamCharge(),
-                entity -> ((OrcaEntity) entity).cancelTailSlamCharge(),
-                (entity, factor) -> ((OrcaEntity) entity).performTailSlam(factor),
-                (entity, factor, dir) -> {},
+                TIDAL_RUSH_COOLDOWN_TICKS,
+                0L,    // charge minimale : 0 ms (instantané au clic)
+                50L,   // charge maximale : 50 ms (pratiquement instantané)
+                entity -> {},
+                entity -> {},
+                (entity, factor) -> ((OrcaEntity) entity).performOrcaDash(),
+                (entity, factor, dir) -> {
+                    Vec3 forward = Vec3.directionFromRotation(0, entity.getYRot());
+                    entity.setDeltaMovement(forward.x * TIDAL_RUSH_SPEED, 0, forward.z * TIDAL_RUSH_SPEED);
+                    entity.hasImpulse = true;
+                    if (entity instanceof OrcaEntity orca) orca.setDashing(true);
+                },
                 false,
-                true
+                false
         );
 
         // ── Orca Call (ultime) ────────────────────────────────────────────────

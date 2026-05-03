@@ -893,9 +893,9 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
      * Appelé côté serveur via OWAttackPacket(1).
      */
     public void startJumpCharge() {
-        if (jumpAttackCooldown > 0) return;
         if (isJumpCharging) return;
-        isJumpCharging = true;
+        isJumpCharging = true;  // toujours enregistrer la charge pour que performJumpAttack s'exécute
+        if (jumpAttackCooldown > 0) return;  // cooldown désynchronisé côté serveur : charge acceptée sans animation
         this.isPreparing = true;
         this.setDeltaMovement(0, 0, 0);
         this.getNavigation().stop();
@@ -909,6 +909,35 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         isJumpCharging = false;
         this.isPreparing = false;
         syncLeapState(false, false);
+    }
+
+    public void setPlayerLeaping(boolean value) {
+        isPlayerLeaping = value;
+        if (!value) leapJumpTimer = 0;
+    }
+
+    public void playJumpSound() {
+        this.level().playLocalSound(getX(), getY(), getZ(),
+                getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_JUMP.get() : OWSounds.TIGER_JUMP_VIRUS.get(),
+                SoundSource.AMBIENT, 3.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1), false);
+    }
+
+    public void playJumpParticles() {
+        for (int i = 0; i < 10; i++) {
+            this.level().addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE,
+                    getX() + (random.nextDouble() - 0.5) * getBbWidth(),
+                    getY() + 0.1,
+                    getZ() + (random.nextDouble() - 0.5) * getBbWidth(),
+                    (random.nextDouble() - 0.5) * 0.1,
+                    0.05,
+                    (random.nextDouble() - 0.5) * 0.1);
+        }
+    }
+
+    public void playShadowStrikeSound() {
+        this.level().playLocalSound(getX(), getY(), getZ(),
+                getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_ROAR.get() : OWSounds.TIGER_ROAR_VIRUS.get(),
+                SoundSource.AMBIENT, 2.5f, (float) OWUtils.generateRandomInterval(0.9, 1.1), false);
     }
 
     // ==================================================
@@ -1023,8 +1052,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.isPlayerLeaping = true;
         this.leapJumpTimer = 0;
 
-        OWUtils.spawnServerParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, -0.75, 0.5, 10, 1);
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+        OWUtils.spawnServerParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, 0.1, 0.5, 10, 1);
+        // Exclure le rider : il entend le son via playJumpSound() dans localEffect (côté client, sans latence)
+        Player riderPlayer = rider instanceof Player p ? p : null;
+        this.level().playSound(riderPlayer, this.getX(), this.getY(), this.getZ(),
                 getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_JUMP.get() : OWSounds.TIGER_JUMP_VIRUS.get(),
                 SoundSource.AMBIENT, 3.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
 
@@ -1063,7 +1094,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.setDeltaMovement(direction.x, direction.y + verticalBoost + 0.1F * clampedVertical, direction.z);
         this.hasImpulse = true;
 
-        OWUtils.spawnServerParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, -0.75, 0.5, 10,1);
+        OWUtils.spawnServerParticles(this, ParticleTypes.CAMPFIRE_COSY_SMOKE, 0.5, 0.1, 0.5, 10, 1);
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(), getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_JUMP.get() : OWSounds.TIGER_JUMP_VIRUS.get(), SoundSource.AMBIENT, 3.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
     }
@@ -1167,7 +1198,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     public boolean canGrabEntity(LivingEntity entity) {
         if (this.isBaby()) return false;
-        if (entity.getMaxHealth() > 25f) return false;
+        if (entity.getMaxHealth() > 60f) return false;
         if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() > 5f) return false;
         return true;
     }
@@ -1467,6 +1498,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         tag.putInt("Variant", this.getTypeVariant());
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
+        tag.putInt("shadowStrikeKillCount", this.getShadowStrikeKillCount());
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -1475,6 +1507,9 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
+        if (tag.contains("shadowStrikeKillCount")) {
+            setShadowStrikeKillCount(tag.getInt("shadowStrikeKillCount"));
+        }
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
 

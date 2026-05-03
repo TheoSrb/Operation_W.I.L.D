@@ -162,7 +162,7 @@ public class OWAttacksOverlay {
                 }
             } else {
                 float cooldownRemaining = OWAttackLogic.getCooldownProgress(entity.getId(), attack.getId());
-                fillProgress = cooldownRemaining > 0f ? 1.0f - cooldownRemaining : 0f;
+                fillProgress = cooldownRemaining > 0f ? 1.0f - cooldownRemaining : 1.0f;
             }
 
             if (isGrabbing) {

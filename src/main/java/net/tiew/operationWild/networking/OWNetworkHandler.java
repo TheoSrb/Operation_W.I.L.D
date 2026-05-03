@@ -3,10 +3,13 @@ package net.tiew.operationWild.networking;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.networking.packets.to_client.*;
 import net.tiew.operationWild.networking.packets.to_server.*;
 
@@ -15,7 +18,9 @@ public class OWNetworkHandler {
 
     public static void register(RegisterPayloadHandlersEvent event) {
         // Populate the attack registry before any packets can be received
-        net.tiew.operationWild.entity.attacks.OWAttacksHandler.registerAll();
+        if (FMLEnvironment.dist.isClient()) {
+            OWAttacksHandler.registerAll();
+        }
 
         final PayloadRegistrar registrar = event.registrar(OperationWild.MOD_ID)
                 .versioned(PROTOCOL_VERSION);
@@ -47,7 +52,7 @@ public class OWNetworkHandler {
         registrar.playToClient(SyncKillDataPacket.TYPE, SyncKillDataPacket.STREAM_CODEC, SyncKillDataPacket::handle);
         registrar.playToClient(OWFoodPacketClient.TYPE, OWFoodPacketClient.STREAM_CODEC, OWFoodPacketClient::handle);
         registrar.playToClient(AddEntityToManuscriptPacket.TYPE, AddEntityToManuscriptPacket.STREAM_CODEC, AddEntityToManuscriptPacket::handle);
-        registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, OpenChooseNameScreen::handle);
+        registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, (packet, context) -> OpenChooseNameScreenHandler.handle(packet, context));
         registrar.playToClient(TigerLeapStatePacket.TYPE, TigerLeapStatePacket.STREAM_CODEC, TigerLeapStatePacket::handle);
         registrar.playToClient(SkinUnlockedPacket.TYPE, SkinUnlockedPacket.STREAM_CODEC, SkinUnlockedPacket::handle);
 

@@ -17,6 +17,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
 import org.lwjgl.glfw.GLFW;
 
@@ -41,6 +42,10 @@ public class OWAttackLogic {
     // Wow effect : flash + zoom + shake lors du déclenchement d'un ultime
     public static long ultimateWowEffectStartMs = -1L;
     public static final long ULTIMATE_WOW_DURATION_MS = 700L;
+
+    // Orca Tidal Rush — effet de rush caméra au déclenchement du bond
+    public static long orcaDashEffectStartMs = -1L;
+    public static final long ORCA_DASH_EFFECT_DURATION_MS = 1000L;
 
     private static OWChargedAttack currentAttack = null;
     // Cooldown end timestamp — clé = pack(entityId, attackId), valeur = System.currentTimeMillis() de fin
@@ -227,6 +232,19 @@ public class OWAttackLogic {
 
     @SubscribeEvent
     public static void onComputeFov(ComputeFovModifierEvent event) {
+        // Orca Tidal Rush — FOV increase (sensation de vitesse)
+        if (orcaDashEffectStartMs >= 0) {
+            long elapsed = System.currentTimeMillis() - orcaDashEffectStartMs;
+            if (elapsed < ORCA_DASH_EFFECT_DURATION_MS) {
+                float t = (float) elapsed / ORCA_DASH_EFFECT_DURATION_MS;
+                // Courbe en cloche : montée rapide, descente lente
+                float bell = (float) Math.sin(t * Math.PI);
+                event.setNewFovModifier(event.getNewFovModifier() * (1.0f + 0.18f * bell));
+            } else {
+                orcaDashEffectStartMs = -1L;
+            }
+        }
+
         // Wow effect : zoom rapide à l'activation d'un ultime
         if (ultimateWowEffectStartMs >= 0) {
             long elapsed = System.currentTimeMillis() - ultimateWowEffectStartMs;
@@ -269,6 +287,23 @@ public class OWAttackLogic {
 
     @SubscribeEvent
     public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
+        // Orca Tidal Rush — secousse frontale + légère bascule au déclenchement
+        if (orcaDashEffectStartMs >= 0) {
+            long elapsed = System.currentTimeMillis() - orcaDashEffectStartMs;
+            if (elapsed < ORCA_DASH_EFFECT_DURATION_MS) {
+                float t = (float) elapsed / ORCA_DASH_EFFECT_DURATION_MS;
+                // Tremblement fort au départ qui décroît rapidement
+                float shakeFade = (1f - t) * (1f - t);
+                long tMs = System.currentTimeMillis();
+                float shake = shakeFade * 3.5f * (float) Math.sin(tMs / 22.0);
+                // Légère inclinaison avant (sensation de plongeon)
+                float bell = (float) Math.sin(t * Math.PI);
+                float forwardTilt = bell * 2.5f;
+                event.setPitch(event.getPitch() + forwardTilt + shake * 0.8f);
+                event.setRoll(event.getRoll()   + shake);
+            }
+        }
+
         // Wow effect : tremblement violent décroissant à l'activation d'un ultime
         if (ultimateWowEffectStartMs >= 0) {
             long elapsed = System.currentTimeMillis() - ultimateWowEffectStartMs;
@@ -546,6 +581,11 @@ public class OWAttackLogic {
             if (attack.getUltimateDurationMs() > 0) {
                 setUltimateStart(owEntity.getId(), attack.getId(), now);
             }
+            // Feedback client immédiat pour les ultimes : son sans attendre le serveur
+            if (attack.getId() == OWAttacksHandler.TigerAttacks.SHADOW_STRIKE.getId()
+                    && owEntity instanceof TigerEntity tiger) {
+                tiger.playShadowStrikeSound();
+            }
         }
     }
 
@@ -627,6 +667,11 @@ public class OWAttackLogic {
             PacketDistributor.sendToServer(
                     new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_START, 0f));
 
+            // Prédiction côté client : démarre l'animation isPreparing immédiatement sans attendre le serveur
+            if (owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger) {
+                tiger.isPreparing = true;
+            }
+
         } else if (event.getAction() == GLFW.GLFW_RELEASE) {
             if (!isCharging || currentAttack != attack) return;
 
@@ -652,10 +697,19 @@ public class OWAttackLogic {
                                 System.currentTimeMillis() + (long) attack.getCooldownTicks() * 50L);
                     }
                     attack.applyLocalEffect(entity, chargeFactor, chargeDirection);
+
+                    // Orca Tidal Rush — déclenchement de l'effet caméra côté client
+                    if (attack.getId() == OWAttacksHandler.OrcaAttacks.TIDAL_RUSH_ID && hasEnergy) {
+                        orcaDashEffectStartMs = System.currentTimeMillis();
+                    }
                 }
             } else {
                 PacketDistributor.sendToServer(
                         new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
+                // Annule la prédiction isPreparing si la charge était trop courte
+                if (owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger) {
+                    tiger.isPreparing = false;
+                }
             }
 
             currentAttack = null;

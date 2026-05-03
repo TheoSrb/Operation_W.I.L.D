@@ -25,10 +25,4 @@ public record OpenChooseNameScreen(int entityId) implements CustomPacketPayload 
     public CustomPacketPayload.Type<OpenChooseNameScreen> type() {
         return TYPE;
     }
-
-    public static void handle(OpenChooseNameScreen packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            Minecraft.getInstance().setScreen(new OWChooseNameScreen(packet.entityId()));
-        });
-    }
 }

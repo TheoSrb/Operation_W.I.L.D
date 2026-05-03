@@ -16,9 +16,6 @@ public class OWDatasSave {
 
     public static Properties owDatas = new Properties();
 
-    /** Kills par Tigre apprivoisé (UUID → compteur). Incrémenté côté serveur, lu côté client. */
-    public static final ConcurrentHashMap<UUID, AtomicInteger> tigerKillCounts = new ConcurrentHashMap<>();
-
     /** Skins achetés avec du prestige, par entité (UUID → ensemble d'indices de skin). */
     public static final Map<UUID, Set<Integer>> purchasedSkins = new HashMap<>();
 
@@ -66,7 +63,6 @@ public class OWDatasSave {
         File propertiesFile = new File("saves/" + worldName + "/OWDataCore.properties");
 
         owDatas.clear();
-        tigerKillCounts.clear();
         purchasedSkins.clear();
 
         if (propertiesFile.exists()) {

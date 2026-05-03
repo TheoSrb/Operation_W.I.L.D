@@ -3,6 +3,7 @@ package net.tiew.operationWild.core;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
+import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import org.lwjgl.glfw.GLFW;
 
 public class OWKeysBinding {
@@ -11,6 +12,17 @@ public class OWKeysBinding {
     public static final String OW_ENTITY_JOURNAL_KEY = "key.ow.entity_journal_key";
 
     public static final String OW_CATEGORY = "key.categories.operationwild";
+
+    public static final KeyMapping OW_ATTACK_0 = new KeyMapping(
+            "key.ow.attack_0", KeyConflictContext.IN_GAME,
+            InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_RIGHT,
+            OWAttacksHandler.OW_CATEGORY
+    );
+    public static final KeyMapping OW_ATTACK_1 = new KeyMapping(
+            "key.ow.attack_1", KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_X,
+            OWAttacksHandler.OW_CATEGORY
+    );
 
     // Entities Keys
 

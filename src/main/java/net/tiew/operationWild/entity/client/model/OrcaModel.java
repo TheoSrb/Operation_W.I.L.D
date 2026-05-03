@@ -132,12 +132,18 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 
 		if (orca.isCombo(1)) {
 			this.animate(orca.attack1Combo, OrcaAnimations.ATTACK_STRIKE, ageInTicks, 1.0f);
+			captureBodyState(orca, 7f, orca.isCombo() ? 1.0f : 1.0f, this.ALL2, this.ALL, this.body);
+			return;
 		}
 		if (orca.isCombo(2)) {
 			this.animate(orca.attack2Combo, OrcaAnimations.ATTACK_STRIKE_2, ageInTicks, 1.0f);
+			captureBodyState(orca, 7f, orca.isCombo() ? 1.0f : 1.0f, this.ALL2, this.ALL, this.body);
+			return;
 		}
 		if (orca.isCombo(3)) {
 			this.animate(orca.attack3Combo, OrcaAnimations.ATTACK_STRIKE_3, ageInTicks, 1.0f);
+			captureBodyState(orca, 7f, orca.isCombo() ? 1.0f : 1.0f, this.ALL2, this.ALL, this.body);
+			return;
 		}
 
 		/*if (orca.transitionIdleSit.isStarted()) {

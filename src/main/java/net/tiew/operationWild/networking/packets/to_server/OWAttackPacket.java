@@ -50,6 +50,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
         return REGISTRY.get(id);
     }
 
+    public static void registerId(int id) {
+        REGISTRY.putIfAbsent(id, null);
+    }
+
     @Override
     public CustomPacketPayload.Type<OWAttackPacket> type() {
         return TYPE;
@@ -74,7 +78,7 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             if (attack == null) return;
 
             switch (packet.action()) {
-                case ACTION_EXECUTE -> { if (!entity.isCombo() && !entity.isChargingAttack) attack.trigger(entity); }
+                case ACTION_EXECUTE -> { if (!entity.isCombo() && (!entity.isChargingAttack || attack.isUltimate())) attack.trigger(entity); }
 
                 case ACTION_CHARGE_START -> {
                     if (attack instanceof OWChargedAttack c) {
