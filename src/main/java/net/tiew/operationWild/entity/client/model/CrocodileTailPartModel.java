@@ -78,12 +78,15 @@ public class CrocodileTailPartModel extends EntityModel<CrocodileTailPart> {
     public void setupAnim(CrocodileTailPart entity, float limbSwing, float limbSwingAmount,
                           float ageInTicks, float netHeadYaw, float headPitch) {
         this.segment.resetPose();
+        this.segment.visible = entity.getParent() != null && !entity.getParent().isInWater();
     }
 
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer consumer,
                                int packedLight, int packedOverlay, int color) {
-        this.segment.render(poseStack, consumer, packedLight, packedOverlay, color);
+        if (this.segment.visible) {
+            this.segment.render(poseStack, consumer, packedLight, packedOverlay, color);
+        }
     }
 
     public void applyTailRotation(float xRot, float yRot, float zRot) {

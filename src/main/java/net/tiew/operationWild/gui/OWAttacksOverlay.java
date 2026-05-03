@@ -59,6 +59,10 @@ public class OWAttacksOverlay {
 
         if (!(player.getRootVehicle() instanceof OWEntity entity)) return;
 
+        if (entity.getPassengers().indexOf(player) != 0) return;
+
+        if (!player.getUUID().equals(entity.getOwnerUUID())) return;
+
         Class<?> entityClass = entity.getClass();
         List<OWAttack> attacks = OWAttacksHandler.getAttacks(entityClass);
 

@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.attacks.OWAttack;
 import net.tiew.operationWild.entity.attacks.OWChargedAttack;
 
@@ -63,10 +64,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
             if (!(player.getRootVehicle() instanceof OWEntity entity)) return;
+            if (entity.getPassengers().indexOf(player) != 0) return;
+            if (!player.getUUID().equals(entity.getOwnerUUID())) return;
 
             if (packet.action() == ACTION_TRIGGER_DEATH_ROLL) {
-                if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
-                    if (croc.isTame() && croc.isGrabbing() && !croc.isDeathRolling()) {
+                if (entity instanceof CrocodileEntity croc) {
+                    if (croc.isTame() && croc.isGrabbing() && !croc.isDeathRolling() && croc.isInWater()) {
                         croc.setDeathRolling(true);
                         croc.setDeathRollProgress(0);
                     }
@@ -106,8 +109,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                                 kodiak.startPawSlamCharge();
                         }
                         case 3 -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc)
+                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
                                 croc.startMouthSlamCharge();
+                                croc.setPlayerMouthCharging(true);
+                            }
                         }
                     }
                 }
@@ -124,8 +129,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                                 kodiak.cancelPawSlamCharge();
                         }
                         case 3 -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc)
+                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
                                 croc.cancelMouthSlamCharge();
+                                croc.setPlayerMouthCharging(true);
+                            }
                         }
                     }
                 }
@@ -142,8 +149,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                                 kodiak.performPawSlam(packet.value());
                         }
                         case 3 -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc)
+                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
                                 croc.performMouthSlam(packet.value());
+                                croc.setPlayerMouthCharging(false);
+                            }
                         }
                         case 7 -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)

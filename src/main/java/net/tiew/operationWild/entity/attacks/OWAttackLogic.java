@@ -520,6 +520,8 @@ public class OWAttackLogic {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.screen != null) return;
         if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+        if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
+        if (!mc.player.getUUID().equals(owEntity.getOwnerUUID())) return;
 
         OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getKey());
         if (attack == null) return;
@@ -594,12 +596,18 @@ public class OWAttackLogic {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.screen != null) return;
         if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+        if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
+        if (!mc.player.getUUID().equals(owEntity.getOwnerUUID())) return;
 
         boolean isCrocGrabbing = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
         boolean isKodiakUltNapping = isKodiakNapping && owEntity instanceof KodiakEntity;
 
         if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT && event.getAction() == GLFW.GLFW_PRESS) {
             if (owEntity.isPlayerControlledDeathRoll()) {
+                if (!owEntity.isInWater()) {
+                    event.setCanceled(true);
+                    return;
+                }
                 if (System.currentTimeMillis() >= deathRollCooldownEndMs) {
                     PacketDistributor.sendToServer(
                             new OWAttackPacket(-1, OWAttackPacket.ACTION_TRIGGER_DEATH_ROLL, 0f));

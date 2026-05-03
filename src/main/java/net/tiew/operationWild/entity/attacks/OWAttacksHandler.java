@@ -253,10 +253,8 @@ public class OWAttacksHandler {
                 OWAttacksConstants.Orca.TIDAL_RUSH_COOLDOWN_TICKS,
                 0L,
                 50L,
-                entity -> {
-                },
-                entity -> {
-                },
+                entity -> { },
+                entity -> { },
                 (entity, factor) -> ((OrcaEntity) entity).performOrcaDash(),
                 (entity, factor, dir) -> {
                     Vec3 forward = Vec3.directionFromRotation(0, entity.getYRot());
@@ -266,7 +264,7 @@ public class OWAttacksHandler {
                 },
                 false,
                 false
-        );
+        ).withCanUsePredicate(entity -> entity.isInWater());
 
         public static final OWAttack ORCA_CALL = new OWAttack(
                 ORCA_CALL_ID,

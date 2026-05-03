@@ -148,7 +148,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 	public void setupAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 
-		// Capture ACCUMULÉE (tail2 inclut tail1, tail3 inclut tail1+tail2)
 		crocodile.tail1AnimXRot = this.tail1.xRot;
 		crocodile.tail1AnimYRot = this.tail1.yRot;
 		crocodile.tail1AnimZRot = this.tail1.zRot;
@@ -161,9 +160,10 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		crocodile.tail3AnimYRot = this.tail1.yRot + this.tail2.yRot + this.tail3.yRot;
 		crocodile.tail3AnimZRot = this.tail1.zRot + this.tail2.zRot + this.tail3.zRot;
 
-		this.tail1.visible = false;
-		this.tail2.visible = false;
-		this.tail3.visible = false;
+		boolean inWater = crocodile.isInWater();
+		this.tail1.visible = inWater;
+		this.tail2.visible = inWater;
+		this.tail3.visible = inWater;
 
 		if (Math.abs(externalRiderPitch) > 0.01f) {
 			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
@@ -284,12 +284,13 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 				if (walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 1000L)) crocodile.onLeftFootDown();
 			}
 
-			// Animation ouverture de gueule pendant la charge (Mouth Slam)
-			Minecraft mc = Minecraft.getInstance();
-			if (mc.player != null && mc.player.getVehicle() == crocodile
-					&& OWAttackLogic.isCharging
-					&& OWAttackLogic.getCurrentAttackId() == OWAttacksHandler.MOUTH_SLAM_ID) {
-				applyMouthSlamAnimation(OWAttackLogic.getChargeProgress(), ageInTicks);
+			if (crocodile.isPlayerMouthCharging()) {
+				float progress = (Minecraft.getInstance().player != null
+						&& Minecraft.getInstance().player.getVehicle() == crocodile
+						&& OWAttackLogic.isCharging)
+						? OWAttackLogic.getChargeProgress()
+						: Math.min(crocodile.getChargingMouthTimer() / 40f, 1.0f);
+				applyMouthSlamAnimation(progress, ageInTicks);
 			}
 
 			handleChargingMouth(crocodile, ageInTicks);

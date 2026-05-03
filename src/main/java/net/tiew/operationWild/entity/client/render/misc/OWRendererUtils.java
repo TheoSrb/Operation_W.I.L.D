@@ -626,11 +626,20 @@ public class OWRendererUtils {
     }
 
     public static void displayOwnerAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher, double upOffset) {
+        if (entity.getOwnerUUID() == null) return;
+        if (Minecraft.getInstance().level == null) return;
+
+        Player ownerPlayer = Minecraft.getInstance().level.getPlayerByUUID(entity.getOwnerUUID());
+        if (ownerPlayer == null) return;
+
         int textColor = 0xdfdfdf;
         int ownerColor = 0xFFFFFF;
 
-        Component owner = Component.literal(String.valueOf(Objects.requireNonNull(Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getPlayerByUUID(Objects.requireNonNull(entity.getOwnerUUID())) : null).getName().getString())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(ownerColor).getValue()).withBold(true));
-        Component text = Component.translatable("tooltip.owner", owner).withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue());
+        Component owner = Component.literal(ownerPlayer.getName().getString())
+                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(ownerColor).getValue()).withBold(true));
+        Component text = Component.translatable("tooltip.owner", owner)
+                .withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue());
+
         poseStack.pushPose();
         poseStack.translate(0, entity.getBbHeight() + 0.5F + upOffset, 0);
         poseStack.mulPose(entityRenderDispatcher.cameraOrientation());

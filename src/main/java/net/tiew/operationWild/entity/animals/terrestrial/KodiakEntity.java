@@ -144,6 +144,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public volatile float bodyXRotCamera = 0f;
     public volatile float pawSlamRiderYExtra = 0f;
     public volatile float pawSlamRiderZExtra = 0f;
+    public volatile float bodyAnimY_passenger = 0f;
 
     public int rollTimer = 0;
     public int itemRejectionTimer = 0;
@@ -749,9 +750,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return super.isPushable();
     }
 
+    protected double getBaseRiderYOffset(int idx) {
+        double factor = (idx == 0) ? 0.35 : 0.4;
+        return this.getBbHeight() * factor * this.getScale();
+    }
+
     @Override
     protected double getBaseRiderYOffset() {
-        return this.getBbHeight() * 0.55 * this.getScale();
+        return getBaseRiderYOffset(0);
     }
 
     @Override
@@ -775,24 +781,25 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
             return;
         }
-        float seatZ, seatX;
-        switch (idx) {
-            case 1  -> { seatZ = -0.65f; seatX = 0f; }
-            default -> { seatZ =  0.35f; seatX = 0f; }
-        }
 
-        float pawZ = (idx == 0) ? pawSlamRiderZExtra : 0f;
+        float seatZ = 0.35f - (idx * 1.0f);
+        float seatX = 0f;
+
+        float pawZ = pawSlamRiderZExtra;
         seatZ += pawZ;
 
         Vec3 seatOffset = new Vec3(seatX, 0, seatZ)
                 .yRot((float) Math.toRadians(-this.yBodyRot));
 
-        double baseY = getBaseRiderYOffset();
-        float animY = (idx == 0) ? getRiderAnimYOffset() : 0f;
+        double baseY = getBaseRiderYOffset(idx);
+        float animY = getRiderAnimYOffset();
         double riderY = this.getY() + baseY + animY;
 
         passenger.fallDistance = 0f;
-        function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);
+        function.accept(passenger,
+                this.getX() + seatOffset.x,
+                riderY,
+                this.getZ() + seatOffset.z);
     }
 
     @Override
@@ -802,7 +809,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public boolean isControlledByLocalInstance() {
-        return this.getPassengers().indexOf(this.getControllingPassenger()) == 0;
+        Entity controlling = this.getControllingPassenger();
+        if (controlling == null) return false;
+        return this.getPassengers().indexOf(controlling) == 0 && super.isControlledByLocalInstance();
     }
 
     protected void handleFoodBarSystem() {

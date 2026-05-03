@@ -487,9 +487,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         for (LivingEntity target : candidates) {
             if (!isEnemyForOwner(target)) continue;
             if (!canGrabEntity(target)) continue;
+            if (target.getVehicle() != null) target.stopRiding();
             setGrabbing(true, target);
-            isPlayerGrab = true;
-            this.entityData.set(IS_PLAYER_GRAB, true);
+            if (!isGrabbing()) continue;
+
+            boolean targetIsPlayer = target instanceof Player;
+            isPlayerGrab = !targetIsPlayer;
+            this.entityData.set(IS_PLAYER_GRAB, !targetIsPlayer);
             this.entityData.set(GRAB_PUNCH_TIMER, 0);
             return;
         }

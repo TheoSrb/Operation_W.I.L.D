@@ -40,6 +40,8 @@ public record OWRunningPacket(boolean isSprintKeyDown) implements CustomPacketPa
                 Entity entity = player.getRootVehicle();
 
                 if (entity instanceof OWEntity owEntity) {
+                    if (owEntity.getPassengers().indexOf(player) != 0) return;
+
                     float vitalEnergyRestant = (float) (owEntity.getVitalEnergy() / owEntity.getMaxVitalEnergy());
 
                     if (owEntity.hasReachedEnergyLimit() && vitalEnergyRestant <= 0.8f) {

@@ -2733,6 +2733,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (this.isTame() && !isBaby() && !this.level().isClientSide() && hand == InteractionHand.MAIN_HAND) {
             if (player.isSteppingCarefully() && !this.isInResurrection()) {
+                Player owner = (Player) this.getOwner();
+                if (player != owner) return InteractionResult.PASS;
+                if (this.getControllingPassenger() != null) return InteractionResult.PASS;
                 if (this.sittingCooldown > 0) return InteractionResult.PASS;
 
                 this.setSitting(!isSitting());

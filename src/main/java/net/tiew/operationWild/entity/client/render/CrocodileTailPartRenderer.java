@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class CrocodileTailPartRenderer extends EntityRenderer<CrocodileTailPart> {
 
-    private static final float[] YAW_SPEEDS = { 0.025f, 0.01f, 0.005f };
+    private static final float[] YAW_SPEEDS = { 0.025f, 0.01f, 0.0075f };
     private static final float SEG_DIST     = 1.25f;
     private static final float BODY_OFF     = 0.75f;
 
@@ -135,9 +135,11 @@ public class CrocodileTailPartRenderer extends EntityRenderer<CrocodileTailPart>
             return;
         }
 
-        chain.yaw[0] += Mth.wrapDegrees(pYaw         - chain.yaw[0]) * YAW_SPEEDS[0];
-        chain.yaw[1] += Mth.wrapDegrees(chain.yaw[0] - chain.yaw[1]) * YAW_SPEEDS[1];
-        chain.yaw[2] += Mth.wrapDegrees(chain.yaw[1] - chain.yaw[2]) * YAW_SPEEDS[2];
+        float runMultiplier = parent.isRunning() ? 3.0f : 1.0f;
+
+        chain.yaw[0] += Mth.wrapDegrees(pYaw         - chain.yaw[0]) * (YAW_SPEEDS[0] * runMultiplier);
+        chain.yaw[1] += Mth.wrapDegrees(chain.yaw[0] - chain.yaw[1]) * (YAW_SPEEDS[1] * runMultiplier);
+        chain.yaw[2] += Mth.wrapDegrees(chain.yaw[1] - chain.yaw[2]) * (YAW_SPEEDS[2] * runMultiplier);
 
         float yr0 = (float) Math.toRadians(pYaw);
         chain.pos[0][0] = px + Math.sin(yr0) * bodyOff;

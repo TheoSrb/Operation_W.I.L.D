@@ -113,6 +113,11 @@ public class CrocodileTailPart extends Entity {
         return startY - 30;
     }
 
+    @Override
+    public boolean shouldBeSaved() {
+        return false; // recréées par le croco au chargement, jamais persistées
+    }
+
     // ─── Dégâts → redirigés vers le croco parent ──────────────────────────
     @Override
     public boolean hurt(DamageSource source, float amount) {

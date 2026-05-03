@@ -97,13 +97,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Boolean> IS_MOUTH_SLAMMING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_CHARGING_MOUTH = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> CHARGING_MOUTH_TIMER = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> IS_PLAYER_MOUTH_CHARGING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
 
     public CrocodileBehaviorHandler crocodileBehaviorHandler;
     public TamingCrocodile crocodileTaming;
 
     public CrocodileTailPart[] tailParts = new CrocodileTailPart[3];
 
-    private static final float SEG_DIST         = 1.25f;
+    private static final float SEG_DIST = 1.25f;
     private static final float BODY_TAIL_OFFSET = 0.75f;
 
     // Rotations animées des os de queue — capturées par CrocodileModel chaque frame
@@ -171,7 +172,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final int GRUNT_DURATION = 55;
 
     private int growlsCooldown = (int) OWUtils.generateRandomInterval(400, 1200);
-    private int gruntCooldown  = (int) OWUtils.generateRandomInterval(300, 500);
+    private int gruntCooldown = (int) OWUtils.generateRandomInterval(300, 500);
 
     public CrocodileEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -239,6 +240,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(IS_MOUTH_SLAMMING, false);
         builder.define(IS_CHARGING_MOUTH, false);
         builder.define(CHARGING_MOUTH_TIMER, 0.0f);
+        builder.define(IS_PLAYER_MOUTH_CHARGING, false);
     }
 
     // Entity Methods
@@ -496,7 +498,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         super.travel(vec3);
 
-        if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle()) this.jumpFromGround();
+        if (this.onGround() && !isBaby() && this.horizontalCollision && !isSleeping() && !isNapping() && !this.isVehicle())
+            this.jumpFromGround();
     }
 
     public void tick() {
@@ -793,6 +796,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     private void spawnTailParts() {
         for (int i = 0; i < 3; i++) {
+            if (tailParts[i] != null && !tailParts[i].isRemoved()) {
+                tailParts[i].discard();
+            }
             CrocodileTailPart part = new CrocodileTailPart(
                     net.tiew.operationWild.entity.OWEntityRegistry.CROCODILE_TAIL_PART.get(),
                     this.level(), this, i);
@@ -815,11 +821,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     private void updateTailChain() {
-        float scale   = this.getScale();
-        float segLen  = SEG_DIST * scale;
+        float scale = this.getScale();
+        float segLen = SEG_DIST * scale;
         float bodyOff = BODY_TAIL_OFFSET * scale;
 
-        float yawRad   = (float) Math.toRadians(yBodyRot);
+        float yawRad = (float) Math.toRadians(yBodyRot);
         double attachX = getX() + Math.sin(yawRad) * bodyOff;
         double attachY = getY();
         double attachZ = getZ() - Math.cos(yawRad) * bodyOff;
@@ -828,26 +834,28 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             seg1Yaw = seg2Yaw = seg3Yaw = yBodyRot;
             // Initialise les segments à la bonne position de départ
             if (tailParts[0] != null) tailParts[0].setPos(
-                    attachX + Math.sin((float)Math.toRadians(yBodyRot)) * segLen,
+                    attachX + Math.sin((float) Math.toRadians(yBodyRot)) * segLen,
                     attachY,
-                    attachZ - Math.cos((float)Math.toRadians(yBodyRot)) * segLen);
+                    attachZ - Math.cos((float) Math.toRadians(yBodyRot)) * segLen);
             if (tailParts[1] != null && tailParts[0] != null) tailParts[1].setPos(
-                    tailParts[0].getX() + Math.sin((float)Math.toRadians(yBodyRot)) * segLen,
+                    tailParts[0].getX() + Math.sin((float) Math.toRadians(yBodyRot)) * segLen,
                     attachY,
-                    tailParts[0].getZ() - Math.cos((float)Math.toRadians(yBodyRot)) * segLen);
+                    tailParts[0].getZ() - Math.cos((float) Math.toRadians(yBodyRot)) * segLen);
             if (tailParts[2] != null && tailParts[1] != null) tailParts[2].setPos(
-                    tailParts[1].getX() + Math.sin((float)Math.toRadians(yBodyRot)) * segLen,
+                    tailParts[1].getX() + Math.sin((float) Math.toRadians(yBodyRot)) * segLen,
                     attachY,
-                    tailParts[1].getZ() - Math.cos((float)Math.toRadians(yBodyRot)) * segLen);
+                    tailParts[1].getZ() - Math.cos((float) Math.toRadians(yBodyRot)) * segLen);
             tailPosInit = true;
         }
 
         seg1Yaw += Mth.wrapDegrees(yBodyRot - seg1Yaw) * 0.85f;
-        seg2Yaw += Mth.wrapDegrees(seg1Yaw  - seg2Yaw) * 0.65f;
-        seg3Yaw += Mth.wrapDegrees(seg2Yaw  - seg3Yaw) * 0.50f;
+        seg2Yaw += Mth.wrapDegrees(seg1Yaw - seg2Yaw) * 0.65f;
+        seg3Yaw += Mth.wrapDegrees(seg2Yaw - seg3Yaw) * 0.50f;
 
         // Ancre seg0 = point d'attache du body (Y réel du body)
-        seg1[0] = attachX; seg1[1] = attachY; seg1[2] = attachZ;
+        seg1[0] = attachX;
+        seg1[1] = attachY;
+        seg1[2] = attachZ;
 
         // Ancre seg1 = position réelle de seg0 après physique
         seg2[0] = (tailParts[0] != null && !tailParts[0].isRemoved()) ? tailParts[0].getX() : seg1[0];
@@ -1130,7 +1138,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (isBaby()) return;
         if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() >= 10) return;
 
-        if (entity instanceof TamableAnimal tamableAnimal && tamableAnimal.getControllingPassenger() != null)  {
+        if (entity instanceof TamableAnimal tamableAnimal && tamableAnimal.getControllingPassenger() != null) {
             entity = tamableAnimal.getControllingPassenger();
         }
 
@@ -1326,9 +1334,15 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         switch (comboNumber) {
-            case 1: attack1ComboTimer = timer; break;
-            case 2: attack2ComboTimer = timer; break;
-            case 3: attack3ComboTimer = timer; break;
+            case 1:
+                attack1ComboTimer = timer;
+                break;
+            case 2:
+                attack2ComboTimer = timer;
+                break;
+            case 3:
+                attack3ComboTimer = timer;
+                break;
         }
     }
 
@@ -1370,20 +1384,33 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());
     }
 
+    public void setPlayerMouthCharging(boolean value) { this.entityData.set(IS_PLAYER_MOUTH_CHARGING, value); }
+    public boolean isPlayerMouthCharging() { return this.entityData.get(IS_PLAYER_MOUTH_CHARGING); }
+
     public void setChargingMouth(boolean isChargingMouth) {
         this.entityData.set(IS_CHARGING_MOUTH, isChargingMouth);
     }
-    public boolean isChargingMouth() { return this.entityData.get(IS_CHARGING_MOUTH);}
 
-    public void setMouthSlamming(boolean value) { this.entityData.set(IS_MOUTH_SLAMMING, value); }
-    public boolean isMouthSlamming() { return this.entityData.get(IS_MOUTH_SLAMMING); }
+    public boolean isChargingMouth() {
+        return this.entityData.get(IS_CHARGING_MOUTH);
+    }
+
+    public void setMouthSlamming(boolean value) {
+        this.entityData.set(IS_MOUTH_SLAMMING, value);
+    }
+
+    public boolean isMouthSlamming() {
+        return this.entityData.get(IS_MOUTH_SLAMMING);
+    }
 
     public void setMad(boolean isMad) {
         if (isMad) if (this.getCurrentMode() == Mode.Passive) return;
         this.entityData.set(IS_MAD, isMad);
     }
 
-    public boolean isMad() { return this.entityData.get(IS_MAD);}
+    public boolean isMad() {
+        return this.entityData.get(IS_MAD);
+    }
 
     public void setDeathRollProgress(int getDeathRollProgress) {
         this.entityData.set(DEATH_ROLLING_PROGRESS, getDeathRollProgress);
@@ -1414,9 +1441,13 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.setGrabbedTarget(entity);
     }
 
-    public boolean isGrabbing() { return this.entityData.get(IS_GRABBING);}
+    public boolean isGrabbing() {
+        return this.entityData.get(IS_GRABBING);
+    }
 
-    public float getRiderControlPitch() { return this.entityData.get(RIDER_CONTROL_PITCH); }
+    public float getRiderControlPitch() {
+        return this.entityData.get(RIDER_CONTROL_PITCH);
+    }
 
     public void setEntitiesKilledDuringTaming(int getEntitiesKilledDuringTaming) {
         this.entityData.set(ENTITIES_KILLED_DURING_TAMING, getEntitiesKilledDuringTaming);
@@ -1438,13 +1469,17 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.entityData.set(SACRIFICES_UNITY, sacrificesUnity);
     }
 
-    public float getSacrificesUnity() { return this.entityData.get(SACRIFICES_UNITY);}
+    public float getSacrificesUnity() {
+        return this.entityData.get(SACRIFICES_UNITY);
+    }
 
     public void setDeathRolling(boolean isDeathRolling) {
         this.entityData.set(IS_DEATH_ROLLING, isDeathRolling);
     }
 
-    public boolean isDeathRolling() { return this.entityData.get(IS_DEATH_ROLLING);}
+    public boolean isDeathRolling() {
+        return this.entityData.get(IS_DEATH_ROLLING);
+    }
 
     public boolean hasGrabSomething() {
         if (this.level().isClientSide()) return false;
@@ -1466,7 +1501,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.entityData.set(CHARGING_MOUTH_TIMER, chargingMouthTimer);
     }
 
-    public float getChargingMouthTimer() { return this.entityData.get(CHARGING_MOUTH_TIMER);}
+    public float getChargingMouthTimer() {
+        return this.entityData.get(CHARGING_MOUTH_TIMER);
+    }
 
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
@@ -1498,7 +1535,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         this.entityData.set(ULTIMATE_KILL_COUNT, tag.getInt("ultimateKillCount"));
         crocodileTaming.readAdditionalSaveData(tag);
-        if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
+        if (this.getSkinIndex() != 0) {
+            this.nbtRestoring = true;
+            this.changeSkin(this.getSkinIndex(), false);
+            this.nbtRestoring = false;
+        }
     }
 
     @Override
@@ -1573,19 +1614,31 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.isChargingAttack = false;
     }
 
-    public boolean isInPrimalDivePhase() { return primalDivePhase == 1; }
+    public boolean isInPrimalDivePhase() {
+        return primalDivePhase == 1;
+    }
 
     @Override
-    protected boolean isLeapingVehicle() { return this.entityData.get(IS_LUNGING); }
+    protected boolean isLeapingVehicle() {
+        return this.entityData.get(IS_LUNGING);
+    }
 
     @Override
-    public boolean isPlayerControlledDeathRoll() { return this.isTame() && this.isGrabbing(); }
+    public boolean isPlayerControlledDeathRoll() {
+        return this.isTame() && this.isGrabbing();
+    }
 
-    public int getUltimateKillCount() { return this.entityData.get(ULTIMATE_KILL_COUNT); }
-    public void setUltimateKillCount(int count) { this.entityData.set(ULTIMATE_KILL_COUNT, count); }
+    public int getUltimateKillCount() {
+        return this.entityData.get(ULTIMATE_KILL_COUNT);
+    }
+
+    public void setUltimateKillCount(int count) {
+        this.entityData.set(ULTIMATE_KILL_COUNT, count);
+    }
 
     /**
      * Exécute le Mouth Slam après une charge valide (≥ 1 s).
+     *
      * @param factor 0.0 = 1 s de charge, 1.0 = 3 s de charge
      */
     public void performMouthSlam(float factor) {
@@ -1596,20 +1649,21 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
         setVitalEnergy(getVitalEnergy() + energyRequired);
 
-        mouthSlamPendingDamage    = Mth.lerp(factor, 5.0f, this.getDamage());
+        float baseDamage = Mth.lerp(factor, 5.0f, this.getDamage());
+        mouthSlamPendingDamage = factor >= 1.0f ? baseDamage * 2f : baseDamage;
         mouthSlamPendingKnockback = 1.5f + factor * 2.0f;
-        mouthSlamPendingBleed     = factor >= 1.0f;
-        mouthSlamHitTimer         = 8; // 0.4 s = frame d'impact dans l'animation
+        mouthSlamPendingBleed = factor >= 1.0f;
+        mouthSlamHitTimer = 8;
 
         setMouthSlamming(true);
         this.mouthSlamServerTimer = 50;
     }
 
     public void performWildMouthSlam(float chargeRatio) {
-        mouthSlamPendingDamage    = this.getDamage() * (0.5f + chargeRatio * 0.5f);
+        mouthSlamPendingDamage = this.getDamage() * (0.5f + chargeRatio * 0.5f);
         mouthSlamPendingKnockback = 2.0f + chargeRatio * 1.5f;
-        mouthSlamPendingBleed     = chargeRatio >= 1.0f;
-        mouthSlamHitTimer         = 8;
+        mouthSlamPendingBleed = chargeRatio >= 1.0f;
+        mouthSlamHitTimer = 8;
 
         setMouthSlamming(true);
         this.mouthSlamServerTimer = 50;

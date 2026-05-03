@@ -244,12 +244,12 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public int getMaxAirSupply() {
-        return Integer.MAX_VALUE;
+        return 300;
     }
 
     @Override
     protected int increaseAirSupply(int currentAir) {
-        return currentAir + 10;
+        return currentAir + 4;
     }
 
     @Override
@@ -347,6 +347,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return this.getBbHeight() * 0.75 * this.getScale();
     }
 
+    protected double getBaseRiderYOffset(int idx) {
+        return this.getBbHeight() * 0.75 * this.getScale();
+    }
+
     @Override
     protected float getRiderAnimYOffset() {
         return -bodyAnimY / 16.0f * this.getScale();
@@ -437,6 +441,40 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         }
 
         handleGoldVariantEffects();
+    }
+
+    @Override
+    public void aiStep() {
+        super.aiStep();
+
+        if (!this.isInWater()) {
+            if (this.onGround()) {
+                this.setDeltaMovement(
+                        this.getDeltaMovement().x + (this.random.nextFloat() * 2.0f - 1.0f) * 0.2f,
+                        0.5,
+                        this.getDeltaMovement().z + (this.random.nextFloat() * 2.0f - 1.0f) * 0.2f
+                );
+                this.setYRot(this.random.nextFloat() * 360.0f);
+                this.setOnGround(false);
+                this.hasImpulse = true;
+            }
+
+            int air = this.getAirSupply();
+            this.setAirSupply(air - 1);
+            if (this.getAirSupply() <= -20) {
+                this.setAirSupply(0);
+                this.hurt(this.damageSources().dryOut(), 2.0f);
+            }
+
+            this.setXRot(90.0f);
+            this.xRotO = 90.0f;
+        } else {
+            if (this.getAirSupply() < this.getMaxAirSupply()) {
+                this.setAirSupply(Math.min(this.getAirSupply() + 4, this.getMaxAirSupply()));
+            }
+            this.setXRot(0.0f);
+            this.xRotO = 0.0f;
+        }
     }
 
     @Override
@@ -608,8 +646,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         Vec3 seatOffset = new Vec3(seatX, rotatedY, rotatedZ)
                 .yRot((float) Math.toRadians(-this.yBodyRot));
 
-        double baseY = getBaseRiderYOffset();
-        float  animY = idx == 0 ? getRiderAnimYOffset() : 0f; // anim Y uniquement pour le rider
+        double baseY = getBaseRiderYOffset(idx);
+        float  animY = idx == 0 ? getRiderAnimYOffset() : 0f;
         double riderY = this.getY() + baseY + animY + seatOffset.y;
 
         passenger.fallDistance = 0f;
@@ -623,7 +661,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public boolean isControlledByLocalInstance() {
-        return this.getPassengers().indexOf(this.getControllingPassenger()) == 0;
+        Entity controlling = this.getControllingPassenger();
+        if (controlling == null) return false;
+        return this.getPassengers().indexOf(controlling) == 0 && super.isControlledByLocalInstance();
     }
 
     @Override

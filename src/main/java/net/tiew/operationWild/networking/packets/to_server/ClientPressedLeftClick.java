@@ -47,6 +47,9 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
                 if (entity instanceof OWEntity owEntity && !owEntity.hasEffect(OWEffects.FEAR_EFFECT.getDelegate()) && !owEntity.hasEffect(OWEffects.FRACTURE.getDelegate())) {
                     float vitalEnergyPercent = (float) (owEntity.getVitalEnergy() / owEntity.getMaxVitalEnergy());
 
+                    if (entity.getPassengers().indexOf(player) != 0) return;
+                    if (!player.getUUID().equals(owEntity.getOwnerUUID())) return;
+
                     if (owEntity.hasReachedAttackEnergyLimit() && vitalEnergyPercent <= 0.8f) {
                         owEntity.setHasReachedAttackEnergyLimit(false);
                     }
