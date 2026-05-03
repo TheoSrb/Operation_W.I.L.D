@@ -248,6 +248,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final EntityDataAccessor<Integer> ATTACK_ANIMATION_ID = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ATTACK_ANIMATION_TICK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<String> CACHED_OWNER_NAME = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
 
     public int quest0Progression = 0;
     public int quest1Progression = 0;
@@ -2881,6 +2882,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 this.playSound(SoundEvents.TOTEM_USE);
                 this.level().broadcastEntityEvent(this, (byte) 8);
                 this.setOwnerUUID(player.getUUID());
+                if (player != null) {
+                    setCachedOwnerName(player.getName().getString());
+                }
                 this.setDamageToClient(this.getDamage());
                 this.setCurrentMode(Mode.Passive);
                 this.setPassive(true);
@@ -3335,6 +3339,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
+    public String getCachedOwnerName() { return this.entityData.get(CACHED_OWNER_NAME); }
+    public void setCachedOwnerName(String name) {
+        if (name != null && !name.isEmpty()) this.entityData.set(CACHED_OWNER_NAME, name);
+    }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
@@ -3391,6 +3399,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(RESURRECTION_MAX_TIMER, 0);
         builder.define(NAME, "");
         builder.define(SKIN_INDEX, 0);
+        builder.define(CACHED_OWNER_NAME, "");
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {
@@ -3502,6 +3511,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putBoolean("quest9isLocked", this.quest9isLocked);
         tag.putBoolean("quest10isLocked", this.quest10isLocked);
         tag.putInt("skinIndex", this.getSkinIndex());
+
+        tag.putString("cachedOwnerName", this.getCachedOwnerName());
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -3612,5 +3623,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.quest9isLocked = tag.getBoolean("quest9isLocked");
         this.quest10isLocked = tag.getBoolean("quest10isLocked");
         this.entityData.set(SKIN_INDEX, tag.getInt("skinIndex"));
+
+        this.setCachedOwnerName(tag.getString("cachedOwnerName"));
     }
 }

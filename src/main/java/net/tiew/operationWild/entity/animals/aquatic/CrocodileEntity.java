@@ -449,13 +449,13 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
 
         net.minecraft.world.level.block.SoundType sound = blockState.getSoundType();
-        this.level().playLocalSound(
+        this.level().playSound(
+                null,
                 this.getX(), this.getY(), this.getZ(),
                 sound.getStepSound(),
                 this.getSoundSource(),
                 sound.getVolume() * 0.65f,
-                sound.getPitch() * pitchMod * (0.85f + this.random.nextFloat() * 0.3f),
-                false
+                sound.getPitch() * pitchMod * (0.85f + this.random.nextFloat() * 0.3f)
         );
     }
 
@@ -511,6 +511,13 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 createComboSimple(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, 0.15f);
             } else {
                 createCombo(32, 15, OWSounds.CROCODILE_MOUTH_CRUSH.get(), 3.0, 2, 2.25, false, 0.15f);
+            }
+        }
+
+        if (!this.level().isClientSide() && isPlayerMouthCharging()) {
+            float current = getChargingMouthTimer();
+            if (current < 60f) {
+                setChargingMouthTimer(Math.min(current + 1f, 60f));
             }
         }
 
@@ -1552,11 +1559,13 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     // ==================================================
 
     public void startMouthSlamCharge() {
-        // Rien de particulier côté serveur au démarrage — la gueule s'ouvre côté client via OWAttackLogic.
+        setPlayerMouthCharging(true);
+        setChargingMouthTimer(0);
     }
 
     public void cancelMouthSlamCharge() {
-        // Rien à annuler côté serveur.
+        setPlayerMouthCharging(false);
+        setChargingMouthTimer(0);
     }
 
     // ==================================================
@@ -1642,6 +1651,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
      * @param factor 0.0 = 1 s de charge, 1.0 = 3 s de charge
      */
     public void performMouthSlam(float factor) {
+        setPlayerMouthCharging(false);
+        setChargingMouthTimer(0);
         float energyRequired = OWAttacksConstants.Crocodile.MOUTH_SLAM_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - energyRequired) {
             canShowVitalEnergyLack = true;

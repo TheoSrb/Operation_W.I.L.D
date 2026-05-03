@@ -193,8 +193,6 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
             if (kodiak.pawSlamChargeAnimState.getAccumulatedTime() >= 3000L) {
                 this.animate(kodiak.pawSlamChargeFullAnimState, KodiakAnimations.PAW_SLAM_CHARGE_FULL, ageInTicks, 1.0f);
             }
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
             float chargeProgress = Math.min(kodiak.pawSlamChargeAnimState.getAccumulatedTime() / 2500f, 1.0f);
             kodiak.pawSlamRiderYExtra = chargeProgress * 0.7f;
             kodiak.pawSlamRiderZExtra = chargeProgress * -0.6f;
@@ -203,8 +201,6 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
         if (kodiak.isPawSlamStriking()) {
             this.animate(kodiak.pawSlamStrikeAnimState, KodiakAnimations.PAW_SLAM_STRIKE, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
             float strikeElapsed = kodiak.pawSlamStrikeAnimState.getAccumulatedTime() - 250f;
             float strikeProgress = Math.max(0f, Math.min(strikeElapsed / 350f, 1.0f));
             kodiak.pawSlamRiderYExtra = (1.0f - strikeProgress) * 0.7f;
@@ -214,72 +210,72 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
         if (kodiak.isRubs()) {
             this.animate(kodiak.rubsAnimationState, KodiakAnimations.RUBS, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
         if (kodiak.isRolling()) {
             this.animate(kodiak.rollingAnimationState, KodiakAnimations.ROLL, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
         if (kodiak.transitionIdleSit.isStarted()) {
             this.animate(kodiak.transitionIdleSit, KodiakAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
         if (kodiak.transitionSitIdle.isStarted()) {
             this.animate(kodiak.transitionSitIdle, KodiakAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
         if (kodiak.transitionIdleSleep.isStarted()) {
             this.animate(kodiak.transitionIdleSleep, KodiakAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 2.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
         if (kodiak.transitionSleepIdle.isStarted()) {
             this.animate(kodiak.transitionSleepIdle, KodiakAnimations.TRANSITION_SLEEP_IDLE, ageInTicks, 2.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
         if (kodiak.transitionIdleStandingUp.isStarted()) {
             this.animate(kodiak.transitionIdleStandingUp, KodiakAnimations.TRANSITION_IDLE_STAND_UP, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
         if (kodiak.transitionStandingUpIdle.isStarted()) {
             this.animate(kodiak.transitionStandingUpIdle, KodiakAnimations.TRANSITION_STAND_UP_IDLE, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
         if (kodiak.isNapping()) {
             this.animate(kodiak.napAnimationState, KodiakAnimations.SLEEP, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
 
         if (kodiak.isSitting()) {
             this.animate(kodiak.sittingAnimationState, KodiakAnimations.SIT, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-            captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;
         }
 
@@ -311,8 +307,8 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
         }
 
         this.prevLimbSwing = limbSwing;
-        captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_1);
-        captureBodyState(kodiak, 10f, true, this.ALL2, this.ALL, this.body, this.body_2);
+        captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+        captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
     }
 
     @Override
@@ -339,10 +335,8 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
         this.head.translateAndRotate(poseStack);
 
         poseStack.translate(0.0D, 0.75f, -1.05D);
-
         poseStack.mulPose(Axis.YP.rotationDegrees(90));
         poseStack.mulPose(Axis.ZP.rotationDegrees(180));
-
         poseStack.scale(0.8f, 0.8f, 0.8f);
 
         fakeEntity.yBodyRot = 0;
@@ -363,8 +357,6 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
 
         salmonRenderer.render(fakeEntity, 0, 1.0f, poseStack, bufferSource, packedLight);
-
-        bufferSource.endBatch();
 
         poseStack.popPose();
     }
@@ -404,23 +396,21 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     private void captureBodyState(KodiakEntity kodiak, float restPoseYSum, boolean isPassenger, ModelPart... boneChain) {
         if (!kodiak.level().isClientSide()) return;
 
-        if (isPassenger) {
-            kodiak.setBodyZRot((float) Math.toDegrees(this.ALL.zRot + this.body.zRot + this.body_2.zRot));
-            kodiak.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot + this.body_2.xRot));
-            kodiak.bodyZRotCamera = (float) Math.toDegrees(this.body_2.zRot);
-            kodiak.bodyXRotCamera = (float) -Math.toDegrees(this.body_2.xRot);
-        } else {
-            kodiak.setBodyZRot((float) Math.toDegrees(this.ALL.zRot + this.body.zRot + this.body_1.zRot));
-            kodiak.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot + this.body_1.xRot));
-            kodiak.bodyZRotCamera = (float) Math.toDegrees(this.body_1.zRot);
-            kodiak.bodyXRotCamera = (float) -Math.toDegrees(this.body_1.xRot);
-        }
-
         float ySum = 0f;
         for (ModelPart bone : boneChain) ySum += bone.y;
         float animY = ySum - (restPoseYSum * kodiak.getScale());
-        if (isPassenger) kodiak.bodyAnimY_passenger = animY;
-        else kodiak.bodyAnimY = animY;
+
+        if (isPassenger) {
+            kodiak.bodyAnimY_passenger = animY;
+            kodiak.bodyZRot_passenger = (float) Math.toDegrees(this.ALL.zRot + this.body.zRot + this.body_2.zRot);
+            kodiak.bodyXRot_passenger = (float) -Math.toDegrees(this.ALL.xRot + this.body.xRot + this.body_2.xRot);
+        } else {
+            kodiak.setBodyZRot((float) Math.toDegrees(this.ALL.zRot + this.body.zRot + this.body_2.zRot + this.body_1.zRot));
+            kodiak.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot + this.body_1.xRot + this.body_2.xRot));
+            kodiak.bodyZRotCamera = (float) Math.toDegrees(this.body_1.zRot);
+            kodiak.bodyXRotCamera = (float) -Math.toDegrees(this.body_1.xRot);
+            kodiak.bodyAnimY = animY;
+        }
     }
 
     /**

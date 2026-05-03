@@ -145,6 +145,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public volatile float pawSlamRiderYExtra = 0f;
     public volatile float pawSlamRiderZExtra = 0f;
     public volatile float bodyAnimY_passenger = 0f;
+    public volatile float bodyZRot_passenger = 0f;
+    public volatile float bodyXRot_passenger = 0f;
 
     public int rollTimer = 0;
     public int itemRejectionTimer = 0;
@@ -714,19 +716,19 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (blockState.isAir()) return;
 
         net.minecraft.world.level.block.SoundType sound = blockState.getSoundType();
-        this.level().playLocalSound(
+        this.level().playSound(
+                null,
                 this.getX(), this.getY(), this.getZ(),
                 sound.getStepSound(),
                 this.getSoundSource(),
                 sound.getVolume() * 0.7f,
-                sound.getPitch() * pitchMod * (0.88f + this.random.nextFloat() * 0.24f),
-                false
+                sound.getPitch() * pitchMod * (0.88f + this.random.nextFloat() * 0.24f)
         );
     }
 
     @Override
     protected float getRiderAnimYOffset() {
-        return -bodyAnimY / 16.0f * this.getScale() + pawSlamRiderYExtra;
+        return -bodyAnimY / 16.0f * this.getScale();
     }
 
     @Override
@@ -751,7 +753,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     protected double getBaseRiderYOffset(int idx) {
-        double factor = (idx == 0) ? 0.35 : 0.4;
+        double factor = (idx == 0) ? 0.5 : 0.6;
         return this.getBbHeight() * factor * this.getScale();
     }
 
@@ -782,24 +784,67 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             return;
         }
 
-        float seatZ = 0.35f - (idx * 1.0f);
-        float seatX = 0f;
+        if (idx == 0) {
+            float seatZ = 0.35f + pawSlamRiderZExtra;
+            float seatY = 0f;
 
-        float pawZ = pawSlamRiderZExtra;
-        seatZ += pawZ;
+            if (isPawSlamCharging()) {
+                float chargeProgress = Math.min(pawSlamChargeAnimState.getAccumulatedTime() / 2500f, 1.0f);
+                float eased = chargeProgress * chargeProgress * (3f - 2f * chargeProgress);
+                seatZ -= 0.45f * eased;
+                seatY = 0.6f * eased;
+            }
 
-        Vec3 seatOffset = new Vec3(seatX, 0, seatZ)
-                .yRot((float) Math.toRadians(-this.yBodyRot));
+            if (isPawSlamStriking()) {
+                float elapsed = pawSlamStrikeAnimState.getAccumulatedTime() / 50f;
+                float progress = Math.min(elapsed / 10f, 1.0f);
 
-        double baseY = getBaseRiderYOffset(idx);
-        float animY = getRiderAnimYOffset();
-        double riderY = this.getY() + baseY + animY;
+                if (progress < 0.4f) {
+                    float rise = progress / 0.4f;
+                    seatZ -= 0.45f;
+                    seatY = 0.6f + rise * 0.3f;
+                } else {
+                    float fall = (progress - 0.4f) / 0.6f;
+                    float fallEased = fall * fall * fall;
+                    seatZ -= 0.45f * (1f - fallEased);
+                    seatY = 0.9f * (1f - fallEased);
+                }
+            }
 
-        passenger.fallDistance = 0f;
-        function.accept(passenger,
-                this.getX() + seatOffset.x,
-                riderY,
-                this.getZ() + seatOffset.z);
+            Vec3 seatOffset = new Vec3(0f, 0, seatZ)
+                    .yRot((float) Math.toRadians(-this.yBodyRot));
+
+            double baseY = getBaseRiderYOffset(0);
+            double riderY = this.getY() + baseY + getRiderAnimYOffset() + seatY;
+
+            passenger.fallDistance = 0f;
+            function.accept(passenger,
+                    this.getX() + seatOffset.x,
+                    riderY,
+                    this.getZ() + seatOffset.z);
+
+            if (passenger instanceof LivingEntity living) {
+                living.yBodyRot = this.yBodyRot;
+            }
+        } else {
+            float seatZ = -1.1f;
+            Vec3 seatOffset = new Vec3(0f, 0, seatZ)
+                    .yRot((float) Math.toRadians(-this.yBodyRot));
+
+            double baseY = getBaseRiderYOffset(1);
+            float animY = -bodyAnimY_passenger / 16.0f * this.getScale();
+            double riderY = this.getY() + baseY + animY;
+
+            passenger.fallDistance = 0f;
+            function.accept(passenger,
+                    this.getX() + seatOffset.x,
+                    riderY,
+                    this.getZ() + seatOffset.z);
+
+            if (passenger instanceof LivingEntity living) {
+                living.yBodyRot = this.yBodyRot;
+            }
+        }
     }
 
     @Override
@@ -810,7 +855,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public boolean isControlledByLocalInstance() {
         Entity controlling = this.getControllingPassenger();
-        if (controlling == null) return false;
+        if (controlling == null) {
+            return super.isControlledByLocalInstance();
+        }
         return this.getPassengers().indexOf(controlling) == 0 && super.isControlledByLocalInstance();
     }
 
@@ -921,7 +968,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             if (this.isSitting()) this.setSitting(false);
         }
         boolean result = super.hurt(damageSource, v);
-        // Empêche OWEntity.hurt de réveiller la sieste ultime
         if (isUltimateNapping() && !isNapping()) {
             setNap(true);
         }

@@ -72,10 +72,7 @@ import net.tiew.operationWild.core.OWDamageSources;
 import net.tiew.operationWild.core.OWKeysBinding;
 
 import java.io.*;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.*;
@@ -787,7 +784,10 @@ public class ClientEvents {
         );
 
         boolean isGrabByTiger = player.level().getEntitiesOfClass(TigerEntity.class, player.getBoundingBox().inflate(5.0)).stream().anyMatch(
-                tiger -> tiger.isGrabbing() && tiger.getGrabbedTarget() == player
+                tiger -> tiger.isGrabbing()
+                        && tiger.getGrabbedTargetId() == player.getId()
+                        && !tiger.isTame()
+                        && tiger.getControllingPassenger() == null
         );
 
         boolean isGrabBySomething = isGrabByCrocodile || isGrabByTiger;
@@ -970,104 +970,116 @@ public class ClientEvents {
     private static float savedXRot = 0f;
     private static float savedXRotO = 0f;
 
+    private record SavedRots(float xRot, float xRotO, float yBody, float yBodyO, float yHead, float yHeadO) {}
+    private static final Map<UUID, SavedRots> SAVED_PLAYER_ROTS = new HashMap<>();
+
     @SubscribeEvent
     public static void onPlayerRenderPre(RenderPlayerEvent.Pre event) {
-        if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof OWEntity)) {
-            shadowStrikeHiddenRiders.remove(event.getEntity().getId());
+        Player player = event.getEntity();
+
+        if (player == null || !(player.getVehicle() instanceof OWEntity owVehicle)) {
+            shadowStrikeHiddenRiders.remove(player == null ? null : player.getId());
             return;
         }
 
-        Player player = event.getEntity();
+        SAVED_PLAYER_ROTS.put(player.getUUID(), new SavedRots(
+                player.getXRot(), player.xRotO,
+                player.yBodyRot, player.yBodyRotO,
+                player.yHeadRot, player.yHeadRotO
+        ));
 
-        if (player.getVehicle() instanceof CrocodileEntity croc && croc.isInWater()) {
-            savedXRot  = player.getXRot();
-            savedXRotO = player.xRotO;
-            // Zero out visuellement — la caméra n'est pas affectée
+        float vehicleYaw = owVehicle.getYRot();
+        float vehicleYawO = owVehicle.yRotO;
+
+        player.yBodyRot = vehicleYaw;
+        player.yBodyRotO = vehicleYawO;
+        player.setYHeadRot(vehicleYaw);
+        player.yHeadRotO = vehicleYawO;
+
+        if (player.getRootVehicle() instanceof TigerEntity tiger && tiger.isShadowStrikeActive()) {
+            event.setCanceled(true);
+            shadowStrikeHiddenRiders.add(player.getId());
+            return;
+        }
+        shadowStrikeHiddenRiders.remove(player.getId());
+
+        if (owVehicle instanceof CrocodileEntity croc && croc.isInWater()) {
             player.setXRot(0f);
             player.xRotO = 0f;
         }
 
-        if (event.getEntity().getRootVehicle() instanceof TigerEntity tiger
-                && tiger.isShadowStrikeActive()) {
-            event.setCanceled(true);
-            shadowStrikeHiddenRiders.add(event.getEntity().getId());
-            return;
-        }
-        shadowStrikeHiddenRiders.remove(event.getEntity().getId());
+        PoseStack poseStack = event.getPoseStack();
+        Vec3 pivotPoint = new Vec3(0, 0, 0);
 
-        if (event.getEntity().getVehicle() instanceof SeaBugEntity seaBug) {
-
-            PoseStack poseStack = event.getPoseStack();
+        if (owVehicle instanceof SeaBugEntity seaBug) {
             poseStack.pushPose();
+            pivotPoint = new Vec3(0, 1.3, 0);
 
-            Vec3 pivotPoint = new Vec3(0, 1.3, 0);
-
-            poseStack.mulPose(Axis.YP.rotationDegrees(-event.getEntity().getYRot()));
-
+            poseStack.mulPose(Axis.YP.rotationDegrees(-player.getYRot()));
             Quaternionf rotation = Axis.XP.rotationDegrees(seaBug.getLastPlayerPitch());
             poseStack.rotateAround(rotation, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+            poseStack.mulPose(Axis.YP.rotationDegrees(player.getYRot()));
 
-            poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
-        } else if (event.getEntity().getVehicle() instanceof CrocodileEntity crocodile) {
-            PoseStack poseStack = event.getPoseStack();
+        } else if (owVehicle instanceof CrocodileEntity crocodile) {
             poseStack.pushPose();
 
-            Vec3 pivotPoint = new Vec3(0, 0, 0);
-
-            if (event.getEntity() == crocodile.getGrabbedTarget()) {
+            if (player == crocodile.getGrabbedTarget()) {
                 Vec3 look = crocodile.getLookAngle();
                 Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.getBodyZRot());
                 Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot());
                 Quaternionf rotationY = Axis.YP.rotationDegrees(-crocodile.getBodyYRot());
+
                 poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationY, (float) ((float) pivotPoint.x - (look.x * 0.75f)), (float) pivotPoint.y, (float) ((float) pivotPoint.z - (look.z * 0.75f)));
             } else {
-                // Aligner dans le repère du croco (pas du joueur) pour que le pitch
-                // soit toujours appliqué sur l'axe avant/arrière du croco,
-                // indépendamment de la direction dans laquelle le rider regarde.
                 poseStack.mulPose(Axis.YP.rotationDegrees(-crocodile.yBodyRot));
                 Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.getBodyZRot());
                 Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot() + crocodile.getRiderControlPitch());
+
                 poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.mulPose(Axis.YP.rotationDegrees(crocodile.yBodyRot));
             }
-        } else if (event.getEntity().getVehicle() instanceof OWEntity owEntity) {
-
-            PoseStack poseStack = event.getPoseStack();
+        } else {
             poseStack.pushPose();
 
-            Vec3 pivotPoint = new Vec3(0, 0, 0);
+            poseStack.mulPose(Axis.YP.rotationDegrees(-player.getYRot()));
 
-            poseStack.mulPose(Axis.YP.rotationDegrees(-event.getEntity().getYRot()));
+            Quaternionf rotationZ = Axis.ZP.rotationDegrees(-owVehicle.getBodyZRot());
+            Quaternionf rotationX = Axis.XP.rotationDegrees(-owVehicle.getBodyXRot());
 
-            Quaternionf rotationZ = Axis.ZP.rotationDegrees(-owEntity.getBodyZRot());
-            Quaternionf rotationX = Axis.XP.rotationDegrees(-owEntity.getBodyXRot());
             poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
             poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
 
-            poseStack.mulPose(Axis.YP.rotationDegrees(event.getEntity().getYRot()));
+            poseStack.mulPose(Axis.YP.rotationDegrees(player.getYRot()));
         }
     }
 
     @SubscribeEvent
     public static void onPlayerRenderPost(RenderPlayerEvent.Post event) {
-
         Player player = event.getEntity();
-        if (player.getVehicle() instanceof CrocodileEntity croc && croc.isInWater()) {
-            player.setXRot(savedXRot);
-            player.xRotO = savedXRotO;
-        }
 
-        if (shadowStrikeHiddenRiders.contains(event.getEntity().getId())) return;
+        if (shadowStrikeHiddenRiders.contains(player.getId())) return;
 
-        if (event.getEntity() == null || !(event.getEntity().getVehicle() instanceof OWEntity)) {
+        if (player == null || !(player.getVehicle() instanceof OWEntity)) {
             return;
         }
 
         PoseStack poseStack = event.getPoseStack();
         poseStack.popPose();
+
+        SavedRots rots = SAVED_PLAYER_ROTS.remove(player.getUUID());
+        if (rots != null) {
+            player.setXRot(rots.xRot());
+            player.xRotO = rots.xRotO();
+
+            player.yBodyRot = rots.yBody();
+            player.yBodyRotO = rots.yBodyO();
+
+            player.setYHeadRot(rots.yHead());
+            player.yHeadRotO = rots.yHeadO();
+        }
     }
 
     @SubscribeEvent

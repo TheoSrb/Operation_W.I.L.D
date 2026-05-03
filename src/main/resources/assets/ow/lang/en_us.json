@@ -44,6 +44,10 @@
   "ow.advancements.trailer.description": "You've tamed an Elephant !",
   "ow.advancements.large_teeth.title": "Large teeth !",
   "ow.advancements.large_teeth.description": "You've tamed a Walrus !",
+  "ow.advancements.predatory_smile.title": "Predatory Smile",
+  "ow.advancements.predatory_smile.description": "You have tamed a Crocodile!",
+  "ow.advancements.deep_shadow.title": "Shadow of the Depths",
+  "ow.advancements.deep_shadow.description": "You have tamed an Orca!",
 
 
   "ow.advancements.you_see_me.title": "You see me, you don't see me",
@@ -379,6 +383,7 @@
   "item.ow.crocodile_scale": "Crocodile Scale",
   "item.ow.animal_soul": "%s Soul",
   "item.ow.tiger_saddle": "Tiger Saddle",
+  "item.ow.orca_saddle": "Orca Saddle",
   "item.ow.crocodile_saddle": "Crocodile Saddle",
   "item.ow.kodiak_saddle": "Kodiak Saddle",
   "item.ow.boa_saddle": "Boa Saddle",

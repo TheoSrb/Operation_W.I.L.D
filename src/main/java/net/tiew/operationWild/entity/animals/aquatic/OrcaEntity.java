@@ -199,12 +199,12 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public Item acceptSaddle() {
-        return OWItems.CROCODILE_SADDLE.get();
+        return OWItems.ORCA_SADDLE.get();
     }
 
     @Override
     public ResourceLocation getTamingAdvancement() {
-        return OWAdvancements.CROCODILE_TAMED_ADVANCEMENT;
+        return OWAdvancements.ORCA_TAMED_ADVANCEMENT;
     }
 
     @Override
@@ -332,13 +332,13 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
 
         net.minecraft.world.level.block.SoundType sound = blockState.getSoundType();
-        this.level().playLocalSound(
+        this.level().playSound(
+                null,
                 this.getX(), this.getY(), this.getZ(),
                 sound.getStepSound(),
                 this.getSoundSource(),
                 sound.getVolume() * 0.65f,
-                sound.getPitch() * pitchMod * (0.85f + this.random.nextFloat() * 0.3f),
-                false
+                sound.getPitch() * pitchMod * (0.85f + this.random.nextFloat() * 0.3f)
         );
     }
 
@@ -662,7 +662,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     @Override
     public boolean isControlledByLocalInstance() {
         Entity controlling = this.getControllingPassenger();
-        if (controlling == null) return false;
+        if (controlling == null) {
+            return super.isControlledByLocalInstance();
+        }
         return this.getPassengers().indexOf(controlling) == 0 && super.isControlledByLocalInstance();
     }
 

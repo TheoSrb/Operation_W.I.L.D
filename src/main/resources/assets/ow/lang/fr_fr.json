@@ -46,6 +46,8 @@
   "ow.advancements.large_teeth.description": "Vous avez apprivoisé un Morse !",
   "ow.advancements.predatory_smile.title": "Sourire Carnassier",
   "ow.advancements.predatory_smile.description": "Vous avez apprivoisé un Crocodile !",
+  "ow.advancements.deep_shadow.title": "L'Ombre des Profondeurs",
+  "ow.advancements.deep_shadow.description": "Vous avez apprivoisé une Orque !",
 
 
   "ow.advancements.you_see_me.title": "On me voit, on me voit plus",
@@ -387,6 +389,7 @@
   "item.ow.crocodile_scale": "Écaille de crocodile",
   "item.ow.animal_soul": "Âme de %s",
   "item.ow.tiger_saddle": "Selle de tigre",
+  "item.ow.orca_saddle": "Selle d'orque",
   "item.ow.crocodile_saddle": "Selle de crocodile",
   "item.ow.kodiak_saddle": "Selle de kodiak",
   "item.ow.boa_saddle": "Selle de boa",

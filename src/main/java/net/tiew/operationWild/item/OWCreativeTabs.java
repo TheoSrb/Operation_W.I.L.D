@@ -63,6 +63,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.CROCODILE_SADDLE.get());
                         output.accept(OWItems.ELEPHANT_SADDLE.get());
                         output.accept(OWItems.KODIAK_SADDLE.get());
+                        output.accept(OWItems.ORCA_SADDLE.get());
                         output.accept(OWItems.PEACOCK_SADDLE.get());
                         output.accept(OWItems.TIGER_SADDLE.get());
                         output.accept(OWItems.TIGER_SHARK_SADDLE.get());

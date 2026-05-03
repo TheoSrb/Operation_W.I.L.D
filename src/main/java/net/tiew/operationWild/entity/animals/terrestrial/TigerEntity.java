@@ -492,8 +492,9 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             if (!isGrabbing()) continue;
 
             boolean targetIsPlayer = target instanceof Player;
-            isPlayerGrab = !targetIsPlayer;
-            this.entityData.set(IS_PLAYER_GRAB, !targetIsPlayer);
+            boolean forcePlayerGrab = this.isTame() && this.isVehicle();
+            isPlayerGrab = forcePlayerGrab || !targetIsPlayer;
+            this.entityData.set(IS_PLAYER_GRAB, forcePlayerGrab || !targetIsPlayer);
             this.entityData.set(GRAB_PUNCH_TIMER, 0);
             return;
         }
@@ -780,7 +781,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                 }
             }
             if (!grabbed.isPassenger()) {
-                grabbed.startRiding(this);
+                grabbed.startRiding(this, true);
             }
         } else {
             Vec3 look = this.getLookAngle();
@@ -1157,13 +1158,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
 
         SoundType sound = blockState.getSoundType();
-        this.level().playLocalSound(
+        this.level().playSound(
+                null,
                 this.getX(), this.getY(), this.getZ(),
                 sound.getStepSound(),
                 this.getSoundSource(),
                 sound.getVolume() * 0.5f,
-                sound.getPitch() * pitchMod * (0.9f + this.random.nextFloat() * 0.2f),
-                false
+                sound.getPitch() * pitchMod * (0.9f + this.random.nextFloat() * 0.2f)
         );
     }
 
@@ -1176,7 +1177,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     protected void positionRider(Entity passenger, MoveFunction function) {
-        if (passenger == this.getGrabbedTarget()) {
+        if (this.getGrabbedTargetId() == passenger.getId()) {
             Vec3 look = this.getLookAngle();
             function.accept(passenger, this.getX() + look.x * 2.65f, this.getY() - 1.0, this.getZ() + look.z * 2.65f);
             return;
@@ -1448,6 +1449,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     public boolean isScarifying() {
         return this.entityData.get(IS_SCARIFYING);
+    }
+
+    public int getGrabbedTargetId() {
+        return this.entityData.get(GRABBED_TARGET_ID);
     }
 
     public void setGrabbing(boolean isGrabbing, @Nullable LivingEntity entity) {

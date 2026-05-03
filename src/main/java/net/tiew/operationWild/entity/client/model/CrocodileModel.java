@@ -289,7 +289,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 						&& Minecraft.getInstance().player.getVehicle() == crocodile
 						&& OWAttackLogic.isCharging)
 						? OWAttackLogic.getChargeProgress()
-						: Math.min(crocodile.getChargingMouthTimer() / 40f, 1.0f);
+						: Math.min(crocodile.getChargingMouthTimer() / 60f, 1.0f);
 				applyMouthSlamAnimation(progress, ageInTicks);
 			}
 

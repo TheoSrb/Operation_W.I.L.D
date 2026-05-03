@@ -173,6 +173,8 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
             case "TigerSharkEntity": return 192;
             case "ElephantEntity": return 176;
             case "KodiakEntity": return 160;
+            case "CrocodileEntity": return 144;
+            case "OrcaEntity": return 128;
             default: return 0;
         }
     }
