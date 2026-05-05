@@ -1215,6 +1215,7 @@ public class ClientEvents {
     private static final Set<Integer> shadowStrikeHiddenRiders = new HashSet<>();
 
     private static boolean hasProcessedThisFrame = false;
+    private static int shaderLoadCooldown = 0;
 
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
@@ -1237,11 +1238,15 @@ public class ClientEvents {
                         && currentEffect.getName().equals("ow:shaders/post/submarine_light.json");
 
                 if (minecraft.screen == null && shouldActivateSubmarineEffect(player)) {
-                    if (currentEffect == null) {
+                    if (currentEffect == null && shaderLoadCooldown <= 0) {
                         try {
                             minecraft.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/post/submarine_light.json"));
+                            // If still null after loading, a shader mod (Iris/Oculus) blocked it — back off for ~10 min
+                            if (minecraft.gameRenderer.currentEffect() == null) {
+                                shaderLoadCooldown = 12000;
+                            }
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            shaderLoadCooldown = 12000;
                         }
                     } else if (isOurEffect && !hasProcessedThisFrame) {
                         currentEffect.process(minecraft.getTimer().getGameTimeDeltaPartialTick(true));
@@ -1258,6 +1263,7 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Pre event) {
         hasProcessedThisFrame = false;
+        if (shaderLoadCooldown > 0) shaderLoadCooldown--;
         OWAttacksInformation.tick();
 
         if (OWAttackLogic.isCrocTargeting) {
