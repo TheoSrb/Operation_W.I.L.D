@@ -19,11 +19,19 @@ public class PlayerAttackMixin {
 
     @Shadow @Nullable public LocalPlayer player;
 
+    private static boolean isDriverOfOWVehicle(LocalPlayer player) {
+        if (!(player.getVehicle() instanceof OWEntity owVehicle)) return false;
+        return owVehicle.getPassengers().indexOf(player) == 0;
+    }
+
     @Inject(method = "startAttack", at = @At("HEAD"), cancellable = true)
     private void onStartAttack(CallbackInfoReturnable<Boolean> cir) {
         Minecraft minecraft = (Minecraft) (Object) this;
-        if (minecraft.player != null && ((minecraft.player.getMainHandItem().is(OWItems.SEABUG.get()) || minecraft.player.getOffhandItem().is(OWItems.SEABUG.get())) ||
-                minecraft.player.getRootVehicle() instanceof OWEntity || minecraft.player.hasEffect(OWEffects.FRACTURE.getDelegate()))) {
+        if (minecraft.player != null && (
+                minecraft.player.getMainHandItem().is(OWItems.SEABUG.get()) ||
+                        minecraft.player.getOffhandItem().is(OWItems.SEABUG.get()) ||
+                        isDriverOfOWVehicle(minecraft.player) ||
+                        minecraft.player.hasEffect(OWEffects.FRACTURE.getDelegate()))) {
             cir.setReturnValue(false);
         }
     }
@@ -31,8 +39,11 @@ public class PlayerAttackMixin {
     @Inject(method = "continueAttack", at = @At("HEAD"), cancellable = true)
     private void onContinueAttack(boolean leftClick, CallbackInfo ci) {
         Minecraft minecraft = (Minecraft) (Object) this;
-        if (minecraft.player != null && ((minecraft.player.getMainHandItem().is(OWItems.SEABUG.get()) || minecraft.player.getOffhandItem().is(OWItems.SEABUG.get())) ||
-                minecraft.player.getRootVehicle() instanceof OWEntity || minecraft.player.hasEffect(OWEffects.FRACTURE.getDelegate()))) {
+        if (minecraft.player != null && (
+                minecraft.player.getMainHandItem().is(OWItems.SEABUG.get()) ||
+                        minecraft.player.getOffhandItem().is(OWItems.SEABUG.get()) ||
+                        isDriverOfOWVehicle(minecraft.player) ||
+                        minecraft.player.hasEffect(OWEffects.FRACTURE.getDelegate()))) {
             ci.cancel();
         }
     }

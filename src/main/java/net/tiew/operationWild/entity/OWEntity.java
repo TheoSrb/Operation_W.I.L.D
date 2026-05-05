@@ -1751,10 +1751,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return;
         }
 
-        if (!this.level().isClientSide()) {
-            setRunning(target != null);
-        }
-
         if (target == null) {
             lastVisibleTarget = null;
         }
@@ -1848,7 +1844,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
             if (this.isRunning() && this.isVehicle() && this.isTame() && isActuallyMoving) {
                 boolean isCrocodileInWater = this instanceof CrocodileEntity crocodile && crocodile.isInWater();
-                setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 1 : 0.5f));
+                setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 0.75f : 0.5f));
             }
 
             if (!isRunning() && getVitalEnergy() > 0 && !isCombo()) {

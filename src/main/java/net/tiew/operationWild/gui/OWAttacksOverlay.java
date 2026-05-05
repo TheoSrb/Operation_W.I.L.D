@@ -61,7 +61,9 @@ public class OWAttacksOverlay {
 
         if (entity.getPassengers().indexOf(player) != 0) return;
 
-        if (!player.getUUID().equals(entity.getOwnerUUID())) return;
+        boolean isCrocodileReadyForTaming = entity instanceof CrocodileEntity croc
+                && croc.crocodileBehaviorHandler.isReadyForTaming() && !croc.isTame();
+        if (!player.getUUID().equals(entity.getOwnerUUID()) && !isCrocodileReadyForTaming) return;
 
         Class<?> entityClass = entity.getClass();
         List<OWAttack> attacks = OWAttacksHandler.getAttacks(entityClass);

@@ -1,10 +1,17 @@
 package net.tiew.operationWild.entity.animals.terrestrial;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.TimeUtil;
+import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.level.block.SoundType;
+import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.particle.OWParticles;
 import net.minecraft.nbt.CompoundTag;
@@ -70,7 +77,7 @@ import java.util.*;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
+public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, NeutralMob {
     // ==================================================
     //              CONSTANTES PRINCIPALES
     // ==================================================
@@ -174,6 +181,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public ChestBlockEntity chestBlockEntity = null;
     public boolean isSearchingInsideChest = false;
 
+    private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(29, 41);
+    private int remainingPersistentAngerTime;
+    @javax.annotation.Nullable
+    private UUID persistentAngerTarget;
+
     // ==================================================
     //            INTÉLLIGENCE ARTIFICIELLE
     // ==================================================
@@ -204,8 +216,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
-        this.goalSelector.addGoal(0, new OWAttackGoal(this, this.getSpeed() * 30f, 8, 3, false));
 
+        this.goalSelector.addGoal(1, new KodiakMeleeAttackGoal());
         this.goalSelector.addGoal(1, new KodiakRollGoal(this, 1.5f));
         this.goalSelector.addGoal(1, new KodiakAttractedToFoodItemGoal(this, 1.75f, 15, 7.5f, () -> kodiakBehaviorHandler.pickupItemInHisMouth(this.foodPick), this.getFoodPick().isEmpty()));
 
@@ -230,9 +242,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(3, new KodiakNearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.addGoal(4, new KodiakNearestAttackableTargetGoal<>(this, Animal.class, true));
-        this.targetSelector.addGoal(5, new KodiakNearestAttackableTargetGoal<>(this, Monster.class, true));
+        this.targetSelector.addGoal(3, new KodiakNearestAttackableTargetGoal(this, Player.class, true));
+        this.targetSelector.addGoal(4, new KodiakNearestAttackableTargetGoal(this, Animal.class, true));
+        this.targetSelector.addGoal(5, new KodiakNearestAttackableTargetGoal(this, Monster.class, true));
 
         this.lookControl = new LookControl(this) {
             @Override
@@ -417,7 +429,38 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public void playStepSound(BlockPos blockPos, BlockState blockState) {
+        // Intentionally empty — replaced by animation callbacks below
+    }
 
+    private void playStepSoundFromAnimation(float pitchMod) {
+        if (!this.level().isClientSide()) return;
+        if (!this.onGround()) return;
+        if (this.isInWater()) return;
+
+        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
+
+        long now = System.currentTimeMillis();
+        if (now - lastStepSoundMs < 200L) return;
+        lastStepSoundMs = now;
+
+        BlockState blockState = this.getBlockStateOn();
+        if (blockState.isAir()) return;
+
+        BlockPos pos = this.blockPosition();
+        SoundType soundtype = blockState.getSoundType(this.level(), pos, this);
+
+        for (int i = 0; i < 7; i++) {
+            this.level().playLocalSound(
+                    this.getX(),
+                    this.getY(),
+                    this.getZ(),
+                    soundtype.getStepSound(),
+                    this.getSoundSource(),
+                    soundtype.getVolume() * 0.15F,
+                    soundtype.getPitch() * pitchMod,
+                    false
+            );
+        }
     }
 
     public void onLeftFootDown() {
@@ -437,6 +480,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         super.tick();
         kodiakTaming.tick();
 
+        if (!this.level().isClientSide()) {
+            System.out.println(this.getRemainingPersistentAngerTime());
+        }
+
         boolean hasSomethingInHisMouth = getFoodPick() != null && !getFoodPick().isEmpty();
 
         if (!isPawSlamCharging() && !isPawSlamStriking()) {
@@ -451,7 +498,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
-        // Dégâts différés : fire 7 ticks après le relâcher (pic d'impact dans l'animation à 0.35s)
         if (pawSlamHitTimer > 0 && !this.level().isClientSide()) {
             pawSlamHitTimer--;
             if (pawSlamHitTimer == 0) {
@@ -672,7 +718,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
-        if (this.isDirty()) {
+        if (!this.level().isClientSide() && this.isDirty()) {
             if (dirtyTimer <= MAX_DIRTY_TIMER) {
                 dirtyTimer++;
             } else {
@@ -704,28 +750,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         handleGoldVariantEffects();
     }
 
-    private void playStepSoundFromAnimation(float pitchMod) {
-        if (!this.onGround()) return;
-        if (this.isInWater()) return;
-        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
-        long now = System.currentTimeMillis();
-        if (now - lastStepSoundMs < 450L) return;
-        lastStepSoundMs = now;
-
-        BlockState blockState = this.getBlockStateOn();
-        if (blockState.isAir()) return;
-
-        net.minecraft.world.level.block.SoundType sound = blockState.getSoundType();
-        this.level().playSound(
-                null,
-                this.getX(), this.getY(), this.getZ(),
-                sound.getStepSound(),
-                this.getSoundSource(),
-                sound.getVolume() * 0.7f,
-                sound.getPitch() * pitchMod * (0.88f + this.random.nextFloat() * 0.24f)
-        );
-    }
-
     @Override
     protected float getRiderAnimYOffset() {
         return -bodyAnimY / 16.0f * this.getScale();
@@ -753,7 +777,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     protected double getBaseRiderYOffset(int idx) {
-        double factor = (idx == 0) ? 0.5 : 0.6;
+        double factor = (idx == 0) ? 0.5 : 0.65;
         return this.getBbHeight() * factor * this.getScale();
     }
 
@@ -770,9 +794,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         if (isUltimateNapping()) {
             float scale = Math.max(this.getScale(), 1f);
-            float napXLocal = 0.42f * scale;
+            float napXLocal = (idx == 0 ? 0.55f : 0.42f) * scale;
             Vec3 napSeatOffset = new Vec3(-napXLocal, 0, 0).yRot((float) Math.toRadians(-this.yBodyRot));
-            double napRiderY = this.getY() + 1.05 * scale + getRiderAnimYOffset();
+            double napRiderY = this.getY() + (idx == 0 ? 0.85 : 1.05) * scale + getRiderAnimYOffset();
             passenger.fallDistance = 0f;
             function.accept(passenger, this.getX() + napSeatOffset.x, napRiderY, this.getZ() + napSeatOffset.z);
             float fixedYaw = this.getYRot();
@@ -827,7 +851,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 living.yBodyRot = this.yBodyRot;
             }
         } else {
-            float seatZ = -1.1f;
+            float seatZ = -0.8f;
             Vec3 seatOffset = new Vec3(0f, 0, seatZ)
                     .yRot((float) Math.toRadians(-this.yBodyRot));
 
@@ -840,10 +864,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                     this.getX() + seatOffset.x,
                     riderY,
                     this.getZ() + seatOffset.z);
-
-            if (passenger instanceof LivingEntity living) {
-                living.yBodyRot = this.yBodyRot;
-            }
         }
     }
 
@@ -910,6 +930,32 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public void startPersistentAngerTimer() {
+        this.setRemainingPersistentAngerTime(PERSISTENT_ANGER_TIME.sample(this.random));
+    }
+
+    @Override
+    public void setRemainingPersistentAngerTime(int time) {
+        this.remainingPersistentAngerTime = time;
+    }
+
+    @Override
+    public int getRemainingPersistentAngerTime() {
+        return this.remainingPersistentAngerTime;
+    }
+
+    @Override
+    public void setPersistentAngerTarget(@javax.annotation.Nullable UUID target) {
+        this.persistentAngerTarget = target;
+    }
+
+    @javax.annotation.Nullable
+    @Override
+    public UUID getPersistentAngerTarget() {
+        return this.persistentAngerTarget;
+    }
+
+    @Override
     public void setTarget(@Nullable LivingEntity target) {
         if (isSettingTarget) {
             return;
@@ -947,10 +993,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         } finally {
             isSettingTarget = false;
         }
-
-        if (!isTame()) {
-            setMad(!isBaby() && target != null && getSleepBarPercent() < 75 && !this.isSitting());
-        }
     }
 
     @Override
@@ -966,10 +1008,17 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         }
         if (!this.isTame()) {
             if (this.isSitting()) this.setSitting(false);
+            if (this.isRubs()) this.setRubs(false);
         }
         boolean result = super.hurt(damageSource, v);
         if (isUltimateNapping() && !isNapping()) {
             setNap(true);
+        }
+
+        if (result && !this.isTame() && damageSource.getEntity() instanceof LivingEntity attacker) {
+            this.startPersistentAngerTimer();
+            this.setPersistentAngerTarget(attacker.getUUID());
+            this.setTarget(attacker);
         }
         return result;
     }
@@ -1007,10 +1056,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 && this.getTarget() == null && !this.isNapping() && (this.getFoodPick() == ItemStack.EMPTY ||
                 this.getFoodPick() == null && !this.isRubs())) {
             if (itemStack.is(Tags.Items.FOODS) || itemStack.is(Items.HONEYCOMB)) {
-                kodiakBehaviorHandler.pickupItemInHisMouth(heldItem.getDefaultInstance().copy());
-                itemStack.shrink(1);
-                lastPlayerWhoFeedHim = player;
-
+                if (!this.level().isClientSide()) {
+                    kodiakBehaviorHandler.pickupItemInHisMouth(heldItem.getDefaultInstance().copy());
+                    itemStack.shrink(1);
+                    lastPlayerWhoFeedHim = player;
+                }
                 return InteractionResult.SUCCESS;
             }
         }
@@ -1264,6 +1314,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());
     }
 
+    public float getBodyZRot_passenger() {
+        return bodyZRot_passenger;
+    }
+
+    public float getBodyXRot_passenger() {
+        return bodyXRot_passenger;
+    }
+
     public void setSkinShade(boolean isShade) { this.entityData.set(IS_SHADE_SKIN, isShade);}
 
     public boolean isShade() { return this.entityData.get(IS_SHADE_SKIN);}
@@ -1274,7 +1332,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public void setDirty(boolean isDirty) {
         this.entityData.set(IS_DIRTY, isDirty);
-        this.playSound(SoundEvents.HONEY_BLOCK_PLACE);
+        if (isDirty) this.playSound(SoundEvents.HONEY_BLOCK_PLACE);
     }
 
     public boolean isCatchingSalmon() {
@@ -1414,6 +1472,13 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public boolean isUltimateNapping() { return this.entityData.get(IS_ULTIMATE_NAPPING); }
     private void setUltimateNapping(boolean napping) { this.entityData.set(IS_ULTIMATE_NAPPING, napping); }
 
+
+    @Override
+    protected void customServerAiStep() {
+        this.updatePersistentAnger((ServerLevel) this.level(), false);
+        super.customServerAiStep();
+    }
+
     // ── Paw Slam ──────────────────────────────────────────────────────────────
 
     public void startPawSlamCharge() {
@@ -1461,7 +1526,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         java.util.UUID myOwner = this.getOwnerUUID();
         List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area, target -> {
-            if (target == this || target == this.getControllingPassenger() || isAlliedTo(target)) return false;
+            if (target == this) return false;
+            if (this.getPassengers().contains(target)) return false;
+            if (isAlliedTo(target)) return false;
             if (myOwner != null) {
                 if (target.getUUID().equals(myOwner)) return false;
                 if (target instanceof TamableAnimal ta && myOwner.equals(ta.getOwnerUUID())) return false;
@@ -1495,4 +1562,82 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     protected int getDefaultSkinIndex() { return 4; }
+
+    class KodiakMeleeAttackGoal extends MeleeAttackGoal {
+
+        public KodiakMeleeAttackGoal() {
+            super(KodiakEntity.this, 5, true);
+        }
+
+        @Override
+        public boolean canUse() {
+            if (KodiakEntity.this.getRemainingPersistentAngerTime() <= 0) return false;
+            return super.canUse();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            if (KodiakEntity.this.getRemainingPersistentAngerTime() <= 0) return false;
+            return super.canContinueToUse();
+        }
+
+        @Override
+        public void start() {
+            super.start();
+            if (KodiakEntity.this.getRemainingPersistentAngerTime() <= 0) {
+                KodiakEntity.this.startPersistentAngerTimer();
+            }
+            KodiakEntity.this.setMad(true);
+            KodiakEntity.this.setRunning(true);
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            KodiakEntity.this.setMad(false);
+            KodiakEntity.this.setRunning(false);
+        }
+
+        @Override
+        protected boolean canPerformAttack(LivingEntity entity) {
+            double reach = 3.5;
+            return this.isTimeToAttack()
+                    && this.mob.distanceToSqr(entity) <= reach * reach
+                    && this.mob.getSensing().hasLineOfSight(entity);
+        }
+
+        @Override
+        protected void checkAndPerformAttack(LivingEntity target) {
+            if (this.mob.hasEffect(OWEffects.FRACTURE.getDelegate())) return;
+            if (!this.canPerformAttack(target)) return;
+
+            if (this.mob instanceof OWEntity owEntity) {
+                if (!owEntity.isCombo()) {
+                    owEntity.setCombo(true, 1);
+                } else if (owEntity.isPauseCombo()) {
+                    owEntity.playerContinueCombo = true;
+                }
+            }
+        }
+
+    }
+
+    class KodiakNearestAttackableTargetGoal extends NearestAttackableTargetGoal {
+
+        public KodiakNearestAttackableTargetGoal(Mob mob, Class targetType, boolean mustSee) {
+            super(mob, targetType, mustSee);
+        }
+
+        @Override
+        public boolean canUse() {
+            if (!KodiakEntity.this.isHungry()) return false;
+            return super.canUse();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            if (!KodiakEntity.this.isHungry()) return false;
+            return super.canContinueToUse();
+        }
+    }
 }

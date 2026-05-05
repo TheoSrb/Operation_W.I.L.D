@@ -17,12 +17,6 @@ public class OWAttackGoal extends Goal {
     protected final double attackRange;
     protected static final double MAX_CHASE_DISTANCE = 48.0;
 
-    protected static final float MAX_HEAD_ROTATION_SPEED = 15.0F;
-    protected static final float MAX_BODY_ROTATION_SPEED = 5.0F;
-    protected static final float HEAD_BODY_ANGLE_THRESHOLD = 75.0F;
-
-    protected float targetYaw;
-    protected float targetPitch;
     protected boolean isRotatingToTarget;
 
     protected Path path;
@@ -111,50 +105,6 @@ public class OWAttackGoal extends Goal {
             this.performAttack(target);
             this.ticksUntilNextAttack = this.attackCooldown;
         }
-    }
-
-    protected void updateSmoothLookAt(LivingEntity target) {
-        double dx = target.getX() - this.mob.getX();
-        double dy = target.getY() + target.getEyeHeight() - (this.mob.getY() + this.mob.getEyeHeight());
-        double dz = target.getZ() - this.mob.getZ();
-        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
-
-        this.targetYaw = (float)(Mth.atan2(dz, dx) * (180.0 / Math.PI)) - 90.0F;
-        this.targetPitch = (float)(-(Mth.atan2(dy, horizontalDist) * (180.0 / Math.PI)));
-
-        this.targetYaw = Mth.wrapDegrees(this.targetYaw);
-        this.targetPitch = Mth.clamp(this.targetPitch, -90.0F, 90.0F);
-
-        float currentHeadYaw = this.mob.getYHeadRot();
-        float headYawDiff = Mth.wrapDegrees(this.targetYaw - currentHeadYaw);
-
-        float headYawChange = Mth.clamp(headYawDiff, -MAX_HEAD_ROTATION_SPEED, MAX_HEAD_ROTATION_SPEED);
-        float newHeadYaw = currentHeadYaw + headYawChange;
-
-        this.mob.setYHeadRot(newHeadYaw);
-        this.mob.yHeadRotO = newHeadYaw;
-
-        float currentBodyYaw = this.mob.getYRot();
-        float bodyHeadDiff = Mth.wrapDegrees(newHeadYaw - currentBodyYaw);
-
-        if (Math.abs(bodyHeadDiff) > HEAD_BODY_ANGLE_THRESHOLD) {
-            float bodyYawDiff = Mth.wrapDegrees(this.targetYaw - currentBodyYaw);
-            float bodyYawChange = Mth.clamp(bodyYawDiff, -MAX_BODY_ROTATION_SPEED, MAX_BODY_ROTATION_SPEED);
-            float newBodyYaw = currentBodyYaw + bodyYawChange;
-
-            this.mob.setYRot(newBodyYaw);
-            this.mob.yRotO = newBodyYaw;
-            this.mob.yBodyRot = newBodyYaw;
-            this.mob.yBodyRotO = newBodyYaw;
-        }
-
-        float currentPitch = this.mob.getXRot();
-        float pitchDiff = this.targetPitch - currentPitch;
-        float pitchChange = Mth.clamp(pitchDiff, -MAX_HEAD_ROTATION_SPEED * 0.5F, MAX_HEAD_ROTATION_SPEED * 0.5F);
-        float newPitch = currentPitch + pitchChange;
-
-        this.mob.setXRot(newPitch);
-        this.mob.xRotO = newPitch;
     }
 
     protected void performAttack(LivingEntity target) {

@@ -81,6 +81,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimXRot = 0f;
     public volatile float bodyAnimX = 0f;
+    public volatile float bodyAnimY_passenger = 0f;
+    public volatile float bodyZRot_passenger  = 0f;
+    public volatile float bodyXRot_passenger  = 0f;
+    public volatile float bodyAnimX_passenger = 0f;
+
 
     private int orcaUltimateKillCount = 0;
 
@@ -634,10 +639,15 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         float seatZ, seatX;
         switch (idx) {
-            case 1  -> { seatZ = -0.7f; seatX =  0.45f; }
-            case 2  -> { seatZ = -0.7f; seatX = -0.45f; }
+            case 1  -> { seatZ = -0.9f; seatX =  0.45f; }
+            case 2  -> { seatZ = -0.9f; seatX = -0.45f; }
             default -> { seatZ =  0.65f; seatX = 0f;    }
         }
+
+        float boneX = idx == 0
+                ? -bodyAnimX / 16.0f * this.getScale()
+                : -bodyAnimX_passenger / 16.0f * this.getScale();
+        seatX += boneX;
 
         float pitch = this.bodyAnimXRot;
         float rotatedY = -seatZ * Mth.sin(pitch);
@@ -647,11 +657,20 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 .yRot((float) Math.toRadians(-this.yBodyRot));
 
         double baseY = getBaseRiderYOffset(idx);
-        float  animY = idx == 0 ? getRiderAnimYOffset() : 0f;
+        float animY = idx == 0
+                ? getRiderAnimYOffset()
+                : -bodyAnimY_passenger / 16.0f * this.getScale();
         double riderY = this.getY() + baseY + animY + seatOffset.y;
 
         passenger.fallDistance = 0f;
-        function.accept(passenger, this.getX() + seatOffset.x, riderY, this.getZ() + seatOffset.z);
+        function.accept(passenger,
+                this.getX() + seatOffset.x,
+                riderY,
+                this.getZ() + seatOffset.z);
+
+        if (idx == 0 && passenger instanceof LivingEntity living) {
+            living.yBodyRot = this.yBodyRot;
+        }
     }
 
     @Override
@@ -697,7 +716,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     protected int getDefaultSkinIndex() {
-        return 7; // index 1 = GOLD, … 7 réservés, 8 = reset (no skin)
+        return 7;
     }
 
     private void handleGoldVariantEffects() {
@@ -760,6 +779,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     }
 
     public float getRiderControlPitch() { return this.entityData.get(RIDER_CONTROL_PITCH); }
+
+    public float getBodyZRot_passenger() { return bodyZRot_passenger; }
+    public float getBodyXRot_passenger() { return bodyXRot_passenger; }
 
     @Override
     public void changeSkin(int skinIndex, boolean playingEffects) {

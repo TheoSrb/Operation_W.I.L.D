@@ -69,7 +69,7 @@ public class KodiakSkinRenderLayer extends RenderLayer<KodiakEntity, KodiakModel
 
     private void renderShade(PoseStack poseStack, MultiBufferSource bufferSource, KodiakModel<KodiakEntity> model) {
         VertexConsumer vc = bufferSource.getBuffer(RenderType.beaconBeam(SKIN_SHADE_TEXTURE, true));
-        model.renderToBuffer(poseStack, vc, 15728880, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+        model.renderGeometryOnly(poseStack, vc, 15728880, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
     }
 
     private KodiakModel<KodiakEntity> getOrBakeModel(ModelLayerLocation layer) {

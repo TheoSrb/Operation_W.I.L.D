@@ -10,6 +10,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 
+import java.util.List;
+
 public record OpenOWInventoryPacket() implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<OpenOWInventoryPacket> TYPE =
@@ -28,9 +30,13 @@ public record OpenOWInventoryPacket() implements CustomPacketPayload {
             if (context.player() instanceof ServerPlayer player) {
                 Entity entity = player.getRootVehicle();
 
-                if (entity != null) {
-                    if (entity instanceof OWEntity owEntities) {
-                        player.openMenu(owEntities);
+                if (entity instanceof OWEntity owEntity) {
+                    List<Entity> passengers = entity.getPassengers();
+                    boolean isDriver = !passengers.isEmpty() && passengers.get(0) == player;
+                    boolean isOwner = player.getUUID().equals(owEntity.getOwnerUUID());
+
+                    if (isDriver && isOwner) {
+                        player.openMenu(owEntity);
                     }
                 }
             }

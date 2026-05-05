@@ -5,6 +5,9 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.Salmon;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.client.layer.KodiakLayer;
 import net.tiew.operationWild.entity.client.layer.skins.KodiakSkinRenderLayer;
@@ -46,6 +49,7 @@ public class KodiakRenderer extends OWEntityRenderer<KodiakEntity, KodiakModel<K
                 ? skin.getModelLayer().map(this::getOrBakeModel).orElse(getOrBakeModel(KodiakModel.LAYER_LOCATION))
                 : getOrBakeModel(KodiakModel.LAYER_LOCATION);
 
+        this.getModel().setBufferSource(bufferSource);
         super.render(kodiak, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
 

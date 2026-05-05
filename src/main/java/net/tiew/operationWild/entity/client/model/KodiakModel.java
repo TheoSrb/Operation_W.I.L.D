@@ -27,14 +27,14 @@ import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kodiak_default"), "main");
 
-    private final ModelPart ALL2;
-    private final ModelPart ALL;
+    public final ModelPart ALL2;
+    public final ModelPart ALL;
     private final ModelPart right_leg;
     private final ModelPart left_leg;
-    private final ModelPart body;
-    private final ModelPart body_2;
-    private final ModelPart body_1;
-    private final ModelPart head;
+    public final ModelPart body;
+    public final ModelPart body_2;
+    public final ModelPart body_1;
+    public final ModelPart head;
     private final ModelPart left_ear;
     private final ModelPart right_ear;
     private final ModelPart left_eyeBall;
@@ -295,100 +295,39 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
             this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, animSpeed, 1.35f);
 
-            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 300L)) kodiak.onRightFootDown();
-            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 300L)) kodiak.onLeftFootDown();
-            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 1000L)) kodiak.onLeftFootDown();
-            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 1000L)) kodiak.onRightFootDown();
+            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 240L)) kodiak.onRightFootDown();
+            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 240L)) kodiak.onLeftFootDown();
+            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 920L)) kodiak.onLeftFootDown();
+            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 920L)) kodiak.onRightFootDown();
         } else {
             this.animateWalk(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
 
-            if (walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 650L)) kodiak.onRightFootDown();
-            if (walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 1450L)) kodiak.onLeftFootDown();
+            if (walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 550L)) kodiak.onRightFootDown();
+            if (walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 1350L)) kodiak.onLeftFootDown();
         }
 
         this.prevLimbSwing = limbSwing;
         captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
-        captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
+        captureBodyState(kodiak, 12f, true, this.ALL2, this.ALL, this.body, this.body_2);
+    }
+
+    /** Renders only the model geometry — no items in mouth. Used by all skin/effect layers. */
+    public void renderGeometryOnly(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
+        this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
 
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
-        this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
+        renderGeometryOnly(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 
         if (this.currentEntity != null) {
             if (!this.currentEntity.getFoodPick().isEmpty()) {
                 renderItemOnHead(this.currentEntity, poseStack, packedLight);
             }
-
             if (this.currentEntity.isCatchingSalmon()) {
                 renderSalmonInMouth(this.currentEntity, poseStack, packedLight, new Salmon(EntityType.SALMON, currentEntity.level()));
             }
         }
-    }
-
-    private void renderSalmonInMouth(KodiakEntity kodiak, PoseStack poseStack, int packedLight, LivingEntity livingEntity) {
-        LivingEntity fakeEntity = (LivingEntity) livingEntity.getType().create(kodiak.level());
-        if (fakeEntity == null) return;
-
-        poseStack.pushPose();
-
-        this.head.translateAndRotate(poseStack);
-
-        poseStack.translate(0.0D, 0.75f, -1.05D);
-        poseStack.mulPose(Axis.YP.rotationDegrees(90));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(180));
-        poseStack.scale(0.8f, 0.8f, 0.8f);
-
-        fakeEntity.yBodyRot = 0;
-        fakeEntity.yBodyRotO = 0;
-        fakeEntity.yHeadRot = 0;
-        fakeEntity.yHeadRotO = 0;
-        fakeEntity.setXRot(0);
-        fakeEntity.xRotO = 0;
-        fakeEntity.setYRot(0);
-        fakeEntity.yRotO = 0;
-
-        fakeEntity.setAirSupply(fakeEntity.getMaxAirSupply());
-        fakeEntity.tickCount = kodiak.tickCount;
-
-        var entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-        var salmonRenderer = entityRenderDispatcher.getRenderer(fakeEntity);
-
-        MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-
-        salmonRenderer.render(fakeEntity, 0, 1.0f, poseStack, bufferSource, packedLight);
-
-        poseStack.popPose();
-    }
-
-    private void renderItemOnHead(KodiakEntity kodiak, PoseStack poseStack, int packedLight) {
-        poseStack.pushPose();
-
-        this.ALL2.translateAndRotate(poseStack);
-        this.ALL.translateAndRotate(poseStack);
-        this.body.translateAndRotate(poseStack);
-        this.body_2.translateAndRotate(poseStack);
-        this.body_1.translateAndRotate(poseStack);
-        this.head.translateAndRotate(poseStack);
-
-        poseStack.translate(0.0D, 0.35D, -1D);
-        poseStack.mulPose(Axis.XP.rotationDegrees(90));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(180));
-        poseStack.scale(1.2f, 1.2f, 1.2f);
-
-        MultiBufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-        Minecraft.getInstance().getItemRenderer().renderStatic(
-                kodiak.getFoodPick(),
-                ItemDisplayContext.GROUND,
-                packedLight,
-                OverlayTexture.NO_OVERLAY,
-                poseStack,
-                bufferSource,
-                kodiak.level(),
-                0
-        );
-
-        poseStack.popPose();
     }
 
     private float prevLimbSwing = 0f;
@@ -411,6 +350,79 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
             kodiak.bodyXRotCamera = (float) -Math.toDegrees(this.body_1.xRot);
             kodiak.bodyAnimY = animY;
         }
+    }
+
+    private MultiBufferSource currentBufferSource;
+
+    public void setBufferSource(MultiBufferSource bufferSource) {
+        this.currentBufferSource = bufferSource;
+    }
+
+    private void renderItemOnHead(KodiakEntity kodiak, PoseStack poseStack, int packedLight) {
+        MultiBufferSource bufferSource = this.currentBufferSource;
+        if (bufferSource == null) return;
+
+        poseStack.pushPose();
+
+        this.ALL2.translateAndRotate(poseStack);
+        this.ALL.translateAndRotate(poseStack);
+        this.body.translateAndRotate(poseStack);
+        this.body_2.translateAndRotate(poseStack);
+        this.body_1.translateAndRotate(poseStack);
+        this.head.translateAndRotate(poseStack);
+
+        poseStack.translate(0.0D, 0.35D, -1D);
+        poseStack.mulPose(Axis.XP.rotationDegrees(90));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(180));
+        poseStack.scale(1.2f, 1.2f, 1.2f);
+
+        Minecraft.getInstance().getItemRenderer().renderStatic(
+                kodiak.getFoodPick(),
+                ItemDisplayContext.GROUND,
+                packedLight,
+                OverlayTexture.NO_OVERLAY,
+                poseStack,
+                bufferSource,
+                kodiak.level(),
+                0
+        );
+
+        poseStack.popPose();
+    }
+
+    private void renderSalmonInMouth(KodiakEntity kodiak, PoseStack poseStack, int packedLight, LivingEntity livingEntity) {
+        MultiBufferSource bufferSource = this.currentBufferSource;
+        if (bufferSource == null) return;
+
+        LivingEntity fakeEntity = (LivingEntity) livingEntity.getType().create(kodiak.level());
+        if (fakeEntity == null) return;
+
+        poseStack.pushPose();
+
+        this.head.translateAndRotate(poseStack);
+
+        poseStack.translate(0.0D, 0.75f, -1.05D);
+        poseStack.mulPose(Axis.YP.rotationDegrees(90));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(180));
+        poseStack.scale(0.8f, 0.8f, 0.8f);
+
+        fakeEntity.yBodyRot = 0;
+        fakeEntity.yBodyRotO = 0;
+        fakeEntity.yHeadRot = 0;
+        fakeEntity.yHeadRotO = 0;
+        fakeEntity.setXRot(0);
+        fakeEntity.xRotO = 0;
+        fakeEntity.setYRot(0);
+        fakeEntity.yRotO = 0;
+        fakeEntity.setAirSupply(fakeEntity.getMaxAirSupply());
+        fakeEntity.tickCount = kodiak.tickCount;
+
+        var entityRenderDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+        var salmonRenderer = entityRenderDispatcher.getRenderer(fakeEntity);
+
+        salmonRenderer.render(fakeEntity, 0, 1.0f, poseStack, bufferSource, packedLight);
+
+        poseStack.popPose();
     }
 
     /**

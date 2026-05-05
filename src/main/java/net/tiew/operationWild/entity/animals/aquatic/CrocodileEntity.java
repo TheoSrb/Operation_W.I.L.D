@@ -18,6 +18,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.ai.goal.FollowBoatGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.*;
@@ -48,6 +49,7 @@ import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.behavior.CrocodileBehaviorHandler;
@@ -107,7 +109,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private static final float SEG_DIST = 1.25f;
     private static final float BODY_TAIL_OFFSET = 0.75f;
 
-    // Rotations animées des os de queue — capturées par CrocodileModel chaque frame
     public volatile float tail1AnimXRot = 0f, tail1AnimYRot = 0f, tail1AnimZRot = 0f;
     public volatile float tail2AnimXRot = 0f, tail2AnimYRot = 0f, tail2AnimZRot = 0f;
     public volatile float tail3AnimXRot = 0f, tail3AnimYRot = 0f, tail3AnimZRot = 0f;
@@ -202,7 +203,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.goalSelector.addGoal(0, new CrocodileGoToWaterWithFoodGoal(this));
         this.goalSelector.addGoal(0, new JumpOutOfTheWaterGoal(this));
         this.goalSelector.addGoal(0, new FollowBoatGoal(this));
-        this.goalSelector.addGoal(1, new CrocodileAttackGoal(this, this.getSpeed() * 20f, 15, 4, false));
+        this.goalSelector.addGoal(1, new CrocodileMeleeAttackGoal());
         this.goalSelector.addGoal(2, new CrocodileChargingMouthGoal(this));
         this.goalSelector.addGoal(3, new CrocodileNapGoal(this, 1.25f, 500, true));
         this.goalSelector.addGoal(4, new OWBreedGoal(this, 1.0D));
@@ -1709,5 +1710,63 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
             return true;
         }
+    }
+
+    class CrocodileMeleeAttackGoal extends MeleeAttackGoal {
+
+        public CrocodileMeleeAttackGoal() {
+            super(CrocodileEntity.this, 3.5, true);
+        }
+
+        private boolean isCrocodileBlocked() {
+            return CrocodileEntity.this.crocodileBehaviorHandler.isReadyForTaming()
+                    || CrocodileEntity.this.isBaby()
+                    || CrocodileEntity.this.hasGrabSomething()
+                    || CrocodileEntity.this.isChargingAttack;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            if (isCrocodileBlocked() || CrocodileEntity.this.crocodileBehaviorHandler.isReadyForTaming()) return false;
+            return super.canContinueToUse();
+        }
+
+        @Override
+        public void start() {
+            if (isCrocodileBlocked() || CrocodileEntity.this.crocodileBehaviorHandler.isReadyForTaming()) return;
+            super.start();
+            CrocodileEntity.this.setRunning(true);
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            CrocodileEntity.this.setRunning(false);
+        }
+
+        @Override
+        protected boolean canPerformAttack(LivingEntity entity) {
+            if (CrocodileEntity.this.isChargingMouth() || CrocodileEntity.this.crocodileBehaviorHandler.isReadyForTaming()) return false;
+            double reach = 4;
+            return this.isTimeToAttack()
+                    && this.mob.distanceToSqr(entity) <= reach * reach
+                    && this.mob.getSensing().hasLineOfSight(entity);
+        }
+
+        @Override
+        protected void checkAndPerformAttack(LivingEntity target) {
+            if (this.mob.hasEffect(OWEffects.FRACTURE.getDelegate())) return;
+            if (!this.canPerformAttack(target)) return;
+            if (CrocodileEntity.this.isChargingMouth() || CrocodileEntity.this.crocodileBehaviorHandler.isReadyForTaming()) return;
+
+            if (this.mob instanceof OWEntity owEntity) {
+                if (!owEntity.isCombo()) {
+                    owEntity.setCombo(true, 1);
+                } else if (owEntity.isPauseCombo()) {
+                    owEntity.playerContinueCombo = true;
+                }
+            }
+        }
+
     }
 }

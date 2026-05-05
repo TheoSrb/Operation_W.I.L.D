@@ -1,7 +1,6 @@
 package net.tiew.operationWild.entity.goals.crocodile;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
 
@@ -14,47 +13,23 @@ public class CrocodileAttackGoal extends OWAttackGoal {
         this.crocodile = crocodile;
     }
 
+    private boolean isCrocodileBlocked() {
+        return crocodile.crocodileBehaviorHandler.isReadyForTaming()
+                || crocodile.isBaby()
+                || crocodile.hasGrabSomething()
+                || crocodile.isChargingAttack;
+    }
+
     @Override
     public boolean canUse() {
-        if (crocodile.crocodileBehaviorHandler.isReadyForTaming()) return false;
-        if (crocodile.isBaby()) return false;
-        if (crocodile.hasGrabSomething()) return false;
-        if (crocodile.isChargingAttack) return false;
+        if (isCrocodileBlocked()) return false;
         return super.canUse();
     }
 
     @Override
     public boolean canContinueToUse() {
-        if (crocodile.crocodileBehaviorHandler.isReadyForTaming()) return false;
-        if (crocodile.isBaby()) return false;
-        if (crocodile.hasGrabSomething()) return false;
-        if (crocodile.isChargingAttack) return false;
+        if (isCrocodileBlocked()) return false;
         return super.canContinueToUse();
-    }
-
-    @Override
-    public void tick() {
-        LivingEntity target = this.mob.getTarget();
-        if (target == null || this.mob.hasEffect(OWEffects.FRACTURE.getDelegate())) {
-            return;
-        }
-
-        this.ticksUntilNextPathRecalc--;
-        if (this.ticksUntilNextPathRecalc <= 0) {
-            this.ticksUntilNextPathRecalc = 4 + this.mob.getRandom().nextInt(7);
-            this.mob.getNavigation().moveTo(target, this.speedModifier);
-        }
-
-        this.mob.setLookAt(target.getX(), target.getY(), target.getZ());
-
-        this.ticksUntilNextAttack = Math.max(this.ticksUntilNextAttack - 1, 0);
-
-        double distance = this.mob.distanceTo(target);
-
-        if (distance <= attackRange && this.ticksUntilNextAttack <= 0 && this.mob.getSensing().hasLineOfSight(target)) {
-            this.performAttack(target);
-            this.ticksUntilNextAttack = this.attackCooldown;
-        }
     }
 
     @Override

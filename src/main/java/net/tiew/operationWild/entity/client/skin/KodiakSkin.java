@@ -109,14 +109,14 @@ public class KodiakSkin {
     protected static void renderGlow(PoseStack poseStack, MultiBufferSource bufferSource,
                                      ResourceLocation texture, KodiakModel<KodiakEntity> model) {
         VertexConsumer vc = bufferSource.getBuffer(RenderType.eyes(texture));
-        model.renderToBuffer(poseStack, vc, 15728640, OverlayTexture.NO_OVERLAY);
+        model.renderGeometryOnly(poseStack, vc, 15728640, OverlayTexture.NO_OVERLAY, -1);
     }
 
     protected static void renderCutout(PoseStack poseStack, MultiBufferSource bufferSource,
                                        ResourceLocation texture, int packedLight, int packedOverlay,
                                        KodiakModel<KodiakEntity> model) {
         VertexConsumer vc = bufferSource.getBuffer(RenderType.entityCutout(texture));
-        model.renderToBuffer(poseStack, vc, packedLight, packedOverlay);
+        model.renderGeometryOnly(poseStack, vc, packedLight, packedOverlay, -1);
     }
 
     protected static void renderBeaconBeam(PoseStack poseStack, MultiBufferSource bufferSource,
@@ -126,6 +126,6 @@ public class KodiakSkin {
         int alpha = (int) (opacity * 255f);
         int color = (alpha << 24) | 0xFFFFFF;
         VertexConsumer vc = bufferSource.getBuffer(RenderType.beaconBeam(texture, true));
-        model.renderToBuffer(poseStack, vc, 15728880, OverlayTexture.NO_OVERLAY, color);
+        model.renderGeometryOnly(poseStack, vc, 15728880, OverlayTexture.NO_OVERLAY, color);
     }
 }

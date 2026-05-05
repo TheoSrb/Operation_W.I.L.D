@@ -5,6 +5,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.screen.entity.OWSkinsInterface;
 
 @OnlyIn(Dist.CLIENT)
@@ -18,6 +19,22 @@ public class KodiakSkinsScreen extends OWSkinsInterface {
 
     public KodiakSkinsScreen() {
         super();
+    }
+
+    @Override
+    protected void prepareGhostEntity(OWEntity ghost) {
+        ghost.setSaddle(false);
+    }
+
+    @Override
+    protected SkinInfo getSkinInfo(int skinIndex) {
+        return switch (skinIndex) {
+            case 1 -> SkinInfo.level("tooltip.kodiakSkin1", "tooltip.kodiakSkin1.desc", 50);
+            case 2 -> SkinInfo.free("tooltip.kodiakSkin2", "tooltip.kodiakSkin2.desc");
+            case 3 -> SkinInfo.free("tooltip.kodiakSkin3", "tooltip.kodiakSkin3.desc");
+            case 7 -> SkinInfo.free("tooltip.kodiakSkin7", "tooltip.kodiakSkin7.desc");
+            default -> null;
+        };
     }
 
     @Override

@@ -132,63 +132,19 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 
 		if (orca.isCombo(1)) {
 			this.animate(orca.attack1Combo, OrcaAnimations.ATTACK_STRIKE, ageInTicks, 1.0f);
-			captureBodyState(orca, 7f, orca.isCombo() ? 1.0f : 1.0f, this.ALL2, this.ALL, this.body);
+			captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 		if (orca.isCombo(2)) {
 			this.animate(orca.attack2Combo, OrcaAnimations.ATTACK_STRIKE_2, ageInTicks, 1.0f);
-			captureBodyState(orca, 7f, orca.isCombo() ? 1.0f : 1.0f, this.ALL2, this.ALL, this.body);
+			captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 		if (orca.isCombo(3)) {
 			this.animate(orca.attack3Combo, OrcaAnimations.ATTACK_STRIKE_3, ageInTicks, 1.0f);
-			captureBodyState(orca, 7f, orca.isCombo() ? 1.0f : 1.0f, this.ALL2, this.ALL, this.body);
+			captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
-
-		/*if (orca.transitionIdleSit.isStarted()) {
-			this.animate(orca.transitionIdleSit, CrocodileAnimations.TRANSITION_IDLE_SIT, ageInTicks, 2.0f);
-			captureBodyState(orca, 12.5453f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
-		if (orca.transitionSitIdle.isStarted()) {
-			this.animate(orca.transitionSitIdle, CrocodileAnimations.TRANSITION_SIT_IDLE, ageInTicks, 2.0f);
-			captureBodyState(orca, 12.5453f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
-		if (orca.transitionIdleSleep.isStarted()) {
-			this.animate(orca.transitionIdleSleep, CrocodileAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
-			captureBodyState(orca, 12.5453f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
-		if (orca.transitionSleepIdle.isStarted()) {
-			this.animate(orca.transitionSleepIdle, CrocodileAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
-			captureBodyState(orca, 12.5453f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
-		if (orca.growlsAnimationState.isStarted()) {
-			this.animate(orca.growlsAnimationState, CrocodileAnimations.MISC_IDLE_2, ageInTicks, 1.0f);
-		}
-
-		if (orca.gruntAnimationState.isStarted()) {
-			this.animate(orca.gruntAnimationState, CrocodileAnimations.MISC_IDLE_3, ageInTicks, 1.0f);
-		}
-
-		if (orca.isNapping()) {
-			this.animate(orca.napAnimationState, CrocodileAnimations.NAP, ageInTicks, 1.0f);
-			captureBodyState(orca, 12.5453f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
-		if (orca.isSitting()) {
-			this.animate(orca.sittingAnimationState, CrocodileAnimations.SIT, ageInTicks, 1.0f);
-			captureBodyState(orca, 12.5453f, this.ALL2, this.ALL, this.body);
-			return;
-		}*/
 
 		if ((orca.isRunning() || orca.getState() == 2)) {
 			float speed = orca.getControllingPassenger() != null ? 1.2f : 1.0f;
@@ -209,20 +165,7 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 
 		this.prevLimbSwing = limbSwing;
 
-		captureBodyState(orca, 7f, orca.isCombo() ? 1.0f : 1.0f, this.ALL2, this.ALL, this.body);
-
-
-		/*if (orca.level().isClientSide() && orca.isGrabbing()) {
-			if (!orca.isInWater()) {
-				orca.setBodyZRot((float) ((float) Math.toDegrees(this.head.zRot) + Math.toDegrees(this.neck.zRot)));
-				orca.setBodyXRot((float) ((float) Math.toDegrees(this.head.xRot) + Math.toDegrees(this.neck.xRot)));
-				orca.setBodyYRot((float) ((float) Math.toDegrees(this.head.yRot) + Math.toDegrees(this.neck.yRot)));
-			} else {
-				orca.setBodyZRot(0);
-				orca.setBodyYRot(0);
-				orca.setBodyXRot(0);
-			}
-		}*/
+		captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
 	}
 
 	@Override
@@ -232,21 +175,22 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 
 	private void captureBodyState(OrcaEntity orca, float restPoseYSum, float riderRotIntensity, ModelPart... boneChain) {
 		if (!orca.level().isClientSide()) return;
+
 		orca.setBodyZRot((float) Math.toDegrees((this.ALL2.zRot + this.ALL.zRot + this.body.zRot) * riderRotIntensity));
 		orca.setBodyXRot((float) -Math.toDegrees((this.ALL2.xRot + this.ALL.xRot + this.body.xRot) * riderRotIntensity));
-
 		orca.bodyAnimXRot = this.ALL2.xRot + this.ALL.xRot + this.body.xRot;
 
+		orca.bodyZRot_passenger = orca.getBodyZRot();
+		orca.bodyXRot_passenger = orca.getBodyXRot();
+
+		float xSum = this.ALL2.x + this.ALL.x + this.body.x;
+		orca.bodyAnimX = -xSum;
+		orca.bodyAnimX_passenger = -xSum;
+
 		float ySum = 0f;
-		float xSum = 0f;
-
-		for (ModelPart bone : boneChain) {
-			ySum += bone.y;
-			xSum += bone.x;
-		}
-
+		for (ModelPart bone : boneChain) ySum += bone.y;
 		orca.bodyAnimY = ySum - restPoseYSum;
-		orca.bodyAnimX = xSum - 0;
+		orca.bodyAnimY_passenger = orca.bodyAnimY;
 	}
 
 	private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {

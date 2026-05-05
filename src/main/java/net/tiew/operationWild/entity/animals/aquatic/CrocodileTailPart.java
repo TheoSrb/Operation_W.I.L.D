@@ -22,6 +22,9 @@ public class CrocodileTailPart extends Entity {
     private static final float  BODY_OFF = 0.75f;
     private static final float DAMPING_Y = 0.85f;
 
+    private int parentMissingTicks = 0;
+    private static final int MAX_MISSING_TICKS = 100; // 5 secondes de grâce
+
     private static final EntityDataAccessor<Integer> PARENT_ID =
             SynchedEntityData.defineId(CrocodileTailPart.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SEGMENT_INDEX =
@@ -58,25 +61,24 @@ public class CrocodileTailPart extends Entity {
     public void tick() {
         super.tick();
 
-        if (parent == null) {
+        if (parent == null || parent.isRemoved()) {
+            parent = null;
             int pid = this.entityData.get(PARENT_ID);
             Entity e = this.level().getEntity(pid);
             if (e instanceof CrocodileEntity croc) {
                 parent = croc;
+                parentMissingTicks = 0;
             } else {
-                if (!this.level().isClientSide()) this.discard();
+                parentMissingTicks++;
+                if (parentMissingTicks > MAX_MISSING_TICKS && !this.level().isClientSide()) {
+                    this.discard();
+                }
                 return;
             }
         }
 
-        if (parent.isRemoved()) {
-            if (!this.level().isClientSide()) this.discard();
-            return;
-        }
-
         if (level().isClientSide()) return;
 
-        // Gravité verticale uniquement — X/Z gérés par CrocodileEntity.applyToTailPart()
         velY -= GRAVITY;
         velY *= DAMPING_Y;
         double newY = getY() + velY;

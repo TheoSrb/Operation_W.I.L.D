@@ -479,7 +479,11 @@ public class ClientEvents {
         }
 
         if (player.getVehicle() instanceof OWEntity owEntity && owEntity.isTame() && owEntity.isAlive() && owEntity.getLevelPoints() > 0) {
-            if (player == Minecraft.getInstance().player) {
+            List<Entity> passengers = owEntity.getPassengers();
+            boolean isDriver = !passengers.isEmpty() && passengers.get(0) == player;
+            boolean isOwner = player.getUUID().equals(owEntity.getOwnerUUID());
+
+            if (isDriver && isOwner && player == Minecraft.getInstance().player) {
                 Component message = Component.translatable("tooltip.level_points", owEntity.getLevelPoints())
                         .withStyle(Style.EMPTY.withColor(0xb8e45a).withBold(true));
 
@@ -900,11 +904,12 @@ public class ClientEvents {
     public static void renderBorders(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 
-        if (mc.player != null) {
-            OWEntity vehicle = (OWEntity) mc.player.getVehicle();
-            boolean isGrabbedByCrocodile = mc.player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == mc.player;
+        if (mc.player != null && mc.player.getVehicle() instanceof OWEntity vehicle) {
+            boolean isGrabbedByCrocodile = vehicle instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == mc.player;
+            boolean isCrocodileReadyForTaming = vehicle instanceof CrocodileEntity croc
+                    && croc.crocodileBehaviorHandler.isReadyForTaming() && !croc.isTame();
 
-            if (vehicle != null && vehicle.getOwner() == mc.player) {
+            if (vehicle.getOwner() == mc.player || isCrocodileReadyForTaming) {
                 boolean isLowHealth = ((float) (vehicle.getHealth() / vehicle.getMaxHealth())) <= 0.25f;
                 boolean showVitalEnergyLack = vehicle.canShowVitalEnergyLack;
 
@@ -991,10 +996,24 @@ public class ClientEvents {
         float vehicleYaw = owVehicle.getYRot();
         float vehicleYawO = owVehicle.yRotO;
 
-        player.yBodyRot = vehicleYaw;
-        player.yBodyRotO = vehicleYawO;
-        player.setYHeadRot(vehicleYaw);
-        player.yHeadRotO = vehicleYawO;
+        boolean isKodiakPassenger = owVehicle instanceof KodiakEntity k
+                && k.getPassengers().indexOf(player) != 0;
+
+        boolean isOrcaPassenger = owVehicle instanceof OrcaEntity o
+                && o.getPassengers().indexOf(player) != 0;
+
+        if (isKodiakPassenger) {
+            player.yBodyRot  = ((KodiakEntity) owVehicle).yBodyRot;
+            player.yBodyRotO = ((KodiakEntity) owVehicle).yBodyRot;
+        } else if (isOrcaPassenger) {
+            player.yBodyRot  = ((OrcaEntity) owVehicle).yBodyRot;
+            player.yBodyRotO = ((OrcaEntity) owVehicle).yBodyRot;
+        } else {
+            player.yBodyRot = vehicleYaw;
+            player.yBodyRotO = vehicleYawO;
+            player.setYHeadRot(vehicleYaw);
+            player.yHeadRotO = vehicleYawO;
+        }
 
         if (player.getRootVehicle() instanceof TigerEntity tiger && tiger.isShadowStrikeActive()) {
             event.setCanceled(true);
@@ -1041,6 +1060,47 @@ public class ClientEvents {
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.mulPose(Axis.YP.rotationDegrees(crocodile.yBodyRot));
             }
+        } else if (owVehicle instanceof KodiakEntity kodiak) {
+            poseStack.pushPose();
+
+            boolean isPassenger = kodiak.getPassengers().indexOf(player) != 0;
+
+            float pivotYaw = kodiak.yBodyRot;
+
+            poseStack.mulPose(Axis.YP.rotationDegrees(-pivotYaw));
+
+            Quaternionf rotationZ = isPassenger
+                    ? Axis.ZP.rotationDegrees(-kodiak.getBodyZRot_passenger())
+                    : Axis.ZP.rotationDegrees(-kodiak.getBodyZRot());
+
+            Quaternionf rotationX = isPassenger
+                    ? Axis.XP.rotationDegrees(-kodiak.getBodyXRot_passenger())
+                    : Axis.XP.rotationDegrees(-kodiak.getBodyXRot());
+
+            poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+            poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+
+            poseStack.mulPose(Axis.YP.rotationDegrees(pivotYaw));
+        } else if (owVehicle instanceof OrcaEntity orca) {
+            poseStack.pushPose();
+
+            boolean isPassenger = orca.getPassengers().indexOf(player) != 0;
+            float pivotYaw = orca.yBodyRot;
+
+            poseStack.mulPose(Axis.YP.rotationDegrees(-pivotYaw));
+
+            Quaternionf rotationZ = isPassenger
+                    ? Axis.ZP.rotationDegrees(-orca.getBodyZRot_passenger())
+                    : Axis.ZP.rotationDegrees(-orca.getBodyZRot());
+
+            Quaternionf rotationX = isPassenger
+                    ? Axis.XP.rotationDegrees(-orca.getBodyXRot_passenger())
+                    : Axis.XP.rotationDegrees(-orca.getBodyXRot());
+
+            poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+            poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
+
+            poseStack.mulPose(Axis.YP.rotationDegrees(pivotYaw));
         } else {
             poseStack.pushPose();
 

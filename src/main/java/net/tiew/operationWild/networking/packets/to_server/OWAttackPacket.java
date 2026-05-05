@@ -65,7 +65,8 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             if (!(context.player() instanceof ServerPlayer player)) return;
             if (!(player.getRootVehicle() instanceof OWEntity entity)) return;
             if (entity.getPassengers().indexOf(player) != 0) return;
-            if (!player.getUUID().equals(entity.getOwnerUUID())) return;
+            boolean isCrocodile = entity instanceof CrocodileEntity;
+            if (!player.getUUID().equals(entity.getOwnerUUID()) && !isCrocodile) return;
 
             if (packet.action() == ACTION_TRIGGER_DEATH_ROLL) {
                 if (entity instanceof CrocodileEntity croc) {
@@ -85,6 +86,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
                                 tiger.activateShadowStrike();
                         }
+                        case 4 -> {
+                            if (entity instanceof CrocodileEntity croc)
+                                croc.activatePrimalDive();
+                        }
                         case 6 -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak)
                                 kodiak.activateUltimateNap();
@@ -92,6 +97,17 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case 8 -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)
                                 orca.activateOrcaCall();
+                        }
+                    }
+                }
+
+                case ACTION_EXECUTE_WITH_TARGET -> {
+                    switch (packet.attackId()) {
+                        case 4 -> {
+                            if (entity instanceof CrocodileEntity croc) {
+                                int targetId = Float.floatToRawIntBits(packet.value());
+                                croc.executePrimalDive(targetId);
+                            }
                         }
                     }
                 }

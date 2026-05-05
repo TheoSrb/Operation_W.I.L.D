@@ -72,7 +72,7 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
 
     private void renderOverlay(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, boolean glowLayer, int packedLight) {
         VertexConsumer vertexConsumer = bufferSource.getBuffer(glowLayer ? RenderType.eyes(texture) : RenderType.entityCutout(texture));
-        this.getParentModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY);
+        this.getParentModel().renderGeometryOnly(poseStack, vertexConsumer, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY, -1);
     }
 
     private void renderOverlayWithColor(PoseStack poseStack, MultiBufferSource bufferSource, ResourceLocation texture, boolean glowLayer, int packedLight, int color) {
@@ -88,7 +88,7 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
 
         int opaqueColor = (color & 0x00FFFFFF) | 0xFF000000;
 
-        this.getParentModel().renderToBuffer(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, opaqueColor);
+        this.getParentModel().renderGeometryOnly(poseStack, vertexConsumer, packedLight, OverlayTexture.NO_OVERLAY, opaqueColor);
 
         RenderSystem.disableBlend();
         poseStack.popPose();
@@ -100,6 +100,6 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
         int color = 0xFFFFFF | (alpha << 24);
         RenderType renderType = glowLayer ? RenderType.eyes(texture) : RenderType.entityTranslucent(texture);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
-        this.getParentModel().renderToBuffer(poseStack, vertexConsumer, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY, color);
+        this.getParentModel().renderGeometryOnly(poseStack, vertexConsumer, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY, color);
     }
 }

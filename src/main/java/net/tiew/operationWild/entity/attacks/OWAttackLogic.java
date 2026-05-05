@@ -521,7 +521,8 @@ public class OWAttackLogic {
         if (mc.player == null || mc.screen != null) return;
         if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
         if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
-        if (!mc.player.getUUID().equals(owEntity.getOwnerUUID())) return;
+        boolean isCrocodile = owEntity instanceof CrocodileEntity;
+        if (!mc.player.getUUID().equals(owEntity.getOwnerUUID()) && !isCrocodile) return;
 
         OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getKey());
         if (attack == null) return;
@@ -597,7 +598,8 @@ public class OWAttackLogic {
         if (mc.player == null || mc.screen != null) return;
         if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
         if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
-        if (!mc.player.getUUID().equals(owEntity.getOwnerUUID())) return;
+        boolean isCrocodile = owEntity instanceof CrocodileEntity;
+        if (!mc.player.getUUID().equals(owEntity.getOwnerUUID()) && !isCrocodile) return;
 
         boolean isCrocGrabbing = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
         boolean isKodiakUltNapping = isKodiakNapping && owEntity instanceof KodiakEntity;
