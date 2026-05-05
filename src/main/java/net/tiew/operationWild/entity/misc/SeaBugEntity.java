@@ -48,6 +48,10 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
+    public static AttributeSupplier.Builder createAttributes() {
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 100.0D).add(Attributes.MOVEMENT_SPEED, 0.2D).add(Attributes.FOLLOW_RANGE, 10.0D).add(Attributes.ATTACK_DAMAGE, 0.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.5D);
+    }
+
     // Entity's AI
     protected void registerGoals() {
     }
@@ -73,10 +77,6 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
                 this.spawnAtLocation(battery2);
             }
         }
-    }
-
-    public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 100.0D).add(Attributes.MOVEMENT_SPEED, 0.2D).add(Attributes.FOLLOW_RANGE, 10.0D).add(Attributes.ATTACK_DAMAGE, 0.0D).add(Attributes.KNOCKBACK_RESISTANCE, 0.5D);
     }
 
     public void setAlimentedByBattery1(boolean isAlimentedByBattery1) {this.entityData.set(IS_ALIMENTED_BY_BATTERY_1, isAlimentedByBattery1);}

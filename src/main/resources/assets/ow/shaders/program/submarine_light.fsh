@@ -2,51 +2,36 @@
 
 uniform sampler2D DiffuseSampler;
 uniform sampler2D DiffuseDepthSampler;
-
-uniform mat4 ProjMat;
 uniform vec2 OutSize;
-uniform vec2 ScreenSize;
-uniform float _FOV;
 
 in vec2 texCoord;
 out vec4 fragColor;
 
-float near = 0.1;
-float far = 10.0;
-float exposure = 10;
-float AOE = 15;
+vec2 lightPos1 = vec2(0.40, 0.510);
+vec2 lightPos2 = vec2(0.60, 0.510);
 
-vec2 lightPos1 = vec2(0.425, 0.5);
-vec2 lightPos2 = vec2(0.575, 0.5);
+void main() {
+    vec4  originalColor = texture(DiffuseSampler, texCoord);
+    float rawDepth      = texture(DiffuseDepthSampler, texCoord).r;
 
-float LinearizeDepth(float depth)
-{
-    float z = depth * 2.0f - 1.0f;
-    return (near * far) / (far + near - z * (far - near));
-}
+    float skyMask = 1.0 - step(0.9999, rawDepth);
 
-float calculateLightEffect(vec2 uv, vec2 lightCenter) {
-    float d = sqrt(pow((uv.x - lightCenter.x), 2.0) + pow((uv.y - lightCenter.y), 2.0));
-    return exp(-(d * AOE)) * exposure;
-}
+    float aspect = OutSize.x / OutSize.y;
+    vec2 d1 = vec2((texCoord.x - lightPos1.x) * aspect, texCoord.y - lightPos1.y);
+    vec2 d2 = vec2((texCoord.x - lightPos2.x) * aspect, texCoord.y - lightPos2.y);
 
-void main(){
-    vec2 uv = texCoord;
+    float spot1 = exp(-dot(d1, d1) * 22.0);
+    float spot2 = exp(-dot(d2, d2) * 22.0);
 
-    float lightEffect1 = calculateLightEffect(uv, lightPos1);
-    float lightEffect2 = calculateLightEffect(uv, lightPos2);
+    // High pow: very bright centre, fast drop-off → strong contrast
+    float totalSpot = pow(clamp(spot1 + spot2, 0.0, 1.0), 4.5) * skyMask;
 
-    float totalLightEffect = lightEffect1 + lightEffect2;
+    // Blue-green with a slight warm hint
+    vec3 lightColor = vec3(0.78, 0.92, 1.0);
 
-    float rawDepth = texture(DiffuseDepthSampler, texCoord).r;
-    float depthFactor = 1.0 - smoothstep(0.95, 1.0, rawDepth) * 0.8;
-    totalLightEffect *= depthFactor;
+    // More multiplicative weight = stronger block-to-block contrast
+    vec3 additive       = lightColor * totalSpot * 0.30;
+    vec3 multiplicative = originalColor.rgb * lightColor * totalSpot * 0.90;
 
-    vec4 originalColor = texture(DiffuseSampler, texCoord);
-
-    vec3 lightColor = vec3(1.2, 1.0, 0.8);
-    fragColor = vec4(
-        originalColor.rgb * clamp(1.0 + totalLightEffect, 0.0, 10.0) * lightColor,
-        originalColor.a
-    );
+    fragColor = vec4(originalColor.rgb + additive + multiplicative, originalColor.a);
 }

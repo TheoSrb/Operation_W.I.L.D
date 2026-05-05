@@ -169,7 +169,12 @@ public class ClientEvents {
 
         if (player != null) {
             Entity ridingEntity = player.getRootVehicle();
-            if (ridingEntity instanceof OWEntity entity && entity.isAlive() && entity.isSaddled()) {
+            if (ridingEntity instanceof Submarine) {
+                // Submarine checked first — it extends OWEntity but uses its own right-click logic
+                if (rightButtonIsPressed && canUseRightClick(minecraft)) {
+                    OWNetworkHandler.sendToServer(new ClientPressedRightClick());
+                }
+            } else if (ridingEntity instanceof OWEntity entity && entity.isAlive() && entity.isSaddled()) {
                 if (entity instanceof CrocodileEntity crocodile && crocodile.crocodileBehaviorHandler.isReadyForTaming() && !crocodile.isTame()) {
                     if (leftButtonIsPressed && !OWAttackLogic.isCharging) {
                         boolean isScreenOpen = minecraft.screen != null;
@@ -184,10 +189,6 @@ public class ClientEvents {
                     } else if (rightButtonIsPressed && canUseRightClick(minecraft)) {
                         OWNetworkHandler.sendToServer(new ClientPressedRightClick());
                     }
-                }
-            } else if (ridingEntity instanceof Submarine) {
-                if (rightButtonIsPressed && canUseRightClick(minecraft)) {
-                    OWNetworkHandler.sendToServer(new ClientPressedRightClick());
                 }
             }
         }
@@ -1230,22 +1231,24 @@ public class ClientEvents {
             Minecraft minecraft = Minecraft.getInstance();
             Player player = minecraft.player;
 
-            if (player != null && minecraft.screen == null) {
-                boolean shouldHaveEffect = shouldActivateSubmarineEffect(player);
+            if (player != null) {
                 PostChain currentEffect = minecraft.gameRenderer.currentEffect();
+                boolean isOurEffect = currentEffect != null
+                        && currentEffect.getName().equals("ow:shaders/post/submarine_light.json");
 
-                if (shouldHaveEffect) {
+                if (minecraft.screen == null && shouldActivateSubmarineEffect(player)) {
                     if (currentEffect == null) {
                         try {
                             minecraft.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/post/submarine_light.json"));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    } else if (currentEffect.getName().equals("ow:shaders/post/submarine_light.json") && !hasProcessedThisFrame) {
+                    } else if (isOurEffect && !hasProcessedThisFrame) {
                         currentEffect.process(minecraft.getTimer().getGameTimeDeltaPartialTick(true));
                         hasProcessedThisFrame = true;
                     }
-                } else if (currentEffect != null) {
+                } else if (isOurEffect) {
+                    // Covers: screen opened (pause/inventory), conditions no longer met, etc.
                     minecraft.gameRenderer.shutdownEffect();
                 }
             }
