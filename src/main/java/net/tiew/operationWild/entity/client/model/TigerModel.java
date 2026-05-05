@@ -32,10 +32,10 @@ import net.tiew.operationWild.entity.variants.TigerVariant;
 
 public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
-    public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "tiger_default"), "main");
+	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "tiger_default"), "main");
 
-    // Tracks the limbSwing value from the previous frame to detect animation crossings.
-    private float prevLimbSwing = 0f;
+	// Tracks the limbSwing value from the previous frame to detect animation crossings.
+	private float prevLimbSwing = 0f;
 
 	private final ModelPart ALL2;
 	private final ModelPart ALL;
@@ -53,7 +53,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 	private final ModelPart right_leg;
 	private final ModelPart right_arm;
 
-    public TigerModel(ModelPart root) {
+	public TigerModel(ModelPart root) {
 		this.ALL2 = root.getChild("ALL2");
 		this.ALL = this.ALL2.getChild("ALL");
 		this.body = this.ALL.getChild("body");
@@ -69,9 +69,9 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		this.left_leg = this.ALL.getChild("left_leg");
 		this.right_leg = this.ALL.getChild("right_leg");
 		this.right_arm = this.ALL.getChild("right_arm");
-    }
+	}
 
-    public static LayerDefinition createBodyLayer() {
+	public static LayerDefinition createBodyLayer() {
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
@@ -122,21 +122,21 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		PartDefinition right_arm = ALL.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(34, 36).mirror().addBox(-1.5F, -1.0F, -2.5F, 4.0F, 17.0F, 5.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-4.5F, 0.0F, -5.5F));
 
 		return LayerDefinition.create(meshdefinition, 128, 128);
-    }
+	}
 
-    @Override
-    public void setupAnim(TigerEntity tiger, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        this.root().getAllParts().forEach(ModelPart::resetPose);
+	@Override
+	public void setupAnim(TigerEntity tiger, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+		this.root().getAllParts().forEach(ModelPart::resetPose);
 
-        if (tiger.isBaby()) {
-            float maturationPercent = (float) tiger.getMaturationPercentage() / 100f;
-            float headScale = 1.6f - (1.6f - 1.0f) * maturationPercent;
+		if (tiger.isBaby()) {
+			float maturationPercent = (float) tiger.getMaturationPercentage() / 100f;
+			float headScale = 1.6f - (1.6f - 1.0f) * maturationPercent;
 
-            this.head.xScale *= headScale;
-            this.head.yScale *= headScale;
-            this.head.zScale *= headScale;
-        }
-        this.applyHeadRotation(netHeadYaw, headPitch);
+			this.head.xScale *= headScale;
+			this.head.yScale *= headScale;
+			this.head.zScale *= headScale;
+		}
+		this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (!tiger.isGrabbing()) {
 			if (tiger.isCombo(1)) {
@@ -286,71 +286,71 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		this.prevLimbSwing = limbSwing;
 
 		captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
-    }
+	}
 
-    /**
-     * Captures the animated bone-chain Y delta into {@code tiger.bodyAnimY} so that
-     * {@code positionRider()} (game thread) can read it without re-running setupAnim.
-     * Must be called at every exit point of setupAnim, including early returns.
-     *
-     * @param tiger        the entity whose fields are written
-     * @param restPoseYSum sum of the <em>rest-pose</em> Y offsets for every bone in the chain
-     *                     (e.g. ALL2=8, ALL=0, body=1 → pass 9f)
-     * @param boneChain    the bones from root down to the seat bone, in order
-     *                     (e.g. {@code this.ALL2, this.ALL, this.body})
-     */
-    private void captureBodyState(TigerEntity tiger, float restPoseYSum, ModelPart... boneChain) {
-        if (!tiger.level().isClientSide()) return;
-        tiger.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));
-        tiger.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot));
-        // Sum current Y positions of every bone in the chain, then subtract the rest-pose sum
-        // to get the pure animated delta. Negative = bone visually UP (Blockbench Y inverted).
-        float ySum = 0f;
-        for (ModelPart bone : boneChain) ySum += bone.y;
-        tiger.bodyAnimY = ySum - (restPoseYSum * tiger.getScale());
-    }
+	/**
+	 * Captures the animated bone-chain Y delta into {@code tiger.bodyAnimY} so that
+	 * {@code positionRider()} (game thread) can read it without re-running setupAnim.
+	 * Must be called at every exit point of setupAnim, including early returns.
+	 *
+	 * @param tiger        the entity whose fields are written
+	 * @param restPoseYSum sum of the <em>rest-pose</em> Y offsets for every bone in the chain
+	 *                     (e.g. ALL2=8, ALL=0, body=1 → pass 9f)
+	 * @param boneChain    the bones from root down to the seat bone, in order
+	 *                     (e.g. {@code this.ALL2, this.ALL, this.body})
+	 */
+	private void captureBodyState(TigerEntity tiger, float restPoseYSum, ModelPart... boneChain) {
+		if (!tiger.level().isClientSide()) return;
+		tiger.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));
+		tiger.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot));
+		// Sum current Y positions of every bone in the chain, then subtract the rest-pose sum
+		// to get the pure animated delta. Negative = bone visually UP (Blockbench Y inverted).
+		float ySum = 0f;
+		for (ModelPart bone : boneChain) ySum += bone.y;
+		tiger.bodyAnimY = ySum - (restPoseYSum * tiger.getScale());
+	}
 
-    /**
-     * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.
-     * Use this to fire one-shot events (sounds, particles) at precise moments of a walk cycle.
-     *
-     * <p>How to find {@code triggerTimeMs}: open Blockbench, look at the keyframe timestamp of the
-     * moment you want (e.g. foot hits the ground), multiply seconds × 1000.</p>
-     *
-     * @param animation     the AnimationDefinition played via {@code animateWalk()}
-     * @param limbSwing     current limbSwing value (first param of setupAnim)
-     * @param speedScale    the {@code maxAnimationCycles} value passed to {@code animateWalk()}
-     * @param triggerTimeMs keyframe time in <strong>milliseconds</strong> to fire at
-     */
-    private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
-        long durationMs = (long)(animation.lengthInSeconds() * 1000f);
-        if (durationMs <= 0) return false;
+	/**
+	 * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.
+	 * Use this to fire one-shot events (sounds, particles) at precise moments of a walk cycle.
+	 *
+	 * <p>How to find {@code triggerTimeMs}: open Blockbench, look at the keyframe timestamp of the
+	 * moment you want (e.g. foot hits the ground), multiply seconds × 1000.</p>
+	 *
+	 * @param animation     the AnimationDefinition played via {@code animateWalk()}
+	 * @param limbSwing     current limbSwing value (first param of setupAnim)
+	 * @param speedScale    the {@code maxAnimationCycles} value passed to {@code animateWalk()}
+	 * @param triggerTimeMs keyframe time in <strong>milliseconds</strong> to fire at
+	 */
+	private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
+		long durationMs = (long)(animation.lengthInSeconds() * 1000f);
+		if (durationMs <= 0) return false;
 
-        long cur  = ((long)(limbSwing     * 50f * speedScale)) % durationMs;
-        long prev = ((long)(prevLimbSwing * 50f * speedScale)) % durationMs;
+		long cur  = ((long)(limbSwing     * 50f * speedScale)) % durationMs;
+		long prev = ((long)(prevLimbSwing * 50f * speedScale)) % durationMs;
 
-        // Normal case: no wrap-around in this frame
-        if (prev <= cur) return prev < triggerTimeMs && cur >= triggerTimeMs;
-        // Wrap-around: the cycle looped between prev and cur → target in [0, cur] OR in (prev, duration)
-        return triggerTimeMs <= cur || triggerTimeMs > prev;
-    }
+		// Normal case: no wrap-around in this frame
+		if (prev <= cur) return prev < triggerTimeMs && cur >= triggerTimeMs;
+		// Wrap-around: the cycle looped between prev and cur → target in [0, cur] OR in (prev, duration)
+		return triggerTimeMs <= cur || triggerTimeMs > prev;
+	}
 
-    /**
-     * Returns {@code true} on every frame a named (non-looping) animation is within
-     * {@code toleranceMs} milliseconds of {@code triggerTimeMs}.
-     *
-     * <p>A tolerance of 25 ms ensures the event fires exactly once at ~60 fps.
-     * Use a wider tolerance if the animation is sped up and you risk missing the window.</p>
-     *
-     * @param animState     the AnimationState of the animation
-     * @param triggerTimeMs keyframe time in <strong>milliseconds</strong> to fire at
-     * @param toleranceMs   half-window size in ms (25 is a safe default for 60 fps)
-     */
-    private boolean namedAnimAt(AnimationState animState, long triggerTimeMs, long toleranceMs) {
-        if (!animState.isStarted()) return false;
-        long elapsed = animState.getAccumulatedTime();
-        return Math.abs(elapsed - triggerTimeMs) <= toleranceMs;
-    }
+	/**
+	 * Returns {@code true} on every frame a named (non-looping) animation is within
+	 * {@code toleranceMs} milliseconds of {@code triggerTimeMs}.
+	 *
+	 * <p>A tolerance of 25 ms ensures the event fires exactly once at ~60 fps.
+	 * Use a wider tolerance if the animation is sped up and you risk missing the window.</p>
+	 *
+	 * @param animState     the AnimationState of the animation
+	 * @param triggerTimeMs keyframe time in <strong>milliseconds</strong> to fire at
+	 * @param toleranceMs   half-window size in ms (25 is a safe default for 60 fps)
+	 */
+	private boolean namedAnimAt(AnimationState animState, long triggerTimeMs, long toleranceMs) {
+		if (!animState.isStarted()) return false;
+		long elapsed = animState.getAccumulatedTime();
+		return Math.abs(elapsed - triggerTimeMs) <= toleranceMs;
+	}
 
 	@Override
 	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
@@ -359,16 +359,16 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, transparentColor);
 	}
 
-    private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
-        pNetHeadYaw = Mth.clamp(pNetHeadYaw, -30.0F, 30.0F);
-        pHeadPitch = Mth.clamp(pHeadPitch, -30.0F, 30.0F);
+	private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
+		pNetHeadYaw = Mth.clamp(pNetHeadYaw, -30.0F, 30.0F);
+		pHeadPitch = Mth.clamp(pHeadPitch, -30.0F, 30.0F);
 
-        this.head.yRot = pNetHeadYaw * ((float)Math.PI / 180F);
-        this.head.xRot = pHeadPitch * ((float)Math.PI / 180F);
-    }
+		this.head.yRot = pNetHeadYaw * ((float)Math.PI / 180F);
+		this.head.xRot = pHeadPitch * ((float)Math.PI / 180F);
+	}
 
-    @Override
-    public ModelPart root() {
-        return this.ALL2;
-    }
+	@Override
+	public ModelPart root() {
+		return this.ALL2;
+	}
 }

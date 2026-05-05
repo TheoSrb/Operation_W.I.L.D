@@ -460,7 +460,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         LivingEntity grabbed = this.getGrabbedTarget();
         if (grabbed != null) {
             boolean stillHeldByOther = this.level().getEntitiesOfClass(TigerEntity.class,
-                    grabbed.getBoundingBox().inflate(8))
+                            grabbed.getBoundingBox().inflate(8))
                     .stream()
                     .anyMatch(t -> t != this && t.isGrabbing() && t.getGrabbedTarget() == grabbed);
             if (!stillHeldByOther) {
@@ -1460,7 +1460,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         if (isGrabbing && entity != null) {
             // Prevent two tigers from grabbing the same target simultaneously
             boolean alreadyGrabbedByOther = this.level().getEntitiesOfClass(TigerEntity.class,
-                    entity.getBoundingBox().inflate(8))
+                            entity.getBoundingBox().inflate(8))
                     .stream()
                     .anyMatch(t -> t != this && t.isGrabbing() && t.getGrabbedTarget() == entity);
             if (alreadyGrabbedByOther) return;

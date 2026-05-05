@@ -2553,7 +2553,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return 0f;
     }
 
-@javax.annotation.Nullable
+    @javax.annotation.Nullable
     public LivingEntity getControllingPassenger() {
         if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) return null;
 
