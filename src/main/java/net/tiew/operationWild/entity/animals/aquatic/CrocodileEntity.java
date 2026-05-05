@@ -26,6 +26,7 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.MarkedMudBlock;
 import net.tiew.operationWild.core.OWUtils;
@@ -421,6 +422,37 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         // Intentionally empty — replaced by animation callbacks below
     }
 
+    private void playStepSoundFromAnimation(float pitchMod) {
+        if (!this.level().isClientSide()) return;
+        if (!this.onGround()) return;
+        if (this.isInWater()) return;
+
+        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
+
+        long now = System.currentTimeMillis();
+        if (now - lastStepSoundMs < 200L) return;
+        lastStepSoundMs = now;
+
+        BlockState blockState = this.getBlockStateOn();
+        if (blockState.isAir()) return;
+
+        BlockPos pos = this.blockPosition();
+        SoundType soundtype = blockState.getSoundType(this.level(), pos, this);
+
+        for (int i = 0; i < 7; i++) {
+            this.level().playLocalSound(
+                    this.getX(),
+                    this.getY(),
+                    this.getZ(),
+                    soundtype.getStepSound(),
+                    this.getSoundSource(),
+                    soundtype.getVolume() * 0.15F,
+                    soundtype.getPitch() * pitchMod,
+                    false
+            );
+        }
+    }
+
     /**
      * Called by CrocodileModel (render thread) when the left foot touches the ground.
      * Plays the step sound of the block under the crocodile with a slightly lower pitch.
@@ -435,29 +467,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
      */
     public void onRightFootDown() {
         playStepSoundFromAnimation(1.05f);
-    }
-
-    private void playStepSoundFromAnimation(float pitchMod) {
-        if (!this.onGround()) return;
-        if (this.isInWater()) return;
-        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
-        long now = System.currentTimeMillis();
-        if (now - lastStepSoundMs < 150L) return; // croc walks slower than tiger
-        lastStepSoundMs = now;
-
-        var pos = this.blockPosition();
-        BlockState blockState = this.level().getBlockState(pos);
-        if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
-
-        net.minecraft.world.level.block.SoundType sound = blockState.getSoundType();
-        this.level().playSound(
-                null,
-                this.getX(), this.getY(), this.getZ(),
-                sound.getStepSound(),
-                this.getSoundSource(),
-                sound.getVolume() * 0.65f,
-                sound.getPitch() * pitchMod * (0.85f + this.random.nextFloat() * 0.3f)
-        );
     }
 
     @Override

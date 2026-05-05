@@ -198,7 +198,7 @@ public class ClientEvents {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null && minecraft.player.getRootVehicle() instanceof OWEntity owEntity) {
 
-            if (OWKeysBinding.PET_INVENTORY.isDown() && event.getAction() == GLFW.GLFW_PRESS && owEntity.isTame()) {
+            if (OWKeysBinding.PET_INVENTORY.isDown() && event.getAction() == GLFW.GLFW_PRESS && (owEntity.isTame() || owEntity instanceof Submarine)) {
                 OWNetworkHandler.sendToServer(new OpenOWInventoryPacket());
             }
         }
@@ -697,18 +697,14 @@ public class ClientEvents {
                 submarine.spawnBubbleParticles();
 
                 if (submarine.level().isClientSide) {
-                    float pitch = 1.25f;
-                    int maxSoundTime = (int) (280 * pitch);
-                    submarine.soundTimer++;
-
-                    if (!submarine.isPlayingMoveSound || submarine.soundTimer >= maxSoundTime) {
+                    if (!submarine.isPlayingMoveSound) {
                         SimpleSoundInstance soundInstance = new SimpleSoundInstance(
                                 OWSounds.SUBMARINE_MOVE_LOOP.get().getLocation(),
                                 SoundSource.BLOCKS,
                                 1.0f,
-                                pitch,
+                                1.25f,
                                 SoundInstance.createUnseededRandom(),
-                                false,
+                                true,
                                 0,
                                 SoundInstance.Attenuation.NONE,
                                 player.getX(),
@@ -719,7 +715,6 @@ public class ClientEvents {
 
                         Minecraft.getInstance().getSoundManager().play(soundInstance);
                         submarine.isPlayingMoveSound = true;
-                        submarine.soundTimer = 0;
                     }
                 }
             } else {

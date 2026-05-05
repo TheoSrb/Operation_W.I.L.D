@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.animals.terrestrial;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
@@ -16,6 +17,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -25,6 +27,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
@@ -193,7 +196,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.goalSelector.addGoal(0, new TigerLeapingGoal(this, 4f, 20f));
         this.goalSelector.addGoal(0, new TigerDistractedByFoodGoal(this));
 
-        this.goalSelector.addGoal(1, new OWAttackGoal(this, this.getSpeed() * 32.5f, 8, 2.5, false));
+        this.goalSelector.addGoal(1, new TigerMeleeAttackGoal());
 
         this.goalSelector.addGoal(2, new TigerScarifyTreeGoal(this, 30, 0.7D));
 
@@ -372,6 +375,61 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public float getScale() {
         return super.getScale() <= 0 ? 1f : super.getScale();
     }
+
+    private long lastStepSoundMs = 0L;
+
+    @Override
+    public void playStepSound(BlockPos blockPos, BlockState blockState) {
+        // Intentionally empty — replaced by animation callbacks below
+    }
+
+    private void playStepSoundFromAnimation(float pitchMod) {
+        if (!this.level().isClientSide()) return;
+        if (!this.onGround()) return;
+        if (this.isInWater()) return;
+
+        if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
+
+        long now = System.currentTimeMillis();
+        if (now - lastStepSoundMs < 200L) return;
+        lastStepSoundMs = now;
+
+        BlockState blockState = this.getBlockStateOn();
+        if (blockState.isAir()) return;
+
+        BlockPos pos = this.blockPosition();
+        SoundType soundtype = blockState.getSoundType(this.level(), pos, this);
+
+        for (int i = 0; i < 7; i++) {
+            this.level().playLocalSound(
+                    this.getX(),
+                    this.getY(),
+                    this.getZ(),
+                    soundtype.getStepSound(),
+                    this.getSoundSource(),
+                    soundtype.getVolume() * 0.15F,
+                    soundtype.getPitch() * pitchMod,
+                    false
+            );
+        }
+    }
+
+    /**
+     * Called by TigerModel (render thread) when the left paw touches the ground.
+     * Plays the step sound of the block under the tiger with a slightly lower pitch.
+     */
+    public void onLeftFootDown() {
+        playStepSoundFromAnimation(0.9f);
+    }
+
+    /**
+     * Called by TigerModel (render thread) when the right paw touches the ground.
+     * Plays the step sound of the block under the tiger with a slightly higher pitch.
+     */
+    public void onRightFootDown() {
+        playStepSoundFromAnimation(1.1f);
+    }
+
 
     // ==================================================
     //             CORPS DU FONCTIONNEMENT
@@ -572,6 +630,29 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     public float getRiddenSpeedVehicle(Player player) {
         return this.isImmobile() || this.isPreparing ? 0 : super.getRiddenSpeedVehicle(player);
+    }
+
+    @Override
+    public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (!this.level().isClientSide()) {
+            ItemStack stack = player.getItemInHand(hand);
+
+            if (this.isSleeping() && !this.isTame() && stack.is(OWTags.Items.TIGER_FOOD)) {
+                if (!player.isCreative()) stack.shrink(1);
+                this.playSound(SoundEvents.CAMEL_EAT, 1.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
+                this.foodGiven++;
+
+                if (this.foodGiven >= this.foodWanted) {
+                    this.setTame(true, player);
+                    this.setSleeping(false);
+                    this.resetSleepBar();
+                    this.foodGiven = foodWanted;
+                }
+
+                return InteractionResult.SUCCESS;
+            }
+        }
+        return super.mobInteract(player, hand);
     }
 
     @Override
@@ -1114,60 +1195,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         return -bodyAnimY / 16.0f * this.getScale();
     }
 
-    /**
-     * Suppresses the vanilla automatic step sound (fired by Entity.move() every block traversed).
-     * Footstep sounds are handled exclusively by animation events in TigerModel.
-     */
-    @Override
-    protected void playStepSound(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
-        // Intentionally empty — replaced by onLeftFootDown() / onRightFootDown()
-    }
-
-    /**
-     * Called by TigerModel (render thread) when the left paw touches the ground.
-     * Plays the step sound of the block under the tiger with a slightly lower pitch.
-     */
-    public void onLeftFootDown() {
-        playPawStepSound(0.9f);
-    }
-
-    /**
-     * Called by TigerModel (render thread) when the right paw touches the ground.
-     * Plays the step sound of the block under the tiger with a slightly higher pitch.
-     */
-    public void onRightFootDown() {
-        playPawStepSound(1.1f);
-    }
-
-    private long lastPawStepSoundMs = 0L;
-
-    private void playPawStepSound(float pitchMod) {
-        if (!this.onGround()) return;
-        if (this.isInWater()) return;
-        double speedSq = this.getDeltaMovement().horizontalDistanceSqr();
-        if (speedSq < 0.0001) return;
-        long now = System.currentTimeMillis();
-        // Walking: ~450 ms between steps; running/combat: ~180 ms between steps
-        long minInterval = speedSq > 0.03 ? 180L : 450L;
-        if (now - lastPawStepSoundMs < minInterval) return;
-        lastPawStepSoundMs = now;
-
-        // Get the block the tiger is standing on (try centre first, then one block below for ledges)
-        var pos = this.blockPosition();
-        BlockState blockState = this.level().getBlockState(pos);
-        if (blockState.isAir()) blockState = this.level().getBlockState(pos.below());
-
-        SoundType sound = blockState.getSoundType();
-        this.level().playSound(
-                null,
-                this.getX(), this.getY(), this.getZ(),
-                sound.getStepSound(),
-                this.getSoundSource(),
-                sound.getVolume() * 0.5f,
-                sound.getPitch() * pitchMod * (0.9f + this.random.nextFloat() * 0.2f)
-        );
-    }
-
     @Override
     @Nullable
     public LivingEntity getControllingPassenger() {
@@ -1250,14 +1277,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         handleMiscIdleAnimations();
 
-        if (this.isNapping()) {
+        if (this.isNapping() || this.isSleeping()) {
             if (this.napAnimationTimeout <= 0) {
                 this.napAnimationTimeout = 64;
                 this.napAnimationState.start(this.tickCount);
             } else --this.napAnimationTimeout;
         }
 
-        if (!this.isNapping()) {
+        if (!this.isNapping() && !this.isSleeping()) {
             this.napAnimationTimeout = 0;
             this.napAnimationState.stop();
         }
@@ -1532,4 +1559,48 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     protected int getDefaultSkinIndex() { return 8; }
+
+    class TigerMeleeAttackGoal extends MeleeAttackGoal {
+
+        public TigerMeleeAttackGoal() {
+            super(TigerEntity.this, 7, true);
+        }
+
+        @Override
+        public void start() {
+            super.start();
+            TigerEntity.this.setMad(true);
+            TigerEntity.this.setRunning(true);
+        }
+
+        @Override
+        public void stop() {
+            super.stop();
+            TigerEntity.this.setMad(false);
+            TigerEntity.this.setRunning(false);
+        }
+
+        @Override
+        protected boolean canPerformAttack(LivingEntity entity) {
+            double reach = 2.5;
+            return this.isTimeToAttack()
+                    && this.mob.distanceToSqr(entity) <= reach * reach
+                    && this.mob.getSensing().hasLineOfSight(entity);
+        }
+
+        @Override
+        protected void checkAndPerformAttack(LivingEntity target) {
+            if (this.mob.hasEffect(OWEffects.FRACTURE.getDelegate())) return;
+            if (!this.canPerformAttack(target)) return;
+
+            if (this.mob instanceof OWEntity owEntity) {
+                if (!owEntity.isCombo()) {
+                    owEntity.setCombo(true, 1);
+                } else if (owEntity.isPauseCombo()) {
+                    owEntity.playerContinueCombo = true;
+                }
+            }
+        }
+
+    }
 }

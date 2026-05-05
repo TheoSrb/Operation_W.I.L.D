@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,10 +16,14 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.event.ClientEvents;
 
 public class OWCommands {
+
     public static class AddExperienceCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
             dispatcher.register(
-                    Commands.literal("addexperience").then(Commands.argument("amount", IntegerArgumentType.integer(1)).executes(AddExperienceCommand::execute))
+                    Commands.literal("addexperience")
+                            .then(Commands.argument("player", EntityArgument.player())
+                                    .then(Commands.argument("amount", IntegerArgumentType.integer(1))
+                                            .executes(AddExperienceCommand::execute)))
             );
         }
 
@@ -26,11 +31,15 @@ public class OWCommands {
             CommandSourceStack source = context.getSource();
             int amount = IntegerArgumentType.getInteger(context, "amount");
             try {
-                ServerPlayer player = source.getPlayerOrException();
+                ServerPlayer player = EntityArgument.getPlayer(context, "player");
                 if (player.getRootVehicle() != null && player.getRootVehicle() != player) {
                     OWEntity.addExperienceCommand((OWEntity) player.getRootVehicle(), amount);
-                    source.sendSuccess(() -> Component.translatable("addExperienceCommandWork", amount).setStyle(Style.EMPTY.withColor(0x00FF00)), false);
-                } else source.sendSuccess(() -> Component.translatable("addExperienceCommandError").setStyle(Style.EMPTY.withColor(0xFF0000)), false);
+                    source.sendSuccess(() -> Component.translatable("addExperienceCommandWork", amount)
+                            .setStyle(Style.EMPTY.withColor(0x00FF00)), false);
+                } else {
+                    source.sendSuccess(() -> Component.translatable("addExperienceCommandError")
+                            .setStyle(Style.EMPTY.withColor(0xFF0000)), false);
+                }
             } catch (Exception ignored) {
             }
             return 1;
@@ -40,7 +49,10 @@ public class OWCommands {
     public static class SetPrestigeCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
             dispatcher.register(
-                    Commands.literal("setprestige").then(Commands.argument("amount", IntegerArgumentType.integer(0, 999)).executes(SetPrestigeCommand::execute))
+                    Commands.literal("setprestige")
+                            .then(Commands.argument("player", EntityArgument.player())
+                                    .then(Commands.argument("amount", IntegerArgumentType.integer(0, 999))
+                                            .executes(SetPrestigeCommand::execute)))
             );
         }
 
@@ -48,11 +60,15 @@ public class OWCommands {
             CommandSourceStack source = context.getSource();
             int amount = IntegerArgumentType.getInteger(context, "amount");
             try {
-                ServerPlayer player = source.getPlayerOrException();
+                ServerPlayer player = EntityArgument.getPlayer(context, "player");
                 if (player.getRootVehicle() != null && player.getRootVehicle() != player) {
                     if (player.getRootVehicle() instanceof OWEntity owEntity) owEntity.setPrestigeLevel(amount);
-                    source.sendSuccess(() -> Component.translatable("addPrestigeCommandWork", amount).setStyle(Style.EMPTY.withColor(0x00FF00)), false);
-                } else source.sendSuccess(() -> Component.translatable("addPrestigeCommandError").setStyle(Style.EMPTY.withColor(0xFF0000)), false);
+                    source.sendSuccess(() -> Component.translatable("addPrestigeCommandWork", amount)
+                            .setStyle(Style.EMPTY.withColor(0x00FF00)), false);
+                } else {
+                    source.sendSuccess(() -> Component.translatable("addPrestigeCommandError")
+                            .setStyle(Style.EMPTY.withColor(0xFF0000)), false);
+                }
             } catch (Exception ignored) {
             }
             return 1;
@@ -62,13 +78,16 @@ public class OWCommands {
     public static class ForceTameCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
             dispatcher.register(
-                    Commands.literal("forcetame").executes(ForceTameCommand::execute));
+                    Commands.literal("forcetame")
+                            .then(Commands.argument("player", EntityArgument.player())
+                                    .executes(ForceTameCommand::execute))
+            );
         }
 
         private static int execute(CommandContext<CommandSourceStack> context) {
             CommandSourceStack source = context.getSource();
             try {
-                ServerPlayer player = source.getPlayerOrException();
+                ServerPlayer player = EntityArgument.getPlayer(context, "player");
 
                 Vec3 eyePos = player.getEyePosition();
                 Vec3 lookVec = player.getLookAngle();
@@ -88,7 +107,8 @@ public class OWCommands {
                     if (distance <= 10) {
                         owEntity.setTame(true, player);
                         owEntity.addTamingExperience(owEntity.getTamingExperience() / 2, player);
-                        source.sendSuccess(() -> Component.translatable("forceTameCommandSuccess", Component.translatable(String.valueOf("entity.ow." + owEntity.getClass().getSimpleName().toLowerCase().split("entity")[0])))
+                        source.sendSuccess(() -> Component.translatable("forceTameCommandSuccess",
+                                        Component.translatable(String.valueOf("entity.ow." + owEntity.getClass().getSimpleName().toLowerCase().split("entity")[0])))
                                 .setStyle(Style.EMPTY.withColor(0x00FF00)), false);
                     } else {
                         source.sendSuccess(() -> Component.translatable("forceTameCommandTooFar")

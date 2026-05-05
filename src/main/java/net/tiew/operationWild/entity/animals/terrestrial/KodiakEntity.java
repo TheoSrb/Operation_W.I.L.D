@@ -480,10 +480,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         super.tick();
         kodiakTaming.tick();
 
-        if (!this.level().isClientSide()) {
-            System.out.println(this.getRemainingPersistentAngerTime());
-        }
-
         boolean hasSomethingInHisMouth = getFoodPick() != null && !getFoodPick().isEmpty();
 
         if (!isPawSlamCharging() && !isPawSlamStriking()) {

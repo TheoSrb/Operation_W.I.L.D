@@ -209,7 +209,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 			return;
 		}
 
-		if (tiger.isNapping()) {
+		if (tiger.isNapping() || tiger.isSleeping()) {
 			this.animate(tiger.napAnimationState, TigerAnimations.NAP, ageInTicks, 1.0f);
 			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 			return;

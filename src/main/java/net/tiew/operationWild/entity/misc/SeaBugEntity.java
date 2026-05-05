@@ -150,6 +150,7 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
             int durabilityRemaining2 = maxDurability2 - currentDurability2;
 
             setEnergy(Math.max(0, (durabilityRemaining1 / MAX_BATTERY) + (durabilityRemaining2 / MAX_BATTERY)));
+            setOff(getEnergy() == 0);
         }
 
         int interval = isLightOn() ? 600 : 800;
