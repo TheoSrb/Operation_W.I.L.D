@@ -51,11 +51,12 @@ public class Submarine extends OWEntity {
     public boolean firstTimeToDeep = true;
     public boolean canDesactivateLight = false;
 
-    public float accelerationLevel = 0.0f;
-    public float rightAccelerationLevel = 0.0f;
-    public float leftAccelerationLevel = 0.0f;
-    public float upAccelerationLevel = 0.0f;
-    public float backwardAccelerationLevel = 0.0f;
+    // Axes signés : [-100, +100] pour longitudinal/latéral, [0, 100] pour vertical
+    // positif longitudinal = avant, négatif = arrière
+    // positif latéral = droite, négatif = gauche
+    public float longitudinalAccel = 0.0f;
+    public float lateralAccel = 0.0f;
+    public float verticalAccel = 0.0f;
 
     private float laggedXRot = 0.0f;
 
@@ -115,8 +116,13 @@ public class Submarine extends OWEntity {
         }
     }
 
-    public void setOff(boolean isOff) { this.entityData.set(IS_OFF, isOff);}
-    public boolean isOff() { return this.entityData.get(IS_OFF);}
+    public void setOff(boolean isOff) {
+        this.entityData.set(IS_OFF, isOff);
+    }
+
+    public boolean isOff() {
+        return this.entityData.get(IS_OFF);
+    }
 
     public void spawnBubbleParticles() {
         ParticleOptions particleoptions = ParticleTypes.SPLASH;
@@ -208,7 +214,10 @@ public class Submarine extends OWEntity {
         float pitch = (float) (OWUtils.generateRandomInterval(0.9, 1.1));
         this.playSound(OWSounds.SUBMARINE_SWITCH_LIGHT.get(), 1.0f, pitch);
     }
-    public boolean isLightOn() { return this.entityData.get(IS_LIGHT_ON);}
+
+    public boolean isLightOn() {
+        return this.entityData.get(IS_LIGHT_ON);
+    }
 
     @Override
     public void onInsideBubbleColumn(boolean b) {
@@ -225,11 +234,62 @@ public class Submarine extends OWEntity {
         }
     }
 
-    protected double getSubmarineBaseSpeed() { return 0.4; }
-    protected float getSideSpeedMultiplier() { return 0.5f; }
-    protected float getBackwardSpeedMultiplier() { return 0.5f; }
-    protected double getUpSpeed() { return 0.2; }
-    protected float getRotationLag() { return 1.0f; }
+    protected double getSubmarineBaseSpeed() {
+        return 0.4;
+    }
+
+    protected float getSideSpeedMultiplier() {
+        return 0.5f;
+    }
+
+    protected float getBackwardSpeedMultiplier() {
+        return 0.5f;
+    }
+
+    protected double getUpSpeed() {
+        return 0.2;
+    }
+
+    protected float getRotationLag() {
+        return 1.0f;
+    }
+
+    protected float getAccelerationMultiplier() {
+        return 1.0f;
+    }
+
+    protected float getBrakingMultiplier() {
+        return 3.0f;
+    }
+
+    // --- Paramètres du shader de lumière — à surcharger dans chaque sous-marin ---
+    // écart de chaque phare par rapport au centre de l'écran [0.0–0.5]
+    public float getShaderLightSeparation()        { return 0.15f; }
+    // position verticale des phares [0.0–1.0], 0.5 = centre
+    public float getShaderLightY()                 { return 0.500f; }
+    // rayon gaussien du spot : plus bas = spot plus grand
+    public float getShaderSpotRadius()             { return 20.0f; }
+    // exposant de contraste : plus haut = bords plus nets, zone sombre plus dure
+    public float getShaderContrastPow()            { return 2.0f; }
+    // intensité de la lumière plate ajoutée sur les blocs éclairés
+    public float getShaderAdditiveStrength()       { return 0.30f; }
+    // facteur d'amplification de la couleur des blocs dans le faisceau
+    public float getShaderMultiplicativeStrength() { return 1.0f; }
+    // assombrissement des zones hors faisceau [0.0–1.0]
+    public float getShaderShadowFactor()           { return 0.0f; }
+    // couleur RGB du faisceau
+    public float[] getShaderLightColor()           { return new float[]{1.0f, 1.0f, 1.0f}; }
+    // true = un seul faisceau centré, false = deux faisceaux écartés
+    public boolean isSingleBeam()                  { return false; }
+
+    protected static float[] hexToRGB(String hex) {
+        int color = Integer.parseUnsignedInt(hex.replace("#", ""), 16);
+        return new float[]{
+            ((color >> 16) & 0xFF) / 255.0f,
+            ((color >> 8)  & 0xFF) / 255.0f,
+            ( color        & 0xFF) / 255.0f
+        };
+    }
 
     public void tickRidden(Player player, Vec3 vec3) {
         super.tickRidden(player, vec3);
@@ -257,95 +317,71 @@ public class Submarine extends OWEntity {
     @OnlyIn(Dist.CLIENT)
     private void tickSubmarineMovement(Player player) {
         boolean forwardKey = Minecraft.getInstance().options.keyUp.isDown();
-        boolean backKey    = Minecraft.getInstance().options.keyDown.isDown();
-        boolean rightKey   = Minecraft.getInstance().options.keyRight.isDown();
-        boolean leftKey    = Minecraft.getInstance().options.keyLeft.isDown();
-        boolean upKey      = Minecraft.getInstance().options.keyJump.isDown();
-        boolean anyKey     = forwardKey || backKey || rightKey || leftKey || upKey;
+        boolean backKey = Minecraft.getInstance().options.keyDown.isDown();
+        boolean rightKey = Minecraft.getInstance().options.keyRight.isDown();
+        boolean leftKey = Minecraft.getInstance().options.keyLeft.isDown();
+        boolean upKey = Minecraft.getInstance().options.keyJump.isDown();
+        boolean anyKey = forwardKey || backKey || rightKey || leftKey || upKey;
 
+        float step = getAccelerationMultiplier();
+        float brakeStep = step * getBrakingMultiplier();
         double base = getSubmarineBaseSpeed();
         Vec3 move = Vec3.ZERO;
 
-        // Avant / Arrière
-        if (forwardKey) {
-            backwardAccelerationLevel = 0;
-            if (accelerationLevel < 100) accelerationLevel += 1.0f;
-            float norm = accelerationLevel / 100.0f;
-            float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
-            move = this.getViewVector(1.0f).scale(base * (0.1 + smooth * 0.9));
-        } else if (backKey) {
-            accelerationLevel = 0;
-            if (backwardAccelerationLevel < 100) backwardAccelerationLevel += 1.0f;
-            float norm = backwardAccelerationLevel / 100.0f;
-            float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
-            move = this.getViewVector(1.0f).scale(-base * (0.1 + smooth * 0.9) * getBackwardSpeedMultiplier());
-        } else {
-            if (accelerationLevel > 0) {
-                accelerationLevel = Math.max(0, accelerationLevel - 1.0f);
-                if (accelerationLevel > 0) {
-                    float norm = accelerationLevel / 100.0f;
-                    move = this.getViewVector(1.0f).scale(base * (0.1 + norm * norm * 0.9) * 0.7);
-                }
-            }
-            if (backwardAccelerationLevel > 0) {
-                backwardAccelerationLevel = Math.max(0, backwardAccelerationLevel - 1.0f);
-                if (backwardAccelerationLevel > 0) {
-                    float norm = backwardAccelerationLevel / 100.0f;
-                    move = move.add(this.getViewVector(1.0f).scale(-base * (0.1 + norm * norm * 0.9) * getBackwardSpeedMultiplier() * 0.7));
-                }
-            }
+        // Axe longitudinal : avant (+) / arrière (-)
+        // Si la touche s'oppose à la direction actuelle → freinage fort (brakeStep)
+        if (forwardKey && !backKey) {
+            float s = (longitudinalAccel < 0) ? brakeStep : step;
+            longitudinalAccel = Math.min(100.0f, longitudinalAccel + s);
+        } else if (backKey && !forwardKey) {
+            float s = (longitudinalAccel > 0) ? brakeStep : step;
+            longitudinalAccel = Math.max(-100.0f, longitudinalAccel - s);
+        } else if (longitudinalAccel > 0) {
+            longitudinalAccel = Math.max(0.0f, longitudinalAccel - step);
+        } else if (longitudinalAccel < 0) {
+            longitudinalAccel = Math.min(0.0f, longitudinalAccel + step);
         }
 
-        // Droite
-        if (rightKey) {
-            leftAccelerationLevel = 0;
-            if (rightAccelerationLevel < 100) rightAccelerationLevel += 1.0f;
-            float norm = rightAccelerationLevel / 100.0f;
+        if (longitudinalAccel != 0) {
+            float norm = Math.abs(longitudinalAccel) / 100.0f;
             float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
-            float angle = this.getYRot() + 90.0f;
-            Vec3 dir = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0f), 0, Mth.cos(angle * (float) Math.PI / 180.0f));
-            move = move.add(dir.scale(getSideSpeedMultiplier() * base * (0.1 + smooth * 0.9)));
-        } else if (rightAccelerationLevel > 0) {
-            rightAccelerationLevel = Math.max(0, rightAccelerationLevel - 1.0f);
-            if (rightAccelerationLevel > 0) {
-                float norm = rightAccelerationLevel / 100.0f;
-                float angle = this.getYRot() + 90.0f;
-                Vec3 dir = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0f), 0, Mth.cos(angle * (float) Math.PI / 180.0f));
-                move = move.add(dir.scale(getSideSpeedMultiplier() * base * (0.1 + norm * norm * 0.9) * 0.7));
-            }
+            float speed = (float) (base * (0.1 + smooth * 0.9));
+            if (longitudinalAccel < 0) speed *= getBackwardSpeedMultiplier();
+            move = move.add(this.getViewVector(1.0f).scale(Math.signum(longitudinalAccel) * speed));
         }
 
-        // Gauche
-        if (leftKey) {
-            rightAccelerationLevel = 0;
-            if (leftAccelerationLevel < 100) leftAccelerationLevel += 1.0f;
-            float norm = leftAccelerationLevel / 100.0f;
-            float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
-            float angle = this.getYRot() - 90.0f;
-            Vec3 dir = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0f), 0, Mth.cos(angle * (float) Math.PI / 180.0f));
-            move = move.add(dir.scale(getSideSpeedMultiplier() * base * (0.1 + smooth * 0.9)));
-        } else if (leftAccelerationLevel > 0) {
-            leftAccelerationLevel = Math.max(0, leftAccelerationLevel - 1.0f);
-            if (leftAccelerationLevel > 0) {
-                float norm = leftAccelerationLevel / 100.0f;
-                float angle = this.getYRot() - 90.0f;
-                Vec3 dir = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0f), 0, Mth.cos(angle * (float) Math.PI / 180.0f));
-                move = move.add(dir.scale(getSideSpeedMultiplier() * base * (0.1 + norm * norm * 0.9) * 0.7));
-            }
+        // Axe latéral : droite (+) / gauche (-)
+        if (rightKey && !leftKey) {
+            float s = (lateralAccel < 0) ? brakeStep : step;
+            lateralAccel = Math.min(100.0f, lateralAccel + s);
+        } else if (leftKey && !rightKey) {
+            float s = (lateralAccel > 0) ? brakeStep : step;
+            lateralAccel = Math.max(-100.0f, lateralAccel - s);
+        } else if (lateralAccel > 0) {
+            lateralAccel = Math.max(0.0f, lateralAccel - step);
+        } else if (lateralAccel < 0) {
+            lateralAccel = Math.min(0.0f, lateralAccel + step);
         }
 
-        // Montée
+        if (lateralAccel != 0) {
+            float norm = Math.abs(lateralAccel) / 100.0f;
+            float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
+            float angle = this.getYRot() + 90.0f; // vecteur pointant à droite
+            Vec3 rightDir = new Vec3(-Mth.sin(angle * Mth.PI / 180.0f), 0, Mth.cos(angle * Mth.PI / 180.0f));
+            move = move.add(rightDir.scale(Math.signum(lateralAccel) * getSideSpeedMultiplier() * base * (0.1 + smooth * 0.9)));
+        }
+
+        // Axe vertical : haut uniquement
         if (upKey) {
-            if (upAccelerationLevel < 100) upAccelerationLevel += 1.0f;
-            float norm = upAccelerationLevel / 150.0f;
+            verticalAccel = Math.min(100.0f, verticalAccel + step);
+        } else if (verticalAccel > 0) {
+            verticalAccel = Math.max(0.0f, verticalAccel - step);
+        }
+
+        if (verticalAccel > 0) {
+            float norm = verticalAccel / 150.0f;
             float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
             move = move.add(new Vec3(0, getUpSpeed() * (0.1 + smooth * 0.9), 0));
-        } else if (upAccelerationLevel > 0) {
-            upAccelerationLevel = Math.max(0, upAccelerationLevel - 1.0f);
-            if (upAccelerationLevel > 0) {
-                float norm = upAccelerationLevel / 100.0f;
-                move = move.add(new Vec3(0, 0.125 * (0.1 + norm * norm * 0.9) * 0.7, 0));
-            }
         }
 
         if (this.isAlive() && this.isInWater()) {
@@ -383,8 +419,13 @@ public class Submarine extends OWEntity {
         return false;
     }
 
-    public void setEnergy(float getEnergy) {this.entityData.set(ENERGY, getEnergy);}
-    public float getEnergy() { return this.entityData.get(ENERGY);}
+    public void setEnergy(float getEnergy) {
+        this.entityData.set(ENERGY, getEnergy);
+    }
+
+    public float getEnergy() {
+        return this.entityData.get(ENERGY);
+    }
 
     @Override
     public void die(DamageSource damageSource) {

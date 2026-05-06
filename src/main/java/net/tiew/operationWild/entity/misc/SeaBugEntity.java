@@ -40,10 +40,21 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
     private static final EntityDataAccessor<Float> PITCH = SynchedEntityData.defineId(SeaBugEntity.class, EntityDataSerializers.FLOAT);
 
 
-    public SeaBugVariant getVariant() { return SeaBugVariant.byId(this.getTypeVariant() & 255);}
-    public void setVariant(SeaBugVariant variant) { this.entityData.set(VARIANT, variant.getId() & 255);}
-    public SeaBugVariant getInitialVariant() { return SeaBugVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));}
-    public void setInitialVariant(SeaBugVariant variant) { this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());}
+    public SeaBugVariant getVariant() {
+        return SeaBugVariant.byId(this.getTypeVariant() & 255);
+    }
+
+    public void setVariant(SeaBugVariant variant) {
+        this.entityData.set(VARIANT, variant.getId() & 255);
+    }
+
+    public SeaBugVariant getInitialVariant() {
+        return SeaBugVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));
+    }
+
+    public void setInitialVariant(SeaBugVariant variant) {
+        this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());
+    }
 
     public SeaBugEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -80,17 +91,37 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
         }
     }
 
-    public void setAlimentedByBattery1(boolean isAlimentedByBattery1) {this.entityData.set(IS_ALIMENTED_BY_BATTERY_1, isAlimentedByBattery1);}
-    public boolean isAlimentedByBattery1() { return this.entityData.get(IS_ALIMENTED_BY_BATTERY_1);}
+    public void setAlimentedByBattery1(boolean isAlimentedByBattery1) {
+        this.entityData.set(IS_ALIMENTED_BY_BATTERY_1, isAlimentedByBattery1);
+    }
 
-    public void setAlimentedByBattery2(boolean isAlimentedByBattery2) {this.entityData.set(IS_ALIMENTED_BY_BATTERY_2, isAlimentedByBattery2);}
-    public boolean isAlimentedByBattery2() { return this.entityData.get(IS_ALIMENTED_BY_BATTERY_2);}
+    public boolean isAlimentedByBattery1() {
+        return this.entityData.get(IS_ALIMENTED_BY_BATTERY_1);
+    }
 
-    public void setChestAmelioration(boolean isChestAmeliorated) {this.entityData.set(IS_CHEST_AMELIORATED, isChestAmeliorated);}
-    public boolean isChestAmeliorated() { return this.entityData.get(IS_CHEST_AMELIORATED);}
+    public void setAlimentedByBattery2(boolean isAlimentedByBattery2) {
+        this.entityData.set(IS_ALIMENTED_BY_BATTERY_2, isAlimentedByBattery2);
+    }
 
-    public void setLastPlayerPitch(float getLastPlayerPitch) {this.entityData.set(PITCH, getLastPlayerPitch);}
-    public float getLastPlayerPitch() { return this.entityData.get(PITCH);}
+    public boolean isAlimentedByBattery2() {
+        return this.entityData.get(IS_ALIMENTED_BY_BATTERY_2);
+    }
+
+    public void setChestAmelioration(boolean isChestAmeliorated) {
+        this.entityData.set(IS_CHEST_AMELIORATED, isChestAmeliorated);
+    }
+
+    public boolean isChestAmeliorated() {
+        return this.entityData.get(IS_CHEST_AMELIORATED);
+    }
+
+    public void setLastPlayerPitch(float getLastPlayerPitch) {
+        this.entityData.set(PITCH, getLastPlayerPitch);
+    }
+
+    public float getLastPlayerPitch() {
+        return this.entityData.get(PITCH);
+    }
 
     @Override
     public void setTarget(@Nullable LivingEntity target) {
@@ -215,19 +246,145 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
     }
 
     @Override
-    protected float getRotationLag() { return 0.1f; }
+    protected float getRotationLag() {
+        return 0.1f;
+    }
 
     @Override
-    protected double getSubmarineBaseSpeed() { return 0.5; }
+    protected double getSubmarineBaseSpeed() {
+        return 0.5;
+    }
 
     @Override
-    protected float getSideSpeedMultiplier() { return 0.75f; }
+    protected float getSideSpeedMultiplier() {
+        return 0.75f;
+    }
 
     @Override
-    protected float getBackwardSpeedMultiplier() { return 0.75f; }
+    protected float getBackwardSpeedMultiplier() {
+        return 0.75f;
+    }
 
     @Override
-    protected double getUpSpeed() { return 0.3; }
+    protected double getUpSpeed() {
+        return 0.3;
+    }
+
+    @Override
+    protected float getAccelerationMultiplier() {
+        return 1.5f;
+    }
+
+    /**
+     * Distance horizontale de chaque phare par rapport au centre de l'écran.
+     * Les deux spots sont placés à (0.5 - valeur) et (0.5 + valeur).
+     * - Plus élevé → phares plus écartés (ex. 0.20 = très espacés)
+     * - Plus faible → phares rapprochés du centre (ex. 0.05 = quasi fusionnés)
+     * - Plage recommandée : 0.05 – 0.30
+     */
+    @Override
+    public float getShaderLightSeparation() {
+        return 0.12f;
+    }
+
+    /**
+     * Position verticale des deux phares sur l'écran.
+     * 0.0 = haut de l'écran, 1.0 = bas de l'écran, 0.5 = centre exact.
+     * - Plus élevé → phares plus bas sur l'écran
+     * - Plus faible → phares plus hauts sur l'écran
+     * - Plage recommandée : 0.40 – 0.65
+     */
+    @Override
+    public float getShaderLightY() {
+        return 0.510f;
+    }
+
+    /**
+     * Rayon du spot gaussien — contrôle la taille physique de chaque cercle lumineux.
+     * La formule est exp(-distance² × valeur), donc plus la valeur est BASSE, plus le spot est GRAND.
+     * - Plus élevé → spot petit et concentré (ex. 30.0 = petit point net)
+     * - Plus faible → spot large et diffus (ex. 8.0 = grand halo)
+     * - Plage recommandée : 8.0 – 30.0
+     */
+    @Override
+    public float getShaderSpotRadius() {
+        return 15.0f;
+    }
+
+    /**
+     * Exposant de contraste appliqué après la somme des deux spots.
+     * Contrôle la dureté du bord entre la zone éclairée et la zone sombre.
+     * - Plus élevé → bord très net, zone sombre tranchée (ex. 6.0 = quasi découpe)
+     * - Plus faible → transition douce et progressive (ex. 1.5 = dégradé large)
+     * - Plage recommandée : 1.5 – 7.0
+     */
+    @Override
+    public float getShaderContrastPow() {
+        return 3.8f;
+    }
+
+    /**
+     * Intensité de la composante additive : lumière plate ajoutée sur les blocs éclairés,
+     * indépendamment de leur couleur de base. Produit un halo visible même sur les blocs noirs.
+     * - Plus élevé → halo plus lumineux et coloré dans le faisceau (ex. 1.0 = très intense)
+     * - Plus faible → halo discret, la couleur du bloc domine (ex. 0.1 = quasi invisible)
+     * - Plage recommandée : 0.1 – 1.0
+     */
+    @Override
+    public float getShaderAdditiveStrength() {
+        return 0.35f;
+    }
+
+    /**
+     * Facteur multiplicatif appliqué à la couleur originale des blocs dans le faisceau.
+     * Amplifie la couleur naturelle du bloc, créant un contraste fort avec les zones non éclairées.
+     * - Plus élevé → blocs éclairés très brillants, fort contraste (ex. 4.0 = surexposé)
+     * - Plus faible → effet subtil, blocs à peine plus lumineux (ex. 0.5 = léger)
+     * - 1.0 = aucun effet multiplicatif
+     * - Plage recommandée : 0.5 – 4.0
+     */
+    @Override
+    public float getShaderMultiplicativeStrength() {
+        return 2.0f;
+    }
+
+    /**
+     * Facteur d'assombrissement des zones hors faisceau, pour augmenter le contraste
+     * entre les blocs éclairés et le reste de la scène sans toucher à la luminosité du faisceau.
+     * - Plus élevé → zones sombres très assombries, contraste maximal (ex. 0.9 = quasi noir)
+     * - Plus faible → peu d'effet, scène peu modifiée (ex. 0.1 = léger voile)
+     * - 0.0 = aucun assombrissement (comportement neutre)
+     * - Plage recommandée : 0.0 – 0.8
+     */
+    @Override
+    public float getShaderShadowFactor() {
+        return 0.50f;
+    }
+
+    /**
+     * Couleur RGB du faisceau lumineux, exprimée en code hexadécimal.
+     * Utilisez la méthode {@link #hexToRGB(String)} avec un code couleur HTML (ex. {@code "#C7EBFF"}).
+     * - Bleu froid → {@code "#C7EBFF"} (couleur actuelle du SeaBug)
+     * - Blanc neutre → {@code "#FFFFFF"}
+     * - Jaune chaud → {@code "#FFE87C"}
+     * - Vert bioluminescent → {@code "#7DFFC0"}
+     */
+    @Override
+    public float[] getShaderLightColor() {
+        return hexToRGB("#c7faff");
+    }
+
+    /**
+     * Détermine si le sous-marin utilise un seul faisceau centré ou deux faisceaux écartés.
+     * En mode faisceau unique, les deux spots fusionnent automatiquement au centre de l'écran
+     * (position X = 0.5), indépendamment de la valeur de {@link #getShaderLightSeparation()}.
+     * - true  → un seul phare central (ex. lampe frontale, projecteur unique)
+     * - false → deux phares écartés symétriquement (comportement par défaut du SeaBug)
+     */
+    @Override
+    public boolean isSingleBeam() {
+        return false;
+    }
 
     private void setupAnimationState() {
     }

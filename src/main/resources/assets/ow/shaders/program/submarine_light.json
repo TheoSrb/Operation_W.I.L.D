@@ -12,7 +12,16 @@
     { "name": "DiffuseSampler" }
   ],
   "uniforms": [
-    { "name": "ProjMat",  "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-    { "name": "OutSize",  "type": "float",     "count": 2,  "values": [ 1.0, 1.0 ] }
+    { "name": "ProjMat",               "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+    { "name": "OutSize",               "type": "float",     "count": 2,  "values": [ 1.0, 1.0 ] },
+    { "name": "LightSeparation",       "type": "float",     "count": 1,  "values": [ 0.12 ] },
+    { "name": "LightY",                "type": "float",     "count": 1,  "values": [ 0.510 ] },
+    { "name": "SpotRadius",            "type": "float",     "count": 1,  "values": [ 15.0 ] },
+    { "name": "ContrastPow",           "type": "float",     "count": 1,  "values": [ 3.8 ] },
+    { "name": "AdditiveStrength",      "type": "float",     "count": 1,  "values": [ 0.55 ] },
+    { "name": "MultiplicativeStrength","type": "float",     "count": 1,  "values": [ 2.0 ] },
+    { "name": "ShadowFactor",          "type": "float",     "count": 1,  "values": [ 0.50 ] },
+    { "name": "LightColor",            "type": "float",     "count": 3,  "values": [ 0.78, 0.92, 1.0 ] },
+    { "name": "SingleBeam",            "type": "float",     "count": 1,  "values": [ 0.0 ] }
   ]
 }

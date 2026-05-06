@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.phys.AABB;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.ClientConfig;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
@@ -20,6 +21,9 @@ import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.List;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -1036,6 +1040,10 @@ public class ClientEvents {
                             shaderLoadCooldown = 12000;
                         }
                     } else if (isOurEffect && !hasProcessedThisFrame) {
+                        Entity vehicle = player.getVehicle();
+                        if (vehicle instanceof Submarine submarine) {
+                            pushSubmarineShaderUniforms(currentEffect, submarine);
+                        }
                         currentEffect.process(minecraft.getTimer().getGameTimeDeltaPartialTick(true));
                         hasProcessedThisFrame = true;
                     }
@@ -1044,6 +1052,60 @@ public class ClientEvents {
                 }
             }
         }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static void pushSubmarineShaderUniforms(PostChain chain, Submarine submarine) {
+        try {
+            Field passesField = chain.getClass().getDeclaredField("passes");
+            passesField.setAccessible(true);
+            List<?> passes = (List<?>) passesField.get(chain);
+            float[] color = submarine.getShaderLightColor();
+            for (Object pass : passes) {
+                Object effect = findShaderEffectInPass(pass);
+                if (effect == null) continue;
+                applyUniform1f(effect, "LightSeparation",        submarine.getShaderLightSeparation());
+                applyUniform1f(effect, "LightY",                 submarine.getShaderLightY());
+                applyUniform1f(effect, "SpotRadius",             submarine.getShaderSpotRadius());
+                applyUniform1f(effect, "ContrastPow",            submarine.getShaderContrastPow());
+                applyUniform1f(effect, "AdditiveStrength",       submarine.getShaderAdditiveStrength());
+                applyUniform1f(effect, "MultiplicativeStrength", submarine.getShaderMultiplicativeStrength());
+                applyUniform1f(effect, "ShadowFactor",           submarine.getShaderShadowFactor());
+                applyUniform3f(effect, "LightColor", color[0], color[1], color[2]);
+                applyUniform1f(effect, "SingleBeam", submarine.isSingleBeam() ? 1.0f : 0.0f);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    // Trouve le shader dans un PostPass en cherchant un champ qui expose safeGetUniform
+    private static Object findShaderEffectInPass(Object pass) {
+        for (Field f : pass.getClass().getDeclaredFields()) {
+            try {
+                f.setAccessible(true);
+                Object val = f.get(pass);
+                if (val != null) {
+                    val.getClass().getMethod("safeGetUniform", String.class);
+                    return val;
+                }
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private static void applyUniform1f(Object effect, String name, float value) {
+        try {
+            Method get = effect.getClass().getMethod("safeGetUniform", String.class);
+            Object u = get.invoke(effect, name);
+            if (u != null) u.getClass().getMethod("set", float.class).invoke(u, value);
+        } catch (Exception ignored) {}
+    }
+
+    private static void applyUniform3f(Object effect, String name, float r, float g, float b) {
+        try {
+            Method get = effect.getClass().getMethod("safeGetUniform", String.class);
+            Object u = get.invoke(effect, name);
+            if (u != null) u.getClass().getMethod("set", float.class, float.class, float.class).invoke(u, r, g, b);
+        } catch (Exception ignored) {}
     }
 
     @SubscribeEvent
