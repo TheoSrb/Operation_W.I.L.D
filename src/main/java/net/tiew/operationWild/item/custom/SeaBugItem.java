@@ -22,7 +22,6 @@ import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.misc.SeaBugEntity;
-import net.tiew.operationWild.event.ClientEvents;
 
 public class SeaBugItem extends Item {
 

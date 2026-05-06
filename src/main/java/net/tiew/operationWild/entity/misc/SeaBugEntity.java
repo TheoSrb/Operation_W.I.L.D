@@ -2,6 +2,7 @@ package net.tiew.operationWild.entity.misc;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.tiew.operationWild.event.ClientEvents;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -112,9 +113,16 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
                     applyWaterPressureDamage(depth, rider);
                 }
             } else applyWaterPressureDamage(depth, null);
+
+            if (this.level().isClientSide()) {
+                ClientEvents.blinkSubmarineShader = rider == null || !rider.isCreative();
+            }
         } else {
             damageTimer = 0.0f;
             firstTimeToDeep = true;
+            if (this.level().isClientSide()) {
+                ClientEvents.blinkSubmarineShader = false;
+            }
         }
 
         if (!this.level().isClientSide()) {
@@ -205,6 +213,21 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
         this.setSaddle(true);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
+
+    @Override
+    protected float getRotationLag() { return 0.1f; }
+
+    @Override
+    protected double getSubmarineBaseSpeed() { return 0.5; }
+
+    @Override
+    protected float getSideSpeedMultiplier() { return 0.75f; }
+
+    @Override
+    protected float getBackwardSpeedMultiplier() { return 0.75f; }
+
+    @Override
+    protected double getUpSpeed() { return 0.3; }
 
     private void setupAnimationState() {
     }

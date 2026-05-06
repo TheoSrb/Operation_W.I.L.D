@@ -8,6 +8,8 @@ import net.minecraft.world.phys.AABB;
 import net.tiew.operationWild.ClientConfig;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
+import net.tiew.operationWild.entity.misc.SeaBugEntity;
+import net.tiew.operationWild.entity.misc.Submarine;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import org.joml.Matrix4f;
@@ -19,16 +21,12 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.PostChain;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -56,8 +54,6 @@ import org.lwjgl.glfw.GLFW;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.misc.SeaBugEntity;
-import net.tiew.operationWild.entity.misc.Submarine;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestsDate;
 import net.tiew.operationWild.gui.*;
 import net.tiew.operationWild.item.OWItems;
@@ -67,7 +63,6 @@ import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.attacks.OWPassive;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.*;
-import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.core.OWDamageSources;
 import net.tiew.operationWild.core.OWKeysBinding;
 
@@ -420,15 +415,6 @@ public class ClientEvents {
             ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
         }
 
-        boolean useKeyIsPressed = Minecraft.getInstance().options.keyUse.isDown();
-        boolean forwardKeyIsPressed = Minecraft.getInstance().options.keyUp.isDown();
-        boolean rightKeyIsPressed = Minecraft.getInstance().options.keyRight.isDown();
-        boolean leftKeyIsPressed = Minecraft.getInstance().options.keyLeft.isDown();
-        boolean backKeyIsPressed = Minecraft.getInstance().options.keyDown.isDown();
-        boolean upKeyIsPressed = Minecraft.getInstance().options.keyJump.isDown();
-
-        boolean someKeyIsPressed = forwardKeyIsPressed || backKeyIsPressed || leftKeyIsPressed || rightKeyIsPressed || upKeyIsPressed;
-
         int waterDepth = player.isInWater() ? (int) (player.level().getSeaLevel() - player.getY()) : -1;
         float waterPressure = getWaterPressure(waterDepth);
 
@@ -492,240 +478,6 @@ public class ClientEvents {
             }
         }
 
-        Entity ridingEntity = player.getRootVehicle();
-
-        if (ridingEntity instanceof Submarine submarine && !submarine.isOff()) {
-            double baseSpeed = 0.4;
-            Vec3 newMovement = Vec3.ZERO;
-
-            if (forwardKeyIsPressed) {
-                submarine.backwardAccelerationLevel = 0;
-
-                if (submarine.accelerationLevel < 100) {
-                    submarine.accelerationLevel += 1.0f;
-                }
-
-                float normalizedAccel = submarine.accelerationLevel / 100.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                Vec3 lookDirection = submarine.getViewVector(1.0f);
-                newMovement = new Vec3(
-                        lookDirection.x * (baseSpeed * currentSpeed),
-                        lookDirection.y * (baseSpeed * currentSpeed),
-                        lookDirection.z * (baseSpeed * currentSpeed)
-                );
-            }
-            else if (backKeyIsPressed) {
-                submarine.accelerationLevel = 0;
-
-                if (submarine.backwardAccelerationLevel < 100) {
-                    submarine.backwardAccelerationLevel += 1.0f;
-                }
-
-                float normalizedAccel = submarine.backwardAccelerationLevel / 100.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                Vec3 lookDirection = submarine.getViewVector(1.0f);
-                newMovement = new Vec3(
-                        -lookDirection.x * (baseSpeed * currentSpeed * 0.5),
-                        -lookDirection.y * (baseSpeed * currentSpeed * 0.5),
-                        -lookDirection.z * (baseSpeed * currentSpeed * 0.5)
-                );
-            }
-            else {
-                if (submarine.accelerationLevel > 0) {
-                    submarine.accelerationLevel -= 1.0f;
-                    submarine.accelerationLevel = Math.max(0, submarine.accelerationLevel);
-
-                    if (submarine.accelerationLevel > 0) {
-                        float normalizedAccel = submarine.accelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        Vec3 lookDirection = submarine.getViewVector(1.0f);
-                        newMovement = new Vec3(
-                                lookDirection.x * (baseSpeed * currentSpeed * 0.7),
-                                lookDirection.y * (baseSpeed * currentSpeed * 0.7),
-                                lookDirection.z * (baseSpeed * currentSpeed * 0.7)
-                        );
-                    }
-                }
-
-                if (submarine.backwardAccelerationLevel > 0) {
-                    submarine.backwardAccelerationLevel -= 1.0f;
-                    submarine.backwardAccelerationLevel = Math.max(0, submarine.backwardAccelerationLevel);
-
-                    if (submarine.backwardAccelerationLevel > 0) {
-                        float normalizedAccel = submarine.backwardAccelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        Vec3 lookDirection = submarine.getViewVector(1.0f);
-                        Vec3 backwardMovement = new Vec3(
-                                -lookDirection.x * (baseSpeed * currentSpeed * 0.5 * 0.7),
-                                -lookDirection.y * (baseSpeed * currentSpeed * 0.5 * 0.7),
-                                -lookDirection.z * (baseSpeed * currentSpeed * 0.5 * 0.7)
-                        );
-                        newMovement = newMovement.add(backwardMovement);
-                    }
-                }
-            }
-
-            if (rightKeyIsPressed) {
-                submarine.leftAccelerationLevel = 0;
-
-                if (submarine.rightAccelerationLevel < 100) {
-                    submarine.rightAccelerationLevel += 1.0f;
-                }
-
-                float normalizedAccel = submarine.rightAccelerationLevel / 100.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                float yaw = submarine.getYRot();
-                float angle = yaw + 90.0F;
-                Vec3 rightDirection = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0F), 0, Mth.cos(angle * (float) Math.PI / 180.0F));
-
-                Vec3 rightMovement = new Vec3(
-                        rightDirection.x * (0.5 * baseSpeed * currentSpeed),
-                        rightDirection.y * (0.5 * baseSpeed * currentSpeed),
-                        rightDirection.z * (0.5 * baseSpeed * currentSpeed)
-                );
-                newMovement = newMovement.add(rightMovement);
-            } else {
-                if (submarine.rightAccelerationLevel > 0) {
-                    submarine.rightAccelerationLevel -= 1.0f;
-                    submarine.rightAccelerationLevel = Math.max(0, submarine.rightAccelerationLevel);
-
-                    if (submarine.rightAccelerationLevel > 0) {
-                        float normalizedAccel = submarine.rightAccelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        float yaw = submarine.getYRot();
-                        float angle = yaw + 90.0F;
-                        Vec3 rightDirection = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0F), 0, Mth.cos(angle * (float) Math.PI / 180.0F));
-
-                        Vec3 rightMovement = new Vec3(
-                                rightDirection.x * (0.5 * baseSpeed * currentSpeed * 0.7),
-                                rightDirection.y * (0.5 * baseSpeed * currentSpeed * 0.7),
-                                rightDirection.z * (0.5 * baseSpeed * currentSpeed * 0.7)
-                        );
-                        newMovement = newMovement.add(rightMovement);
-                    }
-                }
-            }
-
-            if (leftKeyIsPressed) {
-                submarine.rightAccelerationLevel = 0;
-
-                if (submarine.leftAccelerationLevel < 100) {
-                    submarine.leftAccelerationLevel += 1.0f;
-                }
-
-                float normalizedAccel = submarine.leftAccelerationLevel / 100.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                float yaw = submarine.getYRot();
-                float angle = yaw - 90.0F;
-                Vec3 leftDirection = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0F), 0, Mth.cos(angle * (float) Math.PI / 180.0F));
-
-                Vec3 leftMovement = new Vec3(
-                        leftDirection.x * (0.5 * baseSpeed * currentSpeed),
-                        leftDirection.y * (0.5 * baseSpeed * currentSpeed),
-                        leftDirection.z * (0.5 * baseSpeed * currentSpeed)
-                );
-                newMovement = newMovement.add(leftMovement);
-            } else {
-                if (submarine.leftAccelerationLevel > 0) {
-                    submarine.leftAccelerationLevel -= 1.0f;
-                    submarine.leftAccelerationLevel = Math.max(0, submarine.leftAccelerationLevel);
-
-                    if (submarine.leftAccelerationLevel > 0) {
-                        float normalizedAccel = submarine.leftAccelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        float yaw = submarine.getYRot();
-                        float angle = yaw - 90.0F;
-                        Vec3 leftDirection = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0F), 0, Mth.cos(angle * (float) Math.PI / 180.0F));
-
-                        Vec3 leftMovement = new Vec3(
-                                leftDirection.x * (0.5 * baseSpeed * currentSpeed * 0.7),
-                                leftDirection.y * (0.5 * baseSpeed * currentSpeed * 0.7),
-                                leftDirection.z * (0.5 * baseSpeed * currentSpeed * 0.7)
-                        );
-                        newMovement = newMovement.add(leftMovement);
-                    }
-                }
-            }
-
-            if (upKeyIsPressed) {
-                if (submarine.upAccelerationLevel < 100) {
-                    submarine.upAccelerationLevel += 1f;
-                }
-
-                float normalizedAccel = submarine.upAccelerationLevel / 150.0f;
-                float smoothAccel = 1.0f - (1.0f - normalizedAccel) * (1.0f - normalizedAccel);
-                double currentSpeed = 0.1 + (smoothAccel * 0.9);
-
-                Vec3 upMovement = new Vec3(0, 0.2 * currentSpeed, 0);
-                newMovement = newMovement.add(upMovement);
-            } else {
-                if (submarine.upAccelerationLevel > 0) {
-                    submarine.upAccelerationLevel -= 1.0f;
-                    submarine.upAccelerationLevel = Math.max(0, submarine.upAccelerationLevel);
-
-                    if (submarine.upAccelerationLevel > 0) {
-                        float normalizedAccel = submarine.upAccelerationLevel / 100.0f;
-                        float smoothDecel = normalizedAccel * normalizedAccel;
-                        double currentSpeed = 0.1 + (smoothDecel * 0.9);
-
-                        Vec3 upMovement = new Vec3(0, 0.125 * currentSpeed * 0.7, 0);
-                        newMovement = newMovement.add(upMovement);
-                    }
-                }
-            }
-
-            if (submarine.isAlive() && submarine.isInWater()) {
-                submarine.setDeltaMovement(newMovement);
-            }
-
-            if (someKeyIsPressed && submarine.isInWater() && player == Minecraft.getInstance().player) {
-                submarine.spawnBubbleParticles();
-
-                if (submarine.level().isClientSide) {
-                    if (!submarine.isPlayingMoveSound) {
-                        SimpleSoundInstance soundInstance = new SimpleSoundInstance(
-                                OWSounds.SUBMARINE_MOVE_LOOP.get().getLocation(),
-                                SoundSource.BLOCKS,
-                                1.0f,
-                                1.25f,
-                                SoundInstance.createUnseededRandom(),
-                                true,
-                                0,
-                                SoundInstance.Attenuation.NONE,
-                                player.getX(),
-                                player.getY(),
-                                player.getZ(),
-                                true
-                        );
-
-                        Minecraft.getInstance().getSoundManager().play(soundInstance);
-                        submarine.isPlayingMoveSound = true;
-                    }
-                }
-            } else {
-                if (submarine.level().isClientSide) {
-                    Minecraft.getInstance().getSoundManager().stop(OWSounds.SUBMARINE_MOVE_LOOP.get().getLocation(), null);
-                }
-                submarine.isPlayingMoveSound = false;
-                submarine.soundTimer = 0;
-            }
-        }
     }
 
     private static void updateWaterMovement(OWEntity entity, Player player, int speed, double VERTICAL_DRAG) {
@@ -882,6 +634,40 @@ public class ClientEvents {
         setBlurPercentage(0);
     }
 
+    // --- Blink shader ---
+    public static boolean blinkSubmarineShader = false;  // set par SeaBugEntity
+    private static int blinkTimer = 0;
+    private static boolean blinkShaderOn = false;
+
+    /**
+     * À appeler chaque tick client. Fait clignoter le shader donné à des intervalles
+     * aléatoires entre 0.2 s (4 ticks) et 1 s (20 ticks).
+     * Arrêter avec {@link #stopBlinkShader()}.
+     *
+     * Exemple : ClientEvents.tickBlinkShader(ResourceLocation.parse("ow:shaders/my_shader.json"));
+     */
+    public static void tickBlinkShader(ResourceLocation shader) {
+        if (blinkTimer <= 0) {
+            blinkShaderOn = !blinkShaderOn;
+            // Intervalle aléatoire : 4 à 20 ticks (0.2 s – 1 s)
+            blinkTimer = 4 + (int) (Math.random() * 17);
+            if (blinkShaderOn) {
+                Minecraft.getInstance().gameRenderer.loadEffect(shader);
+            } else {
+                Minecraft.getInstance().gameRenderer.shutdownEffect();
+            }
+        }
+        blinkTimer--;
+    }
+
+    /** Arrête le clignotement et coupe le shader. */
+    public static void stopBlinkShader() {
+        blinkTimer = 0;
+        blinkShaderOn = false;
+        Minecraft.getInstance().gameRenderer.shutdownEffect();
+    }
+    // --------------------
+
     public static float getWaterPressure(int waterDepth) {
         return (1 + 0.1f * waterDepth + 0.005f * waterDepth * waterDepth + Math.max(0, waterDepth - 70) * 0.75f) / 2.125f;
     }
@@ -900,7 +686,7 @@ public class ClientEvents {
     public static void renderBorders(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 
-        if (mc.player != null && mc.player.getVehicle() instanceof OWEntity vehicle) {
+        if (mc.player != null && mc.player.getVehicle() instanceof OWEntity vehicle && !(vehicle instanceof Submarine)) {
             boolean isGrabbedByCrocodile = vehicle instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == mc.player;
             boolean isCrocodileReadyForTaming = vehicle instanceof CrocodileEntity croc
                     && croc.crocodileBehaviorHandler.isReadyForTaming() && !croc.isTame();
@@ -1223,7 +1009,6 @@ public class ClientEvents {
             hasProcessedThisFrame = false;
         }
 
-        // ── Passif ESP ─────────────────────────────────────────────────────────
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             renderPassiveEsp(event);
         }
@@ -1237,11 +1022,13 @@ public class ClientEvents {
                 boolean isOurEffect = currentEffect != null
                         && currentEffect.getName().equals("ow:shaders/post/submarine_light.json");
 
-                if (minecraft.screen == null && shouldActivateSubmarineEffect(player)) {
+                boolean shouldActivate = shouldActivateSubmarineEffect(player)
+                        && (!blinkSubmarineShader || blinkShaderOn);
+
+                if (minecraft.screen == null && shouldActivate) {
                     if (currentEffect == null && shaderLoadCooldown <= 0) {
                         try {
                             minecraft.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/post/submarine_light.json"));
-                            // If still null after loading, a shader mod (Iris/Oculus) blocked it — back off for ~10 min
                             if (minecraft.gameRenderer.currentEffect() == null) {
                                 shaderLoadCooldown = 12000;
                             }
@@ -1253,7 +1040,6 @@ public class ClientEvents {
                         hasProcessedThisFrame = true;
                     }
                 } else if (isOurEffect) {
-                    // Covers: screen opened (pause/inventory), conditions no longer met, etc.
                     minecraft.gameRenderer.shutdownEffect();
                 }
             }
@@ -1264,6 +1050,17 @@ public class ClientEvents {
     public static void onClientTick(ClientTickEvent.Pre event) {
         hasProcessedThisFrame = false;
         if (shaderLoadCooldown > 0) shaderLoadCooldown--;
+
+        if (blinkSubmarineShader) {
+            if (blinkTimer <= 0) {
+                blinkShaderOn = !blinkShaderOn;
+                blinkTimer = 4 + (int) (Math.random() * 17);
+            }
+            blinkTimer--;
+        } else {
+            blinkTimer = 0;
+            blinkShaderOn = false;
+        }
         OWAttacksInformation.tick();
 
         if (OWAttackLogic.isCrocTargeting) {

@@ -1,6 +1,9 @@
 package net.tiew.operationWild.entity.misc;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -11,6 +14,8 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -24,6 +29,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
 import net.tiew.operationWild.entity.OWEntity;
@@ -49,6 +56,8 @@ public class Submarine extends OWEntity {
     public float leftAccelerationLevel = 0.0f;
     public float upAccelerationLevel = 0.0f;
     public float backwardAccelerationLevel = 0.0f;
+
+    private float laggedXRot = 0.0f;
 
     private static final EntityDataAccessor<Boolean> IS_LIGHT_ON = SynchedEntityData.defineId(Submarine.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_OFF = SynchedEntityData.defineId(Submarine.class, EntityDataSerializers.BOOLEAN);
@@ -216,13 +225,153 @@ public class Submarine extends OWEntity {
         }
     }
 
+    protected double getSubmarineBaseSpeed() { return 0.4; }
+    protected float getSideSpeedMultiplier() { return 0.5f; }
+    protected float getBackwardSpeedMultiplier() { return 0.5f; }
+    protected double getUpSpeed() { return 0.2; }
+    protected float getRotationLag() { return 1.0f; }
+
     public void tickRidden(Player player, Vec3 vec3) {
         super.tickRidden(player, vec3);
         Vec2 vec2 = this.getRiddenRotation(player);
-        this.setXRot(vec2.x * 2);
-        this.setYRot(vec2.y);
-        this.yRotO = this.yBodyRot = this.yHeadRot = this.getYRot();
+
+        float lag = getRotationLag();
+
+        float currentYRot = this.getYRot();
+        float deltaYRot = Mth.wrapDegrees(vec2.y - currentYRot);
+        float newYRot = currentYRot + deltaYRot * lag;
+
+        float targetXRot = vec2.x * 2;
+        laggedXRot += (targetXRot - laggedXRot) * lag;
+
+        this.setXRot(laggedXRot);
+        this.setYRot(newYRot);
+        this.yRotO = this.yBodyRot = this.yHeadRot = newYRot;
+
+        if (this.level().isClientSide()) {
+            tickSubmarineMovement(player);
+        }
         player.resetFallDistance();
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private void tickSubmarineMovement(Player player) {
+        boolean forwardKey = Minecraft.getInstance().options.keyUp.isDown();
+        boolean backKey    = Minecraft.getInstance().options.keyDown.isDown();
+        boolean rightKey   = Minecraft.getInstance().options.keyRight.isDown();
+        boolean leftKey    = Minecraft.getInstance().options.keyLeft.isDown();
+        boolean upKey      = Minecraft.getInstance().options.keyJump.isDown();
+        boolean anyKey     = forwardKey || backKey || rightKey || leftKey || upKey;
+
+        double base = getSubmarineBaseSpeed();
+        Vec3 move = Vec3.ZERO;
+
+        // Avant / Arrière
+        if (forwardKey) {
+            backwardAccelerationLevel = 0;
+            if (accelerationLevel < 100) accelerationLevel += 1.0f;
+            float norm = accelerationLevel / 100.0f;
+            float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
+            move = this.getViewVector(1.0f).scale(base * (0.1 + smooth * 0.9));
+        } else if (backKey) {
+            accelerationLevel = 0;
+            if (backwardAccelerationLevel < 100) backwardAccelerationLevel += 1.0f;
+            float norm = backwardAccelerationLevel / 100.0f;
+            float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
+            move = this.getViewVector(1.0f).scale(-base * (0.1 + smooth * 0.9) * getBackwardSpeedMultiplier());
+        } else {
+            if (accelerationLevel > 0) {
+                accelerationLevel = Math.max(0, accelerationLevel - 1.0f);
+                if (accelerationLevel > 0) {
+                    float norm = accelerationLevel / 100.0f;
+                    move = this.getViewVector(1.0f).scale(base * (0.1 + norm * norm * 0.9) * 0.7);
+                }
+            }
+            if (backwardAccelerationLevel > 0) {
+                backwardAccelerationLevel = Math.max(0, backwardAccelerationLevel - 1.0f);
+                if (backwardAccelerationLevel > 0) {
+                    float norm = backwardAccelerationLevel / 100.0f;
+                    move = move.add(this.getViewVector(1.0f).scale(-base * (0.1 + norm * norm * 0.9) * getBackwardSpeedMultiplier() * 0.7));
+                }
+            }
+        }
+
+        // Droite
+        if (rightKey) {
+            leftAccelerationLevel = 0;
+            if (rightAccelerationLevel < 100) rightAccelerationLevel += 1.0f;
+            float norm = rightAccelerationLevel / 100.0f;
+            float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
+            float angle = this.getYRot() + 90.0f;
+            Vec3 dir = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0f), 0, Mth.cos(angle * (float) Math.PI / 180.0f));
+            move = move.add(dir.scale(getSideSpeedMultiplier() * base * (0.1 + smooth * 0.9)));
+        } else if (rightAccelerationLevel > 0) {
+            rightAccelerationLevel = Math.max(0, rightAccelerationLevel - 1.0f);
+            if (rightAccelerationLevel > 0) {
+                float norm = rightAccelerationLevel / 100.0f;
+                float angle = this.getYRot() + 90.0f;
+                Vec3 dir = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0f), 0, Mth.cos(angle * (float) Math.PI / 180.0f));
+                move = move.add(dir.scale(getSideSpeedMultiplier() * base * (0.1 + norm * norm * 0.9) * 0.7));
+            }
+        }
+
+        // Gauche
+        if (leftKey) {
+            rightAccelerationLevel = 0;
+            if (leftAccelerationLevel < 100) leftAccelerationLevel += 1.0f;
+            float norm = leftAccelerationLevel / 100.0f;
+            float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
+            float angle = this.getYRot() - 90.0f;
+            Vec3 dir = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0f), 0, Mth.cos(angle * (float) Math.PI / 180.0f));
+            move = move.add(dir.scale(getSideSpeedMultiplier() * base * (0.1 + smooth * 0.9)));
+        } else if (leftAccelerationLevel > 0) {
+            leftAccelerationLevel = Math.max(0, leftAccelerationLevel - 1.0f);
+            if (leftAccelerationLevel > 0) {
+                float norm = leftAccelerationLevel / 100.0f;
+                float angle = this.getYRot() - 90.0f;
+                Vec3 dir = new Vec3(-Mth.sin(angle * (float) Math.PI / 180.0f), 0, Mth.cos(angle * (float) Math.PI / 180.0f));
+                move = move.add(dir.scale(getSideSpeedMultiplier() * base * (0.1 + norm * norm * 0.9) * 0.7));
+            }
+        }
+
+        // Montée
+        if (upKey) {
+            if (upAccelerationLevel < 100) upAccelerationLevel += 1.0f;
+            float norm = upAccelerationLevel / 150.0f;
+            float smooth = 1.0f - (1.0f - norm) * (1.0f - norm);
+            move = move.add(new Vec3(0, getUpSpeed() * (0.1 + smooth * 0.9), 0));
+        } else if (upAccelerationLevel > 0) {
+            upAccelerationLevel = Math.max(0, upAccelerationLevel - 1.0f);
+            if (upAccelerationLevel > 0) {
+                float norm = upAccelerationLevel / 100.0f;
+                move = move.add(new Vec3(0, 0.125 * (0.1 + norm * norm * 0.9) * 0.7, 0));
+            }
+        }
+
+        if (this.isAlive() && this.isInWater()) {
+            this.setDeltaMovement(move);
+        }
+
+        if (anyKey && this.isInWater() && player == Minecraft.getInstance().player) {
+            this.spawnBubbleParticles();
+            if (!this.isPlayingMoveSound) {
+                SimpleSoundInstance sound = new SimpleSoundInstance(
+                        OWSounds.SUBMARINE_MOVE_LOOP.get().getLocation(),
+                        SoundSource.BLOCKS, 1.0f, 1.25f,
+                        SoundInstance.createUnseededRandom(),
+                        true, 0,
+                        SoundInstance.Attenuation.NONE,
+                        player.getX(), player.getY(), player.getZ(),
+                        true
+                );
+                Minecraft.getInstance().getSoundManager().play(sound);
+                this.isPlayingMoveSound = true;
+            }
+        } else {
+            Minecraft.getInstance().getSoundManager().stop(OWSounds.SUBMARINE_MOVE_LOOP.get().getLocation(), null);
+            this.isPlayingMoveSound = false;
+            this.soundTimer = 0;
+        }
     }
 
     @Override
@@ -265,7 +414,7 @@ public class Submarine extends OWEntity {
 
         if (!isOff()) checkPlayer02(5);
 
-        if (this.level().getRawBrightness(this.blockPosition(), 0) > 3) {
+        if (this.level().getRawBrightness(this.blockPosition(), 0) > 7) {
             if (!stopLights) {
                 this.setLightOn(false);
                 stopLights = true;

@@ -2492,9 +2492,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void tickRidden(Player player, Vec3 vec3) {
         super.tickRidden(player, vec3);
         Vec2 vec2 = this.getRiddenRotation(player);
-        if (!(this instanceof SeaBugEntity)) {
-            smoothRotation(vec2, player);
-        }
+        smoothRotation(vec2, player);
         player.resetFallDistance();
     }
 
