@@ -267,7 +267,7 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
 
     @Override
     protected double getUpSpeed() {
-        return 0.3;
+        return 0.4;
     }
 
     @Override
@@ -385,6 +385,83 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
     public boolean isSingleBeam() {
         return false;
     }
+
+    /**
+     * Couleur de remplissage du losange waypoint du SeaBug.
+     * - Plus élevé (canal rouge/vert) → losange plus chaud visuellement
+     * - Plus faible → bleu froid, cohérent avec l'univers marin du SeaBug
+     * - Valeur actuelle : {@code 0x1A8FFF} (bleu cobalt)
+     */
+    @Override
+    public int getWaypointFillColor() { return 0x521aff; }
+
+    /**
+     * Couleur de la bordure du losange waypoint du SeaBug.
+     * - Plus saturé → contour plus net et brillant (ex. {@code 0x00FFFF} = cyan)
+     * - Plus désaturé → fondu dans l'interface (valeur actuelle : bleu très clair)
+     * - Valeur actuelle : {@code 0xAADDFF}
+     */
+    @Override
+    public int getWaypointBorderColor() { return 0xb3aaff; }
+
+    /**
+     * Couleur du texte de distance et du nom affiché sous/au-dessus du losange.
+     * - Blanc → {@code 0xFFFFFF} : bonne lisibilité sur fond sombre (valeur actuelle)
+     * - Assorti à la bordure ({@code 0xAADDFF}) → plus cohérent mais moins lisible
+     */
+    @Override
+    public int getWaypointTextColor() { return 0xFFFFFF; }
+
+    /**
+     * Demi-taille de base du losange SeaBug en pixels GUI.
+     * - Plus élevé → icône plus grande (ex. 10 = très visible)
+     * - Plus faible → plus discret (ex. 5 = minimaliste)
+     * - Valeur actuelle : {@code 7}
+     */
+    @Override
+    public int getWaypointIconSize() { return 5; }
+
+    /**
+     * Distance maximale d'affichage du waypoint SeaBug, en blocs.
+     * - Plus élevé → visible très loin (ex. 1000)
+     * - Plus faible → waypoint limité à une zone proche (ex. 100)
+     * - Valeur actuelle : {@code 500}
+     */
+    @Override
+    public int getWaypointMaxDistance() { return 500; }
+
+    /**
+     * Distance minimale d'activation du waypoint SeaBug, en blocs.
+     * En dessous de ce seuil le losange disparaît progressivement (joueur à bord ou tout proche).
+     * - Plus élevé → se masque plus tôt à l'approche (ex. 20)
+     * - Plus faible → reste visible quasiment au contact (ex. 2)
+     * - Valeur actuelle : {@code 7.0}
+     */
+    @Override
+    public float getWaypointMinDistance() { return 7.0f; }
+
+    /**
+     * Nom affiché sur le waypoint HUD du SeaBug.
+     * - Valeur actuelle : {@code "Sea Bug"}
+     */
+    @Override
+    public String getWaypointName() { return "SeaBug"; }
+
+    /**
+     * Opacité minimale du waypoint SeaBug quand le joueur ne regarde pas dessus.
+     * - {@code 0.0} → invisible, {@code 1.0} → toujours plein
+     * - Valeur actuelle : {@code 0.16}
+     */
+    @Override
+    public float getWaypointMinOpacity() { return 0.25f; }
+
+    /**
+     * Facteur d'échelle de la police pour le texte de distance du SeaBug (ex. {@code "80 m"}).
+     * - Plus élevé → texte plus grand, plus lisible de loin
+     * - Valeur actuelle : {@code 1.0} (taille native)
+     */
+    @Override
+    public float getWaypointDistanceFontScale() { return 0.75f; }
 
     private void setupAnimationState() {
     }

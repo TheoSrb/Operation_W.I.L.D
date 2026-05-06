@@ -24,6 +24,7 @@ import net.minecraft.client.player.LocalPlayer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -1006,6 +1007,17 @@ public class ClientEvents {
 
     private static boolean hasProcessedThisFrame = false;
     private static int shaderLoadCooldown = 0;
+    private static float  waypointVisibility     = 0.0f;
+    private static Vec3   lastKnownSubmarinePos  = null;
+    private static String lastKnownSubmarineName = "Submarine";
+    private static int    lastWaypointFill        = 0x1A8FFF;
+    private static int    lastWaypointBorder      = 0xAADDFF;
+    private static int    lastWaypointText        = 0xFFFFFF;
+    private static int    lastWaypointIconSize    = 7;
+    private static int    lastWaypointMaxDist     = 500;
+    private static float  lastWaypointMinDist     = 7.0f;
+    private static float  lastWaypointMinOpacity  = 0.16f;
+    private static float  lastWaypointFontScale   = 1.0f;
 
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
@@ -1053,6 +1065,169 @@ public class ClientEvents {
             }
         }
     }
+
+    // ===== SeaBug Waypoint HUD (style Subnautica) =====
+
+    @SubscribeEvent
+    public static void onRenderSeaBugWaypoint(RenderGuiEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+        if (player == null || player.isPassenger() || mc.level == null || mc.options.hideGui) return;
+
+        Submarine submarine = null;
+        for (Submarine candidate : mc.level.getEntitiesOfClass(
+                Submarine.class, player.getBoundingBox().inflate(512))) {
+            if (player.getUUID().equals(candidate.getOwnerUUID())) {
+                submarine = candidate;
+                break;
+            }
+        }
+
+        // Update cache with partial-tick interpolated position (60 fps smooth, not 20 Hz tick jumps)
+        if (submarine != null) {
+            float pt = mc.getTimer().getGameTimeDeltaPartialTick(true);
+            lastKnownSubmarinePos = new Vec3(
+                    Mth.lerp(pt, submarine.xOld, submarine.getX()),
+                    Mth.lerp(pt, submarine.yOld, submarine.getY()) + submarine.getBbHeight() * 0.5,
+                    Mth.lerp(pt, submarine.zOld, submarine.getZ()));
+            lastKnownSubmarineName = submarine.getCustomName() != null
+                    ? submarine.getCustomName().getString()
+                    : submarine.getWaypointName();
+            lastWaypointFill       = submarine.getWaypointFillColor();
+            lastWaypointBorder     = submarine.getWaypointBorderColor();
+            lastWaypointText       = submarine.getWaypointTextColor();
+            lastWaypointIconSize   = submarine.getWaypointIconSize();
+            lastWaypointMaxDist    = submarine.getWaypointMaxDistance();
+            lastWaypointMinDist    = submarine.getWaypointMinDistance();
+            lastWaypointMinOpacity = submarine.getWaypointMinOpacity();
+            lastWaypointFontScale  = submarine.getWaypointDistanceFontScale();
+        }
+
+        Vec3 target = lastKnownSubmarinePos;
+        if (target == null) return;
+
+        double distToTarget = submarine != null
+                ? player.distanceTo(submarine)
+                : player.position().distanceTo(lastKnownSubmarinePos);
+
+        float targetVisibility = (distToTarget > lastWaypointMinDist && distToTarget <= lastWaypointMaxDist) ? 1.0f : 0.0f;
+        waypointVisibility = Mth.lerp(0.08f, waypointVisibility, targetVisibility);
+
+        if (waypointVisibility < 0.01f) return;
+
+        int sw = mc.getWindow().getGuiScaledWidth();
+        int sh = mc.getWindow().getGuiScaledHeight();
+        int margin = 18;
+
+        // Use cached distance label when entity is unloaded
+        int displayDist = (int) distToTarget;
+        Camera cam  = mc.gameRenderer.getMainCamera();
+        Vec3 toTarget = target.subtract(cam.getPosition());
+
+        // getLookVector/getUpVector sont authoratifs — la convention quaternion (0,0,-1) était inversée
+        Vector3f fwd   = cam.getLookVector();
+        Vector3f up    = cam.getUpVector();
+        Vector3f right = new Vector3f(fwd).cross(up).normalize(); // fwd × up = vecteur droite, normalisé pour éviter les erreurs de précision float
+
+        float fwdDot   = (float)(toTarget.x * fwd.x   + toTarget.y * fwd.y   + toTarget.z * fwd.z);
+        float rightDot = (float)(toTarget.x * right.x + toTarget.y * right.y + toTarget.z * right.z);
+        float upDot    = (float)(toTarget.x * up.x    + toTarget.y * up.y    + toTarget.z * up.z);
+
+        boolean isBehind = fwdDot <= 0;
+        // absFwd = |fwdDot| : quand derrière, ça donne de grandes valeurs ndcX/Y dans la bonne
+        // direction pour le clamping — plus besoin de flip manuel qui inversait le côté d'écran
+        float absFwd = Math.max(Math.abs(fwdDot), 0.001f);
+
+        float tanFov = (float) Math.tan(Math.toRadians(mc.options.fov().get()) * 0.5f);
+        float aspect = (float) sw / sh;
+
+        float ndcX = rightDot / (absFwd * tanFov * aspect);
+        float ndcY = upDot   / (absFwd * tanFov);
+
+        // Focus : 1.0 = joueur regarde directement, 0.0 = regarde ailleurs
+        float angularDist = isBehind ? 2.0f : (float) Math.sqrt(ndcX * ndcX + ndcY * ndcY);
+        float focus = Mth.clamp(1.0f - (angularDist - 0.02f) / 0.15f, 0.0f, 1.0f);
+        focus = focus * focus;
+
+        float screenX = (ndcX + 1f) * 0.5f * sw;
+        float screenY = (1f - ndcY) * 0.5f * sh;
+
+        float cx = sw * 0.5f;
+        float cy = sh * 0.5f;
+        float dx = screenX - cx;
+        float dy = screenY - cy;
+
+        boolean onScreen = !isBehind
+                && screenX > margin && screenX < sw - margin
+                && screenY > margin && screenY < sh - margin;
+
+        if (!onScreen) {
+            float scaleX = Math.abs(dx) > 0.001f ? (cx - margin) / Math.abs(dx) : Float.MAX_VALUE;
+            float scaleY = Math.abs(dy) > 0.001f ? (cy - margin) / Math.abs(dy) : Float.MAX_VALUE;
+            float scale  = Math.min(scaleX, scaleY);
+            screenX = cx + dx * scale;
+            screenY = cy + dy * scale;
+        }
+
+        drawSeaBugWaypoint(event.getGuiGraphics(), mc, (int) screenX, (int) screenY,
+                displayDist, focus, waypointVisibility, lastKnownSubmarineName,
+                lastWaypointFill, lastWaypointBorder, lastWaypointText, lastWaypointIconSize,
+                lastWaypointMinOpacity, lastWaypointFontScale);
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static void drawSeaBugWaypoint(GuiGraphics gui, Minecraft mc, int x, int y, int distance,
+                                            float focus, float visibility, String name,
+                                            int fillColor, int borderColor, int textColor, int iconSize,
+                                            float minOpacity, float fontScale) {
+        float totalScale = Mth.lerp(focus, 2f / (float) iconSize, 1.0f) * visibility;
+        int iconHalf = iconSize;
+
+        int fillAlpha   = (int) (Mth.lerp(focus, minOpacity * 0xCC, 0xCC) * visibility);
+        int borderAlpha = (int) (Mth.lerp(focus, minOpacity * 0xFF, 0xFF) * visibility);
+        int distAlpha   = (int) (Mth.lerp(focus, minOpacity * 0xDD, 0xDD) * visibility);
+        int nameAlpha   = (int)(focus * 0xFF * visibility);
+
+        int fill   = (fillAlpha   << 24) | fillColor;
+        int border = (borderAlpha << 24) | borderColor;
+
+        PoseStack pose = gui.pose();
+
+        // --- Losange ---
+        pose.pushPose();
+        pose.translate(x, y, 300);
+        pose.scale(totalScale, totalScale, 1f);
+        pose.mulPose(Axis.ZP.rotationDegrees(45));
+        gui.fill(-iconHalf, -iconHalf,  iconHalf,        iconHalf,      fill);
+        gui.fill(-iconHalf, -iconHalf,  iconHalf,       -iconHalf + 1,  border);
+        gui.fill(-iconHalf,  iconHalf - 1, iconHalf,     iconHalf,      border);
+        gui.fill(-iconHalf, -iconHalf, -iconHalf + 1,    iconHalf,      border);
+        gui.fill( iconHalf - 1, -iconHalf, iconHalf,     iconHalf,      border);
+        pose.popPose();
+
+        int scaledHalf = Math.max(1, (int)(iconHalf * totalScale));
+
+        // --- Distance sous l'icône (avec scaling de police) ---
+        String distLabel = distance + " m";
+        int distTextY = y + scaledHalf + 3;
+        pose.pushPose();
+        pose.translate(x, distTextY, 0);
+        pose.scale(fontScale, fontScale, 1f);
+        gui.drawString(mc.font, distLabel, -mc.font.width(distLabel) / 2, 0, (distAlpha << 24) | textColor, true);
+        pose.popPose();
+
+        // --- Nom du véhicule au-dessus de l'icône ---
+        if (nameAlpha > 0 && !name.isEmpty()) {
+            int nameY = y - scaledHalf - mc.font.lineHeight - 2;
+            if (nameY < 2) nameY = distTextY + (int)(mc.font.lineHeight * fontScale) + 1;
+            pose.pushPose();
+            pose.translate(x, nameY, 0);
+            gui.drawString(mc.font, name, -mc.font.width(name) / 2, 0, (nameAlpha << 24) | textColor, true);
+            pose.popPose();
+        }
+    }
+
+    // ===================================================
 
     @OnlyIn(Dist.CLIENT)
     private static void pushSubmarineShaderUniforms(PostChain chain, Submarine submarine) {
