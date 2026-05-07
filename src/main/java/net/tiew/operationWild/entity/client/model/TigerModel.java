@@ -301,10 +301,8 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 	 */
 	private void captureBodyState(TigerEntity tiger, float restPoseYSum, ModelPart... boneChain) {
 		if (!tiger.level().isClientSide()) return;
-		tiger.setBodyZRot((float) Math.toDegrees(this.ALL.zRot));
-		tiger.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot));
-		// Sum current Y positions of every bone in the chain, then subtract the rest-pose sum
-		// to get the pure animated delta. Negative = bone visually UP (Blockbench Y inverted).
+		tiger.setBodyZRot((float) Math.toDegrees(this.ALL.zRot + this.body.zRot));
+		tiger.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot));
 		float ySum = 0f;
 		for (ModelPart bone : boneChain) ySum += bone.y;
 		tiger.bodyAnimY = ySum - (restPoseYSum * tiger.getScale());

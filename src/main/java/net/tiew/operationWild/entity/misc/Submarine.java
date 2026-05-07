@@ -33,6 +33,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.Nullable;
+import net.tiew.operationWild.entity.IOWWaypointEntity;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.sound.OWSounds;
@@ -42,7 +43,7 @@ import net.tiew.operationWild.core.OWUtils;
 import java.util.List;
 import java.util.UUID;
 
-public class Submarine extends OWEntity {
+public class Submarine extends OWEntity implements IOWWaypointEntity {
     public static final int MAX_DEPTH = 0;
     public int soundTimer = 0;
     public boolean isPlayingMoveSound = false;
@@ -84,34 +85,34 @@ public class Submarine extends OWEntity {
     }
 
     public void applyWaterPressureDamage(int depth, Player player) {
-        int waterPressure = (int) ClientEvents.getWaterPressure(depth);
-        float damageInterval = (Math.max((-1.25f * waterPressure + 65) / 30.0f, 0.1f));
-        float normalizedPressure = waterPressure / 4.0f;
-        float intensity = 0.05f * (float) Math.pow(normalizedPressure, 2f);
-
-        ClientEvents.shakeCamera(intensity, player);
-
         if (this.level().isClientSide) {
+            int waterPressure = (int) ClientEvents.getWaterPressure(depth);
+            float normalizedPressure = waterPressure / 4.0f;
+            float intensity = 0.05f * (float) Math.pow(normalizedPressure, 2f);
+            ClientEvents.shakeCamera(intensity, player);
+
+            if (this.tickCount % 100 == 0 || firstTimeToDeep) {
+                Component message = Component.translatable("tooHighPressure")
+                        .setStyle(Style.EMPTY.withColor(ChatFormatting.YELLOW));
+                Minecraft.getInstance().gui.setOverlayMessage(message, true);
+                firstTimeToDeep = false;
+            }
             return;
         }
+
+        float damageInterval = Math.max((-1.25f * depth + 65) / 30.0f, 0.1f);
 
         damageTimer += 0.05f;
 
         if (damageTimer >= damageInterval) {
             this.invulnerableTime = 0;
-
             DamageSource waterPressureDamage = OWDamageSources.createWaterPressureDamage((ServerLevel) this.level());
             this.hurt(waterPressureDamage, 4);
-
             this.invulnerableTime = 0;
             damageTimer = 0.0f;
         }
 
         if (this.tickCount % 100 == 0 || firstTimeToDeep) {
-            Component message = Component.translatable("tooHighPressure")
-                    .setStyle(Style.EMPTY
-                            .withColor(ChatFormatting.YELLOW));
-            //Minecraft.getInstance().gui.setOverlayMessage(message, true); /!\ SERVER DON'T WORK
             firstTimeToDeep = false;
         }
     }
@@ -272,78 +273,6 @@ public class Submarine extends OWEntity {
     public float[] getShaderLightColor()           { return new float[]{1.0f, 1.0f, 1.0f}; }
     // true = un seul faisceau centré, false = deux faisceaux écartés
     public boolean isSingleBeam()                  { return false; }
-
-    // --- Paramètres du waypoint HUD (losange) — à surcharger dans chaque sous-marin ---
-
-    /**
-     * Couleur de remplissage du losange waypoint, au format RRGGBB (sans canal alpha).
-     * - Plus chaud → losange plus visible sur fond sombre (ex. {@code 0xFF8800} = orange)
-     * - Plus froid → intégration marine (ex. {@code 0x1A8FFF} = bleu cobalt, valeur par défaut)
-     */
-    public int getWaypointFillColor() { return 0x1A8FFF; }
-
-    /**
-     * Couleur de la bordure du losange waypoint, au format RRGGBB (sans canal alpha).
-     * - Recommandé : version plus claire que {@link #getWaypointFillColor()} pour le contraste
-     * - Plus saturé → contour plus net (ex. {@code 0x00FFFF} = cyan vif)
-     * - Valeur par défaut : {@code 0xAADDFF}
-     */
-    public int getWaypointBorderColor() { return 0xAADDFF; }
-
-    /**
-     * Couleur du texte de distance et du nom du véhicule, au format RRGGBB (sans canal alpha).
-     * - Blanc → {@code 0xFFFFFF} : lisible sur tout fond (valeur par défaut)
-     * - Assorti à la couleur du losange → meilleure cohérence visuelle
-     */
-    public int getWaypointTextColor() { return 0xFFFFFF; }
-
-    /**
-     * Demi-taille de base du losange en pixels GUI, avant le scaling du focus et de la visibilité.
-     * - Plus élevé → icône plus grande à pleine attention (ex. {@code 10} = grand)
-     * - Plus faible → icône plus discrète (ex. {@code 4} = très petit)
-     * - Valeur par défaut : {@code 7}
-     */
-    public int getWaypointIconSize() { return 7; }
-
-    /**
-     * Distance maximale en blocs au-delà de laquelle le waypoint disparaît progressivement.
-     * - Plus élevé → visible de très loin (ex. {@code 1000} = presque toujours affiché)
-     * - Plus faible → s'efface rapidement en s'éloignant (ex. {@code 100} = zone proche seulement)
-     * - Valeur par défaut : {@code 500}
-     */
-    public int getWaypointMaxDistance() { return 500; }
-
-    /**
-     * Distance minimale en blocs en dessous de laquelle le waypoint est masqué.
-     * Évite l'affichage quand le joueur est à bord ou juste à côté du véhicule.
-     * - Plus élevé → disparaît plus tôt à l'approche (ex. {@code 20} = grande zone sans HUD)
-     * - Plus faible → reste affiché quasiment au contact (ex. {@code 2})
-     * - Valeur par défaut : {@code 7.0}
-     */
-    public float getWaypointMinDistance() { return 7.0f; }
-
-    /**
-     * Nom affiché sur le waypoint HUD au-dessus de l'icône.
-     * - Surcharger avec un nom court et lisible (ex. {@code "Sea Bug"}, {@code "Nautilus"})
-     * - Valeur par défaut : nom de type de l'entité
-     */
-    public String getWaypointName() { return this.getName().getString(); }
-
-    /**
-     * Opacité minimale du waypoint lorsque le joueur ne regarde pas dessus, en [0.0 – 1.0].
-     * - {@code 0.0} → totalement invisible quand non regardé
-     * - {@code 1.0} → toujours à pleine opacité (aucun effet de focus)
-     * - Valeur par défaut : {@code 0.16} (discret mais repérable)
-     */
-    public float getWaypointMinOpacity() { return 0.16f; }
-
-    /**
-     * Facteur d'échelle de la police pour le texte de distance (ex. {@code "80 m"}).
-     * - Plus élevé → texte plus grand (ex. {@code 1.5} = une fois et demie)
-     * - Plus faible → texte plus compact (ex. {@code 0.75})
-     * - Valeur par défaut : {@code 1.0} (taille native de la police GUI)
-     */
-    public float getWaypointDistanceFontScale() { return 1.0f; }
 
     protected static float[] hexToRGB(String hex) {
         int color = Integer.parseUnsignedInt(hex.replace("#", ""), 16);

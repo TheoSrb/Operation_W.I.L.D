@@ -22,6 +22,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.PlayerRideableJumping;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -52,6 +53,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.OperationWild;
@@ -60,6 +62,7 @@ import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
+import net.tiew.operationWild.entity.IOWWaypointEntity;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
@@ -85,7 +88,7 @@ import java.util.UUID;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity {
+public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity, PlayerRideableJumping {
     // ==================================================
     //              CONSTANTES PRINCIPALES
     // ==================================================
@@ -93,6 +96,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public static final double TAMING_EXPERIENCE = 185.0;
     public static final int MAX_HIDING_TIMER = 1000;
     public static final int MAX_NO_HIDING_TIMER = 400;
+    public static final int DROWSY_FLEE_THRESHOLD = 80;
 
     private static final int SCRATCHES_DURATION = 60;
 
@@ -154,6 +158,8 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     private boolean isJumpCharging = false;
     private int jumpAttackCooldown = 0;
     private boolean isPlayerLeaping = false;
+    private boolean isRidingJump = false;
+    protected float playerJumpPendingScale;
     private int leapJumpTimer = 0;
 
     private int shadowStrikeDurationTimer = 0;
@@ -185,7 +191,8 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                 .add(Attributes.MOVEMENT_SPEED, 0.18D)
                 .add(Attributes.FOLLOW_RANGE, 40.0D)
                 .add(Attributes.ATTACK_DAMAGE, 8.0D)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 0.5D);
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.5D)
+                .add(Attributes.JUMP_STRENGTH, 0.9);
     }
 
     @Override
@@ -196,13 +203,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.goalSelector.addGoal(0, new TigerLeapingGoal(this, 4f, 20f));
         this.goalSelector.addGoal(0, new TigerDistractedByFoodGoal(this));
 
-        this.goalSelector.addGoal(1, new TigerMeleeAttackGoal());
+        this.goalSelector.addGoal(1, new TigerDrowsyFleeGoal(this, 6f));
+        this.goalSelector.addGoal(2, new TigerMeleeAttackGoal());
 
-        this.goalSelector.addGoal(2, new TigerScarifyTreeGoal(this, 30, 0.7D));
+        this.goalSelector.addGoal(3, new TigerScarifyTreeGoal(this, 30, 0.7D));
 
-        this.goalSelector.addGoal(3, new TigerSmellBloodGoal(this, 32.0));
+        this.goalSelector.addGoal(4, new TigerSmellBloodGoal(this, 32.0));
 
-        this.goalSelector.addGoal(4, new NapGoal(this, 1f, 800, true));
+        this.goalSelector.addGoal(5, new NapGoal(this, 1f, 800, true));
 
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D));
@@ -469,6 +477,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             boolean hitWater = this.isInWater();
             if (landed || hitWater) {
                 isPlayerLeaping = false;
+                isRidingJump = false;
                 leapJumpTimer = 0;
                 this.isLeaping = false;
                 if (!this.level().isClientSide()) {
@@ -486,7 +495,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
-        if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo() || this.isLeaping);
+        if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo() || (this.isLeaping && !isRidingJump));
 
         // ------------ FONCTIONNEMENT PROPRE ------------
 
@@ -610,6 +619,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public void setTarget(@Nullable LivingEntity target) {
         if (target != null && isNapping()) {
+            return;
+        }
+
+        if (target != null && !isTame() && getSleepBarPercent() >= DROWSY_FLEE_THRESHOLD) {
             return;
         }
 
@@ -781,7 +794,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
      * Méthode permettant de gérer la logique de camouflage aléatoire du Tigre.
      */
     private void handleCamouflage() {
-        if (this.isTame() || this.isBaby() || this.isNapping() || (this.getTarget() != null && this.level().isDay())) {
+        if (this.isTame() || this.isBaby() || this.isNapping() || this.isSleeping() || (this.getTarget() != null && this.level().isDay())) {
             // Ne pas forcer la révélation si le Shadow Strike est actif
             if (this.isHidden() && !isShadowStrikeActive()) this.setHidden(false);
             return;
@@ -1002,6 +1015,67 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         isJumpCharging = false;
         this.isPreparing = false;
         syncLeapState(false, false);
+    }
+
+    @Override
+    public void onPlayerJump(int jumpPower) {
+        if (!this.isSaddled()) return;
+        if (jumpPower < 0) jumpPower = 0;
+        this.playerJumpPendingScale = jumpPower >= 90 ? 1.0F : 0.4F + 0.4F * jumpPower / 90.0F;
+    }
+
+    @Override
+    public boolean canJump() {
+        return this.isSaddled();
+    }
+
+    @Override
+    public void handleStartJump(int jumpPower) {
+    }
+
+    @Override
+    public void handleStopJump() {
+    }
+
+    @Override
+    public void tickRidden(Player player, Vec3 travelVector) {
+        super.tickRidden(player, travelVector);
+        if (this.isControlledByLocalInstance() && this.onGround()) {
+            if (this.playerJumpPendingScale > 0.0F && !this.isLeaping && !this.isPreparing && !this.isGrabbing()) {
+                executeRidersJump(this.playerJumpPendingScale);
+            }
+            this.playerJumpPendingScale = 0.0F;
+        }
+    }
+
+    private void executeRidersJump(float scale) {
+        double verticalPower = this.getAttributeValue(Attributes.JUMP_STRENGTH) * scale * 0.80
+                * (double) this.getBlockJumpFactor()
+                + (double) (this.getJumpBoostPower() * 3);
+
+        Vec3 lookFlat = this.getLookAngle().multiply(1, 0, 1);
+        if (lookFlat.lengthSqr() > 1.0E-7D) lookFlat = lookFlat.normalize();
+
+        Vec3 movement = this.getDeltaMovement();
+        this.setDeltaMovement(
+                movement.x + lookFlat.x * 0.5 * scale,
+                verticalPower,
+                movement.z + lookFlat.z * 0.5 * scale
+        );
+        this.hasImpulse = true;
+        CommonHooks.onLivingJump(this);
+
+        playJumpParticles();
+
+        if (scale >= 1.0f) {
+            this.level().playLocalSound(getX(), getY(), getZ(),
+                    getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_IDLE.get() : OWSounds.TIGER_IDLE_VIRUS.get(),
+                    SoundSource.AMBIENT, 1.5f, (float) OWUtils.generateRandomInterval(0.9, 1.1), false);
+        }
+
+        this.isLeaping = true;
+        this.isPlayerLeaping = true;
+        this.isRidingJump = true;
     }
 
     public void setPlayerLeaping(boolean value) {
@@ -1267,6 +1341,15 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         return TigerVariant.DEFAULT;
     }
 
+    @Override
+    public void onSyncedDataUpdated(net.minecraft.network.syncher.EntityDataAccessor<?> accessor) {
+        super.onSyncedDataUpdated(accessor);
+        if (OWEntity.NAPPING.equals(accessor) && !isNapping() && !isSleeping() && this.level().isClientSide()) {
+            napAnimationTimeout = 0;
+            napAnimationState.stop();
+        }
+    }
+
     // ==================================================
     //                   ANIMATIONS
     // ==================================================
@@ -1451,6 +1534,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public boolean isMad() { return this.entityData.get(IS_MAD);}
 
     public void setHidden(boolean isHidden) {
+        if (isHidden && isSleeping()) return;
         this.entityData.set(IS_HIDDEN, isHidden);
     }
 
@@ -1564,6 +1648,18 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         public TigerMeleeAttackGoal() {
             super(TigerEntity.this, 7, true);
+        }
+
+        @Override
+        public boolean canUse() {
+            if (!TigerEntity.this.isTame() && TigerEntity.this.getSleepBarPercent() >= DROWSY_FLEE_THRESHOLD) return false;
+            return super.canUse();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            if (!TigerEntity.this.isTame() && TigerEntity.this.getSleepBarPercent() >= DROWSY_FLEE_THRESHOLD) return false;
+            return super.canContinueToUse();
         }
 
         @Override

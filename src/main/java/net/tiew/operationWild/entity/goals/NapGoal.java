@@ -51,6 +51,7 @@ public class NapGoal extends Goal {
             if (napTimer <= 0) {
                 startAwaken();
                 shouldStop = true;
+                return;
             }
 
             handleNappingEffects();
@@ -75,7 +76,7 @@ public class NapGoal extends Goal {
     public void start() {
         super.start();
         generateMaxNapTimer();
-        napTickCounter = 0;
+        napTickCounter = -1;
         shouldStop = false;
         startNapping();
 

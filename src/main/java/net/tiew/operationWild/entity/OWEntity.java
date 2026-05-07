@@ -108,7 +108,7 @@ import java.util.*;
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 import static net.tiew.operationWild.core.OWUtils.generateRandomInterval;
 
-public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, IOWTamable, IOWRideable {
+public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, IOWTamable, IOWRideable, IOWWaypointEntity {
 
     public float averageScale;
     public static final Random RANDOM = new Random();
@@ -1818,8 +1818,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
         createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
-        createTransitionAnimation("idleSleep", transitionIdleSleep, this.isNapping(), 20);
-        createTransitionAnimation("sleepIdle", transitionSleepIdle, !this.isNapping(), 20);
+        createTransitionAnimation("idleSleep", transitionIdleSleep, this.isNapping() || this.isSleeping(), 20);
+        createTransitionAnimation("sleepIdle", transitionSleepIdle, !this.isNapping() && !this.isSleeping(), 20);
 
         if (sittingCooldown > 0) sittingCooldown--;
 
@@ -3270,6 +3270,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
 
             if (!condition) {
+                if (data.shouldPlay) {
+                    data.animationState.stop();
+                    data.timer = 0;
+                }
                 data.shouldPlay = false;
             }
 

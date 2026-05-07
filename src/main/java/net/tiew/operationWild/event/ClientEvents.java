@@ -9,11 +9,14 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.ClientConfig;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
+import net.tiew.operationWild.entity.IOWWaypointEntity;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.entity.misc.Submarine;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import org.joml.Matrix4f;
+import org.joml.Vector4f;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -1007,22 +1010,27 @@ public class ClientEvents {
 
     private static boolean hasProcessedThisFrame = false;
     private static int shaderLoadCooldown = 0;
-    private static float  waypointVisibility     = 0.0f;
-    private static Vec3   lastKnownSubmarinePos  = null;
-    private static String lastKnownSubmarineName = "Submarine";
-    private static int    lastWaypointFill        = 0x1A8FFF;
-    private static int    lastWaypointBorder      = 0xAADDFF;
-    private static int    lastWaypointText        = 0xFFFFFF;
-    private static int    lastWaypointIconSize    = 7;
-    private static int    lastWaypointMaxDist     = 500;
-    private static float  lastWaypointMinDist     = 7.0f;
-    private static float  lastWaypointMinOpacity  = 0.16f;
-    private static float  lastWaypointFontScale   = 1.0f;
+    private static final Matrix4f cachedProj = new Matrix4f();
+    // UUID stable entre reconnexions ; currentEntityIds rebuilt chaque frame (IDs session-spécifiques)
+    private static final Map<UUID, WaypointState> waypointStates    = new LinkedHashMap<>();
+    private static final Map<UUID, Integer>        currentEntityIds  = new HashMap<>();
+
+    private static class WaypointState {
+        UUID   ownerUUID;
+        Vec3   lastPos    = null;
+        String name       = "";
+        int    fillColor  = 0x1A8FFF, borderColor = 0xAADDFF, textColor = 0xFFFFFF;
+        int    iconSize   = 7, maxDist = 500;
+        float  minDist    = 3.0f, minOpacity = 0.25f, fontScale = 1.0f;
+        float  visibility  = 0f;
+        float  smoothedPop = 0f;
+    }
 
     @SubscribeEvent
     public static void onRenderLevelStage(RenderLevelStageEvent event) {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
             hasProcessedThisFrame = false;
+            cachedProj.set(RenderSystem.getProjectionMatrix());
         }
 
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
@@ -1072,121 +1080,122 @@ public class ClientEvents {
     public static void onRenderSeaBugWaypoint(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
-        if (player == null || player.isPassenger() || mc.level == null || mc.options.hideGui) return;
+        if (player == null || mc.level == null || mc.options.hideGui) return;
 
-        Submarine submarine = null;
-        for (Submarine candidate : mc.level.getEntitiesOfClass(
-                Submarine.class, player.getBoundingBox().inflate(512))) {
-            if (player.getUUID().equals(candidate.getOwnerUUID())) {
-                submarine = candidate;
-                break;
-            }
+        float pt = mc.getTimer().getGameTimeDeltaPartialTick(true);
+        currentEntityIds.clear();
+
+        for (OWEntity candidate : mc.level.getEntitiesOfClass(
+                OWEntity.class, player.getBoundingBox().inflate(512))) {
+            if (!(candidate instanceof IOWWaypointEntity w)) continue;
+            if (!player.getUUID().equals(candidate.getOwnerUUID())) continue;
+            if (candidate == player.getVehicle()) continue;
+            if (!candidate.isAlive()) continue;
+
+            UUID uuid = candidate.getUUID();
+            currentEntityIds.put(uuid, candidate.getId());
+            WaypointState state = waypointStates.computeIfAbsent(uuid, k -> new WaypointState());
+
+            state.ownerUUID   = player.getUUID();
+            state.lastPos     = new Vec3(
+                    Mth.lerp(pt, candidate.xOld, candidate.getX()),
+                    Mth.lerp(pt, candidate.yOld, candidate.getY()) + candidate.getBbHeight() * 0.5,
+                    Mth.lerp(pt, candidate.zOld, candidate.getZ()));
+            state.name        = candidate.getCustomName() != null ? candidate.getCustomName().getString() : w.getWaypointName();
+            state.fillColor   = w.getWaypointFillColor();
+            state.borderColor = w.getWaypointBorderColor();
+            state.textColor   = w.getWaypointTextColor();
+            state.iconSize    = w.getWaypointIconSize();
+            state.maxDist     = w.getWaypointMaxDistance();
+            state.minDist     = w.getWaypointMinDistance();
+            state.minOpacity  = w.getWaypointMinOpacity();
+            state.fontScale   = w.getWaypointDistanceFontScale();
         }
 
-        // Update cache with partial-tick interpolated position (60 fps smooth, not 20 Hz tick jumps)
-        if (submarine != null) {
-            float pt = mc.getTimer().getGameTimeDeltaPartialTick(true);
-            lastKnownSubmarinePos = new Vec3(
-                    Mth.lerp(pt, submarine.xOld, submarine.getX()),
-                    Mth.lerp(pt, submarine.yOld, submarine.getY()) + submarine.getBbHeight() * 0.5,
-                    Mth.lerp(pt, submarine.zOld, submarine.getZ()));
-            lastKnownSubmarineName = submarine.getCustomName() != null
-                    ? submarine.getCustomName().getString()
-                    : submarine.getWaypointName();
-            lastWaypointFill       = submarine.getWaypointFillColor();
-            lastWaypointBorder     = submarine.getWaypointBorderColor();
-            lastWaypointText       = submarine.getWaypointTextColor();
-            lastWaypointIconSize   = submarine.getWaypointIconSize();
-            lastWaypointMaxDist    = submarine.getWaypointMaxDistance();
-            lastWaypointMinDist    = submarine.getWaypointMinDistance();
-            lastWaypointMinOpacity = submarine.getWaypointMinOpacity();
-            lastWaypointFontScale  = submarine.getWaypointDistanceFontScale();
-        }
-
-        Vec3 target = lastKnownSubmarinePos;
-        if (target == null) return;
-
-        double distToTarget = submarine != null
-                ? player.distanceTo(submarine)
-                : player.position().distanceTo(lastKnownSubmarinePos);
-
-        float targetVisibility = (distToTarget > lastWaypointMinDist && distToTarget <= lastWaypointMaxDist) ? 1.0f : 0.0f;
-        waypointVisibility = Mth.lerp(0.08f, waypointVisibility, targetVisibility);
-
-        if (waypointVisibility < 0.01f) return;
+        if (waypointStates.isEmpty()) return;
 
         int sw = mc.getWindow().getGuiScaledWidth();
         int sh = mc.getWindow().getGuiScaledHeight();
-        int margin = 18;
+        int margin = 6;
 
-        // Use cached distance label when entity is unloaded
-        int displayDist = (int) distToTarget;
-        Camera cam  = mc.gameRenderer.getMainCamera();
-        Vec3 toTarget = target.subtract(cam.getPosition());
+        Camera cam = mc.gameRenderer.getMainCamera();
+        // proj × view : view = conjugate(cam.rotation()) transforme world-relative-to-cam → eye space
+        Matrix4f projView = new Matrix4f(cachedProj).rotate(new Quaternionf(cam.rotation()).conjugate());
 
-        // getLookVector/getUpVector sont authoratifs — la convention quaternion (0,0,-1) était inversée
-        Vector3f fwd   = cam.getLookVector();
-        Vector3f up    = cam.getUpVector();
-        Vector3f right = new Vector3f(fwd).cross(up).normalize(); // fwd × up = vecteur droite, normalisé pour éviter les erreurs de précision float
+        for (Map.Entry<UUID, WaypointState> entry : waypointStates.entrySet()) {
+            WaypointState state = entry.getValue();
+            if (state.lastPos == null) continue;
+            if (!player.getUUID().equals(state.ownerUUID)) continue;
 
-        float fwdDot   = (float)(toTarget.x * fwd.x   + toTarget.y * fwd.y   + toTarget.z * fwd.z);
-        float rightDot = (float)(toTarget.x * right.x + toTarget.y * right.y + toTarget.z * right.z);
-        float upDot    = (float)(toTarget.x * up.x    + toTarget.y * up.y    + toTarget.z * up.z);
+            boolean entityFound = currentEntityIds.containsKey(entry.getKey());
+            Integer entityId = currentEntityIds.get(entry.getKey());
+            Entity rawEntity = entityId != null ? mc.level.getEntity(entityId) : null;
+            double dist = rawEntity != null
+                    ? player.distanceTo(rawEntity)
+                    : player.position().distanceTo(state.lastPos);
 
-        boolean isBehind = fwdDot <= 0;
-        // absFwd = |fwdDot| : quand derrière, ça donne de grandes valeurs ndcX/Y dans la bonne
-        // direction pour le clamping — plus besoin de flip manuel qui inversait le côté d'écran
-        float absFwd = Math.max(Math.abs(fwdDot), 0.001f);
+            float targetVisibility = (entityFound && rawEntity != null && dist > state.minDist && dist <= state.maxDist) ? 1.0f : 0.0f;
+            state.visibility = Mth.lerp(0.08f, state.visibility, targetVisibility);
+            if (state.visibility < 0.01f) continue;
 
-        float tanFov = (float) Math.tan(Math.toRadians(mc.options.fov().get()) * 0.5f);
-        float aspect = (float) sw / sh;
+            Vec3 toTarget = state.lastPos.subtract(cam.getPosition());
+            Vector4f clipPos = new Vector4f((float)toTarget.x, (float)toTarget.y, (float)toTarget.z, 1.0f);
+            projView.transform(clipPos);
+            if (Math.abs(clipPos.w) < 0.001f) continue;
+            boolean isBehind = clipPos.w <= 0f;
+            float ndcX = clipPos.x / clipPos.w;
+            float ndcY = clipPos.y / clipPos.w;
 
-        float ndcX = rightDot / (absFwd * tanFov * aspect);
-        float ndcY = upDot   / (absFwd * tanFov);
+            float angularDist = isBehind ? 2.0f : (float) Math.sqrt(ndcX * ndcX + ndcY * ndcY);
+            float focus = Mth.clamp(1.0f - angularDist / 0.07f, 0.0f, 1.0f);
 
-        // Focus : 1.0 = joueur regarde directement, 0.0 = regarde ailleurs
-        float angularDist = isBehind ? 2.0f : (float) Math.sqrt(ndcX * ndcX + ndcY * ndcY);
-        float focus = Mth.clamp(1.0f - (angularDist - 0.02f) / 0.15f, 0.0f, 1.0f);
-        focus = focus * focus;
+            float targetPop = focus > 0.3f ? 1.0f : 0.0f;
+            float lerpSpeed = state.smoothedPop < targetPop ? 0.11f : 0.07f;
+            state.smoothedPop = Mth.lerp(lerpSpeed, state.smoothedPop, targetPop);
+            float popFactor = state.smoothedPop;
 
-        float screenX = (ndcX + 1f) * 0.5f * sw;
-        float screenY = (1f - ndcY) * 0.5f * sh;
+            float screenX = (ndcX + 1f) * 0.5f * sw;
+            float screenY = (1f - ndcY) * 0.5f * sh;
 
-        float cx = sw * 0.5f;
-        float cy = sh * 0.5f;
-        float dx = screenX - cx;
-        float dy = screenY - cy;
+            float cx = sw * 0.5f;
+            float cy = sh * 0.5f;
+            float dx = screenX - cx;
+            float dy = screenY - cy;
 
-        boolean onScreen = !isBehind
-                && screenX > margin && screenX < sw - margin
-                && screenY > margin && screenY < sh - margin;
+            boolean onScreen = !isBehind
+                    && screenX > margin && screenX < sw - margin
+                    && screenY > margin && screenY < sh - margin;
 
-        if (!onScreen) {
-            float scaleX = Math.abs(dx) > 0.001f ? (cx - margin) / Math.abs(dx) : Float.MAX_VALUE;
-            float scaleY = Math.abs(dy) > 0.001f ? (cy - margin) / Math.abs(dy) : Float.MAX_VALUE;
-            float scale  = Math.min(scaleX, scaleY);
-            screenX = cx + dx * scale;
-            screenY = cy + dy * scale;
+            if (!onScreen) {
+                float scaleX = Math.abs(dx) > 0.001f ? (cx - margin) / Math.abs(dx) : Float.MAX_VALUE;
+                float scaleY = Math.abs(dy) > 0.001f ? (cy - margin) / Math.abs(dy) : Float.MAX_VALUE;
+                float scale  = Math.min(scaleX, scaleY);
+                screenX = cx + dx * scale;
+                screenY = cy + dy * scale;
+            }
+
+            drawSeaBugWaypoint(event.getGuiGraphics(), mc, (int) screenX, (int) screenY,
+                    (int) dist, popFactor, state.visibility, state.name,
+                    state.fillColor, state.borderColor, state.textColor, state.iconSize,
+                    state.minOpacity, state.fontScale);
         }
-
-        drawSeaBugWaypoint(event.getGuiGraphics(), mc, (int) screenX, (int) screenY,
-                displayDist, focus, waypointVisibility, lastKnownSubmarineName,
-                lastWaypointFill, lastWaypointBorder, lastWaypointText, lastWaypointIconSize,
-                lastWaypointMinOpacity, lastWaypointFontScale);
     }
 
     @OnlyIn(Dist.CLIENT)
     private static void drawSeaBugWaypoint(GuiGraphics gui, Minecraft mc, int x, int y, int distance,
-                                            float focus, float visibility, String name,
+                                            float popFactor, float visibility, String name,
                                             int fillColor, int borderColor, int textColor, int iconSize,
                                             float minOpacity, float fontScale) {
-        float totalScale = Mth.lerp(focus, 2f / (float) iconSize, 1.0f) * visibility;
+        float totalScale = Mth.lerp(popFactor, 0.55f, 1.35f) * visibility;
         int iconHalf = iconSize;
 
-        int fillAlpha   = (int) (Mth.lerp(focus, minOpacity * 0xCC, 0xCC) * visibility);
-        int borderAlpha = (int) (Mth.lerp(focus, minOpacity * 0xFF, 0xFF) * visibility);
-        int distAlpha   = (int) (Mth.lerp(focus, minOpacity * 0xDD, 0xDD) * visibility);
-        int nameAlpha   = (int)(focus * 0xFF * visibility);
+        float baseOpacity = Math.min(minOpacity + 0.10f, 0.65f);
+        int fillAlpha   = (int) (Mth.lerp(popFactor, baseOpacity * 0xCC, 0xCC) * visibility);
+        int borderAlpha = (int) (Mth.lerp(popFactor, baseOpacity * 0xFF, 0xFF) * visibility);
+        int distAlpha   = (int) (Mth.lerp(popFactor, baseOpacity * 0xBB, 0xDD) * visibility);
+        float nameFade  = Mth.clamp((popFactor - 0.45f) / 0.55f, 0.0f, 1.0f);
+        nameFade = nameFade * nameFade;
+        int nameAlpha   = nameFade > 0.004f ? Math.max(2, (int)(nameFade * 0xFE * visibility)) : 0;
 
         int fill   = (fillAlpha   << 24) | fillColor;
         int border = (borderAlpha << 24) | borderColor;
@@ -1207,12 +1216,13 @@ public class ClientEvents {
 
         int scaledHalf = Math.max(1, (int)(iconHalf * totalScale));
 
-        // --- Distance sous l'icône (avec scaling de police) ---
+        // --- Distance sous l'icône (police plus petite quand pas regardé) ---
+        float effectiveFontScale = fontScale * (1.0f + 0.4f * popFactor);
         String distLabel = distance + " m";
         int distTextY = y + scaledHalf + 3;
         pose.pushPose();
         pose.translate(x, distTextY, 0);
-        pose.scale(fontScale, fontScale, 1f);
+        pose.scale(effectiveFontScale, effectiveFontScale, 1f);
         gui.drawString(mc.font, distLabel, -mc.font.width(distLabel) / 2, 0, (distAlpha << 24) | textColor, true);
         pose.popPose();
 

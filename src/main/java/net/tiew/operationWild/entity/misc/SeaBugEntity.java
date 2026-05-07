@@ -371,7 +371,7 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
      */
     @Override
     public float[] getShaderLightColor() {
-        return hexToRGB("#c7faff");
+        return hexToRGB("#7effd0");
     }
 
     /**
