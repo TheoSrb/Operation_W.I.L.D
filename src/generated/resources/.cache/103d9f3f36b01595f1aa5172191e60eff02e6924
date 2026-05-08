@@ -1,4 +1,4 @@
-// 1.21	2026-04-21T14:05:09.7782973	Registries
+// 1.21	2026-05-08T10:37:33.1866462	Registries
 50ceb8e49f7e83c2dd6bfecce80a0a9483d14b93 data/ow/enchantment/fawns_protection.json
 e156689f884404354ca67120bdc7f8d470c68d2e data/ow/enchantment/lightness.json
 2e18fdc85cbc2b05f000ae62dc5d3d17ab741fae data/ow/enchantment/plant_providence.json
@@ -7,17 +7,21 @@ e156689f884404354ca67120bdc7f8d470c68d2e data/ow/enchantment/lightness.json
 59e46717f8eafeb053d11e4b7f62de365bb61757 data/ow/enchantment/sliding.json
 b41e8a8ca1e47298ce0e6df9f87633e3de13bab1 data/ow/enchantment/vampirism.json
 e3ce45e5600d02815373abfa47e8142a9b305bb3 data/ow/enchantment/venom_protection.json
+89e59ed556b75fef0be0ca9a40bae1399760ba65 data/ow/neoforge/biome_modifier/add_deep_trench_to_ocean.json
 f07ddbc1400c4fa533846da495f9a7c507ad7135 data/ow/neoforge/biome_modifier/add_jade_ore.json
 5efea63c8c82749185067eb67da6016e3b2fda56 data/ow/neoforge/biome_modifier/add_ruby_ore.json
 bec05f8beb9a1a5cc6135dc62377fa2f28136f21 data/ow/neoforge/biome_modifier/add_savage_berry_bush.json
 18afc7ca033a5e2913c58b6ca730763bb55296e9 data/ow/neoforge/biome_modifier/spawn_crocodile.json
 4d2d507c1dc873de11c666304374cd311ea5bb20 data/ow/neoforge/biome_modifier/spawn_kodiak.json
 a2267063fc1c45a7b32f6126a96105b18970be27 data/ow/neoforge/biome_modifier/spawn_tiger.json
+d5fcbc3b90106551bb61b7552ef9eff0b137f880 data/ow/worldgen/biome/mine_field.json
 37f45876c3cfa95ab2e30070e70d8d3a29f59a3d data/ow/worldgen/biome/redwood_forest.json
+2327217a2acce528537f6d19286ccaecf74378ee data/ow/worldgen/configured_feature/deep_trench.json
 2f81ab02218e5954662fc9ab4a8cea974bf4123d data/ow/worldgen/configured_feature/jade_ore.json
 d5bf7889e1b2c63255b5a056df7b6a3dff40c46e data/ow/worldgen/configured_feature/redwood.json
 dfd19ba2f5b7cbb383d84a5f092827e200ac0601 data/ow/worldgen/configured_feature/ruby_ore.json
 812d223814ba83c006726f60301be5aa2deabbb7 data/ow/worldgen/configured_feature/savage_berry_bush.json
+b7792555e21615a4a1e9deec45a9865588222f45 data/ow/worldgen/placed_feature/deep_trench_placed.json
 33f630d1fdcee96524335e78703a028bd9c204ae data/ow/worldgen/placed_feature/jade_ore_placed.json
 94b4c5b5ed93270390184b9c6ece53ef80e61c94 data/ow/worldgen/placed_feature/redwood_tree_placed.json
 0f822f7992dbdc4e8f8bb02947dbef5288ecea4e data/ow/worldgen/placed_feature/ruby_ore_placed.json

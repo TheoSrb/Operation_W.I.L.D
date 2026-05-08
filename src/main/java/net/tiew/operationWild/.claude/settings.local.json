@@ -12,7 +12,8 @@
       "Bash(Format-Table -HideTableHeaders)",
       "Bash(findstr /s /n \"RegisterMenuScreensEvent\\\\|OWInventoryScreen\" .)",
       "Read(//c/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/**)",
-      "Bash(./gradlew compileJava)"
+      "Bash(./gradlew compileJava)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\data\\\\ow\\\\worldgen\" -Recurse | ForEach-Object { $_.FullName })"
     ]
   }
 }

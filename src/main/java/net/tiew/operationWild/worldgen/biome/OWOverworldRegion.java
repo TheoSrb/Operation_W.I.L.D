@@ -25,6 +25,10 @@ public class OWOverworldRegion extends Region {
             modifiedVanillaOverworldBuilder.replaceBiome(Biomes.TAIGA, OWBiomes.REDWOOD_FOREST_BIOME);
             modifiedVanillaOverworldBuilder.replaceBiome(Biomes.OLD_GROWTH_PINE_TAIGA, OWBiomes.REDWOOD_FOREST_BIOME);
             modifiedVanillaOverworldBuilder.replaceBiome(Biomes.OLD_GROWTH_SPRUCE_TAIGA, OWBiomes.REDWOOD_FOREST_BIOME);
+            // Mine Field : remplace uniquement les variantes froides/gelées — elles apparaissent
+            // dans les zones les plus extrêmes de l'océan profond, naturellement éloignées de toute terre.
+            // DEEP_OCEAN (tempéré) est exclu car il peut border des biomes terrestres mixtes.
+            modifiedVanillaOverworldBuilder.replaceBiome(Biomes.DEEP_COLD_OCEAN, OWBiomes.MINE_FIELD_BIOME);
         });
     }
 

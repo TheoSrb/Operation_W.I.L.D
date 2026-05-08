@@ -6,6 +6,6 @@ import terrablender.api.Regions;
 
 public class OWTerrablender {
     public static void registerBiomes() {
-        Regions.register(new OWOverworldRegion(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "overworld"), 2));
+        Regions.register(new OWOverworldRegion(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "overworld"), 5));
     }
 }

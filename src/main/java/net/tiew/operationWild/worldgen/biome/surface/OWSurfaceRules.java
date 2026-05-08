@@ -14,9 +14,12 @@ public class OWSurfaceRules {
     private static final SurfaceRules.RuleSource GRASS_BLOCK = makeStateRule(Blocks.GRASS_BLOCK);
     private static final SurfaceRules.RuleSource STONE = makeStateRule(Blocks.STONE);
     private static final SurfaceRules.RuleSource PODZOL = makeStateRule(Blocks.PODZOL);
+    private static final SurfaceRules.RuleSource SAND = makeStateRule(Blocks.SAND);
+    private static final SurfaceRules.RuleSource GRAVEL = makeStateRule(Blocks.GRAVEL);
 
     public static SurfaceRules.RuleSource makeRules() {
         SurfaceRules.ConditionSource isRedwoodBiome = SurfaceRules.isBiome(OWBiomes.REDWOOD_FOREST_BIOME);
+        SurfaceRules.ConditionSource isMineFieldBiome = SurfaceRules.isBiome(OWBiomes.MINE_FIELD_BIOME);
         SurfaceRules.ConditionSource isAboveWater = SurfaceRules.waterBlockCheck(-1, 0);
         SurfaceRules.ConditionSource isOnFloor = SurfaceRules.ON_FLOOR;
         SurfaceRules.ConditionSource isUnderFloor = SurfaceRules.UNDER_FLOOR;
@@ -48,8 +51,14 @@ public class OWSurfaceRules {
                 SurfaceRules.ifTrue(isUnderFloor, STONE)
         );
 
+        SurfaceRules.RuleSource mineFieldSurface = SurfaceRules.sequence(
+                SurfaceRules.ifTrue(isOnFloor, SAND),
+                SurfaceRules.ifTrue(isUnderFloor, GRAVEL)
+        );
+
         return SurfaceRules.sequence(
                 SurfaceRules.ifTrue(isRedwoodBiome, redwoodSurface),
+                SurfaceRules.ifTrue(isMineFieldBiome, mineFieldSurface),
                 defaultSurface
         );
     }

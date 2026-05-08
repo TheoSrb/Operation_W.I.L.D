@@ -23,7 +23,7 @@ public class OWPlacedFeatures {
     public static final ResourceKey<PlacedFeature> SAVAGE_BERRY_BUSH_PLACED = registerKey("savage_berry_bush_placed");
 
     public static final ResourceKey<PlacedFeature> REDWOOD_TREE_PLACED = registerKey("redwood_tree_placed");
-
+    public static final ResourceKey<PlacedFeature> DEEP_TRENCH_PLACED = registerKey("deep_trench_placed");
 
     public static void bootstrap(BootstrapContext<PlacedFeature> context) {
         var configuredFeatures = context.lookup(Registries.CONFIGURED_FEATURE);
@@ -36,6 +36,10 @@ public class OWPlacedFeatures {
 
         register(context, SAVAGE_BERRY_BUSH_PLACED, configuredFeatures.getOrThrow(OWConfiguredFeatures.SAVAGE_BERRY_BUSH),
                 List.of(RarityFilter.onAverageOnceEvery(32), InSquarePlacement.spread(), PlacementUtils.HEIGHTMAP_WORLD_SURFACE, BiomeFilter.biome()));
+
+        // Pas de BiomeFilter → tourne dans Mine Field ET DEEP_COLD_OCEAN pour fondre les deux côtés
+        register(context, DEEP_TRENCH_PLACED, configuredFeatures.getOrThrow(OWConfiguredFeatures.DEEP_TRENCH),
+                List.of(CountPlacement.of(1)));
 
         register(context, REDWOOD_TREE_PLACED, configuredFeatures.getOrThrow(OWConfiguredFeatures.REDWOOD),
                 List.of(

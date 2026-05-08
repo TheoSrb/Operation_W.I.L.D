@@ -23,6 +23,7 @@ import net.tiew.operationWild.worldgen.OWPlacedFeatures;
 
 public class OWBiomes {
     public static final ResourceKey<Biome> REDWOOD_FOREST_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "redwood_forest"));
+    public static final ResourceKey<Biome> MINE_FIELD_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "mine_field"));
 
 
 
@@ -35,6 +36,7 @@ public class OWBiomes {
 
     public static void bootstrap(BootstrapContext<Biome> context) {
         context.register(REDWOOD_FOREST_BIOME, redwoodBiome(context));
+        context.register(MINE_FIELD_BIOME, mineFieldBiome(context));
     }
 
     public static void globalOverworldGeneration(BiomeGenerationSettings.Builder builder) {
@@ -92,6 +94,40 @@ public class OWBiomes {
                         .fogColor(12638463)
                         .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS)
                         .backgroundMusic(Musics.createGameMusic(SoundEvents.MUSIC_BIOME_SWAMP)).build())
+                .build();
+    }
+
+    public static Biome mineFieldBiome(BootstrapContext<Biome> context) {
+        MobSpawnSettings.Builder spawnBuilder = new MobSpawnSettings.Builder();
+        spawnBuilder.addSpawn(MobCategory.MONSTER, new MobSpawnSettings.SpawnerData(EntityType.DROWNED, 5, 1, 1));
+        spawnBuilder.addSpawn(MobCategory.WATER_AMBIENT, new MobSpawnSettings.SpawnerData(EntityType.COD, 15, 3, 6));
+        spawnBuilder.addSpawn(MobCategory.WATER_AMBIENT, new MobSpawnSettings.SpawnerData(EntityType.SALMON, 10, 1, 3));
+        BiomeDefaultFeatures.commonSpawns(spawnBuilder);
+
+        BiomeGenerationSettings.Builder biomeBuilder =
+                new BiomeGenerationSettings.Builder(context.lookup(Registries.PLACED_FEATURE), context.lookup(Registries.CONFIGURED_CARVER));
+
+        BiomeDefaultFeatures.addDefaultCarversAndLakes(biomeBuilder);
+        BiomeDefaultFeatures.addDefaultMonsterRoom(biomeBuilder);
+        BiomeDefaultFeatures.addDefaultOres(biomeBuilder);
+        BiomeDefaultFeatures.addDefaultSoftDisks(biomeBuilder);
+        BiomeDefaultFeatures.addDefaultSprings(biomeBuilder);
+        BiomeDefaultFeatures.addDefaultSeagrass(biomeBuilder);
+        biomeBuilder.addFeature(GenerationStep.Decoration.LOCAL_MODIFICATIONS, OWPlacedFeatures.DEEP_TRENCH_PLACED);
+
+        return new Biome.BiomeBuilder()
+                .hasPrecipitation(true)
+                .downfall(0.5f)
+                .temperature(0.4f)
+                .generationSettings(biomeBuilder.build())
+                .mobSpawnSettings(spawnBuilder.build())
+                .specialEffects((new BiomeSpecialEffects.Builder())
+                        .waterColor(0x2640B3)
+                        .waterFogColor(329011)
+                        .skyColor(OWBiomeUtils.calculateSkyColor(0.4f))
+                        .fogColor(12638463)
+                        .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS)
+                        .build())
                 .build();
     }
 }

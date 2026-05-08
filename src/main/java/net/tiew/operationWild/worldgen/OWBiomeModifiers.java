@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class OWBiomeModifiers {
+    public static final ResourceKey<BiomeModifier> ADD_DEEP_TRENCH_TO_OCEAN = registerKey("add_deep_trench_to_ocean");
     public static final ResourceKey<BiomeModifier> ADD_JADE_ORE = registerKey("add_jade_ore");
     public static final ResourceKey<BiomeModifier> ADD_RUBY_ORE = registerKey("add_ruby_ore");
 
@@ -63,6 +64,12 @@ public class OWBiomeModifiers {
     public static void bootstrap(BootstrapContext<BiomeModifier> context) {
         var placedFeature = context.lookup(Registries.PLACED_FEATURE);
         var biomes = context.lookup(Registries.BIOME);
+
+        // Le DEEP_COLD_OCEAN adjacent au Mine Field doit aussi creuser pour éviter les coutures de chunk
+        context.register(ADD_DEEP_TRENCH_TO_OCEAN, new BiomeModifiers.AddFeaturesBiomeModifier(
+                HolderSet.direct(biomes.getOrThrow(Biomes.DEEP_COLD_OCEAN)),
+                HolderSet.direct(placedFeature.getOrThrow(OWPlacedFeatures.DEEP_TRENCH_PLACED)),
+                GenerationStep.Decoration.LOCAL_MODIFICATIONS));
 
         context.register(ADD_JADE_ORE, new BiomeModifiers.AddFeaturesBiomeModifier(
                 //HolderSet.direct(biomes.getOrThrow(Biomes.PLAINS), biomes.getOrThrow(Biomes.JUNGLE)),

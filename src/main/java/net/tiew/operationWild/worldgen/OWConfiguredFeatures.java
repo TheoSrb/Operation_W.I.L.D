@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
+import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.SimpleBlockConfiguration;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
@@ -37,7 +38,7 @@ public class OWConfiguredFeatures {
     public static final ResourceKey<ConfiguredFeature<?, ?>> SAVAGE_BERRY_BUSH = registerKey("savage_berry_bush");
 
     public static final ResourceKey<ConfiguredFeature<?, ?>> REDWOOD = registerKey("redwood");
-
+    public static final ResourceKey<ConfiguredFeature<?, ?>> DEEP_TRENCH = registerKey("deep_trench");
 
     public static void bootstrap(BootstrapContext<ConfiguredFeature<?, ?>> context) {
         RuleTest stoneReplaceable = new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES);
@@ -59,6 +60,7 @@ public class OWConfiguredFeatures {
         register(context, SAVAGE_BERRY_BUSH, Feature.RANDOM_PATCH, FeatureUtils.simplePatchConfiguration(Feature.SIMPLE_BLOCK, new SimpleBlockConfiguration(BlockStateProvider.simple(OWBlocks.SAVAGE_BERRY_BUSH.get().defaultBlockState().setValue(SavageBerryBushBlock.AGE, Integer.valueOf(3)))), List.of(Blocks.GRASS_BLOCK)));
 
 
+        register(context, DEEP_TRENCH, OWFeatures.DEEP_TRENCH.get(), NoneFeatureConfiguration.INSTANCE);
         createTree(context);
     }
 

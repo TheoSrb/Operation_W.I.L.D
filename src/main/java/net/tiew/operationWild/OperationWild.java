@@ -59,6 +59,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.tiew.operationWild.worldgen.OWFeatures;
 import net.tiew.operationWild.worldgen.biome.OWTerrablender;
 import net.tiew.operationWild.worldgen.biome.surface.OWSurfaceRules;
 import net.tiew.operationWild.worldgen.tree.foliage.OWFoliagePlacerType;
@@ -93,6 +94,7 @@ public class OperationWild {
         OWParticles.register(modEventBus);
         OWTrunkPlacerTypes.register(modEventBus);
         OWFoliagePlacerType.register(modEventBus);
+        OWFeatures.register(modEventBus);
         ColorEvents.register(modEventBus);
         OWTerrablender.registerBiomes();
         //OWDailyQuests.run();

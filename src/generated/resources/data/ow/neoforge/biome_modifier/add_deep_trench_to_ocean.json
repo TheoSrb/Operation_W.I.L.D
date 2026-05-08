@@ -1,0 +1,6 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "minecraft:deep_cold_ocean",
+  "features": "ow:deep_trench_placed",
+  "step": "local_modifications"
+}
