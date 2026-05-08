@@ -123,7 +123,7 @@ public class OWBiomes {
                 .mobSpawnSettings(spawnBuilder.build())
                 .specialEffects((new BiomeSpecialEffects.Builder())
                         .waterColor(0x2640B3)
-                        .waterFogColor(329011)
+                        .waterFogColor(0x030912)
                         .skyColor(OWBiomeUtils.calculateSkyColor(0.4f))
                         .fogColor(12638463)
                         .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS)

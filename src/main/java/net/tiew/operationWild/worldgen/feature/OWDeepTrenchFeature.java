@@ -92,8 +92,10 @@ public class OWDeepTrenchFeature extends Feature<NoneFeatureConfiguration> {
                 // notifie ses voisins et évite les cubes d'eau non rendus correctement
                 for (int y = floorY; y > targetY; y--) {
                     BlockPos pos = new BlockPos(x, y, z);
-                    if (!level.getBlockState(pos).is(Blocks.BEDROCK))
-                        level.setBlock(pos, water, 3);
+                    BlockState bs = level.getBlockState(pos);
+                    if (bs.is(Blocks.BEDROCK) || bs.is(Blocks.ICE) || bs.is(Blocks.PACKED_ICE)
+                            || bs.is(Blocks.BLUE_ICE) || bs.is(Blocks.FROSTED_ICE)) continue;
+                    level.setBlock(pos, water, 3);
                 }
 
                 // Gravier au sol
