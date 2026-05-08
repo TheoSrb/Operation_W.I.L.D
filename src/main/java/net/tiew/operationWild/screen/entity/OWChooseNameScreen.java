@@ -15,6 +15,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.gui.OWEntityHud;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.OWNameEntityPacket;
+import net.tiew.operationWild.screen.entity.OWOptionsScreen;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -35,6 +36,7 @@ public class OWChooseNameScreen extends Screen {
 
     private static final int MAX_NAME_LENGTH = 15;
     private boolean nameSubmitted = false;
+    private final boolean showBackButton;
 
     protected final OWEntity entity;
     private float xMouse;
@@ -51,7 +53,12 @@ public class OWChooseNameScreen extends Screen {
     private static final int ERROR_DURATION_MS = 5000;
 
     public OWChooseNameScreen(int entityID) {
+        this(entityID, false);
+    }
+
+    public OWChooseNameScreen(int entityID, boolean showBackButton) {
         super(Component.literal("OWChooseNameScreen"));
+        this.showBackButton = showBackButton;
         if (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getEntity(entityID) instanceof OWEntity owEntity) {
             this.entity = owEntity;
         } else {
@@ -75,6 +82,16 @@ public class OWChooseNameScreen extends Screen {
 
         this.addRenderableWidget(this.nameInput);
         this.addRenderableWidget(sendButton);
+
+        if (showBackButton) {
+            int i = (this.width  - this.imageWidth)  / 2;
+            int j = (this.height - this.imageHeight) / 2;
+            Button backBtn = Button.builder(
+                            Component.literal("←").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAAAA)).withBold(true)),
+                            btn -> Minecraft.getInstance().setScreen(new OWOptionsScreen()))
+                    .bounds(i + 5, j + 5, 16, 14).build();
+            this.addRenderableWidget(backBtn);
+        }
     }
 
     private void onSendClicked() {

@@ -25,6 +25,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.LevelUpOWInventoryPacket;
 import net.tiew.operationWild.screen.entity.skins.*;
+import net.tiew.operationWild.screen.entity.OWOptionsScreen;
 import net.tiew.operationWild.core.OWUtils;
 
 import java.util.Collection;
@@ -47,6 +48,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
     private Button upgradeSpeedButton;
     private Button skinButton;
     private Button dailyQuestButton;
+    private Button optionsButton;
     private Button stopHealthButton;
     private Button stopDamageButton;
     private Button stopSpeedButton;
@@ -93,8 +95,11 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         upgradeDamageButton = createButton("+", 0xb8e45a, 175, -39, 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("AttackDamage")));
         upgradeSpeedButton = createButton("+", 0xb8e45a, 175, -57, 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("MovementSpeed")));
 
-        skinButton = createButton("", 0xFFFFFF, 176, -146, 20, 20, () -> chooseSkinsScreenForEntity(entity));
-        dailyQuestButton = createButton("", 0xFFFFFF, 176, -126, 20, 20, this::dailyQuestsButtonIsClicked);
+        // 3 boutons horizontaux en bas à droite (skin | quetes | options)
+        skinButton        = createButton("", 0xFFFFFF, 178, -132, 20, 20, () -> chooseSkinsScreenForEntity(entity));
+        dailyQuestButton  = createButton("", 0xFFFFFF, 200, -132, 20, 20, this::dailyQuestsButtonIsClicked);
+        optionsButton     = createButton("", 0xFFFFFF, 222, -132, 20, 20,
+                () -> Minecraft.getInstance().setScreen(new OWOptionsScreen()));
 
         stopHealthButton = createButton("X", 0x9c0d0d,  175, -21, 10, 10, () -> {});
         stopHealthButton.setTooltip(Tooltip.create(Component.translatable("tooltip.stop_health")
@@ -114,6 +119,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
 
         this.addRenderableWidget(skinButton);
         this.addRenderableWidget(dailyQuestButton);
+        this.addRenderableWidget(optionsButton);
 
         this.addRenderableWidget(stopHealthButton);
         this.addRenderableWidget(stopDamageButton);
@@ -220,11 +226,18 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         Component xpPrestigeText = tooltipXpValue.copy().append(tooltipXpMaxValue.copy()).append(tooltipXp.copy());
 
         Component genderText = Component.translatable(entity.isFemale() ? "tooltip.genderFemale" : entity.isMale() ? "tooltip.genderMale" : "").withStyle(Style.EMPTY).withColor(TextColor.fromRgb(entity.isFemale() ? 0xcb3eb3 : entity.isMale() ? 0x4647ce : 0x000000).getValue());
-        Component cosmeticsText = Component.translatable("tooltip.cosmetics").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
+        Component cosmeticsText   = Component.translatable("tooltip.cosmetics").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
         Component dailyQuestsText = Component.translatable("tooltip.dailyQuests").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
+        Component optionsText     = Component.translatable("tooltip.options").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
 
-        graphics.blit(OW_INVENTORY_LOCATION, i + 178, j + 148, 0, 206, 16,16);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 178, j + 128, 16, 206, 16,16);
+        // Icônes des 3 boutons onglets (rangée horizontale)
+        graphics.blit(OW_INVENTORY_LOCATION, i + 180, j + 134, 0, 206, 16, 16);   // skin
+        graphics.blit(OW_INVENTORY_LOCATION, i + 202, j + 134, 16, 206, 16, 16);  // quetes
+
+        // Icône options : 3 lignes horizontales (hamburger / réglages)
+        graphics.fill(i + 226, j + 137, i + 238, j + 139, 0xFFAAAAAA);
+        graphics.fill(i + 226, j + 142, i + 238, j + 144, 0xFFAAAAAA);
+        graphics.fill(i + 226, j + 147, i + 238, j + 149, 0xFFAAAAAA);
 
         if (mouseX >= mobTypePlacementX && mouseX <= mobTypePlacementX + 12 && mouseY >= iconY && mouseY <= iconY + 12) {
             graphics.renderComponentTooltip(this.font, List.of(Component.translatable(tooltipKey)), mouseX, mouseY);
@@ -235,11 +248,14 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         if (mouseX >= i + titleLength + 7 && mouseX <= i + titleLength + 7 + 12 && mouseY >= j + 4 && mouseY <= j + 4 + 12) {
             graphics.renderComponentTooltip(this.font, List.of(genderText), mouseX, mouseY);
         }
-        if (mouseX >= i + 178 && mouseX <= i + 178 + 16 && mouseY >= j + 148 && mouseY <= j + 148 + 16) {
+        if (mouseX >= i + 180 && mouseX <= i + 196 && mouseY >= j + 134 && mouseY <= j + 150) {
             graphics.renderComponentTooltip(this.font, List.of(cosmeticsText), mouseX, mouseY);
         }
-        if (mouseX >= i + 178 && mouseX <= i + 178 + 16 && mouseY >= j + 128 && mouseY <= j + 128 + 16) {
+        if (mouseX >= i + 202 && mouseX <= i + 218 && mouseY >= j + 134 && mouseY <= j + 150) {
             graphics.renderComponentTooltip(this.font, List.of(dailyQuestsText), mouseX, mouseY);
+        }
+        if (mouseX >= i + 224 && mouseX <= i + 240 && mouseY >= j + 134 && mouseY <= j + 150) {
+            graphics.renderComponentTooltip(this.font, List.of(optionsText), mouseX, mouseY);
         }
 
         this.renderTooltip(graphics, mouseX, mouseY);

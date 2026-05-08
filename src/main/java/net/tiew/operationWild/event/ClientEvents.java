@@ -1193,7 +1193,7 @@ public class ClientEvents {
         int fillAlpha   = (int) (Mth.lerp(popFactor, baseOpacity * 0xCC, 0xCC) * visibility);
         int borderAlpha = (int) (Mth.lerp(popFactor, baseOpacity * 0xFF, 0xFF) * visibility);
         int distAlpha   = (int) (Mth.lerp(popFactor, baseOpacity * 0xBB, 0xDD) * visibility);
-        float nameFade  = Mth.clamp((popFactor - 0.45f) / 0.55f, 0.0f, 1.0f);
+        float nameFade  = Mth.clamp((popFactor - 0.32f) / 0.68f, 0.0f, 1.0f);
         nameFade = nameFade * nameFade;
         int nameAlpha   = nameFade > 0.004f ? Math.max(2, (int)(nameFade * 0xFE * visibility)) : 0;
 

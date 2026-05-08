@@ -499,6 +499,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void setPassive(boolean isPassive) { this.entityData.set(IS_PASSIVE, isPassive);}
 
+    public boolean isAutoPickup() { return this.entityData.get(AUTO_PICKUP); }
+
+    public void setAutoPickup(boolean value) { this.entityData.set(AUTO_PICKUP, value); }
+
     public float getAcceleration() { return this.entityData.get(ACCELERATION);}
 
     public void setAcceleration(float getAcceleration) { this.entityData.set(ACCELERATION, getAcceleration);}
@@ -3429,6 +3433,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putInt("LevelPoints", this.getLevelPoints());
         tag.putFloat("Scale", this.getScale());
         tag.putBoolean("isPassive", this.isPassive());
+        tag.putBoolean("autoPickup", this.isAutoPickup());
         tag.putBoolean("isFemale", this.isFemale());
         tag.putBoolean("isPreparingNapping", this.isPreparingNapping());
         tag.putBoolean("isFed", this.isFed());
@@ -3544,6 +3549,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(LEVEL_POINTS, tag.getInt("LevelPoints"));
         this.entityData.set(SCALE, tag.getFloat("Scale"));
         this.entityData.set(IS_PASSIVE, tag.getBoolean("isPassive"));
+        this.entityData.set(AUTO_PICKUP, tag.contains("autoPickup") ? tag.getBoolean("autoPickup") : true);
         this.entityData.set(IS_FEMALE, tag.getBoolean("isFemale"));
         this.entityData.set(SADDLED, tag.getBoolean("isSaddled"));
         this.entityData.set(IS_FED, tag.getBoolean("isFed"));

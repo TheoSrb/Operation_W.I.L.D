@@ -9,7 +9,10 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\" -Recurse -File)",
       "Bash(Select-Object FullName)",
-      "Bash(Format-Table -HideTableHeaders)"
+      "Bash(Format-Table -HideTableHeaders)",
+      "Bash(findstr /s /n \"RegisterMenuScreensEvent\\\\|OWInventoryScreen\" .)",
+      "Read(//c/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/**)",
+      "Bash(./gradlew compileJava)"
     ]
   }
 }
