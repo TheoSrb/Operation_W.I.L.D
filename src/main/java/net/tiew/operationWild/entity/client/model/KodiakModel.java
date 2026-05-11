@@ -20,6 +20,7 @@ import net.minecraft.world.entity.animal.Salmon;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.client.animation.TigerAnimations;
@@ -189,14 +190,20 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
         }
 
         if (kodiak.isPawSlamCharging()) {
-            this.animate(kodiak.pawSlamChargeAnimState, KodiakAnimations.PAW_SLAM_CHARGE, ageInTicks, 1.0f);
-            if (kodiak.pawSlamChargeAnimState.getAccumulatedTime() >= 3000L) {
-                this.animate(kodiak.pawSlamChargeFullAnimState, KodiakAnimations.PAW_SLAM_CHARGE_FULL, ageInTicks, 1.0f);
+            Minecraft mc = Minecraft.getInstance();
+            boolean isLocalRider = mc.player != null && mc.player.getVehicle() == kodiak;
+            boolean someoneElseRiding = kodiak.getControllingPassenger() != null && !isLocalRider;
+
+            if ((isLocalRider && OWAttackLogic.isCharging) || someoneElseRiding) {
+                this.animate(kodiak.pawSlamChargeAnimState, KodiakAnimations.PAW_SLAM_CHARGE, ageInTicks, 1.0f);
+                if (kodiak.pawSlamChargeAnimState.getAccumulatedTime() >= 3000L) {
+                    this.animate(kodiak.pawSlamChargeFullAnimState, KodiakAnimations.PAW_SLAM_CHARGE_FULL, ageInTicks, 1.0f);
+                }
+                float chargeProgress = Math.min(kodiak.pawSlamChargeAnimState.getAccumulatedTime() / 2500f, 1.0f);
+                kodiak.pawSlamRiderYExtra = chargeProgress * 0.7f;
+                kodiak.pawSlamRiderZExtra = chargeProgress * -0.6f;
+                return;
             }
-            float chargeProgress = Math.min(kodiak.pawSlamChargeAnimState.getAccumulatedTime() / 2500f, 1.0f);
-            kodiak.pawSlamRiderYExtra = chargeProgress * 0.7f;
-            kodiak.pawSlamRiderZExtra = chargeProgress * -0.6f;
-            return;
         }
 
         if (kodiak.isPawSlamStriking()) {

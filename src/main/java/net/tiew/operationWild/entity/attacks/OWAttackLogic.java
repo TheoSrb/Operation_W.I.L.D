@@ -9,6 +9,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ComputeFovModifierEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.ViewportEvent;
@@ -34,6 +35,7 @@ import java.util.Map;
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public class OWAttackLogic {
 
+    private static long shortChargeCooldownEndMs = -1L;
     // Shared state — read by renderers (TigerGhostRenderer, OWAttacksOverlay…)
     public static boolean isCharging = false;
     public static long chargeStartMs = -1L;
@@ -229,6 +231,21 @@ public class OWAttackLogic {
     private static final float FOV_PULSE_AMPLITUDE = 0.03f;
     // Fréquence du pulsing (ms)
     private static final float FOV_PULSE_PERIOD_MS = 400f;
+
+    // Nouveau subscriber — détecte le dismount pendant une charge
+    @SubscribeEvent
+    public static void onClientTick(ClientTickEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || !isCharging || currentAttack == null) return;
+
+        if (!(mc.player.getRootVehicle() instanceof OWEntity)) {
+            isCharging = false;
+            shortChargeCooldownEndMs = System.currentTimeMillis() + 300L;
+            PacketDistributor.sendToServer(
+                    new OWAttackPacket(currentAttack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
+            currentAttack = null;
+        }
+    }
 
     @SubscribeEvent
     public static void onComputeFov(ComputeFovModifierEvent event) {
@@ -659,6 +676,10 @@ public class OWAttackLogic {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
+            if (shortChargeCooldownEndMs > System.currentTimeMillis()) {
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
             if (!attack.canUse(owEntity)) {
                 recordAttackClick(attack.getId(), true);
                 return;
@@ -713,11 +734,11 @@ public class OWAttackLogic {
                         orcaDashEffectStartMs = System.currentTimeMillis();
                     }
                 }
-            } else {
+            }  else {
+                shortChargeCooldownEndMs = System.currentTimeMillis() + 300L;
                 PacketDistributor.sendToServer(
                         new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
-                // Annule la prédiction isPreparing si la charge était trop courte
-                if (owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger) {
+                if (owEntity instanceof TigerEntity tiger) {
                     tiger.isPreparing = false;
                 }
             }

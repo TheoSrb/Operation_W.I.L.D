@@ -1,7 +1,10 @@
 package net.tiew.operationWild;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -249,6 +252,20 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.ADVENTURER_MANUSCRIPT.get(), AdventurerManuscriptRenderer::new);
 
             HeartRenderHandler.register();
+
+
+
+            event.enqueueWork(() -> {
+                ItemProperties.register(OWItems.REPTILIAN_DAGGER.get(),
+                        ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "selected"),
+                        (stack, level, entity, seed) -> {
+                            Minecraft mc = Minecraft.getInstance();
+                            if (mc.player == null) return 0.0f;
+                            boolean isHeld = mc.player.getMainHandItem() == stack
+                                    || mc.player.getOffhandItem() == stack;
+                            return isHeld ? 1.0f : 0.0f;
+                        });
+            });
         }
 
         @SubscribeEvent

@@ -1724,7 +1724,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     class CrocodileMeleeAttackGoal extends MeleeAttackGoal {
 
         public CrocodileMeleeAttackGoal() {
-            super(CrocodileEntity.this, 3.5, true);
+            super(CrocodileEntity.this, 3.0, true);
         }
 
         private boolean isCrocodileBlocked() {

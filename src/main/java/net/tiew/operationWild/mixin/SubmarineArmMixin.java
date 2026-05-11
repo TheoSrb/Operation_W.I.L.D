@@ -27,7 +27,7 @@ public abstract class SubmarineArmMixin {
                                 float v3, PoseStack poseStack, MultiBufferSource bufferSource, int i, CallbackInfo ci) {
         Player player = Minecraft.getInstance().player;
         if (player != null) {
-            if (player.getVehicle() instanceof OWEntity && hand == InteractionHand.MAIN_HAND ) {
+            if (player.getVehicle() instanceof OWEntity && (hand == InteractionHand.MAIN_HAND || hand == InteractionHand.OFF_HAND)) {
                 ci.cancel();
             }
             if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() != null && crocodile.getGrabbedTarget() == player) {

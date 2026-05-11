@@ -1,6 +1,14 @@
 {
   "parent": "minecraft:item/handheld",
+  "overrides": [
+    {
+      "model": "ow:item/reptilian_dagger_held",
+      "predicate": {
+        "ow:selected": 1.0
+      }
+    }
+  ],
   "textures": {
-    "layer0": "ow:item/reptilian_dagger"
+    "layer0": "ow:item/reptilian_dagger_full"
   }
 }

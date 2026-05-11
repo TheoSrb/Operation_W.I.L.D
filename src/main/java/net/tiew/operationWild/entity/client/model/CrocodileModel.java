@@ -285,12 +285,16 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			}
 
 			if (crocodile.isPlayerMouthCharging()) {
-				float progress = (Minecraft.getInstance().player != null
-						&& Minecraft.getInstance().player.getVehicle() == crocodile
-						&& OWAttackLogic.isCharging)
-						? OWAttackLogic.getChargeProgress()
-						: Math.min(crocodile.getChargingMouthTimer() / 60f, 1.0f);
-				applyMouthSlamAnimation(progress, ageInTicks);
+				Minecraft mc = Minecraft.getInstance();
+				boolean isLocalRider = mc.player != null && mc.player.getVehicle() == crocodile;
+				boolean someoneElseRiding = crocodile.getControllingPassenger() != null && !isLocalRider;
+
+				if ((isLocalRider && OWAttackLogic.isCharging) || someoneElseRiding) {
+					float progress = (isLocalRider && OWAttackLogic.isCharging)
+							? OWAttackLogic.getChargeProgress()
+							: Math.min(crocodile.getChargingMouthTimer() / 60f, 1.0f);
+					applyMouthSlamAnimation(progress, ageInTicks);
+				}
 			}
 
 			handleChargingMouth(crocodile, ageInTicks);

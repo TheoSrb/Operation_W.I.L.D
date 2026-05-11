@@ -22,6 +22,7 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -30,6 +31,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.effect.OWEffects;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
@@ -71,6 +73,17 @@ public class ServerEvents {
                     }
                 }
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerInteractEntity(PlayerInteractEvent.EntityInteract event) {
+        Player player = event.getEntity();
+        ItemStack heldItem = player.getItemInHand(event.getHand());
+
+        if (player.getVehicle() instanceof OWEntity
+                || heldItem.is(OWItems.REPTILIAN_DAGGER.get())) {
+            event.setCanceled(true);
         }
     }
 

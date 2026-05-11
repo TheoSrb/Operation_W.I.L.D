@@ -18,6 +18,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.item.OWItems;
 
 public class ReptilianDaggerItem extends SwordItem {
@@ -113,6 +114,10 @@ public class ReptilianDaggerItem extends SwordItem {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+        if (player.getVehicle() instanceof OWEntity) {
+            return InteractionResultHolder.pass(player.getItemInHand(hand));
+        }
+
         if (hand == InteractionHand.MAIN_HAND && player.getOffhandItem().is(OWItems.REPTILIAN_DAGGER.get())) {
             player.swing(InteractionHand.OFF_HAND, true);
 

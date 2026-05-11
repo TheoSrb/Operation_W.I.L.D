@@ -76,7 +76,15 @@ public class OWItemModelProvider extends ItemModelProvider {
         handheldItem(OWItems.PRIMITIVE_SICKLE);
         handheldItem(OWItems.MAYA_BLOWPIPE);
 
-        handheldItem(OWItems.REPTILIAN_DAGGER);
+        ItemModelBuilder daggerHeld = withExistingParent("reptilian_dagger_held", "minecraft:item/handheld")
+                .texture("layer0", ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "item/reptilian_dagger"));
+
+        withExistingParent(OWItems.REPTILIAN_DAGGER.getId().getPath(), "minecraft:item/handheld")
+                .texture("layer0", ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "item/reptilian_dagger_full"))
+                .override()
+                .predicate(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "selected"), 1.0f)
+                .model(daggerHeld)
+                .end();
 
         basicItem(OWItems.TIGER_FUR.get());
         basicItem(OWItems.BOA_TONG.get());

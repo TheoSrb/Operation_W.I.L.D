@@ -32,6 +32,6 @@ public class OWKeysBinding {
 
 
     public static final KeyMapping OW_ULTIMATE = new KeyMapping(OW_ULTIMATE_KEY, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_X, OW_CATEGORY);
-    public static final KeyMapping OW_ATTACKS_INFO = new KeyMapping(OW_ATTACKS_INFO_KEY, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, OW_CATEGORY);
+    public static final KeyMapping OW_ATTACKS_INFO = new KeyMapping(OW_ATTACKS_INFO_KEY, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_M, OW_CATEGORY);
     public static final KeyMapping OW_ENTITY_JOURNAL = new KeyMapping(OW_ENTITY_JOURNAL_KEY, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J, OW_CATEGORY);
 }

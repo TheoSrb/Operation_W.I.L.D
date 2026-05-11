@@ -21,6 +21,7 @@ public class ModClientEventBusEvents {
 
     @SubscribeEvent
     public static void onKeyRegister(RegisterKeyMappingsEvent event) {
+        event.register(OWKeysBinding.PET_INVENTORY);
         event.register(OWKeysBinding.OW_ULTIMATE);
         event.register(OWKeysBinding.OW_ATTACKS_INFO);
         event.register(OWKeysBinding.OW_ENTITY_JOURNAL);

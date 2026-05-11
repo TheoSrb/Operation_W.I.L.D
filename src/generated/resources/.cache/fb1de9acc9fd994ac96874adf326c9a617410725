@@ -1,4 +1,4 @@
-// 1.21	2026-05-03T17:50:20.365082	Item Models: ow
+// 1.21	2026-05-11T08:25:40.7668926	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
@@ -137,7 +137,8 @@ fae65b4191eb45cd7bfe7c2e3d86c1d8539852fc assets/ow/models/item/raw_kodiak.json
 a0c5c188425c3c48f55d201cdae78eb09bfd06fa assets/ow/models/item/redwood_door.json
 9aa3bab87987422c483a80cae585666e0d0844c6 assets/ow/models/item/redwood_fence.json
 a06b7748240f480d16517763adb53ece457177e0 assets/ow/models/item/redwood_sapling.json
-ee8d54ec9f8a802cde3d7d78d136d04b77375713 assets/ow/models/item/reptilian_dagger.json
+bd8f7b7a53f9356b8969b1d6a69aa7b9d23a7da8 assets/ow/models/item/reptilian_dagger.json
+ee8d54ec9f8a802cde3d7d78d136d04b77375713 assets/ow/models/item/reptilian_dagger_held.json
 631fe6de1f6f37fd26ed721962a2adde65852b56 assets/ow/models/item/resurrection_amulet.json
 1cd1f606c8bbfd678e4cedcb902ac9d761488c55 assets/ow/models/item/ruby.json
 7d30899902964633abd759d0b832b526608735aa assets/ow/models/item/ruby_axe.json
