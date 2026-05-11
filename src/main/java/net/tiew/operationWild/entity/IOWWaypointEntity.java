@@ -42,7 +42,7 @@ public interface IOWWaypointEntity {
     default int getWaypointIconSize() { return 5; }
 
     /** Distance max d'affichage en blocs. */
-    default int getWaypointMaxDistance() { return 500; }
+    default int getWaypointMaxDistance() { return 2000; }
 
     /** Distance min en blocs sous laquelle le waypoint se masque. */
     default float getWaypointMinDistance() { return 10.0f; }

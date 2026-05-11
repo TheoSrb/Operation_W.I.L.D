@@ -239,8 +239,11 @@ public class OWSkinsInterface extends Screen {
         int i = (this.width  - this.imageWidth)  / 2;
         int j = (this.height - this.imageHeight) / 2;
 
-        backButton = createButton("", 0xFFFFFF, -135, 0, 16, 16,
-                () -> OWNetworkHandler.sendToServer(new OpenOWInventoryPacket()));
+        backButton = Button.builder(
+                        Component.literal("←")
+                                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xAAAAAA)).withBold(true)),
+                        btn -> OWNetworkHandler.sendToServer(new OpenOWInventoryPacket()))
+                .bounds(i - 120 + 5, j + 8, 16, 14).build();
         this.addRenderableWidget(backButton);
 
         int listHeight = imageHeight - 50 - FOOTER_HEIGHT - 8;
@@ -313,20 +316,6 @@ public class OWSkinsInterface extends Screen {
                 SoundEvents.UI_TOAST_CHALLENGE_COMPLETE,
                 SoundSource.MASTER, 0.5f, 1.2f);
         buySkin(selectedSkinIndex, getSkinPrice(selectedSkinIndex));
-    }
-
-    // =========================================================================
-    // Boutons
-    // =========================================================================
-    public Button createButton(String text, int color,
-                               int positionX, int positionY,
-                               int width, int height, Runnable onClick) {
-        int i = (this.width  - this.imageWidth)  / 2;
-        int j = (this.height - this.imageHeight) / 2;
-        return Button.builder(
-                        Component.literal(text).setStyle(Style.EMPTY.withColor(TextColor.fromRgb(color))),
-                        btn -> onClick.run())
-                .bounds(i + positionX, j - positionY, width, height).build();
     }
 
     protected Button createSkinButton(Component text, int skinIndex, List<Button> list) {
@@ -464,9 +453,6 @@ public class OWSkinsInterface extends Screen {
 
         // 5. Liste scrollable
         this.buttonList.render(g, mouseX, mouseY, partial);
-
-        // 6. Icône type
-        g.blit(ICONS_LOCATION, i - 134, j + 1, 0, 130, 13, 13);
 
         // 7. Panel de détails (rendu avec l'entité fantôme)
         renderDetailPanel(g, mouseX, mouseY);

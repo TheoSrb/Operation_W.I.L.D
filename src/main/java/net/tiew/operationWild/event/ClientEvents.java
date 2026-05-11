@@ -1029,7 +1029,7 @@ public class ClientEvents {
         Vec3    lastPos     = null;
         String  name        = "";
         int     fillColor   = 0x1A8FFF, borderColor = 0xAADDFF, textColor = 0xFFFFFF;
-        int     iconSize    = 7, maxDist = 500;
+        int     iconSize    = 7, maxDist = 2000;
         float   minDist     = 3.0f, minOpacity = 0.25f, fontScale = 1.0f;
         float   visibility  = 0f;
         float   smoothedPop = 0f;
@@ -1064,7 +1064,7 @@ public class ClientEvents {
         // ── Mise à jour des états depuis les entités en range ─────────────────
         currentEntityIds.clear();
         for (OWEntity candidate : mc.level.getEntitiesOfClass(
-                OWEntity.class, player.getBoundingBox().inflate(512))) {
+                OWEntity.class, player.getBoundingBox().inflate(2048))) {
 
             if (!(candidate instanceof IOWWaypointEntity w)) continue;
             if (!player.getUUID().equals(candidate.getOwnerUUID())) continue;
@@ -1331,12 +1331,12 @@ public class ClientEvents {
     // ===== SeaBug Waypoint HUD (style Subnautica) =====
 
     @SubscribeEvent
-    public static void onRenderSeaBugWaypoint(RenderGuiEvent.Post event) {
+    public static void onRenderWaypoint(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.options.hideGui || computedWaypoints.isEmpty()) return;
 
         for (ComputedWaypoint wp : computedWaypoints.values()) {
-            drawSeaBugWaypoint(event.getGuiGraphics(), mc,
+            drawWaypoint(event.getGuiGraphics(), mc,
                     wp.screenX(), wp.screenY(), wp.dist(),
                     wp.popFactor(), wp.visibility(), wp.name(),
                     wp.fillColor(), wp.borderColor(), wp.textColor(),
@@ -1345,7 +1345,7 @@ public class ClientEvents {
     }
 
     @OnlyIn(Dist.CLIENT)
-    private static void drawSeaBugWaypoint(GuiGraphics gui, Minecraft mc, float x, float y, int distance,
+    private static void drawWaypoint(GuiGraphics gui, Minecraft mc, float x, float y, int distance,
                                             float popFactor, float visibility, String name,
                                             int fillColor, int borderColor, int textColor, int iconSize,
                                             float minOpacity, float fontScale) {
@@ -1380,7 +1380,9 @@ public class ClientEvents {
 
         // --- Distance sous l'icône (police plus petite quand pas regardé) ---
         float effectiveFontScale = fontScale * (1.0f + 0.4f * popFactor);
-        String distLabel = distance + " m";
+        String distLabel = distance >= 1000
+                ? String.format("%.1f km", distance / 1000f)
+                : distance + " m";
         float distTextY = y + scaledHalf + 3f;
         pose.pushPose();
         pose.translate(x, distTextY, 0);
