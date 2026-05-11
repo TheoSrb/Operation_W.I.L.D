@@ -58,7 +58,7 @@ public interface IOWWaypointEntity {
     }
 
     /** Opacité minimale quand le joueur ne regarde pas dessus [0.0 – 1.0]. */
-    default float getWaypointMinOpacity() { return 0.25f; }
+    default float getWaypointMinOpacity() { return 0.3f; }
 
     /** Facteur d'échelle de la police pour le texte de distance. */
     default float getWaypointDistanceFontScale() { return 0.5f; }

@@ -15,7 +15,9 @@ import net.minecraft.util.FormattedCharSequence;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.IOWWaypointEntity;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.OWEntityTogglePacket;
 import net.tiew.operationWild.networking.packets.to_server.OpenOWInventoryPacket;
@@ -127,6 +129,15 @@ public class OWOptionsScreen extends Screen {
                     Component.translatable("option.sit.desc"),
                     entity::isSitting,
                     () -> OWNetworkHandler.sendToServer(new OWEntityTogglePacket("sit"))
+            ));
+        }
+
+        if (entity instanceof IOWWaypointEntity) {
+            scrollPanel.add(toggle(
+                    Component.translatable("option.waypoint"),
+                    Component.translatable("option.waypoint.desc"),
+                    () -> ClientEvents.isWaypointEnabled(entity.getUUID()),
+                    () -> ClientEvents.toggleWaypoint(entity.getUUID())
             ));
         }
 

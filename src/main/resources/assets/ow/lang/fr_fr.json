@@ -161,6 +161,8 @@
   "tooltip.following": "Votre entité vous suit",
   "tooltip.sitting": "Votre entité est assise",
   "tooltip.delayBeforeBabyTask": "%s",
+  "option.waypoint": "Marquage",
+  "option.waypoint.desc": "Affiche un indicateur de position dans votre HUD quand l'entité est loin de vous.",
 
   "tooltip.currentSkin": "Skin équipé",
   "tooltip.skinPreview": "Aperçu",

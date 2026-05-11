@@ -158,6 +158,15 @@ public class ClientEvents {
     }
 
     @SubscribeEvent
+    public static void onPlayerLogout(ClientPlayerNetworkEvent.LoggingOut event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player != null) saveWaypointStates(mc.player);
+        waypointStates.clear();
+        computedWaypoints.clear();
+        cachedWorldName = null;
+    }
+
+    @SubscribeEvent
     public static void onMouseClick(InputEvent.MouseButton.Pre event) {
         Minecraft minecraft = Minecraft.getInstance();
         Player player = minecraft.player;
@@ -268,30 +277,30 @@ public class ClientEvents {
         }
         String worldName = getWorldName(event.getPlayer());
         ClientKillData.createEmptyFile(worldName);
+        loadWaypointStates(event.getPlayer());
     }
 
+    private static String cachedWorldName = null;
+
     public static String getWorldName(Player player) {
-        if (player != null && player.level() != null) {
-            Minecraft minecraft = Minecraft.getInstance();
+        if (cachedWorldName != null) return cachedWorldName;
 
-            if (minecraft.hasSingleplayerServer()) {
-                MinecraftServer server = minecraft.getSingleplayerServer();
+        Minecraft mc = Minecraft.getInstance();
 
-                if (server != null) {
-                    File worldDir = server.getWorldPath(LevelResource.ROOT).toAbsolutePath().toFile();
-                    String pathStr = worldDir.getAbsolutePath();
-                    String[] parts = pathStr.split("\\\\");
-                    return parts[parts.length - 2];
-                }
-            }
+        if (mc.hasSingleplayerServer() && mc.getSingleplayerServer() != null) {
+            cachedWorldName = mc.getSingleplayerServer().getWorldData().getLevelName();
+            return cachedWorldName;
+        }
 
-            if (minecraft.getCurrentServer() != null) {
-                return "multiplayer:" + minecraft.getCurrentServer().name;
-            }
+        if (mc.getCurrentServer() != null) {
+            cachedWorldName = "multiplayer_" + mc.getCurrentServer().ip
+                    .replace(":", "_").replace(".", "_");
+            return cachedWorldName;
         }
 
         return "unknown_world";
     }
+
 
     @SubscribeEvent
     public static void onRenderHand(RenderHandEvent event) {
@@ -1016,14 +1025,258 @@ public class ClientEvents {
     private static final Map<UUID, Integer>        currentEntityIds  = new HashMap<>();
 
     private static class WaypointState {
-        UUID   ownerUUID;
-        Vec3   lastPos    = null;
-        String name       = "";
-        int    fillColor  = 0x1A8FFF, borderColor = 0xAADDFF, textColor = 0xFFFFFF;
-        int    iconSize   = 7, maxDist = 500;
-        float  minDist    = 3.0f, minOpacity = 0.25f, fontScale = 1.0f;
-        float  visibility  = 0f;
-        float  smoothedPop = 0f;
+        UUID    ownerUUID;
+        Vec3    lastPos     = null;
+        String  name        = "";
+        int     fillColor   = 0x1A8FFF, borderColor = 0xAADDFF, textColor = 0xFFFFFF;
+        int     iconSize    = 7, maxDist = 500;
+        float   minDist     = 3.0f, minOpacity = 0.25f, fontScale = 1.0f;
+        float   visibility  = 0f;
+        float   smoothedPop = 0f;
+        boolean hasBeenSeen = false; // une fois true, reste true jusqu'à mort confirmée
+        boolean isEnabled   = true;
+    }
+
+    private record ComputedWaypoint(
+            float screenX, float screenY, int dist, float popFactor, float visibility,
+            String name, int fillColor, int borderColor, int textColor,
+            int iconSize, float minOpacity, float fontScale) {}
+
+    private static final Map<UUID, ComputedWaypoint> computedWaypoints = new LinkedHashMap<>();
+
+    public static boolean isWaypointEnabled(UUID uuid) {
+        WaypointState state = waypointStates.get(uuid);
+        return state == null || state.isEnabled;
+    }
+
+    public static void toggleWaypoint(UUID uuid) {
+        waypointStates.computeIfAbsent(uuid, k -> new WaypointState()).isEnabled ^= true;
+    }
+
+    private static void computeWaypointScreenPositions(RenderLevelStageEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+        computedWaypoints.clear();
+        if (player == null || mc.level == null || mc.options.hideGui) return;
+
+        float pt = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+
+        // ── Mise à jour des états depuis les entités en range ─────────────────
+        currentEntityIds.clear();
+        for (OWEntity candidate : mc.level.getEntitiesOfClass(
+                OWEntity.class, player.getBoundingBox().inflate(512))) {
+
+            if (!(candidate instanceof IOWWaypointEntity w)) continue;
+            if (!player.getUUID().equals(candidate.getOwnerUUID())) continue;
+
+            UUID uuid = candidate.getUUID();
+
+            boolean isCurrentMount = candidate == player.getVehicle();
+
+            if (!candidate.isAlive()) {
+                waypointStates.remove(uuid);
+                continue;
+            }
+
+            currentEntityIds.put(uuid, candidate.getId());
+            WaypointState state = waypointStates.computeIfAbsent(uuid, k -> new WaypointState());
+
+            state.lastPos = new Vec3(
+                    Mth.lerp(pt, candidate.xOld, candidate.getX()),
+                    Mth.lerp(pt, candidate.yOld, candidate.getY()) + candidate.getBbHeight() * 0.5,
+                    Mth.lerp(pt, candidate.zOld, candidate.getZ()));
+            state.ownerUUID   = player.getUUID();
+            state.hasBeenSeen = true;
+            state.name        = candidate.getCustomName() != null
+                    ? candidate.getCustomName().getString() : w.getWaypointName();
+            state.fillColor   = w.getWaypointFillColor();
+            state.borderColor = w.getWaypointBorderColor();
+            state.textColor   = w.getWaypointTextColor();
+            state.iconSize    = w.getWaypointIconSize();
+            state.maxDist     = w.getWaypointMaxDistance();
+            state.minDist     = w.getWaypointMinDistance();
+            state.minOpacity  = w.getWaypointMinOpacity();
+            state.fontScale   = w.getWaypointDistanceFontScale();
+
+            if (isCurrentMount) continue;
+        }
+
+        if (waypointStates.isEmpty()) return;
+
+        int sw = mc.getWindow().getGuiScaledWidth();
+        int sh = mc.getWindow().getGuiScaledHeight();
+        int margin = 6;
+
+        Camera cam = event.getCamera();
+        Matrix4f projView = new Matrix4f(cachedProj)
+                .rotate(new Quaternionf(cam.rotation()).conjugate());
+
+        // ── Passe 1 : calcul du focus pour chaque waypoint ────────────────────
+        Map<UUID, Float> focusPerUUID = new LinkedHashMap<>();
+        for (Map.Entry<UUID, WaypointState> entry : waypointStates.entrySet()) {
+            WaypointState state = entry.getValue();
+            if (!state.hasBeenSeen || state.lastPos == null) continue;
+            if (!state.isEnabled) continue;
+            if (!player.getUUID().equals(state.ownerUUID)) continue;
+
+            Vec3 toTarget = state.lastPos.subtract(cam.getPosition());
+            Vector4f clipPos = new Vector4f(
+                    (float) toTarget.x, (float) toTarget.y, (float) toTarget.z, 1.0f);
+            projView.transform(clipPos);
+            if (Math.abs(clipPos.w) < 0.001f) { focusPerUUID.put(entry.getKey(), 0f); continue; }
+
+            boolean isBehind = clipPos.w <= 0f;
+            float ndcX = clipPos.x / clipPos.w;
+            float ndcY = clipPos.y / clipPos.w;
+            float angularDist = isBehind ? 2.0f : (float) Math.sqrt(ndcX * ndcX + ndcY * ndcY);
+            float focus = Mth.clamp(1.0f - angularDist / 0.1f, 0.0f, 1.0f);
+            focusPerUUID.put(entry.getKey(), focus);
+        }
+
+        // Seul le waypoint avec le focus le plus élevé peut s'agrandir
+        UUID bestUUID = null;
+        float bestFocus = 0f;
+        for (Map.Entry<UUID, Float> e : focusPerUUID.entrySet()) {
+            if (e.getValue() > bestFocus) { bestFocus = e.getValue(); bestUUID = e.getKey(); }
+        }
+
+        // ── Passe 2 : visibility, smoothedPop et position écran ───────────────
+        for (Map.Entry<UUID, WaypointState> entry : waypointStates.entrySet()) {
+            WaypointState state = entry.getValue();
+            if (!state.hasBeenSeen || state.lastPos == null) continue;
+            if (!player.getUUID().equals(state.ownerUUID)) continue;
+            if (!state.isEnabled) continue; // ← ajout ici
+
+            Integer entityId = currentEntityIds.get(entry.getKey());
+            Entity rawEntity = entityId != null ? mc.level.getEntity(entityId) : null;
+            double dist = rawEntity != null
+                    ? player.distanceTo(rawEntity)
+                    : player.position().distanceTo(state.lastPos);
+
+            float targetVisibility;
+            float fadeZone = 1.5f;
+            if (dist <= state.minDist || dist > state.maxDist) {
+                targetVisibility = 0.0f;
+            } else if (dist < state.minDist + fadeZone) {
+                targetVisibility = (float)(dist - state.minDist) / fadeZone;
+            } else {
+                targetVisibility = 1.0f;
+            }
+            state.visibility = Mth.lerp(0.08f, state.visibility, targetVisibility);
+            if (state.visibility < 0.01f) continue;
+
+            boolean isChosen = entry.getKey().equals(bestUUID) && bestFocus > 0.3f;
+            float targetPop = isChosen ? 1.0f : 0.0f;
+            float lerpSpeed = state.smoothedPop < targetPop ? 0.11f : 0.07f;
+            state.smoothedPop = Mth.lerp(lerpSpeed, state.smoothedPop, targetPop);
+
+            Vec3 toTarget = state.lastPos.subtract(cam.getPosition());
+            Vector4f clipPos = new Vector4f(
+                    (float) toTarget.x, (float) toTarget.y, (float) toTarget.z, 1.0f);
+            projView.transform(clipPos);
+            if (Math.abs(clipPos.w) < 0.001f) continue;
+
+            boolean isBehind = clipPos.w <= 0f;
+            float ndcX = clipPos.x / clipPos.w;
+            float ndcY = clipPos.y / clipPos.w;
+
+            float screenX = (ndcX + 1f) * 0.5f * sw;
+            float screenY = (1f - ndcY) * 0.5f * sh;
+            float cx = sw * 0.5f, cy = sh * 0.5f;
+            float dx = screenX - cx, dy = screenY - cy;
+
+            boolean onScreen = !isBehind
+                    && screenX > margin && screenX < sw - margin
+                    && screenY > margin && screenY < sh - margin;
+            if (!onScreen) {
+                float scaleX = Math.abs(dx) > 0.001f ? (cx - margin) / Math.abs(dx) : Float.MAX_VALUE;
+                float scaleY = Math.abs(dy) > 0.001f ? (cy - margin) / Math.abs(dy) : Float.MAX_VALUE;
+                float scale  = Math.min(scaleX, scaleY);
+                screenX = cx + dx * scale;
+                screenY = cy + dy * scale;
+            }
+
+            computedWaypoints.put(entry.getKey(), new ComputedWaypoint(
+                    screenX, screenY, (int) dist, state.smoothedPop, state.visibility,
+                    state.name, state.fillColor, state.borderColor, state.textColor,
+                    state.iconSize, state.minOpacity, state.fontScale));
+        }
+    }
+
+    private static File getWaypointFile(Player player) {
+        String worldName = getWorldName(player);
+        return new File("config/ow_waypoints_" + worldName.replace(":", "_") + ".dat");
+    }
+
+    public static void saveAndClearWaypoints(Player player) {
+        saveWaypointStates(player);
+        waypointStates.clear();
+        computedWaypoints.clear();
+        cachedWorldName = null;
+    }
+
+    private static void saveWaypointStates(Player player) {
+        File file = getWaypointFile(player);
+        System.out.println("[OW-SAVE] path=" + file.getAbsolutePath() + " | states=" + waypointStates.size());
+        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file))) {
+            List<Map.Entry<UUID, WaypointState>> toSave = waypointStates.entrySet().stream()
+                    .filter(e -> e.getValue().hasBeenSeen && e.getValue().lastPos != null)
+                    .toList();
+            out.writeInt(toSave.size());
+            for (Map.Entry<UUID, WaypointState> entry : toSave) {
+                WaypointState s = entry.getValue();
+                out.writeUTF(entry.getKey().toString());
+                out.writeUTF(s.ownerUUID != null ? s.ownerUUID.toString() : "");
+                out.writeDouble(s.lastPos.x);
+                out.writeDouble(s.lastPos.y);
+                out.writeDouble(s.lastPos.z);
+                out.writeUTF(s.name);
+                out.writeInt(s.fillColor);
+                out.writeInt(s.borderColor);
+                out.writeInt(s.textColor);
+                out.writeInt(s.iconSize);
+                out.writeInt(s.maxDist);
+                out.writeFloat(s.minDist);
+                out.writeFloat(s.minOpacity);
+                out.writeFloat(s.fontScale);
+                out.writeBoolean(s.isEnabled);
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    private static void loadWaypointStates(Player player) {
+        waypointStates.clear();
+        File file = getWaypointFile(player);
+        System.out.println("[OW-LOAD] path=" + file.getAbsolutePath() + " | exists=" + file.exists());
+        if (!file.exists()) return;
+        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
+            int count = in.readInt();
+            for (int i = 0; i < count; i++) {
+                UUID uuid       = UUID.fromString(in.readUTF());
+                String ownerStr = in.readUTF();
+                double x = in.readDouble(), y = in.readDouble(), z = in.readDouble();
+                String name     = in.readUTF();
+
+                WaypointState s = new WaypointState();
+                s.ownerUUID   = ownerStr.isEmpty() ? null : UUID.fromString(ownerStr);
+                s.lastPos     = new Vec3(x, y, z);
+                s.name        = name;
+                s.hasBeenSeen = true;
+                s.fillColor   = in.readInt();
+                s.borderColor = in.readInt();
+                s.textColor   = in.readInt();
+                s.iconSize    = in.readInt();
+                s.maxDist     = in.readInt();
+                s.minDist     = in.readFloat();
+                s.minOpacity  = in.readFloat();
+                s.fontScale   = in.readFloat();
+                s.isEnabled = in.readBoolean();
+                waypointStates.put(uuid, s);
+            }
+        } catch (Exception e) {
+            waypointStates.clear();
+        }
     }
 
     @SubscribeEvent
@@ -1035,6 +1288,7 @@ public class ClientEvents {
 
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             renderPassiveEsp(event);
+            computeWaypointScreenPositions(event);
         }
 
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) {
@@ -1079,110 +1333,19 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onRenderSeaBugWaypoint(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
-        Player player = mc.player;
-        if (player == null || mc.level == null || mc.options.hideGui) return;
+        if (mc.player == null || mc.options.hideGui || computedWaypoints.isEmpty()) return;
 
-        float pt = mc.getTimer().getGameTimeDeltaPartialTick(true);
-        currentEntityIds.clear();
-
-        for (OWEntity candidate : mc.level.getEntitiesOfClass(
-                OWEntity.class, player.getBoundingBox().inflate(512))) {
-            if (!(candidate instanceof IOWWaypointEntity w)) continue;
-            if (!player.getUUID().equals(candidate.getOwnerUUID())) continue;
-            if (candidate == player.getVehicle()) continue;
-            if (!candidate.isAlive()) continue;
-
-            UUID uuid = candidate.getUUID();
-            currentEntityIds.put(uuid, candidate.getId());
-            WaypointState state = waypointStates.computeIfAbsent(uuid, k -> new WaypointState());
-
-            state.ownerUUID   = player.getUUID();
-            state.lastPos     = new Vec3(
-                    Mth.lerp(pt, candidate.xOld, candidate.getX()),
-                    Mth.lerp(pt, candidate.yOld, candidate.getY()) + candidate.getBbHeight() * 0.5,
-                    Mth.lerp(pt, candidate.zOld, candidate.getZ()));
-            state.name        = candidate.getCustomName() != null ? candidate.getCustomName().getString() : w.getWaypointName();
-            state.fillColor   = w.getWaypointFillColor();
-            state.borderColor = w.getWaypointBorderColor();
-            state.textColor   = w.getWaypointTextColor();
-            state.iconSize    = w.getWaypointIconSize();
-            state.maxDist     = w.getWaypointMaxDistance();
-            state.minDist     = w.getWaypointMinDistance();
-            state.minOpacity  = w.getWaypointMinOpacity();
-            state.fontScale   = w.getWaypointDistanceFontScale();
-        }
-
-        if (waypointStates.isEmpty()) return;
-
-        int sw = mc.getWindow().getGuiScaledWidth();
-        int sh = mc.getWindow().getGuiScaledHeight();
-        int margin = 6;
-
-        Camera cam = mc.gameRenderer.getMainCamera();
-        // proj × view : view = conjugate(cam.rotation()) transforme world-relative-to-cam → eye space
-        Matrix4f projView = new Matrix4f(cachedProj).rotate(new Quaternionf(cam.rotation()).conjugate());
-
-        for (Map.Entry<UUID, WaypointState> entry : waypointStates.entrySet()) {
-            WaypointState state = entry.getValue();
-            if (state.lastPos == null) continue;
-            if (!player.getUUID().equals(state.ownerUUID)) continue;
-
-            boolean entityFound = currentEntityIds.containsKey(entry.getKey());
-            Integer entityId = currentEntityIds.get(entry.getKey());
-            Entity rawEntity = entityId != null ? mc.level.getEntity(entityId) : null;
-            double dist = rawEntity != null
-                    ? player.distanceTo(rawEntity)
-                    : player.position().distanceTo(state.lastPos);
-
-            float targetVisibility = (entityFound && rawEntity != null && dist > state.minDist && dist <= state.maxDist) ? 1.0f : 0.0f;
-            state.visibility = Mth.lerp(0.08f, state.visibility, targetVisibility);
-            if (state.visibility < 0.01f) continue;
-
-            Vec3 toTarget = state.lastPos.subtract(cam.getPosition());
-            Vector4f clipPos = new Vector4f((float)toTarget.x, (float)toTarget.y, (float)toTarget.z, 1.0f);
-            projView.transform(clipPos);
-            if (Math.abs(clipPos.w) < 0.001f) continue;
-            boolean isBehind = clipPos.w <= 0f;
-            float ndcX = clipPos.x / clipPos.w;
-            float ndcY = clipPos.y / clipPos.w;
-
-            float angularDist = isBehind ? 2.0f : (float) Math.sqrt(ndcX * ndcX + ndcY * ndcY);
-            float focus = Mth.clamp(1.0f - angularDist / 0.07f, 0.0f, 1.0f);
-
-            float targetPop = focus > 0.3f ? 1.0f : 0.0f;
-            float lerpSpeed = state.smoothedPop < targetPop ? 0.11f : 0.07f;
-            state.smoothedPop = Mth.lerp(lerpSpeed, state.smoothedPop, targetPop);
-            float popFactor = state.smoothedPop;
-
-            float screenX = (ndcX + 1f) * 0.5f * sw;
-            float screenY = (1f - ndcY) * 0.5f * sh;
-
-            float cx = sw * 0.5f;
-            float cy = sh * 0.5f;
-            float dx = screenX - cx;
-            float dy = screenY - cy;
-
-            boolean onScreen = !isBehind
-                    && screenX > margin && screenX < sw - margin
-                    && screenY > margin && screenY < sh - margin;
-
-            if (!onScreen) {
-                float scaleX = Math.abs(dx) > 0.001f ? (cx - margin) / Math.abs(dx) : Float.MAX_VALUE;
-                float scaleY = Math.abs(dy) > 0.001f ? (cy - margin) / Math.abs(dy) : Float.MAX_VALUE;
-                float scale  = Math.min(scaleX, scaleY);
-                screenX = cx + dx * scale;
-                screenY = cy + dy * scale;
-            }
-
-            drawSeaBugWaypoint(event.getGuiGraphics(), mc, (int) screenX, (int) screenY,
-                    (int) dist, popFactor, state.visibility, state.name,
-                    state.fillColor, state.borderColor, state.textColor, state.iconSize,
-                    state.minOpacity, state.fontScale);
+        for (ComputedWaypoint wp : computedWaypoints.values()) {
+            drawSeaBugWaypoint(event.getGuiGraphics(), mc,
+                    wp.screenX(), wp.screenY(), wp.dist(),
+                    wp.popFactor(), wp.visibility(), wp.name(),
+                    wp.fillColor(), wp.borderColor(), wp.textColor(),
+                    wp.iconSize(), wp.minOpacity(), wp.fontScale());
         }
     }
 
     @OnlyIn(Dist.CLIENT)
-    private static void drawSeaBugWaypoint(GuiGraphics gui, Minecraft mc, int x, int y, int distance,
+    private static void drawSeaBugWaypoint(GuiGraphics gui, Minecraft mc, float x, float y, int distance,
                                             float popFactor, float visibility, String name,
                                             int fillColor, int borderColor, int textColor, int iconSize,
                                             float minOpacity, float fontScale) {
@@ -1193,16 +1356,15 @@ public class ClientEvents {
         int fillAlpha   = (int) (Mth.lerp(popFactor, baseOpacity * 0xCC, 0xCC) * visibility);
         int borderAlpha = (int) (Mth.lerp(popFactor, baseOpacity * 0xFF, 0xFF) * visibility);
         int distAlpha   = (int) (Mth.lerp(popFactor, baseOpacity * 0xBB, 0xDD) * visibility);
-        float nameFade  = Mth.clamp((popFactor - 0.32f) / 0.68f, 0.0f, 1.0f);
-        nameFade = nameFade * nameFade;
-        int nameAlpha   = nameFade > 0.004f ? Math.max(2, (int)(nameFade * 0xFE * visibility)) : 0;
+        float nameFade = Mth.clamp((popFactor - 0.6f) / 0.4f, 0.0f, 1.0f);
+        nameFade = nameFade * nameFade * (3f - 2f * nameFade);
+        int nameAlpha = (int)(nameFade * 0xFE * visibility);
 
         int fill   = (fillAlpha   << 24) | fillColor;
         int border = (borderAlpha << 24) | borderColor;
 
         PoseStack pose = gui.pose();
 
-        // --- Losange ---
         pose.pushPose();
         pose.translate(x, y, 300);
         pose.scale(totalScale, totalScale, 1f);
@@ -1214,12 +1376,12 @@ public class ClientEvents {
         gui.fill( iconHalf - 1, -iconHalf, iconHalf,     iconHalf,      border);
         pose.popPose();
 
-        int scaledHalf = Math.max(1, (int)(iconHalf * totalScale));
+        float scaledHalf = iconHalf * totalScale;
 
         // --- Distance sous l'icône (police plus petite quand pas regardé) ---
         float effectiveFontScale = fontScale * (1.0f + 0.4f * popFactor);
         String distLabel = distance + " m";
-        int distTextY = y + scaledHalf + 3;
+        float distTextY = y + scaledHalf + 3f;
         pose.pushPose();
         pose.translate(x, distTextY, 0);
         pose.scale(effectiveFontScale, effectiveFontScale, 1f);
@@ -1227,9 +1389,19 @@ public class ClientEvents {
         pose.popPose();
 
         // --- Nom du véhicule au-dessus de l'icône ---
-        if (nameAlpha > 0 && !name.isEmpty()) {
-            int nameY = y - scaledHalf - mc.font.lineHeight - 2;
-            if (nameY < 2) nameY = distTextY + (int)(mc.font.lineHeight * fontScale) + 1;
+        // Distance
+        if (distAlpha > 3) {
+            pose.pushPose();
+            pose.translate(x, distTextY, 0);
+            pose.scale(effectiveFontScale, effectiveFontScale, 1f);
+            gui.drawString(mc.font, distLabel, -mc.font.width(distLabel) / 2, 0, (distAlpha << 24) | textColor, true);
+            pose.popPose();
+        }
+
+// Nom
+        if (nameAlpha > 3 && !name.isEmpty()) {
+            float nameY = y - scaledHalf - mc.font.lineHeight - 2f;
+            if (nameY < 2f) nameY = distTextY + mc.font.lineHeight * fontScale + 1f;
             pose.pushPose();
             pose.translate(x, nameY, 0);
             gui.drawString(mc.font, name, -mc.font.width(name) / 2, 0, (nameAlpha << 24) | textColor, true);

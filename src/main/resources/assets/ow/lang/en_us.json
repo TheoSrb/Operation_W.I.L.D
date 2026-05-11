@@ -161,6 +161,8 @@
   "tooltip.following": "Your entity follows you",
   "tooltip.sitting": "Your entity is sitting",
   "tooltip.delayBeforeBabyTask": "%s",
+  "option.waypoint": "Waypoint",
+  "option.waypoint.desc": "Show a waypoint indicator on your HUD when the entity is far away.",
 
 
   "tooltip.equipSkin": "Equip",
