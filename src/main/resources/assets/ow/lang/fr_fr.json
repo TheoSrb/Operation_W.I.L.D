@@ -139,7 +139,8 @@
   "tooltip.cosmetics": "Cosmétiques",
   "tooltip.dailyQuests": "Quêtes Quotidiennes",
   "tooltip.options": "Options",
-  "tooltip.team": "Clans",
+  "tooltip.team": "Tribus",
+  "tooltip.inventory": "Inventaire",
 
   "option.screenTitle": "Options de l'entité",
   "option.rename": "Renommer",
@@ -667,6 +668,12 @@
   "ow.attacks.kodiak.combo.desc": "Faites frapper votre Kodiak toutes les %s secondes, infligeant %s points de dégâts par coup de pattes.",
   "ow.attacks.kodiak.paw_slam.desc": "Chargez jusqu'à %s s pour que le Kodiak se dresse et frappe le sol, infligeant un pourcentage de la vie actuelle des entités proches (10%% à 50%%). Limité à 15 dégâts sur les grandes créatures. Rechargement toutes les %s secondes.",
   "ow.attacks.kodiak.nap.desc": "Le Kodiak s'endort jusqu'à %s secondes, se régénérant de %s PV/s et absorbant %s%% des dégâts reçus. Rappuyez sur la touche pour interrompre la sieste à tout moment. Rechargement tous les %s kills et %ss.",
-  "ow.attacks.kodiak.butcher.desc": "Les entités tuées par votre Kodiak lâchent %s%% plus de nourriture crue."
+  "ow.attacks.kodiak.butcher.desc": "Les entités tuées par votre Kodiak lâchent %s%% plus de nourriture crue.",
 
+
+  "rarity.legendary": "Légendaire",
+  "rarity.epic":      "Épique",
+  "rarity.halloween": "Halloween",
+  "rarity.rare":      "Rare",
+  "rarity.common":    "Commun"
 }

@@ -11,6 +11,7 @@ import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.IOWWaypointEntity;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.client.MousePositionSaver;
 import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.entity.misc.Submarine;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
@@ -764,6 +765,15 @@ public class ClientEvents {
             if (rightStart < screenWidth) {
                 graphics.fill(Math.max(rightStart, 0), 0, screenWidth, screenHeight, color);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onScreenOpen(ScreenEvent.Init.Post event) {
+        if (MousePositionSaver.shouldRestore) {
+            long window = Minecraft.getInstance().getWindow().getWindow();
+            GLFW.glfwSetCursorPos(window, MousePositionSaver.savedX, MousePositionSaver.savedY);
+            MousePositionSaver.clear();
         }
     }
 

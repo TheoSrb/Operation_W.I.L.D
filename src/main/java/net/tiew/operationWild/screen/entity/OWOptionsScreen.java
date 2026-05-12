@@ -33,7 +33,7 @@ public class OWOptionsScreen extends Screen {
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_options_screen.png");
 
     // Dimensions de la texture
-    static final int IMG_W    = 176;
+    static final int IMG_W    = 256;
     static final int IMG_H    = 256;
     // Zone header (haut de la texture)
     private static final int HEADER_H = 50;
@@ -44,6 +44,8 @@ public class OWOptionsScreen extends Screen {
     private final OWEntity entity;
     private OWScrollPanel  scrollPanel;
     private Button         backButton;
+
+    private final OWTabsRenderer tabsRenderer = new OWTabsRenderer();
 
     public OWOptionsScreen() {
         super(Component.literal("OWOptionsScreen"));
@@ -142,6 +144,8 @@ public class OWOptionsScreen extends Screen {
         }
 
         this.addWidget(scrollPanel);
+
+        tabsRenderer.setActiveTab(OWTabsRenderer.Tab.OPTIONS);
     }
 
     @Override

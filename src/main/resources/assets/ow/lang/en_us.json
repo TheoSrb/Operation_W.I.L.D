@@ -139,7 +139,8 @@
   "tooltip.cosmetics": "Cosmetics",
   "tooltip.dailyQuests": "Daily Quests",
   "tooltip.options": "Options",
-  "tooltip.team": "Prides",
+  "tooltip.team": "Tribes",
+  "tooltip.inventory": "Inventory",
 
   "option.screenTitle": "Entity Options",
   "option.rename": "Rename",
@@ -627,6 +628,12 @@
   "ow.attacks.tiger.combo.desc": "Command your Tiger to bite every %s seconds, dealing %s damage with each bite.",
   "ow.attacks.tiger.bond.desc": "Charge the attack to lunge your Tiger onto an enemy every %s seconds. If a target is seized, bite it from your mount.",
   "ow.attacks.tiger.shadow_strike.desc": "Your Tiger becomes camouflaged for %s seconds, increasing its speed by %s%%, its damage by %s%%, and one-shotting injured entities. Recharge by getting %s kills every %s seconds.",
-  "ow.attacks.tiger.predator_sense.desc": "Reveal injured entities below %s%% HP through walls within a radius of %s blocks."
+  "ow.attacks.tiger.predator_sense.desc": "Reveal injured entities below %s%% HP through walls within a radius of %s blocks.",
 
+
+  "rarity.legendary": "Legendary",
+  "rarity.epic":      "Epic",
+  "rarity.halloween": "Halloween",
+  "rarity.rare":      "Rare",
+  "rarity.common":    "Common"
 }

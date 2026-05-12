@@ -48,17 +48,12 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
     private Button upgradeDamageButton;
     private Button upgradeSpeedButton;
 
-    private Button skinButton;
-    private Button teamButton;
-    private Button dailyQuestButton;
-    private Button optionsButton;
+    private final OWTabsRenderer tabsRenderer = new OWTabsRenderer();
 
     private Button stopHealthButton;
     private Button stopDamageButton;
     private Button stopSpeedButton;
     private int entityScale = 17;
-
-    private final int[] notifications = new int[4];
 
     public OWInventoryScreen(OWInventoryMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
@@ -77,46 +72,12 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
                 .build();
     }
 
-    private void chooseSkinsScreenForEntity(OWEntity entity) {
-        setNotification(1, 0);
-        switch (entity.getClass().getSimpleName()) {
-            case "KodiakEntity" -> Minecraft.getInstance().setScreen(new KodiakSkinsScreen());
-            case "TigerEntity" -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
-            case "CrocodileEntity" -> Minecraft.getInstance().setScreen(new CrocodileSkinsScreen());
-            default ->
-                    Minecraft.getInstance().player.sendSystemMessage(Component.translatable("tooltip.noSkins").withStyle(Style.EMPTY).withColor(0xFF0000));
-        }
-    }
-
-    private void dailyQuestsButtonIsClicked() {
-        setNotification(3, 0);
-        entity.getControllingPassenger().sendSystemMessage(Component.literal("ERROR"));
-        /*
-        Minecraft.getInstance().setScreen(new OWDailyQuestScreen());
-        OWNetworkHandler.sendToServer(new OpenDailyQuestScreen());
-        */
-    }
-
-    private void teamButtonIsClicked() {
-        setNotification(2, 0);
-        entity.getControllingPassenger().sendSystemMessage(Component.literal("Coming Soon..."));
-    }
-
     @Override
     protected void init() {
         super.init();
         upgradeHealthButton = createButton("+", 0xb8e45a, 175, -21, 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("MaxHealth")));
         upgradeDamageButton = createButton("+", 0xb8e45a, 175, -39, 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("AttackDamage")));
         upgradeSpeedButton = createButton("+", 0xb8e45a, 175, -57, 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("MovementSpeed")));
-
-        skinButton = createButton("", 0xFF0000, 2, 18, 20, 18, () -> chooseSkinsScreenForEntity(entity));
-        skinButton.setAlpha(0f);
-        teamButton = createButton("", 0xFFFFFF, 22, 18, 20, 18, this::teamButtonIsClicked);
-        teamButton.setAlpha(0f);
-        dailyQuestButton = createButton("", 0xFFFFFF, 42, 18, 20, 18, this::dailyQuestsButtonIsClicked);
-        dailyQuestButton.setAlpha(0f);
-        optionsButton = createButton("", 0xFFFFFF, 62, 18, 20, 18, () -> Minecraft.getInstance().setScreen(new OWOptionsScreen()));
-        optionsButton.setAlpha(0f);
 
         stopHealthButton = createButton("X", 0x9c0d0d, 175, -21, 10, 10, () -> {
         });
@@ -137,11 +98,6 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         this.addRenderableWidget(upgradeDamageButton);
         this.addRenderableWidget(upgradeSpeedButton);
 
-        this.addRenderableWidget(skinButton);
-        this.addRenderableWidget(teamButton);
-        this.addRenderableWidget(dailyQuestButton);
-        this.addRenderableWidget(optionsButton);
-
         this.addRenderableWidget(stopHealthButton);
         this.addRenderableWidget(stopDamageButton);
         this.addRenderableWidget(stopSpeedButton);
@@ -154,7 +110,10 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
             case "HyenaEntity" -> entityScale = 30;
         }
 
-        setNotification(3, 3);
+        tabsRenderer.init(this.width, this.height, this.imageWidth, this.imageHeight, entity, this::addRenderableWidget);
+        tabsRenderer.setNotification(3, 3);
+
+        tabsRenderer.setActiveTab(OWTabsRenderer.Tab.INVENTORY);
     }
 
     protected void renderBg(GuiGraphics guiGraphics, float p_282998_, int p_282929_, int p_283133_) {
@@ -218,17 +177,6 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         }
     }
 
-    /**
-     * Affiche une pastille de notification sur l'onglet demandé.
-     * @param tabId  1 = Cosmetics, 2 = Team, 3 = Daily Quests, 4 = Options
-     * @param count  Nombre à afficher (0 pour masquer la pastille)
-     */
-    public void setNotification(int tabId, int count) {
-        if (tabId >= 1 && tabId <= 4) {
-            notifications[tabId - 1] = Math.max(0, count);
-        }
-    }
-
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float v) {
         this.renderBackground(graphics, mouseX, mouseY, v);
@@ -263,39 +211,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         int mobTypePlacementX = this.entity.getLevel() >= 50 && this.entity.getLevelPoints() <= 0 ? this.entity.getPrestigeLevel() >= 100 ? i + 116 : this.entity.getPrestigeLevel() >= 10 ? i + 123 : this.entity.getPrestigeLevel() >= 0 ? i + 129 : 0 : i + 138;
 
 
-        Component cosmeticsText = Component.translatable("tooltip.cosmetics").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
-        Component dailyQuestsText = Component.translatable("tooltip.dailyQuests").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
-        Component optionsText = Component.translatable("tooltip.options").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
-        Component teamText = Component.translatable("tooltip.team").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
-
-
-        boolean hoverSkin = mouseX >= i + 2 && mouseX <= i + 22 && mouseY >= j - 18 && mouseY <= j;
-        boolean hoverTeam = mouseX >= i + 22 && mouseX <= i + 42 && mouseY >= j - 18 && mouseY <= j;
-        boolean hoverQuests = mouseX >= i + 42 && mouseX <= i + 62 && mouseY >= j - 18 && mouseY <= j;
-        boolean hoverOptions = mouseX >= i + 62 && mouseX <= i + 82 && mouseY >= j - 18 && mouseY <= j;
-
-        graphics.blit(OW_INVENTORY_LOCATION, i + 2, j - 18, hoverSkin ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 22, j - 18, hoverTeam ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 42, j - 18, hoverQuests ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 62, j - 18, hoverOptions ? 20 : 0, 206, 20, 18);
-
-        graphics.blit(OW_INVENTORY_LOCATION, i + 4, j - 16, 176, 0, 16, 16);
-
-
-        setShaderColor(0xFFFFFF);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 24, j - 16, 176, 16, 16, 16);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-
-        graphics.blit(OW_INVENTORY_LOCATION, i + 44, j - 16, 176, 32, 16, 16);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 64, j - 16, 176, 48, 16, 16);
-
-        renderNotificationBadges(graphics, i, j);
-
-        if (hoverSkin) graphics.renderComponentTooltip(this.font, List.of(cosmeticsText), mouseX, mouseY);
-        if (hoverTeam) graphics.renderComponentTooltip(this.font, List.of(teamText), mouseX, mouseY);
-        if (hoverQuests) graphics.renderComponentTooltip(this.font, List.of(dailyQuestsText), mouseX, mouseY);
-        if (hoverOptions) graphics.renderComponentTooltip(this.font, List.of(optionsText), mouseX, mouseY);
+        tabsRenderer.renderTabs(graphics, this.font, entity, i, j, mouseX, mouseY);
 
 
         String tooltipKey = entity.isTank() ? "tooltip.mobTypesTank" : entity.isAssassin() ? "tooltip.mobTypesAssassin" : entity.isMarauder() ? "tooltip.mobTypesMarauder" : entity.isHealer() ? "tooltip.mobTypesHealer" : entity.isBerserker() ? "tooltip.mobTypesBerserker" : entity.isScout() ? "tooltip.mobTypesScout" : entity.isNormal() ? "tooltip.mobTypesNormal" : "";
@@ -319,13 +235,6 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         }
 
         this.renderTooltip(graphics, mouseX, mouseY);
-    }
-
-    private void setShaderColor(int hexColor) {
-        float r = ((hexColor >> 16) & 0xFF) / 255.0f;
-        float g = ((hexColor >> 8) & 0xFF) / 255.0f;
-        float b = (hexColor & 0xFF) / 255.0f;
-        RenderSystem.setShaderColor(r, g, b, 1.0f);
     }
 
     private void renderTexts(GuiGraphics graphics, int offsetX, int offsetY) {
@@ -433,27 +342,6 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
             }
         }
 
-    }
-
-    private void renderNotificationBadges(GuiGraphics graphics, int i, int j) {
-        int[] tabOffsets = {2, 22, 42, 62};
-        int color = (entity.tickCount / 7) % 2 == 0 ? 0x92d124 : 0xF3F28F;
-
-        for (int tab = 0; tab < 4; tab++) {
-            int count = notifications[tab];
-            if (count <= 0) continue;
-
-            String label = count > 9 ? "9+" : String.valueOf(count);
-
-            int exclamX = i + tabOffsets[tab] + 1;
-            int exclamY = j - 18 - 3;
-            graphics.blit(OW_INVENTORY_LOCATION, exclamX, exclamY, 0, 166, 3, 10);
-
-            int textX = exclamX + 20 - this.font.width(label);
-            int textY = exclamY + 2;
-
-            graphics.drawString(this.font, label, textX, textY, color, true);
-        }
     }
 
     private void renderLabels(GuiGraphics guiGraphics, int renderX, int yOffset, Iterable<MobEffectInstance> effects) {

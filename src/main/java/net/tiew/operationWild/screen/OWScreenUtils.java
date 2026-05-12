@@ -175,22 +175,22 @@ public class OWScreenUtils {
             }
 
             private void renderLockedOverlay(GuiGraphics g, int bx, int by, int bh) {
-                int iconSize = 12;
+                int iconSizeY = 14;
                 int iconX    = bx + 8;
-                int iconY    = by + (bh - iconSize) / 2;
+                int iconY    = by + (bh - iconSizeY) / 2;
 
                 int uvY = parentScreen.LEGENDARY_SKIN.contains(button) ? 74  :
                         parentScreen.EPIC_SKIN.contains(button)      ? 88  :
                                 parentScreen.HALLOWEEN_SKIN.contains(button) ? 88  :
                                         parentScreen.RARE_SKIN.contains(button)      ? 102 : 116;
 
-                g.blit(ICONS_LOCATION, iconX, iconY, 0, uvY, iconSize, iconSize);
+                g.blit(ICONS_LOCATION, iconX, iconY, 0, uvY, 12, iconSizeY);
 
                 int price = parentScreen.getSkinPrice(skinIndex);
                 if (price > 0) {
-                    g.blit(ICONS_LOCATION, iconX + 16, iconY, 0, 143, 10, 10);
+                    g.blit(ICONS_LOCATION, iconX + 16, iconY + 2, 0, 143, 10, 10);
                     g.drawString(Minecraft.getInstance().font,
-                            String.valueOf(price), iconX + 28, iconY + 1, 0xc8f6ff, false);
+                            String.valueOf(price), iconX + 28, iconY + 3.5f, 0xc8f6ff, false);
                 } else {
                     // Texte du nom avec scaling si débordement
                     var font   = Minecraft.getInstance().font;
