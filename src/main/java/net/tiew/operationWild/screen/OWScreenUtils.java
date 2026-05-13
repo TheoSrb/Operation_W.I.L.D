@@ -108,7 +108,6 @@ public class OWScreenUtils {
                                int width, int height,
                                int mouseX, int mouseY, boolean hovered, float partial) {
 
-                // Mise à jour bounds pour la détection de clics (invisible mais cliquable)
                 this.button.setX(left - 4);
                 this.button.setY(top + 2);
 
@@ -123,33 +122,43 @@ public class OWScreenUtils {
                         && mouseY >= by && mouseY <= by + bh;
                 int rc = parentScreen.getRarityColor(skinIndex);
 
-                // ── Fond plat custom (sans la bordure noire vanilla) ────────
-                // Déverrouillé = clair, verrouillé = sombre
+                // ── Fond plat custom ────────────────────────────────────────────
                 int bgColor = locked   ? (isHov ? 0xFF606060 : 0xFF585858)
                         : selected ? 0xFF969696
                         : isHov    ? 0xFFAAAAAA
                         : 0xFF979797;
                 g.fill(bx, by, bx + bw, by + bh, bgColor);
 
-                // ── Léger reflet en haut (1px) ───────────────────────────
-                g.fill(bx, by, bx + bw, by + 1, 0x44FFFFFF);
+                // ── Bordure noire extérieure (1px) ──────────────────────────────
+                g.fill(bx,          by,          bx + bw, by + 1,      0xFF000000); // haut
+                g.fill(bx,          by + bh - 1, bx + bw, by + bh,     0xFF000000); // bas
+                g.fill(bx,          by,          bx + 1,  by + bh,     0xFF000000); // gauche
+                g.fill(bx + bw - 1, by,          bx + bw, by + bh,     0xFF000000); // droite
 
-                // ── Barre de rareté gauche (3px) ──────────────────────────
-                g.fill(bx, by, bx + 3, by + bh, locked ? 0xFF555555 : (rc | 0xFF000000));
+                // ── Barre de rareté gauche (3px) ────────────────────────────────
+                g.fill(bx + 1, by + 1, bx + 4, by + bh - 1, rc | 0xFF000000);
 
-                // ── Contenu (texte ou icône verrou) ────────────────────────
+                // ── Biseau clair — haut + gauche intérieur (après barre rareté) ─
+                g.fill(bx + 4, by + 1,      bx + bw - 1, by + 2,      0x88FFFFFF); // haut
+                g.fill(bx + 4, by + 1,      bx + 5,      by + bh - 1, 0x88FFFFFF); // gauche intérieur
+
+                // ── Biseau sombre — bas + droite intérieur ───────────────────────
+                g.fill(bx + 4,      by + bh - 2, bx + bw - 1, by + bh - 1, 0x55000000); // bas
+                g.fill(bx + bw - 2, by + 1,      bx + bw - 1, by + bh - 1, 0x55000000); // droite
+
+                // ── Contenu (texte ou icône verrou) ─────────────────────────────
                 if (locked) {
                     renderLockedOverlay(g, bx, by, bh);
                 } else {
                     renderSkinName(g, bx, by, bw, bh, rc);
                 }
 
-                // ── Highlight de sélection (bordure couleur rareté) ────────
+                // ── Highlight de sélection (bordure couleur rareté) ─────────────
                 if (selected) {
-                    g.fill(bx,          by,          bx + bw, by + 1,      (0xEE << 24) | (rc & 0x00FFFFFF));
-                    g.fill(bx,          by + bh - 1, bx + bw, by + bh,     (0xEE << 24) | (rc & 0x00FFFFFF));
-                    g.fill(bx,          by,          bx + 1,  by + bh,     (0xEE << 24) | (rc & 0x00FFFFFF));
-                    g.fill(bx + bw - 1, by,          bx + bw, by + bh,     (0xEE << 24) | (rc & 0x00FFFFFF));
+                    g.fill(bx + 1,      by + 1,      bx + bw - 1, by + 2,      (0xEE << 24) | (rc & 0x00FFFFFF));
+                    g.fill(bx + 1,      by + bh - 2, bx + bw - 1, by + bh - 1, (0xEE << 24) | (rc & 0x00FFFFFF));
+                    g.fill(bx + 1,      by + 1,      bx + 2,      by + bh - 1, (0xEE << 24) | (rc & 0x00FFFFFF));
+                    g.fill(bx + bw - 2, by + 1,      bx + bw - 1, by + bh - 1, (0xEE << 24) | (rc & 0x00FFFFFF));
                 }
             }
 
@@ -186,30 +195,23 @@ public class OWScreenUtils {
 
                 g.blit(ICONS_LOCATION, iconX, iconY, 0, uvY, 12, iconSizeY);
 
-                int price = parentScreen.getSkinPrice(skinIndex);
-                if (price > 0) {
-                    g.blit(ICONS_LOCATION, iconX + 16, iconY + 2, 0, 143, 10, 10);
-                    g.drawString(Minecraft.getInstance().font,
-                            String.valueOf(price), iconX + 28, iconY + 3.5f, 0xc8f6ff, false);
-                } else {
-                    // Texte du nom avec scaling si débordement
-                    var font   = Minecraft.getInstance().font;
-                    Component msg  = button.getMessage();
-                    int textStartX = iconX + 17;
-                    int maxW       = bx + (int)(parentScreen.imageWidth * 0.8) - textStartX - 4;
-                    int textW      = font.width(msg);
-                    int textY      = by + (bh - 8) / 2;
+                // Toujours afficher le nom en gris, qu'il coûte des prestige points ou non
+                var font   = Minecraft.getInstance().font;
+                Component msg  = button.getMessage();
+                int textStartX = iconX + 17;
+                int maxW       = bx + (int)(parentScreen.imageWidth * 0.8) - textStartX - 4;
+                int textW      = font.width(msg);
+                int textY      = by + (bh - 8) / 2;
 
-                    if (textW > maxW) {
-                        float scale = (float) maxW / textW;
-                        g.pose().pushPose();
-                        g.pose().translate(textStartX, textY, 0);
-                        g.pose().scale(scale, scale, 1.0f);
-                        g.drawString(font, msg, 0, 0, 0x555555, false);
-                        g.pose().popPose();
-                    } else {
-                        g.drawString(font, msg, textStartX, textY, 0x555555, false);
-                    }
+                if (textW > maxW) {
+                    float scale = (float) maxW / textW;
+                    g.pose().pushPose();
+                    g.pose().translate(textStartX, textY, 0);
+                    g.pose().scale(scale, scale, 1.0f);
+                    g.drawString(font, msg, 0, 0, 0x555555, false);
+                    g.pose().popPose();
+                } else {
+                    g.drawString(font, msg, textStartX, textY, 0x555555, false);
                 }
             }
 

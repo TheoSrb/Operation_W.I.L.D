@@ -111,7 +111,7 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         }
 
         tabsRenderer.init(this.width, this.height, this.imageWidth, this.imageHeight, entity, this::addRenderableWidget);
-        tabsRenderer.setNotification(3, 3);
+        //tabsRenderer.setNotification(3, 3);
 
         tabsRenderer.setActiveTab(OWTabsRenderer.Tab.INVENTORY);
     }
@@ -179,7 +179,6 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float v) {
-        this.renderBackground(graphics, mouseX, mouseY, v);
         this.xMouse = (float) mouseX;
         this.yMouse = (float) mouseY;
         super.render(graphics, mouseX, mouseY, v);
@@ -208,33 +207,85 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         int j = (this.height - this.imageHeight) / 2;
         int titleLength = this.title.getString().length() * 6;
         int iconY = j + 4;
-        int mobTypePlacementX = this.entity.getLevel() >= 50 && this.entity.getLevelPoints() <= 0 ? this.entity.getPrestigeLevel() >= 100 ? i + 116 : this.entity.getPrestigeLevel() >= 10 ? i + 123 : this.entity.getPrestigeLevel() >= 0 ? i + 129 : 0 : i + 138;
-
+        int mobTypePlacementX = this.entity.getLevel() >= 50 && this.entity.getLevelPoints() <= 0
+                ? this.entity.getPrestigeLevel() >= 100 ? i + 116
+                : this.entity.getPrestigeLevel() >= 10  ? i + 123
+                : i + 129
+                : i + 138;
 
         tabsRenderer.renderTabs(graphics, this.font, entity, i, j, mouseX, mouseY);
 
+        String tooltipKey = entity.isTank() ? "tooltip.mobTypesTank"
+                : entity.isAssassin()  ? "tooltip.mobTypesAssassin"
+                : entity.isMarauder()  ? "tooltip.mobTypesMarauder"
+                : entity.isHealer()    ? "tooltip.mobTypesHealer"
+                : entity.isBerserker() ? "tooltip.mobTypesBerserker"
+                : entity.isScout()     ? "tooltip.mobTypesScout"
+                : entity.isNormal()    ? "tooltip.mobTypesNormal" : "";
 
-        String tooltipKey = entity.isTank() ? "tooltip.mobTypesTank" : entity.isAssassin() ? "tooltip.mobTypesAssassin" : entity.isMarauder() ? "tooltip.mobTypesMarauder" : entity.isHealer() ? "tooltip.mobTypesHealer" : entity.isBerserker() ? "tooltip.mobTypesBerserker" : entity.isScout() ? "tooltip.mobTypesScout" : entity.isNormal() ? "tooltip.mobTypesNormal" : "";
-        Component tooltipXpValue = Component.literal(String.valueOf(Math.round(entity.getXp() * 100) / 100.0 + " / ")).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
-        Component tooltipXpMaxValue = Component.literal(String.valueOf(this.entity.getLevel() < 50 ? (float) Math.round(entity.getXpStage() * 100) / 100.0 : (float) Math.round(entity.getPrestigeXpStage() * 100) / 100.0)).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
-        Component tooltipXp = Component.translatable("tooltip.xp").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(this.entity.getLevel() < 50 ? 0xb8e45a : 0x7fe1ff)).withItalic(true).withBold(true));
+        Component tooltipXpValue    = Component.literal(String.valueOf(Math.round(entity.getXp() * 100) / 100.0 + " / "))
+                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
+        Component tooltipXpMaxValue = Component.literal(String.valueOf(this.entity.getLevel() < 50
+                        ? (float) Math.round(entity.getXpStage() * 100) / 100.0
+                        : (float) Math.round(entity.getPrestigeXpStage() * 100) / 100.0))
+                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
+        Component tooltipXp = Component.translatable("tooltip.xp")
+                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(this.entity.getLevel() < 50 ? 0xb8e45a : 0x7fe1ff)).withItalic(true).withBold(true));
 
-        Component xpText = tooltipXpValue.copy().append(tooltipXpMaxValue.copy()).append(tooltipXp.copy());
+        Component xpText        = tooltipXpValue.copy().append(tooltipXpMaxValue.copy()).append(tooltipXp.copy());
         Component xpPrestigeText = tooltipXpValue.copy().append(tooltipXpMaxValue.copy()).append(tooltipXp.copy());
+        Component genderText = Component.translatable(entity.isFemale() ? "tooltip.genderFemale" : entity.isMale() ? "tooltip.genderMale" : "")
+                .withStyle(Style.EMPTY).withColor(TextColor.fromRgb(entity.isFemale() ? 0xcb3eb3 : entity.isMale() ? 0x4647ce : 0x000000).getValue());
 
-        Component genderText = Component.translatable(entity.isFemale() ? "tooltip.genderFemale" : entity.isMale() ? "tooltip.genderMale" : "").withStyle(Style.EMPTY).withColor(TextColor.fromRgb(entity.isFemale() ? 0xcb3eb3 : entity.isMale() ? 0x4647ce : 0x000000).getValue());
-
-        if (mouseX >= mobTypePlacementX && mouseX <= mobTypePlacementX + 12 && mouseY >= iconY && mouseY <= iconY + 12) {
+        if (mouseX >= mobTypePlacementX && mouseX <= mobTypePlacementX + 12 && mouseY >= iconY && mouseY <= iconY + 12)
             graphics.renderComponentTooltip(this.font, List.of(Component.translatable(tooltipKey)), mouseX, mouseY);
-        }
-        if (mouseX >= i + 89 && mouseX <= i + 89 + 71 && mouseY >= j + 75 && mouseY <= j + 75 + 5) {
+        if (mouseX >= i + 89 && mouseX <= i + 89 + 71 && mouseY >= j + 75 && mouseY <= j + 75 + 5)
             graphics.renderComponentTooltip(this.font, List.of(this.entity.getLevel() >= 50 ? xpPrestigeText : xpText), mouseX, mouseY);
-        }
-        if (mouseX >= i + titleLength + 7 && mouseX <= i + titleLength + 7 + 12 && mouseY >= j + 4 && mouseY <= j + 4 + 12) {
+        if (mouseX >= i + titleLength + 7 && mouseX <= i + titleLength + 7 + 12 && mouseY >= j + 4 && mouseY <= j + 4 + 12)
             graphics.renderComponentTooltip(this.font, List.of(genderText), mouseX, mouseY);
-        }
 
         this.renderTooltip(graphics, mouseX, mouseY);
+    }
+
+    private void renderEffects(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        int i = this.leftPos + this.imageWidth + 2 + (entity.getLevelPoints() > 0 ? 8 : 0);
+        int j = this.width - i;
+        Collection<MobEffectInstance> collection = entity.getActiveEffects();
+        if (!collection.isEmpty() && j >= 32) {
+            boolean flag = j >= 120;
+            ScreenEvent.RenderInventoryMobEffects event = ClientHooks.onScreenPotionSize(this, j, !flag, i);
+            if (event.isCanceled()) return;
+
+            flag = !event.isCompact();
+            i = event.getHorizontalOffset();
+            int k = 33;
+            if (collection.size() > 5) k = 132 / (collection.size() - 1);
+
+            Iterable<MobEffectInstance> iterable = collection.stream()
+                    .filter(ClientHooks::shouldRenderEffect)
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            this.renderBackgrounds(guiGraphics, i, k, iterable, flag);
+            this.renderIcons(guiGraphics, i, k, iterable, flag);
+            if (flag) {
+                this.renderLabels(guiGraphics, i, k, iterable);
+            } else if (mouseX >= i && mouseX <= i + 33) {
+                int l = this.topPos;
+                MobEffectInstance mobeffectinstance = null;
+                for (MobEffectInstance mobeffectinstance1 : iterable) {
+                    if (mouseY >= l && mouseY <= l + k) mobeffectinstance = mobeffectinstance1;
+                    l += k;
+                }
+                if (mobeffectinstance != null) {
+                    List<Component> list = List.of(
+                            this.getEffectName(mobeffectinstance),
+                            MobEffectUtil.formatDuration(mobeffectinstance, 1.0F, this.minecraft.level.tickRateManager().tickrate()));
+                    list = ClientHooks.getEffectTooltip(this, mobeffectinstance, list);
+                    guiGraphics.renderTooltip(this.font, list, Optional.empty(), mouseX, mouseY);
+                }
+            }
+        }
     }
 
     private void renderTexts(GuiGraphics graphics, int offsetX, int offsetY) {
@@ -264,51 +315,6 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         graphics.drawString(this.font, entitySpeed, centerX + 12, centerY - 25, 0x8b8b8b);
 
         graphics.drawString(this.font, fullLevelText, centerX - (this.font.width(fullLevelText) / 2), centerY + 100, 0xFFFFFF);
-    }
-
-    private void renderEffects(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        int i = this.leftPos + this.imageWidth + 2 + (entity.getLevelPoints() > 0 ? 8 : 0);
-        int j = this.width - i;
-        Collection<MobEffectInstance> collection = entity.getActiveEffects();
-        if (!collection.isEmpty() && j >= 32) {
-            boolean flag = j >= 120;
-            ScreenEvent.RenderInventoryMobEffects event = ClientHooks.onScreenPotionSize(this, j, !flag, i);
-            if (event.isCanceled()) {
-                return;
-            }
-
-            flag = !event.isCompact();
-            i = event.getHorizontalOffset();
-            int k = 33;
-            if (collection.size() > 5) {
-                k = 132 / (collection.size() - 1);
-            }
-
-            Iterable<MobEffectInstance> iterable = (Iterable) collection.stream().filter(ClientHooks::shouldRenderEffect).sorted().collect(Collectors.toList());
-            this.renderBackgrounds(guiGraphics, i, k, iterable, flag);
-            this.renderIcons(guiGraphics, i, k, iterable, flag);
-            if (flag) {
-                this.renderLabels(guiGraphics, i, k, iterable);
-            } else if (mouseX >= i && mouseX <= i + 33) {
-                int l = this.topPos;
-                MobEffectInstance mobeffectinstance = null;
-
-                for (MobEffectInstance mobeffectinstance1 : iterable) {
-                    if (mouseY >= l && mouseY <= l + k) {
-                        mobeffectinstance = mobeffectinstance1;
-                    }
-
-                    l += k;
-                }
-
-                if (mobeffectinstance != null) {
-                    List<Component> list = List.of(this.getEffectName(mobeffectinstance), MobEffectUtil.formatDuration(mobeffectinstance, 1.0F, this.minecraft.level.tickRateManager().tickrate()));
-                    list = ClientHooks.getEffectTooltip(this, mobeffectinstance, list);
-                    guiGraphics.renderTooltip(this.font, list, Optional.empty(), mouseX, mouseY);
-                }
-            }
-        }
-
     }
 
     private void renderBackgrounds(GuiGraphics guiGraphics, int renderX, int yOffset, Iterable<MobEffectInstance> effects, boolean isSmall) {

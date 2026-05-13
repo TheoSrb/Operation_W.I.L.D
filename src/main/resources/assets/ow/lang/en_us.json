@@ -635,5 +635,49 @@
   "rarity.epic":      "Epic",
   "rarity.halloween": "Halloween",
   "rarity.rare":      "Rare",
-  "rarity.common":    "Common"
+  "rarity.common":    "Common",
+
+  "owteams.chef": "Leader: %s",
+  "owteams.button.create_team": "Create a tribe",
+  "owteams.button.add_player": "+P",
+  "owteams.button.add_entity": "+E",
+  "owteams.button.delete_team": "✕",
+  "owteams.button.confirm": "Confirm",
+  "owteams.button.cancel": "Cancel",
+
+  "owteams.players_label": "Player Members:",
+  "owteams.entities_label": "Entity Members:",
+  "owteams.no_team": "No tribe",
+  "owteams.no_player": "No players",
+  "owteams.no_entity": "No entities",
+
+  "owteams.confirm.remove_title": "Remove %s",
+  "owteams.confirm.from_team": "from tribe %s?",
+  "owteams.confirm.yes": "Yes",
+  "owteams.confirm.no": "No",
+  "owteams.confirm.change_team_title": "Change %s's tribe?",
+  "owteams.confirm.change_team_body": "%s → %s",
+
+  "owteams.add_entity.placeholder": "Entity nickname",
+  "owteams.add_entity.title": "Add an entity",
+  "owteams.add_entity.subtitle": "Enter the entity's nickname:",
+  "owteams.add_entity.error.empty": "Name is empty.",
+  "owteams.add_entity.error.wrong_owner": "This entity does not belong to you.",
+  "owteams.add_entity.error.not_found": "Entity not found nearby.",
+
+  "owteams.tooltip.type": "Type: %s",
+  "owteams.tooltip.owner": "Owner: %s",
+  "owteams.tooltip.health": "Health: %s",
+  "owteams.tooltip.damage": "Damage: %s",
+  "owteams.tooltip.speed": "Speed: %s",
+  "owteams.tooltip.level": "Level: %s",
+
+  "owteams.creation.title": "Tribe Creation",
+  "owteams.creation.name_label": "Name:",
+  "owteams.creation.name_placeholder": "Tribe name",
+  "owteams.creation.default_name": "%s's Tribe",
+  "owteams.creation.primary": "Color 1",
+  "owteams.creation.secondary": "Color 2",
+  "owteams.creation.confirm": "Create",
+  "owteams.creation.cancel": "Cancel"
 }

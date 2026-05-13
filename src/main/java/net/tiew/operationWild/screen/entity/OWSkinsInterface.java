@@ -43,7 +43,7 @@ public class OWSkinsInterface extends Screen {
     private float xMouse;
     private float yMouse;
 
-    public int imageWidth  = 176;
+    public int imageWidth = 176;
     public int imageHeight = 166;
     protected int entityScale = 30;
 
@@ -51,45 +51,47 @@ public class OWSkinsInterface extends Screen {
 
     private final OWTabsRenderer tabsRenderer = new OWTabsRenderer();
 
-    private OWEntity previewEntity          = null;
-    private int      previewEntitySkinIndex = -1;
+    private OWEntity previewEntity = null;
+    private int previewEntitySkinIndex = -1;
 
-    private static final int LST_X  = 5;
-    private static final int LST_Y  = 18;
-    private static final int LST_W  = 163;
-    private static final int LST_H  = 112;
+    private static final int LST_X = 5;
+    private static final int LST_Y = 18;
+    private static final int LST_W = 163;
+    private static final int LST_H = 112;
     private static final int STRIP_H = 28;
-    private static final int SEP_X   = 87;
+    private static final int SEP_X = 87;
 
-    private static final int DET_X  = 185;
-    private static final int DET_Y  = -15;
-    private static final int DET_W  = 100;
+    private static final int DET_X = 185;
+    private static final int DET_Y = -15;
+    private static final int DET_W = 100;
     private static final int PREV_H = 80;
 
-    private static final int OBTAIN_X_PAD  = 4;
-    private static final int OBTAIN_Y_GAP  = 4;
-    private static final int OBTAIN_LBL_H  = 10;
+    private static final int OBTAIN_X_PAD = 4;
+    private static final int OBTAIN_Y_GAP = 4;
+    private static final int OBTAIN_LBL_H = 10;
     private static final int OBTAIN_LINE_H = 8;
-    private static final int OBTAIN_W      = DET_W - 8;
+    private static final int OBTAIN_W = DET_W - 8;
+
+    private static final int SKIN_ROW_GAP = 10;
 
     protected Button equipButton;
     protected Button buyButton;
-    private   Button confirmYesButton;
-    private   Button confirmNoButton;
-    private   boolean confirmingPurchase = false;
+    private Button confirmYesButton;
+    private Button confirmNoButton;
+    private boolean confirmingPurchase = false;
     protected OWScreenUtils.ButtonListWidget buttonList;
 
     public final List<Button> LEGENDARY_SKIN = new ArrayList<>();
-    public final List<Button> EPIC_SKIN      = new ArrayList<>();
-    public final List<Button> RARE_SKIN      = new ArrayList<>();
-    public final List<Button> COMMON_SKIN    = new ArrayList<>();
+    public final List<Button> EPIC_SKIN = new ArrayList<>();
+    public final List<Button> RARE_SKIN = new ArrayList<>();
+    public final List<Button> COMMON_SKIN = new ArrayList<>();
     public final List<Button> HALLOWEEN_SKIN = new ArrayList<>();
 
     protected final Map<Integer, Boolean> lockedSkins = new HashMap<>();
-    protected final Map<Integer, Integer> skinPrices  = new HashMap<>();
+    protected final Map<Integer, Integer> skinPrices = new HashMap<>();
 
     public static class SkinInfo {
-        public enum UnlockType { FREE, LEVEL, PRESTIGE, QUEST }
+        public enum UnlockType {FREE, LEVEL, PRESTIGE, QUEST}
 
         public final String nameKey;
         public final String descriptionKey;
@@ -99,17 +101,28 @@ public class OWSkinsInterface extends Screen {
 
         public SkinInfo(String nameKey, String descriptionKey,
                         UnlockType unlockType, int unlockValue, int questId) {
-            this.nameKey        = nameKey;
+            this.nameKey = nameKey;
             this.descriptionKey = descriptionKey;
-            this.unlockType     = unlockType;
-            this.unlockValue    = unlockValue;
-            this.questId        = questId;
+            this.unlockType = unlockType;
+            this.unlockValue = unlockValue;
+            this.questId = questId;
         }
 
-        public static SkinInfo free(String n, String d)              { return new SkinInfo(n, d, UnlockType.FREE,     0,   -1); }
-        public static SkinInfo level(String n, String d, int lvl)    { return new SkinInfo(n, d, UnlockType.LEVEL,    lvl, -1); }
-        public static SkinInfo prestige(String n, String d, int pts) { return new SkinInfo(n, d, UnlockType.PRESTIGE, pts, -1); }
-        public static SkinInfo quest(String n, String d, int id)     { return new SkinInfo(n, d, UnlockType.QUEST,    0,   id); }
+        public static SkinInfo free(String n, String d) {
+            return new SkinInfo(n, d, UnlockType.FREE, 0, -1);
+        }
+
+        public static SkinInfo level(String n, String d, int lvl) {
+            return new SkinInfo(n, d, UnlockType.LEVEL, lvl, -1);
+        }
+
+        public static SkinInfo prestige(String n, String d, int pts) {
+            return new SkinInfo(n, d, UnlockType.PRESTIGE, pts, -1);
+        }
+
+        public static SkinInfo quest(String n, String d, int id) {
+            return new SkinInfo(n, d, UnlockType.QUEST, 0, id);
+        }
     }
 
     public OWSkinsInterface() {
@@ -122,11 +135,21 @@ public class OWSkinsInterface extends Screen {
         initSkinPrices();
     }
 
-    protected void initLockedSkins()                  {}
-    protected void initSkinPrices()                   {}
-    protected void initEntityScale()                  {}
-    protected SkinInfo getSkinInfo(int skinIndex)     { return null; }
-    protected void prepareGhostEntity(OWEntity ghost) {}
+    protected void initLockedSkins() {
+    }
+
+    protected void initSkinPrices() {
+    }
+
+    protected void initEntityScale() {
+    }
+
+    protected SkinInfo getSkinInfo(int skinIndex) {
+        return null;
+    }
+
+    protected void prepareGhostEntity(OWEntity ghost) {
+    }
 
     private OWEntity getOrCreatePreviewEntity(int targetSkinIndex) {
         if (previewEntity != null && previewEntitySkinIndex == targetSkinIndex) return previewEntity;
@@ -141,45 +164,53 @@ public class OWSkinsInterface extends Screen {
             nbt.putBoolean("Saddle", false);
             nbt.remove("SaddleItem");
             ghost.load(nbt);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         for (net.minecraft.world.entity.EquipmentSlot slot : net.minecraft.world.entity.EquipmentSlot.values()) {
-            try { ghost.setItemSlot(slot, net.minecraft.world.item.ItemStack.EMPTY); }
-            catch (Exception ignored) {}
+            try {
+                ghost.setItemSlot(slot, net.minecraft.world.item.ItemStack.EMPTY);
+            } catch (Exception ignored) {
+            }
         }
 
         prepareGhostEntity(ghost);
         ghost.changeSkinSilent(targetSkinIndex);
-        previewEntity          = ghost;
+        previewEntity = ghost;
         previewEntitySkinIndex = targetSkinIndex;
         return previewEntity;
     }
 
     private void discardPreviewEntity() {
-        previewEntity          = null;
+        previewEntity = null;
         previewEntitySkinIndex = -1;
     }
 
     public int getRarityColor(int skinIndex) {
         if (LEGENDARY_SKIN.stream().anyMatch(b -> getSkinIndexForButton(b) == skinIndex)) return 0xfdd85f;
-        if (EPIC_SKIN.stream()     .anyMatch(b -> getSkinIndexForButton(b) == skinIndex)) return 0x9b59b6;
+        if (EPIC_SKIN.stream().anyMatch(b -> getSkinIndexForButton(b) == skinIndex)) return 0x9b59b6;
         if (HALLOWEEN_SKIN.stream().anyMatch(b -> getSkinIndexForButton(b) == skinIndex)) return 0xd86a2e;
-        if (RARE_SKIN.stream()     .anyMatch(b -> getSkinIndexForButton(b) == skinIndex)) return 0xf19f60;
+        if (RARE_SKIN.stream().anyMatch(b -> getSkinIndexForButton(b) == skinIndex)) return 0xf19f60;
         return 0xc4def2;
     }
 
     private Component getUnlockDescription(SkinInfo info) {
         return switch (info.unlockType) {
-            case FREE     -> Component.translatable("tooltip.skinUnlockFree");
-            case LEVEL    -> Component.translatable("tooltip.skinUnlockLevel",    info.unlockValue);
+            case FREE -> Component.translatable("tooltip.skinUnlockFree");
+            case LEVEL -> Component.translatable("tooltip.skinUnlockLevel", info.unlockValue);
             case PRESTIGE -> Component.translatable("tooltip.skinUnlockPrestige", info.unlockValue);
-            case QUEST    -> Component.translatable("tooltip.skinUnlockQuest",
+            case QUEST -> Component.translatable("tooltip.skinUnlockQuest",
                     info.questId != -1 ? Component.translatable("skin.unlock.quest." + info.questId) : Component.empty());
         };
     }
 
-    public boolean isLocked(int skinIndex) { return lockedSkins.getOrDefault(skinIndex, false); }
-    public int getSkinPrice(int skinIndex)  { return skinPrices.getOrDefault(skinIndex, 0); }
+    public boolean isLocked(int skinIndex) {
+        return lockedSkins.getOrDefault(skinIndex, false);
+    }
+
+    public int getSkinPrice(int skinIndex) {
+        return skinPrices.getOrDefault(skinIndex, 0);
+    }
 
     public void setLockState(int skinIndex, boolean locked) {
         if (lockedSkins.getOrDefault(skinIndex, false) == locked) return;
@@ -191,12 +222,12 @@ public class OWSkinsInterface extends Screen {
     @Override
     protected void init() {
         super.init();
-        int i = (this.width  - imageWidth)  / 2;
+        int i = (this.width - imageWidth) / 2;
         int j = (this.height - imageHeight) / 2;
 
         this.buttonList = new OWScreenUtils.ButtonListWidget(
                 this.minecraft, LST_W - 4, LST_H,
-                j + LST_Y, 20, this);
+                j + LST_Y, 20 + SKIN_ROW_GAP, this);
         this.buttonList.setX(i + LST_X + 2);
         createAndAddButtons();
         this.addWidget(this.buttonList);
@@ -225,7 +256,9 @@ public class OWSkinsInterface extends Screen {
         confirmNoButton = Button.builder(
                         Component.translatable("tooltip.noButton")
                                 .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xdd4444))),
-                        btn -> { confirmingPurchase = false; })
+                        btn -> {
+                            confirmingPurchase = false;
+                        })
                 .bounds(0, 0, 52, 20).build();
         confirmNoButton.visible = false;
         this.addRenderableWidget(confirmNoButton);
@@ -270,8 +303,11 @@ public class OWSkinsInterface extends Screen {
     }
 
     protected void createAndAddButtons() {
-        LEGENDARY_SKIN.clear(); EPIC_SKIN.clear(); HALLOWEEN_SKIN.clear();
-        RARE_SKIN.clear(); COMMON_SKIN.clear();
+        LEGENDARY_SKIN.clear();
+        EPIC_SKIN.clear();
+        HALLOWEEN_SKIN.clear();
+        RARE_SKIN.clear();
+        COMMON_SKIN.clear();
         updateButtonColors();
         addButtonsToList();
     }
@@ -297,16 +333,19 @@ public class OWSkinsInterface extends Screen {
     private List<Button> buildLegendaryOrdered() {
         List<Button> ordered = new ArrayList<>(LEGENDARY_SKIN);
         Button skin1 = ordered.stream().filter(b -> getSkinIndexForButton(b) == 1).findFirst().orElse(null);
-        if (skin1 != null) { ordered.remove(skin1); ordered.add(skin1); }
+        if (skin1 != null) {
+            ordered.remove(skin1);
+            ordered.add(skin1);
+        }
         return ordered;
     }
 
     protected void updateButtonColors() {
         tintButtons(LEGENDARY_SKIN, 0xfdd85f);
         tintButtons(HALLOWEEN_SKIN, 0xd86a2e);
-        tintButtons(EPIC_SKIN,      0x9b59b6);
-        tintButtons(RARE_SKIN,      0xf19f60);
-        tintButtons(COMMON_SKIN,    0xc4def2);
+        tintButtons(EPIC_SKIN, 0x9b59b6);
+        tintButtons(RARE_SKIN, 0xf19f60);
+        tintButtons(COMMON_SKIN, 0xc4def2);
     }
 
     private void tintButtons(List<Button> list, int color) {
@@ -317,7 +356,9 @@ public class OWSkinsInterface extends Screen {
         }
     }
 
-    protected int getSkinIndexForButton(Button button) { return -1; }
+    protected int getSkinIndexForButton(Button button) {
+        return -1;
+    }
 
     protected void onSkinButtonPressed(int skinIndex) {
         confirmingPurchase = false;
@@ -341,28 +382,38 @@ public class OWSkinsInterface extends Screen {
                         .withStyle(ChatFormatting.RED), false);
     }
 
-    @Override public void onClose()          { discardPreviewEntity(); super.onClose(); }
-    @Override public boolean isPauseScreen() { return false; }
+    @Override
+    public void onClose() {
+        discardPreviewEntity();
+        super.onClose();
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
         this.xMouse = mouseX;
         this.yMouse = mouseY;
 
-        int i = (this.width  - imageWidth)  / 2;
+        int i = (this.width - imageWidth) / 2;
         int j = (this.height - imageHeight) / 2;
 
         boolean showEquip = selectedSkinIndex != -1 && !isLocked(selectedSkinIndex)
                 && entity != null && selectedSkinIndex != entity.getSkinIndex();
-        boolean showBuy   = selectedSkinIndex != -1 && isLocked(selectedSkinIndex)
+        boolean showBuy = selectedSkinIndex != -1 && isLocked(selectedSkinIndex)
                 && getSkinPrice(selectedSkinIndex) > 0;
 
-        equipButton.visible = false; buyButton.visible = false;
-        confirmYesButton.visible = false; confirmNoButton.visible = false;
+        equipButton.visible = false;
+        buyButton.visible = false;
+        confirmYesButton.visible = false;
+        confirmNoButton.visible = false;
 
         super.render(g, mouseX, mouseY, partial);
 
-        g.blit(BG_TEXTURE,   i, j, 0, 0, imageWidth, imageHeight);
+        g.blit(BG_TEXTURE, i, j, 0, 0, imageWidth, imageHeight);
         if (selectedSkinIndex != -1)
             g.blit(BG_2_TEXTURE, i + imageHeight + 9, j - 25, 0, 0, 121, 233);
 
@@ -373,13 +424,17 @@ public class OWSkinsInterface extends Screen {
 
         this.buttonList.render(g, mouseX, mouseY, partial);
 
-        int btnCX     = i + DET_X + DET_W / 2;
+        int btnCX = i + DET_X + DET_W / 2;
         int btnBottom = j - 25 + 233 - 20 - 5;
 
-        equipButton.setX(btnCX - 36);      equipButton.setY(btnBottom);
-        buyButton.setX(btnCX - 30);        buyButton.setY(btnBottom);
-        confirmYesButton.setX(btnCX - 55); confirmYesButton.setY(btnBottom);
-        confirmNoButton.setX(btnCX + 3);  confirmNoButton.setY(btnBottom);
+        equipButton.setX(btnCX - 36);
+        equipButton.setY(btnBottom);
+        buyButton.setX(btnCX - 30);
+        buyButton.setY(btnBottom);
+        confirmYesButton.setX(btnCX - 55);
+        confirmYesButton.setY(btnBottom);
+        confirmNoButton.setX(btnCX + 3);
+        confirmNoButton.setY(btnBottom);
 
         if (showEquip) {
             equipButton.visible = true;
@@ -401,17 +456,17 @@ public class OWSkinsInterface extends Screen {
         if (entity == null) return;
 
         g.blit(ICONS_LOCATION, i + LST_X, j + 5, 0, 143, 10, 10);
-        g.drawString(this.font, String.valueOf(entity.getPrestigeLevel()), i + LST_X + 12, (int) (j + 4.5f), 0xc8f6ff);
+        g.drawString(this.font, String.valueOf(entity.getPrestigeLevel()), i + LST_X + 12, (int) (j + 6.5f), 0xc8f6ff);
 
         int fx = i + LST_X;
         int fy = j + LST_Y + LST_H + 3;
         int fw = LST_W;
         int currentSkin = entity.getSkinIndex();
-        int rc          = getRarityColor(currentSkin);
+        int rc = getRarityColor(currentSkin);
 
         g.fill(fx, fy, fx + fw, fy + STRIP_H, 0xBB08080F);
-        g.fill(fx, fy, fx + 2,  fy + STRIP_H, rc | 0xFF000000);
-        g.fill(fx, fy, fx + fw, fy + 1,       0xFF2A2A2A);
+        g.fill(fx, fy, fx + 2, fy + STRIP_H, rc | 0xFF000000);
+        g.fill(fx, fy, fx + fw, fy + 1, 0xFF2A2A2A);
 
         InventoryScreen.renderEntityInInventoryFollowsMouse(
                 g, fx + 2, fy + 1, fx + 22, fy + STRIP_H - 1,
@@ -431,7 +486,7 @@ public class OWSkinsInterface extends Screen {
                 fx + 28, fy + 4, 0x555555);
 
         int nameW = this.font.width(nameComp);
-        int maxW  = fw - 30;
+        int maxW = fw - 30;
         if (nameW > maxW) {
             float s = (float) maxW / nameW;
             g.pose().pushPose();
@@ -455,18 +510,18 @@ public class OWSkinsInterface extends Screen {
         if (info == null) return;
         int rc = getRarityColor(selectedSkinIndex);
 
-        g.fill(px,     py,     px + pw, py + 3,  rc | 0xFF000000);
-        g.fill(px,     py + 3, px + pw, py + 4, (0x55 << 24) | (rc & 0x00FFFFFF));
+        g.fill(px, py, px + pw, py + 3, rc | 0xFF000000);
+        g.fill(px, py + 3, px + pw, py + 4, (0x55 << 24) | (rc & 0x00FFFFFF));
 
-        int prevTop    = py + 5;
+        int prevTop = py + 5;
         int prevBottom = py + PREV_H;
-        g.fill(px + 2, prevTop,         px + pw - 2, prevBottom,     0x22FFFFFF);
-        g.fill(px + 2, prevTop,         px + pw - 2, prevTop + 1,    0xFF3A3A3A);
-        g.fill(px + 2, prevBottom - 1,  px + pw - 2, prevBottom,     0xFF3A3A3A);
+        g.fill(px + 2, prevTop, px + pw - 2, prevBottom, 0x22FFFFFF);
+        g.fill(px + 2, prevTop, px + pw - 2, prevTop + 1, 0xFF3A3A3A);
+        g.fill(px + 2, prevBottom - 1, px + pw - 2, prevBottom, 0xFF3A3A3A);
 
         OWEntity ghost = getOrCreatePreviewEntity(selectedSkinIndex);
         if (ghost != null) {
-            int ps = Math.min(Math.max((int)(entityScale * 0.75f), 18), 44);
+            int ps = Math.min(Math.max((int) (entityScale * 0.75f), 18), 44);
 
             g.enableScissor(px + 2, prevTop, px + pw - 2, prevBottom);
             InventoryScreen.renderEntityInInventoryFollowsMouse(
@@ -526,11 +581,13 @@ public class OWSkinsInterface extends Screen {
             if (quest != null) {
                 curY += 8;
                 boolean completed = quest.isCompleted(entity.getUUID());
-                float   frac      = quest.getProgressFraction(entity.getUUID());
-                int barX = px + 6; int barW = pw - 12; int barH = 4;
+                float frac = quest.getProgressFraction(entity.getUUID());
+                int barX = px + 6;
+                int barW = pw - 12;
+                int barH = 4;
                 g.fill(barX - 1, curY - 1, barX + barW + 1, curY + barH + 1, 0xFF2A2A2A);
                 g.fill(barX, curY, barX + barW, curY + barH, 0xFF111111);
-                int fillW = (int)(barW * Math.min(frac, 1f));
+                int fillW = (int) (barW * Math.min(frac, 1f));
                 if (fillW > 0)
                     g.fill(barX, curY, barX + fillW, curY + barH, completed ? 0xFF44CC66 : 0xFFE8901A);
                 Component pctText = Component.literal(Math.round(frac * 100f) + "%")
@@ -543,7 +600,7 @@ public class OWSkinsInterface extends Screen {
 
     private void renderConfirmationOverlay(GuiGraphics g, int i, int j, int mouseX, int mouseY, float partial) {
         confirmYesButton.visible = true;
-        confirmNoButton.visible  = true;
+        confirmNoButton.visible = true;
         confirmYesButton.render(g, mouseX, mouseY, partial);
         confirmNoButton.render(g, mouseX, mouseY, partial);
     }
@@ -551,12 +608,15 @@ public class OWSkinsInterface extends Screen {
     private void renderBuyButtonContent(GuiGraphics g, int price) {
         String priceStr = String.valueOf(price);
         int totalW = 10 + 3 + this.font.width(priceStr);
-        int iconX  = buyButton.getX() + (buyButton.getWidth() - totalW) / 2;
-        int iconY  = buyButton.getY() + 5;
+        int iconX = buyButton.getX() + (buyButton.getWidth() - totalW) / 2;
+        int iconY = buyButton.getY() + 5;
         g.blit(ICONS_LOCATION, iconX, iconY, 0, 143, 10, 10);
-        g.drawString(this.font, priceStr, iconX + 13, iconY, 0xc8f6ff, false);
+        g.drawString(this.font, priceStr, iconX + 13, iconY + 1.5f, 0xc8f6ff, false);
     }
 
-    protected void addTooltipsToButtons() {}
-    protected void updateLockStates()     {}
+    protected void addTooltipsToButtons() {
+    }
+
+    protected void updateLockStates() {
+    }
 }

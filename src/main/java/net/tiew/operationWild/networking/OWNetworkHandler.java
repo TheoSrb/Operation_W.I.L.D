@@ -3,6 +3,7 @@ package net.tiew.operationWild.networking;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.levelgen.structure.templatesystem.rule.blockentity.Clear;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -44,6 +45,11 @@ public class OWNetworkHandler {
         registrar.playToServer(OWNameEntityPacket.TYPE, OWNameEntityPacket.STREAM_CODEC, OWNameEntityPacket::handle);
         registrar.playToServer(OWEntityTogglePacket.TYPE, OWEntityTogglePacket.STREAM_CODEC, OWEntityTogglePacket::handle);
         registrar.playToServer(OWAttackPacket.TYPE, OWAttackPacket.STREAM_CODEC, OWAttackPacket::handle);
+        registrar.playToServer(CreateOWTeamPacket.TYPE, CreateOWTeamPacket.STREAM_CODEC, CreateOWTeamPacket::handle);
+        registrar.playToServer(RemoveEntityFromTeamPacket.TYPE, RemoveEntityFromTeamPacket.STREAM_CODEC, RemoveEntityFromTeamPacket::handle);
+        registrar.playToServer(AddEntityToTeamPacket.TYPE, AddEntityToTeamPacket.STREAM_CODEC, AddEntityToTeamPacket::handle);
+        registrar.playToServer(DeleteOWTeamPacket.TYPE, DeleteOWTeamPacket.STREAM_CODEC, DeleteOWTeamPacket::handle);
+        registrar.playToServer(CreateOWTeamWithParamsPacket.TYPE, CreateOWTeamWithParamsPacket.STREAM_CODEC, CreateOWTeamWithParamsPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);
@@ -56,6 +62,9 @@ public class OWNetworkHandler {
         registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, (packet, context) -> OpenChooseNameScreenHandler.handle(packet, context));
         registrar.playToClient(TigerLeapStatePacket.TYPE, TigerLeapStatePacket.STREAM_CODEC, TigerLeapStatePacket::handle);
         registrar.playToClient(SkinUnlockedPacket.TYPE, SkinUnlockedPacket.STREAM_CODEC, SkinUnlockedPacket::handle);
+        registrar.playToClient(SyncOWTeamPacket.TYPE, SyncOWTeamPacket.STREAM_CODEC, SyncOWTeamPacket::handle);
+        registrar.playToClient(ClearOWTeamPacket.TYPE, ClearOWTeamPacket.STREAM_CODEC, ClearOWTeamPacket::handle);
+        registrar.playToClient(OWEntityAlreadyInTeamPacket.TYPE, OWEntityAlreadyInTeamPacket.STREAM_CODEC, OWEntityAlreadyInTeamPacket::handle);
 
     }
 

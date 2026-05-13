@@ -87,6 +87,8 @@ import net.tiew.operationWild.entity.quests.ascent.AscentMission;
 import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.networking.packets.to_client.*;
 import net.tiew.operationWild.screen.entity.OWChooseNameScreen;
+import net.tiew.operationWild.team.OWTeam;
+import net.tiew.operationWild.team.OWTeamMosaicPattern;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import net.tiew.operationWild.OperationWild;
@@ -195,6 +197,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public AnimationState attackState = new AnimationState();
     public AnimationState attackState2 = new AnimationState();
     public AnimationState attackState3 = new AnimationState();
+
+    public OWTeam currentTeam = null;
 
     public static final EntityDataAccessor<Integer> VARIANT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Boolean> SITTING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
@@ -2473,6 +2477,25 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
+    @Override
+    public void startSeenByPlayer(ServerPlayer player) {
+        super.startSeenByPlayer(player);
+        if (this.currentTeam != null) {
+            OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
+                    this.getId(),
+                    this.currentTeam.getTeamId(),
+                    this.currentTeam.getTeamName(),
+                    this.currentTeam.getTeamOwnerUUID().toString(),
+                    this.currentTeam.getTeamColor(),
+                    this.currentTeam.getTeamSecondaryColor(),           // ← nouveau
+                    this.currentTeam.getTeamMosaicPattern().getId(),    // ← nouveau
+                    this.currentTeam.getTeamCreationDate(),
+                    this.currentTeam.getPlayerNames(),
+                    this.currentTeam.getEntityNames()
+            ), player);
+        }
+    }
+
     public void closeChestAnimation(ChestBlockEntity chestBlockEntity) {
         if (chestBlockEntity.getLevel() != null && !chestBlockEntity.getLevel().isClientSide()) {
             chestBlockEntity.getLevel().playSound(
@@ -2718,16 +2741,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (itemstack.is(Tags.Items.DYES) && isTame()) {
             saveColor(player, hand);
             return InteractionResult.SUCCESS;
-        }
-
-        if (this.isTame() && !isBaby() && !this.level().isClientSide) {
-            if (itemstack.is(Items.STICK)) {
-                Player owner = (Player) this.getOwner();
-                if (player == owner) {
-                    this.switchMode(player);
-                }
-                return InteractionResult.SUCCESS;
-            }
         }
 
         if (this.isTame() && !isBaby() && !this.level().isClientSide() && hand == InteractionHand.MAIN_HAND) {
@@ -3516,6 +3529,28 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putInt("skinIndex", this.getSkinIndex());
 
         tag.putString("cachedOwnerName", this.getCachedOwnerName());
+
+        if (this.currentTeam != null) {
+            CompoundTag teamTag = new CompoundTag();
+            teamTag.putInt("teamId", currentTeam.getTeamId());
+            teamTag.putString("teamName", currentTeam.getTeamName());
+            teamTag.putString("teamOwnerUUID", currentTeam.getTeamOwnerUUID().toString());
+            teamTag.putInt("teamColor", currentTeam.getTeamColor());
+            teamTag.putString("teamCreationDate", currentTeam.getTeamCreationDate());
+
+            ListTag pNames = new ListTag();
+            for (String n : currentTeam.getPlayerNames()) pNames.add(net.minecraft.nbt.StringTag.valueOf(n));
+            teamTag.put("playerNames", pNames);
+
+            ListTag eNames = new ListTag();
+            for (String n : currentTeam.getEntityNames()) eNames.add(net.minecraft.nbt.StringTag.valueOf(n));
+            teamTag.put("entityNames", eNames);
+
+            tag.put("currentTeam", teamTag);
+
+            teamTag.putInt("teamSecondaryColor", currentTeam.getTeamSecondaryColor());
+            teamTag.putInt("teamMosaicPatternId", currentTeam.getTeamMosaicPattern().getId());
+        }
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -3629,5 +3664,29 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(SKIN_INDEX, tag.getInt("skinIndex"));
 
         this.setCachedOwnerName(tag.getString("cachedOwnerName"));
+
+        if (tag.contains("currentTeam")) {
+            CompoundTag teamTag = tag.getCompound("currentTeam");
+
+            List<String> pNames = new ArrayList<>();
+            ListTag pTag = teamTag.getList("playerNames", Tag.TAG_STRING);
+            for (int i = 0; i < pTag.size(); i++) pNames.add(pTag.getString(i));
+
+            List<String> eNames = new ArrayList<>();
+            ListTag eTag = teamTag.getList("entityNames", Tag.TAG_STRING);
+            for (int i = 0; i < eTag.size(); i++) eNames.add(eTag.getString(i));
+
+            this.currentTeam = new OWTeam(
+                    teamTag.getInt("teamId"),
+                    teamTag.getString("teamName"),
+                    UUID.fromString(teamTag.getString("teamOwnerUUID")),
+                    teamTag.getInt("teamColor"),
+                    teamTag.contains("teamSecondaryColor") ? teamTag.getInt("teamSecondaryColor") : 0xFFFFFF,
+                    OWTeamMosaicPattern.byId(teamTag.contains("teamMosaicPatternId") ? teamTag.getInt("teamMosaicPatternId") : 0),
+                    new UUID[]{}, new OWEntity[]{},
+                    teamTag.getString("teamCreationDate"),
+                    pNames, eNames
+            );
+        }
     }
 }

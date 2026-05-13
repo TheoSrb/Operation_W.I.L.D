@@ -1,5 +1,6 @@
 package net.tiew.operationWild.screen.entity;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -46,6 +47,15 @@ public class OWTabsRenderer {
 
     public void setActiveTab(Tab tab) {
         this.activeTab = tab;
+        updateButtonStates();
+    }
+
+    private void updateButtonStates() {
+        if (inventoryButton != null) inventoryButton.active = activeTab != Tab.INVENTORY;
+        if (skinButton != null) skinButton.active = activeTab != Tab.COSMETICS;
+        if (teamButton != null) teamButton.active = activeTab != Tab.TEAM;
+        if (dailyQuestButton != null) dailyQuestButton.active = activeTab != Tab.DAILY_QUESTS;
+        if (optionsButton != null) optionsButton.active = activeTab != Tab.OPTIONS;
     }
 
     public Tab getActiveTab() {
@@ -56,7 +66,7 @@ public class OWTabsRenderer {
         int i = (screenWidth - imageWidth) / 2;
         int j = (screenHeight - imageHeight) / 2;
 
-        inventoryButton = buildButton("", 0xFFFFFF, i + 2,  j - 18, 20, 18,
+        inventoryButton = buildButton("", 0xFFFFFF, i + 2, j - 18, 20, 18,
                 () -> onInventoryClicked(entity));
         inventoryButton.setAlpha(0f);
 
@@ -116,20 +126,38 @@ public class OWTabsRenderer {
         OWNetworkHandler.sendToServer(new OpenOWInventoryPacket());
     }
 
+    public void setElementColor(int hexColor) {
+        float r = ((hexColor >> 16) & 0xFF) / 255.0f;
+        float g = ((hexColor >> 8) & 0xFF) / 255.0f;
+        float b = (hexColor & 0xFF) / 255.0f;
+        RenderSystem.setShaderColor(r, g, b, 1.0f);
+    }
+
     private void chooseSkinsScreenForEntity(OWEntity entity) {
         setNotification(2, 0);
         switch (entity.getClass().getSimpleName()) {
-            case "KodiakEntity"    -> Minecraft.getInstance().setScreen(new KodiakSkinsScreen());
-            case "TigerEntity"     -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
+            case "KodiakEntity" -> Minecraft.getInstance().setScreen(new KodiakSkinsScreen());
+            case "TigerEntity" -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
             case "CrocodileEntity" -> Minecraft.getInstance().setScreen(new CrocodileSkinsScreen());
             default -> Minecraft.getInstance().player.sendSystemMessage(
                     Component.translatable("tooltip.noSkins").withStyle(Style.EMPTY).withColor(0xFF0000));
         }
     }
 
+    /*
+        public void onTeamClicked(OWEntity entity) {
+        setNotification(3, 0);
+        Minecraft.getInstance().setScreen(new OWTeamsInterface(Component.empty()));
+    }
+     */
+
     public void onTeamClicked(OWEntity entity) {
         setNotification(3, 0);
-        entity.getControllingPassenger().sendSystemMessage(Component.literal("Coming Soon..."));
+        if (entity.currentTeam == null) {
+            Minecraft.getInstance().setScreen(new OWTeamCreationScreen(entity));
+        } else {
+            Minecraft.getInstance().setScreen(new OWTeamsInterface(Component.empty()));
+        }
     }
 
     public void onDailyQuestsClicked(OWEntity entity) {
@@ -138,31 +166,39 @@ public class OWTabsRenderer {
     }
 
     public void renderTabs(GuiGraphics graphics, Font font, OWEntity entity, int i, int j, int mouseX, int mouseY) {
-        boolean hoverInventory = isHovering(mouseX, mouseY, i + 2,  j - 18, 20, 18);
-        boolean hoverSkin      = isHovering(mouseX, mouseY, i + 22, j - 18, 20, 18);
-        boolean hoverTeam      = isHovering(mouseX, mouseY, i + 42, j - 18, 20, 18);
-        boolean hoverQuests    = isHovering(mouseX, mouseY, i + 62, j - 18, 20, 18);
-        boolean hoverOptions   = isHovering(mouseX, mouseY, i + 82, j - 18, 20, 18);
+        boolean hoverInventory = isHovering(mouseX, mouseY, i + 2, j - 18, 20, 18);
+        boolean hoverSkin = isHovering(mouseX, mouseY, i + 22, j - 18, 20, 18);
+        boolean hoverTeam = isHovering(mouseX, mouseY, i + 42, j - 18, 20, 18);
+        boolean hoverQuests = isHovering(mouseX, mouseY, i + 62, j - 18, 20, 18);
+        boolean hoverOptions = isHovering(mouseX, mouseY, i + 82, j - 18, 20, 18);
 
-        graphics.blit(OW_INVENTORY_LOCATION, i + 2,  j - 18, (hoverInventory || activeTab == Tab.INVENTORY)  ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 22, j - 18, (hoverSkin      || activeTab == Tab.COSMETICS)  ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 42, j - 18, (hoverTeam      || activeTab == Tab.TEAM)       ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 62, j - 18, (hoverQuests    || activeTab == Tab.DAILY_QUESTS) ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 82, j - 18, (hoverOptions   || activeTab == Tab.OPTIONS)    ? 20 : 0, 206, 20, 18);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 2, j - 18, (hoverInventory || activeTab == Tab.INVENTORY) ? 20 : 0, 206, 20, 18);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 22, j - 18, (hoverSkin || activeTab == Tab.COSMETICS) ? 20 : 0, 206, 20, 18);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 42, j - 18, (hoverTeam || activeTab == Tab.TEAM) ? 20 : 0, 206, 20, 18);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 62, j - 18, (hoverQuests || activeTab == Tab.DAILY_QUESTS) ? 20 : 0, 206, 20, 18);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 82, j - 18, (hoverOptions || activeTab == Tab.OPTIONS) ? 20 : 0, 206, 20, 18);
 
-        graphics.blit(OW_INVENTORY_LOCATION, i + 4,  j - 16, 176, 0,  16, 16); // Inventaire
+        graphics.blit(OW_INVENTORY_LOCATION, i + 4, j - 16, 176, 0, 16, 16); // Inventaire
         graphics.blit(OW_INVENTORY_LOCATION, i + 24, j - 16, 176, 16, 16, 16); // Skin
-        graphics.blit(OW_INVENTORY_LOCATION, i + 44, j - 16, 176, 32, 16, 16); // Team
+
+        int teamColor = (entity != null && entity.currentTeam != null) ? entity.currentTeam.getTeamColor() : 0xFFFFFF;
+        setElementColor(teamColor);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 44, j - 16, 176, 32, 16, 16);
+        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+
         graphics.blit(OW_INVENTORY_LOCATION, i + 64, j - 16, 176, 48, 16, 16); // Daily Quests
         graphics.blit(OW_INVENTORY_LOCATION, i + 84, j - 16, 176, 64, 16, 16); // Options
 
         renderNotificationBadges(graphics, font, entity, i, j);
 
-        if (hoverInventory) graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.inventory")),   mouseX, mouseY);
-        if (hoverSkin)      graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.cosmetics")),   mouseX, mouseY);
-        if (hoverTeam)      graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.team")),        mouseX, mouseY);
-        if (hoverQuests)    graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.dailyQuests")), mouseX, mouseY);
-        if (hoverOptions)   graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.options")),     mouseX, mouseY);
+        if (hoverInventory)
+            graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.inventory")), mouseX, mouseY);
+        if (hoverSkin) graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.cosmetics")), mouseX, mouseY);
+        if (hoverTeam) graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.team")), mouseX, mouseY);
+        if (hoverQuests)
+            graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.dailyQuests")), mouseX, mouseY);
+        if (hoverOptions) graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.options")), mouseX, mouseY);
     }
 
     private void renderNotificationBadges(GuiGraphics graphics, Font font, OWEntity entity, int i, int j) {

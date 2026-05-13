@@ -42,6 +42,11 @@ public class ReptilianDaggerItem extends SwordItem {
         super.inventoryTick(stack, level, entity, slotId, isSelected);
         if (!(entity instanceof Player player)) return;
 
+        if (!stack.getEnchantments().isEmpty()) {
+            stack.set(net.minecraft.core.component.DataComponents.ENCHANTMENTS,
+                    net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
+        }
+
         ItemStack main = player.getMainHandItem();
         ItemStack off = player.getOffhandItem();
 
@@ -110,6 +115,16 @@ public class ReptilianDaggerItem extends SwordItem {
         }
 
         return super.hurtEnemy(stack, target, attacker);
+    }
+
+    @Override
+    public boolean isEnchantable(ItemStack stack) {
+        return false;
+    }
+
+    @Override
+    public int getEnchantmentValue() {
+        return 0;
     }
 
     @Override

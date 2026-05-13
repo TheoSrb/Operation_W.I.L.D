@@ -28,11 +28,7 @@ public record OWEntityTogglePacket(String option) implements CustomPacketPayload
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player
                     && player.getRootVehicle() instanceof OWEntity entity) {
-                switch (packet.option()) {
-                    case "passive"    -> entity.setPassive(!entity.isPassive());
-                    case "autoPickup" -> entity.setAutoPickup(!entity.isAutoPickup());
-                    case "sit"        -> entity.setSitting(!entity.isSitting());
-                }
+                entity.switchMode(player);
             }
         });
     }
