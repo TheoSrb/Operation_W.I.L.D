@@ -42,14 +42,28 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
             Entity entity = serverLevel.getEntity(packet.entityId());
             if (!(entity instanceof OWEntity owEntity)) return;
             if (owEntity.currentTeam == null) return;
-            if (!context.player().getUUID().equals(owEntity.currentTeam.getTeamOwnerUUID())) return;
 
             OWTeam team = owEntity.currentTeam;
+            boolean isTeamOwner = context.player().getUUID().equals(team.getTeamOwnerUUID());
+
             List<String> entityNames = team.getEntityNames();
             int idx = packet.entityIndex();
             if (idx < 0 || idx >= entityNames.size()) return;
 
             String removedName = entityNames.get(idx);
+
+            // ── Autorisation : chef OU propriétaire de l'entité retirée ──────────
+            if (!isTeamOwner) {
+                boolean playerOwnsTarget = false;
+                for (Entity e : serverLevel.getAllEntities()) {
+                    if (e instanceof OWEntity owE && owE.getNickname().equals(removedName)) {
+                        playerOwnsTarget = context.player().getUUID().equals(owE.getOwnerUUID());
+                        break;
+                    }
+                }
+                if (!playerOwnsTarget) return;
+            }
+
             entityNames.remove(idx);
 
             // ── Trouver l'entité retirée et effacer sa référence d'équipe ────────
@@ -75,13 +89,10 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
             final OWEntity finalRemovedEntity = removedEntity;
 
             for (ServerPlayer player : serverLevel.players()) {
-                // ── Envoyer ClearOWTeamPacket à l'entité retirée ─────────────────
                 if (finalRemovedEntity != null) {
                     OWNetworkHandler.sendToClient(
                             new ClearOWTeamPacket(finalRemovedEntity.getId()), player);
                 }
-
-                // ── Resynchroniser TOUS les membres restants ──────────────────────
                 for (OWEntity member : remainingMembers) {
                     OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
                             member.getId(),

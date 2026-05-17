@@ -730,5 +730,22 @@
 
   "owteams.info.players":  "Joueurs: %s / %s",
   "owteams.info.entities": "Entités: %s / %s",
-  "owteams.info.created":  "Créée le %s"
+  "owteams.info.created":  "Créée le %s",
+
+  "owteams.pattern.gradient_down":  "Dégradé ↓",
+  "owteams.pattern.gradient_right": "Dégradé →",
+  "owteams.pattern.split_h":        "Moitié H",
+  "owteams.pattern.split_v":        "Moitié V",
+  "owteams.pattern.diagonal_tl_br": "Diagonale ↘",
+  "owteams.pattern.diagonal_tr_bl": "Diagonale ↙",
+  "owteams.pattern.thirds_h":       "Tiers H",
+  "owteams.pattern.thirds_v":       "Tiers V",
+  "owteams.pattern.circle_pri":     "Cercle",
+  "owteams.pattern.stripes": "Rayures ↘",
+  "owteams.pattern.checker":        "Damier",
+  "owteams.pattern.diamond":        "Losange",
+
+  "owteams.creation.error.name_taken_title": "Nom indisponible",
+  "owteams.creation.error.name_taken_body": "Une tribu porte déjà ce nom.",
+  "owteams.creation.error.ok": "Ok"
 }

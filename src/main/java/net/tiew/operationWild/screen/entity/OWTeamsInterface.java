@@ -211,6 +211,7 @@ public class OWTeamsInterface extends Screen {
     public void onEntityAlreadyInTeam(String targetNickname, String currentTeamName) {
         this.pendingEntityName = targetNickname;
         this.pendingEntityCurrentTeam = currentTeamName;
+        closeEntityInput(); // ← ferme l'overlay input avant d'afficher la confirmation
         this.confirmState = ConfirmState.CHANGE_ENTITY_TEAM;
     }
 
@@ -243,6 +244,24 @@ public class OWTeamsInterface extends Screen {
         entityInputError = Component.translatable("owteams.add_entity.error.not_found").getString();
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+
+        // Si l'entité n'est plus dans une team, fermer l'écran
+        if (entity == null || entity.currentTeam == null) {
+            this.onClose();
+            return;
+        }
+
+        // Si le scrollOffset dépasse la taille réelle (suite à une suppression), corriger
+        OWTeam team = entity.currentTeam;
+        if (team.getPlayerNames() != null)
+            playerScrollOffset = clamp(playerScrollOffset, team.getPlayerNames().size());
+        if (team.getEntityNames() != null)
+            entityScrollOffset = clamp(entityScrollOffset, team.getEntityNames().size());
+    }
+
     // ── Confirmation ─────────────────────────────────────────────────────────
     private void onConfirmYes() {
         if (entity == null) {
@@ -255,11 +274,11 @@ public class OWTeamsInterface extends Screen {
                     new RemoveEntityFromTeamPacket(entity.getId(), confirmTargetIndex));
 
             case CHANGE_ENTITY_TEAM -> {
-                // force=true : l'utilisateur a confirmé le changement de tribu
                 OWNetworkHandler.sendToServer(
                         new AddEntityToTeamPacket(entity.getId(), pendingEntityName, true));
                 pendingEntityName = "";
                 pendingEntityCurrentTeam = "";
+                closeEntityInput(); // ← manquait : ferme l'overlay de saisie
             }
 
             case LEAVE_TEAM -> {
@@ -479,13 +498,14 @@ public class OWTeamsInterface extends Screen {
             float dy = y - cy;
             if (Math.abs(dy) <= ry) {
                 float dx = rx * (float) Math.sqrt(1f - (dy * dy) / (ry * ry));
-                int x1 = Math.max(0, (int)(cx - dx));
-                int x2 = Math.min(ELEMENT_WIDTH, (int)(cx + dx));
-                if (x1 > 0)              renderFlagRect(g, fx,    fy+y, ELEMENT_U,    ELEMENT_V+y, x1,              1, bg);
-                if (x2 > x1)             renderFlagRect(g, fx+x1, fy+y, ELEMENT_U+x1, ELEMENT_V+y, x2-x1,           1, circle);
-                if (x2 < ELEMENT_WIDTH)  renderFlagRect(g, fx+x2, fy+y, ELEMENT_U+x2, ELEMENT_V+y, ELEMENT_WIDTH-x2, 1, bg);
+                int x1 = Math.max(0, (int) (cx - dx));
+                int x2 = Math.min(ELEMENT_WIDTH, (int) (cx + dx));
+                if (x1 > 0) renderFlagRect(g, fx, fy + y, ELEMENT_U, ELEMENT_V + y, x1, 1, bg);
+                if (x2 > x1) renderFlagRect(g, fx + x1, fy + y, ELEMENT_U + x1, ELEMENT_V + y, x2 - x1, 1, circle);
+                if (x2 < ELEMENT_WIDTH)
+                    renderFlagRect(g, fx + x2, fy + y, ELEMENT_U + x2, ELEMENT_V + y, ELEMENT_WIDTH - x2, 1, bg);
             } else {
-                renderFlagRect(g, fx, fy+y, ELEMENT_U, ELEMENT_V+y, ELEMENT_WIDTH, 1, bg);
+                renderFlagRect(g, fx, fy + y, ELEMENT_U, ELEMENT_V + y, ELEMENT_WIDTH, 1, bg);
             }
         }
     }
@@ -855,9 +875,7 @@ public class OWTeamsInterface extends Screen {
         int fy = topPos + ELEMENT_Y;
         switch (pattern) {
             case GRADIENT_DOWN -> renderFlagGradientY(g, fx, fy, primary, secondary);
-            case GRADIENT_UP -> renderFlagGradientY(g, fx, fy, secondary, primary);
             case GRADIENT_RIGHT -> renderFlagGradientX(g, fx, fy, primary, secondary);
-            case GRADIENT_LEFT -> renderFlagGradientX(g, fx, fy, secondary, primary);
             case SPLIT_H -> {
                 int half = ELEMENT_HEIGHT / 2;
                 renderFlagRect(g, fx, fy, ELEMENT_U, ELEMENT_V, ELEMENT_WIDTH, half, primary);
@@ -884,8 +902,43 @@ public class OWTeamsInterface extends Screen {
                 renderFlagRect(g, fx + t1, fy, ELEMENT_U + t1, ELEMENT_V, t2 - t1, ELEMENT_HEIGHT, secondary);
                 renderFlagRect(g, fx + t2, fy, ELEMENT_U + t2, ELEMENT_V, ELEMENT_WIDTH - t2, ELEMENT_HEIGHT, primary);
             }
-            case CIRCLE_PRI -> renderFlagCircle(g, fx, fy, primary,   secondary);
-            case CIRCLE_SEC -> renderFlagCircle(g, fx, fy, secondary, primary);
+            case CIRCLE_PRI -> renderFlagCircle(g, fx, fy, primary, secondary);
+            case STRIPES -> {
+                int total = ELEMENT_WIDTH + ELEMENT_HEIGHT;
+                for (int row = 0; row < ELEMENT_HEIGHT; row++) {
+                    int b1 = total / 3 - row;
+                    int b2 = total * 2 / 3 - row;
+                    int s1 = Math.max(0, Math.min(b1, ELEMENT_WIDTH));
+                    int s2 = Math.max(0, Math.min(b2, ELEMENT_WIDTH));
+                    if (s1 > 0)               renderFlagRect(g, fx,      fy + row, ELEMENT_U,      ELEMENT_V + row, s1,               1, primary);
+                    if (s2 > s1)              renderFlagRect(g, fx + s1, fy + row, ELEMENT_U + s1, ELEMENT_V + row, s2 - s1,          1, secondary);
+                    if (ELEMENT_WIDTH > s2)   renderFlagRect(g, fx + s2, fy + row, ELEMENT_U + s2, ELEMENT_V + row, ELEMENT_WIDTH - s2, 1, primary);
+                }
+            }
+            case CHECKER -> {
+                int hw = ELEMENT_WIDTH / 2, hh = ELEMENT_HEIGHT / 2;
+                renderFlagRect(g, fx, fy, ELEMENT_U, ELEMENT_V, hw, hh, primary);
+                renderFlagRect(g, fx + hw, fy, ELEMENT_U + hw, ELEMENT_V, ELEMENT_WIDTH - hw, hh, secondary);
+                renderFlagRect(g, fx, fy + hh, ELEMENT_U, ELEMENT_V + hh, hw, ELEMENT_HEIGHT - hh, secondary);
+                renderFlagRect(g, fx + hw, fy + hh, ELEMENT_U + hw, ELEMENT_V + hh, ELEMENT_WIDTH - hw, ELEMENT_HEIGHT - hh, primary);
+            }
+            case DIAMOND -> {
+                float scale = 0.78f;
+                float halfH = (ELEMENT_HEIGHT / 2f) * scale;
+                for (int row = 0; row < ELEMENT_HEIGHT; row++) {
+                    float distY = Math.abs(row - ELEMENT_HEIGHT / 2f);
+                    if (distY >= halfH) {
+                        renderFlagRect(g, fx, fy + row, ELEMENT_U, ELEMENT_V + row, ELEMENT_WIDTH, 1, primary);
+                        continue;
+                    }
+                    float halfW = (1f - distY / halfH) * (ELEMENT_WIDTH / 2f) * scale;
+                    int x1 = (int)(ELEMENT_WIDTH / 2f - halfW);
+                    int x2 = (int)(ELEMENT_WIDTH / 2f + halfW);
+                    if (x1 > 0)             renderFlagRect(g, fx,      fy + row, ELEMENT_U,      ELEMENT_V + row, x1,               1, primary);
+                    if (x2 > x1)            renderFlagRect(g, fx + x1, fy + row, ELEMENT_U + x1, ELEMENT_V + row, x2 - x1,          1, secondary);
+                    if (x2 < ELEMENT_WIDTH) renderFlagRect(g, fx + x2, fy + row, ELEMENT_U + x2, ELEMENT_V + row, ELEMENT_WIDTH - x2, 1, primary);
+                }
+            }
         }
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
     }

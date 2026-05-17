@@ -14,6 +14,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_client.ClearOWTeamPacket;
 import net.tiew.operationWild.networking.packets.to_client.OWEntityAlreadyInTeamPacket;
 import net.tiew.operationWild.networking.packets.to_client.SyncOWTeamPacket;
 import net.tiew.operationWild.team.OWTeam;
@@ -69,7 +70,6 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
                 if (!packet.force()
                         && target.currentTeam != null
                         && target.currentTeam.getTeamId() != team.getTeamId()) {
-                    // Informer le client pour qu'il affiche la confirmation
                     if (context.player() instanceof ServerPlayer sp) {
                         OWNetworkHandler.sendToClient(
                                 new OWEntityAlreadyInTeamPacket(nickname, target.currentTeam.getTeamName()),
@@ -78,27 +78,45 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
                     return;
                 }
 
-                // ── Retrait propre de l'ancienne équipe si nécessaire ─────────────────
-                if (target.currentTeam != null && target.currentTeam.getTeamId() != team.getTeamId()) {
-                    target.currentTeam.getEntityNames().remove(target.getNickname());
+                OWTeam oldTeam = target.currentTeam;
+                boolean wasInAnotherTeam = oldTeam != null && oldTeam.getTeamId() != team.getTeamId();
+
+// ── Retrait propre de l'ancienne équipe ──────────────────────────────
+                if (wasInAnotherTeam) {
+                    oldTeam.getEntityNames().remove(target.getNickname());
                 }
 
                 team.getEntityNames().add(nickname);
                 target.currentTeam = team;
 
-                // ── Collecter TOUS les membres de la nouvelle équipe ──────────────────
-                List<OWEntity> allTeamEntities = new ArrayList<>();
+// ── Membres de la NOUVELLE équipe ────────────────────────────────────
+                List<OWEntity> newTeamMembers = new ArrayList<>();
                 for (Entity candidate : serverLevel.getAllEntities()) {
                     if (candidate instanceof OWEntity m
                             && m.currentTeam != null
                             && m.currentTeam.getTeamId() == team.getTeamId()) {
-                        allTeamEntities.add(m);
+                        newTeamMembers.add(m);
                     }
                 }
 
-                // ── Synchroniser chaque membre auprès de tous les joueurs ─────────────
+// ── Membres restants de l'ANCIENNE équipe ─────────────────────────────
+                List<OWEntity> oldTeamMembers = new ArrayList<>();
+                if (wasInAnotherTeam) {
+                    final int oldTeamId = oldTeam.getTeamId();
+                    for (Entity candidate : serverLevel.getAllEntities()) {
+                        if (candidate instanceof OWEntity m
+                                && m.currentTeam != null
+                                && m.currentTeam.getTeamId() == oldTeamId) {
+                            oldTeamMembers.add(m);
+                        }
+                    }
+                }
+
+                final OWTeam finalOldTeam = wasInAnotherTeam ? oldTeam : null;
+
                 for (ServerPlayer player : serverLevel.players()) {
-                    for (OWEntity member : allTeamEntities) {
+                    // Nouvelle tribu : resync de tous ses membres (inclut déjà l'entité transférée)
+                    for (OWEntity member : newTeamMembers) {
                         OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
                                 member.getId(),
                                 team.getTeamId(),
@@ -111,6 +129,25 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
                                 team.getPlayerNames(),
                                 team.getEntityNames()
                         ), player);
+                    }
+
+                    // Ancienne tribu : resync des membres restants SEULEMENT
+                    // !! PAS de ClearOWTeamPacket pour target : le Sync ci-dessus lui a déjà assigné la nouvelle team !!
+                    if (wasInAnotherTeam) {
+                        for (OWEntity member : oldTeamMembers) {
+                            OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
+                                    member.getId(),
+                                    finalOldTeam.getTeamId(),
+                                    finalOldTeam.getTeamName(),
+                                    finalOldTeam.getTeamOwnerUUID().toString(),
+                                    finalOldTeam.getTeamColor(),
+                                    finalOldTeam.getTeamSecondaryColor(),
+                                    finalOldTeam.getTeamMosaicPattern().getId(),
+                                    finalOldTeam.getTeamCreationDate(),
+                                    finalOldTeam.getPlayerNames(),
+                                    finalOldTeam.getEntityNames()
+                            ), player);
+                        }
                     }
                 }
                 return;

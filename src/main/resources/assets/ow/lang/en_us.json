@@ -679,5 +679,22 @@
   "owteams.creation.primary": "Color 1",
   "owteams.creation.secondary": "Color 2",
   "owteams.creation.confirm": "Create",
-  "owteams.creation.cancel": "Cancel"
+  "owteams.creation.cancel": "Cancel",
+
+  "owteams.pattern.gradient_down":  "Gradient ↓",
+  "owteams.pattern.gradient_right": "Gradient →",
+  "owteams.pattern.split_h":        "Half H",
+  "owteams.pattern.split_v":        "Half V",
+  "owteams.pattern.diagonal_tl_br": "Diagonal ↘",
+  "owteams.pattern.diagonal_tr_bl": "Diagonal ↙",
+  "owteams.pattern.thirds_h":       "Thirds H",
+  "owteams.pattern.thirds_v":       "Thirds V",
+  "owteams.pattern.circle_pri":     "Circle",
+  "owteams.pattern.stripes": "Stripes ↘",
+  "owteams.pattern.checker":        "Checker",
+  "owteams.pattern.diamond":        "Diamond",
+
+  "owteams.creation.error.name_taken_title": "Name unavailable",
+  "owteams.creation.error.name_taken_body": "A tribe already uses this name.",
+  "owteams.creation.error.ok": "Ok"
 }

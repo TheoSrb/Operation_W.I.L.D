@@ -72,7 +72,7 @@ public record CreateOWTeamWithParamsPacket(
                     : packet.teamName().trim();
 
             OWTeam team = new OWTeam(
-                    1,
+                    (int)(System.currentTimeMillis() & 0x7FFFFFFF),
                     name,
                     context.player().getUUID(),
                     packet.primaryColor(),

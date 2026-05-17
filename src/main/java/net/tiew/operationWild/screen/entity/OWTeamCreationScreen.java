@@ -55,6 +55,9 @@ public class OWTeamCreationScreen extends Screen {
     private boolean draggingHue = false;
     private boolean draggingSV = false;
 
+    private boolean showNameTakenError = false;
+    private Button nameErrorOkBtn;
+
     private EditBox nameBox;
     private Button confirmBtn, cancelBtn;
     private Button primTabBtn, secTabBtn;
@@ -131,6 +134,12 @@ public class OWTeamCreationScreen extends Screen {
                 .build();
         this.addRenderableWidget(cancelBtn);
 
+        nameErrorOkBtn = Button.builder(
+                        Component.translatable("owteams.creation.error.ok"),
+                        btn -> showNameTakenError = false)
+                .bounds(0, 0, 60, 14).build();
+        this.addRenderableWidget(nameErrorOkBtn);
+
         tabsRenderer.init(this.width, this.height, PW, PH, entity, this::addRenderableWidget);
         tabsRenderer.setActiveTab(OWTabsRenderer.Tab.TEAM);
     }
@@ -155,7 +164,7 @@ public class OWTeamCreationScreen extends Screen {
                 if (e instanceof OWEntity owE
                         && owE.currentTeam != null
                         && owE.currentTeam.getTeamName().equalsIgnoreCase(name)) {
-                    nameError = Component.translatable("owteams.creation.error.name_taken").getString();
+                    showNameTakenError = true;
                     return;
                 }
             }
@@ -293,6 +302,39 @@ public class OWTeamCreationScreen extends Screen {
         renderPatternSelector(g, mouseX, mouseY);
 
         g.fill(leftPos + 8, topPos + ACT_Y - 4, leftPos + PW - 8, topPos + ACT_Y - 3, 0xFF333333);
+
+        nameErrorOkBtn.visible = false;
+
+        if (showNameTakenError) {
+            g.pose().pushPose();
+            g.pose().translate(0, 0, 100);
+            g.fill(leftPos, topPos, leftPos + PW, topPos + PH, 0xBB000000);
+
+            int ow = 130, oh = 48;
+            int ox = leftPos + (PW - ow) / 2;
+            int oy = topPos + (PH - oh) / 2;
+
+            g.fill(ox, oy, ox + ow, oy + oh, 0xEE0D0D0D);
+            g.fill(ox, oy, ox + ow, oy + 1, 0xFF666666);
+            g.fill(ox, oy + oh - 1, ox + ow, oy + oh, 0xFF666666);
+            g.fill(ox, oy, ox + 1, oy + oh, 0xFF666666);
+            g.fill(ox + ow - 1, oy, ox + ow, oy + oh, 0xFF666666);
+
+            int cx = ox + ow / 2;
+            g.drawCenteredString(this.font,
+                    Component.translatable("owteams.creation.error.name_taken_title").getString(),
+                    cx, oy + 7, 0xFFFFFF);
+            g.drawCenteredString(this.font,
+                    Component.translatable("owteams.creation.error.name_taken_body").getString(),
+                    cx, oy + 18, 0xAAAAAA);
+
+            nameErrorOkBtn.setX(cx - 30);
+            nameErrorOkBtn.setY(oy + oh - 18);
+            nameErrorOkBtn.visible = true;
+            nameErrorOkBtn.render(g, mouseX, mouseY, partial);
+
+            g.pose().popPose();
+        }
     }
 
     // ── Color picker ──────────────────────────────────────────────────────────
@@ -358,7 +400,7 @@ public class OWTeamCreationScreen extends Screen {
                     selected ? 0xFFFFD700 : 0xFF555555);
 
             if (hovered) {
-                String label = patterns[i].getDisplayName();
+                String label = Component.translatable(patterns[i].getDisplayName()).getString();
                 int ttW = this.font.width(label) + 6;
                 int ttX = mouseX + 6, ttY = mouseY - 14;
 
@@ -377,13 +419,13 @@ public class OWTeamCreationScreen extends Screen {
             float dy = y - cy;
             if (Math.abs(dy) <= r) {
                 float dx = (float) Math.sqrt(r * r - dy * dy);
-                int x1 = Math.max(0, (int)(cx - dx));
-                int x2 = Math.min(size, (int)(cx + dx));
-                if (x1 > 0)    g.fill(bx,    by+y, bx+x1,   by+y+1, bg     | 0xFF000000);
-                if (x2 > x1)   g.fill(bx+x1, by+y, bx+x2,   by+y+1, circle | 0xFF000000);
-                if (x2 < size) g.fill(bx+x2, by+y, bx+size, by+y+1, bg     | 0xFF000000);
+                int x1 = Math.max(0, (int) (cx - dx));
+                int x2 = Math.min(size, (int) (cx + dx));
+                if (x1 > 0) g.fill(bx, by + y, bx + x1, by + y + 1, bg | 0xFF000000);
+                if (x2 > x1) g.fill(bx + x1, by + y, bx + x2, by + y + 1, circle | 0xFF000000);
+                if (x2 < size) g.fill(bx + x2, by + y, bx + size, by + y + 1, bg | 0xFF000000);
             } else {
-                g.fill(bx, by+y, bx+size, by+y+1, bg | 0xFF000000);
+                g.fill(bx, by + y, bx + size, by + y + 1, bg | 0xFF000000);
             }
         }
     }
@@ -403,24 +445,10 @@ public class OWTeamCreationScreen extends Screen {
                     g.fill(bx, by + i * size / strips, bx + size, by + (i + 1) * size / strips, col);
                 }
             }
-            case GRADIENT_UP -> {
-                for (int i = 0; i < strips; i++) {
-                    float t = (float) i / (strips - 1 == 0 ? 1 : strips - 1);
-                    int col = 0xFF000000 | lerpColor(secondaryColor, primaryColor, t);
-                    g.fill(bx, by + i * size / strips, bx + size, by + (i + 1) * size / strips, col);
-                }
-            }
             case GRADIENT_RIGHT -> {
                 for (int i = 0; i < strips; i++) {
                     float t = (float) i / (strips - 1 == 0 ? 1 : strips - 1);
                     int col = 0xFF000000 | lerpColor(primaryColor, secondaryColor, t);
-                    g.fill(bx + i * size / strips, by, bx + (i + 1) * size / strips, by + size, col);
-                }
-            }
-            case GRADIENT_LEFT -> {
-                for (int i = 0; i < strips; i++) {
-                    float t = (float) i / (strips - 1 == 0 ? 1 : strips - 1);
-                    int col = 0xFF000000 | lerpColor(secondaryColor, primaryColor, t);
                     g.fill(bx + i * size / strips, by, bx + (i + 1) * size / strips, by + size, col);
                 }
             }
@@ -450,18 +478,53 @@ public class OWTeamCreationScreen extends Screen {
             }
             case THIRDS_H -> {
                 int t1 = size / 3, t2 = size * 2 / 3;
-                g.fill(bx, by,       bx + size, by + t1,   p);
-                g.fill(bx, by + t1,  bx + size, by + t2,   s);
-                g.fill(bx, by + t2,  bx + size, by + size,  p);
+                g.fill(bx, by, bx + size, by + t1, p);
+                g.fill(bx, by + t1, bx + size, by + t2, s);
+                g.fill(bx, by + t2, bx + size, by + size, p);
             }
             case THIRDS_V -> {
                 int t1 = size / 3, t2 = size * 2 / 3;
-                g.fill(bx,      by, bx + t1,   by + size, p);
-                g.fill(bx + t1, by, bx + t2,   by + size, s);
+                g.fill(bx, by, bx + t1, by + size, p);
+                g.fill(bx + t1, by, bx + t2, by + size, s);
                 g.fill(bx + t2, by, bx + size, by + size, p);
             }
-            case CIRCLE_PRI -> renderMiniCircle(g, bx, by, size, primaryColor,   secondaryColor);
-            case CIRCLE_SEC -> renderMiniCircle(g, bx, by, size, secondaryColor, primaryColor);
+            case CIRCLE_PRI -> renderMiniCircle(g, bx, by, size, primaryColor, secondaryColor);
+            case STRIPES -> {
+                int total = 2 * size;
+                for (int row = 0; row < size; row++) {
+                    int b1 = total / 3 - row;
+                    int b2 = total * 2 / 3 - row;
+                    int s1 = Math.max(0, Math.min(b1, size));
+                    int s2 = Math.max(0, Math.min(b2, size));
+                    if (s1 > 0) g.fill(bx, by + row, bx + s1, by + row + 1, p);
+                    if (s2 > s1) g.fill(bx + s1, by + row, bx + s2, by + row + 1, s);
+                    if (size > s2) g.fill(bx + s2, by + row, bx + size, by + row + 1, p);
+                }
+            }
+            case CHECKER -> {
+                int half = size / 2;
+                g.fill(bx, by, bx + half, by + half, p);
+                g.fill(bx + half, by, bx + size, by + half, s);
+                g.fill(bx, by + half, bx + half, by + size, s);
+                g.fill(bx + half, by + half, bx + size, by + size, p);
+            }
+            case DIAMOND -> {
+                float scale = 0.78f;
+                float halfH = (size / 2f) * scale;
+                for (int row = 0; row < size; row++) {
+                    float distY = Math.abs(row - size / 2f);
+                    if (distY >= halfH) {
+                        g.fill(bx, by + row, bx + size, by + row + 1, p);
+                        continue;
+                    }
+                    float halfW = (1f - distY / halfH) * (size / 2f) * scale;
+                    int x1 = (int) (size / 2f - halfW);
+                    int x2 = (int) (size / 2f + halfW);
+                    if (x1 > 0) g.fill(bx, by + row, bx + x1, by + row + 1, p);
+                    if (x2 > x1) g.fill(bx + x1, by + row, bx + Math.min(x2, size), by + row + 1, s);
+                    if (x2 < size) g.fill(bx + Math.max(x2, 0), by + row, bx + size, by + row + 1, p);
+                }
+            }
         }
     }
 
@@ -473,13 +536,13 @@ public class OWTeamCreationScreen extends Screen {
             float dy = y - cy;
             if (Math.abs(dy) <= ry) {
                 float dx = rx * (float) Math.sqrt(1f - (dy * dy) / (ry * ry));
-                int x1 = Math.max(0, (int)(cx - dx));
-                int x2 = Math.min(ELEM_W, (int)(cx + dx));
-                if (x1 > 0)         renderFlagRect(g, fx,      fy+y, ELEM_U,      ELEM_V+y, x1,        1, bg);
-                if (x2 > x1)        renderFlagRect(g, fx+x1,   fy+y, ELEM_U+x1,   ELEM_V+y, x2-x1,     1, circle);
-                if (x2 < ELEM_W)    renderFlagRect(g, fx+x2,   fy+y, ELEM_U+x2,   ELEM_V+y, ELEM_W-x2, 1, bg);
+                int x1 = Math.max(0, (int) (cx - dx));
+                int x2 = Math.min(ELEM_W, (int) (cx + dx));
+                if (x1 > 0) renderFlagRect(g, fx, fy + y, ELEM_U, ELEM_V + y, x1, 1, bg);
+                if (x2 > x1) renderFlagRect(g, fx + x1, fy + y, ELEM_U + x1, ELEM_V + y, x2 - x1, 1, circle);
+                if (x2 < ELEM_W) renderFlagRect(g, fx + x2, fy + y, ELEM_U + x2, ELEM_V + y, ELEM_W - x2, 1, bg);
             } else {
-                renderFlagRect(g, fx, fy+y, ELEM_U, ELEM_V+y, ELEM_W, 1, bg);
+                renderFlagRect(g, fx, fy + y, ELEM_U, ELEM_V + y, ELEM_W, 1, bg);
             }
         }
     }
@@ -489,9 +552,7 @@ public class OWTeamCreationScreen extends Screen {
                                        int primary, int secondary, OWTeamMosaicPattern pattern) {
         switch (pattern) {
             case GRADIENT_DOWN -> renderFlagGradientY(g, fx, fy, primary, secondary);
-            case GRADIENT_UP -> renderFlagGradientY(g, fx, fy, secondary, primary);
             case GRADIENT_RIGHT -> renderFlagGradientX(g, fx, fy, primary, secondary);
-            case GRADIENT_LEFT -> renderFlagGradientX(g, fx, fy, secondary, primary);
             case SPLIT_H -> {
                 int half = ELEM_H / 2;
                 renderFlagRect(g, fx, fy, ELEM_U, ELEM_V, ELEM_W, half, primary);
@@ -506,18 +567,55 @@ public class OWTeamCreationScreen extends Screen {
             case DIAGONAL_TR_BL -> renderFlagDiagonal(g, fx, fy, primary, secondary, true);
             case THIRDS_H -> {
                 int t1 = ELEM_H / 3, t2 = ELEM_H * 2 / 3;
-                renderFlagRect(g, fx, fy,      ELEM_U, ELEM_V,      ELEM_W, t1,          primary);
-                renderFlagRect(g, fx, fy + t1, ELEM_U, ELEM_V + t1, ELEM_W, t2 - t1,     secondary);
+                renderFlagRect(g, fx, fy, ELEM_U, ELEM_V, ELEM_W, t1, primary);
+                renderFlagRect(g, fx, fy + t1, ELEM_U, ELEM_V + t1, ELEM_W, t2 - t1, secondary);
                 renderFlagRect(g, fx, fy + t2, ELEM_U, ELEM_V + t2, ELEM_W, ELEM_H - t2, primary);
             }
             case THIRDS_V -> {
                 int t1 = ELEM_W / 3, t2 = ELEM_W * 2 / 3;
-                renderFlagRect(g, fx,      fy, ELEM_U,      ELEM_V, t1,          ELEM_H, primary);
-                renderFlagRect(g, fx + t1, fy, ELEM_U + t1, ELEM_V, t2 - t1,    ELEM_H, secondary);
+                renderFlagRect(g, fx, fy, ELEM_U, ELEM_V, t1, ELEM_H, primary);
+                renderFlagRect(g, fx + t1, fy, ELEM_U + t1, ELEM_V, t2 - t1, ELEM_H, secondary);
                 renderFlagRect(g, fx + t2, fy, ELEM_U + t2, ELEM_V, ELEM_W - t2, ELEM_H, primary);
             }
-            case CIRCLE_PRI -> renderFlagCircle(g, fx, fy, primaryColor,   secondaryColor);
-            case CIRCLE_SEC -> renderFlagCircle(g, fx, fy, secondaryColor, primaryColor);
+            case CIRCLE_PRI -> renderFlagCircle(g, fx, fy, primaryColor, secondaryColor);
+            case STRIPES -> {
+                int total = ELEM_W + ELEM_H;
+                for (int row = 0; row < ELEM_H; row++) {
+                    int b1 = total / 3 - row;
+                    int b2 = total * 2 / 3 - row;
+                    int s1 = Math.max(0, Math.min(b1, ELEM_W));
+                    int s2 = Math.max(0, Math.min(b2, ELEM_W));
+                    if (s1 > 0) renderFlagRect(g, fx, fy + row, ELEM_U, ELEM_V + row, s1, 1, primary);
+                    if (s2 > s1) renderFlagRect(g, fx + s1, fy + row, ELEM_U + s1, ELEM_V + row, s2 - s1, 1, secondary);
+                    if (ELEM_W > s2)
+                        renderFlagRect(g, fx + s2, fy + row, ELEM_U + s2, ELEM_V + row, ELEM_W - s2, 1, primary);
+                }
+            }
+            case CHECKER -> {
+                int hw = ELEM_W / 2, hh = ELEM_H / 2;
+                renderFlagRect(g, fx, fy, ELEM_U, ELEM_V, hw, hh, primary);
+                renderFlagRect(g, fx + hw, fy, ELEM_U + hw, ELEM_V, ELEM_W - hw, hh, secondary);
+                renderFlagRect(g, fx, fy + hh, ELEM_U, ELEM_V + hh, hw, ELEM_H - hh, secondary);
+                renderFlagRect(g, fx + hw, fy + hh, ELEM_U + hw, ELEM_V + hh, ELEM_W - hw, ELEM_H - hh, primary);
+            }
+            case DIAMOND -> {
+                float scale = 0.78f;
+                float halfH = (ELEM_H / 2f) * scale;
+                for (int row = 0; row < ELEM_H; row++) {
+                    float distY = Math.abs(row - ELEM_H / 2f);
+                    if (distY >= halfH) {
+                        renderFlagRect(g, fx, fy + row, ELEM_U, ELEM_V + row, ELEM_W, 1, primary);
+                        continue;
+                    }
+                    float halfW = (1f - distY / halfH) * (ELEM_W / 2f) * scale;
+                    int x1 = (int) (ELEM_W / 2f - halfW);
+                    int x2 = (int) (ELEM_W / 2f + halfW);
+                    if (x1 > 0) renderFlagRect(g, fx, fy + row, ELEM_U, ELEM_V + row, x1, 1, primary);
+                    if (x2 > x1) renderFlagRect(g, fx + x1, fy + row, ELEM_U + x1, ELEM_V + row, x2 - x1, 1, secondary);
+                    if (x2 < ELEM_W)
+                        renderFlagRect(g, fx + x2, fy + row, ELEM_U + x2, ELEM_V + row, ELEM_W - x2, 1, primary);
+                }
+            }
         }
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
     }

@@ -2,29 +2,29 @@ package net.tiew.operationWild.team;
 
 public enum OWTeamMosaicPattern {
 
-    GRADIENT_DOWN   (0, "Dégradé ↓"),
-    GRADIENT_UP     (1, "Dégradé ↑"),
-    GRADIENT_RIGHT  (2, "Dégradé →"),
-    GRADIENT_LEFT   (3, "Dégradé ←"),
-    SPLIT_H         (4, "Moitié H"),
-    SPLIT_V         (5, "Moitié V"),
-    DIAGONAL_TL_BR  (6, "Diagonale ↘"),
-    DIAGONAL_TR_BL  (7, "Diagonale ↙"),
-    THIRDS_H        (8,  "Tiers H"),
-    THIRDS_V        (9,  "Tiers V"),
-    CIRCLE_PRI      (10, "Rond (pri)"),  // fond primaire, cercle secondaire
-    CIRCLE_SEC      (11, "Rond (sec)");  // fond secondaire, cercle primaire
+    GRADIENT_DOWN   (0,  "owteams.pattern.gradient_down"),
+    GRADIENT_RIGHT  (2,  "owteams.pattern.gradient_right"),
+    SPLIT_H         (4,  "owteams.pattern.split_h"),
+    SPLIT_V         (5,  "owteams.pattern.split_v"),
+    DIAGONAL_TL_BR  (6,  "owteams.pattern.diagonal_tl_br"),
+    DIAGONAL_TR_BL  (7,  "owteams.pattern.diagonal_tr_bl"),
+    THIRDS_H        (8,  "owteams.pattern.thirds_h"),
+    THIRDS_V        (9,  "owteams.pattern.thirds_v"),
+    CIRCLE_PRI      (10, "owteams.pattern.circle_pri"),
+    STRIPES         (11, "owteams.pattern.stripes"),
+    CHECKER         (12, "owteams.pattern.checker"),
+    DIAMOND         (13, "owteams.pattern.diamond");
 
     private final int    id;
-    private final String displayName;
+    private final String translationKey;
 
-    OWTeamMosaicPattern(int id, String displayName) {
-        this.id          = id;
-        this.displayName = displayName;
+    OWTeamMosaicPattern(int id, String translationKey) {
+        this.id             = id;
+        this.translationKey = translationKey;
     }
 
     public int    getId()          { return id; }
-    public String getDisplayName() { return displayName; }
+    public String getDisplayName() { return translationKey; }
 
     public static OWTeamMosaicPattern byId(int id) {
         for (OWTeamMosaicPattern p : values()) {
