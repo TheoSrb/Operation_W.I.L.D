@@ -963,8 +963,8 @@ public class ClientEvents {
                 event.setRoll((float) (event.getRoll() + (kodiak.bodyZRotCamera / (kodiak.isRunning() ? 3 : 2)) * intensity));
                 event.setPitch((float) (event.getPitch() + (kodiak.bodyXRotCamera / (kodiak.isRunning() ? 3 : 2)) * intensity));
             } else if (rootVehicle instanceof TigerEntity tiger) {
-                event.setRoll((float) (event.getRoll() + (tiger.getBodyZRot() / 5) * intensity));
-                event.setPitch((float) (event.getPitch() + (tiger.getBodyXRot() / 5) * intensity));
+                event.setRoll((float) (event.getRoll() + (tiger.getBodyZRot() / 6) * intensity));
+                event.setPitch((float) (event.getPitch() + (tiger.getBodyXRot() / 6) * intensity));
             } else if (rootVehicle instanceof CrocodileEntity crocodile) {
                 if (crocodile.isDeathRolling()) return;
                 event.setRoll((float) (event.getRoll() + (crocodile.getBodyZRot() / 4) * intensity));
