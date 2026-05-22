@@ -3556,6 +3556,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
             teamTag.putInt("teamSecondaryColor", currentTeam.getTeamSecondaryColor());
             teamTag.putInt("teamMosaicPatternId", currentTeam.getTeamMosaicPattern().getId());
+            boolean[] pixels = currentTeam.getPaintPixels();
+            teamTag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels(
+                    pixels != null ? pixels : new boolean[0]
+            ));
         }
     }
 
@@ -3682,6 +3686,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             ListTag eTag = teamTag.getList("entityNames", Tag.TAG_STRING);
             for (int i = 0; i < eTag.size(); i++) eNames.add(eTag.getString(i));
 
+            boolean[] savedPixels = OWTeamMosaicPattern.unpackPixels(
+                    teamTag.contains("paintPixels") ? teamTag.getByteArray("paintPixels") : new byte[0],
+                    OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT
+            );
             this.currentTeam = new OWTeam(
                     teamTag.getInt("teamId"),
                     teamTag.getString("teamName"),
@@ -3691,7 +3699,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     OWTeamMosaicPattern.byId(teamTag.contains("teamMosaicPatternId") ? teamTag.getInt("teamMosaicPatternId") : 0),
                     new UUID[]{}, new OWEntity[]{},
                     teamTag.getString("teamCreationDate"),
-                    pNames, eNames
+                    pNames, eNames,
+                    savedPixels
             );
         }
     }
