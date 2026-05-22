@@ -2487,14 +2487,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     this.currentTeam.getTeamName(),
                     this.currentTeam.getTeamOwnerUUID().toString(),
                     this.currentTeam.getTeamColor(),
-                    this.currentTeam.getTeamSecondaryColor(),           // ← nouveau
-                    this.currentTeam.getTeamMosaicPattern().getId(),    // ← nouveau
+                    this.currentTeam.getTeamSecondaryColor(),
+                    this.currentTeam.getTeamMosaicPattern().getId(),
                     this.currentTeam.getTeamCreationDate(),
                     this.currentTeam.getPlayerNames(),
-                    this.currentTeam.getEntityNames()
+                    this.currentTeam.getEntityNames(),
+                    OWTeamMosaicPattern.packPixels(
+                            this.currentTeam.getPaintPixels() != null
+                                    ? this.currentTeam.getPaintPixels()
+                                    : new boolean[0]
+                    )
             ), player);
         }
     }
+
 
     public void closeChestAnimation(ChestBlockEntity chestBlockEntity) {
         if (chestBlockEntity.getLevel() != null && !chestBlockEntity.getLevel().isClientSide()) {

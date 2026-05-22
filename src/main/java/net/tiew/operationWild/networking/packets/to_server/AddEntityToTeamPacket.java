@@ -18,6 +18,7 @@ import net.tiew.operationWild.networking.packets.to_client.ClearOWTeamPacket;
 import net.tiew.operationWild.networking.packets.to_client.OWEntityAlreadyInTeamPacket;
 import net.tiew.operationWild.networking.packets.to_client.SyncOWTeamPacket;
 import net.tiew.operationWild.team.OWTeam;
+import net.tiew.operationWild.team.OWTeamMosaicPattern;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,7 +116,6 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
                 final OWTeam finalOldTeam = wasInAnotherTeam ? oldTeam : null;
 
                 for (ServerPlayer player : serverLevel.players()) {
-                    // Nouvelle tribu : resync de tous ses membres (inclut déjà l'entité transférée)
                     for (OWEntity member : newTeamMembers) {
                         OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
                                 member.getId(),
@@ -127,12 +127,12 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
                                 team.getTeamMosaicPattern().getId(),
                                 team.getTeamCreationDate(),
                                 team.getPlayerNames(),
-                                team.getEntityNames()
+                                team.getEntityNames(),
+                                OWTeamMosaicPattern.packPixels(team.getPaintPixels())
                         ), player);
                     }
 
-                    // Ancienne tribu : resync des membres restants SEULEMENT
-                    // !! PAS de ClearOWTeamPacket pour target : le Sync ci-dessus lui a déjà assigné la nouvelle team !!
+                    // ── 3. Ancienne tribu – resync des membres restants ─────────────
                     if (wasInAnotherTeam) {
                         for (OWEntity member : oldTeamMembers) {
                             OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
@@ -145,11 +145,13 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
                                     finalOldTeam.getTeamMosaicPattern().getId(),
                                     finalOldTeam.getTeamCreationDate(),
                                     finalOldTeam.getPlayerNames(),
-                                    finalOldTeam.getEntityNames()
+                                    finalOldTeam.getEntityNames(),
+                                    OWTeamMosaicPattern.packPixels(finalOldTeam.getPaintPixels())
                             ), player);
                         }
                     }
                 }
+
                 return;
             }
         });

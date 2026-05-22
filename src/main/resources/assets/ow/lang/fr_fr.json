@@ -747,5 +747,13 @@
 
   "owteams.creation.error.name_taken_title": "Nom indisponible",
   "owteams.creation.error.name_taken_body": "Une tribu porte déjà ce nom.",
-  "owteams.creation.error.ok": "Ok"
+  "owteams.creation.error.ok": "Ok",
+
+  "owteams.pattern.custom_paint":       "Peinture personnalisée",
+  "owteams.pattern.brush_size":         "Taille du pinceau",
+  "owteams.paint.clear":        "Effacer",
+  "owteams.pattern.paint.hint":         "Cliquez pour peindre, clic droit pour effacer",
+  "owteams.paint.brush.round": "Rond",
+  "owteams.paint.brush.square": "Carré",
+  "owteams.paint.brush.diamond": "Diamant"
 }

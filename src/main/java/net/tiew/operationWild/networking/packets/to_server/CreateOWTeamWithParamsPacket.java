@@ -28,7 +28,8 @@ public record CreateOWTeamWithParamsPacket(
         String teamName,
         int primaryColor,
         int secondaryColor,
-        int mosaicPatternId
+        int mosaicPatternId,
+        byte[] paintPixels
 ) implements CustomPacketPayload {
 
     public static final Type<CreateOWTeamWithParamsPacket> TYPE = new Type<>(
@@ -42,14 +43,22 @@ public record CreateOWTeamWithParamsPacket(
                         ByteBufCodecs.INT.encode(buf, p.primaryColor());
                         ByteBufCodecs.INT.encode(buf, p.secondaryColor());
                         ByteBufCodecs.INT.encode(buf, p.mosaicPatternId());
+                        ByteBufCodecs.INT.encode(buf, p.paintPixels().length);
+                        for (byte b : p.paintPixels()) buf.writeByte(b);
                     },
-                    buf -> new CreateOWTeamWithParamsPacket(
-                            ByteBufCodecs.INT.decode(buf),
-                            ByteBufCodecs.STRING_UTF8.decode(buf),
-                            ByteBufCodecs.INT.decode(buf),
-                            ByteBufCodecs.INT.decode(buf),
-                            ByteBufCodecs.INT.decode(buf)
-                    )
+                    buf -> {
+                        int entityId = ByteBufCodecs.INT.decode(buf);
+                        String teamName = ByteBufCodecs.STRING_UTF8.decode(buf);
+                        int primaryColor = ByteBufCodecs.INT.decode(buf);
+                        int secondaryColor = ByteBufCodecs.INT.decode(buf);
+                        int mosaicPatternId = ByteBufCodecs.INT.decode(buf);
+                        int len = ByteBufCodecs.INT.decode(buf);
+                        byte[] pixels = new byte[len];
+                        for (int i = 0; i < len; i++) pixels[i] = buf.readByte();
+                        return new CreateOWTeamWithParamsPacket(
+                                entityId, teamName, primaryColor, secondaryColor, mosaicPatternId, pixels
+                        );
+                    }
             );
 
     @Override
@@ -71,6 +80,11 @@ public record CreateOWTeamWithParamsPacket(
                     ? "Nouvelle Tribu"
                     : packet.teamName().trim();
 
+            boolean[] paintPixels = OWTeamMosaicPattern.unpackPixels(
+                    packet.paintPixels(),
+                    OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT
+            );
+
             OWTeam team = new OWTeam(
                     (int)(System.currentTimeMillis() & 0x7FFFFFFF),
                     name,
@@ -82,7 +96,8 @@ public record CreateOWTeamWithParamsPacket(
                     new OWEntity[]{ owEntity },
                     LocalDate.now().toString(),
                     new ArrayList<>(List.of(ownerName)),
-                    new ArrayList<>(List.of(entityDisplayName))
+                    new ArrayList<>(List.of(entityDisplayName)),
+                    paintPixels
             );
             owEntity.currentTeam = team;
 
@@ -97,7 +112,8 @@ public record CreateOWTeamWithParamsPacket(
                         team.getTeamMosaicPattern().getId(),
                         team.getTeamCreationDate(),
                         team.getPlayerNames(),
-                        team.getEntityNames()
+                        team.getEntityNames(),
+                        OWTeamMosaicPattern.packPixels(team.getPaintPixels())
                 ), player);
             }
         });

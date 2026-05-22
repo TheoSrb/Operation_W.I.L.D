@@ -61,15 +61,20 @@ public record CreateOWTeamPacket(int entityId) implements CustomPacketPayload {
 
             for (ServerPlayer player : serverLevel.players()) {
                 OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
-                        owEntity.getId(), team.getTeamId(), team.getTeamName(),
+                        owEntity.getId(),
+                        team.getTeamId(),
+                        team.getTeamName(),
                         team.getTeamOwnerUUID().toString(),
                         team.getTeamColor(),
-                        team.getTeamSecondaryColor(),                    // ← nouveau
-                        team.getTeamMosaicPattern().getId(),             // ← nouveau
+                        team.getTeamSecondaryColor(),
+                        team.getTeamMosaicPattern().getId(),
                         team.getTeamCreationDate(),
-                        team.getPlayerNames(), team.getEntityNames()
+                        team.getPlayerNames(),
+                        team.getEntityNames(),
+                        OWTeamMosaicPattern.packPixels(team.getPaintPixels())
                 ), player);
             }
+
         });
     }
 }

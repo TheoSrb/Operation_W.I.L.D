@@ -408,7 +408,8 @@ public class OWTeamsInterface extends Screen {
 
         // ── Drapeau ──────────────────────────────────────────────────────────
         if (team != null) {
-            renderFlagWithPattern(g, team.getTeamColor(), team.getTeamSecondaryColor(), team.getTeamMosaicPattern());
+            renderFlagWithPattern(g, team.getTeamColor(), team.getTeamSecondaryColor(),
+                    team.getTeamMosaicPattern(), team.getPaintPixels());
         } else {
             setElementColor(0xFFFFFF);
             g.blit(OW_TEAMS_LOCATION, leftPos + ELEMENT_X, topPos + ELEMENT_Y,
@@ -870,7 +871,7 @@ public class OWTeamsInterface extends Screen {
     }
 
     private void renderFlagWithPattern(GuiGraphics g, int primary, int secondary,
-                                       OWTeamMosaicPattern pattern) {
+                                       OWTeamMosaicPattern pattern, boolean[] paintPixels) {
         int fx = leftPos + ELEMENT_X;
         int fy = topPos + ELEMENT_Y;
         switch (pattern) {
@@ -887,7 +888,6 @@ public class OWTeamsInterface extends Screen {
                 renderFlagRect(g, fx + half, fy, ELEMENT_U + half, ELEMENT_V, ELEMENT_WIDTH - half, ELEMENT_HEIGHT, secondary);
             }
             case DIAGONAL_TL_BR -> renderFlagDiagonal(g, fx, fy, primary, secondary, false);
-            case DIAGONAL_TR_BL -> renderFlagDiagonal(g, fx, fy, primary, secondary, true);
             case THIRDS_H -> {
                 int t1 = ELEMENT_HEIGHT / 3;
                 int t2 = ELEMENT_HEIGHT * 2 / 3;
@@ -939,8 +939,36 @@ public class OWTeamsInterface extends Screen {
                     if (x2 < ELEMENT_WIDTH) renderFlagRect(g, fx + x2, fy + row, ELEMENT_U + x2, ELEMENT_V + row, ELEMENT_WIDTH - x2, 1, primary);
                 }
             }
+            case CUSTOM_PAINT -> {
+                if (paintPixels != null && paintPixels.length > 0) {
+                    renderFlagCustomPaint(g, fx, fy, primary, secondary, paintPixels);
+                } else {
+                    renderFlagRect(g, fx, fy, ELEMENT_U, ELEMENT_V, ELEMENT_WIDTH, ELEMENT_HEIGHT, primary);
+                }
+            }
         }
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+    }
+
+    private void renderFlagCustomPaint(GuiGraphics g, int fx, int fy,
+                                       int primary, int secondary, boolean[] pixels) {
+        final int PX_W = 55, PX_H = 93; // dimensions d'encodage de OWTeamCreationScreen
+        for (int py = 0; py < PX_H; py++) {
+            int     startPx = 0;
+            boolean curSec  = pixels[py * PX_W];
+            for (int px = 1; px <= PX_W; px++) {
+                boolean nextSec = (px < PX_W) && pixels[py * PX_W + px];
+                if (px == PX_W || nextSec != curSec) {
+                    renderFlagRect(g,
+                            fx + startPx, fy + py,
+                            ELEMENT_U + startPx, ELEMENT_V + py,
+                            px - startPx, 1,
+                            curSec ? secondary : primary);
+                    startPx = px;
+                    curSec  = nextSec;
+                }
+            }
+        }
     }
 
     private void renderFlagGradientY(GuiGraphics g, int fx, int fy, int topColor, int botColor) {

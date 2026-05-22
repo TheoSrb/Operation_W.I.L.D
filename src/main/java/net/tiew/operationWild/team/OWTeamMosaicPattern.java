@@ -7,13 +7,13 @@ public enum OWTeamMosaicPattern {
     SPLIT_H         (4,  "owteams.pattern.split_h"),
     SPLIT_V         (5,  "owteams.pattern.split_v"),
     DIAGONAL_TL_BR  (6,  "owteams.pattern.diagonal_tl_br"),
-    DIAGONAL_TR_BL  (7,  "owteams.pattern.diagonal_tr_bl"),
-    THIRDS_H        (8,  "owteams.pattern.thirds_h"),
-    THIRDS_V        (9,  "owteams.pattern.thirds_v"),
-    CIRCLE_PRI      (10, "owteams.pattern.circle_pri"),
-    STRIPES         (11, "owteams.pattern.stripes"),
-    CHECKER         (12, "owteams.pattern.checker"),
-    DIAMOND         (13, "owteams.pattern.diamond");
+    THIRDS_H        (7,  "owteams.pattern.thirds_h"),
+    THIRDS_V        (8,  "owteams.pattern.thirds_v"),
+    CIRCLE_PRI      (9, "owteams.pattern.circle_pri"),
+    STRIPES         (10, "owteams.pattern.stripes"),
+    CHECKER         (11, "owteams.pattern.checker"),
+    DIAMOND         (12, "owteams.pattern.diamond"),
+    CUSTOM_PAINT    (13, "owteams.pattern.custom_paint");
 
     private final int    id;
     private final String translationKey;
@@ -31,5 +31,30 @@ public enum OWTeamMosaicPattern {
             if (p.id == id) return p;
         }
         return GRADIENT_DOWN;
+    }
+
+    public static final int CUSTOM_PAINT_PIXEL_COUNT = 55 * 93; // 5115 — dimensions réelles du canvas
+
+    // ── Utilitaires pixel pour CUSTOM_PAINT ──────────────────────────────────
+
+    /** Compacte un tableau boolean[] en byte[] (8 pixels par octet). */
+    public static byte[] packPixels(boolean[] pixels) {
+        if (pixels == null || pixels.length == 0) return new byte[0]; // ← garde null
+        byte[] packed = new byte[(pixels.length + 7) / 8];
+        for (int i = 0; i < pixels.length; i++) {
+            if (pixels[i]) packed[i >> 3] |= (byte) (1 << (i & 7));
+        }
+        return packed;
+    }
+
+    /** Décompacte un byte[] en boolean[] de longueur `count`. */
+    public static boolean[] unpackPixels(byte[] packed, int count) {
+        boolean[] pixels = new boolean[count];
+        if (packed == null || packed.length == 0) return pixels;
+        int limit = Math.min(count, packed.length * 8); // ← borne de sécurité
+        for (int i = 0; i < limit; i++) {
+            pixels[i] = (packed[i >> 3] & (1 << (i & 7))) != 0;
+        }
+        return pixels;
     }
 }

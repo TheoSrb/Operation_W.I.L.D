@@ -22,7 +22,8 @@ public record SyncOWTeamPacket(
         int entityId, int teamId, String teamName, String ownerUUID,
         int teamColor, int teamSecondaryColor, int mosaicPatternId,
         String creationDate,
-        List<String> playerNames, List<String> entityNames
+        List<String> playerNames, List<String> entityNames,
+        byte[] paintPixels   // ← NOUVEAU : pixel data pour CUSTOM_PAINT (vide si autre pattern)
 ) implements CustomPacketPayload {
 
     public static final Type<SyncOWTeamPacket> TYPE = new Type<>(
@@ -35,36 +36,47 @@ public record SyncOWTeamPacket(
                 ByteBufCodecs.STRING_UTF8.encode(buf, p.teamName());
                 ByteBufCodecs.STRING_UTF8.encode(buf, p.ownerUUID());
                 ByteBufCodecs.INT.encode(buf, p.teamColor());
-                ByteBufCodecs.INT.encode(buf, p.teamSecondaryColor());   // ← nouveau
-                ByteBufCodecs.INT.encode(buf, p.mosaicPatternId());      // ← nouveau
+                ByteBufCodecs.INT.encode(buf, p.teamSecondaryColor());
+                ByteBufCodecs.INT.encode(buf, p.mosaicPatternId());
                 ByteBufCodecs.STRING_UTF8.encode(buf, p.creationDate());
                 ByteBufCodecs.INT.encode(buf, p.playerNames().size());
                 for (String s : p.playerNames()) ByteBufCodecs.STRING_UTF8.encode(buf, s);
                 ByteBufCodecs.INT.encode(buf, p.entityNames().size());
                 for (String s : p.entityNames()) ByteBufCodecs.STRING_UTF8.encode(buf, s);
+                // Pixel data (compact : ~651 octets max pour 56×93 pixels)
+                byte[] px = p.paintPixels() != null ? p.paintPixels() : new byte[0];
+                ByteBufCodecs.INT.encode(buf, px.length);
+                for (byte b : px) buf.writeByte(b);
             },
             buf -> {
-                int    entityId        = ByteBufCodecs.INT.decode(buf);
-                int    teamId          = ByteBufCodecs.INT.decode(buf);
-                String name            = ByteBufCodecs.STRING_UTF8.decode(buf);
-                String owner           = ByteBufCodecs.STRING_UTF8.decode(buf);
-                int    color           = ByteBufCodecs.INT.decode(buf);
-                int    secondaryColor  = ByteBufCodecs.INT.decode(buf);   // ← nouveau
-                int    patternId       = ByteBufCodecs.INT.decode(buf);   // ← nouveau
-                String date            = ByteBufCodecs.STRING_UTF8.decode(buf);
-                int    pc = ByteBufCodecs.INT.decode(buf);
+                int entityId = ByteBufCodecs.INT.decode(buf);
+                int teamId = ByteBufCodecs.INT.decode(buf);
+                String name = ByteBufCodecs.STRING_UTF8.decode(buf);
+                String owner = ByteBufCodecs.STRING_UTF8.decode(buf);
+                int color = ByteBufCodecs.INT.decode(buf);
+                int secondaryColor = ByteBufCodecs.INT.decode(buf);
+                int patternId = ByteBufCodecs.INT.decode(buf);
+                String date = ByteBufCodecs.STRING_UTF8.decode(buf);
+                int pc = ByteBufCodecs.INT.decode(buf);
                 List<String> playerNames = new ArrayList<>(pc);
                 for (int i = 0; i < pc; i++) playerNames.add(ByteBufCodecs.STRING_UTF8.decode(buf));
-                int    ec = ByteBufCodecs.INT.decode(buf);
+                int ec = ByteBufCodecs.INT.decode(buf);
                 List<String> entityNames = new ArrayList<>(ec);
                 for (int i = 0; i < ec; i++) entityNames.add(ByteBufCodecs.STRING_UTF8.decode(buf));
+                // Pixel data
+                int pxLen = ByteBufCodecs.INT.decode(buf);
+                byte[] paintPixels = new byte[pxLen];
+                for (int i = 0; i < pxLen; i++) paintPixels[i] = buf.readByte();
                 return new SyncOWTeamPacket(entityId, teamId, name, owner,
-                        color, secondaryColor, patternId, date, playerNames, entityNames);
+                        color, secondaryColor, patternId, date,
+                        playerNames, entityNames, paintPixels);
             }
     );
 
     @Override
-    public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
     public static void handle(SyncOWTeamPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
@@ -72,15 +84,27 @@ public record SyncOWTeamPacket(
             if (level == null) return;
             Entity entity = level.getEntity(packet.entityId());
             if (entity instanceof OWEntity owEntity) {
+                OWTeamMosaicPattern pattern = OWTeamMosaicPattern.byId(packet.mosaicPatternId());
+
+                // Décompacter les pixels si le pattern est CUSTOM_PAINT
+                boolean[] pixels = null;
+                if (pattern == OWTeamMosaicPattern.CUSTOM_PAINT
+                        && packet.paintPixels() != null
+                        && packet.paintPixels().length > 0) {
+                    pixels = OWTeamMosaicPattern.unpackPixels(
+                            packet.paintPixels(), 56 * 93);
+                }
+
                 owEntity.currentTeam = new OWTeam(
                         packet.teamId(), packet.teamName(),
                         UUID.fromString(packet.ownerUUID()),
                         packet.teamColor(),
                         packet.teamSecondaryColor(),
-                        OWTeamMosaicPattern.byId(packet.mosaicPatternId()),
+                        pattern,
                         new UUID[]{}, new OWEntity[]{},
                         packet.creationDate(),
-                        packet.playerNames(), packet.entityNames()
+                        packet.playerNames(), packet.entityNames(),
+                        pixels   // ← nouveau paramètre OWTeam (voir OWTeam.java)
                 );
             }
         });

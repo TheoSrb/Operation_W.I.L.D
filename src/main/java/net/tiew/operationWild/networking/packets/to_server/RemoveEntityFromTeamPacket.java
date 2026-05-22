@@ -17,6 +17,7 @@ import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_client.ClearOWTeamPacket;
 import net.tiew.operationWild.networking.packets.to_client.SyncOWTeamPacket;
 import net.tiew.operationWild.team.OWTeam;
+import net.tiew.operationWild.team.OWTeamMosaicPattern;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,9 +105,11 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
                             team.getTeamMosaicPattern().getId(),
                             team.getTeamCreationDate(),
                             team.getPlayerNames(),
-                            team.getEntityNames()
+                            team.getEntityNames(),
+                            OWTeamMosaicPattern.packPixels(team.getPaintPixels())
                     ), player);
                 }
+
             }
         });
     }
