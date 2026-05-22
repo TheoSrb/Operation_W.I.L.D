@@ -47,4 +47,6 @@ public class OWDataComponentTypes {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Item>>> SADDLE_WOOLS = register("saddle_wools", builder -> builder.persistent(Codec.list(BuiltInRegistries.ITEM.byNameCodec())).networkSynchronized(ByteBufCodecs.collection(ArrayList::new, ByteBufCodecs.registry(Registries.ITEM))));
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> PLATINUM_RANDOM_ATTRIBUTES = register("platinum_random_attributes", builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<SyringeData>> SYRINGE_DATA = register("syringe_data", builder -> builder.persistent(SyringeData.CODEC));
 }

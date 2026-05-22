@@ -30,6 +30,9 @@ public class OWItems {
 
     public static final DeferredHolder<Item, Item> MANUSCRIPT_FRAGMENT = ITEMS.register("manuscript_fragment", () -> new ManuscriptFragmentItem(new Item.Properties().stacksTo(1)));
 
+    public static final DeferredHolder<Item, Item> EMPTY_SYRINGE = ITEMS.register("empty_syringe", () -> new SyringeItem(new Item.Properties().stacksTo(16)));
+    public static final DeferredHolder<Item, Item> BLOODY_SYRINGE = ITEMS.register("bloody_syringe", () -> new BloodyShyringeItem(new Item.Properties().stacksTo(1)));
+
 
     public static final DeferredHolder<Item, Item> MEDAL_0 = ITEMS.register("medal_0", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> MEDAL_1 = ITEMS.register("medal_1", () -> new Item(new Item.Properties()));

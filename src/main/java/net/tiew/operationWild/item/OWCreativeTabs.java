@@ -93,6 +93,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.RAW_TIGER.get());
                         output.accept(OWItems.COOKED_TIGER.get());
                         output.accept(OWItems.SAVAGE_BERRIES.get());
+                        output.accept(OWItems.EMPTY_SYRINGE.get());
                         output.accept(OWItems.BATTERY.get());
                         output.accept(OWItems.SEABUG.get());
                         output.accept(OWItems.SEABUG_COCKPIT.get());

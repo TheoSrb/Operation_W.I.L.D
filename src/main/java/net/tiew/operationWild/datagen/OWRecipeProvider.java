@@ -25,6 +25,14 @@ public class OWRecipeProvider extends RecipeProvider implements IConditionBuilde
 
     @Override
     protected void buildRecipes(RecipeOutput recipeOutput) {
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.EMPTY_SYRINGE.get(), 2)
+                .pattern("  I")
+                .pattern(" G ")
+                .pattern("I  ")
+                .define('I', Items.IRON_INGOT)
+                .define('G', Blocks.GLASS)
+                .unlockedBy(getHasName(Items.IRON_INGOT), has(Items.GLASS)).save(recipeOutput);
+
         ShapedRecipeBuilder.shaped(RecipeCategory.MISC, OWItems.CAMOUFLAGE_HELMET.get())
                 .pattern("LLL")
                 .pattern("T T")

@@ -13,7 +13,9 @@
       "Bash(findstr /s /n \"RegisterMenuScreensEvent\\\\|OWInventoryScreen\" .)",
       "Read(//c/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/**)",
       "Bash(./gradlew compileJava)",
-      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\data\\\\ow\\\\worldgen\" -Recurse | ForEach-Object { $_.FullName })"
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\data\\\\ow\\\\worldgen\" -Recurse | ForEach-Object { $_.FullName })",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\" -Recurse -Directory)",
+      "Bash(Sort-Object FullName)"
     ]
   }
 }

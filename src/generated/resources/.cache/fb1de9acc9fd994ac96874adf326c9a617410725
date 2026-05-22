@@ -1,7 +1,8 @@
-// 1.21	2026-05-11T08:25:40.7668926	Item Models: ow
+// 1.21	2026-05-22T19:38:18.3210458	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
+a9c13ea75651eca2d72ea382a65a8c81cf3eb50f assets/ow/models/item/bloody_syringe.json
 b0d713a4fcaeee3e3f8c82f5ae5b8d42ccfcf53e assets/ow/models/item/boa_saddle.json
 df830b15e454d59f16cd74758c6de75119214acc assets/ow/models/item/boa_tong.json
 12a3bdd4067f7f853e2635c77fcb868f14ba580a assets/ow/models/item/camellia.json
@@ -57,6 +58,7 @@ adcbfb5ceaa0d9a0a15bae4f5e815587d9060969 assets/ow/models/item/cooked_boa.json
 1184f114f6e7dd71c8d373c687162b35754da065 assets/ow/models/item/crocodile_scale.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/crocodile_spawn_egg.json
 6acfec09b74bbd111ce7893a2ce3a2783baf44f8 assets/ow/models/item/elephant_saddle.json
+8a2e89662a3bdba5a446db64684da0dcb959f138 assets/ow/models/item/empty_syringe.json
 b69eeee753a6359c8db1bbfa417adb15e820c348 assets/ow/models/item/jade.json
 87aca1381e079a50f6f081841c74981e7a073ec1 assets/ow/models/item/jade_axe.json
 fbdb90272bf022892c9cac11da66272abae6ad1e assets/ow/models/item/jade_boots.json

@@ -426,6 +426,13 @@
 
   "item.ow.manuscript_fragment": "Manuscript Fragment",
 
+  "item.ow.empty_syringe": "Empty Syringe",
+  "item.ow.bloody_syringe": "Blood Syringe",
+
+  "syringe.success": "Sample collected.",
+  "syringe.failure": "The syringe broke during the attempt.",
+  "tooltip.syringe.blood": "DNA of %s",
+
   "item.ow.lavender_bouquet": "Lavender Bouquet",
 
   "item.ow.battery": "Battery",

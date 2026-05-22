@@ -1,4 +1,4 @@
-// 1.21	2025-10-30T20:11:25.3052882	Recipes
+// 1.21	2026-05-22T19:46:51.7541431	Recipes
 f33c002f0f4ef1baa4167f73e99e52613a4136f5 data/minecraft/advancement/recipes/misc/pink_dye.json
 e3f3a0b671388d6abdeedaefe2fd558cd9d00dac data/minecraft/recipe/pink_dye.json
 aab17de6a0d54f51ff73a206f2dceb5e0346f117 data/ow/advancement/recipes/building_blocks/redwood_slab.json
@@ -25,6 +25,7 @@ c35233148b97fd5afb582d6a95e18d4a6c355980 data/ow/advancement/recipes/misc/camouf
 ea519db6d7d830c638c4bccbd4ef9e53cdfec1c2 data/ow/advancement/recipes/misc/camouflage_leggings.json
 8aebb1e0d65e6098e57d7412e9cd20f663020560 data/ow/advancement/recipes/misc/cherry_planks_from_scarified_log.json
 5a3958dff1df00df3dc080bb342b918254e33f33 data/ow/advancement/recipes/misc/dark_oak_planks_from_scarified_log.json
+f68bb52431e92c9f15f319e96594077c85cc9e60 data/ow/advancement/recipes/misc/empty_syringe.json
 0350661fdd39d0cd39f5f756c6527d20c276ed02 data/ow/advancement/recipes/misc/jade_axe.json
 4c779c6cc1293f7b995a648923e9830c8cd6482e data/ow/advancement/recipes/misc/jade_boots.json
 ed5d15ec5663b66106c71ebdae63439f6ad57055 data/ow/advancement/recipes/misc/jade_chestplate.json
@@ -82,6 +83,7 @@ d561c18f21fb339a0a9a5cc3c0f34c7cd929af74 data/ow/recipe/cooked_peacock_from_camp
 791308b4d10cbf87f0da21396e3437511d10a92a data/ow/recipe/cooked_tiger_from_smelting.json
 18bab1536eb93129c0797e776ad108484749b077 data/ow/recipe/cooked_tiger_from_smoking.json
 d6792df4dd6ce6df91579320d04c6a80c4175603 data/ow/recipe/dark_oak_planks_from_scarified_log.json
+e7c7a59513b2a20ebc941b944265a2379af6b550 data/ow/recipe/empty_syringe.json
 ae2580b8d27df834b2dea632dd1a29746c05a688 data/ow/recipe/jade_axe.json
 52809b6806bcba787df039498a271bcbd5909565 data/ow/recipe/jade_boots.json
 37bb75ae728528288fc819aea88e4c8601299165 data/ow/recipe/jade_chestplate.json

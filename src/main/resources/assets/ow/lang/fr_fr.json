@@ -8,27 +8,20 @@
   "forceTameCommandSuccess": "Apprivoisement de %s.",
   "forceTameCommandTooFar": "L'entité ciblée est trop loin, rapprochez-vous.",
   "forceTameCommandNoTarget": "Veuillez viser une entité pour l'apprivoiser.",
-
   "config.ow.camera_shake_intensity": "Intensité Caméra",
-
   "biome.ow.redwood_forest": "Forêt de séquoias",
   "biome.ow.mine_field": "Champ de Mines",
-
   "key.ow.ultimate_key": "Capacité ultime de la monture",
   "key.ow.attacks_info_key": "Informations d'attaques de la monture",
   "key.ow.entity_journal_key": "Ouvrir le journal d'entité",
   "key.categories.operationwild": "Operation Wild",
   "key.pet.inventory_key": "Inventaire de la monture",
-
   "tooltip.entity": "Entités",
-
   "death.attack.water_pressure": "%s a été écrasé(e) par la pression des eaux profondes",
   "death.attack.water_pressure2": "La pression de l’eau a transformé %s en pancake",
   "death.attack.electrified": "%s a été électrocuté par une %s",
   "death.attack.electrified2": "%s est mort en voulant jouer avec l'électricité",
-
   "tooHighPressure": "! Pression trop élevée, remontez vite !",
-
   "ow.advancements.ow.title": "Operation W.I.L.D",
   "ow.advancements.ow.description": "Tous les animaux ne sont pas ce qu’ils semblent être…",
   "ow.advancements.ow_taming.title": "Operation W.I.L.D - Domptage",
@@ -49,8 +42,6 @@
   "ow.advancements.predatory_smile.description": "Vous avez apprivoisé un Crocodile !",
   "ow.advancements.deep_shadow.title": "L'Ombre des Profondeurs",
   "ow.advancements.deep_shadow.description": "Vous avez apprivoisé une Orque !",
-
-
   "ow.advancements.you_see_me.title": "On me voit, on me voit plus",
   "ow.advancements.you_see_me.description": "Vous avez fabriqué une armure de camouflage complète.",
   "ow.advancements.good_night.title": "Bonne nuit les petits",
@@ -71,8 +62,6 @@
   "ow.advancements.captain.description": "Vous avez fabriqué un SeaBug.",
   "ow.advancements.nice_book.title": "Un carnet bien rempli.",
   "ow.advancements.nice_book.description": "Vous avez apprivoisé toutes les créatures d'Opération W.I.L.D.",
-
-
   "tooltip.notebook": "Carnet de l'aventurier",
   "tooltip.noDiscovered": "Pas encore découvert",
   "tooltip.newEntity": "Le chapitre %s a été ajouté à votre Manuscrit",
@@ -88,7 +77,6 @@
   "tooltip.orderBy": "Trier par:",
   "tooltip.name": "Nom",
   "tooltip.tamingExperience": "Expérience",
-
   "tooltip.stop_health": "Vous avez déjà atteint le plafond de santé de votre entité.",
   "tooltip.stop_damage": "Vous avez déjà atteint le plafond de dégâts de votre entité.",
   "tooltip.stop_speed": "Vous avez déjà atteint le plafond de vitesse de votre entité.",
@@ -106,7 +94,6 @@
   "tooltip.resurrection": "Résurrection en cours...",
   "tooltip.resurrection_failed": "La tentative de résurrection de votre %s a échoué.",
   "lionClan": "Clan: ",
-
   "tooltip.mobTypesTank": "§lType§r §b§lTank§r : Réduction des dégâts de mêlée subis.",
   "tooltip.mobTypesAssassin": "§lType§r §4§lAssassin§r : Peut infliger un coup critique causant plus de dégâts.",
   "tooltip.mobTypesMarauder": "§lType§r §5§lMaraudeur§r : Augmente la vitesse de déplacement en combat.",
@@ -114,7 +101,6 @@
   "tooltip.mobTypesBerserker": "§lType§r §6§lBerserker§r : Frappe plus vite et plus fort en cas de blessure.",
   "tooltip.mobTypesScout": "§lType§r §e§lÉclaireur§r : Récupère toute son énergie vitale après chaque élimination.",
   "tooltip.mobTypesNormal": "§lType§r §f§lNormal§r",
-
   "effect.ow.camouflage": "Camouflage",
   "effect.ow.venom": "Venin",
   "effect.ow.fear": "Peur primitive",
@@ -122,12 +108,9 @@
   "effect.ow.bleeding": "Saignement",
   "effect.ow.occupied_territory": "Territoire occupé",
   "effect.ow.fracture": "Fracture",
-
   "tooltip.fearStarted": "Votre entité est effrayée et hors de contrôle",
-
   "tooltip.enteringKodiakTerritory": "Vous entrez dans le territoire d'un Kodiak",
-
-  "tooltip.xp" : " EXP",
+  "tooltip.xp": " EXP",
   "tooltip.entitySpeed": " blocs/s",
   "tooltip.HP": " PV",
   "tooltip.genderMale": "Mâle",
@@ -141,7 +124,6 @@
   "tooltip.options": "Options",
   "tooltip.team": "Tribus",
   "tooltip.inventory": "Inventaire",
-
   "option.screenTitle": "Options de l'entité",
   "option.rename": "Renommer",
   "option.rename.desc": "Changer le nom de votre entité",
@@ -165,19 +147,15 @@
   "tooltip.delayBeforeBabyTask": "%s",
   "option.waypoint": "Marquage",
   "option.waypoint.desc": "Affiche un indicateur de position dans votre HUD quand l'entité est loin de vous.",
-
   "tooltip.currentSkin": "Skin équipé",
   "tooltip.skinPreview": "Aperçu",
-
   "tooltip.equipSkin": "Équiper",
   "tooltip.buySkin": "Débloquer",
   "tooltip.skinObtention": "Obtention :",
-
   "tooltip.skinUnlockFree": "Disponible par défaut",
   "tooltip.skinUnlockLevel": "Niveau %s requis",
   "tooltip.skinUnlockPrestige": "Échange de %s points de prestige",
   "tooltip.skinUnlockQuest": "Quête : %s",
-
   "tooltip.tigerSkin1.desc": "Rendez votre Tigre aussi brillant que l'or !",
   "tooltip.tigerSkin2.desc": "Rendez votre Tigre aussi élégant que le parrain !",
   "tooltip.tigerSkin3.desc": "Rendez votre Tigre aussi dangereux qu'un virus informatique !",
@@ -186,14 +164,10 @@
   "tooltip.tigerSkin6.desc": "Rendez votre Tigre aussi drôle qu'un dessin animé !",
   "tooltip.tigerSkin7.desc": "Rendez votre Tigre aussi bon en cuisine qu'en combat !",
   "tooltip.tigerSkin8.desc": "Rendez votre Tigre par défaut !",
-
   "tooltip.crocodileSkin1.desc": "Rendez votre Crocodile aussi brillant que l'or !",
   "tooltip.crocodileSkin2.desc": "Rendez votre Crocodile aussi sage qu'un dragon chinois !",
   "tooltip.crocodileSkin3.desc": "Rendez votre Crocodile aussi plastifié qu'un jouet !",
   "tooltip.crocodileSkin7.desc": "Rendez votre Crocodile par défaut !",
-
-
-
   "tooltip.tigerSkin1": "Tigre Doré",
   "tooltip.tigerSkin2": "Parrain",
   "tooltip.tigerSkin3": "Virus",
@@ -202,12 +176,10 @@
   "tooltip.tigerSkin6": "Dessin Animé",
   "tooltip.tigerSkin7": "Pizzaiolo",
   "tooltip.tigerSkin8": "Tigre Par Défaut",
-
   "tooltip.crocodileSkin1": "Crocodile Doré",
   "tooltip.crocodileSkin2": "Gardien Vermillon",
   "tooltip.crocodileSkin3": "Jouet",
   "tooltip.crocodileSkin7": "Crocodile Par Défaut",
-
   "tooltip.boaSkin1": "Boa Doré",
   "tooltip.boaSkin2": "Boa Viking",
   "tooltip.boaSkin3": "Boa Mineur",
@@ -215,55 +187,36 @@
   "tooltip.boaSkin5": "Boa Peluche",
   "tooltip.boaSkin6": "Boa Cyborg",
   "tooltip.boaSkin7": "Boa Par Défaut",
-
   "tooltip.peacockSkin1": "Paon Doré",
   "tooltip.peacockSkin2": "Paon Mage",
   "tooltip.peacockSkin7": "Paon Par Défaut",
-
   "tooltip.elephantSkin1": "Éléphant Doré",
   "tooltip.elephantSkin2": "Éléphant Démoniaque",
   "tooltip.elephantSkin3": "Éléphant Zombifié",
   "tooltip.elephantSkin7": "Éléphant Par Défaut",
-
   "tooltip.kodiakSkin1": "Kodiak Doré",
   "tooltip.kodiakSkin2": "Kodiak Os Sombre",
   "tooltip.kodiakSkin3": "Kodiak Spectral",
   "tooltip.kodiakSkin7": "Kodiak Par Défaut",
-
-
-
-
   "tooltip.locked": "Vérouillé",
   "skin.locked.message": "Skin Vérouillé",
   "skin.unlocked.message": "Skin Débloqué",
   "skin.locked.message.prestige": "Vous n'avez pas assez de niveaux de prestige pour débloquer ce skin.",
-
-
   "item.ow.plant_empress_music_disc": "Disque",
   "item.ow.plant_empress_music_disc.desc": "Operation W.I.L.D - Plant Empress Theme",
-
-
-
   "tooltip.tigerSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
   "tooltip.tigerSkin3Indication": "Dévérouillez le skin Tigre Pizzaiolo en échange de %d niveaux de prestige.",
   "tooltip.tigerSkin5Indication": "Dévérouillez le skin Tigre Détective en échange de %d niveaux de prestige.",
   "tooltip.tigerSkin6Indication": "Dévérouillez le skin Tigre Virus en échange de %d niveaux de prestige.",
-
   "tooltip.boaSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
   "tooltip.boaSkin2Indication": "Dévérouillez le skin Boa Viking en échange de %d niveaux de prestige.",
-
   "tooltip.peacockSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
-
   "tooltip.elephantSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
-
   "tooltip.kodiakSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
-
   "tooltip.crocodileSkin1Indication": "Atteignez le niveau 50 pour débloquer ce skin.",
-
   "tooltip.baby": "Bébé",
   "tooltip.juvenile": "Juvénile",
   "tooltip.adolescent": "Adolescent",
-
   "chapter.entity.ow.tiger": "Tigre",
   "chapter.entity.ow.orca": "Orque",
   "chapter.entity.ow.mandrill": "Mandrill",
@@ -282,11 +235,9 @@
   "chapter.entity.ow.plant_empress": "Impératrice Végétale",
   "chapter.entity.ow.boa": "Boa",
   "chapter.entity.ow.peacock": "Paon",
-
   "tooltip.chapter": "Chapitre %s",
   "tooltip.chapterEmpty": "Vide",
   "tooltip.haveEntityChapter": "Vous avez déjà débloqué le chapitre %s",
-
   "tooltip.unknownEntity": "Inconnue",
   "entity.ow.tiger": "Tigre",
   "entity.ow.orca": "Orque",
@@ -334,26 +285,18 @@
   "item.ow.manta_spawn_egg": "Oeuf d'apparition de raie manta",
   "item.ow.kodiak_spawn_egg": "Oeuf d'apparition de kodiak",
   "item.ow.jellyfish_spawn_egg": "Oeuf d'apparition de méduse",
-
   "block.ow.lavender": "Lavande",
   "block.ow.camellia": "Camélia",
-
   "block.ow.marked_mud": "Boue",
-
   "block.ow.jade_ore": "Minerais de jade",
   "block.ow.deepslate_jade_ore": "Minerais de jade des abîmes",
   "block.ow.ruby_ore": "Minerais de rubis",
   "block.ow.deepslate_ruby_ore": "Minerais de rubis des abîmes",
-
   "block.ow.saddler": "Sellier",
-
   "block.ow.peacock_egg": "Oeuf de paon",
-
   "block.ow.bear_trap": "Piège à ours",
-
   "block.ow.teddy_bear": "Ours en peluche",
   "block.ow.animal_carcass": "Carcasse animale",
-
   "block.ow.scarified_oak_log": "Bûche de chêne scarifiée",
   "block.ow.scarified_dark_oak_log": "Bûche de chêne noir scarifiée",
   "block.ow.scarified_spruce_log": "Bûche de sapin scarifiée",
@@ -362,7 +305,6 @@
   "block.ow.scarified_birch_log": "Bûche de bouleau scarifiée",
   "block.ow.scarified_acacia_log": "Bûche d'acacia scarifiée",
   "block.ow.scarified_jungle_log": "Bûche d'acajou scarifiée",
-
   "block.ow.redwood_log": "Bûche de séquoia",
   "block.ow.redwood_wood": "Bois de séquoia",
   "block.ow.stripped_redwood_log": "Bûche de séquoia écorcée",
@@ -378,24 +320,16 @@
   "block.ow.redwood_fence_gate": "Portillon en séquoia",
   "block.ow.redwood_door": "Porte en séquoia",
   "block.ow.redwood_trapdoor": "Trappe en séquoia",
-
   "block.ow.savage_berry_bush": "Buisson de baies sauvages",
-
-
-
   "item.ow.camouflage_helmet": "Casque de Camouflage",
   "item.ow.camouflage_chestplate": "Plastron de Camouflage",
   "item.ow.camouflage_leggings": "Jambières de Camouflage",
   "item.ow.camouflage_boots": "Bottes de Camouflage",
-
   "item.ow.jade_helmet": "Casque en jade",
   "item.ow.jade_chestplate": "Plastron en jade",
   "item.ow.jade_leggings": "Jambières en jade",
   "item.ow.jade_boots": "Bottes en jade",
-
-
   "item.ow.resurrection_amulet": "Amulette de Résurrection",
-
   "item.ow.tiger_fur": "Fourrure de tigre",
   "item.ow.boa_tong": "Langue fourchue",
   "item.ow.predator_tooth": "Dent de prédateur",
@@ -416,57 +350,45 @@
   "item.ow.peacock_saddle": "Selle de paon",
   "item.ow.tiger_shark_saddle": "Selle de requin tigre",
   "item.ow.elephant_saddle": "Selle d'éléphant",
-
   "tooltip.composition": "Composition:",
-
   "tooltip.entityIsTired": "Votre %s est fatigué, patientez un moment.",
-
   "platinum_plated_tooltip_1": "Dégâts bonus: +%s",
   "platinum_plated_tooltip_2": "Dégâts bonus: +%s",
   "platinum_plated_tooltip_3": "Durabilité bonus: +%s",
-
   "item.ow.savage_berries": "Baies sauvages",
-
-
   "item.ow.plant_fiber": "Fibre végétale",
-
   "item.ow.manuscript_fragment": "Fragment de manuscrit",
-
+  "item.ow.empty_syringe": "Seringue Vide",
+  "item.ow.bloody_syringe": "Seringue Ensanglantée",
+  "syringe.success": "Échantillon prélevé.",
+  "syringe.failure": "La seringue s'est brisée durant la tentative.",
+  "tooltip.syringe.blood": "ADN de %s",
   "item.ow.lavender_bouquet": "Bouquet de lavande",
-
   "item.ow.battery": "Batterie",
-
   "item.ow.jade": "Jade",
   "item.ow.ruby": "Rubis",
   "item.ow.platinum_ingot": "Lingot de platine",
-
   "item.ow.primitive_spear": "Lance primitive",
   "item.ow.primitive_slingshot": "Lance-pierre primitif",
   "item.ow.primitive_sickle": "Faucille primitive",
   "item.ow.maya_blowpipe": "Sarbacane de Maya",
   "item.ow.reptilian_dagger": "Dague reptilienne",
-
   "item.ow.seabug_cockpit": "Cockpit de Seabug",
   "item.ow.seabug_hull": "Coque de Seabug",
   "item.ow.seabug_porthole": "Hublot de Seabug",
-
   "item.ow.seabug": "Seabug",
   "seabug.needWater": "Veuillez placer votre SeaBug dans l'eau.",
-
   "item.ow.jade_sword": "Épée en jade",
   "item.ow.jade_pickaxe": "Pioche en jade",
   "item.ow.jade_axe": "Hache en jade",
   "item.ow.jade_shovel": "Pelle en jade",
   "item.ow.jade_hoe": "Houe en jade",
-
   "item.ow.ruby_sword": "Épée en rubis",
   "item.ow.ruby_pickaxe": "Pioche en rubis",
   "item.ow.ruby_axe": "Hache en rubis",
   "item.ow.ruby_shovel": "Pelle en rubis",
   "item.ow.ruby_hoe": "Houe en rubis",
-
   "item.ow.platinum_plated_ruby_sword": "Épée en rubis platinée",
-
   "item.ow.raw_tiger": "Tigre cru",
   "item.ow.cooked_tiger": "Tigre cuit",
   "item.ow.raw_kodiak": "Kodiak cru",
@@ -475,18 +397,14 @@
   "item.ow.cooked_boa": "Boa cuit",
   "item.ow.raw_peacock": "Paon cru",
   "item.ow.cooked_peacock": "Paon cuit",
-
   "imageHealth": "Vie:",
   "imageDamages": "Dégâts:",
   "imageSpeed": "Vitesse:",
   "imageTaming": "Apprivoisement:",
   "sleepingTaming": "Somnolence:",
   "imageMaturation": "Maturation",
-
   "tooltip.grabBy": "!! ATTRAPÉ PAR UN %s !!",
   "tooltip.rightClickAlert": "APPUYEZ RAPIDEMENT SUR CLIC DROIT POUR VOUS DÉBATTRE !",
-
-
   "adventurer_manuscript.entity.tiger.page_1": "Le §l§n§dTigre§r est un §lfélin§r sauvage de taille moyenne, rôdant dans les §lforêts tropicales§r et les §ljungles de bambous§r. Extrêmement agile et territorial, il attaque sans avertissement.",
   "adventurer_manuscript.entity.tiger.page_2": "§l§nI. Saut Bestial: \n\n§r Lorsqu’il repère une cible, le §l§n§dTigre§r effectue un bond précis et puissant, visant à immobiliser et piéger sa proie avec ses griffes acérées.\n\nS’il vous attrape, il vous lacère avec ses",
   "adventurer_manuscript.entity.tiger.page_3": "§lgriffes§r, infligeant des dégâts tout en vous maintenant §lprisonnier§r sous sa force et sa puissance, jusqu’à ce qu’il vous lâche.",
@@ -494,8 +412,6 @@
   "adventurer_manuscript.entity.tiger.page_5": "§l§nIII. Territorial: \n\n§r Le §l§n§dTigre§r griffonne régulièrement les troncs d’arbres dans sa zone de chasse, laissant des traces visibles sur l’écorce. Ces marques servent à signaler sa présence et à dissuader les intrus.",
   "adventurer_manuscript.entity.tiger.page_6": "§l§nIV. Repos: \n\n§r Le §l§n§dTigre§r alterne ses phases d’activité avec des périodes de §lrepos§r, se retirant dans des zones sûres pour récupérer son énergie avant de §lreprendre§r la chasse.",
   "adventurer_manuscript.entity.tiger.page_7": "§l§nAnalyse§r: Prédateur territorial - À absolument éviter.",
-
-
   "adventurer_manuscript.entity.boa.page_1": "Faisant partie des plus grands §lserpents§r existants, le §l§n§dBoa§r, observable dans les §lmarais chauds§r et les §ljungles§r, n'est pas un prédateur à prendre à la légère.",
   "adventurer_manuscript.entity.boa.page_2": "§l§nI. Envenimation: \n\n§r Les crocs du §l§n§dBoa§r sont bien souvent imbibés de §ltoxine§r.\n\n\n\n\n\nCe qui peut §ltroubler la vision§r des entités mordues par",
   "adventurer_manuscript.entity.boa.page_3": "ce dernier. \nUne fois envenimées, les défenses immunitaires des entités atteintes sont §nradicalement§r §lmoins efficaces§r.\n\nÀ ce moment-là, il est préférable d’utiliser un §l§n§dantidote§r pour limiter la §npropagation§r du §lvenin§r.",
@@ -503,8 +419,6 @@
   "adventurer_manuscript.entity.boa.page_5": "§l§nIII. Asphyxie: \n\n§r Le §l§n§dBoa§r n’a pas toujours besoin de mordre. Il peut §ls’enrouler§r autour de sa proie et §lbloquer sa respiration§r en la serrant de toutes ses forces, lui infligeant des dégâts de plus en plus importants au fil",
   "adventurer_manuscript.entity.boa.page_6": "du temps, infligeant de §llourds dégâts§r. \n\n§l§nIV. Mue: \n\n§r Quand l'heure est venue, le §l§n§dBoa§r se met à §nmuer§r, laissant son §lancienne peau§r sur le sol, qui peut être §nramassée§r.",
   "adventurer_manuscript.entity.boa.page_7": "§l§nAnalyse§r: Prédateur puissant, silencieux et imprévisible, redoutable à portée mais moins coriace à distance - à éviter.",
-
-
   "adventurer_manuscript.entity.kodiak.page_1": "Bien souvent méconnu, le §l§n§dKodiak§r est l’une des races §ld’ours§r les plus §npuissantes§r et §nimposantes§r que l’on peut croiser, notamment dans les §lforêts de séquoias§r et dans leurs §ltanières§r.",
   "adventurer_manuscript.entity.kodiak.page_2": "§l§nI. Gloutonnerie: \n\n§r Le §l§n§dKodiak§r est un ours §nglouton§r, obsédé par la nourriture. Rien ne lui échappe. Il peut §lfouiller§r dans vos coffres pour voler de la nourriture, ravager vos §lcultures§r en quelques secondes, s’approcher des",
   "adventurer_manuscript.entity.kodiak.page_3": "§nfeux de camp§r pour récupérer la §lnourriture§r qui cuit dessus, et même ramasser tout ce qui §ltraîne§r au sol. \n\n§l§nII. Pêcheur: \n\n§r Le §l§n§dKodiak§r excelle aussi dans l’art de la §npêche§r. Une fois plongé dans l’eau, il",
@@ -512,48 +426,38 @@
   "adventurer_manuscript.entity.kodiak.page_5": "§l§nIII. Tranquillité: \n\n§r Le §l§n§dKodiak§r n’est pas toujours une bête §lféroce§r. La plupart du temps, il reste §ncalme§r. On peut le voir §ldormir§r de longues heures, faire des §lroulades§r dans l’herbe, se §lgratter§r paresseusement contre les §ntroncs§r",
   "adventurer_manuscript.entity.kodiak.page_6": "§nd’arbres§r ou encore §ls’asseoir§r simplement pour §nobserver son environnement§r.\n\n\n§l§nIV. Alliance: \n\n§r Le §l§n§dKodiak§r vit en paix avec les §labeilles§r, défend leurs ruches si on",
   "adventurer_manuscript.entity.kodiak.page_7": "les attaque et prend parfois leur §lmiel§r.\n\n §l§nAnalyse§r: Gros mangeur, paisible si on ne l’ennuie pas mais redoutable une fois provoqué.",
-
-
   "adventurer_manuscript.entity.crocodile.page_1": "Ayant l’une des mâchoires les plus puissantes jamais répertoriées, le §l§n§dCrocodile§r est un prédateur §nrusé et patient§r, rôdant dans les §lzones§r §lmarécageuses§r à proximité des §nsources d’eau§r.",
   "adventurer_manuscript.entity.crocodile.page_2": "§l§nI. Carcasses: \n\n§r Une fois sa proie dévorée, le §l§n§dCrocodile§r laisse parfois derrière lui la §ncarcasse§r squelettique de son repas. Celle-ci peut être §lextraite§r à l’aide d’une pioche pour en récupérer les os.",
   "adventurer_manuscript.entity.crocodile.page_3": "§l§nII. Death Roll: \n\n§r Le §l§n§dCrocodile§r peut attraper ses proies aussi bien sur §lterre§r que dans §ll’eau§r. Lorsqu’il agrippe une victime à terre, il la §ltire§r aussitôt dans l’eau pour l’y §nmaintenir§r sous son emprise.",
   "adventurer_manuscript.entity.crocodile.page_4": "Dans l’eau, il exécute sa redoutable §lDeath Roll§r, une rotation rapide et dévastatrice qui §ldéchire§r la chair de sa proie tout en la désorientant, rendant la fuite §nimpossible§r.",
   "adventurer_manuscript.entity.crocodile.page_5": "§l§nIII. Gueule Béante: \n\n§r Lorsqu’il repère une cible, le §l§n§dCrocodile§r peut ouvrir §llentement§r sa gueule et s’avancer §nprudemment§r vers elle, prêt à attaquer. S’il parvient à mordre, la victime subit l’effet",
   "adventurer_manuscript.entity.crocodile.page_6": "§lFracture§r, l’empêchant de §lcourir§r ou §ld’attaquer§r correctement, tandis que le §l§n§dCrocodile§r devient §nplus rapide§r à ses trousses.",
-
-
   "boa.page1": "Le §lBoa§r est un prédateur silencieux se faufilant dans les §lzones§r §lhumides§r et denses attendant impatiemment sa proie.",
   "boa.page2": "Sa morsure, rapide et précise, peut inoculer à la fois §lVenin§r et §lPoison§r, affaiblissant ses victimes en quelques instants.",
   "boa.page3": "Mais le danger ne s’arrête pas là, le §lBoa§r peut également §ls’enrouler§r autour de sa proie avec une force implacable, l’étouffant lentement, jusqu’à §ll’asphyxie§r.",
   "boa.page4": "§l§nAnalyse§r: Animal traître — redoutable pour les aventuriers imprudents, mais moins menaçant pour les explorateurs aguerris.",
-
   "peacock.page1": "Le §lPaon§r est un oiseau aussi gracieux que spectaculaire, que l’on trouve dans les endroits fleuris comme les §lprairies§r ou les §lforêts§r §lde§r §lfleurs§r.",
   "peacock.page2": "Lorsqu’un danger approche, il déploie son impressionnant §léventail§r de plumes chatoyantes. Ce geste, à la fois soudain et théâtral, suffit bien souvent à §lfaire§r §lfuir§r les prédateurs, troublés par sa beauté menaçante. Mais ce même déploiement peut aussi avoir un tout autre but, séduire. En période de reproduction, le mâle §lparade§r §lfièrement§r, espérant impressionner une femelle.",
   "peacock.page3": "Lorsqu’un couple se forme, ils peuvent pondre un §lœuf§r, dont éclora un bébé paon, ajoutant encore un peu de grâce au paysage.",
   "peacock.page4": "§l§nAnalyse§r : Créature pacifique — fascinante à observer, mais jamais à sous-estimer.",
-
   "tiger_shark.page1": "Le §lRequin§r §lTigre§r est une espèce de §lRequin§r nageant exclusivement dans les §leaux§r §lfroides§r et §lprofondes§r, en quête constante de nourriture, rôdant très souvent à proximité des §lStations§r §lImmergées§r.",
   "tiger_shark.page2": "Ce dernier possède un caractère §lcurieux§r, contrastant avec son §lagressivité§r de prédateur silencieux, attaquant le plus souvent ses proies dans le dos afin de les surprendre.",
   "tiger_shark.page3": "La morsure d'un §lRequin§r §lTigre§r peut également provoquer une §lhémorragie§r, rendant les autres §lRequins§r plus agressifs, capables de vous entraîner dans les §lprofondeurs§r.",
   "tiger_shark.page4": "Cependant, les §lRequins§r §lTigres§r peuvent être apaisés s’ils chargent, à la seconde où un §lSaumon§r leur est offert.",
   "tiger_shark.page5": "§l§nAnalyse§r : À éviter.",
-
   "boa.taming.page1": "Le §lBoa§r est une espèce de grand et long serpent, se nourrissant exclusivement de la chair de grands animaux féroces comme du §lTigre§r §lCru§r, qu’il déniche le plus souvent à même le sol.",
   "boa.taming.page2": "Lorsqu’il en repère un, il §ls’approche§r lentement, puis le dévore lorsque l’envie le prend.",
   "boa.taming.page3": "Toutefois, durant sa phase d’apprivoisement, si le §lBoa§r aperçoit une cible, son appétit §ldiminue§r aussitôt. Tant que ses yeux restent fixés sur elle, il §ldélaisse§r la viande au sol, n’y prêtant plus la moindre attention.",
   "boa.taming.page4": "§l§nDifficultée§r : 2 / 7",
-
   "peacock.taming.page1": "Il est impossible d’apprivoiser un §lPaon§r adulte. En revanche, il est tout à fait possible de créer un lien avec un §lbébé§r §lPaon§r dès sa naissance.",
   "peacock.taming.page2": "Pour cela, observez un Paon mâle en train de faire la §lroue§r près d'une §lfemelle§r.",
   "peacock.taming.page3": "Donnez-leur à tous les deux quelques §lBaies§r §lSauvages§r pour favoriser leur rapprochement et encourager la ponte d’un §lœuf§r.",
   "peacock.taming.page4": "Ensuite, place à la patience : attendez que §ll’œuf§r §léclose§r et que le bébé §lPaon§r en sorte. Dès sa naissance, offrez-lui quelques §lBaies§r §lSauvages§r pour l’apprivoiser.",
   "peacock.taming.page5": "§l§nDifficultée§r : 1 / 7",
-
   "tiger.taming.page1": "Apprivoiser un §lTigre§r est une tâche délicate qui demande §lprudence§r et §lpatience§r.",
   "tiger.taming.page2": "Pour cela, munissez-vous d’un §lArc§r ou d’une §lSarbacane§r §lde§r §lMaya§r, ainsi que d’un stock de §lflèches§r ou de §ldards§r §ltranquillisants§r, afin de plonger la bête dans un §lsommeil§r §lprofond§r. Prenez garde : le sommeil du §lTigre§r s’amenuise avec le temps. Assurez-vous donc de ne pas perdre une seconde une fois l’apprivoisement commencé.",
   "tiger.taming.page3": "Une fois profondément endormi, le §lTigre§r devra être nourri avec de la viande d’animaux dangereux, comme du §lBoa§r §lCru§r.",
   "tiger.taming.page4": "§l§nDifficultée§r : 4 / 7",
-
   "enchantment.ow.putrid": "Putride",
   "enchantment.ow.vampirism": "Vampirisme",
   "enchantment.ow.lightness": "Légèreté",
@@ -562,19 +466,13 @@
   "enchantment.ow.venom_protection": "Protection contre le venin",
   "enchantment.ow.reptilian_calamity": "Calamité Reptilienne",
   "enchantment.ow.plant_providence": "Providence Végétale",
-
-
   "tooltip.questMenu": "Quêtes Quotidiennes",
   "tooltip.nextDailyQuests": "Prochaines quêtes dans: ",
   "tooltip.questFinished": "Quête Terminée",
   "tooltip.questsUpdated": "| Nouvelles Quêtes Disponibles |",
-
-
   "quest.babyQuest0": "aimerait",
   "quest.babyQuest1": "Quete 2 du bébé",
   "quest.babyQuest2": "Quete 3 du bébé",
-
-
   "dailyQuest.0": "Infliger 300 dégâts",
   "dailyQuest.1": "Absorber 200 dégâts",
   "dailyQuest.2": "Régénérer 100 points de vie",
@@ -586,97 +484,69 @@
   "dailyQuest.8": "Éliminer 10 cibles en 5 secondes",
   "dailyQuest.9": "Infliger 50 dégâts aux cibles plus puissantes",
   "dailyQuest.10": "Éliminer 8 cibles sans être touché",
-
-
   "attacks.title1.TigerEntity": "- Déchiquetage -",
   "attacks.title2.TigerEntity": "- Bond Bestial -",
   "attacks.title3.TigerEntity": "- Cruauté Féline -",
-
   "attacks.title1.BoaEntity": "- Perforation -",
   "attacks.title2.BoaEntity": "- Envenimation -",
   "attacks.title3.BoaEntity": "- ? -",
-
   "attacks.title1.PeacockEntity": "- Becqueter -",
   "attacks.title2.PeacockEntity": "- ? -",
   "attacks.title3.PeacockEntity": "- ? -",
-
   "attacks.title1.KodiakEntity": "- Broiement d’Os -",
   "attacks.title2.KodiakEntity": "- ? -",
   "attacks.title3.KodiakEntity": "- ? -",
-
   "attacks.description1.TigerEntity": "Faites mordre votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque morsure.",
   "attacks.description2.TigerEntity": "Faites bondir votre %1$s sur une longue distance toutes les %2$s secondes. S’il entre en contact avec une entité, il l’emprisonnera dans ses griffes et la dévorera, ce qui vous fera descendre de votre monture.",
   "attacks.description3.TigerEntity": "Faites entrer votre %1$s dans une rage intense durant %2$s secondes, augmentant sa resistance de %3$s%% ses dégâts de %4$s%%, sa taille de %5$s%% ainsi que sa vitesse de %6$s%%, toutes les %7$s minutes.",
-
   "attacks.description1.BoaEntity": "Faites mordre votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque morsure, avec %4$s %% de chances d’infecter la cible touchée avec l’effet Poison 3 pendant une durée comprise entre %5$s et %6$s secondes.",
   "attacks.description2.BoaEntity": "Rendez les crocs de votre %1$s venimeux afin de transmettre l’effet Venin I à la cible touchée, pour une durée comprise entre %2$s et %3$s minutes toutes les %4$s secondes.",
   "attacks.description3.BoaEntity": "?",
-
   "attacks.description1.PeacockEntity": "Faites picorer votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque coup de bec.",
   "attacks.description2.PeacockEntity": "?",
   "attacks.description3.PeacockEntity": "?",
-
   "attacks.description1.KodiakEntity": "Broyez les os de vos ennemis avec votre %1$s toutes les %2$s secondes, infligeant %3$s points de dégâts à chaque coup.",
   "attacks.description2.KodiakEntity": "?",
   "attacks.description3.KodiakEntity": "?",
-
-
-
-
-
   "ascent.mission.tiger.1": "Sautez et attrapez un total de %s entités avec votre Tigre.",
   "entity.ow.primitive_slingshot": "Primitive Slingshot",
-
   "quest.completed": "Quête accomplie !",
-
   "skin.unlock.quest.0": "Rayures & Coups de crayon",
   "skin.unlock.quest.1": "La Chasse au Trésor",
-
   "quest.scratches_and_pencil_marks.title": "Rayures & Coups de crayon",
   "quest.scratches_and_pencil_marks.desc": "Tuez 10 entités avec votre Tigre apprivoisé.",
-
   "quest.the_treasure_hunt.title": "La Chasse au Trésor",
   "quest.the_treasure_hunt.desc": "Tuez 20 entités avec votre Tigre apprivoisé.",
-
   "ow.attacks.passive_label": "Passif · ",
-
   "ow.attacks.tiger.combo.title": "Déchiquetage",
   "ow.attacks.tiger.bond.title": "Bond Bestial",
   "ow.attacks.tiger.shadow_strike.title": "Cruauté Féline",
   "ow.attacks.tiger.predator_sense.title": "Odeur de Sang",
-
   "ow.attacks.tiger.combo.desc": "Faites mordre votre Tigre toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
   "ow.attacks.tiger.bond.desc": "Faites bondir votre Tigre sur un ennemi en chargeant l'attaque toutes les %s secondes. Si une cible est saisie, mordez-la depuis votre monture.",
   "ow.attacks.tiger.shadow_strike.desc": "Votre Tigre devient camouflé pendant %s secondes, augmentant sa vitesse de %s%%, ses dégâts de %s%% et tuant en un seul coup les entités blessées. À recharger avec %s kills toutes les %s secondes.",
   "ow.attacks.tiger.predator_sense.desc": "Révèle les entités blessées à moins de %s%% PV à travers les murs dans un rayon de %s blocs.",
-
   "ow.attacks.crocodile.combo.title": "Broyage",
   "ow.attacks.crocodile.mouth.title": "Gueule Béante",
   "ow.attacks.crocodile.primal_dive.title": "Roulade de la Mort",
   "ow.attacks.crocodile.reptilian.title": "Accrochage Reptilien",
-
   "ow.attacks.crocodile.combo.desc": "Faites mordre votre Crocodile toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
   "ow.attacks.crocodile.mouth.desc": "Chargez l'attaque pour ouvrir lentement la gueule de votre Crocodile pendant %s secondes toutes les %s secondes, puis relâchez pour la refermer violemment, infligeant jusqu'à %s points de dégâts.",
   "ow.attacks.crocodile.primal_dive.desc": "Désignez une entité et faites bondir votre Crocodile dessus pour entamer une Roulade de la Mort, infligeant %s points de dégâts par rotation. À recharger avec %s kills toutes les %s secondes.",
   "ow.attacks.crocodile.reptilian.desc": "À proximité de l'eau, les entités de taille moyenne touchées par une attaque Broyage peuvent être saisies par votre Crocodile pendant %s secondes avant d'être relâchées.",
-
   "ow.attacks.kodiak.combo.title": "Frappage",
   "ow.attacks.kodiak.paw_slam.title": "Écrasement",
   "ow.attacks.kodiak.nap.title": "Sieste Régénératrice",
   "ow.attacks.kodiak.butcher.title": "Instinct du Boucher",
-
   "ow.attacks.kodiak.combo.desc": "Faites frapper votre Kodiak toutes les %s secondes, infligeant %s points de dégâts par coup de pattes.",
   "ow.attacks.kodiak.paw_slam.desc": "Chargez jusqu'à %s s pour que le Kodiak se dresse et frappe le sol, infligeant un pourcentage de la vie actuelle des entités proches (10%% à 50%%). Limité à 15 dégâts sur les grandes créatures. Rechargement toutes les %s secondes.",
   "ow.attacks.kodiak.nap.desc": "Le Kodiak s'endort jusqu'à %s secondes, se régénérant de %s PV/s et absorbant %s%% des dégâts reçus. Rappuyez sur la touche pour interrompre la sieste à tout moment. Rechargement tous les %s kills et %ss.",
   "ow.attacks.kodiak.butcher.desc": "Les entités tuées par votre Kodiak lâchent %s%% plus de nourriture crue.",
-
-
   "rarity.legendary": "Légendaire",
-  "rarity.epic":      "Épique",
+  "rarity.epic": "Épique",
   "rarity.halloween": "Halloween",
-  "rarity.rare":      "Rare",
-  "rarity.common":    "Commun",
-
+  "rarity.rare": "Rare",
+  "rarity.common": "Commun",
   "owteams.chef": "Chef: %s",
   "owteams.button.create_team": "Créer une tribu",
   "owteams.button.add_player": "+J",
@@ -684,34 +554,29 @@
   "owteams.button.delete_team": "✕",
   "owteams.button.confirm": "Confirmer",
   "owteams.button.cancel": "Annuler",
-
   "owteams.players_label": "Membres Joueurs:",
   "owteams.entities_label": "Membres Entités:",
   "owteams.no_team": "Pas de tribu",
   "owteams.no_player": "Aucun joueur",
   "owteams.no_entity": "Aucune entité",
-
   "owteams.confirm.remove_title": "Retirer %s",
   "owteams.confirm.from_team": "de la tribu %s ?",
   "owteams.confirm.yes": "Oui",
   "owteams.confirm.no": "Non",
   "owteams.confirm.change_team_title": "Changer la tribu de %s ?",
   "owteams.confirm.change_team_body": "%s → %s",
-
   "owteams.add_entity.placeholder": "Surnom de l'entité",
   "owteams.add_entity.title": "Ajouter une entité",
   "owteams.add_entity.subtitle": "Entrez le nom de l'entité :",
   "owteams.add_entity.error.empty": "Le nom est vide.",
   "owteams.add_entity.error.wrong_owner": "Cette entité ne vous appartient pas.",
   "owteams.add_entity.error.not_found": "Entité introuvable à proximité.",
-
   "owteams.tooltip.type": "Type: %s",
   "owteams.tooltip.owner": "Maître: %s",
   "owteams.tooltip.health": "Vie: %s",
   "owteams.tooltip.damage": "Dégâts: %s",
   "owteams.tooltip.speed": "Vitesse: %s",
   "owteams.tooltip.level": "Niveau: %s",
-
   "owteams.creation.title": "Création de tribu",
   "owteams.creation.name_label": "Nom :",
   "owteams.creation.name_placeholder": "Nom de la tribu",
@@ -720,39 +585,33 @@
   "owteams.creation.secondary": "Teinte 2",
   "owteams.creation.confirm": "Créer",
   "owteams.creation.cancel": "Annuler",
-
   "owteams.confirm.leave_title": "Quitter la tribu ?",
   "owteams.confirm.leave_body": "%s quittera la tribu: %s",
-
   "owteams.button.add_entity.tooltip": "Intégrer une entité dans la tribu",
   "owteams.button.add_player.tooltip": "Intégrer un joueur dans la tribu",
   "owteams.button.leave_team.tooltip": "Quitter la tribu",
-
-  "owteams.info.players":  "Joueurs: %s / %s",
+  "owteams.info.players": "Joueurs: %s / %s",
   "owteams.info.entities": "Entités: %s / %s",
-  "owteams.info.created":  "Créée le %s",
-
-  "owteams.pattern.gradient_down":  "Dégradé ↓",
+  "owteams.info.created": "Créée le %s",
+  "owteams.pattern.gradient_down": "Dégradé ↓",
   "owteams.pattern.gradient_right": "Dégradé →",
-  "owteams.pattern.split_h":        "Moitié H",
-  "owteams.pattern.split_v":        "Moitié V",
+  "owteams.pattern.split_h": "Moitié H",
+  "owteams.pattern.split_v": "Moitié V",
   "owteams.pattern.diagonal_tl_br": "Diagonale ↘",
   "owteams.pattern.diagonal_tr_bl": "Diagonale ↙",
-  "owteams.pattern.thirds_h":       "Tiers H",
-  "owteams.pattern.thirds_v":       "Tiers V",
-  "owteams.pattern.circle_pri":     "Cercle",
+  "owteams.pattern.thirds_h": "Tiers H",
+  "owteams.pattern.thirds_v": "Tiers V",
+  "owteams.pattern.circle_pri": "Cercle",
   "owteams.pattern.stripes": "Rayures ↘",
-  "owteams.pattern.checker":        "Damier",
-  "owteams.pattern.diamond":        "Losange",
-
+  "owteams.pattern.checker": "Damier",
+  "owteams.pattern.diamond": "Losange",
   "owteams.creation.error.name_taken_title": "Nom indisponible",
   "owteams.creation.error.name_taken_body": "Une tribu porte déjà ce nom.",
   "owteams.creation.error.ok": "Ok",
-
-  "owteams.pattern.custom_paint":       "Peinture personnalisée",
-  "owteams.pattern.brush_size":         "Taille du pinceau",
-  "owteams.paint.clear":        "Effacer",
-  "owteams.pattern.paint.hint":         "Cliquez pour peindre, clic droit pour effacer",
+  "owteams.pattern.custom_paint": "Peinture personnalisée",
+  "owteams.pattern.brush_size": "Taille du pinceau",
+  "owteams.paint.clear": "Effacer",
+  "owteams.pattern.paint.hint": "Cliquez pour peindre, clic droit pour effacer",
   "owteams.paint.brush.round": "Rond",
   "owteams.paint.brush.square": "Carré",
   "owteams.paint.brush.diamond": "Diamant"
