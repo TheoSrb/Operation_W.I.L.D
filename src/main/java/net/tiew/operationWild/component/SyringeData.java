@@ -14,7 +14,8 @@ public record SyringeData(
         float speed,
         boolean isFemale,
         float tamingExperience,
-        int entityColor
+        int entityColor,
+        int skinIndex
 ) {
     public static final Codec<SyringeData> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
@@ -25,6 +26,7 @@ public record SyringeData(
                     Codec.FLOAT.fieldOf("speed").forGetter(SyringeData::speed),
                     Codec.BOOL.fieldOf("is_female").forGetter(SyringeData::isFemale),
                     Codec.FLOAT.fieldOf("taming_experience").forGetter(SyringeData::tamingExperience),
-                    Codec.INT.fieldOf("entity_color").forGetter(SyringeData::entityColor)
+                    Codec.INT.fieldOf("entity_color").forGetter(SyringeData::entityColor),
+                    Codec.INT.optionalFieldOf("skin_index", 0).forGetter(SyringeData::skinIndex)
             ).apply(instance, SyringeData::new));
 }

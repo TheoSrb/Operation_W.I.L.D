@@ -21,6 +21,7 @@ import net.tiew.operationWild.team.OWTeamMosaicPattern;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implements CustomPacketPayload {
 
@@ -47,17 +48,18 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
             OWTeam team = owEntity.currentTeam;
             boolean isTeamOwner = context.player().getUUID().equals(team.getTeamOwnerUUID());
 
-            List<String> entityNames = team.getEntityNames();
             int idx = packet.entityIndex();
-            if (idx < 0 || idx >= entityNames.size()) return;
+            List<UUID> entityUUIDs = team.getEntityUUIDs();
+            List<String> entityNames = team.getEntityNames();
+            if (idx < 0 || idx >= entityUUIDs.size()) return;
 
-            String removedName = entityNames.get(idx);
+            UUID removedUUID = entityUUIDs.get(idx);
 
             // ── Autorisation : chef OU propriétaire de l'entité retirée ──────────
             if (!isTeamOwner) {
                 boolean playerOwnsTarget = false;
                 for (Entity e : serverLevel.getAllEntities()) {
-                    if (e instanceof OWEntity owE && owE.getNickname().equals(removedName)) {
+                    if (e instanceof OWEntity owE && owE.getUUID().equals(removedUUID)) {
                         playerOwnsTarget = context.player().getUUID().equals(owE.getOwnerUUID());
                         break;
                     }
@@ -65,29 +67,33 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
                 if (!playerOwnsTarget) return;
             }
 
-            entityNames.remove(idx);
+            entityUUIDs.remove(idx);
+            if (idx < entityNames.size()) entityNames.remove(idx);
 
             // ── Trouver l'entité retirée et effacer sa référence d'équipe ────────
             OWEntity removedEntity = null;
             for (Entity e : serverLevel.getAllEntities()) {
-                if (e instanceof OWEntity owE && owE.getNickname().equals(removedName)) {
+                if (e instanceof OWEntity owE && owE.getUUID().equals(removedUUID)) {
                     owE.currentTeam = null;
                     removedEntity = owE;
                     break;
                 }
             }
 
-            // ── Collecter les membres restants dans l'équipe ─────────────────────
+            // ── Collecter les membres restants (par UUID) ─────────────────────
             List<OWEntity> remainingMembers = new ArrayList<>();
-            for (Entity e : serverLevel.getAllEntities()) {
-                if (e instanceof OWEntity m
-                        && m.currentTeam != null
-                        && m.currentTeam.getTeamId() == team.getTeamId()) {
-                    remainingMembers.add(m);
+            for (UUID memberUUID : new ArrayList<>(entityUUIDs)) {
+                for (Entity e : serverLevel.getAllEntities()) {
+                    if (e instanceof OWEntity m && m.getUUID().equals(memberUUID)) {
+                        remainingMembers.add(m);
+                        break;
+                    }
                 }
             }
 
             final OWEntity finalRemovedEntity = removedEntity;
+            List<String> uuidStrings = new ArrayList<>();
+            for (UUID u : entityUUIDs) uuidStrings.add(u.toString());
 
             for (ServerPlayer player : serverLevel.players()) {
                 if (finalRemovedEntity != null) {
@@ -106,10 +112,10 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
                             team.getTeamCreationDate(),
                             team.getPlayerNames(),
                             team.getEntityNames(),
+                            uuidStrings,
                             OWTeamMosaicPattern.packPixels(team.getPaintPixels())
                     ), player);
                 }
-
             }
         });
     }

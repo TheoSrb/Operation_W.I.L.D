@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -15,7 +14,6 @@ import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.gui.OWEntityHud;
 import net.tiew.operationWild.networking.OWNetworkHandler;
-import net.tiew.operationWild.networking.packets.to_server.AddEntityToTeamPacket;
 import net.tiew.operationWild.networking.packets.to_server.CreateOWTeamPacket;
 import net.tiew.operationWild.networking.packets.to_server.DeleteOWTeamPacket;
 import net.tiew.operationWild.networking.packets.to_server.RemoveEntityFromTeamPacket;
@@ -77,10 +75,6 @@ public class OWTeamsInterface extends Screen {
         NONE,
         REMOVE_PLAYER,
         REMOVE_ENTITY,
-        CHANGE_ENTITY_TEAM,
-        /**
-         * L'entité courante quitte sa tribu.
-         */
         LEAVE_TEAM
     }
 
@@ -88,15 +82,6 @@ public class OWTeamsInterface extends Screen {
     private String confirmTargetName = "";
     private int confirmTargetIndex = -1;
     private Button confirmYesBtn, confirmNoBtn;
-
-    // ── Popup ajout entité ──────────────────────────────────────────────────
-    private boolean showEntityInput = false;
-    private String entityInputError = "";
-    private EditBox entityInputBox;
-    private Button entityInputConfirmBtn, entityInputCancelBtn;
-
-    private String pendingEntityName = "";
-    private String pendingEntityCurrentTeam = "";
 
     // ── Boutons du bas ──────────────────────────────────────────────────────
     private Button addPlayerBtn, addEntityBtn, leaveTeamBtn;
@@ -136,25 +121,6 @@ public class OWTeamsInterface extends Screen {
                 .bounds(0, 0, 48, 14).build();
         this.addRenderableWidget(confirmNoBtn);
 
-        entityInputBox = new EditBox(this.font, 0, 0, 120, 14,
-                Component.translatable("owteams.add_entity.placeholder"));
-        entityInputBox.setMaxLength(20);
-        this.addRenderableWidget(entityInputBox);
-
-        entityInputConfirmBtn = Button.builder(
-                        Component.translatable("owteams.button.confirm")
-                                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x7ddd73))),
-                        btn -> onEntityInputConfirm())
-                .bounds(0, 0, 56, 14).build();
-        this.addRenderableWidget(entityInputConfirmBtn);
-
-        entityInputCancelBtn = Button.builder(
-                        Component.translatable("owteams.button.cancel")
-                                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xdd4444))),
-                        btn -> closeEntityInput())
-                .bounds(0, 0, 50, 14).build();
-        this.addRenderableWidget(entityInputCancelBtn);
-
         // Bouton ajouter joueur
         addPlayerBtn = Button.builder(
                         Component.empty(),
@@ -166,7 +132,7 @@ public class OWTeamsInterface extends Screen {
         addEntityBtn = Button.builder(
                         Component.empty(),
                         btn -> {
-                            if (isOwner()) openEntityInput();
+                            if (isOwner()) Minecraft.getInstance().setScreen(new OWAddEntityScanScreen(entity));
                         })
                 .bounds(0, 0, BOTTOM_BTN_SIZE, BOTTOM_BTN_SIZE).build();
         this.addRenderableWidget(addEntityBtn);
@@ -190,58 +156,8 @@ public class OWTeamsInterface extends Screen {
         return mc.player != null && mc.player.getUUID().equals(entity.currentTeam.getTeamOwnerUUID());
     }
 
-    // ── Popup entité ─────────────────────────────────────────────────────────
-    private void openEntityInput() {
-        showEntityInput = true;
-        entityInputError = "";
-        entityInputBox.setValue("");
-        this.setFocused(entityInputBox);
-    }
-
-    private void closeEntityInput() {
-        showEntityInput = false;
-        entityInputError = "";
-    }
-
-    /**
-     * Appelé par {@link net.tiew.operationWild.networking.packets.to_client.OWEntityAlreadyInTeamPacket}
-     * quand le serveur détecte que l'entité cible appartient déjà à une autre tribu.
-     * Affiche la boîte de confirmation côté client.
-     */
+    /** Conservé pour compatibilité avec OWEntityAlreadyInTeamPacket — géré côté client dans OWAddEntityScanScreen. */
     public void onEntityAlreadyInTeam(String targetNickname, String currentTeamName) {
-        this.pendingEntityName = targetNickname;
-        this.pendingEntityCurrentTeam = currentTeamName;
-        closeEntityInput(); // ← ferme l'overlay input avant d'afficher la confirmation
-        this.confirmState = ConfirmState.CHANGE_ENTITY_TEAM;
-    }
-
-    private void onEntityInputConfirm() {
-        String name = entityInputBox.getValue().trim();
-        if (name.isEmpty()) {
-            entityInputError = Component.translatable("owteams.add_entity.error.empty").getString();
-            return;
-        }
-        if (entity == null || entity.currentTeam == null) return;
-
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.level != null) {
-            for (net.minecraft.world.entity.Entity e : mc.level.entitiesForRendering()) {
-                if (!(e instanceof OWEntity owE) || !owE.getNickname().equals(name)) continue;
-
-                if (owE.getOwnerUUID() != null
-                        && owE.getOwnerUUID().equals(entity.currentTeam.getTeamOwnerUUID())) {
-                    // Envoi avec force=false ; le serveur répondra par OWEntityAlreadyInTeamPacket
-                    // si l'entité est dans une autre tribu, déclenchant la confirmation côté client.
-                    OWNetworkHandler.sendToServer(new AddEntityToTeamPacket(entity.getId(), name, false));
-                    closeEntityInput();
-                    return;
-                } else {
-                    entityInputError = Component.translatable("owteams.add_entity.error.wrong_owner").getString();
-                    return;
-                }
-            }
-        }
-        entityInputError = Component.translatable("owteams.add_entity.error.not_found").getString();
     }
 
     @Override
@@ -273,23 +189,14 @@ public class OWTeamsInterface extends Screen {
             case REMOVE_PLAYER, REMOVE_ENTITY -> OWNetworkHandler.sendToServer(
                     new RemoveEntityFromTeamPacket(entity.getId(), confirmTargetIndex));
 
-            case CHANGE_ENTITY_TEAM -> {
-                OWNetworkHandler.sendToServer(
-                        new AddEntityToTeamPacket(entity.getId(), pendingEntityName, true));
-                pendingEntityName = "";
-                pendingEntityCurrentTeam = "";
-                closeEntityInput(); // ← manquait : ferme l'overlay de saisie
-            }
-
             case LEAVE_TEAM -> {
                 if (entity.currentTeam != null) {
-                    List<String> entityNames = entity.currentTeam.getEntityNames();
-                    int idx = entityNames.indexOf(entity.getNickname());
+                    int idx = entity.currentTeam.getEntityUUIDs().indexOf(entity.getUUID());
                     if (idx >= 0) {
                         OWNetworkHandler.sendToServer(
                                 new RemoveEntityFromTeamPacket(entity.getId(), idx));
                         this.onClose();
-                        return; // on ferme l'écran, pas besoin de réinitialiser confirmState
+                        return;
                     }
                 }
             }
@@ -329,7 +236,7 @@ public class OWTeamsInterface extends Screen {
     // ── Clics ────────────────────────────────────────────────────────────────
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
-        if (showEntityInput || confirmState != ConfirmState.NONE)
+        if (confirmState != ConfirmState.NONE)
             return super.mouseClicked(mx, my, button);
 
         if (button == 0 && isOwner() && entity != null && entity.currentTeam != null) {
@@ -351,7 +258,9 @@ public class OWTeamsInterface extends Screen {
 
         for (int i = scrollOff; i < Math.min(scrollOff + VISIBLE_ROWS, names.size()); i++) {
             if (isPlayer && ownerName != null && ownerName.equals(names.get(i))) continue;
-            if (!isPlayer && mainEntityNickname != null && mainEntityNickname.equals(names.get(i))) continue;
+            if (!isPlayer && entity != null && entity.currentTeam != null
+                    && i < entity.currentTeam.getEntityUUIDs().size()
+                    && entity.getUUID().equals(entity.currentTeam.getEntityUUIDs().get(i))) continue;
 
             int rowY = topPos + listRelY + (i - scrollOff) * ROW_H + 1;
             if (mx >= btnX && mx < btnX + REMOVE_W && my >= rowY && my < rowY + ROW_H - 1) {
@@ -368,16 +277,12 @@ public class OWTeamsInterface extends Screen {
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
         boolean isConfirm = confirmState != ConfirmState.NONE;
-        boolean isInput = showEntityInput;
 
         hoveredEntityName = null;
 
         // Masquer tous les widgets ; ils sont réactivés manuellement ci-dessous
         confirmYesBtn.visible = false;
         confirmNoBtn.visible = false;
-        entityInputBox.visible = false;
-        entityInputConfirmBtn.visible = false;
-        entityInputCancelBtn.visible = false;
         addPlayerBtn.visible = false;
         addEntityBtn.visible = false;
         leaveTeamBtn.visible = false;
@@ -458,10 +363,10 @@ public class OWTeamsInterface extends Screen {
         }
 
         // ── Boutons bas ───────────────────────────────────────────────────────
-        renderBottomButtons(g, mouseX, mouseY, partial, team, isConfirm, isInput);
+        renderBottomButtons(g, mouseX, mouseY, partial, team, isConfirm);
 
         // ── Tooltips boutons bas (hors overlay) ───────────────────────────────
-        if (!isConfirm && !isInput) {
+        if (!isConfirm) {
             if (addPlayerBtn.isMouseOver(mouseX, mouseY)) {
                 renderSimpleTooltip(g, mouseX, mouseY,
                         Component.translatable("owteams.button.add_player.tooltip").getString());
@@ -475,18 +380,16 @@ public class OWTeamsInterface extends Screen {
         }
 
         // ── Tooltip entité survolée ───────────────────────────────────────────
-        if (hoveredEntityName != null && !isConfirm && !isInput) {
+        if (hoveredEntityName != null && !isConfirm) {
             renderEntityTooltip(g, hoveredEntityName, hoveredMouseX, hoveredMouseY);
         }
 
-        // ── Overlays confirmation / saisie ────────────────────────────────────
-        // Dim + élévation Z pour passer au-dessus du texte des listes
-        if (isConfirm || isInput) {
+        // ── Overlay confirmation ──────────────────────────────────────────────
+        if (isConfirm) {
             g.pose().pushPose();
             g.pose().translate(0.0, 0.0, 100.0);
             g.fill(leftPos, topPos, leftPos + IMAGE_WIDTH, topPos + IMAGE_HEIGHT, 0xBB000000);
-            if (isConfirm) renderConfirmOverlay(g, mouseX, mouseY, partial);
-            if (isInput) renderEntityInputOverlay(g, mouseX, mouseY, partial);
+            renderConfirmOverlay(g, mouseX, mouseY, partial);
             g.pose().popPose();
         }
     }
@@ -513,7 +416,7 @@ public class OWTeamsInterface extends Screen {
 
     // ── Boutons bas factorisés ────────────────────────────────────────────────
     private void renderBottomButtons(GuiGraphics g, int mouseX, int mouseY, float partial,
-                                     OWTeam team, boolean isConfirm, boolean isInput) {
+                                     OWTeam team, boolean isConfirm) {
         addPlayerBtn.setX(leftPos + IMAGE_WIDTH - 1);
         addPlayerBtn.setY(topPos + 3);
         addPlayerBtn.active = team != null;
@@ -776,17 +679,6 @@ public class OWTeamsInterface extends Screen {
         drawOverlayPanel(g, ox, oy, ow, oh);
 
         switch (confirmState) {
-            case CHANGE_ENTITY_TEAM -> {
-                g.drawCenteredString(this.font,
-                        Component.translatable("owteams.confirm.change_team_title", pendingEntityName).getString(),
-                        cx, oy + 6, 0xFFFFFF);
-                g.drawCenteredString(this.font,
-                        Component.translatable("owteams.confirm.change_team_body",
-                                pendingEntityCurrentTeam,
-                                entity != null && entity.currentTeam != null
-                                        ? entity.currentTeam.getTeamName() : "?").getString(),
-                        cx, oy + 16, 0xAAAAAA);
-            }
             case LEAVE_TEAM -> {
                 String entityDisplayName = entity != null ? entity.getNickname() : "?";
                 String teamName = entity != null && entity.currentTeam != null
@@ -818,40 +710,6 @@ public class OWTeamsInterface extends Screen {
         confirmNoBtn.visible = true;
         confirmYesBtn.render(g, mouseX, mouseY, partial);
         confirmNoBtn.render(g, mouseX, mouseY, partial);
-    }
-
-    // ── Overlay saisie entité ─────────────────────────────────────────────────
-    private void renderEntityInputOverlay(GuiGraphics g, int mouseX, int mouseY, float partial) {
-        int cx = leftPos + IMAGE_WIDTH / 2;
-        int ow = 144, oh = 68;
-        int ox = cx - ow / 2, oy = topPos + IMAGE_HEIGHT / 2 - oh / 2;
-
-        drawOverlayPanel(g, ox, oy, ow, oh);
-
-        g.drawCenteredString(this.font,
-                Component.translatable("owteams.add_entity.title").getString(),
-                cx, oy + 6, 0xFFFFFF);
-        g.drawCenteredString(this.font,
-                Component.translatable("owteams.add_entity.subtitle").getString(),
-                cx, oy + 17, 0xAAAAAA);
-
-        entityInputBox.setX(ox + 8);
-        entityInputBox.setY(oy + 28);
-        entityInputBox.setWidth(ow - 16);
-        entityInputBox.visible = true;
-        entityInputBox.render(g, mouseX, mouseY, partial);
-
-        if (!entityInputError.isEmpty())
-            g.drawCenteredString(this.font, entityInputError, cx, oy + 46, 0xFF4444);
-
-        entityInputConfirmBtn.setX(cx - 58);
-        entityInputConfirmBtn.setY(oy + oh - 17);
-        entityInputCancelBtn.setX(cx + 4);
-        entityInputCancelBtn.setY(oy + oh - 17);
-        entityInputConfirmBtn.visible = true;
-        entityInputCancelBtn.visible = true;
-        entityInputConfirmBtn.render(g, mouseX, mouseY, partial);
-        entityInputCancelBtn.render(g, mouseX, mouseY, partial);
     }
 
     private void drawOverlayPanel(GuiGraphics g, int ox, int oy, int ow, int oh) {

@@ -19,6 +19,7 @@ public class OWTeam {
     private String teamCreationDate;
     private List<String> playerNames;
     private List<String> entityNames;
+    private List<UUID> entityUUIDs;
     private boolean[] paintPixels;
 
     // Constructeur complet
@@ -38,6 +39,7 @@ public class OWTeam {
         this.teamCreationDate = teamCreationDate;
         this.playerNames = playerNames != null ? playerNames : new ArrayList<>();
         this.entityNames = entityNames != null ? entityNames : new ArrayList<>();
+        this.entityUUIDs = new ArrayList<>();
         this.paintPixels = paintPixels;
     }
 
@@ -163,6 +165,15 @@ public class OWTeam {
 
     public void setEntityNames(List<String> v) {
         this.entityNames = v;
+    }
+
+    public List<UUID> getEntityUUIDs() {
+        if (entityUUIDs == null) entityUUIDs = new ArrayList<>();
+        return entityUUIDs;
+    }
+
+    public void setEntityUUIDs(List<UUID> v) {
+        this.entityUUIDs = v != null ? v : new ArrayList<>();
     }
 
     public boolean[] getPaintPixels() {

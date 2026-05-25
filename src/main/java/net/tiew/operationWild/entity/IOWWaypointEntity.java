@@ -45,7 +45,7 @@ public interface IOWWaypointEntity {
     default int getWaypointMaxDistance() { return 2000; }
 
     /** Distance min en blocs sous laquelle le waypoint se masque. */
-    default float getWaypointMinDistance() { return 10.0f; }
+    default float getWaypointMinDistance() { return 20.0f; }
 
     /**
      * Nom affiché sur le waypoint HUD.

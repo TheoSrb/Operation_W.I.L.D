@@ -43,6 +43,7 @@ import net.tiew.operationWild.particle.GoldTrailParticle;
 import net.tiew.operationWild.particle.NapParticles;
 import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.screen.OWMenuRegister;
+import net.tiew.operationWild.screen.blocks.DNAAnalyserScreen;
 import net.tiew.operationWild.screen.blocks.SaddlerScreen;
 import net.tiew.operationWild.screen.entity.OWInventoryScreen;
 import net.tiew.operationWild.screen.entity.submarine.SeaBugInventoryScreen;
@@ -273,6 +274,7 @@ public class OperationWild {
             event.register(OWMenuRegister.OW_INVENTORY_MENU.get(), OWInventoryScreen::new);
             event.register(OWMenuRegister.SEABUG_INVENTORY_MENU.get(), SeaBugInventoryScreen::new);
             event.register(OWMenuRegister.SADDLER_MENU.get(), SaddlerScreen::new);
+            event.register(OWMenuRegister.DNA_ANALYSER_MENU.get(), DNAAnalyserScreen::new);
         }
 
         @SubscribeEvent

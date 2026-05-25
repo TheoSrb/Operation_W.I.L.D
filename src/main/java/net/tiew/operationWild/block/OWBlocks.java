@@ -89,6 +89,8 @@ public class OWBlocks {
 
     public static final DeferredBlock<Block> SADDLER = registerBlock("saddler", () -> new SaddlerBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).instrument(NoteBlockInstrument.BASS).strength(2.5F).sound(SoundType.WOOD).ignitedByLava()));
 
+    public static final DeferredBlock<Block> DNA_ANALYSER = registerBlock("dna_analyser", () -> new DNAAnalyserBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).instrument(NoteBlockInstrument.IRON_XYLOPHONE).strength(3.5F).sound(SoundType.METAL).requiresCorrectToolForDrops()));
+
 
     public static final DeferredBlock<Block> SAVAGE_BERRY_BUSH = registerBlock("savage_berry_bush", () -> new SavageBerryBushBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.SWEET_BERRY_BUSH)));
 

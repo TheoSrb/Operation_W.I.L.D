@@ -22,6 +22,7 @@ import net.tiew.operationWild.team.OWTeamMosaicPattern;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Paramètre {@code force} :
@@ -57,103 +58,144 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
 
             String nickname = packet.targetNickname().trim();
             if (nickname.isEmpty()) return;
-            if (owEntity.currentTeam.getEntityNames().contains(nickname)) return;
 
+            // Find target by nickname (initial lookup from client input)
+            OWEntity target = null;
             for (Entity e : serverLevel.getAllEntities()) {
-                if (!(e instanceof OWEntity target)) continue;
-                if (!target.getNickname().equals(nickname)) continue;
-                if (target.getOwnerUUID() == null) return;
-                if (!target.getOwnerUUID().equals(owEntity.currentTeam.getTeamOwnerUUID())) return;
+                if (!(e instanceof OWEntity owE)) continue;
+                if (!owE.getNickname().equals(nickname)) continue;
+                if (owE.getOwnerUUID() == null) continue;
+                if (!owE.getOwnerUUID().equals(owEntity.currentTeam.getTeamOwnerUUID())) continue;
+                target = owE;
+                break;
+            }
+            if (target == null) return;
 
-                OWTeam team = owEntity.currentTeam;
+            OWTeam team = owEntity.currentTeam;
 
-                // ── Vérification côté serveur : l'entité est-elle dans une autre tribu ? ──
-                if (!packet.force()
-                        && target.currentTeam != null
-                        && target.currentTeam.getTeamId() != team.getTeamId()) {
-                    if (context.player() instanceof ServerPlayer sp) {
-                        OWNetworkHandler.sendToClient(
-                                new OWEntityAlreadyInTeamPacket(nickname, target.currentTeam.getTeamName()),
-                                sp);
-                    }
-                    return;
+            // ── Already in this team? Check by UUID ────────────────────────────
+            if (team.getEntityUUIDs().contains(target.getUUID())) return;
+
+            // ── Vérification : l'entité est-elle dans une autre tribu ? ────────
+            if (!packet.force()
+                    && target.currentTeam != null
+                    && target.currentTeam.getTeamId() != team.getTeamId()) {
+                if (context.player() instanceof ServerPlayer sp) {
+                    OWNetworkHandler.sendToClient(
+                            new OWEntityAlreadyInTeamPacket(nickname, target.currentTeam.getTeamName()),
+                            sp);
                 }
-
-                OWTeam oldTeam = target.currentTeam;
-                boolean wasInAnotherTeam = oldTeam != null && oldTeam.getTeamId() != team.getTeamId();
-
-// ── Retrait propre de l'ancienne équipe ──────────────────────────────
-                if (wasInAnotherTeam) {
-                    oldTeam.getEntityNames().remove(target.getNickname());
-                }
-
-                team.getEntityNames().add(nickname);
-                target.currentTeam = team;
-
-// ── Membres de la NOUVELLE équipe ────────────────────────────────────
-                List<OWEntity> newTeamMembers = new ArrayList<>();
-                for (Entity candidate : serverLevel.getAllEntities()) {
-                    if (candidate instanceof OWEntity m
-                            && m.currentTeam != null
-                            && m.currentTeam.getTeamId() == team.getTeamId()) {
-                        newTeamMembers.add(m);
-                    }
-                }
-
-// ── Membres restants de l'ANCIENNE équipe ─────────────────────────────
-                List<OWEntity> oldTeamMembers = new ArrayList<>();
-                if (wasInAnotherTeam) {
-                    final int oldTeamId = oldTeam.getTeamId();
-                    for (Entity candidate : serverLevel.getAllEntities()) {
-                        if (candidate instanceof OWEntity m
-                                && m.currentTeam != null
-                                && m.currentTeam.getTeamId() == oldTeamId) {
-                            oldTeamMembers.add(m);
-                        }
-                    }
-                }
-
-                final OWTeam finalOldTeam = wasInAnotherTeam ? oldTeam : null;
-
-                for (ServerPlayer player : serverLevel.players()) {
-                    for (OWEntity member : newTeamMembers) {
-                        OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
-                                member.getId(),
-                                team.getTeamId(),
-                                team.getTeamName(),
-                                team.getTeamOwnerUUID().toString(),
-                                team.getTeamColor(),
-                                team.getTeamSecondaryColor(),
-                                team.getTeamMosaicPattern().getId(),
-                                team.getTeamCreationDate(),
-                                team.getPlayerNames(),
-                                team.getEntityNames(),
-                                OWTeamMosaicPattern.packPixels(team.getPaintPixels())
-                        ), player);
-                    }
-
-                    // ── 3. Ancienne tribu – resync des membres restants ─────────────
-                    if (wasInAnotherTeam) {
-                        for (OWEntity member : oldTeamMembers) {
-                            OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
-                                    member.getId(),
-                                    finalOldTeam.getTeamId(),
-                                    finalOldTeam.getTeamName(),
-                                    finalOldTeam.getTeamOwnerUUID().toString(),
-                                    finalOldTeam.getTeamColor(),
-                                    finalOldTeam.getTeamSecondaryColor(),
-                                    finalOldTeam.getTeamMosaicPattern().getId(),
-                                    finalOldTeam.getTeamCreationDate(),
-                                    finalOldTeam.getPlayerNames(),
-                                    finalOldTeam.getEntityNames(),
-                                    OWTeamMosaicPattern.packPixels(finalOldTeam.getPaintPixels())
-                            ), player);
-                        }
-                    }
-                }
-
                 return;
             }
+
+            OWTeam oldTeam = target.currentTeam;
+            boolean wasInAnotherTeam = oldTeam != null && oldTeam.getTeamId() != team.getTeamId();
+
+            // ── Retrait propre de l'ancienne équipe (par UUID) ─────────────────
+            if (wasInAnotherTeam) {
+                int oldIdx = oldTeam.getEntityUUIDs().indexOf(target.getUUID());
+                if (oldIdx >= 0) {
+                    oldTeam.getEntityUUIDs().remove(oldIdx);
+                    if (oldIdx < oldTeam.getEntityNames().size())
+                        oldTeam.getEntityNames().remove(oldIdx);
+                }
+            }
+
+            team.getEntityUUIDs().add(target.getUUID());
+            team.getEntityNames().add(target.getNickname());
+            target.currentTeam = team;
+
+            // ── Membres de la NOUVELLE équipe (par UUID) ───────────────────────
+            List<OWEntity> newTeamMembers = new ArrayList<>();
+            for (UUID memberUUID : new ArrayList<>(team.getEntityUUIDs())) {
+                for (Entity candidate : serverLevel.getAllEntities()) {
+                    if (candidate instanceof OWEntity m && m.getUUID().equals(memberUUID)) {
+                        m.currentTeam = team;
+                        newTeamMembers.add(m);
+                        break;
+                    }
+                }
+            }
+
+            // ── Membres restants de l'ANCIENNE équipe (par UUID) ───────────────
+            List<OWEntity> oldTeamMembers = new ArrayList<>();
+            if (wasInAnotherTeam) {
+                for (UUID memberUUID : new ArrayList<>(oldTeam.getEntityUUIDs())) {
+                    for (Entity candidate : serverLevel.getAllEntities()) {
+                        if (candidate instanceof OWEntity m && m.getUUID().equals(memberUUID)) {
+                            oldTeamMembers.add(m);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // ── Refresh display names from current nicknames ───────────────────
+            refreshEntityNames(team, serverLevel);
+            if (wasInAnotherTeam) refreshEntityNames(oldTeam, serverLevel);
+
+            final OWTeam finalOldTeam = wasInAnotherTeam ? oldTeam : null;
+            List<String> newUUIDStrings = toUUIDStrings(team.getEntityUUIDs());
+
+            for (ServerPlayer player : serverLevel.players()) {
+                for (OWEntity member : newTeamMembers) {
+                    OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
+                            member.getId(),
+                            team.getTeamId(),
+                            team.getTeamName(),
+                            team.getTeamOwnerUUID().toString(),
+                            team.getTeamColor(),
+                            team.getTeamSecondaryColor(),
+                            team.getTeamMosaicPattern().getId(),
+                            team.getTeamCreationDate(),
+                            team.getPlayerNames(),
+                            team.getEntityNames(),
+                            newUUIDStrings,
+                            OWTeamMosaicPattern.packPixels(team.getPaintPixels())
+                    ), player);
+                }
+
+                if (wasInAnotherTeam) {
+                    List<String> oldUUIDStrings = toUUIDStrings(finalOldTeam.getEntityUUIDs());
+                    for (OWEntity member : oldTeamMembers) {
+                        OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
+                                member.getId(),
+                                finalOldTeam.getTeamId(),
+                                finalOldTeam.getTeamName(),
+                                finalOldTeam.getTeamOwnerUUID().toString(),
+                                finalOldTeam.getTeamColor(),
+                                finalOldTeam.getTeamSecondaryColor(),
+                                finalOldTeam.getTeamMosaicPattern().getId(),
+                                finalOldTeam.getTeamCreationDate(),
+                                finalOldTeam.getPlayerNames(),
+                                finalOldTeam.getEntityNames(),
+                                oldUUIDStrings,
+                                OWTeamMosaicPattern.packPixels(finalOldTeam.getPaintPixels())
+                        ), player);
+                    }
+                }
+            }
         });
+    }
+
+    private static void refreshEntityNames(OWTeam team, ServerLevel level) {
+        List<String> names = new ArrayList<>();
+        for (UUID uuid : team.getEntityUUIDs()) {
+            String name = uuid.toString(); // fallback
+            for (Entity e : level.getAllEntities()) {
+                if (e instanceof OWEntity m && m.getUUID().equals(uuid)) {
+                    name = m.getNickname();
+                    break;
+                }
+            }
+            names.add(name);
+        }
+        team.setEntityNames(names);
+    }
+
+    private static List<String> toUUIDStrings(List<UUID> uuids) {
+        List<String> list = new ArrayList<>(uuids.size());
+        for (UUID u : uuids) list.add(u.toString());
+        return list;
     }
 }

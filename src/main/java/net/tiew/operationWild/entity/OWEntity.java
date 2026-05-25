@@ -2481,6 +2481,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
         if (this.currentTeam != null) {
+            java.util.List<String> uuidStrings = new java.util.ArrayList<>();
+            for (java.util.UUID u : this.currentTeam.getEntityUUIDs()) uuidStrings.add(u.toString());
             OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
                     this.getId(),
                     this.currentTeam.getTeamId(),
@@ -2492,6 +2494,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     this.currentTeam.getTeamCreationDate(),
                     this.currentTeam.getPlayerNames(),
                     this.currentTeam.getEntityNames(),
+                    uuidStrings,
                     OWTeamMosaicPattern.packPixels(
                             this.currentTeam.getPaintPixels() != null
                                     ? this.currentTeam.getPaintPixels()
@@ -3552,6 +3555,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             for (String n : currentTeam.getEntityNames()) eNames.add(net.minecraft.nbt.StringTag.valueOf(n));
             teamTag.put("entityNames", eNames);
 
+            ListTag eUUIDs = new ListTag();
+            for (java.util.UUID u : currentTeam.getEntityUUIDs()) eUUIDs.add(net.minecraft.nbt.StringTag.valueOf(u.toString()));
+            teamTag.put("entityUUIDs", eUUIDs);
+
             tag.put("currentTeam", teamTag);
 
             teamTag.putInt("teamSecondaryColor", currentTeam.getTeamSecondaryColor());
@@ -3686,6 +3693,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             ListTag eTag = teamTag.getList("entityNames", Tag.TAG_STRING);
             for (int i = 0; i < eTag.size(); i++) eNames.add(eTag.getString(i));
 
+            List<java.util.UUID> eUUIDs = new ArrayList<>();
+            if (teamTag.contains("entityUUIDs")) {
+                ListTag euTag = teamTag.getList("entityUUIDs", Tag.TAG_STRING);
+                for (int i = 0; i < euTag.size(); i++) {
+                    try { eUUIDs.add(java.util.UUID.fromString(euTag.getString(i))); }
+                    catch (IllegalArgumentException ignored) {}
+                }
+            }
+
             boolean[] savedPixels = OWTeamMosaicPattern.unpackPixels(
                     teamTag.contains("paintPixels") ? teamTag.getByteArray("paintPixels") : new byte[0],
                     OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT
@@ -3702,6 +3718,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     pNames, eNames,
                     savedPixels
             );
+            this.currentTeam.setEntityUUIDs(eUUIDs);
         }
     }
 }

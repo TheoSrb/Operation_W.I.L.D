@@ -96,6 +96,6 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
 
     @Override
     public double infosUpOffset() {
-        return 0;
+        return -0.35;
     }
 }

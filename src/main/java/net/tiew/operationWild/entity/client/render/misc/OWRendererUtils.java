@@ -25,15 +25,20 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.team.OWTeam;
+import net.tiew.operationWild.team.OWTeamMosaicPattern;
 
 import java.util.*;
 
 public class OWRendererUtils {
 
-    private static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
+    private static final ResourceLocation ICONS       = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
+    private static final ResourceLocation OW_TEAMS_GUI = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_teams_interface.png");
+    private static final ResourceLocation WHITE        = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/misc/white.png");
 
     public static void displayOverlayOnEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int opacity, double offsetX, double offsetY, double offsetZ) {
         ResourceLocation overlayTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information.png");
+        ResourceLocation overlayTextureTamed = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information_tamed.png");
         ResourceLocation barTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information_bars.png");
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
@@ -50,7 +55,7 @@ public class OWRendererUtils {
         poseStack.scale(2.5F, 2.5F, 2.5F);
         poseStack.translate(0.1D, 0.0D, 0.0D);
 
-        RenderType renderType = RenderType.entityTranslucent(overlayTexture);
+        RenderType renderType = RenderType.entityTranslucent(entity.isTame() ? overlayTextureTamed : overlayTexture);
         VertexConsumer vertexConsumer = bufferSource.getBuffer(renderType);
 
         Matrix4f matrix = poseStack.last().pose();
@@ -59,8 +64,8 @@ public class OWRendererUtils {
         float height = 1.0F;
         float u0 = 0.0F;
         float u1 = 1.0F;
-        float v0 = 0.0F;
-        float v1 = 1.0F;
+        float v0 = 0.0f;
+        float v1 = 1.0f;
 
         int lightU = packedLight & 0xFFFF;
         int lightV = (packedLight >> 16) & 0xFFFF;
@@ -88,40 +93,44 @@ public class OWRendererUtils {
         float tamingBarWidth = 166.0F * tamingBarScale;
         float tamingBarHeight = 10.0F * tamingBarScale;
         float tamingRenderedBarWidth = tamingBarWidth * tamingBarProgress;
+        float tamingBarY = entity.isTame() ? 0.12F : 0.2F;
 
         int fullBrightU = fullBrightLight & 0xFFFF;
         int fullBrightV = (fullBrightLight >> 16) & 0xFFFF;
 
-        tamingBarVertexConsumer.addVertex(tamingBarMatrix, -0.43F, 0.2F, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
-        tamingBarVertexConsumer.addVertex(tamingBarMatrix, -0.43F + tamingRenderedBarWidth, 0.2F, 0.0F).setColor(255, 255, 255, opacity).setUv((166.0F * tamingBarProgress) / 256.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
-        tamingBarVertexConsumer.addVertex(tamingBarMatrix, -0.43F + tamingRenderedBarWidth, 0.2F - tamingBarHeight, 0.0F).setColor(255, 255, 255, opacity).setUv((166.0F * tamingBarProgress) / 256.0F, 10.0F / 256.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
-        tamingBarVertexConsumer.addVertex(tamingBarMatrix, -0.43F, 0.2F - tamingBarHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, 10.0F / 256.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+        tamingBarVertexConsumer.addVertex(tamingBarMatrix, -0.43F, tamingBarY, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+        tamingBarVertexConsumer.addVertex(tamingBarMatrix, -0.43F + tamingRenderedBarWidth, tamingBarY, 0.0F).setColor(255, 255, 255, opacity).setUv((166.0F * tamingBarProgress) / 256.0F, 0.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+        tamingBarVertexConsumer.addVertex(tamingBarMatrix, -0.43F + tamingRenderedBarWidth, tamingBarY - tamingBarHeight, 0.0F).setColor(255, 255, 255, opacity).setUv((166.0F * tamingBarProgress) / 256.0F, 10.0F / 256.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+        tamingBarVertexConsumer.addVertex(tamingBarMatrix, -0.43F, tamingBarY - tamingBarHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, 10.0F / 256.0F).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
 
         poseStack.popPose();
 
-        float secondBarProgress = entity.isBaby() ? entity.getMaturationPercentage() / 100.0F : entity.getSleepBarPercent() / 100.0F;
+        // Second bar: maturation for babies, somnolence for wild — hidden for tamed non-babies
+        if (!entity.isTame() || entity.isBaby()) {
+            float secondBarProgress = entity.isBaby() ? entity.getMaturationPercentage() / 100.0F : entity.getSleepBarPercent() / 100.0F;
 
-        poseStack.pushPose();
-        poseStack.translate(0.0D, 0.0D, 0.003D);
+            poseStack.pushPose();
+            poseStack.translate(0.0D, 0.0D, 0.003D);
 
-        VertexConsumer secondBarVertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(barTexture));
-        Matrix4f secondBarMatrix = poseStack.last().pose();
+            VertexConsumer secondBarVertexConsumer = bufferSource.getBuffer(RenderType.entityTranslucent(barTexture));
+            Matrix4f secondBarMatrix = poseStack.last().pose();
 
-        float secondBarScale = 0.004F;
-        float secondBarWidth = entity.isBaby() ? 159.0F * secondBarScale : 166.0F * secondBarScale;
-        float secondBarHeight = entity.isBaby() ? 7.0F * secondBarScale : 10.0F * secondBarScale;
-        float secondRenderedBarWidth = secondBarWidth * secondBarProgress;
+            float secondBarScale = 0.004F;
+            float secondBarWidth = entity.isBaby() ? 159.0F * secondBarScale : 166.0F * secondBarScale;
+            float secondBarHeight = entity.isBaby() ? 7.0F * secondBarScale : 10.0F * secondBarScale;
+            float secondRenderedBarWidth = secondBarWidth * secondBarProgress;
 
-        float uvTop = entity.isBaby() ? 49.0F / 256.0F : 10.0F / 256.0F;
-        float uvBottom = entity.isBaby() ? 56.0F / 256.0F : 20.0F / 256.0F;
-        float uvRight = entity.isBaby() ? (159.0F * secondBarProgress) / 256.0F : (166.0F * secondBarProgress) / 256.0F;
+            float uvTop = entity.isBaby() ? 49.0F / 256.0F : 10.0F / 256.0F;
+            float uvBottom = entity.isBaby() ? 56.0F / 256.0F : 20.0F / 256.0F;
+            float uvRight = entity.isBaby() ? (159.0F * secondBarProgress) / 256.0F : (166.0F * secondBarProgress) / 256.0F;
 
-        secondBarVertexConsumer.addVertex(secondBarMatrix, -0.43F, 0.12F, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, uvTop).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
-        secondBarVertexConsumer.addVertex(secondBarMatrix, -0.43F + secondRenderedBarWidth, 0.12F, 0.0F).setColor(255, 255, 255, opacity).setUv(uvRight, uvTop).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
-        secondBarVertexConsumer.addVertex(secondBarMatrix, -0.43F + secondRenderedBarWidth, 0.12F - secondBarHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(uvRight, uvBottom).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
-        secondBarVertexConsumer.addVertex(secondBarMatrix, -0.43F, 0.12F - secondBarHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, uvBottom).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+            secondBarVertexConsumer.addVertex(secondBarMatrix, -0.43F, 0.12F, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, uvTop).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+            secondBarVertexConsumer.addVertex(secondBarMatrix, -0.43F + secondRenderedBarWidth, 0.12F, 0.0F).setColor(255, 255, 255, opacity).setUv(uvRight, uvTop).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+            secondBarVertexConsumer.addVertex(secondBarMatrix, -0.43F + secondRenderedBarWidth, 0.12F - secondBarHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(uvRight, uvBottom).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
+            secondBarVertexConsumer.addVertex(secondBarMatrix, -0.43F, 0.12F - secondBarHeight, 0.0F).setColor(255, 255, 255, opacity).setUv(0.0F, uvBottom).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(fullBrightU, fullBrightV).setNormal(0.0F, 1.0F, 0.0F);
 
-        poseStack.popPose();
+            poseStack.popPose();
+        }
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, 0.003D);
@@ -152,6 +161,55 @@ public class OWRendererUtils {
 
         poseStack.popPose();
 
+        // ── Mini team banner (name left-aligned like other lines, banner just right of it) ──
+        // Y reference (2.5F scale): "Passif" ≈ +0.336, "Apprivoisement" ≈ +0.252
+        // textStartX = lefttextX * textScale = -132 * 0.0035 = -0.462
+        if (entity.isTame() && entity.currentTeam != null) {
+            OWTeam bTeam = entity.currentTeam;
+            int bPrimary   = bTeam.getTeamColor();
+            int bSecondary = bTeam.getTeamSecondaryColor();
+            int bpr = (bPrimary >> 16) & 0xFF,   bpg = (bPrimary >> 8) & 0xFF,   bpb = bPrimary & 0xFF;
+            int bsr = (bSecondary >> 16) & 0xFF,  bsg = (bSecondary >> 8) & 0xFF, bsb = bSecondary & 0xFF;
+
+            Font bFont = Minecraft.getInstance().font;
+            String rawTeamName = bTeam.getTeamName();
+            if (rawTeamName.length() > 15) rawTeamName = rawTeamName.substring(0, 15);
+            Component bName = Component.literal(rawTeamName)
+                    .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(bPrimary)));
+
+            // Text world-space metrics (same scale as existing overlay text: 0.0035F)
+            final float TEXT_SCALE  = 0.0035f;
+            final float textStartX  = -0.462f;  // = lefttextX(-132) * TEXT_SCALE
+            final float bcy         = 0.268f;   // vertical center of the row
+            final float nameWorldW  = bFont.width(bName) * TEXT_SCALE;
+
+            // Team name — left-aligned, same X as "Passif" / "Vie:" etc.
+            poseStack.pushPose();
+            poseStack.translate(textStartX, bcy, 0.003f);
+            poseStack.scale(TEXT_SCALE, -TEXT_SCALE, TEXT_SCALE);
+            bFont.drawInBatch(bName, 0, -(float) bFont.lineHeight / 2f, -1, true,
+                    poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+            poseStack.popPose();
+
+            // Banner — immediately to the right of the team name
+            final float BBW  = 56 * 0.003f * 0.24f;
+            final float BBH  = 93 * 0.003f * 0.24f;
+            final float bbx0 = textStartX + nameWorldW + 0.010f;
+            final float bbx1 = bbx0 + BBW;
+            final float bby0 = bcy - BBH / 2f;
+            final float bby1 = bcy + BBH / 2f;
+
+            poseStack.pushPose();
+            poseStack.translate(0, 0, 0.003f);
+            VertexConsumer vcB = bufferSource.getBuffer(RenderType.entityTranslucent(OW_TEAMS_GUI));
+            renderBannerPattern(vcB, poseStack.last().pose(),
+                    bbx0, bby0, bbx1, bby1,
+                    bbx0, bby0, BBW, BBH,
+                    bTeam.getTeamMosaicPattern(),
+                    bpr, bpg, bpb, bsr, bsg, bsb,
+                    bTeam.getPaintPixels(), lightU, lightV);
+            poseStack.popPose();
+        }
 
         if (entity instanceof KodiakEntity kodiak && !kodiak.isTame()) {
             poseStack.pushPose();
@@ -248,11 +306,13 @@ public class OWRendererUtils {
 
         float percentage = entity.isBaby() ? entity.getMaturationPercentage() : entity.getSleepBarPercent();
 
-        Component sleepingComponent = Component.empty()
+        // Somnolence only relevant for wild or baby entities
+        Component sleepingComponent = (!entity.isTame() || entity.isBaby()) ? Component.empty()
                 .append(Component.translatable(entity.isBaby() ? "imageMaturation" : "sleepingTaming").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
                 .append(" " + Math.round(percentage * 10.0f) / 10.0f + "%")
                 .append(entity.isBaby() ? Component.literal(" | ").withStyle(Style.EMPTY.withItalic(false)) : Component.empty())
-                .append(entity.isBaby() ? Component.literal("(" + timeDisplay + ")").withStyle(Style.EMPTY.withItalic(true)) : Component.empty());
+                .append(entity.isBaby() ? Component.literal("(" + timeDisplay + ")").withStyle(Style.EMPTY.withItalic(true)) : Component.empty())
+                : null;
 
         Component animalTypeComponent = Component.empty()
                 .append(Component.translatable(chooseAnimalMaturation(entity)).withStyle(style -> style.withColor(entity.getEntityColor()).withBold(true)))
@@ -282,7 +342,7 @@ public class OWRendererUtils {
         int rightPadding = 20;
 
         float tamingTextWidth = font.width(tamingComponent);
-        float sleepingTextWidth = font.width(sleepingComponent);
+        float sleepingTextWidth = sleepingComponent != null ? font.width(sleepingComponent) : 0;
 
         float centerX = 0;
         float tamingTextX = centerX - (tamingTextWidth / 2.0f);
@@ -305,8 +365,8 @@ public class OWRendererUtils {
             font.drawInBatch(stateComponent, lefttextX, textY + (leftPadding * 3), entity.isPassive() ? 0x55FF55 : 0xFF5555, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         }
 
-        font.drawInBatch(tamingComponent, tamingTextX - 25, textY + (20 * 3), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
-        font.drawInBatch(sleepingComponent, sleepingTextX - 25, textY + (20 * 4.4f), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+        font.drawInBatch(tamingComponent, tamingTextX - 25, entity.isTame() ? textY + (20 * 4.4f) : textY + (20 * 3), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+        if (sleepingComponent != null) font.drawInBatch(sleepingComponent, sleepingTextX - 25, textY + (20 * 4.4f), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
 
         font.drawInBatch(animalTypeComponent, animalTypeTextX, textY, 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
 
@@ -741,6 +801,236 @@ public class OWRendererUtils {
         poseStack.popPose();
     }
 
+
+    // ── Team banner ──────────────────────────────────────────────────────────────
+
+    /**
+     * Renders a mini team banner centered above the entity.
+     * Uses the flag texture (OW_TEAMS_GUI) with vertex color tinting, matching the GUI approach.
+     */
+    public static void displayTeamBannerAboveEntity(OWEntity entity, PoseStack poseStack,
+            MultiBufferSource bufferSource, int packedLight,
+            EntityRenderDispatcher entityRenderDispatcher, double upOffset) {
+        if (entity.currentTeam == null) return;
+
+        OWTeam team = entity.currentTeam;
+        int primary   = team.getTeamColor();
+        int secondary = team.getTeamSecondaryColor();
+        int pr = (primary >> 16) & 0xFF,   pg = (primary >> 8) & 0xFF,   pb = primary & 0xFF;
+        int sr = (secondary >> 16) & 0xFF, sg = (secondary >> 8) & 0xFF, sb = secondary & 0xFF;
+
+        poseStack.pushPose();
+        poseStack.translate(0, entity.getBbHeight() + upOffset, 0);
+        poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
+
+        final float BW = 56 * 0.003f, BH = 93 * 0.003f;
+        final float x0 = -BW / 2f, x1 = BW / 2f;
+        final float y0 = -BH / 2f, y1 = BH / 2f;
+        int lightU = packedLight & 0xFFFF;
+        int lightV = (packedLight >> 16) & 0xFFFF;
+
+        VertexConsumer vc = bufferSource.getBuffer(RenderType.entityTranslucent(OW_TEAMS_GUI));
+        renderBannerPattern(vc, poseStack.last().pose(),
+                x0, y0, x1, y1, x0, y0, BW, BH,
+                team.getTeamMosaicPattern(), pr, pg, pb, sr, sg, sb,
+                team.getPaintPixels(), lightU, lightV);
+
+        // ── Team name below the banner ─────────────────────────────────────────
+        Font font = Minecraft.getInstance().font;
+        Component nameComp = Component.literal(team.getTeamName())
+                .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(primary)));
+        poseStack.pushPose();
+        poseStack.translate(0, y0 - 0.04f, 0);
+        poseStack.scale(0.012f, -0.012f, 0.012f);
+        font.drawInBatch(nameComp, -font.width(nameComp) / 2f, 0, -1, true,
+                poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+        poseStack.popPose();
+
+        poseStack.popPose();
+    }
+
+    /**
+     * Renders all pattern fills for a banner rectangle using the OW_TEAMS_GUI flag texture.
+     * bx0/by0/bw/bh describe the full banner bounds (used for UV sub-region mapping).
+     * The quad to fill is [wx0..wx1] × [wy0..wy1].
+     */
+    private static void renderBannerPattern(VertexConsumer vc, Matrix4f mat,
+            float bx0, float by0, float bx1, float by1,
+            float bbx0, float bby0, float bbw, float bbh,
+            OWTeamMosaicPattern pattern,
+            int pr, int pg, int pb, int sr, int sg, int sb,
+            boolean[] paintPixels, int lightU, int lightV) {
+
+        final float xM = (bx0 + bx1) / 2f, yM = (by0 + by1) / 2f;
+        final float BW = bx1 - bx0, BH = by1 - by0;
+
+        if (pattern == OWTeamMosaicPattern.CUSTOM_PAINT) {
+            // Stride = 55 (matching OWTeamCreationScreen / renderFlagCustomPaint in GUI)
+            if (paintPixels != null && paintPixels.length >= 55 * 93) {
+                for (int row = 0; row < 93; row++) {
+                    for (int col = 0; col < 55; col++) {
+                        boolean painted = paintPixels[row * 55 + col];
+                        int cr = painted ? sr : pr, cg = painted ? sg : pg, cb = painted ? sb : pb;
+                        float wx0 = bx0 + (float) col / 55 * BW;
+                        float wx1 = bx0 + (float)(col + 1) / 55 * BW;
+                        float wy1 = by1 - (float) row / 93 * BH;
+                        float wy0 = by1 - (float)(row + 1) / 93 * BH;
+                        flagRect(vc, mat, wx0, wy0, wx1, wy1, bbx0, bby0, bbw, bbh, lightU, lightV, cr, cg, cb);
+                    }
+                }
+            } else {
+                flagRect(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+            }
+            return;
+        }
+
+        final int STRIPS = 32;
+        switch (pattern) {
+            case GRADIENT_DOWN ->
+                flagRectGradV(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV,
+                        sr, sg, sb, pr, pg, pb);
+            case GRADIENT_RIGHT ->
+                flagRectGradH(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV,
+                        pr, pg, pb, sr, sg, sb);
+            case SPLIT_H -> {
+                flagRect(vc, mat, bx0, yM, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                flagRect(vc, mat, bx0, by0, bx1, yM,  bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+            }
+            case SPLIT_V -> {
+                flagRect(vc, mat, bx0, by0, xM, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                flagRect(vc, mat, xM, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+            }
+            case DIAGONAL_TL_BR -> {
+                for (int j = 0; j < STRIPS; j++) {
+                    float wyTop = by1 - (float) j / STRIPS * BH;
+                    float wyBot = by1 - (float)(j + 1) / STRIPS * BH;
+                    float splitX = bx1 - (float) j / STRIPS * BW;
+                    if (splitX > bx0) flagRect(vc, mat, bx0, wyBot, splitX, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                    if (splitX < bx1) flagRect(vc, mat, splitX, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                }
+            }
+            case THIRDS_H -> {
+                float y2 = by0 + BH / 3f, y3 = by0 + 2f * BH / 3f;
+                flagRect(vc, mat, bx0, y3,  bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                flagRect(vc, mat, bx0, y2,  bx1, y3,  bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                flagRect(vc, mat, bx0, by0, bx1, y2,  bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+            }
+            case THIRDS_V -> {
+                float x2 = bx0 + BW / 3f, x3 = bx0 + 2f * BW / 3f;
+                flagRect(vc, mat, bx0, by0, x2,  by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                flagRect(vc, mat, x2,  by0, x3,  by1, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                flagRect(vc, mat, x3,  by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+            }
+            case CHECKER -> {
+                flagRect(vc, mat, bx0, yM,  xM,  by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                flagRect(vc, mat, xM,  yM,  bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                flagRect(vc, mat, bx0, by0, xM,  yM,  bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                flagRect(vc, mat, xM,  by0, bx1, yM,  bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+            }
+            case STRIPES -> {
+                for (int j = 0; j < STRIPS; j++) {
+                    float wyTop = by1 - (float) j / STRIPS * BH;
+                    float wyBot = by1 - (float)(j + 1) / STRIPS * BH;
+                    int guiRow = j * 93 / STRIPS;
+                    int total = 56 + 93;
+                    int s1 = Math.max(0, Math.min(total / 3 - guiRow, 56));
+                    int s2 = Math.max(0, Math.min(total * 2 / 3 - guiRow, 56));
+                    float ws1 = bx0 + (float) s1 / 56 * BW;
+                    float ws2 = bx0 + (float) s2 / 56 * BW;
+                    if (s1 > 0)  flagRect(vc, mat, bx0, wyBot, ws1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                    if (s2 > s1) flagRect(vc, mat, ws1, wyBot, ws2, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                    if (s2 < 56) flagRect(vc, mat, ws2, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                }
+            }
+            case DIAMOND -> {
+                float dScale = 0.78f;
+                float halfH = (BH / 2f) * dScale;
+                for (int j = 0; j < STRIPS; j++) {
+                    float wyTop = by1 - (float) j / STRIPS * BH;
+                    float wyBot = by1 - (float)(j + 1) / STRIPS * BH;
+                    float wyMid = (wyTop + wyBot) / 2f;
+                    float distY = Math.abs(wyMid - yM);
+                    if (distY >= halfH) {
+                        flagRect(vc, mat, bx0, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                    } else {
+                        float hw = (1f - distY / halfH) * (BW / 2f) * dScale;
+                        float dx1 = Math.max(bx0, xM - hw), dx2 = Math.min(bx1, xM + hw);
+                        if (dx1 > bx0) flagRect(vc, mat, bx0, wyBot, dx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                        flagRect(vc, mat, dx1, wyBot, dx2, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                        if (dx2 < bx1) flagRect(vc, mat, dx2, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                    }
+                }
+            }
+            case CIRCLE_PRI -> {
+                float rx = (Math.min(BW, BH) / 3f) + BW / 56f;
+                float ry = Math.min(BW, BH) / 3f;
+                for (int j = 0; j < STRIPS; j++) {
+                    float wyTop = by1 - (float) j / STRIPS * BH;
+                    float wyBot = by1 - (float)(j + 1) / STRIPS * BH;
+                    float dy = (wyTop + wyBot) / 2f - yM;
+                    if (Math.abs(dy) > ry) {
+                        flagRect(vc, mat, bx0, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                    } else {
+                        float dx = rx * (float) Math.sqrt(1f - (dy * dy) / (ry * ry));
+                        float wx0c = Math.max(bx0, xM - dx), wx1c = Math.min(bx1, xM + dx);
+                        if (wx0c > bx0) flagRect(vc, mat, bx0,  wyBot, wx0c, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                        flagRect(vc, mat, wx0c, wyBot, wx1c, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                        if (wx1c < bx1) flagRect(vc, mat, wx1c, wyBot, bx1,  wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                    }
+                }
+            }
+            default -> flagRect(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+        }
+    }
+
+    // Renders a sub-rectangle of the flag texture (U=200..256, V=0..93/256) with vertex color tinting.
+    private static void flagRect(VertexConsumer vc, Matrix4f mat,
+            float wx0, float wy0, float wx1, float wy1,
+            float bx0, float by0, float bw, float bh,
+            int lightU, int lightV, int r, int g, int b) {
+        float fu0 = (200f + (wx0 - bx0) / bw * 56f) / 256f;
+        float fu1 = (200f + (wx1 - bx0) / bw * 56f) / 256f;
+        float fv0 = (1f - (wy1 - by0) / bh) * 93f / 256f;
+        float fv1 = (1f - (wy0 - by0) / bh) * 93f / 256f;
+        vc.addVertex(mat, wx0, wy0, 0).setColor(r, g, b, 255).setUv(fu0, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, wx1, wy0, 0).setColor(r, g, b, 255).setUv(fu1, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, wx1, wy1, 0).setColor(r, g, b, 255).setUv(fu1, fv0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, wx0, wy1, 0).setColor(r, g, b, 255).setUv(fu0, fv0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+    }
+
+    // Vertical gradient: bottom = rBot/gBot/bBot, top = rTop/gTop/bTop.
+    private static void flagRectGradV(VertexConsumer vc, Matrix4f mat,
+            float wx0, float wy0, float wx1, float wy1,
+            float bx0, float by0, float bw, float bh,
+            int lightU, int lightV,
+            int rBot, int gBot, int bBot, int rTop, int gTop, int bTop) {
+        float fu0 = (200f + (wx0 - bx0) / bw * 56f) / 256f;
+        float fu1 = (200f + (wx1 - bx0) / bw * 56f) / 256f;
+        float fv0 = (1f - (wy1 - by0) / bh) * 93f / 256f;
+        float fv1 = (1f - (wy0 - by0) / bh) * 93f / 256f;
+        vc.addVertex(mat, wx0, wy0, 0).setColor(rBot, gBot, bBot, 255).setUv(fu0, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, wx1, wy0, 0).setColor(rBot, gBot, bBot, 255).setUv(fu1, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, wx1, wy1, 0).setColor(rTop, gTop, bTop, 255).setUv(fu1, fv0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, wx0, wy1, 0).setColor(rTop, gTop, bTop, 255).setUv(fu0, fv0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+    }
+
+    // Horizontal gradient: left = rLeft/gLeft/bLeft, right = rRight/gRight/bRight.
+    private static void flagRectGradH(VertexConsumer vc, Matrix4f mat,
+            float wx0, float wy0, float wx1, float wy1,
+            float bx0, float by0, float bw, float bh,
+            int lightU, int lightV,
+            int rLeft, int gLeft, int bLeft, int rRight, int gRight, int bRight) {
+        float fu0 = (200f + (wx0 - bx0) / bw * 56f) / 256f;
+        float fu1 = (200f + (wx1 - bx0) / bw * 56f) / 256f;
+        float fv0 = (1f - (wy1 - by0) / bh) * 93f / 256f;
+        float fv1 = (1f - (wy0 - by0) / bh) * 93f / 256f;
+        vc.addVertex(mat, wx0, wy0, 0).setColor(rLeft,  gLeft,  bLeft,  255).setUv(fu0, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, wx1, wy0, 0).setColor(rRight, gRight, bRight, 255).setUv(fu1, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, wx1, wy1, 0).setColor(rRight, gRight, bRight, 255).setUv(fu1, fv0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, wx0, wy1, 0).setColor(rLeft,  gLeft,  bLeft,  255).setUv(fu0, fv0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+    }
+
+    // ── Team banner end ──────────────────────────────────────────────────────────
 
     private static final Map<UUID, EntityInfoState> entityInfoStates = new HashMap<>();
 

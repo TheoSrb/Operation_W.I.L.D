@@ -68,7 +68,8 @@ public class SyringeItem extends Item {
                 owEntity.getSpeed(),
                 owEntity.isFemale(),
                 (float) owEntity.getTamingExperience(),
-                owEntity.getEntityColor()
+                owEntity.getEntityColor(),
+                owEntity.getSkinIndex()
         );
 
         ItemStack bloodyStack = new ItemStack(OWItems.BLOODY_SYRINGE.get());

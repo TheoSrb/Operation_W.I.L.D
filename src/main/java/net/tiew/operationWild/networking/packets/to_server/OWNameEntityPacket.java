@@ -1,6 +1,5 @@
 package net.tiew.operationWild.networking.packets.to_server;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -12,7 +11,14 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.screen.entity.OWChooseNameScreen;
+import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_client.SyncOWTeamPacket;
+import net.tiew.operationWild.team.OWTeam;
+import net.tiew.operationWild.team.OWTeamMosaicPattern;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public record OWNameEntityPacket(int entityId, String nickname) implements CustomPacketPayload {
 
@@ -34,10 +40,55 @@ public record OWNameEntityPacket(int entityId, String nickname) implements Custo
 
     public static void handle(OWNameEntityPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (context.player().level() instanceof ServerLevel serverLevel) {
-                Entity entity = serverLevel.getEntity(packet.entityId());
-                if (entity instanceof OWEntity owEntity) {
-                    owEntity.setNickname(packet.nickname());
+            if (!(context.player().level() instanceof ServerLevel serverLevel)) return;
+            Entity entity = serverLevel.getEntity(packet.entityId());
+            if (!(entity instanceof OWEntity owEntity)) return;
+
+            owEntity.setNickname(packet.nickname());
+
+            // Si l'entité est dans une team, mettre à jour son nom dans entityNames
+            // pour que les lookups par nickname restent valides après renommage.
+            if (owEntity.currentTeam == null) return;
+
+            OWTeam team = owEntity.currentTeam;
+            int idx = team.getEntityUUIDs().indexOf(owEntity.getUUID());
+            if (idx >= 0 && idx < team.getEntityNames().size()) {
+                team.getEntityNames().set(idx, packet.nickname());
+            }
+
+            // Construire la liste UUID strings une seule fois
+            List<String> uuidStrings = new ArrayList<>(team.getEntityUUIDs().size());
+            for (UUID u : team.getEntityUUIDs()) uuidStrings.add(u.toString());
+            byte[] paintPixels = OWTeamMosaicPattern.packPixels(
+                    team.getPaintPixels() != null ? team.getPaintPixels() : new boolean[0]);
+
+            // Resync chaque membre de la team vers tous les clients
+            for (Entity e : serverLevel.getAllEntities()) {
+                if (!(e instanceof OWEntity m)) continue;
+                if (m.currentTeam == null || m.currentTeam.getTeamId() != team.getTeamId()) continue;
+
+                // S'assurer que ce membre aussi a le nom à jour (cas objets partagés ou non)
+                int mIdx = m.currentTeam.getEntityUUIDs().indexOf(owEntity.getUUID());
+                if (mIdx >= 0 && mIdx < m.currentTeam.getEntityNames().size()) {
+                    m.currentTeam.getEntityNames().set(mIdx, packet.nickname());
+                }
+
+                SyncOWTeamPacket syncPacket = new SyncOWTeamPacket(
+                        m.getId(),
+                        team.getTeamId(),
+                        team.getTeamName(),
+                        team.getTeamOwnerUUID().toString(),
+                        team.getTeamColor(),
+                        team.getTeamSecondaryColor(),
+                        team.getTeamMosaicPattern().getId(),
+                        team.getTeamCreationDate(),
+                        team.getPlayerNames(),
+                        team.getEntityNames(),
+                        uuidStrings,
+                        paintPixels
+                );
+                for (ServerPlayer player : serverLevel.players()) {
+                    OWNetworkHandler.sendToClient(syncPacket, player);
                 }
             }
         });

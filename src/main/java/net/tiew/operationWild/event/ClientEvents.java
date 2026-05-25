@@ -162,6 +162,8 @@ public class ClientEvents {
     public static void onPlayerLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null) saveWaypointStates(mc.player);
+        computedClusters.clear();
+        clusterPopSmoothed.clear();
         waypointStates.clear();
         computedWaypoints.clear();
         cachedWorldName = null;
@@ -1039,11 +1041,12 @@ public class ClientEvents {
         Vec3    lastPos     = null;
         String  name        = "";
         int     fillColor   = 0x1A8FFF, borderColor = 0xAADDFF, textColor = 0xFFFFFF;
+        int     entityColor = 0xFFFFFF;   // ← ajouter
         int     iconSize    = 7, maxDist = 2000;
         float   minDist     = 3.0f, minOpacity = 0.25f, fontScale = 1.0f;
         float   visibility  = 0f;
         float   smoothedPop = 0f;
-        boolean hasBeenSeen = false; // une fois true, reste true jusqu'à mort confirmée
+        boolean hasBeenSeen = false;
         boolean isEnabled   = true;
     }
 
@@ -1051,6 +1054,18 @@ public class ClientEvents {
             float screenX, float screenY, int dist, float popFactor, float visibility,
             String name, int fillColor, int borderColor, int textColor,
             int iconSize, float minOpacity, float fontScale) {}
+
+    private record ComputedCluster(
+            float screenX, float screenY, int dist, float popFactor, float visibility,
+            List<Integer> fillColors,
+            String entityTypeName,
+            int    entityTypeColor,
+            int borderColor, int textColor,
+            int iconSize, float minOpacity, float fontScale,
+            int totalCount) {}
+
+    private static final Map<String, Float> clusterPopSmoothed = new HashMap<>();
+    private static final Map<String, ComputedCluster> computedClusters = new LinkedHashMap<>();
 
     private static final Map<UUID, ComputedWaypoint> computedWaypoints = new LinkedHashMap<>();
 
@@ -1077,6 +1092,7 @@ public class ClientEvents {
                 OWEntity.class, player.getBoundingBox().inflate(2048))) {
 
             if (!(candidate instanceof IOWWaypointEntity w)) continue;
+            if (candidate instanceof net.tiew.operationWild.entity.misc.Submarine) continue;
             if (!player.getUUID().equals(candidate.getOwnerUUID())) continue;
 
             UUID uuid = candidate.getUUID();
@@ -1100,6 +1116,7 @@ public class ClientEvents {
             state.name        = candidate.getCustomName() != null
                     ? candidate.getCustomName().getString() : w.getWaypointName();
             state.fillColor   = w.getWaypointFillColor();
+            state.entityColor = candidate.getEntityColor();
             state.borderColor = w.getWaypointBorderColor();
             state.textColor   = w.getWaypointTextColor();
             state.iconSize    = w.getWaypointIconSize();
@@ -1211,6 +1228,171 @@ public class ClientEvents {
                     state.name, state.fillColor, state.borderColor, state.textColor,
                     state.iconSize, state.minOpacity, state.fontScale));
         }
+
+        computedClusters.clear();
+        final double CLUSTER_WORLD_RADIUS = 12.0;
+        final int    MIN_CLUSTER_SIZE     = 3;
+
+        List<UUID> allOwned = new ArrayList<>();
+        for (Map.Entry<UUID, WaypointState> e : waypointStates.entrySet()) {
+            WaypointState s = e.getValue();
+            if (s.hasBeenSeen && s.lastPos != null && s.isEnabled
+                    && player.getUUID().equals(s.ownerUUID))
+                allOwned.add(e.getKey());
+        }
+
+        Set<UUID>        alreadyClustered = new HashSet<>();
+        List<List<UUID>> groups           = new ArrayList<>();
+        List<String>     groupKeys        = new ArrayList<>();
+
+// Passe 1 : constituer les groupes
+        for (int i = 0; i < allOwned.size(); i++) {
+            UUID seedUUID = allOwned.get(i);
+            if (alreadyClustered.contains(seedUUID)) continue;
+
+            WaypointState seedState = waypointStates.get(seedUUID);
+            if (player.position().distanceTo(seedState.lastPos) <= 75) continue;
+
+            List<UUID> group = new ArrayList<>();
+            group.add(seedUUID);
+
+            for (int j = i + 1; j < allOwned.size(); j++) {
+                UUID candUUID = allOwned.get(j);
+                if (alreadyClustered.contains(candUUID)) continue;
+                WaypointState candState = waypointStates.get(candUUID);
+                if (player.position().distanceTo(candState.lastPos) <= 75) continue;
+                boolean closeToGroup = false;
+                for (UUID memberUUID : group) {
+                    if (waypointStates.get(memberUUID).lastPos.distanceTo(candState.lastPos) <= CLUSTER_WORLD_RADIUS) {
+                        closeToGroup = true;
+                        break;
+                    }
+                }
+                if (closeToGroup) group.add(candUUID);
+            }
+
+            if (group.size() < MIN_CLUSTER_SIZE) continue;
+
+            alreadyClustered.addAll(group);
+            String key = group.stream().map(UUID::toString).sorted()
+                    .collect(java.util.stream.Collectors.joining(","));
+            groups.add(group);
+            groupKeys.add(key);
+        }
+
+// Passe 2 : focus par cluster
+        String bestClusterKey   = null;
+        float  bestClusterFocus = 0f;
+
+        for (int gi = 0; gi < groups.size(); gi++) {
+            Vec3 avgPos = Vec3.ZERO;
+            for (UUID u : groups.get(gi))
+                avgPos = avgPos.add(waypointStates.get(u).lastPos);
+            avgPos = avgPos.scale(1.0 / groups.get(gi).size());
+
+            Vec3 toTarget = avgPos.subtract(cam.getPosition());
+            Vector4f clip = new Vector4f((float)toTarget.x,(float)toTarget.y,(float)toTarget.z,1f);
+            projView.transform(clip);
+            if (Math.abs(clip.w) < 0.001f) continue;
+
+            boolean isBehind = clip.w <= 0f;
+            float   ndcX = clip.x / clip.w, ndcY = clip.y / clip.w;
+            float   angDist = isBehind ? 2f : (float) Math.sqrt(ndcX*ndcX + ndcY*ndcY);
+            float   focus = Mth.clamp(1f - angDist / 0.1f, 0f, 1f);
+            if (focus > bestClusterFocus) { bestClusterFocus = focus; bestClusterKey = groupKeys.get(gi); }
+        }
+
+// Passe 3 : visibilité, pop, projection, construction
+        Set<String> activeClusterKeys = new HashSet<>();
+        Set<UUID>   confirmedClusteredUUIDs = new HashSet<>();
+
+        for (int gi = 0; gi < groups.size(); gi++) {
+            List<UUID> group = groups.get(gi);
+            String     key   = groupKeys.get(gi);
+            activeClusterKeys.add(key);
+
+            WaypointState seed = waypointStates.get(group.get(0));
+
+            Vec3 avgPos = Vec3.ZERO;
+            for (UUID u : group) avgPos = avgPos.add(waypointStates.get(u).lastPos);
+            avgPos = avgPos.scale(1.0 / group.size());
+            double avgDistD = player.position().distanceTo(avgPos);
+
+            // ─── Correction 1 : pas de limite de distance pour les clusters ───────
+            float fadeZone  = 10f;
+            float targetVis;
+            if (avgDistD <= seed.minDist) targetVis = 0f;
+            else if (avgDistD < seed.minDist + fadeZone) targetVis = (float)(avgDistD - seed.minDist) / fadeZone;
+            else targetVis = 1f;
+
+            String visKey = "v_" + key;
+            float curVis = clusterPopSmoothed.getOrDefault(visKey, 0f);
+            curVis = Mth.lerp(0.08f, curVis, targetVis);
+            clusterPopSmoothed.put(visKey, curVis);
+            if (curVis >= 0.01f) confirmedClusteredUUIDs.addAll(group);
+            if (curVis < 0.01f) continue;
+
+            boolean isChosen = key.equals(bestClusterKey) && bestClusterFocus > 0.3f;
+            float   curPop   = clusterPopSmoothed.getOrDefault(key, 0f);
+            curPop = Mth.lerp(curPop < (isChosen ? 1f : 0f) ? 0.11f : 0.07f, curPop, isChosen ? 1f : 0f);
+            clusterPopSmoothed.put(key, curPop);
+
+            Vec3 toTarget = avgPos.subtract(cam.getPosition());
+            Vector4f clip = new Vector4f((float)toTarget.x,(float)toTarget.y,(float)toTarget.z,1f);
+            projView.transform(clip);
+            if (Math.abs(clip.w) < 0.001f) continue;
+
+            boolean isBehind = clip.w <= 0f;
+            float   ndcX = clip.x / clip.w, ndcY = clip.y / clip.w;
+            float   scrX = (ndcX + 1f) * 0.5f * sw;
+            float   scrY = (1f - ndcY) * 0.5f * sh;
+            float   cx = sw * 0.5f, cy = sh * 0.5f;
+            float   dx = scrX - cx, dy = scrY - cy;
+
+            if (isBehind || scrX <= margin || scrX >= sw-margin || scrY <= margin || scrY >= sh-margin) {
+                float sc = Math.min(
+                        Math.abs(dx) > 0.001f ? (cx - margin) / Math.abs(dx) : Float.MAX_VALUE,
+                        Math.abs(dy) > 0.001f ? (cy - margin) / Math.abs(dy) : Float.MAX_VALUE);
+                scrX = cx + dx * sc;
+                scrY = cy + dy * sc;
+            }
+
+            List<Integer> colors = new ArrayList<>();
+            Map<String, long[]> nameData = new LinkedHashMap<>(); // name → [count, entityColor]
+            for (UUID u : group) {
+                WaypointState st = waypointStates.get(u);
+                if (colors.size() < 5) colors.add(st.fillColor);
+                if (!st.name.isEmpty()) {
+                    nameData.computeIfAbsent(st.name, k2 -> new long[]{0, st.entityColor})[0]++;
+                }
+            }
+
+            // Entité type la plus fréquente
+            String mostCommonName  = "";
+            int    mostCommonColor = 0xFFFFFF;
+            long   bestCount       = 0;
+            for (Map.Entry<String, long[]> e : nameData.entrySet()) {
+                if (e.getValue()[0] > bestCount) {
+                    bestCount       = e.getValue()[0];
+                    mostCommonName  = e.getKey();
+                    mostCommonColor = (int) e.getValue()[1];
+                }
+            }
+
+            computedClusters.put(key, new ComputedCluster(
+                    scrX, scrY, (int) avgDistD, curPop, curVis,
+                    colors, mostCommonName, mostCommonColor,
+                    seed.borderColor, seed.textColor,
+                    seed.iconSize, seed.minOpacity, seed.fontScale,
+                    group.size()));
+        }
+
+        for (UUID u : confirmedClusteredUUIDs) computedWaypoints.remove(u);
+
+        clusterPopSmoothed.keySet().removeIf(k -> {
+            String base = k.startsWith("v_") ? k.substring(2) : k;
+            return !activeClusterKeys.contains(base);
+        });
     }
 
     private static File getWaypointFile(Player player) {
@@ -1222,6 +1404,8 @@ public class ClientEvents {
         saveWaypointStates(player);
         waypointStates.clear();
         computedWaypoints.clear();
+        computedClusters.clear();
+        clusterPopSmoothed.clear();
         cachedWorldName = null;
     }
 
@@ -1250,6 +1434,7 @@ public class ClientEvents {
                 out.writeFloat(s.minOpacity);
                 out.writeFloat(s.fontScale);
                 out.writeBoolean(s.isEnabled);
+                out.writeInt(s.entityColor);
             }
         } catch (Exception e) {
         }
@@ -1281,7 +1466,8 @@ public class ClientEvents {
                 s.minDist     = in.readFloat();
                 s.minOpacity  = in.readFloat();
                 s.fontScale   = in.readFloat();
-                s.isEnabled = in.readBoolean();
+                s.isEnabled   = in.readBoolean();
+                s.entityColor = in.readInt();
                 waypointStates.put(uuid, s);
             }
         } catch (Exception e) {
@@ -1343,7 +1529,7 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onRenderWaypoint(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.options.hideGui || computedWaypoints.isEmpty()) return;
+        if (mc.player == null || mc.options.hideGui || (computedWaypoints.isEmpty() && computedClusters.isEmpty())) return;
 
         for (ComputedWaypoint wp : computedWaypoints.values()) {
             drawWaypoint(event.getGuiGraphics(), mc,
@@ -1351,6 +1537,117 @@ public class ClientEvents {
                     wp.popFactor(), wp.visibility(), wp.name(),
                     wp.fillColor(), wp.borderColor(), wp.textColor(),
                     wp.iconSize(), wp.minOpacity(), wp.fontScale());
+        }
+
+        for (ComputedCluster cl : computedClusters.values()) {
+            drawClusteredWaypoint(event.getGuiGraphics(), mc, cl);
+        }
+    }
+
+    @OnlyIn(Dist.CLIENT)
+    private static void drawClusteredWaypoint(GuiGraphics gui, Minecraft mc, ComputedCluster cl) {
+        float vis = cl.visibility();
+        float pop = cl.popFactor();
+
+        float baseOpacity = Math.min(cl.minOpacity() + 0.10f, 0.65f);
+        int fillAlpha   = (int) (Mth.lerp(pop, baseOpacity * 0xCC, 0xCC) * vis);
+        int borderAlpha = (int) (Mth.lerp(pop, baseOpacity * 0xFF, 0xFF) * vis);
+        int distAlpha   = (int) (Mth.lerp(pop, baseOpacity * 0xBB, 0xDD) * vis);
+
+        float nameFade = Mth.clamp((pop - 0.6f) / 0.4f, 0f, 1f);
+        nameFade = nameFade * nameFade * (3f - 2f * nameFade);
+        int nameAlpha = (int)(nameFade * 0xFE * vis);
+
+        // ─── Correction 2 : scale réduite quand regardé (0.85 au lieu de 1.45) ─
+        float totalScale = Mth.lerp(pop, 0.55f, 0.85f) * vis;
+        int   iconHalf   = cl.iconSize() + 2;
+        int   border     = (borderAlpha << 24) | cl.borderColor();
+
+        List<Integer> colors = cl.fillColors();
+        int n = colors.size();
+
+        PoseStack pose = gui.pose();
+
+        // ── Losange découpé en N bandes ──────────────────────────────────────────
+        pose.pushPose();
+        pose.translate(cl.screenX(), cl.screenY(), 300);
+        pose.scale(totalScale, totalScale, 1f);
+        pose.mulPose(Axis.ZP.rotationDegrees(45));
+
+        int totalH = iconHalf * 2;
+        for (int i = 0; i < n; i++) {
+            int y1   = -iconHalf + (i * totalH / n);
+            int y2   = -iconHalf + ((i + 1) * totalH / n);
+            gui.fill(-iconHalf, y1, iconHalf, y2, (fillAlpha << 24) | colors.get(i));
+        }
+        int sepAlpha = Math.min(borderAlpha, 0x55);
+        for (int i = 1; i < n; i++) {
+            int sepY = -iconHalf + (i * totalH / n);
+            gui.fill(-iconHalf, sepY, iconHalf, sepY + 1, (sepAlpha << 24) | 0xFFFFFF);
+        }
+        gui.fill(-iconHalf, -iconHalf,     iconHalf,     -iconHalf + 1, border);
+        gui.fill(-iconHalf,  iconHalf - 1, iconHalf,      iconHalf,     border);
+        gui.fill(-iconHalf, -iconHalf,    -iconHalf + 1,  iconHalf,     border);
+        gui.fill( iconHalf - 1, -iconHalf, iconHalf,      iconHalf,     border);
+        pose.popPose();
+
+        float scaledHalf      = iconHalf * totalScale;
+        float effectiveFontSc = cl.fontScale() * (1.0f + 0.4f * pop);
+
+        // ─── Correction 3+4 : "Group of / Groupe de" traduit + nom gras coloré ──
+        if (nameAlpha > 3 && !cl.entityTypeName().isEmpty()) {
+            // ─── Correction 3 : clé de traduction ────────────────────────────────
+            String prefix   = Component.translatable("owwild.waypoint.group_of").getString() + " ";
+            String typeName = cl.entityTypeName();
+
+            int prefixW = mc.font.width(prefix);
+            int nameW   = mc.font.width(typeName) + 1; // +1 pixel pour le bold
+            int totalW  = prefixW + nameW;
+            int startX  = -totalW / 2;
+
+            float nameY = cl.screenY() - scaledHalf - mc.font.lineHeight * effectiveFontSc - 2f;
+            if (nameY < 2f) nameY = cl.screenY() + scaledHalf + mc.font.lineHeight * effectiveFontSc + 4f;
+
+            pose.pushPose();
+            pose.translate(cl.screenX(), nameY, 0);
+            pose.scale(effectiveFontSc, effectiveFontSc, 1f);
+
+            int prefixColor = (nameAlpha << 24) | (cl.textColor()      & 0xFFFFFF);
+            // ─── Correction 4 : couleur de l'entité + gras (double draw) ─────────
+            int entityColor = (nameAlpha << 24) | (cl.entityTypeColor() & 0xFFFFFF);
+
+            gui.drawString(mc.font, prefix,   startX,          0, prefixColor, true);
+            gui.drawString(mc.font, typeName, startX + prefixW,     0, entityColor, true);
+            gui.drawString(mc.font, typeName, startX + prefixW + 1, 0, entityColor, false); // bold simulation
+            pose.popPose();
+        }
+
+        // ── Sous le losange ───────────────────────────────────────────────────────
+        float baseTextY = cl.screenY() + scaledHalf + 3f;
+
+        if (nameAlpha > 3) {
+            String countLabel = "\u00d7" + cl.totalCount();
+            pose.pushPose();
+            pose.translate(cl.screenX(), baseTextY, 0);
+            pose.scale(effectiveFontSc * 1.1f, effectiveFontSc * 1.1f, 1f);
+            gui.drawString(mc.font, countLabel,
+                    -mc.font.width(countLabel) / 2, 0,
+                    (nameAlpha << 24) | cl.textColor(), true);
+            pose.popPose();
+            baseTextY += mc.font.lineHeight * effectiveFontSc * 1.1f + 1f;
+        }
+
+        if (distAlpha > 3) {
+            String distLabel = cl.dist() >= 1000
+                    ? String.format("%.1f km", cl.dist() / 1000f)
+                    : cl.dist() + " m";
+            pose.pushPose();
+            pose.translate(cl.screenX(), baseTextY, 0);
+            pose.scale(effectiveFontSc, effectiveFontSc, 1f);
+            gui.drawString(mc.font, distLabel,
+                    -mc.font.width(distLabel) / 2, 0,
+                    (distAlpha << 24) | cl.textColor(), true);
+            pose.popPose();
         }
     }
 

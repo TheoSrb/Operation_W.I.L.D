@@ -1,6 +1,8 @@
 {
   "creativetab.ow.operation_wild": "Operation W.I.L.D",
   "container.saddler": "Saddler",
+  "container.dna_analyser": "DNA Analyser",
+  "block.ow.dna_analyser": "DNA Analyser",
   "addExperienceCommandError": "You need to set up an entity to add experience to it.",
   "addExperienceCommandWork": "Donate %s of experience points to your entity.",
   "addPrestigeCommandError": "You need to set up an entity to add prestige levels to it.",
@@ -411,6 +413,8 @@
   "item.ow.tiger_shark_saddle": "Tiger Shark Saddle",
   "item.ow.elephant_saddle": "Elephant Saddle",
 
+  "owwild.waypoint.group_of": "Group of",
+
   "tooltip.composition": "Composition:",
 
   "tooltip.entityIsTired": "Your %s is tired, please wait a moment.",
@@ -703,5 +707,12 @@
 
   "owteams.creation.error.name_taken_title": "Name unavailable",
   "owteams.creation.error.name_taken_body": "A tribe already uses this name.",
-  "owteams.creation.error.ok": "Ok"
+  "owteams.creation.error.ok": "Ok",
+
+  "owteams.scan.title": "Choose an Entity",
+  "owteams.scan.empty": "No tamed entities found nearby",
+  "owteams.scan.back": "← Back",
+  "owteams.scan.confirm.title": "Confirmation",
+  "owteams.scan.confirm.join": "Add %s to tribe %s?",
+  "owteams.scan.confirm.already_in_team": "⚠ Already in tribe: %s"
 }

@@ -99,8 +99,10 @@ public record CreateOWTeamWithParamsPacket(
                     new ArrayList<>(List.of(entityDisplayName)),
                     paintPixels
             );
+            team.setEntityUUIDs(new ArrayList<>(List.of(owEntity.getUUID())));
             owEntity.currentTeam = team;
 
+            List<String> uuidStrings = List.of(owEntity.getUUID().toString());
             for (ServerPlayer player : serverLevel.players()) {
                 OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
                         owEntity.getId(),
@@ -113,6 +115,7 @@ public record CreateOWTeamWithParamsPacket(
                         team.getTeamCreationDate(),
                         team.getPlayerNames(),
                         team.getEntityNames(),
+                        uuidStrings,
                         OWTeamMosaicPattern.packPixels(team.getPaintPixels())
                 ), player);
             }

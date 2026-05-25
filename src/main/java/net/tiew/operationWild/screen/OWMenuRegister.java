@@ -8,6 +8,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.screen.blocks.DNAAnalyserMenu;
 import net.tiew.operationWild.screen.blocks.SaddlerMenu;
 import net.tiew.operationWild.screen.entity.OWInventoryMenu;
 import net.tiew.operationWild.screen.entity.submarine.SeaBugInventoryMenu;
@@ -31,6 +32,12 @@ public class OWMenuRegister {
     public static final DeferredHolder<MenuType<?>, MenuType<SaddlerMenu>> SADDLER_MENU =
             MENUS.register("saddler_menu", () -> new MenuType<>(
                     (containerId, playerInventory) -> new SaddlerMenu(containerId, playerInventory, new ItemStackHandler(5)),
+                    FeatureFlags.VANILLA_SET
+            ));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<DNAAnalyserMenu>> DNA_ANALYSER_MENU =
+            MENUS.register("dna_analyser_menu", () -> new MenuType<>(
+                    (containerId, playerInventory) -> new DNAAnalyserMenu(containerId, playerInventory, new ItemStackHandler(1)),
                     FeatureFlags.VANILLA_SET
             ));
 

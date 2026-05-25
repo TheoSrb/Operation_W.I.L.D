@@ -44,6 +44,7 @@ public class OWBlockLootTableProvider extends BlockLootSubProvider {
         this.add(OWBlocks.DEEPSLATE_RUBY_ORE.get(), block -> createMultipleOreDrops(OWBlocks.DEEPSLATE_RUBY_ORE.get(), OWItems.RUBY.get(), 1, 1));
 
         dropSelf(OWBlocks.SADDLER.get());
+        dropSelf(OWBlocks.DNA_ANALYSER.get());
 
 
         dropSelf(OWBlocks.REDWOOD_LOG.get());

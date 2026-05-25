@@ -15,7 +15,10 @@
       "Bash(./gradlew compileJava)",
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\data\\\\ow\\\\worldgen\" -Recurse | ForEach-Object { $_.FullName })",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\" -Recurse -Directory)",
-      "Bash(Sort-Object FullName)"
+      "Bash(Sort-Object FullName)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\\\\entity\\\\animals\" -File -Name)"
     ]
   }
 }

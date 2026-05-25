@@ -56,6 +56,9 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
                     if (player != null && entity.distanceTo(player) > distanceToShowRealInfos()) {
                         OWRendererUtils.displayOwnerAboveEntity(entity, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, infosUpOffset());
                         OWRendererUtils.displayLevelAboveEntity(entity, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, infosUpOffset());
+                        if (entity.currentTeam != null && !Minecraft.getInstance().options.hideGui) {
+                            OWRendererUtils.displayTeamBannerAboveEntity(entity, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, infosUpOffset() + 1.2);
+                        }
                     }
                 } else {
                     if (entity.isSleeping()) {

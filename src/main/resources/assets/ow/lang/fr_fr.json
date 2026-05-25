@@ -1,6 +1,8 @@
 {
   "creativetab.ow.operation_wild": "Operation W.I.L.D",
   "container.saddler": "Sellier",
+  "container.dna_analyser": "Analyseur ADN",
+  "block.ow.dna_analyser": "Analyseur ADN",
   "addExperienceCommandError": "Vous devez monter une entité pour lui ajouter de l'expérience.",
   "addExperienceCommandWork": "Don de %s points d'expérience à votre entité.",
   "addPrestigeCommandError": "Vous devez monter une entité pour lui ajouter des niveaux de prestige.",
@@ -350,6 +352,7 @@
   "item.ow.peacock_saddle": "Selle de paon",
   "item.ow.tiger_shark_saddle": "Selle de requin tigre",
   "item.ow.elephant_saddle": "Selle d'éléphant",
+  "owwild.waypoint.group_of": "Groupe de",
   "tooltip.composition": "Composition:",
   "tooltip.entityIsTired": "Votre %s est fatigué, patientez un moment.",
   "platinum_plated_tooltip_1": "Dégâts bonus: +%s",
@@ -614,5 +617,12 @@
   "owteams.pattern.paint.hint": "Cliquez pour peindre, clic droit pour effacer",
   "owteams.paint.brush.round": "Rond",
   "owteams.paint.brush.square": "Carré",
-  "owteams.paint.brush.diamond": "Diamant"
+  "owteams.paint.brush.diamond": "Diamant",
+
+  "owteams.scan.title": "Choisir une entité",
+  "owteams.scan.empty": "Aucune entité apprivoisée à proximité",
+  "owteams.scan.back": "← Retour",
+  "owteams.scan.confirm.title": "Confirmation",
+  "owteams.scan.confirm.join": "Intégrer %s dans la tribu %s ?",
+  "owteams.scan.confirm.already_in_team": "⚠ Déjà dans la tribu : %s"
 }

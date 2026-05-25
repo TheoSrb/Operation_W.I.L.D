@@ -23,7 +23,8 @@ public record SyncOWTeamPacket(
         int teamColor, int teamSecondaryColor, int mosaicPatternId,
         String creationDate,
         List<String> playerNames, List<String> entityNames,
-        byte[] paintPixels   // ← NOUVEAU : pixel data pour CUSTOM_PAINT (vide si autre pattern)
+        List<String> entityUUIDs, // UUID strings — canonical membership, rename-safe
+        byte[] paintPixels
 ) implements CustomPacketPayload {
 
     public static final Type<SyncOWTeamPacket> TYPE = new Type<>(
@@ -43,6 +44,9 @@ public record SyncOWTeamPacket(
                 for (String s : p.playerNames()) ByteBufCodecs.STRING_UTF8.encode(buf, s);
                 ByteBufCodecs.INT.encode(buf, p.entityNames().size());
                 for (String s : p.entityNames()) ByteBufCodecs.STRING_UTF8.encode(buf, s);
+                List<String> uuids = p.entityUUIDs() != null ? p.entityUUIDs() : List.of();
+                ByteBufCodecs.INT.encode(buf, uuids.size());
+                for (String s : uuids) ByteBufCodecs.STRING_UTF8.encode(buf, s);
                 // Pixel data (compact : ~651 octets max pour 56×93 pixels)
                 byte[] px = p.paintPixels() != null ? p.paintPixels() : new byte[0];
                 ByteBufCodecs.INT.encode(buf, px.length);
@@ -63,13 +67,16 @@ public record SyncOWTeamPacket(
                 int ec = ByteBufCodecs.INT.decode(buf);
                 List<String> entityNames = new ArrayList<>(ec);
                 for (int i = 0; i < ec; i++) entityNames.add(ByteBufCodecs.STRING_UTF8.decode(buf));
+                int uc = ByteBufCodecs.INT.decode(buf);
+                List<String> entityUUIDs = new ArrayList<>(uc);
+                for (int i = 0; i < uc; i++) entityUUIDs.add(ByteBufCodecs.STRING_UTF8.decode(buf));
                 // Pixel data
                 int pxLen = ByteBufCodecs.INT.decode(buf);
                 byte[] paintPixels = new byte[pxLen];
                 for (int i = 0; i < pxLen; i++) paintPixels[i] = buf.readByte();
                 return new SyncOWTeamPacket(entityId, teamId, name, owner,
                         color, secondaryColor, patternId, date,
-                        playerNames, entityNames, paintPixels);
+                        playerNames, entityNames, entityUUIDs, paintPixels);
             }
     );
 
@@ -95,7 +102,7 @@ public record SyncOWTeamPacket(
                             packet.paintPixels(), 56 * 93);
                 }
 
-                owEntity.currentTeam = new OWTeam(
+                OWTeam newTeam = new OWTeam(
                         packet.teamId(), packet.teamName(),
                         UUID.fromString(packet.ownerUUID()),
                         packet.teamColor(),
@@ -104,8 +111,16 @@ public record SyncOWTeamPacket(
                         new UUID[]{}, new OWEntity[]{},
                         packet.creationDate(),
                         packet.playerNames(), packet.entityNames(),
-                        pixels   // ← nouveau paramètre OWTeam (voir OWTeam.java)
+                        pixels
                 );
+                if (packet.entityUUIDs() != null) {
+                    List<UUID> uuids = new ArrayList<>(packet.entityUUIDs().size());
+                    for (String s : packet.entityUUIDs()) {
+                        try { uuids.add(UUID.fromString(s)); } catch (IllegalArgumentException ignored) {}
+                    }
+                    newTeam.setEntityUUIDs(uuids);
+                }
+                owEntity.currentTeam = newTeam;
             }
         });
     }

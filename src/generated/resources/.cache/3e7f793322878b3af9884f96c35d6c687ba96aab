@@ -1,7 +1,8 @@
-// 1.21	2025-10-20T11:53:03.3271997	Block States: ow
+// 1.21	2026-05-22T20:50:43.6008856	Block States: ow
 ceaa355b5caf44fa63b88de4f2aac0935a35e399 assets/ow/blockstates/camellia.json
 9e60ddf097fd28b0f6b1e5eb55d534550e5d73db assets/ow/blockstates/deepslate_jade_ore.json
 9d2d0ce3d34e6d961ee83222f20c8c6fb808caf5 assets/ow/blockstates/deepslate_ruby_ore.json
+f8e0d6aa602bfe692681d0f3c6079d6f23069c90 assets/ow/blockstates/dna_analyser.json
 9b71712e69bb8e8c9a811bca39d98a17ffffb837 assets/ow/blockstates/jade_ore.json
 435074691ba8330a507f2a107a15745b3fe3b4e6 assets/ow/blockstates/lavender.json
 c61181eec08c93a6efe8adf7671a7a19613e85db assets/ow/blockstates/marked_mud.json
@@ -27,6 +28,7 @@ e8e6718c603995156b3492fa57969fe1c3344b41 assets/ow/blockstates/stripped_redwood_
 6f488cb37e7a2cf1aa53eebee5646ac51635aea2 assets/ow/models/block/camellia.json
 79851242e693b612d6f1f11a6feefe91ecf66c22 assets/ow/models/block/deepslate_jade_ore.json
 9580ab4ccfe449c8b2634f9a6d31ff5a3e8c0468 assets/ow/models/block/deepslate_ruby_ore.json
+c1f4e7fc0305c31c75cd9f8f0adde7be507600c3 assets/ow/models/block/dna_analyser.json
 4b6cd070cf797369b8d604a5893400064624bd12 assets/ow/models/block/jade_ore.json
 484c015f2f6e29726929ecb1d99beb40a4b4d480 assets/ow/models/block/lavender.json
 9c0ba8b299eb7cf7278f48ad67f328fd61ec5d15 assets/ow/models/block/marked_mud.json
@@ -77,6 +79,7 @@ bf73108e2a38128f50ce6b4618ebeb9feb0e2d2e assets/ow/models/block/stripped_redwood
 66fffd940c9c06e1250b0ff513902e00dfb30e10 assets/ow/models/item/camellia.json
 40998513fb9bbd656d8659844fc7f02622d41294 assets/ow/models/item/deepslate_jade_ore.json
 abf55b302383e9a7136049ea0509f1747f72a85d assets/ow/models/item/deepslate_ruby_ore.json
+dc903579650700b90803a9c1ee31d853ff7b96c4 assets/ow/models/item/dna_analyser.json
 3ccfc45f55076bce04d0a4624cb87bac632d3ffe assets/ow/models/item/jade_ore.json
 a3f3a652d228ceb8f8b97fa00704999a230bddfe assets/ow/models/item/lavender.json
 b41a178981e094c0db28e9655b3d49f8d2721dfb assets/ow/models/item/marked_mud.json

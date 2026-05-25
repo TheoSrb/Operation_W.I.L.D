@@ -49,16 +49,18 @@ public record CreateOWTeamPacket(int entityId) implements CustomPacketPayload {
                     1, "Nouvelle Tribu",
                     context.player().getUUID(),
                     0x230b11,
-                    0xd12c5c,                            // ← secondaryColor par défaut
-                    OWTeamMosaicPattern.GRADIENT_DOWN,   // ← pattern par défaut
+                    0xd12c5c,
+                    OWTeamMosaicPattern.GRADIENT_DOWN,
                     new UUID[]{ context.player().getUUID() },
                     new OWEntity[]{ owEntity },
                     LocalDate.now().toString(),
                     new ArrayList<>(List.of(ownerName)),
                     new ArrayList<>(List.of(entityDisplayName))
             );
+            team.setEntityUUIDs(new ArrayList<>(List.of(owEntity.getUUID())));
             owEntity.currentTeam = team;
 
+            List<String> uuidStrings = List.of(owEntity.getUUID().toString());
             for (ServerPlayer player : serverLevel.players()) {
                 OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
                         owEntity.getId(),
@@ -71,6 +73,7 @@ public record CreateOWTeamPacket(int entityId) implements CustomPacketPayload {
                         team.getTeamCreationDate(),
                         team.getPlayerNames(),
                         team.getEntityNames(),
+                        uuidStrings,
                         OWTeamMosaicPattern.packPixels(team.getPaintPixels())
                 ), player);
             }

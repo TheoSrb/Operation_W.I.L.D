@@ -164,9 +164,11 @@ public class OWTeamCreationScreen extends Screen {
         nameBox = new EditBox(this.font,
                 leftPos + 36, topPos + NAME_BOX_Y, PW - 44, 12,
                 Component.translatable("owteams.creation.name_placeholder"));
-        nameBox.setMaxLength(24);
-        nameBox.setValue(Component.translatable("owteams.creation.default_name",
-                entity.getOwner().getName().getString()).getString());
+        nameBox.setMaxLength(15);
+        String defaultTeamName = Component.translatable("owteams.creation.default_name",
+                entity.getOwner().getName().getString()).getString();
+        if (defaultTeamName.length() > 15) defaultTeamName = defaultTeamName.substring(0, 15);
+        nameBox.setValue(defaultTeamName);
         nameBox.setResponder(text -> nameError = "");
         this.addRenderableWidget(nameBox);
 
@@ -480,7 +482,7 @@ public class OWTeamCreationScreen extends Screen {
             int mirPixel = ELEM_W - 1 - px;
             return Math.floorDiv(mirPixel, gridSize) * gridSize + gridSize / 2;
         }
-        return ELEM_W - 1 - px;
+        return ELEM_W - px;
     }
 
     private int mirY(int py) {
@@ -526,9 +528,9 @@ public class OWTeamCreationScreen extends Screen {
                     int ix = Math.round(lastPaintCX + fdx * t);
                     int iy = Math.round(lastPaintCY + fdy * t);
                     paintBrushAt(ix, iy, sec);
-                    if (mirrorX) paintBrushAt(ELEM_W - 1 - ix, iy, sec);
+                    if (mirrorX) paintBrushAt(ELEM_W - ix, iy, sec);
                     if (mirrorY) paintBrushAt(ix, ELEM_H - 1 - iy, sec);
-                    if (mirrorX && mirrorY) paintBrushAt(ELEM_W - 1 - ix, ELEM_H - 1 - iy, sec);
+                    if (mirrorX && mirrorY) paintBrushAt(ELEM_W - ix, ELEM_H - 1 - iy, sec);
                 }
             } else {
                 applyBrushAtCoords(cx, cy);
@@ -549,9 +551,18 @@ public class OWTeamCreationScreen extends Screen {
 
     private void paintBrushAt(int cx, int cy, boolean useSec) {
         int r = brushSize;
-        for (int dy = -r; dy <= r; dy++) {
-            for (int dx = -r; dx <= r; dx++) {
-                if (isInsideBrush(dx, dy, r)) setPixel(cx + dx, cy + dy, useSec);
+        if (gridSize > 1) {
+            for (int dci = -r; dci <= r; dci++) {
+                for (int dcj = -r; dcj <= r; dcj++) {
+                    if (isInsideBrush(dci, dcj, r))
+                        setPixel(cx + dci * gridSize, cy + dcj * gridSize, useSec);
+                }
+            }
+        } else {
+            for (int dy = -r; dy <= r; dy++) {
+                for (int dx = -r; dx <= r; dx++) {
+                    if (isInsideBrush(dx, dy, r)) setPixel(cx + dx, cy + dy, useSec);
+                }
             }
         }
     }
@@ -765,15 +776,29 @@ public class OWTeamCreationScreen extends Screen {
     private void renderMirrorGuides(GuiGraphics g) {
         int fx = leftPos + PREV_X + 2, fy = topPos + PREV_Y;
         if (mirrorX) {
-            int midX = fx + (ELEM_W - 1) / 2;
+            int midX = fx + mirrorAxisX();
             for (int y = 0; y < ELEM_H; y += 4)
                 g.fill(midX, fy + y, midX + 1, fy + y + 2, 0xCCFFFF44);
         }
         if (mirrorY) {
-            int midY = fy + (ELEM_H - 1) / 2;
+            int midY = fy + mirrorAxisY();
             for (int x = 0; x < ELEM_W; x += 4)
                 g.fill(fx + x, midY, fx + x + 2, midY + 1, 0xCCFFFF44);
         }
+    }
+
+    private int mirrorAxisX() {
+        if (gridSize <= 1) return (ELEM_W - 1) / 2 + 1;
+        int nearCenter = Math.floorDiv((ELEM_W - 1) / 2, gridSize) * gridSize + gridSize / 2;
+        int mirCenter  = Math.floorDiv(ELEM_W - 1 - nearCenter, gridSize) * gridSize + gridSize / 2;
+        return (nearCenter + mirCenter) / 2;
+    }
+
+    private int mirrorAxisY() {
+        if (gridSize <= 1) return (ELEM_H - 1) / 2;
+        int nearCenter = Math.floorDiv((ELEM_H - 1) / 2, gridSize) * gridSize + gridSize / 2;
+        int mirCenter  = Math.floorDiv(ELEM_H - 1 - nearCenter, gridSize) * gridSize + gridSize / 2;
+        return (nearCenter + mirCenter) / 2;
     }
 
     private void renderSidePanel(GuiGraphics g, int mouseX, int mouseY) {
