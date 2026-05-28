@@ -624,5 +624,13 @@
   "owteams.scan.back": "← Retour",
   "owteams.scan.confirm.title": "Confirmation",
   "owteams.scan.confirm.join": "Intégrer %s dans la tribu %s ?",
-  "owteams.scan.confirm.already_in_team": "⚠ Déjà dans la tribu : %s"
+  "owteams.scan.confirm.already_in_team": "⚠ Déjà dans la tribu : %s",
+
+  "screen.ow.dev_warning.title": "Operation W.I.L.D",
+  "screen.ow.dev_warning.subtitle": "ACCÈS ANTICIPÉ",
+  "screen.ow.dev_warning.para1": "Bienvenue, explorateur. Ce que vous vous apprêtez à découvrir est encore §l§nen cours de développement§r.",
+  "screen.ow.dev_warning.para2": "Certaines créatures sont §lincomplètes§r, certaines mécaniques sont §lprovisoires§r, et une partie du contenu n'existe §l§ntout simplement pas encore§r.",
+  "screen.ow.dev_warning.para3": "Des §nbugs, des changements et des surprises§r font partie du voyage. Votre §l§npatience et vos retours§r façonnent directement le §nfutur de ce mod§r.",
+  "screen.ow.dev_warning.para4": "Merci pour votre §npatience§r et vos potentiels §l§nretours§r.",
+  "screen.ow.dev_warning.button": "Compris. En avant !"
 }

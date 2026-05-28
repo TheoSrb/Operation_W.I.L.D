@@ -47,6 +47,7 @@ import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.config.*;
 import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
+import net.tiew.operationWild.entity.goals.orca.OWOrcaBeachingGoal;
 import net.tiew.operationWild.entity.navigation.SwimmerJumpPathNavigator;
 import net.tiew.operationWild.entity.variants.OrcaVariant;
 import net.tiew.operationWild.sound.OWSounds;
@@ -66,6 +67,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float>   RIDER_CONTROL_PITCH  = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> IS_DASHING           = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_BEACHED           = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
 
     private int dashTicksLeft = 0;
     private Vec3 dashDirection = Vec3.ZERO;
@@ -112,7 +114,28 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         this.goalSelector.addGoal(0, new TryFindWaterGoal(this));
         this.goalSelector.addGoal(1, new FollowBoatGoal(this));
-        this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 20f, 28, 4, false));
+        this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 20f, 28, 4, false) {
+            // Pour les orques sauvages : OWOrcaBeachingGoal gère les targets sur la côte.
+            // Ce goal s'arrête dès que la target quitte l'eau pour libérer les flags MOVE+LOOK.
+            private boolean isBlockedForWild() {
+                if (OrcaEntity.this.isTame()) return false;
+                LivingEntity t = OrcaEntity.this.getTarget();
+                return t != null && !t.isInWater();
+            }
+
+            @Override
+            public boolean canUse() {
+                if (isBlockedForWild()) return false;
+                return super.canUse();
+            }
+
+            @Override
+            public boolean canContinueToUse() {
+                if (isBlockedForWild()) return false;
+                return super.canContinueToUse();
+            }
+        });
+        this.goalSelector.addGoal(3, new OWOrcaBeachingGoal(this));
         this.goalSelector.addGoal(4, new OrcaWanderGoal(this));
     }
 
@@ -121,6 +144,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(RIDER_CONTROL_PITCH, 0.0f);
         builder.define(IS_DASHING, false);
+        builder.define(IS_BEACHED, false);
     }
 
     @Override
@@ -131,6 +155,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public void setDashing(boolean dashing) {
         this.entityData.set(IS_DASHING, dashing);
     }
+
+    public boolean isBeached() { return this.entityData.get(IS_BEACHED); }
+    public void setBeached(boolean beached) { this.entityData.set(IS_BEACHED, beached); }
 
     protected PathNavigation createNavigation(Level worldIn) {
         return new SwimmerJumpPathNavigator(this, worldIn);

@@ -30,6 +30,7 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "orca_default"), "main");
 
 	private float prevLimbSwing = 0f;
+	private int groundRotationTimer = 0;
 
 	public float externalRiderPitch = 0f;
 
@@ -114,6 +115,22 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 	@Override
 	public void setupAnim(OrcaEntity orca, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
+
+		if (!orca.isInWater()) {
+			// aiStep() détecte onGround → pose y=0.5 (rebond) → setOnGround(false).
+			// À ce moment précis, getDeltaMovement().y ≈ 0.5.
+			// On exclut le bond (y ≈ 1.5+) avec le seuil < 0.7.
+			float yVel = (float) orca.getDeltaMovement().y;
+			if (yVel > 0.3f && yVel < 0.7f) {
+				groundRotationTimer = 25; // tient entre deux rebonds (~20 ticks)
+			}
+			if (groundRotationTimer > 0) {
+				groundRotationTimer--;
+				this.ALL2.zRot = (float) Math.toRadians(90);
+			}
+		} else {
+			groundRotationTimer = 0;
+		}
 
 		if (Math.abs(externalRiderPitch) > 0.01f) {
 			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);

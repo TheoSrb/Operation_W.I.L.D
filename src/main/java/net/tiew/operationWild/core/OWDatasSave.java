@@ -102,6 +102,15 @@ public class OWDatasSave {
         updateFile(properties);
     }
 
+    public static boolean hasSeenDevWarning() {
+        return "true".equals(owDatas.getProperty("devWarning_seen"));
+    }
+
+    public static void markDevWarningSeen() {
+        owDatas.setProperty("devWarning_seen", "true");
+        updateFile(owDatas);
+    }
+
     private static void updateFile(Properties properties) {
         String worldName = ClientEvents.getWorldName(Minecraft.getInstance().player);
 

@@ -714,5 +714,13 @@
   "owteams.scan.back": "← Back",
   "owteams.scan.confirm.title": "Confirmation",
   "owteams.scan.confirm.join": "Add %s to tribe %s?",
-  "owteams.scan.confirm.already_in_team": "⚠ Already in tribe: %s"
+  "owteams.scan.confirm.already_in_team": "⚠ Already in tribe: %s",
+
+  "screen.ow.dev_warning.title": "Operation W.I.L.D",
+  "screen.ow.dev_warning.subtitle": "EARLY ACCESS",
+  "screen.ow.dev_warning.para1": "Welcome, explorer. What you are about to discover is §l§nstill in development§r.",
+  "screen.ow.dev_warning.para2": "Some creatures are §lincomplete§r, certain mechanics are §ltemporary§r, and parts of the content simply §l§ndon't exist yet§r.",
+  "screen.ow.dev_warning.para3": "§nBugs, changes, and surprises§r are part of the journey. Your §l§npatience and feedback§r directly shape the §nfuture of this mod§r.",
+  "screen.ow.dev_warning.para4": "Thank you for your §npatience§r and any §l§nfeedback§r you may have.",
+  "screen.ow.dev_warning.button": "Understood. Let's go!"
 }

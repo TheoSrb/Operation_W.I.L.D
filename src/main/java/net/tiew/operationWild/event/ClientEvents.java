@@ -93,6 +93,8 @@ public class ClientEvents {
     private static float damageTimer = 0.0f;
 
     private static int questUpdateTick = 0;
+    private static boolean pendingWarning = false;
+    private static int warningTick = 0;
 
     @SubscribeEvent
     public static void onDebate(InputEvent.MouseButton.Pre event) {
@@ -166,7 +168,10 @@ public class ClientEvents {
         clusterPopSmoothed.clear();
         waypointStates.clear();
         computedWaypoints.clear();
+        currentEntityIds.clear();
         cachedWorldName = null;
+        pendingWarning = false;
+        warningTick = 0;
     }
 
     @SubscribeEvent
@@ -291,7 +296,13 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
 
         if (mc.hasSingleplayerServer() && mc.getSingleplayerServer() != null) {
-            cachedWorldName = mc.getSingleplayerServer().getWorldData().getLevelName();
+            try {
+                // Nom du dossier de sauvegarde (unique) plutôt que getLevelName() (nom d'affichage, pas unique)
+                java.nio.file.Path root = mc.getSingleplayerServer().getWorldPath(LevelResource.ROOT);
+                cachedWorldName = root.toAbsolutePath().normalize().getFileName().toString();
+            } catch (Exception ignored) {
+                cachedWorldName = mc.getSingleplayerServer().getWorldData().getLevelName();
+            }
             return cachedWorldName;
         }
 
@@ -322,6 +333,10 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onPlayerLoggedIn(ClientPlayerNetworkEvent.LoggingIn event) {
         OWDatasSave.loadFromFile();
+        if (!OWDatasSave.hasSeenDevWarning()) {
+            pendingWarning = true;
+            warningTick = 10;
+        }
     }
 
     private static void applyBlowpipeRotation(PoseStack poseStack, float chargeProgress, InteractionHand hand) {
@@ -377,11 +392,20 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onClientTick(PlayerTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
+
+        if (pendingWarning && event.getEntity() == minecraft.player) {
+            if (warningTick > 0) {
+                warningTick--;
+            } else if (minecraft.screen == null) {
+                pendingWarning = false;
+                minecraft.setScreen(new net.tiew.operationWild.screen.OWDevWarningScreen());
+            }
+        }
+
         if (minecraft.level != null && minecraft.level.isClientSide()) {
             if (minecraft.player != null && minecraft.player.getVehicle() instanceof OWEntity owEntity) {
                 boolean isSprintKeyDown = minecraft.options.keySprint.isDown();
                 OWNetworkHandler.sendToServer(new OWRunningPacket(isSprintKeyDown));
-
             }
         }
     }

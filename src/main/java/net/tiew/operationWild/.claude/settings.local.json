@@ -18,7 +18,12 @@
       "Bash(Sort-Object FullName)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\\\\entity\\\\animals\" -File -Name)"
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\\\\entity\\\\animals\" -File -Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" -Recurse -Directory)",
+      "Bash(grep -E \"\\\\.java$\")",
+      "Bash(Get-Content \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\lang\\\\en_us.json\")",
+      "Bash(Measure-Object -Line)",
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\lang\\\\en_us.json\" | Measure-Object -Line\\).Lines; \\(Get-Content \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\lang\\\\fr_fr.json\" | Measure-Object -Line\\).Lines)"
     ]
   }
 }
