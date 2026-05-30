@@ -1,13 +1,18 @@
 package net.tiew.operationWild.entity.animals.terrestrial;
 
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.DifficultyInstance;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -15,17 +20,17 @@ import net.minecraft.world.entity.ai.control.LookControl;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.Rabbit;
 import net.minecraft.world.entity.animal.horse.Horse;
-import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWUtils;
@@ -36,53 +41,28 @@ import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
-import net.tiew.operationWild.entity.goals.NapGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
-import net.tiew.operationWild.entity.goals.global.OWFollowOwnerGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
-import net.tiew.operationWild.entity.goals.tiger.*;
 import net.tiew.operationWild.entity.variants.BoaVariant;
-import net.tiew.operationWild.entity.variants.TigerVariant;
 import net.tiew.operationWild.item.OWItems;
+import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static net.tiew.operationWild.core.OWUtils.RANDOM;
+
 public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
 
-    public static final double TAMING_EXPERIENCE = 150.0;
-
-    // ==================================================
-    //               TAIL PARTS — Alex's Mobs pattern
-    // ==================================================
-    //
-    // ARCHITECTURE (copie exacte d'EntityAnaconda) :
-    // La position de CHAQUE segment est calculee COTE SERVEUR dans tick(),
-    // puis appliquee via part.moveTo(...). La position est ensuite
-    // synchronisee normalement vers le client, qui se contente de l'interpoler
-    // (lerp vanilla). Le renderer ne refait AUCUN calcul de chaine.
-    //
-    // C'est l'inverse de l'ancienne version qui calculait tout cote client a
-    // partir d'un ring buffer : c'etait la source des segments desynchronises.
-    //
-    // Le ring buffer ci-dessous sert uniquement a produire le yaw retarde de
-    // chaque segment (effet de tralinee de la queue), exactement comme Alex.
-
-    // ==================================================
-    //               TAIL PARTS — COPIE STRICTE d'EntityAnaconda
-    // ==================================================
-    //
-    // Liste chainee UUID parent->enfant, exactement comme Alex. La tete pointe
-    // vers le 1er segment (CHILD_UUID), chaque segment vers le suivant. Toute la
-    // position est calculee serveur dans tick() via tickMultipartPosition, puis
-    // synchronisee. Le renderer (LivingEntityRenderer) ne calcule rien.
+    public static final double TAMING_EXPERIENCE = 80.0;
 
     private BoaTailPart[] parts;
 
-    /**
-     * 64 slots de yaw, ecrits chaque tick. Copie exacte d'EntityAnaconda.
-     */
+    private double prevChainX = Double.NaN;
+    private double prevChainZ = Double.NaN;
+
+    private float smoothedYRot = Float.NaN;
     public final float[] ringBuffer = new float[64];
     public int ringBufferIndex = -1;
 
@@ -117,7 +97,7 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
         this.goalSelector.addGoal(2, new BoaEntity.BoaMeleeAttackGoal());
 
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D));
+        this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D, 200));
 
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
 
@@ -233,7 +213,7 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
 
     @Override
     public boolean isChangeSpeedDuringCombo() {
-        return true;
+        return false;
     }
 
     @Override
@@ -251,40 +231,53 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
         return 1.5f;
     }
 
-    // --------------------------------------------------
-    //  TICK — COPIE STRICTE d'EntityAnaconda.tick()
-    // --------------------------------------------------
     @Override
     public void tick() {
         super.tick();
 
-        createCombo(16, 10, OWSounds.BOA_HITTING.get(), 2.0, 2.5, 1.0, false, 0.25f);
+        createCombo(16, 10, OWSounds.BOA_HITTING.get(), 2.0, 2.5, 1.25, false, 0.25f);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
-        // Copie d'Alex : yBodyRot = yRot, et yHeadRot borne autour du corps.
-        this.yBodyRot = this.getYRot();
+        if (Float.isNaN(this.smoothedYRot)) {
+            this.smoothedYRot = this.getYRot();
+        }
+        if (this.isVehicle() && this.getControllingPassenger() != null) {
+            this.smoothedYRot = this.getYRot();
+            this.yBodyRot = this.getYRot();
+        } else {
+            float groundSpeed = (this.getTarget() != null) ? 0.5f : this.getRotationSpeed();
+            float visualDelta = Mth.wrapDegrees(this.getYRot() - this.smoothedYRot);
+            this.smoothedYRot = Mth.wrapDegrees(this.smoothedYRot + visualDelta * groundSpeed);
+            this.yBodyRot = this.smoothedYRot;
+        }
         this.yHeadRot = Mth.clamp(this.yHeadRot, this.yBodyRot - 70, this.yBodyRot + 70);
 
-        // --- Ring buffer (copie exacte d'EntityAnaconda) ---
         if (this.ringBufferIndex < 0) {
             for (int i = 0; i < this.ringBuffer.length; ++i) {
-                this.ringBuffer[i] = this.getYRot();
+                this.ringBuffer[i] = this.smoothedYRot;
             }
         }
         this.ringBufferIndex++;
         if (this.ringBufferIndex == this.ringBuffer.length) {
             this.ringBufferIndex = 0;
         }
-        this.ringBuffer[this.ringBufferIndex] = this.getYRot();
+        this.ringBuffer[this.ringBufferIndex] = this.smoothedYRot;
+
+        double realVelX = 0, realVelZ = 0;
+        if (!Double.isNaN(prevChainX)) {
+            realVelX = this.getX() - prevChainX;
+            realVelZ = this.getZ() - prevChainZ;
+        }
+        prevChainX = this.getX();
+        prevChainZ = this.getZ();
 
         if (!this.level().isClientSide()) {
             final int segments = 7;
             final Entity child = getChild();
             if (child == null) {
-                // CREATION en liste chainee UUID, copie stricte d'Alex.
                 LivingEntity partParent = this;
                 parts = new BoaTailPart[segments];
                 BoaPartIndex partIndex = BoaPartIndex.HEAD;
@@ -322,10 +315,10 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
                     i++;
                 }
             }
-            // POSITIONNEMENT, copie stricte d'Alex.
             if (parts != null) {
                 BoaPartIndex partIndex = BoaPartIndex.HEAD;
-                Vec3 prev = this.position();
+                float offset = this.isVehicle() ? 3 : 1;
+                Vec3 prev = this.position().add(realVelX * offset, 0, realVelZ * offset);
                 float xRot = this.getXRot();
                 for (int i = 0; i < segments; i++) {
                     if (this.parts[i] != null) {
@@ -375,20 +368,46 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
         return null;
     }
 
-    // --------------------------------------------------
-    //  Oscillation — copie exacte d'EntityAnaconda
-    // --------------------------------------------------
+    @Override
+    public void die(DamageSource damageSource) {
+        super.die(damageSource);
 
-    /**
-     * yaw retarde du segment i : 4 + i*2 ticks dans le passe. Copie d'Alex.
-     */
+        ItemStack soulStack = createSoulStack();
+
+        if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
+            this.spawnAtLocation(soulStack);
+        }
+
+        if (this.isSaddled()) {
+            this.spawnAtLocation(acceptSaddle());
+        }
+    }
+
+    private ItemStack createSoulStack() {
+        ItemStack soulStack = new ItemStack(OWItems.ANIMAL_SOUL.get());
+        Item item = soulStack.getItem();
+
+        if (item instanceof AnimalSoulItem animalSoulItem) {
+            UseOnContext fakeContext = new UseOnContext(this.level(), null, InteractionHand.MAIN_HAND, soulStack,
+                    new BlockHitResult(this.position(), Direction.UP, this.blockPosition(), false));
+
+            animalSoulItem.saveEntityType(fakeContext, Component.nullToEmpty(this.getClass().getSimpleName()));
+            animalSoulItem.saveEntityOwner(fakeContext, Component.nullToEmpty(this.getOwner() != null ? this.getOwner().getName().getString() : ""));
+            animalSoulItem.saveEntityGender(fakeContext, this.isMale());
+            animalSoulItem.saveEntityMaxHealth(fakeContext, this.getMaxHealth());
+            animalSoulItem.saveEntityDamages(fakeContext, this.getDamage());
+            animalSoulItem.saveEntitySpeed(fakeContext, this.getSpeed());
+            animalSoulItem.saveEntityScale(fakeContext, this.getScale());
+            animalSoulItem.saveEntityLevel(fakeContext, this.getLevel());
+            animalSoulItem.saveEntityVariant(fakeContext, this.getVariant().getId());
+        }
+
+        return soulStack;
+    }
+
     private float getYawForPart(int i) {
         return this.getRingBuffer(4 + i * 2, 1.0F);
     }
-
-    // --- Logique de regard, copie stricte d'EntityAnaconda ---
-    // La tete tourne lentement autour du corps (limites de vitesse), et le tick()
-    // borne deja yHeadRot a +/- 70 degres autour de yBodyRot.
 
     @Override
     public int getMaxHeadXRot() {
@@ -397,21 +416,13 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
 
     @Override
     public int getMaxHeadYRot() {
-        return 3;
+        return 1;
     }
 
-    /**
-     * Onde sinusoidale de la queue. COPIE STRICTE d'EntityAnaconda.calcPartRotation,
-     * sans la partie strangle (specifique a l'anaconda) :
-     * 40 * -sin(walkDist * 3 - i)
-     */
     public float calcPartRotation(int i) {
         return (float) (40 * -Math.sin(this.walkDist * 3 - i));
     }
 
-    /**
-     * Lecture interpolee du ring buffer (copie exacte d'EntityAnaconda.getRingBuffer).
-     */
     public float getRingBuffer(int bufferOffset, float partialTicks) {
         if (this.isDeadOrDying()) {
             partialTicks = 0.0F;
@@ -423,10 +434,6 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
         final float d1 = this.ringBuffer[j] - d0;
         return Mth.wrapDegrees(d0 + d1 * partialTicks);
     }
-
-    // ==================================================
-    //  Attributes / Goals / Data — inchanges
-    // ==================================================
 
     public BoaVariant getVariant() {
         return BoaVariant.byId(this.getTypeVariant() & 255);
@@ -472,6 +479,17 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
             }
         }
         return super.isAlliedTo(entity);
+    }
+
+    @Override
+    protected void onSuccessfulHit(LivingEntity entity) {
+        if (RANDOM(10)) {
+            if (!entity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate())) {
+                entity.addEffect(new MobEffectInstance(OWEffects.VENOM_EFFECT.getDelegate(), (int) OWUtils.generateRandomInterval(6500, 9000), 0));
+            }
+        } else if (RANDOM(5)) {
+            entity.addEffect(new MobEffectInstance(MobEffects.POISON, (int) OWUtils.generateRandomInterval(180, 350), 1));
+        }
     }
 
     @Override

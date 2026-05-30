@@ -182,8 +182,7 @@ public class OWEntityHud {
         } else if (entity instanceof OrcaEntity) {
             return new EntityIconData(241, 186, 15, 17, -(15 / 2), -8);
         } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity) {
-            // Placeholder — à remplacer quand l'icône Boa est ajoutée dans la texture HUD
-            return new EntityIconData(237, 21, 19, 17, -(19 / 2), -8);
+            return new EntityIconData(242, 38, 14, 11, -(14 / 2), -2);
         }
         return null;
     }

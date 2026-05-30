@@ -10,8 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Pose;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
-import net.tiew.operationWild.entity.client.layer.BoaLayer;
-import net.tiew.operationWild.entity.client.layer.BoaTailPartLayer;
 import net.tiew.operationWild.entity.client.model.BoaTailPartModel;
 import net.tiew.operationWild.entity.client.skin.SkinRegistry;
 import net.tiew.operationWild.entity.variants.BoaVariant;
@@ -40,19 +38,22 @@ public class BoaTailPartRenderer extends LivingEntityRenderer<BoaTailPart, Entit
         models[4] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL1));
         models[5] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL2));
         models[6] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL3));
-
-        this.addLayer(new BoaTailPartLayer(this));
     }
 
     @Override
     protected void setupRotations(BoaTailPart entity, PoseStack stack, float ageInTicks,
                                   float rotationYaw, float partialTicks, float scale) {
-        // Copie de RenderAnacondaPart.setupRotations : on applique yHeadRot + xRot.
-        float newYaw = entity.yHeadRot;
+        // FLUIDITE : on INTERPOLE le yaw et le pitch entre le tick precedent (xRotO /
+        // yHeadRotO) et le tick courant, avec partialTicks. Sans ca, les rotations
+        // sautaient d'un tick a l'autre (la position, elle, est deja interpolee par le
+        // vanilla), ce qui donnait un mouvement de queue legerement hache. Mth.rotLerp
+        // gere correctement le passage par 360 deg (chemin le plus court).
+        float newYaw = Mth.rotLerp(partialTicks, entity.yHeadRotO, entity.yHeadRot);
+        float newPitch = Mth.rotLerp(partialTicks, entity.xRotO, entity.getXRot());
         Pose pose = entity.getPose();
         if (pose != Pose.SLEEPING) {
             stack.mulPose(Axis.YP.rotationDegrees(180.0F - newYaw));
-            stack.mulPose(Axis.XP.rotationDegrees(entity.getXRot()));
+            stack.mulPose(Axis.XP.rotationDegrees(newPitch));
         }
         if (entity.deathTime > 0) {
             float f = ((float) entity.deathTime + partialTicks - 1.0F) / 20.0F * 1.6F;
@@ -85,5 +86,21 @@ public class BoaTailPartRenderer extends LivingEntityRenderer<BoaTailPart, Entit
         // besoin de resoudre le parent cote client.
         BoaVariant variant = BoaVariant.byId(entity.getVariant() & 255);
         return SkinRegistry.BoaSkins.get(variant).getTexture();
+    }
+
+    // --- ECLAIRAGE : echantillonne a la position de la TETE, pas du segment ---
+    // Un segment enfoui dans un bloc recevrait une lumiere nulle et s'afficherait
+    // noir. On force l'echantillonnage a la position de la tete (synchronisee), donc
+    // toute la queue garde l'eclairage de la tete. Si la tete est dans le noir, la
+    // queue s'assombrit pareil.
+
+    @Override
+    protected int getBlockLightLevel(BoaTailPart entity, net.minecraft.core.BlockPos pos) {
+        return super.getBlockLightLevel(entity, entity.getHeadPos());
+    }
+
+    @Override
+    protected int getSkyLightLevel(BoaTailPart entity, net.minecraft.core.BlockPos pos) {
+        return super.getSkyLightLevel(entity, entity.getHeadPos());
     }
 }

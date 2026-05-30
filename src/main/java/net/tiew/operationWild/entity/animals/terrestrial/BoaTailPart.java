@@ -64,6 +64,8 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> HEALTH_RATIO =
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<BlockPos> HEAD_POS =
+            SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.BLOCK_POS);
 
     private double prevHeight = 0;
     private int headEntityId = -1;
@@ -148,21 +150,46 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         final Vec3 ourButt = parentButt.add(
                 calcOffsetVec((-this.getPartType().getBackOffset() - 0.5F * this.getBbWidth()) * this.getBoaScale(),
                         this.getXRot(), ourYRot));
-        final Vec3 avg = new Vec3((parentButt.x + ourButt.x) / 2F, (parentButt.y + ourButt.y) / 2F, (parentButt.z + ourButt.z) / 2F);
+        // APPROCHE 2 (anti-decollement vertical) : on rapproche le Y du bout de notre
+        // segment de celui de son point d'attache au parent. calcOffsetVec incline le
+        // segment selon SON pitch, ce qui peut ecarter verticalement la jonction du
+        // point d'attache parent sur les pentes/marches. On corrige UNIQUEMENT le Y
+        // (X/Z intacts => ondulation laterale preservee), en melangeant vers
+        // parentButt.y. 0.5 = compromis ; monte vers 1 pour coller plus fort
+        // (segments plus horizontaux), baisse vers 0 pour le comportement Alex d'origine.
+        final double JOINT_VERTICAL_GLUE = 0.5D;
+        final Vec3 ourButtGlued = new Vec3(
+                ourButt.x,
+                ourButt.y + (parentButt.y - ourButt.y) * JOINT_VERTICAL_GLUE,
+                ourButt.z);
+        final Vec3 avg = new Vec3((parentButt.x + ourButtGlued.x) / 2F, (parentButt.y + ourButtGlued.y) / 2F, (parentButt.z + ourButtGlued.z) / 2F);
         final double d0 = parentButt.x - ourButt.x;
         final double d2 = parentButt.z - ourButt.z;
         final double d3 = Math.sqrt(d0 * d0 + d2 * d2);
         final double hgt = doHeight ? (getLowPartHeight(parentButt.x, parentButt.y, parentButt.z) + getHighPartHeight(ourButt.x, ourButt.y, ourButt.z)) : 0;
-        if (Math.abs(hgt - prevHeight) > 0.2F) {
-            prevHeight = hgt;
-        }
+        // PISTE 5 : lissage progressif de la hauteur au lieu d'un saut au seuil 0.2.
+        // prevHeight glisse vers hgt d'une fraction par tick, ce qui rend les montees
+        // et descentes de blocs beaucoup plus organiques (plus de palier brutal).
+        // 0.35 = vitesse de rattrapage ; baisse pour plus doux, monte pour plus reactif.
+        prevHeight += (hgt - prevHeight) * 0.35D;
         final double partYDest = Mth.clamp(this.getBoaScale() * prevHeight, -0.6F, 0.6F);
         final float f = (float) (Mth.atan2(d2, d0) * 57.2957763671875D) - 90.0F;
         final float rawAngle = Mth.wrapDegrees((float) (-(Mth.atan2(partYDest, d3) * Mth.RAD_TO_DEG)));
-        final float f2 = this.limitAngle(this.getXRot(), rawAngle, 10F);
+        // PISTE 2 : pas de correction du pitch adouci (7 au lieu de 10 deg/tick) pour
+        // des transitions verticales moins saccadees sur les marches.
+        final float f2 = this.limitAngle(this.getXRot(), rawAngle, 7F);
         this.setXRot(f2);
         this.setYRot(f);
         this.yHeadRot = f;
+        // PISTE 4 : au tout premier positionnement (doHeight=false a la creation),
+        // on aligne les valeurs "old" de rotation sur les valeurs courantes. Sans ca,
+        // l'interpolation client part d'un yaw=0 et fait balayer le segment d'un grand
+        // arc au spawn ou au rechargement. On evite ce balayage parasite.
+        if (!doHeight) {
+            this.yRotO = f;
+            this.xRotO = f2;
+            this.yHeadRotO = f;
+        }
         this.moveTo(avg.x, avg.y, avg.z, f, f2);
         headEntityId = headId;
         return avg;
@@ -244,6 +271,7 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         builder.define(VARIANT, 0);
         builder.define(SCALE, 1.0F);
         builder.define(HEALTH_RATIO, 1.0F);
+        builder.define(HEAD_POS, BlockPos.ZERO);
     }
 
     @Override
@@ -307,6 +335,24 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         this.entityData.set(SCALE, boa.getScale());
         float maxH = boa.getMaxHealth();
         this.entityData.set(HEALTH_RATIO, maxH > 0 ? boa.getHealth() / maxH : 1.0F);
+        net.minecraft.core.BlockPos headPos = boa.blockPosition();
+        net.minecraft.world.level.block.state.BlockState stateAtHead = boa.level().getBlockState(headPos);
+        boolean inMud = stateAtHead.is(net.minecraft.world.level.block.Blocks.MUD);
+        boolean inFluid = !stateAtHead.getFluidState().isEmpty();
+        if (inMud || inFluid) {
+            headPos = headPos.above();
+        }
+        this.entityData.set(HEAD_POS, headPos);
+    }
+
+    /**
+     * Position du Boa parent (la tete), synchronisee. Le renderer echantillonne la
+     * lumiere a cette position au lieu de celle du segment : ainsi un segment enfoui
+     * dans un bloc ne devient PAS noir, il garde l'eclairage de la tete. Et si la
+     * tete est dans le noir, toute la queue s'assombrit de la meme facon.
+     */
+    public BlockPos getHeadPos() {
+        return this.entityData.get(HEAD_POS);
     }
 
     public int getVariant() {
