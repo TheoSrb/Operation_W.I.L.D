@@ -1516,7 +1516,25 @@ public class ClientEvents {
             Player player = minecraft.player;
 
             if (player != null) {
+                Entity vehicle = player.getVehicle();
+                boolean hasVenom = player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate())
+                        || (vehicle instanceof LivingEntity le && le.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()));
+                boolean shouldApplyBlur = hasVenom && minecraft.screen == null;
+
+                // ── Venom blur ────────────────────────────────────────────────────
                 PostChain currentEffect = minecraft.gameRenderer.currentEffect();
+                boolean isSubmarineEffect = currentEffect != null
+                        && currentEffect.getName().equals("ow:shaders/post/submarine_light.json");
+
+                if (!isSubmarineEffect) {   // ne pas écraser le shader sous-marin
+                    if (shouldApplyBlur) {
+                        applyMinecraftBlurShader(player);
+                    } else {
+                        if (blurPercentage > 0) removeMinecraftBlurShader();
+                    }
+                }
+
+                // ── Submarine shader (logique existante inchangée) ────────────────
                 boolean isOurEffect = currentEffect != null
                         && currentEffect.getName().equals("ow:shaders/post/submarine_light.json");
 
@@ -1534,7 +1552,6 @@ public class ClientEvents {
                             shaderLoadCooldown = 12000;
                         }
                     } else if (isOurEffect && !hasProcessedThisFrame) {
-                        Entity vehicle = player.getVehicle();
                         if (vehicle instanceof Submarine submarine) {
                             pushSubmarineShaderUniforms(currentEffect, submarine);
                         }

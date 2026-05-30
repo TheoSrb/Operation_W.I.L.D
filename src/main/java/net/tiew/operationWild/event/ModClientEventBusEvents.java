@@ -12,6 +12,8 @@ import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.client.model.*;
 import net.tiew.operationWild.entity.client.model.misc.*;
 import net.tiew.operationWild.entity.client.model.skin.TigerModelSkins;
+import net.tiew.operationWild.entity.client.model.BoaTailPartModel;
+import net.tiew.operationWild.entity.client.render.BoaTailPartRenderer;
 import net.tiew.operationWild.entity.client.render.CrocodileTailPartRenderer;
 import net.tiew.operationWild.entity.client.skin.SkinRegistry;
 
@@ -33,12 +35,21 @@ public class ModClientEventBusEvents {
         event.registerLayerDefinition(OrcaModel.LAYER_LOCATION, OrcaModel::createBodyLayer);
         event.registerLayerDefinition(KodiakModel.LAYER_LOCATION, KodiakModel::createBodyLayer);
         event.registerLayerDefinition(TigerModel.LAYER_LOCATION, TigerModel::createBodyLayer);
+        event.registerLayerDefinition(BoaModel.LAYER_LOCATION, BoaModel::createBodyLayer);
         event.registerLayerDefinition(SeaBugModel.LAYER_LOCATION, SeaBugModel::createBodyLayer);
         event.registerLayerDefinition(PlantEmpressModel.LAYER_LOCATION, PlantEmpressModel::createBodyLayer);
 
         event.registerLayerDefinition(CrocodileTailPartModel.LAYER_TAIL1, CrocodileTailPartModel::createTail1Layer);
         event.registerLayerDefinition(CrocodileTailPartModel.LAYER_TAIL2, CrocodileTailPartModel::createTail2Layer);
         event.registerLayerDefinition(CrocodileTailPartModel.LAYER_TAIL3, CrocodileTailPartModel::createTail3Layer);
+
+        event.registerLayerDefinition(BoaTailPartModel.LAYER_BODY_0, BoaTailPartModel::createBody0Layer);
+        event.registerLayerDefinition(BoaTailPartModel.LAYER_BODY_1, BoaTailPartModel::createBody1Layer);
+        event.registerLayerDefinition(BoaTailPartModel.LAYER_BODY_2, BoaTailPartModel::createBody2Layer);
+        event.registerLayerDefinition(BoaTailPartModel.LAYER_BODY_3, BoaTailPartModel::createBody3Layer);
+        event.registerLayerDefinition(BoaTailPartModel.LAYER_TAIL1, BoaTailPartModel::createTail1Layer);
+        event.registerLayerDefinition(BoaTailPartModel.LAYER_TAIL2, BoaTailPartModel::createTail2Layer);
+        event.registerLayerDefinition(BoaTailPartModel.LAYER_TAIL3, BoaTailPartModel::createTail3Layer);
 
         event.registerLayerDefinition(SeaBugShard0Model.LAYER_LOCATION, SeaBugShard0Model::createBodyLayer);
         event.registerLayerDefinition(SeaBugShard1Model.LAYER_LOCATION, SeaBugShard1Model::createBodyLayer);
@@ -57,5 +68,6 @@ public class ModClientEventBusEvents {
         SkinRegistry.TigerSkins.registerAllLayerDefinitions(event);
         SkinRegistry.CrocodileSkins.registerAllLayerDefinitions(event);
         SkinRegistry.KodiakSkins.registerAllLayerDefinitions(event);
+        SkinRegistry.BoaSkins.registerAllLayerDefinitions(event);
     }
 }

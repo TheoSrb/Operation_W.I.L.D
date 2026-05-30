@@ -136,9 +136,10 @@ public class OWTabsRenderer {
     private void chooseSkinsScreenForEntity(OWEntity entity) {
         setNotification(2, 0);
         switch (entity.getClass().getSimpleName()) {
-            case "KodiakEntity" -> Minecraft.getInstance().setScreen(new KodiakSkinsScreen());
-            case "TigerEntity" -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
+            case "KodiakEntity"    -> Minecraft.getInstance().setScreen(new KodiakSkinsScreen());
+            case "TigerEntity"     -> Minecraft.getInstance().setScreen(new TigerSkinsScreen());
             case "CrocodileEntity" -> Minecraft.getInstance().setScreen(new CrocodileSkinsScreen());
+            case "BoaEntity"       -> Minecraft.getInstance().setScreen(new BoaSkinsScreen());
             default -> Minecraft.getInstance().player.sendSystemMessage(
                     Component.translatable("tooltip.noSkins").withStyle(Style.EMPTY).withColor(0xFF0000));
         }

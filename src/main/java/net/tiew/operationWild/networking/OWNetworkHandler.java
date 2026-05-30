@@ -65,6 +65,7 @@ public class OWNetworkHandler {
         registrar.playToClient(SyncOWTeamPacket.TYPE, SyncOWTeamPacket.STREAM_CODEC, SyncOWTeamPacket::handle);
         registrar.playToClient(ClearOWTeamPacket.TYPE, ClearOWTeamPacket.STREAM_CODEC, ClearOWTeamPacket::handle);
         registrar.playToClient(OWEntityAlreadyInTeamPacket.TYPE, OWEntityAlreadyInTeamPacket.STREAM_CODEC, OWEntityAlreadyInTeamPacket::handle);
+        registrar.playToClient(MessageHurtMultipart.TYPE, MessageHurtMultipart.STREAM_CODEC, MessageHurtMultipart::handle);
 
     }
 
@@ -74,5 +75,11 @@ public class OWNetworkHandler {
 
     public static void sendToClient(CustomPacketPayload packet, ServerPlayer player) {
         PacketDistributor.sendToPlayer(player, packet);
+    }
+
+    public static void sendToAllClients(CustomPacketPayload packet, net.minecraft.server.level.ServerLevel level) {
+        for (ServerPlayer player : level.players()) {
+            PacketDistributor.sendToPlayer(player, packet);
+        }
     }
 }

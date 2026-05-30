@@ -21,10 +21,12 @@ public class OWCreativeTabs {
             () -> CreativeModeTab.builder().icon(() -> new ItemStack(OWItems.PLANT_FIBER.get())).title(Component.translatable("creativetab.ow.operation_wild"))
                     .displayItems(((itemDisplayParameters, output) -> {
 
+                        output.accept(OWItems.BOA_SPAWN_EGG.get());
                         output.accept(OWItems.CROCODILE_SPAWN_EGG.get());
                         output.accept(OWItems.KODIAK_SPAWN_EGG.get());
                         output.accept(OWItems.ORCA_SPAWN_EGG.get());
                         output.accept(OWItems.TIGER_SPAWN_EGG.get());
+
                         output.accept(OWItems.PLANT_FIBER.get());
                         output.accept(OWItems.LAVENDER_BOUQUET.get());
                         output.accept(OWItems.JADE.get());

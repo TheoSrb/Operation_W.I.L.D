@@ -148,8 +148,11 @@ public class AnimalSoulItem extends Item {
     private OWEntity getOWEntity(ItemStack stack, Level level) {
         OWEntity owEntity;
         switch (getEntityType(stack).getString()) {
-            case "KodiakEntity" -> owEntity = OWEntityRegistry.KODIAK.get().create(level);
-            default -> owEntity = OWEntityRegistry.CROCODILE.get().create(level);
+            case "KodiakEntity"    -> owEntity = OWEntityRegistry.KODIAK.get().create(level);
+            case "TigerEntity"     -> owEntity = OWEntityRegistry.TIGER.get().create(level);
+            case "BoaEntity"       -> owEntity = OWEntityRegistry.BOA.get().create(level);
+            case "OrcaEntity"      -> owEntity = OWEntityRegistry.ORCA.get().create(level);
+            default                -> owEntity = OWEntityRegistry.CROCODILE.get().create(level);
         }
 
         return owEntity;

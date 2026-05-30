@@ -234,6 +234,7 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.CROCODILE.get(), CrocodileRenderer::new);
             EntityRenderers.register(OWEntityRegistry.KODIAK.get(), KodiakRenderer::new);
             EntityRenderers.register(OWEntityRegistry.TIGER.get(), TigerRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.BOA.get(), BoaRenderer::new);
             EntityRenderers.register(OWEntityRegistry.ORCA.get(), OrcaRenderer::new);
             EntityRenderers.register(OWEntityRegistry.SEABUG.get(), SeaBugRenderer::new);
             EntityRenderers.register(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressRenderer::new);
@@ -245,6 +246,7 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.SLINGSHOT_PROJECTILE.get(), SlingshotProjectileRenderer::new);
 
             EntityRenderers.register(OWEntityRegistry.CROCODILE_TAIL_PART.get(), CrocodileTailPartRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.BOA_TAIL_PART.get(), BoaTailPartRenderer::new);
 
             EntityRenderers.register(OWEntityRegistry.SEABUG_SHARD_0.get(), SeaBugShard0Renderer::new);
             EntityRenderers.register(OWEntityRegistry.SEABUG_SHARD_1.get(), SeaBugShard1Renderer::new);

@@ -23,7 +23,17 @@
       "Bash(grep -E \"\\\\.java$\")",
       "Bash(Get-Content \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\lang\\\\en_us.json\")",
       "Bash(Measure-Object -Line)",
-      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\lang\\\\en_us.json\" | Measure-Object -Line\\).Lines; \\(Get-Content \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\lang\\\\fr_fr.json\" | Measure-Object -Line\\).Lines)"
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\lang\\\\en_us.json\" | Measure-Object -Line\\).Lines; \\(Get-Content \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\lang\\\\fr_fr.json\" | Measure-Object -Line\\).Lines)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\" -Recurse -Filter \"*.java\")",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\" -Recurse -Filter \"*Boa*\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\" -Filter \"*.java\")",
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\" -Recurse -Filter \"*Tail*\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/AlexModGuy/AlexsMobs/1.20/src/main/java/com/github/alexthe666/alexsmobs/entity/EntityAnaconda.java\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/AlexModGuy/AlexsMobs/1.20/src/main/java/com/github/alexthe666/alexsmobs/entity/EntityAnacondaPart.java\")",
+      "Bash(curl -s \"https://raw.githubusercontent.com/AlexModGuy/AlexsMobs/1.20/src/main/java/com/github/alexthe666/alexsmobs/client/render/RenderAnaconda.java\")",
+      "PowerShell(Invoke-WebRequest -Uri \"https://raw.githubusercontent.com/AlexModGuy/AlexsMobs/1.20/src/main/java/com/github/alexthe666/alexsmobs/entity/EntityAnaconda.java\" -UseBasicParsing)",
+      "PowerShell($response = gh api \"repos/AlexModGuy/AlexsMobs/contents/src/main/java/com/github/alexthe666/alexsmobs/client/render/RenderAnacondaPart.java?ref=1.20\" | ConvertFrom-Json; [System.Text.Encoding]::UTF8.GetString\\([System.Convert]::FromBase64String\\($response.content\\)\\))"
     ]
   }
 }

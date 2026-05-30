@@ -3207,6 +3207,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     continue;
                 }
 
+                if (this instanceof BoaEntity) {
+                    if (livingEntity instanceof BoaTailPart boaTail) {
+                        continue;
+                    }
+                }
+
                 if (this.isAssassin() && OWUtils.RANDOM(10)) {
 
                     if (!this.level().isClientSide()) {

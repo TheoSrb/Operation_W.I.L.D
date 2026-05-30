@@ -4,6 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.skin.skins.*;
+import net.tiew.operationWild.entity.variants.BoaVariant;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.entity.variants.OrcaVariant;
@@ -162,6 +163,46 @@ public final class SkinRegistry {
          * declared by skins in the registry. No need to touch that file
          * when adding new skins with model layers.
          */
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    //  BOA SKINS
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public static class BoaSkins {
+
+        private static final Map<BoaVariant, BoaSkin> REGISTRY = new EnumMap<>(BoaVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/" + path);
+        }
+
+        static {
+            register(BoaVariant.DEFAULT, BoaSkin.base(tex("boa_default.png")));
+            register(BoaVariant.YELLOW,  BoaSkin.base(tex("boa_yellow.png")));
+            register(BoaVariant.BROWN,   BoaSkin.base(tex("boa_brown.png")));
+            register(BoaVariant.DARK,    BoaSkin.base(tex("boa_dark.png")));
+
+            register(BoaVariant.Cosmetics.GOLD.variant, BoaSkin.base(tex("boa_skin_gold.png")));
+        }
+
+        public static void register(BoaVariant variant, BoaSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static BoaSkin get(BoaVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(BoaVariant.DEFAULT));
+        }
+
         public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
             REGISTRY.values().stream()
                     .distinct()
