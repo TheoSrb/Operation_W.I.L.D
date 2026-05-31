@@ -149,7 +149,19 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
 
         guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + 18, 240, entitySaddleCoords(), 16, 16);
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 26, j + 18, i + 78, j + 70, entityScale, 0.25F, this.xMouse, this.yMouse, this.entity);
+        // Affiche le boa ENTIER (tete + corps) : la queue est faite d'entites separees
+        // qui n'existent pas dans le GUI, donc on demande au BoaModel d'afficher le corps.
+        // Le boa entier est long : on le retrecit un peu et on le remonte un peu pour
+        // qu'il tienne dans le cadre (valeurs a ajuster a l'oeil).
+        boolean isBoa = "BoaEntity".equals(this.entity.getClass().getSimpleName());
+        int previewScale = isBoa ? Math.round(entityScale * 0.85f) : entityScale;
+        int boaUp = isBoa ? 7 : 0;
+        net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = true;
+        try {
+            InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 26, j + 18 - boaUp, i + 78, j + 70 - boaUp, previewScale, 0.25F, this.xMouse, this.yMouse, this.entity);
+        } finally {
+            net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = false;
+        }
 
         renderTexts(guiGraphics, i, j);
     }

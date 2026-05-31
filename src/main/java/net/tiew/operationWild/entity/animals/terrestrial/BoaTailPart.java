@@ -23,11 +23,14 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
+import net.tiew.operationWild.block.OWBlocks;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -335,9 +338,9 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         this.entityData.set(SCALE, boa.getScale());
         float maxH = boa.getMaxHealth();
         this.entityData.set(HEALTH_RATIO, maxH > 0 ? boa.getHealth() / maxH : 1.0F);
-        net.minecraft.core.BlockPos headPos = boa.blockPosition();
-        net.minecraft.world.level.block.state.BlockState stateAtHead = boa.level().getBlockState(headPos);
-        boolean inMud = stateAtHead.is(net.minecraft.world.level.block.Blocks.MUD);
+        BlockPos headPos = boa.blockPosition();
+        BlockState stateAtHead = boa.level().getBlockState(headPos);
+        boolean inMud = stateAtHead.is(Blocks.MUD) || stateAtHead.is(OWBlocks.MARKED_MUD.get());
         boolean inFluid = !stateAtHead.getFluidState().isEmpty();
         if (inMud || inFluid) {
             headPos = headPos.above();

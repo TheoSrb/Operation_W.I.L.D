@@ -468,10 +468,17 @@ public class OWSkinsInterface extends Screen {
         g.fill(fx, fy, fx + 2, fy + STRIP_H, rc | 0xFF000000);
         g.fill(fx, fy, fx + fw, fy + 1, 0xFF2A2A2A);
 
-        InventoryScreen.renderEntityInInventoryFollowsMouse(
-                g, fx + 2, fy + 1, fx + 22, fy + STRIP_H - 1,
-                Math.min(entityScale / 4 + 3, 13), 0.04f,
-                xMouse, yMouse, entity);
+        net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = true;
+        net.tiew.operationWild.entity.client.render.OWEntityRenderer.SUPPRESS_INFO_IN_GUI = true;
+        try {
+            InventoryScreen.renderEntityInInventoryFollowsMouse(
+                    g, fx + 2, fy + 1, fx + 22, fy + STRIP_H - 1,
+                    Math.min(entityScale / 4 + 3, 13), 0.04f,
+                    xMouse, yMouse, entity);
+        } finally {
+            net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = false;
+            net.tiew.operationWild.entity.client.render.OWEntityRenderer.SUPPRESS_INFO_IN_GUI = false;
+        }
 
         g.fill(fx + 24, fy + 4, fx + 25, fy + STRIP_H - 4, 0xFF252525);
 
@@ -524,9 +531,23 @@ public class OWSkinsInterface extends Screen {
             int ps = Math.min(Math.max((int) (entityScale * 0.75f), 18), 44);
 
             g.enableScissor(px + 2, prevTop, px + pw - 2, prevBottom);
-            InventoryScreen.renderEntityInInventoryFollowsMouse(
-                    g, px + 2, prevTop + 6, px + pw - 2, prevBottom - 2,
-                    ps, 0.08f, mouseX, mouseY, ghost);
+            // Boa entier (tete + corps) dans la preview : la queue multipart n'existe pas
+            // dans le GUI, donc on demande au BoaModel d'afficher le corps complet.
+            // Le boa entier est long : on le retrecit un peu et on le remonte un peu pour
+            // qu'il tienne dans l'apercu (valeurs a ajuster a l'oeil).
+            boolean isBoa = "BoaEntity".equals(ghost.getClass().getSimpleName());
+            int previewScale = isBoa ? Math.round(ps * 0.85f) : ps;
+            int boaUp = isBoa ? 6 : 0;
+            net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = true;
+            net.tiew.operationWild.entity.client.render.OWEntityRenderer.SUPPRESS_INFO_IN_GUI = true;
+            try {
+                InventoryScreen.renderEntityInInventoryFollowsMouse(
+                        g, px + 2, prevTop + 6 - boaUp, px + pw - 2, prevBottom - 2 - boaUp,
+                        previewScale, 0.08f, mouseX, mouseY, ghost);
+            } finally {
+                net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = false;
+                net.tiew.operationWild.entity.client.render.OWEntityRenderer.SUPPRESS_INFO_IN_GUI = false;
+            }
             g.disableScissor();
         }
 

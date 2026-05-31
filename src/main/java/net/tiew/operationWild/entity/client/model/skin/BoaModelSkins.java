@@ -1,84 +1,42 @@
-package net.tiew.operationWild.entity.client.model;
+package net.tiew.operationWild.entity.client.model.skin;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
-import net.tiew.operationWild.entity.client.animation.BoaAnimations;
 
-public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
+/**
+ * Modeles de remplacement (REPLACEMENT) pour les skins du Boa, sur le meme principe
+ * que {@link TigerModelSkins} cote tigre : une classe dediee qui declare les
+ * ModelLayerLocation et les LayerDefinition des skins qui remplacent totalement le
+ * modele de base.
+ *
+ * Les skins Leviathan et Plush partagent EXACTEMENT la meme geometrie (celle fournie
+ * par le bbmodel d'origine) ; seules leurs textures changent. On expose donc une seule
+ * methode {@link #createSkinReplacement()} et deux layers distincts (un par skin) pour
+ * que chaque skin bake sa propre instance, comme attendu par REPLACEMENT.
+ *
+ * NOTE GEOMETRIE : la geometrie est identique a {@link net.tiew.operationWild.entity.client.model.BoaModel}
+ * (memes noms de parts ALL2/ALL/head/.../body_6, requis par le constructeur de BoaModel).
+ * L'offset Z de ALL2 reprend la valeur corrigee de BoaModel (102.5 au lieu du 50 brut
+ * du bbmodel) pour recaler la tete sur sa hitbox en jeu — cf. le commentaire CORRECTIF
+ * JONCTION dans BoaModel.createBodyLayer().
+ */
+public class BoaModelSkins {
 
-    public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(
-            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "boa_default"), "main");
+    public static final ModelLayerLocation LAYER_LEVIATHAN = layer("boa_leviathan");
+    public static final ModelLayerLocation LAYER_PLUSH = layer("boa_plush");
 
-    /**
-     * Quand true, setupAnim affiche le corps complet (body_0..body_6) directement sur
-     * le modele de la tete, au lieu de le cacher. Sert aux GUI (OWInventoryScreen,
-     * OWSkinsInterface) ou la queue multipart n'existe PAS en tant qu'entites separees :
-     * on veut alors voir le boa entier. Les ecrans activent le flag autour de leur appel
-     * a renderEntityInInventory puis le remettent a false. En jeu il reste a false (la
-     * queue est rendue par les entites BoaTailPart).
-     */
-    public static boolean RENDER_FULL_BODY = false;
-
-    // --- Pose statique du corps pour les GUI (preview) ---
-    // Quand on affiche le boa entier dans un ecran, on lui donne une legere ondulation
-    // (yaw cumulatif le long du corps) au lieu d'une barre droite, et on recentre le
-    // long corps dans le cadre. Ces valeurs se reglent a l'oeil :
-    //   GUI_WAVE_AMP  : amplitude du virage local par segment (radians). Monte pour onduler plus.
-    //   GUI_WAVE_STEP : avance de phase d'un segment a l'autre (forme de la vague).
-    //   GUI_BODY_BACK_OFFSET : recule le corps (en px modele) pour le recentrer dans
-    //                          l'apercu. Augmente si la queue deborde encore, inverse
-    //                          le signe si le decalage part du mauvais cote.
-    private static final float GUI_WAVE_AMP = 0.75f;
-    private static final float GUI_WAVE_STEP = 0.95f;
-    private static final float GUI_BODY_BACK_OFFSET = 48.0f;
-
-    private final ModelPart ALL2;
-    private final ModelPart ALL;
-    private final ModelPart head;
-    private final ModelPart mouth;
-    private final ModelPart mouth_up;
-    private final ModelPart mouth_down;
-    private final ModelPart body_0;
-    private final ModelPart body_1;
-    private final ModelPart body_2;
-    private final ModelPart body_3;
-    private final ModelPart body_4;
-    private final ModelPart body_5;
-    private final ModelPart body_6;
-
-    public BoaModel(ModelPart root) {
-        this.ALL2 = root.getChild("ALL2");
-        this.ALL = this.ALL2.getChild("ALL");
-        this.head = this.ALL.getChild("head");
-        this.mouth = this.head.getChild("mouth");
-        this.mouth_up = this.mouth.getChild("mouth_up");
-        this.mouth_down = this.mouth.getChild("mouth_down");
-        this.body_0 = this.head.getChild("body_0");
-        this.body_1 = this.body_0.getChild("body_1");
-        this.body_2 = this.body_1.getChild("body_2");
-        this.body_3 = this.body_2.getChild("body_3");
-        this.body_4 = this.body_3.getChild("body_4");
-        this.body_5 = this.body_4.getChild("body_5");
-        this.body_6 = this.body_5.getChild("body_6");
+    private static ModelLayerLocation layer(String name) {
+        return new ModelLayerLocation(
+                ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, name), "main");
     }
 
-    public static LayerDefinition createBodyLayer() {
+    public static LayerDefinition createSkinReplacement() {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
 
-        // CORRECTIF JONCTION : le cumul d'offsets Z (ALL2 + ALL + head) placait la
-        // tete ~47px DEVANT la hitbox. Visible depuis que body_0..6 sont des entites
-        // separees (queue) et ne "tirent" plus le modele vers l'arriere. On ramene
-        // ALL2.z pour recaler la tete sur sa hitbox. Ajuste cette seule valeur si
-        // besoin : augmente pour avancer la tete, diminue pour la reculer.
         PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 20.0F, 102.5F));
 
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, -49.0F));
@@ -144,65 +102,5 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
                 .texOffs(14, 171).addBox(-6.0F, 0.0F, 11.0F, 12.0F, 0.0F, 25.0F, new CubeDeformation(0.001F)), PartPose.offset(0.0F, 1.0F, 16.0F));
 
         return LayerDefinition.create(meshdefinition, 256, 256);
-    }
-
-    @Override
-    public void setupAnim(T boa, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        this.root().getAllParts().forEach(ModelPart::resetPose);
-
-        // Copie d'Alex : la tete ne fait pas d'oscillation laterale custom. Elle
-        // suit le corps (yHeadRot gere par l'entite). Pas de balancement artificiel.
-        this.head.yRot = 0f;
-        this.head.xRot = 0f;
-
-        // body_0-6 sont normalement rendus comme des entites BoaTailPart separees
-        // (queue multipart dans le monde) -> caches sur le modele de la tete.
-        // EXCEPTION GUI : dans les ecrans (inventaire / preview cosmetiques) ces entites
-        // n'existent pas, donc on affiche le corps complet ici (cf. RENDER_FULL_BODY).
-        boolean showBody = RENDER_FULL_BODY;
-        this.body_0.visible = showBody;
-        this.body_1.visible = showBody;
-        this.body_2.visible = showBody;
-        this.body_3.visible = showBody;
-        this.body_4.visible = showBody;
-        this.body_5.visible = showBody;
-        this.body_6.visible = showBody;
-
-        if (boa.isSitting()) {
-            this.animate(boa.sittingAnimationState, BoaAnimations.SIT, ageInTicks, 1.0f);
-            if (showBody) applyGuiBodyPose();
-            return;
-        }
-
-        this.animate(boa.idleAnimationState, BoaAnimations.MISC_IDLE, ageInTicks, 1.0f);
-        if (showBody) applyGuiBodyPose();
-    }
-
-    /**
-     * Pose statique du corps pour l'affichage en GUI (preview) : legere ondulation
-     * horizontale le long des segments + recentrage du corps dans le cadre. Appliquee
-     * APRES l'animation pour ne pas etre ecrasee. Sans effet en jeu (showBody=false).
-     */
-    private void applyGuiBodyPose() {
-        // Recentre le long corps dans l'apercu (sinon la queue deborde du cadre).
-        this.ALL2.z -= GUI_BODY_BACK_OFFSET;
-        // Ondulation : yaw local croissant le long du corps -> vague qui se propage.
-        this.body_0.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 0f);
-        this.body_1.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 1f);
-        this.body_2.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 2f);
-        this.body_3.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 3f);
-        this.body_4.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 4f);
-        this.body_5.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 5f);
-        this.body_6.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 6f);
-    }
-
-    @Override
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
-        this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
-    }
-
-    @Override
-    public ModelPart root() {
-        return this.ALL2;
     }
 }

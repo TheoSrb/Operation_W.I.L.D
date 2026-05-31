@@ -12,8 +12,11 @@ import net.tiew.operationWild.screen.entity.OWSkinsInterface;
 public class BoaSkinsScreen extends OWSkinsInterface {
 
     private Button skinButton1;
+    private Button skinButton4;
+    private Button skinButton5;
+    private Button skinButton7;
 
-    private final int numberOfSkins = 1;
+    private final int numberOfSkins = 7;
 
     public BoaSkinsScreen() { super(); }
 
@@ -36,13 +39,17 @@ public class BoaSkinsScreen extends OWSkinsInterface {
 
     @Override
     protected void initSkinPrices() {
-        skinPrices.put(1, 200);
+        skinPrices.put(4, 300);
+        skinPrices.put(5, 200);
     }
 
     @Override
     protected SkinInfo getSkinInfo(int skinIndex) {
         return switch (skinIndex) {
-            case 1 -> SkinInfo.prestige("tooltip.boaSkin1", "tooltip.boaSkin1.desc", 200);
+            case 1 -> SkinInfo.level(    "tooltip.boaSkin1", "tooltip.boaSkin1.desc", 50);
+            case 4 -> SkinInfo.prestige( "tooltip.boaSkin4", "tooltip.boaSkin4.desc", 300);
+            case 5 -> SkinInfo.prestige( "tooltip.boaSkin5", "tooltip.boaSkin5.desc", 200);
+            case 7 -> SkinInfo.free("tooltip.boaSkin7", "tooltip.boaSkin7.desc");
             default -> null;
         };
     }
@@ -55,7 +62,10 @@ public class BoaSkinsScreen extends OWSkinsInterface {
         RARE_SKIN.clear();
         COMMON_SKIN.clear();
 
-        skinButton1 = createSkinButton(Component.translatable("tooltip.boaSkin1"), 1, RARE_SKIN);
+        skinButton1 = createSkinButton(Component.translatable("tooltip.boaSkin1"), 1, LEGENDARY_SKIN);
+        skinButton4 = createSkinButton(Component.translatable("tooltip.boaSkin4"), 4, LEGENDARY_SKIN);
+        skinButton5 = createSkinButton(Component.translatable("tooltip.boaSkin5"), 5, RARE_SKIN);
+        skinButton7 = createSkinButton(Component.translatable("tooltip.boaSkin7"), 7, COMMON_SKIN);
 
         updateButtonColors();
         addButtonsToList();
@@ -64,6 +74,9 @@ public class BoaSkinsScreen extends OWSkinsInterface {
     @Override
     protected int getSkinIndexForButton(Button button) {
         if (button == skinButton1) return 1;
+        if (button == skinButton4) return 4;
+        if (button == skinButton5) return 5;
+        if (button == skinButton7) return 7;
         return -1;
     }
 
@@ -75,7 +88,10 @@ public class BoaSkinsScreen extends OWSkinsInterface {
     @Override
     protected void updateLockStates() {
         if (this.entity != null) {
-            setLockState(1, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 1));
+            setLockState(1, entity.getLevel() < 50);
+            setLockState(4, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 4));
+            setLockState(5, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 5));
+            setLockState(7, false);
         }
     }
 }

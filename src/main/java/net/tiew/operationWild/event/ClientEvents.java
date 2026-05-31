@@ -101,27 +101,31 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
 
-        if (player != null) {
-            if (event.getButton() == 1 && event.getAction() == 1) {
-                if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != player && crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player) {
-                    if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
-                        if (crocodile.getGrabTimeout() <= 0) {
-                            OWNetworkHandler.sendToServer(new StopGrabPacket());
-                        } else {
-                            OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
-                            RightClickAlertOverlay.hasClicked = true;
-                            RightClickAlertOverlay.clickAnimationTimer = 3;
-                        }
+        if (player != null && event.getButton() == 1 && event.getAction() == 1) {
+            CrocodileEntity grabbingCroc = player.level()
+                    .getEntitiesOfClass(CrocodileEntity.class, player.getBoundingBox().inflate(5.0))
+                    .stream()
+                    .filter(c -> c.isGrabbing() && c.getGrabbedTarget() == player)
+                    .findFirst().orElse(null);
+
+            if (grabbingCroc != null) {
+                if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
+                    if (grabbingCroc.getGrabTimeout() <= 0) {
+                        OWNetworkHandler.sendToServer(new StopGrabPacket());
+                    } else {
+                        OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
+                        RightClickAlertOverlay.hasClicked = true;
+                        RightClickAlertOverlay.clickAnimationTimer = 3;
                     }
-                } else if (player.getVehicle() instanceof TigerEntity tiger && tiger.isGrabbing() && tiger.getGrabbedTarget() == player) {
-                    if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
-                        if (tiger.getGrabTimeout() <= 0) {
-                            OWNetworkHandler.sendToServer(new StopGrabPacket());
-                        } else {
-                            OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
-                            RightClickAlertOverlay.hasClicked = true;
-                            RightClickAlertOverlay.clickAnimationTimer = 3;
-                        }
+                }
+            } else if (player.getVehicle() instanceof TigerEntity tiger && tiger.isGrabbing() && tiger.getGrabbedTarget() == player) {
+                if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
+                    if (tiger.getGrabTimeout() <= 0) {
+                        OWNetworkHandler.sendToServer(new StopGrabPacket());
+                    } else {
+                        OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
+                        RightClickAlertOverlay.hasClicked = true;
+                        RightClickAlertOverlay.clickAnimationTimer = 3;
                     }
                 }
             }

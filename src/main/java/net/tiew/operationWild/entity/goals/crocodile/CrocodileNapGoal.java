@@ -151,7 +151,8 @@ public class CrocodileNapGoal extends Goal {
         crocodile.setXRot(0);
         crocodile.xRotO = 0;
 
-        if (napTickCounter % 20 == 0) {
+        int cycle = napTickCounter % 23;
+        if (cycle < 3) {
             Vec3 lookDirection = crocodile.getLookAngle();
             double entityX = crocodile.getX();
             double entityY = crocodile.getY() + 1.15;
@@ -192,6 +193,7 @@ public class CrocodileNapGoal extends Goal {
             }
         }
     }
+
     private void generateMaxNapTimer() {
         NAP_DURATION_MAX = napTimerMax + crocodile.getRandom().nextInt(napTimerMax);
         napTimer = NAP_DURATION_MAX;

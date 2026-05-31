@@ -33,7 +33,12 @@
       "Bash(curl -s \"https://raw.githubusercontent.com/AlexModGuy/AlexsMobs/1.20/src/main/java/com/github/alexthe666/alexsmobs/entity/EntityAnacondaPart.java\")",
       "Bash(curl -s \"https://raw.githubusercontent.com/AlexModGuy/AlexsMobs/1.20/src/main/java/com/github/alexthe666/alexsmobs/client/render/RenderAnaconda.java\")",
       "PowerShell(Invoke-WebRequest -Uri \"https://raw.githubusercontent.com/AlexModGuy/AlexsMobs/1.20/src/main/java/com/github/alexthe666/alexsmobs/entity/EntityAnaconda.java\" -UseBasicParsing)",
-      "PowerShell($response = gh api \"repos/AlexModGuy/AlexsMobs/contents/src/main/java/com/github/alexthe666/alexsmobs/client/render/RenderAnacondaPart.java?ref=1.20\" | ConvertFrom-Json; [System.Text.Encoding]::UTF8.GetString\\([System.Convert]::FromBase64String\\($response.content\\)\\))"
+      "PowerShell($response = gh api \"repos/AlexModGuy/AlexsMobs/contents/src/main/java/com/github/alexthe666/alexsmobs/client/render/RenderAnacondaPart.java?ref=1.20\" | ConvertFrom-Json; [System.Text.Encoding]::UTF8.GetString\\([System.Convert]::FromBase64String\\($response.content\\)\\))",
+      "Bash(./gradlew compileJava -q)",
+      "Bash(python -c \"import json;json.load\\(open\\('src/main/resources/assets/ow/lang/en_us.json',encoding='utf-8'\\)\\);json.load\\(open\\('src/main/resources/assets/ow/lang/fr_fr.json',encoding='utf-8'\\)\\);print\\('JSON OK'\\)\")",
+      "Bash(find src/main/resources -iname \"*boa*gold*\")",
+      "Bash(find src/main/resources/assets/ow/textures/entity/boa -type d)",
+      "Bash(find src/main/resources -iname \"*skin_gold*\")"
     ]
   }
 }

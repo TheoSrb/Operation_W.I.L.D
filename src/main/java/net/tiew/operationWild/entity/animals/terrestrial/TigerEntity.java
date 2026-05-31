@@ -551,7 +551,9 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         float radius = this.getBbWidth() + 1.5f;
         List<LivingEntity> candidates = this.level().getEntitiesOfClass(
                 LivingEntity.class, this.getBoundingBox().inflate(radius));
-        for (LivingEntity target : candidates) {
+        for (LivingEntity rawTarget : candidates) {
+            LivingEntity target = rawTarget instanceof BoaTailPart tailPart
+                    && tailPart.getParent() instanceof BoaEntity boaHead ? boaHead : rawTarget;
             if (!isEnemyForOwner(target)) continue;
             if (!canGrabEntity(target)) continue;
             if (target.getVehicle() != null) target.stopRiding();
@@ -1312,6 +1314,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     public boolean canGrabEntity(LivingEntity entity) {
         if (this.isBaby()) return false;
+        if (entity instanceof BoaTailPart) return false;
         if (entity.getMaxHealth() > 60f) return false;
         if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() > 5f) return false;
         return true;

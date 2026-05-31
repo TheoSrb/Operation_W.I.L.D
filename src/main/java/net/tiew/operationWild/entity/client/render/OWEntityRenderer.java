@@ -18,6 +18,15 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
 
     protected static final ResourceLocation ICONS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
+    /**
+     * Quand true, renderEntityInfo ne dessine RIEN (nom, niveau, proprietaire, equipe,
+     * images d'info...). Active par les ecrans qui affichent une entite en GUI (ex:
+     * preview de skin dans OWSkinsInterface) ou ces infos au-dessus de la tete n'ont pas
+     * de sens. Les ecrans le passent a true autour de leur appel de rendu puis le
+     * remettent a false (cf. BoaModel.RENDER_FULL_BODY).
+     */
+    public static boolean SUPPRESS_INFO_IN_GUI = false;
+
     public abstract double distanceToShowRealInfos();
 
     public abstract double infosUpOffset();
@@ -54,6 +63,7 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
 
 
     protected void renderEntityInfo(T entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, Player player) {
+        if (SUPPRESS_INFO_IN_GUI) return;
         if (!entity.isInResurrection()) {
             if (entity.isAlive() && !entity.isVehicle()) {
                 if (entity.isTame()) {

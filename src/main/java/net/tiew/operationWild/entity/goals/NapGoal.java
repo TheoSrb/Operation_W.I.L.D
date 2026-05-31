@@ -123,7 +123,8 @@ public class NapGoal extends Goal {
     private void handleNappingEffects() {
         entity.setTarget(null);
 
-        if (napTickCounter % 20 == 0) {
+        int cycle = napTickCounter % 23;
+        if (cycle < 3) {
             Vec3 lookDirection = entity.getLookAngle();
             double entityX = entity.getX();
             double entityY = entity.getY() + 1.15;

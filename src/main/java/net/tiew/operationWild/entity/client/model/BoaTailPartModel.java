@@ -51,23 +51,32 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
 
     public static LayerDefinition createBody0Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        mesh.getRoot().addOrReplaceChild("segment",
+        PartDefinition segment = mesh.getRoot().addOrReplaceChild("segment",
                 CubeListBuilder.create()
                         .texOffs(48, 0)
                         .addBox(-3.5F, -3.0F, 0.0F, 7.0F, 6.0F, 16.0F, new CubeDeformation(0.0F)),
                 PartPose.offset(0f, TAIL_Y, 0f));
+        // Coraux/nageoires laterales : repris du BoaModel complet (cube_r3..r6 de body_0)
+        // pour que la queue en jeu corresponde a la preview. Z decale de +1 car la boite
+        // du segment demarre a z=0 (contre z=-1 dans BoaModel.body_0).
+        segment.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(171, 219).addBox(-2.0F, -5.0F, 0.0F, 10.0F, 10.0F, 0.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(4.5F, -1.5F, 9.0F, 0.2533F, -0.7519F, -0.3622F));
+        segment.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(171, 219).mirror().addBox(-8.0F, -5.0F, 0.0F, 10.0F, 10.0F, 0.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offsetAndRotation(-4.5F, -1.5F, 9.0F, 0.2533F, 0.7519F, 0.3622F));
+        segment.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(179, 239).mirror().addBox(-8.0F, -5.0F, 0.0F, 10.0F, 10.0F, 0.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offsetAndRotation(-4.5F, -1.5F, 10.0F, 0.2533F, 0.7519F, 0.3622F));
+        segment.addOrReplaceChild("cube_r6", CubeListBuilder.create().texOffs(179, 239).addBox(-2.0F, -5.0F, 0.0F, 10.0F, 10.0F, 0.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(4.5F, -1.5F, 10.0F, 0.2533F, -0.7519F, -0.3622F));
         return LayerDefinition.create(mesh, 256, 256);
     }
 
     public static LayerDefinition createBody1Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        mesh.getRoot().addOrReplaceChild("segment",
+        PartDefinition segment = mesh.getRoot().addOrReplaceChild("segment",
                 CubeListBuilder.create()
                         .texOffs(0, 0)
                         .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.0F))
                         .texOffs(135, 138)
                         .addBox(0.0F, -14.0F, 0.0F, 0.0F, 10.0F, 15.0F, new CubeDeformation(0.01F)),
                 PartPose.offset(0f, TAIL_Y, 0f));
+        // Corail lateral (cube_r7 de BoaModel.body_1). Z decale de +1 (boite a z=0 ici).
+        segment.addOrReplaceChild("cube_r7", CubeListBuilder.create().texOffs(205, 180).addBox(5.0F, -11.0F, -1.0F, 11.0F, 11.0F, 0.0F, new CubeDeformation(0.001F)), PartPose.offsetAndRotation(-9.0F, 5.5F, 3.0F, -0.0128F, -0.4635F, -0.5778F));
         return LayerDefinition.create(mesh, 256, 256);
     }
 
@@ -85,25 +94,31 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
 
     public static LayerDefinition createBody3Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        mesh.getRoot().addOrReplaceChild("segment",
+        PartDefinition segment = mesh.getRoot().addOrReplaceChild("segment",
                 CubeListBuilder.create()
                         .texOffs(0, 0).mirror()
                         .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.0F)).mirror(false)
                         .texOffs(135, 138)
                         .addBox(0.0F, -10.0F, 0.0F, 0.0F, 6.0F, 15.0F, new CubeDeformation(0.0F)),
                 PartPose.offset(0f, TAIL_Y, 0f));
+        // Coraux (cube_r8, cube_r9 de BoaModel.body_3). Pas de decalage Z : la boite de
+        // body_3 demarre deja a z=0 dans BoaModel.
+        segment.addOrReplaceChild("cube_r8", CubeListBuilder.create().texOffs(157, 199).addBox(6.0F, -11.0F, -1.0F, 10.0F, 11.0F, 0.0F, new CubeDeformation(0.001F)), PartPose.offsetAndRotation(-8.0F, -2.5F, 3.0F, -0.1117F, -0.0577F, 0.2342F));
+        segment.addOrReplaceChild("cube_r9", CubeListBuilder.create().texOffs(88, 151).addBox(6.0F, -12.0F, -1.0F, 13.0F, 12.0F, 0.0F, new CubeDeformation(0.001F)), PartPose.offsetAndRotation(3.0F, 1.5F, -5.0F, 1.0653F, -1.3361F, -2.7575F));
         return LayerDefinition.create(mesh, 256, 256);
     }
 
     public static LayerDefinition createTail1Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        mesh.getRoot().addOrReplaceChild("segment",
+        PartDefinition segment = mesh.getRoot().addOrReplaceChild("segment",
                 CubeListBuilder.create()
                         .texOffs(48, 0)
                         .addBox(-3.5F, -3.0F, 0.0F, 7.0F, 6.0F, 16.0F, new CubeDeformation(0.0F))
                         .texOffs(146, 78)
                         .addBox(0.0F, -7.0F, 3.0F, 0.0F, 4.0F, 9.0F, new CubeDeformation(0.001F)),
                 PartPose.offset(0f, TAIL_Y, 0f));
+        // Corail (cube_r10 de BoaModel.body_4). Pas de decalage Z (boite a z=0 des deux cotes).
+        segment.addOrReplaceChild("cube_r10", CubeListBuilder.create().texOffs(205, 202).addBox(6.0F, -7.0F, -1.0F, 8.0F, 7.0F, 0.0F, new CubeDeformation(0.001F)), PartPose.offsetAndRotation(-3.0F, -5.5F, 1.0F, -0.5628F, -0.7972F, 0.7507F));
         return LayerDefinition.create(mesh, 256, 256);
     }
 

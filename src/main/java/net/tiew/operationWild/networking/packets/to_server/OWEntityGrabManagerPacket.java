@@ -35,18 +35,18 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
     public static void handle(OWEntityGrabManagerPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             ServerPlayer player = (ServerPlayer) context.player();
-            if (player != null) {
-                LivingEntity entity = (LivingEntity) player.getVehicle();
+            if (player == null || !packet.isRightClickDown()) return;
 
-                if (entity instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() != null && crocodile.getGrabbedTarget() == player) {
-                    if (packet.isRightClickDown()) {
-                        crocodile.setGrabTimeout(crocodile.getGrabTimeout() - 15);
-                    }
-                } else if (entity instanceof TigerEntity tiger && tiger.getGrabbedTarget() != null && tiger.getGrabbedTarget() == player) {
-                    if (packet.isRightClickDown()) {
-                        tiger.setGrabTimeout(tiger.getGrabTimeout() - 15);
-                    }
-                }
+            // Recherche de proximité — fiable même si le sync passenger n'est pas encore arrivé
+            player.level().getEntitiesOfClass(CrocodileEntity.class, player.getBoundingBox().inflate(5.0))
+                    .stream()
+                    .filter(c -> c.getGrabbedTarget() == player)
+                    .findFirst()
+                    .ifPresent(croc -> croc.setGrabTimeout(croc.getGrabTimeout() - 15));
+
+            LivingEntity vehicle = (LivingEntity) player.getVehicle();
+            if (vehicle instanceof TigerEntity tiger && tiger.getGrabbedTarget() != null && tiger.getGrabbedTarget() == player) {
+                tiger.setGrabTimeout(tiger.getGrabTimeout() - 15);
             }
         });
     }

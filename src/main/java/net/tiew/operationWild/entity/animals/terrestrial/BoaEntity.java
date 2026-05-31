@@ -6,7 +6,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.WaterlilyBlock;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -17,6 +19,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.LookControl;
+import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
@@ -36,6 +39,7 @@ import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
@@ -53,7 +57,7 @@ import java.util.List;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
-public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
+public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable {
 
     public static final double TAMING_EXPERIENCE = 80.0;
 
@@ -92,12 +96,10 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
     protected void registerGoals() {
         super.registerGoals();
 
-        this.goalSelector.addGoal(0, new FloatGoal(this));
-
         this.goalSelector.addGoal(2, new BoaEntity.BoaMeleeAttackGoal());
 
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D, 200));
+        this.goalSelector.addGoal(10, new RandomStrollGoal(this, this.getSpeed() * 6.5f));
 
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
 
@@ -232,6 +234,21 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
     }
 
     @Override
+    public int getMaxAirSupply() {
+        return 300 * 10;
+    }
+
+    @Override
+    public int getMaxDepth() {
+        return this.isTame() ? 20 : 10;
+    }
+
+    @Override
+    public float getSwimSpeed() {
+        return this.getSpeed() * 5;
+    }
+
+    @Override
     public void tick() {
         super.tick();
 
@@ -320,6 +337,15 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
                 float offset = this.isVehicle() ? 3 : 1;
                 Vec3 prev = this.position().add(realVelX * offset, 0, realVelZ * offset);
                 float xRot = this.getXRot();
+
+                // Vague verticale autorisee des que le boa est dans l'eau, qu'il soit
+                // monte (vehicule) ou non : l'ondulation horizontale existe deja dans les
+                // deux cas, on aligne la verticale dessus.
+                boolean swimming = this.isInWater();
+                float swimFreq = 3.0f;
+                float swimStep = 0.85f;
+                float swimAmpDeg = 18f; // amplitude de la vague en degrés de XRot
+
                 for (int i = 0; i < segments; i++) {
                     if (this.parts[i] != null) {
                         final float prevReqRot = calcPartRotation(i) + getYawForPart(i);
@@ -330,7 +356,37 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
                         xRot = parts[i].getXRot();
                     }
                 }
+
+                // Vague verticale : on ajoute uniquement au XRot, sans toucher aux positions
+                // En eau le XRot naturel de tickMultipartPosition est ~0 (terrain = 0 dans les fluides)
+                if (swimming) {
+                    for (int i = 0; i < segments; i++) {
+                        if (parts[i] != null) {
+                            float wave = swimAmpDeg * (float) Math.sin(this.walkDist * swimFreq - i * swimStep);
+                            parts[i].setXRot(Mth.clamp(parts[i].getXRot() + wave, -25f, 25f));
+                        }
+                    }
+                }
+
+                // Supprime silencieusement les nénuphars sur le trajet de toute la chaîne
+                clearLilyPad(this.blockPosition());
+                clearLilyPad(this.blockPosition().above());
+                for (int i = 0; i < segments; i++) {
+                    if (parts[i] != null) {
+                        clearLilyPad(parts[i].blockPosition());
+                        clearLilyPad(parts[i].blockPosition().above());
+                    }
+                }
             }
+        }
+    }
+
+    private void clearLilyPad(BlockPos pos) {
+        if (this.level().isClientSide()) return;
+        var state = this.level().getBlockState(pos);
+        if (state.getBlock() instanceof WaterlilyBlock) {
+            // Remplace par le fluide sous-jacent (eau) — aucun son, aucune particule
+            this.level().setBlock(pos, state.getFluidState().createLegacyBlock(), 3);
         }
     }
 
@@ -456,11 +512,29 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
         super.changeSkin(skinIndex, playingEffects);
         this.setVariant(getInitialVariant());
         if (skinIndex == 1) this.setVariant(BoaVariant.Cosmetics.GOLD.variant);
+        if (skinIndex == 4) this.setVariant(BoaVariant.Cosmetics.LEVIATHAN.variant);
+        if (skinIndex == 5) this.setVariant(BoaVariant.Cosmetics.PLUSH.variant);
     }
 
     @Override
     public void changeSkinSilent(int skinIndex) {
         changeSkin(skinIndex, false);
+    }
+
+    @Override
+    public boolean canCollideWith(Entity entity) {
+        return !(entity instanceof BoaTailPart) && super.canCollideWith(entity);
+    }
+
+    @Override
+    protected void pushEntities() {
+        if (this.level().isClientSide()) {
+            super.pushEntities();
+            return;
+        }
+        this.level().getEntities(this, this.getBoundingBox(),
+                entity -> !(entity instanceof BoaTailPart) && EntitySelector.pushableBy(this).test(entity))
+                .forEach(this::doPush);
     }
 
     @Override
@@ -484,7 +558,7 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
     @Override
     protected void onSuccessfulHit(LivingEntity entity) {
         if (RANDOM(10)) {
-            if (!entity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate())) {
+            if (!entity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()) && !this.isVehicle()) {
                 entity.addEffect(new MobEffectInstance(OWEffects.VENOM_EFFECT.getDelegate(), (int) OWUtils.generateRandomInterval(6500, 9000), 0));
             }
         } else if (RANDOM(5)) {
@@ -566,7 +640,7 @@ public class BoaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRid
 
     class BoaMeleeAttackGoal extends MeleeAttackGoal {
         public BoaMeleeAttackGoal() {
-            super(BoaEntity.this, 1.85f, true);
+            super(BoaEntity.this, 2.25f, true);
         }
 
         @Override

@@ -32,10 +32,10 @@ public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
         float healthTier = boa.getMaxHealth() / 4;
 
         if (boa.isTame() && !boa.isInResurrection()) {
-            renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, boa.getNecklaceColor());
+            //renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, boa.getNecklaceColor());
         }
 
-        if (boa.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+        //if (boa.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
 
         if      (boa.getHealth() < healthTier)             renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
         else if (boa.getHealth() < (healthTier * 2))       renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);

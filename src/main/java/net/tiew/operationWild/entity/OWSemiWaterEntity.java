@@ -270,6 +270,11 @@ public abstract class OWSemiWaterEntity extends OWEntity {
     }
 
     protected void handleFreeSwimming() {
+        // Initialisation paresseuse : targetDepth=0 signifie Y=0 (fond de map), pas encore initialisé
+        if (targetDepth == 0) {
+            targetDepth = (float) this.getY();
+        }
+
         double yawRadians = Math.toRadians(swimYaw);
         double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED;
         double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED;
@@ -296,9 +301,9 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             }
         }
 
-        // Pitch visuel proportionnel à la direction verticale de nage
+        // Pitch visuel uniquement quand le mouvement vertical est effectivement actif (depth > 1)
         float desiredPitch;
-        if (Math.abs(depthDiff) > 0.5) {
+        if (depth > 1 && Math.abs(depthDiff) > 0.5) {
             double pitchMagnitude = Math.min(Math.abs(depthDiff) / 6.0, 1.0) * 38.0;
             desiredPitch = (float)(depthDiff > 0 ? -pitchMagnitude : pitchMagnitude);
         } else {
@@ -330,8 +335,10 @@ public abstract class OWSemiWaterEntity extends OWEntity {
             verticalMove = (deltaY / dist3D) * HORIZONTAL_SPEED * speedMult;
         }
 
-        this.setDeltaMovement(this.getDeltaMovement().add(
-                moveX, depth > 1 ? verticalMove + 0.001 : 0, moveZ));
+        // Plonger vers une cible sous l'eau est toujours autorisé (peu importe la profondeur actuelle)
+        // Remonter garde la restriction depth > 1 pour éviter de bondir hors de l'eau sans target aérienne
+        double yMove = verticalMove < 0 ? verticalMove : (depth > 1 ? verticalMove + 0.001 : 0);
+        this.setDeltaMovement(this.getDeltaMovement().add(moveX, yMove, moveZ));
     }
 
     public void applyWaterPressureDamage(int depth, Player player) {

@@ -3138,7 +3138,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
         setMaxSleepingBarTo((int) OWUtils.determinateMinAndMax(maxSleepBar, 20));
         if (!(this instanceof SeaBugEntity)) {
-            this.setRandomScale(this.averageScale, 0.95, 1.05);
+
+            boolean isBoa = this instanceof BoaEntity;
+            float[] scales = new float[] {0.95f, 1.05f};
+            float[] boaScales = new float[] {0.9f, 1.15f};
+
+            this.setRandomScale(this.averageScale, isBoa ? boaScales[0] : scales[0], isBoa ? boaScales[1] : scales[1]);
         } else {
             this.setScale(1.0f);
         }

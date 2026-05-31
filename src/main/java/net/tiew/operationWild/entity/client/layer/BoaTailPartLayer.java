@@ -26,8 +26,6 @@ public class BoaTailPartLayer extends RenderLayer<BoaTailPart, EntityModel<BoaTa
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight,
                        BoaTailPart boaTailPart, float v, float v1, float v2, float v3, float v4, float v5) {
 
-        // Les segments ne perdent jamais de PV (hurt redirige vers la tete), donc on
-        // lit le ratio de PV du Boa parent, copie/synchronise sur le segment.
         float ratio = boaTailPart.getParentHealthRatio();
 
         if      (ratio < 0.25f)  renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);

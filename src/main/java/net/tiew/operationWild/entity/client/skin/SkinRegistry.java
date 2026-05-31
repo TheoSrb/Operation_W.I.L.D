@@ -187,12 +187,16 @@ public final class SkinRegistry {
         }
 
         static {
-            register(BoaVariant.DEFAULT, BoaSkin.base(tex("boa_default.png")));
+            register(BoaVariant.DEFAULT, new DefaultBoaSkin());
             register(BoaVariant.YELLOW,  BoaSkin.base(tex("boa_yellow.png")));
             register(BoaVariant.BROWN,   BoaSkin.base(tex("boa_brown.png")));
             register(BoaVariant.DARK,    BoaSkin.base(tex("boa_dark.png")));
 
-            register(BoaVariant.Cosmetics.GOLD.variant, BoaSkin.base(tex("boa_skin_gold.png")));
+            register(BoaVariant.Cosmetics.GOLD.variant, BoaSkin.base(tex("skins/boa_skin_gold.png")));
+
+            // --- Skins REPLACEMENT : modele + texture remplaces (queue incluse) ---
+            register(BoaVariant.Cosmetics.LEVIATHAN.variant, new LeviathanBoaSkin());
+            register(BoaVariant.Cosmetics.PLUSH.variant,     new PlushBoaSkin());
         }
 
         public static void register(BoaVariant variant, BoaSkin skin) {

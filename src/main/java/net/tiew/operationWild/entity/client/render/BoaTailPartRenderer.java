@@ -10,6 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Pose;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
+import net.tiew.operationWild.entity.client.layer.BoaLayer;
+import net.tiew.operationWild.entity.client.layer.BoaTailPartLayer;
 import net.tiew.operationWild.entity.client.model.BoaTailPartModel;
 import net.tiew.operationWild.entity.client.skin.SkinRegistry;
 import net.tiew.operationWild.entity.variants.BoaVariant;
@@ -38,6 +40,8 @@ public class BoaTailPartRenderer extends LivingEntityRenderer<BoaTailPart, Entit
         models[4] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL1));
         models[5] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL2));
         models[6] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL3));
+
+        this.addLayer(new BoaTailPartLayer(this));
     }
 
     @Override

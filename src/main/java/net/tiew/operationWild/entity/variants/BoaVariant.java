@@ -10,10 +10,14 @@ public enum BoaVariant {
     BROWN(2),
     DARK(3),
 
-    @Deprecated SKIN_GOLD(4);
+    @Deprecated SKIN_GOLD(4),
+    @Deprecated SKIN_LEVIATHAN(5),
+    @Deprecated SKIN_PLUSH(6);
 
     public enum Cosmetics {
-        GOLD(BoaVariant.SKIN_GOLD);
+        GOLD(BoaVariant.SKIN_GOLD),
+        LEVIATHAN(BoaVariant.SKIN_LEVIATHAN),
+        PLUSH(BoaVariant.SKIN_PLUSH);
 
         public final BoaVariant variant;
 

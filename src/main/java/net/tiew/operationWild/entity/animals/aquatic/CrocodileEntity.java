@@ -50,6 +50,8 @@ import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
@@ -1152,6 +1154,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     private void grabEntity(LivingEntity entity) {
+        if (entity instanceof BoaTailPart tailPart) {
+            if (tailPart.getParent() instanceof BoaEntity boaHead) entity = boaHead;
+            else return;
+        }
         if (isBaby()) return;
         if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() >= 10) return;
 
@@ -1183,6 +1189,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     private void grabEntityPassive(LivingEntity entity) {
+        if (entity instanceof BoaTailPart tailPart) {
+            if (tailPart.getParent() instanceof BoaEntity boaHead) entity = boaHead;
+            else return;
+        }
         if (isBaby()) return;
         if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() >= 10) return;
 
