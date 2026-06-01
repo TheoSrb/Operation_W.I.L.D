@@ -645,6 +645,16 @@
   "ow.attacks.tiger.shadow_strike.desc": "Your Tiger becomes camouflaged for %s seconds, increasing its speed by %s%%, its damage by %s%%, and one-shotting injured entities. Recharge by getting %s kills every %s seconds.",
   "ow.attacks.tiger.predator_sense.desc": "Reveal injured entities below %s%% HP through walls within a radius of %s blocks.",
 
+  "ow.attacks.locked.title": "???",
+  "ow.attacks.locked.desc": "This ability is not available yet.",
+
+  "ow.attacks.boa.combo.title": "Constriction",
+  "ow.attacks.boa.venom.title": "Venom Fangs",
+  "ow.attacks.boa.silent_ambush.title": "Silent Ambush",
+  "ow.attacks.boa.combo.desc": "Command your Boa to bite every %s seconds, dealing %s damage with each bite.",
+  "ow.attacks.boa.venom.desc": "Toggle on to arm your Boa's fangs. The next combo bite that lands injects Venom I for %s to %s seconds, after which the ability recharges for %s seconds. Toggle off anytime to disarm.",
+  "ow.attacks.boa.silent_ambush.desc": "As soon as your Boa senses a threat within %s blocks — any wild neutral or hostile creature, or a tamed beast from a rival tribe — it falls completely silent, muting its idle and movement sounds to set up the ambush.",
+
 
   "rarity.legendary": "Legendary",
   "rarity.epic":      "Epic",

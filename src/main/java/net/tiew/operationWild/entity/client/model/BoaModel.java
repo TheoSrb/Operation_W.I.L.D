@@ -205,4 +205,25 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
     public ModelPart root() {
         return this.ALL2;
     }
+
+    /**
+     * Copie la pose résolue (translation + rotation + échelle) de chaque os depuis un autre
+     * BoaModel déjà animé (le modèle de base). Utilisé par les skins en mode OVERLAY pour
+     * que le modèle d'overlay suive parfaitement la base sans désynchronisation ni z-fighting.
+     */
+    public void copyPoseFrom(BoaModel<?> src) {
+        this.ALL2.copyFrom(src.ALL2);
+        this.ALL.copyFrom(src.ALL);
+        this.head.copyFrom(src.head);
+        this.mouth.copyFrom(src.mouth);
+        this.mouth_up.copyFrom(src.mouth_up);
+        this.mouth_down.copyFrom(src.mouth_down);
+        this.body_0.copyFrom(src.body_0);
+        this.body_1.copyFrom(src.body_1);
+        this.body_2.copyFrom(src.body_2);
+        this.body_3.copyFrom(src.body_3);
+        this.body_4.copyFrom(src.body_4);
+        this.body_5.copyFrom(src.body_5);
+        this.body_6.copyFrom(src.body_6);
+    }
 }

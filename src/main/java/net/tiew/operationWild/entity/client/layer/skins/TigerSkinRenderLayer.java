@@ -44,7 +44,10 @@ public class TigerSkinRenderLayer extends RenderLayer<TigerEntity, TigerModel<Ti
             skin.getModelLayer().ifPresent(layer ->
                     skin.getOverlayTexture().ifPresent(overlayTex -> {
                         TigerModel<TigerEntity> overlayModel = getOrBakeModel(layer);
-                        overlayModel.setupAnim(tiger, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+                        // On recopie la pose déjà résolue du modèle de base (animé juste avant ce layer)
+                        // au lieu de ré-animer l'overlay : évite la désynchronisation et le z-fighting
+                        // dus aux pivots différents entre le modèle de skin et le modèle de base.
+                        overlayModel.copyPoseFrom(this.getParentModel());
 
                         float alpha = TigerRenderer.currentAlpha;
                         int color = ((int)(alpha * 255) << 24) | 0x00FFFFFF;

@@ -42,7 +42,8 @@ public class CrocodileSkinRenderLayer extends RenderLayer<CrocodileEntity, Croco
             skin.getModelLayer().ifPresent(layer ->
                 skin.getOverlayTexture().ifPresent(overlayTex -> {
                     CrocodileModel<CrocodileEntity> overlayModel = getOrBakeModel(layer);
-                    overlayModel.setupAnim(crocodile, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+                    // Recopie la pose du modèle de base déjà animé (évite désync + z-fighting).
+                    overlayModel.copyPoseFrom(this.getParentModel());
 
                     RenderType renderType = RenderType.entityTranslucent(overlayTex);
                     VertexConsumer vc = bufferSource.getBuffer(renderType);

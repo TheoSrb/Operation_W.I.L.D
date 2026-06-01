@@ -50,4 +50,17 @@ public class OWAttacksConstants {
         public static final long ORCA_CALL_DURATION_MS = 3_000L;
         public static final float ORCA_CALL_ENERGY = 100f;
     }
+
+    public static class Boa {
+        // Toggle "Crochets Venimeux" : armé d'un clic droit, consommé au prochain coup de combo.
+        public static final int   VENOM_FANGS_MIN_DURATION_TICKS = 600;   // 30 s
+        public static final int   VENOM_FANGS_MAX_DURATION_TICKS = 1200;  // 60 s
+        public static final int   VENOM_FANGS_COOLDOWN_TICKS      = 1800;  // 1 min 30 s
+        public static final float VENOM_FANGS_ENERGY              = 0f;    // pas de coût d'énergie : équilibré par le cooldown
+
+        // Passif "Embuscade Silencieuse" : le Boa apprivoisé devient muet (idle + pas)
+        // tant qu'au moins une menace est détectée dans ce rayon.
+        public static final double SILENT_AMBUSH_RADIUS         = 16.0;
+        public static final int    SILENT_AMBUSH_CHECK_INTERVAL = 10;     // ticks entre deux scans (0,5 s)
+    }
 }

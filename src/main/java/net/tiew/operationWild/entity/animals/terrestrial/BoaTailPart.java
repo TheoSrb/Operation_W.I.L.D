@@ -69,6 +69,10 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<BlockPos> HEAD_POS =
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.BLOCK_POS);
+    private static final EntityDataAccessor<Long> DIGEST_START =
+            SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.LONG);
+    private static final EntityDataAccessor<Float> DIGEST_POWER =
+            SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.FLOAT);
 
     private double prevHeight = 0;
     private int headEntityId = -1;
@@ -275,6 +279,18 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         builder.define(SCALE, 1.0F);
         builder.define(HEALTH_RATIO, 1.0F);
         builder.define(HEAD_POS, BlockPos.ZERO);
+        builder.define(DIGEST_START, -1L);
+        builder.define(DIGEST_POWER, 1.0F);
+    }
+
+    /** Tick de jeu du début de la digestion (copié du Boa parent). -1 = aucune. */
+    public long getDigestionStartTick() {
+        return this.entityData.get(DIGEST_START);
+    }
+
+    /** Puissance de la proie digérée (= ses PV max, copié du Boa parent). */
+    public float getDigestionPower() {
+        return this.entityData.get(DIGEST_POWER);
     }
 
     @Override
@@ -346,6 +362,8 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
             headPos = headPos.above();
         }
         this.entityData.set(HEAD_POS, headPos);
+        this.entityData.set(DIGEST_START, boa.getDigestionStartTick());
+        this.entityData.set(DIGEST_POWER, boa.getDigestionPower());
     }
 
     /**

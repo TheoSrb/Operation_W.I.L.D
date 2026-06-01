@@ -80,6 +80,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
 
             switch (packet.action()) {
                 case ACTION_EXECUTE -> {
+                    // Boa — toggle Crochets Venimeux : autorisé à tout moment (même pendant un combo)
+                    if (packet.attackId() == 9) {
+                        if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)
+                            boa.toggleVenomFangs();
+                        return;
+                    }
                     if (entity.isCombo()) return;
                     switch (packet.attackId()) {
                         case 2 -> {

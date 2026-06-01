@@ -369,4 +369,33 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 	public ModelPart root() {
 		return this.ALL2;
 	}
+
+	/**
+	 * Copie la pose résolue (translation + rotation + échelle) de chaque os partagé
+	 * depuis un autre TigerModel déjà animé (le modèle de base) vers ce modèle.
+	 *
+	 * <p>Utilisé par les skins en mode OVERLAY : plutôt que de ré-animer indépendamment
+	 * le modèle d'overlay (dont les pivots {@code ALL}/{@code body} diffèrent de la base
+	 * et provoquent une désynchronisation + du z-fighting), on recopie exactement la pose
+	 * de la base. Les os partagés coïncident alors parfaitement et les pièces propres au
+	 * skin (crinière, toque, etc.), enfants de {@code head}/{@code body}, suivent
+	 * automatiquement.</p>
+	 */
+	public void copyPoseFrom(TigerModel<?> src) {
+		this.ALL2.copyFrom(src.ALL2);
+		this.ALL.copyFrom(src.ALL);
+		this.body.copyFrom(src.body);
+		this.head.copyFrom(src.head);
+		this.left_ear.copyFrom(src.left_ear);
+		this.right_ear.copyFrom(src.right_ear);
+		this.left_eyeBall.copyFrom(src.left_eyeBall);
+		this.right_eyeBall.copyFrom(src.right_eyeBall);
+		this.tail.copyFrom(src.tail);
+		this.front_tail.copyFrom(src.front_tail);
+		this.back_tail.copyFrom(src.back_tail);
+		this.left_arm.copyFrom(src.left_arm);
+		this.left_leg.copyFrom(src.left_leg);
+		this.right_leg.copyFrom(src.right_leg);
+		this.right_arm.copyFrom(src.right_arm);
+	}
 }

@@ -469,4 +469,27 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     public ModelPart root() {
         return this.ALL2;
     }
+
+    /**
+     * Copie la pose résolue (translation + rotation + échelle) de chaque os depuis un autre
+     * KodiakModel déjà animé (le modèle de base). Utilisé par les skins en mode OVERLAY pour
+     * que le modèle d'overlay suive parfaitement la base sans désynchronisation ni z-fighting.
+     */
+    public void copyPoseFrom(KodiakModel<?> src) {
+        this.ALL2.copyFrom(src.ALL2);
+        this.ALL.copyFrom(src.ALL);
+        this.right_leg.copyFrom(src.right_leg);
+        this.left_leg.copyFrom(src.left_leg);
+        this.body.copyFrom(src.body);
+        this.body_2.copyFrom(src.body_2);
+        this.body_1.copyFrom(src.body_1);
+        this.head.copyFrom(src.head);
+        this.left_ear.copyFrom(src.left_ear);
+        this.right_ear.copyFrom(src.right_ear);
+        this.left_eyeBall.copyFrom(src.left_eyeBall);
+        this.right_eyeBall.copyFrom(src.right_eyeBall);
+        this.muzzle.copyFrom(src.muzzle);
+        this.left_arm.copyFrom(src.left_arm);
+        this.right_arm.copyFrom(src.right_arm);
+    }
 }

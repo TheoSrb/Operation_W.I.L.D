@@ -39,7 +39,7 @@ public class BoaSkinsScreen extends OWSkinsInterface {
 
     @Override
     protected void initSkinPrices() {
-        skinPrices.put(4, 300);
+        skinPrices.put(4, 500);
         skinPrices.put(5, 200);
     }
 

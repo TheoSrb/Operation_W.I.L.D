@@ -13,6 +13,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
@@ -217,6 +218,39 @@ public class OWAttacksInformation {
         //     new AttackSlot(40, 40, "X",   title("ow.attacks.kodiak.ult.title"),    e -> desc("ow.attacks.kodiak.ult.desc")),
         //     new AttackSlot(-1, -1, "",    title("ow.attacks.kodiak.passive.title"),e -> desc("ow.attacks.kodiak.passive.desc"))
         // ));
+
+
+        // ──────────────────────────────────────────────────────────────────────
+        //  BOA  (entityRow = 3 → cardTexY = 120 ; cartes en colonnes 60 / 80 / 100)
+        // ──────────────────────────────────────────────────────────────────────
+        PROFILES.put(BoaEntity.class, new EntityProfile(
+
+                new AttackSlot(60, 120, "LMB",
+                        title("ow.attacks.boa.combo.title"),
+                        e -> desc("ow.attacks.boa.combo.desc",
+                                val("0.5"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(80, 120, "RMB",
+                        title("ow.attacks.boa.venom.title"),
+                        e -> desc("ow.attacks.boa.venom.desc",
+                                val(OWAttacksConstants.Boa.VENOM_FANGS_MIN_DURATION_TICKS / 20),
+                                val(OWAttacksConstants.Boa.VENOM_FANGS_MAX_DURATION_TICKS / 20),
+                                val(OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "X",
+                        title("ow.attacks.locked.title"),
+                        e -> desc("ow.attacks.locked.desc")
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.boa.silent_ambush.title"),
+                        e -> desc("ow.attacks.boa.silent_ambush.desc",
+                                val((int) OWAttacksConstants.Boa.SILENT_AMBUSH_RADIUS))
+                )
+
+        ));
 
     }
 

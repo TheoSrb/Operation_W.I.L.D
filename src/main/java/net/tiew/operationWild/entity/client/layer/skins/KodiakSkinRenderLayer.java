@@ -48,7 +48,8 @@ public class KodiakSkinRenderLayer extends RenderLayer<KodiakEntity, KodiakModel
             skin.getModelLayer().ifPresent(layer ->
                 skin.getOverlayTexture().ifPresent(overlayTex -> {
                     KodiakModel<KodiakEntity> overlayModel = getOrBakeModel(layer);
-                    overlayModel.setupAnim(kodiak, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+                    // Recopie la pose du modèle de base déjà animé (évite désync + z-fighting).
+                    overlayModel.copyPoseFrom(this.getParentModel());
 
                     RenderType renderType = RenderType.entityTranslucent(overlayTex);
                     VertexConsumer vc = bufferSource.getBuffer(renderType);

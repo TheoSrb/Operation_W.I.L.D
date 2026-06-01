@@ -7,8 +7,10 @@ import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttack;
 import net.tiew.operationWild.entity.attacks.OWAttackLogic;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.attacks.OWChargedAttack;
 
@@ -75,26 +77,30 @@ public class OWAttacksOverlay {
         int normalTexY = entityRow * 40;        // rangée colorée dans la texture
         int grayTexY   = entityRow * 40 + 20;  // rangée grisée (juste en dessous)
 
+        // Décalage horizontal de la 1ère carte dans la texture (ex : Boa = colonne 60px).
+        int columnOffset = OWAttacksHandler.getEntityColumn(entityClass);
+        int comboTexX    = columnOffset * CARD_SIZE;
+
         boolean isGrabbing = entity instanceof CrocodileEntity && entity.isGrabbing();
 
         // ── Carte 0 : combo ───────────────────────────────────────────────────
         applyCardScale(g, baseX, baseY, OWAttackLogic.getComboClickScale(), () -> {
             if (isGrabbing) {
                 // Tout gris quand grab actif
-                g.blit(TEXTURE, baseX, baseY, 0, grayTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
+                g.blit(TEXTURE, baseX, baseY, comboTexX, grayTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
                 return;
             }
-            g.blit(TEXTURE, baseX, baseY, 0, normalTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
+            g.blit(TEXTURE, baseX, baseY, comboTexX, normalTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
 
             if (entity.attackTimer >= 1) {
                 int comboTimeMax = OWAttacksHandler.getComboMaxTimer(entityClass);
                 int coloredH = Math.min(CARD_SIZE, (int)((float) CARD_SIZE / comboTimeMax * entity.attackTimer));
                 int grayH    = CARD_SIZE - coloredH;
 
-                g.blit(TEXTURE, baseX, baseY, 0, grayTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
+                g.blit(TEXTURE, baseX, baseY, comboTexX, grayTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
                 if (coloredH > 0) {
                     g.blit(TEXTURE, baseX, baseY + grayH,
-                            0, normalTexY + grayH,
+                            comboTexX, normalTexY + grayH,
                             CARD_SIZE, coloredH,
                             TEX_SIZE, TEX_SIZE);
                 }
@@ -116,7 +122,7 @@ public class OWAttacksOverlay {
         for (int i = 0; i < attacks.size(); i++) {
             OWAttack attack = attacks.get(i);
             int cardX = baseX + (i + 1) * CARD_SPACING;
-            int texX  = (i + 1) * CARD_SIZE;
+            int texX  = (columnOffset + i + 1) * CARD_SIZE;
 
             // ── Primal Dive special states ────────────────────────────────────
             boolean isPrimalDive = attack.getId() == OWAttacksHandler.PRIMAL_DIVE_ID;
@@ -126,6 +132,10 @@ public class OWAttacksOverlay {
             // ── Bear Nap special state ────────────────────────────────────────
             boolean isNapUltimate    = attack.getId() == OWAttacksHandler.NAP_ULTIMATE_ID;
             boolean isNapDrainActive = false;
+
+            // ── Boa Crochets Venimeux (toggle) ────────────────────────────────
+            boolean isVenomFangs = attack.getId() == OWAttacksHandler.VENOM_FANGS_ID;
+            boolean isVenomArmed = isVenomFangs && entity instanceof BoaEntity boa && boa.isVenomArmed();
 
             boolean isCharging = attack instanceof OWChargedAttack
                     && OWAttackLogic.isCharging
@@ -137,6 +147,17 @@ public class OWAttacksOverlay {
             if (isCharging) {
                 fillProgress = OWAttackLogic.getChargeProgress();
                 isGlowing    = fillProgress >= 1.0f;
+            } else if (isVenomFangs && entity instanceof BoaEntity boa) {
+                // Armé : carte pleine qui respire ; en cooldown : remplissage progressif bas→haut ; sinon prête.
+                if (isVenomArmed) {
+                    fillProgress = 1.0f;
+                    isGlowing    = true;
+                } else {
+                    int cd = boa.getVenomCooldownTicks();
+                    fillProgress = cd > 0
+                            ? 1.0f - (float) cd / OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS
+                            : 1.0f;
+                }
             } else if (grabProgress > 0f) {
                 // Phase 2 active: drain 1→0 over 10 s (like tiger ultimate timer)
                 fillProgress = grabProgress;

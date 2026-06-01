@@ -9,7 +9,9 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.WaterlilyBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -26,13 +28,16 @@ import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.horse.Horse;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.advancements.OWAdvancements;
@@ -40,6 +45,7 @@ import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
@@ -66,6 +72,13 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private double prevChainX = Double.NaN;
     private double prevChainZ = Double.NaN;
 
+    // Tick de jeu (serveur) auquel la dernière proie a été tuée → lance l'onde de digestion
+    // qui parcourt la queue. -1 = aucune digestion en cours. Copié vers chaque BoaTailPart.
+    private long digestionStartTick = -1L;
+    // PV max de la dernière proie tuée → règle la vitesse (plus lent) et l'amplitude (plus gros)
+    // de l'onde de digestion. Copié vers chaque BoaTailPart.
+    private float digestionPower = 1.0f;
+
     private float smoothedYRot = Float.NaN;
     public final float[] ringBuffer = new float[64];
     public int ringBufferIndex = -1;
@@ -77,6 +90,19 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT =
             SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+
+    // ── Attaque secondaire : Crochets Venimeux (toggle) ──────────────────────
+    // VENOM_ARMED        : toggle armé (clic droit) ; consommé au prochain coup de combo touchant.
+    // VENOM_COOLDOWN_TICKS : ticks de cooldown restants après une injection (1 min 30). 0 = prêt.
+    private static final EntityDataAccessor<Boolean> VENOM_ARMED =
+            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> VENOM_COOLDOWN_TICKS =
+            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+
+    // ── Passif : Embuscade Silencieuse ───────────────────────────────────────
+    // Vrai quand au moins une menace est détectée à proximité : le Boa devient muet.
+    private static final EntityDataAccessor<Boolean> SILENT_AMBUSH =
+            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.BOOLEAN);
 
     public BoaEntity(EntityType<? extends BoaEntity> type, Level world,
                      float averageScale, int maxSleepBar, int foodWanted) {
@@ -126,6 +152,122 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(CHILD_UUID, java.util.Optional.empty());
         builder.define(CHILD_ID, -1);
+        builder.define(VENOM_ARMED, false);
+        builder.define(VENOM_COOLDOWN_TICKS, 0);
+        builder.define(SILENT_AMBUSH, false);
+    }
+
+    // ── Crochets Venimeux : état & API ───────────────────────────────────────
+
+    public boolean isVenomArmed() {
+        return this.entityData.get(VENOM_ARMED);
+    }
+
+    public void setVenomArmed(boolean armed) {
+        this.entityData.set(VENOM_ARMED, armed);
+    }
+
+    public int getVenomCooldownTicks() {
+        return this.entityData.get(VENOM_COOLDOWN_TICKS);
+    }
+
+    public void setVenomCooldownTicks(int ticks) {
+        this.entityData.set(VENOM_COOLDOWN_TICKS, ticks);
+    }
+
+    /**
+     * Toggle de l'attaque secondaire (appelé côté serveur via OWAttackPacket).
+     * Désarme si déjà armé ; sinon l'arme, sauf si un cooldown est en cours.
+     */
+    public void toggleVenomFangs() {
+        if (this.level().isClientSide()) return;
+        if (isVenomArmed()) {
+            setVenomArmed(false);
+        } else if (getVenomCooldownTicks() <= 0) {
+            setVenomArmed(true);
+        }
+    }
+
+    /**
+     * Injecte VENOM I (durée aléatoire 30–60 s) à la cible, désarme le toggle
+     * et démarre le cooldown de 1 min 30. Serveur uniquement.
+     */
+    private void applyVenomFangs(LivingEntity target) {
+        int duration = (int) OWUtils.generateRandomInterval(
+                OWAttacksConstants.Boa.VENOM_FANGS_MIN_DURATION_TICKS,
+                OWAttacksConstants.Boa.VENOM_FANGS_MAX_DURATION_TICKS);
+        target.addEffect(new MobEffectInstance(OWEffects.VENOM_EFFECT.getDelegate(), duration, 0));
+        setVenomArmed(false);
+        setVenomCooldownTicks(OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.0f, 1.35f);
+    }
+
+    // ── Passif : Embuscade Silencieuse ───────────────────────────────────────
+
+    public boolean isInSilentAmbush() {
+        return this.entityData.get(SILENT_AMBUSH);
+    }
+
+    private void setSilentAmbush(boolean active) {
+        if (this.entityData.get(SILENT_AMBUSH) != active) this.entityData.set(SILENT_AMBUSH, active);
+    }
+
+    /**
+     * Scanne périodiquement les alentours (serveur). Si au moins une menace est détectée,
+     * le Boa apprivoisé passe en mode embuscade (muet). Réservé au Boa apprivoisé.
+     */
+    private void updateSilentAmbush() {
+        if (!this.isTame()) {
+            setSilentAmbush(false);
+            return;
+        }
+        if (this.tickCount % OWAttacksConstants.Boa.SILENT_AMBUSH_CHECK_INTERVAL != 0) return;
+
+        AABB box = this.getBoundingBox().inflate(OWAttacksConstants.Boa.SILENT_AMBUSH_RADIUS);
+        boolean threat = !this.level().getEntitiesOfClass(LivingEntity.class, box, this::isAmbushThreat).isEmpty();
+        setSilentAmbush(threat);
+    }
+
+    /**
+     * Une entité est une "menace" pour l'embuscade si :
+     *   • c'est un joueur hors de la tribu (et non le propriétaire) ;
+     *   • c'est une créature apprivoisée appartenant à une autre tribu ;
+     *   • c'est un mob non apprivoisé hostile ou neutre (les passifs comme les vaches sont ignorés).
+     */
+    private boolean isAmbushThreat(LivingEntity le) {
+        if (le == this || le instanceof BoaTailPart) return false;
+        if (!le.isAlive()) return false;
+        if (this.isAlliedTo(le)) return false;
+
+        if (le instanceof Player player) {
+            if (player.isSpectator() || player.isCreative()) return false;
+            if (player.getUUID().equals(this.getOwnerUUID())) return false;
+            return !isInMyTribe(player.getUUID());
+        }
+
+        if (le instanceof TamableAnimal tamable && tamable.isTame()) {
+            java.util.UUID owner = tamable.getOwnerUUID();
+            if (owner == null) return true;
+            if (owner.equals(this.getOwnerUUID())) return false;
+            return !isInMyTribe(owner);
+        }
+
+        // Mob non apprivoisé : uniquement hostile (Enemy) ou neutre (NeutralMob).
+        return le instanceof Enemy || le instanceof NeutralMob;
+    }
+
+    /** Vrai si le joueur fait partie de la tribu du Boa (propriétaire de tribu ou membre). */
+    private boolean isInMyTribe(java.util.UUID playerUuid) {
+        if (playerUuid == null || this.currentTeam == null) return false;
+        if (playerUuid.equals(this.currentTeam.getTeamOwnerUUID())) return true;
+        java.util.UUID[] members = this.currentTeam.getTeamPlayersMembers();
+        if (members != null) {
+            for (java.util.UUID u : members) {
+                if (playerUuid.equals(u)) return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -292,6 +434,13 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         prevChainZ = this.getZ();
 
         if (!this.level().isClientSide()) {
+            // Cooldown des Crochets Venimeux
+            int venomCd = getVenomCooldownTicks();
+            if (venomCd > 0) setVenomCooldownTicks(venomCd - 1);
+
+            // Passif : Embuscade Silencieuse
+            updateSilentAmbush();
+
             final int segments = 7;
             final Entity child = getChild();
             if (child == null) {
@@ -555,8 +704,37 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         return super.isAlliedTo(entity);
     }
 
+    // ── Digestion : onde qui parcourt la queue après une mise à mort ─────────
+
+    /** Tick de jeu du début de la digestion (-1 = aucune). Lu par les BoaTailPart pour l'anim. */
+    public long getDigestionStartTick() {
+        return this.digestionStartTick;
+    }
+
+    /** Puissance de la proie digérée (= ses PV max). Règle vitesse et amplitude de l'onde. */
+    public float getDigestionPower() {
+        return this.digestionPower;
+    }
+
+    /** Relance l'onde de digestion depuis la tête, calibrée sur la puissance de la proie. */
+    private void triggerDigestion(float preyMaxHealth) {
+        this.digestionStartTick = this.level().getGameTime();
+        this.digestionPower = preyMaxHealth;
+    }
+
+    @Override
+    public boolean killedEntity(ServerLevel level, LivingEntity target) {
+        triggerDigestion(target.getMaxHealth());
+        return super.killedEntity(level, target);
+    }
+
     @Override
     protected void onSuccessfulHit(LivingEntity entity) {
+        // Boa apprivoisé monté : si les Crochets Venimeux sont armés, ce coup de combo injecte le venin.
+        if (this.isTame() && this.isVehicle() && this.isVenomArmed()) {
+            applyVenomFangs(entity);
+            return;
+        }
         if (RANDOM(10)) {
             if (!entity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()) && !this.isVehicle()) {
                 entity.addEffect(new MobEffectInstance(OWEffects.VENOM_EFFECT.getDelegate(), (int) OWUtils.generateRandomInterval(6500, 9000), 0));
@@ -620,7 +798,16 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     @Override
     protected SoundEvent getAmbientSound() {
+        // Embuscade Silencieuse : plus aucun son d'idle quand une menace est détectée.
+        if (isInSilentAmbush()) return null;
         return OWSounds.BOA_IDLE_1.get();
+    }
+
+    @Override
+    protected void playStepSound(BlockPos blockPos, BlockState blockState) {
+        // Embuscade Silencieuse : plus aucun bruit de déplacement quand une menace est détectée.
+        if (isInSilentAmbush()) return;
+        super.playStepSound(blockPos, blockState);
     }
 
     @Override

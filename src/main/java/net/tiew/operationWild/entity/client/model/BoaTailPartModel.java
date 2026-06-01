@@ -41,6 +41,24 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
     private static final float TAIL_Y  = 20.0f;
     private static final float TAIL3_Y = 21.0f;
 
+    // --- Animation de digestion (renflement parcourant la queue) ---
+    private static final int   DIGEST_SEGMENTS    = 7;    // nb de segments (bodyIndex 0..6)
+    private static final float DIGEST_BULGE_WIDTH = 1.1f; // largeur du renflement (en segments)
+    // Atténuation par segment : le renflement perd 10 % à chaque segment plus loin
+    // (segment 0 = 100 %, 1 = 90 %, 2 = 81 %, …), comme si la proie se réduisait.
+    private static final float DIGEST_FALLOFF_PER_SEGMENT = 0.9f;
+
+    // Calibrage selon les PV max de la proie (interpolation linéaire entre deux points) :
+    //   1 PV  → circonférence ×1,5 sur 20 s
+    //   50 PV → circonférence ×2,0 sur 40 s
+    // Plus la proie est puissante (PV max), plus l'onde est lente ET ample.
+    private static final float DIGEST_HP_MIN         = 1.0f;
+    private static final float DIGEST_HP_MAX         = 50.0f;
+    private static final float DIGEST_FACTOR_AT_MIN  = 1.5f;
+    private static final float DIGEST_FACTOR_AT_MAX  = 2.0f;
+    private static final float DIGEST_SECONDS_AT_MIN = 20.0f;
+    private static final float DIGEST_SECONDS_AT_MAX = 40.0f;
+
     private final ModelPart segment;
 
     public BoaTailPartModel(ModelPart root) {
@@ -156,6 +174,52 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
         // de l'entite (calculee serveur), appliquee par le renderer (setupRotations).
         this.segment.resetPose();
         this.segment.visible = true;
+
+        applyDigestionBulge(entity, ageInTicks);
+    }
+
+    /**
+     * Renflement de digestion : une "bosse" (la proie avalée) parcourt la queue de la tête
+     * (segment 0) jusqu'au bout (segment 6). Chaque segment gonfle puis dégonfle au passage
+     * de l'onde. On ne touche qu'à la circonférence (xScale / yScale) ; la longueur (zScale)
+     * reste à 1 pour que les segments restent jointifs.
+     */
+    private void applyDigestionBulge(BoaTailPart entity, float ageInTicks) {
+        long start = entity.getDigestionStartTick();
+        if (start < 0) return;
+
+        // Temps écoulé en ticks (avec partialTick pour la fluidité).
+        float partialTick = Math.max(0f, Math.min(1f, ageInTicks - entity.tickCount));
+        double elapsed = (entity.level().getGameTime() - start) + partialTick;
+        if (elapsed < 0) return;
+
+        // Calibrage selon les PV max de la proie. Le facteur d'interpolation t est clampé
+        // sur [0, 1] → bornes MIN/MAX garanties sur l'amplitude ET la durée :
+        //   proie ≤ 1 PV   → t=0 → ×1,35 sur 5 s   (minimum)
+        //   proie ≥ 50 PV  → t=1 → ×1,70 sur 10 s  (maximum)
+        float t = (entity.getDigestionPower() - DIGEST_HP_MIN) / (DIGEST_HP_MAX - DIGEST_HP_MIN);
+        t = Math.max(0.0f, Math.min(1.0f, t));
+        float peakBulge      = (DIGEST_FACTOR_AT_MIN + (DIGEST_FACTOR_AT_MAX - DIGEST_FACTOR_AT_MIN) * t) - 1.0f;
+        double durationTicks = (DIGEST_SECONDS_AT_MIN + (DIGEST_SECONDS_AT_MAX - DIGEST_SECONDS_AT_MIN) * t) * 20.0;
+
+        // Progression de l'onde sur toute l'animation [0..1].
+        double p = elapsed / durationTicks;
+        if (p > 1.0) return; // onde terminée
+
+        // Atténuation : chaque segment plus loin perd 10 % de renflement (sur la part au-dessus
+        // de 1). Ex. au max : segment 0 → 1 + 0,7 = ×1,70 ; segment 1 → 1 + 0,7·0,9 = ×1,63 ; etc.
+        int   idx     = entity.getBodyIndex();
+        float falloff = (float) Math.pow(DIGEST_FALLOFF_PER_SEGMENT, idx);
+
+        // L'onde part juste avant la tête (segment 0) et sort juste après le bout (segment 6).
+        double wavePos = p * (DIGEST_SEGMENTS + 2.0 * DIGEST_BULGE_WIDTH) - DIGEST_BULGE_WIDTH;
+        double d = idx - wavePos;
+        float bulge = (float) (peakBulge * falloff * Math.exp(-(d * d) / (DIGEST_BULGE_WIDTH * DIGEST_BULGE_WIDTH)));
+        if (bulge <= 0.001f) return;
+
+        this.segment.xScale = 1.0f + bulge;
+        this.segment.yScale = 1.0f + bulge;
+        // zScale inchangé : pas de trou ni de chevauchement entre segments.
     }
 
     @Override

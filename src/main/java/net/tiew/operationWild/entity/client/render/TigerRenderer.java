@@ -68,10 +68,15 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
 
     @Override
     protected RenderType getRenderType(TigerEntity entity, boolean bodyVisible, boolean translucent, boolean glowing) {
+        // Uniquement pendant un fondu (camouflage / fantôme) on force le translucide.
         if (currentAlpha < 1f) {
             return RenderType.entityTranslucent(this.getTextureLocation(entity));
         }
-        return RenderType.entityTranslucent(this.getTextureLocation(entity));
+        // Sinon : rendu opaque standard (comme les autres entités). Un modèle de base
+        // translucide entrait en z-fighting avec le modèle d'overlay du skin (lui aussi
+        // translucide et coplanaire) ; en opaque, les faces transparentes de l'overlay
+        // ne rentrent plus en conflit avec la base.
+        return super.getRenderType(entity, bodyVisible, translucent, glowing);
     }
 
     @Override

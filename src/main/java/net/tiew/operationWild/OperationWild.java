@@ -193,7 +193,9 @@ public class OperationWild {
         }
         if (event.getEntity().hasEffect(OWEffects.VENOM_EFFECT.getDelegate())) {
             int venomLevel = Objects.requireNonNull(event.getEntity().getEffect(OWEffects.VENOM_EFFECT.getDelegate())).getAmplifier() + 1;
-            float venomDamage = 1.5F + ((float) venomLevel / 5);
+
+            float venomDamage = 1.0F + ((float) venomLevel / 5);
+
             Holder<Enchantment> slidingHolder = event.getEntity().level().registryAccess()
                     .registryOrThrow(Registries.ENCHANTMENT)
                     .getHolderOrThrow(OWEnchantments.VENOM_PROTECTION);

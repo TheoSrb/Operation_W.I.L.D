@@ -224,6 +224,26 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 	}
 
 	/**
+	 * Copie la pose résolue (translation + rotation + échelle) de chaque os depuis un autre
+	 * OrcaModel déjà animé (le modèle de base). Utilisé par les skins en mode OVERLAY pour
+	 * que le modèle d'overlay suive parfaitement la base sans désynchronisation ni z-fighting.
+	 */
+	public void copyPoseFrom(OrcaModel<?> src) {
+		this.ALL2.copyFrom(src.ALL2);
+		this.ALL.copyFrom(src.ALL);
+		this.body.copyFrom(src.body);
+		this.head.copyFrom(src.head);
+		this.mouth.copyFrom(src.mouth);
+		this.mouth_down.copyFrom(src.mouth_down);
+		this.mouth_up.copyFrom(src.mouth_up);
+		this.tail.copyFrom(src.tail);
+		this.front_tail.copyFrom(src.front_tail);
+		this.back_tail.copyFrom(src.back_tail);
+		this.left_fan.copyFrom(src.left_fan);
+		this.right_fan.copyFrom(src.right_fan);
+	}
+
+	/**
 	 * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.
 	 * Use this to fire one-shot events (sounds, particles) at precise moments of a walk cycle.
 	 *

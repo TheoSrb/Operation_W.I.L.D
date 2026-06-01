@@ -17,6 +17,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
@@ -530,6 +531,40 @@ public class OWAttackLogic {
         }
     }
 
+    /**
+     * Toggle client des Crochets Venimeux du Boa.
+     * Un clic l'arme, un autre la désarme. Bloqué pendant le cooldown ou si le joueur tient un objet utilisable.
+     * L'état réel (armé / cooldown) est synchronisé depuis l'entité ; on n'envoie qu'un packet de toggle.
+     */
+    private static void handleBoaVenomToggle(OWAttack attack, BoaEntity boa, Player player) {
+        if (boa.isVenomArmed()) {
+            // Désarmement : toujours autorisé
+            PacketDistributor.sendToServer(
+                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+            recordAttackClick(attack.getId(), false);
+            return;
+        }
+
+        // Armement : refusé pendant le cooldown, si pas assez d'énergie, ou si un objet utilisable est tenu
+        if (boa.getVenomCooldownTicks() > 0) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        if (playerHoldsUsableItem(player)) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        if (boa.getVitalEnergy() > boa.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+            boa.canShowVitalEnergyLack = true;
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        PacketDistributor.sendToServer(
+                new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+        recordAttackClick(attack.getId(), false);
+    }
+
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         if (event.getAction() != GLFW.GLFW_PRESS) return;
@@ -653,6 +688,17 @@ public class OWAttackLogic {
         if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping) {
             event.setCanceled(true);
             return;
+        }
+
+        // Boa — Crochets Venimeux : attaque secondaire instantanée en toggle sur le clic droit.
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
+                && event.getAction() == GLFW.GLFW_PRESS
+                && owEntity instanceof BoaEntity boa) {
+            OWAttack venom = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getButton());
+            if (venom != null) {
+                handleBoaVenomToggle(venom, boa, mc.player);
+                return;
+            }
         }
 
         OWChargedAttack attack = OWAttacksHandler.findChargedAttack(owEntity.getClass(), event.getButton());

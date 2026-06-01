@@ -12,6 +12,7 @@ import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
@@ -34,6 +35,7 @@ public class OWAttacksHandler {
     private static final Map<Class<? extends OWEntity>, List<OWAttack>> ENTITY_ATTACKS = new HashMap<>();
     private static final Map<Class<? extends OWEntity>, OWPassive> ENTITY_PASSIVES = new HashMap<>();
     private static final Map<Class<? extends OWEntity>, Integer> ENTITY_TEXTURE_ROWS = new HashMap<>();
+    private static final Map<Class<? extends OWEntity>, Integer> ENTITY_TEXTURE_COLUMNS = new HashMap<>();
     private static final Map<Class<? extends OWEntity>, Integer> ENTITY_COMBO_MAX_TIMERS = new HashMap<>();
 
 
@@ -45,6 +47,7 @@ public class OWAttacksHandler {
     public static final int NAP_ULTIMATE_ID = 6;
     public static final int TIDAL_RUSH_ID = 7;
     public static final int ORCA_CALL_ID = 8;
+    public static final int VENOM_FANGS_ID = 9;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -54,6 +57,14 @@ public class OWAttacksHandler {
 
     public static void registerEntityRow(Class<? extends OWEntity> entityClass, int row) {
         ENTITY_TEXTURE_ROWS.put(entityClass, row);
+    }
+
+    /**
+     * Décalage horizontal (en nombre de cartes) de la première carte de l'entité dans la texture.
+     * 0 = combo en colonne 0 (cas par défaut). Pour le Boa : 3 → combo en colonne 60px.
+     */
+    public static void registerEntityColumn(Class<? extends OWEntity> entityClass, int column) {
+        ENTITY_TEXTURE_COLUMNS.put(entityClass, column);
     }
 
     public static void registerComboMaxTimer(Class<? extends OWEntity> entityClass, int timeMax) {
@@ -91,6 +102,13 @@ public class OWAttacksHandler {
         registerComboMaxTimer(OrcaEntity.class, 24);
         register(OrcaEntity.class, OrcaAttacks.TIDAL_RUSH);
         register(OrcaEntity.class, OrcaAttacks.ORCA_CALL);
+
+        // Boa : cartes dessinées en colonnes 60/80/100 de la ligne Y=120 → offset de 3 cartes.
+        // Combo identique au Tigre (createCombo(16, 10, …)) → même comboMaxTimer d'affichage : 12.
+        registerEntityRow(BoaEntity.class, 3);
+        registerEntityColumn(BoaEntity.class, 3);
+        registerComboMaxTimer(BoaEntity.class, 12);
+        register(BoaEntity.class, BoaAttacks.VENOM_FANGS);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -99,6 +117,10 @@ public class OWAttacksHandler {
 
     public static int getEntityRow(Class<?> entityClass) {
         return ENTITY_TEXTURE_ROWS.getOrDefault(entityClass, 0);
+    }
+
+    public static int getEntityColumn(Class<?> entityClass) {
+        return ENTITY_TEXTURE_COLUMNS.getOrDefault(entityClass, 0);
     }
 
     public static int getComboMaxTimer(Class<?> entityClass) {
@@ -280,6 +302,24 @@ public class OWAttacksHandler {
                         ? (float) orca.getOrcaUltimateKillCount() / OWAttacksConstants.Orca.ORCA_CALL_KILLS_REQUIRED
                         : 0f
         ).withUltimateDuration(OWAttacksConstants.Orca.ORCA_CALL_DURATION_MS);
+    }
+
+    public static class BoaAttacks {
+
+        /**
+         * Crochets Venimeux — attaque secondaire en toggle (clic droit / OW_ATTACK_0).
+         * Un clic l'arme (carte qui respire), un autre la désarme. Le prochain coup de combo
+         * qui touche injecte VENOM I (30–60 s) puis déclenche un cooldown de 1 min 30.
+         * Toute la machine d'état (armé / cooldown) vit sur l'entité via des données synchronisées,
+         * donc le cooldownTicks de l'OWAttack reste à 0 (pas géré par la map client d'OWAttackLogic).
+         */
+        public static final OWAttack VENOM_FANGS = new OWAttack(
+                VENOM_FANGS_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Boa.VENOM_FANGS_ENERGY,
+                entity -> ((BoaEntity) entity).toggleVenomFangs(),
+                0
+        );
     }
 
     public static class CrocodilePassives {

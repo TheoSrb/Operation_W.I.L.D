@@ -443,6 +443,31 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 	}
 
 	/**
+	 * Copie la pose résolue (translation + rotation + échelle) de chaque os depuis un autre
+	 * CrocodileModel déjà animé (le modèle de base). Utilisé par les skins en mode OVERLAY pour
+	 * que le modèle d'overlay suive parfaitement la base sans désynchronisation ni z-fighting.
+	 */
+	public void copyPoseFrom(CrocodileModel<?> src) {
+		this.ALL2.copyFrom(src.ALL2);
+		this.ALL.copyFrom(src.ALL);
+		this.body.copyFrom(src.body);
+		this.neck.copyFrom(src.neck);
+		this.head.copyFrom(src.head);
+		this.right_eyeball.copyFrom(src.right_eyeball);
+		this.left_eyeball.copyFrom(src.left_eyeball);
+		this.mouth.copyFrom(src.mouth);
+		this.mouth_down.copyFrom(src.mouth_down);
+		this.mouth_up.copyFrom(src.mouth_up);
+		this.tail1.copyFrom(src.tail1);
+		this.tail2.copyFrom(src.tail2);
+		this.tail3.copyFrom(src.tail3);
+		this.left_arm.copyFrom(src.left_arm);
+		this.left_leg.copyFrom(src.left_leg);
+		this.right_leg.copyFrom(src.right_leg);
+		this.right_arm.copyFrom(src.right_arm);
+	}
+
+	/**
 	 * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.
 	 * Use this to fire one-shot events (sounds, particles) at precise moments of a walk cycle.
 	 *
