@@ -48,6 +48,7 @@ public class OWAttacksHandler {
     public static final int TIDAL_RUSH_ID = 7;
     public static final int ORCA_CALL_ID = 8;
     public static final int VENOM_FANGS_ID = 9;
+    public static final int CONSTRICT_ULTIMATE_ID = 10;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -109,6 +110,8 @@ public class OWAttacksHandler {
         registerEntityColumn(BoaEntity.class, 3);
         registerComboMaxTimer(BoaEntity.class, 12);
         register(BoaEntity.class, BoaAttacks.VENOM_FANGS);
+        register(BoaEntity.class, BoaAttacks.CONSTRICT_ULTIMATE);
+        registerPassive(BoaEntity.class, BoaPassives.ULTIMATE_TARGET_SENSE);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -320,6 +323,46 @@ public class OWAttacksHandler {
                 entity -> ((BoaEntity) entity).toggleVenomFangs(),
                 0
         );
+
+        /**
+         * Étreinte Fatale — ultime (touche X). 5 kills pour charger. 1er X : ciblage (point vert sur
+         * les entités grabables à ≤3 blocs) ; 2e X : la cible visée est enroulée et le rider descend.
+         */
+        public static final OWAttack CONSTRICT_ULTIMATE = new OWAttack(
+                CONSTRICT_ULTIMATE_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Boa.CONSTRICT_ULT_ENERGY,
+                entity -> ((BoaEntity) entity).activateConstrictUltimate(),
+                OWAttacksConstants.Boa.CONSTRICT_ULT_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof BoaEntity boa
+                        && boa.getUltimateKillCount() >= OWAttacksConstants.Boa.CONSTRICT_ULT_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof BoaEntity boa
+                        ? (float) boa.getUltimateKillCount() / OWAttacksConstants.Boa.CONSTRICT_ULT_KILLS_REQUIRED
+                        : 0f
+        ).withUltimateDuration(OWAttacksConstants.Boa.CONSTRICT_ULT_TARGETING_MS);
+    }
+
+    public static class BoaPassives {
+        /** Point vert sur les entités grabables à ≤3 blocs, uniquement pendant le ciblage de l'ultime. */
+        public static final OWPassive ULTIMATE_TARGET_SENSE = new OWPassive() {
+            @Override
+            public Set<Integer> getHighlightEntityIds(OWEntity entity, Level level) {
+                if (!OWAttackLogic.isBoaTargeting) return Set.of();
+                if (!(entity instanceof BoaEntity boa)) return Set.of();
+                double r = OWAttacksConstants.Boa.CONSTRICT_ULT_RANGE;
+                AABB box = boa.getBoundingBox().inflate(r);
+                return level.getEntitiesOfClass(LivingEntity.class, box,
+                                e -> boa.canConstrict(e) && boa.distanceToSqr(e) <= r * r)
+                        .stream().map(Entity::getId).collect(Collectors.toSet());
+            }
+
+            @Override
+            public int highlightColor() {
+                return 0x00FF55;
+            }
+        };
     }
 
     public static class CrocodilePassives {

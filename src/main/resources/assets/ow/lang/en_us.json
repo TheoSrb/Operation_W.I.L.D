@@ -650,10 +650,12 @@
 
   "ow.attacks.boa.combo.title": "Constriction",
   "ow.attacks.boa.venom.title": "Venom Fangs",
-  "ow.attacks.boa.silent_ambush.title": "Silent Ambush",
+  "ow.attacks.boa.thermal_vision.title": "Thermal Vision",
   "ow.attacks.boa.combo.desc": "Command your Boa to bite every %s seconds, dealing %s damage with each bite.",
   "ow.attacks.boa.venom.desc": "Toggle on to arm your Boa's fangs. The next combo bite that lands injects Venom I for %s to %s seconds, after which the ability recharges for %s seconds. Toggle off anytime to disarm.",
-  "ow.attacks.boa.silent_ambush.desc": "As soon as your Boa senses a threat within %s blocks — any wild neutral or hostile creature, or a tamed beast from a rival tribe — it falls completely silent, muting its idle and movement sounds to set up the ambush.",
+  "ow.attacks.boa.thermal_vision.desc": "While riding, you alone see the heart of nearby creatures below %s HP. Hit it precisely with a combo bite for 1.5x damage and bleeding.",
+  "ow.attacks.boa.ultimate.title": "Fatal Coil",
+  "ow.attacks.boa.ultimate.desc": "Charge with %s kills. Press X to mark grabbable creatures within %s blocks (green dot), press X again on the one you look at: you dismount and your Boa coils it like in the wild.",
 
 
   "rarity.legendary": "Legendary",

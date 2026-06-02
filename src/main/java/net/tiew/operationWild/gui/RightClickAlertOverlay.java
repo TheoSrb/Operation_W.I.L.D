@@ -17,6 +17,7 @@ import net.neoforged.neoforge.client.event.InputEvent;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import org.joml.Matrix4f;
 
@@ -39,7 +40,16 @@ public class RightClickAlertOverlay {
 
     public static void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight) {
         Player player = Minecraft.getInstance().player;
+        // Le ravisseur est le véhicule (crocodile/tigre) OU, pour le boa qui enroule sans monture,
+        // le boa trouvé par proximité.
         Entity vehicle = player != null ? player.getVehicle() : null;
+        if ((vehicle == null || !(vehicle instanceof OWEntity)) && player != null) {
+            vehicle = player.level()
+                    .getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
+                    .stream()
+                    .filter(b -> b.isGrabbing() && b.getGrabbedTargetId() == player.getId())
+                    .findFirst().orElse(null);
+        }
 
         if (vehicle == null) return;
 
@@ -158,6 +168,9 @@ public class RightClickAlertOverlay {
         } else if (entity instanceof TigerEntity tiger) {
             grabTimeout = tiger.getGrabTimeout();
             grabMaxTimeout = tiger.getGrabMaxTimeout();
+        } else if (entity instanceof BoaEntity boa) {
+            grabTimeout = boa.getGrabTimeout();
+            grabMaxTimeout = boa.getGrabMaxTimeout();
         } else {
             return;
         }

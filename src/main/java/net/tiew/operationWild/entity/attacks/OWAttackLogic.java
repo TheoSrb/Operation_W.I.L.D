@@ -98,6 +98,12 @@ public class OWAttackLogic {
     /** Start timestamp of the grab phase (phase 2), used to show the 10s drain on the card. */
     public static long    crocGrabActiveStartMs = -1L;
 
+    // ── Boa "Étreinte Fatale" targeting state ───────────────────────────────
+    public static boolean isBoaTargeting      = false;
+    public static int     boaTargetEntityId   = -1;
+    public static long    boaTargetingStartMs = -1L;
+    public static int     boaRidingEntityId   = -1;
+
     public static long deathRollCooldownEndMs = -1L;
 
     private static final long   CLICK_ANIM_DURATION_MS = 200L;
@@ -461,6 +467,58 @@ public class OWAttackLogic {
         recordAttackClick(attack.getId(), false);
     }
 
+    public static void cancelBoaTargeting(int attackId) {
+        isBoaTargeting      = false;
+        boaTargetEntityId   = -1;
+        boaTargetingStartMs = -1L;
+        boaRidingEntityId   = -1;
+    }
+
+    /** Ultime du Boa : 1er X arme le ciblage (point vert sur les grabables ≤3 blocs), 2e X valide la cible visée. */
+    private static void handleBoaConstrictUltimateKey(OWAttack attack, OWEntity owEntity) {
+        int eid = owEntity.getId();
+        if (!isBoaTargeting) {
+            long endMs = getCooldownEnd(eid, attack.getId());
+            if (endMs != -1L && System.currentTimeMillis() < endMs) { recordAttackClick(attack.getId(), true); return; }
+            if (!attack.isUnlocked(owEntity)) { recordAttackClick(attack.getId(), true); return; }
+            if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+                owEntity.canShowVitalEnergyLack = true;
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
+
+            isBoaTargeting      = true;
+            boaTargetingStartMs = System.currentTimeMillis();
+            boaTargetEntityId   = -1;
+            boaRidingEntityId   = eid;
+
+            setUltimateStart(eid, attack.getId(), System.currentTimeMillis());
+            PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+            recordAttackClick(attack.getId(), false);
+
+        } else {
+            long elapsed = System.currentTimeMillis() - boaTargetingStartMs;
+            if (elapsed >= OWAttacksConstants.Boa.CONSTRICT_ULT_TARGETING_MS) {
+                cancelBoaTargeting(attack.getId());
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
+            if (elapsed < 500L) { recordAttackClick(attack.getId(), true); return; }   // anti double-déclenchement
+            if (boaTargetEntityId == -1) { recordAttackClick(attack.getId(), true); return; }
+
+            ultimateWowEffectStartMs = System.currentTimeMillis();
+            removeUltimateStart(eid, attack.getId());
+            setCooldownEnd(eid, attack.getId(), System.currentTimeMillis() + (long) attack.getCooldownTicks() * 50L);
+
+            PacketDistributor.sendToServer(new OWAttackPacket(
+                    attack.getId(), OWAttackPacket.ACTION_EXECUTE_WITH_TARGET,
+                    Float.intBitsToFloat(boaTargetEntityId)));
+
+            cancelBoaTargeting(attack.getId());
+            recordAttackClick(attack.getId(), false);
+        }
+    }
+
     private static void handleCrocPrimalDiveKey(OWAttack attack, OWEntity owEntity) {
         int eid = owEntity.getId();
         if (!isCrocTargeting) {
@@ -592,7 +650,8 @@ public class OWAttackLogic {
             return;
         }
         if (isGrabBlocked
-                || (isCrocTargeting && attack.getId() != OWAttacksHandler.PRIMAL_DIVE_ID)) {
+                || (isCrocTargeting && attack.getId() != OWAttacksHandler.PRIMAL_DIVE_ID)
+                || (isBoaTargeting && attack.getId() != OWAttacksHandler.CONSTRICT_ULTIMATE_ID)) {
             recordAttackClick(attack.getId(), true);
             return;
         }
@@ -604,6 +663,11 @@ public class OWAttackLogic {
 
         if (attack.getId() == OWAttacksHandler.PRIMAL_DIVE_ID) {
             handleCrocPrimalDiveKey(attack, owEntity);
+            return;
+        }
+
+        if (attack.getId() == OWAttacksHandler.CONSTRICT_ULTIMATE_ID) {
+            handleBoaConstrictUltimateKey(attack, owEntity);
             return;
         }
 
@@ -670,7 +734,7 @@ public class OWAttackLogic {
                 event.setCanceled(true);
                 return;
             }
-            if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping) {
+            if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping || isBoaTargeting) {
                 recordComboClick(true);
                 event.setCanceled(true);
                 return;
@@ -685,7 +749,7 @@ public class OWAttackLogic {
             }
         }
 
-        if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping) {
+        if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping || isBoaTargeting) {
             event.setCanceled(true);
             return;
         }

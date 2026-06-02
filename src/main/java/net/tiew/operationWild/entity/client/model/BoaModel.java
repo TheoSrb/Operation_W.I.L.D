@@ -46,6 +46,7 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
     private final ModelPart mouth;
     private final ModelPart mouth_up;
     private final ModelPart mouth_down;
+    private final ModelPart tong;
     private final ModelPart body_0;
     private final ModelPart body_1;
     private final ModelPart body_2;
@@ -61,6 +62,7 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
         this.mouth = this.head.getChild("mouth");
         this.mouth_up = this.mouth.getChild("mouth_up");
         this.mouth_down = this.mouth.getChild("mouth_down");
+        this.tong = this.mouth_down.getChild("tong");
         this.body_0 = this.head.getChild("body_0");
         this.body_1 = this.body_0.getChild("body_1");
         this.body_2 = this.body_1.getChild("body_2");
@@ -74,12 +76,7 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
 
-        // CORRECTIF JONCTION : le cumul d'offsets Z (ALL2 + ALL + head) placait la
-        // tete ~47px DEVANT la hitbox. Visible depuis que body_0..6 sont des entites
-        // separees (queue) et ne "tirent" plus le modele vers l'arriere. On ramene
-        // ALL2.z pour recaler la tete sur sa hitbox. Ajuste cette seule valeur si
-        // besoin : augmente pour avancer la tete, diminue pour la reculer.
-        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 20.0F, 102.5F));
+        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 20.0F, 102.5f));
 
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, -49.0F));
 
@@ -105,6 +102,8 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
         PartDefinition mouth_down = mouth.addOrReplaceChild("mouth_down", CubeListBuilder.create().texOffs(0, 69).addBox(-3.5F, 0.0F, -10.0F, 7.0F, 3.0F, 10.0F, new CubeDeformation(0.001F))
                 .texOffs(0, 4).addBox(-3.5F, -1.0F, 0.0F, 7.0F, 1.0F, 0.0F, new CubeDeformation(0.001F))
                 .texOffs(68, 87).addBox(-3.5F, -1.0F, -10.0F, 7.0F, 1.0F, 10.0F, new CubeDeformation(0.001F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+
+        PartDefinition tong = mouth_down.addOrReplaceChild("tong", CubeListBuilder.create().texOffs(-10, 23).addBox(-3.5F, -0.025F, -10.0F, 7.0F, 0.0F, 10.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
         PartDefinition body_0 = head.addOrReplaceChild("body_0", CubeListBuilder.create().texOffs(48, 0).addBox(-3.5F, -3.0F, -1.0F, 7.0F, 6.0F, 16.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 1.0F));
 

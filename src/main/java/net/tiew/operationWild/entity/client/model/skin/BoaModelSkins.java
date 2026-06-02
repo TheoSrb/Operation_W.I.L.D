@@ -6,23 +6,6 @@ import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
 
-/**
- * Modeles de remplacement (REPLACEMENT) pour les skins du Boa, sur le meme principe
- * que {@link TigerModelSkins} cote tigre : une classe dediee qui declare les
- * ModelLayerLocation et les LayerDefinition des skins qui remplacent totalement le
- * modele de base.
- *
- * Les skins Leviathan et Plush partagent EXACTEMENT la meme geometrie (celle fournie
- * par le bbmodel d'origine) ; seules leurs textures changent. On expose donc une seule
- * methode {@link #createSkinReplacement()} et deux layers distincts (un par skin) pour
- * que chaque skin bake sa propre instance, comme attendu par REPLACEMENT.
- *
- * NOTE GEOMETRIE : la geometrie est identique a {@link net.tiew.operationWild.entity.client.model.BoaModel}
- * (memes noms de parts ALL2/ALL/head/.../body_6, requis par le constructeur de BoaModel).
- * L'offset Z de ALL2 reprend la valeur corrigee de BoaModel (102.5 au lieu du 50 brut
- * du bbmodel) pour recaler la tete sur sa hitbox en jeu — cf. le commentaire CORRECTIF
- * JONCTION dans BoaModel.createBodyLayer().
- */
 public class BoaModelSkins {
 
     public static final ModelLayerLocation LAYER_LEVIATHAN = layer("boa_leviathan");
@@ -37,7 +20,7 @@ public class BoaModelSkins {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
 
-        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 20.0F, 102.5F));
+        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 20.0F, 102.5f));
 
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, -49.0F));
 
@@ -63,6 +46,8 @@ public class BoaModelSkins {
         PartDefinition mouth_down = mouth.addOrReplaceChild("mouth_down", CubeListBuilder.create().texOffs(0, 69).addBox(-3.5F, 0.0F, -10.0F, 7.0F, 3.0F, 10.0F, new CubeDeformation(0.001F))
                 .texOffs(0, 4).addBox(-3.5F, -1.0F, 0.0F, 7.0F, 1.0F, 0.0F, new CubeDeformation(0.001F))
                 .texOffs(68, 87).addBox(-3.5F, -1.0F, -10.0F, 7.0F, 1.0F, 10.0F, new CubeDeformation(0.001F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+
+        PartDefinition tong = mouth_down.addOrReplaceChild("tong", CubeListBuilder.create().texOffs(-10, 23).addBox(-3.5F, -0.025F, -10.0F, 7.0F, 0.0F, 10.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
         PartDefinition body_0 = head.addOrReplaceChild("body_0", CubeListBuilder.create().texOffs(48, 0).addBox(-3.5F, -3.0F, -1.0F, 7.0F, 6.0F, 16.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 1.0F));
 

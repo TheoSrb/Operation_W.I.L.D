@@ -12,8 +12,12 @@ public class VenomEffect extends MobEffect {
     }
 
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        if (entity.getHealth() > 1.0f) {
-            entity.hurt(entity.damageSources().magic(), 1.0F);
+        float hp = entity.getHealth();
+        if (hp > 1.0f) {
+            // On borne les dégâts pour ne JAMAIS descendre sous 1 PV (comme le poison vanilla) →
+            // l'effet Venin ne peut pas tuer.
+            float dmg = Math.min(1.0F, hp - 1.0F);
+            entity.hurt(entity.damageSources().magic(), dmg);
         }
         return true;
     }

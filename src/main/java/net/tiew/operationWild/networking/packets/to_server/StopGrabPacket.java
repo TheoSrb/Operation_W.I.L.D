@@ -9,6 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 
 public record StopGrabPacket() implements CustomPacketPayload {
@@ -40,6 +41,16 @@ public record StopGrabPacket() implements CustomPacketPayload {
                         tiger.setTarget(null);
                     }
                 }
+
+                // Boa : le joueur enroulé n'est pas un passager → recherche de proximité.
+                player.level().getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
+                        .stream()
+                        .filter(b -> b.isGrabbing() && b.getGrabbedTarget() == player)
+                        .findFirst()
+                        .ifPresent(boa -> {
+                            boa.stopConstrict();
+                            boa.setTarget(null);
+                        });
             }
         });
     }

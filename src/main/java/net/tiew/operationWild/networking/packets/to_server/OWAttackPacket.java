@@ -104,6 +104,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)
                                 orca.activateOrcaCall();
                         }
+                        case 10 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)
+                                boa.activateConstrictUltimate();
+                        }
                     }
                 }
 
@@ -113,6 +117,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                             if (entity instanceof CrocodileEntity croc) {
                                 int targetId = Float.floatToRawIntBits(packet.value());
                                 croc.executePrimalDive(targetId);
+                            }
+                        }
+                        case 10 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa) {
+                                int targetId = Float.floatToRawIntBits(packet.value());
+                                boa.executeConstrictUltimate(targetId);
                             }
                         }
                     }

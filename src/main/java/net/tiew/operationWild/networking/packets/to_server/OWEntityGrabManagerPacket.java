@@ -9,6 +9,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.sound.OWSounds;
 
@@ -43,6 +44,14 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
                     .filter(c -> c.getGrabbedTarget() == player)
                     .findFirst()
                     .ifPresent(croc -> croc.setGrabTimeout(croc.getGrabTimeout() - 15));
+
+            // Boa : le joueur enroulé ne monte pas le boa → recherche de proximité comme le crocodile.
+            player.level().getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
+                    .stream()
+                    .filter(b -> b.isGrabbing() && b.getGrabbedTarget() == player)
+                    .findFirst()
+                    .ifPresent(boa -> boa.setGrabTimeout(
+                            boa.getGrabTimeout() - net.tiew.operationWild.entity.attacks.OWAttacksConstants.Boa.CONSTRICT_STRUGGLE_REDUCTION));
 
             LivingEntity vehicle = (LivingEntity) player.getVehicle();
             if (vehicle instanceof TigerEntity tiger && tiger.getGrabbedTarget() != null && tiger.getGrabbedTarget() == player) {

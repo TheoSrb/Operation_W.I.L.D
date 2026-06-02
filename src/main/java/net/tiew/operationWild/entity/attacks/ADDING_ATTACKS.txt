@@ -11,6 +11,8 @@ IDs d'attaque déjà pris :
   6 → Kodiak NAP_ULTIMATE   (ultime — touche X, 5 kills requis)
   7 → Orca   TIDAL_RUSH   (bond propulsif — clic droit instantané, 20 s de cooldown)
   8 → Orca   ORCA_CALL      (ultime — touche X, 5 kills requis)
+  9 → Boa    VENOM_FANGS    (toggle clic droit — Crochets Venimeux)
+ 10 → Boa    CONSTRICT_ULTIMATE (ultime — touche X, 5 kills, ciblage double-X point vert)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR

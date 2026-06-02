@@ -52,15 +52,39 @@ public class OWAttacksConstants {
     }
 
     public static class Boa {
-        // Toggle "Crochets Venimeux" : armé d'un clic droit, consommé au prochain coup de combo.
-        public static final int   VENOM_FANGS_MIN_DURATION_TICKS = 600;   // 30 s
-        public static final int   VENOM_FANGS_MAX_DURATION_TICKS = 1200;  // 60 s
-        public static final int   VENOM_FANGS_COOLDOWN_TICKS      = 1800;  // 1 min 30 s
-        public static final float VENOM_FANGS_ENERGY              = 0f;    // pas de coût d'énergie : équilibré par le cooldown
+        public static final int VENOM_FANGS_MIN_DURATION_TICKS = 600;
+        public static final int VENOM_FANGS_MAX_DURATION_TICKS = 1200;
+        public static final int VENOM_FANGS_COOLDOWN_TICKS = 1800;
+        public static final float VENOM_FANGS_ENERGY = 0f;
 
-        // Passif "Embuscade Silencieuse" : le Boa apprivoisé devient muet (idle + pas)
-        // tant qu'au moins une menace est détectée dans ce rayon.
-        public static final double SILENT_AMBUSH_RADIUS         = 16.0;
-        public static final int    SILENT_AMBUSH_CHECK_INTERVAL = 10;     // ticks entre deux scans (0,5 s)
+        public static final float  THERMAL_MAX_HP       = 150f;
+        public static final double THERMAL_RANGE        = 24.0;
+        public static final double THERMAL_ENGAGE_RANGE = 5.0;
+        public static final double THERMAL_AIM_RADIUS   = 0.25;
+        public static final float  THERMAL_REF_SIZE      = 1.5f;
+        public static final float  THERMAL_SCALE_MIN     = 0.6f;
+        public static final float  THERMAL_SCALE_MAX     = 1.75f;
+        public static final float  THERMAL_HEART_MULT   = 1.5f;
+
+        public static final int CONSTRICT_DURATION_TICKS = 200;
+        public static final int CONSTRICT_COOLDOWN_TICKS = 400;
+        public static final double CONSTRICT_ENGAGE_RANGE = 3.0;
+        public static final float CONSTRICT_MAX_TARGET_WIDTH = 3f;
+        public static final float CONSTRICT_MAX_TARGET_HEIGHT = 3f;
+        public static final int CONSTRICT_DAMAGE_INTERVAL = 15;
+        public static final float CONSTRICT_BASE_DAMAGE = 0.5f;
+        public static final float CONSTRICT_MAX_DAMAGE = 3.0f;
+        public static final double CONSTRICT_MOVE_SPEED = 0.2;
+        public static final int CONSTRICT_APPROACH_TICKS = 20;
+        public static final double CONSTRICT_HEAD_RAISE_RATIO = 0.5;
+        public static final int CONSTRICT_GRAB_MAX_TIMEOUT = 160;
+        public static final int CONSTRICT_GRAB_START_TIMEOUT = 60;
+        public static final int CONSTRICT_STRUGGLE_REDUCTION = 12;
+
+        public static final int    CONSTRICT_ULT_KILLS_REQUIRED = 5;
+        public static final int    CONSTRICT_ULT_COOLDOWN_TICKS = 1200;
+        public static final long   CONSTRICT_ULT_TARGETING_MS   = 10_000L;
+        public static final double CONSTRICT_ULT_RANGE          = 5.0;
+        public static final float  CONSTRICT_ULT_ENERGY         = 100f;
     }
 }

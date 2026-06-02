@@ -239,15 +239,17 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(-1, -1, "X",
-                        title("ow.attacks.locked.title"),
-                        e -> desc("ow.attacks.locked.desc")
+                new AttackSlot(100, 120, "X",
+                        title("ow.attacks.boa.ultimate.title"),
+                        e -> desc("ow.attacks.boa.ultimate.desc",
+                                val(OWAttacksConstants.Boa.CONSTRICT_ULT_KILLS_REQUIRED),
+                                val((int) OWAttacksConstants.Boa.CONSTRICT_ULT_RANGE))
                 ),
 
                 new AttackSlot(-1, -1, "",
-                        title("ow.attacks.boa.silent_ambush.title"),
-                        e -> desc("ow.attacks.boa.silent_ambush.desc",
-                                val((int) OWAttacksConstants.Boa.SILENT_AMBUSH_RADIUS))
+                        title("ow.attacks.boa.thermal_vision.title"),
+                        e -> desc("ow.attacks.boa.thermal_vision.desc",
+                                val((int) OWAttacksConstants.Boa.THERMAL_MAX_HP))
                 )
 
         ));

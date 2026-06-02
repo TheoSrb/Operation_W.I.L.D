@@ -125,8 +125,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public int attackTimer;
     public int comboTimer;
     private int runTime;
-    // Position sampled each tick to detect actual displacement (robust vs getDeltaMovement() which
-    // reflects intended velocity before collision, not real movement).
     private double prevTickX, prevTickZ;
     public int chance = random.nextInt(100);
     private int fightingTime = 200;
@@ -659,6 +657,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void setFighting(boolean isInFight) {
         if (isBaby()) isInFight = false;
+        if (isInFight) this.fightingTime = 200;   // chaque déclenchement de combat rafraîchit le timer
         this.entityData.set(IS_IN_FIGHT, isInFight);
     }
 
@@ -1201,6 +1200,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (!this.onGround() && !this.isInWater()) return this.getSpeed();
 
         if (isCombo()) {
+            if (this instanceof BoaEntity && this.isTame() && player.zza == 0) return 0.0f;
             if (this instanceof KodiakEntity kodiak) {
                 if (kodiak.getComboAttack() == 3) {
                     return (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 4);
@@ -1217,9 +1217,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (isRunning()) {
             if (canIncreasesSpeedDuringSprint()) {
                 return ((this.getSpeed() / 3) * ((this.vehicleRunSpeedMultiplier() * (0.5f + ((float) (Math.min(100, getAcceleration())) / 100))) / 2) * 1.75f);
-            }
-            if (MARAUDER_ENTITIES.contains(this.getClass()) && this.isInFight()) {
-                targetSpeed = (this.getSpeed() / 3) * (vehicleRunSpeedMultiplier() * 1.75f) * 1.15f;
             }
             targetSpeed = this.getSpeed() * (vehicleRunSpeedMultiplier() / 1.75f);
         } else {
@@ -1280,22 +1277,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    /**
-     * Sur le SERVEUR, quand un passager contrôle l'entité, on retourne false pour
-     * empêcher le serveur d'appeler travel() de son côté.
-     *
-     * Comportement vanilla LivingEntity (super) :
-     *   - Passager LocalPlayer  → true  (client du rider)
-     *   - Sinon                 → isEffectiveAi() → TRUE côté serveur pour tout mob vivant
-     *
-     * Problème : le serveur et le client appellent tous les deux travel() avec des
-     * données légèrement différentes → positions divergentes → "moved wrongly" en boucle.
-     *
-     * Fix (même pattern que AbstractHorse vanilla) :
-     *   - Passager présent + côté serveur → false  (le client fait autorité)
-     *   - Passager présent + côté client  → super  (LocalPlayer check)
-     *   - Pas de passager                 → super  (IA serveur normale)
-     */
     @Override
     public boolean isControlledByLocalInstance() {
         if (this.getFirstPassenger() instanceof Player && !this.level().isClientSide()) {
@@ -1746,7 +1727,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (!hasCamouflage && !isBaby()) {
-            setFighting(!ownerIsRiding() && target != null);
+            // Monté : NE PAS forcer l'état de combat ici (sinon ça écrase le setFighting(true) des
+            // attaques avant que le timer fightingTime n'agisse → le boost « marauder » ne s'active jamais).
+            // Quand on est monté, le combat est piloté par les attaques + le timer (cf. tick).
+            if (!ownerIsRiding()) {
+                setFighting(target != null);
+            }
         }
 
         if (this.isTame() && this.getCurrentMode() == Mode.Passive) {
@@ -1941,7 +1927,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     List<Integer> keys = new ArrayList<>(babyQuests.keySet());
                     List<String> values = new ArrayList<>(babyQuests.values());
 
-                    choosenQuest = /*keys.get(random.nextInt(keys.size()))*/ 0;
+                    choosenQuest = 0;
                     choosenQuestStr = values.get(choosenQuest);
                     if (choosenQuest == 0) {
 
@@ -2551,18 +2537,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public Vec2 getRiddenRotation(LivingEntity livingEntity) { return new Vec2(livingEntity.getXRot() * 0.5F, livingEntity.getYRot());}
 
-    /**
-     * Quand l'entité est chevauchée, stepHeight = 1.0 (identique aux chevaux vanilla).
-     *
-     * Sans ça : l'entité ne peut pas franchir un mur d'1 bloc automatiquement
-     * (maxUpStep vanilla = 0.6).  Le rider doit sauter, ce qui crée une position
-     * "mi-hauteur contre la face du bloc".  Le serveur fait absMoveTo() sur cette
-     * position puis lance noCollision(BB.inflate(-0.0625)) → collision détectée →
-     * entité téléportée en arrière en boucle ("moved wrongly").
-     *
-     * Avec stepHeight = 1.0 : le move() client résout le step en 1 tick (sol → dessus
-     * du bloc) sans position intermédiaire invalide.  La vitesse est inchangée.
-     */
     @Override
     public float maxUpStep() {
         return this.getFirstPassenger() instanceof Player ? 1.0f : super.maxUpStep();
@@ -2576,13 +2550,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         function.accept(passenger, this.getX(), riderY, this.getZ());
     }
 
-    // Static Y offset (world units) from entity feet when body is at its rest pose.
-    // Override per entity to match the saddle/body position in Blockbench.
     protected double getBaseRiderYOffset() {
         return this.getBbHeight() * 0.75;
     }
 
-    // Dynamic Y offset (world units) from animation; set client-side in setupAnim.
     protected float getRiderAnimYOffset() {
         return 0f;
     }
@@ -2593,7 +2564,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         Entity entityRiding = this.getFirstPassenger();
         if (entityRiding != null && entityRiding instanceof LivingEntity living && living.zza == 0) {
-            //return null;
         }
         if (entityRiding instanceof Mob) {
             return (Mob)entityRiding;
@@ -2823,34 +2793,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void addTamingExperience(double experience, Player player) {
         ClientEvents.tamingExperience += experience;
 
-        /*for (double threshold : OWEntityJournalScreen.THRESHOLDS) {
-            if (threshold > OWEntityJournalScreen.lastReachedThreshold && oldExperience < threshold && ClientEvents.tamingExperience >= threshold) {
-                OWEntityJournalScreen.lastReachedThreshold = threshold;
-
-                Set<String> unlockedEntities = new HashSet<>();
-                if (ClientEvents.tamingExperience >= TigerEntity.TAMING_EXPERIENCE) unlockedEntities.add("tiger");
-                if (ClientEvents.tamingExperience >= TigerSharkEntity.TAMING_EXPERIENCE) unlockedEntities.add("tiger_shark");
-                if (ClientEvents.tamingExperience >= BoaEntity.TAMING_EXPERIENCE) unlockedEntities.add("boa");
-                if (ClientEvents.tamingExperience >= PeacockEntity.TAMING_EXPERIENCE) unlockedEntities.add("peacock");
-                if (ClientEvents.tamingExperience >= HyenaEntity.TAMING_EXPERIENCE) unlockedEntities.add("hyena");
-                if (ClientEvents.tamingExperience >= JellyfishEntity.TAMING_EXPERIENCE) unlockedEntities.add("jellyfish");
-                if (ClientEvents.tamingExperience >= KodiakEntity.TAMING_EXPERIENCE) unlockedEntities.add("kodiak");
-                if (ClientEvents.tamingExperience >= ChameleonEntity.TAMING_EXPERIENCE) unlockedEntities.add("chameleon");
-                if (ClientEvents.tamingExperience >= WalrusEntity.TAMING_EXPERIENCE) unlockedEntities.add("walrus");
-                if (ClientEvents.tamingExperience >= MantaEntity.TAMING_EXPERIENCE) unlockedEntities.add("manta");
-                if (ClientEvents.tamingExperience >= RedPandaEntity.TAMING_EXPERIENCE) unlockedEntities.add("red_panda");
-                if (ClientEvents.tamingExperience >= ElephantEntity.TAMING_EXPERIENCE) unlockedEntities.add("elephant");
-                if (ClientEvents.tamingExperience >= MandrillEntity.TAMING_EXPERIENCE) unlockedEntities.add("mandrill");
-
-                for (String entityType : unlockedEntities) {
-                    if (!OWEntityJournalScreen.newEntitiesTamed.contains(entityType)) {
-                        OWNetworkHandler.sendToClient(new BookNotificationPacket(entityType, true), (ServerPlayer) player);
-                    }
-                }
-                break;
-            }
-        }*/
-
         if (player instanceof ServerPlayer serverPlayer) {
             serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(),
                     "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectTamingAdvancement(ClientEvents.tamingExperience));
@@ -3014,11 +2956,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     }
 
-    /**
-     * Called on every successful melee hit (regardless of knockback multiplier).
-     * Override in subclasses to add per-hit effects (e.g. disarm, status effects).
-     * Default implementation does nothing.
-     */
     protected void onSuccessfulHit(LivingEntity entity) {
 
     }
@@ -3043,10 +2980,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return 0;
     }
 
-    /**
-     * When true, travelRidden skips the speed-based setDeltaMovement override so the
-     * entity's existing velocity (e.g. a player-triggered leap) is preserved through the air.
-     */
     protected boolean isLeapingVehicle() {
         return false;
     }
@@ -3242,10 +3175,26 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                     float finalDamage = attackDamage;
 
+                    boolean heartShot = false;
+                    if (this instanceof BoaEntity boaHeart
+                            && this.getControllingPassenger() instanceof Player heartRider
+                            && boaHeart.isThermalHeartTarget(livingEntity)
+                            && boaHeart.isLookingAtHeart(heartRider, livingEntity)) {
+                        finalDamage *= net.tiew.operationWild.entity.attacks.OWAttacksConstants.Boa.THERMAL_HEART_MULT;
+                        heartShot = true;
+                    }
+
                     if (!this.level().isClientSide()) {
                         boolean hurtResult = livingEntity.hurt(this.damageSources().mobAttack(this), finalDamage);
                         if (hurtResult && !(livingEntity instanceof Player p && p.isCreative())) {
                             this.onSuccessfulHit(livingEntity);
+                            if (heartShot && this instanceof BoaEntity boaBleed) {
+                                boaBleed.spawnHeartBleed(livingEntity);
+                                if (this.getControllingPassenger() instanceof net.minecraft.server.level.ServerPlayer sp) {
+                                    net.tiew.operationWild.networking.OWNetworkHandler.sendToClient(
+                                            new net.tiew.operationWild.networking.packets.to_client.HeartShotPacket(livingEntity.getId()), sp);
+                                }
+                            }
                         }
                     }
 

@@ -92,19 +92,21 @@ public class BoaTailPartRenderer extends LivingEntityRenderer<BoaTailPart, Entit
         return SkinRegistry.BoaSkins.get(variant).getTexture();
     }
 
-    // --- ECLAIRAGE : echantillonne a la position de la TETE, pas du segment ---
-    // Un segment enfoui dans un bloc recevrait une lumiere nulle et s'afficherait
-    // noir. On force l'echantillonnage a la position de la tete (synchronisee), donc
-    // toute la queue garde l'eclairage de la tete. Si la tete est dans le noir, la
-    // queue s'assombrit pareil.
+    // --- ECLAIRAGE : on prend le MAXIMUM entre la lumiere a la tete et celle a la position
+    // propre du segment. Ainsi un segment a l'air libre reste eclaire meme si l'echantillon de
+    // la tete tombe dans un point sombre (ex : pendant l'enroulement, la tete peut se retrouver
+    // sous la cible / dans un bloc apres le recentrage vertical). Les segments ne sont donc
+    // jamais noirs des qu'ils — ou la tete — sont a la lumiere.
 
     @Override
     protected int getBlockLightLevel(BoaTailPart entity, net.minecraft.core.BlockPos pos) {
-        return super.getBlockLightLevel(entity, entity.getHeadPos());
+        return Math.max(super.getBlockLightLevel(entity, entity.getHeadPos()),
+                        super.getBlockLightLevel(entity, pos));
     }
 
     @Override
     protected int getSkyLightLevel(BoaTailPart entity, net.minecraft.core.BlockPos pos) {
-        return super.getSkyLightLevel(entity, entity.getHeadPos());
+        return Math.max(super.getSkyLightLevel(entity, entity.getHeadPos()),
+                        super.getSkyLightLevel(entity, pos));
     }
 }

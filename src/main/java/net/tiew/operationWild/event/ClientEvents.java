@@ -128,6 +128,23 @@ public class ClientEvents {
                         RightClickAlertOverlay.clickAnimationTimer = 3;
                     }
                 }
+            } else {
+                // Boa : le joueur enroulé n'est pas passager → détection par proximité.
+                BoaEntity grabbingBoa = player.level()
+                        .getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
+                        .stream()
+                        .filter(b -> b.isGrabbing() && b.getGrabbedTarget() == player)
+                        .findFirst().orElse(null);
+
+                if (grabbingBoa != null && RightClickAlertOverlay.clickAnimationTimer <= 0) {
+                    if (grabbingBoa.getGrabTimeout() <= 0) {
+                        OWNetworkHandler.sendToServer(new StopGrabPacket());
+                    } else {
+                        OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
+                        RightClickAlertOverlay.hasClicked = true;
+                        RightClickAlertOverlay.clickAnimationTimer = 3;
+                    }
+                }
             }
         }
     }
@@ -149,8 +166,9 @@ public class ClientEvents {
 
         if (entity != null && entity instanceof Player player) {
             if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player ||
-                    player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player) {
-                event.getInput().shiftKeyDown = false;
+                    player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player ||
+                    player.getVehicle() instanceof BoaEntity boa && boa.getGrabbedTarget() == player) {
+                event.getInput().shiftKeyDown = false;   // empêche le sneak-dismount tant qu'on est grabbé
             }
         }
     }
@@ -176,6 +194,11 @@ public class ClientEvents {
         cachedWorldName = null;
         pendingWarning = false;
         warningTick = 0;
+        // Réinitialise l'état du flou Venin : sinon, en revenant avec le Venin, l'optimisation
+        // "load-once" croit le shader déjà chargé alors que le gameRenderer a été vidé → pas de flou.
+        currentVenomBlur = null;
+        maxEffectDuration = 0;
+        setBlurPercentage(0);
     }
 
     @SubscribeEvent
@@ -247,6 +270,11 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onPlayerJoinWorld(ClientPlayerNetworkEvent.LoggingIn event) {
+        // Flou Venin : repart d'un état propre → si on revient avec le Venin, le shader sera rechargé.
+        currentVenomBlur = null;
+        maxEffectDuration = 0;
+        setBlurPercentage(0);
+
         if (DailyQuestsDate.isAlreadyChanged) {
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -391,6 +419,176 @@ public class ClientEvents {
 
     private static boolean canUseRightClick(Minecraft minecraft) {
         return minecraft.player != null && minecraft.player.getMainHandItem().getUseAnimation() == UseAnim.NONE && !(minecraft.player.getMainHandItem().getItem() instanceof MayaBlowpipeItem);
+    }
+
+    @SubscribeEvent
+    public static void onHypnosisCameraPull(ViewportEvent.ComputeCameraAngles event) {
+        // PAR FRAME (et non par tick) → traction lisse, sans saccade.
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+        if (player == null || mc.level == null) return;
+        if (player.isCreative() || player.isSpectator()) return;
+
+        // Un boa proche m'hypnotise-t-il ? (état + cible synchronisés)
+        net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa = player.level()
+                .getEntitiesOfClass(net.tiew.operationWild.entity.animals.terrestrial.BoaEntity.class,
+                        player.getBoundingBox().inflate(12.0))
+                .stream()
+                .filter(b -> b.isHypnotizing() && b.getHypnosisTargetId() == player.getId())
+                .findFirst().orElse(null);
+        if (boa == null) { wasHypnotized = false; return; }
+
+        // Front montant de l'hypnose → déclenche l'overlay d'apparition (style totem) une seule fois.
+        if (!wasHypnotized) {
+            hypnosisOverlayStart = System.currentTimeMillis();
+            wasHypnotized = true;
+        }
+
+        // Traction douce de la caméra vers les yeux du boa (façon télé Poppy Playtime ch.3).
+        Vec3 eyes = boa.getEyePosition();
+        double dx = eyes.x - player.getX();
+        double dz = eyes.z - player.getZ();
+        double dy = eyes.y - player.getEyeY();
+        double horiz = Math.sqrt(dx * dx + dz * dz);
+        float wantedYaw = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90f;
+        float wantedPitch = (float) (-(Mth.atan2(dy, horiz) * Mth.RAD_TO_DEG));
+
+        // Facteur mis à l'échelle du temps réel de la frame → indépendant du FPS et fluide.
+        float dt = (float) mc.getTimer().getRealtimeDeltaTicks();
+        float pull = Mth.clamp(dt * HYPNOSIS_PULL_SPEED, 0f, 1f);
+
+        float newYaw = approachAngle(player.getYRot(), wantedYaw, pull);
+        float newPitch = Mth.clamp(approachAngle(player.getXRot(), wantedPitch, pull), -90f, 90f);
+        // On fige aussi les valeurs "old" : pas d'interpolation parasite tick↔frame → plus de saccade.
+        player.setYRot(newYaw);   player.yRotO = newYaw;
+        player.setXRot(newPitch); player.xRotO = newPitch;
+        player.setYHeadRot(newYaw); player.yHeadRot = newYaw; player.yHeadRotO = newYaw;
+        player.yBodyRot = newYaw;   player.yBodyRotO = newYaw;
+        // Override aussi la vue de CETTE frame (sinon 1 frame de retard → micro-saccade).
+        event.setYaw(newYaw);
+        event.setPitch(newPitch);
+    }
+
+    private static final float HYPNOSIS_PULL_SPEED = 0.25f; // vitesse de la traction (plus haut = plus rapide)
+
+    private static float approachAngle(float current, float wanted, float fraction) {
+        return current + Mth.wrapDegrees(wanted - current) * fraction;
+    }
+
+    // ── Overlay d'apparition de l'hypnose (style Totem of Undying, texture animée) ──
+    private static boolean wasHypnotized = false;
+    private static long    hypnosisOverlayStart = -1L;
+
+    // Texture FIXE 64×64 (pas d'animation de frames).
+    private static final ResourceLocation HYP_OVERLAY_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/hypnosis_overlay.png");
+    private static final int   HYP_OVERLAY_FRAME_W   = 64;    // largeur de la texture (px)
+    private static final int   HYP_OVERLAY_FRAME_H   = 64;    // hauteur de la texture (px)
+    private static final int   HYP_OVERLAY_FRAMES    = 1;     // 1 = texture fixe
+    private static final long  HYP_OVERLAY_DURATION_MS = 1500;// durée totale de l'apparition à l'écran
+    private static final long  HYP_OVERLAY_FRAME_MS    = 60;  // (inutilisé si 1 frame)
+    private static final float HYP_OVERLAY_SCALE        = 2.3f;// échelle à l'écran (~147 px)
+
+    @SubscribeEvent
+    public static void onRenderHypnosisOverlay(RenderGuiEvent.Post event) {
+        if (hypnosisOverlayStart < 0) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.options.hideGui) return;
+
+        long el = System.currentTimeMillis() - hypnosisOverlayStart;
+        if (el > HYP_OVERLAY_DURATION_MS) { hypnosisOverlayStart = -1L; return; }
+
+        GuiGraphics g = event.getGuiGraphics();
+        int sw = g.guiWidth(), sh = g.guiHeight();
+        float t = el / (float) HYP_OVERLAY_DURATION_MS; // 0..1
+
+        // Opacité qui décroît linéairement de 1 → 0 sur toute la durée. Pop d'échelle au début.
+        float alpha = Mth.clamp(1f - t, 0f, 1f);
+        float pop = 1f - (float) Math.pow(1f - Math.min(t / 0.25f, 1f), 3);
+        float scale = HYP_OVERLAY_SCALE * (0.7f + 0.3f * pop);
+        float yDrift = -t * sh * 0.06f;
+
+        int frame = (int) (el / HYP_OVERLAY_FRAME_MS) % HYP_OVERLAY_FRAMES;
+
+        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+        g.setColor(1f, 1f, 1f, alpha);
+        g.pose().pushPose();
+        g.pose().translate(sw / 2f, sh / 2f + yDrift, 0);
+        g.pose().scale(scale, scale, 1f);
+        g.pose().translate(-HYP_OVERLAY_FRAME_W / 2f, -HYP_OVERLAY_FRAME_H / 2f, 0);
+        g.blit(HYP_OVERLAY_TEXTURE, 0, 0, 0f, (float) frame * HYP_OVERLAY_FRAME_H,
+                HYP_OVERLAY_FRAME_W, HYP_OVERLAY_FRAME_H,
+                HYP_OVERLAY_FRAME_W, HYP_OVERLAY_FRAME_H * HYP_OVERLAY_FRAMES);
+        g.pose().popPose();
+        g.setColor(1f, 1f, 1f, 1f);
+        com.mojang.blaze3d.systems.RenderSystem.disableBlend();
+    }
+
+    /** Boa proche qui hypnotise le joueur local, ou null. */
+    private static net.tiew.operationWild.entity.animals.terrestrial.BoaEntity localHypnotizingBoa() {
+        Minecraft mc = Minecraft.getInstance();
+        Player p = mc.player;
+        if (p == null || mc.level == null || p.isCreative() || p.isSpectator()) return null;
+        return p.level().getEntitiesOfClass(
+                        net.tiew.operationWild.entity.animals.terrestrial.BoaEntity.class,
+                        p.getBoundingBox().inflate(12.0))
+                .stream()
+                .filter(b -> b.isHypnotizing() && b.getHypnosisTargetId() == p.getId())
+                .findFirst().orElse(null);
+    }
+
+    // Teinte hypnotique jaune/magenta plein écran pendant l'hypnose (fondu d'entrée/sortie).
+    private static float hypnoScreenAlpha = 0f;
+    private static final float HYPNO_VEIL_MIN_ALPHA = 0.10f; // opacité mini de l'oscillation
+    private static final float HYPNO_VEIL_MAX_ALPHA = 0.25f; // opacité maxi de l'oscillation
+
+    @SubscribeEvent
+    public static void onRenderHypnosisScreen(RenderGuiEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.options.hideGui) return;
+
+        boolean active = localHypnotizingBoa() != null;
+        float dt = (float) mc.getTimer().getRealtimeDeltaTicks();
+        float fade = Mth.clamp(dt * 0.18f, 0f, 1f);
+        hypnoScreenAlpha += ((active ? 1f : 0f) - hypnoScreenAlpha) * fade; // fondu in/out
+        if (hypnoScreenAlpha < 0.01f) { if (!active) hypnoScreenAlpha = 0f; return; }
+
+        GuiGraphics g = event.getGuiGraphics();
+        int sw = g.guiWidth(), sh = g.guiHeight();
+        float time = (System.currentTimeMillis() % 1_000_000L) / 1000f;
+        // Opacité de fond qui OSCILLE entre HYPNO_VEIL_MIN/MAX, multipliée par le fondu in/out (→ 0 à la fin).
+        float mid = (HYPNO_VEIL_MIN_ALPHA + HYPNO_VEIL_MAX_ALPHA) * 0.5f;
+        float amp = (HYPNO_VEIL_MAX_ALPHA - HYPNO_VEIL_MIN_ALPHA) * 0.5f;
+        float osc = mid + amp * (float) Math.sin(time * 1.3);   // oscillation lente et lisible
+        int aInt = (int) (hypnoScreenAlpha * osc * 255f);
+        if (aInt <= 0) return;
+
+        // Tunnel hypnotique : anneaux rectangulaires concentriques jaune↔magenta qui défilent,
+        // avec un léger wobble du centre (« bouge un peu »). Dessinés en ANNEAUX → pas d'empilement
+        // d'alpha (opacité uniforme).
+        float cx = sw / 2f + (float) Math.sin(time * 2.1) * sw * 0.025f;
+        float cy = sh / 2f + (float) Math.cos(time * 1.7) * sh * 0.025f;
+        int rings = 24;
+        int cycle = (int) (time * 6);
+
+        com.mojang.blaze3d.systems.RenderSystem.enableBlend();
+        for (int i = 1; i <= rings; i++) {
+            float fo = i / (float) rings;
+            float fi = (i - 1) / (float) rings;
+            boolean yellow = ((i + cycle) & 1) == 0;
+            int col = (aInt << 24) | (yellow ? 0xFFE000 : 0xE000E0);
+
+            int ox0 = (int) (cx - cx * fo),        oy0 = (int) (cy - cy * fo);
+            int ox1 = (int) (cx + (sw - cx) * fo), oy1 = (int) (cy + (sh - cy) * fo);
+            int ix0 = (int) (cx - cx * fi),        iy0 = (int) (cy - cy * fi);
+            int ix1 = (int) (cx + (sw - cx) * fi), iy1 = (int) (cy + (sh - cy) * fi);
+
+            g.fill(ox0, oy0, ox1, iy0, col); // haut
+            g.fill(ox0, iy1, ox1, oy1, col); // bas
+            g.fill(ox0, iy0, ix0, iy1, col); // gauche
+            g.fill(ix1, iy0, ox1, iy1, col); // droite
+        }
+        com.mojang.blaze3d.systems.RenderSystem.disableBlend();
     }
 
     @SubscribeEvent
@@ -590,7 +788,11 @@ public class ClientEvents {
                         && tiger.getControllingPassenger() == null
         );
 
-        boolean isGrabBySomething = isGrabByCrocodile || isGrabByTiger;
+        boolean isGrabByBoa = player.level().getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0)).stream().anyMatch(
+                boa -> boa.isGrabbing() && boa.getGrabbedTargetId() == player.getId()
+        );
+
+        boolean isGrabBySomething = isGrabByCrocodile || isGrabByTiger || isGrabByBoa;
 
         if (player != null) {
             PlantEmpressBossBar.render(event.getGuiGraphics(),
@@ -604,6 +806,7 @@ public class ClientEvents {
             if (player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine)) {
                 if (player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player) return;
                 if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player) return;
+                if (player.getVehicle() instanceof BoaEntity boa && boa.getGrabbedTarget() == player) return;
                 OWEntityHud.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
                 OWAttacksOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
@@ -653,6 +856,8 @@ public class ClientEvents {
 
     private static int maxEffectDuration = 0;
 
+    private static ResourceLocation currentVenomBlur = null;
+
     private static void applyMinecraftBlurShader(Player player) {
         if (player != null && player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate())) {
             int duration = player.getEffect(OWEffects.VENOM_EFFECT.getDelegate()).getDuration();
@@ -661,24 +866,36 @@ public class ClientEvents {
             setBlurPercentage(blurPercentage <= 0.9999 ? blurPercentage : 0.0);
         }
 
-        Minecraft mc = Minecraft.getInstance();
+        // IMPORTANT : ne charger l'effet QUE s'il change (sinon recréation du PostChain à chaque frame
+        // en plein rendu → la main de première personne disparaît). Une fois actif, le pipeline 1.21
+        // dessine la main APRÈS le post-effet → le bras reste visible.
+        ResourceLocation shader = pickBlurShader(getBlurPercentage());
+        if (shader != null && !shader.equals(currentVenomBlur)) {
+            Minecraft.getInstance().gameRenderer.loadEffect(shader);
+            currentVenomBlur = shader;
+        }
+    }
 
-        if (getBlurPercentage() >= 90) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur10.json"));
-        else if (getBlurPercentage() >= 80) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur9.json"));
-        else if (getBlurPercentage() >= 70) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur8.json"));
-        else if (getBlurPercentage() >= 60) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur7.json"));
-        else if (getBlurPercentage() >= 50) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur6.json"));
-        else if (getBlurPercentage() >= 40) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur5.json"));
-        else if (getBlurPercentage() >= 30) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur4.json"));
-        else if (getBlurPercentage() >= 20) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur3.json"));
-        else if (getBlurPercentage() >= 10) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur2.json"));
-        else if (getBlurPercentage() >= 0) mc.gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur1.json"));
-
+    private static ResourceLocation pickBlurShader(double bp) {
+        int n;
+        if (bp >= 90)      n = 10;
+        else if (bp >= 80) n = 9;
+        else if (bp >= 70) n = 8;
+        else if (bp >= 60) n = 7;
+        else if (bp >= 50) n = 6;
+        else if (bp >= 40) n = 5;
+        else if (bp >= 30) n = 4;
+        else if (bp >= 20) n = 3;
+        else if (bp >= 10) n = 2;
+        else if (bp >= 0)  n = 1;
+        else return null;
+        return ResourceLocation.parse("ow:shaders/blur_shader/blur" + n + ".json");
     }
 
     private static void removeMinecraftBlurShader() {
         Minecraft mc = Minecraft.getInstance();
         mc.gameRenderer.shutdownEffect();
+        currentVenomBlur = null;
         setBlurPercentage(0);
     }
 
@@ -899,6 +1116,19 @@ public class ClientEvents {
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.mulPose(Axis.YP.rotationDegrees(crocodile.yBodyRot));
             }
+        } else if (owVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boaPose
+                && boaPose.getGrabbedTargetId() != player.getId()
+                && boaPose.getFirstTailPart() != null) {
+            poseStack.pushPose();
+            // On FORCE tout le modèle du rider (corps + tête) à s'orienter sur le yaw du PREMIER segment
+            // de queue, en compensant le yBodyRot que la monture impose (qui ne tournait que la tête).
+            // INTERPOLÉ avec le partialTick → rotation fluide (sinon ça saute à 20 Hz).
+            float pt = event.getPartialTick();
+            Entity seg = boaPose.getFirstTailPart();
+            float segYaw  = Mth.rotLerp(pt, seg.yRotO, seg.getYRot());
+            float bodyYaw = Mth.rotLerp(pt, player.yBodyRotO, player.yBodyRot);
+            // Intensité de la rotation gauche/droite réduite de moitié (delta de yaw × 0.5).
+            poseStack.mulPose(Axis.YP.rotationDegrees(Mth.wrapDegrees(bodyYaw - segYaw) * 0.5f));
         } else if (owVehicle instanceof KodiakEntity kodiak) {
             poseStack.pushPose();
 
@@ -1512,6 +1742,7 @@ public class ClientEvents {
 
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             renderPassiveEsp(event);
+            renderThermalHearts(event);
             computeWaypointScreenPositions(event);
         }
 
@@ -1532,9 +1763,9 @@ public class ClientEvents {
 
                 if (!isSubmarineEffect) {   // ne pas écraser le shader sous-marin
                     if (shouldApplyBlur) {
-                        applyMinecraftBlurShader(player);
+                        applyMinecraftBlurShader(player);   // load-once → main visible (cf. méthode)
                     } else {
-                        if (blurPercentage > 0) removeMinecraftBlurShader();
+                        if (blurPercentage > 0 || currentVenomBlur != null) removeMinecraftBlurShader();
                     }
                 }
 
@@ -1847,6 +2078,50 @@ public class ClientEvents {
                 updateCrocTargeting(crocT, mcT.player, mcT.level);
             }
         }
+
+        if (OWAttackLogic.isBoaTargeting) {
+            Minecraft mcB = Minecraft.getInstance();
+            if (mcB.player == null || mcB.level == null
+                    || !(mcB.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boaT)
+                    || System.currentTimeMillis() - OWAttackLogic.boaTargetingStartMs
+                       >= OWAttacksConstants.Boa.CONSTRICT_ULT_TARGETING_MS) {
+                OWAttackLogic.cancelBoaTargeting(OWAttacksHandler.CONSTRICT_ULTIMATE_ID);
+            } else {
+                updateBoaTargeting(boaT, mcB.player, mcB.level);
+            }
+        }
+    }
+
+    private static void updateBoaTargeting(
+            net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa,
+            Player player, net.minecraft.client.multiplayer.ClientLevel level) {
+
+        Vec3 boaPos  = boa.position();
+        Vec3 lookVec = player.getLookAngle();
+        double r = OWAttacksConstants.Boa.CONSTRICT_ULT_RANGE;
+
+        AABB box = boa.getBoundingBox().inflate(r);
+        LivingEntity best = null;
+        double bestDot = Double.NEGATIVE_INFINITY;
+
+        for (LivingEntity candidate : level.getEntitiesOfClass(LivingEntity.class, box,
+                e -> e != player && boa.canConstrict(e) && boa.distanceToSqr(e) <= r * r)) {
+            Vec3 dir = candidate.getBoundingBox().getCenter().subtract(boaPos).normalize();
+            double dot = lookVec.dot(dir);
+            if (dot > bestDot) { bestDot = dot; best = candidate; }
+        }
+
+        if (best != null && bestDot > 0.3) {
+            OWAttackLogic.boaTargetEntityId = best.getId();
+        }
+
+        if (OWAttackLogic.boaTargetEntityId != -1) {
+            Entity cur = level.getEntity(OWAttackLogic.boaTargetEntityId);
+            if (!(cur instanceof LivingEntity le) || !boa.canConstrict(le)
+                    || boa.distanceToSqr(le) > r * r) {
+                OWAttackLogic.boaTargetEntityId = -1;
+            }
+        }
     }
 
     private static void updateCrocTargeting(
@@ -1929,7 +2204,8 @@ public class ClientEvents {
         for (int id : ids) {
             if (!(mc.level.getEntity(id) instanceof LivingEntity le) || !le.isAlive()) continue;
             Vec3 center = le.getBoundingBox().getCenter();
-            if (owEntity instanceof CrocodileEntity) {
+            if (owEntity instanceof CrocodileEntity
+                    || owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity) {
                 addEspGreenDot(buf, matrix, center, jRight, jUp);
             } else {
                 addEspGlowGradient(buf, matrix, center, jRight, jUp);
@@ -1945,6 +2221,147 @@ public class ClientEvents {
         RenderSystem.disableBlend();
         RenderSystem.enableDepthTest();
         pose.popPose();
+    }
+
+    // ── Passif Boa : Vision Thermique (petit cœur rouge sur les entités < 150 PV, pour le rider) ──
+
+    // Masque pixel d'un cœur (1 = pixel allumé).
+    private static final int[][] HEART_MASK = {
+            {0, 1, 1, 0, 1, 1, 0},
+            {1, 1, 1, 1, 1, 1, 1},
+            {1, 1, 1, 1, 1, 1, 1},
+            {0, 1, 1, 1, 1, 1, 0},
+            {0, 0, 1, 1, 1, 0, 0},
+            {0, 0, 0, 1, 0, 0, 0},
+    };
+
+    // Animation « tir au cœur » : id entité → timestamp (ms) du coup. Pendant HEART_HIT_DURATION_MS,
+    // le cœur grossit et devient gris, puis revient à sa taille/couleur normales.
+    private static final java.util.Map<Integer, Long> heartHitTimes = new java.util.HashMap<>();
+    private static final float HEART_HIT_DURATION_MS = 350f;
+
+    /** Appelé à la réception de HeartShotPacket (côté client) pour lancer l'animation du cœur. */
+    public static void triggerHeartHit(int entityId) {
+        heartHitTimes.put(entityId, System.currentTimeMillis());
+    }
+
+    private static void renderThermalHearts(RenderLevelStageEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) return;
+        if (OWAttackLogic.isBoaTargeting) return;   // pendant le ciblage de l'ultime : pas de cœurs, seulement les points verts
+        if (!(mc.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)) return;
+        // Si on est la VICTIME enroulée par ce boa, on ne voit pas la Vision Thermique (c'est le passif du rider, pas du grabbé).
+        if (boa.isGrabbing() && boa.getGrabbedTargetId() == mc.player.getId()) return;
+
+        double range = OWAttacksConstants.Boa.THERMAL_RANGE;
+        AABB box = boa.getBoundingBox().inflate(range);
+        List<LivingEntity> targets = mc.level.getEntitiesOfClass(LivingEntity.class, box, boa::isThermalHeartTarget);
+        if (targets.isEmpty()) return;
+
+        org.joml.Quaternionf camRot = event.getCamera().rotation();
+        Vector3f right = new Vector3f(1f, 0f, 0f);
+        Vector3f up = new Vector3f(0f, 1f, 0f);
+        camRot.transform(right);
+        camRot.transform(up);
+
+        Vec3 cam = event.getCamera().getPosition();
+        PoseStack pose = event.getPoseStack();
+        pose.pushPose();
+        pose.translate(-cam.x, -cam.y, -cam.z);
+        Matrix4f matrix = pose.last().pose();
+
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        RenderSystem.disableDepthTest();     // ← rendu À TRAVERS l'entité (le mob ne masque jamais le cœur)
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+
+        Tesselator tes = Tesselator.getInstance();
+        BufferBuilder buf = tes.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        boolean any = false;
+        for (LivingEntity le : targets) {
+            if (!le.isAlive()) continue;
+            Vec3 c = net.tiew.operationWild.entity.animals.terrestrial.BoaEntity.thermalHeartCenter(le);
+            // Occlusion par les BLOCS uniquement : raycast caméra → cœur ; un bloc plein intercalé
+            // masque le cœur (mais pas les entités, car le depth test est désactivé).
+            net.minecraft.world.phys.BlockHitResult clip = mc.level.clip(new net.minecraft.world.level.ClipContext(
+                    cam, c,
+                    net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                    net.minecraft.world.level.ClipContext.Fluid.NONE, mc.player));
+            if (clip.getType() != net.minecraft.world.phys.HitResult.Type.MISS) continue;
+
+            // Animation « tir au cœur » : pulse de taille (1 → 1.6 → 1) et virage au gris (0 → 1 → 0).
+            float scale = 1f, gray = 0f;
+            Long hit = heartHitTimes.get(le.getId());
+            if (hit != null) {
+                long el = System.currentTimeMillis() - hit;
+                if (el >= 0 && el <= HEART_HIT_DURATION_MS) {
+                    float pulse = (float) Math.sin((el / HEART_HIT_DURATION_MS) * Math.PI);
+                    scale = 1f + 0.6f * pulse;
+                    gray = pulse;
+                } else if (el > HEART_HIT_DURATION_MS) {
+                    heartHitTimes.remove(le.getId());
+                }
+            }
+
+            // Taille du cœur proportionnelle à la hitbox de la cible (calée sur le cheval).
+            float sizeScale = net.tiew.operationWild.entity.animals.terrestrial.BoaEntity.thermalSizeScale(le);
+            addHeart(buf, matrix, c, right, up, scale * sizeScale, gray);
+            any = true;
+        }
+        if (any) {
+            MeshData mesh = buf.build();
+            if (mesh != null) BufferUploader.drawWithShader(mesh);
+        }
+
+        RenderSystem.disableBlend();
+        RenderSystem.enableDepthTest();
+        pose.popPose();
+    }
+
+    private static int heartMaskAt(int r, int c) {
+        if (r < 0 || r >= HEART_MASK.length || c < 0 || c >= HEART_MASK[0].length) return 0;
+        return HEART_MASK[r][c];
+    }
+
+    private static void addHeart(BufferBuilder buf, Matrix4f m, Vec3 center, Vector3f right, Vector3f up,
+                                 float scale, float gray) {
+        final int rows = HEART_MASK.length, cols = HEART_MASK[0].length;
+        final float p = 0.039f * scale;          // taille visuelle du « pixel » du cœur
+        final float half = p * 0.5f;
+        // Couleur du cœur : rouge → gris selon la phase d'animation.
+        final float heartR = 0.85f + (0.5f - 0.85f) * gray;
+        final float heartG = 0.05f + (0.5f - 0.05f) * gray;
+        final float heartB = 0.05f + (0.5f - 0.05f) * gray;
+        // Grille étendue d'1 pixel pour dessiner le contour noir autour du cœur.
+        for (int r = -1; r <= rows; r++) {
+            for (int col = -1; col <= cols; col++) {
+                boolean lit = heartMaskAt(r, col) == 1;
+                boolean outline = false;
+                if (!lit) {
+                    // Cellule vide bordant un pixel allumé en 4-voisinage (haut/bas/gauche/droite,
+                    // PAS les diagonales) → contour noir fin, sans coins épais.
+                    outline = heartMaskAt(r - 1, col) == 1 || heartMaskAt(r + 1, col) == 1
+                            || heartMaskAt(r, col - 1) == 1 || heartMaskAt(r, col + 1) == 1;
+                }
+                if (!lit && !outline) continue;
+
+                float rr, gg, bb;
+                if (lit) { rr = heartR; gg = heartG; bb = heartB; }   // cœur (rouge → gris animé)
+                else     { rr = 0.0f;   gg = 0.0f;   bb = 0.0f;   }   // contour noir
+
+                float xi = (col - (cols - 1) / 2f) * p;
+                float yi = ((rows - 1) / 2f - r) * p;
+                float cx = (float) center.x + right.x * xi + up.x * yi;
+                float cy = (float) center.y + right.y * xi + up.y * yi;
+                float cz = (float) center.z + right.z * xi + up.z * yi;
+                float rx = right.x * half, ry = right.y * half, rz = right.z * half;
+                float ux = up.x * half, uy = up.y * half, uz = up.z * half;
+                buf.addVertex(m, cx - rx - ux, cy - ry - uy, cz - rz - uz).setColor(rr, gg, bb, 1f);
+                buf.addVertex(m, cx + rx - ux, cy + ry - uy, cz + rz - uz).setColor(rr, gg, bb, 1f);
+                buf.addVertex(m, cx + rx + ux, cy + ry + uy, cz + rz + uz).setColor(rr, gg, bb, 1f);
+                buf.addVertex(m, cx - rx + ux, cy - ry + uy, cz - rz + uz).setColor(rr, gg, bb, 1f);
+            }
+        }
     }
 
     private static void addEspGlowGradient(BufferBuilder buf, Matrix4f matrix,

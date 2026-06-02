@@ -929,14 +929,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         boolean targetIsNearOfWater = crocodileBehaviorHandler.findNearestWaterSource(10) != null;
         boolean isAlreadyGrabbed = entity.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getOwner() != entity;
         boolean canGrab = targetIsNearOfWater && !this.level().isClientSide() &&
-                !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity);
+                !this.isTame() && !this.isSleeping() && !this.isNapping() && !this.isChargingMouth() && !isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity)
+                && !(entity instanceof BoaEntity) && !(entity instanceof BoaTailPart);
 
         this.crocodileTaming.hurtAfterCombo(entity, comboAttack);
 
         if (crocodileBehaviorHandler.isReadyForTaming()) return;
 
         if (canGrabOnLand) {
-            if (!isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity)) {
+            if (!isAlreadyGrabbed && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity)
+                    && !(entity instanceof BoaEntity) && !(entity instanceof BoaTailPart)) {
                 this.grabEntity(entity);
                 return;
             }
@@ -959,6 +961,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             boolean alreadyGrabbed = entity.getVehicle() instanceof CrocodileEntity croc && croc.getOwner() != entity;
             if (nearWaterTamed && !alreadyGrabbed && !this.isSleeping() && !this.isNapping()
                     && this.getHealth() >= 10 && !(entity instanceof CrocodileEntity)
+                    && !(entity instanceof BoaEntity) && !(entity instanceof BoaTailPart)
                     && this.getRandom().nextInt(100) < 20) {
                 grabEntityPassive(entity);
             }

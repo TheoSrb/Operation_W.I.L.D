@@ -40,7 +40,8 @@
       "Bash(find src/main/resources/assets/ow/textures/entity/boa -type d)",
       "Bash(find src/main/resources -iname \"*skin_gold*\")",
       "Bash(ls gradlew*)",
-      "Bash(ls -d .gradle)"
+      "Bash(ls -d .gradle)",
+      "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q; \"EXIT=$LASTEXITCODE\")"
     ]
   }
 }
