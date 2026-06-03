@@ -1,9 +1,6 @@
 {
   "type": "neoforge:add_spawns",
-  "biomes": [
-    "minecraft:mangrove_swamp",
-    "minecraft:swamp"
-  ],
+  "biomes": "minecraft:swamp",
   "spawners": {
     "type": "ow:crocodile",
     "maxCount": 4,

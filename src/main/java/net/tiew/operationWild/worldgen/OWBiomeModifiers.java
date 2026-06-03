@@ -42,7 +42,7 @@ public class OWBiomeModifiers {
     );
 
     public static final ArrayList<ResourceKey<Biome>> BOA_BIOMES = new ArrayList<>(
-            List.of(Biomes.JUNGLE, Biomes.MANGROVE_SWAMP)
+            List.of(Biomes.JUNGLE, Biomes.MANGROVE_SWAMP, Biomes.SWAMP)
     );
 
     public static final ArrayList<ResourceKey<Biome>> PEACOCK_BIOMES = new ArrayList<>(
@@ -58,7 +58,7 @@ public class OWBiomeModifiers {
     );
 
     public static final ArrayList<ResourceKey<Biome>> CROCODILE_BIOMES = new ArrayList<>(
-            List.of(Biomes.MANGROVE_SWAMP, Biomes.SWAMP)
+            List.of(Biomes.SWAMP)
     );
 
     public static void bootstrap(BootstrapContext<BiomeModifier> context) {

@@ -2,7 +2,8 @@
   "type": "neoforge:add_spawns",
   "biomes": [
     "minecraft:jungle",
-    "minecraft:mangrove_swamp"
+    "minecraft:mangrove_swamp",
+    "minecraft:swamp"
   ],
   "spawners": {
     "type": "ow:boa",
