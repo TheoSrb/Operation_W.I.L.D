@@ -25,6 +25,7 @@ public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_bloody_stage_2.png");
     private static final ResourceLocation SADDLE_TEXTURE         = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_saddle.png");
     private static final ResourceLocation NECKLACE_TEXTURE       = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_necklace.png");
+    private static final ResourceLocation TEETHS_TEXTURE       = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_teeths.png");
 
     public BoaLayer(BoaRenderer boaRenderer) {
         super(boaRenderer);
@@ -43,6 +44,10 @@ public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
 
         if (boa.isTame() && !boa.isInResurrection()) {
             //renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, boa.getNecklaceColor());
+        }
+
+        if (boa.isCombo()) {
+            renderOverlay(poseStack, multiBufferSource, TEETHS_TEXTURE, false, packedLight);
         }
 
         //if (boa.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);

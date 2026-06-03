@@ -1,6 +1,7 @@
 package net.tiew.operationWild.core;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -138,6 +139,42 @@ public class OWCommands {
                 player.sendSystemMessage(Component.translatable(String.valueOf(ClientEvents.tamingExperience)));
             } catch (Exception ignored) {
             }
+            return 1;
+        }
+    }
+
+    public static class GameRuleNoEffortCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(
+                    Commands.literal("gamerule")
+                            .then(Commands.literal("OWAnimalsNoEffort")
+                                    .then(Commands.argument("value", BoolArgumentType.bool())
+                                            .executes(GameRuleNoEffortCommand::execute))
+                                    .executes(GameRuleNoEffortCommand::query))
+            );
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            CommandSourceStack source = context.getSource();
+            boolean value = BoolArgumentType.getBool(context, "value");
+            try {
+                source.getLevel().getGameRules()
+                        .getRule(OWGameRules.ANIMALS_NO_EFFORT)
+                        .set(value, source.getServer());
+                source.sendSuccess(() -> Component.translatable("gamerule.OWAnimalsNoEffort.set", value)
+                        .setStyle(Style.EMPTY.withColor(0x00FF00)), true);
+            } catch (Exception ignored) {}
+            return 1;
+        }
+
+        private static int query(CommandContext<CommandSourceStack> context) {
+            CommandSourceStack source = context.getSource();
+            try {
+                boolean value = source.getLevel().getGameRules()
+                        .getBoolean(OWGameRules.ANIMALS_NO_EFFORT);
+                source.sendSuccess(() -> Component.translatable("gamerule.OWAnimalsNoEffort.query", value)
+                        .setStyle(Style.EMPTY.withColor(0xFFFFFF)), false);
+            } catch (Exception ignored) {}
             return 1;
         }
     }

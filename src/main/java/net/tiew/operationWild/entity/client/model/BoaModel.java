@@ -9,8 +9,10 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.client.animation.BoaAnimations;
+import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
 public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
 
@@ -158,6 +160,24 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
         // (queue multipart dans le monde) -> caches sur le modele de la tete.
         // EXCEPTION GUI : dans les ecrans (inventaire / preview cosmetiques) ces entites
         // n'existent pas, donc on affiche le corps complet ici (cf. RENDER_FULL_BODY).
+
+        if (boa.isCombo(1)) {
+            this.animate(boa.attack1Combo, BoaAnimations.ATTACK_STRIKE, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
+            return;
+        }
+        if (boa.isCombo(2)) {
+            this.animate(boa.attack2Combo, BoaAnimations.ATTACK_STRIKE_2, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
+            return;
+        }
+        if (boa.isCombo(3)) {
+            this.animate(boa.attack3Combo, BoaAnimations.ATTACK_STRIKE_3, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
+            return;
+        }
+
+        if (boa.tongAnimationState.isStarted()) {
+            this.animate(boa.tongAnimationState, BoaAnimations.TONG, ageInTicks, 1.0f);
+        }
+
         boolean showBody = RENDER_FULL_BODY;
         this.body_0.visible = showBody;
         this.body_1.visible = showBody;

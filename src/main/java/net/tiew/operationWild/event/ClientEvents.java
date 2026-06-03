@@ -25,9 +25,11 @@ import net.minecraft.client.gui.screens.inventory.ContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+
 import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.PostChain;
 import net.minecraft.network.chat.Component;
@@ -129,7 +131,6 @@ public class ClientEvents {
                     }
                 }
             } else {
-                // Boa : le joueur enroulé n'est pas passager → détection par proximité.
                 BoaEntity grabbingBoa = player.level()
                         .getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
                         .stream()
@@ -168,7 +169,7 @@ public class ClientEvents {
             if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player ||
                     player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player ||
                     player.getVehicle() instanceof BoaEntity boa && boa.getGrabbedTarget() == player) {
-                event.getInput().shiftKeyDown = false;   // empêche le sneak-dismount tant qu'on est grabbé
+                event.getInput().shiftKeyDown = false;
             }
         }
     }
@@ -194,8 +195,6 @@ public class ClientEvents {
         cachedWorldName = null;
         pendingWarning = false;
         warningTick = 0;
-        // Réinitialise l'état du flou Venin : sinon, en revenant avec le Venin, l'optimisation
-        // "load-once" croit le shader déjà chargé alors que le gameRenderer a été vidé → pas de flou.
         currentVenomBlur = null;
         maxEffectDuration = 0;
         setBlurPercentage(0);
@@ -217,7 +216,6 @@ public class ClientEvents {
         if (player != null) {
             Entity ridingEntity = player.getRootVehicle();
             if (ridingEntity instanceof Submarine) {
-                // Submarine checked first — it extends OWEntity but uses its own right-click logic
                 if (rightButtonIsPressed && canUseRightClick(minecraft)) {
                     OWNetworkHandler.sendToServer(new ClientPressedRightClick());
                 }
@@ -251,7 +249,6 @@ public class ClientEvents {
             }
         }
         if (minecraft.player != null && OWKeysBinding.OW_ENTITY_JOURNAL.isDown()) {
-            //minecraft.setScreen(new OWEntityJournalScreen());
             minecraft.setScreen(new AdventurerManuscriptScreen());
             isNotifiedOWBook = false;
             minecraft.player.playSound(SoundEvents.BOOK_PAGE_TURN);
@@ -270,7 +267,6 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onPlayerJoinWorld(ClientPlayerNetworkEvent.LoggingIn event) {
-        // Flou Venin : repart d'un état propre → si on revient avec le Venin, le shader sera rechargé.
         currentVenomBlur = null;
         maxEffectDuration = 0;
         setBlurPercentage(0);
@@ -329,7 +325,6 @@ public class ClientEvents {
 
         if (mc.hasSingleplayerServer() && mc.getSingleplayerServer() != null) {
             try {
-                // Nom du dossier de sauvegarde (unique) plutôt que getLevelName() (nom d'affichage, pas unique)
                 java.nio.file.Path root = mc.getSingleplayerServer().getWorldPath(LevelResource.ROOT);
                 cachedWorldName = root.toAbsolutePath().normalize().getFileName().toString();
             } catch (Exception ignored) {
@@ -423,28 +418,27 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onHypnosisCameraPull(ViewportEvent.ComputeCameraAngles event) {
-        // PAR FRAME (et non par tick) → traction lisse, sans saccade.
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         if (player == null || mc.level == null) return;
         if (player.isCreative() || player.isSpectator()) return;
 
-        // Un boa proche m'hypnotise-t-il ? (état + cible synchronisés)
         net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa = player.level()
                 .getEntitiesOfClass(net.tiew.operationWild.entity.animals.terrestrial.BoaEntity.class,
                         player.getBoundingBox().inflate(12.0))
                 .stream()
                 .filter(b -> b.isHypnotizing() && b.getHypnosisTargetId() == player.getId())
                 .findFirst().orElse(null);
-        if (boa == null) { wasHypnotized = false; return; }
+        if (boa == null) {
+            wasHypnotized = false;
+            return;
+        }
 
-        // Front montant de l'hypnose → déclenche l'overlay d'apparition (style totem) une seule fois.
         if (!wasHypnotized) {
             hypnosisOverlayStart = System.currentTimeMillis();
             wasHypnotized = true;
         }
 
-        // Traction douce de la caméra vers les yeux du boa (façon télé Poppy Playtime ch.3).
         Vec3 eyes = boa.getEyePosition();
         double dx = eyes.x - player.getX();
         double dz = eyes.z - player.getZ();
@@ -453,41 +447,41 @@ public class ClientEvents {
         float wantedYaw = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90f;
         float wantedPitch = (float) (-(Mth.atan2(dy, horiz) * Mth.RAD_TO_DEG));
 
-        // Facteur mis à l'échelle du temps réel de la frame → indépendant du FPS et fluide.
         float dt = (float) mc.getTimer().getRealtimeDeltaTicks();
         float pull = Mth.clamp(dt * HYPNOSIS_PULL_SPEED, 0f, 1f);
 
         float newYaw = approachAngle(player.getYRot(), wantedYaw, pull);
         float newPitch = Mth.clamp(approachAngle(player.getXRot(), wantedPitch, pull), -90f, 90f);
-        // On fige aussi les valeurs "old" : pas d'interpolation parasite tick↔frame → plus de saccade.
-        player.setYRot(newYaw);   player.yRotO = newYaw;
-        player.setXRot(newPitch); player.xRotO = newPitch;
-        player.setYHeadRot(newYaw); player.yHeadRot = newYaw; player.yHeadRotO = newYaw;
-        player.yBodyRot = newYaw;   player.yBodyRotO = newYaw;
-        // Override aussi la vue de CETTE frame (sinon 1 frame de retard → micro-saccade).
+        player.setYRot(newYaw);
+        player.yRotO = newYaw;
+        player.setXRot(newPitch);
+        player.xRotO = newPitch;
+        player.setYHeadRot(newYaw);
+        player.yHeadRot = newYaw;
+        player.yHeadRotO = newYaw;
+        player.yBodyRot = newYaw;
+        player.yBodyRotO = newYaw;
         event.setYaw(newYaw);
         event.setPitch(newPitch);
     }
 
-    private static final float HYPNOSIS_PULL_SPEED = 0.25f; // vitesse de la traction (plus haut = plus rapide)
+    private static final float HYPNOSIS_PULL_SPEED = 0.25f;
 
     private static float approachAngle(float current, float wanted, float fraction) {
         return current + Mth.wrapDegrees(wanted - current) * fraction;
     }
 
-    // ── Overlay d'apparition de l'hypnose (style Totem of Undying, texture animée) ──
     private static boolean wasHypnotized = false;
-    private static long    hypnosisOverlayStart = -1L;
+    private static long hypnosisOverlayStart = -1L;
 
-    // Texture FIXE 64×64 (pas d'animation de frames).
     private static final ResourceLocation HYP_OVERLAY_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/hypnosis_overlay.png");
-    private static final int   HYP_OVERLAY_FRAME_W   = 64;    // largeur de la texture (px)
-    private static final int   HYP_OVERLAY_FRAME_H   = 64;    // hauteur de la texture (px)
-    private static final int   HYP_OVERLAY_FRAMES    = 1;     // 1 = texture fixe
-    private static final long  HYP_OVERLAY_DURATION_MS = 1500;// durée totale de l'apparition à l'écran
-    private static final long  HYP_OVERLAY_FRAME_MS    = 60;  // (inutilisé si 1 frame)
-    private static final float HYP_OVERLAY_SCALE        = 2.3f;// échelle à l'écran (~147 px)
+    private static final int HYP_OVERLAY_FRAME_W = 64;
+    private static final int HYP_OVERLAY_FRAME_H = 64;
+    private static final int HYP_OVERLAY_FRAMES = 1;
+    private static final long HYP_OVERLAY_DURATION_MS = 1500;
+    private static final long HYP_OVERLAY_FRAME_MS = 60;
+    private static final float HYP_OVERLAY_SCALE = 2.3f;
 
     @SubscribeEvent
     public static void onRenderHypnosisOverlay(RenderGuiEvent.Post event) {
@@ -496,13 +490,15 @@ public class ClientEvents {
         if (mc.player == null || mc.options.hideGui) return;
 
         long el = System.currentTimeMillis() - hypnosisOverlayStart;
-        if (el > HYP_OVERLAY_DURATION_MS) { hypnosisOverlayStart = -1L; return; }
+        if (el > HYP_OVERLAY_DURATION_MS) {
+            hypnosisOverlayStart = -1L;
+            return;
+        }
 
         GuiGraphics g = event.getGuiGraphics();
         int sw = g.guiWidth(), sh = g.guiHeight();
-        float t = el / (float) HYP_OVERLAY_DURATION_MS; // 0..1
+        float t = el / (float) HYP_OVERLAY_DURATION_MS;
 
-        // Opacité qui décroît linéairement de 1 → 0 sur toute la durée. Pop d'échelle au début.
         float alpha = Mth.clamp(1f - t, 0f, 1f);
         float pop = 1f - (float) Math.pow(1f - Math.min(t / 0.25f, 1f), 3);
         float scale = HYP_OVERLAY_SCALE * (0.7f + 0.3f * pop);
@@ -524,7 +520,6 @@ public class ClientEvents {
         com.mojang.blaze3d.systems.RenderSystem.disableBlend();
     }
 
-    /** Boa proche qui hypnotise le joueur local, ou null. */
     private static net.tiew.operationWild.entity.animals.terrestrial.BoaEntity localHypnotizingBoa() {
         Minecraft mc = Minecraft.getInstance();
         Player p = mc.player;
@@ -537,10 +532,9 @@ public class ClientEvents {
                 .findFirst().orElse(null);
     }
 
-    // Teinte hypnotique jaune/magenta plein écran pendant l'hypnose (fondu d'entrée/sortie).
     private static float hypnoScreenAlpha = 0f;
-    private static final float HYPNO_VEIL_MIN_ALPHA = 0.10f; // opacité mini de l'oscillation
-    private static final float HYPNO_VEIL_MAX_ALPHA = 0.25f; // opacité maxi de l'oscillation
+    private static final float HYPNO_VEIL_MIN_ALPHA = 0.10f;
+    private static final float HYPNO_VEIL_MAX_ALPHA = 0.25f;
 
     @SubscribeEvent
     public static void onRenderHypnosisScreen(RenderGuiEvent.Post event) {
@@ -550,22 +544,21 @@ public class ClientEvents {
         boolean active = localHypnotizingBoa() != null;
         float dt = (float) mc.getTimer().getRealtimeDeltaTicks();
         float fade = Mth.clamp(dt * 0.18f, 0f, 1f);
-        hypnoScreenAlpha += ((active ? 1f : 0f) - hypnoScreenAlpha) * fade; // fondu in/out
-        if (hypnoScreenAlpha < 0.01f) { if (!active) hypnoScreenAlpha = 0f; return; }
+        hypnoScreenAlpha += ((active ? 1f : 0f) - hypnoScreenAlpha) * fade;
+        if (hypnoScreenAlpha < 0.01f) {
+            if (!active) hypnoScreenAlpha = 0f;
+            return;
+        }
 
         GuiGraphics g = event.getGuiGraphics();
         int sw = g.guiWidth(), sh = g.guiHeight();
         float time = (System.currentTimeMillis() % 1_000_000L) / 1000f;
-        // Opacité de fond qui OSCILLE entre HYPNO_VEIL_MIN/MAX, multipliée par le fondu in/out (→ 0 à la fin).
         float mid = (HYPNO_VEIL_MIN_ALPHA + HYPNO_VEIL_MAX_ALPHA) * 0.5f;
         float amp = (HYPNO_VEIL_MAX_ALPHA - HYPNO_VEIL_MIN_ALPHA) * 0.5f;
-        float osc = mid + amp * (float) Math.sin(time * 1.3);   // oscillation lente et lisible
+        float osc = mid + amp * (float) Math.sin(time * 1.3);
         int aInt = (int) (hypnoScreenAlpha * osc * 255f);
         if (aInt <= 0) return;
 
-        // Tunnel hypnotique : anneaux rectangulaires concentriques jaune↔magenta qui défilent,
-        // avec un léger wobble du centre (« bouge un peu »). Dessinés en ANNEAUX → pas d'empilement
-        // d'alpha (opacité uniforme).
         float cx = sw / 2f + (float) Math.sin(time * 2.1) * sw * 0.025f;
         float cy = sh / 2f + (float) Math.cos(time * 1.7) * sh * 0.025f;
         int rings = 24;
@@ -578,15 +571,15 @@ public class ClientEvents {
             boolean yellow = ((i + cycle) & 1) == 0;
             int col = (aInt << 24) | (yellow ? 0xFFE000 : 0xE000E0);
 
-            int ox0 = (int) (cx - cx * fo),        oy0 = (int) (cy - cy * fo);
+            int ox0 = (int) (cx - cx * fo), oy0 = (int) (cy - cy * fo);
             int ox1 = (int) (cx + (sw - cx) * fo), oy1 = (int) (cy + (sh - cy) * fo);
-            int ix0 = (int) (cx - cx * fi),        iy0 = (int) (cy - cy * fi);
+            int ix0 = (int) (cx - cx * fi), iy0 = (int) (cy - cy * fi);
             int ix1 = (int) (cx + (sw - cx) * fi), iy1 = (int) (cy + (sh - cy) * fi);
 
-            g.fill(ox0, oy0, ox1, iy0, col); // haut
-            g.fill(ox0, iy1, ox1, oy1, col); // bas
-            g.fill(ox0, iy0, ix0, iy1, col); // gauche
-            g.fill(ix1, iy0, ox1, iy1, col); // droite
+            g.fill(ox0, oy0, ox1, iy0, col);
+            g.fill(ox0, iy1, ox1, oy1, col);
+            g.fill(ox0, iy0, ix0, iy1, col);
+            g.fill(ix1, iy0, ox1, iy1, col);
         }
         com.mojang.blaze3d.systems.RenderSystem.disableBlend();
     }
@@ -640,21 +633,17 @@ public class ClientEvents {
             ).forEach(tiger -> CosmeticsQuestsRegistry.getAllQuests().forEach(q -> q.update(tiger.getUUID())));
         }
 
-        // Trainée dorée — SKIN_GOLD en mouvement
         if (player.level().isClientSide()) {
-            // Tiger SKIN_GOLD
             player.level().getEntitiesOfClass(TigerEntity.class,
                     player.getBoundingBox().inflate(32),
                     e -> e.isTame() && e.getVariant() == TigerVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
             ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
 
-            // Kodiak SKIN_GOLD
             player.level().getEntitiesOfClass(KodiakEntity.class,
                     player.getBoundingBox().inflate(32),
                     e -> e.isTame() && e.getVariant() == KodiakVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
             ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
 
-            // Crocodile SKIN_GOLD
             player.level().getEntitiesOfClass(CrocodileEntity.class,
                     player.getBoundingBox().inflate(32),
                     e -> e.isTame() && e.getVariant() == CrocodileVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
@@ -805,7 +794,8 @@ public class ClientEvents {
 
             if (player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine)) {
                 if (player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player) return;
-                if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player) return;
+                if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player)
+                    return;
                 if (player.getVehicle() instanceof BoaEntity boa && boa.getGrabbedTarget() == player) return;
                 OWEntityHud.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
                 OWAttacksOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
@@ -866,9 +856,6 @@ public class ClientEvents {
             setBlurPercentage(blurPercentage <= 0.9999 ? blurPercentage : 0.0);
         }
 
-        // IMPORTANT : ne charger l'effet QUE s'il change (sinon recréation du PostChain à chaque frame
-        // en plein rendu → la main de première personne disparaît). Une fois actif, le pipeline 1.21
-        // dessine la main APRÈS le post-effet → le bras reste visible.
         ResourceLocation shader = pickBlurShader(getBlurPercentage());
         if (shader != null && !shader.equals(currentVenomBlur)) {
             Minecraft.getInstance().gameRenderer.loadEffect(shader);
@@ -878,7 +865,7 @@ public class ClientEvents {
 
     private static ResourceLocation pickBlurShader(double bp) {
         int n;
-        if (bp >= 90)      n = 10;
+        if (bp >= 90) n = 10;
         else if (bp >= 80) n = 9;
         else if (bp >= 70) n = 8;
         else if (bp >= 60) n = 7;
@@ -887,7 +874,7 @@ public class ClientEvents {
         else if (bp >= 30) n = 4;
         else if (bp >= 20) n = 3;
         else if (bp >= 10) n = 2;
-        else if (bp >= 0)  n = 1;
+        else if (bp >= 0) n = 1;
         else return null;
         return ResourceLocation.parse("ow:shaders/blur_shader/blur" + n + ".json");
     }
@@ -899,22 +886,13 @@ public class ClientEvents {
         setBlurPercentage(0);
     }
 
-    // --- Blink shader ---
-    public static boolean blinkSubmarineShader = false;  // set par SeaBugEntity
+    public static boolean blinkSubmarineShader = false;
     private static int blinkTimer = 0;
     private static boolean blinkShaderOn = false;
 
-    /**
-     * À appeler chaque tick client. Fait clignoter le shader donné à des intervalles
-     * aléatoires entre 0.2 s (4 ticks) et 1 s (20 ticks).
-     * Arrêter avec {@link #stopBlinkShader()}.
-     *
-     * Exemple : ClientEvents.tickBlinkShader(ResourceLocation.parse("ow:shaders/my_shader.json"));
-     */
     public static void tickBlinkShader(ResourceLocation shader) {
         if (blinkTimer <= 0) {
             blinkShaderOn = !blinkShaderOn;
-            // Intervalle aléatoire : 4 à 20 ticks (0.2 s – 1 s)
             blinkTimer = 4 + (int) (Math.random() * 17);
             if (blinkShaderOn) {
                 Minecraft.getInstance().gameRenderer.loadEffect(shader);
@@ -925,13 +903,11 @@ public class ClientEvents {
         blinkTimer--;
     }
 
-    /** Arrête le clignotement et coupe le shader. */
     public static void stopBlinkShader() {
         blinkTimer = 0;
         blinkShaderOn = false;
         Minecraft.getInstance().gameRenderer.shutdownEffect();
     }
-    // --------------------
 
     public static float getWaterPressure(int waterDepth) {
         return (1 + 0.1f * waterDepth + 0.005f * waterDepth * waterDepth + Math.max(0, waterDepth - 70) * 0.75f) / 2.125f;
@@ -1031,7 +1007,9 @@ public class ClientEvents {
     private static float savedXRot = 0f;
     private static float savedXRotO = 0f;
 
-    private record SavedRots(float xRot, float xRotO, float yBody, float yBodyO, float yHead, float yHeadO) {}
+    private record SavedRots(float xRot, float xRotO, float yBody, float yBodyO, float yHead, float yHeadO) {
+    }
+
     private static final Map<UUID, SavedRots> SAVED_PLAYER_ROTS = new HashMap<>();
 
     @SubscribeEvent
@@ -1059,10 +1037,10 @@ public class ClientEvents {
                 && o.getPassengers().indexOf(player) != 0;
 
         if (isKodiakPassenger) {
-            player.yBodyRot  = ((KodiakEntity) owVehicle).yBodyRot;
+            player.yBodyRot = ((KodiakEntity) owVehicle).yBodyRot;
             player.yBodyRotO = ((KodiakEntity) owVehicle).yBodyRot;
         } else if (isOrcaPassenger) {
-            player.yBodyRot  = ((OrcaEntity) owVehicle).yBodyRot;
+            player.yBodyRot = ((OrcaEntity) owVehicle).yBodyRot;
             player.yBodyRotO = ((OrcaEntity) owVehicle).yBodyRot;
         } else {
             player.yBodyRot = vehicleYaw;
@@ -1120,14 +1098,10 @@ public class ClientEvents {
                 && boaPose.getGrabbedTargetId() != player.getId()
                 && boaPose.getFirstTailPart() != null) {
             poseStack.pushPose();
-            // On FORCE tout le modèle du rider (corps + tête) à s'orienter sur le yaw du PREMIER segment
-            // de queue, en compensant le yBodyRot que la monture impose (qui ne tournait que la tête).
-            // INTERPOLÉ avec le partialTick → rotation fluide (sinon ça saute à 20 Hz).
             float pt = event.getPartialTick();
             Entity seg = boaPose.getFirstTailPart();
-            float segYaw  = Mth.rotLerp(pt, seg.yRotO, seg.getYRot());
+            float segYaw = Mth.rotLerp(pt, seg.yRotO, seg.getYRot());
             float bodyYaw = Mth.rotLerp(pt, player.yBodyRotO, player.yBodyRot);
-            // Intensité de la rotation gauche/droite réduite de moitié (delta de yaw × 0.5).
             poseStack.mulPose(Axis.YP.rotationDegrees(Mth.wrapDegrees(bodyYaw - segYaw) * 0.5f));
         } else if (owVehicle instanceof KodiakEntity kodiak) {
             poseStack.pushPose();
@@ -1236,91 +1210,43 @@ public class ClientEvents {
         }
     }
 
-    /*@SubscribeEvent
-    public static void renderCustomHearts(RenderLevelStageEvent event) {
-        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL && Minecraft.getInstance().screen == null
-                && !Minecraft.getInstance().options.hideGui && !Minecraft.getInstance().getDebugOverlay().showDebugScreen()) {
-            Minecraft minecraft = Minecraft.getInstance();
-            Player player = minecraft.player;
-
-            if (player != null) {
-                Entity vehicle = player.getVehicle();
-                boolean screenOpen = minecraft.screen != null;
-                boolean hasVenom = player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()) || (vehicle != null && vehicle instanceof LivingEntity livingEntity && livingEntity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()));
-                int waterDepth = player.isInWater() ? (int) (player.level().getSeaLevel() - player.getY()) : -1;
-                float waterPressure = getWaterPressure(waterDepth);
-                boolean shouldApplyBlur = hasVenom && !screenOpen;
-
-                if (shouldApplyBlur) {
-                    applyMinecraftBlurShader(player);
-                } else {
-                    removeMinecraftBlurShader();
-                }
-
-                if (waterPressure >= 4 && !player.isCreative() && player.isAlive() && minecraft.screen == null && !minecraft.isPaused() && !isInSubmarine(player)) {
-                    if (waterPressure >= 60)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur10.json"));
-                    else if (waterPressure >= 54)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur9.json"));
-                    else if (waterPressure >= 48)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur8.json"));
-                    else if (waterPressure >= 42)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur7.json"));
-                    else if (waterPressure >= 36)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur6.json"));
-                    else if (waterPressure >= 30)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur5.json"));
-                    else if (waterPressure >= 24)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur4.json"));
-                    else if (waterPressure >= 18)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur3.json"));
-                    else if (waterPressure >= 12)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur2.json"));
-                    else if (waterPressure >= 6)
-                        Minecraft.getInstance().gameRenderer.loadEffect(ResourceLocation.parse("ow:shaders/blur_shader/blur1.json"));
-
-
-            }
-        }
-    }*/
-
-    // IDs des joueurs dont le render a été annulé par Shadow Strike (pour éviter un popPose orphelin)
     private static final Set<Integer> shadowStrikeHiddenRiders = new HashSet<>();
 
     private static boolean hasProcessedThisFrame = false;
     private static int shaderLoadCooldown = 0;
     private static final Matrix4f cachedProj = new Matrix4f();
-    // UUID stable entre reconnexions ; currentEntityIds rebuilt chaque frame (IDs session-spécifiques)
-    private static final Map<UUID, WaypointState> waypointStates    = new LinkedHashMap<>();
-    private static final Map<UUID, Integer>        currentEntityIds  = new HashMap<>();
+    private static final Map<UUID, WaypointState> waypointStates = new LinkedHashMap<>();
+    private static final Map<UUID, Integer> currentEntityIds = new HashMap<>();
 
     private static class WaypointState {
-        UUID    ownerUUID;
-        Vec3    lastPos     = null;
-        String  name        = "";
-        int     fillColor   = 0x1A8FFF, borderColor = 0xAADDFF, textColor = 0xFFFFFF;
-        int     entityColor = 0xFFFFFF;   // ← ajouter
-        int     iconSize    = 7, maxDist = 2000;
-        float   minDist     = 3.0f, minOpacity = 0.25f, fontScale = 1.0f;
-        float   visibility  = 0f;
-        float   smoothedPop = 0f;
+        UUID ownerUUID;
+        Vec3 lastPos = null;
+        String name = "";
+        int fillColor = 0x1A8FFF, borderColor = 0xAADDFF, textColor = 0xFFFFFF;
+        int entityColor = 0xFFFFFF;
+        int iconSize = 7, maxDist = 2000;
+        float minDist = 3.0f, minOpacity = 0.25f, fontScale = 1.0f;
+        float visibility = 0f;
+        float smoothedPop = 0f;
         boolean hasBeenSeen = false;
-        boolean isEnabled   = true;
+        boolean isEnabled = true;
     }
 
     private record ComputedWaypoint(
             float screenX, float screenY, int dist, float popFactor, float visibility,
             String name, int fillColor, int borderColor, int textColor,
-            int iconSize, float minOpacity, float fontScale) {}
+            int iconSize, float minOpacity, float fontScale) {
+    }
 
     private record ComputedCluster(
             float screenX, float screenY, int dist, float popFactor, float visibility,
             List<Integer> fillColors,
             String entityTypeName,
-            int    entityTypeColor,
+            int entityTypeColor,
             int borderColor, int textColor,
             int iconSize, float minOpacity, float fontScale,
-            int totalCount) {}
+            int totalCount) {
+    }
 
     private static final Map<String, Float> clusterPopSmoothed = new HashMap<>();
     private static final Map<String, ComputedCluster> computedClusters = new LinkedHashMap<>();
@@ -1344,7 +1270,6 @@ public class ClientEvents {
 
         float pt = event.getPartialTick().getGameTimeDeltaPartialTick(true);
 
-        // ── Mise à jour des états depuis les entités en range ─────────────────
         currentEntityIds.clear();
         for (OWEntity candidate : mc.level.getEntitiesOfClass(
                 OWEntity.class, player.getBoundingBox().inflate(2048))) {
@@ -1369,19 +1294,19 @@ public class ClientEvents {
                     Mth.lerp(pt, candidate.xOld, candidate.getX()),
                     Mth.lerp(pt, candidate.yOld, candidate.getY()) + candidate.getBbHeight() * 0.5,
                     Mth.lerp(pt, candidate.zOld, candidate.getZ()));
-            state.ownerUUID   = player.getUUID();
+            state.ownerUUID = player.getUUID();
             state.hasBeenSeen = true;
-            state.name        = candidate.getCustomName() != null
+            state.name = candidate.getCustomName() != null
                     ? candidate.getCustomName().getString() : w.getWaypointName();
-            state.fillColor   = w.getWaypointFillColor();
+            state.fillColor = w.getWaypointFillColor();
             state.entityColor = candidate.getEntityColor();
             state.borderColor = w.getWaypointBorderColor();
-            state.textColor   = w.getWaypointTextColor();
-            state.iconSize    = w.getWaypointIconSize();
-            state.maxDist     = w.getWaypointMaxDistance();
-            state.minDist     = w.getWaypointMinDistance();
-            state.minOpacity  = w.getWaypointMinOpacity();
-            state.fontScale   = w.getWaypointDistanceFontScale();
+            state.textColor = w.getWaypointTextColor();
+            state.iconSize = w.getWaypointIconSize();
+            state.maxDist = w.getWaypointMaxDistance();
+            state.minDist = w.getWaypointMinDistance();
+            state.minOpacity = w.getWaypointMinOpacity();
+            state.fontScale = w.getWaypointDistanceFontScale();
 
             if (isCurrentMount) continue;
         }
@@ -1396,7 +1321,6 @@ public class ClientEvents {
         Matrix4f projView = new Matrix4f(cachedProj)
                 .rotate(new Quaternionf(cam.rotation()).conjugate());
 
-        // ── Passe 1 : calcul du focus pour chaque waypoint ────────────────────
         Map<UUID, Float> focusPerUUID = new LinkedHashMap<>();
         for (Map.Entry<UUID, WaypointState> entry : waypointStates.entrySet()) {
             WaypointState state = entry.getValue();
@@ -1408,7 +1332,10 @@ public class ClientEvents {
             Vector4f clipPos = new Vector4f(
                     (float) toTarget.x, (float) toTarget.y, (float) toTarget.z, 1.0f);
             projView.transform(clipPos);
-            if (Math.abs(clipPos.w) < 0.001f) { focusPerUUID.put(entry.getKey(), 0f); continue; }
+            if (Math.abs(clipPos.w) < 0.001f) {
+                focusPerUUID.put(entry.getKey(), 0f);
+                continue;
+            }
 
             boolean isBehind = clipPos.w <= 0f;
             float ndcX = clipPos.x / clipPos.w;
@@ -1418,19 +1345,20 @@ public class ClientEvents {
             focusPerUUID.put(entry.getKey(), focus);
         }
 
-        // Seul le waypoint avec le focus le plus élevé peut s'agrandir
         UUID bestUUID = null;
         float bestFocus = 0f;
         for (Map.Entry<UUID, Float> e : focusPerUUID.entrySet()) {
-            if (e.getValue() > bestFocus) { bestFocus = e.getValue(); bestUUID = e.getKey(); }
+            if (e.getValue() > bestFocus) {
+                bestFocus = e.getValue();
+                bestUUID = e.getKey();
+            }
         }
 
-        // ── Passe 2 : visibility, smoothedPop et position écran ───────────────
         for (Map.Entry<UUID, WaypointState> entry : waypointStates.entrySet()) {
             WaypointState state = entry.getValue();
             if (!state.hasBeenSeen || state.lastPos == null) continue;
             if (!player.getUUID().equals(state.ownerUUID)) continue;
-            if (!state.isEnabled) continue; // ← ajout ici
+            if (!state.isEnabled) continue;
 
             Integer entityId = currentEntityIds.get(entry.getKey());
             Entity rawEntity = entityId != null ? mc.level.getEntity(entityId) : null;
@@ -1443,7 +1371,7 @@ public class ClientEvents {
             if (dist <= state.minDist || dist > state.maxDist) {
                 targetVisibility = 0.0f;
             } else if (dist < state.minDist + fadeZone) {
-                targetVisibility = (float)(dist - state.minDist) / fadeZone;
+                targetVisibility = (float) (dist - state.minDist) / fadeZone;
             } else {
                 targetVisibility = 1.0f;
             }
@@ -1476,7 +1404,7 @@ public class ClientEvents {
             if (!onScreen) {
                 float scaleX = Math.abs(dx) > 0.001f ? (cx - margin) / Math.abs(dx) : Float.MAX_VALUE;
                 float scaleY = Math.abs(dy) > 0.001f ? (cy - margin) / Math.abs(dy) : Float.MAX_VALUE;
-                float scale  = Math.min(scaleX, scaleY);
+                float scale = Math.min(scaleX, scaleY);
                 screenX = cx + dx * scale;
                 screenY = cy + dy * scale;
             }
@@ -1489,7 +1417,7 @@ public class ClientEvents {
 
         computedClusters.clear();
         final double CLUSTER_WORLD_RADIUS = 12.0;
-        final int    MIN_CLUSTER_SIZE     = 3;
+        final int MIN_CLUSTER_SIZE = 3;
 
         List<UUID> allOwned = new ArrayList<>();
         for (Map.Entry<UUID, WaypointState> e : waypointStates.entrySet()) {
@@ -1499,11 +1427,10 @@ public class ClientEvents {
                 allOwned.add(e.getKey());
         }
 
-        Set<UUID>        alreadyClustered = new HashSet<>();
-        List<List<UUID>> groups           = new ArrayList<>();
-        List<String>     groupKeys        = new ArrayList<>();
+        Set<UUID> alreadyClustered = new HashSet<>();
+        List<List<UUID>> groups = new ArrayList<>();
+        List<String> groupKeys = new ArrayList<>();
 
-// Passe 1 : constituer les groupes
         for (int i = 0; i < allOwned.size(); i++) {
             UUID seedUUID = allOwned.get(i);
             if (alreadyClustered.contains(seedUUID)) continue;
@@ -1538,9 +1465,8 @@ public class ClientEvents {
             groupKeys.add(key);
         }
 
-// Passe 2 : focus par cluster
-        String bestClusterKey   = null;
-        float  bestClusterFocus = 0f;
+        String bestClusterKey = null;
+        float bestClusterFocus = 0f;
 
         for (int gi = 0; gi < groups.size(); gi++) {
             Vec3 avgPos = Vec3.ZERO;
@@ -1549,24 +1475,26 @@ public class ClientEvents {
             avgPos = avgPos.scale(1.0 / groups.get(gi).size());
 
             Vec3 toTarget = avgPos.subtract(cam.getPosition());
-            Vector4f clip = new Vector4f((float)toTarget.x,(float)toTarget.y,(float)toTarget.z,1f);
+            Vector4f clip = new Vector4f((float) toTarget.x, (float) toTarget.y, (float) toTarget.z, 1f);
             projView.transform(clip);
             if (Math.abs(clip.w) < 0.001f) continue;
 
             boolean isBehind = clip.w <= 0f;
-            float   ndcX = clip.x / clip.w, ndcY = clip.y / clip.w;
-            float   angDist = isBehind ? 2f : (float) Math.sqrt(ndcX*ndcX + ndcY*ndcY);
-            float   focus = Mth.clamp(1f - angDist / 0.1f, 0f, 1f);
-            if (focus > bestClusterFocus) { bestClusterFocus = focus; bestClusterKey = groupKeys.get(gi); }
+            float ndcX = clip.x / clip.w, ndcY = clip.y / clip.w;
+            float angDist = isBehind ? 2f : (float) Math.sqrt(ndcX * ndcX + ndcY * ndcY);
+            float focus = Mth.clamp(1f - angDist / 0.1f, 0f, 1f);
+            if (focus > bestClusterFocus) {
+                bestClusterFocus = focus;
+                bestClusterKey = groupKeys.get(gi);
+            }
         }
 
-// Passe 3 : visibilité, pop, projection, construction
         Set<String> activeClusterKeys = new HashSet<>();
-        Set<UUID>   confirmedClusteredUUIDs = new HashSet<>();
+        Set<UUID> confirmedClusteredUUIDs = new HashSet<>();
 
         for (int gi = 0; gi < groups.size(); gi++) {
             List<UUID> group = groups.get(gi);
-            String     key   = groupKeys.get(gi);
+            String key = groupKeys.get(gi);
             activeClusterKeys.add(key);
 
             WaypointState seed = waypointStates.get(group.get(0));
@@ -1576,11 +1504,10 @@ public class ClientEvents {
             avgPos = avgPos.scale(1.0 / group.size());
             double avgDistD = player.position().distanceTo(avgPos);
 
-            // ─── Correction 1 : pas de limite de distance pour les clusters ───────
-            float fadeZone  = 10f;
+            float fadeZone = 10f;
             float targetVis;
             if (avgDistD <= seed.minDist) targetVis = 0f;
-            else if (avgDistD < seed.minDist + fadeZone) targetVis = (float)(avgDistD - seed.minDist) / fadeZone;
+            else if (avgDistD < seed.minDist + fadeZone) targetVis = (float) (avgDistD - seed.minDist) / fadeZone;
             else targetVis = 1f;
 
             String visKey = "v_" + key;
@@ -1591,23 +1518,23 @@ public class ClientEvents {
             if (curVis < 0.01f) continue;
 
             boolean isChosen = key.equals(bestClusterKey) && bestClusterFocus > 0.3f;
-            float   curPop   = clusterPopSmoothed.getOrDefault(key, 0f);
+            float curPop = clusterPopSmoothed.getOrDefault(key, 0f);
             curPop = Mth.lerp(curPop < (isChosen ? 1f : 0f) ? 0.11f : 0.07f, curPop, isChosen ? 1f : 0f);
             clusterPopSmoothed.put(key, curPop);
 
             Vec3 toTarget = avgPos.subtract(cam.getPosition());
-            Vector4f clip = new Vector4f((float)toTarget.x,(float)toTarget.y,(float)toTarget.z,1f);
+            Vector4f clip = new Vector4f((float) toTarget.x, (float) toTarget.y, (float) toTarget.z, 1f);
             projView.transform(clip);
             if (Math.abs(clip.w) < 0.001f) continue;
 
             boolean isBehind = clip.w <= 0f;
-            float   ndcX = clip.x / clip.w, ndcY = clip.y / clip.w;
-            float   scrX = (ndcX + 1f) * 0.5f * sw;
-            float   scrY = (1f - ndcY) * 0.5f * sh;
-            float   cx = sw * 0.5f, cy = sh * 0.5f;
-            float   dx = scrX - cx, dy = scrY - cy;
+            float ndcX = clip.x / clip.w, ndcY = clip.y / clip.w;
+            float scrX = (ndcX + 1f) * 0.5f * sw;
+            float scrY = (1f - ndcY) * 0.5f * sh;
+            float cx = sw * 0.5f, cy = sh * 0.5f;
+            float dx = scrX - cx, dy = scrY - cy;
 
-            if (isBehind || scrX <= margin || scrX >= sw-margin || scrY <= margin || scrY >= sh-margin) {
+            if (isBehind || scrX <= margin || scrX >= sw - margin || scrY <= margin || scrY >= sh - margin) {
                 float sc = Math.min(
                         Math.abs(dx) > 0.001f ? (cx - margin) / Math.abs(dx) : Float.MAX_VALUE,
                         Math.abs(dy) > 0.001f ? (cy - margin) / Math.abs(dy) : Float.MAX_VALUE);
@@ -1616,7 +1543,7 @@ public class ClientEvents {
             }
 
             List<Integer> colors = new ArrayList<>();
-            Map<String, long[]> nameData = new LinkedHashMap<>(); // name → [count, entityColor]
+            Map<String, long[]> nameData = new LinkedHashMap<>();
             for (UUID u : group) {
                 WaypointState st = waypointStates.get(u);
                 if (colors.size() < 5) colors.add(st.fillColor);
@@ -1625,14 +1552,13 @@ public class ClientEvents {
                 }
             }
 
-            // Entité type la plus fréquente
-            String mostCommonName  = "";
-            int    mostCommonColor = 0xFFFFFF;
-            long   bestCount       = 0;
+            String mostCommonName = "";
+            int mostCommonColor = 0xFFFFFF;
+            long bestCount = 0;
             for (Map.Entry<String, long[]> e : nameData.entrySet()) {
                 if (e.getValue()[0] > bestCount) {
-                    bestCount       = e.getValue()[0];
-                    mostCommonName  = e.getKey();
+                    bestCount = e.getValue()[0];
+                    mostCommonName = e.getKey();
                     mostCommonColor = (int) e.getValue()[1];
                 }
             }
@@ -1706,25 +1632,25 @@ public class ClientEvents {
         try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             int count = in.readInt();
             for (int i = 0; i < count; i++) {
-                UUID uuid       = UUID.fromString(in.readUTF());
+                UUID uuid = UUID.fromString(in.readUTF());
                 String ownerStr = in.readUTF();
                 double x = in.readDouble(), y = in.readDouble(), z = in.readDouble();
-                String name     = in.readUTF();
+                String name = in.readUTF();
 
                 WaypointState s = new WaypointState();
-                s.ownerUUID   = ownerStr.isEmpty() ? null : UUID.fromString(ownerStr);
-                s.lastPos     = new Vec3(x, y, z);
-                s.name        = name;
+                s.ownerUUID = ownerStr.isEmpty() ? null : UUID.fromString(ownerStr);
+                s.lastPos = new Vec3(x, y, z);
+                s.name = name;
                 s.hasBeenSeen = true;
-                s.fillColor   = in.readInt();
+                s.fillColor = in.readInt();
                 s.borderColor = in.readInt();
-                s.textColor   = in.readInt();
-                s.iconSize    = in.readInt();
-                s.maxDist     = in.readInt();
-                s.minDist     = in.readFloat();
-                s.minOpacity  = in.readFloat();
-                s.fontScale   = in.readFloat();
-                s.isEnabled   = in.readBoolean();
+                s.textColor = in.readInt();
+                s.iconSize = in.readInt();
+                s.maxDist = in.readInt();
+                s.minDist = in.readFloat();
+                s.minOpacity = in.readFloat();
+                s.fontScale = in.readFloat();
+                s.isEnabled = in.readBoolean();
                 s.entityColor = in.readInt();
                 waypointStates.put(uuid, s);
             }
@@ -1756,20 +1682,18 @@ public class ClientEvents {
                         || (vehicle instanceof LivingEntity le && le.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()));
                 boolean shouldApplyBlur = hasVenom && minecraft.screen == null;
 
-                // ── Venom blur ────────────────────────────────────────────────────
                 PostChain currentEffect = minecraft.gameRenderer.currentEffect();
                 boolean isSubmarineEffect = currentEffect != null
                         && currentEffect.getName().equals("ow:shaders/post/submarine_light.json");
 
-                if (!isSubmarineEffect) {   // ne pas écraser le shader sous-marin
+                if (!isSubmarineEffect) {
                     if (shouldApplyBlur) {
-                        applyMinecraftBlurShader(player);   // load-once → main visible (cf. méthode)
+                        applyMinecraftBlurShader(player);
                     } else {
                         if (blurPercentage > 0 || currentVenomBlur != null) removeMinecraftBlurShader();
                     }
                 }
 
-                // ── Submarine shader (logique existante inchangée) ────────────────
                 boolean isOurEffect = currentEffect != null
                         && currentEffect.getName().equals("ow:shaders/post/submarine_light.json");
 
@@ -1800,12 +1724,11 @@ public class ClientEvents {
         }
     }
 
-    // ===== SeaBug Waypoint HUD (style Subnautica) =====
-
     @SubscribeEvent
     public static void onRenderWaypoint(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.options.hideGui || (computedWaypoints.isEmpty() && computedClusters.isEmpty())) return;
+        if (mc.player == null || mc.options.hideGui || (computedWaypoints.isEmpty() && computedClusters.isEmpty()))
+            return;
 
         for (ComputedWaypoint wp : computedWaypoints.values()) {
             drawWaypoint(event.getGuiGraphics(), mc,
@@ -1826,25 +1749,23 @@ public class ClientEvents {
         float pop = cl.popFactor();
 
         float baseOpacity = Math.min(cl.minOpacity() + 0.10f, 0.65f);
-        int fillAlpha   = (int) (Mth.lerp(pop, baseOpacity * 0xCC, 0xCC) * vis);
+        int fillAlpha = (int) (Mth.lerp(pop, baseOpacity * 0xCC, 0xCC) * vis);
         int borderAlpha = (int) (Mth.lerp(pop, baseOpacity * 0xFF, 0xFF) * vis);
-        int distAlpha   = (int) (Mth.lerp(pop, baseOpacity * 0xBB, 0xDD) * vis);
+        int distAlpha = (int) (Mth.lerp(pop, baseOpacity * 0xBB, 0xDD) * vis);
 
         float nameFade = Mth.clamp((pop - 0.6f) / 0.4f, 0f, 1f);
         nameFade = nameFade * nameFade * (3f - 2f * nameFade);
-        int nameAlpha = (int)(nameFade * 0xFE * vis);
+        int nameAlpha = (int) (nameFade * 0xFE * vis);
 
-        // ─── Correction 2 : scale réduite quand regardé (0.85 au lieu de 1.45) ─
         float totalScale = Mth.lerp(pop, 0.55f, 0.85f) * vis;
-        int   iconHalf   = cl.iconSize() + 2;
-        int   border     = (borderAlpha << 24) | cl.borderColor();
+        int iconHalf = cl.iconSize() + 2;
+        int border = (borderAlpha << 24) | cl.borderColor();
 
         List<Integer> colors = cl.fillColors();
         int n = colors.size();
 
         PoseStack pose = gui.pose();
 
-        // ── Losange découpé en N bandes ──────────────────────────────────────────
         pose.pushPose();
         pose.translate(cl.screenX(), cl.screenY(), 300);
         pose.scale(totalScale, totalScale, 1f);
@@ -1852,8 +1773,8 @@ public class ClientEvents {
 
         int totalH = iconHalf * 2;
         for (int i = 0; i < n; i++) {
-            int y1   = -iconHalf + (i * totalH / n);
-            int y2   = -iconHalf + ((i + 1) * totalH / n);
+            int y1 = -iconHalf + (i * totalH / n);
+            int y2 = -iconHalf + ((i + 1) * totalH / n);
             gui.fill(-iconHalf, y1, iconHalf, y2, (fillAlpha << 24) | colors.get(i));
         }
         int sepAlpha = Math.min(borderAlpha, 0x55);
@@ -1861,25 +1782,23 @@ public class ClientEvents {
             int sepY = -iconHalf + (i * totalH / n);
             gui.fill(-iconHalf, sepY, iconHalf, sepY + 1, (sepAlpha << 24) | 0xFFFFFF);
         }
-        gui.fill(-iconHalf, -iconHalf,     iconHalf,     -iconHalf + 1, border);
-        gui.fill(-iconHalf,  iconHalf - 1, iconHalf,      iconHalf,     border);
-        gui.fill(-iconHalf, -iconHalf,    -iconHalf + 1,  iconHalf,     border);
-        gui.fill( iconHalf - 1, -iconHalf, iconHalf,      iconHalf,     border);
+        gui.fill(-iconHalf, -iconHalf, iconHalf, -iconHalf + 1, border);
+        gui.fill(-iconHalf, iconHalf - 1, iconHalf, iconHalf, border);
+        gui.fill(-iconHalf, -iconHalf, -iconHalf + 1, iconHalf, border);
+        gui.fill(iconHalf - 1, -iconHalf, iconHalf, iconHalf, border);
         pose.popPose();
 
-        float scaledHalf      = iconHalf * totalScale;
+        float scaledHalf = iconHalf * totalScale;
         float effectiveFontSc = cl.fontScale() * (1.0f + 0.4f * pop);
 
-        // ─── Correction 3+4 : "Group of / Groupe de" traduit + nom gras coloré ──
         if (nameAlpha > 3 && !cl.entityTypeName().isEmpty()) {
-            // ─── Correction 3 : clé de traduction ────────────────────────────────
-            String prefix   = Component.translatable("owwild.waypoint.group_of").getString() + " ";
+            String prefix = Component.translatable("owwild.waypoint.group_of").getString() + " ";
             String typeName = cl.entityTypeName();
 
             int prefixW = mc.font.width(prefix);
-            int nameW   = mc.font.width(typeName) + 1; // +1 pixel pour le bold
-            int totalW  = prefixW + nameW;
-            int startX  = -totalW / 2;
+            int nameW = mc.font.width(typeName) + 1;
+            int totalW = prefixW + nameW;
+            int startX = -totalW / 2;
 
             float nameY = cl.screenY() - scaledHalf - mc.font.lineHeight * effectiveFontSc - 2f;
             if (nameY < 2f) nameY = cl.screenY() + scaledHalf + mc.font.lineHeight * effectiveFontSc + 4f;
@@ -1888,17 +1807,15 @@ public class ClientEvents {
             pose.translate(cl.screenX(), nameY, 0);
             pose.scale(effectiveFontSc, effectiveFontSc, 1f);
 
-            int prefixColor = (nameAlpha << 24) | (cl.textColor()      & 0xFFFFFF);
-            // ─── Correction 4 : couleur de l'entité + gras (double draw) ─────────
+            int prefixColor = (nameAlpha << 24) | (cl.textColor() & 0xFFFFFF);
             int entityColor = (nameAlpha << 24) | (cl.entityTypeColor() & 0xFFFFFF);
 
-            gui.drawString(mc.font, prefix,   startX,          0, prefixColor, true);
-            gui.drawString(mc.font, typeName, startX + prefixW,     0, entityColor, true);
-            gui.drawString(mc.font, typeName, startX + prefixW + 1, 0, entityColor, false); // bold simulation
+            gui.drawString(mc.font, prefix, startX, 0, prefixColor, true);
+            gui.drawString(mc.font, typeName, startX + prefixW, 0, entityColor, true);
+            gui.drawString(mc.font, typeName, startX + prefixW + 1, 0, entityColor, false);
             pose.popPose();
         }
 
-        // ── Sous le losange ───────────────────────────────────────────────────────
         float baseTextY = cl.screenY() + scaledHalf + 3f;
 
         if (nameAlpha > 3) {
@@ -1929,21 +1846,21 @@ public class ClientEvents {
 
     @OnlyIn(Dist.CLIENT)
     private static void drawWaypoint(GuiGraphics gui, Minecraft mc, float x, float y, int distance,
-                                            float popFactor, float visibility, String name,
-                                            int fillColor, int borderColor, int textColor, int iconSize,
-                                            float minOpacity, float fontScale) {
+                                     float popFactor, float visibility, String name,
+                                     int fillColor, int borderColor, int textColor, int iconSize,
+                                     float minOpacity, float fontScale) {
         float totalScale = Mth.lerp(popFactor, 0.55f, 1.35f) * visibility;
         int iconHalf = iconSize;
 
         float baseOpacity = Math.min(minOpacity + 0.10f, 0.65f);
-        int fillAlpha   = (int) (Mth.lerp(popFactor, baseOpacity * 0xCC, 0xCC) * visibility);
+        int fillAlpha = (int) (Mth.lerp(popFactor, baseOpacity * 0xCC, 0xCC) * visibility);
         int borderAlpha = (int) (Mth.lerp(popFactor, baseOpacity * 0xFF, 0xFF) * visibility);
-        int distAlpha   = (int) (Mth.lerp(popFactor, baseOpacity * 0xBB, 0xDD) * visibility);
+        int distAlpha = (int) (Mth.lerp(popFactor, baseOpacity * 0xBB, 0xDD) * visibility);
         float nameFade = Mth.clamp((popFactor - 0.6f) / 0.4f, 0.0f, 1.0f);
         nameFade = nameFade * nameFade * (3f - 2f * nameFade);
-        int nameAlpha = (int)(nameFade * 0xFE * visibility);
+        int nameAlpha = (int) (nameFade * 0xFE * visibility);
 
-        int fill   = (fillAlpha   << 24) | fillColor;
+        int fill = (fillAlpha << 24) | fillColor;
         int border = (borderAlpha << 24) | borderColor;
 
         PoseStack pose = gui.pose();
@@ -1952,16 +1869,15 @@ public class ClientEvents {
         pose.translate(x, y, 300);
         pose.scale(totalScale, totalScale, 1f);
         pose.mulPose(Axis.ZP.rotationDegrees(45));
-        gui.fill(-iconHalf, -iconHalf,  iconHalf,        iconHalf,      fill);
-        gui.fill(-iconHalf, -iconHalf,  iconHalf,       -iconHalf + 1,  border);
-        gui.fill(-iconHalf,  iconHalf - 1, iconHalf,     iconHalf,      border);
-        gui.fill(-iconHalf, -iconHalf, -iconHalf + 1,    iconHalf,      border);
-        gui.fill( iconHalf - 1, -iconHalf, iconHalf,     iconHalf,      border);
+        gui.fill(-iconHalf, -iconHalf, iconHalf, iconHalf, fill);
+        gui.fill(-iconHalf, -iconHalf, iconHalf, -iconHalf + 1, border);
+        gui.fill(-iconHalf, iconHalf - 1, iconHalf, iconHalf, border);
+        gui.fill(-iconHalf, -iconHalf, -iconHalf + 1, iconHalf, border);
+        gui.fill(iconHalf - 1, -iconHalf, iconHalf, iconHalf, border);
         pose.popPose();
 
         float scaledHalf = iconHalf * totalScale;
 
-        // --- Distance sous l'icône (police plus petite quand pas regardé) ---
         float effectiveFontScale = fontScale * (1.0f + 0.4f * popFactor);
         String distLabel = distance >= 1000
                 ? String.format("%.1f km", distance / 1000f)
@@ -1973,8 +1889,6 @@ public class ClientEvents {
         gui.drawString(mc.font, distLabel, -mc.font.width(distLabel) / 2, 0, (distAlpha << 24) | textColor, true);
         pose.popPose();
 
-        // --- Nom du véhicule au-dessus de l'icône ---
-        // Distance
         if (distAlpha > 3) {
             pose.pushPose();
             pose.translate(x, distTextY, 0);
@@ -1983,7 +1897,6 @@ public class ClientEvents {
             pose.popPose();
         }
 
-// Nom
         if (nameAlpha > 3 && !name.isEmpty()) {
             float nameY = y - scaledHalf - mc.font.lineHeight - 2f;
             if (nameY < 2f) nameY = distTextY + mc.font.lineHeight * fontScale + 1f;
@@ -1993,8 +1906,6 @@ public class ClientEvents {
             pose.popPose();
         }
     }
-
-    // ===================================================
 
     @OnlyIn(Dist.CLIENT)
     private static void pushSubmarineShaderUniforms(PostChain chain, Submarine submarine) {
@@ -2006,20 +1917,20 @@ public class ClientEvents {
             for (Object pass : passes) {
                 Object effect = findShaderEffectInPass(pass);
                 if (effect == null) continue;
-                applyUniform1f(effect, "LightSeparation",        submarine.getShaderLightSeparation());
-                applyUniform1f(effect, "LightY",                 submarine.getShaderLightY());
-                applyUniform1f(effect, "SpotRadius",             submarine.getShaderSpotRadius());
-                applyUniform1f(effect, "ContrastPow",            submarine.getShaderContrastPow());
-                applyUniform1f(effect, "AdditiveStrength",       submarine.getShaderAdditiveStrength());
+                applyUniform1f(effect, "LightSeparation", submarine.getShaderLightSeparation());
+                applyUniform1f(effect, "LightY", submarine.getShaderLightY());
+                applyUniform1f(effect, "SpotRadius", submarine.getShaderSpotRadius());
+                applyUniform1f(effect, "ContrastPow", submarine.getShaderContrastPow());
+                applyUniform1f(effect, "AdditiveStrength", submarine.getShaderAdditiveStrength());
                 applyUniform1f(effect, "MultiplicativeStrength", submarine.getShaderMultiplicativeStrength());
-                applyUniform1f(effect, "ShadowFactor",           submarine.getShaderShadowFactor());
+                applyUniform1f(effect, "ShadowFactor", submarine.getShaderShadowFactor());
                 applyUniform3f(effect, "LightColor", color[0], color[1], color[2]);
                 applyUniform1f(effect, "SingleBeam", submarine.isSingleBeam() ? 1.0f : 0.0f);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
-    // Trouve le shader dans un PostPass en cherchant un champ qui expose safeGetUniform
     private static Object findShaderEffectInPass(Object pass) {
         for (Field f : pass.getClass().getDeclaredFields()) {
             try {
@@ -2029,7 +1940,8 @@ public class ClientEvents {
                     val.getClass().getMethod("safeGetUniform", String.class);
                     return val;
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return null;
     }
@@ -2039,7 +1951,8 @@ public class ClientEvents {
             Method get = effect.getClass().getMethod("safeGetUniform", String.class);
             Object u = get.invoke(effect, name);
             if (u != null) u.getClass().getMethod("set", float.class).invoke(u, value);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private static void applyUniform3f(Object effect, String name, float r, float g, float b) {
@@ -2047,7 +1960,8 @@ public class ClientEvents {
             Method get = effect.getClass().getMethod("safeGetUniform", String.class);
             Object u = get.invoke(effect, name);
             if (u != null) u.getClass().getMethod("set", float.class, float.class, float.class).invoke(u, r, g, b);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     @SubscribeEvent
@@ -2072,7 +1986,7 @@ public class ClientEvents {
             if (mcT.player == null || mcT.level == null
                     || !(mcT.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity crocT)
                     || System.currentTimeMillis() - OWAttackLogic.crocTargetingStartMs
-                       >= OWAttacksConstants.Crocodile.PRIMAL_DIVE_TARGETING_MS) {
+                    >= OWAttacksConstants.Crocodile.PRIMAL_DIVE_TARGETING_MS) {
                 OWAttackLogic.cancelCrocTargeting(OWAttacksHandler.PRIMAL_DIVE_ID);
             } else {
                 updateCrocTargeting(crocT, mcT.player, mcT.level);
@@ -2084,7 +1998,7 @@ public class ClientEvents {
             if (mcB.player == null || mcB.level == null
                     || !(mcB.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boaT)
                     || System.currentTimeMillis() - OWAttackLogic.boaTargetingStartMs
-                       >= OWAttacksConstants.Boa.CONSTRICT_ULT_TARGETING_MS) {
+                    >= OWAttacksConstants.Boa.CONSTRICT_ULT_TARGETING_MS) {
                 OWAttackLogic.cancelBoaTargeting(OWAttacksHandler.CONSTRICT_ULTIMATE_ID);
             } else {
                 updateBoaTargeting(boaT, mcB.player, mcB.level);
@@ -2096,7 +2010,7 @@ public class ClientEvents {
             net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa,
             Player player, net.minecraft.client.multiplayer.ClientLevel level) {
 
-        Vec3 boaPos  = boa.position();
+        Vec3 boaPos = boa.position();
         Vec3 lookVec = player.getLookAngle();
         double r = OWAttacksConstants.Boa.CONSTRICT_ULT_RANGE;
 
@@ -2108,7 +2022,10 @@ public class ClientEvents {
                 e -> e != player && boa.canConstrict(e) && boa.distanceToSqr(e) <= r * r)) {
             Vec3 dir = candidate.getBoundingBox().getCenter().subtract(boaPos).normalize();
             double dot = lookVec.dot(dir);
-            if (dot > bestDot) { bestDot = dot; best = candidate; }
+            if (dot > bestDot) {
+                bestDot = dot;
+                best = candidate;
+            }
         }
 
         if (best != null && bestDot > 0.3) {
@@ -2128,14 +2045,14 @@ public class ClientEvents {
             net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc,
             Player player, net.minecraft.client.multiplayer.ClientLevel level) {
 
-        Vec3 crocPos  = croc.position();
-        Vec3 lookVec  = player.getLookAngle();
+        Vec3 crocPos = croc.position();
+        Vec3 lookVec = player.getLookAngle();
         double radius = 10.0;
 
         AABB box = new AABB(crocPos.x - radius, crocPos.y - radius, crocPos.z - radius,
-                            crocPos.x + radius, crocPos.y + radius, crocPos.z + radius);
+                crocPos.x + radius, crocPos.y + radius, crocPos.z + radius);
 
-        LivingEntity best  = null;
+        LivingEntity best = null;
         double bestDot = Double.NEGATIVE_INFINITY;
 
         for (LivingEntity candidate : level.getEntitiesOfClass(LivingEntity.class, box, e -> {
@@ -2148,7 +2065,10 @@ public class ClientEvents {
         })) {
             Vec3 dir = candidate.getBoundingBox().getCenter().subtract(crocPos).normalize();
             double dot = lookVec.dot(dir);
-            if (dot > bestDot) { bestDot = dot; best = candidate; }
+            if (dot > bestDot) {
+                bestDot = dot;
+                best = candidate;
+            }
         }
 
         if (best != null && bestDot > 0.3) {
@@ -2166,8 +2086,6 @@ public class ClientEvents {
         return Minecraft.getInstance().options.getCameraType().isFirstPerson() && player.getVehicle() instanceof Submarine submarine && submarine.isLightOn() && submarine.isInWater() && player.isInWater() && !submarine.isOff();
     }
 
-    // ── Passive ESP rendering ─────────────────────────────────────────────────
-
     private static void renderPassiveEsp(RenderLevelStageEvent event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
@@ -2179,10 +2097,9 @@ public class ClientEvents {
         java.util.Set<Integer> ids = passive.getHighlightEntityIds(owEntity, mc.level);
         if (ids.isEmpty()) return;
 
-        // Vecteurs caméra (right / up) pour les billboards toujours face au joueur
         org.joml.Quaternionf camRot = event.getCamera().rotation();
         org.joml.Vector3f jRight = new org.joml.Vector3f(1f, 0f, 0f);
-        org.joml.Vector3f jUp    = new org.joml.Vector3f(0f, 1f, 0f);
+        org.joml.Vector3f jUp = new org.joml.Vector3f(0f, 1f, 0f);
         camRot.transform(jRight);
         camRot.transform(jUp);
 
@@ -2223,9 +2140,6 @@ public class ClientEvents {
         pose.popPose();
     }
 
-    // ── Passif Boa : Vision Thermique (petit cœur rouge sur les entités < 150 PV, pour le rider) ──
-
-    // Masque pixel d'un cœur (1 = pixel allumé).
     private static final int[][] HEART_MASK = {
             {0, 1, 1, 0, 1, 1, 0},
             {1, 1, 1, 1, 1, 1, 1},
@@ -2235,12 +2149,9 @@ public class ClientEvents {
             {0, 0, 0, 1, 0, 0, 0},
     };
 
-    // Animation « tir au cœur » : id entité → timestamp (ms) du coup. Pendant HEART_HIT_DURATION_MS,
-    // le cœur grossit et devient gris, puis revient à sa taille/couleur normales.
     private static final java.util.Map<Integer, Long> heartHitTimes = new java.util.HashMap<>();
     private static final float HEART_HIT_DURATION_MS = 350f;
 
-    /** Appelé à la réception de HeartShotPacket (côté client) pour lancer l'animation du cœur. */
     public static void triggerHeartHit(int entityId) {
         heartHitTimes.put(entityId, System.currentTimeMillis());
     }
@@ -2248,9 +2159,9 @@ public class ClientEvents {
     private static void renderThermalHearts(RenderLevelStageEvent event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
-        if (OWAttackLogic.isBoaTargeting) return;   // pendant le ciblage de l'ultime : pas de cœurs, seulement les points verts
-        if (!(mc.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)) return;
-        // Si on est la VICTIME enroulée par ce boa, on ne voit pas la Vision Thermique (c'est le passif du rider, pas du grabbé).
+        if (OWAttackLogic.isBoaTargeting) return;
+        if (!(mc.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa))
+            return;
         if (boa.isGrabbing() && boa.getGrabbedTargetId() == mc.player.getId()) return;
 
         double range = OWAttacksConstants.Boa.THERMAL_RANGE;
@@ -2271,7 +2182,7 @@ public class ClientEvents {
         Matrix4f matrix = pose.last().pose();
 
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        RenderSystem.disableDepthTest();     // ← rendu À TRAVERS l'entité (le mob ne masque jamais le cœur)
+        RenderSystem.disableDepthTest();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
 
@@ -2281,15 +2192,12 @@ public class ClientEvents {
         for (LivingEntity le : targets) {
             if (!le.isAlive()) continue;
             Vec3 c = net.tiew.operationWild.entity.animals.terrestrial.BoaEntity.thermalHeartCenter(le);
-            // Occlusion par les BLOCS uniquement : raycast caméra → cœur ; un bloc plein intercalé
-            // masque le cœur (mais pas les entités, car le depth test est désactivé).
             net.minecraft.world.phys.BlockHitResult clip = mc.level.clip(new net.minecraft.world.level.ClipContext(
                     cam, c,
                     net.minecraft.world.level.ClipContext.Block.COLLIDER,
                     net.minecraft.world.level.ClipContext.Fluid.NONE, mc.player));
             if (clip.getType() != net.minecraft.world.phys.HitResult.Type.MISS) continue;
 
-            // Animation « tir au cœur » : pulse de taille (1 → 1.6 → 1) et virage au gris (0 → 1 → 0).
             float scale = 1f, gray = 0f;
             Long hit = heartHitTimes.get(le.getId());
             if (hit != null) {
@@ -2303,7 +2211,6 @@ public class ClientEvents {
                 }
             }
 
-            // Taille du cœur proportionnelle à la hitbox de la cible (calée sur le cheval).
             float sizeScale = net.tiew.operationWild.entity.animals.terrestrial.BoaEntity.thermalSizeScale(le);
             addHeart(buf, matrix, c, right, up, scale * sizeScale, gray);
             any = true;
@@ -2326,28 +2233,31 @@ public class ClientEvents {
     private static void addHeart(BufferBuilder buf, Matrix4f m, Vec3 center, Vector3f right, Vector3f up,
                                  float scale, float gray) {
         final int rows = HEART_MASK.length, cols = HEART_MASK[0].length;
-        final float p = 0.039f * scale;          // taille visuelle du « pixel » du cœur
+        final float p = 0.039f * scale;
         final float half = p * 0.5f;
-        // Couleur du cœur : rouge → gris selon la phase d'animation.
         final float heartR = 0.85f + (0.5f - 0.85f) * gray;
         final float heartG = 0.05f + (0.5f - 0.05f) * gray;
         final float heartB = 0.05f + (0.5f - 0.05f) * gray;
-        // Grille étendue d'1 pixel pour dessiner le contour noir autour du cœur.
         for (int r = -1; r <= rows; r++) {
             for (int col = -1; col <= cols; col++) {
                 boolean lit = heartMaskAt(r, col) == 1;
                 boolean outline = false;
                 if (!lit) {
-                    // Cellule vide bordant un pixel allumé en 4-voisinage (haut/bas/gauche/droite,
-                    // PAS les diagonales) → contour noir fin, sans coins épais.
                     outline = heartMaskAt(r - 1, col) == 1 || heartMaskAt(r + 1, col) == 1
                             || heartMaskAt(r, col - 1) == 1 || heartMaskAt(r, col + 1) == 1;
                 }
                 if (!lit && !outline) continue;
 
                 float rr, gg, bb;
-                if (lit) { rr = heartR; gg = heartG; bb = heartB; }   // cœur (rouge → gris animé)
-                else     { rr = 0.0f;   gg = 0.0f;   bb = 0.0f;   }   // contour noir
+                if (lit) {
+                    rr = heartR;
+                    gg = heartG;
+                    bb = heartB;
+                } else {
+                    rr = 0.0f;
+                    gg = 0.0f;
+                    bb = 0.0f;
+                }
 
                 float xi = (col - (cols - 1) / 2f) * p;
                 float yi = ((rows - 1) / 2f - r) * p;
@@ -2366,13 +2276,11 @@ public class ClientEvents {
 
     private static void addEspGlowGradient(BufferBuilder buf, Matrix4f matrix,
                                            Vec3 center, Vector3f right, Vector3f up) {
-        // Couches : de l'extérieur (rouge) vers l'intérieur (jaune)
         float[][] layers = {
-                // { size,  R,    G,    B,    A   }
-                { 0.30f, 1.0f, 0.0f, 0.0f, 0.20f }, // Rouge     — couche externe
-                { 0.20f, 1.0f, 0.35f,0.0f, 0.25f }, // Orange
-                { 0.12f, 1.0f, 0.75f,0.0f, 0.30f }, // Jaune-orangé
-                { 0.06f, 1.0f, 1.0f, 0.0f, 0.40f }, // Jaune pur — cœur
+                {0.30f, 1.0f, 0.0f, 0.0f, 0.20f},
+                {0.20f, 1.0f, 0.35f, 0.0f, 0.25f},
+                {0.12f, 1.0f, 0.75f, 0.0f, 0.30f},
+                {0.06f, 1.0f, 1.0f, 0.0f, 0.40f},
         };
 
         for (float[] l : layers) {
@@ -2393,12 +2301,11 @@ public class ClientEvents {
         float cy = (float) center.y;
         float cz = (float) center.z;
 
-        // 4 coins du quad billboard (toujours face caméra)
         float[][] corners = {
-                { cx + (-right.x - up.x) * size, cy + (-right.y - up.y) * size, cz + (-right.z - up.z) * size },
-                { cx + ( right.x - up.x) * size, cy + ( right.y - up.y) * size, cz + ( right.z - up.z) * size },
-                { cx + ( right.x + up.x) * size, cy + ( right.y + up.y) * size, cz + ( right.z + up.z) * size },
-                { cx + (-right.x + up.x) * size, cy + (-right.y + up.y) * size, cz + (-right.z + up.z) * size },
+                {cx + (-right.x - up.x) * size, cy + (-right.y - up.y) * size, cz + (-right.z - up.z) * size},
+                {cx + (right.x - up.x) * size, cy + (right.y - up.y) * size, cz + (right.z - up.z) * size},
+                {cx + (right.x + up.x) * size, cy + (right.y + up.y) * size, cz + (right.z + up.z) * size},
+                {cx + (-right.x + up.x) * size, cy + (-right.y + up.y) * size, cz + (-right.z + up.z) * size},
         };
 
         for (float[] c : corners) {
@@ -2407,21 +2314,21 @@ public class ClientEvents {
     }
 
     private static void addEspGlow(BufferBuilder buf, Matrix4f matrix, Vec3 center,
-                                    org.joml.Vector3f right, org.joml.Vector3f up, int rgb) {
+                                   org.joml.Vector3f right, org.joml.Vector3f up, int rgb) {
         float br = ((rgb >> 16) & 0xFF) / 255f;
-        float bg = ((rgb >> 8)  & 0xFF) / 255f;
-        float bb = (rgb         & 0xFF) / 255f;
+        float bg = ((rgb >> 8) & 0xFF) / 255f;
+        float bb = (rgb & 0xFF) / 255f;
         long t = System.currentTimeMillis();
         float pulse = 0.70f + 0.30f * (float) Math.abs(Math.sin(t * Math.PI / 700.0));
 
         float[][] layers = {
-            { 0.44f, 0.10f * pulse },
-            { 0.30f, 0.20f * pulse },
-            { 0.19f, 0.36f * pulse },
-            { 0.11f, 0.58f * pulse },
-            { 0.06f, 0.82f * pulse },
+                {0.44f, 0.10f * pulse},
+                {0.30f, 0.20f * pulse},
+                {0.19f, 0.36f * pulse},
+                {0.11f, 0.58f * pulse},
+                {0.06f, 0.82f * pulse},
         };
-        float[] intensities = { 0.45f, 0.80f, 1.00f, 1.00f, 1.00f };
+        float[] intensities = {0.45f, 0.80f, 1.00f, 1.00f, 1.00f};
         for (int i = 0; i < layers.length; i++) {
             float sz = layers[i][0], a = layers[i][1], f = intensities[i];
             espBillboard(buf, matrix, center, right, up, sz, br * f, bg * f, bb * f, a);
@@ -2429,11 +2336,11 @@ public class ClientEvents {
     }
 
     private static void espBillboard(BufferBuilder buf, Matrix4f m, Vec3 center,
-                                      org.joml.Vector3f right, org.joml.Vector3f up,
-                                      float size, float r, float g, float b, float a) {
+                                     org.joml.Vector3f right, org.joml.Vector3f up,
+                                     float size, float r, float g, float b, float a) {
         float cx = (float) center.x, cy = (float) center.y, cz = (float) center.z;
         float rx = right.x * size, ry = right.y * size, rz = right.z * size;
-        float ux = up.x * size,    uy = up.y * size,    uz = up.z * size;
+        float ux = up.x * size, uy = up.y * size, uz = up.z * size;
         buf.addVertex(m, cx - rx - ux, cy - ry - uy, cz - rz - uz).setColor(r, g, b, a);
         buf.addVertex(m, cx + rx - ux, cy + ry - uy, cz + rz - uz).setColor(r, g, b, a);
         buf.addVertex(m, cx + rx + ux, cy + ry + uy, cz + rz + uz).setColor(r, g, b, a);

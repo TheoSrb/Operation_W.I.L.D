@@ -738,5 +738,8 @@
   "screen.ow.dev_warning.para2": "Some creatures are §lincomplete§r, certain mechanics are §ltemporary§r, and parts of the content simply §l§ndon't exist yet§r.",
   "screen.ow.dev_warning.para3": "§nBugs, changes, and surprises§r are part of the journey. Your §l§npatience and feedback§r directly shape the §nfuture of this mod§r.",
   "screen.ow.dev_warning.para4": "Thank you for your §npatience§r and any §l§nfeedback§r you may have.",
-  "screen.ow.dev_warning.button": "Understood. Let's go!"
+  "screen.ow.dev_warning.button": "Understood. Let's go!",
+
+  "gamerule.OWAnimalsNoEffort.set": "Game rule OWAnimalsNoEffort set to %s",
+  "gamerule.OWAnimalsNoEffort.query": "OWAnimalsNoEffort is currently %s"
 }

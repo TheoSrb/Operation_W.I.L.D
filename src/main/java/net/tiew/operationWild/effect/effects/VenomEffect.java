@@ -11,12 +11,15 @@ public class VenomEffect extends MobEffect {
         super(effectCategory, color);
     }
 
+    /** Seuil de PV sous lequel le Venin cesse d'infliger des dégâts. */
+    private static final float MIN_HEALTH = 4.0f;
+
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         float hp = entity.getHealth();
-        if (hp > 1.0f) {
-            // On borne les dégâts pour ne JAMAIS descendre sous 1 PV (comme le poison vanilla) →
-            // l'effet Venin ne peut pas tuer.
-            float dmg = Math.min(1.0F, hp - 1.0F);
+        if (hp > MIN_HEALTH) {
+            // On borne les dégâts pour ne JAMAIS descendre sous MIN_HEALTH PV → le Venin
+            // affaiblit mais ne peut pas tuer (ni amener trop bas).
+            float dmg = Math.min(1.0F, hp - MIN_HEALTH);
             entity.hurt(entity.damageSources().magic(), dmg);
         }
         return true;

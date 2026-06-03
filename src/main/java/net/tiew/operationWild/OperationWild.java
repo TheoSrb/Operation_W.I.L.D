@@ -26,6 +26,7 @@ import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.core.OWCommands;
+import net.tiew.operationWild.core.OWGameRules;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.enchantment.OWEnchantmentsEffects;
@@ -102,6 +103,8 @@ public class OperationWild {
         ColorEvents.register(modEventBus);
         OWTerrablender.registerBiomes();
         //OWDailyQuests.run();
+
+        OWGameRules.init();
 
         modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
         if (FMLEnvironment.dist.isClient()) {

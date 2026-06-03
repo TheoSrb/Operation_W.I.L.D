@@ -2,14 +2,19 @@ package net.tiew.operationWild.entity.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.animation.AnimationDefinition;
+import net.minecraft.client.animation.KeyframeAnimations;
+import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
+import net.tiew.operationWild.entity.client.animation.BoaAnimations;
+import org.joml.Vector3f;
 
 /**
  * Modele unique d'un segment, sur le principe de ModelAnaconda (Alex's Mobs) :
@@ -19,10 +24,15 @@ import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
  * selon part.getBodyIndex(), exactement comme RenderAnacondaPart cree une instance
  * par type et choisit dans scale().
  *
- * Les geometries body_0..body_6 sont celles du bbmodel d'origine, inchangees.
- * Chaque cube va de z=0 a z=+16px DERRIERE le pivot.
+ * HIERARCHIE : chaque segment est structure root -> "ALL" -> "body_{index}" pour
+ * COLLER A CELLE DU MODELE DE TETE (BoaModel). Ainsi on peut rejouer DIRECTEMENT les
+ * memes animations de strike (BoaAnimations.ATTACK_STRIKE*) sur la queue : seuls les
+ * canaux "ALL" et "body_{index}" correspondant a ce segment s'appliquent (les autres
+ * bones de l'anim — head, body_1 pour le segment 0, etc. — n'existent pas dans ce
+ * modele et sont ignores par KeyframeAnimations). La tete et la queue jouent donc la
+ * meme animation, bone par bone.
  */
-public class BoaTailPartModel extends EntityModel<BoaTailPart> {
+public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> {
 
     // 7 layers, une par segment (comme avant, le renderer les bake toutes).
     public static final ModelLayerLocation LAYER_BODY_0 = layer("boa_body_0");
@@ -59,17 +69,40 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
     private static final float DIGEST_SECONDS_AT_MIN = 20.0f;
     private static final float DIGEST_SECONDS_AT_MAX = 40.0f;
 
+    private final ModelPart root;
+    private final ModelPart all;
     private final ModelPart segment;
 
-    public BoaTailPartModel(ModelPart root) {
-        this.segment = root.getChild("segment");
+    /**
+     * @param root     le ModelPart racine bake (contient "ALL" -> "body_{index}")
+     * @param boneName nom du bone du segment ("body_0".."body_6"), choisi par le renderer
+     *                 selon l'index. Il doit matcher le nom utilise dans la LayerDefinition
+     *                 ET dans les canaux des animations de strike.
+     */
+    public BoaTailPartModel(ModelPart root, String boneName) {
+        this.root = root;
+        this.all = root.getChild("ALL");
+        this.segment = this.all.getChild(boneName);
     }
 
-    // --- LayerDefinitions : geometrie par segment (inchangee) ---
+    @Override
+    public ModelPart root() {
+        return this.root;
+    }
+
+    // --- LayerDefinitions : geometrie par segment (inchangee, juste re-parentee sous ALL) ---
+    //
+    // Chaque layer construit root -> "ALL" (vide, porte le canal d'anim ALL = levee globale)
+    // -> "body_{index}" (la geometrie du segment). Le nom du segment matche le canal "body_N"
+    // de l'animation de strike, et est aussi celui passe au constructeur par le renderer.
+
+    private static PartDefinition all(MeshDefinition mesh) {
+        return mesh.getRoot().addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.ZERO);
+    }
 
     public static LayerDefinition createBody0Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        PartDefinition segment = mesh.getRoot().addOrReplaceChild("segment",
+        PartDefinition segment = all(mesh).addOrReplaceChild("body_0",
                 CubeListBuilder.create()
                         .texOffs(48, 0)
                         .addBox(-3.5F, -3.0F, 0.0F, 7.0F, 6.0F, 16.0F, new CubeDeformation(0.0F)),
@@ -86,7 +119,7 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
 
     public static LayerDefinition createBody1Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        PartDefinition segment = mesh.getRoot().addOrReplaceChild("segment",
+        PartDefinition segment = all(mesh).addOrReplaceChild("body_1",
                 CubeListBuilder.create()
                         .texOffs(0, 0)
                         .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.0F))
@@ -100,7 +133,7 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
 
     public static LayerDefinition createBody2Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        mesh.getRoot().addOrReplaceChild("segment",
+        all(mesh).addOrReplaceChild("body_2",
                 CubeListBuilder.create()
                         .texOffs(0, 0)
                         .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(-0.001F))
@@ -112,7 +145,7 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
 
     public static LayerDefinition createBody3Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        PartDefinition segment = mesh.getRoot().addOrReplaceChild("segment",
+        PartDefinition segment = all(mesh).addOrReplaceChild("body_3",
                 CubeListBuilder.create()
                         .texOffs(0, 0).mirror()
                         .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.0F)).mirror(false)
@@ -128,7 +161,7 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
 
     public static LayerDefinition createTail1Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        PartDefinition segment = mesh.getRoot().addOrReplaceChild("segment",
+        PartDefinition segment = all(mesh).addOrReplaceChild("body_4",
                 CubeListBuilder.create()
                         .texOffs(48, 0)
                         .addBox(-3.5F, -3.0F, 0.0F, 7.0F, 6.0F, 16.0F, new CubeDeformation(0.0F))
@@ -142,7 +175,7 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
 
     public static LayerDefinition createTail2Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        mesh.getRoot().addOrReplaceChild("segment",
+        all(mesh).addOrReplaceChild("body_5",
                 CubeListBuilder.create()
                         .texOffs(48, 0).mirror()
                         .addBox(-3.5F, -3.0F, 0.0F, 7.0F, 6.0F, 16.0F, new CubeDeformation(-0.001F)).mirror(false)
@@ -154,7 +187,7 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
 
     public static LayerDefinition createTail3Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        mesh.getRoot().addOrReplaceChild("segment",
+        all(mesh).addOrReplaceChild("body_6",
                 CubeListBuilder.create()
                         .texOffs(48, 66)
                         .addBox(-2.5F, -3.0F, 0.0F, 5.0F, 5.0F, 16.0F, new CubeDeformation(0.0F))
@@ -169,13 +202,131 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
     @Override
     public void setupAnim(BoaTailPart entity, float limbSwing, float limbSwingAmount,
                           float ageInTicks, float netHeadYaw, float headPitch) {
-        // Comme ModelAnaconda cote "body" : aucune animation locale, le segment est
-        // pose tel quel. Toute la deformation de la chaine vient de la position/rotation
-        // de l'entite (calculee serveur), appliquee par le renderer (setupRotations).
-        this.segment.resetPose();
+        this.root().getAllParts().forEach(ModelPart::resetPose);
         this.segment.visible = true;
 
         applyDigestionBulge(entity, ageInTicks);
+
+        if (entity.isBoaConstricting()) {
+            this.animate(entity.constrictBreathAnimationState, BoaAnimations.CONSTRICT_BREATH, ageInTicks, 1.0f);
+        }
+
+        // Animation de strike, bone par bone, EXACTEMENT comme la tete (BoaModel) : on
+        // rejoue la meme AnimationDefinition que la tete ; seuls les canaux "ALL" et
+        // "body_{index}" presents dans CE segment s'appliquent. La levee ALL + la rotation
+        // du bone de ce segment se calquent donc sur la tete.
+        AnimationDefinition strike = strikeFor(entity.getComboNumber());
+        if (strike != null) {
+            this.animate(entity.comboAnimationState, strike, ageInTicks, OWEntity.comboSpeedMultiplier);
+            // Translation cumulee des ancetres : voir GhostChain. Rejoue le meme strike,
+            // au MEME instant (accumulatedTime du state, deja avance par this.animate juste
+            // au-dessus), sur un squelette de bones vides, et ajoute a CE segment la somme des
+            // positions de "head" + "body_0".."body_{index-1}" qu'il aurait heritees dans la
+            // hierarchie imbriquee de la tete.
+            addAncestorTranslation(entity.getBodyIndex(), strike,
+                    entity.comboAnimationState.getAccumulatedTime());
+        }
+
+        // Seul le 1er segment (siege du rider, en partant de la tete) capture sa pose
+        // animee : BoaEntity.positionRider relit ce delta Y pour faire suivre le rider et
+        // la camera au cabrage du combo. Chaine root -> ALL -> body_0, Y de repos = TAIL_Y.
+        if (entity.getBodyIndex() == 0) {
+            captureBodyState(entity, TAIL_Y, this.all, this.segment);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    //  COMPENSATION DE TRANSLATION DES ANCETRES (strike)
+    // -------------------------------------------------------------------------
+    //
+    // Dans le modele de la TETE (BoaModel) les bones sont IMBRIQUES :
+    //   head -> body_0 -> body_1 -> ... -> body_6
+    // Une position posee sur "head" (la grande fente vers l'avant du strike) se propage
+    // donc a body_0, body_1, ... Dans la queue, chaque segment est un modele PLAT
+    // (ALL -> body_{index}) : il ne recoit QUE le canal position de SON bone, jamais celui
+    // de ses ancetres. Resultat : body_0 et body_1 jouaient leur rotation mais pas la
+    // translation vers l'avant heritee de "head".
+    //
+    // On recree donc ici un squelette "fantome" (bones vides, offsets zero), on y rejoue le
+    // MEME strike au MEME instant, et on SOMME les positions des ancetres du segment pour les
+    // ajouter a sa pose. On ne prend QUE la position (.x/.y/.z) : la rotation locale du
+    // segment, deja correcte, n'est pas touchee.
+
+    private static final String[] CHAIN =
+            {"head", "body_0", "body_1", "body_2", "body_3", "body_4", "body_5", "body_6"};
+
+    private static final GhostChain GHOST = new GhostChain();
+    private static final Vector3f GHOST_VEC = new Vector3f();
+
+    private static final class GhostChain extends HierarchicalModel<BoaTailPart> {
+        private final ModelPart root;
+        private final ModelPart[] bones = new ModelPart[CHAIN.length];
+
+        GhostChain() {
+            MeshDefinition mesh = new MeshDefinition();
+            for (String name : CHAIN) {
+                mesh.getRoot().addOrReplaceChild(name, CubeListBuilder.create(), PartPose.ZERO);
+            }
+            this.root = mesh.getRoot().bake(16, 16);
+            for (int i = 0; i < CHAIN.length; i++) this.bones[i] = this.root.getChild(CHAIN[i]);
+        }
+
+        @Override public ModelPart root() { return this.root; }
+        @Override public void setupAnim(BoaTailPart e, float a, float b, float c, float d, float f) {}
+        @Override public void renderToBuffer(PoseStack ps, VertexConsumer vc, int l, int o, int col) {}
+    }
+
+    /**
+     * Ajoute a CE segment la translation que ses ancetres (head + body_0..body_{index-1})
+     * lui auraient transmise dans la hierarchie imbriquee de la tete. Position uniquement.
+     */
+    private void addAncestorTranslation(int index, AnimationDefinition strike, long accumulatedTime) {
+        GHOST.root().getAllParts().forEach(ModelPart::resetPose);
+        KeyframeAnimations.animate(GHOST, strike, accumulatedTime, 1.0F, GHOST_VEC);
+        // head (CHAIN[0]) + body_0..body_{index-1} (CHAIN[1+k]).
+        float dx = GHOST.bones[0].x, dy = GHOST.bones[0].y, dz = GHOST.bones[0].z;
+        for (int k = 0; k < index; k++) {
+            ModelPart b = GHOST.bones[1 + k];
+            dx += b.x; dy += b.y; dz += b.z;
+        }
+        this.segment.x += dx;
+        this.segment.y += dy;
+        this.segment.z += dz;
+    }
+
+    /** Mappe le numero de combo (1..3) vers l'animation de strike correspondante. */
+    private static AnimationDefinition strikeFor(int comboNumber) {
+        return switch (comboNumber) {
+            case 1 -> BoaAnimations.ATTACK_STRIKE;
+            case 2 -> BoaAnimations.ATTACK_STRIKE_2;
+            case 3 -> BoaAnimations.ATTACK_STRIKE_3;
+            default -> null;
+        };
+    }
+
+    /**
+     * Capture le delta Y (px modele) de la pose animee du segment par rapport a sa pose de
+     * repos, et l'ecrit dans entity.bodyAnimY pour que positionRider (thread jeu) suive le
+     * cabrage sans rejouer setupAnim. Au repos (hors combo) le delta vaut 0. Calque sur le
+     * captureBodyState du Tiger/Kodiak.
+     *
+     * @param restPoseYSum somme des Y de repos des bones de la chaine (ALL=0 + body_0=TAIL_Y)
+     * @param boneChain    bones de la racine jusqu'au bone du siege
+     */
+    private void captureBodyState(BoaTailPart entity, float restPoseYSum, ModelPart... boneChain) {
+        if (!entity.level().isClientSide()) return;
+        float xSum = 0f, ySum = 0f, zSum = 0f;
+        for (ModelPart bone : boneChain) {
+            xSum += bone.x;
+            ySum += bone.y;
+            zSum += bone.z;
+        }
+        // X et Z de repos = 0 (bones centres), donc le delta = la somme brute. Pour Y, on
+        // soustrait la pose de repos (ALL=0 + body_0=TAIL_Y). Inclut deja la translation des
+        // ancetres ajoutee par addAncestorTranslation (la fente avant de "head").
+        entity.bodyAnimX = xSum;
+        entity.bodyAnimY = ySum - restPoseYSum;
+        entity.bodyAnimZ = zSum;
     }
 
     /**
@@ -220,11 +371,5 @@ public class BoaTailPartModel extends EntityModel<BoaTailPart> {
         this.segment.xScale = 1.0f + bulge;
         this.segment.yScale = 1.0f + bulge;
         // zScale inchangé : pas de trou ni de chevauchement entre segments.
-    }
-
-    @Override
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer consumer,
-                               int packedLight, int packedOverlay, int color) {
-        this.segment.render(poseStack, consumer, packedLight, packedOverlay, color);
     }
 }

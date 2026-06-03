@@ -32,14 +32,14 @@ public class BoaTailPartRenderer extends LivingEntityRenderer<BoaTailPart, Entit
     private final BoaTailPartModel[] models = new BoaTailPartModel[7];
 
     public BoaTailPartRenderer(EntityRendererProvider.Context ctx) {
-        super(ctx, new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_0)), 0.3F);
-        models[0] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_0));
-        models[1] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_1));
-        models[2] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_2));
-        models[3] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_3));
-        models[4] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL1));
-        models[5] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL2));
-        models[6] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL3));
+        super(ctx, new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_0), "body_0"), 0.3F);
+        models[0] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_0), "body_0");
+        models[1] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_1), "body_1");
+        models[2] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_2), "body_2");
+        models[3] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_BODY_3), "body_3");
+        models[4] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL1), "body_4");
+        models[5] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL2), "body_5");
+        models[6] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL3), "body_6");
 
         this.addLayer(new BoaTailPartLayer(this));
     }

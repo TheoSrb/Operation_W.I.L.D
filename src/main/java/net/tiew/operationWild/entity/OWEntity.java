@@ -73,6 +73,7 @@ import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.tiew.operationWild.core.OWDatasSave;
+import net.tiew.operationWild.core.OWGameRules;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.animals.aquatic.*;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
@@ -1794,9 +1795,27 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.getAcceleration() >= 100;
     }
 
+    private boolean isInMyTribe(UUID playerUuid) {
+        if (playerUuid == null || this.currentTeam == null) return false;
+        if (playerUuid.equals(this.currentTeam.getTeamOwnerUUID())) return true;
+        UUID[] members = this.currentTeam.getTeamPlayersMembers();
+        if (members != null) {
+            for (UUID u : members) {
+                if (playerUuid.equals(u)) return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void tick() {
         super.tick();
+
+        if (!this.level().isClientSide) {
+            if (this.level().getGameRules().getBoolean(OWGameRules.ANIMALS_NO_EFFORT)) {
+                this.setVitalEnergy(0);
+            }
+        }
 
         if (this.isTame()) {
             this.setCustomName(Component.nullToEmpty(this.getNickname()));

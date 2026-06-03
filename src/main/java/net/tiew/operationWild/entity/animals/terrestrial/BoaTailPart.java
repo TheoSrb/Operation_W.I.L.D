@@ -12,6 +12,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
@@ -73,9 +74,31 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.LONG);
     private static final EntityDataAccessor<Float> DIGEST_POWER =
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.FLOAT);
+    // Numero du strike de combo en cours (0 = aucun), copie du Boa parent via copyDataFrom
+    // et synchronise. Permet au modele de la queue de rejouer la meme animation de strike
+    // que la tete, bone par bone, cote client.
+    private static final EntityDataAccessor<Integer> COMBO_NUMBER =
+            SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_CONSTRICTING =
+            SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.BOOLEAN);
 
     private double prevHeight = 0;
     private int headEntityId = -1;
+
+    // --- Animation de combo (cote client) ---
+    // Etat d'animation par segment, demarre/arrete selon COMBO_NUMBER synchronise.
+    public final AnimationState comboAnimationState = new AnimationState();
+    private int lastComboNumber = 0;
+    public final AnimationState constrictBreathAnimationState = new AnimationState();
+    private boolean lastConstricting = false;
+    // Delta (en px modele) de la pose animee du segment par rapport a sa pose de repos,
+    // capture par BoaTailPartModel.captureBodyState (thread rendu) et relu par
+    // BoaEntity.positionRider (thread jeu) pour faire suivre le rider/camera au cabrage ET
+    // a la fente avant/laterale du combo. Volatile : ecrit cote rendu, lu cote jeu. Seul le
+    // 1er segment (siege du rider) les ecrit.
+    public volatile float bodyAnimX = 0f;
+    public volatile float bodyAnimY = 0f;
+    public volatile float bodyAnimZ = 0f;
 
     public BoaTailPart(EntityType<? extends LivingEntity> t, Level world) {
         super(t, world);
@@ -117,6 +140,24 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
     public void tick() {
         super.tick();
         this.setDeltaMovement(Vec3.ZERO);
+
+        if (this.level().isClientSide()) {
+            // (Re)demarre l'animation de strike au debut de chaque coup. OWEntity incremente
+            // le numero de combo a chaque coup, donc un changement de numero = nouveau strike.
+            int n = getComboNumber();
+            if (n != this.lastComboNumber) {
+                this.lastComboNumber = n;
+                if (n > 0) this.comboAnimationState.start(this.tickCount);
+                else this.comboAnimationState.stop();
+            }
+
+            boolean nowConstricting = isBoaConstricting();
+            if (nowConstricting != this.lastConstricting) {
+                this.lastConstricting = nowConstricting;
+                if (nowConstricting) this.constrictBreathAnimationState.start(this.tickCount);
+                else this.constrictBreathAnimationState.stop();
+            }
+        }
 
         if (this.tickCount > 1) {
             final Entity parent = getParent();
@@ -281,6 +322,18 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         builder.define(HEAD_POS, BlockPos.ZERO);
         builder.define(DIGEST_START, -1L);
         builder.define(DIGEST_POWER, 1.0F);
+        builder.define(COMBO_NUMBER, 0);
+        builder.define(IS_CONSTRICTING, false);
+    }
+
+    /** Numero du strike de combo en cours (0 = aucun), copie du Boa parent. */
+    public int getComboNumber() {
+        return this.entityData.get(COMBO_NUMBER);
+    }
+
+    /** Vrai si le Boa parent est en train de constricter, copie via copyDataFrom. */
+    public boolean isBoaConstricting() {
+        return this.entityData.get(IS_CONSTRICTING);
     }
 
     /** Tick de jeu du début de la digestion (copié du Boa parent). -1 = aucune. */
@@ -364,6 +417,8 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         this.entityData.set(HEAD_POS, headPos);
         this.entityData.set(DIGEST_START, boa.getDigestionStartTick());
         this.entityData.set(DIGEST_POWER, boa.getDigestionPower());
+        this.entityData.set(COMBO_NUMBER, boa.isCombo() ? boa.getComboAttack() : 0);
+        this.entityData.set(IS_CONSTRICTING, boa.isConstricting());
     }
 
     /**

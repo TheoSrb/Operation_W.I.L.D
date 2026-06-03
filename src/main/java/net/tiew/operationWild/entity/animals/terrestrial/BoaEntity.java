@@ -8,6 +8,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.WaterlilyBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.sounds.SoundEvent;
@@ -53,16 +54,19 @@ import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.boa.BoaConstrictGoal;
+import net.tiew.operationWild.entity.goals.boa.BoaEatItemGoal;
 import net.tiew.operationWild.entity.goals.boa.BoaHypnotizeGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.variants.BoaVariant;
+import net.tiew.operationWild.entity.variants.TigerVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
@@ -87,14 +91,15 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private float constrictFrozenYaw = Float.NaN;
     private boolean constrictLocked = false;
     private float strangleProgress = 0f;
+    private float constrictBreath = 0f;
 
     private float sitProgress = 0f;
     private static final float SIT_CURL_PER_SEGMENT = 35f;
-    private static final float SIT_TRANSITION_STEP  = 1f / 20f;
+    private static final float SIT_TRANSITION_STEP = 1f / 20f;
 
-    private static final float RIDDEN_YAW_LAG     = 0.30f;
+    private static final float RIDDEN_YAW_LAG = 0.30f;
     private static final float RIDDEN_RUN_YAW_LAG = 0.16f;
-    private static final float WILD_YAW_LAG       = 0.30f;
+    private static final float WILD_YAW_LAG = 0.30f;
 
     private float smoothedYRot = Float.NaN;
     public final float[] ringBuffer = new float[64];
@@ -123,7 +128,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT =
             SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
     private boolean constrictUltArmed = false;
-    private int     constrictUltArmedTimer = 0;
+    private int constrictUltArmedTimer = 0;
     private static final EntityDataAccessor<Float> GRAB_HOLD_X =
             SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> GRAB_HOLD_Y =
@@ -136,6 +141,20 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private static final EntityDataAccessor<Integer> HYPNOSIS_TARGET_ID =
             SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
     private int hypnosisCooldown = 0;
+
+    private static final int TONG_DURATION = 14;
+
+    public final AnimationState attack1Combo = new AnimationState();
+    public final AnimationState attack2Combo = new AnimationState();
+    public final AnimationState attack3Combo = new AnimationState();
+    public final AnimationState tongAnimationState = new AnimationState();
+
+    public int attack1ComboTimer = 0;
+    public int attack2ComboTimer = 0;
+    public int attack3ComboTimer = 0;
+    public int tongAnimationStartTime = 0;
+
+    private int tongCooldown = (int) OWUtils.generateRandomInterval(100, 200);
 
     public BoaEntity(EntityType<? extends BoaEntity> type, Level world,
                      float averageScale, int maxSleepBar, int foodWanted) {
@@ -159,6 +178,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.goalSelector.addGoal(2, new BoaEntity.BoaMeleeAttackGoal());
 
         this.goalSelector.addGoal(5, new BoaHypnotizeGoal(this, 18.0, 120, 600, 0.15f, 0.65f));
+
+        this.goalSelector.addGoal(8, new BoaEatItemGoal(this));
 
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, this.getSpeed() * 6.5f));
@@ -321,143 +342,6 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     @Override
     public float getSwimSpeed() {
         return this.getSpeed() * 5;
-    }
-
-    private void setGrabHold(Vec3 p) {
-        this.entityData.set(GRAB_HOLD_X, (float) p.x);
-        this.entityData.set(GRAB_HOLD_Y, (float) p.y);
-        this.entityData.set(GRAB_HOLD_Z, (float) p.z);
-    }
-
-    private Vec3 getGrabHold() {
-        return new Vec3(this.entityData.get(GRAB_HOLD_X), this.entityData.get(GRAB_HOLD_Y), this.entityData.get(GRAB_HOLD_Z));
-    }
-
-    @Override
-    public int getGrabMaxTimeout() {
-        return OWAttacksConstants.Boa.CONSTRICT_GRAB_MAX_TIMEOUT;
-    }
-
-    public boolean isGrabbing() {
-        return this.entityData.get(IS_GRABBING);
-    }
-
-    public void setGrabbing(boolean grabbing, LivingEntity entity) {
-        this.entityData.set(IS_GRABBING, grabbing);
-        this.entityData.set(GRABBED_TARGET_ID, entity == null ? -1 : entity.getId());
-    }
-
-    public int getGrabbedTargetId() {
-        return this.entityData.get(GRABBED_TARGET_ID);
-    }
-
-    public LivingEntity getGrabbedTarget() {
-        int id = this.entityData.get(GRABBED_TARGET_ID);
-        if (id == -1) return null;
-        return this.level().getEntity(id) instanceof LivingEntity le ? le : null;
-    }
-
-    public int getGrabTimeout() {
-        return this.entityData.get(GRAB_TIMEOUT);
-    }
-
-    public void setGrabTimeout(int timeout) {
-        this.entityData.set(GRAB_TIMEOUT, timeout);
-    }
-
-    public boolean isVenomArmed() {
-        return this.entityData.get(VENOM_ARMED);
-    }
-
-    public void setVenomArmed(boolean armed) {
-        this.entityData.set(VENOM_ARMED, armed);
-    }
-
-    public int getVenomCooldownTicks() {
-        return this.entityData.get(VENOM_COOLDOWN_TICKS);
-    }
-
-    public void setVenomCooldownTicks(int ticks) {
-        this.entityData.set(VENOM_COOLDOWN_TICKS, ticks);
-    }
-
-    public void toggleVenomFangs() {
-        if (this.level().isClientSide()) return;
-        if (isVenomArmed()) {
-            setVenomArmed(false);
-        } else if (getVenomCooldownTicks() <= 0) {
-            setVenomArmed(true);
-        }
-    }
-
-    private void applyVenomFangs(LivingEntity target) {
-        int duration = (int) OWUtils.generateRandomInterval(
-                OWAttacksConstants.Boa.VENOM_FANGS_MIN_DURATION_TICKS,
-                OWAttacksConstants.Boa.VENOM_FANGS_MAX_DURATION_TICKS);
-        target.addEffect(new MobEffectInstance(OWEffects.VENOM_EFFECT.getDelegate(), duration, 0));
-        setVenomArmed(false);
-        setVenomCooldownTicks(OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS);
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.0f, 1.35f);
-    }
-
-    public boolean isThermalHeartTarget(LivingEntity le) {
-        if (le == null || le == this || le instanceof BoaEntity || le instanceof BoaTailPart) return false;
-        if (!le.isAlive() || le.isSpectator()) return false;
-        if (this.isAlliedTo(le)) return false;
-        if (le instanceof Player p && (p.isCreative() || p.isSpectator())) return false;
-        if (le.getMaxHealth() >= OWAttacksConstants.Boa.THERMAL_MAX_HP) return false;
-        double r = OWAttacksConstants.Boa.THERMAL_ENGAGE_RANGE;
-        return this.distanceToSqr(le) <= r * r;
-    }
-
-    public static Vec3 thermalHeartCenter(LivingEntity le) {
-        return le.getBoundingBox().getCenter();
-    }
-
-    public static float thermalSizeScale(LivingEntity le) {
-        float size = (le.getBbWidth() + le.getBbHeight()) * 0.5f;
-        float scale = size / OWAttacksConstants.Boa.THERMAL_REF_SIZE;
-        return Mth.clamp(scale, OWAttacksConstants.Boa.THERMAL_SCALE_MIN, OWAttacksConstants.Boa.THERMAL_SCALE_MAX);
-    }
-
-    public boolean isLookingAtHeart(Player rider, LivingEntity target) {
-        if (rider == null || target == null) return false;
-        Vec3 eye = rider.getEyePosition();
-        Vec3 look = rider.getLookAngle();
-        Vec3 heart = thermalHeartCenter(target);
-
-        Vec3 toHeart = heart.subtract(eye);
-        double along = toHeart.dot(look);
-        if (along <= 0) return false;
-        Vec3 closest = eye.add(look.scale(along));
-        double radius = OWAttacksConstants.Boa.THERMAL_AIM_RADIUS * thermalSizeScale(target);
-        if (closest.distanceTo(heart) > radius) return false;
-        BlockHitResult clip = this.level().clip(new net.minecraft.world.level.ClipContext(
-                eye, heart,
-                net.minecraft.world.level.ClipContext.Block.COLLIDER,
-                net.minecraft.world.level.ClipContext.Fluid.NONE, rider));
-        return clip.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
-    }
-
-    public void spawnHeartBleed(LivingEntity target) {
-        if (!(this.level() instanceof ServerLevel server)) return;
-        Vec3 h = thermalHeartCenter(target);
-        var blood = new net.minecraft.core.particles.DustParticleOptions(new org.joml.Vector3f(0.60f, 0.0f, 0.0f), 1.2f);
-        server.sendParticles(blood, h.x, h.y, h.z, 18, 0.18, 0.18, 0.18, 0.02);
-        server.sendParticles(net.minecraft.core.particles.ParticleTypes.DAMAGE_INDICATOR, h.x, h.y, h.z, 6, 0.1, 0.1, 0.1, 0.05);
-    }
-
-    private boolean isInMyTribe(java.util.UUID playerUuid) {
-        if (playerUuid == null || this.currentTeam == null) return false;
-        if (playerUuid.equals(this.currentTeam.getTeamOwnerUUID())) return true;
-        java.util.UUID[] members = this.currentTeam.getTeamPlayersMembers();
-        if (members != null) {
-            for (java.util.UUID u : members) {
-                if (playerUuid.equals(u)) return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -714,7 +598,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         final float sitCalm = 1f - this.sitProgress * 0.7f;
         return (float) (40 * -Math.sin(this.walkDist * 3 - i)) * f * sitCalm
                 + this.strangleProgress * 0.2f * i * curlPerSegment * ramp
-                + this.sitProgress * i * SIT_CURL_PER_SEGMENT;
+                + this.sitProgress * i * SIT_CURL_PER_SEGMENT
+                + this.constrictBreath * i * 10f * ramp;
     }
 
     public float getRingBuffer(int bufferOffset, float partialTicks) {
@@ -771,7 +656,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             return;
         }
         this.level().getEntities(this, this.getBoundingBox(),
-                entity -> !(entity instanceof BoaTailPart) && EntitySelector.pushableBy(this).test(entity))
+                        entity -> !(entity instanceof BoaTailPart) && EntitySelector.pushableBy(this).test(entity))
                 .forEach(this::doPush);
     }
 
@@ -804,6 +689,16 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private void triggerDigestion(float preyMaxHealth) {
         this.digestionStartTick = this.level().getGameTime();
         this.digestionPower = preyMaxHealth;
+    }
+
+    /**
+     * Declenche la digestion visuelle (renflement parcourant la queue) avec une puissance
+     * donnee. Utilise par {@link net.tiew.operationWild.entity.goals.boa.BoaEatItemGoal}
+     * quand le Boa sauvage avale un item de viande au sol (pas de proie = pas de PV max,
+     * on passe donc directement la puissance voulue).
+     */
+    public void triggerItemDigestion(float power) {
+        triggerDigestion(power);
     }
 
     @Override
@@ -856,54 +751,14 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.startConstrict(target);
     }
 
-    public void cancelConstrictUltimate() {
-        this.constrictUltArmed = false;
-        this.constrictUltArmedTimer = 0;
-    }
-
-    public boolean isConstricting() {
-        return this.constricting;
-    }
-
-    public LivingEntity getConstrictTarget() {
-        return this.constrictTarget;
-    }
-
-    public int getConstrictCooldown() {
-        return this.constrictCooldown;
-    }
-
-    public boolean isHypnotizing() {
-        return this.entityData.get(HYPNOTIZING);
-    }
-
-    public void setHypnotizing(boolean value) {
-        this.entityData.set(HYPNOTIZING, value);
-    }
-
-    public int getHypnosisTargetId() {
-        return this.entityData.get(HYPNOSIS_TARGET_ID);
-    }
-
-    public void setHypnosisTargetId(int id) {
-        this.entityData.set(HYPNOSIS_TARGET_ID, id);
-    }
-
-    public int getHypnosisCooldown() {
-        return this.hypnosisCooldown;
-    }
-
-    public void setHypnosisCooldown(int ticks) {
-        this.hypnosisCooldown = ticks;
-    }
-
     public boolean canConstrict(LivingEntity t) {
         if (t == null || !t.isAlive() || t == this) return false;
         if (t instanceof IOWGrabberEntity) {
             if (t.isVehicle()) return false;
             if (t instanceof BoaEntity ob && ob.isConstricting()) return false;
             if (t instanceof TigerEntity ot && ot.isGrabbing()) return false;
-            if (t instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity oc && oc.isGrabbing()) return false;
+            if (t instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity oc && oc.isGrabbing())
+                return false;
         }
         if (t instanceof BoaTailPart) return false;
         if (this.isAlliedTo(t)) return false;
@@ -912,7 +767,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             if (p.isCreative() || p.isSpectator()) return false;
             if (this.getOwnerUUID() != null && p.getUUID().equals(this.getOwnerUUID())) return false;
         }
-        if (t.getBbWidth()  > OWAttacksConstants.Boa.CONSTRICT_MAX_TARGET_WIDTH)  return false;
+        if (t.getBbWidth() > OWAttacksConstants.Boa.CONSTRICT_MAX_TARGET_WIDTH) return false;
         if (t.getBbHeight() > OWAttacksConstants.Boa.CONSTRICT_MAX_TARGET_HEIGHT) return false;
         boolean alreadyConstricted = this.level()
                 .getEntitiesOfClass(BoaEntity.class, t.getBoundingBox().inflate(16.0))
@@ -954,6 +809,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.setGrabTimeout(0);
         this.setNoGravity(false);
         this.setDeltaMovement(Vec3.ZERO);
+        this.constrictBreath = 0f;
     }
 
     private void tickConstriction() {
@@ -964,6 +820,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             return;
         }
         this.constrictTimer++;
+        // Oscillation 0→1→0, période ~22 ticks (≈1.1 s) : les anneaux se resserrent puis relâchent
+        this.constrictBreath = (float)(0.5 + 0.5 * Math.sin(this.constrictTimer * Mth.TWO_PI / 22.0));
         final boolean isPlayer = t instanceof Player;
         final boolean approaching = this.constrictTimer <= OWAttacksConstants.Boa.CONSTRICT_APPROACH_TICKS;
 
@@ -1055,9 +913,14 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
         Vec3 hold = (this.constrictTargetAnchor != null) ? this.constrictTargetAnchor : t.position();
         if (!approaching && this.parts != null) {
-            double cx = 0, cz = 0; int n = 0;
+            double cx = 0, cz = 0;
+            int n = 0;
             for (BoaTailPart p : this.parts) {
-                if (p != null) { cx += p.getX(); cz += p.getZ(); n++; }
+                if (p != null) {
+                    cx += p.getX();
+                    cz += p.getZ();
+                    n++;
+                }
             }
             if (n > 0) hold = new Vec3(cx / n, hold.y, cz / n);
         }
@@ -1155,13 +1018,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     @Override
-    protected SoundEvent getAmbientSound() {
-        return OWSounds.BOA_IDLE_1.get();
-    }
-
-    @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {
-        super.playStepSound(blockPos, blockState);
+
     }
 
     @Override
@@ -1172,17 +1030,211 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             return;
         }
         if (!this.hasPassenger(passenger)) return;
+
         float yOffset = (float) (this.getBbHeight() * 0.1) - 0.18f;
-        final double BACK = 0.25;
+        final double BACK = 0.65;
         Entity seg = getFirstTailPart();
-        double sx = (seg != null) ? seg.getX() : this.getX();
-        double sy = (seg != null) ? seg.getY() : this.getY();
-        double sz = (seg != null) ? seg.getZ() : this.getZ();
-        double yawR = Math.toRadians((seg != null) ? seg.getYRot() : this.getYRot());
-        double bx = sx + Math.sin(yawR) * BACK;
-        double by = sy + yOffset;
-        double bz = sz - Math.cos(yawR) * BACK;
-        callback.accept(passenger, bx, by, bz);
+
+        if (seg != null) {
+            double sx = (seg.xOld + seg.getX()) * 0.5;
+            double sy = (seg.yOld + seg.getY()) * 0.5;
+            double sz = (seg.zOld + seg.getZ()) * 0.5;
+            double yawR = Math.toRadians(seg.getYRot());
+            double bx = sx + Math.sin(yawR) * BACK;
+            double by = sy + yOffset;
+            double bz = sz - Math.cos(yawR) * BACK;
+
+            // Suivi de l'animation de strike : le siege (body_0) est translate cote CLIENT par
+            // le modele (cabrage ALL + fente avant heritee de "head"), mais sa position monde
+            // serveur, elle, ne bouge pas. On rejoue donc ici le MEME transform que le renderer
+            // (BoaTailPartRenderer) sur le delta capture, pour coller le rider a son siege.
+            // Renderer : Ry(180-yaw) * S(-1,-1,1) * S(scale). On ignore le pitch (~0 au strike).
+            if (seg instanceof BoaTailPart part) {
+                double s = this.getScale() / 16.0; // px modele -> blocs, a l'echelle du boa
+                double ax = -part.bodyAnimX * s;   // S(-1,-1,1) sur X
+                double ay = -part.bodyAnimY * s;   // S(-1,-1,1) sur Y
+                double az =  part.bodyAnimZ * s;
+                double th = Math.toRadians(180.0 - seg.getYRot());
+                double cos = Math.cos(th), sin = Math.sin(th);
+                bx += ax * cos + az * sin;         // Ry(th) sur (X,Z)
+                by += ay;
+                bz += -ax * sin + az * cos;
+            }
+
+            callback.accept(passenger, bx, by, bz);
+        } else {
+            double yawR = Math.toRadians(this.getYRot());
+            callback.accept(passenger,
+                    this.getX() + Math.sin(yawR) * BACK,
+                    this.getY() + yOffset,
+                    this.getZ() - Math.cos(yawR) * BACK);
+        }
+    }
+
+    private void setGrabHold(Vec3 p) {
+        this.entityData.set(GRAB_HOLD_X, (float) p.x);
+        this.entityData.set(GRAB_HOLD_Y, (float) p.y);
+        this.entityData.set(GRAB_HOLD_Z, (float) p.z);
+    }
+
+    private Vec3 getGrabHold() {
+        return new Vec3(this.entityData.get(GRAB_HOLD_X), this.entityData.get(GRAB_HOLD_Y), this.entityData.get(GRAB_HOLD_Z));
+    }
+
+    @Override
+    public int getGrabMaxTimeout() {
+        return OWAttacksConstants.Boa.CONSTRICT_GRAB_MAX_TIMEOUT;
+    }
+
+    public boolean isGrabbing() {
+        return this.entityData.get(IS_GRABBING);
+    }
+
+    public void setGrabbing(boolean grabbing, LivingEntity entity) {
+        this.entityData.set(IS_GRABBING, grabbing);
+        this.entityData.set(GRABBED_TARGET_ID, entity == null ? -1 : entity.getId());
+    }
+
+    public int getGrabbedTargetId() {
+        return this.entityData.get(GRABBED_TARGET_ID);
+    }
+
+    public LivingEntity getGrabbedTarget() {
+        int id = this.entityData.get(GRABBED_TARGET_ID);
+        if (id == -1) return null;
+        return this.level().getEntity(id) instanceof LivingEntity le ? le : null;
+    }
+
+    public int getGrabTimeout() {
+        return this.entityData.get(GRAB_TIMEOUT);
+    }
+
+    public void setGrabTimeout(int timeout) {
+        this.entityData.set(GRAB_TIMEOUT, timeout);
+    }
+
+    public boolean isVenomArmed() {
+        return this.entityData.get(VENOM_ARMED);
+    }
+
+    public void setVenomArmed(boolean armed) {
+        this.entityData.set(VENOM_ARMED, armed);
+    }
+
+    public int getVenomCooldownTicks() {
+        return this.entityData.get(VENOM_COOLDOWN_TICKS);
+    }
+
+    public void setVenomCooldownTicks(int ticks) {
+        this.entityData.set(VENOM_COOLDOWN_TICKS, ticks);
+    }
+
+    public void toggleVenomFangs() {
+        if (this.level().isClientSide()) return;
+        if (isVenomArmed()) {
+            setVenomArmed(false);
+        } else if (getVenomCooldownTicks() <= 0) {
+            setVenomArmed(true);
+        }
+    }
+
+    public void cancelConstrictUltimate() {
+        this.constrictUltArmed = false;
+        this.constrictUltArmedTimer = 0;
+    }
+
+    public boolean isConstricting() {
+        return this.constricting;
+    }
+
+    public LivingEntity getConstrictTarget() {
+        return this.constrictTarget;
+    }
+
+    public int getConstrictCooldown() {
+        return this.constrictCooldown;
+    }
+
+    public boolean isHypnotizing() {
+        return this.entityData.get(HYPNOTIZING);
+    }
+
+    public void setHypnotizing(boolean value) {
+        this.entityData.set(HYPNOTIZING, value);
+    }
+
+    public int getHypnosisTargetId() {
+        return this.entityData.get(HYPNOSIS_TARGET_ID);
+    }
+
+    public void setHypnosisTargetId(int id) {
+        this.entityData.set(HYPNOSIS_TARGET_ID, id);
+    }
+
+    public int getHypnosisCooldown() {
+        return this.hypnosisCooldown;
+    }
+
+    public void setHypnosisCooldown(int ticks) {
+        this.hypnosisCooldown = ticks;
+    }
+
+    private void applyVenomFangs(LivingEntity target) {
+        int duration = (int) OWUtils.generateRandomInterval(
+                OWAttacksConstants.Boa.VENOM_FANGS_MIN_DURATION_TICKS,
+                OWAttacksConstants.Boa.VENOM_FANGS_MAX_DURATION_TICKS);
+        target.addEffect(new MobEffectInstance(OWEffects.VENOM_EFFECT.getDelegate(), duration, 0));
+        setVenomArmed(false);
+        setVenomCooldownTicks(OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.0f, 1.35f);
+    }
+
+    public boolean isThermalHeartTarget(LivingEntity le) {
+        if (le == null || le == this || le instanceof BoaEntity || le instanceof BoaTailPart) return false;
+        if (!le.isAlive() || le.isSpectator()) return false;
+        if (this.isAlliedTo(le)) return false;
+        if (le instanceof Player p && (p.isCreative() || p.isSpectator())) return false;
+        if (le.getMaxHealth() >= OWAttacksConstants.Boa.THERMAL_MAX_HP) return false;
+        double r = OWAttacksConstants.Boa.THERMAL_ENGAGE_RANGE;
+        return this.distanceToSqr(le) <= r * r;
+    }
+
+    public static Vec3 thermalHeartCenter(LivingEntity le) {
+        return le.getBoundingBox().getCenter();
+    }
+
+    public static float thermalSizeScale(LivingEntity le) {
+        float size = (le.getBbWidth() + le.getBbHeight()) * 0.5f;
+        float scale = size / OWAttacksConstants.Boa.THERMAL_REF_SIZE;
+        return Mth.clamp(scale, OWAttacksConstants.Boa.THERMAL_SCALE_MIN, OWAttacksConstants.Boa.THERMAL_SCALE_MAX);
+    }
+
+    public boolean isLookingAtHeart(Player rider, LivingEntity target) {
+        if (rider == null || target == null) return false;
+        Vec3 eye = rider.getEyePosition();
+        Vec3 look = rider.getLookAngle();
+        Vec3 heart = thermalHeartCenter(target);
+
+        Vec3 toHeart = heart.subtract(eye);
+        double along = toHeart.dot(look);
+        if (along <= 0) return false;
+        Vec3 closest = eye.add(look.scale(along));
+        double radius = OWAttacksConstants.Boa.THERMAL_AIM_RADIUS * thermalSizeScale(target);
+        if (closest.distanceTo(heart) > radius) return false;
+        BlockHitResult clip = this.level().clip(new net.minecraft.world.level.ClipContext(
+                eye, heart,
+                net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                net.minecraft.world.level.ClipContext.Fluid.NONE, rider));
+        return clip.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
+    }
+
+    public void spawnHeartBleed(LivingEntity target) {
+        if (!(this.level() instanceof ServerLevel server)) return;
+        Vec3 h = thermalHeartCenter(target);
+        var blood = new net.minecraft.core.particles.DustParticleOptions(new org.joml.Vector3f(0.60f, 0.0f, 0.0f), 1.2f);
+        server.sendParticles(blood, h.x, h.y, h.z, 18, 0.18, 0.18, 0.18, 0.02);
+        server.sendParticles(net.minecraft.core.particles.ParticleTypes.DAMAGE_INDICATOR, h.x, h.y, h.z, 6, 0.1, 0.1, 0.1, 0.05);
     }
 
     @Override
@@ -1192,7 +1244,85 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     private void setupAnimationState() {
-        createSitAnimation(83, true);
+        handleMiscIdleAnimations();
+        setupComboAnimations();
+    }
+
+    private void setupComboAnimations() {
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (20 / comboSpeedMultiplier));
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (20 / comboSpeedMultiplier));
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (30 / comboSpeedMultiplier));
+    }
+
+    private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
+        if (this.isCombo(comboNumber)) {
+            if (timer <= 0) {
+                timer = maxTimer;
+                animationState.start(this.tickCount);
+            } else {
+                --timer;
+            }
+        } else {
+            timer = 0;
+            animationState.stop();
+        }
+
+        switch (comboNumber) {
+            case 1:
+                attack1ComboTimer = timer;
+                break;
+            case 2:
+                attack2ComboTimer = timer;
+                break;
+            case 3:
+                attack3ComboTimer = timer;
+                break;
+        }
+    }
+
+    public boolean isAnyIdleAnimationPlaying() {
+        return this.tongAnimationState.isStarted();
+    }
+
+    public boolean canPlayIdleAnimation() {
+        return this.getTarget() == null && !this.isNapping() && !this.isNapping() && !this.isMoving() && !this.isVehicle() && !this.isInWater();
+    }
+
+    public boolean canTong() {
+        return canPlayIdleAnimation();
+    }
+
+    protected void handleMiscIdleAnimations() {
+        if (this.tongAnimationState.isStarted() &&
+                this.tickCount - tongAnimationStartTime > TONG_DURATION) {
+            this.tongAnimationState.stop();
+        }
+
+        if (tongCooldown > 0) {
+            tongCooldown--;
+            return;
+        }
+
+        if (this.level().isClientSide) {
+
+            SoundEvent[] sounds = new SoundEvent[]{
+                    OWSounds.BOA_IDLE_1.get(),
+                    OWSounds.BOA_IDLE_2.get(),
+                    OWSounds.BOA_IDLE_3.get(),
+                    OWSounds.BOA_IDLE_4.get()
+            };
+
+            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(),
+                    sounds[this.getRandom().nextInt(sounds.length)], this.getSoundSource(),
+                    1.0F, isBaby() ? 2.0F : 1.0F, false);
+        }
+
+        if (this.canTong() && this.canPlayIdleAnimation() && !this.isAnyIdleAnimationPlaying()) {
+            this.tongAnimationState.start(this.tickCount);
+            tongAnimationStartTime = this.tickCount;
+        }
+
+        tongCooldown = (int) OWUtils.generateRandomInterval(400, 800);
     }
 
     class BoaMeleeAttackGoal extends MeleeAttackGoal {

@@ -646,5 +646,8 @@
   "screen.ow.dev_warning.para2": "Certaines créatures sont §lincomplètes§r, certaines mécaniques sont §lprovisoires§r, et une partie du contenu n'existe §l§ntout simplement pas encore§r.",
   "screen.ow.dev_warning.para3": "Des §nbugs, des changements et des surprises§r font partie du voyage. Votre §l§npatience et vos retours§r façonnent directement le §nfutur de ce mod§r.",
   "screen.ow.dev_warning.para4": "Merci pour votre §npatience§r et vos potentiels §l§nretours§r.",
-  "screen.ow.dev_warning.button": "Compris. En avant !"
+  "screen.ow.dev_warning.button": "Compris. En avant !",
+
+  "gamerule.OWAnimalsNoEffort.set": "La règle de jeu OWAnimalsNoEffort est maintenant %s",
+  "gamerule.OWAnimalsNoEffort.query": "OWAnimalsNoEffort est actuellement %s"
 }
