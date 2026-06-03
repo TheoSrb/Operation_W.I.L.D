@@ -186,10 +186,10 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, true));
-        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Horse.class, true));
-        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, TigerEntity.class, true));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, t -> !this.isDigesting()));
+        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, 10, true, false, t -> !this.isDigesting()));
+        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Horse.class, 10, true, false, t -> !this.isDigesting()));
+        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, TigerEntity.class, 10, true, false, t -> !this.isDigesting()));
 
         this.lookControl = new LookControl(this) {
             @Override
@@ -686,6 +686,13 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         return this.digestionPower;
     }
 
+    public boolean isDigesting() {
+        if (this.digestionStartTick < 0) return false;
+        float t = Math.max(0f, Math.min(1f, (this.digestionPower - 1f) / 49f));
+        double durationTicks = (20.0 + 20.0 * t) * 20.0;
+        return this.level().getGameTime() - this.digestionStartTick < durationTicks;
+    }
+
     private void triggerDigestion(float preyMaxHealth) {
         this.digestionStartTick = this.level().getGameTime();
         this.digestionPower = preyMaxHealth;
@@ -767,6 +774,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             if (p.isCreative() || p.isSpectator()) return false;
             if (this.getOwnerUUID() != null && p.getUUID().equals(this.getOwnerUUID())) return false;
         }
+        if (t.getMaxHealth() > 32f) return false;
         if (t.getBbWidth() > OWAttacksConstants.Boa.CONSTRICT_MAX_TARGET_WIDTH) return false;
         if (t.getBbHeight() > OWAttacksConstants.Boa.CONSTRICT_MAX_TARGET_HEIGHT) return false;
         boolean alreadyConstricted = this.level()
@@ -1195,7 +1203,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         if (!le.isAlive() || le.isSpectator()) return false;
         if (this.isAlliedTo(le)) return false;
         if (le instanceof Player p && (p.isCreative() || p.isSpectator())) return false;
-        if (le.getMaxHealth() >= OWAttacksConstants.Boa.THERMAL_MAX_HP) return false;
+        if (le.getMaxHealth() > 32f) return false;
         double r = OWAttacksConstants.Boa.THERMAL_ENGAGE_RANGE;
         return this.distanceToSqr(le) <= r * r;
     }

@@ -187,7 +187,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes()
-                .add(Attributes.MAX_HEALTH, 35.0)
+                .add(Attributes.MAX_HEALTH, 30.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.18D)
                 .add(Attributes.FOLLOW_RANGE, 40.0D)
                 .add(Attributes.ATTACK_DAMAGE, 8.0D)

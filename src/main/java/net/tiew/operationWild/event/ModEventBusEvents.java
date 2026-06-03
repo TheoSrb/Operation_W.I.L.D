@@ -48,5 +48,7 @@ public class ModEventBusEvents {
                 Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
         event.register(OWEntityRegistry.CROCODILE.get(), SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 CrocodileEntity::checkCrocodileSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
+        event.register(OWEntityRegistry.BOA.get(), SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                CrocodileEntity::checkCrocodileSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
     }
 }
