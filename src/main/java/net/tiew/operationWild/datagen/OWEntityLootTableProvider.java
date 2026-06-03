@@ -65,6 +65,7 @@ public class OWEntityLootTableProvider extends EntityLootSubProvider {
                 .withPool(createBasicPool(OWItems.VENOMOUS_GLANDS.get(), 0.0F, 2.0F, true))
                 .withPool(createBasicPool(OWItems.RAW_BOA.get(), 1.0F, 3.0F, true))
                 .withPool(createRarePool(OWItems.VENOMOUS_TOOTH.get(), 0.35F, 1, false))
+                .withPool(createRarePool(OWItems.BOA_TONG.get(), 0.5F, 1, false))
         );
 
 

@@ -852,30 +852,36 @@ public class ClientEvents {
         if (player != null && player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate())) {
             int duration = player.getEffect(OWEffects.VENOM_EFFECT.getDelegate()).getDuration();
             if (maxEffectDuration < duration) maxEffectDuration = duration;
-            double blurPercentage = 1 - ((double) duration / maxEffectDuration);
-            setBlurPercentage(blurPercentage <= 0.9999 ? blurPercentage : 0.0);
+            // 1) % ÉCOULÉ de l'effet = (durée max - durée actuelle) / durée max.
+            //    Au début (durée pleine) → 0 % → blur faible ; en fin → ~100 % → blur fort.
+            //    Ex. 12 % écoulé → fraction 0.12 → 12 % (via getBlurPercentage).
+            double fraction = maxEffectDuration > 0
+                    ? (double) (maxEffectDuration - duration) / maxEffectDuration : 0.0;
+            setBlurPercentage(fraction);
         }
 
         ResourceLocation shader = pickBlurShader(getBlurPercentage());
-        if (shader != null && !shader.equals(currentVenomBlur)) {
-            Minecraft.getInstance().gameRenderer.loadEffect(shader);
-            currentVenomBlur = shader;
+        if (shader != null) {
+            // On re-charge si le shader voulu a changé, MAIS aussi si l'effet actif du
+            // GameRenderer n'est plus le nôtre (ex. il a été vidé par un changement de
+            // perspective F5). Sans ce 2e cas, le cache currentVenomBlur empêchait toute
+            // ré-application → plus aucun blur en vue tierce.
+            PostChain active = Minecraft.getInstance().gameRenderer.currentEffect();
+            boolean activeIsOurs = active != null && active.getName().equals(shader.toString());
+            if (!shader.equals(currentVenomBlur) || !activeIsOurs) {
+                Minecraft.getInstance().gameRenderer.loadEffect(shader);
+                currentVenomBlur = shader;
+            }
         }
     }
 
+    // 2) Choix du shader selon le % : ≤10 % → blur1, ≤20 % → blur2, … ≤100 % → blur10.
+    //    Soit n = arrondi supérieur de (% / 10), borné à [1, 10].
     private static ResourceLocation pickBlurShader(double bp) {
-        int n;
-        if (bp >= 90) n = 10;
-        else if (bp >= 80) n = 9;
-        else if (bp >= 70) n = 8;
-        else if (bp >= 60) n = 7;
-        else if (bp >= 50) n = 6;
-        else if (bp >= 40) n = 5;
-        else if (bp >= 30) n = 4;
-        else if (bp >= 20) n = 3;
-        else if (bp >= 10) n = 2;
-        else if (bp >= 0) n = 1;
-        else return null;
+        if (bp <= 0) return null;
+        int n = (int) Math.ceil(bp / 10.0);
+        if (n < 1) n = 1;
+        if (n > 10) n = 10;
         return ResourceLocation.parse("ow:shaders/blur_shader/blur" + n + ".json");
     }
 
@@ -883,6 +889,7 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
         mc.gameRenderer.shutdownEffect();
         currentVenomBlur = null;
+        maxEffectDuration = 0;
         setBlurPercentage(0);
     }
 

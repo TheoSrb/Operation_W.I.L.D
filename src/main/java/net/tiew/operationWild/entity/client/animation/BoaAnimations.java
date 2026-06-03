@@ -9,12 +9,12 @@ public class BoaAnimations {
 
     public static final AnimationDefinition MISC_IDLE = AnimationDefinition.Builder.withLength(2.0F).looping().build();
 
-    public static final AnimationDefinition CONSTRICT_BREATH = AnimationDefinition.Builder.withLength(1.25F).looping()
+    public static final AnimationDefinition CONSTRICT_BREATH = AnimationDefinition.Builder.withLength(0.625F).looping()
             .addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.SCALE,
-                    new Keyframe(0.0F,  KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
-                    new Keyframe(0.4F,  KeyframeAnimations.scaleVec(0.86F, 0.86F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
-                    new Keyframe(0.75F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
-                    new Keyframe(1.25F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
+                    new Keyframe(0.0F,    KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+                    new Keyframe(0.2F,    KeyframeAnimations.scaleVec(0.86F, 0.86F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+                    new Keyframe(0.375F,  KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+                    new Keyframe(0.625F,  KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
             ))
             .build();
     public static final AnimationDefinition MOVE_WALK  = AnimationDefinition.Builder.withLength(1.0F).looping().build();

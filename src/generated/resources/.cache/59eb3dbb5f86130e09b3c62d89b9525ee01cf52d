@@ -1,4 +1,4 @@
-// 1.21	2026-06-02T15:06:56.4950599	Loot Tables
+// 1.21	2026-06-03T12:11:17.0502777	Loot Tables
 39411953e31428b0099044fec99043fae3ff3335 data/ow/loot_table/blocks/animal_carcass.json
 21b0793ae3d401beeb314311ffbd4936db7dfe6d data/ow/loot_table/blocks/bear_trap.json
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
@@ -38,7 +38,7 @@ b24bafc5cbed78e626c6b2b5c7b9e39a6629d7ab data/ow/loot_table/blocks/scarified_dar
 067bd9d34994f9e06dea31b91ea4edfc09e977a6 data/ow/loot_table/blocks/stripped_redwood_log.json
 1c457b93eaec97aedfd1ae2c58459efc4b40e1b1 data/ow/loot_table/blocks/stripped_redwood_wood.json
 13d7679ab22070b0d9b56beb22aa65670ebd584c data/ow/loot_table/blocks/teddy_bear.json
-7a5e0b848e83154dd3db00aa852fe3bb4b7cc4cd data/ow/loot_table/entities/boa.json
+c126029e496776a2517b9e0319571465950de1d0 data/ow/loot_table/entities/boa.json
 ae09f7776c5de886119eb2a8361cf101d520afe6 data/ow/loot_table/entities/crocodile.json
 be73d7ecf6c368985dbc35b3fd75a80fb1a78266 data/ow/loot_table/entities/kodiak.json
 f57f3773458f05cce755ed7d40523663a1cc00a8 data/ow/loot_table/entities/orca.json

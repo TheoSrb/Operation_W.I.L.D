@@ -13,19 +13,21 @@ import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.client.model.BoaModel;
 import net.tiew.operationWild.entity.client.render.BoaRenderer;
 import net.tiew.operationWild.entity.client.util.OWFrameOffsetVertexConsumer;
+import net.tiew.operationWild.entity.variants.BoaVariant;
 
 public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
 
     private static final ResourceLocation MESMERIZING_EYES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/mesmerizing_eyes.png");
-    private static final int EYES_FRAME_COUNT     = 3;
+    private static final int EYES_FRAME_COUNT = 3;
     private static final int EYES_TICKS_PER_FRAME = 3;
 
     private static final ResourceLocation BLOODY_STAGE_0_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_bloody_stage_0.png");
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_bloody_stage_1.png");
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_bloody_stage_2.png");
-    private static final ResourceLocation SADDLE_TEXTURE         = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_saddle.png");
-    private static final ResourceLocation NECKLACE_TEXTURE       = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_necklace.png");
-    private static final ResourceLocation TEETHS_TEXTURE       = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_teeths.png");
+    private static final ResourceLocation SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_saddle.png");
+    private static final ResourceLocation NECKLACE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_necklace.png");
+    private static final ResourceLocation TEETHS_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_teeths.png");
+    private static final ResourceLocation LEVIATHAN_SKIN_TEETHS_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/skins/boa_skin_leviathan_teeths.png");
 
     public BoaLayer(BoaRenderer boaRenderer) {
         super(boaRenderer);
@@ -35,7 +37,6 @@ public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight,
                        BoaEntity boa, float v, float v1, float v2, float v3, float v4, float v5) {
 
-        // Yeux hypnotiques animés : uniquement pendant l'hypnose.
         if (boa.isHypnotizing()) {
             renderMesmerizingEyes(poseStack, multiBufferSource, packedLight, boa, v2);
         }
@@ -43,21 +44,21 @@ public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
         float healthTier = boa.getMaxHealth() / 4;
 
         if (boa.isTame() && !boa.isInResurrection()) {
-            //renderOverlayWithColor(poseStack, multiBufferSource, NECKLACE_TEXTURE, false, packedLight, boa.getNecklaceColor());
         }
 
         if (boa.isCombo()) {
-            renderOverlay(poseStack, multiBufferSource, TEETHS_TEXTURE, false, packedLight);
+            ResourceLocation teeths = boa.getVariant() == BoaVariant.Cosmetics.LEVIATHAN.variant ? LEVIATHAN_SKIN_TEETHS_TEXTURE : TEETHS_TEXTURE;
+            renderOverlay(poseStack, multiBufferSource, teeths, false, packedLight);
         }
 
-        //if (boa.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
-
-        if      (boa.getHealth() < healthTier)             renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
-        else if (boa.getHealth() < (healthTier * 2))       renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);
-        else if (boa.getHealth() < (healthTier * 3))       renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);
+        if (boa.getHealth() < healthTier)
+            renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
+        else if (boa.getHealth() < (healthTier * 2))
+            renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);
+        else if (boa.getHealth() < (healthTier * 3))
+            renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);
     }
 
-    /** Rend les yeux hypnotiques en lisant la frame courante de la spritesheet verticale. */
     private void renderMesmerizingEyes(PoseStack poseStack, MultiBufferSource bufferSource,
                                        int packedLight, BoaEntity boa, float partialTick) {
         float time = boa.tickCount + partialTick;
@@ -69,13 +70,13 @@ public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
     }
 
     private void renderOverlay(PoseStack poseStack, MultiBufferSource bufferSource,
-                                ResourceLocation texture, boolean glowLayer, int packedLight) {
+                               ResourceLocation texture, boolean glowLayer, int packedLight) {
         VertexConsumer vc = bufferSource.getBuffer(glowLayer ? RenderType.eyes(texture) : RenderType.entityCutout(texture));
         this.getParentModel().renderToBuffer(poseStack, vc, glowLayer ? 15728640 : packedLight, OverlayTexture.NO_OVERLAY);
     }
 
     private void renderOverlayWithColor(PoseStack poseStack, MultiBufferSource bufferSource,
-                                         ResourceLocation texture, boolean glowLayer, int packedLight, int color) {
+                                        ResourceLocation texture, boolean glowLayer, int packedLight, int color) {
         poseStack.pushPose();
 
         RenderSystem.enableDepthTest();

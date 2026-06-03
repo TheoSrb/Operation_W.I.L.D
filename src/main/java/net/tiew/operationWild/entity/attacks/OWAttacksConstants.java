@@ -60,7 +60,7 @@ public class OWAttacksConstants {
         public static final float  THERMAL_MAX_HP       = 150f;
         public static final double THERMAL_RANGE        = 24.0;
         public static final double THERMAL_ENGAGE_RANGE = 5.0;
-        public static final double THERMAL_AIM_RADIUS   = 0.4;
+        public static final double THERMAL_AIM_RADIUS   = 0.65;
         public static final float  THERMAL_REF_SIZE      = 1.5f;
         public static final float  THERMAL_SCALE_MIN     = 0.6f;
         public static final float  THERMAL_SCALE_MAX     = 1.75f;
@@ -71,7 +71,7 @@ public class OWAttacksConstants {
         public static final double CONSTRICT_ENGAGE_RANGE = 3.0;
         public static final float CONSTRICT_MAX_TARGET_WIDTH = 3f;
         public static final float CONSTRICT_MAX_TARGET_HEIGHT = 3f;
-        public static final int CONSTRICT_DAMAGE_INTERVAL = 15;
+        public static final int CONSTRICT_DAMAGE_INTERVAL = 10;
         public static final float CONSTRICT_BASE_DAMAGE = 0.5f;
         public static final float CONSTRICT_MAX_DAMAGE = 3.0f;
         public static final double CONSTRICT_MOVE_SPEED = 0.2;

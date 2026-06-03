@@ -21,10 +21,12 @@ public class VenomousArrow extends AbstractArrow {
 
     public VenomousArrow(EntityType<? extends AbstractArrow> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
+        this.setBaseDamage(1.5);
     }
 
     public VenomousArrow(LivingEntity shooter, Level level) {
         super(OWEntityRegistry.VENOMOUS_ARROW.get(), shooter, level, new ItemStack(OWItems.VENOMOUS_ARROW.get()), null);
+        this.setBaseDamage(1.5);
     }
 
     @Override

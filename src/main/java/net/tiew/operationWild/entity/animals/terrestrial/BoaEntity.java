@@ -593,10 +593,10 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     public float calcPartRotation(int i) {
         final float f = 1f - (this.strangleProgress * 0.2f);
-        final float ramp = Mth.clamp(this.constrictTimer / 30f, 0f, 1f);
+        final float ramp = Mth.clamp(this.constrictTimer / 15f, 0f, 1f);
         final float curlPerSegment = 60f;
         final float sitCalm = 1f - this.sitProgress * 0.7f;
-        return (float) (40 * -Math.sin(this.walkDist * 3 - i)) * f * sitCalm
+        return (float) (45 * -Math.sin(this.walkDist * 2.5f - i)) * f * sitCalm
                 + this.strangleProgress * 0.2f * i * curlPerSegment * ramp
                 + this.sitProgress * i * SIT_CURL_PER_SEGMENT
                 + this.constrictBreath * i * 10f * ramp;
@@ -820,8 +820,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             return;
         }
         this.constrictTimer++;
-        // Oscillation 0→1→0, période ~22 ticks (≈1.1 s) : les anneaux se resserrent puis relâchent
-        this.constrictBreath = (float)(0.5 + 0.5 * Math.sin(this.constrictTimer * Mth.TWO_PI / 22.0));
+        // Oscillation 0→1→0, période ~11 ticks (≈0.55 s) : les anneaux se resserrent puis relâchent
+        this.constrictBreath = (float)(0.5 + 0.5 * Math.sin(this.constrictTimer * Mth.TWO_PI / 11.0));
         final boolean isPlayer = t instanceof Player;
         final boolean approaching = this.constrictTimer <= OWAttacksConstants.Boa.CONSTRICT_APPROACH_TICKS;
 
@@ -930,7 +930,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             Vec3 dm = t.getDeltaMovement();
             double vy = t.onGround() ? 0.0 : -0.08;
             t.setDeltaMovement(dm.x * 0.25, vy, dm.z * 0.25);
-            final double TARGET_PULL = 0.35;
+            final double TARGET_PULL = 0.6;
             t.setPos(Mth.lerp(TARGET_PULL, t.getX(), hold.x), t.getY(), Mth.lerp(TARGET_PULL, t.getZ(), hold.z));
             t.hurtMarked = true;
             if (t instanceof Mob m) m.getNavigation().stop();
@@ -938,7 +938,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         t.setAirSupply(Math.max(-20, t.getAirSupply() - 5));
 
         boolean playerOutOfAir = isPlayer && t.getAirSupply() <= 0;
-        if ((!isPlayer || playerOutOfAir) && this.constrictTimer >= 40 && this.constrictTimer % OWAttacksConstants.Boa.CONSTRICT_DAMAGE_INTERVAL == 0) {
+        if ((!isPlayer || playerOutOfAir) && this.constrictTimer >= 30 && this.constrictTimer % OWAttacksConstants.Boa.CONSTRICT_DAMAGE_INTERVAL == 0) {
             float squeeze = Math.min(1f, (float) this.constrictTimer / OWAttacksConstants.Boa.CONSTRICT_DURATION_TICKS);
             float dmg = Mth.lerp(squeeze,
                     OWAttacksConstants.Boa.CONSTRICT_BASE_DAMAGE,

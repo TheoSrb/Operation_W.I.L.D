@@ -16,11 +16,21 @@ public class VenomEffect extends MobEffect {
 
     public boolean applyEffectTick(LivingEntity entity, int amplifier) {
         float hp = entity.getHealth();
-        if (hp > MIN_HEALTH) {
-            // On borne les dégâts pour ne JAMAIS descendre sous MIN_HEALTH PV → le Venin
-            // affaiblit mais ne peut pas tuer (ni amener trop bas).
-            float dmg = Math.min(1.0F, hp - MIN_HEALTH);
+        if (hp <= MIN_HEALTH) {
+            return true; // déjà au/sous le seuil : le Venin ne touche plus
+        }
+
+        // Dégâts bornés pour laisser au moins MIN_HEALTH PV, et JAMAIS un coup létal.
+        float dmg = Math.min(1.0F, hp - MIN_HEALTH);
+        if (dmg > 0.0F && dmg < hp) {
             entity.hurt(entity.damageSources().magic(), dmg);
+        }
+
+        // Garde-fou dur : si pour une raison quelconque ce tick de Venin a fait passer les PV
+        // sous le seuil (modificateurs, ordre des dégâts...), on les ramène au seuil. Le Venin
+        // ne peut donc jamais finir une entité.
+        if (entity.isAlive() && entity.getHealth() < MIN_HEALTH) {
+            entity.setHealth(MIN_HEALTH);
         }
         return true;
     }
