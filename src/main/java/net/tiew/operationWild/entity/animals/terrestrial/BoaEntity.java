@@ -126,6 +126,14 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private float wavePhase = 0f;
     private float prevWalkDist = 0f;
 
+    // Lissage vertical du RENDU de la tete (client). En montant sur un bloc, l'entite saute de
+    // toute la hauteur du pas en un tick alors que les segments de queue lissent leur montee
+    // (prevHeight). On fait donc monter le rendu de la tete progressivement, comme la queue.
+    // Uniquement vers le haut : en descente/chute on suit la position reelle instantanement
+    // pour ne pas faire flotter la tete. HEAD_Y_SMOOTH : 0 = gele, 1 = pas de lissage.
+    private double clientSmoothedY = Double.NaN;
+    private static final double HEAD_Y_SMOOTH = 0.35;
+
     private static final EntityDataAccessor<java.util.Optional<java.util.UUID>> CHILD_UUID =
             SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> CHILD_ID =
@@ -377,7 +385,16 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         if (!constricting) createCombo(16, 10, OWSounds.BOA_HITTING.get(), 2.0, 2.5, 1.25, false, 0.25f);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
-        if (this.level().isClientSide()) setupAnimationState();
+        if (this.level().isClientSide()) {
+            setupAnimationState();
+            // Lissage vertical du rendu de la tete (montee progressive sur les blocs).
+            double actualY = this.getY();
+            if (Double.isNaN(clientSmoothedY) || actualY <= clientSmoothedY) {
+                clientSmoothedY = actualY;
+            } else {
+                clientSmoothedY += (actualY - clientSmoothedY) * HEAD_Y_SMOOTH;
+            }
+        }
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (Float.isNaN(this.smoothedYRot)) {
@@ -577,6 +594,16 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             return ((net.minecraft.server.level.ServerLevel) level()).getEntity(id);
         }
         return null;
+    }
+
+    /**
+     * Decalage vertical (blocs) a appliquer au RENDU de la tete pour lisser sa montee sur les
+     * blocs, calque sur le lissage des segments de queue. Negatif pendant la montee (la tete
+     * est rendue plus bas que sa position reelle puis rattrape), 0 le reste du temps.
+     */
+    public float getHeadRenderYLag() {
+        if (Double.isNaN(clientSmoothedY)) return 0f;
+        return (float) (clientSmoothedY - this.getY());
     }
 
     public Entity getFirstTailPart() {
@@ -1112,9 +1139,6 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                 by += ay;
                 bz += -ax * sin + az * cos;
 
-                // Digestion : le segment-siege gonfle (yScale), son sommet (4 px au-dessus du
-                // pivot) monte de 4 * bulge px. On remonte le rider d'autant pour qu'il reste
-                // pose dessus.
                 by += part.bodyBulge * 4.0 * s;
             }
 

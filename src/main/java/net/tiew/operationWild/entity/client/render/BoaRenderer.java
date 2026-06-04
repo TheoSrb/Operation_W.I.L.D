@@ -38,7 +38,11 @@ public class BoaRenderer extends OWEntityRenderer<BoaEntity, BoaModel<BoaEntity>
                 ? skin.getModelLayer().map(this::getOrBakeModel).orElse(getOrBakeModel(BoaModel.LAYER_LOCATION))
                 : getOrBakeModel(BoaModel.LAYER_LOCATION);
 
+        // Lissage vertical de la tete (montee progressive sur les blocs, comme la queue).
+        poseStack.pushPose();
+        poseStack.translate(0.0, entity.getHeadRenderYLag(), 0.0);
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
+        poseStack.popPose();
     }
 
     private BoaModel<BoaEntity> getOrBakeModel(ModelLayerLocation layer) {
