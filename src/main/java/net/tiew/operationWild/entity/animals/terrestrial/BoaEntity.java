@@ -78,6 +78,13 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     private double prevChainX = Double.NaN;
     private double prevChainZ = Double.NaN;
+    // Vitesse lissee (moyenne glissante) du boa, utilisee pour projeter l'ancre de la chaine
+    // de queue devant la tete. On lisse car la vitesse brute par tick d'une monture pilotee
+    // est bruitee ; multipliee par l'offset (x3 en monture) ce bruit faisait sauter toute la
+    // queue (saccades). VEL_SMOOTH : 0 = gele, 1 = pas de lissage (bruit brut).
+    private double smoothedVelX = 0.0;
+    private double smoothedVelZ = 0.0;
+    private static final double VEL_SMOOTH = 0.25;
 
     private long digestionStartTick = -1L;
     private float digestionPower = 1.0f;
@@ -101,13 +108,31 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private static final float RIDDEN_RUN_YAW_LAG = 0.16f;
     private static final float WILD_YAW_LAG = 0.30f;
 
+    // Frequence de l'ondulation laterale de la queue (calcPartRotation). Valeur normale, et
+    // valeur reduite quand le boa est monte ET court : a haute vitesse walkDist grimpe vite,
+    // donc l'oscillation gauche-droite devenait trop rapide pour le cavalier (mal des
+    // transports). On la ralentit dans ce cas.
+    private static final float WAVE_FREQ = 2.5f;
+    private static final float RIDDEN_RUN_WAVE_FREQ = 1.5f;
+
     private float smoothedYRot = Float.NaN;
     public final float[] ringBuffer = new float[64];
     public int ringBufferIndex = -1;
 
+    // Phase continue de l'ondulation laterale de la queue. On l'accumule d'un increment par
+    // tick (delta de walkDist * waveFreq) au lieu de recalculer walkDist * waveFreq a chaque
+    // fois : ainsi changer waveFreq (course/marche, montage) ne modifie QUE la vitesse future
+    // et ne teleporte plus la phase, ce qui supprimait les saccades de la queue.
+    private float wavePhase = 0f;
+    private float prevWalkDist = 0f;
+
     private static final EntityDataAccessor<java.util.Optional<java.util.UUID>> CHILD_UUID =
             SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.OPTIONAL_UUID);
     private static final EntityDataAccessor<Integer> CHILD_ID =
+            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+    // Id (synchronise client) du DEUXIEME segment de queue (bodyIndex 1) : c'est lui qui
+    // sert de siege au rider (cf. getSecondTailPart / positionRider).
+    private static final EntityDataAccessor<Integer> CHILD_ID_2 =
             SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT =
@@ -209,6 +234,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(CHILD_UUID, java.util.Optional.empty());
         builder.define(CHILD_ID, -1);
+        builder.define(CHILD_ID_2, -1);
         builder.define(VENOM_ARMED, false);
         builder.define(VENOM_COOLDOWN_TICKS, 0);
         builder.define(IS_GRABBING, false);
@@ -390,8 +416,22 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         }
         prevChainX = this.getX();
         prevChainZ = this.getZ();
+        // Lissage de la vitesse (moyenne glissante) pour stabiliser l'ancre de la chaine.
+        smoothedVelX += (realVelX - smoothedVelX) * VEL_SMOOTH;
+        smoothedVelZ += (realVelZ - smoothedVelZ) * VEL_SMOOTH;
 
         if (!this.level().isClientSide()) {
+            // Avance la phase d'ondulation de la queue d'un seul increment ce tick. waveFreq
+            // est reduit quand le boa est monte ET court (anti mal des transports), mais comme
+            // on accumule au lieu de recalculer walkDist*waveFreq, le changement de frequence
+            // ne provoque plus de saut de phase (saccade).
+            float currentWaveFreq = WAVE_FREQ;
+            if (this.isVehicle() && this.isRunning() && this.getControllingPassenger() != null) {
+                currentWaveFreq = RIDDEN_RUN_WAVE_FREQ;
+            }
+            this.wavePhase += (this.walkDist - this.prevWalkDist) * currentWaveFreq;
+            this.prevWalkDist = this.walkDist;
+
             int venomCd = getVenomCooldownTicks();
             if (venomCd > 0) setVenomCooldownTicks(venomCd - 1);
 
@@ -429,6 +469,9 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                         this.setChildId(part.getUUID());
                         this.entityData.set(CHILD_ID, part.getId());
                     }
+                    if (i == 1) {
+                        this.entityData.set(CHILD_ID_2, part.getId());
+                    }
                     if (partParent instanceof BoaTailPart) {
                         ((BoaTailPart) partParent).setChildId(part.getUUID());
                     }
@@ -449,11 +492,12 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                     parts[i] = (BoaTailPart) parts[i - 1].getChild();
                     i++;
                 }
+                this.entityData.set(CHILD_ID_2, parts[1] != null ? parts[1].getId() : -1);
             }
             if (parts != null) {
                 BoaPartIndex partIndex = BoaPartIndex.HEAD;
                 float offset = this.isVehicle() ? 3 : 1;
-                Vec3 prev = this.position().add(realVelX * offset, 0, realVelZ * offset);
+                Vec3 prev = this.position().add(smoothedVelX * offset, 0, smoothedVelZ * offset);
                 float xRot = this.getXRot();
 
                 boolean swimming = this.isInWater();
@@ -540,6 +584,16 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         return id == -1 ? null : this.level().getEntity(id);
     }
 
+    /**
+     * Deuxieme segment de queue (bodyIndex 1). Sert de siege au rider (deplacements plus
+     * lisses que sur le 1er segment). Retombe sur le 1er segment tant que le 2e n'existe pas.
+     */
+    public Entity getSecondTailPart() {
+        int id = this.entityData.get(CHILD_ID_2);
+        Entity second = id == -1 ? null : this.level().getEntity(id);
+        return second != null ? second : getFirstTailPart();
+    }
+
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
@@ -596,7 +650,9 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         final float ramp = Mth.clamp(this.constrictTimer / 15f, 0f, 1f);
         final float curlPerSegment = 60f;
         final float sitCalm = 1f - this.sitProgress * 0.7f;
-        return (float) (45 * -Math.sin(this.walkDist * 2.5f - i)) * f * sitCalm
+        // Phase continue accumulee dans tick() (cf. wavePhase) : pas de saut quand waveFreq
+        // change. Le dephasage par segment (- i) reste, donc la vague descend toujours le corps.
+        return (float) (45 * -Math.sin(this.wavePhase - i)) * f * sitCalm
                 + this.strangleProgress * 0.2f * i * curlPerSegment * ramp
                 + this.sitProgress * i * SIT_CURL_PER_SEGMENT
                 + this.constrictBreath * i * 10f * ramp;
@@ -698,12 +754,6 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.digestionPower = preyMaxHealth;
     }
 
-    /**
-     * Declenche la digestion visuelle (renflement parcourant la queue) avec une puissance
-     * donnee. Utilise par {@link net.tiew.operationWild.entity.goals.boa.BoaEatItemGoal}
-     * quand le Boa sauvage avale un item de viande au sol (pas de proie = pas de PV max,
-     * on passe donc directement la puissance voulue).
-     */
     public void triggerItemDigestion(float power) {
         triggerDigestion(power);
     }
@@ -828,8 +878,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             return;
         }
         this.constrictTimer++;
-        // Oscillation 0→1→0, période ~11 ticks (≈0.55 s) : les anneaux se resserrent puis relâchent
-        this.constrictBreath = (float)(0.5 + 0.5 * Math.sin(this.constrictTimer * Mth.TWO_PI / 11.0));
+        this.constrictBreath = (float) (0.5 + 0.5 * Math.sin(this.constrictTimer * Mth.TWO_PI / 11.0));
         final boolean isPlayer = t instanceof Player;
         final boolean approaching = this.constrictTimer <= OWAttacksConstants.Boa.CONSTRICT_APPROACH_TICKS;
 
@@ -1041,7 +1090,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
         float yOffset = (float) (this.getBbHeight() * 0.1) - 0.18f;
         final double BACK = 0.65;
-        Entity seg = getFirstTailPart();
+        Entity seg = getSecondTailPart();
 
         if (seg != null) {
             double sx = (seg.xOld + seg.getX()) * 0.5;
@@ -1052,21 +1101,21 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             double by = sy + yOffset;
             double bz = sz - Math.cos(yawR) * BACK;
 
-            // Suivi de l'animation de strike : le siege (body_0) est translate cote CLIENT par
-            // le modele (cabrage ALL + fente avant heritee de "head"), mais sa position monde
-            // serveur, elle, ne bouge pas. On rejoue donc ici le MEME transform que le renderer
-            // (BoaTailPartRenderer) sur le delta capture, pour coller le rider a son siege.
-            // Renderer : Ry(180-yaw) * S(-1,-1,1) * S(scale). On ignore le pitch (~0 au strike).
             if (seg instanceof BoaTailPart part) {
-                double s = this.getScale() / 16.0; // px modele -> blocs, a l'echelle du boa
-                double ax = -part.bodyAnimX * s;   // S(-1,-1,1) sur X
-                double ay = -part.bodyAnimY * s;   // S(-1,-1,1) sur Y
-                double az =  part.bodyAnimZ * s;
+                double s = this.getScale() / 16.0;
+                double ax = -part.bodyAnimX * s;
+                double ay = -part.bodyAnimY * s;
+                double az = part.bodyAnimZ * s;
                 double th = Math.toRadians(180.0 - seg.getYRot());
                 double cos = Math.cos(th), sin = Math.sin(th);
-                bx += ax * cos + az * sin;         // Ry(th) sur (X,Z)
+                bx += ax * cos + az * sin;
                 by += ay;
                 bz += -ax * sin + az * cos;
+
+                // Digestion : le segment-siege gonfle (yScale), son sommet (4 px au-dessus du
+                // pivot) monte de 4 * bulge px. On remonte le rider d'autant pour qu'il reste
+                // pose dessus.
+                by += part.bodyBulge * 4.0 * s;
             }
 
             callback.accept(passenger, bx, by, bz);

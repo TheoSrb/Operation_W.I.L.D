@@ -1110,6 +1110,18 @@ public class ClientEvents {
             float segYaw = Mth.rotLerp(pt, seg.yRotO, seg.getYRot());
             float bodyYaw = Mth.rotLerp(pt, player.yBodyRotO, player.yBodyRot);
             poseStack.mulPose(Axis.YP.rotationDegrees(Mth.wrapDegrees(bodyYaw - segYaw) * 0.5f));
+
+            // Sous l'eau, la queue prend du tangage (xRot des segments via la vague de nage).
+            // On incline aussi verticalement le rider pour qu'il suive le bone du siege (body_1),
+            // dans le repere du yaw du corps (meme convention que crocodile/orca/kodiak).
+            Entity seatSeg = boaPose.getSecondTailPart();
+            if (boaPose.isInWater() && seatSeg != null) {
+                // Intensite divisee par 2 pour un tangage plus discret du rider sous l'eau.
+                float segPitch = Mth.rotLerp(pt, seatSeg.xRotO, seatSeg.getXRot()) * 0.5f;
+                poseStack.mulPose(Axis.YP.rotationDegrees(-bodyYaw));
+                poseStack.mulPose(Axis.XP.rotationDegrees(-segPitch));
+                poseStack.mulPose(Axis.YP.rotationDegrees(bodyYaw));
+            }
         } else if (owVehicle instanceof KodiakEntity kodiak) {
             poseStack.pushPose();
 

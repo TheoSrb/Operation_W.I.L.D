@@ -17,6 +17,7 @@ public class BoaTailPartLayer extends RenderLayer<BoaTailPart, EntityModel<BoaTa
     private static final ResourceLocation BLOODY_STAGE_0_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_bloody_stage_0.png");
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_bloody_stage_1.png");
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_bloody_stage_2.png");
+    private static final ResourceLocation SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_saddle.png");
 
     public BoaTailPartLayer(BoaTailPartRenderer boaRenderer) {
         super(boaRenderer);
@@ -31,6 +32,12 @@ public class BoaTailPartLayer extends RenderLayer<BoaTailPart, EntityModel<BoaTa
         if      (ratio < 0.25f)  renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
         else if (ratio < 0.50f)  renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);
         else if (ratio < 0.75f)  renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_0_TEXTURE, false, packedLight);
+
+        // Selle : chaque segment de queue affiche sa part de la selle quand le Boa est selle,
+        // pour que la selle suive tout le serpent (tete via BoaLayer + tous les segments ici).
+        if (boaTailPart.isBoaSaddled()) {
+            renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+        }
     }
 
     private void renderOverlay(PoseStack poseStack, MultiBufferSource bufferSource,

@@ -46,6 +46,12 @@ public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
         if (boa.isTame() && !boa.isInResurrection()) {
         }
 
+        // Selle (tete + body_0 du modele de tete). La queue (body_0..6 en entites separees)
+        // affiche sa propre selle via BoaTailPartLayer.
+        if (boa.isSaddled()) {
+            renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+        }
+
         if (boa.isCombo()) {
             ResourceLocation teeths = boa.getVariant() == BoaVariant.Cosmetics.LEVIATHAN.variant ? LEVIATHAN_SKIN_TEETHS_TEXTURE : TEETHS_TEXTURE;
             renderOverlay(poseStack, multiBufferSource, teeths, false, packedLight);

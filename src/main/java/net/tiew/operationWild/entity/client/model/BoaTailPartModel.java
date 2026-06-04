@@ -114,6 +114,9 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> {
         segment.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(171, 219).mirror().addBox(-8.0F, -5.0F, 0.0F, 10.0F, 10.0F, 0.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offsetAndRotation(-4.5F, -1.5F, 9.0F, 0.2533F, 0.7519F, 0.3622F));
         segment.addOrReplaceChild("cube_r5", CubeListBuilder.create().texOffs(179, 239).mirror().addBox(-8.0F, -5.0F, 0.0F, 10.0F, 10.0F, 0.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offsetAndRotation(-4.5F, -1.5F, 10.0F, 0.2533F, 0.7519F, 0.3622F));
         segment.addOrReplaceChild("cube_r6", CubeListBuilder.create().texOffs(179, 239).addBox(-2.0F, -5.0F, 0.0F, 10.0F, 10.0F, 0.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(4.5F, -1.5F, 10.0F, 0.2533F, -0.7519F, -0.3622F));
+        // Nageoires laterales verticales (cube_r7/r8 de BoaModel.body_0). Z decale de +1 (-3.0 -> -2.0).
+        segment.addOrReplaceChild("cube_r7", CubeListBuilder.create().texOffs(205, 49).mirror().addBox(0.1604F, -3.6831F, -0.1747F, 0.0F, 6.0F, 16.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offsetAndRotation(-4.5F, 0.0F, -2.0F, 0.1747F, -0.043F, -0.0076F));
+        segment.addOrReplaceChild("cube_r8", CubeListBuilder.create().texOffs(205, 49).addBox(-0.1604F, -3.6831F, -0.1747F, 0.0F, 6.0F, 16.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(4.5F, 0.0F, -2.0F, 0.1747F, 0.043F, 0.0076F));
         return LayerDefinition.create(mesh, 256, 256);
     }
 
@@ -123,11 +126,16 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> {
                 CubeListBuilder.create()
                         .texOffs(0, 0)
                         .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.0F))
+                        .texOffs(202, 7)
+                        .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.5F))
                         .texOffs(135, 138)
                         .addBox(0.0F, -14.0F, 0.0F, 0.0F, 10.0F, 15.0F, new CubeDeformation(0.01F)),
                 PartPose.offset(0f, TAIL_Y, 0f));
         // Corail lateral (cube_r7 de BoaModel.body_1). Z decale de +1 (boite a z=0 ici).
         segment.addOrReplaceChild("cube_r7", CubeListBuilder.create().texOffs(205, 180).addBox(5.0F, -11.0F, -1.0F, 11.0F, 11.0F, 0.0F, new CubeDeformation(0.001F)), PartPose.offsetAndRotation(-9.0F, 5.5F, 3.0F, -0.0128F, -0.4635F, -0.5778F));
+        // Nageoires laterales (cube_r10/r11 de BoaModel.body_1). Z decale de +1 (-3.7 -> -2.7).
+        segment.addOrReplaceChild("cube_r10", CubeListBuilder.create().texOffs(212, 82).mirror().addBox(0.0F, -2.4362F, -0.3504F, 0.0F, 7.0F, 16.0F, new CubeDeformation(0.01F)).mirror(false), PartPose.offsetAndRotation(-5.1F, -4.0F, -2.7F, 0.641F, 0.2116F, 0.4646F));
+        segment.addOrReplaceChild("cube_r11", CubeListBuilder.create().texOffs(212, 82).addBox(0.0F, -2.4362F, -0.3504F, 0.0F, 7.0F, 16.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(5.1F, -4.0F, -2.7F, 0.641F, -0.2116F, -0.4646F));
         return LayerDefinition.create(mesh, 256, 256);
     }
 
@@ -227,10 +235,10 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> {
                     entity.comboAnimationState.getAccumulatedTime());
         }
 
-        // Seul le 1er segment (siege du rider, en partant de la tete) capture sa pose
-        // animee : BoaEntity.positionRider relit ce delta Y pour faire suivre le rider et
-        // la camera au cabrage du combo. Chaine root -> ALL -> body_0, Y de repos = TAIL_Y.
-        if (entity.getBodyIndex() == 0) {
+        // Le 2e segment (bodyIndex 1) est le siege du rider : c'est lui qui capture sa pose
+        // animee. BoaEntity.positionRider relit ce delta pour faire suivre le rider et la
+        // camera au cabrage du combo. Chaine root -> ALL -> body_1, Y de repos = TAIL_Y.
+        if (entity.getBodyIndex() == 1) {
             captureBodyState(entity, TAIL_Y, this.all, this.segment);
         }
     }
@@ -327,6 +335,9 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> {
         entity.bodyAnimX = xSum;
         entity.bodyAnimY = ySum - restPoseYSum;
         entity.bodyAnimZ = zSum;
+        // Renflement de digestion du segment-siege (applyDigestionBulge a deja regle yScale en
+        // amont dans setupAnim). Relu par positionRider pour remonter le rider quand ca gonfle.
+        entity.bodyBulge = this.segment.yScale - 1f;
     }
 
     /**

@@ -81,6 +81,10 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_CONSTRICTING =
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.BOOLEAN);
+    // Vrai si le Boa parent est selle, copie via copyDataFrom et synchronise. Permet au
+    // layer de la queue d'afficher la selle sur chaque segment, comme la tete.
+    private static final EntityDataAccessor<Boolean> IS_SADDLED =
+            SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.BOOLEAN);
 
     private double prevHeight = 0;
     private int headEntityId = -1;
@@ -99,6 +103,10 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
     public volatile float bodyAnimX = 0f;
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimZ = 0f;
+    // Gonflement de digestion du segment (yScale - 1), capture cote rendu pour le segment-siege
+    // et relu par positionRider afin de remonter le rider quand le bone grossit pendant la
+    // digestion. 0 = pas de renflement.
+    public volatile float bodyBulge = 0f;
 
     public BoaTailPart(EntityType<? extends LivingEntity> t, Level world) {
         super(t, world);
@@ -324,6 +332,12 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         builder.define(DIGEST_POWER, 1.0F);
         builder.define(COMBO_NUMBER, 0);
         builder.define(IS_CONSTRICTING, false);
+        builder.define(IS_SADDLED, false);
+    }
+
+    /** Vrai si le Boa parent est selle, copie via copyDataFrom. */
+    public boolean isBoaSaddled() {
+        return this.entityData.get(IS_SADDLED);
     }
 
     /** Numero du strike de combo en cours (0 = aucun), copie du Boa parent. */
@@ -419,6 +433,7 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         this.entityData.set(DIGEST_POWER, boa.getDigestionPower());
         this.entityData.set(COMBO_NUMBER, boa.isCombo() ? boa.getComboAttack() : 0);
         this.entityData.set(IS_CONSTRICTING, boa.isConstricting());
+        this.entityData.set(IS_SADDLED, boa.isSaddled());
     }
 
     /**
