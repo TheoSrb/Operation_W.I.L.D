@@ -47,7 +47,17 @@
       "Bash(cd /tmp/sgpl && grep -nE \"handleMoveVehicle|moved wrongly|moved too quickly|LOGGER.warn|ServerPlayer player\" net/minecraft/server/network/ServerGamePacketListenerImpl.java | head -40)",
       "Read(//tmp/**)",
       "Bash(sed -n '395,460p' net/minecraft/server/network/ServerGamePacketListenerImpl.java)",
-      "Bash(awk 'NR>=395 && NR<=480' net/minecraft/server/network/ServerGamePacketListenerImpl.java)"
+      "Bash(awk 'NR>=395 && NR<=480' net/minecraft/server/network/ServerGamePacketListenerImpl.java)",
+      "Read(//c/tmp/**)",
+      "Bash(unzip -o -j \"/c/Users/Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/client/event/SelectMusicEvent.java\")",
+      "Bash(unzip -o -j \"/c/Users/Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/event/entity/living/LivingChangeTargetEvent.java\")",
+      "Bash(unzip -o -j \"/c/Users/Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/event/entity/living/FinalizeSpawnEvent.java\")",
+      "Bash(unzip -o -j \"/c/Users/Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/event/entity/living/MobSpawnEvent.java\")",
+      "PowerShell($dir = \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\sounds\\\\musics\"; Get-ChildItem $dir -File | Select-Object Name, @{N='KB';E={[math]::Round\\($_.Length/1KB,1\\)}} | Format-Table -AutoSize)",
+      "PowerShell($dir = \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\sounds\\\\musics\"; $ff = \\(Get-Command ffprobe -ErrorAction SilentlyContinue\\); if \\($ff\\) { foreach \\($f in @\\('resurrection_ritual_intro.ogg','resurrection_ritual.ogg','resurrection_ritual_end.ogg'\\)\\) { $p = Join-Path $dir $f; $d = & ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $p; Write-Output \"$f = $d s\" } } else { Write-Output \"ffprobe-missing\" })",
+      "Bash(python3 -)",
+      "Bash(python -)",
+      "Bash(unzip -o -j \"/c/Users/Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/event/level/BlockEvent.java\")"
     ]
   }
 }

@@ -33,6 +33,6 @@ public enum OrcaVariant {
     }
 
     public static OrcaVariant byId(int id) {
-        return BY_ID[id % BY_ID.length];
+        return BY_ID[Math.floorMod(id, BY_ID.length)];
     }
 }

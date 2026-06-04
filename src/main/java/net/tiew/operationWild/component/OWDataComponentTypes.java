@@ -37,6 +37,9 @@ public class OWDataComponentTypes {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> TAMED_ENTITY_LEVEL = register("tamed_entity_level", builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> TAMED_ENTITY_VARIANT = register("tamed_entity_variant", builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
+    /** Snapshot complet et générique du compagnon mort porté par l'item Âme (nouveau système de résurrection). */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<SoulData>> SOUL_DATA = register("soul_data", builder -> builder.persistent(SoulData.CODEC).networkSynchronized(SoulData.STREAM_CODEC).cacheEncoding());
+
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Component>> MANUSCRIPT_FRAGMENT_ENTITY = register("manuscript_fragment_entity", builder -> builder.persistent(ComponentSerialization.FLAT_CODEC).networkSynchronized(ComponentSerialization.STREAM_CODEC).cacheEncoding());
 

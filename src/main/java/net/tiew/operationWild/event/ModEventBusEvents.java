@@ -40,6 +40,8 @@ public class ModEventBusEvents {
         event.put(OWEntityRegistry.SEABUG_SHARD_2.get(), SeaBugShard2Entity.createAttributes().build());
 
         event.put(OWEntityRegistry.ADVENTURER_MANUSCRIPT.get(), AdventurerManuscript.createAttributes().build());
+
+        event.put(OWEntityRegistry.SOUL_GHOST.get(), SoulGhostEntity.createAttributes().build());
     }
 
     @SubscribeEvent

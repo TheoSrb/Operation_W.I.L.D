@@ -68,6 +68,10 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
 
     @Override
     protected RenderType getRenderType(TigerEntity entity, boolean bodyVisible, boolean translucent, boolean glowing) {
+        // Rituel de résurrection : fantôme spectral générique.
+        if (RENDER_AS_GHOST) {
+            return RenderType.entityTranslucent(this.getTextureLocation(entity));
+        }
         // Uniquement pendant un fondu (camouflage / fantôme) on force le translucide.
         if (currentAlpha < 1f) {
             return RenderType.entityTranslucent(this.getTextureLocation(entity));

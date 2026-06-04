@@ -127,6 +127,13 @@ public class OWChooseNameScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        // Sécurité : si l'entité n'est pas (ou plus) disponible côté client, on ferme l'écran
+        // proprement au lieu de crasher (NPE sur entity.getTamingAdvancement()).
+        if (this.entity == null) {
+            this.onClose();
+            return;
+        }
+
         this.renderBackground(graphics, mouseX, mouseY, partialTick);
 
         int i = (this.width - this.imageWidth) / 2;

@@ -387,7 +387,6 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
         if (this.level().isClientSide()) {
             setupAnimationState();
-            // Lissage vertical du rendu de la tete (montee progressive sur les blocs).
             double actualY = this.getY();
             if (Double.isNaN(clientSmoothedY) || actualY <= clientSmoothedY) {
                 clientSmoothedY = actualY;
@@ -623,39 +622,11 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     @Override
     public void die(DamageSource damageSource) {
-        super.die(damageSource);
-
-        ItemStack soulStack = createSoulStack();
-
-        if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
-            this.spawnAtLocation(soulStack);
-        }
+        super.die(damageSource); // le drop générique de l'Âme est géré par OWEntity.die()
 
         if (this.isSaddled()) {
             this.spawnAtLocation(acceptSaddle());
         }
-    }
-
-    private ItemStack createSoulStack() {
-        ItemStack soulStack = new ItemStack(OWItems.ANIMAL_SOUL.get());
-        Item item = soulStack.getItem();
-
-        if (item instanceof AnimalSoulItem animalSoulItem) {
-            UseOnContext fakeContext = new UseOnContext(this.level(), null, InteractionHand.MAIN_HAND, soulStack,
-                    new BlockHitResult(this.position(), Direction.UP, this.blockPosition(), false));
-
-            animalSoulItem.saveEntityType(fakeContext, Component.nullToEmpty(this.getClass().getSimpleName()));
-            animalSoulItem.saveEntityOwner(fakeContext, Component.nullToEmpty(this.getOwner() != null ? this.getOwner().getName().getString() : ""));
-            animalSoulItem.saveEntityGender(fakeContext, this.isMale());
-            animalSoulItem.saveEntityMaxHealth(fakeContext, this.getMaxHealth());
-            animalSoulItem.saveEntityDamages(fakeContext, this.getDamage());
-            animalSoulItem.saveEntitySpeed(fakeContext, this.getSpeed());
-            animalSoulItem.saveEntityScale(fakeContext, this.getScale());
-            animalSoulItem.saveEntityLevel(fakeContext, this.getLevel());
-            animalSoulItem.saveEntityVariant(fakeContext, this.getVariant().getId());
-        }
-
-        return soulStack;
     }
 
     private float getYawForPart(int i) {
@@ -695,6 +666,14 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         final float d0 = this.ringBuffer[i];
         final float d1 = this.ringBuffer[j] - d0;
         return Mth.wrapDegrees(d0 + d1 * partialTicks);
+    }
+
+    @Override
+    public void setVariant(OWEntity entity, int variant) {
+        if (entity instanceof BoaEntity boa) {
+            boa.setVariant(BoaVariant.byId(variant));
+            boa.setInitialVariant(BoaVariant.byId(variant));
+        }
     }
 
     public BoaVariant getVariant() {

@@ -157,10 +157,12 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         int previewScale = isBoa ? Math.round(entityScale * 0.85f) : entityScale;
         int boaUp = isBoa ? 7 : 0;
         net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = true;
+        net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = true;
         try {
             InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 26, j + 18 - boaUp, i + 78, j + 70 - boaUp, previewScale, 0.25F, this.xMouse, this.yMouse, this.entity);
         } finally {
             net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = false;
+            net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = false;
         }
 
         renderTexts(guiGraphics, i, j);

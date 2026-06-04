@@ -259,6 +259,8 @@ public class OperationWild {
 
             EntityRenderers.register(OWEntityRegistry.ADVENTURER_MANUSCRIPT.get(), AdventurerManuscriptRenderer::new);
 
+            EntityRenderers.register(OWEntityRegistry.SOUL_GHOST.get(), SoulGhostRenderer::new);
+
             HeartRenderHandler.register();
 
 

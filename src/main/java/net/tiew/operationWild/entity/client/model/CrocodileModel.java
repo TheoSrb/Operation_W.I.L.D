@@ -41,6 +41,9 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 	private final ModelPart tail1;
 	private final ModelPart tail2;
 	private final ModelPart tail3;
+
+	/** Force l'affichage de la queue du modèle (GUI : inventaire, cosmétiques, amulette/rituel). */
+	public static boolean RENDER_FULL_BODY = false;
 	private final ModelPart left_arm;
 	private final ModelPart left_leg;
 	private final ModelPart right_leg;
@@ -160,7 +163,10 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		crocodile.tail3AnimYRot = this.tail1.yRot + this.tail2.yRot + this.tail3.yRot;
 		crocodile.tail3AnimZRot = this.tail1.zRot + this.tail2.zRot + this.tail3.zRot;
 
-		boolean inWater = crocodile.isInWater();
+		// En jeu, la queue du modèle n'est visible que dans l'eau (les entités CrocodileTailPart
+		// la remplacent sur terre). En GUI, ces entités n'existent pas : RENDER_FULL_BODY force
+		// l'affichage de la queue du modèle pour montrer le crocodile entier.
+		boolean inWater = crocodile.isInWater() || RENDER_FULL_BODY;
 		this.tail1.visible = inWater;
 		this.tail2.visible = inWater;
 		this.tail3.visible = inWater;

@@ -24,7 +24,7 @@ public enum KodiakVariant {
     }
 
     public static KodiakVariant byId(int id) {
-        return BY_ID[id % BY_ID.length];
+        return BY_ID[Math.floorMod(id, BY_ID.length)];
     }
 
     /** Cosmetic skins unlockable via the skin system (skin index ≥ 1). */

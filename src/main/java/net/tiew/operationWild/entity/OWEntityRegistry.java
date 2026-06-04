@@ -62,6 +62,9 @@ public class OWEntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<AdventurerManuscript>> ADVENTURER_MANUSCRIPT = ENTITY_TYPES.register("adventurer_manuscript", () -> EntityType.Builder.<AdventurerManuscript>of(AdventurerManuscript::new, MobCategory.MISC).sized(0.5f, 0.5f).build("adventurer_manuscript"));
 
+    /** Fantôme spectral du Rituel de Communion (résurrection). Cible des vagues de monstres. */
+    public static final DeferredHolder<EntityType<?>, EntityType<SoulGhostEntity>> SOUL_GHOST = ENTITY_TYPES.register("soul_ghost", () -> EntityType.Builder.<SoulGhostEntity>of(SoulGhostEntity::new, MobCategory.MISC).sized(1.0f, 1.0f).clientTrackingRange(12).build("soul_ghost"));
+
 
 
 

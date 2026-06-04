@@ -469,6 +469,7 @@ public class OWSkinsInterface extends Screen {
         g.fill(fx, fy, fx + fw, fy + 1, 0xFF2A2A2A);
 
         net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = true;
+        net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = true;
         net.tiew.operationWild.entity.client.render.OWEntityRenderer.SUPPRESS_INFO_IN_GUI = true;
         try {
             InventoryScreen.renderEntityInInventoryFollowsMouse(
@@ -477,6 +478,7 @@ public class OWSkinsInterface extends Screen {
                     xMouse, yMouse, entity);
         } finally {
             net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = false;
+            net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = false;
             net.tiew.operationWild.entity.client.render.OWEntityRenderer.SUPPRESS_INFO_IN_GUI = false;
         }
 
@@ -539,6 +541,7 @@ public class OWSkinsInterface extends Screen {
             int previewScale = isBoa ? Math.round(ps * 0.85f) : ps;
             int boaUp = isBoa ? 6 : 0;
             net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = true;
+            net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = true;
             net.tiew.operationWild.entity.client.render.OWEntityRenderer.SUPPRESS_INFO_IN_GUI = true;
             try {
                 InventoryScreen.renderEntityInInventoryFollowsMouse(
@@ -546,6 +549,7 @@ public class OWSkinsInterface extends Screen {
                         previewScale, 0.08f, mouseX, mouseY, ghost);
             } finally {
                 net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = false;
+                net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = false;
                 net.tiew.operationWild.entity.client.render.OWEntityRenderer.SUPPRESS_INFO_IN_GUI = false;
             }
             g.disableScissor();

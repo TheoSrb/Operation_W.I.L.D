@@ -72,8 +72,11 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.tiew.operationWild.component.OWDataComponentTypes;
+import net.tiew.operationWild.component.SoulData;
 import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.core.OWGameRules;
+import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.enchantment.OWEnchantments;
 import net.tiew.operationWild.entity.animals.aquatic.*;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
@@ -164,6 +167,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public int maxSleepBar;
     public float maxHealthBeforeResurrection;
     public int resurrectionTimer = 0;
+    /** Quand true, le taming n'ouvre pas l'écran de nommage (ex : résurrection, le nom est déjà restauré). */
+    public boolean skipNameSelection = false;
     public float actualMaturation = 0;
     public float maxHealth;
     public float maxMaturation;
@@ -850,6 +855,122 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean isInResurrection() { return this.entityData.get(IS_IN_RESURRECTION);}
 
     public void setResurrection(boolean isInResurrection) { this.entityData.set(IS_IN_RESURRECTION, isInResurrection);}
+
+    // ==================== Système d'Âme / Résurrection (générique, tout OWEntity) ====================
+
+    /** Construit le snapshot complet et générique de ce compagnon, indépendant du type d'entité. */
+    public SoulData buildSoulData() {
+        ResourceLocation typeId = BuiltInRegistries.ENTITY_TYPE.getKey(this.getType());
+        UUID ownerUuid = this.getOwnerUUID() != null ? this.getOwnerUUID() : SoulData.NO_UUID;
+        String ownerName = this.getOwner() != null ? this.getOwner().getName().getString()
+                : (this.getCachedOwnerName() != null ? this.getCachedOwnerName() : "");
+        String nickname = this.getNickname() != null ? this.getNickname() : "";
+        CompoundTag teamTag = new CompoundTag();
+        if (this.currentTeam != null) this.writeTeamToTag(teamTag);
+        return new SoulData(typeId, this.getUUID(), ownerUuid, ownerName, nickname,
+                this.isMale(), this.getMaxHealth(), this.getDamage(), this.getSpeed(),
+                this.getScale(), this.getLevel(), this.getTypeVariant(), this.getSkinIndex(), teamTag);
+    }
+
+    /** Crée l'item Âme portant le snapshot de ce compagnon. */
+    public ItemStack captureSoul() {
+        ItemStack soulStack = new ItemStack(OWItems.ANIMAL_SOUL.get());
+        soulStack.set(OWDataComponentTypes.SOUL_DATA.get(), this.buildSoulData());
+        return soulStack;
+    }
+
+    /** Doit-on droper l'Âme à la mort ? Conditions communes à toutes les entités. */
+    public boolean shouldDropSoulOnDeath() {
+        return this.canDropSoul() && this.isTame() && !this.isInResurrection() && !this.isBaby();
+    }
+
+    /** Restaure intégralement ce compagnon (fraîchement spawn) depuis un snapshot d'Âme. */
+    public void restoreFromSoul(SoulData data) {
+        this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(data.maxHealth());
+        this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(data.damage());
+        this.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(data.speed());
+        this.setDamageToClient(data.damage());
+        this.setGender(data.male() ? 1 : 0);
+        this.setLevel(data.level());
+        this.setLevelPoints(0);
+        this.setScale(data.scale());
+        this.setVariant(this, data.variant());
+        this.setBaseHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
+        this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
+        this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
+        if (!data.nickname().isEmpty()) this.setNickname(data.nickname());
+        try {
+            if (data.skinIndex() != 0) this.changeSkinSilent(data.skinIndex());
+        } catch (Exception ignored) {
+            // Restauration de skin non critique : ne doit jamais interrompre la résurrection.
+        }
+        if (data.hasTeam()) this.applyTeamFromTag(data.teamTag());
+        this.setHealth(this.getMaxHealth());
+    }
+
+    /** Écrit les données de la tribu courante dans le tag fourni (même format que la sauvegarde NBT). */
+    public void writeTeamToTag(CompoundTag teamTag) {
+        if (this.currentTeam == null) return;
+        teamTag.putInt("teamId", currentTeam.getTeamId());
+        teamTag.putString("teamName", currentTeam.getTeamName());
+        teamTag.putString("teamOwnerUUID", currentTeam.getTeamOwnerUUID().toString());
+        teamTag.putInt("teamColor", currentTeam.getTeamColor());
+        teamTag.putInt("teamSecondaryColor", currentTeam.getTeamSecondaryColor());
+        teamTag.putInt("teamMosaicPatternId", currentTeam.getTeamMosaicPattern().getId());
+        teamTag.putString("teamCreationDate", currentTeam.getTeamCreationDate());
+
+        ListTag pNames = new ListTag();
+        for (String n : currentTeam.getPlayerNames()) pNames.add(net.minecraft.nbt.StringTag.valueOf(n));
+        teamTag.put("playerNames", pNames);
+
+        ListTag eNames = new ListTag();
+        for (String n : currentTeam.getEntityNames()) eNames.add(net.minecraft.nbt.StringTag.valueOf(n));
+        teamTag.put("entityNames", eNames);
+
+        ListTag eUUIDs = new ListTag();
+        for (UUID u : currentTeam.getEntityUUIDs()) eUUIDs.add(net.minecraft.nbt.StringTag.valueOf(u.toString()));
+        teamTag.put("entityUUIDs", eUUIDs);
+
+        boolean[] pixels = currentTeam.getPaintPixels();
+        teamTag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels(pixels != null ? pixels : new boolean[0]));
+    }
+
+    /** Reconstruit et applique une tribu depuis un tag (même format que la sauvegarde NBT). */
+    public void applyTeamFromTag(CompoundTag teamTag) {
+        if (teamTag == null || teamTag.isEmpty()) return;
+        List<String> pNames = new ArrayList<>();
+        ListTag pTag = teamTag.getList("playerNames", Tag.TAG_STRING);
+        for (int i = 0; i < pTag.size(); i++) pNames.add(pTag.getString(i));
+
+        List<String> eNames = new ArrayList<>();
+        ListTag eTag = teamTag.getList("entityNames", Tag.TAG_STRING);
+        for (int i = 0; i < eTag.size(); i++) eNames.add(eTag.getString(i));
+
+        List<UUID> eUUIDs = new ArrayList<>();
+        if (teamTag.contains("entityUUIDs")) {
+            ListTag euTag = teamTag.getList("entityUUIDs", Tag.TAG_STRING);
+            for (int i = 0; i < euTag.size(); i++) {
+                try { eUUIDs.add(UUID.fromString(euTag.getString(i))); }
+                catch (IllegalArgumentException ignored) {}
+            }
+        }
+
+        boolean[] savedPixels = OWTeamMosaicPattern.unpackPixels(
+                teamTag.contains("paintPixels") ? teamTag.getByteArray("paintPixels") : new byte[0],
+                OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT);
+
+        this.currentTeam = new OWTeam(
+                teamTag.getInt("teamId"),
+                teamTag.getString("teamName"),
+                UUID.fromString(teamTag.getString("teamOwnerUUID")),
+                teamTag.getInt("teamColor"),
+                teamTag.contains("teamSecondaryColor") ? teamTag.getInt("teamSecondaryColor") : 0xFFFFFF,
+                OWTeamMosaicPattern.byId(teamTag.contains("teamMosaicPatternId") ? teamTag.getInt("teamMosaicPatternId") : 0),
+                new UUID[]{}, new OWEntity[]{},
+                teamTag.getString("teamCreationDate"),
+                pNames, eNames, savedPixels);
+        this.currentTeam.setEntityUUIDs(eUUIDs);
+    }
 
     public void setSleeping(boolean isSleeping) {
         this.entityData.set(IS_SLEEPING, isSleeping);
@@ -1899,6 +2020,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(maxHealthBeforeResurrection);
                 this.setHealth(maxHealthBeforeResurrection);
                 this.resurrectionTimer = 0;
+                // Fin de la fragilité : le compagnon stabilisé pourra de nouveau livrer son Âme s'il meurt.
+                this.setCanDropSoul(true);
             }
         }
 
@@ -2627,6 +2750,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.spawnAtLocation(stack);
         }
 
+        // Drop générique de l'Âme : capture le snapshot complet de TOUT OWEntity apprivoisé (hors véhicules),
+        // sans code dédié par type. Remplace les anciennes méthodes createSoulStack() dupliquées.
+        if (!this.level().isClientSide() && shouldDropSoulOnDeath()) {
+            this.spawnAtLocation(this.captureSoul());
+        }
 
         if (this.isInResurrection() && this.level().isClientSide()) {
             LivingEntity owner = this.getOwner();
@@ -2894,7 +3022,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     }
                 }
 
-                if (this.getOwner() != null) {
+                if (this.getOwner() != null && !this.skipNameSelection) {
                     boolean isOwnerNearby = this.getOwner().distanceTo(this) <= 20;
 
                     if (isOwnerNearby) {

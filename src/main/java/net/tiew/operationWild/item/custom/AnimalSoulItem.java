@@ -1,29 +1,28 @@
 package net.tiew.operationWild.item.custom;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.tiew.operationWild.component.OWDataComponentTypes;
-import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.OWEntityRegistry;
-import net.tiew.operationWild.entity.animals.terrestrial.*;
-import net.tiew.operationWild.entity.variants.*;
-import net.tiew.operationWild.sound.OWSounds;
-import net.tiew.operationWild.core.OWUtils;
+import net.tiew.operationWild.component.SoulData;
+import net.tiew.operationWild.screen.entity.RitualCommunionScreen;
 
 import java.util.List;
-import java.util.Objects;
 
+/**
+ * Item Âme : porte le {@link SoulData} d'un compagnon mort (capturé génériquement par
+ * {@code OWEntity.captureSoul()}). Un clic droit n'ouvre PAS une résurrection instantanée :
+ * il ouvre l'Écran de Communion d'où le joueur lance le Rituel de Communion (défense par
+ * vagues). Voir {@code ResurrectionRitual}.
+ */
 public class AnimalSoulItem extends Item {
 
     public AnimalSoulItem(Properties properties) {
@@ -35,243 +34,101 @@ public class AnimalSoulItem extends Item {
         return true;
     }
 
-    public void saveEntityType(UseOnContext context, Component type) {
-        context.getItemInHand().set(OWDataComponentTypes.TAMED_ENTITY_TYPE.get(), type);
-    }
-    public Component getEntityType(ItemStack stack) {
-        if (stack.get(OWDataComponentTypes.TAMED_ENTITY_TYPE.get()) != null) {
-            return stack.get(OWDataComponentTypes.TAMED_ENTITY_TYPE.get());
-        }
-        return Component.literal("");
+    public static SoulData getSoul(ItemStack stack) {
+        SoulData data = stack.get(OWDataComponentTypes.SOUL_DATA.get());
+        return data == null ? SoulData.EMPTY : data;
     }
 
-    public void saveEntityOwner(UseOnContext context, Component type) {
-        context.getItemInHand().set(OWDataComponentTypes.TAMED_ENTITY_OWNER.get(), type);
-    }
-    public Component getEntityOwner(ItemStack stack) {
-        if (stack.get(OWDataComponentTypes.TAMED_ENTITY_OWNER.get()) != null) {
-            return stack.get(OWDataComponentTypes.TAMED_ENTITY_OWNER.get());
-        }
-        return Component.literal("");
+    private static String speciesPath(SoulData data) {
+        return data.entityType() == null ? "" : data.entityType().getPath();
     }
 
-    public void saveEntityGender(UseOnContext context, boolean isMale) {
-        context.getItemInHand().set(OWDataComponentTypes.TAMED_ENTITY_GENDER.get(), isMale);
-    }
-    public boolean getEntityGender(ItemStack stack) {
-        if (stack.get(OWDataComponentTypes.TAMED_ENTITY_GENDER.get()) != null) {
-            return stack.get(OWDataComponentTypes.TAMED_ENTITY_GENDER.get());
-        }
-        return false;
-    }
-
-    public void saveEntityMaxHealth(UseOnContext context, float maxHealth) {
-        context.getItemInHand().set(OWDataComponentTypes.TAMED_ENTITY_MAX_HEALTH.get(), maxHealth);
-    }
-    public float getEntityMaxHealth(ItemStack stack) {
-        if (stack.get(OWDataComponentTypes.TAMED_ENTITY_MAX_HEALTH.get()) != null) {
-            return stack.get(OWDataComponentTypes.TAMED_ENTITY_MAX_HEALTH.get());
-        }
-        return 1.0f;
+    private static int speciesColor(SoulData data) {
+        return switch (speciesPath(data)) {
+            case "tiger" -> 0xC47037;
+            case "boa" -> 0x838549;
+            case "peacock" -> 0x464BC1;
+            case "kodiak" -> 0x7D4A05;
+            case "crocodile" -> 0x5E7242;
+            case "orca" -> 0x3A4A5A;
+            default -> 0xFFFFFF;
+        };
     }
 
-    public void saveEntityDamages(UseOnContext context, float damages) {
-        context.getItemInHand().set(OWDataComponentTypes.TAMED_ENTITY_DAMAGES.get(), damages);
-    }
-    public float getEntityDamages(ItemStack stack) {
-        if (stack.get(OWDataComponentTypes.TAMED_ENTITY_DAMAGES.get()) != null) {
-            return stack.get(OWDataComponentTypes.TAMED_ENTITY_DAMAGES.get());
-        }
-        return 1.0f;
-    }
-
-    public void saveEntitySpeed(UseOnContext context, float speed) {
-        context.getItemInHand().set(OWDataComponentTypes.TAMED_ENTITY_SPEED.get(), speed);
-    }
-    public float getEntitySpeed(ItemStack stack) {
-        if (stack.get(OWDataComponentTypes.TAMED_ENTITY_SPEED.get()) != null) {
-            return stack.get(OWDataComponentTypes.TAMED_ENTITY_SPEED.get());
-        }
-        return 1.0f;
-    }
-
-    public void saveEntityScale(UseOnContext context, float speed) {
-        context.getItemInHand().set(OWDataComponentTypes.TAMED_ENTITY_SCALE.get(), speed);
-    }
-    public float getEntityScale(ItemStack stack) {
-        if (stack.get(OWDataComponentTypes.TAMED_ENTITY_SCALE.get()) != null) {
-            return stack.get(OWDataComponentTypes.TAMED_ENTITY_SCALE.get());
-        }
-        return 1.0f;
-    }
-
-    public void saveEntityLevel(UseOnContext context, int level) {
-        context.getItemInHand().set(OWDataComponentTypes.TAMED_ENTITY_LEVEL.get(), level);
-    }
-    public int getEntityLevel(ItemStack stack) {
-        if (stack.get(OWDataComponentTypes.TAMED_ENTITY_LEVEL.get()) != null) {
-            return stack.get(OWDataComponentTypes.TAMED_ENTITY_LEVEL.get());
-        }
-        return 1;
-    }
-
-    public void saveEntityVariant(UseOnContext context, int level) {
-        context.getItemInHand().set(OWDataComponentTypes.TAMED_ENTITY_VARIANT.get(), level);
-    }
-    public int getEntityVariant(ItemStack stack) {
-        if (stack.get(OWDataComponentTypes.TAMED_ENTITY_VARIANT.get()) != null) {
-            return stack.get(OWDataComponentTypes.TAMED_ENTITY_VARIANT.get());
-        }
-        return 1;
-    }
-
-
-    public Component showEntityType(ItemStack stack) {
-        Component entityTypeComponent = getEntityType(stack);
-        if (entityTypeComponent == null || entityTypeComponent.getString().isEmpty())
-            return Component.translatable("");
-
-        String entityTypeStr = entityTypeComponent.getString();
-        String entityName = entityTypeStr.toLowerCase().split("entity")[0];
-
-        return Component.translatable("entity.ow." + entityName).setStyle(Style.EMPTY.withBold(true).withColor(chooseEntityColor(stack)));
-    }
-
-    public String showEntitySpeed(ItemStack stack, Level level) {
-        Component entityTypeComponent = getEntityType(stack);
-        if (entityTypeComponent == null || entityTypeComponent.getString().isEmpty())
-            return "";
-
-        return String.valueOf(Math.round(OWUtils.getSpeedBlocksPerSecond(getOWEntity(stack, level)) * 1000) / 1000.0);
-    }
-
-    private OWEntity getOWEntity(ItemStack stack, Level level) {
-        OWEntity owEntity;
-        switch (getEntityType(stack).getString()) {
-            case "KodiakEntity"    -> owEntity = OWEntityRegistry.KODIAK.get().create(level);
-            case "TigerEntity"     -> owEntity = OWEntityRegistry.TIGER.get().create(level);
-            case "BoaEntity"       -> owEntity = OWEntityRegistry.BOA.get().create(level);
-            case "OrcaEntity"      -> owEntity = OWEntityRegistry.ORCA.get().create(level);
-            default                -> owEntity = OWEntityRegistry.CROCODILE.get().create(level);
-        }
-
-        return owEntity;
+    private Component speciesName(SoulData data) {
+        if (data.isEmpty() || speciesPath(data).isEmpty()) return Component.empty();
+        return Component.translatable("entity.ow." + speciesPath(data))
+                .setStyle(Style.EMPTY.withBold(true).withColor(speciesColor(data)));
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!level.isClientSide) {
-            OWEntity owEntity = getOWEntity(stack, level);
-            int variantId = getEntityVariant(stack);
+        SoulData data = getSoul(stack);
+        if (data.isEmpty()) return InteractionResultHolder.pass(stack);
 
-            if (owEntity != null) {
-                float pitch = (float) OWUtils.generateRandomInterval(0.9f, 1.1f);
-                owEntity.setOwnerUUID(Objects.requireNonNull(((ServerLevel) player.level()).getServer().getPlayerList().getPlayerByName(getEntityOwner(stack).getString())).getUUID());
-                owEntity.setTame(true, player);
-                owEntity.setLevelPoints(0);
-                owEntity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(getEntityMaxHealth(stack));
-                owEntity.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(getEntityDamages(stack));
-                owEntity.setDamageToClient(getEntityDamages(stack));
-                owEntity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(getEntitySpeed(stack));
-                owEntity.setGender(getEntityGender(stack) ? 1 : 0);
-                owEntity.setLevel(getEntityLevel(stack));
-                owEntity.setScale(getEntityScale(stack));
-                owEntity.setHealth(owEntity.getMaxHealth());
-                owEntity.setBaseHealth((float) owEntity.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
-                owEntity.setBaseDamage((float) owEntity.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
-                owEntity.setBaseSpeed((float) owEntity.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
-                owEntity.setResurrectionMaxTimer(((int) (125 * owEntity.getMaxHealth() * owEntity.getDamage() * (1 + 10 * owEntity.getSpeed()) * ((float) Math.sqrt(owEntity.getLevel() + 1) / 5f + 1))) / 2);
+        // Pendant un rituel en cours, l'Âme n'est pas utilisable (pas d'ouverture d'écran).
+        if (net.tiew.operationWild.gui.ClientRitualState.active) return InteractionResultHolder.pass(stack);
 
-                if (owEntity instanceof KodiakEntity kodiak) {
-                    KodiakVariant variant = KodiakVariant.byId(variantId);
-                    kodiak.setVariant(variant);
-                    kodiak.setInitialVariant(variant);
-                }
+        // L'Amulette de Résurrection doit être portée : sinon, l'item ne fait rien (aucun écran).
+        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+        boolean wearingAmulet = !chest.isEmpty()
+                && chest.is(net.tiew.operationWild.item.OWItems.RESURRECTION_AMULET.get());
+        if (!wearingAmulet) return InteractionResultHolder.pass(stack);
 
-                owEntity.setPos(player.getX(), player.getY(), player.getZ());
-
-                owEntity.setResurrection(true);
-
-                level.playSound(null, player.getX(), player.getY(), player.getZ(),
-                        OWSounds.TAME_SUCCESS.get(), SoundSource.PLAYERS, 1.5F, pitch);
-                level.addFreshEntity(owEntity);
-
-                owEntity.setCanDropSoul(false);
-            }
+        // L'écran de communion est purement client : il enverra le StartRitualPacket à la validation.
+        if (level.isClientSide) {
+            Minecraft.getInstance().setScreen(new RitualCommunionScreen(data));
         }
-
-        if (!player.getAbilities().instabuild && !player.isCreative()) {
-            stack.shrink(1);
-        }
-        return super.use(level, player, hand);
-    }
-
-    private int chooseEntityColor(ItemStack stack) {
-        Component entityTypeComponent = getEntityType(stack);
-        if (entityTypeComponent == null || entityTypeComponent.getString().isEmpty())
-            return 0xFFFFFF;
-
-        String entityTypeStr = entityTypeComponent.getString();
-
-        return switch (entityTypeStr) {
-            case "TigerEntity" -> 0xc47037;
-            case "BoaEntity" -> 0x838549;
-            case "PeacockEntity" -> 0x464bc1;
-            case "TigerSharkEntity" -> 0x565047;
-            case "ElephantEntity" -> 8749692;
-            case "KodiakEntity" -> 8215109;
-            default -> 0xFFFFFF;
-        };
+        return InteractionResultHolder.success(stack);
     }
 
     @Override
     public Component getName(ItemStack stack) {
-        return Component.translatable("item.ow.animal_soul", showEntityType(stack));
+        return Component.translatable("item.ow.animal_soul", speciesName(getSoul(stack)));
     }
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag tooltipFlag) {
-        Component entityType = Component.literal(showEntityType(stack).getString())
-                .withStyle(Style.EMPTY.withBold(true).withColor(chooseEntityColor(stack)))
-                .append(Component.literal(" | ")
-                        .withStyle(Style.EMPTY.withBold(false).withColor(0xFFFFFF)))
-                .append(Component.translatable("tooltip.lvlImage")
-                        .withStyle(Style.EMPTY.withBold(false).withColor(0xFFFFFF)))
-                .append(Component.literal(String.valueOf(getEntityLevel(stack)))
-                        .withStyle(Style.EMPTY.withBold(true).withColor(getEntityLevel(stack) >= 50 ? 0xdd9847 : 0xb8e45a)))
-                .append(Component.literal(" | ")
-                        .withStyle(Style.EMPTY.withBold(false).withColor(0xFFFFFF)))
-                .append(Component.translatable(getEntityGender(stack) ? "tooltip.genderMale" : "tooltip.genderFemale")
-                        .withStyle(Style.EMPTY.withItalic(true).withColor(getEntityGender(stack) ? 0x4647ce : 0xcb3eb3)));
+        SoulData data = getSoul(stack);
+        if (data.isEmpty()) {
+            super.appendHoverText(stack, context, tooltip, tooltipFlag);
+            return;
+        }
 
-        Component entityMaxHealth = Component.translatable("imageHealth")
-                .withStyle(Style.EMPTY.withBold(true))
-                .append(Component.literal(" " + String.valueOf(Math.round(getEntityMaxHealth(stack) * 2) / 2.0))
-                        .withStyle(Style.EMPTY.withBold(false)))
-                .append(Component.translatable("tooltip.HP").withStyle(Style.EMPTY.withBold(false)));
-        Component entityDamages = Component.translatable("imageDamages")
-                .withStyle(Style.EMPTY.withBold(true))
-                .append(Component.literal(" " + String.valueOf(Math.round(getEntityDamages(stack) * 10) / 10.0))
-                        .withStyle(Style.EMPTY.withBold(false)));
-        Component entitySpeed = Component.translatable("imageSpeed")
-                .withStyle(Style.EMPTY.withBold(true))
-                .append(Component.literal(" " + String.valueOf(showEntitySpeed(stack, context.level())))
-                        .withStyle(Style.EMPTY.withBold(false)))
-                .append(Component.translatable("tooltip.entitySpeed").withStyle(Style.EMPTY.withBold(false)));
+        Component header = speciesName(data)
+                .copy()
+                .append(Component.literal(" | ").withStyle(Style.EMPTY.withColor(0xFFFFFF)))
+                .append(Component.translatable("tooltip.lvlImage").withStyle(Style.EMPTY.withColor(0xFFFFFF)))
+                .append(Component.literal(String.valueOf(data.level()))
+                        .withStyle(Style.EMPTY.withBold(true).withColor(data.level() >= 50 ? 0xDD9847 : 0xB8E45A)))
+                .append(Component.literal(" | ").withStyle(Style.EMPTY.withColor(0xFFFFFF)))
+                .append(Component.translatable(data.male() ? "tooltip.genderMale" : "tooltip.genderFemale")
+                        .withStyle(Style.EMPTY.withItalic(true).withColor(data.male() ? 0x4647CE : 0xCB3EB3)));
 
-        Component entityOwner = Component.translatable("tooltip.ownerImage")
-                .withStyle(Style.EMPTY.withBold(true))
-                .append(Component.literal(getEntityOwner(stack).getString())
-                        .withStyle(Style.EMPTY.withBold(false)));
+        Component health = Component.translatable("imageHealth").withStyle(Style.EMPTY.withBold(true))
+                .append(Component.literal(" " + (Math.round(data.maxHealth() * 2) / 2.0)).withStyle(Style.EMPTY))
+                .append(Component.translatable("tooltip.HP").withStyle(Style.EMPTY));
+        Component damage = Component.translatable("imageDamages").withStyle(Style.EMPTY.withBold(true))
+                .append(Component.literal(" " + (Math.round(data.damage() * 10) / 10.0)).withStyle(Style.EMPTY));
+        Component speed = Component.translatable("imageSpeed").withStyle(Style.EMPTY.withBold(true))
+                .append(Component.literal(" " + (Math.round(data.speed() * 1000) / 1000.0)).withStyle(Style.EMPTY))
+                .append(Component.translatable("tooltip.entitySpeed").withStyle(Style.EMPTY));
 
-        tooltip.add(entityType);
-        tooltip.add(Component.nullToEmpty("-----"));
-        tooltip.add(entityMaxHealth);
-        tooltip.add(entityDamages);
-        tooltip.add(entitySpeed);
-        tooltip.add(entityOwner);
-        tooltip.add(Component.nullToEmpty("-----"));
+        Component owner = Component.translatable("tooltip.ownerImage").withStyle(Style.EMPTY.withBold(true))
+                .append(Component.literal(data.ownerName()).withStyle(Style.EMPTY));
+
+        tooltip.add(header);
+        if (!data.nickname().isEmpty()) {
+            tooltip.add(Component.literal("\"" + data.nickname() + "\"").withStyle(Style.EMPTY.withItalic(true).withColor(0xC0C0C0)));
+        }
+        tooltip.add(Component.literal("-----"));
+        tooltip.add(health);
+        tooltip.add(damage);
+        tooltip.add(speed);
+        tooltip.add(owner);
+        tooltip.add(Component.literal("-----"));
+        tooltip.add(Component.translatable("tooltip.ow.soul_hint").withStyle(Style.EMPTY.withItalic(true).withColor(0x86DBFF)));
         super.appendHoverText(stack, context, tooltip, tooltipFlag);
     }
 }

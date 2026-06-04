@@ -3,6 +3,7 @@ package net.tiew.operationWild.entity.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.model.EntityModel;
@@ -26,6 +27,15 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
      * remettent a false (cf. BoaModel.RENDER_FULL_BODY).
      */
     public static boolean SUPPRESS_INFO_IN_GUI = false;
+
+    /**
+     * Mode "fantôme spectral" GÉNÉRIQUE : quand actif, TOUT renderer héritant de cette classe
+     * dessine le corps de l'entité avec un {@link RenderType} translucide. Combiné au
+     * {@code GhostVertexConsumer} qui force l'alpha et la teinte d'âme, ça produit un rendu
+     * fantôme pour n'importe quel OWEntity sans texture ni code dédié. Utilisé par le rituel
+     * de résurrection ({@code SoulGhostRenderer}).
+     */
+    public static boolean RENDER_AS_GHOST = false;
 
     public abstract double distanceToShowRealInfos();
 
@@ -86,6 +96,14 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
             }
         }
         OWRendererUtils.createInformationImage(entity, poseStack, bufferSource, packedLight, 0, 1.0f + infosUpOffset(), 0, 0, (int) (distanceToShowRealInfos() - 1));
+    }
+
+    @Override
+    protected RenderType getRenderType(T entity, boolean bodyVisible, boolean translucent, boolean glowing) {
+        if (RENDER_AS_GHOST) {
+            return RenderType.entityTranslucent(this.getTextureLocation(entity));
+        }
+        return super.getRenderType(entity, bodyVisible, translucent, glowing);
     }
 
     protected int getIconX(T entity) {

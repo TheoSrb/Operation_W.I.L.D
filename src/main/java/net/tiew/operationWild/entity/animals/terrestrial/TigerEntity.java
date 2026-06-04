@@ -673,13 +673,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public void die(DamageSource damageSource) {
         if (this.isGrabbing()) releaseGrab();
-        super.die(damageSource);
-
-        ItemStack soulStack = createSoulStack();
-
-        if (canDropSoul() && this.isTame() && !this.isInResurrection() && !isBaby()) {
-            this.spawnAtLocation(soulStack);
-        }
+        super.die(damageSource); // le drop générique de l'Âme est géré par OWEntity.die()
 
         if (this.isSaddled()) {
             this.spawnAtLocation(acceptSaddle());
@@ -701,27 +695,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         return super.isAlliedTo(entity);
     }
 
-    private ItemStack createSoulStack() {
-        ItemStack soulStack = new ItemStack(OWItems.ANIMAL_SOUL.get());
-        Item item = soulStack.getItem();
-
-        if (item instanceof AnimalSoulItem animalSoulItem) {
-            UseOnContext fakeContext = new UseOnContext(this.level(), null, InteractionHand.MAIN_HAND, soulStack,
-                    new BlockHitResult(this.position(), Direction.UP, this.blockPosition(), false));
-
-            animalSoulItem.saveEntityType(fakeContext, Component.nullToEmpty(this.getClass().getSimpleName()));
-            animalSoulItem.saveEntityOwner(fakeContext, Component.nullToEmpty(this.getOwner() != null ? this.getOwner().getName().getString() : ""));
-            animalSoulItem.saveEntityGender(fakeContext, this.isMale());
-            animalSoulItem.saveEntityMaxHealth(fakeContext, this.getMaxHealth());
-            animalSoulItem.saveEntityDamages(fakeContext, this.getDamage());
-            animalSoulItem.saveEntitySpeed(fakeContext, this.getSpeed());
-            animalSoulItem.saveEntityScale(fakeContext, this.getScale());
-            animalSoulItem.saveEntityLevel(fakeContext, this.getLevel());
-            animalSoulItem.saveEntityVariant(fakeContext, this.getVariant().getId());
-        }
-
-        return soulStack;
-    }
 
     @Override
     public boolean hurt(DamageSource damageSource, float v) {
@@ -1486,6 +1459,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     // ==================================================
     //                   ACCESSEURS
     // ==================================================
+
+    @Override
+    public void setVariant(OWEntity entity, int variant) {
+        if (entity instanceof TigerEntity tiger) {
+            tiger.setVariant(TigerVariant.byId(variant));
+            tiger.setInitialVariant(TigerVariant.byId(variant));
+        }
+    }
 
     public TigerVariant getVariant() {
         return TigerVariant.byId(this.getTypeVariant() & 255);

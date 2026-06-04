@@ -50,6 +50,7 @@ public class OWNetworkHandler {
         registrar.playToServer(AddEntityToTeamPacket.TYPE, AddEntityToTeamPacket.STREAM_CODEC, AddEntityToTeamPacket::handle);
         registrar.playToServer(DeleteOWTeamPacket.TYPE, DeleteOWTeamPacket.STREAM_CODEC, DeleteOWTeamPacket::handle);
         registrar.playToServer(CreateOWTeamWithParamsPacket.TYPE, CreateOWTeamWithParamsPacket.STREAM_CODEC, CreateOWTeamWithParamsPacket::handle);
+        registrar.playToServer(StartRitualPacket.TYPE, StartRitualPacket.STREAM_CODEC, StartRitualPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);
@@ -67,6 +68,7 @@ public class OWNetworkHandler {
         registrar.playToClient(ClearOWTeamPacket.TYPE, ClearOWTeamPacket.STREAM_CODEC, ClearOWTeamPacket::handle);
         registrar.playToClient(OWEntityAlreadyInTeamPacket.TYPE, OWEntityAlreadyInTeamPacket.STREAM_CODEC, OWEntityAlreadyInTeamPacket::handle);
         registrar.playToClient(MessageHurtMultipart.TYPE, MessageHurtMultipart.STREAM_CODEC, MessageHurtMultipart::handle);
+        registrar.playToClient(RitualSyncPacket.TYPE, RitualSyncPacket.STREAM_CODEC, RitualSyncPacket::handle);
 
     }
 
