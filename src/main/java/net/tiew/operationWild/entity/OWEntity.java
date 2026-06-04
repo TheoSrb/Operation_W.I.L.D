@@ -113,6 +113,8 @@ import static net.tiew.operationWild.core.OWUtils.generateRandomInterval;
 
 public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, IOWTamable, IOWRideable, IOWWaypointEntity {
 
+    private static final org.slf4j.Logger OW_LOGGER = com.mojang.logging.LogUtils.getLogger();
+
     public float averageScale;
     public static final Random RANDOM = new Random();
     public LivingEntity TRAPPED_ENTITY = null;
@@ -1236,45 +1238,58 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         Vec3 vec3 = this.getRiddenInput(player, travelVector);
         this.tickRidden(player, vec3);
 
-        if (this.isControlledByLocalInstance()) {
-            if (!this.isLeapingVehicle()) {
-                Vec3 lookDirection = Vec3.directionFromRotation(isInWater() ? this.getXRot() : 0, this.getYRot()).normalize();
-                double speedPerTick = getRiddenSpeedVehicle(player) / (isInWater() ? vehicleWaterSpeedDivider() : 1);
-                Vec3 currentMovement = this.getDeltaMovement();
-                double yMovement = isInWater() ? lookDirection.y * speedPerTick - 0.01 : currentMovement.y;
-                this.setDeltaMovement(new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick));
-            }
-            this.travel(this.isLeapingVehicle() ? Vec3.ZERO : vec3);
+        // Le step-up d'une monture (descendre dans un trou de 1 bloc puis remonter aussitot sur
+        // un bloc plus haut en face) peut faire echouer le mouvement cote vanilla ("(Vehicle of
+        // X) moved wrongly!") et bugger l'entite. On isole donc l'application du mouvement : en
+        // cas d'erreur on coupe la course (setRunning(false)) pour reduire la vitesse et laisser
+        // le tick suivant se replacer proprement, au lieu de propager l'exception.
+        try {
+            if (this.isControlledByLocalInstance()) {
+                if (!this.isLeapingVehicle()) {
+                    Vec3 lookDirection = Vec3.directionFromRotation(isInWater() ? this.getXRot() : 0, this.getYRot()).normalize();
+                    double speedPerTick = getRiddenSpeedVehicle(player) / (isInWater() ? vehicleWaterSpeedDivider() : 1);
+                    Vec3 currentMovement = this.getDeltaMovement();
+                    double yMovement = isInWater() ? lookDirection.y * speedPerTick - 0.01 : currentMovement.y;
+                    this.setDeltaMovement(new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick));
+                }
+                this.travel(this.isLeapingVehicle() ? Vec3.ZERO : vec3);
 
-        } else if (this.level().isClientSide()) {
-            this.calculateEntityAnimation(false);
-            this.setDeltaMovement(Vec3.ZERO);
-            this.tryCheckInsideBlocks();
+            } else if (this.level().isClientSide()) {
+                this.calculateEntityAnimation(false);
+                this.setDeltaMovement(Vec3.ZERO);
+                this.tryCheckInsideBlocks();
 
-        } else {
-            if (this instanceof CrocodileEntity) {
-                Vec3 cur = this.getDeltaMovement();
-                double yVel;
+            } else {
+                if (this instanceof CrocodileEntity) {
+                    Vec3 cur = this.getDeltaMovement();
+                    double yVel;
 
-                if (this.isLeapingVehicle()) {
-                    if (!this.onGround() && !this.isInWater() && !this.isNoGravity() && !this.hasEffect(MobEffects.LEVITATION)) {
+                    if (this.isLeapingVehicle()) {
+                        if (!this.onGround() && !this.isInWater() && !this.isNoGravity() && !this.hasEffect(MobEffects.LEVITATION)) {
+                            yVel = Math.max(cur.y - this.getGravity(), -0.08);
+                        } else {
+                            yVel = cur.y;
+                        }
+                        this.setDeltaMovement(cur.x, yVel, cur.z);
+                        this.move(MoverType.SELF, new Vec3(cur.x, yVel, cur.z));
+                    } else if (!this.onGround() && !this.isInWater() && !this.isNoGravity() && !this.hasEffect(MobEffects.LEVITATION)) {
                         yVel = Math.max(cur.y - this.getGravity(), -0.08);
+                        this.setDeltaMovement(0, yVel, 0);
+                        this.move(MoverType.SELF, new Vec3(0, yVel, 0));
                     } else {
                         yVel = cur.y;
+                        this.setDeltaMovement(0, yVel, 0);
                     }
-                    this.setDeltaMovement(cur.x, yVel, cur.z);
-                    this.move(MoverType.SELF, new Vec3(cur.x, yVel, cur.z));
-                } else if (!this.onGround() && !this.isInWater() && !this.isNoGravity() && !this.hasEffect(MobEffects.LEVITATION)) {
-                    yVel = Math.max(cur.y - this.getGravity(), -0.08);
-                    this.setDeltaMovement(0, yVel, 0);
-                    this.move(MoverType.SELF, new Vec3(0, yVel, 0));
-                } else {
-                    yVel = cur.y;
-                    this.setDeltaMovement(0, yVel, 0);
-                }
 
-                this.tryCheckInsideBlocks();
+                    this.tryCheckInsideBlocks();
+                }
             }
+        } catch (Exception e) {
+            // Si le mouvement bug (ex. step-up "moved wrongly"), on coupe la course et on
+            // neutralise la vitesse pour que l'entite ne reste pas dans un etat casse.
+            this.setRunning(false);
+            this.setDeltaMovement(Vec3.ZERO);
+            OW_LOGGER.warn("Mouvement de monture {} en echec, setRunning(false) applique", this.getName().getString(), e);
         }
     }
 

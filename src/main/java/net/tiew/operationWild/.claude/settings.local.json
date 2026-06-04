@@ -42,7 +42,12 @@
       "Bash(ls gradlew*)",
       "Bash(ls -d .gradle)",
       "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q; \"EXIT=$LASTEXITCODE\")",
-      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && find ~/.gradle /root -name \"SoundEvents.class\" 2>/dev/null | head; grep -rn \"SoundEvents\\\\.\" src/main/java/net/tiew/operationWild/ | head -5)"
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && find ~/.gradle /root -name \"SoundEvents.class\" 2>/dev/null | head; grep -rn \"SoundEvents\\\\.\" src/main/java/net/tiew/operationWild/ | head -5)",
+      "Bash(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" && find ~/.gradle /root/.gradle -path \"*net/minecraft/server/network*\" -name \"ServerGamePacketListenerImpl*.java\" 2>/dev/null | head; echo \"---also build---\"; find . -name \"ServerGamePacketListenerImpl*.java\" 2>/dev/null | head)",
+      "Bash(cd /tmp/sgpl && grep -nE \"handleMoveVehicle|moved wrongly|moved too quickly|LOGGER.warn|ServerPlayer player\" net/minecraft/server/network/ServerGamePacketListenerImpl.java | head -40)",
+      "Read(//tmp/**)",
+      "Bash(sed -n '395,460p' net/minecraft/server/network/ServerGamePacketListenerImpl.java)",
+      "Bash(awk 'NR>=395 && NR<=480' net/minecraft/server/network/ServerGamePacketListenerImpl.java)"
     ]
   }
 }

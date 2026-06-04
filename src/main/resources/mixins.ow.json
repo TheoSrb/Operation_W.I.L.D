@@ -16,5 +16,6 @@
     "CameraMixin"
   ],
   "mixins": [
+    "VehicleMovedWronglyMixin"
   ]
 }

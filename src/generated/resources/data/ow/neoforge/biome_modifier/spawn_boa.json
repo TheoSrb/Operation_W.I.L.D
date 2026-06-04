@@ -9,6 +9,6 @@
     "type": "ow:boa",
     "maxCount": 2,
     "minCount": 1,
-    "weight": 50
+    "weight": 60
   }
 }

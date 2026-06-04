@@ -84,7 +84,7 @@ public class OWBiomeModifiers {
         spawnEntity(context, SPAWN_TIGER, TIGER_BIOMES, OWEntityRegistry.TIGER, 30, 1, 1);
         spawnEntity(context, SPAWN_KODIAK, KODIAK_BIOMES, OWEntityRegistry.KODIAK, 35, 1, 1);
         spawnEntity(context, SPAWN_CROCODILE, CROCODILE_BIOMES, OWEntityRegistry.CROCODILE, 48, 2, 4);
-        spawnEntity(context, SPAWN_BOA, BOA_BIOMES, OWEntityRegistry.BOA, 50, 1, 2);
+        spawnEntity(context, SPAWN_BOA, BOA_BIOMES, OWEntityRegistry.BOA, 60, 1, 2);
 
 
 
