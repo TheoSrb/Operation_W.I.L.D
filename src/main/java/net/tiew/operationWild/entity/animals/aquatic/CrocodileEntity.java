@@ -1689,7 +1689,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         private final float attacksMultiplier;
 
         public CrocodileNearestAttackableTargetGoal(Mob mob, Class targetType, boolean mustSee, float attacksMultiplier) {
-            super(mob, targetType, mustSee);
+            this(mob, targetType, mustSee, attacksMultiplier, null);
+        }
+
+        public CrocodileNearestAttackableTargetGoal(Mob mob, Class targetType, boolean mustSee, float attacksMultiplier, java.util.function.Predicate<LivingEntity> selector) {
+            super(mob, targetType, 10, mustSee, false, selector);
             this.crocodile = (CrocodileEntity) mob;
             this.attacksMultiplier = attacksMultiplier;
         }

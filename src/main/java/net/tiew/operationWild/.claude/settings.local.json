@@ -57,7 +57,16 @@
       "PowerShell($dir = \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\sounds\\\\musics\"; $ff = \\(Get-Command ffprobe -ErrorAction SilentlyContinue\\); if \\($ff\\) { foreach \\($f in @\\('resurrection_ritual_intro.ogg','resurrection_ritual.ogg','resurrection_ritual_end.ogg'\\)\\) { $p = Join-Path $dir $f; $d = & ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $p; Write-Output \"$f = $d s\" } } else { Write-Output \"ffprobe-missing\" })",
       "Bash(python3 -)",
       "Bash(python -)",
-      "Bash(unzip -o -j \"/c/Users/Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/event/level/BlockEvent.java\")"
+      "Bash(unzip -o -j \"/c/Users/Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/event/level/BlockEvent.java\")",
+      "Bash(./gradlew.bat compileJava -q --console=plain)",
+      "Bash(find . -iname \"*.json\" -path \"*lang*\")",
+      "Bash(find . -iname \"fr_fr*\")",
+      "Bash(find . -type d -iname \"ressources\")",
+      "Bash(find . -type d -iname \"resources\")",
+      "Bash(python -c \"import json; json.load\\(open\\('src/main/resources/assets/ow/lang/en_us.json', encoding='utf-8'\\)\\); print\\('en_us OK'\\); json.load\\(open\\('src/main/resources/assets/ow/lang/fr_fr.json', encoding='utf-8'\\)\\); print\\('fr_fr OK'\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(python gen_lang_variants.py)",
+      "Bash(rm gen_lang_variants.py)"
     ]
   }
 }

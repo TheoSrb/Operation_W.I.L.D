@@ -254,6 +254,9 @@ public class ResurrectionRitual {
                 continue; // pas d'emplacement libre cette fois : ce mob n'est pas invoqué
             }
             mob.finalizeSpawn(level, level.getCurrentDifficultyAt(mob.blockPosition()), MobSpawnType.EVENT, null);
+            // Le rituel ne fait jamais apparaître de bébés : on force l'âge adulte après le finalizeSpawn
+            // (qui peut, lui, décider d'un bébé — ex. zombie nourrisson).
+            forceAdult(mob);
             level.addFreshEntity(mob);
             // Marque le monstre comme assaillant du rituel → ses changements de cible sont
             // redirigés (cf. ResurrectionRitualManager.onChangeTarget).
@@ -262,6 +265,23 @@ public class ResurrectionRitual {
             mob.getPersistentData().putBoolean("OWHuntPlayer", rng.nextFloat() < PLAYER_HUNTER_RATIO);
             mob.setTarget(ghost);
             waveMobs.add(mob.getUUID());
+        }
+    }
+
+    /**
+     * Garantit qu'un mob invoqué par le rituel est un <b>adulte</b>, quelle que soit son espèce.
+     * Couvre les animaux ({@link net.minecraft.world.entity.AgeableMob}) ainsi que les monstres à
+     * variante bébé qui n'héritent pas d'AgeableMob (zombies et dérivés, piglins, hoglins).
+     */
+    private void forceAdult(Mob mob) {
+        if (mob instanceof net.minecraft.world.entity.AgeableMob ageable) {
+            ageable.setBaby(false);
+        } else if (mob instanceof net.minecraft.world.entity.monster.Zombie zombie) {
+            zombie.setBaby(false);
+        } else if (mob instanceof net.minecraft.world.entity.monster.piglin.AbstractPiglin piglin) {
+            piglin.setBaby(false);
+        } else if (mob instanceof net.minecraft.world.entity.monster.hoglin.Hoglin hoglin) {
+            hoglin.setBaby(false);
         }
     }
 

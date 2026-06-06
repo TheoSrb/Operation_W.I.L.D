@@ -54,11 +54,11 @@ public final class ResurrectionWaveRoster {
      */
     public static final List<List<EntityType<?>>> DIFFICULTY_POOLS = List.of(
             List.of(EntityType.ZOMBIE, EntityType.SPIDER),                                   // 1 — charognards
-            List.of(EntityType.HUSK, EntityType.SKELETON, OWEntityRegistry.BOA.get()),       // 2 — rôdeurs
-            List.of(EntityType.STRAY, OWEntityRegistry.CROCODILE.get(), OWEntityRegistry.TIGER.get()), // 3 — prédateurs
-            List.of(EntityType.WITCH, EntityType.WOLF, OWEntityRegistry.KODIAK.get()),       // 4 — meute
-            List.of(OWEntityRegistry.KODIAK.get(), OWEntityRegistry.TIGER.get(), OWEntityRegistry.CROCODILE.get()) // 5 — apex
-    );
+            List.of(EntityType.ZOMBIE, EntityType.SPIDER),      // 2 — rôdeurs
+            List.of(EntityType.ZOMBIE, EntityType.SPIDER),
+            List.of(EntityType.ZOMBIE, EntityType.SPIDER),
+            List.of(EntityType.ZOMBIE, EntityType.SPIDER)
+            );
     // ==============================================================
 
     /** Palier de puissance (1 à 5) du compagnon, d'après son type. */

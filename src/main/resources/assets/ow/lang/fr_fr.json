@@ -545,6 +545,8 @@
   "ascent.mission.tiger.1": "Sautez et attrapez un total de %s entités avec votre Tigre.",
   "entity.ow.primitive_slingshot": "Primitive Slingshot",
   "quest.completed": "Quête accomplie !",
+  "quest.tiger_hunter.title": "Chasseur de Tigres",
+  "quest.tiger_hunter.desc": "Tuez 10 entités avec votre Tigre apprivoisé.",
   "skin.unlock.quest.0": "Rayures & Coups de crayon",
   "skin.unlock.quest.1": "La Chasse au Trésor",
   "quest.scratches_and_pencil_marks.title": "Rayures & Coups de crayon",
@@ -659,14 +661,12 @@
   "owteams.paint.brush.round": "Rond",
   "owteams.paint.brush.square": "Carré",
   "owteams.paint.brush.diamond": "Diamant",
-
   "owteams.scan.title": "Choisir une entité",
   "owteams.scan.empty": "Aucune entité apprivoisée à proximité",
   "owteams.scan.back": "← Retour",
   "owteams.scan.confirm.title": "Confirmation",
   "owteams.scan.confirm.join": "Intégrer %s dans la tribu %s ?",
   "owteams.scan.confirm.already_in_team": "⚠ Déjà dans la tribu : %s",
-
   "screen.ow.dev_warning.title": "Operation W.I.L.D",
   "screen.ow.dev_warning.subtitle": "ACCÈS ANTICIPÉ",
   "screen.ow.dev_warning.para1": "Bienvenue, explorateur. Ce que vous vous apprêtez à découvrir est encore §l§nen cours de développement§r.",
@@ -674,7 +674,6 @@
   "screen.ow.dev_warning.para3": "Des §nbugs, des changements et des surprises§r font partie du voyage. Votre §l§npatience et vos retours§r façonnent directement le §nfutur de ce mod§r.",
   "screen.ow.dev_warning.para4": "Merci pour votre §npatience§r et vos potentiels §l§nretours§r.",
   "screen.ow.dev_warning.button": "Compris. En avant !",
-
   "gamerule.OWAnimalsNoEffort.set": "La règle de jeu OWAnimalsNoEffort est maintenant %s",
   "gamerule.OWAnimalsNoEffort.query": "OWAnimalsNoEffort est actuellement %s"
 }
