@@ -564,7 +564,7 @@
   "ow.attacks.tiger.predator_sense.desc": "Выявляет раненых существ с ОЗ ниже %s%% сквозь стены в радиусе %s блоков.",
   "ow.attacks.locked.title": "???",
   "ow.attacks.locked.desc": "Эта способность пока недоступна.",
-  "ow.attacks.boa.combo.title": "Сжатие",
+  "ow.attacks.boa.combo.title": "Отравление",
   "ow.attacks.boa.venom.title": "Ядовитые клыки",
   "ow.attacks.boa.thermal_vision.title": "Тепловое зрение",
   "ow.attacks.boa.combo.desc": "Прикажите вашему Удаву кусать каждые %s секунд, нанося %s урона за каждый укус.",

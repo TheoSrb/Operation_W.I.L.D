@@ -66,7 +66,19 @@
       "Bash(python -c \"import json; json.load\\(open\\('src/main/resources/assets/ow/lang/en_us.json', encoding='utf-8'\\)\\); print\\('en_us OK'\\); json.load\\(open\\('src/main/resources/assets/ow/lang/fr_fr.json', encoding='utf-8'\\)\\); print\\('fr_fr OK'\\)\")",
       "Bash(python -c ' *)",
       "Bash(python gen_lang_variants.py)",
-      "Bash(rm gen_lang_variants.py)"
+      "Bash(rm gen_lang_variants.py)",
+      "Bash(cat \"src/main/java/net/tiew/operationWild/datagen/OWDataGenerators.java\")",
+      "Bash(ls build.gradle gradlew)",
+      "Bash(awk '/tr\\\\\\(\"adventurer_manuscript.entity.tiger.page_2\"/{flag=1} flag{print} /ko_kr\",/{if\\(flag\\)exit}' src/main/java/net/tiew/operationWild/datagen/lang/OWTranslations.java)",
+      "Bash(rm -f src/main/resources/assets/ow/lang/*.json)",
+      "Bash(rm -f gen_translations_java.py gen_lang_variants.py)",
+      "Bash(ls -A src/main/resources/assets/ow/lang/)",
+      "Bash(git checkout *)",
+      "Bash(mkdir -p src/generated/resources/assets/ow/lang)",
+      "Bash(cp src/main/resources/assets/ow/lang/*.json src/generated/resources/assets/ow/lang/)",
+      "Bash(python gen_split_lang.py)",
+      "Bash(python _tmp_edit.py)",
+      "Bash(rm _tmp_edit.py)"
     ]
   }
 }

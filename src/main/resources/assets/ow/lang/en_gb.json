@@ -564,7 +564,7 @@
   "ow.attacks.tiger.predator_sense.desc": "Reveal injured entities below %s%% HP through walls within a radius of %s blocks.",
   "ow.attacks.locked.title": "???",
   "ow.attacks.locked.desc": "This ability is not available yet.",
-  "ow.attacks.boa.combo.title": "Constriction",
+  "ow.attacks.boa.combo.title": "Envenomation",
   "ow.attacks.boa.venom.title": "Venom Fangs",
   "ow.attacks.boa.thermal_vision.title": "Thermal Vision",
   "ow.attacks.boa.combo.desc": "Command your Boa to bite every %s seconds, dealing %s damage with each bite.",

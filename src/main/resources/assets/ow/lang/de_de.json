@@ -564,7 +564,7 @@
   "ow.attacks.tiger.predator_sense.desc": "Enthüllt verletzte Wesen unter %s%% LP durch Wände in einem Radius von %s Blöcken.",
   "ow.attacks.locked.title": "???",
   "ow.attacks.locked.desc": "Diese Fähigkeit ist noch nicht verfügbar.",
-  "ow.attacks.boa.combo.title": "Umschlingung",
+  "ow.attacks.boa.combo.title": "Vergiftung",
   "ow.attacks.boa.venom.title": "Giftfänge",
   "ow.attacks.boa.thermal_vision.title": "Wärmesicht",
   "ow.attacks.boa.combo.desc": "Befiehl deiner Boa, alle %s Sekunden zu beißen und dabei %s Schaden pro Biss zuzufügen.",

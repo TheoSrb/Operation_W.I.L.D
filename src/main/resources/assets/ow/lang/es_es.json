@@ -564,7 +564,7 @@
   "ow.attacks.tiger.predator_sense.desc": "Revela a las entidades heridas por debajo del %s%% de PV a través de las paredes en un radio de %s bloques.",
   "ow.attacks.locked.title": "???",
   "ow.attacks.locked.desc": "Esta habilidad aún no está disponible.",
-  "ow.attacks.boa.combo.title": "Constricción",
+  "ow.attacks.boa.combo.title": "Envenenamiento",
   "ow.attacks.boa.venom.title": "Colmillos Venenosos",
   "ow.attacks.boa.thermal_vision.title": "Visión Térmica",
   "ow.attacks.boa.combo.desc": "Ordena a tu Boa morder cada %s segundos, infligiendo %s puntos de daño con cada mordisco.",

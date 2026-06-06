@@ -564,7 +564,7 @@
   "ow.attacks.tiger.predator_sense.desc": "在 %s 格半径内透过墙壁揭示生命值低于 %s%% 的受伤实体。",
   "ow.attacks.locked.title": "???",
   "ow.attacks.locked.desc": "此技能尚未可用。",
-  "ow.attacks.boa.combo.title": "缠绞",
+  "ow.attacks.boa.combo.title": "注毒",
   "ow.attacks.boa.venom.title": "毒牙",
   "ow.attacks.boa.thermal_vision.title": "热感视觉",
   "ow.attacks.boa.combo.desc": "命令你的蟒蛇每 %s 秒撕咬一次，每次撕咬造成 %s 点伤害。",

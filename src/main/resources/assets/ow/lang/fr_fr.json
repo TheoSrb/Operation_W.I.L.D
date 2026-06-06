@@ -564,7 +564,7 @@
   "ow.attacks.tiger.predator_sense.desc": "Révèle les entités blessées à moins de %s%% PV à travers les murs dans un rayon de %s blocs.",
   "ow.attacks.locked.title": "???",
   "ow.attacks.locked.desc": "Cette capacité n'est pas encore disponible.",
-  "ow.attacks.boa.combo.title": "Constriction",
+  "ow.attacks.boa.combo.title": "Envenimation",
   "ow.attacks.boa.venom.title": "Crochets Venimeux",
   "ow.attacks.boa.thermal_vision.title": "Vision Thermique",
   "ow.attacks.boa.combo.desc": "Faites mordre votre Boa toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",

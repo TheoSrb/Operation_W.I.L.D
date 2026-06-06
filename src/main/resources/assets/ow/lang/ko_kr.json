@@ -564,7 +564,7 @@
   "ow.attacks.tiger.predator_sense.desc": "반경 %s 블록 내에서 체력 %s%% 미만의 부상당한 엔티티를 벽 너머로 드러냅니다.",
   "ow.attacks.locked.title": "???",
   "ow.attacks.locked.desc": "이 능력은 아직 사용할 수 없습니다.",
-  "ow.attacks.boa.combo.title": "조이기",
+  "ow.attacks.boa.combo.title": "독 주입",
   "ow.attacks.boa.venom.title": "독니",
   "ow.attacks.boa.thermal_vision.title": "열 감지 시야",
   "ow.attacks.boa.combo.desc": "당신의 보아에게 %s 초마다 물도록 명령하여, 물 때마다 %s 의 피해를 입힙니다.",
