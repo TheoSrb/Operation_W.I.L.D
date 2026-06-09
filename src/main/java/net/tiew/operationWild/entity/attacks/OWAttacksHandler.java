@@ -13,6 +13,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
@@ -49,6 +50,7 @@ public class OWAttacksHandler {
     public static final int ORCA_CALL_ID = 8;
     public static final int VENOM_FANGS_ID = 9;
     public static final int CONSTRICT_ULTIMATE_ID = 10;
+    public static final int WHIRLWIND_FISTS_ID = 11;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -92,6 +94,11 @@ public class OWAttacksHandler {
         register(KodiakEntity.class, KodiakAttacks.PAW_SLAM);
         register(KodiakEntity.class, KodiakAttacks.NAP_ULTIMATE);
         registerPassive(KodiakEntity.class, KodiakPassives.BUTCHER_INSTINCT);
+
+        // Kangaroo : combo + attaque secondaire « Tornade de Poings » (carte en ligne 5 → texY 200/220).
+        registerEntityRow(KangarooEntity.class, 5);
+        registerComboMaxTimer(KangarooEntity.class, 12);
+        register(KangarooEntity.class, KangarooAttacks.WHIRLWIND_FISTS);
 
         registerEntityRow(CrocodileEntity.class, 2);
         registerComboMaxTimer(CrocodileEntity.class, 17);
@@ -233,6 +240,28 @@ public class OWAttacksHandler {
                         ? (float) kodiak.getNapKillCount() / OWAttacksConstants.Kodiak.NAP_KILLS_REQUIRED
                         : 0f
         ).withUltimateDuration(OWAttacksConstants.Kodiak.NAP_DURATION_MS);
+    }
+
+    public static class KangarooAttacks {
+
+        /**
+         * Tornade de Poings — attaque secondaire MAINTENUE (clic droit / OW_ATTACK_0).
+         * Maintenir le clic droit fait tourner les poings du kangourou de plus en plus vite
+         * (pic à 3 s) ; il ne peut plus bouger et inflige des dégâts de plus en plus rapides
+         * aux entités à ≤ 2 blocs (jusqu'à 1 dmg/tick). 15 s max ; un cooldown de 35 s ne se
+         * déclenche que si l'attaque a duré ≥ 3 s consécutives.
+         *
+         * <p>Comme le toggle du Boa, toute la machine d'état (rotation / cooldown) vit sur l'entité
+         * via des données synchronisées. L'input maintenu (press/release) est géré spécifiquement
+         * dans {@link OWAttackLogic#onMouseInput} ; on n'utilise donc PAS le cooldownTicks de l'OWAttack.
+         */
+        public static final OWAttack WHIRLWIND_FISTS = new OWAttack(
+                WHIRLWIND_FISTS_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Kangaroo.WHIRLWIND_ENERGY,
+                entity -> { },
+                0
+        );
     }
 
     public static class CrocodileAttacks {

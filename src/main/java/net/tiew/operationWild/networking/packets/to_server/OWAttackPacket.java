@@ -129,6 +129,13 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 }
 
                 case ACTION_CHARGE_START -> {
+                    // Kangourou — Tornade de Poings : démarrage du maintien (autorisé hors combo).
+                    if (packet.attackId() == 11) {
+                        if (!entity.isCombo()
+                                && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo)
+                            kangaroo.startWhirlwind();
+                        return;
+                    }
                     if (entity.isCombo()) return;
                     entity.isChargingAttack = true;
                     switch (packet.attackId()) {
@@ -150,6 +157,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 }
 
                 case ACTION_CHARGE_CANCEL -> {
+                    // Kangourou — Tornade de Poings : relâchement du maintien.
+                    if (packet.attackId() == 11) {
+                        if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo)
+                            kangaroo.stopWhirlwind();
+                        return;
+                    }
                     entity.isChargingAttack = false;
                     switch (packet.attackId()) {
                         case 1 -> {

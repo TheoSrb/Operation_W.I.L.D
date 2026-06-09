@@ -1,5 +1,9 @@
 {
   "creativetab.ow.operation_wild": "Operation W.I.L.D",
+  "ow.attacks.kangaroo.combo.title": "Combo de Boxe",
+  "ow.attacks.kangaroo.combo.desc": "Faça o seu Canguru dar murros a cada %s segundos, causando %s de dano por golpe.",
+  "ow.attacks.kangaroo.whirlwind.title": "Punhos Furacão",
+  "ow.attacks.kangaroo.whirlwind.desc": "Mantenha o botão direito: os punhos do Canguru giram cada vez mais depressa (pico aos %s s). Imóvel, causa dano crescente à sua frente (até %s por golpe) às entidades a menos de %s blocos. Dura %s s no máximo; %s s de recarga se o ataque durou mais de %s s.",
   "container.saddler": "Seleiro",
   "container.dna_analyser": "Analisador de DNA",
   "block.ow.dna_analyser": "Analisador de DNA",
@@ -263,6 +267,8 @@
   "entity.ow.chameleon": "Camaleão",
   "entity.ow.red_panda": "Panda Vermelho",
   "entity.ow.kodiak": "Kodiak",
+  "entity.ow.kangaroo": "Canguru",
+  "item.ow.kangaroo_spawn_egg": "Ovo gerador de canguru",
   "entity.ow.hyena": "Hiena",
   "entity.ow.tiger_shark": "Tubarão-Tigre",
   "entity.ow.seabug": "SeaBug",

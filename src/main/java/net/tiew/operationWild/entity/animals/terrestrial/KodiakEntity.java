@@ -1117,7 +1117,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         double z = this.getZ() + look.z * 2.0;
         BlockParticleOption particleOption = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
         if (this.level() instanceof ServerLevel serverLevel) {
-            // sendParticles : particules au sol (offsetY=0.1, spreadXZ=1.5)
             serverLevel.sendParticles(particleOption, x, this.getY(), z, 60, 1.5, 0.1, 1.5, 0.25);
         } else {
             AABB area = new AABB(x - 1.5, this.getY() - 0.1, z - 1.5, x + 1.5, this.getY() + 0.2, z + 1.5);

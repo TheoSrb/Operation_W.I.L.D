@@ -1,5 +1,9 @@
 {
   "creativetab.ow.operation_wild": "Operation W.I.L.D",
+  "ow.attacks.kangaroo.combo.title": "Боксёрское комбо",
+  "ow.attacks.kangaroo.combo.desc": "Кенгуру боксирует каждые %s секунд, нанося %s урона за удар.",
+  "ow.attacks.kangaroo.whirlwind.title": "Вихрь кулаков",
+  "ow.attacks.kangaroo.whirlwind.desc": "Зажмите ПКМ: кулаки Кенгуру вращаются всё быстрее (пик на %s с). Обездвиженный, он наносит перед собой растущий урон (до %s за удар) существам в радиусе %s блоков. Длится максимум %s с; перезарядка %s с, если атака длилась дольше %s с.",
   "container.saddler": "Шорник",
   "container.dna_analyser": "Анализатор ДНК",
   "block.ow.dna_analyser": "Анализатор ДНК",
@@ -263,6 +267,8 @@
   "entity.ow.chameleon": "Хамелеон",
   "entity.ow.red_panda": "Красная панда",
   "entity.ow.kodiak": "Кадьяк",
+  "entity.ow.kangaroo": "Кенгуру",
+  "item.ow.kangaroo_spawn_egg": "Яйцо призыва кенгуру",
   "entity.ow.hyena": "Гиена",
   "entity.ow.tiger_shark": "Тигровая акула",
   "entity.ow.seabug": "SeaBug",

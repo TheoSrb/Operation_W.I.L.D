@@ -1,5 +1,9 @@
 {
   "creativetab.ow.operation_wild": "Operation W.I.L.D",
+  "ow.attacks.kangaroo.combo.title": "Box-Combo",
+  "ow.attacks.kangaroo.combo.desc": "Lässt dein Känguru alle %s Sekunden boxen und fügt pro Schlag %s Schaden zu.",
+  "ow.attacks.kangaroo.whirlwind.title": "Faustwirbel",
+  "ow.attacks.kangaroo.whirlwind.desc": "Halte die rechte Maustaste gedrückt: Die Fäuste des Kängurus drehen sich immer schneller (Höhepunkt bei %s s). Bewegungsunfähig fügt es vor sich wachsenden Schaden zu (bis zu %s pro Treffer) an Gegnern im Umkreis von %s Blöcken. Dauert max. %s s; %s s Abklingzeit, wenn der Angriff länger als %s s dauerte.",
   "container.saddler": "Sattler",
   "container.dna_analyser": "DNA-Analysegerät",
   "block.ow.dna_analyser": "DNA-Analysegerät",
@@ -263,6 +267,8 @@
   "entity.ow.chameleon": "Chamäleon",
   "entity.ow.red_panda": "Roter Panda",
   "entity.ow.kodiak": "Kodiak",
+  "entity.ow.kangaroo": "Känguru",
+  "item.ow.kangaroo_spawn_egg": "Känguru-Spawn-Ei",
   "entity.ow.hyena": "Hyäne",
   "entity.ow.tiger_shark": "Tigerhai",
   "entity.ow.seabug": "SeaBug",

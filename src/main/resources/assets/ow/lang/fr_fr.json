@@ -1,5 +1,9 @@
 {
   "creativetab.ow.operation_wild": "Operation W.I.L.D",
+  "ow.attacks.kangaroo.combo.title": "Combo de Boxe",
+  "ow.attacks.kangaroo.combo.desc": "Faites boxer votre Kangourou toutes les %s secondes, infligeant %s points de dégâts par coup.",
+  "ow.attacks.kangaroo.whirlwind.title": "Tornade de Poings",
+  "ow.attacks.kangaroo.whirlwind.desc": "Maintenez le clic droit : les poings du Kangourou tournent de plus en plus vite (pic à %s s). Immobilisé, il inflige devant lui des dégâts de plus en plus forts (jusqu'à %s par coup) aux entités à moins de %s blocs. Dure %s s max ; recharge de %s s si l'attaque a duré plus de %s s.",
   "container.saddler": "Sellier",
   "container.dna_analyser": "Analyseur ADN",
   "block.ow.dna_analyser": "Analyseur ADN",
@@ -257,6 +261,8 @@
   "entity.ow.chameleon": "Caméléon",
   "entity.ow.red_panda": "Panda Roux",
   "entity.ow.kodiak": "Kodiak",
+  "entity.ow.kangaroo": "Kangourou",
+  "item.ow.kangaroo_spawn_egg": "Oeuf d'apparition de kangourou",
   "entity.ow.hyena": "Hyène",
   "entity.ow.tiger_shark": "Requin Tigre",
   "entity.ow.seabug": "SeaBug",

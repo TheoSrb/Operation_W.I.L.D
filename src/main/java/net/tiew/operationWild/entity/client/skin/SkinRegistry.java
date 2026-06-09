@@ -6,6 +6,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.skin.skins.*;
 import net.tiew.operationWild.entity.variants.BoaVariant;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
+import net.tiew.operationWild.entity.variants.KangarooVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.entity.variants.OrcaVariant;
 import net.tiew.operationWild.entity.variants.TigerVariant;
@@ -102,6 +103,44 @@ public final class SkinRegistry {
          * Called from ModClientEventBusEvents to register model layers declared by skins.
          * No need to touch that file when adding new skins with model layers.
          */
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    //  KANGAROO SKINS
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public static class KangarooSkins {
+
+        private static final Map<KangarooVariant, KangarooSkin> REGISTRY = new EnumMap<>(KangarooVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kangaroo/" + path);
+        }
+
+        static {
+            // --- Variantes naturelles : simple swap de texture (les gants de boxe sont un layer permanent) ---
+            register(KangarooVariant.DEFAULT, KangarooSkin.base(tex("kangaroo_default.png")));
+            register(KangarooVariant.ORANGE,  KangarooSkin.base(tex("kangaroo_orange.png")));
+            register(KangarooVariant.BROWN,   KangarooSkin.base(tex("kangaroo_brown.png")));
+        }
+
+        public static void register(KangarooVariant variant, KangarooSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static KangarooSkin get(KangarooVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(KangarooVariant.DEFAULT));
+        }
+
         public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
             REGISTRY.values().stream()
                     .distinct()

@@ -19,6 +19,7 @@ public class OWEntityRegistry {
 
 
     public static final DeferredHolder<EntityType<?>, EntityType<KodiakEntity>> KODIAK = ENTITY_TYPES.register("kodiak", () -> EntityType.Builder.<KodiakEntity>of((type, world) -> new KodiakEntity(type, world, 1.0f, 6500, 10), MobCategory.CREATURE).sized(1.9f, 1.9f).build("kodiak"));
+    public static final DeferredHolder<EntityType<?>, EntityType<KangarooEntity>> KANGAROO = ENTITY_TYPES.register("kangaroo", () -> EntityType.Builder.<KangarooEntity>of((type, world) -> new KangarooEntity(type, world, 0.925f, 3000, 1), MobCategory.CREATURE).sized(1.6f, 1.5f).build("kangaroo"));
     public static final DeferredHolder<EntityType<?>, EntityType<TigerEntity>> TIGER = ENTITY_TYPES.register("tiger", () -> EntityType.Builder.<TigerEntity>of((type, world) -> new TigerEntity(type, world, 1.0f, 4000, 1), MobCategory.CREATURE).sized(1.3f, 1.4f).build("tiger"));
     public static final DeferredHolder<EntityType<?>, EntityType<BoaEntity>> BOA = ENTITY_TYPES.register("boa", () -> EntityType.Builder.<BoaEntity>of((type, world) -> new BoaEntity(type, world, 1.0f, 3000, 1), MobCategory.CREATURE).sized(1.0f, 1.0f).build("boa"));
     public static final DeferredHolder<EntityType<?>, EntityType<CrocodileEntity>> CROCODILE = ENTITY_TYPES.register("crocodile", () -> EntityType.Builder.<CrocodileEntity>of((type, world) -> new CrocodileEntity(type, world, 1.0f, 5000, 2), MobCategory.CREATURE).sized(1.9f, 1.1f).build("crocodile"));
@@ -62,7 +63,6 @@ public class OWEntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<AdventurerManuscript>> ADVENTURER_MANUSCRIPT = ENTITY_TYPES.register("adventurer_manuscript", () -> EntityType.Builder.<AdventurerManuscript>of(AdventurerManuscript::new, MobCategory.MISC).sized(0.5f, 0.5f).build("adventurer_manuscript"));
 
-    /** Fantôme spectral du Rituel de Communion (résurrection). Cible des vagues de monstres. */
     public static final DeferredHolder<EntityType<?>, EntityType<SoulGhostEntity>> SOUL_GHOST = ENTITY_TYPES.register("soul_ghost", () -> EntityType.Builder.<SoulGhostEntity>of(SoulGhostEntity::new, MobCategory.MISC).sized(1.0f, 1.0f).clientTrackingRange(12).build("soul_ghost"));
 
 

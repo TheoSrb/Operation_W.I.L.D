@@ -51,6 +51,31 @@ public class OWAttacksConstants {
         public static final float ORCA_CALL_ENERGY = 100f;
     }
 
+    public static class Kangaroo {
+        /** Durée max de la Tornade de Poings (maintien clic droit) : 15 s. */
+        public static final int WHIRLWIND_MAX_DURATION_TICKS = 300;
+        /** Cooldown appliqué après usage : 35 s. */
+        public static final int WHIRLWIND_COOLDOWN_TICKS = 700;
+        /** Seuil de déclenchement du cooldown : il faut avoir tourné ≥ 3 s consécutives. */
+        public static final int WHIRLWIND_COOLDOWN_THRESHOLD_TICKS = 60;
+        /** Avant 0,5 s : aucun dégât. */
+        public static final int WHIRLWIND_DAMAGE_START_TICKS = 10;
+        /** Pic de dégâts atteint à 3 s (vitesse d'anim et montant des coups). */
+        public static final int WHIRLWIND_DAMAGE_PEAK_TICKS = 60;
+        /** Cadence des coups : un toutes les 10 ticks (0,5 s), calée sur les i-frames vanilla. */
+        public static final int WHIRLWIND_DAMAGE_INTERVAL_TICKS = 10;
+        /** Rayon (en blocs) devant le kangourou où les poignets touchent. */
+        public static final double WHIRLWIND_RADIUS = 3.0;
+        /** Cône frontal : cos de l'angle max au « devant ». 0.3 ≈ ±72° (zone avant, pas les côtés/dos). */
+        public static final double WHIRLWIND_FRONT_DOT = 0.3;
+        /** Dégâts par coup au démarrage (0,5 s). */
+        public static final float WHIRLWIND_DAMAGE_MIN = 1.0f;
+        /** Dégâts par coup au pic (3 s) — plafond pour ne pas être trop cheat. */
+        public static final float WHIRLWIND_DAMAGE_MAX = 3.0f;
+        /** Coût en énergie vitale (0 = gratuit, équilibré par le cooldown). */
+        public static final float WHIRLWIND_ENERGY = 0f;
+    }
+
     public static class Boa {
         public static final int VENOM_FANGS_MIN_DURATION_TICKS = 600;
         public static final int VENOM_FANGS_MAX_DURATION_TICKS = 1200;

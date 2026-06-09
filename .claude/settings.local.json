@@ -18,7 +18,15 @@
       "Bash(xargs -I{} sh -c 'unzip -l \"{}\" 2>/dev/null | grep -q \"ServerGamePacketListenerImpl.java\" && echo \"{}\"')",
       "Bash(unzip \"C:/Users/Tiew_37/.gradle/caches/neoformruntime/artifacts/minecraft_1.21_server.jar\" \"net/minecraft/server/network/ServerGamePacketListenerImpl.class\" -d /tmp/mc21)",
       "Read(//d C:/Users/Tiew_37/IdeaProjects/**)",
-      "Bash(./gradlew build *)"
+      "Bash(./gradlew build *)",
+      "Bash(python insert_kangaroo_lang.py)",
+      "Bash(python -c ' *)",
+      "Bash(rm -f insert_kangaroo_lang.py)",
+      "PowerShell(.\\\\gradlew.bat compileJava --console=plain)",
+      "Bash(python remove_kangaroo_skin_lang.py)",
+      "Bash(rm -f remove_kangaroo_skin_lang.py)",
+      "Bash(./gradlew compileJava --console=plain)",
+      "Bash(awk 'NR>=1134 && NR<=1900 && /addAnimation\\\\\\(/{print NR\": \"$0}' src/main/java/net/tiew/operationWild/entity/client/animation/KangarooAnimations.java)"
     ]
   }
 }

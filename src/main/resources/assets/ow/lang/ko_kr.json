@@ -1,5 +1,9 @@
 {
   "creativetab.ow.operation_wild": "Operation W.I.L.D",
+  "ow.attacks.kangaroo.combo.title": "복싱 콤보",
+  "ow.attacks.kangaroo.combo.desc": "%s초마다 캥거루가 주먹을 휘둘러 일격당 %s의 피해를 줍니다.",
+  "ow.attacks.kangaroo.whirlwind.title": "주먹 회오리",
+  "ow.attacks.kangaroo.whirlwind.desc": "우클릭 유지: 캥거루의 주먹이 점점 빠르게 회전합니다(%s초에 최고조). 이동할 수 없지만 정면의 적에게 일격당 최대 %s의 피해를 점점 강하게 입힙니다(%s블록 이내). 최대 %s초 지속하며, %s초의 재사용 대기시간이 있습니다(공격이 %s초를 초과한 경우에만).",
   "container.saddler": "안장 제작대",
   "container.dna_analyser": "DNA 분석기",
   "block.ow.dna_analyser": "DNA 분석기",
@@ -263,6 +267,8 @@
   "entity.ow.chameleon": "카멜레온",
   "entity.ow.red_panda": "레서판다",
   "entity.ow.kodiak": "코디악",
+  "entity.ow.kangaroo": "캥거루",
+  "item.ow.kangaroo_spawn_egg": "캥거루 스폰 알",
   "entity.ow.hyena": "하이에나",
   "entity.ow.tiger_shark": "뱀상어",
   "entity.ow.seabug": "SeaBug",

@@ -8,6 +8,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.attacks.OWAttack;
 import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
@@ -137,6 +138,9 @@ public class OWAttacksOverlay {
             boolean isVenomFangs = attack.getId() == OWAttacksHandler.VENOM_FANGS_ID;
             boolean isVenomArmed = isVenomFangs && entity instanceof BoaEntity boa && boa.isVenomArmed();
 
+            // ── Kangourou Tornade de Poings (maintien) ────────────────────────
+            boolean isWhirlwind = attack.getId() == OWAttacksHandler.WHIRLWIND_FISTS_ID;
+
             boolean isCharging = attack instanceof OWChargedAttack
                     && OWAttackLogic.isCharging
                     && OWAttackLogic.getCurrentAttackId() == attack.getId();
@@ -156,6 +160,23 @@ public class OWAttacksOverlay {
                     int cd = boa.getVenomCooldownTicks();
                     fillProgress = cd > 0
                             ? 1.0f - (float) cd / OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS
+                            : 1.0f;
+                }
+            } else if (isWhirlwind && entity instanceof KangarooEntity kangaroo) {
+                if (kangaroo.isSpinning()) {
+                    // Respiration jaune en continu ; pleine pendant les 3 premières secondes,
+                    // puis se vide (gris par-dessus) sur les 12 s restantes (15 s - 3 s).
+                    isGlowing = true;
+                    int t    = kangaroo.clientSpinTicks;
+                    int peak = OWAttacksConstants.Kangaroo.WHIRLWIND_COOLDOWN_THRESHOLD_TICKS; // 60 (3 s)
+                    int max  = OWAttacksConstants.Kangaroo.WHIRLWIND_MAX_DURATION_TICKS;        // 300 (15 s)
+                    fillProgress = t <= peak
+                            ? 1.0f
+                            : Math.max(0f, 1.0f - (float) (t - peak) / (max - peak));
+                } else {
+                    int cd = kangaroo.getWhirlwindCooldownTicks();
+                    fillProgress = cd > 0
+                            ? 1.0f - (float) cd / OWAttacksConstants.Kangaroo.WHIRLWIND_COOLDOWN_TICKS
                             : 1.0f;
                 }
             } else if (grabProgress > 0f) {

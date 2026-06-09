@@ -238,6 +238,7 @@ public class OperationWild {
         public static void onClientSetup(FMLClientSetupEvent event) {
             EntityRenderers.register(OWEntityRegistry.CROCODILE.get(), CrocodileRenderer::new);
             EntityRenderers.register(OWEntityRegistry.KODIAK.get(), KodiakRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.KANGAROO.get(), KangarooRenderer::new);
             EntityRenderers.register(OWEntityRegistry.TIGER.get(), TigerRenderer::new);
             EntityRenderers.register(OWEntityRegistry.BOA.get(), BoaRenderer::new);
             EntityRenderers.register(OWEntityRegistry.ORCA.get(), OrcaRenderer::new);

@@ -1,5 +1,9 @@
 {
   "creativetab.ow.operation_wild": "Operation W.I.L.D",
+  "ow.attacks.kangaroo.combo.title": "Boxing Combo",
+  "ow.attacks.kangaroo.combo.desc": "Make your Kangaroo box every %s seconds, dealing %s damage per punch.",
+  "ow.attacks.kangaroo.whirlwind.title": "Whirlwind Fists",
+  "ow.attacks.kangaroo.whirlwind.desc": "Hold right-click: the Kangaroo's fists spin faster and faster (peak at %s s). Rooted in place, it deals growing damage in front of it (up to %s per hit) to entities within %s blocks. Lasts %s s max; %s s cooldown if the attack lasted more than %s s.",
   "container.saddler": "Saddler",
   "container.dna_analyser": "DNA Analyser",
   "block.ow.dna_analyser": "DNA Analyser",
@@ -263,6 +267,8 @@
   "entity.ow.chameleon": "Chameleon",
   "entity.ow.red_panda": "Red Panda",
   "entity.ow.kodiak": "Kodiak",
+  "entity.ow.kangaroo": "Kangaroo",
+  "item.ow.kangaroo_spawn_egg": "Kangaroo Spawn Egg",
   "entity.ow.hyena": "Hyena",
   "entity.ow.tiger_shark": "Tiger Shark",
   "entity.ow.seabug": "SeaBug",

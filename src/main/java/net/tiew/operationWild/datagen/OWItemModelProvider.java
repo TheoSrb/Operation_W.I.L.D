@@ -143,6 +143,7 @@ public class OWItemModelProvider extends ItemModelProvider {
         simpleBlockItemBlockTexture(OWBlocks.LAVENDER);
 
         withExistingParent(OWItems.KODIAK_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
+        withExistingParent(OWItems.KANGAROO_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.TIGER_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.CROCODILE_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));
         withExistingParent(OWItems.ORCA_SPAWN_EGG.getId().getPath(), mcLoc("item/template_spawn_egg"));

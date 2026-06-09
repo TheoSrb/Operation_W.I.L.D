@@ -14,6 +14,7 @@ import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
@@ -103,7 +104,12 @@ public class OWAttacksInformation {
             AttackSlot ultimate,
             AttackSlot passive
     ) {
-        AttackSlot[] slots() { return new AttackSlot[]{ combo, charged, ultimate, passive }; }
+        /** Les slots null (ex : entité sans ultime/passif) sont filtrés → moins de colonnes affichées. */
+        AttackSlot[] slots() {
+            return java.util.stream.Stream.of(combo, charged, ultimate, passive)
+                    .filter(java.util.Objects::nonNull)
+                    .toArray(AttackSlot[]::new);
+        }
     }
 
     private static final Map<Class<? extends OWEntity>, EntityProfile> PROFILES = new HashMap<>();
@@ -251,6 +257,33 @@ public class OWAttacksInformation {
                         e -> desc("ow.attacks.boa.thermal_vision.desc",
                                 val((int) OWAttacksConstants.Boa.THERMAL_MAX_HP))
                 )
+
+        ));
+
+        // ──────────────────────────────────────────────────────────────────────
+        //  KANGOUROU  (entityRow = 5)  ── combo + secondaire, pas d'ultime/passif
+        // ──────────────────────────────────────────────────────────────────────
+        PROFILES.put(KangarooEntity.class, new EntityProfile(
+
+                new AttackSlot(0, 200, "LMB",
+                        title("ow.attacks.kangaroo.combo.title"),
+                        e -> desc("ow.attacks.kangaroo.combo.desc",
+                                val("0.5"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(20, 200, "RMB",
+                        title("ow.attacks.kangaroo.whirlwind.title"),
+                        e -> desc("ow.attacks.kangaroo.whirlwind.desc",
+                                val(OWAttacksConstants.Kangaroo.WHIRLWIND_DAMAGE_PEAK_TICKS / 20),
+                                val(OWAttacksConstants.Kangaroo.WHIRLWIND_DAMAGE_MAX),
+                                val((int) OWAttacksConstants.Kangaroo.WHIRLWIND_RADIUS),
+                                val(OWAttacksConstants.Kangaroo.WHIRLWIND_MAX_DURATION_TICKS / 20),
+                                val(OWAttacksConstants.Kangaroo.WHIRLWIND_COOLDOWN_TICKS / 20),
+                                val(OWAttacksConstants.Kangaroo.WHIRLWIND_COOLDOWN_THRESHOLD_TICKS / 20))
+                ),
+
+                null,  // pas d'ultime pour l'instant
+                null   // pas de passif pour l'instant
 
         ));
 

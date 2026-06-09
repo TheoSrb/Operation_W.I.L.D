@@ -123,6 +123,7 @@ public class OWEntityHud {
             case "CrocodileEntity": return 9;
             case "LionEntity": return 10;
             case "OrcaEntity": return 11;
+            case "KangarooEntity": return 12;
             default: return 0;
         }
     }
@@ -181,8 +182,10 @@ public class OWEntityHud {
             return new EntityIconData(243, 155, 13, 14, -(13 / 2), -5);
         } else if (entity instanceof OrcaEntity) {
             return new EntityIconData(241, 186, 15, 17, -(15 / 2), -8);
-        } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity) {
+        } else if (entity instanceof BoaEntity) {
             return new EntityIconData(242, 38, 14, 11, -(14 / 2), -2);
+        } else if (entity instanceof KangarooEntity) {
+            return new EntityIconData(239, 203, 17, 23, -(17 / 2), -14);
         }
         return null;
     }

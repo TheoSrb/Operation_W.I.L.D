@@ -1324,7 +1324,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (!this.onGround() && !this.isInWater()) return this.getSpeed();
 
         if (isCombo()) {
-            if (this instanceof BoaEntity && this.isTame() && player.zza == 0) return 0.0f;
+            if ((this instanceof BoaEntity || this instanceof KangarooEntity) && this.isTame() && player.zza == 0) return 0.0f;
             if (this instanceof KodiakEntity kodiak) {
                 if (kodiak.getComboAttack() == 3) {
                     return (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 4);
@@ -1359,11 +1359,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         Vec3 vec3 = this.getRiddenInput(player, travelVector);
         this.tickRidden(player, vec3);
 
-        // Le step-up d'une monture (descendre dans un trou de 1 bloc puis remonter aussitot sur
-        // un bloc plus haut en face) peut faire echouer le mouvement cote vanilla ("(Vehicle of
-        // X) moved wrongly!") et bugger l'entite. On isole donc l'application du mouvement : en
-        // cas d'erreur on coupe la course (setRunning(false)) pour reduire la vitesse et laisser
-        // le tick suivant se replacer proprement, au lieu de propager l'exception.
         try {
             if (this.isControlledByLocalInstance()) {
                 if (!this.isLeapingVehicle()) {
@@ -1406,8 +1401,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
             }
         } catch (Exception e) {
-            // Si le mouvement bug (ex. step-up "moved wrongly"), on coupe la course et on
-            // neutralise la vitesse pour que l'entite ne reste pas dans un etat casse.
             this.setRunning(false);
             this.setDeltaMovement(Vec3.ZERO);
             OW_LOGGER.warn("Mouvement de monture {} en echec, setRunning(false) applique", this.getName().getString(), e);
@@ -1993,6 +1986,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
             if (this.isRunning() && this.isVehicle() && this.isTame() && isActuallyMoving) {
                 boolean isCrocodileInWater = this instanceof CrocodileEntity crocodile && crocodile.isInWater();
+
+                if (this instanceof KangarooEntity) return;
+
                 setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 0.75f : 0.5f));
             }
 
@@ -2235,6 +2231,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
+    public int getComboPauseDelay() {
+        return 2;
+    }
+
     private Item getRandomItemFromTag(TagKey<Item> tag) {
         List<Item> items = BuiltInRegistries.ITEM.stream()
                 .filter(item -> item.getDefaultInstance().is(tag))
@@ -2268,7 +2268,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
             applyComboModification(timeToHit);
 
-            if (attackTimer == timeToHit + 2) {
+            if (attackTimer == timeToHit + getComboPauseDelay()) {
                 setPauseCombo(true);
             }
         }
@@ -2293,6 +2293,53 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (attackTimer == timeToHit - 3) {
                 float pitch = (float) (OWUtils.generateRandomInterval(0.8, 1.0));
                 crocodile.level().playSound(null, crocodile.getX(), crocodile.getY(), crocodile.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, pitch);
+            }
+        }
+        if (this instanceof KangarooEntity kangaroo) {
+            if (attackTimer == timeToHit) {
+                float pitch = (float) (OWUtils.generateRandomInterval(1.3, 1.65));
+                kangaroo.level().playSound(null, kangaroo.getX(), kangaroo.getY(), kangaroo.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, getComboAttack() == 3 ? pitch / 1.5f : pitch);
+
+                if (getComboAttack() == 3) {
+                    boolean isRided = this.getControllingPassenger() != null;
+                    float reach = 3.0f * (isRided ? 1 : 1.5f);
+
+                    AABB hitbox = kangaroo.getBoundingBox()
+                            .inflate(reach, 1.5, reach)
+                            .move(kangaroo.getLookAngle().scale(reach * 0.5));
+
+                    List<LivingEntity> targets = kangaroo.level().getEntitiesOfClass(
+                            LivingEntity.class, hitbox,
+                            e -> e != kangaroo && !e.isAlliedTo(kangaroo)
+                    );
+
+                    for (LivingEntity target : targets) {
+                        Vec3 motion = target.getDeltaMovement();
+                        target.setDeltaMovement(motion.x * 0.3, 0.65, motion.z * 0.3);
+                        target.hurtMarked = true;
+
+                        if (kangaroo.level() instanceof ServerLevel serverLevel) {
+                            Vec3 look = kangaroo.getLookAngle();
+                            double spawnX = kangaroo.getX() + look.x * 1.5;
+                            double spawnY = kangaroo.getY() + kangaroo.getBbHeight() * 0.5;
+                            double spawnZ = kangaroo.getZ() + look.z * 1.5;
+
+                            serverLevel.sendParticles(ParticleTypes.SWEEP_ATTACK,
+                                    spawnX, spawnY, spawnZ,
+                                    1, 0.0, 0.0, 0.0, 0.0);
+                        }
+                    }
+                }
+            }
+
+            if (attackTimer == timeToHit + 21) {
+                if (getComboAttack() == 3) {
+                    boolean isRided = this.getControllingPassenger() != null;
+                    float d0 = (float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
+                    attackEntitiesInFront(d0, SoundEvents.PLAYER_ATTACK_STRONG, 3.0f * (isRided ? 1 : 1.5f), 3.0f * (isRided ? 1 : 1.5f), 1.5f * (isRided ? 1 : 1.5f), 0.5f);
+                    kangaroo.createMiniShockwave();
+                    kangaroo.fourthHitFired = true;
+                }
             }
         }
     }

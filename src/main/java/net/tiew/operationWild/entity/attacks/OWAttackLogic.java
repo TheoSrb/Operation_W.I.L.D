@@ -18,6 +18,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
@@ -105,6 +106,9 @@ public class OWAttackLogic {
     public static int     boaRidingEntityId   = -1;
 
     public static long deathRollCooldownEndMs = -1L;
+
+    // ── Kangourou « Tornade de Poings » : maintien local du clic droit ────────
+    private static boolean kangarooWhirlwindHeld = false;
 
     private static final long   CLICK_ANIM_DURATION_MS = 200L;
     private static final float  CLICK_ANIM_PEAK_SCALE  = 1.22f;
@@ -243,6 +247,14 @@ public class OWAttackLogic {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
+
+        // Tornade de Poings : si le joueur n'est plus sur un kangourou, on lâche le maintien
+        // (le serveur arrête déjà la rotation au démontage).
+        if (kangarooWhirlwindHeld && mc.player != null
+                && !(mc.player.getRootVehicle() instanceof KangarooEntity)) {
+            kangarooWhirlwindHeld = false;
+        }
+
         if (mc.player == null || !isCharging || currentAttack == null) return;
 
         if (!(mc.player.getRootVehicle() instanceof OWEntity)) {
@@ -623,6 +635,36 @@ public class OWAttackLogic {
         recordAttackClick(attack.getId(), false);
     }
 
+    /**
+     * Kangourou — Tornade de Poings : attaque secondaire MAINTENUE sur le clic droit.
+     * Press → démarre la rotation ; release → l'arrête. Toute la machine d'état (rotation /
+     * cooldown) vit sur l'entité ; on n'envoie que des packets start/stop.
+     */
+    private static void handleKangarooWhirlwind(OWAttack attack, KangarooEntity kangaroo, Player player, int action) {
+        if (action == GLFW.GLFW_PRESS) {
+            if (kangarooWhirlwindHeld) return;
+            if (kangaroo.getWhirlwindCooldownTicks() > 0) { recordAttackClick(attack.getId(), true); return; }
+            if (kangaroo.isCombo()) { recordAttackClick(attack.getId(), true); return; }
+            if (playerHoldsUsableItem(player)) { recordAttackClick(attack.getId(), true); return; }
+            if (kangaroo.getVitalEnergy() > kangaroo.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+                kangaroo.canShowVitalEnergyLack = true;
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
+
+            kangarooWhirlwindHeld = true;
+            PacketDistributor.sendToServer(
+                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_START, 0f));
+            recordAttackClick(attack.getId(), false);
+
+        } else if (action == GLFW.GLFW_RELEASE) {
+            if (!kangarooWhirlwindHeld) return;
+            kangarooWhirlwindHeld = false;
+            PacketDistributor.sendToServer(
+                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
+        }
+    }
+
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         if (event.getAction() != GLFW.GLFW_PRESS) return;
@@ -739,6 +781,12 @@ public class OWAttackLogic {
                 event.setCanceled(true);
                 return;
             }
+            // Pendant la Tornade de Poings, le combo clic-gauche est bloqué.
+            if (owEntity instanceof KangarooEntity kSpin && kSpin.isSpinning()) {
+                recordComboClick(true);
+                event.setCanceled(true);
+                return;
+            }
             if (isCharging) return;
             long comboEnd = comboEndMsByEntity.getOrDefault(owEntity.getId(), -1L);
             boolean onCooldown = comboEnd > System.currentTimeMillis();
@@ -761,6 +809,16 @@ public class OWAttackLogic {
             OWAttack venom = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getButton());
             if (venom != null) {
                 handleBoaVenomToggle(venom, boa, mc.player);
+                return;
+            }
+        }
+
+        // Kangourou — Tornade de Poings : attaque secondaire MAINTENUE sur le clic droit (press + release).
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
+                && owEntity instanceof KangarooEntity kangaroo) {
+            OWAttack whirlwind = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getButton());
+            if (whirlwind != null) {
+                handleKangarooWhirlwind(whirlwind, kangaroo, mc.player, event.getAction());
                 return;
             }
         }

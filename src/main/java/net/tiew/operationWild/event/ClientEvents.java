@@ -1225,6 +1225,9 @@ public class ClientEvents {
             } else if (rootVehicle instanceof OrcaEntity orca) {
                 event.setRoll((float) (event.getRoll() + (orca.getBodyZRot() / 6) * intensity));
                 event.setPitch((float) (event.getPitch() + (orca.getBodyXRot() / 6) * intensity));
+            } else if (rootVehicle instanceof KangarooEntity kangaroo) {
+                event.setRoll((float) (event.getRoll() + (kangaroo.getBodyZRot() / 6) * intensity));
+                event.setPitch((float) (event.getPitch() + (kangaroo.getBodyXRot() / 6) * intensity));
             }
         }
     }

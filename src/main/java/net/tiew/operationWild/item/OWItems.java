@@ -159,6 +159,8 @@ public class OWItems {
     // Mob Spawn Eggs
     public static final DeferredHolder<Item, Item> KODIAK_SPAWN_EGG = ITEMS.register("kodiak_spawn_egg",
             () -> new DeferredSpawnEggItem(OWEntityRegistry.KODIAK, 0x7d5a45, 0x4e3225, new Item.Properties()));
+    public static final DeferredHolder<Item, Item> KANGAROO_SPAWN_EGG = ITEMS.register("kangaroo_spawn_egg",
+            () -> new DeferredSpawnEggItem(OWEntityRegistry.KANGAROO, 0xd7b17d, 0xf3e2ba, new Item.Properties()));
     public static final DeferredHolder<Item, Item> TIGER_SPAWN_EGG = ITEMS.register("tiger_spawn_egg",
             () -> new DeferredSpawnEggItem(OWEntityRegistry.TIGER, 0xd97733, 0x61341b, new Item.Properties()));
     public static final DeferredHolder<Item, Item> CROCODILE_SPAWN_EGG = ITEMS.register("crocodile_spawn_egg",
