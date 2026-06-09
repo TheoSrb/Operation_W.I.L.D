@@ -1445,8 +1445,12 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                 --timer;
             }
         } else {
-            timer = 0;
-            animationState.stop();
+            if (comboNumber != 3 && timer > 0) {
+                --timer;
+            } else {
+                timer = 0;
+                animationState.stop();
+            }
         }
 
         switch (comboNumber) {

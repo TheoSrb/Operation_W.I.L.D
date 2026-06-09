@@ -169,10 +169,10 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
         }
         this.applyHeadRotation(netHeadYaw, headPitch);
 
-        if (kodiak.isCombo(1)) {
+        if (kodiak.isCombo(1) || kodiak.attack1Combo.isStarted()) {
             this.animate(kodiak.attack1Combo, KodiakAnimations.ATTACK_STRIKE, ageInTicks, 1.0f * OWEntity.comboSpeedMultiplier);
         }
-        if (kodiak.isCombo(2)) {
+        if (kodiak.isCombo(2) || kodiak.attack2Combo.isStarted()) {
             this.animate(kodiak.attack2Combo, KodiakAnimations.ATTACK_STRIKE2, ageInTicks, 1.1f * OWEntity.comboSpeedMultiplier);
         }
         if (kodiak.isCombo(3)) {

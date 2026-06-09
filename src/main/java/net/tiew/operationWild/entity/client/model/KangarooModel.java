@@ -133,13 +133,15 @@ public class KangarooModel<T extends KangarooEntity> extends HierarchicalModel<T
 
         this.applyHeadRotation(netHeadYaw, headPitch);
 
-        if (kangaroo.isCombo(1)) {
+        // Combos 1-2 : rendu actif aussi pendant la phase de fin (isStarted mais !isCombo),
+        // ce qui laisse le bras revenir au repos naturellement au lieu de snapper.
+        if (kangaroo.isCombo(1) || kangaroo.attack1Combo.isStarted()) {
             this.animate(kangaroo.attack1Combo, KangarooAnimations.ATTACK_STRIKE, ageInTicks, 1.0f * OWEntity.comboSpeedMultiplier);
         }
-        if (kangaroo.isCombo(2)) {
+        if (kangaroo.isCombo(2) || kangaroo.attack2Combo.isStarted()) {
             this.animate(kangaroo.attack2Combo, KangarooAnimations.ATTACK_STRIKE_2, ageInTicks, 1.1f * OWEntity.comboSpeedMultiplier);
         }
-        if (kangaroo.isCombo(3)) {
+        if (kangaroo.isCombo(3) || kangaroo.attack3Combo.isStarted()) {
             this.animate(kangaroo.attack3Combo, KangarooAnimations.ATTACK_STRIKE_3, ageInTicks, 1.25f * OWEntity.comboSpeedMultiplier);
         }
 
@@ -160,13 +162,8 @@ public class KangarooModel<T extends KangarooEntity> extends HierarchicalModel<T
             return;
         }
 
-        // ── Tornade de Poings : animation Blockbench jouée à vitesse variable (1× → 5×) ──
-        // Traitée AVANT l'idle pour que SEULE cette animation pose le corps : l'état capturé
-        // (captureBodyState) correspond ainsi exactement au body et le rider le suit sans décalage
-        // (sinon l'idle, jouée sur son propre temps, ajoute un balancement parasite du body).
-        // On boucle sur la zone stable [0,5 s ; 14,5 s] pour éviter de rejouer l'intro/outro.
         if (kangaroo.isSpinning()) {
-            float partial   = ageInTicks - kangaroo.tickCount;     // [0..1) tick partiel
+            float partial   = ageInTicks - kangaroo.tickCount;
             float timeMs    = kangaroo.clientAnimTimeMs + 50f * kangaroo.clientSpinSpeed * partial;
             long  loopedMs  = (long) (SPIN_LOOP_START_MS + (timeMs % SPIN_LOOP_LENGTH_MS));
             KeyframeAnimations.animate(this, KangarooAnimations.ATTACK_SECONDARY, loopedMs, 1f, SPIN_ANIM_VEC);
@@ -174,13 +171,11 @@ public class KangarooModel<T extends KangarooEntity> extends HierarchicalModel<T
             return;
         }
 
-        // ── Outro : à la relâche, on rejoue la fin de l'anim (14,5 s → 15 s) pour
-        //    revenir proprement à la pose d'origine au lieu de couper net.
         if (kangaroo.clientOutroTicks > 0) {
             float partial   = ageInTicks - kangaroo.tickCount;
             float remaining = kangaroo.clientOutroTicks - partial;
             float progress  = Mth.clamp(1f - remaining / KangarooEntity.WHIRLWIND_OUTRO_TICKS, 0f, 1f);
-            float loopEnd   = SPIN_LOOP_START_MS + SPIN_LOOP_LENGTH_MS;          // 14,5 s
+            float loopEnd   = SPIN_LOOP_START_MS + SPIN_LOOP_LENGTH_MS;        
             long  outroMs   = (long) (loopEnd + progress * (SPIN_ANIM_END_MS - loopEnd));
             KeyframeAnimations.animate(this, KangarooAnimations.ATTACK_SECONDARY, outroMs, 1f, SPIN_ANIM_VEC);
             captureBodyState(kangaroo);
@@ -189,11 +184,6 @@ public class KangarooModel<T extends KangarooEntity> extends HierarchicalModel<T
 
         float s = kangaroo.isRunning() ? 1.25f : 2.0f;
         if (!kangaroo.isRunning()) this.animate(kangaroo.idleAnimationState, KangarooAnimations.MISC_IDLE, ageInTicks, 1.0f);
-
-        // ── Combo classique (3 frappes) ──────────────────────────────────────
-
-        // ── Transitions assis (jouées seulement si déclenchées par la base) ─
-
         if (!kangaroo.isCombo(3)) this.animateWalk(KangarooAnimations.MOVE_WALK, limbSwing, limbSwingAmount, s, s * 1.25f);
 
         captureBodyState(kangaroo);

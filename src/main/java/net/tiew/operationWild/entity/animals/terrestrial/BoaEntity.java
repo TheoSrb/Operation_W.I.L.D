@@ -1323,8 +1323,12 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                 --timer;
             }
         } else {
-            timer = 0;
-            animationState.stop();
+            if (comboNumber != 3 && timer > 0) {
+                --timer;
+            } else {
+                timer = 0;
+                animationState.stop();
+            }
         }
 
         switch (comboNumber) {

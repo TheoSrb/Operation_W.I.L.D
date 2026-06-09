@@ -170,11 +170,11 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
         // EXCEPTION GUI : dans les ecrans (inventaire / preview cosmetiques) ces entites
         // n'existent pas, donc on affiche le corps complet ici (cf. RENDER_FULL_BODY).
 
-        if (boa.isCombo(1)) {
+        if (boa.isCombo(1) || (boa.attack1Combo.isStarted() && !boa.isCombo())) {
             this.animate(boa.attack1Combo, BoaAnimations.ATTACK_STRIKE, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
             return;
         }
-        if (boa.isCombo(2)) {
+        if (boa.isCombo(2) || (boa.attack2Combo.isStarted() && !boa.isCombo())) {
             this.animate(boa.attack2Combo, BoaAnimations.ATTACK_STRIKE_2, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
             return;
         }

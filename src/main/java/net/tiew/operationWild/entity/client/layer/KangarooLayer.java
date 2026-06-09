@@ -26,7 +26,8 @@ public class KangarooLayer extends RenderLayer<KangarooEntity, KangarooModel<Kan
 
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, KangarooEntity kangaroo, float v, float v1, float v2, float v3, float v4, float v5) {
-        //renderOverlay(poseStack, multiBufferSource, BOXING_GLOVES_TEXTURE, packedLight);
+
+        if (kangaroo.isWearingBoxingGloves()) renderOverlay(poseStack, multiBufferSource, BOXING_GLOVES_TEXTURE, packedLight);
 
         double kangarooHealthTier = kangaroo.getMaxHealth() / 4;
 

@@ -2302,7 +2302,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                 if (getComboAttack() == 3) {
                     boolean isRided = this.getControllingPassenger() != null;
-                    float reach = 3.0f * (isRided ? 1 : 1.5f);
+                    float reach = 1.5f * (isRided ? 1 : 1.5f);
 
                     AABB hitbox = kangaroo.getBoundingBox()
                             .inflate(reach, 1.5, reach)

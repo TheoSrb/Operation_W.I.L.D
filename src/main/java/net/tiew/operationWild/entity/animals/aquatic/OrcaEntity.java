@@ -754,8 +754,12 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 --timer;
             }
         } else {
-            timer = 0;
-            animationState.stop();
+            if (comboNumber != 3 && timer > 0) {
+                --timer;
+            } else {
+                timer = 0;
+                animationState.stop();
+            }
         }
 
         switch (comboNumber) {
@@ -764,6 +768,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             case 3: attack3ComboTimer = timer; break;
         }
     }
+
 
     @Override
     public void setVariant(net.tiew.operationWild.entity.OWEntity entity, int variant) {

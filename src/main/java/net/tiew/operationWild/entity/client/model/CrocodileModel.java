@@ -192,10 +192,10 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animate(crocodile.mouthSlamAnimState, CrocodileAnimations.MOUTH_SLAM_HIT, ageInTicks, 1.0f);
 		}
 
-		if (crocodile.isCombo(1)) {
+		if (crocodile.isCombo(1) || crocodile.attack1Combo.isStarted()) {
 			this.animate(crocodile.attack1Combo, CrocodileAnimations.ATTACK_STRIKE, ageInTicks, 1.35f);
 		}
-		if (crocodile.isCombo(2)) {
+		if (crocodile.isCombo(2) || crocodile.attack2Combo.isStarted()) {
 			this.animate(crocodile.attack2Combo, CrocodileAnimations.ATTACK_STRIKE_2, ageInTicks, 1.35f);
 		}
 		if (crocodile.isCombo(3)) {

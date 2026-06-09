@@ -34,6 +34,8 @@ import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.config.IOWEntity;
+import net.minecraft.world.entity.PlayerRideableJumping;
+import net.neoforged.neoforge.common.CommonHooks;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
@@ -46,35 +48,26 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.UUID;
 
-public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
+public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, PlayerRideableJumping {
 
     public static final double TAMING_EXPERIENCE = 65.0;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
 
-    // ── Tornade de Poings (attaque secondaire maintenue) ──────────────────────
     private static final EntityDataAccessor<Boolean> IS_SPINNING = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_WEARING_BOXING_GLOVES = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> WHIRLWIND_COOLDOWN = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
 
-    /** Compteur serveur : nombre de ticks de rotation en cours. */
     private int spinTicks = 0;
-    /** Compteur serveur : ticks écoulés depuis le dernier dégât appliqué. */
     private int sinceLastDamage = 0;
-    /** Compteur serveur : cadence des bruitages de « moteur ». */
     private int whirlwindSoundTimer = 0;
 
-    /** Durée (ticks) de l'outro joué à la relâche (transition coups → pose d'origine, 0,5 s). */
     public static final int WHIRLWIND_OUTRO_TICKS = 10;
 
-    /** Accumulateurs client pour piloter l'animation ATTACK_SECONDARY à vitesse variable. */
     public int clientSpinTicks = 0;
-    /** Temps de lecture accumulé (ms) injecté dans l'animation Blockbench. */
     public float clientAnimTimeMs = 0f;
-    /** Multiplicateur de vitesse courant (1× → 5×). */
     public float clientSpinSpeed = 1f;
-    /** Ticks restants de l'outro client (> 0 = on rejoue la fin de l'anim vers la pose de repos). */
     public int clientOutroTicks = 0;
-    /** Vrai tant que la rotation tournait côté client (pour détecter le front descendant à la relâche). */
     private boolean clientWasSpinning = false;
 
     public final AnimationState attack1Combo = new AnimationState();
@@ -88,6 +81,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public boolean fourthHitFired = false;
 
     public volatile float bodyAnimY = 0f;
+
+    // ── Saut monture (PlayerRideableJumping) ──────────────────────────────
+    protected float playerJumpPendingScale = 0f;
+    private boolean isRidingJump = false;
+    private int ridingJumpTimer = 0;
 
     public KangarooEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
@@ -118,6 +116,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(IS_SPINNING, false);
         builder.define(WHIRLWIND_COOLDOWN, 0);
+        builder.define(IS_WEARING_BOXING_GLOVES, false);
     }
 
     // ==================================================
@@ -267,6 +266,75 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public float getRiddenSpeedVehicle(Player player) {
         return isSpinning() ? 0f : super.getRiddenSpeedVehicle(player);
     }
+
+    // ==================================================
+    //          SAUT MONTURE (PlayerRideableJumping)
+    // ==================================================
+
+    /** Appelé chaque tick côté client contrôlant : gère l'atterrissage et déclenche le saut. */
+    @Override
+    public void tickRidden(Player player, Vec3 travelVector) {
+        super.tickRidden(player, travelVector);
+
+        if (isRidingJump) {
+            ridingJumpTimer++;
+            if (ridingJumpTimer > 5 && this.onGround()) {
+                isRidingJump = false;
+                ridingJumpTimer = 0;
+            }
+        } else {
+            ridingJumpTimer = 0;
+        }
+
+        if (this.isControlledByLocalInstance() && this.onGround() && !isRidingJump) {
+            if (playerJumpPendingScale > 0f && !isSpinning()) {
+                executeRidersJump(playerJumpPendingScale);
+            }
+            playerJumpPendingScale = 0f;
+        }
+    }
+
+    private void executeRidersJump(float scale) {
+        double verticalPower = this.getAttributeValue(Attributes.JUMP_STRENGTH) * scale
+                * (double) this.getBlockJumpFactor()
+                + (double) (this.getJumpBoostPower() * 3);
+
+        Vec3 lookFlat = this.getLookAngle().multiply(1, 0, 1);
+        if (lookFlat.lengthSqr() > 1.0E-7D) lookFlat = lookFlat.normalize();
+
+        Vec3 movement = this.getDeltaMovement();
+        this.setDeltaMovement(
+                movement.x + lookFlat.x * 0.4 * scale,
+                verticalPower,
+                movement.z + lookFlat.z * 0.4 * scale
+        );
+        this.hasImpulse = true;
+        CommonHooks.onLivingJump(this);
+
+        this.level().playLocalSound(getX(), getY(), getZ(),
+                SoundEvents.HORSE_JUMP, SoundSource.NEUTRAL, 0.4f, 1.0f, false);
+
+        isRidingJump = true;
+        ridingJumpTimer = 0;
+    }
+
+    @Override
+    public void onPlayerJump(int jumpPower) {
+        if (!this.isSaddled()) return;
+        if (jumpPower < 0) jumpPower = 0;
+        this.playerJumpPendingScale = jumpPower >= 90 ? 1.0f : 0.4f + 0.4f * jumpPower / 90.0f;
+    }
+
+    @Override
+    public boolean canJump() {
+        return this.isSaddled() && !isSpinning();
+    }
+
+    @Override
+    public void handleStartJump(int jumpPower) { }
+
+    @Override
+    public void handleStopJump() { }
 
     // ==================================================
     //                  CORPS / COMBO
@@ -471,6 +539,19 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    protected void onSuccessfulHit(LivingEntity entity) {
+        super.onSuccessfulHit(entity);
+
+        if (this.isWearingBoxingGloves()) {
+            int exp = (int) OWUtils.generateRandomInterval(1, 2);
+
+            if (!entity.level().isClientSide()) {
+                ExperienceOrb.award((ServerLevel) entity.level(), entity.position(), exp);
+            }
+        }
+    }
+
+    @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof KangarooEntity otherKangaroo) {
             if (otherKangaroo.isBaby()) {
@@ -541,8 +622,13 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 --timer;
             }
         } else {
-            timer = 0;
-            animationState.stop();
+            if (timer > 0) {
+                // Laisse l'AnimationState terminer sa course naturellement (combos 1-2-3).
+                --timer;
+            } else {
+                timer = 0;
+                animationState.stop();
+            }
             if (!this.isCombo(comboNumber)) fourthHitFired = false;
         }
 
@@ -581,6 +667,14 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.entityData.set(DATA_INITIAL_VARIANT, variant.getId());
     }
 
+    public boolean isWearingBoxingGloves() {
+        return this.entityData.get(IS_WEARING_BOXING_GLOVES);
+    }
+
+    public void setWearingBoxingGloves(boolean gloves) {
+        this.entityData.set(IS_WEARING_BOXING_GLOVES, gloves);
+    }
+
     // ==================================================
     //              DONNÉES SAUVEGARDÉES
     // ==================================================
@@ -592,6 +686,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         tag.putInt("Variant", this.getTypeVariant());
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
+        tag.putBoolean("isWearingBoxingGloves", this.isWearingBoxingGloves());
     }
 
     @Override
@@ -599,6 +694,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         super.readAdditionalSaveData(tag);
         this.entityData.set(DATA_INITIAL_VARIANT, tag.getInt("getInitialVariant"));
         this.entityData.set(VARIANT, tag.getInt("Variant"));
+        this.entityData.set(IS_WEARING_BOXING_GLOVES, tag.getBoolean("isWearingBoxingGloves"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
     }

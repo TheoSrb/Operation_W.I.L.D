@@ -139,12 +139,12 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (!tiger.isGrabbing()) {
-			if (tiger.isCombo(1)) {
+			if (tiger.isCombo(1) || (tiger.attack1Combo.isStarted() && !tiger.isCombo())) {
 				this.animate(tiger.attack1Combo, TigerAnimations.ATTACK_STRIKE, ageInTicks, 0.925f * OWEntity.comboSpeedMultiplier);
 				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 				return;
 			}
-			if (tiger.isCombo(2)) {
+			if (tiger.isCombo(2) || (tiger.attack2Combo.isStarted() && !tiger.isCombo())) {
 				this.animate(tiger.attack2Combo, TigerAnimations.ATTACK_STRIKE_2, ageInTicks, 1.05f * OWEntity.comboSpeedMultiplier);
 				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 				return;
