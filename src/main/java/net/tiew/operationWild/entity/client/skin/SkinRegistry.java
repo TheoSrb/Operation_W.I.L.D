@@ -131,6 +131,9 @@ public final class SkinRegistry {
             register(KangarooVariant.DEFAULT, KangarooSkin.base(tex("kangaroo_default.png")));
             register(KangarooVariant.ORANGE,  KangarooSkin.base(tex("kangaroo_orange.png")));
             register(KangarooVariant.BROWN,   KangarooSkin.base(tex("kangaroo_brown.png")));
+
+            // --- SKIN_GOLD : modèle de base + overlay brillant ---
+            register(KangarooVariant.Cosmetics.GOLD.variant, new GoldKangarooSkin());
         }
 
         public static void register(KangarooVariant variant, KangarooSkin skin) {

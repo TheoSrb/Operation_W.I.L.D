@@ -16,6 +16,8 @@ import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.entity.misc.Submarine;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
+import net.tiew.operationWild.entity.variants.KangarooVariant;
+import net.tiew.operationWild.entity.variants.BoaVariant;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import net.minecraft.ChatFormatting;
@@ -647,6 +649,16 @@ public class ClientEvents {
             player.level().getEntitiesOfClass(CrocodileEntity.class,
                     player.getBoundingBox().inflate(32),
                     e -> e.isTame() && e.getVariant() == CrocodileVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
+            ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
+
+            player.level().getEntitiesOfClass(KangarooEntity.class,
+                    player.getBoundingBox().inflate(32),
+                    e -> e.isTame() && e.getVariant() == KangarooVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
+            ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
+
+            player.level().getEntitiesOfClass(BoaEntity.class,
+                    player.getBoundingBox().inflate(32),
+                    e -> e.isTame() && e.getVariant() == BoaVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
             ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
         }
 

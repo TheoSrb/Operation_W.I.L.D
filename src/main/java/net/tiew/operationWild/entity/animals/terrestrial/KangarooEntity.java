@@ -694,6 +694,26 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.entityData.set(VARIANT, variant.getId() & 255);
     }
 
+    public void setSkin(KangarooVariant skin) {
+        this.setVariant(skin);
+    }
+
+    @Override
+    public void changeSkin(int skinIndex, boolean playingEffects) {
+        super.changeSkin(skinIndex, playingEffects);
+        this.setVariant(getInitialVariant());
+
+        switch (skinIndex) {
+            case 1 -> this.setSkin(KangarooVariant.Cosmetics.GOLD.variant);
+            default -> this.setVariant(getInitialVariant());
+        }
+    }
+
+    @Override
+    public void changeSkinSilent(int skinIndex) {
+        changeSkin(skinIndex, false);
+    }
+
     @Override
     public void setVariant(OWEntity entity, int variant) {
         if (entity instanceof KangarooEntity kangaroo) {
@@ -740,5 +760,12 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.entityData.set(IS_WEARING_BOXING_GLOVES, tag.getBoolean("isWearingBoxingGloves"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
+
+        // Restaure la variante cosmetique a partir du skinIndex sauvegarde (charge par OWEntity).
+        if (this.getSkinIndex() != 0) {
+            this.nbtRestoring = true;
+            this.changeSkin(this.getSkinIndex(), false);
+            this.nbtRestoring = false;
+        }
     }
 }

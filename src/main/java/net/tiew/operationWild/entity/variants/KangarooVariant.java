@@ -6,7 +6,23 @@ import java.util.Comparator;
 public enum KangarooVariant {
     DEFAULT(0),
     ORANGE(1),
-    BROWN(2);
+    BROWN(2),
+
+    @Deprecated SKIN_GOLD(3);
+
+    // ==================================================
+    //                    COSMETICS
+    // ==================================================
+
+    public enum Cosmetics {
+        GOLD(KangarooVariant.SKIN_GOLD);
+
+        public final KangarooVariant variant;
+
+        Cosmetics(KangarooVariant variant) {
+            this.variant = variant;
+        }
+    }
 
     public static final KangarooVariant[] BY_ID = Arrays.stream(values())
             .sorted(Comparator.comparingInt(KangarooVariant::getId))
@@ -20,6 +36,13 @@ public enum KangarooVariant {
 
     public int getId() {
         return id;
+    }
+
+    public boolean isCosmetic() {
+        for (Cosmetics c : Cosmetics.values()) {
+            if (c.variant == this) return true;
+        }
+        return false;
     }
 
     public static KangarooVariant byId(int id) {
