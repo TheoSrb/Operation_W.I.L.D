@@ -7,6 +7,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.screen.entity.OWSkinsInterface;
+import net.tiew.operationWild.screen.entity.SkinRarity;
 
 @OnlyIn(Dist.CLIENT)
 public class BoaSkinsScreen extends OWSkinsInterface {
@@ -39,16 +40,16 @@ public class BoaSkinsScreen extends OWSkinsInterface {
 
     @Override
     protected void initSkinPrices() {
-        skinPrices.put(4, 500);
-        skinPrices.put(5, 200);
+        skinPrices.put(4, SkinRarity.LEGENDARY.cost);
+        skinPrices.put(5, SkinRarity.RARE.cost);
     }
 
     @Override
     protected SkinInfo getSkinInfo(int skinIndex) {
         return switch (skinIndex) {
             case 1 -> SkinInfo.level(    "tooltip.boaSkin1", "tooltip.boaSkin1.desc", 50);
-            case 4 -> SkinInfo.prestige( "tooltip.boaSkin4", "tooltip.boaSkin4.desc", 300);
-            case 5 -> SkinInfo.prestige( "tooltip.boaSkin5", "tooltip.boaSkin5.desc", 200);
+            case 4 -> SkinInfo.rarity( "tooltip.boaSkin4", "tooltip.boaSkin4.desc", SkinRarity.LEGENDARY);
+            case 5 -> SkinInfo.rarity( "tooltip.boaSkin5", "tooltip.boaSkin5.desc", SkinRarity.RARE);
             case 7 -> SkinInfo.free("tooltip.boaSkin7", "tooltip.boaSkin7.desc");
             default -> null;
         };

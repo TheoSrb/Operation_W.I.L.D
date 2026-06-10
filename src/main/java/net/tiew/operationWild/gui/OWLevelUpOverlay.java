@@ -29,14 +29,20 @@ public class OWLevelUpOverlay {
     private static final int NUMBER_COLOR = 0xA8E677;
 
     public static void trigger(int level, int entityColor) {
+        // Anti-stacking : si une animation est déjà en cours (gain de plusieurs niveaux d'un coup),
+        // on met juste à jour le chiffre sans rejouer le son par-dessus lui-même.
+        boolean alreadyActive = startTime >= 0 && System.currentTimeMillis() - startTime < DURATION_MS;
+
         startTime = System.currentTimeMillis();
         number = level;
         accentColor = entityColor;
 
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) {
-            mc.getSoundManager().play(SimpleSoundInstance.forUI(
-                    SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1.0f));
+        if (!alreadyActive) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.player != null) {
+                mc.getSoundManager().play(SimpleSoundInstance.forUI(
+                        SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1.0f));
+            }
         }
     }
 

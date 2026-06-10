@@ -23,7 +23,7 @@ public class OWCoinGainOverlay {
     private static int amount = 0;
 
     private static final long DURATION_MS = 1600L;
-    private static final int TEXT_COLOR = 0xFFE266;
+    private static final int TEXT_COLOR = 0x6E8751;
 
     public static void trigger(int gained) {
         if (gained <= 0) return;

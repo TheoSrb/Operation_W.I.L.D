@@ -9,6 +9,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.quests.CosmeticsQuestsRegistry;
 import net.tiew.operationWild.screen.entity.OWSkinsInterface;
+import net.tiew.operationWild.screen.entity.SkinRarity;
 import org.checkerframework.checker.units.qual.C;
 
 @OnlyIn(Dist.CLIENT)
@@ -42,8 +43,8 @@ public class CrocodileSkinsScreen extends OWSkinsInterface {
 
     @Override
     protected void initSkinPrices() {
-        skinPrices.put(2, 500);
-        skinPrices.put(3, 300);
+        skinPrices.put(2, SkinRarity.LEGENDARY.cost);
+        skinPrices.put(3, SkinRarity.EPIC.cost);
     }
 
     // =========================================================================
@@ -53,8 +54,8 @@ public class CrocodileSkinsScreen extends OWSkinsInterface {
     protected SkinInfo getSkinInfo(int skinIndex) {
         return switch (skinIndex) {
             case 1 -> SkinInfo.level(    "tooltip.crocodileSkin1", "tooltip.crocodileSkin1.desc", 50);
-            case 2 -> SkinInfo.prestige(     "tooltip.crocodileSkin2", "tooltip.crocodileSkin2.desc", 500);
-            case 3 -> SkinInfo.prestige( "tooltip.crocodileSkin3", "tooltip.crocodileSkin3.desc", 300);
+            case 2 -> SkinInfo.rarity(     "tooltip.crocodileSkin2", "tooltip.crocodileSkin2.desc", SkinRarity.LEGENDARY);
+            case 3 -> SkinInfo.rarity( "tooltip.crocodileSkin3", "tooltip.crocodileSkin3.desc", SkinRarity.EPIC);
             case 7 -> SkinInfo.free(     "tooltip.crocodileSkin7", "tooltip.crocodileSkin7.desc");
             default -> null;
         };

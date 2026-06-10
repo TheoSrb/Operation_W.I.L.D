@@ -32,7 +32,16 @@ public record OWLevelUpPacket(int level, int entityColor) implements CustomPacke
     }
 
     public static void handle(OWLevelUpPacket packet, IPayloadContext context) {
-        context.enqueueWork(() ->
-                OWLevelUpOverlay.trigger(packet.level(), packet.entityColor()));
+        context.enqueueWork(() -> {
+            OWLevelUpOverlay.trigger(packet.level(), packet.entityColor());
+
+            // Didacticiel « montée de niveau » : au tout premier passage de niveau (≥ 2), une seule fois.
+            if (packet.level() >= 2 && !net.tiew.operationWild.core.OWTutorialData.hasSeenLevelTutorial()) {
+                net.tiew.operationWild.gui.OWIndicationOverlay.enqueue(
+                        net.minecraft.network.chat.Component.translatable("indication.ow.tuto_level"),
+                        120, net.tiew.operationWild.gui.OWIndicationOverlay.Anchor.CENTER);
+                net.tiew.operationWild.core.OWTutorialData.markLevelTutorialSeen();
+            }
+        });
     }
 }

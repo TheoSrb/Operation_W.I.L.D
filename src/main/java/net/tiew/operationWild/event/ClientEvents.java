@@ -496,6 +496,9 @@ public class ClientEvents {
         OWCoinGainOverlay.render(event.getGuiGraphics(),
                 event.getGuiGraphics().guiWidth(),
                 event.getGuiGraphics().guiHeight());
+        OWIndicationOverlay.render(event.getGuiGraphics(),
+                event.getGuiGraphics().guiWidth(),
+                event.getGuiGraphics().guiHeight());
     }
 
     @SubscribeEvent
@@ -616,8 +619,51 @@ public class ClientEvents {
             if (minecraft.player != null && minecraft.player.getVehicle() instanceof OWEntity owEntity) {
                 boolean isSprintKeyDown = minecraft.options.keySprint.isDown();
                 OWNetworkHandler.sendToServer(new OWRunningPacket(isSprintKeyDown));
+                tryShowMountTutorials(owEntity);
             }
         }
+    }
+
+    /**
+     * Didacticiels au montage d'un animal APPRIVOISÉ (uniquement package entity.animals.* : exclut
+     * véhicules misc et boss).
+     * <ul>
+     *   <li>Première entité jamais chevauchée (une fois, tous mondes confondus) : séquence
+     *       Vie → Énergie → Attaques/touche → Cartes d'attaque.</li>
+     *   <li>Le message « touche d'attaque » (8 s) est le seul qui se répète à chaque nouvelle espèce.</li>
+     * </ul>
+     */
+    private static void tryShowMountTutorials(OWEntity entity) {
+        if (!entity.isTame()) return;
+        if (!entity.getClass().getPackageName().startsWith("net.tiew.operationWild.entity.animals")) return;
+
+        String speciesId = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE
+                .getKey(entity.getType()).toString();
+
+        boolean firstEntity = !net.tiew.operationWild.core.OWTutorialData.hasSeenMountTutorial();
+        boolean newSpecies = !net.tiew.operationWild.core.OWTutorialData.hasSeenAttacksTutorial(speciesId);
+        if (!firstEntity && !newSpecies) return;
+
+        if (firstEntity) {
+            OWIndicationOverlay.enqueue(Component.translatable("indication.ow.tuto_health"), 120, OWIndicationOverlay.Anchor.HEALTH);
+            OWIndicationOverlay.enqueue(Component.translatable("indication.ow.tuto_energy"), 120, OWIndicationOverlay.Anchor.ENERGY);
+            OWIndicationOverlay.enqueue(buildAttacksIndication(entity), 160, OWIndicationOverlay.Anchor.ATTACKS);
+            OWIndicationOverlay.enqueue(Component.translatable("indication.ow.tuto_attack_cards"), 120, OWIndicationOverlay.Anchor.ATTACKS);
+            net.tiew.operationWild.core.OWTutorialData.markMountTutorialSeen();
+            net.tiew.operationWild.core.OWTutorialData.markAttacksTutorialSeen(speciesId);
+        } else {
+            OWIndicationOverlay.enqueue(buildAttacksIndication(entity), 160, OWIndicationOverlay.Anchor.ATTACKS);
+            net.tiew.operationWild.core.OWTutorialData.markAttacksTutorialSeen(speciesId);
+        }
+    }
+
+    /** Construit l'indication « afficher les attaques » : nom d'espèce coloré+gras et touche en gras. */
+    private static Component buildAttacksIndication(OWEntity entity) {
+        Component species = entity.getType().getDescription().copy()
+                .withStyle(Style.EMPTY.withColor(net.minecraft.network.chat.TextColor.fromRgb(entity.getEntityColor())).withBold(true));
+        Component key = OWKeysBinding.OW_ATTACKS_INFO.getTranslatedKeyMessage().copy()
+                .withStyle(Style.EMPTY.withBold(true));
+        return Component.translatable("indication.ow.show_attacks", species, key);
     }
 
     private static void spawnGoldTrailParticles(Player player, LivingEntity entity, float yRot) {

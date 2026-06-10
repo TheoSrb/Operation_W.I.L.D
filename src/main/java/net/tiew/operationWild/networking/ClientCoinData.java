@@ -8,4 +8,7 @@ public final class ClientCoinData {
     private ClientCoinData() {}
 
     public static int wildCoins = 0;
+
+    /** Couleur d'affichage de la monnaie Pièces Sauvages (vert). */
+    public static final int COLOR = 0x6E8751;
 }

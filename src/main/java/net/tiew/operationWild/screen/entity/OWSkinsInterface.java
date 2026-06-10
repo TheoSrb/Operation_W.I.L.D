@@ -122,6 +122,11 @@ public class OWSkinsInterface extends Screen {
             return new SkinInfo(n, d, UnlockType.PRESTIGE, pts, -1);
         }
 
+        /** Skin achetable en Pièces Sauvages dont le coût est déterminé par sa rareté. */
+        public static SkinInfo rarity(String n, String d, SkinRarity rarity) {
+            return new SkinInfo(n, d, UnlockType.PRESTIGE, rarity.cost, -1);
+        }
+
         public static SkinInfo quest(String n, String d, int id) {
             return new SkinInfo(n, d, UnlockType.QUEST, 0, id);
         }
@@ -457,8 +462,18 @@ public class OWSkinsInterface extends Screen {
     private void renderLeftPanel(GuiGraphics g, int i, int j) {
         if (entity == null) return;
 
-        g.blit(COIN_TEXTURE, i + LST_X, j + 5, 10, 10, 0f, 0f, 16, 16, 16, 16);
-        g.drawString(this.font, String.valueOf(net.tiew.operationWild.networking.ClientCoinData.wildCoins), i + LST_X + 12, (int) (j + 6.5f), 0xFFE266);
+        // Titre "Cosmétiques" en haut à gauche.
+        g.drawString(this.font, Component.translatable("tooltip.cosmetics"), i + LST_X, j + 6, 0xFFFFFF);
+
+        // Monnaie alignée à droite : icône tout à droite, nombre juste à sa gauche (aligné à droite).
+        int coinStr = net.tiew.operationWild.networking.ClientCoinData.wildCoins;
+        String coinText = String.valueOf(coinStr);
+        int coinIconX = i + LST_X + LST_W - 11;
+        int coinIconY = j + 5;
+        g.blit(COIN_TEXTURE, coinIconX, coinIconY, 10, 10, 0f, 0f, 16, 16, 16, 16);
+        int numRightEdge = coinIconX - 2;
+        g.drawString(this.font, coinText, numRightEdge - this.font.width(coinText), (int) (j + 6.5f),
+                net.tiew.operationWild.networking.ClientCoinData.COLOR);
 
         int fx = i + LST_X;
         int fy = j + LST_Y + LST_H + 3;
@@ -633,12 +648,22 @@ public class OWSkinsInterface extends Screen {
     }
 
     private void renderBuyButtonContent(GuiGraphics g, int price) {
-        String priceStr = String.valueOf(price);
-        int totalW = 10 + 3 + this.font.width(priceStr);
-        int iconX = buyButton.getX() + (buyButton.getWidth() - totalW) / 2;
-        int iconY = buyButton.getY() + 5;
-        g.blit(ICONS_LOCATION, iconX, iconY, 0, 143, 10, 10);
-        g.drawString(this.font, priceStr, iconX + 13, iconY + 1.5f, 0xc8f6ff, false);
+        // Le bouton vanilla gris biseauté est déjà dessiné par buyButton.render() (cohérent avec les
+        // boutons Équiper / Oui-Non) ; on ne fait qu'ajouter le contenu lisible par-dessus.
+        boolean canAfford = net.tiew.operationWild.networking.ClientCoinData.wildCoins >= price;
+
+        int bx = buyButton.getX();
+        int by = buyButton.getY();
+        int bw = buyButton.getWidth();
+        int bh = buyButton.getHeight();
+
+        // Prix en blanc gras + ombre (rouge si pas assez de Pièces Sauvages) → contraste fort sur le gris.
+        Component priceComp = Component.literal(String.valueOf(price)).withStyle(Style.EMPTY.withBold(true));
+        int totalW = 11 + 3 + this.font.width(priceComp);
+        int startX = bx + (bw - totalW) / 2;
+        g.blit(COIN_TEXTURE, startX, by + (bh - 11) / 2, 11, 11, 0f, 0f, 16, 16, 16, 16);
+        int priceColor = canAfford ? 0xFFFFFF : 0xE05B5B;
+        g.drawString(this.font, priceComp, startX + 14, by + (bh - 8) / 2, priceColor, true);
     }
 
     protected void addTooltipsToButtons() {

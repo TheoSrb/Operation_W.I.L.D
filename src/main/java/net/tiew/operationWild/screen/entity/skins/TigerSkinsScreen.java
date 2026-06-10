@@ -9,6 +9,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.quests.CosmeticsQuestsRegistry;
 import net.tiew.operationWild.screen.entity.OWSkinsInterface;
+import net.tiew.operationWild.screen.entity.SkinRarity;
 
 @OnlyIn(Dist.CLIENT)
 public class TigerSkinsScreen extends OWSkinsInterface {
@@ -45,10 +46,10 @@ public class TigerSkinsScreen extends OWSkinsInterface {
 
     @Override
     protected void initSkinPrices() {
-        skinPrices.put(2, 200);
-        skinPrices.put(3, 300);
-        skinPrices.put(4, 300);
-        skinPrices.put(7, 200);
+        skinPrices.put(2, SkinRarity.RARE.cost);
+        skinPrices.put(3, SkinRarity.EPIC.cost);
+        skinPrices.put(4, SkinRarity.EPIC.cost);
+        skinPrices.put(7, SkinRarity.RARE.cost);
     }
 
     // =========================================================================
@@ -58,12 +59,12 @@ public class TigerSkinsScreen extends OWSkinsInterface {
     protected SkinInfo getSkinInfo(int skinIndex) {
         return switch (skinIndex) {
             case 1 -> SkinInfo.level(    "tooltip.tigerSkin1", "tooltip.tigerSkin1.desc", 50);
-            case 2 -> SkinInfo.prestige(     "tooltip.tigerSkin2", "tooltip.tigerSkin2.desc", 200);
-            case 3 -> SkinInfo.prestige( "tooltip.tigerSkin3", "tooltip.tigerSkin3.desc", 300);
-            case 4 -> SkinInfo.prestige(     "tooltip.tigerSkin4", "tooltip.tigerSkin4.desc", 300);
+            case 2 -> SkinInfo.rarity(     "tooltip.tigerSkin2", "tooltip.tigerSkin2.desc", SkinRarity.RARE);
+            case 3 -> SkinInfo.rarity( "tooltip.tigerSkin3", "tooltip.tigerSkin3.desc", SkinRarity.EPIC);
+            case 4 -> SkinInfo.rarity(     "tooltip.tigerSkin4", "tooltip.tigerSkin4.desc", SkinRarity.EPIC);
             case 5 -> SkinInfo.quest(     "tooltip.tigerSkin5", "tooltip.tigerSkin5.desc", 1);
             case 6 -> SkinInfo.quest("tooltip.tigerSkin6", "tooltip.tigerSkin6.desc", 0);
-            case 7 -> SkinInfo.prestige(     "tooltip.tigerSkin7", "tooltip.tigerSkin7.desc", 200);
+            case 7 -> SkinInfo.rarity(     "tooltip.tigerSkin7", "tooltip.tigerSkin7.desc", SkinRarity.RARE);
             case 8 -> SkinInfo.free(     "tooltip.tigerSkin8", "tooltip.tigerSkin8.desc");
             default -> null;
         };
