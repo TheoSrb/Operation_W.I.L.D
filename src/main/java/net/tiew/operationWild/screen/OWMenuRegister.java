@@ -19,7 +19,7 @@ public class OWMenuRegister {
 
     public static final DeferredHolder<MenuType<?>, MenuType<OWInventoryMenu>> OW_INVENTORY_MENU =
             MENUS.register("ow_inventory_menu", () -> new MenuType<>(
-                    (containerId, playerInventory) -> new OWInventoryMenu(containerId, playerInventory, new ItemStackHandler(2)),
+                    (containerId, playerInventory) -> new OWInventoryMenu(containerId, playerInventory, new ItemStackHandler(3)),
                     FeatureFlags.VANILLA_SET
             ));
 

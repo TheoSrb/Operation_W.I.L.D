@@ -14,6 +14,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
+import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.ElephantSaddle;
 import net.tiew.operationWild.screen.OWMenuRegister;
 
@@ -77,6 +79,24 @@ public class OWInventoryMenu extends AbstractContainerMenu {
             }
         });
 
+        // 3e slot (sous le slot nourriture) — gants de boxe, kangourou uniquement.
+        if (entity instanceof KangarooEntity kangaroo) {
+            this.addSlot(new SlotItemHandler(dataInventory, 2, 6, 54) {
+                public boolean mayPlace(ItemStack itemStack) {
+                    return itemStack.is(OWItems.BOXING_GLOVES.get()) && !this.hasItem();
+                }
+                public boolean isActive() {
+                    return true;
+                }
+
+                public void setChanged() {
+                    super.setChanged();
+                    kangaroo.setWearingBoxingGloves(this.getItem().is(OWItems.BOXING_GLOVES.get()));
+                    entity.playSound(SoundEvents.HORSE_ARMOR, 0.5F, 1.0F);
+                }
+            });
+        }
+
         for(int i1 = 0; i1 < 3; ++i1) {
             for(int k1 = 0; k1 < 9; ++k1) {
                 this.addSlot(new Slot(playerInventory, k1 + i1 * 9 + 9, 8 + k1 * 18, 102 + i1 * 18 + -18));
@@ -89,7 +109,7 @@ public class OWInventoryMenu extends AbstractContainerMenu {
     }
 
     public OWInventoryMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, new ItemStackHandler(2));
+        this(containerId, playerInventory, new ItemStackHandler(3));
     }
 
     public Item chooseSaddleWithEntity(OWEntity entity) {

@@ -62,6 +62,12 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private int sinceLastDamage = 0;
     private int whirlwindSoundTimer = 0;
 
+    // Derniere vitesse de monture connue avant la tornade : sert a freiner en douceur
+    // (au lieu d'un arret net) quand on declenche la tornade en pleine course.
+    private float spinStopSpeed = 0f;
+    // Suit la fin du spin pour remettre la vitesse a zero (sinon on repart a l'ancienne allure).
+    private boolean wasSpinningForSpeed = false;
+
     public static final int WHIRLWIND_OUTRO_TICKS = 10;
 
     public int clientSpinTicks = 0;
@@ -261,10 +267,39 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return isSpinning() || super.isImmobile();
     }
 
-    /** Vitesse de monture nulle pendant la rotation : « le kangourou ne pourra pas bouger ». */
+    /** Pendant la tornade le kangourou s'immobilise, mais en freinant progressivement (pas d'arret net). */
     @Override
     public float getRiddenSpeedVehicle(Player player) {
-        return isSpinning() ? 0f : super.getRiddenSpeedVehicle(player);
+        if (isSpinning()) {
+            wasSpinningForSpeed = true;
+            spinStopSpeed *= 0.65f;
+            if (spinStopSpeed < 0.005f) spinStopSpeed = 0f;
+            return spinStopSpeed;
+        }
+        if (wasSpinningForSpeed) {
+            // Sortie de tornade : on repart de zero pour ne pas conserver l'allure d'avant.
+            wasSpinningForSpeed = false;
+            resetRiddenSpeed();
+        }
+        float speed = super.getRiddenSpeedVehicle(player);
+        spinStopSpeed = speed; // memorise la vitesse courante pour un arret en douceur
+        return speed;
+    }
+
+    /** Pendant la tornade, le corps suit le regard du rider pour pouvoir viser le cone frontal, même à l'arrêt. */
+    @Override
+    protected boolean forceRiderLookBodyRotation() {
+        return isSpinning();
+    }
+
+    // ==================================================
+    //         PASSIF — PATTES-RESSORT (Spring Step)
+    // ==================================================
+
+    /** Passif : les pattes puissantes du kangourou amortissent tout : aucun dégât de chute. */
+    @Override
+    protected int calculateFallDamage(float fallDistance, float multiplier) {
+        return 0;
     }
 
     // ==================================================
@@ -375,6 +410,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public void startWhirlwind() {
         if (this.level().isClientSide()) return;
         if (isSpinning()) return;
+        // Pas de tornade dans l'eau ni en l'air : uniquement les pieds sur le sol.
+        if (this.isInWater() || !this.onGround()) return;
         if (getWhirlwindCooldownTicks() > 0) return;
         if (getVitalEnergy() > getMaxVitalEnergy() - OWAttacksConstants.Kangaroo.WHIRLWIND_ENERGY) {
             canShowVitalEnergyLack = true;
@@ -430,6 +467,12 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             // Stop défensif : plus de pilote valide (démontage, perte du propriétaire…).
             Player rider = (getFirstPassenger() instanceof Player p) ? p : null;
             if (rider == null || (getOwnerUUID() != null && !getOwnerUUID().equals(rider.getUUID()))) {
+                stopWhirlwind();
+                return;
+            }
+
+            // Stop défensif : le kangourou est entré dans l'eau ou a quitté le sol (chute…).
+            if (this.isInWater() || !this.onGround()) {
                 stopWhirlwind();
                 return;
             }

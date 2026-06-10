@@ -5,7 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.MobEffectTextureManager;
@@ -20,7 +20,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.ScreenEvent;
-import net.neoforged.neoforge.client.extensions.common.IClientMobEffectExtensions;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
@@ -35,7 +34,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @OnlyIn(Dist.CLIENT)
-public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventoryMenu> {
+public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> {
     private static final ResourceLocation OW_INVENTORY_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_inventory_gui.png");
     private static final ResourceLocation MISC_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
     private static final ResourceLocation EFFECT_BACKGROUND_LARGE_SPRITE = ResourceLocation.withDefaultNamespace("container/inventory/effect_background_large");
@@ -131,6 +130,15 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
 
         if (!entity.getItemFood().isEmpty()) {
             guiGraphics.blit(OW_INVENTORY_LOCATION, i + 5, j + 35, 0, 224, 16, 16);
+        }
+
+        // 3e slot (gants de boxe) du kangourou : cadre dessine manuellement (absent du fond).
+        if ("KangarooEntity".equals(this.entity.getClass().getSimpleName())) {
+            guiGraphics.blit(OW_INVENTORY_LOCATION, i + 5, j + 53, 0, 224, 18, 18);
+            // Ombre de l'item (icone fantome) tant que le slot est vide.
+            if (!this.menu.getSlot(2).hasItem()) {
+                guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + 54, 57, 226, 16, 16);
+            }
         }
 
         float xpPercentage = entity.getXp() / (float) entity.getXpStage();
@@ -295,7 +303,6 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
                     List<Component> list = List.of(
                             this.getEffectName(mobeffectinstance),
                             MobEffectUtil.formatDuration(mobeffectinstance, 1.0F, this.minecraft.level.tickRateManager().tickrate()));
-                    list = ClientHooks.getEffectTooltip(this, mobeffectinstance, list);
                     guiGraphics.renderTooltip(this.font, list, Optional.empty(), mouseX, mouseY);
                 }
             }
@@ -351,15 +358,10 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         int i = this.topPos;
 
         for (MobEffectInstance mobeffectinstance : effects) {
-            IClientMobEffectExtensions renderer = IClientMobEffectExtensions.of(mobeffectinstance);
-            if (renderer.renderInventoryIcon(mobeffectinstance, this, guiGraphics, renderX + (isSmall ? 6 : 7), i, 0)) {
-                i += yOffset;
-            } else {
-                Holder<MobEffect> holder = mobeffectinstance.getEffect();
-                TextureAtlasSprite textureatlassprite = mobeffecttexturemanager.get(holder);
-                guiGraphics.blit(renderX + (isSmall ? 6 : 7), i + 7, 0, 18, 18, textureatlassprite);
-                i += yOffset;
-            }
+            Holder<MobEffect> holder = mobeffectinstance.getEffect();
+            TextureAtlasSprite textureatlassprite = mobeffecttexturemanager.get(holder);
+            guiGraphics.blit(renderX + (isSmall ? 6 : 7), i + 7, 0, 18, 18, textureatlassprite);
+            i += yOffset;
         }
 
     }
@@ -368,16 +370,11 @@ public class OWInventoryScreen extends EffectRenderingInventoryScreen<OWInventor
         int i = this.topPos;
 
         for (MobEffectInstance mobeffectinstance : effects) {
-            IClientMobEffectExtensions renderer = IClientMobEffectExtensions.of(mobeffectinstance);
-            if (renderer.renderInventoryText(mobeffectinstance, this, guiGraphics, renderX, i, 0)) {
-                i += yOffset;
-            } else {
-                Component component = this.getEffectName(mobeffectinstance);
-                guiGraphics.drawString(this.font, component, renderX + 10 + 18, i + 6, 16777215);
-                Component component1 = MobEffectUtil.formatDuration(mobeffectinstance, 1.0F, this.minecraft.level.tickRateManager().tickrate());
-                guiGraphics.drawString(this.font, component1, renderX + 10 + 18, i + 6 + 10, 8355711);
-                i += yOffset;
-            }
+            Component component = this.getEffectName(mobeffectinstance);
+            guiGraphics.drawString(this.font, component, renderX + 10 + 18, i + 6, 16777215);
+            Component component1 = MobEffectUtil.formatDuration(mobeffectinstance, 1.0F, this.minecraft.level.tickRateManager().tickrate());
+            guiGraphics.drawString(this.font, component1, renderX + 10 + 18, i + 6 + 10, 8355711);
+            i += yOffset;
         }
 
     }

@@ -1,4 +1,4 @@
-// 1.21	2026-06-09T11:41:50.8239165	Item Models: ow
+// 1.21	2026-06-10T09:27:59.0804579	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
@@ -6,6 +6,7 @@ a9c13ea75651eca2d72ea382a65a8c81cf3eb50f assets/ow/models/item/bloody_syringe.js
 b0d713a4fcaeee3e3f8c82f5ae5b8d42ccfcf53e assets/ow/models/item/boa_saddle.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/boa_spawn_egg.json
 df830b15e454d59f16cd74758c6de75119214acc assets/ow/models/item/boa_tong.json
+595c9db5126937ec0981813decdf88a9561a4d4c assets/ow/models/item/boxing_gloves.json
 12a3bdd4067f7f853e2635c77fcb868f14ba580a assets/ow/models/item/camellia.json
 fc6eaf4a60355efb8e649e3610e44eaa427a467e assets/ow/models/item/camouflage_boots.json
 2a8e94e327f4fc3228ed12dffae8543a4ecb1c84 assets/ow/models/item/camouflage_boots_amethyst_trim.json

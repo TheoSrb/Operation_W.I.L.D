@@ -70,6 +70,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.PEACOCK_SADDLE.get());
                         output.accept(OWItems.TIGER_SADDLE.get());
                         output.accept(OWItems.TIGER_SHARK_SADDLE.get());
+                        output.accept(OWItems.BOXING_GLOVES.get());
                         output.accept(OWItems.RESURRECTION_AMULET.get());
                         output.accept(OWItems.TRANQUILIZER_ARROW.get());
                         output.accept(OWItems.WOODEN_STINGER.get());

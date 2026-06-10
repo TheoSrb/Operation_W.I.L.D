@@ -104,9 +104,10 @@ public class OWAttacksInformation {
             AttackSlot ultimate,
             AttackSlot passive
     ) {
-        /** Les slots null (ex : entité sans ultime/passif) sont filtrés → moins de colonnes affichées. */
-        AttackSlot[] slots() {
-            return java.util.stream.Stream.of(combo, charged, ultimate, passive)
+        /** Colonnes d'attaque (combo/chargée/ultime) ; les null sont filtrés → moins de colonnes.
+         *  Le passif est affiché à part (bandeau du bas), pas comme une colonne. */
+        AttackSlot[] columnSlots() {
+            return java.util.stream.Stream.of(combo, charged, ultimate)
                     .filter(java.util.Objects::nonNull)
                     .toArray(AttackSlot[]::new);
         }
@@ -283,7 +284,11 @@ public class OWAttacksInformation {
                 ),
 
                 null,  // pas d'ultime pour l'instant
-                null   // pas de passif pour l'instant
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.kangaroo.spring_step.title"),
+                        e -> desc("ow.attacks.kangaroo.spring_step.desc")
+                )
 
         ));
 
@@ -357,7 +362,7 @@ public class OWAttacksInformation {
         int  cardTexY  = entityRow * 40;
         int  maxDescY  = bgY + BG_H - PASSIVE_H - 8;
 
-        AttackSlot[] slots = profile.slots();
+        AttackSlot[] slots = profile.columnSlots();
 
         // ── 3 colonnes d'attaque ──────────────────────────────────────────────
         for (int i = 0; i < 3 && i < slots.length; i++) {
@@ -401,8 +406,8 @@ public class OWAttacksInformation {
         g.fill(bgX + 6, divY, bgX + BG_W - 6, divY + 1, 0x33FFFFFF);
 
         // ── Bandeau passif ────────────────────────────────────────────────────
-        if (slots.length >= 4) {
-            AttackSlot passive = slots[3];
+        if (profile.passive() != null) {
+            AttackSlot passive = profile.passive();
             int bannerCX = bgX + BG_W / 2;
             int bannerY  = divY + 5;
 

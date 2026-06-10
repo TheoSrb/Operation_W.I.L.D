@@ -213,7 +213,10 @@ public class OWAttacksOverlay {
                 fillProgress = cooldownRemaining > 0f ? 1.0f - cooldownRemaining : 1.0f;
             }
 
-            if (isGrabbing) {
+            // Tornade indisponible dans l'eau : carte grisée.
+            boolean isWhirlwindBlockedInWater = isWhirlwind && entity.isInWater();
+
+            if (isGrabbing || isWhirlwindBlockedInWater) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;

@@ -111,6 +111,7 @@ public class OWItemModelProvider extends ItemModelProvider {
         basicItem(OWItems.ELEPHANT_SADDLE.get());
         basicItem(OWItems.CROCODILE_SADDLE.get());
         basicItem(OWItems.ORCA_SADDLE.get());
+        basicItem(OWItems.BOXING_GLOVES.get());
 
         trimmedArmorItem(OWItems.CAMOUFLAGE_HELMET);
         trimmedArmorItem(OWItems.CAMOUFLAGE_CHESTPLATE);

@@ -114,6 +114,8 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> CROCODILE_SADDLE = ITEMS.register("crocodile_saddle", () -> new Item(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<Item, Item> ORCA_SADDLE = ITEMS.register("orca_saddle", () -> new Item(new Item.Properties().stacksTo(1)));
 
+    public static final DeferredHolder<Item, Item> BOXING_GLOVES = ITEMS.register("boxing_gloves", () -> new Item(new Item.Properties().stacksTo(1)));
+
     // Armors
     public static final DeferredHolder<Item, Item> CAMOUFLAGE_HELMET = ITEMS.register("camouflage_helmet", () -> new OWArmorItem(OWArmorMaterials.CAMOUFLAGE_ARMOR_MATERIAL, ArmorItem.Type.HELMET, new Item.Properties().durability(ArmorItem.Type.HELMET.getDurability(3))));
     public static final DeferredHolder<Item, Item> CAMOUFLAGE_CHESTPLATE = ITEMS.register("camouflage_chestplate", () -> new OWArmorItem(OWArmorMaterials.CAMOUFLAGE_ARMOR_MATERIAL, ArmorItem.Type.CHESTPLATE, new Item.Properties().durability(ArmorItem.Type.CHESTPLATE.getDurability(3))));

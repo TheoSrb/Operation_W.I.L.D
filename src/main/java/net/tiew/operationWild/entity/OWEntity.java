@@ -126,7 +126,19 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private float lastPlay;
     public DamageSource damageSource = this.damageSources().mobAttack(this);
     public int numberFeedsGiven = 0;
-    private final ItemStackHandler itemStackHandler = new ItemStackHandler(2);
+    // 3 slots : 0 = selle, 1 = nourriture, 2 = gants de boxe (kangourou uniquement).
+    private final ItemStackHandler itemStackHandler = new ItemStackHandler(3) {
+        @Override
+        public void deserializeNBT(net.minecraft.core.HolderLookup.Provider provider, net.minecraft.nbt.CompoundTag nbt) {
+            // Anciennes sauvegardes (Size=2) : on force 3 slots AVANT le chargement des items
+            // (setSize vide tout), pour garantir le slot gants sans perdre selle/nourriture.
+            if (nbt.getInt("Size") < 3) {
+                nbt = nbt.copy();
+                nbt.putInt("Size", 3);
+            }
+            super.deserializeNBT(provider, nbt);
+        }
+    };
     public final ItemStackHandler itemStackHandlerSeaBug = new ItemStackHandler(15);
     public int attackTimer;
     public int comboTimer;
@@ -163,6 +175,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static long lastHurtTime = 0;
     private int healAmount = 0;
     private int hurtAmount = 0;
+
+    // Entites reellement TOUCHEES par le dernier appel a attackEntitiesInFront (cote serveur).
+    // Permet aux effets post-impact (ex : uppercut du combo 3 du kangourou) de ne s'appliquer
+    // qu'aux ennemis effectivement frappes, et pas a tout ce qui passe dans une zone elargie.
+    public final List<LivingEntity> lastAttackHitEntities = new ArrayList<>();
     private int sleepBarDownSpeed;
     public int maxSleepBar;
     public float maxHealthBeforeResurrection;
@@ -1258,6 +1275,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     private boolean hasReachedEnergyLimit = false;
 
+    // Vrai si la monture etait dans l'eau au tick precedent : sert a annuler
+    // l'elan vertical de nage quand elle sort de l'eau (sinon boost violent vers le haut).
+    private boolean wasInWaterWhileRidden = false;
+
     public boolean hasReachedEnergyLimit() {
         return hasReachedEnergyLimit;
     }
@@ -1303,6 +1324,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public @Nullable AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
         return this instanceof SeaBugEntity ? new SeaBugInventoryMenu(id, inventory, this.itemStackHandlerSeaBug) : new OWInventoryMenu(id, inventory, this.itemStackHandler);
+    }
+
+    /** Remet la vitesse de monture lissée à zéro (ex : après une attaque qui immobilise la monture,
+     *  pour ne pas relancer le mouvement à l'ancienne allure conservée). */
+    protected void resetRiddenSpeed() {
+        this.currentSpeed = 0f;
+        this.targetSpeed = 0f;
     }
 
     public float getRiddenSpeedVehicle(Player player) {
@@ -1362,11 +1390,22 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         try {
             if (this.isControlledByLocalInstance()) {
                 if (!this.isLeapingVehicle()) {
-                    Vec3 lookDirection = Vec3.directionFromRotation(isInWater() ? this.getXRot() : 0, this.getYRot()).normalize();
-                    double speedPerTick = getRiddenSpeedVehicle(player) / (isInWater() ? vehicleWaterSpeedDivider() : 1);
+                    boolean inWater = this.isInWater();
+                    Vec3 lookDirection = Vec3.directionFromRotation(inWater ? this.getXRot() : 0, this.getYRot()).normalize();
+                    double speedPerTick = getRiddenSpeedVehicle(player) / (inWater ? vehicleWaterSpeedDivider() : 1);
                     Vec3 currentMovement = this.getDeltaMovement();
-                    double yMovement = isInWater() ? lookDirection.y * speedPerTick - 0.01 : currentMovement.y;
+                    double yMovement;
+                    if (inWater) {
+                        yMovement = lookDirection.y * speedPerTick - 0.01;
+                    } else if (this.wasInWaterWhileRidden && currentMovement.y > 0.1) {
+                        // On vient de sortir de l'eau : on coupe l'elan de nage vers le
+                        // haut pour eviter une propulsion violente une fois hors de l'eau.
+                        yMovement = 0.1;
+                    } else {
+                        yMovement = currentMovement.y;
+                    }
                     this.setDeltaMovement(new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick));
+                    this.wasInWaterWhileRidden = inWater;
                 }
                 this.travel(this.isLeapingVehicle() ? Vec3.ZERO : vec3);
 
@@ -1843,6 +1882,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return;
         }
 
+        // Allie (meme proprietaire, ou segment de queue d'un Boa allie) : pas de ciblage.
+        if (target != null && this.isAlliedTo(target)) {
+            super.setTarget(null);
+            return;
+        }
+
         if (target != null && this.hasLineOfSight(target) && !hasCamouflage) {
             lastVisibleTarget = target;
         }
@@ -2301,19 +2346,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 kangaroo.level().playSound(null, kangaroo.getX(), kangaroo.getY(), kangaroo.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, getComboAttack() == 3 ? pitch / 1.5f : pitch);
 
                 if (getComboAttack() == 3) {
-                    boolean isRided = this.getControllingPassenger() != null;
-                    float reach = 1.5f * (isRided ? 1 : 1.5f);
-
-                    AABB hitbox = kangaroo.getBoundingBox()
-                            .inflate(reach, 1.5, reach)
-                            .move(kangaroo.getLookAngle().scale(reach * 0.5));
-
-                    List<LivingEntity> targets = kangaroo.level().getEntitiesOfClass(
-                            LivingEntity.class, hitbox,
-                            e -> e != kangaroo && !e.isAlliedTo(kangaroo)
-                    );
-
-                    for (LivingEntity target : targets) {
+                    // Uppercut : on ne propulse QUE les ennemis reellement frappes par l'attaque
+                    // (remplis par attackEntitiesInFront), pas tout ce qui passe dans une zone elargie.
+                    for (LivingEntity target : kangaroo.lastAttackHitEntities) {
                         Vec3 motion = target.getDeltaMovement();
                         target.setDeltaMovement(motion.x * 0.3, 0.65, motion.z * 0.3);
                         target.hurtMarked = true;
@@ -2730,7 +2765,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         float newYRot = currentYRot + deltaRot * getRotationSpeed();
 
-        if (player.zza == 0 && player.xxa == 0 && !this.isCombo() && getRotationSpeed() < 1.0f) {
+        if (player.zza == 0 && player.xxa == 0 && !this.isCombo() && getRotationSpeed() < 1.0f && !forceRiderLookBodyRotation()) {
             this.yHeadRot = newYRot;
             this.setXRot(vec2.x);
         } else {
@@ -2738,6 +2773,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.yRotO = this.yBodyRot = this.yHeadRot = newYRot;
         }
     }
+
+    /**
+     * Force la rotation du CORPS de la monture vers le regard du rider même à l'arrêt
+     * (sinon seule la tête suit quand le rider n'avance pas). Surchargé par les entités
+     * qui ont besoin de viser à l'arrêt (ex : tornade du kangourou).
+     */
+    protected boolean forceRiderLookBodyRotation() { return false; }
 
     public Vec2 getRiddenRotation(LivingEntity livingEntity) { return new Vec2(livingEntity.getXRot() * 0.5F, livingEntity.getYRot());}
 
@@ -3307,6 +3349,32 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
+    /**
+     * Alliance commune a toutes les entites du mod. Les overrides par espece gerent
+     * l'alliance intra-espece puis appellent super (= cette methode).
+     *
+     * Ajouts centraux :
+     *   - Un segment de queue de Boa (BoaTailPart) redirige ses degats vers le Boa parent :
+     *     on raisonne donc sur le Boa parent (sinon les allies peuvent frapper la queue).
+     *   - Deux animaux apprivoises du meme proprietaire sont allies, toutes especes confondues.
+     */
+    @Override
+    public boolean isAlliedTo(Entity entity) {
+        if (entity instanceof BoaTailPart tailPart) {
+            Entity parent = tailPart.getParent();
+            if (parent == this) return true;                         // sa propre queue
+            if (parent instanceof LivingEntity parentLiving) return this.isAlliedTo(parentLiving);
+        }
+
+        if (this.isTame() && this.getOwnerUUID() != null
+                && entity instanceof TamableAnimal tamable
+                && this.getOwnerUUID().equals(tamable.getOwnerUUID())) {
+            return true;
+        }
+
+        return super.isAlliedTo(entity);
+    }
+
     public void attackEntitiesInFront(float attackDamage, SoundEvent sound, double width, double height, double reach, float $$1) {
         float pitch = (float) OWUtils.generateRandomInterval(0.8, 1.1f);
         double yaw = Math.toRadians(this.getYRot());
@@ -3327,6 +3395,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 attackBox,
                 entity -> entity instanceof LivingEntity
         );
+
+        this.lastAttackHitEntities.clear();
 
         UUID ownerUUID = null;
         if (this instanceof TamableAnimal tamable) {
@@ -3366,6 +3436,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                         boolean hurtResult = livingEntity.hurt(this.damageSources().mobAttack(this), attackDamage *= 1.25f);
                         if (hurtResult && !(livingEntity instanceof Player p && p.isCreative())) {
                             this.onSuccessfulHit(livingEntity);
+                            this.lastAttackHitEntities.add(livingEntity);
                         }
                     }
 
@@ -3397,6 +3468,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                         boolean hurtResult = livingEntity.hurt(this.damageSources().mobAttack(this), finalDamage);
                         if (hurtResult && !(livingEntity instanceof Player p && p.isCreative())) {
                             this.onSuccessfulHit(livingEntity);
+                            this.lastAttackHitEntities.add(livingEntity);
                             if (heartShot && this instanceof BoaEntity boaBleed) {
                                 boaBleed.spawnHeartBleed(livingEntity);
                                 if (this.getControllingPassenger() instanceof net.minecraft.server.level.ServerPlayer sp) {
