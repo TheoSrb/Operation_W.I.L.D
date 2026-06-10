@@ -121,10 +121,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         builder.define(IS_WEARING_BOXING_GLOVES, false);
     }
 
-    // ==================================================
-    //             MÉTHODES HÉRITÉES OWEntity
-    // ==================================================
-
     @Override
     public int getEntityColor() {
         return 0xd7b17d;
@@ -372,21 +368,15 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (this.isInResurrection()) this.setSleeping(true);
     }
 
-    // ==================================================
-    //          TORNADE DE POINGS (attaque secondaire)
-    // ==================================================
-
     public boolean isSpinning() { return this.entityData.get(IS_SPINNING); }
     private void setSpinning(boolean value) { this.entityData.set(IS_SPINNING, value); }
 
     public int getWhirlwindCooldownTicks() { return this.entityData.get(WHIRLWIND_COOLDOWN); }
     private void setWhirlwindCooldownTicks(int value) { this.entityData.set(WHIRLWIND_COOLDOWN, Math.max(0, value)); }
 
-    /** Démarre la rotation (appelé côté serveur via le packet de maintien). */
     public void startWhirlwind() {
         if (this.level().isClientSide()) return;
         if (isSpinning()) return;
-        // Pas de tornade dans l'eau ni en l'air : uniquement les pieds sur le sol.
         if (this.isInWater() || !this.onGround()) return;
         if (getWhirlwindCooldownTicks() > 0) return;
         if (getVitalEnergy() > getMaxVitalEnergy() - OWAttacksConstants.Kangaroo.WHIRLWIND_ENERGY) {
@@ -395,14 +385,12 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
         setSpinning(true);
         spinTicks = 0;
-        // Grand compteur pour que le 1er dégât tombe pile à l'entrée en phase offensive (0,5 s).
         sinceLastDamage = Integer.MAX_VALUE / 2;
         whirlwindSoundTimer = 0;
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.NEUTRAL, 1.1f, 0.6f);
     }
 
-    /** Arrête la rotation. Le cooldown de 35 s n'est appliqué que si ≥ 3 s consécutives. */
     public void stopWhirlwind() {
         if (this.level().isClientSide()) return;
         if (!isSpinning()) return;
@@ -417,15 +405,13 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     private void tickWhirlwind() {
-        // ── Accumulateur client : avance l'animation à vitesse variable (1× → 5×) ──
         if (this.level().isClientSide()) {
             if (isSpinning()) {
                 clientSpinTicks++;
                 clientSpinSpeed = computeAnimSpeedMultiplier(clientSpinTicks);
-                clientAnimTimeMs += 50f * clientSpinSpeed; // 50 ms par tick × vitesse
+                clientAnimTimeMs += 50f * clientSpinSpeed;
                 clientWasSpinning = true;
             } else {
-                // Front descendant (relâche) → déclenche l'outro (retour à la pose d'origine).
                 if (clientWasSpinning) {
                     clientWasSpinning = false;
                     clientOutroTicks = WHIRLWIND_OUTRO_TICKS;
@@ -438,16 +424,13 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             return;
         }
 
-        // ── Serveur ────────────────────────────────────────────────────────────
         if (isSpinning()) {
-            // Stop défensif : plus de pilote valide (démontage, perte du propriétaire…).
             Player rider = (getFirstPassenger() instanceof Player p) ? p : null;
             if (rider == null || (getOwnerUUID() != null && !getOwnerUUID().equals(rider.getUUID()))) {
                 stopWhirlwind();
                 return;
             }
 
-            // Stop défensif : le kangourou est entré dans l'eau ou a quitté le sol (chute…).
             if (this.isInWater() || !this.onGround()) {
                 stopWhirlwind();
                 return;
@@ -455,7 +438,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
             spinTicks++;
 
-            // Coups à cadence fixe (0,5 s) ; le MONTANT croît avec le temps (rien avant 0,5 s).
             if (spinTicks >= OWAttacksConstants.Kangaroo.WHIRLWIND_DAMAGE_START_TICKS) {
                 sinceLastDamage++;
                 if (sinceLastDamage >= OWAttacksConstants.Kangaroo.WHIRLWIND_DAMAGE_INTERVAL_TICKS) {
@@ -464,7 +446,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 }
             }
 
-            // Bruitage « moteur » : cadence et hauteur qui montent avec la vitesse.
             float speedFactor = Mth.clamp((float) spinTicks / OWAttacksConstants.Kangaroo.WHIRLWIND_DAMAGE_PEAK_TICKS, 0f, 1f);
             int soundInterval = Math.max(2, (int) (8 - 6 * speedFactor));
             if (++whirlwindSoundTimer >= soundInterval) {
@@ -474,7 +455,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
                         0.55f, 0.7f + 0.9f * speedFactor);
             }
 
-            // Durée maximale : 15 s.
             if (spinTicks >= OWAttacksConstants.Kangaroo.WHIRLWIND_MAX_DURATION_TICKS) {
                 stopWhirlwind();
             }
@@ -483,7 +463,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
-    /** Dégâts par coup : croissent de MIN (0,5 s) à MAX (3 s), puis restent au plafond. */
     private float computeWhirlwindDamage(int ticks) {
         int start = OWAttacksConstants.Kangaroo.WHIRLWIND_DAMAGE_START_TICKS;
         int peak = OWAttacksConstants.Kangaroo.WHIRLWIND_DAMAGE_PEAK_TICKS;
@@ -497,7 +476,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         AABB area = this.getBoundingBox().inflate(r, 1.0, r);
         UUID owner = this.getOwnerUUID();
 
-        // Direction « devant » du kangourou (à plat) : yaw 0 = +Z.
         double yaw = Math.toRadians(this.getYRot());
         double fx = -Math.sin(yaw);
         double fz = Math.cos(yaw);
@@ -515,7 +493,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             double distSq = dx * dx + dz * dz;
             double reach = r + target.getBbWidth() / 2.0;
             if (distSq > reach * reach) return false;
-            // On ne touche QUE ce qui est devant (cône frontal) — pas les côtés ni le dos.
             if (distSq > 1.0e-4) {
                 double dot = (dx * fx + dz * fz) / Math.sqrt(distSq);
                 if (dot < OWAttacksConstants.Kangaroo.WHIRLWIND_FRONT_DOT) return false;
@@ -528,14 +505,10 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
-    /**
-     * Multiplicateur de vitesse de lecture de l'animation (client) : 1× au départ, accélère
-     * jusqu'au pic 5× à 3 s, puis reste à 5×. Courbe ease-in (« démarre pas très vite »).
-     */
     private float computeAnimSpeedMultiplier(int ticks) {
         float f = Mth.clamp((float) ticks / OWAttacksConstants.Kangaroo.WHIRLWIND_DAMAGE_PEAK_TICKS, 0f, 1f);
         f = f * f;
-        return 1f + 4f * f; // 1× → 5×
+        return 1f + 4f * f;
     }
 
     public void createMiniShockwave() {
@@ -612,10 +585,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return KangarooVariant.DEFAULT;
     }
 
-    // ==================================================
-    //                   ANIMATIONS
-    // ==================================================
-
     private void setupAnimationState() {
         createIdleAnimation(80, true);
         createSitAnimation(80, true);
@@ -642,7 +611,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             }
         } else {
             if (timer > 0) {
-                // Laisse l'AnimationState terminer sa course naturellement (combos 1-2-3).
                 --timer;
             } else {
                 timer = 0;
@@ -657,10 +625,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             case 3: attack3ComboTimer = timer; break;
         }
     }
-
-    // ==================================================
-    //               VARIANTES & SKINS
-    // ==================================================
 
     public KangarooVariant getVariant() {
         return KangarooVariant.byId(this.getTypeVariant() & 255);
@@ -714,10 +678,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.entityData.set(IS_WEARING_BOXING_GLOVES, gloves);
     }
 
-    // ==================================================
-    //              DONNÉES SAUVEGARDÉES
-    // ==================================================
-
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
@@ -737,7 +697,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
 
-        // Restaure la variante cosmetique a partir du skinIndex sauvegarde (charge par OWEntity).
         if (this.getSkinIndex() != 0) {
             this.nbtRestoring = true;
             this.changeSkin(this.getSkinIndex(), false);
