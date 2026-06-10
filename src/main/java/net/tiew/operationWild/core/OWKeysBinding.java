@@ -24,7 +24,6 @@ public class OWKeysBinding {
             OWAttacksHandler.OW_CATEGORY
     );
 
-    // Entities Keys
 
     public static final String PET_INVENTORY_KEY = "key.pet.inventory_key";
     public static final KeyMapping PET_INVENTORY = new KeyMapping(PET_INVENTORY_KEY, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_E, OW_CATEGORY);
