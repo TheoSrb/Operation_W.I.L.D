@@ -38,6 +38,8 @@ public class OWSkinsInterface extends Screen {
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_skins_interface.png");
     private static final ResourceLocation ICONS_LOCATION =
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
+    private static final ResourceLocation COIN_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/misc/coin.png");
 
     protected final OWEntity entity;
     private float xMouse;
@@ -278,7 +280,7 @@ public class OWSkinsInterface extends Screen {
     private void doBuy() {
         if (selectedSkinIndex == -1 || !isLocked(selectedSkinIndex) || entity == null) return;
         int price = getSkinPrice(selectedSkinIndex);
-        if (price > 0 && entity.getPrestigeLevel() >= price) confirmingPurchase = true;
+        if (price > 0 && net.tiew.operationWild.networking.ClientCoinData.wildCoins >= price) confirmingPurchase = true;
         else showLockedMessage(price);
     }
 
@@ -455,8 +457,8 @@ public class OWSkinsInterface extends Screen {
     private void renderLeftPanel(GuiGraphics g, int i, int j) {
         if (entity == null) return;
 
-        g.blit(ICONS_LOCATION, i + LST_X, j + 5, 0, 143, 10, 10);
-        g.drawString(this.font, String.valueOf(entity.getPrestigeLevel()), i + LST_X + 12, (int) (j + 6.5f), 0xc8f6ff);
+        g.blit(COIN_TEXTURE, i + LST_X, j + 5, 10, 10, 0f, 0f, 16, 16, 16, 16);
+        g.drawString(this.font, String.valueOf(net.tiew.operationWild.networking.ClientCoinData.wildCoins), i + LST_X + 12, (int) (j + 6.5f), 0xFFE266);
 
         int fx = i + LST_X;
         int fy = j + LST_Y + LST_H + 3;

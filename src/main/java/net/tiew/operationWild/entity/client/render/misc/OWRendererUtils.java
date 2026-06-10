@@ -436,20 +436,6 @@ public class OWRendererUtils {
         }
     }
 
-    public static void displayPrestigeLevelAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher) {
-        int levelColor = 0xc8f6ff;
-        Component level = Component.literal(String.valueOf(entity.getPrestigeLevel())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(levelColor).getValue()).withBold(true));
-        poseStack.pushPose();
-        poseStack.translate(0,  entity.getBbHeight() + 0.8F, 0);
-        poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
-        poseStack.scale(0.015F, -0.015F, 0.015F);
-        Matrix4f matrix4f = poseStack.last().pose();
-        Font font = Minecraft.getInstance().font;
-        float textWidth = (float)(-font.width(level) / 2);
-        font.drawInBatch(level, textWidth, 0, -1, false, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
-        poseStack.popPose();
-    }
-
     public static void displayLevelAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher, double upOffset) {
         int textColor = 0xdfdfdf;
         int levelColor = entity.getLevel() >= 50 ? 0xdd9847 : entity.getLevelPoints() > 0 ? 0xb8e45a : 0xFFFFFF;

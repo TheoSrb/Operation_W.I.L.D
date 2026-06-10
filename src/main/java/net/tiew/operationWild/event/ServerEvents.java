@@ -24,6 +24,8 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.CanPlayerSleepEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -86,6 +88,47 @@ public class ServerEvents {
                 || heldItem.is(OWItems.REPTILIAN_DAGGER.get())) {
             event.setCanceled(true);
         }
+    }
+
+    /**
+     * Priorité d'absorption des orbes : quand le joueur chevauche une de ses entités apprivoisées
+     * qui n'est pas encore au niveau max, l'XP de l'orbe va à la MONTURE (et la fait monter de niveau)
+     * plutôt qu'au joueur. Une fois la monture niveau 50, les orbes reviennent au joueur (rider).
+     * Pour récupérer l'XP soi-même avant le niveau 50, il suffit de descendre de la monture.
+     */
+    @SubscribeEvent
+    public static void onPlayerPickupXp(PlayerXpEvent.PickupXp event) {
+        Player player = event.getEntity();
+        if (player.level().isClientSide()) return;
+
+        if (player.getVehicle() instanceof OWEntity pet
+                && pet.isTame() && pet.isOwnedBy(player) && pet.getLevel() < 50) {
+            ExperienceOrb orb = event.getOrb();
+            int value = orb.getValue();
+            if (value > 0) {
+                pet.gainLevelXp(value);
+                player.level().playSound(null, pet.getX(), pet.getY(), pet.getZ(),
+                        SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.NEUTRAL, 0.15f,
+                        ((player.getRandom().nextFloat() - player.getRandom().nextFloat()) * 0.35f + 1.0f) * 2.0f);
+            }
+            orb.discard();
+            event.setCanceled(true);
+        }
+    }
+
+    /** Synchronise les Pièces Sauvages vers le client à la connexion. */
+    @SubscribeEvent
+    public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
+            net.tiew.operationWild.core.OWCurrency.syncWildCoins(player);
+        }
+    }
+
+    /** Conserve le porte-monnaie de Pièces Sauvages à travers la mort / le changement de dimension. */
+    @SubscribeEvent
+    public static void onPlayerClone(PlayerEvent.Clone event) {
+        int coins = net.tiew.operationWild.core.OWCurrency.getWildCoins(event.getOriginal());
+        net.tiew.operationWild.core.OWCurrency.setWildCoins(event.getEntity(), coins);
     }
 
     @SubscribeEvent

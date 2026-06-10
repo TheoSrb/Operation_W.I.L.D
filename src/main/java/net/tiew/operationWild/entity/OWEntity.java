@@ -231,10 +231,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static final EntityDataAccessor<Boolean> IS_IN_FIGHT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Float> XP = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Integer> STAGE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
-    public static final EntityDataAccessor<Integer> PRESTIGE_STAGE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> STATE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
-    public static final EntityDataAccessor<Integer> PRESTIGE_LEVEL = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Float> ACCELERATION = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Integer> LEVEL_POINTS = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Float> SCALE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
@@ -468,41 +466,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             xpReward = 7.5f;
         }
 
-        if (this.getLevel() >= 50) {
-            int xpStage = this.getPrestigeLevel() / 2;
-            int prestigeReward = (int) (xpReward * 3);
-            setPrestigeXpStage(xpStage);
-
-            while (prestigeReward > 0 && this.getLevel() >= 50 && this.getPrestigeLevel() < 999) {
-                float xpStageRest = getPrestigeXpStage() - this.getXp();
-
-                if (prestigeReward >= xpStageRest) {
-                    prestigeReward -= (int) xpStageRest;
-                    passingPrestigeLevel(true);
-                } else {
-                    this.setXp(this.getXp() + prestigeReward);
-                    prestigeReward = 0;
-                }
-            }
-        } else {
-            int xpStage = OWUtils.generateExponentialExp(this.getLevel(), 20);
-            setXpStage(xpStage);
-            boolean hasLeveledUp = false;
-
-            while (xpReward > 0 && this.getLevel() < 50) {
-                float xpStageRest = getXpStage() - this.getXp();
-
-                if (xpReward >= xpStageRest) {
-                    xpReward -= xpStageRest;
-                    passingLevel(!hasLeveledUp);
-                    hasLeveledUp = true;
-
-                } else {
-                    this.setXp(this.getXp() + xpReward);
-                    xpReward = 0;
-                }
-            }
-        }
+        // Récompense de quête versée dans le même pipeline de leveling que les orbes.
+        // Mise à l'échelle de la nouvelle courbe (seuils ~6× plus grands qu'avant).
+        gainLevelXp(xpReward * QUEST_XP_SCALE);
         this.playSound(OWSounds.TAME_SUCCESS.get(), 1.0f, (float) pitch);
     }
 
@@ -635,17 +601,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void setXpStage(int xpStage) { this.entityData.set(STAGE, xpStage);}
 
-    public int getPrestigeXpStage() { return this.entityData.get(PRESTIGE_STAGE);}
-
-    public void setPrestigeXpStage(int prestigeXpStage) { this.entityData.set(PRESTIGE_STAGE, prestigeXpStage);}
-
     public int getLevel() { return this.entityData.get(LEVEL);}
 
     public void setLevel(int level) { this.entityData.set(LEVEL, level);}
-
-    public int getPrestigeLevel() { return this.entityData.get(PRESTIGE_LEVEL);}
-
-    public void setPrestigeLevel(int prestigeLevel) { this.entityData.set(PRESTIGE_LEVEL, prestigeLevel);}
 
     public int getLevelPoints() { return this.entityData.get(LEVEL_POINTS);}
 
@@ -702,43 +660,117 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         setXp(Math.max(0, this.getXp() - this.getXpStage()));
         this.setLevel(this.getLevel() + 1);
         this.setLevelPoints(this.getLevelPoints() + 1);
-        ExperienceOrb orb = new ExperienceOrb(this.level(), this.getX(), this.getY(), this.getZ(),  this.getLevel());
-        this.level().addFreshEntity(orb);
 
         if (playSound) {
             this.playSound(SoundEvents.PLAYER_LEVELUP);
         }
 
-        if (this.getLevel() >= 50) this.setPrestigeXpStage(3);
-
-        LivingEntity rider = this.getControllingPassenger();
-        if (rider != null) {
-            if (rider instanceof ServerPlayer serverPlayer) {
-                OWUtils.showTitle(serverPlayer, "tooltip.levelUp", TextColor.fromRgb(0x00FF00), String.valueOf(this.getLevel() - 1) + " ➾ " + this.getLevel(), TextColor.fromRgb(0xb8e45a));
-            }
+        // Tous les 10 niveaux atteints par n'importe quel pet, l'owner gagne 1 Pièce Sauvage.
+        if (!this.level().isClientSide() && this.getLevel() % 10 == 0
+                && this.getOwner() instanceof ServerPlayer owner) {
+            net.tiew.operationWild.core.OWCurrency.grantWildCoins(owner, 1);
         }
-        int xpStage = OWUtils.generateExponentialExp(this.getLevel(), 20);
+
+        notifyLevelUpClient();
+
+        int xpStage = OWUtils.xpToNextLevel(this.getLevel());
         setXpStage(xpStage);
         if (isQuestInProgress(DailyQuestRegistry.quest6) && !this.level().isClientSide()) {
             this.executeQuestProgression((byte) 5);
         }
     }
 
-    public void passingPrestigeLevel(boolean playSound) {
-        setXp(Math.max(0, this.getXp() - this.getPrestigeXpStage()));
-        this.setPrestigeLevel(this.getPrestigeLevel() + 1);
-        if (playSound) {
-            this.playSound(SoundEvents.PLAYER_LEVELUP);
+    /**
+     * Envoie au client concerné le déclencheur de l'animation de passage de niveau
+     * (anneaux concentriques + chiffre). La cible est le rider s'il y en a un, sinon le propriétaire
+     * en ligne et proche. Ne fait rien côté client.
+     */
+    private void notifyLevelUpClient() {
+        if (this.level().isClientSide()) return;
+
+        ServerPlayer target = null;
+        LivingEntity rider = this.getControllingPassenger();
+        if (rider instanceof ServerPlayer sp) {
+            target = sp;
+        } else if (this.getOwner() instanceof ServerPlayer owner
+                && owner.level() == this.level() && owner.distanceToSqr(this) <= 48 * 48) {
+            // Pas chevauché : on prévient le propriétaire seulement s'il est proche et dans le même monde,
+            // pour éviter une animation surprise venue d'un pet à l'autre bout de la carte.
+            target = owner;
         }
 
-        LivingEntity rider = this.getControllingPassenger();
-        if (rider != null) {
-            if (rider instanceof ServerPlayer serverPlayer) {
-                OWUtils.showTitle(serverPlayer, "tooltip.prestigeLevelUp", TextColor.fromRgb(0x96efe3), String.valueOf(this.getPrestigeLevel() - 1) + " ➾ " + this.getPrestigeLevel(), TextColor.fromRgb(0x61b0b4));
+        if (target != null) {
+            OWNetworkHandler.sendToClient(
+                    new net.tiew.operationWild.networking.packets.to_client.OWLevelUpPacket(
+                            this.getLevel(), this.getEntityColor()),
+                    target);
+        }
+    }
+
+    /**
+     * Ajoute de l'XP de niveau (1 → 50). Unique point d'entrée du leveling : l'XP provient
+     * exclusivement de l'absorption de boules d'expérience (voir {@link #absorbNearbyXpOrbs()})
+     * et des récompenses de quêtes.
+     */
+    public void gainLevelXp(float amount) {
+        if (!isTame() || this.getLevel() >= 50 || amount <= 0) return;
+
+        setXpStage(OWUtils.xpToNextLevel(this.getLevel()));
+        boolean hasLeveledUp = false;
+
+        while (amount > 0 && this.getLevel() < 50) {
+            float rest = getXpStage() - this.getXp();
+            if (amount >= rest) {
+                amount -= rest;
+                passingLevel(!hasLeveledUp);
+                hasLeveledUp = true;
+                if (this.getLevel() >= 50) {
+                    this.setXp(0);
+                    break;
+                }
+            } else {
+                this.setXp(this.getXp() + amount);
+                amount = 0;
             }
         }
-        int xpStage = this.getPrestigeLevel() / 2;
-        setPrestigeXpStage(xpStage);
+    }
+
+    /** Facteur d'échelle des récompenses d'XP de quête pour rester cohérent avec la nouvelle courbe. */
+    private static final float QUEST_XP_SCALE = 6.0f;
+
+    private static final double XP_ORB_ATTRACT_RADIUS = 8.0;
+    private static final double XP_ORB_PICKUP_RADIUS = 1.25;
+
+    /**
+     * Comme un joueur, une entité apprivoisée non encore au niveau max attire et absorbe les
+     * boules d'expérience proches. Une fois le niveau 50 atteint, elle n'aspire plus rien : les
+     * orbes retournent naturellement au joueur (rider compris). Appelé côté serveur uniquement.
+     */
+    private void absorbNearbyXpOrbs() {
+        java.util.List<ExperienceOrb> orbs = this.level().getEntitiesOfClass(
+                ExperienceOrb.class, this.getBoundingBox().inflate(XP_ORB_ATTRACT_RADIUS));
+        if (orbs.isEmpty()) return;
+
+        Vec3 center = new Vec3(this.getX(), this.getY() + this.getBbHeight() * 0.5, this.getZ());
+        for (ExperienceOrb orb : orbs) {
+            if (!orb.isAlive()) continue;
+            Vec3 toEntity = center.subtract(orb.position());
+            double dist = toEntity.length();
+
+            if (dist <= XP_ORB_PICKUP_RADIUS) {
+                int value = orb.getValue();
+                if (value > 0) {
+                    gainLevelXp(value);
+                    this.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.15f,
+                            ((this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.35f + 1.0f) * 2.0f);
+                }
+                orb.discard();
+                if (this.getLevel() >= 50) return; // niveau max atteint pendant l'absorption
+            } else if (dist > 0.01) {
+                double pull = (1.0 - dist / XP_ORB_ATTRACT_RADIUS) * 0.12;
+                orb.setDeltaMovement(orb.getDeltaMovement().add(toEntity.normalize().scale(pull)));
+            }
+        }
     }
 
     public boolean causeFallDamage(float v, float v1, DamageSource damageSource) {
@@ -1037,65 +1069,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public float getSpeed() { return (float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);}
     public float getDamage() { return (float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE);}
-
-    public void createLevelSystem(LivingEntity target) {
-        if (!isTame() || this.getLevel() >= 50) return;
-
-        float xpAmount = target.getMaxHealth() / 8;
-        int xpStage = OWUtils.generateExponentialExp(this.getLevel(), 20);
-        setXpStage(xpStage);
-        boolean hasLeveledUp = false;
-
-        while (xpAmount > 0 && this.getLevel() < 50) {
-            float xpStageRest = getXpStage() - this.getXp();
-
-            if (xpAmount >= xpStageRest) {
-                xpAmount -= xpStageRest;
-                passingLevel(!hasLeveledUp);
-                hasLeveledUp = true;
-
-                if (this.getLevel() >= 50) {
-                    this.setXp(0);
-                    int prestigeXpStage = OWUtils.generateExponentialExp(this.getPrestigeLevel(), 2);
-                    setPrestigeXpStage(prestigeXpStage);
-                    return;
-                }
-
-            } else {
-                this.setXp(this.getXp() + xpAmount);
-                xpAmount = 0;
-            }
-        }
-    }
-
-    public void createPrestigeLevelSystem(LivingEntity target) {
-        if (!isTame() || this.getLevel() < 50 || this.getPrestigeLevel() >= 999) return;
-
-        boolean firstPrestigeKill = this.getXp() == 0;
-
-        float xpAmount = target.getMaxHealth() / 2;
-        int xpStage = this.getPrestigeLevel() / 2;
-        setPrestigeXpStage(xpStage);
-        boolean hasLeveledUp = false;
-
-        if (firstPrestigeKill) {
-            this.setXp(xpAmount);
-            return;
-        }
-
-        while (xpAmount > 0 && this.getLevel() >= 50 && this.getPrestigeLevel() < 999) {
-            float xpStageRest = getPrestigeXpStage() - this.getXp();
-
-            if (xpAmount >= xpStageRest) {
-                xpAmount -= xpStageRest;
-                passingPrestigeLevel(!hasLeveledUp);
-                hasLeveledUp = true;
-            } else {
-                this.setXp(this.getXp() + xpAmount);
-                xpAmount = 0;
-            }
-        }
-    }
 
     public InteractionResult createFoodHealingSystem(Player player, ItemStack itemStack, boolean preferRawMeat, boolean preferCookedMeat, boolean preferVegetables, float healingMultiplier) {
         if (this.isTame() && !this.level().isClientSide() && !isBaby()) {
@@ -1989,6 +1962,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (this.level().getGameRules().getBoolean(OWGameRules.ANIMALS_NO_EFFORT)) {
                 this.setVitalEnergy(0);
             }
+            // Leveling par absorption d'orbes (comme le joueur) tant que le niveau max n'est pas atteint.
+            if (this.isTame() && this.getLevel() < 50) {
+                if (this.getLevel() < 1) {
+                    this.setLevel(1);
+                    this.setXpStage(OWUtils.xpToNextLevel(1));
+                }
+                absorbNearbyXpOrbs();
+            }
         }
 
         if (this.isTame()) {
@@ -2867,8 +2848,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     @Override
     public boolean killedEntity(ServerLevel level, LivingEntity target) {
-        createLevelSystem(target);
-        createPrestigeLevelSystem(target);
+        // Le leveling 1→50 provient uniquement de l'absorption d'orbes (voir absorbNearbyXpOrbs),
+        // pas des kills.
 
         if (isQuestInProgress(DailyQuestRegistry.quest11) && !this.level().isClientSide()) {
             this.executeQuestProgression((byte) 10);
@@ -3125,35 +3106,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public static void addExperienceCommand(OWEntity entity, int amount) {
-        if (!entity.isTame() || entity.getLevel() >= 50) return;
-
-        float xpAmount = amount;
-        int xpStage = OWUtils.generateExponentialExp(entity.getLevel(), 20);
-        entity.setXpStage(xpStage);
-
-        boolean hasLeveledUp = false;
-
-        while (xpAmount > 0 && entity.getLevel() < 50) {
-            float xpStageRest = entity.getXpStage() - entity.getXp();
-
-            if (xpAmount >= xpStageRest) {
-                xpAmount -= xpStageRest;
-
-                entity.passingLevel(!hasLeveledUp);
-                hasLeveledUp = true;
-
-                if (entity.getLevel() >= 50) {
-                    entity.setXp(0);
-                    int prestigeXpStage = OWUtils.generateExponentialExp(entity.getPrestigeLevel(), 2);
-                    entity.setPrestigeXpStage(prestigeXpStage);
-                    return;
-                }
-
-            } else {
-                entity.setXp(entity.getXp() + xpAmount);
-                xpAmount = 0;
-            }
-        }
+        entity.gainLevelXp(amount);
     }
 
     @Override
@@ -3615,9 +3568,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(STATE, 0);
         builder.define(XP, 0f);
         builder.define(STAGE, 0);
-        builder.define(PRESTIGE_STAGE, 0);
         builder.define(LEVEL, 0);
-        builder.define(PRESTIGE_LEVEL, 0);
         builder.define(LEVEL_POINTS, 0);
         builder.define(NECKLACE_COLOR, 0);
         builder.define(SCALE, 1.0f);
@@ -3689,9 +3640,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
         tag.putFloat("XP", this.getXp());
         tag.putInt("getXpStage", this.getXpStage());
-        tag.putInt("getPrestigeXpStage", this.getPrestigeXpStage());
         tag.putInt("Level", this.getLevel());
-        tag.putInt("getPrestigeLevel", this.getPrestigeLevel());
         tag.putInt("getNecklaceColor", this.getNecklaceColor());
         tag.putInt("LevelPoints", this.getLevelPoints());
         tag.putFloat("Scale", this.getScale());
@@ -3835,9 +3784,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
         this.entityData.set(XP, tag.getFloat("XP"));
         this.entityData.set(STAGE, tag.getInt("getXpStage"));
-        this.entityData.set(PRESTIGE_STAGE, tag.getInt("getPrestigeXpStage"));
         this.entityData.set(LEVEL, tag.getInt("Level"));
-        this.entityData.set(PRESTIGE_LEVEL, tag.getInt("getPrestigeLevel"));
         this.entityData.set(NECKLACE_COLOR, tag.getInt("getNecklaceColor"));
         this.entityData.set(LEVEL_POINTS, tag.getInt("LevelPoints"));
         this.entityData.set(SCALE, tag.getFloat("Scale"));

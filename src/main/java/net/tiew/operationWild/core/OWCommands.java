@@ -62,14 +62,11 @@ public class OWCommands {
             int amount = IntegerArgumentType.getInteger(context, "amount");
             try {
                 ServerPlayer player = EntityArgument.getPlayer(context, "player");
-                if (player.getRootVehicle() != null && player.getRootVehicle() != player) {
-                    if (player.getRootVehicle() instanceof OWEntity owEntity) owEntity.setPrestigeLevel(amount);
-                    source.sendSuccess(() -> Component.translatable("addPrestigeCommandWork", amount)
-                            .setStyle(Style.EMPTY.withColor(0x00FF00)), false);
-                } else {
-                    source.sendSuccess(() -> Component.translatable("addPrestigeCommandError")
-                            .setStyle(Style.EMPTY.withColor(0xFF0000)), false);
-                }
+                // "prestige" est désormais la monnaie "Pièces Sauvages" du joueur (porte-monnaie partagé).
+                OWCurrency.setWildCoins(player, amount);
+                OWCurrency.syncWildCoins(player);
+                source.sendSuccess(() -> Component.translatable("addPrestigeCommandWork", amount)
+                        .setStyle(Style.EMPTY.withColor(0x00FF00)), false);
             } catch (Exception ignored) {
             }
             return 1;

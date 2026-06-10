@@ -109,6 +109,10 @@ public class OWAttackLogic {
 
     // ── Kangourou « Tornade de Poings » : maintien local du clic droit ────────
     private static boolean kangarooWhirlwindHeld = false;
+    // Phase d'amorce : touche pressée mais maintien minimal pas encore atteint (anti spam-clic).
+    private static boolean kangarooWhirlwindPending = false;
+    private static long    kangarooWhirlwindPressMs = -1L;
+    private static OWAttack kangarooWhirlwindAttack = null;
 
     private static final long   CLICK_ANIM_DURATION_MS = 200L;
     private static final float  CLICK_ANIM_PEAK_SCALE  = 1.22f;
@@ -248,11 +252,32 @@ public class OWAttackLogic {
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 
-        // Tornade de Poings : si le joueur n'est plus sur un kangourou, on lâche le maintien
+        // Tornade de Poings : si le joueur n'est plus sur un kangourou, on lâche le maintien/amorce
         // (le serveur arrête déjà la rotation au démontage).
-        if (kangarooWhirlwindHeld && mc.player != null
+        if ((kangarooWhirlwindHeld || kangarooWhirlwindPending) && mc.player != null
                 && !(mc.player.getRootVehicle() instanceof KangarooEntity)) {
             kangarooWhirlwindHeld = false;
+            kangarooWhirlwindPending = false;
+            kangarooWhirlwindAttack = null;
+        }
+
+        // Amorce de la tornade : une fois la touche tenue assez longtemps, on démarre réellement.
+        if (kangarooWhirlwindPending && kangarooWhirlwindAttack != null && mc.player != null) {
+            if (mc.player.getRootVehicle() instanceof KangarooEntity kangaroo) {
+                boolean stillValid = kangaroo.getWhirlwindCooldownTicks() <= 0 && !kangaroo.isCombo();
+                if (!stillValid) {
+                    kangarooWhirlwindPending = false;
+                    kangarooWhirlwindAttack = null;
+                } else if (System.currentTimeMillis() - kangarooWhirlwindPressMs
+                        >= OWAttacksConstants.Kangaroo.WHIRLWIND_HOLD_TO_START_MS) {
+                    kangarooWhirlwindPending = false;
+                    kangarooWhirlwindHeld = true;
+                    PacketDistributor.sendToServer(
+                            new OWAttackPacket(kangarooWhirlwindAttack.getId(), OWAttackPacket.ACTION_CHARGE_START, 0f));
+                    recordAttackClick(kangarooWhirlwindAttack.getId(), false);
+                    kangarooWhirlwindAttack = null;
+                }
+            }
         }
 
         if (mc.player == null || !isCharging || currentAttack == null) return;
@@ -642,7 +667,7 @@ public class OWAttackLogic {
      */
     private static void handleKangarooWhirlwind(OWAttack attack, KangarooEntity kangaroo, Player player, int action) {
         if (action == GLFW.GLFW_PRESS) {
-            if (kangarooWhirlwindHeld) return;
+            if (kangarooWhirlwindHeld || kangarooWhirlwindPending) return;
             if (kangaroo.getWhirlwindCooldownTicks() > 0) { recordAttackClick(attack.getId(), true); return; }
             if (kangaroo.isCombo()) { recordAttackClick(attack.getId(), true); return; }
             if (playerHoldsUsableItem(player)) { recordAttackClick(attack.getId(), true); return; }
@@ -652,16 +677,23 @@ public class OWAttackLogic {
                 return;
             }
 
-            kangarooWhirlwindHeld = true;
-            PacketDistributor.sendToServer(
-                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_START, 0f));
-            recordAttackClick(attack.getId(), false);
+            // On n'amorce que le maintien : la tornade ne démarrera (côté serveur) qu'une fois
+            // la touche tenue WHIRLWIND_HOLD_TO_START_MS (voir onClientTick). Empêche le spam-clic.
+            kangarooWhirlwindPending = true;
+            kangarooWhirlwindPressMs = System.currentTimeMillis();
+            kangarooWhirlwindAttack = attack;
 
         } else if (action == GLFW.GLFW_RELEASE) {
-            if (!kangarooWhirlwindHeld) return;
-            kangarooWhirlwindHeld = false;
-            PacketDistributor.sendToServer(
-                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
+            if (kangarooWhirlwindHeld) {
+                kangarooWhirlwindHeld = false;
+                PacketDistributor.sendToServer(
+                        new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
+            } else if (kangarooWhirlwindPending) {
+                // Relâché avant le seuil de maintien : rien ne se passe (feedback « clic invalide »).
+                kangarooWhirlwindPending = false;
+                kangarooWhirlwindAttack = null;
+                recordAttackClick(attack.getId(), true);
+            }
         }
     }
 

@@ -62,10 +62,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private int sinceLastDamage = 0;
     private int whirlwindSoundTimer = 0;
 
-    // Derniere vitesse de monture connue avant la tornade : sert a freiner en douceur
-    // (au lieu d'un arret net) quand on declenche la tornade en pleine course.
     private float spinStopSpeed = 0f;
-    // Suit la fin du spin pour remettre la vitesse a zero (sinon on repart a l'ancienne allure).
     private boolean wasSpinningForSpeed = false;
 
     public static final int WHIRLWIND_OUTRO_TICKS = 10;
@@ -88,7 +85,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     public volatile float bodyAnimY = 0f;
 
-    // ── Saut monture (PlayerRideableJumping) ──────────────────────────────
     protected float playerJumpPendingScale = 0f;
     private boolean isRidingJump = false;
     private int ridingJumpTimer = 0;
@@ -104,7 +100,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 .add(Attributes.FOLLOW_RANGE, 30.0D)
                 .add(Attributes.ATTACK_DAMAGE, 5.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.3D)
-                .add(Attributes.JUMP_STRENGTH, 0.8D);
+                .add(Attributes.JUMP_STRENGTH, 1.0D);
     }
 
     @Override
@@ -131,7 +127,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public int getEntityColor() {
-        return 0xd7b17d; // 0xA87B4F — brun kangourou
+        return 0xd7b17d;
     }
 
     @Override
@@ -191,12 +187,12 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public Item acceptSaddle() {
-        return OWItems.TIGER_SADDLE.get(); // provisoire — à remplacer par KANGAROO_SADDLE
+        return OWItems.TIGER_SADDLE.get();
     }
 
     @Override
     public ResourceLocation getTamingAdvancement() {
-        return OWAdvancements.TIGER_TAMED_ADVANCEMENT; // provisoire — à remplacer par KANGAROO_TAMED_ADVANCEMENT
+        return OWAdvancements.TIGER_TAMED_ADVANCEMENT;
     }
 
     @Override
@@ -236,7 +232,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public boolean isFood(ItemStack itemStack) {
-        return itemStack.is(OWTags.Items.TIGER_FOOD); // provisoire — à remplacer par KANGAROO_FOOD
+        return itemStack.is(OWTags.Items.TIGER_FOOD);
     }
 
     @Override
@@ -244,13 +240,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return super.getScale() <= 0 ? 1f : super.getScale();
     }
 
-    /** Hauteur d'assise du rider (au-dessus des pieds). Abaissée : le défaut OWEntity (0.75×h) était trop haut. */
     @Override
     protected double getBaseRiderYOffset() {
         return this.getBbHeight() * 0.625 * this.getScale();
     }
 
-    /** Le rider suit verticalement le bone "body" (même principe que le Kodiak). */
     @Override
     protected float getRiderAnimYOffset() {
         return -bodyAnimY / 16.0f * this.getScale();
@@ -261,13 +255,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return getComboAttack() == 3 ? 22 : 2;
     }
 
-    /** Pendant la Tornade de Poings, le kangourou est enraciné : aucune IA ni saut. */
     @Override
     protected boolean isImmobile() {
         return isSpinning() || super.isImmobile();
     }
 
-    /** Pendant la tornade le kangourou s'immobilise, mais en freinant progressivement (pas d'arret net). */
     @Override
     public float getRiddenSpeedVehicle(Player player) {
         if (isSpinning()) {
@@ -277,36 +269,24 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             return spinStopSpeed;
         }
         if (wasSpinningForSpeed) {
-            // Sortie de tornade : on repart de zero pour ne pas conserver l'allure d'avant.
             wasSpinningForSpeed = false;
             resetRiddenSpeed();
         }
         float speed = super.getRiddenSpeedVehicle(player);
-        spinStopSpeed = speed; // memorise la vitesse courante pour un arret en douceur
+        spinStopSpeed = speed;
         return speed;
     }
 
-    /** Pendant la tornade, le corps suit le regard du rider pour pouvoir viser le cone frontal, même à l'arrêt. */
     @Override
     protected boolean forceRiderLookBodyRotation() {
         return isSpinning();
     }
 
-    // ==================================================
-    //         PASSIF — PATTES-RESSORT (Spring Step)
-    // ==================================================
-
-    /** Passif : les pattes puissantes du kangourou amortissent tout : aucun dégât de chute. */
     @Override
     protected int calculateFallDamage(float fallDistance, float multiplier) {
         return 0;
     }
 
-    // ==================================================
-    //          SAUT MONTURE (PlayerRideableJumping)
-    // ==================================================
-
-    /** Appelé chaque tick côté client contrôlant : gère l'atterrissage et déclenche le saut. */
     @Override
     public void tickRidden(Player player, Vec3 travelVector) {
         super.tickRidden(player, travelVector);
@@ -370,10 +350,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public void handleStopJump() { }
-
-    // ==================================================
-    //                  CORPS / COMBO
-    // ==================================================
 
     @Override
     public void tick() {

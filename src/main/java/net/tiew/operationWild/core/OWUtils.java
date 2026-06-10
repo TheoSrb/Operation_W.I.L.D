@@ -70,6 +70,20 @@ public class OWUtils {
         return (int) (min * (1 + java.lang.Math.log(1 + multiplicator) / (3 + Math.sqrt(min))));
     }
 
+    /**
+     * XP nécessaire pour passer du niveau {@code level} au niveau {@code level + 1} (niveaux 1 → 50).
+     * <p>
+     * Courbe « équilibrée, progressive » : les premiers niveaux montent vite, puis l'exigence
+     * augmente de façon quadratique douce. Cette valeur sert directement de seuil ({@code XpStage})
+     * que l'entité remplit en absorbant des boules d'expérience, comme un joueur.
+     * </p>
+     * Total cumulé pour atteindre le niveau 50 : ≈ 7788 points d'XP.
+     */
+    public static int xpToNextLevel(int level) {
+        if (level < 1) level = 1;
+        return 6 + 2 * level + (level * level) / 8;
+    }
+
     public static void showTitle(ServerPlayer player, String messageText, TextColor color, String messageText2, TextColor color2) {
         Component tooltip = Component.translatable(messageText).setStyle(Style.EMPTY.withColor(color).withBold(true));
         Component subtitle = Component.literal(messageText2).setStyle(Style.EMPTY.withColor(color2));

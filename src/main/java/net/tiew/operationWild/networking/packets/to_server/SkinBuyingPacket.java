@@ -35,9 +35,11 @@ public record SkinBuyingPacket(int price, int skinIndex) implements CustomPacket
             if (!(context.player() instanceof ServerPlayer player)) return;
             Entity entity = player.getRootVehicle();
             if (!(entity instanceof OWEntity owEntity)) return;
-            if (owEntity.getPrestigeLevel() < packet.price()) return;
 
-            owEntity.setPrestigeLevel(owEntity.getPrestigeLevel() - packet.price());
+            // La monnaie "Pièces Sauvages" appartient au joueur (porte-monnaie partagé entre tous ses pets).
+            if (!net.tiew.operationWild.core.OWCurrency.spendWildCoins(player, packet.price())) return;
+            net.tiew.operationWild.core.OWCurrency.syncWildCoins(player);
+
             OWNetworkHandler.sendToClient(new SkinUnlockedPacket(owEntity.getUUID(), packet.skinIndex()), player);
         });
     }

@@ -195,6 +195,7 @@ public class ClientEvents {
         computedWaypoints.clear();
         currentEntityIds.clear();
         cachedWorldName = null;
+        cachedWaypointKey = null;
         pendingWarning = false;
         warningTick = 0;
         currentVenomBlur = null;
@@ -484,6 +485,18 @@ public class ClientEvents {
     private static final long HYP_OVERLAY_DURATION_MS = 1500;
     private static final long HYP_OVERLAY_FRAME_MS = 60;
     private static final float HYP_OVERLAY_SCALE = 2.3f;
+
+    @SubscribeEvent
+    public static void onRenderLevelUpOverlay(RenderGuiEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        OWLevelUpOverlay.render(event.getGuiGraphics(),
+                event.getGuiGraphics().guiWidth(),
+                event.getGuiGraphics().guiHeight());
+        OWCoinGainOverlay.render(event.getGuiGraphics(),
+                event.getGuiGraphics().guiWidth(),
+                event.getGuiGraphics().guiHeight());
+    }
 
     @SubscribeEvent
     public static void onRenderHypnosisOverlay(RenderGuiEvent.Post event) {
@@ -1613,9 +1626,48 @@ public class ClientEvents {
         });
     }
 
+    /**
+     * Clé STRICTEMENT unique du monde courant, ou {@code null} si elle ne peut pas être résolue
+     * de façon fiable.
+     * <p>
+     * Bug corrigé : auparavant on retombait sur le nom d'affichage du monde (non unique → deux
+     * mondes au même nom partageaient le même fichier) ou sur un bucket partagé {@code "unknown_world"}.
+     * Résultat : des waypoints d'un monde apparaissaient dans un autre. On préfère désormais ne RIEN
+     * charger/sauvegarder plutôt que d'utiliser un fichier partagé.
+     * </p>
+     * <ul>
+     *   <li>Solo : nom du <b>dossier</b> de sauvegarde (garanti unique par Minecraft).</li>
+     *   <li>Multi : IP du serveur.</li>
+     * </ul>
+     */
+    private static String cachedWaypointKey = null;
+
+    private static String resolveUniqueWorldKey() {
+        if (cachedWaypointKey != null) return cachedWaypointKey;
+        Minecraft mc = Minecraft.getInstance();
+
+        if (mc.hasSingleplayerServer() && mc.getSingleplayerServer() != null) {
+            try {
+                java.nio.file.Path root = mc.getSingleplayerServer().getWorldPath(LevelResource.ROOT);
+                cachedWaypointKey = "sp_" + root.toAbsolutePath().normalize().getFileName().toString();
+                return cachedWaypointKey;
+            } catch (Exception ignored) {
+                return null; // monde non résolu de façon fiable → pas de fichier partagé
+            }
+        }
+
+        if (mc.getCurrentServer() != null) {
+            cachedWaypointKey = "mp_" + mc.getCurrentServer().ip.replace(":", "_").replace(".", "_");
+            return cachedWaypointKey;
+        }
+
+        return null;
+    }
+
     private static File getWaypointFile(Player player) {
-        String worldName = getWorldName(player);
-        return new File("config/ow_waypoints_" + worldName.replace(":", "_") + ".dat");
+        String key = resolveUniqueWorldKey();
+        if (key == null) return null;
+        return new File("config/ow_waypoints_" + key.replace(":", "_") + ".dat");
     }
 
     public static void saveAndClearWaypoints(Player player) {
@@ -1625,11 +1677,12 @@ public class ClientEvents {
         computedClusters.clear();
         clusterPopSmoothed.clear();
         cachedWorldName = null;
+        cachedWaypointKey = null;
     }
 
     private static void saveWaypointStates(Player player) {
         File file = getWaypointFile(player);
-        System.out.println("[OW-SAVE] path=" + file.getAbsolutePath() + " | states=" + waypointStates.size());
+        if (file == null) return; // monde non résolu : on ne sauvegarde pas dans un fichier partagé
         try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file))) {
             List<Map.Entry<UUID, WaypointState>> toSave = waypointStates.entrySet().stream()
                     .filter(e -> e.getValue().hasBeenSeen && e.getValue().lastPos != null)
@@ -1661,8 +1714,7 @@ public class ClientEvents {
     private static void loadWaypointStates(Player player) {
         waypointStates.clear();
         File file = getWaypointFile(player);
-        System.out.println("[OW-LOAD] path=" + file.getAbsolutePath() + " | exists=" + file.exists());
-        if (!file.exists()) return;
+        if (file == null || !file.exists()) return;
         try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
             int count = in.readInt();
             for (int i = 0; i < count; i++) {

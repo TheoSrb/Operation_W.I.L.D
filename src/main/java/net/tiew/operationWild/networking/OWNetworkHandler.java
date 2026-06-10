@@ -69,6 +69,8 @@ public class OWNetworkHandler {
         registrar.playToClient(OWEntityAlreadyInTeamPacket.TYPE, OWEntityAlreadyInTeamPacket.STREAM_CODEC, OWEntityAlreadyInTeamPacket::handle);
         registrar.playToClient(MessageHurtMultipart.TYPE, MessageHurtMultipart.STREAM_CODEC, MessageHurtMultipart::handle);
         registrar.playToClient(RitualSyncPacket.TYPE, RitualSyncPacket.STREAM_CODEC, RitualSyncPacket::handle);
+        registrar.playToClient(OWLevelUpPacket.TYPE, OWLevelUpPacket.STREAM_CODEC, OWLevelUpPacket::handle);
+        registrar.playToClient(OWCoinsSyncPacket.TYPE, OWCoinsSyncPacket.STREAM_CODEC, OWCoinsSyncPacket::handle);
 
     }
 

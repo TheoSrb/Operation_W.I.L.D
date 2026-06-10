@@ -22,6 +22,7 @@ import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.networking.ClientCoinData;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.LevelUpOWInventoryPacket;
 import net.tiew.operationWild.screen.entity.skins.*;
@@ -37,6 +38,15 @@ import java.util.stream.Collectors;
 public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> {
     private static final ResourceLocation OW_INVENTORY_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_inventory_gui.png");
     private static final ResourceLocation MISC_LOCATION = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
+    private static final ResourceLocation COIN_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/misc/coin.png");
+
+    /** Bascule d'affichage du compteur haut-droit : false = points de niveau, true = Pièces Sauvages. */
+    private static boolean showCoins = false;
+
+    // Position du petit bouton coin (toggle), en décalage depuis le centre de l'écran d'inventaire.
+    private static final int COIN_TOGGLE_DX = 66;
+    private static final int COIN_TOGGLE_DY = -66;
+    private static final int COIN_TOGGLE_SIZE = 9;
     private static final ResourceLocation EFFECT_BACKGROUND_LARGE_SPRITE = ResourceLocation.withDefaultNamespace("container/inventory/effect_background_large");
     private static final ResourceLocation EFFECT_BACKGROUND_SMALL_SPRITE = ResourceLocation.withDefaultNamespace("container/inventory/effect_background_small");
 
@@ -122,7 +132,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         int j2 = (entity.isTank() || entity.isHealer()) ? 0 : (entity.isAssassin() || entity.isBerserker()) ? 12 : (entity.isMarauder() || entity.isScout()) ? 24 : entity.isNormal() ? 36 : 0;
         int titleLength = (int) font.width(this.title);
         int genderImagePosition = entity.isFemale() ? 36 : entity.isMale() ? 48 : 0;
-        int mobTypePlacementX = this.entity.getLevel() >= 50 && this.entity.getLevelPoints() <= 0 ? this.entity.getPrestigeLevel() >= 100 ? i + 116 : this.entity.getPrestigeLevel() >= 10 ? i + 123 : this.entity.getPrestigeLevel() >= 0 ? i + 129 : 0 : i + 138;
+        int mobTypePlacementX = i + 138;
 
         guiGraphics.blit(OW_INVENTORY_LOCATION, i, j, 0, 0, 176, 166);
         guiGraphics.blit(MISC_LOCATION, mobTypePlacementX, j + 4, j1, j2, 12, 12);
@@ -141,18 +151,15 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             }
         }
 
-        float xpPercentage = entity.getXp() / (float) entity.getXpStage();
-        float xpPrestigePercentage = entity.getXp() / (float) entity.getPrestigeXpStage();
-        int xpBarWidth = this.entity.getLevel() < 50 ? (int) (71 * xpPercentage) : (int) (71 * xpPrestigePercentage);
+        float xpPercentage = entity.getXpStage() > 0 ? entity.getXp() / (float) entity.getXpStage() : 0f;
+        int xpBarWidth = this.entity.getLevel() >= 50 ? 71 : (int) (71 * xpPercentage);
 
-        if (entity.getXp() > 0 && xpBarWidth < 1) {
+        if (this.entity.getLevel() < 50 && entity.getXp() > 0 && xpBarWidth < 1) {
             xpBarWidth = 1;
         }
 
         if (xpBarWidth > 0) {
-            if (this.entity.getLevel() >= 50)
-                guiGraphics.blit(OW_INVENTORY_LOCATION, i + 89, j + 75, 0, 189, xpBarWidth, 5);
-            else guiGraphics.blit(OW_INVENTORY_LOCATION, i + 89, j + 75, 0, 184, xpBarWidth, 5);
+            guiGraphics.blit(OW_INVENTORY_LOCATION, i + 89, j + 75, 0, 184, xpBarWidth, 5);
         }
 
         guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + 18, 240, entitySaddleCoords(), 16, 16);
@@ -229,11 +236,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         int j = (this.height - this.imageHeight) / 2;
         int titleLength = this.title.getString().length() * 6;
         int iconY = j + 4;
-        int mobTypePlacementX = this.entity.getLevel() >= 50 && this.entity.getLevelPoints() <= 0
-                ? this.entity.getPrestigeLevel() >= 100 ? i + 116
-                : this.entity.getPrestigeLevel() >= 10  ? i + 123
-                : i + 129
-                : i + 138;
+        int mobTypePlacementX = i + 138;
 
         tabsRenderer.renderTabs(graphics, this.font, entity, i, j, mouseX, mouseY);
 
@@ -247,26 +250,51 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
 
         Component tooltipXpValue    = Component.literal(String.valueOf(Math.round(entity.getXp() * 100) / 100.0 + " / "))
                 .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
-        Component tooltipXpMaxValue = Component.literal(String.valueOf(this.entity.getLevel() < 50
-                        ? (float) Math.round(entity.getXpStage() * 100) / 100.0
-                        : (float) Math.round(entity.getPrestigeXpStage() * 100) / 100.0))
+        Component tooltipXpMaxValue = Component.literal(String.valueOf((float) Math.round(entity.getXpStage() * 100) / 100.0))
                 .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withItalic(true).withBold(true));
         Component tooltipXp = Component.translatable("tooltip.xp")
-                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(this.entity.getLevel() < 50 ? 0xb8e45a : 0x7fe1ff)).withItalic(true).withBold(true));
+                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xb8e45a)).withItalic(true).withBold(true));
 
         Component xpText        = tooltipXpValue.copy().append(tooltipXpMaxValue.copy()).append(tooltipXp.copy());
-        Component xpPrestigeText = tooltipXpValue.copy().append(tooltipXpMaxValue.copy()).append(tooltipXp.copy());
         Component genderText = Component.translatable(entity.isFemale() ? "tooltip.genderFemale" : entity.isMale() ? "tooltip.genderMale" : "")
                 .withStyle(Style.EMPTY).withColor(TextColor.fromRgb(entity.isFemale() ? 0xcb3eb3 : entity.isMale() ? 0x4647ce : 0x000000).getValue());
 
         if (mouseX >= mobTypePlacementX && mouseX <= mobTypePlacementX + 12 && mouseY >= iconY && mouseY <= iconY + 12)
             graphics.renderComponentTooltip(this.font, List.of(Component.translatable(tooltipKey)), mouseX, mouseY);
-        if (mouseX >= i + 89 && mouseX <= i + 89 + 71 && mouseY >= j + 75 && mouseY <= j + 75 + 5)
-            graphics.renderComponentTooltip(this.font, List.of(this.entity.getLevel() >= 50 ? xpPrestigeText : xpText), mouseX, mouseY);
+        if (this.entity.getLevel() < 50 && mouseX >= i + 89 && mouseX <= i + 89 + 71 && mouseY >= j + 75 && mouseY <= j + 75 + 5)
+            graphics.renderComponentTooltip(this.font, List.of(xpText), mouseX, mouseY);
         if (mouseX >= i + titleLength + 7 && mouseX <= i + titleLength + 7 + 12 && mouseY >= j + 4 && mouseY <= j + 4 + 12)
             graphics.renderComponentTooltip(this.font, List.of(genderText), mouseX, mouseY);
 
+        int toggleX = i + (this.imageWidth / 2) + COIN_TOGGLE_DX;
+        int toggleY = j + (this.imageHeight / 2) + COIN_TOGGLE_DY;
+        if (mouseX >= toggleX && mouseX <= toggleX + COIN_TOGGLE_SIZE && mouseY >= toggleY && mouseY <= toggleY + COIN_TOGGLE_SIZE) {
+            Component coinTip = Component.translatable("tooltip.wildCoins")
+                    .copy().append(Component.literal(": " + ClientCoinData.wildCoins))
+                    .withStyle(Style.EMPTY.withColor(0xFFE266));
+            graphics.renderComponentTooltip(this.font, List.of(coinTip), mouseX, mouseY);
+        }
+
         this.renderTooltip(graphics, mouseX, mouseY);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (button == 0) {
+            int toggleX = this.leftPos + (this.imageWidth / 2) + COIN_TOGGLE_DX;
+            int toggleY = this.topPos + (this.imageHeight / 2) + COIN_TOGGLE_DY;
+            if (mouseX >= toggleX && mouseX <= toggleX + COIN_TOGGLE_SIZE
+                    && mouseY >= toggleY && mouseY <= toggleY + COIN_TOGGLE_SIZE) {
+                showCoins = !showCoins;
+                if (this.minecraft != null) {
+                    this.minecraft.getSoundManager().play(
+                            net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
+                                    net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0f));
+                }
+                return true;
+            }
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     private void renderEffects(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -324,12 +352,16 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         Component levelValue = Component.literal(String.valueOf(entity.getLevel())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(entity.getLevel() >= 50 ? 0xdd9847 : 0xb8e45a)).withBold(true));
         Component fullLevelText = Component.empty().append(levelText).append(" ").append(levelValue);
 
-        if (this.entity.getLevel() < 50 || this.entity.getLevelPoints() > 0)
+        // Compteur haut-droit : points de niveau (vert) ou Pièces Sauvages (or), selon la bascule.
+        if (showCoins) {
+            int coins = net.tiew.operationWild.networking.ClientCoinData.wildCoins;
+            graphics.drawString(this.font, String.valueOf(coins), coins > 9 ? centerX + 67 : centerX + 70, centerY - 76, 0xFFE266);
+        } else {
             graphics.drawString(this.font, levelPoints, this.entity.getLevelPoints() > 9 ? centerX + 67 : centerX + 70, centerY - 76, this.entity.getLevelPoints() > 0 ? 0xb8e45a : 0x8b8b8b);
-        else {
-            graphics.blit(MISC_LOCATION, centerX + 68, centerY - 77, 0, 143, 10, 10);
-            graphics.drawString(this.font, String.valueOf(this.entity.getPrestigeLevel()), this.entity.getPrestigeLevel() >= 100 ? centerX + 44 : this.entity.getPrestigeLevel() >= 10 ? centerX + 51 : this.entity.getPrestigeLevel() >= 0 ? centerX + 56 : 0, centerY - 76, 0xc8f6ff);
         }
+
+        // Petit bouton coin pour basculer points de niveau <-> Pièces Sauvages (clic géré dans mouseClicked).
+        graphics.blit(COIN_TEXTURE, centerX + COIN_TOGGLE_DX, centerY + COIN_TOGGLE_DY, 9, 9, 0f, 0f, 16, 16, 16, 16);
 
         graphics.drawString(this.font, entityHealth, centerX + 12, centerY - 60, 0x8b8b8b);
         graphics.drawString(this.font, entityDamage, centerX + 12, centerY - 42, 0x8b8b8b);

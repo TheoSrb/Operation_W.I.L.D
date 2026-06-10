@@ -74,6 +74,8 @@ public class OWAttacksConstants {
         public static final float WHIRLWIND_DAMAGE_MAX = 3.0f;
         /** Coût en énergie vitale (0 = gratuit, équilibré par le cooldown). */
         public static final float WHIRLWIND_ENERGY = 0f;
+        /** Maintien minimal (ms) du clic avant que la tornade ne démarre : empêche le spam-clic. */
+        public static final long WHIRLWIND_HOLD_TO_START_MS = 300L;
     }
 
     public static class Boa {
