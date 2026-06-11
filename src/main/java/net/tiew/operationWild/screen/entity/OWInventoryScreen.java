@@ -113,6 +113,60 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         //tabsRenderer.setNotification(3, 3);
 
         tabsRenderer.setActiveTab(OWTabsRenderer.Tab.INVENTORY);
+
+        maybeShowInventoryTutorials();
+    }
+
+    /**
+     * Didacticiels liés à l'écran d'inventaire (une seule fois chacun, tous mondes confondus) :
+     * <ul>
+     *   <li>1re ouverture : onglets puis archétype.</li>
+     *   <li>Après le tip de niveau, à la réouverture avec des points à dépenser : les statistiques et les boutons +.</li>
+     * </ul>
+     */
+    private void maybeShowInventoryTutorials() {
+        if (this.entity == null) return;
+        int i = this.leftPos;
+        int j = this.topPos;
+
+        if (!net.tiew.operationWild.core.OWTutorialData.hasSeenInventoryTutorial()) {
+            // Onglets : glow sur la rangée d'onglets (i+2 → i+102, j-18, hauteur 18).
+            net.tiew.operationWild.gui.OWIndicationOverlay.enqueue(
+                    Component.translatable("indication.ow.tuto_tabs"), 200, i + 40, j - 20, true,
+                    i + 2, j - 18, 100, 18);
+            // Archétype : glow sur le petit symbole en haut à droite (i+138, j+4, 12x12).
+            net.tiew.operationWild.gui.OWIndicationOverlay.enqueue(
+                    Component.translatable("indication.ow.tuto_archetype"), 200, i + 144, j + 4, true,
+                    i + 138, j + 4, 12, 12);
+            net.tiew.operationWild.core.OWTutorialData.markInventoryTutorialSeen();
+        }
+
+        if (net.tiew.operationWild.core.OWTutorialData.hasSeenLevelTutorial()
+                && !net.tiew.operationWild.core.OWTutorialData.hasSeenStatsTutorial()
+                && this.entity.getLevelPoints() > 0) {
+            // Stats + boutons « + » : encart à droite, étroit (plus de retours à la ligne), glow sur la zone.
+            net.tiew.operationWild.gui.OWIndicationOverlay.enqueue(
+                    Component.translatable("indication.ow.tuto_stats"), 200, i + 258, j + 18, false,
+                    i + 96, j + 19, 92, 48, 110);
+            net.tiew.operationWild.core.OWTutorialData.markStatsTutorialSeen();
+        }
+    }
+
+    @Override
+    public boolean shouldCloseOnEsc() {
+        // Pas de fermeture par Échap tant qu'un didacticiel d'inventaire est affiché.
+        return !net.tiew.operationWild.gui.OWIndicationOverlay.isActive();
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // La touche d'inventaire ferme aussi l'écran : on la bloque pendant le didacticiel.
+        if (net.tiew.operationWild.gui.OWIndicationOverlay.isActive()
+                && this.minecraft != null
+                && this.minecraft.options.keyInventory.matches(keyCode, scanCode)) {
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     protected void renderBg(GuiGraphics guiGraphics, float p_282998_, int p_282929_, int p_283133_) {
@@ -200,6 +254,8 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float v) {
         this.xMouse = (float) mouseX;
         this.yMouse = (float) mouseY;
+        // Onglets verrouillés tant qu'un didacticiel est affiché (pas de navigation entre onglets).
+        tabsRenderer.setLocked(net.tiew.operationWild.gui.OWIndicationOverlay.isActive());
         super.render(graphics, mouseX, mouseY, v);
         this.renderEffects(graphics, mouseX, mouseY);
         this.renderTooltip(graphics, mouseX, mouseY);
@@ -274,6 +330,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             if (collection.size() > 5) k = 132 / (collection.size() - 1);
 
             Iterable<MobEffectInstance> iterable = collection.stream()
+                    .filter(MobEffectInstance::showIcon)
                     .filter(ClientHooks::shouldRenderEffect)
                     .sorted()
                     .collect(Collectors.toList());

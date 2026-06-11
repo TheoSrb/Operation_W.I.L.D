@@ -247,7 +247,10 @@ public class ClientEvents {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player != null && minecraft.player.getRootVehicle() instanceof OWEntity owEntity) {
 
-            if (OWKeysBinding.PET_INVENTORY.isDown() && event.getAction() == GLFW.GLFW_PRESS && (owEntity.isTame() || owEntity instanceof Submarine)) {
+            // Inventaire bloqué tant qu'un didacticiel (vie / énergie / niveau / attaques) est affiché.
+            if (OWKeysBinding.PET_INVENTORY.isDown() && event.getAction() == GLFW.GLFW_PRESS
+                    && (owEntity.isTame() || owEntity instanceof Submarine)
+                    && !OWIndicationOverlay.isActive()) {
                 OWNetworkHandler.sendToServer(new OpenOWInventoryPacket());
             }
         }
@@ -496,9 +499,32 @@ public class ClientEvents {
         OWCoinGainOverlay.render(event.getGuiGraphics(),
                 event.getGuiGraphics().guiWidth(),
                 event.getGuiGraphics().guiHeight());
-        OWIndicationOverlay.render(event.getGuiGraphics(),
-                event.getGuiGraphics().guiWidth(),
-                event.getGuiGraphics().guiHeight());
+        // Quand on chevauche un pet, l'indication est rendue par onRenderStage (après le HUD, donc au-dessus).
+        // Ici, on ne la rend que hors monture (ex : tip de niveau reçu sans être monté).
+        boolean mountedOnPet = mc.player.getVehicle() instanceof OWEntity ow && !(ow instanceof Submarine);
+        if (!mountedOnPet) {
+            OWIndicationOverlay.render(event.getGuiGraphics(),
+                    event.getGuiGraphics().guiWidth(),
+                    event.getGuiGraphics().guiHeight());
+        }
+    }
+
+    /** Empêche l'ouverture de l'inventaire du joueur tant qu'un didacticiel est affiché. */
+    @SubscribeEvent
+    public static void onScreenOpening(ScreenEvent.Opening event) {
+        if (OWIndicationOverlay.isActive() && event.getNewScreen() instanceof InventoryScreen) {
+            event.setCanceled(true);
+        }
+    }
+
+    /** Rendu des indications par-dessus l'écran d'inventaire de l'entité (les hooks HUD ne tournent pas écran ouvert). */
+    @SubscribeEvent
+    public static void onScreenRenderPost(ScreenEvent.Render.Post event) {
+        if (event.getScreen() instanceof net.tiew.operationWild.screen.entity.OWInventoryScreen) {
+            OWIndicationOverlay.render(event.getGuiGraphics(),
+                    event.getGuiGraphics().guiWidth(),
+                    event.getGuiGraphics().guiHeight());
+        }
     }
 
     @SubscribeEvent
@@ -619,10 +645,19 @@ public class ClientEvents {
             if (minecraft.player != null && minecraft.player.getVehicle() instanceof OWEntity owEntity) {
                 boolean isSprintKeyDown = minecraft.options.keySprint.isDown();
                 OWNetworkHandler.sendToServer(new OWRunningPacket(isSprintKeyDown));
-                tryShowMountTutorials(owEntity);
+
+                // Une seule évaluation par montage (au changement de monture).
+                if (owEntity.getId() != lastTutorialVehicleId) {
+                    lastTutorialVehicleId = owEntity.getId();
+                    tryShowMountTutorials(owEntity);
+                }
+            } else if (minecraft.player == null || !(minecraft.player.getVehicle() instanceof OWEntity)) {
+                lastTutorialVehicleId = -1;
             }
         }
     }
+
+    private static int lastTutorialVehicleId = -1;
 
     /**
      * Didacticiels au montage d'un animal APPRIVOISÉ (uniquement package entity.animals.* : exclut
@@ -645,14 +680,16 @@ public class ClientEvents {
         if (!firstEntity && !newSpecies) return;
 
         if (firstEntity) {
-            OWIndicationOverlay.enqueue(Component.translatable("indication.ow.tuto_health"), 120, OWIndicationOverlay.Anchor.HEALTH);
-            OWIndicationOverlay.enqueue(Component.translatable("indication.ow.tuto_energy"), 120, OWIndicationOverlay.Anchor.ENERGY);
-            OWIndicationOverlay.enqueue(buildAttacksIndication(entity), 160, OWIndicationOverlay.Anchor.ATTACKS);
-            OWIndicationOverlay.enqueue(Component.translatable("indication.ow.tuto_attack_cards"), 120, OWIndicationOverlay.Anchor.ATTACKS);
+            OWIndicationOverlay.enqueue(Component.translatable("indication.ow.tuto_health"), 200, OWIndicationOverlay.Anchor.HEALTH);
+            OWIndicationOverlay.enqueue(Component.translatable("indication.ow.tuto_energy"), 200, OWIndicationOverlay.Anchor.ENERGY);
+            // Message d'attaque : au centre en bas, et ne disparaît qu'après maintien de la touche 1 s.
+            OWIndicationOverlay.enqueue(buildAttacksIndication(entity), 200, OWIndicationOverlay.Anchor.BOTTOM, true);
+            OWIndicationOverlay.enqueue(Component.translatable("indication.ow.tuto_attack_cards"), 200, OWIndicationOverlay.Anchor.ATTACKS);
             net.tiew.operationWild.core.OWTutorialData.markMountTutorialSeen();
             net.tiew.operationWild.core.OWTutorialData.markAttacksTutorialSeen(speciesId);
         } else {
-            OWIndicationOverlay.enqueue(buildAttacksIndication(entity), 160, OWIndicationOverlay.Anchor.ATTACKS);
+            // Nouvelle espèce : même comportement que le tuto de base (maintien de la touche 1 s pour valider).
+            OWIndicationOverlay.enqueue(buildAttacksIndication(entity), 200, OWIndicationOverlay.Anchor.BOTTOM, true);
             net.tiew.operationWild.core.OWTutorialData.markAttacksTutorialSeen(speciesId);
         }
     }
@@ -870,6 +907,9 @@ public class ClientEvents {
                 if (player.getVehicle() instanceof BoaEntity boa && boa.getGrabbedTarget() == player) return;
                 OWEntityHud.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
                 OWAttacksOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
+                // Rendu de l'indication ICI, juste après le HUD de l'entité, pour passer au-dessus de
+                // la barre de vie / énergie / cartes (même handler → ordre de dessin garanti).
+                OWIndicationOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
             if (isNotifiedOWBook) {

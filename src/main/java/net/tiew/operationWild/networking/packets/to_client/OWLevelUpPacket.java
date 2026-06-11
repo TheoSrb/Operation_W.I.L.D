@@ -39,7 +39,7 @@ public record OWLevelUpPacket(int level, int entityColor) implements CustomPacke
             if (packet.level() >= 2 && !net.tiew.operationWild.core.OWTutorialData.hasSeenLevelTutorial()) {
                 net.tiew.operationWild.gui.OWIndicationOverlay.enqueue(
                         net.minecraft.network.chat.Component.translatable("indication.ow.tuto_level"),
-                        120, net.tiew.operationWild.gui.OWIndicationOverlay.Anchor.CENTER);
+                        200, net.tiew.operationWild.gui.OWIndicationOverlay.Anchor.CENTER);
                 net.tiew.operationWild.core.OWTutorialData.markLevelTutorialSeen();
             }
         });

@@ -68,4 +68,28 @@ public final class OWTutorialData {
         DATA.setProperty("level_tutorial", "true");
         save();
     }
+
+    /** Didacticiel d'ouverture d'inventaire (onglets + archétype) déjà vu ? (une fois, global) */
+    public static boolean hasSeenInventoryTutorial() {
+        ensureLoaded();
+        return "true".equals(DATA.getProperty("inventory_tutorial"));
+    }
+
+    public static void markInventoryTutorialSeen() {
+        ensureLoaded();
+        DATA.setProperty("inventory_tutorial", "true");
+        save();
+    }
+
+    /** Didacticiel d'amélioration de statistiques (boutons +) déjà vu ? (une fois, global) */
+    public static boolean hasSeenStatsTutorial() {
+        ensureLoaded();
+        return "true".equals(DATA.getProperty("stats_tutorial"));
+    }
+
+    public static void markStatsTutorialSeen() {
+        ensureLoaded();
+        DATA.setProperty("stats_tutorial", "true");
+        save();
+    }
 }

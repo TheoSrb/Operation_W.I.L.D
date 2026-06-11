@@ -62,6 +62,19 @@ public class OWTabsRenderer {
         return activeTab;
     }
 
+    /** Verrouille (clics ignorés) ou déverrouille tous les onglets — utilisé pendant le didacticiel. */
+    public void setLocked(boolean locked) {
+        if (locked) {
+            if (inventoryButton != null) inventoryButton.active = false;
+            if (skinButton != null) skinButton.active = false;
+            if (teamButton != null) teamButton.active = false;
+            if (dailyQuestButton != null) dailyQuestButton.active = false;
+            if (optionsButton != null) optionsButton.active = false;
+        } else {
+            updateButtonStates();
+        }
+    }
+
     public void init(int screenWidth, int screenHeight, int imageWidth, int imageHeight, OWEntity entity, Consumer<Button> addWidget) {
         int i = (screenWidth - imageWidth) / 2;
         int j = (screenHeight - imageHeight) / 2;
