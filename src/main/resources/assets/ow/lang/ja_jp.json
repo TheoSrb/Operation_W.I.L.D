@@ -4,6 +4,8 @@
   "ow.attacks.kangaroo.combo.desc": "%s秒ごとにカンガルーがパンチし、1発につき%sのダメージを与えます。",
   "ow.attacks.kangaroo.whirlwind.title": "パンチトルネード",
   "ow.attacks.kangaroo.whirlwind.desc": "右クリック長押し：カンガルーの拳がどんどん速く回転します（%s秒でピーク）。動けなくなりますが、正面の敵に1発あたり最大%sのダメージを与え、徐々に強くなります（%sブロック以内）。最大%s秒持続。%s秒のクールダウン（攻撃が%s秒を超えた場合のみ）。",
+  "ow.attacks.kangaroo.telluric_stomp.title": "大地の踏みつけ",
+  "ow.attacks.kangaroo.telluric_stomp.desc": "%s回のキルでチャージ。地面から%sブロック以上の高さでXを押すと、カンガルーは空中で静止した後、足から地面へ急降下します。着地時、半径%sブロックの衝撃波がカンガルーの攻撃力の%s%%（中心）〜%s%%（外縁）のダメージを与え、%s秒間「鈍化I」を付与します。クールダウン：%s秒。",
   "ow.attacks.kangaroo.spring_step.title": "バネ脚",
   "ow.attacks.kangaroo.spring_step.desc": "カンガルーの強靭な脚があらゆる衝撃を吸収する：落下ダメージを一切受けない。",
   "container.saddler": "鞍職人台",

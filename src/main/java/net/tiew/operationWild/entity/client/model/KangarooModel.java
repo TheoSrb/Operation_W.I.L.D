@@ -145,6 +145,12 @@ public class KangarooModel<T extends KangarooEntity> extends HierarchicalModel<T
             this.animate(kangaroo.attack3Combo, KangarooAnimations.ATTACK_STRIKE_3, ageInTicks, 1.25f * OWEntity.comboSpeedMultiplier);
         }
 
+        if (kangaroo.isTelluricStomping() || kangaroo.telluricStompAnim.isStarted()) {
+            this.animate(kangaroo.telluricStompAnim, KangarooAnimations.TELLURIC_STOMP, ageInTicks, 1.0f);
+            captureBodyState(kangaroo);
+            return;
+        }
+
         if (kangaroo.transitionIdleSit.isStarted()) {
             this.animate(kangaroo.transitionIdleSit, KangarooAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
             captureBodyState(kangaroo);

@@ -283,7 +283,17 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Kangaroo.WHIRLWIND_COOLDOWN_THRESHOLD_TICKS / 20))
                 ),
 
-                null,  // pas d'ultime pour l'instant
+                new AttackSlot(40, 200, "X",
+                        title("ow.attacks.kangaroo.telluric_stomp.title"),
+                        e -> desc("ow.attacks.kangaroo.telluric_stomp.desc",
+                                val(OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED),
+                                val((int) OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MIN_AIR_BLOCKS),
+                                val((int) OWAttacksConstants.Kangaroo.TELLURIC_STOMP_RADIUS),
+                                val((int) (OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DAMAGE_CENTER_MULT * 100)),
+                                val((int) (OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DAMAGE_EDGE_MULT * 100)),
+                                val(OWAttacksConstants.Kangaroo.TELLURIC_STOMP_SLOWNESS_TICKS / 20),
+                                val(OWAttacksConstants.Kangaroo.TELLURIC_STOMP_COOLDOWN_TICKS / 20))
+                ),
 
                 new AttackSlot(-1, -1, "",
                         title("ow.attacks.kangaroo.spring_step.title"),

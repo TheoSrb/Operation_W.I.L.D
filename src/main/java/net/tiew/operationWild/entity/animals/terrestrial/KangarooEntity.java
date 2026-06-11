@@ -15,6 +15,8 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -46,6 +48,7 @@ import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.variants.KangarooVariant;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.item.OWItems;
+import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -60,6 +63,17 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final EntityDataAccessor<Boolean> IS_SPINNING = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_WEARING_BOXING_GLOVES = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> WHIRLWIND_COOLDOWN = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
+
+    // ── Pilon Tellurique (ultime) ─────────────────────────────────────────────
+    private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
+    /** Phase du Pilon Tellurique : 0 = inactif, 1 = suspension en l'air, 2 = plongeon. */
+    private static final EntityDataAccessor<Integer> TELLURIC_STOMP_PHASE = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
+
+    private int telluricStompHoverTimer = 0;
+    private int telluricStompDiveTimer = 0;
+
+    public final AnimationState telluricStompAnim = new AnimationState();
+    public int telluricStompAnimTimer = 0;
 
     private int spinTicks = 0;
     private int sinceLastDamage = 0;
@@ -122,6 +136,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         builder.define(IS_SPINNING, false);
         builder.define(WHIRLWIND_COOLDOWN, 0);
         builder.define(IS_WEARING_BOXING_GLOVES, false);
+        builder.define(ULTIMATE_KILL_COUNT, 0);
+        builder.define(TELLURIC_STOMP_PHASE, 0);
     }
 
     @Override
@@ -256,7 +272,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     protected boolean isImmobile() {
-        return isSpinning() || super.isImmobile();
+        return isSpinning() || isTelluricStomping() || super.isImmobile();
     }
 
     @Override
@@ -364,6 +380,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
 
         tickWhirlwind();
+        tickTelluricStomp();
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
@@ -514,6 +531,167 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return 1f + 4f * f;
     }
 
+    // ==================================================
+    //          PILON TELLURIQUE (ultime)
+    // ==================================================
+
+    public int getUltimateKillCount() { return this.entityData.get(ULTIMATE_KILL_COUNT); }
+    private void setUltimateKillCount(int count) { this.entityData.set(ULTIMATE_KILL_COUNT, Math.max(0, count)); }
+
+    /** Phase courante : 0 = inactif, 1 = suspension en l'air, 2 = plongeon. */
+    public int getTelluricStompPhase() { return this.entityData.get(TELLURIC_STOMP_PHASE); }
+    private void setTelluricStompPhase(int phase) { this.entityData.set(TELLURIC_STOMP_PHASE, phase); }
+    public boolean isTelluricStomping() { return getTelluricStompPhase() != 0; }
+
+    @Override
+    public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {
+        int kills = getUltimateKillCount();
+        if (kills < OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED) {
+            setUltimateKillCount(kills + 1);
+        }
+        return super.killedEntity(serverLevel, entity);
+    }
+
+    /**
+     * Vrai si le kangourou est à au moins {@code TELLURIC_STOMP_MIN_AIR_BLOCKS} blocs du sol
+     * (aucune collision sous lui sur cette hauteur). Conditionne le déblocage visuel de la carte.
+     */
+    public boolean isHighEnoughForTelluricStomp() {
+        if (this.onGround()) return false;
+        BlockPos pos = this.blockPosition();
+        for (int i = 1; i <= OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MIN_AIR_BLOCKS; i++) {
+            BlockPos below = pos.below(i);
+            if (!this.level().getBlockState(below).getCollisionShape(this.level(), below).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Déclenche le Pilon Tellurique (serveur). Suspend le kangourou en l'air avant le plongeon. */
+    public void activateTelluricStomp() {
+        if (this.level().isClientSide()) return;
+        if (isTelluricStomping()) return;
+        if (getUltimateKillCount() < OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED) return;
+        if (!isHighEnoughForTelluricStomp()) return;
+        if (getVitalEnergy() > getMaxVitalEnergy() - OWAttacksConstants.Kangaroo.TELLURIC_STOMP_ENERGY) {
+            canShowVitalEnergyLack = true;
+            return;
+        }
+
+        setVitalEnergy(getVitalEnergy() + OWAttacksConstants.Kangaroo.TELLURIC_STOMP_ENERGY);
+        setUltimateKillCount(0);
+
+        setTelluricStompPhase(1);
+        telluricStompHoverTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_HOVER_TICKS;
+        telluricStompDiveTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MAX_DIVE_TICKS;
+        this.setDeltaMovement(0, 0, 0);
+        this.hasImpulse = true;
+        this.fallDistance = 0f;
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL, 1.2f, 0.7f);
+    }
+
+    private void cancelTelluricStomp() {
+        setTelluricStompPhase(0);
+        telluricStompHoverTimer = 0;
+        telluricStompDiveTimer = 0;
+        this.setNoGravity(false);
+    }
+
+    private void tickTelluricStomp() {
+        if (!isTelluricStomping()) return;
+
+        // Gel vertical/horizontal pendant toute la durée : la physique est pilotée manuellement.
+        this.setNoGravity(true);
+        this.fallDistance = 0f;
+
+        if (getTelluricStompPhase() == 1) {
+            // Suspension en l'air.
+            this.setDeltaMovement(0, 0, 0);
+            this.hasImpulse = true;
+
+            if (this.level().isClientSide()) return;
+
+            if (telluricStompHoverTimer > 0) {
+                telluricStompHoverTimer--;
+            } else {
+                setTelluricStompPhase(2);
+            }
+            return;
+        }
+
+        // Phase 2 : plongeon vertical rapide.
+        this.setDeltaMovement(0, -OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DIVE_SPEED, 0);
+        this.hasImpulse = true;
+
+        if (this.level().isClientSide()) return;
+
+        if (telluricStompDiveTimer > 0) telluricStompDiveTimer--;
+
+        if (this.onGround() || this.verticalCollision || telluricStompDiveTimer <= 0) {
+            executeTelluricStompImpact();
+            cancelTelluricStomp();
+        }
+    }
+
+    /** Onde de choc à l'atterrissage : dégâts dégressifs, Lenteur I et léger pop vertical. */
+    private void executeTelluricStompImpact() {
+        double radius = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_RADIUS;
+        AABB area = this.getBoundingBox().inflate(radius, 2.0, radius);
+        UUID owner = this.getOwnerUUID();
+
+        List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area, target -> {
+            if (target == this) return false;
+            if (this.getPassengers().contains(target)) return false;
+            if (isAlliedTo(target)) return false;
+            if (owner != null) {
+                if (target.getUUID().equals(owner)) return false;
+                if (target instanceof TamableAnimal ta && owner.equals(ta.getOwnerUUID())) return false;
+            }
+            return this.distanceToSqr(target) <= radius * radius;
+        });
+
+        float baseDamage = this.getDamage();
+        for (LivingEntity target : targets) {
+            double dist = Math.sqrt(this.distanceToSqr(target));
+            float t = (float) Mth.clamp(dist / radius, 0.0, 1.0);
+            float mult = Mth.lerp(t,
+                    OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DAMAGE_CENTER_MULT,
+                    OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DAMAGE_EDGE_MULT);
+
+            target.hurt(this.damageSources().mobAttack(this), baseDamage * mult);
+            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
+                    OWAttacksConstants.Kangaroo.TELLURIC_STOMP_SLOWNESS_TICKS, 0));
+
+            // Léger envol, dans l'esprit de l'uppercut du combo 3.
+            Vec3 outward = target.position().subtract(this.position());
+            outward = outward.lengthSqr() > 1.0e-4 ? outward.multiply(1, 0, 1).normalize() : Vec3.ZERO;
+            Vec3 motion = target.getDeltaMovement();
+            target.setDeltaMovement(motion.x * 0.3 + outward.x * 0.3, 0.6, motion.z * 0.3 + outward.z * 0.3);
+            target.hasImpulse = true;
+            target.hurtMarked = true;
+        }
+
+        createMiniShockwave();
+
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.2, this.getZ(),
+                    8, radius * 0.5, 0.1, radius * 0.5, 0.0);
+            serverLevel.sendParticles(ParticleTypes.SWEEP_ATTACK, this.getX(), this.getY() + 0.5, this.getZ(),
+                    20, radius * 0.5, 0.2, radius * 0.5, 0.1);
+            BlockParticleOption dirtParticle = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
+            serverLevel.sendParticles(dirtParticle, this.getX(), this.getY() + 0.1, this.getZ(),
+                    120, radius * 0.45, 0.2, radius * 0.45, 0.35);
+        }
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.MINI_EARTHQUAKE.get(), SoundSource.NEUTRAL, 1.6f, 0.9f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL, 1.4f, 0.6f);
+    }
+
     public void createMiniShockwave() {
         Vec3 look = this.getLookAngle();
         double x = this.getX() + look.x * 2.0;
@@ -593,6 +771,19 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         createSitAnimation(80, true);
 
         setupComboAnimations();
+        setupTelluricStompAnimation();
+    }
+
+    private void setupTelluricStompAnimation() {
+        if (isTelluricStomping()) {
+            if (telluricStompAnimTimer <= 0) {
+                telluricStompAnimTimer = 1;
+                this.telluricStompAnim.start(this.tickCount);
+            }
+        } else {
+            telluricStompAnimTimer = 0;
+            this.telluricStompAnim.stop();
+        }
     }
 
     private void setupComboAnimations() {
@@ -689,6 +880,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
         tag.putBoolean("isWearingBoxingGloves", this.isWearingBoxingGloves());
+        tag.putInt("ultimateKillCount", this.getUltimateKillCount());
     }
 
     @Override
@@ -697,6 +889,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.entityData.set(DATA_INITIAL_VARIANT, tag.getInt("getInitialVariant"));
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.entityData.set(IS_WEARING_BOXING_GLOVES, tag.getBoolean("isWearingBoxingGloves"));
+        this.entityData.set(ULTIMATE_KILL_COUNT, tag.getInt("ultimateKillCount"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
 

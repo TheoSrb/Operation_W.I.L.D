@@ -114,6 +114,9 @@ public class OWAttackLogic {
     private static long    kangarooWhirlwindPressMs = -1L;
     private static OWAttack kangarooWhirlwindAttack = null;
 
+    // ── Pilon Tellurique : suivi du plongeon pour déclencher la secousse à l'impact ──
+    private static boolean kangarooWasTelluricStomping = false;
+
     private static final long   CLICK_ANIM_DURATION_MS = 200L;
     private static final float  CLICK_ANIM_PEAK_SCALE  = 1.22f;
 
@@ -251,6 +254,17 @@ public class OWAttackLogic {
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
+
+        // Pilon Tellurique : la fin du plongeon (stomping → non-stomping) déclenche la secousse d'impact.
+        if (mc.player != null && mc.player.getRootVehicle() instanceof KangarooEntity kStomp) {
+            boolean stomping = kStomp.isTelluricStomping();
+            if (kangarooWasTelluricStomping && !stomping) {
+                ultimateWowEffectStartMs = System.currentTimeMillis();
+            }
+            kangarooWasTelluricStomping = stomping;
+        } else {
+            kangarooWasTelluricStomping = false;
+        }
 
         // Tornade de Poings : si le joueur n'est plus sur un kangourou, on lâche le maintien/amorce
         // (le serveur arrête déjà la rotation au démontage).
@@ -752,6 +766,14 @@ public class OWAttackLogic {
         }
 
         if (!attack.isUnlocked(owEntity)) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        // Pilon Tellurique : indisponible si le kangourou n'est pas assez haut (carte grisée).
+        if (attack.getId() == OWAttacksHandler.TELLURIC_STOMP_ID
+                && owEntity instanceof KangarooEntity kangaroo
+                && !kangaroo.isHighEnoughForTelluricStomp()) {
             recordAttackClick(attack.getId(), true);
             return;
         }

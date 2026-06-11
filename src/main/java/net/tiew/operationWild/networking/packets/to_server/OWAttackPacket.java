@@ -108,6 +108,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)
                                 boa.activateConstrictUltimate();
                         }
+                        case 12 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo)
+                                kangaroo.activateTelluricStomp();
+                        }
                     }
                 }
 

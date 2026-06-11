@@ -64,6 +64,26 @@ public class OWAttacksConstants {
         public static final float WHIRLWIND_DAMAGE_MAX = 3.0f;
         public static final float WHIRLWIND_ENERGY = 0f;
         public static final long WHIRLWIND_HOLD_TO_START_MS = 300L;
+
+        // ── Pilon Tellurique (ultime) ──────────────────────────────────────────
+        public static final int    TELLURIC_STOMP_KILLS_REQUIRED   = 5;
+        public static final int    TELLURIC_STOMP_COOLDOWN_TICKS   = 500;   // 25 s
+        public static final float  TELLURIC_STOMP_ENERGY           = 100f;
+        /** Hauteur minimale (en blocs d'air sous l'entité) pour déclencher l'ultime ; sinon carte grisée. */
+        public static final int    TELLURIC_STOMP_MIN_AIR_BLOCKS   = 5;
+        /** Suspension en l'air avant le plongeon. */
+        public static final int    TELLURIC_STOMP_HOVER_TICKS      = 10;    // 0,5 s
+        /** Vitesse verticale du plongeon (blocs/tick). */
+        public static final double TELLURIC_STOMP_DIVE_SPEED       = 2.5;
+        /** Sécurité : durée max du plongeon avant impact forcé. */
+        public static final int    TELLURIC_STOMP_MAX_DIVE_TICKS   = 60;
+        public static final double TELLURIC_STOMP_RADIUS           = 5.0;
+        /** Multiplicateur de getDamage() au centre de l'impact (distance 0). */
+        public static final float  TELLURIC_STOMP_DAMAGE_CENTER_MULT = 1.5f;
+        /** Multiplicateur de getDamage() au bord de l'impact (distance = rayon). */
+        public static final float  TELLURIC_STOMP_DAMAGE_EDGE_MULT   = 0.5f;
+        /** Durée de Lenteur I appliquée aux ennemis touchés. */
+        public static final int    TELLURIC_STOMP_SLOWNESS_TICKS   = 200;   // 10 s
     }
 
     public static class Boa {

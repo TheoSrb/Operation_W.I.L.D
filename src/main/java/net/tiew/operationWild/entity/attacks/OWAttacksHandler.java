@@ -51,6 +51,7 @@ public class OWAttacksHandler {
     public static final int VENOM_FANGS_ID = 9;
     public static final int CONSTRICT_ULTIMATE_ID = 10;
     public static final int WHIRLWIND_FISTS_ID = 11;
+    public static final int TELLURIC_STOMP_ID = 12;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -99,6 +100,7 @@ public class OWAttacksHandler {
         registerEntityRow(KangarooEntity.class, 5);
         registerComboMaxTimer(KangarooEntity.class, 12);
         register(KangarooEntity.class, KangarooAttacks.WHIRLWIND_FISTS);
+        register(KangarooEntity.class, KangarooAttacks.TELLURIC_STOMP);
 
         registerEntityRow(CrocodileEntity.class, 2);
         registerComboMaxTimer(CrocodileEntity.class, 17);
@@ -261,6 +263,27 @@ public class OWAttacksHandler {
                 OWAttacksConstants.Kangaroo.WHIRLWIND_ENERGY,
                 entity -> { },
                 0
+        );
+
+        /**
+         * Pilon Tellurique — ultime (touche X). Se charge avec 5 kills et exige que le kangourou
+         * soit à au moins 5 blocs du sol (sinon carte grisée). Une fois déclenché : suspension en
+         * l'air (~10 ticks) puis plongeon vertical fulgurant ; à l'impact, onde de choc dans un rayon
+         * de 5 blocs (dégâts dégressifs du centre vers le bord) + Lenteur I (10 s) + léger envol.
+         */
+        public static final OWAttack TELLURIC_STOMP = new OWAttack(
+                TELLURIC_STOMP_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Kangaroo.TELLURIC_STOMP_ENERGY,
+                entity -> ((KangarooEntity) entity).activateTelluricStomp(),
+                OWAttacksConstants.Kangaroo.TELLURIC_STOMP_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof KangarooEntity kangaroo
+                        && kangaroo.getUltimateKillCount() >= OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof KangarooEntity kangaroo
+                        ? (float) kangaroo.getUltimateKillCount() / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED
+                        : 0f
         );
     }
 
