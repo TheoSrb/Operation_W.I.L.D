@@ -32,7 +32,8 @@
       "Bash(xargs -I{} basename {})",
       "PowerShell(Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead\\(\"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\build\\\\moddev\\\\artifacts\\\\neoforge-21.0.167-merged.jar\"\\); $entry = $zip.Entries | Where-Object { $_.FullName -eq \"net/minecraft/client/gui/screens/inventory/EffectRenderingInventoryScreen.java\" }; $reader = New-Object System.IO.StreamReader\\($entry.Open\\(\\)\\); $content = $reader.ReadToEnd\\(\\); $reader.Close\\(\\); $zip.Dispose\\(\\); $content)",
       "Bash(./gradlew compileJava -q)",
-      "mcp__visualize__read_me"
+      "mcp__visualize__read_me",
+      "PowerShell(.\\\\gradlew.bat compileJava --console=plain -q)"
     ]
   }
 }

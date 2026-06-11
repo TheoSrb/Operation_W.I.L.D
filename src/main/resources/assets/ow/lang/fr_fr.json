@@ -5,7 +5,7 @@
   "ow.attacks.kangaroo.whirlwind.title": "Tornade de Poings",
   "ow.attacks.kangaroo.whirlwind.desc": "Maintenez le clic droit : les poings du Kangourou tournent de plus en plus vite (pic à %s s). Immobilisé, il inflige devant lui des dégâts de plus en plus forts (jusqu'à %s par coup) aux entités à moins de %s blocs. Dure %s s max ; recharge de %s s si l'attaque a duré plus de %s s.",
   "ow.attacks.kangaroo.telluric_stomp.title": "Pilon Tellurique",
-  "ow.attacks.kangaroo.telluric_stomp.desc": "Se charge avec %s kills. À au moins %s blocs du sol, appuyez sur X : le Kangourou se fige en l'air puis fond vers le sol, pied en avant. À l'impact, une onde de choc dans un rayon de %s blocs inflige de %s%% (au centre) à %s%% (au bord) des dégâts du Kangourou et applique Lenteur I pendant %s s. Rechargement : %s s.",
+  "ow.attacks.kangaroo.telluric_stomp.desc": "Se charge avec %s kills. Appuyez sur X : au sol, le Kangourou bondit haut, se fige en l'air, puis fonce dans la direction du regard ; en l'air, il fonce directement. À l'impact, une onde de choc dans un rayon de %s blocs inflige de %s%% (au centre) à %s%% (au bord) des dégâts du Kangourou et applique Lenteur I pendant %s s. Rechargement : %s s.",
   "ow.attacks.kangaroo.spring_step.title": "Pattes-Ressort",
   "ow.attacks.kangaroo.spring_step.desc": "Les pattes puissantes du kangourou amortissent tous les impacts : il ne subit jamais de dégâts de chute.",
   "container.saddler": "Sellier",

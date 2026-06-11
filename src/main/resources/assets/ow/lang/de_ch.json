@@ -5,7 +5,7 @@
   "ow.attacks.kangaroo.whirlwind.title": "Faustwirbel",
   "ow.attacks.kangaroo.whirlwind.desc": "Halte die rechte Maustaste gedrückt: Die Fäuste des Kängurus drehen sich immer schneller (Höhepunkt bei %s s). Bewegungsunfähig fügt es vor sich wachsenden Schaden zu (bis zu %s pro Treffer) an Gegnern im Umkreis von %s Blöcken. Dauert max. %s s; %s s Abklingzeit, wenn der Angriff länger als %s s dauerte.",
   "ow.attacks.kangaroo.telluric_stomp.title": "Tellurischer Stampfer",
-  "ow.attacks.kangaroo.telluric_stomp.desc": "Lädt sich mit %s Kills auf. Mindestens %s Blöcke über dem Boden X drücken: Das Känguru hält in der Luft inne und stürzt dann mit den Füßen voran zu Boden. Beim Aufprall fügt eine Schockwelle im Umkreis von %s Blöcken zwischen %s%% (Zentrum) und %s%% (Rand) des Schadens des Kängurus zu und verleiht %s s lang Langsamkeit I. Abklingzeit: %s s.",
+  "ow.attacks.kangaroo.telluric_stomp.desc": "Lädt sich mit %s Kills auf. X drücken: Am Boden springt das Känguru hoch, hält in der Luft inne und stürzt dann in Blickrichtung herab; in der Luft stürzt es sofort. Beim Aufprall fügt eine Schockwelle im Umkreis von %s Blöcken zwischen %s%% (Zentrum) und %s%% (Rand) des Schadens des Kängurus zu und verleiht %s s lang Langsamkeit I. Abklingzeit: %s s.",
   "ow.attacks.kangaroo.spring_step.title": "Sprungbeine",
   "ow.attacks.kangaroo.spring_step.desc": "Die kräftigen Beine des Kängurus federn jeden Aufprall ab: Es erleidet niemals Fallschaden.",
   "container.saddler": "Sattler",

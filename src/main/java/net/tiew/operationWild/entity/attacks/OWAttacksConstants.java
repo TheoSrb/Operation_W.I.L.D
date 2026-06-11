@@ -63,18 +63,29 @@ public class OWAttacksConstants {
         public static final float WHIRLWIND_DAMAGE_MIN = 1.0f;
         public static final float WHIRLWIND_DAMAGE_MAX = 3.0f;
         public static final float WHIRLWIND_ENERGY = 0f;
-        public static final long WHIRLWIND_HOLD_TO_START_MS = 300L;
+        public static final long WHIRLWIND_HOLD_TO_START_MS = 120L;
 
         // ── Pilon Tellurique (ultime) ──────────────────────────────────────────
         public static final int    TELLURIC_STOMP_KILLS_REQUIRED   = 5;
         public static final int    TELLURIC_STOMP_COOLDOWN_TICKS   = 500;   // 25 s
         public static final float  TELLURIC_STOMP_ENERGY           = 100f;
-        /** Hauteur minimale (en blocs d'air sous l'entité) pour déclencher l'ultime ; sinon carte grisée. */
-        public static final int    TELLURIC_STOMP_MIN_AIR_BLOCKS   = 5;
-        /** Suspension en l'air avant le plongeon. */
-        public static final int    TELLURIC_STOMP_HOVER_TICKS      = 10;    // 0,5 s
+        /** Vitesse verticale initiale du bond (blocs/tick) : gros BOOM au départ, amorti vers l'apogée. */
+        public static final double TELLURIC_STOMP_LEAP_POWER       = 2.0;
+        /** Élan horizontal du bond (blocs/tick, vers le yaw du rider) → trajectoire en arc. */
+        public static final double TELLURIC_STOMP_LEAP_FORWARD     = 0.55;
+        /** Durée de la montée du bond initial avant la suspension. */
+        public static final int    TELLURIC_STOMP_LEAP_TICKS       = 11;
+        /** Suspension en l'air avant le plongeon (inclut la décélération). */
+        public static final int    TELLURIC_STOMP_HOVER_TICKS      = 5;
+        /** Facteur d'amortissement de la vélocité par tick pendant la suspension (proche de 1 = plus doux). */
+        public static final float  TELLURIC_STOMP_HOVER_DAMPING    = 0.5f;
         /** Vitesse verticale du plongeon (blocs/tick). */
         public static final double TELLURIC_STOMP_DIVE_SPEED       = 2.5;
+        /** Durée de montée en puissance du plongeon (départ doux puis pleine vitesse). */
+        public static final int    TELLURIC_STOMP_DIVE_RAMP_TICKS  = 3;
+        /** Angle minimal du plongeon sous l'horizontale (degrés) : on suit le yaw du regard mais le
+         *  pitch est borné entre cette valeur et 90° (verticale) → jamais vers le haut. */
+        public static final float  TELLURIC_STOMP_MIN_DIVE_PITCH   = 45f;
         /** Sécurité : durée max du plongeon avant impact forcé. */
         public static final int    TELLURIC_STOMP_MAX_DIVE_TICKS   = 60;
         public static final double TELLURIC_STOMP_RADIUS           = 5.0;

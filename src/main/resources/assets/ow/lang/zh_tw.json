@@ -5,7 +5,7 @@
   "ow.attacks.kangaroo.whirlwind.title": "拳頭旋風",
   "ow.attacks.kangaroo.whirlwind.desc": "按住右鍵：袋鼠的拳頭越轉越快（%s 秒達到顛峰）。牠無法移動，但會以每擊最多 %s 點的傷害攻擊正面 %s 格以內的實體，傷害越來越高。最多持續 %s 秒；冷卻 %s 秒（僅當攻擊持續超過 %s 秒時）。",
   "ow.attacks.kangaroo.telluric_stomp.title": "大地踐踏",
-  "ow.attacks.kangaroo.telluric_stomp.desc": "擊殺 %s 次後充能。在距地面至少 %s 格高度時按 X：袋鼠在空中定身，隨後雙腳朝下猛衝向地面。落地時，半徑 %s 格內的衝擊波造成袋鼠傷害的 %s%%（中心）至 %s%%（邊緣），並施加緩慢 I 持續 %s 秒。冷卻時間：%s 秒。",
+  "ow.attacks.kangaroo.telluric_stomp.desc": "擊殺 %s 次後充能。按 X：在地面時，袋鼠先高高躍起，在空中定身，隨後朝視線方向猛衝；在空中時則立即猛衝。落地時，半徑 %s 格內的衝擊波造成袋鼠傷害的 %s%%（中心）至 %s%%（邊緣），並施加緩慢 I 持續 %s 秒。冷卻時間：%s 秒。",
   "ow.attacks.kangaroo.spring_step.title": "彈簧腿",
   "ow.attacks.kangaroo.spring_step.desc": "袋鼠強壯的腿能吸收一切衝擊：牠永遠不會受到墜落傷害。",
   "container.saddler": "鞍具台",

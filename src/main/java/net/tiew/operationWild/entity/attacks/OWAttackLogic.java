@@ -770,14 +770,6 @@ public class OWAttackLogic {
             return;
         }
 
-        // Pilon Tellurique : indisponible si le kangourou n'est pas assez haut (carte grisée).
-        if (attack.getId() == OWAttacksHandler.TELLURIC_STOMP_ID
-                && owEntity instanceof KangarooEntity kangaroo
-                && !kangaroo.isHighEnoughForTelluricStomp()) {
-            recordAttackClick(attack.getId(), true);
-            return;
-        }
-
         if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
             owEntity.canShowVitalEnergyLack = true;
             recordAttackClick(attack.getId(), true);

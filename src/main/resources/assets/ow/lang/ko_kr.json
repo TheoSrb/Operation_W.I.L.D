@@ -5,7 +5,7 @@
   "ow.attacks.kangaroo.whirlwind.title": "주먹 회오리",
   "ow.attacks.kangaroo.whirlwind.desc": "우클릭 유지: 캥거루의 주먹이 점점 빠르게 회전합니다(%s초에 최고조). 이동할 수 없지만 정면의 적에게 일격당 최대 %s의 피해를 점점 강하게 입힙니다(%s블록 이내). 최대 %s초 지속하며, %s초의 재사용 대기시간이 있습니다(공격이 %s초를 초과한 경우에만).",
   "ow.attacks.kangaroo.telluric_stomp.title": "대지 강타",
-  "ow.attacks.kangaroo.telluric_stomp.desc": "처치 %s회로 충전됩니다. 지면에서 %s블록 이상 높이에서 X를 누르면 캥거루가 공중에서 멈췄다가 발부터 땅으로 내리꽂힙니다. 충격 시 반경 %s블록의 충격파가 캥거루 공격력의 %s%%(중심)에서 %s%%(가장자리)의 피해를 입히고 %s초 동안 구속 I을 부여합니다. 재사용 대기시간: %s초.",
+  "ow.attacks.kangaroo.telluric_stomp.desc": "처치 %s회로 충전됩니다. X를 누르면: 지면에서는 캥거루가 높이 뛰어올라 공중에서 멈춘 뒤 바라보는 방향으로 내리꽂히고, 공중에서는 즉시 내리꽂힙니다. 충격 시 반경 %s블록의 충격파가 캥거루 공격력의 %s%%(중심)에서 %s%%(가장자리)의 피해를 입히고 %s초 동안 구속 I을 부여합니다. 재사용 대기시간: %s초.",
   "ow.attacks.kangaroo.spring_step.title": "스프링 다리",
   "ow.attacks.kangaroo.spring_step.desc": "캥거루의 강력한 다리가 모든 충격을 흡수합니다: 낙하 피해를 절대 입지 않습니다.",
   "container.saddler": "안장 제작대",

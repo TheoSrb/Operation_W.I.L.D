@@ -66,11 +66,15 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     // ── Pilon Tellurique (ultime) ─────────────────────────────────────────────
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
-    /** Phase du Pilon Tellurique : 0 = inactif, 1 = suspension en l'air, 2 = plongeon. */
+    /** Phase du Pilon Tellurique : 0 = inactif, 1 = bond initial, 2 = suspension en l'air, 3 = plongeon. */
     private static final EntityDataAccessor<Integer> TELLURIC_STOMP_PHASE = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
 
+    private int telluricStompLeapTimer = 0;
+    private int telluricStompLeapElapsed = 0;
     private int telluricStompHoverTimer = 0;
     private int telluricStompDiveTimer = 0;
+    private int telluricStompDiveElapsed = 0;
+    private boolean telluricLeapImpulseApplied = false;
 
     public final AnimationState telluricStompAnim = new AnimationState();
     public int telluricStompAnimTimer = 0;
@@ -275,6 +279,16 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return isSpinning() || isTelluricStomping() || super.isImmobile();
     }
 
+    /**
+     * Pendant le Pilon Tellurique, on traite le kangourou comme un véhicule en bond : {@code travelRidden}
+     * cesse alors de réécrire la vélocité horizontale depuis le regard aplati et laisse la {@code deltaMovement}
+     * balistique (le plongeon piqué dans la direction du regard) s'appliquer telle quelle.
+     */
+    @Override
+    protected boolean isLeapingVehicle() {
+        return isTelluricStomping() || super.isLeapingVehicle();
+    }
+
     @Override
     public float getRiddenSpeedVehicle(Player player) {
         if (isSpinning()) {
@@ -294,7 +308,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     protected boolean forceRiderLookBodyRotation() {
-        return isSpinning();
+        return isSpinning() || isTelluricStomping();
     }
 
     @Override
@@ -321,6 +335,27 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 executeRidersJump(playerJumpPendingScale);
             }
             playerJumpPendingScale = 0f;
+        }
+
+        // Pilon Tellurique : le bond est piloté ici (instance contrôlée), juste avant travel() — seul
+        // endroit fiable pour poser la vélocité d'une monture montée. Courbe ease-out : gros BOOM au
+        // départ puis montée de plus en plus douce jusqu'à l'apogée.
+        if (this.isControlledByLocalInstance() && getTelluricStompPhase() == 1) {
+            float progress = Mth.clamp(
+                    (float) telluricStompLeapElapsed / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_TICKS, 0f, 1f);
+            float ease = (1f - progress) * (1f - progress);
+            // Élan horizontal vers le yaw du rider → trajectoire en arc (parabole) plutôt qu'un saut vertical.
+            Vec3 flat = Vec3.directionFromRotation(0f, player.getYRot());
+            double fwd = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_FORWARD;
+            this.setDeltaMovement(
+                    flat.x * fwd,
+                    OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_POWER * ease,
+                    flat.z * fwd);
+            this.hasImpulse = true;
+            if (!telluricLeapImpulseApplied) {
+                CommonHooks.onLivingJump(this);
+                telluricLeapImpulseApplied = true;
+            }
         }
     }
 
@@ -553,27 +588,22 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     /**
-     * Vrai si le kangourou est à au moins {@code TELLURIC_STOMP_MIN_AIR_BLOCKS} blocs du sol
-     * (aucune collision sous lui sur cette hauteur). Conditionne le déblocage visuel de la carte.
+     * Détection « au sol » robuste pour décider du bond initial. {@code onGround()} est peu fiable côté
+     * serveur pour une monture chevauchée ; on teste donc une collision de bloc juste sous les pieds
+     * (tolérance 0,5 bloc), ce qui est déterministe quelle que soit la position synchronisée.
      */
-    public boolean isHighEnoughForTelluricStomp() {
-        if (this.onGround()) return false;
-        BlockPos pos = this.blockPosition();
-        for (int i = 1; i <= OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MIN_AIR_BLOCKS; i++) {
-            BlockPos below = pos.below(i);
-            if (!this.level().getBlockState(below).getCollisionShape(this.level(), below).isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+    private boolean isGroundedForStomp() {
+        if (this.onGround()) return true;
+        AABB box = this.getBoundingBox();
+        AABB probe = new AABB(box.minX, box.minY - 0.5, box.minZ, box.maxX, box.minY, box.maxZ);
+        return !this.level().noCollision(this, probe);
     }
 
-    /** Déclenche le Pilon Tellurique (serveur). Suspend le kangourou en l'air avant le plongeon. */
+    /** Déclenche le Pilon Tellurique (serveur). Au sol : bond initial → suspension → plongeon. En l'air : suspension → plongeon. */
     public void activateTelluricStomp() {
         if (this.level().isClientSide()) return;
         if (isTelluricStomping()) return;
         if (getUltimateKillCount() < OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED) return;
-        if (!isHighEnoughForTelluricStomp()) return;
         if (getVitalEnergy() > getMaxVitalEnergy() - OWAttacksConstants.Kangaroo.TELLURIC_STOMP_ENERGY) {
             canShowVitalEnergyLack = true;
             return;
@@ -582,12 +612,19 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         setVitalEnergy(getVitalEnergy() + OWAttacksConstants.Kangaroo.TELLURIC_STOMP_ENERGY);
         setUltimateKillCount(0);
 
-        setTelluricStompPhase(1);
-        telluricStompHoverTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_HOVER_TICKS;
-        telluricStompDiveTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MAX_DIVE_TICKS;
-        this.setDeltaMovement(0, 0, 0);
-        this.hasImpulse = true;
+        telluricLeapImpulseApplied = false;
         this.fallDistance = 0f;
+        this.hasImpulse = true;
+
+        if (isGroundedForStomp()) {
+            // Au sol (ou tout près) : bond préalable pour prendre de la hauteur.
+            setTelluricStompPhase(1);
+            telluricStompLeapTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_TICKS;
+        } else {
+            // Déjà en l'air : suspension directe.
+            setTelluricStompPhase(2);
+            telluricStompHoverTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_HOVER_TICKS;
+        }
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL, 1.2f, 0.7f);
@@ -595,21 +632,51 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     private void cancelTelluricStomp() {
         setTelluricStompPhase(0);
+        telluricStompLeapTimer = 0;
+        telluricStompLeapElapsed = 0;
         telluricStompHoverTimer = 0;
         telluricStompDiveTimer = 0;
+        telluricStompDiveElapsed = 0;
+        telluricLeapImpulseApplied = false;
         this.setNoGravity(false);
     }
 
     private void tickTelluricStomp() {
-        if (!isTelluricStomping()) return;
+        if (!isTelluricStomping()) {
+            // Réarme les compteurs pour le prochain usage (le client n'exécute pas activate/cancel).
+            telluricLeapImpulseApplied = false;
+            telluricStompLeapElapsed = 0;
+            telluricStompDiveElapsed = 0;
+            return;
+        }
 
-        // Gel vertical/horizontal pendant toute la durée : la physique est pilotée manuellement.
-        this.setNoGravity(true);
         this.fallDistance = 0f;
+        int phase = getTelluricStompPhase();
 
-        if (getTelluricStompPhase() == 1) {
-            // Suspension en l'air.
-            this.setDeltaMovement(0, 0, 0);
+        // ── Phase 1 : bond initial (depuis le sol) ───────────────────────────
+        // La vitesse verticale (courbe ease-out) est pilotée dans tickRidden ; ici on coupe la gravité
+        // (on contrôle entièrement la montée) et on avance le compteur des deux côtés.
+        if (phase == 1) {
+            this.setNoGravity(true);
+            telluricStompLeapElapsed++;
+
+            if (this.level().isClientSide()) return;
+
+            if (telluricStompLeapTimer > 0) {
+                telluricStompLeapTimer--;
+            } else {
+                setTelluricStompPhase(2);
+                telluricStompHoverTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_HOVER_TICKS;
+            }
+            return;
+        }
+
+        // ── Phase 2 : suspension en l'air ────────────────────────────────────
+        if (phase == 2) {
+            this.setNoGravity(true);
+            // Décélération douce vers l'immobilité (pas d'arrêt sec) : la vélocité du bond
+            // s'amortit progressivement jusqu'à la suspension.
+            this.setDeltaMovement(this.getDeltaMovement().scale(OWAttacksConstants.Kangaroo.TELLURIC_STOMP_HOVER_DAMPING));
             this.hasImpulse = true;
 
             if (this.level().isClientSide()) return;
@@ -617,20 +684,33 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             if (telluricStompHoverTimer > 0) {
                 telluricStompHoverTimer--;
             } else {
-                setTelluricStompPhase(2);
+                setTelluricStompPhase(3);
+                telluricStompDiveTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MAX_DIVE_TICKS;
             }
             return;
         }
 
-        // Phase 2 : plongeon vertical rapide.
-        this.setDeltaMovement(0, -OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DIVE_SPEED, 0);
+        // ── Phase 3 : plongeon dans la direction du regard du rider ──────────
+        this.setNoGravity(true);
+        telluricStompDiveElapsed++;
+        LivingEntity rider = this.getControllingPassenger();
+        // On suit le yaw du regard, mais on borne le pitch vers le bas (jamais en l'air) :
+        // entre MIN_DIVE_PITCH (45° sous l'horizontale) et 90° (verticale).
+        float lookPitch = rider != null ? rider.getXRot() : this.getXRot();
+        float lookYaw = rider != null ? rider.getYRot() : this.getYRot();
+        float divePitch = Mth.clamp(lookPitch, OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MIN_DIVE_PITCH, 90f);
+        Vec3 dir = Vec3.directionFromRotation(divePitch, lookYaw);
+        // Montée en puissance douce : départ progressif (ease-in) puis pleine vitesse de plongeon.
+        float ramp = Mth.clamp((float) telluricStompDiveElapsed / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DIVE_RAMP_TICKS, 0f, 1f);
+        double speed = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DIVE_SPEED * (0.3 + 0.7 * (ramp * ramp));
+        this.setDeltaMovement(dir.scale(speed));
         this.hasImpulse = true;
 
         if (this.level().isClientSide()) return;
 
         if (telluricStompDiveTimer > 0) telluricStompDiveTimer--;
 
-        if (this.onGround() || this.verticalCollision || telluricStompDiveTimer <= 0) {
+        if (this.onGround() || this.verticalCollision || this.horizontalCollision || telluricStompDiveTimer <= 0) {
             executeTelluricStompImpact();
             cancelTelluricStomp();
         }
@@ -677,17 +757,22 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         createMiniShockwave();
 
         if (this.level() instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.2, this.getZ(),
-                    8, radius * 0.5, 0.1, radius * 0.5, 0.0);
+            // Gros boom au sol : grosse déflagration centrale + nuées d'explosion, terre et poussière.
+            serverLevel.sendParticles(ParticleTypes.EXPLOSION_EMITTER, this.getX(), this.getY() + 0.2, this.getZ(),
+                    1, 0.0, 0.0, 0.0, 0.0);
+            serverLevel.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.3, this.getZ(),
+                    24, radius * 0.6, 0.15, radius * 0.6, 0.0);
             serverLevel.sendParticles(ParticleTypes.SWEEP_ATTACK, this.getX(), this.getY() + 0.5, this.getZ(),
-                    20, radius * 0.5, 0.2, radius * 0.5, 0.1);
+                    30, radius * 0.6, 0.2, radius * 0.6, 0.1);
+            serverLevel.sendParticles(ParticleTypes.CLOUD, this.getX(), this.getY() + 0.1, this.getZ(),
+                    60, radius * 0.65, 0.05, radius * 0.65, 0.15);
             BlockParticleOption dirtParticle = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
             serverLevel.sendParticles(dirtParticle, this.getX(), this.getY() + 0.1, this.getZ(),
-                    120, radius * 0.45, 0.2, radius * 0.45, 0.35);
+                    240, radius * 0.6, 0.3, radius * 0.6, 0.5);
         }
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                OWSounds.MINI_EARTHQUAKE.get(), SoundSource.NEUTRAL, 1.6f, 0.9f);
+                SoundEvents.GENERIC_EXPLODE.value(), SoundSource.NEUTRAL, 1.6f, 0.7f);
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL, 1.4f, 0.6f);
     }

@@ -287,7 +287,6 @@ public class OWAttacksInformation {
                         title("ow.attacks.kangaroo.telluric_stomp.title"),
                         e -> desc("ow.attacks.kangaroo.telluric_stomp.desc",
                                 val(OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED),
-                                val((int) OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MIN_AIR_BLOCKS),
                                 val((int) OWAttacksConstants.Kangaroo.TELLURIC_STOMP_RADIUS),
                                 val((int) (OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DAMAGE_CENTER_MULT * 100)),
                                 val((int) (OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DAMAGE_EDGE_MULT * 100)),

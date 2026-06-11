@@ -5,7 +5,7 @@
   "ow.attacks.kangaroo.whirlwind.title": "Puños Tornado",
   "ow.attacks.kangaroo.whirlwind.desc": "Mantén el clic derecho: los puños del Canguro giran cada vez más rápido (máximo a %s s). Inmóvil, inflige daño creciente frente a él (hasta %s por golpe) a las entidades a menos de %s bloques. Dura %s s como máximo; %s s de recarga si el ataque duró más de %s s.",
   "ow.attacks.kangaroo.telluric_stomp.title": "Pisotón Telúrico",
-  "ow.attacks.kangaroo.telluric_stomp.desc": "Se carga con %s muertes. A al menos %s bloques del suelo, pulsa X: el Canguro se detiene en el aire y se lanza al suelo con las patas por delante. Al impactar, una onda de choque en un radio de %s bloques inflige del %s%% (centro) al %s%% (borde) del daño del Canguro y aplica Lentitud I durante %s s. Reutilización: %s s.",
+  "ow.attacks.kangaroo.telluric_stomp.desc": "Se carga con %s muertes. Pulsa X: en el suelo, el Canguro salta alto, se detiene en el aire y luego se lanza en la dirección de tu mirada; en el aire, se lanza de inmediato. Al impactar, una onda de choque en un radio de %s bloques inflige del %s%% (centro) al %s%% (borde) del daño del Canguro y aplica Lentitud I durante %s s. Reutilización: %s s.",
   "ow.attacks.kangaroo.spring_step.title": "Patas de Resorte",
   "ow.attacks.kangaroo.spring_step.desc": "Las potentes patas del canguro absorben todo impacto: nunca recibe daño por caída.",
   "container.saddler": "Guarnicionero",

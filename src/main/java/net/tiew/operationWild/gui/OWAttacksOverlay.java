@@ -141,9 +141,6 @@ public class OWAttacksOverlay {
             // ── Kangourou Tornade de Poings (maintien) ────────────────────────
             boolean isWhirlwind = attack.getId() == OWAttacksHandler.WHIRLWIND_FISTS_ID;
 
-            // ── Kangourou Pilon Tellurique (ultime) ───────────────────────────
-            boolean isTelluricStomp = attack.getId() == OWAttacksHandler.TELLURIC_STOMP_ID;
-
             boolean isCharging = attack instanceof OWChargedAttack
                     && OWAttackLogic.isCharging
                     && OWAttackLogic.getCurrentAttackId() == attack.getId();
@@ -219,11 +216,7 @@ public class OWAttacksOverlay {
             // Tornade indisponible dans l'eau : carte grisée.
             boolean isWhirlwindBlockedInWater = isWhirlwind && entity.isInWater();
 
-            // Pilon Tellurique chargé mais pas assez haut du sol : carte grisée.
-            boolean isStompReadyButGrounded = isTelluricStomp && attack.isUnlocked(entity)
-                    && entity instanceof KangarooEntity ks && !ks.isHighEnoughForTelluricStomp();
-
-            if (isGrabbing || isWhirlwindBlockedInWater || isStompReadyButGrounded) {
+            if (isGrabbing || isWhirlwindBlockedInWater) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;

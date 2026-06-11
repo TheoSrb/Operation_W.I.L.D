@@ -5,7 +5,7 @@
   "ow.attacks.kangaroo.whirlwind.title": "Punhos Furacão",
   "ow.attacks.kangaroo.whirlwind.desc": "Mantenha o botão direito: os punhos do Canguru giram cada vez mais depressa (pico aos %s s). Imóvel, causa dano crescente à sua frente (até %s por golpe) às entidades a menos de %s blocos. Dura %s s no máximo; %s s de recarga se o ataque durou mais de %s s.",
   "ow.attacks.kangaroo.telluric_stomp.title": "Pisão Telúrico",
-  "ow.attacks.kangaroo.telluric_stomp.desc": "Carrega com %s abates. A pelo menos %s blocos do chão, prima X: o Canguru fica imóvel no ar e mergulha em direção ao chão com as patas à frente. No impacto, uma onda de choque num raio de %s blocos causa de %s%% (centro) a %s%% (borda) do dano do Canguru e aplica Lentidão I durante %s s. Recarga: %s s.",
+  "ow.attacks.kangaroo.telluric_stomp.desc": "Carrega com %s abates. Prima X: no chão, o Canguru salta alto, fica imóvel no ar e depois mergulha na direção do olhar; no ar, mergulha de imediato. No impacto, uma onda de choque num raio de %s blocos causa de %s%% (centro) a %s%% (borda) do dano do Canguru e aplica Lentidão I durante %s s. Recarga: %s s.",
   "ow.attacks.kangaroo.spring_step.title": "Pernas-Mola",
   "ow.attacks.kangaroo.spring_step.desc": "As patas potentes do canguru absorvem qualquer impacto: nunca sofre dano de queda.",
   "container.saddler": "Seleiro",

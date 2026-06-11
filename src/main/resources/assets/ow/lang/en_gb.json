@@ -5,7 +5,7 @@
   "ow.attacks.kangaroo.whirlwind.title": "Whirlwind Fists",
   "ow.attacks.kangaroo.whirlwind.desc": "Hold right-click: the Kangaroo's fists spin faster and faster (peak at %s s). Rooted in place, it deals growing damage in front of it (up to %s per hit) to entities within %s blocks. Lasts %s s max; %s s cooldown if the attack lasted more than %s s.",
   "ow.attacks.kangaroo.telluric_stomp.title": "Telluric Stomp",
-  "ow.attacks.kangaroo.telluric_stomp.desc": "Charges with %s kills. While at least %s blocks above the ground, press X: the Kangaroo freezes in mid-air then slams down feet-first. On impact, a shockwave within a %s-block radius deals from %s%% (centre) to %s%% (edge) of the Kangaroo's damage and applies Slowness I for %s s. Cooldown: %s s.",
+  "ow.attacks.kangaroo.telluric_stomp.desc": "Charges with %s kills. Press X: on the ground, the Kangaroo leaps high, freezes in mid-air, then dives in the direction you're looking; while airborne, it dives right away. On impact, a shockwave within a %s-block radius deals from %s%% (centre) to %s%% (edge) of the Kangaroo's damage and applies Slowness I for %s s. Cooldown: %s s.",
   "ow.attacks.kangaroo.spring_step.title": "Spring Step",
   "ow.attacks.kangaroo.spring_step.desc": "The Kangaroo's powerful legs absorb every impact: it never takes fall damage.",
   "container.saddler": "Saddler",
