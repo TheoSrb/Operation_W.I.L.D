@@ -983,7 +983,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             setNap(true);
         }
 
-        if (result && !this.isTame() && damageSource.getEntity() instanceof LivingEntity attacker) {
+        if (result && !this.isTame() && damageSource.getEntity() instanceof LivingEntity attacker
+                && !(attacker instanceof Player player && (player.isCreative() || player.isSpectator()))) {
             this.startPersistentAngerTimer();
             this.setPersistentAngerTarget(attacker.getUUID());
             this.setTarget(attacker);
@@ -1442,6 +1443,9 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public boolean isUltimateNapping() { return this.entityData.get(IS_ULTIMATE_NAPPING); }
     private void setUltimateNapping(boolean napping) { this.entityData.set(IS_ULTIMATE_NAPPING, napping); }
+
+    @Override
+    protected boolean isSittingToggleLocked() { return isUltimateNapping(); }
 
 
     @Override

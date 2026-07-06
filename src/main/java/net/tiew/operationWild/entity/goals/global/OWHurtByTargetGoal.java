@@ -2,6 +2,7 @@ package net.tiew.operationWild.entity.goals.global;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.entity.OWEntity;
 
 public class OWHurtByTargetGoal extends HurtByTargetGoal {
@@ -17,6 +18,10 @@ public class OWHurtByTargetGoal extends HurtByTargetGoal {
         LivingEntity lastHurtByMob = this.owEntity.getLastHurtByMob();
 
         if (lastHurtByMob == null) {
+            return false;
+        }
+
+        if (lastHurtByMob instanceof Player player && (player.isCreative() || player.isSpectator())) {
             return false;
         }
 

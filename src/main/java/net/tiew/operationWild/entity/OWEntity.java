@@ -2762,6 +2762,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
      */
     protected boolean forceRiderLookBodyRotation() { return false; }
 
+    /**
+     * Empêche le sneak + clic droit de basculer assis/debout (ex : pendant une attaque ultime).
+     * Surchargé par les entités qui ont besoin de verrouiller cette interaction.
+     */
+    protected boolean isSittingToggleLocked() { return false; }
+
     public Vec2 getRiddenRotation(LivingEntity livingEntity) { return new Vec2(livingEntity.getXRot() * 0.5F, livingEntity.getYRot());}
 
     @Override
@@ -2956,6 +2962,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (this.isTame() && !isBaby() && !this.level().isClientSide() && hand == InteractionHand.MAIN_HAND) {
             if (player.isSteppingCarefully() && !this.isInResurrection()) {
+                if (this.isSittingToggleLocked()) return InteractionResult.PASS;
+
                 Player owner = (Player) this.getOwner();
                 if (player != owner) return InteractionResult.PASS;
                 if (this.getControllingPassenger() != null) return InteractionResult.PASS;

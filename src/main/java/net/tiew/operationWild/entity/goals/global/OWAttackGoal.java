@@ -40,6 +40,8 @@ public class OWAttackGoal extends Goal {
             return false;
         }
 
+        if (target instanceof Player player && (player.isSpectator() || player.isCreative())) return false;
+
         this.path = this.mob.getNavigation().createPath(target, 0);
         return this.path != null;
     }
