@@ -133,18 +133,27 @@ public class ServerEvents {
 
     @SubscribeEvent
     public static void onLivingDrops(LivingDropsEvent event) {
-        KodiakEntity kodiak = null;
-
-        if (event.getSource().getEntity() instanceof KodiakEntity k && k.isTame()) {
-            kodiak = k;
+        // Pet à l'origine du kill : soit l'entité elle-même, soit le rider qui la chevauche.
+        net.tiew.operationWild.entity.OWEntity pet = null;
+        if (event.getSource().getEntity() instanceof net.tiew.operationWild.entity.OWEntity e) {
+            pet = e;
         } else if (event.getSource().getEntity() instanceof Player player
-                && player.getVehicle() instanceof KodiakEntity k && k.isTame()) {
-            kodiak = k;
+                && player.getVehicle() instanceof net.tiew.operationWild.entity.OWEntity e) {
+            pet = e;
+        }
+        if (pet == null || !pet.isTame()) return;
+
+        float multiplier = 1f;
+        // Kodiak : passif inné « Instinct du Boucher ».
+        if (pet instanceof KodiakEntity) {
+            multiplier = Math.max(multiplier, OWAttacksConstants.Kodiak.BUTCHER_INSTINCT_MULTIPLIER);
+        }
+        // Piste : passif « Boucher » débloqué (ex. Tigre) — même effet, système séparé.
+        if (net.tiew.operationWild.entity.attacks.OWPistePassives.has(pet, net.tiew.operationWild.entity.attacks.OWPistePassives.BUTCHER)) {
+            multiplier = Math.max(multiplier, net.tiew.operationWild.entity.attacks.OWPistePassives.BUTCHER_MULTIPLIER);
         }
 
-        if (kodiak == null) return;
-
-        float multiplier = OWAttacksConstants.Kodiak.BUTCHER_INSTINCT_MULTIPLIER;;
+        if (multiplier <= 1f) return;
 
         for (ItemEntity itemEntity : event.getDrops()) {
             ItemStack stack = itemEntity.getItem();

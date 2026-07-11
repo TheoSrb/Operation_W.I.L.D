@@ -721,7 +721,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     protected void onSuccessfulHit(LivingEntity entity) {
-        if (RANDOM(7)) disarmTarget(entity);
+        // Désarmement : le tigre sauvage le fait naturellement ; le tigre apprivoisé seulement
+        // s'il a débloqué le passif « Griffe Désarmante » sur la Piste. 1 chance sur 7 (comme sauvage).
+        boolean canDisarm = !this.isTame()
+                || net.tiew.operationWild.entity.attacks.OWPistePassives.has(this, net.tiew.operationWild.entity.attacks.OWPistePassives.DISARM);
+        if (canDisarm && RANDOM(7)) disarmTarget(entity);
 
         if (isShadowStrikeActive() && !this.level().isClientSide() && !entity.isDeadOrDying()) {
             float hpRatio = entity.getHealth() / entity.getMaxHealth();

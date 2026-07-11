@@ -507,6 +507,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static final EntityDataAccessor<Integer> SKIN_INDEX = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public boolean nbtRestoring = false;
 
+    // --- Piste Sauvage (labyrinthe de progression par individu) ---
+    // Avancement payé en Pièces Sauvages (OWCurrency, par joueur) ; ici on ne stocke que la progression.
+    // Nœud courant du pion sur la Piste (0 = départ).
+    public static final EntityDataAccessor<Integer> PISTE_NODE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    // CSV des ids de nœuds débloqués (contient toujours "0"), et des nœuds verrouillés à vie par un choix exclusif.
+    public static final EntityDataAccessor<String> PISTE_UNLOCKED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
+    public static final EntityDataAccessor<String> PISTE_LOCKED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
+    // Option choisie sur chaque palier à choix : CSV "nodeId:optionIndex".
+    public static final EntityDataAccessor<String> PISTE_CHOICES = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
+    /** DEBUG/TEST : à true, remet à zéro la progression de la Piste de chaque entité au chargement. Repasser à false une fois le reset fait. */
+    public static final boolean DEBUG_RESET_PISTE = false;
+
     public int getSkinIndex() {
         return this.entityData.get(SKIN_INDEX);
     }
@@ -608,6 +620,76 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public int getLevelPoints() { return this.entityData.get(LEVEL_POINTS);}
 
     public void setLevelPoints(int level) { this.entityData.set(LEVEL_POINTS, level);}
+
+    // --- Piste Sauvage : progression (l'avancement se paie en Pièces Sauvages, voir OWCurrency) ---
+    public int getPisteCurrentNode() { return this.entityData.get(PISTE_NODE); }
+
+    public void setPisteCurrentNode(int nodeId) { this.entityData.set(PISTE_NODE, nodeId); }
+
+    public java.util.Set<Integer> getPisteUnlockedNodes() { return parsePisteIds(this.entityData.get(PISTE_UNLOCKED)); }
+
+    public boolean isPisteNodeUnlocked(int nodeId) { return getPisteUnlockedNodes().contains(nodeId); }
+
+    public void addPisteUnlockedNode(int nodeId) {
+        java.util.Set<Integer> ids = getPisteUnlockedNodes();
+        if (ids.add(nodeId)) this.entityData.set(PISTE_UNLOCKED, joinPisteIds(ids));
+    }
+
+    public java.util.Set<Integer> getPisteLockedNodes() { return parsePisteIds(this.entityData.get(PISTE_LOCKED)); }
+
+    public boolean isPisteNodeLocked(int nodeId) { return getPisteLockedNodes().contains(nodeId); }
+
+    public void addPisteLockedNode(int nodeId) {
+        java.util.Set<Integer> ids = getPisteLockedNodes();
+        if (ids.add(nodeId)) this.entityData.set(PISTE_LOCKED, joinPisteIds(ids));
+    }
+
+    /** CSV brut des choix de paliers (debug). */
+    public String getPisteChoicesRaw() { return this.entityData.get(PISTE_CHOICES); }
+
+    /** Option choisie sur un palier à choix, ou -1 si aucun choix fait. */
+    public int getPisteChoice(int nodeId) {
+        String csv = this.entityData.get(PISTE_CHOICES);
+        if (csv == null || csv.isEmpty()) return -1;
+        for (String part : csv.split(",")) {
+            int sep = part.indexOf(':');
+            if (sep <= 0) continue;
+            try {
+                if (Integer.parseInt(part.substring(0, sep).trim()) == nodeId) {
+                    return Integer.parseInt(part.substring(sep + 1).trim());
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+        return -1;
+    }
+
+    public void setPisteChoice(int nodeId, int optionIndex) {
+        if (getPisteChoice(nodeId) != -1) return; // définitif : on ne réécrit jamais
+        String csv = this.entityData.get(PISTE_CHOICES);
+        String entry = nodeId + ":" + optionIndex;
+        this.entityData.set(PISTE_CHOICES, (csv == null || csv.isEmpty()) ? entry : csv + "," + entry);
+    }
+
+    private static java.util.Set<Integer> parsePisteIds(String csv) {
+        java.util.Set<Integer> ids = new java.util.LinkedHashSet<>();
+        if (csv == null || csv.isEmpty()) return ids;
+        for (String part : csv.split(",")) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                try { ids.add(Integer.parseInt(trimmed)); } catch (NumberFormatException ignored) {}
+            }
+        }
+        return ids;
+    }
+
+    private static String joinPisteIds(java.util.Set<Integer> ids) {
+        StringBuilder sb = new StringBuilder();
+        for (int id : ids) {
+            if (sb.length() > 0) sb.append(',');
+            sb.append(id);
+        }
+        return sb.toString();
+    }
 
     public boolean canReUpdatedDailyQuests() { return this.entityData.get(RE_UPDATED_QUESTS);}
 
@@ -3578,6 +3660,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(STAGE, 0);
         builder.define(LEVEL, 0);
         builder.define(LEVEL_POINTS, 0);
+        builder.define(PISTE_NODE, 0);
+        builder.define(PISTE_UNLOCKED, "0");
+        builder.define(PISTE_LOCKED, "");
+        builder.define(PISTE_CHOICES, "");
         builder.define(NECKLACE_COLOR, 0);
         builder.define(SCALE, 1.0f);
         builder.define(VITAL_ENERGY, 0.0f);
@@ -3651,6 +3737,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putInt("Level", this.getLevel());
         tag.putInt("getNecklaceColor", this.getNecklaceColor());
         tag.putInt("LevelPoints", this.getLevelPoints());
+        tag.putInt("PisteNode", this.getPisteCurrentNode());
+        tag.putString("PisteUnlocked", this.entityData.get(PISTE_UNLOCKED));
+        tag.putString("PisteLocked", this.entityData.get(PISTE_LOCKED));
+        tag.putString("PisteChoices", this.entityData.get(PISTE_CHOICES));
         tag.putFloat("Scale", this.getScale());
         tag.putBoolean("isPassive", this.isPassive());
         tag.putBoolean("autoPickup", this.isAutoPickup());
@@ -3795,6 +3885,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(LEVEL, tag.getInt("Level"));
         this.entityData.set(NECKLACE_COLOR, tag.getInt("getNecklaceColor"));
         this.entityData.set(LEVEL_POINTS, tag.getInt("LevelPoints"));
+        if (DEBUG_RESET_PISTE) {
+            // Debug/test : remet à zéro la progression de la Piste de chaque entité au chargement.
+            this.entityData.set(PISTE_NODE, 0);
+            this.entityData.set(PISTE_UNLOCKED, "0");
+            this.entityData.set(PISTE_LOCKED, "");
+            this.entityData.set(PISTE_CHOICES, "");
+        } else {
+            this.entityData.set(PISTE_NODE, tag.getInt("PisteNode"));
+            this.entityData.set(PISTE_UNLOCKED, tag.contains("PisteUnlocked") ? tag.getString("PisteUnlocked") : "0");
+            this.entityData.set(PISTE_LOCKED, tag.getString("PisteLocked"));
+            this.entityData.set(PISTE_CHOICES, tag.getString("PisteChoices"));
+        }
         this.entityData.set(SCALE, tag.getFloat("Scale"));
         this.entityData.set(IS_PASSIVE, tag.getBoolean("isPassive"));
         this.entityData.set(AUTO_PICKUP, tag.contains("autoPickup") ? tag.getBoolean("autoPickup") : true);

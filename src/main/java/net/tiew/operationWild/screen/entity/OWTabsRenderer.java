@@ -33,16 +33,18 @@ public class OWTabsRenderer {
         COSMETICS,
         TEAM,
         DAILY_QUESTS,
+        PISTE,
         OPTIONS
     }
 
-    private final int[] notifications = new int[5];
+    private final int[] notifications = new int[6];
     private Tab activeTab = Tab.INVENTORY;
 
     private Button inventoryButton;
     private Button skinButton;
     private Button teamButton;
     private Button dailyQuestButton;
+    private Button pisteButton;
     private Button optionsButton;
 
     public void setActiveTab(Tab tab) {
@@ -55,6 +57,7 @@ public class OWTabsRenderer {
         if (skinButton != null) skinButton.active = activeTab != Tab.COSMETICS;
         if (teamButton != null) teamButton.active = activeTab != Tab.TEAM;
         if (dailyQuestButton != null) dailyQuestButton.active = activeTab != Tab.DAILY_QUESTS;
+        if (pisteButton != null) pisteButton.active = activeTab != Tab.PISTE;
         if (optionsButton != null) optionsButton.active = activeTab != Tab.OPTIONS;
     }
 
@@ -69,6 +72,7 @@ public class OWTabsRenderer {
             if (skinButton != null) skinButton.active = false;
             if (teamButton != null) teamButton.active = false;
             if (dailyQuestButton != null) dailyQuestButton.active = false;
+            if (pisteButton != null) pisteButton.active = false;
             if (optionsButton != null) optionsButton.active = false;
         } else {
             updateButtonStates();
@@ -95,7 +99,11 @@ public class OWTabsRenderer {
                 () -> onDailyQuestsClicked(entity));
         dailyQuestButton.setAlpha(0f);
 
-        optionsButton = buildButton("", 0xFFFFFF, i + 82, j - 18, 20, 18,
+        pisteButton = buildButton("", 0xFFFFFF, i + 82, j - 18, 20, 18,
+                () -> onPisteClicked(entity));
+        pisteButton.setAlpha(0f);
+
+        optionsButton = buildButton("", 0xFFFFFF, i + 102, j - 18, 20, 18,
                 () -> Minecraft.getInstance().setScreen(new OWOptionsScreen()));
         optionsButton.setAlpha(0f);
 
@@ -103,6 +111,7 @@ public class OWTabsRenderer {
         addWidget.accept(skinButton);
         addWidget.accept(teamButton);
         addWidget.accept(dailyQuestButton);
+        addWidget.accept(pisteButton);
         addWidget.accept(optionsButton);
     }
 
@@ -115,13 +124,13 @@ public class OWTabsRenderer {
     }
 
     public void setNotification(int tabId, int count) {
-        if (tabId >= 1 && tabId <= 5) {
+        if (tabId >= 1 && tabId <= 6) {
             notifications[tabId - 1] = Math.max(0, count);
         }
     }
 
     public int getNotification(int tabId) {
-        if (tabId >= 1 && tabId <= 5) return notifications[tabId - 1];
+        if (tabId >= 1 && tabId <= 6) return notifications[tabId - 1];
         return 0;
     }
 
@@ -180,18 +189,25 @@ public class OWTabsRenderer {
         entity.getControllingPassenger().sendSystemMessage(Component.literal("ERROR"));
     }
 
+    public void onPisteClicked(OWEntity entity) {
+        setNotification(5, 0);
+        Minecraft.getInstance().setScreen(new net.tiew.operationWild.screen.entity.piste.OWPisteScreen());
+    }
+
     public void renderTabs(GuiGraphics graphics, Font font, OWEntity entity, int i, int j, int mouseX, int mouseY) {
         boolean hoverInventory = isHovering(mouseX, mouseY, i + 2, j - 18, 20, 18);
         boolean hoverSkin = isHovering(mouseX, mouseY, i + 22, j - 18, 20, 18);
         boolean hoverTeam = isHovering(mouseX, mouseY, i + 42, j - 18, 20, 18);
         boolean hoverQuests = isHovering(mouseX, mouseY, i + 62, j - 18, 20, 18);
-        boolean hoverOptions = isHovering(mouseX, mouseY, i + 82, j - 18, 20, 18);
+        boolean hoverPiste = isHovering(mouseX, mouseY, i + 82, j - 18, 20, 18);
+        boolean hoverOptions = isHovering(mouseX, mouseY, i + 102, j - 18, 20, 18);
 
         graphics.blit(OW_INVENTORY_LOCATION, i + 2, j - 18, (hoverInventory || activeTab == Tab.INVENTORY) ? 20 : 0, 206, 20, 18);
         graphics.blit(OW_INVENTORY_LOCATION, i + 22, j - 18, (hoverSkin || activeTab == Tab.COSMETICS) ? 20 : 0, 206, 20, 18);
         graphics.blit(OW_INVENTORY_LOCATION, i + 42, j - 18, (hoverTeam || activeTab == Tab.TEAM) ? 20 : 0, 206, 20, 18);
         graphics.blit(OW_INVENTORY_LOCATION, i + 62, j - 18, (hoverQuests || activeTab == Tab.DAILY_QUESTS) ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 82, j - 18, (hoverOptions || activeTab == Tab.OPTIONS) ? 20 : 0, 206, 20, 18);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 82, j - 18, (hoverPiste || activeTab == Tab.PISTE) ? 20 : 0, 206, 20, 18);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 102, j - 18, (hoverOptions || activeTab == Tab.OPTIONS) ? 20 : 0, 206, 20, 18);
 
         graphics.blit(OW_INVENTORY_LOCATION, i + 4, j - 16, 176, 0, 16, 16); // Inventaire
         graphics.blit(OW_INVENTORY_LOCATION, i + 24, j - 16, 176, 16, 16, 16); // Skin
@@ -203,7 +219,8 @@ public class OWTabsRenderer {
 
 
         graphics.blit(OW_INVENTORY_LOCATION, i + 64, j - 16, 176, 48, 16, 16); // Daily Quests
-        graphics.blit(OW_INVENTORY_LOCATION, i + 84, j - 16, 176, 64, 16, 16); // Options
+        graphics.blit(OW_INVENTORY_LOCATION, i + 84, j - 16, 176, 64, 16, 16); // Piste Sauvage
+        graphics.blit(OW_INVENTORY_LOCATION, i + 104, j - 16, 176, 80, 16, 16); // Options
 
         renderNotificationBadges(graphics, font, entity, i, j);
 
@@ -213,14 +230,15 @@ public class OWTabsRenderer {
         if (hoverTeam) graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.team")), mouseX, mouseY);
         if (hoverQuests)
             graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.dailyQuests")), mouseX, mouseY);
+        if (hoverPiste) graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.piste")), mouseX, mouseY);
         if (hoverOptions) graphics.renderComponentTooltip(font, List.of(tabTooltip("tooltip.options")), mouseX, mouseY);
     }
 
     private void renderNotificationBadges(GuiGraphics graphics, Font font, OWEntity entity, int i, int j) {
-        int[] tabOffsets = {2, 22, 42, 62, 82};
+        int[] tabOffsets = {2, 22, 42, 62, 82, 102};
         int color = (entity.tickCount / 7) % 2 == 0 ? 0x92d124 : 0xF3F28F;
 
-        for (int tab = 0; tab < 5; tab++) {
+        for (int tab = 0; tab < 6; tab++) {
             int count = notifications[tab];
             if (count <= 0) continue;
 

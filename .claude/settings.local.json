@@ -38,7 +38,13 @@
       "Bash(./gradlew.bat compileJava --console=plain)",
       "Bash(./gradlew.bat --stop)",
       "PowerShell(Remove-Item \"C:\\\\Users\\\\Tiew_37\\\\.gradle\\\\caches\\\\8.10\\\\transforms\" -Recurse -Force -Confirm:$false)",
-      "PowerShell(./gradlew compileJava -q 2>&1)"
+      "PowerShell(./gradlew compileJava -q 2>&1)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/inject_piste_lang.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/inject_piste_lang2.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/verify_maze.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/shapes.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/messy.py\")",
+      "Bash(PYTHONIOENCODING=utf-8 python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/check_maps.py\")"
     ]
   }
 }
