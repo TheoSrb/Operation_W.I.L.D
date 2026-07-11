@@ -44,6 +44,10 @@ public class OWAttacksConstants {
         public static final int TIDAL_RUSH_COOLDOWN_TICKS = 400;
         public static final float TIDAL_RUSH_SPEED = 3.5f;
         public static final float TIDAL_RUSH_ENERGY = 100f;
+        /** Damage multiplier applied to the Tidal Rush when the orca is wild:
+         *  the dash then acts mainly as a mobility boost rather than a heavy hit.
+         *  The tamed version keeps full damage (multiplier 1.0). */
+        public static final float TIDAL_RUSH_WILD_DAMAGE_MULTIPLIER = 0.3f;
 
         public static final int ORCA_CALL_KILLS_REQUIRED = 5;
         public static final int ORCA_CALL_COOLDOWN_TICKS = 1200;

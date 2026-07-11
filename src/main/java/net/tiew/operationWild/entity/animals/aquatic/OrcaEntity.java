@@ -42,6 +42,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
+import net.tiew.operationWild.entity.behavior.OrcaBehaviorHandler;
+import net.tiew.operationWild.entity.goals.orca.OWOrcaPackHuntGoal;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
@@ -68,9 +70,15 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private static final EntityDataAccessor<Float>   RIDER_CONTROL_PITCH  = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> IS_DASHING           = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_BEACHED           = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> PACK_ROLE            = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
 
     private int dashTicksLeft = 0;
     private Vec3 dashDirection = Vec3.ZERO;
+
+    /** Server-side pack coordinator (pack-hunting mechanic for wild orcas). */
+    public final OrcaBehaviorHandler orcaBehaviorHandler = new OrcaBehaviorHandler(this);
+    /** Transient reference to the pack leader (server-only, never serialized). */
+    private OrcaEntity packLeader = null;
 
     public final AnimationState attack1Combo = new AnimationState();
     public final AnimationState attack2Combo = new AnimationState();
@@ -135,6 +143,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 return super.canContinueToUse();
             }
         });
+        // Pack hunting takes precedence over the solo attack goal above (shares MOVE+LOOK).
+        // A lone orca with no recruitable packmates fails to form a pack and falls back to it.
+        this.goalSelector.addGoal(2, new OWOrcaPackHuntGoal(this));
         this.goalSelector.addGoal(3, new OWOrcaBeachingGoal(this));
         this.goalSelector.addGoal(4, new OrcaWanderGoal(this));
     }
@@ -145,6 +156,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         builder.define(RIDER_CONTROL_PITCH, 0.0f);
         builder.define(IS_DASHING, false);
         builder.define(IS_BEACHED, false);
+        builder.define(PACK_ROLE, OrcaBehaviorHandler.PACK_ROLE_NONE);
     }
 
     @Override
@@ -158,6 +170,16 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     public boolean isBeached() { return this.entityData.get(IS_BEACHED); }
     public void setBeached(boolean beached) { this.entityData.set(IS_BEACHED, beached); }
+
+    // ── Pack hunting (wild orcas) ──────────────────────────────────────────────
+    public OrcaBehaviorHandler getOrcaBehaviorHandler() { return this.orcaBehaviorHandler; }
+
+    /** Attack order within the pack: -1 = none, 0 = leader, 1..2 = followers. */
+    public int getPackRole() { return this.entityData.get(PACK_ROLE); }
+    public void setPackRole(int role) { this.entityData.set(PACK_ROLE, role); }
+
+    public @Nullable OrcaEntity getPackLeader() { return this.packLeader; }
+    public void setPackLeader(@Nullable OrcaEntity leader) { this.packLeader = leader; }
 
     protected PathNavigation createNavigation(Level worldIn) {
         return new SwimmerJumpPathNavigator(this, worldIn);
@@ -441,7 +463,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                     );
                     this.level().getEntitiesOfClass(LivingEntity.class, hitBox).forEach(target -> {
                         if (target != this && target != this.getFirstPassenger()) {
-                            target.hurt(this.damageSources().mobAttack(this), this.getDamage());
+                            target.hurt(this.damageSources().mobAttack(this), this.getRushDamage());
                             Vec3 knockback = look.scale(1.2);
                             target.setDeltaMovement(target.getDeltaMovement().add(knockback.x, 0.25, knockback.z));
                         }
@@ -539,6 +561,16 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     // ── TIDAL RUSH ─────────────────────────────────────────────────────────────
 
+    /**
+     * Damage dealt by the Tidal Rush dash. Full for a tamed orca; reduced for a wild one,
+     * where the dash is used mainly as a mobility boost rather than a heavy hit.
+     */
+    private float getRushDamage() {
+        return this.isTame()
+                ? this.getDamage()
+                : this.getDamage() * OWAttacksConstants.Orca.TIDAL_RUSH_WILD_DAMAGE_MULTIPLIER;
+    }
+
     public void performOrcaDash() {
         float cost = OWAttacksConstants.Orca.TIDAL_RUSH_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
@@ -565,7 +597,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         );
         this.level().getEntitiesOfClass(LivingEntity.class, hitBox).forEach(target -> {
             if (target != this && target != this.getFirstPassenger()) {
-                target.hurt(this.damageSources().mobAttack(this), this.getDamage());
+                target.hurt(this.damageSources().mobAttack(this), this.getRushDamage());
                 Vec3 knockback = look.scale(1.2);
                 target.setDeltaMovement(target.getDeltaMovement().add(knockback.x, 0.25, knockback.z));
             }

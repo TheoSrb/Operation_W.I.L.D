@@ -78,10 +78,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     private double prevChainX = Double.NaN;
     private double prevChainZ = Double.NaN;
-    // Vitesse lissee (moyenne glissante) du boa, utilisee pour projeter l'ancre de la chaine
-    // de queue devant la tete. On lisse car la vitesse brute par tick d'une monture pilotee
-    // est bruitee ; multipliee par l'offset (x3 en monture) ce bruit faisait sauter toute la
-    // queue (saccades). VEL_SMOOTH : 0 = gele, 1 = pas de lissage (bruit brut).
+
     private double smoothedVelX = 0.0;
     private double smoothedVelZ = 0.0;
     private static final double VEL_SMOOTH = 0.25;
@@ -108,10 +105,6 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private static final float RIDDEN_RUN_YAW_LAG = 0.16f;
     private static final float WILD_YAW_LAG = 0.30f;
 
-    // Frequence de l'ondulation laterale de la queue (calcPartRotation). Valeur normale, et
-    // valeur reduite quand le boa est monte ET court : a haute vitesse walkDist grimpe vite,
-    // donc l'oscillation gauche-droite devenait trop rapide pour le cavalier (mal des
-    // transports). On la ralentit dans ce cas.
     private static final float WAVE_FREQ = 2.5f;
     private static final float RIDDEN_RUN_WAVE_FREQ = 1.5f;
 
@@ -119,60 +112,34 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     public final float[] ringBuffer = new float[64];
     public int ringBufferIndex = -1;
 
-    // Phase continue de l'ondulation laterale de la queue. On l'accumule d'un increment par
-    // tick (delta de walkDist * waveFreq) au lieu de recalculer walkDist * waveFreq a chaque
-    // fois : ainsi changer waveFreq (course/marche, montage) ne modifie QUE la vitesse future
-    // et ne teleporte plus la phase, ce qui supprimait les saccades de la queue.
     private float wavePhase = 0f;
     private float prevWalkDist = 0f;
 
-    // Lissage vertical du RENDU de la tete (client). En montant sur un bloc, l'entite saute de
-    // toute la hauteur du pas en un tick alors que les segments de queue lissent leur montee
-    // (prevHeight). On fait donc monter le rendu de la tete progressivement, comme la queue.
-    // Uniquement vers le haut : en descente/chute on suit la position reelle instantanement
-    // pour ne pas faire flotter la tete. HEAD_Y_SMOOTH : 0 = gele, 1 = pas de lissage.
     private double clientSmoothedY = Double.NaN;
     private static final double HEAD_Y_SMOOTH = 0.35;
 
-    private static final EntityDataAccessor<java.util.Optional<java.util.UUID>> CHILD_UUID =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.OPTIONAL_UUID);
-    private static final EntityDataAccessor<Integer> CHILD_ID =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
-    // Id (synchronise client) du DEUXIEME segment de queue (bodyIndex 1) : c'est lui qui
-    // sert de siege au rider (cf. getSecondTailPart / positionRider).
-    private static final EntityDataAccessor<Integer> CHILD_ID_2 =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<java.util.Optional<java.util.UUID>> CHILD_UUID = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<Integer> CHILD_ID = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> CHILD_ID_2 = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
 
-    private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
 
-    private static final EntityDataAccessor<Boolean> VENOM_ARMED =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Integer> VENOM_COOLDOWN_TICKS =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> VENOM_ARMED = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> VENOM_COOLDOWN_TICKS = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
 
-    private static final EntityDataAccessor<Boolean> IS_GRABBING =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Integer> GRABBED_TARGET_ID =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> GRAB_TIMEOUT =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_GRABBING = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> GRABBED_TARGET_ID = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> GRAB_TIMEOUT = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
 
-    private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
     private boolean constrictUltArmed = false;
     private int constrictUltArmedTimer = 0;
-    private static final EntityDataAccessor<Float> GRAB_HOLD_X =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> GRAB_HOLD_Y =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Float> GRAB_HOLD_Z =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> GRAB_HOLD_X = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> GRAB_HOLD_Y = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> GRAB_HOLD_Z = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.FLOAT);
 
-    private static final EntityDataAccessor<Boolean> HYPNOTIZING =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Integer> HYPNOSIS_TARGET_ID =
-            SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> HYPNOTIZING = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> HYPNOSIS_TARGET_ID = SynchedEntityData.defineId(BoaEntity.class, EntityDataSerializers.INT);
     private int hypnosisCooldown = 0;
 
     private static final int TONG_DURATION = 14;
@@ -189,18 +156,12 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     private int tongCooldown = (int) OWUtils.generateRandomInterval(100, 200);
 
-    public BoaEntity(EntityType<? extends BoaEntity> type, Level world,
-                     float averageScale, int maxSleepBar, int foodWanted) {
+    public BoaEntity(EntityType<? extends BoaEntity> type, Level world, float averageScale, int maxSleepBar, int foodWanted) {
         super(type, world, averageScale, maxSleepBar, foodWanted);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes()
-                .add(Attributes.MAX_HEALTH, 22.0)
-                .add(Attributes.MOVEMENT_SPEED, 0.17)
-                .add(Attributes.ATTACK_DAMAGE, 6.0)
-                .add(Attributes.FOLLOW_RANGE, 25.0)
-                .add(Attributes.ARMOR, 2.0);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 22.0).add(Attributes.MOVEMENT_SPEED, 0.17).add(Attributes.ATTACK_DAMAGE, 6.0).add(Attributes.FOLLOW_RANGE, 25.0).add(Attributes.ARMOR, 2.0);
     }
 
     @Override
@@ -432,15 +393,10 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         }
         prevChainX = this.getX();
         prevChainZ = this.getZ();
-        // Lissage de la vitesse (moyenne glissante) pour stabiliser l'ancre de la chaine.
         smoothedVelX += (realVelX - smoothedVelX) * VEL_SMOOTH;
         smoothedVelZ += (realVelZ - smoothedVelZ) * VEL_SMOOTH;
 
         if (!this.level().isClientSide()) {
-            // Avance la phase d'ondulation de la queue d'un seul increment ce tick. waveFreq
-            // est reduit quand le boa est monte ET court (anti mal des transports), mais comme
-            // on accumule au lieu de recalculer walkDist*waveFreq, le changement de frequence
-            // ne provoque plus de saut de phase (saccade).
             float currentWaveFreq = WAVE_FREQ;
             if (this.isVehicle() && this.isRunning() && this.getControllingPassenger() != null) {
                 currentWaveFreq = RIDDEN_RUN_WAVE_FREQ;
@@ -595,11 +551,6 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         return null;
     }
 
-    /**
-     * Decalage vertical (blocs) a appliquer au RENDU de la tete pour lisser sa montee sur les
-     * blocs, calque sur le lissage des segments de queue. Negatif pendant la montee (la tete
-     * est rendue plus bas que sa position reelle puis rattrape), 0 le reste du temps.
-     */
     public float getHeadRenderYLag() {
         if (Double.isNaN(clientSmoothedY)) return 0f;
         return (float) (clientSmoothedY - this.getY());
@@ -610,10 +561,6 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         return id == -1 ? null : this.level().getEntity(id);
     }
 
-    /**
-     * Deuxieme segment de queue (bodyIndex 1). Sert de siege au rider (deplacements plus
-     * lisses que sur le 1er segment). Retombe sur le 1er segment tant que le 2e n'existe pas.
-     */
     public Entity getSecondTailPart() {
         int id = this.entityData.get(CHILD_ID_2);
         Entity second = id == -1 ? null : this.level().getEntity(id);
@@ -622,7 +569,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     @Override
     public void die(DamageSource damageSource) {
-        super.die(damageSource); // le drop générique de l'Âme est géré par OWEntity.die()
+        super.die(damageSource);
 
         if (this.isSaddled()) {
             this.spawnAtLocation(acceptSaddle());
@@ -648,12 +595,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         final float ramp = Mth.clamp(this.constrictTimer / 15f, 0f, 1f);
         final float curlPerSegment = 60f;
         final float sitCalm = 1f - this.sitProgress * 0.7f;
-        // Phase continue accumulee dans tick() (cf. wavePhase) : pas de saut quand waveFreq
-        // change. Le dephasage par segment (- i) reste, donc la vague descend toujours le corps.
-        return (float) (45 * -Math.sin(this.wavePhase - i)) * f * sitCalm
-                + this.strangleProgress * 0.2f * i * curlPerSegment * ramp
-                + this.sitProgress * i * SIT_CURL_PER_SEGMENT
-                + this.constrictBreath * i * 10f * ramp;
+        return (float) (45 * -Math.sin(this.wavePhase - i)) * f * sitCalm + this.strangleProgress * 0.2f * i * curlPerSegment * ramp + this.sitProgress * i * SIT_CURL_PER_SEGMENT + this.constrictBreath * i * 10f * ramp;
     }
 
     public float getRingBuffer(int bufferOffset, float partialTicks) {
@@ -717,9 +659,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             super.pushEntities();
             return;
         }
-        this.level().getEntities(this, this.getBoundingBox(),
-                        entity -> !(entity instanceof BoaTailPart) && EntitySelector.pushableBy(this).test(entity))
-                .forEach(this::doPush);
+        this.level().getEntities(this, this.getBoundingBox(), entity -> !(entity instanceof BoaTailPart) && EntitySelector.pushableBy(this).test(entity)).forEach(this::doPush);
     }
 
     @Override
@@ -791,15 +731,13 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         }
         this.constrictUltArmed = true;
         this.constrictUltArmedTimer = (int) (OWAttacksConstants.Boa.CONSTRICT_ULT_TARGETING_MS / 50L) + 20;
-        this.level().playSound(null, getX(), getY(), getZ(),
-                OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.2f, 0.7f);
+        this.level().playSound(null, getX(), getY(), getZ(), OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.2f, 0.7f);
     }
 
     public void executeConstrictUltimate(int targetEntityId) {
         if (this.level().isClientSide() || !this.constrictUltArmed) return;
         Entity raw = this.level().getEntity(targetEntityId);
-        if (!(raw instanceof LivingEntity target) || !canConstrict(target)
-                || this.distanceToSqr(target) > OWAttacksConstants.Boa.CONSTRICT_ULT_RANGE * OWAttacksConstants.Boa.CONSTRICT_ULT_RANGE) {
+        if (!(raw instanceof LivingEntity target) || !canConstrict(target) || this.distanceToSqr(target) > OWAttacksConstants.Boa.CONSTRICT_ULT_RANGE * OWAttacksConstants.Boa.CONSTRICT_ULT_RANGE) {
             cancelConstrictUltimate();
             return;
         }
@@ -833,10 +771,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         if (t.getMaxHealth() > 32f) return false;
         if (t.getBbWidth() > OWAttacksConstants.Boa.CONSTRICT_MAX_TARGET_WIDTH) return false;
         if (t.getBbHeight() > OWAttacksConstants.Boa.CONSTRICT_MAX_TARGET_HEIGHT) return false;
-        boolean alreadyConstricted = this.level()
-                .getEntitiesOfClass(BoaEntity.class, t.getBoundingBox().inflate(16.0))
-                .stream()
-                .anyMatch(o -> o != this && o.isConstricting() && o.getConstrictTarget() == t);
+        boolean alreadyConstricted = this.level().getEntitiesOfClass(BoaEntity.class, t.getBoundingBox().inflate(16.0)).stream().anyMatch(o -> o != this && o.isConstricting() && o.getConstrictTarget() == t);
         if (alreadyConstricted) return false;
         return true;
     }
@@ -853,8 +788,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.setGrabbing(false, null);
         this.setGrabTimeout(0);
         this.getNavigation().stop();
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.0f, 0.8f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.0f, 0.8f);
     }
 
     public void stopConstrict() {
@@ -1003,9 +937,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         boolean playerOutOfAir = isPlayer && t.getAirSupply() <= 0;
         if ((!isPlayer || playerOutOfAir) && this.constrictTimer >= 30 && this.constrictTimer % OWAttacksConstants.Boa.CONSTRICT_DAMAGE_INTERVAL == 0) {
             float squeeze = Math.min(1f, (float) this.constrictTimer / OWAttacksConstants.Boa.CONSTRICT_DURATION_TICKS);
-            float dmg = Mth.lerp(squeeze,
-                    OWAttacksConstants.Boa.CONSTRICT_BASE_DAMAGE,
-                    OWAttacksConstants.Boa.CONSTRICT_MAX_DAMAGE);
+            float dmg = Mth.lerp(squeeze, OWAttacksConstants.Boa.CONSTRICT_BASE_DAMAGE, OWAttacksConstants.Boa.CONSTRICT_MAX_DAMAGE);
             t.invulnerableTime = 0;
             t.hurt(this.damageSources().mobAttack(this), dmg);
         }
@@ -1027,15 +959,9 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     @Override
-    public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor,
-                                        DifficultyInstance difficultyInstance,
-                                        MobSpawnType mobSpawnType,
-                                        @Nullable SpawnGroupData spawnGroupData) {
+    public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
         if (mobSpawnType != MobSpawnType.BREEDING) {
-            this.setRandomAttributes(this,
-                    this.getAttributeBaseValue(Attributes.MAX_HEALTH),
-                    this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE),
-                    this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
+            this.setRandomAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH), this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE), this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
             this.setBaseHealth((float) this.getAttributeBaseValue(Attributes.MAX_HEALTH) * 1.3f);
             this.setBaseDamage((float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE));
             this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
@@ -1124,10 +1050,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             callback.accept(passenger, bx, by, bz);
         } else {
             double yawR = Math.toRadians(this.getYRot());
-            callback.accept(passenger,
-                    this.getX() + Math.sin(yawR) * BACK,
-                    this.getY() + yOffset,
-                    this.getZ() - Math.cos(yawR) * BACK);
+            callback.accept(passenger, this.getX() + Math.sin(yawR) * BACK, this.getY() + yOffset, this.getZ() - Math.cos(yawR) * BACK);
         }
     }
 
@@ -1240,14 +1163,11 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     private void applyVenomFangs(LivingEntity target) {
-        int duration = (int) OWUtils.generateRandomInterval(
-                OWAttacksConstants.Boa.VENOM_FANGS_MIN_DURATION_TICKS,
-                OWAttacksConstants.Boa.VENOM_FANGS_MAX_DURATION_TICKS);
+        int duration = (int) OWUtils.generateRandomInterval(OWAttacksConstants.Boa.VENOM_FANGS_MIN_DURATION_TICKS, OWAttacksConstants.Boa.VENOM_FANGS_MAX_DURATION_TICKS);
         target.addEffect(new MobEffectInstance(OWEffects.VENOM_EFFECT.getDelegate(), duration, 0));
         setVenomArmed(false);
         setVenomCooldownTicks(OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS);
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.0f, 1.35f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.0f, 1.35f);
     }
 
     public boolean isThermalHeartTarget(LivingEntity le) {
@@ -1282,10 +1202,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         Vec3 closest = eye.add(look.scale(along));
         double radius = OWAttacksConstants.Boa.THERMAL_AIM_RADIUS * thermalSizeScale(target);
         if (closest.distanceTo(heart) > radius) return false;
-        BlockHitResult clip = this.level().clip(new net.minecraft.world.level.ClipContext(
-                eye, heart,
-                net.minecraft.world.level.ClipContext.Block.COLLIDER,
-                net.minecraft.world.level.ClipContext.Fluid.NONE, rider));
+        BlockHitResult clip = this.level().clip(new net.minecraft.world.level.ClipContext(eye, heart, net.minecraft.world.level.ClipContext.Block.COLLIDER, net.minecraft.world.level.ClipContext.Fluid.NONE, rider));
         return clip.getType() == net.minecraft.world.phys.HitResult.Type.MISS;
     }
 
@@ -1357,8 +1274,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     protected void handleMiscIdleAnimations() {
-        if (this.tongAnimationState.isStarted() &&
-                this.tickCount - tongAnimationStartTime > TONG_DURATION) {
+        if (this.tongAnimationState.isStarted() && this.tickCount - tongAnimationStartTime > TONG_DURATION) {
             this.tongAnimationState.stop();
         }
 
@@ -1369,16 +1285,9 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
         if (this.level().isClientSide) {
 
-            SoundEvent[] sounds = new SoundEvent[]{
-                    OWSounds.BOA_IDLE_1.get(),
-                    OWSounds.BOA_IDLE_2.get(),
-                    OWSounds.BOA_IDLE_3.get(),
-                    OWSounds.BOA_IDLE_4.get()
-            };
+            SoundEvent[] sounds = new SoundEvent[]{OWSounds.BOA_IDLE_1.get(), OWSounds.BOA_IDLE_2.get(), OWSounds.BOA_IDLE_3.get(), OWSounds.BOA_IDLE_4.get()};
 
-            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(),
-                    sounds[this.getRandom().nextInt(sounds.length)], this.getSoundSource(),
-                    1.0F, isBaby() ? 2.0F : 1.0F, false);
+            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(), sounds[this.getRandom().nextInt(sounds.length)], this.getSoundSource(), 1.0F, isBaby() ? 2.0F : 1.0F, false);
         }
 
         if (this.canTong() && this.canPlayIdleAnimation() && !this.isAnyIdleAnimationPlaying()) {
@@ -1419,9 +1328,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         @Override
         protected boolean canPerformAttack(LivingEntity entity) {
             double reach = 2;
-            return this.isTimeToAttack()
-                    && this.mob.distanceToSqr(entity) <= reach * reach
-                    && this.mob.getSensing().hasLineOfSight(entity);
+            return this.isTimeToAttack() && this.mob.distanceToSqr(entity) <= reach * reach && this.mob.getSensing().hasLineOfSight(entity);
         }
 
         @Override

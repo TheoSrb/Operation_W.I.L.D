@@ -37,7 +37,8 @@
       "Bash(find / -iname \"*neoforge*sources*.jar\" 2>/dev/null | head -5; find \"$HOME\" -iname \"HurtByTargetGoal*\" 2>/dev/null | head -5)",
       "Bash(./gradlew.bat compileJava --console=plain)",
       "Bash(./gradlew.bat --stop)",
-      "PowerShell(Remove-Item \"C:\\\\Users\\\\Tiew_37\\\\.gradle\\\\caches\\\\8.10\\\\transforms\" -Recurse -Force -Confirm:$false)"
+      "PowerShell(Remove-Item \"C:\\\\Users\\\\Tiew_37\\\\.gradle\\\\caches\\\\8.10\\\\transforms\" -Recurse -Force -Confirm:$false)",
+      "PowerShell(./gradlew compileJava -q 2>&1)"
     ]
   }
 }
