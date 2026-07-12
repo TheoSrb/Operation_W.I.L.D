@@ -30,29 +30,10 @@ public record OpenDailyQuestScreen() implements CustomPacketPayload {
     public static void handle(OpenDailyQuestScreen packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
-                Entity entity = player.getRootVehicle();
-
-                if (entity != null) {
-                    if (entity instanceof OWEntity owEntity) {
-                        owEntity.setUpdatingQuests(false);
-
-                        UUID ownerUUID = null;
-                        if (owEntity.isTame() && owEntity.getOwnerUUID() != null) {
-                            ownerUUID = owEntity.getOwnerUUID();
-
-                            ServerLevel level = player.serverLevel();
-
-                            for (Entity worldEntity : level.getEntities(EntityTypeTest.forClass(OWEntity.class),
-                                    owEntity1 -> true)) {
-                                if (worldEntity instanceof OWEntity otherOWEntity
-                                        && otherOWEntity.isTame()
-                                        && otherOWEntity.getOwnerUUID() != null
-                                        && otherOWEntity.getOwnerUUID().equals(ownerUUID)) {
-                                    otherOWEntity.setUpdatingQuests(false);
-                                }
-                            }
-                        }
-                    }
+                // Quêtes propres à chaque individu : consulter l'écran n'efface la notification QUE de
+                // l'entité chevauchée (plus de propagation à tous les compagnons du propriétaire).
+                if (player.getRootVehicle() instanceof OWEntity owEntity) {
+                    owEntity.setUpdatingQuests(false);
                 }
             }
         });

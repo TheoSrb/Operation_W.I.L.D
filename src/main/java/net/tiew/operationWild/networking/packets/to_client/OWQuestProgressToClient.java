@@ -13,6 +13,9 @@ import net.tiew.operationWild.entity.OWEntity;
 
 public record OWQuestProgressToClient(
         int entityId,
+        int activeQuest0, int activeQuest1, int activeQuest2,
+        int questReward0, int questReward1, int questReward2,
+        boolean dailyRerollAvailable,
         int quest0Progression, int quest1Progression, int quest2Progression, int quest3Progression,
         int quest4Progression, int quest5Progression, int quest6Progression, int quest7Progression,
         int quest8Progression, int quest9Progression, int quest10Progression,
@@ -29,6 +32,13 @@ public record OWQuestProgressToClient(
 
     private static void encode(FriendlyByteBuf buffer, OWQuestProgressToClient packet) {
         buffer.writeInt(packet.entityId());
+        buffer.writeInt(packet.activeQuest0());
+        buffer.writeInt(packet.activeQuest1());
+        buffer.writeInt(packet.activeQuest2());
+        buffer.writeInt(packet.questReward0());
+        buffer.writeInt(packet.questReward1());
+        buffer.writeInt(packet.questReward2());
+        buffer.writeBoolean(packet.dailyRerollAvailable());
         buffer.writeInt(packet.quest0Progression());
         buffer.writeInt(packet.quest1Progression());
         buffer.writeInt(packet.quest2Progression());
@@ -56,6 +66,15 @@ public record OWQuestProgressToClient(
 
     private static OWQuestProgressToClient decode(FriendlyByteBuf buffer) {
         return new OWQuestProgressToClient(
+                buffer.readInt(),   // entityId
+                buffer.readInt(),   // activeQuest0
+                buffer.readInt(),   // activeQuest1
+                buffer.readInt(),   // activeQuest2
+                buffer.readInt(),   // questReward0
+                buffer.readInt(),   // questReward1
+                buffer.readInt(),   // questReward2
+                buffer.readBoolean(), // dailyRerollAvailable
+                buffer.readInt(),   // quest0Progression
                 buffer.readInt(),
                 buffer.readInt(),
                 buffer.readInt(),
@@ -65,9 +84,7 @@ public record OWQuestProgressToClient(
                 buffer.readInt(),
                 buffer.readInt(),
                 buffer.readInt(),
-                buffer.readInt(),
-                buffer.readInt(),
-                buffer.readInt(),
+                buffer.readInt(),   // quest10Progression
 
                 buffer.readBoolean(),
                 buffer.readBoolean(),
@@ -92,6 +109,14 @@ public record OWQuestProgressToClient(
         context.enqueueWork(() -> {
             Entity entity = Minecraft.getInstance().level.getEntity(packet.entityId());
             if (entity instanceof OWEntity owEntity) {
+                owEntity.activeQuest0 = packet.activeQuest0();
+                owEntity.activeQuest1 = packet.activeQuest1();
+                owEntity.activeQuest2 = packet.activeQuest2();
+                owEntity.questReward0 = packet.questReward0();
+                owEntity.questReward1 = packet.questReward1();
+                owEntity.questReward2 = packet.questReward2();
+                owEntity.dailyRerollAvailable = packet.dailyRerollAvailable();
+
                 owEntity.quest0Progression = packet.quest0Progression();
                 owEntity.quest1Progression = packet.quest1Progression();
                 owEntity.quest2Progression = packet.quest2Progression();

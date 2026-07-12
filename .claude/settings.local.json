@@ -44,7 +44,13 @@
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/verify_maze.py\")",
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/shapes.py\")",
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/messy.py\")",
-      "Bash(PYTHONIOENCODING=utf-8 python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/check_maps.py\")"
+      "Bash(PYTHONIOENCODING=utf-8 python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/9c164925-6bb1-45b3-96f8-6f70d8fd9faf/scratchpad/check_maps.py\")",
+      "PowerShell(.\\\\gradlew.bat compileJava --console=plain -q 2>&1)",
+      "PowerShell(.\\\\gradlew.bat compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 20; Write-Output \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(.\\\\gradlew.bat compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 25; Write-Output \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 25; Write-Output \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 20; Write-Output \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 10; Write-Output \"EXIT=$LASTEXITCODE\")"
     ]
   }
 }

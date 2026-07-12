@@ -17,6 +17,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.client.MousePositionSaver;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.OpenOWInventoryPacket;
+import net.tiew.operationWild.networking.packets.to_server.OpenDailyQuestScreen;
 import net.tiew.operationWild.screen.entity.skins.*;
 
 import java.util.List;
@@ -186,7 +187,9 @@ public class OWTabsRenderer {
 
     public void onDailyQuestsClicked(OWEntity entity) {
         setNotification(4, 0);
-        entity.getControllingPassenger().sendSystemMessage(Component.literal("ERROR"));
+        // Prévient le serveur que le joueur a consulté ses quêtes (efface le drapeau « à mettre à jour »).
+        OWNetworkHandler.sendToServer(new OpenDailyQuestScreen());
+        Minecraft.getInstance().setScreen(new OWDailyQuestScreen());
     }
 
     public void onPisteClicked(OWEntity entity) {

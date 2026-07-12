@@ -129,6 +129,8 @@ public class OWOptionsScreen extends Screen {
         int i = (this.width - IMG_W) / 2;
         int j = (this.height - IMG_H) / 2;
 
+        // Assombrit le monde derrière (même rendu que l'inventaire / la tribu).
+        this.renderBackground(g, mouseX, mouseY, partial);
         super.render(g, mouseX, mouseY, partial);
 
         g.blit(TEXTURE, i, j, 0, 0, IMG_W, IMG_H);

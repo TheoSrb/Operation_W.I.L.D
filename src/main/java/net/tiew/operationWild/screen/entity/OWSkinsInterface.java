@@ -418,6 +418,8 @@ public class OWSkinsInterface extends Screen {
         confirmYesButton.visible = false;
         confirmNoButton.visible = false;
 
+        // Assombrit le monde derrière (même rendu que l'inventaire / la tribu).
+        this.renderBackground(g, mouseX, mouseY, partial);
         super.render(g, mouseX, mouseY, partial);
 
         g.blit(BG_TEXTURE, i, j, 0, 0, imageWidth, imageHeight);

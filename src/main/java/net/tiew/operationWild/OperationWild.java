@@ -102,7 +102,9 @@ public class OperationWild {
         OWFeatures.register(modEventBus);
         ColorEvents.register(modEventBus);
         OWTerrablender.registerBiomes();
-        //OWDailyQuests.run();
+        // Construit le registre des quêtes quotidiennes (les deux côtés). Chaque OWEntity tire et
+        // réinitialise ensuite ses 3 propres quêtes sur son tick serveur (quêtes par individu).
+        net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry.init();
 
         OWGameRules.init();
 

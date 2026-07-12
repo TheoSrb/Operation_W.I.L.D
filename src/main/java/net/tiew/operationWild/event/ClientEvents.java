@@ -67,7 +67,6 @@ import org.lwjgl.glfw.GLFW;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestsDate;
 import net.tiew.operationWild.gui.*;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.MayaBlowpipeItem;
@@ -277,46 +276,8 @@ public class ClientEvents {
         maxEffectDuration = 0;
         setBlurPercentage(0);
 
-        if (DailyQuestsDate.isAlreadyChanged) {
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    ClientLevel clientLevel = Minecraft.getInstance().level;
-                    if (clientLevel != null) {
-                        int count = 0;
-                        for (Entity entity : clientLevel.entitiesForRendering()) {
-                            if (entity instanceof OWEntity owEntity) {
-                                owEntity.setUpdatingQuests(true);
-                                owEntity.quest0Progression = 0;
-                                owEntity.quest1Progression = 0;
-                                owEntity.quest2Progression = 0;
-                                owEntity.quest3Progression = 0;
-                                owEntity.quest4Progression = 0;
-                                owEntity.quest5Progression = 0;
-                                owEntity.quest6Progression = 0;
-                                owEntity.quest7Progression = 0;
-                                owEntity.quest8Progression = 0;
-                                owEntity.quest9Progression = 0;
-                                owEntity.quest10Progression = 0;
-
-                                owEntity.quest0isLocked = false;
-                                owEntity.quest1isLocked = false;
-                                owEntity.quest2isLocked = false;
-                                owEntity.quest3isLocked = false;
-                                owEntity.quest4isLocked = false;
-                                owEntity.quest5isLocked = false;
-                                owEntity.quest6isLocked = false;
-                                owEntity.quest7isLocked = false;
-                                owEntity.quest8isLocked = false;
-                                owEntity.quest9isLocked = false;
-                                owEntity.quest10isLocked = false;
-                                count++;
-                            }
-                        }
-                    }
-                }
-            }, 2000);
-        }
+        // Les quêtes sont propres à chaque individu et gérées côté serveur : chaque OWEntity tire et
+        // remet à zéro ses quêtes sur son tick, puis synchronise son cavalier. Plus de reset client ici.
         String worldName = getWorldName(event.getPlayer());
         ClientKillData.createEmptyFile(worldName);
         loadWaypointStates(event.getPlayer());

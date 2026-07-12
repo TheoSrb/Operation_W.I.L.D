@@ -6,20 +6,20 @@ public class DailyQuest {
     private float reward;
     private String name;
     private boolean isLocked;
+    private final DailyQuestTier tier;
 
 
-    public DailyQuest(int id, String name, int maxValue, int difficultyLevel) {
+    public DailyQuest(int id, String name, int maxValue, int difficultyLevel, DailyQuestTier tier) {
         this.id = id;
         this.name = name;
         this.maxValue = maxValue;
         this.difficultyLevel = Math.min(Math.max(0, difficultyLevel), 5);
-        this.reward = difficultyLevel * 4;
-
-        this.addQuest(this);
+        this.reward = this.difficultyLevel * 4;
+        this.tier = tier;
     }
 
-    public void addQuest(DailyQuest quest) {
-        OWDailyQuests.QUESTS.add(quest);
+    public DailyQuestTier getTier() {
+        return tier;
     }
 
     public int getId() {

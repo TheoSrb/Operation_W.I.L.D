@@ -100,7 +100,7 @@ import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuest;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry;
-import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestsDate;
+import net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests;
 import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.ConsumeItemPacket;
@@ -299,6 +299,141 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean quest9isLocked = false;
     public boolean quest10isLocked = false;
 
+    /**
+     * Jour (epoch day) de la période pour laquelle la progression des quêtes de CETTE entité a été
+     * reset. Comparé à {@link OWDailyQuests#computePeriodDay()} sur le tick serveur : dès qu'ils
+     * diffèrent, cette entité re-tire ses quêtes et remet sa progression à zéro. Ce mécanisme
+     * paresseux gère aussi les entités dans des chunks non chargés au moment du reset (elles se
+     * remettent à jour à leur prochain chargement).
+     */
+    private long lastQuestResetDay = Long.MIN_VALUE;
+
+    /** Ids des 3 quêtes actives PROPRES à cette entité (-1 = non tiré). Persistés en NBT, synchronisés au cavalier. */
+    public int activeQuest0 = -1;
+    public int activeQuest1 = -1;
+    public int activeQuest2 = -1;
+
+    /**
+     * Récompense pré-tirée de chaque quête active (code : &gt;0 = orbes d'XP, &lt;0 = -pièces, 0 = non tiré).
+     * Tirée au moment du reroll (déterministe et affichable), versée à la complétion de la quête.
+     */
+    public int questReward0 = 0;
+    public int questReward1 = 0;
+    public int questReward2 = 0;
+
+    /** Reroll manuel d'une quête : disponible une seule fois par jour (remis à true à chaque reset). NBT + synchronisé. */
+    public boolean dailyRerollAvailable = true;
+
+    /** Valeur en XP d'un « orbe » de récompense (moyenne d'un orbe absorbé). */
+    private static final float ORB_XP_VALUE = 4.0f;
+
+    /** Tire 3 nouvelles quêtes distinctes pour cette entité, et pré-tire leur récompense (XP ou pièces). */
+    public void rerollDailyQuests() {
+        int[] ids = net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests.pickRandomQuestIds();
+        this.activeQuest0 = ids[0];
+        this.activeQuest1 = ids[1];
+        this.activeQuest2 = ids[2];
+        this.questReward0 = rollQuestReward(ids[0]);
+        this.questReward1 = rollQuestReward(ids[1]);
+        this.questReward2 = rollQuestReward(ids[2]);
+    }
+
+    /**
+     * Reroll manuel d'UNE quête (emplacement 0..2) : tire une nouvelle quête distincte des deux autres
+     * actives, pré-tire sa récompense, remet sa progression à zéro, et consomme le reroll du jour.
+     */
+    public void rerollSingleQuest(int slot) {
+        if (!this.dailyRerollAvailable || slot < 0 || slot > 2) return;
+        int newId = pickQuestIdExcluding(this.activeQuest0, this.activeQuest1, this.activeQuest2);
+        if (newId < 0) return;
+        switch (slot) {
+            case 0 -> { this.activeQuest0 = newId; this.questReward0 = rollQuestReward(newId); }
+            case 1 -> { this.activeQuest1 = newId; this.questReward1 = rollQuestReward(newId); }
+            case 2 -> { this.activeQuest2 = newId; this.questReward2 = rollQuestReward(newId); }
+        }
+        resetQuestById(newId);
+        this.dailyRerollAvailable = false;
+    }
+
+    /** Tire un id de quête au hasard, distinct de {@code a}, {@code b} et {@code c} ; -1 si impossible. */
+    private int pickQuestIdExcluding(int a, int b, int c) {
+        int n = net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry.ALL.length;
+        java.util.List<Integer> pool = new java.util.ArrayList<>();
+        for (int id = 0; id < n; id++) {
+            if (id != a && id != b && id != c) pool.add(id);
+        }
+        if (pool.isEmpty()) return -1;
+        return pool.get(this.getRandom().nextInt(pool.size()));
+    }
+
+    /** Remet à zéro la progression et le verrou d'une seule quête (par id). */
+    private void resetQuestById(int id) {
+        switch (id) {
+            case 0 -> { quest0Progression = 0; quest0isLocked = false; }
+            case 1 -> { quest1Progression = 0; quest1isLocked = false; }
+            case 2 -> { quest2Progression = 0; quest2isLocked = false; }
+            case 3 -> { quest3Progression = 0; quest3isLocked = false; }
+            case 4 -> { quest4Progression = 0; quest4isLocked = false; }
+            case 5 -> { quest5Progression = 0; quest5isLocked = false; }
+            case 6 -> { quest6Progression = 0; quest6isLocked = false; }
+            case 7 -> { quest7Progression = 0; quest7isLocked = false; }
+            case 8 -> { quest8Progression = 0; quest8isLocked = false; }
+            case 9 -> { quest9Progression = 0; quest9isLocked = false; }
+            case 10 -> { quest10Progression = 0; quest10isLocked = false; }
+        }
+    }
+
+    /** Tire la récompense d'une quête selon son palier (code : &gt;0 orbes, &lt;0 -pièces). */
+    private int rollQuestReward(int questId) {
+        net.tiew.operationWild.entity.quests.daily_quests.DailyQuest q =
+                net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry.getById(questId);
+        if (q == null || q.getTier() == null) return 0;
+        return q.getTier().rollReward(this.getRandom());
+    }
+
+    /** Verse la récompense pré-tirée de la quête d'id {@code questId} (XP au pet, ou pièces au propriétaire). */
+    private void grantQuestReward(int questId) {
+        int code = 0;
+        if (activeQuest0 == questId) code = questReward0;
+        else if (activeQuest1 == questId) code = questReward1;
+        else if (activeQuest2 == questId) code = questReward2;
+
+        if (code > 0) {
+            gainLevelXp(code * ORB_XP_VALUE);
+        } else if (code < 0) {
+            if (this.getOwner() instanceof ServerPlayer owner) {
+                net.tiew.operationWild.core.OWCurrency.grantWildCoins(owner, -code);
+            }
+        }
+    }
+
+    /** Remet à zéro la progression et le verrouillage des 11 quêtes (nouvelle journée). */
+    public void resetDailyQuestProgress() {
+        quest0Progression = 0;
+        quest1Progression = 0;
+        quest2Progression = 0;
+        quest3Progression = 0;
+        quest4Progression = 0;
+        quest5Progression = 0;
+        quest6Progression = 0;
+        quest7Progression = 0;
+        quest8Progression = 0;
+        quest9Progression = 0;
+        quest10Progression = 0;
+
+        quest0isLocked = false;
+        quest1isLocked = false;
+        quest2isLocked = false;
+        quest3isLocked = false;
+        quest4isLocked = false;
+        quest5isLocked = false;
+        quest6isLocked = false;
+        quest7isLocked = false;
+        quest8isLocked = false;
+        quest9isLocked = false;
+        quest10isLocked = false;
+    }
+
     protected OWEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level);
         averageScale = scale;
@@ -466,18 +601,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             xpReward = 7.5f;
         }
 
-        // Récompense de quête versée dans le même pipeline de leveling que les orbes.
-        // Mise à l'échelle de la nouvelle courbe (seuils ~6× plus grands qu'avant).
-        gainLevelXp(xpReward * QUEST_XP_SCALE);
+        // Récompense selon le palier de la quête (pré-tirée au reroll) : soit des orbes d'XP versées
+        // dans le pipeline de leveling, soit des Pièces Sauvages pour le propriétaire.
+        grantQuestReward(id);
         this.playSound(OWSounds.TAME_SUCCESS.get(), 1.0f, (float) pitch);
     }
 
     public boolean isQuestInProgress(DailyQuest quest) {
         if (quest == null) return false;
-
-        return (DailyQuestsDate.savedQuests[0] != null && Objects.equals(DailyQuestsDate.savedQuests[0].getName(), quest.getName())) ||
-                (DailyQuestsDate.savedQuests[1] != null && Objects.equals(DailyQuestsDate.savedQuests[1].getName(), quest.getName())) ||
-                (DailyQuestsDate.savedQuests[2] != null && Objects.equals(DailyQuestsDate.savedQuests[2].getName(), quest.getName()));
+        int id = quest.getId();
+        return this.activeQuest0 == id || this.activeQuest1 == id || this.activeQuest2 == id;
     }
 
     public int getState() { return this.entityData.get(STATE);}
@@ -2244,16 +2377,43 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             setLevelPoints(0);
         }
 
-        if (!this.level().isClientSide()) {
-            if (this.level() instanceof ServerLevel serverLevel) {
-                for (ServerPlayer player : serverLevel.players()) {
-                    OWNetworkHandler.sendToClient(new OWQuestProgressToClient(this.getId(), this.quest0Progression, this.quest1Progression, this.quest2Progression,
-                            this.quest3Progression, this.quest4Progression, this.quest5Progression, this.quest6Progression, this.quest7Progression,
-                            this.quest8Progression, this.quest9Progression, this.quest10Progression, this.quest0isLocked, this.quest1isLocked, this.quest2isLocked, this.quest3isLocked,
-                            this.quest4isLocked, this.quest5isLocked, this.quest6isLocked, this.quest7isLocked, this.quest8isLocked, this.quest9isLocked, this.quest10isLocked), player);
-
-                    OWNetworkHandler.sendToClient(new OWEntityUtilsToClient(this.getId(), this.resurrectionTimer, this.attackTimer), player);
+        if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
+            // Quêtes PROPRES À CHAQUE INDIVIDU : à chaque nouvelle journée (14h heure réelle), cette
+            // entité tire ses 3 propres quêtes, remet sa progression à zéro et lève sa notification.
+            // Vérifié une fois par seconde (l'horloge réelle n'a pas besoin d'être lue 20x/s).
+            if (this.tickCount % 20 == 0) {
+                long period = OWDailyQuests.computePeriodDay();
+                if (period != this.lastQuestResetDay || this.activeQuest0 < 0) {
+                    // Nouveau jour (ou entité jamais initialisée) : reroll complet + reset + notification.
+                    this.rerollDailyQuests();
+                    this.resetDailyQuestProgress();
+                    this.lastQuestResetDay = period;
+                    this.dailyRerollAvailable = true;   // le reroll manuel se recharge chaque jour
+                    this.setUpdatingQuests(true);
+                } else if (this.questReward0 == 0) {
+                    // Migration : quêtes déjà en cours mais récompenses pas encore tirées (sauvegarde
+                    // antérieure à ce champ) → on tire seulement les récompenses, sans toucher aux quêtes.
+                    this.questReward0 = rollQuestReward(this.activeQuest0);
+                    this.questReward1 = rollQuestReward(this.activeQuest1);
+                    this.questReward2 = rollQuestReward(this.activeQuest2);
                 }
+            }
+
+            // La progression des quêtes n'est consultée que par le joueur qui chevauche l'entité
+            // (l'écran de quêtes exige de la chevaucher) : inutile de diffuser à tout le monde.
+            if (this.getControllingPassenger() instanceof ServerPlayer questRider) {
+                OWNetworkHandler.sendToClient(new OWQuestProgressToClient(this.getId(),
+                        this.activeQuest0, this.activeQuest1, this.activeQuest2,
+                        this.questReward0, this.questReward1, this.questReward2,
+                        this.dailyRerollAvailable,
+                        this.quest0Progression, this.quest1Progression, this.quest2Progression,
+                        this.quest3Progression, this.quest4Progression, this.quest5Progression, this.quest6Progression, this.quest7Progression,
+                        this.quest8Progression, this.quest9Progression, this.quest10Progression, this.quest0isLocked, this.quest1isLocked, this.quest2isLocked, this.quest3isLocked,
+                        this.quest4isLocked, this.quest5isLocked, this.quest6isLocked, this.quest7isLocked, this.quest8isLocked, this.quest9isLocked, this.quest10isLocked), questRider);
+            }
+
+            for (ServerPlayer player : serverLevel.players()) {
+                OWNetworkHandler.sendToClient(new OWEntityUtilsToClient(this.getId(), this.resurrectionTimer, this.attackTimer), player);
             }
         }
 
@@ -3811,6 +3971,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putInt("quest8Progression", this.quest8Progression);
         tag.putInt("quest9Progression", this.quest9Progression);
         tag.putInt("quest10Progression", this.quest10Progression);
+        tag.putLong("lastQuestResetDay", this.lastQuestResetDay);
+        tag.putInt("activeQuest0", this.activeQuest0);
+        tag.putInt("activeQuest1", this.activeQuest1);
+        tag.putInt("activeQuest2", this.activeQuest2);
+        tag.putInt("questReward0", this.questReward0);
+        tag.putInt("questReward1", this.questReward1);
+        tag.putInt("questReward2", this.questReward2);
+        tag.putBoolean("dailyRerollAvailable", this.dailyRerollAvailable);
 
         tag.putBoolean("quest0isLocked", this.quest0isLocked);
         tag.putBoolean("quest1isLocked", this.quest1isLocked);
@@ -3964,6 +4132,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.quest8Progression = tag.getInt("quest8Progression");
         this.quest9Progression = tag.getInt("quest9Progression");
         this.quest10Progression = tag.getInt("quest10Progression");
+        this.lastQuestResetDay = tag.contains("lastQuestResetDay") ? tag.getLong("lastQuestResetDay") : Long.MIN_VALUE;
+        this.activeQuest0 = tag.contains("activeQuest0") ? tag.getInt("activeQuest0") : -1;
+        this.activeQuest1 = tag.contains("activeQuest1") ? tag.getInt("activeQuest1") : -1;
+        this.activeQuest2 = tag.contains("activeQuest2") ? tag.getInt("activeQuest2") : -1;
+        this.questReward0 = tag.getInt("questReward0");
+        this.questReward1 = tag.getInt("questReward1");
+        this.questReward2 = tag.getInt("questReward2");
+        this.dailyRerollAvailable = !tag.contains("dailyRerollAvailable") || tag.getBoolean("dailyRerollAvailable");
 
         this.quest0isLocked = tag.getBoolean("quest0isLocked");
         this.quest1isLocked = tag.getBoolean("quest1isLocked");

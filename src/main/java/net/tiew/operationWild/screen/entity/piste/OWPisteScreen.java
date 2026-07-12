@@ -270,6 +270,8 @@ public class OWPisteScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        // Assombrit le monde derrière (même rendu que l'inventaire / la tribu).
+        this.renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
 
         graphics.blit(BG_TEXTURE, panelX, panelY, 0, 0, IMG_W, IMG_H);
