@@ -379,16 +379,18 @@ public class OWPisteScreen extends Screen {
                 fillRange(graphics, x2 - CORRIDOR, x2 + CORRIDOR, y1, y2, core);            // vertical
                 fillRange(graphics, x2 - CORRIDOR, x2 + CORRIDOR, y1 - CORRIDOR, y1 + CORRIDOR, core); // coude
 
-                // Relief sur les tronçons parcourus : liseré clair (haut/gauche) + ombre foncée (bas/droite).
-                if (lit) {
-                    int hl = 0xFFE9F5A2, sh = 0xFF5F9A2A;
-                    fillRange(graphics, x1, x2, y1 - CORRIDOR, y1 - CORRIDOR + 1, hl);          // haut horizontal
-                    fillRange(graphics, x1, x2, y1 + CORRIDOR - 1, y1 + CORRIDOR, sh);          // bas horizontal
-                    fillRange(graphics, x2 - CORRIDOR, x2 - CORRIDOR + 1, y1, y2, hl);          // gauche vertical
-                    fillRange(graphics, x2 + CORRIDOR - 1, x2 + CORRIDOR, y1, y2, sh);          // droite vertical
-                    fillRange(graphics, x2 - CORRIDOR, x2 + CORRIDOR, y1 - CORRIDOR, y1 - CORRIDOR + 1, hl); // coude haut
-                    fillRange(graphics, x2 - CORRIDOR, x2 + CORRIDOR, y1 + CORRIDOR - 1, y1 + CORRIDOR, sh); // coude bas
-                }
+                // Relief sur tous les tronçons : liseré clair (haut/gauche) + ombre foncée (bas/droite).
+                // Vert clair/foncé pour les parcourus, gris clair/foncé pour les non parcourus.
+                int hl, sh;
+                if (dead) { hl = 0xFF8A3A3A; sh = 0xFF3A1414; }
+                else if (lit) { hl = 0xFFE9F5A2; sh = 0xFF5F9A2A; }
+                else { hl = 0xFF74746A; sh = 0xFF3A3A32; }
+                fillRange(graphics, x1, x2, y1 - CORRIDOR, y1 - CORRIDOR + 1, hl);          // haut horizontal
+                fillRange(graphics, x1, x2, y1 + CORRIDOR - 1, y1 + CORRIDOR, sh);          // bas horizontal
+                fillRange(graphics, x2 - CORRIDOR, x2 - CORRIDOR + 1, y1, y2, hl);          // gauche vertical
+                fillRange(graphics, x2 + CORRIDOR - 1, x2 + CORRIDOR, y1, y2, sh);          // droite vertical
+                fillRange(graphics, x2 - CORRIDOR, x2 + CORRIDOR, y1 - CORRIDOR, y1 - CORRIDOR + 1, hl); // coude haut
+                fillRange(graphics, x2 - CORRIDOR, x2 + CORRIDOR, y1 + CORRIDOR - 1, y1 + CORRIDOR, sh); // coude bas
             }
         }
     }
@@ -714,10 +716,13 @@ public class OWPisteScreen extends Screen {
             }
         }
 
+        // Titre stylé (gras) : on mesure la version réellement affichée pour éviter tout débordement.
+        Component boldTitle = title.copy().withStyle(Style.EMPTY.withColor(TextColor.fromRgb(accent)).withBold(true));
+
         // Mesures.
         int pad = 6;
         int iconW = (drawCoinIcon || drawXpIcon) ? 12 : 0;
-        int titleW = iconW + (iconW > 0 ? 4 : 0) + this.font.width(title);
+        int titleW = iconW + (iconW > 0 ? 4 : 0) + this.font.width(boldTitle);
         int contentW = titleW;
         if (costLine != null) contentW = Math.max(contentW, this.font.width(costLine) + 8);
         if (status != null) contentW = Math.max(contentW, this.font.width(status) + 8);
@@ -755,8 +760,7 @@ public class OWPisteScreen extends Screen {
             graphics.fill(ix - r + 1, iy - r + 1, ix - r + 2, iy - r + 2, 0xFFCFFFB0);
         }
         int titleX = cx + (iconW > 0 ? iconW + 4 : 0);
-        graphics.drawString(this.font, title.copy().withStyle(
-                Style.EMPTY.withColor(TextColor.fromRgb(accent)).withBold(true)), titleX, cy, 0xFFFFFF, true);
+        graphics.drawString(this.font, boldTitle, titleX, cy, 0xFFFFFF, true);
 
         int rowY = cy + 12;
         if (rows > 1) {
