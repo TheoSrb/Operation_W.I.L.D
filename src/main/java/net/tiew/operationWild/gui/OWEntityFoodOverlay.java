@@ -44,6 +44,7 @@ public class OWEntityFoodOverlay {
         if (foodItem.isEmpty()) return;
 
         int count = entity.getFoodCount();
+        if (count <= 0) return;   // plus de stock (tout mangé) → pas de notif, même si le type reste mémorisé
         Font font = Minecraft.getInstance().font;
 
         int bx = MARGIN_X - 3;

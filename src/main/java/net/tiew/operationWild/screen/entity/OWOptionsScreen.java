@@ -142,10 +142,9 @@ public class OWOptionsScreen extends Screen {
     }
 
     private void renderHeader(GuiGraphics g, int i, int j) {
-        Component title = Component.translatable("option.screenTitle")
-                .setStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(0x9fe8ff)));
+        Component title = Component.translatable("option.screenTitle");
         g.drawString(this.font, title,
-                i + IMG_W / 2 - this.font.width(title) / 2, j + 7, 0x9fe8ff);
+                i + IMG_W / 2 - this.font.width(title) / 2, j + 7, 0xFFFFFF);
 
         if (entity != null) {
             String name = entity.getNickname();

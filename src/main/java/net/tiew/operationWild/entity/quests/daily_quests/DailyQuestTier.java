@@ -38,6 +38,15 @@ public enum DailyQuestTier {
      *
      * @return code encodé : {@code > 0} = orbes d'XP, {@code < 0} = {@code -pièces}.
      */
+    /** Couleur du palier : vert (facile) → orange (moyen) → rouge (difficile). */
+    public int color() {
+        return switch (this) {
+            case I -> 0x5FB84A;
+            case II -> 0xE8952E;
+            case III -> 0xD1442E;
+        };
+    }
+
     public int rollReward(RandomSource rng) {
         if (coinChance > 0f && rng.nextFloat() < coinChance) {
             int coins = coinMin + (coinMax > coinMin ? rng.nextInt(coinMax - coinMin + 1) : 0);

@@ -148,6 +148,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int fightingTime = 200;
     public boolean canAttack = true;
     private BlockPos lastPosition;
+    // Quête « parcourir X blocs » : accumulation de la distance HORIZONTALE réelle (ignore Y, sinon un
+    // animal qui rebondit sur place — le kangourou par ex. — gonflerait la progression).
+    private double lastTravelX = Double.NaN;
+    private double lastTravelZ = Double.NaN;
+    private double travelAccumulator = 0.0;
     public LivingEntity lastVisibleTarget = null;
     public int questsReUpdatingTimer = 10;
     private int sittingCooldown = 0;
@@ -329,7 +334,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     /** Tire 3 nouvelles quêtes distinctes pour cette entité, et pré-tire leur récompense (XP ou pièces). */
     public void rerollDailyQuests() {
-        int[] ids = net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests.pickRandomQuestIds();
+        int[] ids = net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests.pickRandomQuestIds(this::questAllowed);
         this.activeQuest0 = ids[0];
         this.activeQuest1 = ids[1];
         this.activeQuest2 = ids[2];
@@ -355,15 +360,24 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.dailyRerollAvailable = false;
     }
 
-    /** Tire un id de quête au hasard, distinct de {@code a}, {@code b} et {@code c} ; -1 si impossible. */
+    /** Tire un id de quête au hasard, distinct de {@code a}, {@code b} et {@code c} et autorisé ; -1 si impossible. */
     private int pickQuestIdExcluding(int a, int b, int c) {
         int n = net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry.ALL.length;
         java.util.List<Integer> pool = new java.util.ArrayList<>();
         for (int id = 0; id < n; id++) {
-            if (id != a && id != b && id != c) pool.add(id);
+            if (id != a && id != b && id != c && questAllowed(id)) pool.add(id);
         }
         if (pool.isEmpty()) return -1;
         return pool.get(this.getRandom().nextInt(pool.size()));
+    }
+
+    /** Une quête est-elle attribuable à cette entité ? (ex : « passer un niveau » interdit au niveau max). */
+    private boolean questAllowed(int id) {
+        net.tiew.operationWild.entity.quests.daily_quests.DailyQuest q =
+                net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry.getById(id);
+        if (q == null) return false;
+        if (q.requiresLevelUp() && this.getLevel() >= 50) return false;
+        return true;
     }
 
     /** Remet à zéro la progression et le verrou d'une seule quête (par id). */
@@ -400,6 +414,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (code > 0) {
             gainLevelXp(code * ORB_XP_VALUE);
+            ServerPlayer target = (this.getControllingPassenger() instanceof ServerPlayer rider) ? rider
+                    : (this.getOwner() instanceof ServerPlayer owner) ? owner : null;
+            if (target != null) {
+                OWNetworkHandler.sendToClient(new net.tiew.operationWild.networking.packets.to_client.OWXpGainPacket(code), target);
+            }
         } else if (code < 0) {
             if (this.getOwner() instanceof ServerPlayer owner) {
                 net.tiew.operationWild.core.OWCurrency.grantWildCoins(owner, -code);
@@ -503,11 +522,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (quest2Progression >= 100) this.finishQuest((byte) 2);
         }
         if (id == 3 && !this.quest3isLocked) {
-            BlockPos currentPosition = this.blockPosition();
-            if (!currentPosition.equals(lastPosition)) {
-                this.quest3Progression++;
-                lastPosition = currentPosition;
+            double x = this.getX(), z = this.getZ();
+            if (!Double.isNaN(lastTravelX)) {
+                double dx = x - lastTravelX, dz = z - lastTravelZ;
+                double d = Math.sqrt(dx * dx + dz * dz);
+                if (d < 20.0) travelAccumulator += d;   // ignore les téléportations
+                while (travelAccumulator >= 1.0 && quest3Progression < 2000) {
+                    quest3Progression++;
+                    travelAccumulator -= 1.0;
+                }
             }
+            lastTravelX = x;
+            lastTravelZ = z;
             if (quest3Progression >= 2000) this.finishQuest((byte) 3);
         }
         if (id == 4 && !this.quest4isLocked) {
@@ -2611,7 +2637,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void createCombo(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
-        if (!this.isAlive() || (this.getTarget() != null && this.getTarget().getHealth() <= 0.0F)) return;
+        if (!this.isAlive()) return;
+        // Cible morte (ex : entité tuée à l'instant, encore référencée le temps de son anim de mort /
+        // avant despawn) : on l'OUBLIE au lieu de bloquer. Sinon la machine d'état du combo se fige
+        // (attackTimer gelé, isCombo jamais remis à false) et l'attaque « boucle sans finir ».
+        if (this.getTarget() != null && this.getTarget().getHealth() <= 0.0F) {
+            this.setTarget(null);
+        }
         if (isPauseCombo()) {
             continueComboMaxTimer++;
 

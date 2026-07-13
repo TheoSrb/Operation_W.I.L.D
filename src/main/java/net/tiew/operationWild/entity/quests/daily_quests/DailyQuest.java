@@ -7,6 +7,8 @@ public class DailyQuest {
     private String name;
     private boolean isLocked;
     private final DailyQuestTier tier;
+    /** Quête impossible pour une entité au niveau max (ex : « passer un niveau »). */
+    private boolean requiresLevelUp = false;
 
 
     public DailyQuest(int id, String name, int maxValue, int difficultyLevel, DailyQuestTier tier) {
@@ -20,6 +22,15 @@ public class DailyQuest {
 
     public DailyQuestTier getTier() {
         return tier;
+    }
+
+    public boolean requiresLevelUp() {
+        return requiresLevelUp;
+    }
+
+    public DailyQuest setRequiresLevelUp(boolean value) {
+        this.requiresLevelUp = value;
+        return this;
     }
 
     public int getId() {

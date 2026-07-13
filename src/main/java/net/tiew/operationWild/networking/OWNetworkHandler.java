@@ -73,6 +73,7 @@ public class OWNetworkHandler {
         registrar.playToClient(RitualSyncPacket.TYPE, RitualSyncPacket.STREAM_CODEC, RitualSyncPacket::handle);
         registrar.playToClient(OWLevelUpPacket.TYPE, OWLevelUpPacket.STREAM_CODEC, OWLevelUpPacket::handle);
         registrar.playToClient(OWCoinsSyncPacket.TYPE, OWCoinsSyncPacket.STREAM_CODEC, OWCoinsSyncPacket::handle);
+        registrar.playToClient(OWXpGainPacket.TYPE, OWXpGainPacket.STREAM_CODEC, OWXpGainPacket::handle);
         registrar.playToClient(OWIndicationPacket.TYPE, OWIndicationPacket.STREAM_CODEC, OWIndicationPacket::handle);
 
     }

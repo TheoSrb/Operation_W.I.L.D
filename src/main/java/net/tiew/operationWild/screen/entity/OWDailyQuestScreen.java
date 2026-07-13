@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -51,11 +50,6 @@ public class OWDailyQuestScreen extends Screen {
 
     private final OWTabsRenderer tabsRenderer = new OWTabsRenderer();
 
-    // Confirmation de reroll (style PISTE/SKINS) : emplacement en attente (-1 = aucune modale) + boutons.
-    private int pendingRerollSlot = -1;
-    private Button dlgYes;
-    private Button dlgNo;
-
     public OWDailyQuestScreen() {
         super(Component.literal("OWDailyQuestScreen"));
         if (Minecraft.getInstance().player.getRootVehicle() instanceof OWEntity e) this.entity = e;
@@ -74,26 +68,18 @@ public class OWDailyQuestScreen extends Screen {
         int listH = IMG_H - HEADER_H - FOOTER_H;
 
         scrollPanel = new OWScrollPanel(listX, listY, listW, listH);
-        scrollPanel.onReloadRequest = slot -> this.pendingRerollSlot = slot;
+        // Clic reload : reroll immédiat (pas de confirmation). Le reroll du jour est consommé, donc on
+        // masque aussitôt TOUS les boutons côté client (le serveur confirmera via la synchro).
+        scrollPanel.onReloadRequest = slot -> {
+            OWNetworkHandler.sendToServer(new RerollDailyQuestPacket(slot));
+            if (entity != null) entity.dailyRerollAvailable = false;
+        };
         if (entity != null) {
             for (int slot = 0; slot < 3; slot++) {
                 scrollPanel.add(new QuestEntry(entity, slot));
             }
         }
         this.addWidget(scrollPanel);
-
-        // Boutons de la confirmation de reroll (rendus / cliqués manuellement, comme la PISTE).
-        dlgYes = Button.builder(Component.translatable("tooltip.yesButton")
-                        .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x7DDD73)).withBold(true)),
-                b -> {
-                    if (pendingRerollSlot >= 0) {
-                        OWNetworkHandler.sendToServer(new RerollDailyQuestPacket(pendingRerollSlot));
-                        pendingRerollSlot = -1;
-                    }
-                }).bounds(0, 0, 62, 20).build();
-        dlgNo = Button.builder(Component.translatable("tooltip.noButton")
-                        .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xDD4444)).withBold(true)),
-                b -> pendingRerollSlot = -1).bounds(0, 0, 62, 20).build();
 
         if (entity != null) {
             tabsRenderer.init(this.width, this.height, IMG_W, IMG_H, entity, this::addWidget);
@@ -124,66 +110,10 @@ public class OWDailyQuestScreen extends Screen {
         if (entity != null) {
             tabsRenderer.renderTabs(g, this.font, entity, i, j, mouseX, mouseY);
         }
-
-        if (pendingRerollSlot >= 0) {
-            renderRerollModal(g, i, j, mouseX, mouseY);
-        }
-    }
-
-    /** Confirmation de reroll (panneau assombri + avertissement + Oui/Non), style PISTE/SKINS. */
-    private void renderRerollModal(GuiGraphics g, int i, int j, int mouseX, int mouseY) {
-        g.fill(i, j, i + IMG_W, j + IMG_H, 0xF0130F13);
-        int cx = i + IMG_W / 2;
-        int inW = IMG_W - 16;
-
-        int y = j + 26;
-        for (FormattedCharSequence line : this.font.split(
-                Component.translatable("dailyQuest.reroll.title").withStyle(Style.EMPTY.withBold(true)), inW)) {
-            g.drawCenteredString(this.font, line, cx, y, 0xFFFFFF);
-            y += 11;
-        }
-        y += 8;
-        for (FormattedCharSequence line : this.font.split(
-                Component.translatable("dailyQuest.reroll.warning"), inW)) {
-            g.drawString(this.font, line, cx - this.font.width(line) / 2, y, 0xE0A85A, false);
-            y += 10;
-        }
-
-        int btnW = 62, gap = 8, tot = btnW * 2 + gap, btnY = j + IMG_H - 32;
-        dlgYes.setWidth(btnW);
-        dlgYes.setPosition(cx - tot / 2, btnY);
-        dlgNo.setWidth(btnW);
-        dlgNo.setPosition(cx - tot / 2 + btnW + gap, btnY);
-        dlgYes.render(g, mouseX, mouseY, 0f);
-        dlgNo.render(g, mouseX, mouseY, 0f);
-    }
-
-    @Override
-    public boolean mouseClicked(double mx, double my, int button) {
-        if (pendingRerollSlot >= 0) {
-            if (button == 0) {
-                if (dlgYes.mouseClicked(mx, my, button)) return true;
-                if (dlgNo.mouseClicked(mx, my, button)) return true;
-                int i = (this.width - IMG_W) / 2, j = (this.height - IMG_H) / 2;
-                if (mx < i || mx > i + IMG_W || my < j || my > j + IMG_H) pendingRerollSlot = -1;
-            }
-            return true;   // la modale capte tous les clics
-        }
-        return super.mouseClicked(mx, my, button);
-    }
-
-    @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == 256 && pendingRerollSlot >= 0) {   // Échap ferme la modale
-            pendingRerollSlot = -1;
-            return true;
-        }
-        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private void renderHeader(GuiGraphics g, int i, int j) {
-        Component title = Component.translatable("tooltip.questMenu")
-                .setStyle(Style.EMPTY.withBold(true).withUnderlined(true).withColor(TextColor.fromRgb(0xFFFFFF)));
+        Component title = Component.translatable("tooltip.questMenu");
         g.drawString(this.font, title, i + IMG_W / 2 - this.font.width(title) / 2, j + 9, 0xFFFFFF);
     }
 
@@ -205,9 +135,12 @@ public class OWDailyQuestScreen extends Screen {
     private static final int BAR_H = 6;
     private static final int GAP = 4;
     private static final int REWARD_H = 11;
-    private static final int RELOAD_SZ = 12;
+    private static final int RELOAD_SZ = 13;
     /** Espace réservé de chaque côté du titre (badge de tier à gauche, bouton reload à droite). */
-    private static final int SIDE_INSET = 16;
+    private static final int SIDE_INSET = 17;
+
+    private static final ResourceLocation MOB_TYPES =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
 
     /** Couleurs du dégradé de la barre de progression : 0 % (jaune orangé léger) → 100 % (vert). */
     private static final int FILL_LOW = 0xF3C24C;
@@ -431,32 +364,10 @@ public class OWDailyQuestScreen extends Screen {
         }
     }
 
-    /** Petit bouton biseauté avec une icône de flèche circulaire (reload). */
+    /** Bouton reload 15×15 : icône 13×13 de mob_types.png (0,130) centrée, avec surbrillance au survol. */
     private static void drawReloadButton(GuiGraphics g, int x, int y, boolean hover) {
-        g.fill(x, y, x + RELOAD_SZ, y + RELOAD_SZ, hover ? 0xFF3A4048 : 0xFF2A2F36);
-        g.fill(x, y, x + RELOAD_SZ, y + 1, 0xFF4E555E);
-        g.fill(x, y, x + 1, y + RELOAD_SZ, 0xFF4E555E);
-        g.fill(x + RELOAD_SZ - 1, y, x + RELOAD_SZ, y + RELOAD_SZ, 0xFF15181C);
-        g.fill(x, y + RELOAD_SZ - 1, x + RELOAD_SZ, y + RELOAD_SZ, 0xFF15181C);
-        drawReloadIcon(g, x + RELOAD_SZ / 2, y + RELOAD_SZ / 2, hover ? 0xCFF3FF : 0x9FE8FF);
-    }
-
-    /** Flèche circulaire (anneau brisé + pointe) dessinée pixel par pixel. */
-    private static void drawReloadIcon(GuiGraphics g, int cx, int cy, int rgb) {
-        int col = 0xFF000000 | rgb;
-        double r = 3.3;
-        // Anneau brisé (ouverture en haut à droite pour la pointe).
-        for (int a = 35; a <= 300; a += 12) {
-            double rad = Math.toRadians(a);
-            int px = (int) Math.round(cx + r * Math.cos(rad));
-            int py = (int) Math.round(cy + r * Math.sin(rad));
-            g.fill(px, py, px + 1, py + 1, col);
-        }
-        // Pointe de flèche à l'extrémité haute de l'anneau.
-        int hx = (int) Math.round(cx + r * Math.cos(Math.toRadians(300)));
-        int hy = (int) Math.round(cy + r * Math.sin(Math.toRadians(300)));
-        g.fill(hx, hy - 1, hx + 1, hy + 2, col);
-        g.fill(hx + 1, hy, hx + 3, hy + 1, col);
+        if (hover) g.fill(x, y, x + RELOAD_SZ, y + RELOAD_SZ, 0x22FFFFFF);
+        g.blit(MOB_TYPES, x + (RELOAD_SZ - 13) / 2, y + (RELOAD_SZ - 13) / 2, 0, 130, 13, 13);
     }
 
     /** Quête active à l'emplacement {@code slot} (0..2) pour cette entité, ou {@code null}. */

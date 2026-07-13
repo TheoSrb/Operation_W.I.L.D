@@ -460,6 +460,9 @@ public class ClientEvents {
         OWCoinGainOverlay.render(event.getGuiGraphics(),
                 event.getGuiGraphics().guiWidth(),
                 event.getGuiGraphics().guiHeight());
+        net.tiew.operationWild.gui.OWXpGainOverlay.render(event.getGuiGraphics(),
+                event.getGuiGraphics().guiWidth(),
+                event.getGuiGraphics().guiHeight());
         // Quand on chevauche un pet, l'indication est rendue par onRenderStage (après le HUD, donc au-dessus).
         // Ici, on ne la rend que hors monture (ex : tip de niveau reçu sans être monté).
         boolean mountedOnPet = mc.player.getVehicle() instanceof OWEntity ow && !(ow instanceof Submarine);

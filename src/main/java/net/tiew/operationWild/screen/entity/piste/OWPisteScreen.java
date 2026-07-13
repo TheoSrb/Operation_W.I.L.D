@@ -18,8 +18,8 @@ import net.tiew.operationWild.entity.piste.OWPisteGraph;
 import net.tiew.operationWild.entity.piste.OWPisteGraphs;
 import net.tiew.operationWild.entity.piste.OWPisteNode;
 import net.tiew.operationWild.entity.piste.OWPisteRules;
+import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.gui.OWEntityHud;
-import net.tiew.operationWild.networking.ClientCoinData;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.OWPisteAdvancePacket;
 import net.tiew.operationWild.networking.packets.to_server.OpenOWInventoryPacket;
@@ -65,6 +65,13 @@ public class OWPisteScreen extends Screen {
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/misc/exp_3.png");
     private static final ResourceLocation EXP_TEXTURE_4 =
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/misc/exp_4.png");
+
+    /** Atlas 256×256 de l'Expérience d'Apprivoisement ; l'icône « patte » est en (110,12), 11×11. */
+    private static final ResourceLocation TAMING_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID,
+                    "textures/gui/mob_page/misc/ow_entity_journal_interface_taming_experience_gui.png");
+    /** Couleur d'affichage du solde d'Expérience d'Apprivoisement (fauve/cuir). */
+    private static final int TAMING_COLOR = 0xD9B45A;
 
     /** Pièce dont l'aspect grossit avec le montant : <5 classique, 5-9 moyenne, ≥10 grosse. */
     private static ResourceLocation coinTextureFor(int amount) {
@@ -265,7 +272,7 @@ public class OWPisteScreen extends Screen {
     private boolean isAffordable(OWPisteNode node) {
         return entity != null
                 && entity.getLevel() >= node.getRequiredLevel()
-                && ClientCoinData.wildCoins >= node.getCost();
+                && ClientEvents.tamingExperience >= node.getCost();
     }
 
     @Override
@@ -630,13 +637,13 @@ public class OWPisteScreen extends Screen {
             String pct = completionPercent() + "%";
             graphics.drawString(this.font, pct, panelX + IMG_W - 6 - this.font.width(pct), panelY + 6, 0xB8E45A, true);
 
-            // Solde de Pièces Sauvages (icône + nombre) en bas à droite du panneau.
-            String coins = String.valueOf(ClientCoinData.wildCoins);
+            // Solde d'Expérience d'Apprivoisement (icône patte + nombre) en bas à droite du panneau.
+            String taming = String.valueOf((int) ClientEvents.tamingExperience);
             int iconX = panelX + IMG_W - 6 - 10;
             int iconY = panelY + IMG_H - 13;
-            graphics.blit(COIN_TEXTURE, iconX, iconY, 10, 10, 0f, 0f, 16, 16, 16, 16);
-            graphics.drawString(this.font, coins, iconX - 2 - this.font.width(coins),
-                    panelY + IMG_H - 12, ClientCoinData.COLOR, true);
+            graphics.blit(TAMING_TEXTURE, iconX, iconY, 10, 10, 110f, 12f, 11, 11, 256, 256);
+            graphics.drawString(this.font, taming, iconX - 2 - this.font.width(taming),
+                    panelY + IMG_H - 12, TAMING_COLOR, true);
         }
     }
 
@@ -711,7 +718,7 @@ public class OWPisteScreen extends Screen {
         } else if (reachable) {
             if (entity.getLevel() < node.getRequiredLevel()) {
                 status = Component.translatable("piste.need_level", node.getRequiredLevel()); statusColor = 0xFF6B6B;
-            } else if (ClientCoinData.wildCoins < node.getCost()) {
+            } else if (ClientEvents.tamingExperience < node.getCost()) {
                 status = Component.translatable("piste.not_enough"); statusColor = 0xFF6B6B;
             } else {
                 status = Component.translatable("piste.reachable"); statusColor = 0x9AD16B;
@@ -726,7 +733,7 @@ public class OWPisteScreen extends Screen {
         int iconW = (drawCoinIcon || drawXpIcon) ? 12 : 0;
         int titleW = iconW + (iconW > 0 ? 4 : 0) + this.font.width(boldTitle);
         int contentW = titleW;
-        if (costLine != null) contentW = Math.max(contentW, this.font.width(costLine) + 8);
+        if (costLine != null) contentW = Math.max(contentW, this.font.width(costLine) + 8 + 12);
         if (status != null) contentW = Math.max(contentW, this.font.width(status) + 8);
 
         int rows = 1 + (costLine != null ? 1 : 0) + (status != null ? 1 : 0);
@@ -770,8 +777,10 @@ public class OWPisteScreen extends Screen {
             rowY += 3;
         }
         if (costLine != null) {
-            graphics.drawString(this.font, costLine.copy().withStyle(
-                    Style.EMPTY.withColor(TextColor.fromRgb(0xF3E27F))), cx, rowY, 0xFFFFFF, true);
+            Component styledCost = costLine.copy().withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xF3E27F)));
+            graphics.drawString(this.font, styledCost, cx, rowY, 0xFFFFFF, true);
+            graphics.blit(TAMING_TEXTURE, cx + this.font.width(styledCost) + 2, rowY - 1,
+                    10, 10, 110f, 12f, 11, 11, 256, 256);
             rowY += 11;
         }
         if (status != null) {
@@ -943,8 +952,12 @@ public class OWPisteScreen extends Screen {
         graphics.drawString(this.font, rew, sx + 16, y, 0xFFFFFF, true);
         y += 15;
 
-        graphics.drawCenteredString(this.font, Component.translatable("piste.cost", pendingConfirm.getCost())
-                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xF3E27F))), cxp, y, 0xFFFFFF);
+        Component costComp = Component.translatable("piste.cost", pendingConfirm.getCost())
+                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xF3E27F)));
+        int ctw = this.font.width(costComp);
+        int csx = cxp - (ctw + 2 + 10) / 2;
+        graphics.drawString(this.font, costComp, csx, y, 0xFFFFFF, true);
+        graphics.blit(TAMING_TEXTURE, csx + ctw + 2, y - 1, 10, 10, 110f, 12f, 11, 11, 256, 256);
 
         int btnW = 62, gap = 8, tot = btnW * 2 + gap, btnY = panelY + VP_BOTTOM - 26;
         dlgYes.setWidth(btnW); dlgYes.setPosition(cxp - tot / 2, btnY);

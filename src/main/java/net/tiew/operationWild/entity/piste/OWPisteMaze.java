@@ -99,7 +99,7 @@ public final class OWPisteMaze {
         Spec s = specs.get(symbol);
         if (s != null) return s;
         if (symbol == 'S') return new Spec(OWPisteNode.Type.START, 0, 0, 0);
-        return new Spec(OWPisteNode.Type.STEP, 0, 1, 0);
+        return new Spec(OWPisteNode.Type.STEP, 0, 5, 0);
     }
 
     public OWPisteGraph build() {

@@ -42,13 +42,18 @@ public class OWDailyQuests {
 
     /** Tire 3 ids de quêtes distincts parmi le registre (complète avec -1 s'il y en a moins de 3). */
     public static int[] pickRandomQuestIds() {
+        return pickRandomQuestIds(id -> true);
+    }
+
+    /** Comme {@link #pickRandomQuestIds()} mais ne retient que les ids acceptés par {@code allowed}. */
+    public static int[] pickRandomQuestIds(java.util.function.IntPredicate allowed) {
         DailyQuestRegistry.init();
         int n = DailyQuestRegistry.ALL.length;
         List<Integer> pool = new ArrayList<>(n);
-        for (int i = 0; i < n; i++) pool.add(i);
+        for (int i = 0; i < n; i++) if (allowed.test(i)) pool.add(i);
         Collections.shuffle(pool);
 
-        int count = Math.min(3, n);
+        int count = Math.min(3, pool.size());
         int[] ids = {-1, -1, -1};
         for (int i = 0; i < count; i++) ids[i] = pool.get(i);
         return ids;

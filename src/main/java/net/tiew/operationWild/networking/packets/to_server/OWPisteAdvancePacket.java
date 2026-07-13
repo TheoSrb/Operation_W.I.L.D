@@ -11,6 +11,8 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWCurrency;
+import net.tiew.operationWild.core.OWDatasSave;
+import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.piste.OWPisteGraph;
 import net.tiew.operationWild.entity.piste.OWPisteGraphs;
@@ -19,7 +21,7 @@ import net.tiew.operationWild.entity.piste.OWPisteRules;
 
 /**
  * Demande d'avancement du pion vers un nœud de la Piste Sauvage. Envoyé par le client,
- * <b>entièrement validé côté serveur</b> (adjacence, coût en Pièces Sauvages, palier de niveau,
+ * <b>entièrement validé côté serveur</b> (adjacence, coût en Expérience d'Apprivoisement, palier de niveau,
  * porte de complétion). {@code choice} = option retenue sur un palier à choix (-1 sinon).
  * Cible : l'entité chevauchée par le joueur.
  */
@@ -72,9 +74,11 @@ public record OWPisteAdvancePacket(int nodeId, int choice) implements CustomPack
             if (target.hasChoice() && (packet.choice() < 0 || packet.choice() >= target.getOptions().size())) return;
             if (isAttack && (packet.choice() < 0 || packet.choice() >= target.getAttackIds().size())) return;
 
-            // Coût en Pièces Sauvages (porte-monnaie du joueur). Débite si assez, sinon refus.
-            if (!OWCurrency.spendWildCoins(player, target.getCost())) return;
-            OWCurrency.syncWildCoins(player);
+            // Coût en Expérience d'Apprivoisement (cagnotte du joueur). Débite si assez, sinon refus.
+            // Même stockage que OWEntity#addTamingExperience : statique client partagé + fichier local.
+            if (ClientEvents.tamingExperience < target.getCost()) return;
+            ClientEvents.tamingExperience -= target.getCost();
+            OWDatasSave.saveTamingExperience(OWDatasSave.owDatas, ClientEvents.tamingExperience);
 
             // --- Validation OK : on applique ---
             entity.addPisteUnlockedNode(targetId);

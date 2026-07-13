@@ -42,7 +42,7 @@ public class DailyQuestRegistry {
         ALL[2]  = quest3  = new DailyQuest(2,  "dailyQuest.2",   100,   2, DailyQuestTier.I);    // régénérer 100 PV
         ALL[3]  = quest4  = new DailyQuest(3,  "dailyQuest.3",   2000,  1, DailyQuestTier.I);    // parcourir 2000 blocs
         ALL[4]  = quest5  = new DailyQuest(4,  "dailyQuest.4",   1,     5, DailyQuestTier.II);   // 40 dégâts en 5 s
-        ALL[5]  = quest6  = new DailyQuest(5,  "dailyQuest.5",   1,     3, DailyQuestTier.II);   // passer 1 niveau
+        ALL[5]  = quest6  = new DailyQuest(5,  "dailyQuest.5",   1,     3, DailyQuestTier.II).setRequiresLevelUp(true);   // passer 1 niveau (impossible au niv. max)
         ALL[6]  = quest7  = new DailyQuest(6,  "dailyQuest.6",   25,    2, DailyQuestTier.III);  // éliminer 25 cibles
         ALL[7]  = quest8  = new DailyQuest(7,  "dailyQuest.7",   1,     2, DailyQuestTier.III);  // 5 cibles d'un seul coup
         ALL[8]  = quest9  = new DailyQuest(8,  "dailyQuest.8",   1,     1, DailyQuestTier.III);  // 10 cibles en 5 s
