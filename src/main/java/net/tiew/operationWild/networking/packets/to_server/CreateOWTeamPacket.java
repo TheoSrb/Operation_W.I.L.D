@@ -58,24 +58,11 @@ public record CreateOWTeamPacket(int entityId) implements CustomPacketPayload {
                     new ArrayList<>(List.of(entityDisplayName))
             );
             team.setEntityUUIDs(new ArrayList<>(List.of(owEntity.getUUID())));
+            team.setPlayerUUIDs(new ArrayList<>(List.of(context.player().getUUID())));
             owEntity.currentTeam = team;
 
-            List<String> uuidStrings = List.of(owEntity.getUUID().toString());
             for (ServerPlayer player : serverLevel.players()) {
-                OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
-                        owEntity.getId(),
-                        team.getTeamId(),
-                        team.getTeamName(),
-                        team.getTeamOwnerUUID().toString(),
-                        team.getTeamColor(),
-                        team.getTeamSecondaryColor(),
-                        team.getTeamMosaicPattern().getId(),
-                        team.getTeamCreationDate(),
-                        team.getPlayerNames(),
-                        team.getEntityNames(),
-                        uuidStrings,
-                        OWTeamMosaicPattern.packPixels(team.getPaintPixels())
-                ), player);
+                OWNetworkHandler.sendToClient(SyncOWTeamPacket.of(owEntity.getId(), team), player);
             }
 
         });

@@ -48,6 +48,8 @@ public class OWNetworkHandler {
         registrar.playToServer(OWAttackPacket.TYPE, OWAttackPacket.STREAM_CODEC, OWAttackPacket::handle);
         registrar.playToServer(CreateOWTeamPacket.TYPE, CreateOWTeamPacket.STREAM_CODEC, CreateOWTeamPacket::handle);
         registrar.playToServer(RemoveEntityFromTeamPacket.TYPE, RemoveEntityFromTeamPacket.STREAM_CODEC, RemoveEntityFromTeamPacket::handle);
+        registrar.playToServer(RemovePlayerFromTeamPacket.TYPE, RemovePlayerFromTeamPacket.STREAM_CODEC, RemovePlayerFromTeamPacket::handle);
+        registrar.playToServer(InvitePlayerToTeamPacket.TYPE, InvitePlayerToTeamPacket.STREAM_CODEC, InvitePlayerToTeamPacket::handle);
         registrar.playToServer(AddEntityToTeamPacket.TYPE, AddEntityToTeamPacket.STREAM_CODEC, AddEntityToTeamPacket::handle);
         registrar.playToServer(DeleteOWTeamPacket.TYPE, DeleteOWTeamPacket.STREAM_CODEC, DeleteOWTeamPacket::handle);
         registrar.playToServer(CreateOWTeamWithParamsPacket.TYPE, CreateOWTeamWithParamsPacket.STREAM_CODEC, CreateOWTeamWithParamsPacket::handle);

@@ -15,8 +15,83 @@ import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.event.ClientEvents;
+import net.tiew.operationWild.networking.packets.to_client.SyncOWTeamPacket;
+import net.tiew.operationWild.team.OWTeam;
+import net.tiew.operationWild.team.OWTeamInvites;
 
 public class OWCommands {
+
+    // ── Invitations de tribu : Accepter / Refuser ──────────────────────────────
+    public static class TeamInviteAcceptCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owteamaccept").executes(TeamInviteAcceptCommand::execute));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            try {
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                OWTeamInvites.Invite inv = OWTeamInvites.get(player.getUUID());
+                if (inv == null) {
+                    reply(player, "owteams.invite.none", 0xFF9944);
+                    return 1;
+                }
+                OWTeam team = inv.team();
+                if (team.isMember(player.getUUID())) {
+                    OWTeamInvites.consume(player.getUUID());
+                    reply(player, "owteams.invite.already_in", 0xFF9944);
+                    return 1;
+                }
+                if (team.getPlayerUUIDs().size() >= team.getMaxPlayers()) {
+                    OWTeamInvites.consume(player.getUUID());
+                    reply(player, "owteams.invite.full", 0xFF6666);
+                    return 1;
+                }
+
+                team.getPlayerUUIDs().add(player.getUUID());
+                team.getPlayerNames().add(player.getName().getString());
+                OWTeamInvites.consume(player.getUUID());
+
+                SyncOWTeamPacket.resyncTeam(context.getSource().getServer(), team);
+
+                reply(player, "owteams.invite.accepted_self", 0x7ddd73, team.getTeamName());
+
+                ServerPlayer inviter = context.getSource().getServer().getPlayerList().getPlayer(inv.inviterUUID());
+                if (inviter != null) {
+                    inviter.sendSystemMessage(Component.translatable("owteams.invite.accepted_inviter",
+                            player.getName().getString()).setStyle(Style.EMPTY.withColor(0x7ddd73)));
+                }
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
+    public static class TeamInviteDeclineCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owteamdecline").executes(TeamInviteDeclineCommand::execute));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            try {
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                OWTeamInvites.Invite inv = OWTeamInvites.consume(player.getUUID());
+                if (inv == null) {
+                    reply(player, "owteams.invite.none", 0xFF9944);
+                    return 1;
+                }
+                reply(player, "owteams.invite.declined_self", 0xAAAAAA);
+                ServerPlayer inviter = context.getSource().getServer().getPlayerList().getPlayer(inv.inviterUUID());
+                if (inviter != null) {
+                    inviter.sendSystemMessage(Component.translatable("owteams.invite.declined_inviter",
+                            player.getName().getString()).setStyle(Style.EMPTY.withColor(0xdd8844)));
+                }
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
+    private static void reply(ServerPlayer player, String key, int color, Object... args) {
+        player.sendSystemMessage(Component.translatable(key, args).setStyle(Style.EMPTY.withColor(color)));
+    }
 
     public static class AddExperienceCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {

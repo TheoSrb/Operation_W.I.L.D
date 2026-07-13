@@ -135,43 +135,15 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
             if (wasInAnotherTeam) refreshEntityNames(oldTeam, serverLevel);
 
             final OWTeam finalOldTeam = wasInAnotherTeam ? oldTeam : null;
-            List<String> newUUIDStrings = toUUIDStrings(team.getEntityUUIDs());
 
             for (ServerPlayer player : serverLevel.players()) {
                 for (OWEntity member : newTeamMembers) {
-                    OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
-                            member.getId(),
-                            team.getTeamId(),
-                            team.getTeamName(),
-                            team.getTeamOwnerUUID().toString(),
-                            team.getTeamColor(),
-                            team.getTeamSecondaryColor(),
-                            team.getTeamMosaicPattern().getId(),
-                            team.getTeamCreationDate(),
-                            team.getPlayerNames(),
-                            team.getEntityNames(),
-                            newUUIDStrings,
-                            OWTeamMosaicPattern.packPixels(team.getPaintPixels())
-                    ), player);
+                    OWNetworkHandler.sendToClient(SyncOWTeamPacket.of(member.getId(), team), player);
                 }
 
                 if (wasInAnotherTeam) {
-                    List<String> oldUUIDStrings = toUUIDStrings(finalOldTeam.getEntityUUIDs());
                     for (OWEntity member : oldTeamMembers) {
-                        OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
-                                member.getId(),
-                                finalOldTeam.getTeamId(),
-                                finalOldTeam.getTeamName(),
-                                finalOldTeam.getTeamOwnerUUID().toString(),
-                                finalOldTeam.getTeamColor(),
-                                finalOldTeam.getTeamSecondaryColor(),
-                                finalOldTeam.getTeamMosaicPattern().getId(),
-                                finalOldTeam.getTeamCreationDate(),
-                                finalOldTeam.getPlayerNames(),
-                                finalOldTeam.getEntityNames(),
-                                oldUUIDStrings,
-                                OWTeamMosaicPattern.packPixels(finalOldTeam.getPaintPixels())
-                        ), player);
+                        OWNetworkHandler.sendToClient(SyncOWTeamPacket.of(member.getId(), finalOldTeam), player);
                     }
                 }
             }
@@ -191,11 +163,5 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
             names.add(name);
         }
         team.setEntityNames(names);
-    }
-
-    private static List<String> toUUIDStrings(List<UUID> uuids) {
-        List<String> list = new ArrayList<>(uuids.size());
-        for (UUID u : uuids) list.add(u.toString());
-        return list;
     }
 }

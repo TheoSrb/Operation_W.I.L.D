@@ -23,7 +23,8 @@ public record SyncOWTeamPacket(
         int teamColor, int teamSecondaryColor, int mosaicPatternId,
         String creationDate,
         List<String> playerNames, List<String> entityNames,
-        List<String> entityUUIDs, // UUID strings — canonical membership, rename-safe
+        List<String> entityUUIDs, // UUID strings — canonical entity membership, rename-safe
+        List<String> playerUUIDs, // UUID strings — canonical player membership, pseudo-safe
         byte[] paintPixels
 ) implements CustomPacketPayload {
 
@@ -47,6 +48,9 @@ public record SyncOWTeamPacket(
                 List<String> uuids = p.entityUUIDs() != null ? p.entityUUIDs() : List.of();
                 ByteBufCodecs.INT.encode(buf, uuids.size());
                 for (String s : uuids) ByteBufCodecs.STRING_UTF8.encode(buf, s);
+                List<String> pUuids = p.playerUUIDs() != null ? p.playerUUIDs() : List.of();
+                ByteBufCodecs.INT.encode(buf, pUuids.size());
+                for (String s : pUuids) ByteBufCodecs.STRING_UTF8.encode(buf, s);
                 // Pixel data (compact : ~651 octets max pour 56×93 pixels)
                 byte[] px = p.paintPixels() != null ? p.paintPixels() : new byte[0];
                 ByteBufCodecs.INT.encode(buf, px.length);
@@ -70,19 +74,66 @@ public record SyncOWTeamPacket(
                 int uc = ByteBufCodecs.INT.decode(buf);
                 List<String> entityUUIDs = new ArrayList<>(uc);
                 for (int i = 0; i < uc; i++) entityUUIDs.add(ByteBufCodecs.STRING_UTF8.decode(buf));
+                int puc = ByteBufCodecs.INT.decode(buf);
+                List<String> playerUUIDs = new ArrayList<>(puc);
+                for (int i = 0; i < puc; i++) playerUUIDs.add(ByteBufCodecs.STRING_UTF8.decode(buf));
                 // Pixel data
                 int pxLen = ByteBufCodecs.INT.decode(buf);
                 byte[] paintPixels = new byte[pxLen];
                 for (int i = 0; i < pxLen; i++) paintPixels[i] = buf.readByte();
                 return new SyncOWTeamPacket(entityId, teamId, name, owner,
                         color, secondaryColor, patternId, date,
-                        playerNames, entityNames, entityUUIDs, paintPixels);
+                        playerNames, entityNames, entityUUIDs, playerUUIDs, paintPixels);
             }
     );
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+
+    /**
+     * Resynchronise une tribu vers tous les clients : parcourt toutes les entités chargées de tous
+     * les niveaux, et pour chaque membre de la tribu (même {@code teamId}) réaligne sa référence
+     * partagée et pousse un {@link SyncOWTeamPacket} aux joueurs de son niveau.
+     */
+    public static void resyncTeam(net.minecraft.server.MinecraftServer server, OWTeam team) {
+        if (server == null || team == null) return;
+        for (net.minecraft.server.level.ServerLevel level : server.getAllLevels()) {
+            for (net.minecraft.world.entity.Entity e : level.getAllEntities()) {
+                if (!(e instanceof OWEntity m)) continue;
+                if (m.currentTeam == null || m.currentTeam.getTeamId() != team.getTeamId()) continue;
+                m.currentTeam = team; // garantit une référence partagée unique
+                SyncOWTeamPacket pkt = of(m.getId(), team);
+                for (net.minecraft.server.level.ServerPlayer p : level.players()) {
+                    net.tiew.operationWild.networking.OWNetworkHandler.sendToClient(pkt, p);
+                }
+            }
+        }
+    }
+
+    /** Fabrique un packet de synchronisation pour l'entité {@code entityId} à partir d'une tribu. */
+    public static SyncOWTeamPacket of(int entityId, OWTeam team) {
+        List<String> eUuids = new ArrayList<>();
+        for (UUID u : team.getEntityUUIDs()) eUuids.add(u.toString());
+        List<String> pUuids = new ArrayList<>();
+        for (UUID u : team.getPlayerUUIDs()) pUuids.add(u.toString());
+        return new SyncOWTeamPacket(
+                entityId,
+                team.getTeamId(),
+                team.getTeamName(),
+                team.getTeamOwnerUUID().toString(),
+                team.getTeamColor(),
+                team.getTeamSecondaryColor(),
+                team.getTeamMosaicPattern().getId(),
+                team.getTeamCreationDate(),
+                new ArrayList<>(team.getPlayerNames()),
+                new ArrayList<>(team.getEntityNames()),
+                eUuids,
+                pUuids,
+                OWTeamMosaicPattern.packPixels(
+                        team.getPaintPixels() != null ? team.getPaintPixels() : new boolean[0])
+        );
     }
 
     public static void handle(SyncOWTeamPacket packet, IPayloadContext context) {
@@ -119,6 +170,13 @@ public record SyncOWTeamPacket(
                         try { uuids.add(UUID.fromString(s)); } catch (IllegalArgumentException ignored) {}
                     }
                     newTeam.setEntityUUIDs(uuids);
+                }
+                if (packet.playerUUIDs() != null) {
+                    List<UUID> pUuids = new ArrayList<>(packet.playerUUIDs().size());
+                    for (String s : packet.playerUUIDs()) {
+                        try { pUuids.add(UUID.fromString(s)); } catch (IllegalArgumentException ignored) {}
+                    }
+                    newTeam.setPlayerUUIDs(pUuids);
                 }
                 owEntity.currentTeam = newTeam;
             }

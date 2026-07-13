@@ -20,6 +20,7 @@ public class OWTeam {
     private List<String> playerNames;
     private List<String> entityNames;
     private List<UUID> entityUUIDs;
+    private List<UUID> playerUUIDs;
     private boolean[] paintPixels;
 
     // Constructeur complet
@@ -40,6 +41,14 @@ public class OWTeam {
         this.playerNames = playerNames != null ? playerNames : new ArrayList<>();
         this.entityNames = entityNames != null ? entityNames : new ArrayList<>();
         this.entityUUIDs = new ArrayList<>();
+        // playerUUIDs est la source de vérité de l'appartenance des joueurs (rename-safe,
+        // mais surtout pseudo-safe : on ne se fie jamais au pseudo pour l'appartenance).
+        // On l'initialise depuis le tableau UUID[] fourni (création de tribu) ; les chemins
+        // de sync / NBT passent un tableau vide puis appellent setPlayerUUIDs().
+        this.playerUUIDs = new ArrayList<>();
+        if (teamMembers != null) {
+            for (UUID u : teamMembers) if (u != null) this.playerUUIDs.add(u);
+        }
         this.paintPixels = paintPixels;
     }
 
@@ -127,12 +136,31 @@ public class OWTeam {
         this.teamMosaicPattern = v;
     }
 
+    /** Dérivé de {@link #getPlayerUUIDs()} : l'appartenance des joueurs est canoniquement portée
+     *  par la liste d'UUID. Conservé pour compatibilité avec le code existant. */
     public UUID[] getTeamPlayersMembers() {
-        return teamPlayersMembers;
+        return getPlayerUUIDs().toArray(new UUID[0]);
     }
 
     public void setTeamPlayersMembers(UUID[] v) {
-        this.teamPlayersMembers = v;
+        this.playerUUIDs = new ArrayList<>();
+        if (v != null) for (UUID u : v) if (u != null) this.playerUUIDs.add(u);
+    }
+
+    public List<UUID> getPlayerUUIDs() {
+        if (playerUUIDs == null) playerUUIDs = new ArrayList<>();
+        return playerUUIDs;
+    }
+
+    public void setPlayerUUIDs(List<UUID> v) {
+        this.playerUUIDs = v != null ? v : new ArrayList<>();
+    }
+
+    /** Vrai si le joueur (par UUID) est membre de la tribu — chef inclus. */
+    public boolean isMember(UUID playerUuid) {
+        if (playerUuid == null) return false;
+        if (playerUuid.equals(teamOwnerUUID)) return true;
+        return getPlayerUUIDs().contains(playerUuid);
     }
 
     public OWEntity[] getTeamEntitiesMembers() {

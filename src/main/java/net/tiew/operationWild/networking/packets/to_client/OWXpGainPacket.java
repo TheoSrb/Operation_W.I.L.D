@@ -10,17 +10,20 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.gui.OWXpGainOverlay;
 
 /**
- * Déclenche l'animation « +N orbes » d'obtention d'XP (récompense de quête), pendant du gain de pièces.
+ * Déclenche l'animation « +N » d'obtention de récompense, pendant du gain de pièces.
  *
- * @param amount nombre d'orbes gagnés
+ * @param amount montant gagné (orbes d'XP, ou expérience d'apprivoisement si {@code taming})
+ * @param taming {@code true} → animation « Expérience d'Apprivoisement » (entité niveau max) ;
+ *               {@code false} → animation d'XP classique
  */
-public record OWXpGainPacket(int amount) implements CustomPacketPayload {
+public record OWXpGainPacket(int amount, boolean taming) implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<OWXpGainPacket> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "ow_xp_gain"));
 
     public static final StreamCodec<FriendlyByteBuf, OWXpGainPacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, OWXpGainPacket::amount,
+            ByteBufCodecs.BOOL,    OWXpGainPacket::taming,
             OWXpGainPacket::new
     );
 
@@ -30,6 +33,12 @@ public record OWXpGainPacket(int amount) implements CustomPacketPayload {
     }
 
     public static void handle(OWXpGainPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> OWXpGainOverlay.trigger(packet.amount()));
+        context.enqueueWork(() -> {
+            if (packet.taming()) {
+                net.tiew.operationWild.gui.OWTamingXpGainOverlay.trigger(packet.amount());
+            } else {
+                OWXpGainOverlay.trigger(packet.amount());
+            }
+        });
     }
 }

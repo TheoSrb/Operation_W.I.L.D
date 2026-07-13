@@ -66,7 +66,8 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             if (!(player.getRootVehicle() instanceof OWEntity entity)) return;
             if (entity.getPassengers().indexOf(player) != 0) return;
             boolean isCrocodile = entity instanceof CrocodileEntity;
-            if (!player.getUUID().equals(entity.getOwnerUUID()) && !isCrocodile) return;
+            // Le propriétaire OU tout membre de sa tribu peut piloter les attaques de l'entité.
+            if (!entity.canBeControlledBy(player) && !isCrocodile) return;
 
             if (packet.action() == ACTION_TRIGGER_DEATH_ROLL) {
                 if (entity instanceof CrocodileEntity croc) {

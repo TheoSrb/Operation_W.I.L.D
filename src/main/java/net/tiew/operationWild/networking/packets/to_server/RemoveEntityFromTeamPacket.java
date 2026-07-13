@@ -51,9 +51,20 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
             int idx = packet.entityIndex();
             List<UUID> entityUUIDs = team.getEntityUUIDs();
             List<String> entityNames = team.getEntityNames();
-            if (idx < 0 || idx >= entityUUIDs.size()) return;
 
-            UUID removedUUID = entityUUIDs.get(idx);
+            // idx == -1 → « self-leave » : l'entité identifiée par entityId quitte elle-même la tribu.
+            // On la retire par son identité propre, ce qui reste robuste même si son UUID n'est pas
+            // (ou plus) présent dans la liste synchronisée — cas des entrées ajoutées avant le suivi
+            // par UUID, ou d'une désynchronisation. Sinon (bouton « − » du chef) : retrait par index.
+            final boolean selfLeave = idx < 0;
+            UUID removedUUID;
+            if (selfLeave) {
+                removedUUID = owEntity.getUUID();
+                idx = entityUUIDs.indexOf(removedUUID); // peut rester -1 (entrée héritée sans UUID)
+            } else {
+                if (idx >= entityUUIDs.size()) return;
+                removedUUID = entityUUIDs.get(idx);
+            }
 
             // ── Autorisation : chef OU propriétaire de l'entité retirée ──────────
             if (!isTeamOwner) {
@@ -67,8 +78,14 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
                 if (!playerOwnsTarget) return;
             }
 
-            entityUUIDs.remove(idx);
-            if (idx < entityNames.size()) entityNames.remove(idx);
+            if (idx >= 0) {
+                entityUUIDs.remove(idx);
+                if (idx < entityNames.size()) entityNames.remove(idx);
+            } else {
+                // Entrée héritée : UUID absent de la liste. On nettoie le nom d'affichage par pseudo
+                // et on s'assure quand même de détacher l'entité de la tribu (nettoyage ci-dessous).
+                entityNames.remove(owEntity.getNickname());
+            }
 
             // ── Trouver l'entité retirée et effacer sa référence d'équipe ────────
             OWEntity removedEntity = null;
@@ -92,8 +109,6 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
             }
 
             final OWEntity finalRemovedEntity = removedEntity;
-            List<String> uuidStrings = new ArrayList<>();
-            for (UUID u : entityUUIDs) uuidStrings.add(u.toString());
 
             for (ServerPlayer player : serverLevel.players()) {
                 if (finalRemovedEntity != null) {
@@ -101,20 +116,7 @@ public record RemoveEntityFromTeamPacket(int entityId, int entityIndex) implemen
                             new ClearOWTeamPacket(finalRemovedEntity.getId()), player);
                 }
                 for (OWEntity member : remainingMembers) {
-                    OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
-                            member.getId(),
-                            team.getTeamId(),
-                            team.getTeamName(),
-                            team.getTeamOwnerUUID().toString(),
-                            team.getTeamColor(),
-                            team.getTeamSecondaryColor(),
-                            team.getTeamMosaicPattern().getId(),
-                            team.getTeamCreationDate(),
-                            team.getPlayerNames(),
-                            team.getEntityNames(),
-                            uuidStrings,
-                            OWTeamMosaicPattern.packPixels(team.getPaintPixels())
-                    ), player);
+                    OWNetworkHandler.sendToClient(SyncOWTeamPacket.of(member.getId(), team), player);
                 }
             }
         });

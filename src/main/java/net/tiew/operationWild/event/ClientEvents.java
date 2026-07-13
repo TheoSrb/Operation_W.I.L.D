@@ -463,6 +463,9 @@ public class ClientEvents {
         net.tiew.operationWild.gui.OWXpGainOverlay.render(event.getGuiGraphics(),
                 event.getGuiGraphics().guiWidth(),
                 event.getGuiGraphics().guiHeight());
+        net.tiew.operationWild.gui.OWTamingXpGainOverlay.render(event.getGuiGraphics(),
+                event.getGuiGraphics().guiWidth(),
+                event.getGuiGraphics().guiHeight());
         // Quand on chevauche un pet, l'indication est rendue par onRenderStage (après le HUD, donc au-dessus).
         // Ici, on ne la rend que hors monture (ex : tip de niveau reçu sans être monté).
         boolean mountedOnPet = mc.player.getVehicle() instanceof OWEntity ow && !(ow instanceof Submarine);
@@ -489,6 +492,18 @@ public class ClientEvents {
                     event.getGuiGraphics().guiWidth(),
                     event.getGuiGraphics().guiHeight());
         }
+
+        // Animations d'obtention de récompense (XP / pièces / exp. d'apprivoisement) rendues PAR-DESSUS
+        // les écrans (ex : franchissement d'un palier de la Piste Sauvage écran ouvert). Le HUD ne
+        // s'affiche pas quand un écran est ouvert, d'où ce rendu dédié à z élevé.
+        GuiGraphics g = event.getGuiGraphics();
+        int w = g.guiWidth(), h = g.guiHeight();
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 400);
+        OWCoinGainOverlay.render(g, w, h);
+        net.tiew.operationWild.gui.OWXpGainOverlay.render(g, w, h);
+        net.tiew.operationWild.gui.OWTamingXpGainOverlay.render(g, w, h);
+        g.pose().popPose();
     }
 
     @SubscribeEvent

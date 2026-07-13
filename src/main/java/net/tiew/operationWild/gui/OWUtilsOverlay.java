@@ -33,8 +33,12 @@ public class OWUtilsOverlay {
         if (!owEntity.questsAreUpdated()) return;
 
         Font font = Minecraft.getInstance().font;
-        int tick = owEntity.tickCount;
-        float pulse = 0.5f + 0.5f * (float) Math.sin(tick / 6.0);
+        // Base de temps continue (temps réel) → animations fluides à la fréquence d'affichage,
+        // et non plus quantifiées aux 20 ticks/s de l'entité.
+        // IMPORTANT : rester en double. Un float ne peut pas représenter finement ~1,7e9
+        // (millis/1000) → la valeur se fige d'une frame à l'autre et l'animation s'arrête.
+        double time = System.currentTimeMillis() / 1000.0;
+        float pulse = 0.5f + 0.5f * (float) Math.sin(time * 3.3);
 
         // Couleur signature de l'individu, éclaircie pour rester lisible (certaines espèces sont très sombres).
         int raw = owEntity.getEntityColor();
@@ -45,13 +49,14 @@ public class OWUtilsOverlay {
         String name = owEntity.getNickname();
         boolean hasName = name != null && !name.isEmpty();
 
+        // Pas de couleur de style : la couleur (avec alpha) est fournie au drawString pour que le
+        // texte respire aussi en opacité avec le reste de la plaque.
         Component title = (hasName
                 ? Component.literal(name)
                 : Component.translatable("tooltip.questsUpdated"))
-                .setStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(accentLight)));
+                .setStyle(Style.EMPTY.withBold(true));
         Component subtitle = hasName
                 ? Component.translatable("tooltip.questsUpdated")
-                        .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xE2E8EE)))
                 : null;
 
         int textW = Math.max(font.width(title), subtitle != null ? font.width(subtitle) : 0);
@@ -63,47 +68,78 @@ public class OWUtilsOverlay {
         int boxW = padX + badge + gap + textW + padX + 4;
 
         int boxX = (screenWidth - boxW) / 2;
-        int boxY = 10 + (int) (Math.sin(tick / 12.0) * 1.5);
+        int boxY = 10;
 
-        // Halo pulsant (couleur de l'individu)
+        // Flottement vertical fluide : décalage sous-pixel appliqué par translate (pas de cast int
+        // saccadé), piloté par le temps réel.
+        float floatOffset = (float) (Math.sin(time * 1.7) * 1.6);
+        g.pose().pushPose();
+        g.pose().translate(0.0f, floatOffset, 0.0f);
+
+        // Respiration idle : léger gonflement/dégonflement lent autour du centre de la plaque
+        // (inspiration/expiration), déphasé du flottement pour un rendu organique.
+        float breath = 1.0f + (float) Math.sin(time * 1.25) * 0.025f;
+        float bcx = boxX + boxW / 2f;
+        float bcy = boxY + boxH / 2f;
+        g.pose().translate(bcx, bcy, 0.0f);
+        g.pose().scale(breath, breath, 1.0f);
+        g.pose().translate(-bcx, -bcy, 0.0f);
+
+        // Pulsation d'opacité idle, EN PHASE avec la respiration : la plaque « respire » aussi en
+        // intensité (nette : plus opaque à l'inspiration, franchement plus légère à l'expiration).
+        // Plage 0.35 → 1.0 (fondu franc, textes inclus).
+        float glow = 0.35f + 0.65f * (0.5f + 0.5f * (float) Math.sin(time * 1.25));
+
+        // Halo pulsant (couleur de l'individu), modulé par l'opacité idle.
         for (int r = 3; r >= 1; r--) {
-            int a = (int) ((14 + 22 * pulse) * r);
+            int a = (int) ((14 + 22 * pulse) * r * glow);
             g.fill(boxX - r, boxY - r, boxX + boxW + r, boxY + boxH + r, argb(a, accent));
         }
 
-        // Plaque sombre
-        g.fill(boxX, boxY, boxX + boxW, boxY + boxH, 0xF00E1119);
+        // Plaque : slate légèrement teinté par la couleur de l'individu (plus clair qu'un aplat noir),
+        // avec un dégradé haut → bas pour la profondeur.
+        int plate = mix(0x2C313B, accent, 0.12f);
+        int plateTop = argb((int) (0xF2 * glow), mix(plate, 0xFFFFFF, 0.14f));
+        int plateBottom = argb((int) (0xF2 * glow), mix(plate, 0x000000, 0.12f));
+        g.fillGradient(boxX, boxY, boxX + boxW, boxY + boxH, plateTop, plateBottom);
+        // Voile intérieur discret en haut pour un léger effet « vitre ».
+        g.fill(boxX + 1, boxY + 1, boxX + boxW - 1, boxY + boxH / 2, argb((int) (18 * glow), 0xFFFFFF));
 
         // Bordure biseautée : clair en haut/gauche, sombre en bas/droite
-        g.fill(boxX, boxY, boxX + boxW, boxY + 1, argb(255, accentLight));                 // haut
-        g.fill(boxX, boxY, boxX + 1, boxY + boxH, argb(255, accentLight));                 // gauche
-        g.fill(boxX, boxY + boxH - 1, boxX + boxW, boxY + boxH, argb(255, accentDark));     // bas
-        g.fill(boxX + boxW - 1, boxY, boxX + boxW, boxY + boxH, argb(255, accentDark));     // droite
+        int aFull = (int) (255 * glow);
+        g.fill(boxX, boxY, boxX + boxW, boxY + 1, argb(aFull, accentLight));                 // haut
+        g.fill(boxX, boxY, boxX + 1, boxY + boxH, argb(aFull, accentLight));                 // gauche
+        g.fill(boxX, boxY + boxH - 1, boxX + boxW, boxY + boxH, argb(aFull, accentDark));     // bas
+        g.fill(boxX + boxW - 1, boxY, boxX + boxW, boxY + boxH, argb(aFull, accentDark));     // droite
 
         // Badge d'icône (carré teinté + biseau interne + icône)
         int badgeX = boxX + padX;
         int badgeY = boxY + (boxH - badge) / 2;
-        g.fill(badgeX, badgeY, badgeX + badge, badgeY + badge, argb(255, accentDark));
-        g.fill(badgeX, badgeY, badgeX + badge, badgeY + 1, argb(255, accentLight));
-        g.fill(badgeX, badgeY, badgeX + 1, badgeY + badge, argb(255, accentLight));
-        g.fill(badgeX + badge - 1, badgeY, badgeX + badge, badgeY + badge, argb(180, 0x000000));
-        g.fill(badgeX, badgeY + badge - 1, badgeX + badge, badgeY + badge, argb(180, 0x000000));
+        g.fill(badgeX, badgeY, badgeX + badge, badgeY + badge, argb(aFull, accentDark));
+        g.fill(badgeX, badgeY, badgeX + badge, badgeY + 1, argb(aFull, accentLight));
+        g.fill(badgeX, badgeY, badgeX + 1, badgeY + badge, argb(aFull, accentLight));
+        g.fill(badgeX + badge - 1, badgeY, badgeX + badge, badgeY + badge, argb((int) (180 * glow), 0x000000));
+        g.fill(badgeX, badgeY + badge - 1, badgeX + badge, badgeY + badge, argb((int) (180 * glow), 0x000000));
+        g.setColor(1f, 1f, 1f, glow);
         g.blit(ICON, badgeX + (badge - 16) / 2, badgeY + (badge - 16) / 2, 176, 48, 16, 16);
+        g.setColor(1f, 1f, 1f, 1f);
 
         // Séparateur vertical fin après le badge
         int sepX = badgeX + badge + gap / 2;
-        g.fill(sepX, boxY + 4, sepX + 1, boxY + boxH - 4, argb(90, accent));
+        g.fill(sepX, boxY + 4, sepX + 1, boxY + boxH - 4, argb((int) (90 * glow), accent));
 
-        // Textes
+        // Textes — fondus avec l'opacité idle (alpha porté par la couleur passée au drawString).
         int textX = badgeX + badge + gap;
         if (subtitle != null) {
             int ty = boxY + padY;
-            g.drawString(font, title, textX, ty, 0xFFFFFF, true);
-            g.drawString(font, subtitle, textX, ty + font.lineHeight + 3, 0xFFFFFF, false);
+            g.drawString(font, title, textX, ty, argb(aFull, accentLight), true);
+            g.drawString(font, subtitle, textX, ty + font.lineHeight + 3, argb(aFull, 0xE2E8EE), false);
         } else {
             int ty = boxY + (boxH - font.lineHeight) / 2;
-            g.drawString(font, title, textX, ty, 0xFFFFFF, true);
+            g.drawString(font, title, textX, ty, argb(aFull, accentLight), true);
         }
+
+        g.pose().popPose();
     }
 
     /** Éclaircit une couleur trop sombre pour qu'elle reste visible sur fond noir. */

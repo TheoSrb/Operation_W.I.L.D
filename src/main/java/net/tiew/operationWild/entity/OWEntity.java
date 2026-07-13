@@ -179,6 +179,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static long lastKillTime2 = 0;
     private static long lastHurtTime = 0;
     private int healAmount = 0;
+    /** PV réellement rendus par le dernier {@link #heal(float)} (borné par la vie max). */
+    private int lastRealHealDelta = 0;
     private int hurtAmount = 0;
 
     // Entites reellement TOUCHEES par le dernier appel a attackEntitiesInFront (cote serveur).
@@ -413,11 +415,31 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         else if (activeQuest2 == questId) code = questReward2;
 
         if (code > 0) {
-            gainLevelXp(code * ORB_XP_VALUE);
-            ServerPlayer target = (this.getControllingPassenger() instanceof ServerPlayer rider) ? rider
-                    : (this.getOwner() instanceof ServerPlayer owner) ? owner : null;
-            if (target != null) {
-                OWNetworkHandler.sendToClient(new net.tiew.operationWild.networking.packets.to_client.OWXpGainPacket(code), target);
+            ServerPlayer rider = (this.getControllingPassenger() instanceof ServerPlayer sp) ? sp : null;
+            ServerPlayer owner = (this.getOwner() instanceof ServerPlayer op) ? op : null;
+
+            if (this.getLevel() >= 50) {
+                // Entité au niveau max : la récompense d'XP devient de l'Expérience d'Apprivoisement
+                // (cagnotte du propriétaire), divisée par deux (ex : 18 XP → 9 exp d'apprivoisement).
+                int tamingGain = Math.max(1, Math.round(code / 2f));
+                Player rewardPlayer = (owner != null) ? owner : rider;
+                if (rewardPlayer != null) {
+                    this.addTamingExperience(tamingGain, rewardPlayer);
+                    ServerPlayer animTarget = (owner != null) ? owner : rider;
+                    if (animTarget != null) {
+                        OWNetworkHandler.sendToClient(
+                                new net.tiew.operationWild.networking.packets.to_client.OWXpGainPacket(tamingGain, true),
+                                animTarget);
+                    }
+                }
+            } else {
+                gainLevelXp(code * ORB_XP_VALUE);
+                ServerPlayer target = (rider != null) ? rider : owner;
+                if (target != null) {
+                    OWNetworkHandler.sendToClient(
+                            new net.tiew.operationWild.networking.packets.to_client.OWXpGainPacket(code, false),
+                            target);
+                }
             }
         } else if (code < 0) {
             if (this.getOwner() instanceof ServerPlayer owner) {
@@ -518,7 +540,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (quest1Progression >= 200) this.finishQuest((byte) 1);
         }
         if (id == 2 && !this.quest2isLocked) {
-            this.quest2Progression += healAmount;
+            // Compte les PV RÉELLEMENT régénérés : à pleine vie le delta est 0 → pas de progression.
+            this.quest2Progression += lastRealHealDelta;
             if (quest2Progression >= 100) this.finishQuest((byte) 2);
         }
         if (id == 3 && !this.quest3isLocked) {
@@ -1031,6 +1054,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
+    /**
+     * Suit le gain de PV réellement appliqué (borné par la vie max) dans {@link #lastRealHealDelta}.
+     * La quête « régénérer des PV » (id 2) s'appuie dessus : à pleine vie, {@code super.heal} ne rend
+     * rien → delta 0 → la quête ne progresse pas (correction du comptage à vide).
+     */
+    @Override
+    public void heal(float amount) {
+        float before = this.getHealth();
+        super.heal(amount);
+        this.lastRealHealDelta = Math.max(0, Math.round(this.getHealth() - before));
+    }
+
     public void healWithFavoriteFood(float healMultiplier, boolean preferRawMeat, boolean preferCookedMeat) {
         ItemStack food = this.getItemFood();
         if (this.isCarnivorous() || this.isOmnivorous()) {
@@ -1221,6 +1256,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         for (UUID u : currentTeam.getEntityUUIDs()) eUUIDs.add(net.minecraft.nbt.StringTag.valueOf(u.toString()));
         teamTag.put("entityUUIDs", eUUIDs);
 
+        ListTag pUUIDs = new ListTag();
+        for (UUID u : currentTeam.getPlayerUUIDs()) pUUIDs.add(net.minecraft.nbt.StringTag.valueOf(u.toString()));
+        teamTag.put("playerUUIDs", pUUIDs);
+
         boolean[] pixels = currentTeam.getPaintPixels();
         teamTag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels(pixels != null ? pixels : new boolean[0]));
     }
@@ -1245,6 +1284,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
+        UUID ownerUUID = UUID.fromString(teamTag.getString("teamOwnerUUID"));
+        List<UUID> pUUIDs = new ArrayList<>();
+        if (teamTag.contains("playerUUIDs")) {
+            ListTag puTag = teamTag.getList("playerUUIDs", Tag.TAG_STRING);
+            for (int i = 0; i < puTag.size(); i++) {
+                try { pUUIDs.add(UUID.fromString(puTag.getString(i))); }
+                catch (IllegalArgumentException ignored) {}
+            }
+        }
+        // Migration des anciennes sauvegardes (aucun UUID joueur stocké) : le chef reste membre.
+        if (pUUIDs.isEmpty()) pUUIDs.add(ownerUUID);
+
         boolean[] savedPixels = OWTeamMosaicPattern.unpackPixels(
                 teamTag.contains("paintPixels") ? teamTag.getByteArray("paintPixels") : new byte[0],
                 OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT);
@@ -1252,7 +1303,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.currentTeam = new OWTeam(
                 teamTag.getInt("teamId"),
                 teamTag.getString("teamName"),
-                UUID.fromString(teamTag.getString("teamOwnerUUID")),
+                ownerUUID,
                 teamTag.getInt("teamColor"),
                 teamTag.contains("teamSecondaryColor") ? teamTag.getInt("teamSecondaryColor") : 0xFFFFFF,
                 OWTeamMosaicPattern.byId(teamTag.contains("teamMosaicPatternId") ? teamTag.getInt("teamMosaicPatternId") : 0),
@@ -1260,6 +1311,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 teamTag.getString("teamCreationDate"),
                 pNames, eNames, savedPixels);
         this.currentTeam.setEntityUUIDs(eUUIDs);
+        this.currentTeam.setPlayerUUIDs(pUUIDs);
     }
 
     public void setSleeping(boolean isSleeping) {
@@ -2183,16 +2235,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.getAcceleration() >= 100;
     }
 
-    private boolean isInMyTribe(UUID playerUuid) {
+    /** Vrai si le joueur (UUID) fait partie de la tribu de cette entité (chef inclus). */
+    public boolean isInMyTribe(UUID playerUuid) {
         if (playerUuid == null || this.currentTeam == null) return false;
-        if (playerUuid.equals(this.currentTeam.getTeamOwnerUUID())) return true;
-        UUID[] members = this.currentTeam.getTeamPlayersMembers();
-        if (members != null) {
-            for (UUID u : members) {
-                if (playerUuid.equals(u)) return true;
-            }
-        }
-        return false;
+        return this.currentTeam.isMember(playerUuid);
+    }
+
+    /**
+     * Vrai si ce joueur a le droit d'agir sur cette entité comme un propriétaire :
+     * il en est le propriétaire, OU il appartient à la même tribu que l'entité.
+     * Sert de base à toutes les permissions de contrôle (montée d'attaques, inventaire,
+     * assis/suivre, …). Des permissions plus fines par membre pourront s'y greffer plus tard.
+     */
+    public boolean canBeControlledBy(Player player) {
+        if (player == null) return false;
+        UUID id = player.getUUID();
+        if (id.equals(this.getOwnerUUID())) return true;
+        return this.isInMyTribe(id);
     }
 
     @Override
@@ -2961,26 +3020,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
         if (this.currentTeam != null) {
-            java.util.List<String> uuidStrings = new java.util.ArrayList<>();
-            for (java.util.UUID u : this.currentTeam.getEntityUUIDs()) uuidStrings.add(u.toString());
-            OWNetworkHandler.sendToClient(new SyncOWTeamPacket(
-                    this.getId(),
-                    this.currentTeam.getTeamId(),
-                    this.currentTeam.getTeamName(),
-                    this.currentTeam.getTeamOwnerUUID().toString(),
-                    this.currentTeam.getTeamColor(),
-                    this.currentTeam.getTeamSecondaryColor(),
-                    this.currentTeam.getTeamMosaicPattern().getId(),
-                    this.currentTeam.getTeamCreationDate(),
-                    this.currentTeam.getPlayerNames(),
-                    this.currentTeam.getEntityNames(),
-                    uuidStrings,
-                    OWTeamMosaicPattern.packPixels(
-                            this.currentTeam.getPaintPixels() != null
-                                    ? this.currentTeam.getPaintPixels()
-                                    : new boolean[0]
-                    )
-            ), player);
+            OWNetworkHandler.sendToClient(SyncOWTeamPacket.of(this.getId(), this.currentTeam), player);
         }
     }
 
@@ -3238,8 +3278,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (player.isSteppingCarefully() && !this.isInResurrection()) {
                 if (this.isSittingToggleLocked()) return InteractionResult.PASS;
 
-                Player owner = (Player) this.getOwner();
-                if (player != owner) return InteractionResult.PASS;
+                // Propriétaire OU membre de la tribu : peut basculer assis/suivre.
+                if (!this.canBeControlledBy(player)) return InteractionResult.PASS;
                 if (this.getControllingPassenger() != null) return InteractionResult.PASS;
                 if (this.sittingCooldown > 0) return InteractionResult.PASS;
 
@@ -3605,6 +3645,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 && entity instanceof TamableAnimal tamable
                 && this.getOwnerUUID().equals(tamable.getOwnerUUID())) {
             return true;
+        }
+
+        // Alliance de tribu : deux entités d'une même tribu ne se ciblent/blessent pas...
+        if (this.currentTeam != null) {
+            if (entity instanceof OWEntity other && other.currentTeam != null
+                    && other.currentTeam.getTeamId() == this.currentTeam.getTeamId()) {
+                return true;
+            }
+            // ...et les membres joueurs de la tribu ne sont pas des cibles.
+            if (entity instanceof Player player && this.currentTeam.isMember(player.getUUID())) {
+                return true;
+            }
         }
 
         return super.isAlliedTo(entity);
@@ -4047,6 +4099,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             for (java.util.UUID u : currentTeam.getEntityUUIDs()) eUUIDs.add(net.minecraft.nbt.StringTag.valueOf(u.toString()));
             teamTag.put("entityUUIDs", eUUIDs);
 
+            ListTag pUUIDs = new ListTag();
+            for (java.util.UUID u : currentTeam.getPlayerUUIDs()) pUUIDs.add(net.minecraft.nbt.StringTag.valueOf(u.toString()));
+            teamTag.put("playerUUIDs", pUUIDs);
+
             tag.put("currentTeam", teamTag);
 
             teamTag.putInt("teamSecondaryColor", currentTeam.getTeamSecondaryColor());
@@ -4208,6 +4264,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
             }
 
+            UUID ownerUUID = UUID.fromString(teamTag.getString("teamOwnerUUID"));
+            List<java.util.UUID> pUUIDs = new ArrayList<>();
+            if (teamTag.contains("playerUUIDs")) {
+                ListTag puTag = teamTag.getList("playerUUIDs", Tag.TAG_STRING);
+                for (int i = 0; i < puTag.size(); i++) {
+                    try { pUUIDs.add(java.util.UUID.fromString(puTag.getString(i))); }
+                    catch (IllegalArgumentException ignored) {}
+                }
+            }
+            // Migration : anciennes sauvegardes sans UUID joueur → le chef reste membre.
+            if (pUUIDs.isEmpty()) pUUIDs.add(ownerUUID);
+
             boolean[] savedPixels = OWTeamMosaicPattern.unpackPixels(
                     teamTag.contains("paintPixels") ? teamTag.getByteArray("paintPixels") : new byte[0],
                     OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT
@@ -4215,7 +4283,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.currentTeam = new OWTeam(
                     teamTag.getInt("teamId"),
                     teamTag.getString("teamName"),
-                    UUID.fromString(teamTag.getString("teamOwnerUUID")),
+                    ownerUUID,
                     teamTag.getInt("teamColor"),
                     teamTag.contains("teamSecondaryColor") ? teamTag.getInt("teamSecondaryColor") : 0xFFFFFF,
                     OWTeamMosaicPattern.byId(teamTag.contains("teamMosaicPatternId") ? teamTag.getInt("teamMosaicPatternId") : 0),
@@ -4225,6 +4293,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     savedPixels
             );
             this.currentTeam.setEntityUUIDs(eUUIDs);
+            this.currentTeam.setPlayerUUIDs(pUUIDs);
         }
     }
 }

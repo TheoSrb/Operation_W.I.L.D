@@ -33,9 +33,10 @@ public record OpenOWInventoryPacket() implements CustomPacketPayload {
                 if (entity instanceof OWEntity owEntity) {
                     List<Entity> passengers = entity.getPassengers();
                     boolean isDriver = !passengers.isEmpty() && passengers.get(0) == player;
-                    boolean isOwner = player.getUUID().equals(owEntity.getOwnerUUID());
+                    // Propriétaire OU membre de la tribu : mêmes droits sur l'inventaire.
+                    boolean canControl = owEntity.canBeControlledBy(player);
 
-                    if (isDriver && isOwner) {
+                    if (isDriver && canControl) {
                         player.openMenu(owEntity);
                     }
                 }

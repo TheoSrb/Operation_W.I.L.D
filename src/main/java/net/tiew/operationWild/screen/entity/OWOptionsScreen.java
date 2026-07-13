@@ -165,6 +165,8 @@ public class OWOptionsScreen extends Screen {
 
     public abstract static class BaseEntry {
         int cachedH = -1;
+        /** Vrai pour une entrée sur deux (zébrage discret), positionné au rendu. */
+        boolean alt = false;
         List<FormattedCharSequence> descLines;
 
         final void initHeight(Font font, int entryW) {
@@ -180,8 +182,11 @@ public class OWOptionsScreen extends Screen {
         }
 
         void drawBg(GuiGraphics g, int x, int y, int w, int h, boolean hovered) {
-            g.fill(x, y, x + w, y + h, hovered ? 0x22FFFFFF : 0x0FFFFFFF);
-            g.fill(x, y + h - 1, x + w, y + h, 0xFF1C2028);
+            // Zébrage identique aux quêtes quotidiennes : une entrée sur deux nettement plus sombre
+            // (la première est sombre), + barre séparatrice basse un peu plus sombre.
+            g.fill(x, y, x + w, y + h, alt ? 0x2C000000 : 0x0CFFFFFF);
+            if (hovered) g.fill(x, y, x + w, y + h, 0x22FFFFFF); // surbrillance au survol
+            g.fill(x, y + h - 1, x + w, y + h, 0xFF1C2028);      // séparateur bas
         }
 
         void drawLabel(GuiGraphics g, Font font, Component label, int x, int y) {
@@ -374,11 +379,14 @@ public class OWOptionsScreen extends Screen {
                     getX() + (scroll ? eW + 2 : this.width), getY() + this.height);
 
             int y = getY() - scrollY;
+            int idx = 0;
             for (BaseEntry entry : entries) {
+                entry.alt = (idx & 1) == 0; // la première entrée est la plus sombre
                 boolean hov = mx >= getX() && mx < getX() + eW
                         && my >= y && my < y + entry.cachedH;
                 entry.render(g, font, getX(), y, eW, entry.cachedH, mx, my, hov, partial);
                 y += entry.cachedH;
+                idx++;
             }
             g.disableScissor();
 

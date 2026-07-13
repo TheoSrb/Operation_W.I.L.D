@@ -56,12 +56,6 @@ public record OWNameEntityPacket(int entityId, String nickname) implements Custo
                 team.getEntityNames().set(idx, packet.nickname());
             }
 
-            // Construire la liste UUID strings une seule fois
-            List<String> uuidStrings = new ArrayList<>(team.getEntityUUIDs().size());
-            for (UUID u : team.getEntityUUIDs()) uuidStrings.add(u.toString());
-            byte[] paintPixels = OWTeamMosaicPattern.packPixels(
-                    team.getPaintPixels() != null ? team.getPaintPixels() : new boolean[0]);
-
             // Resync chaque membre de la team vers tous les clients
             for (Entity e : serverLevel.getAllEntities()) {
                 if (!(e instanceof OWEntity m)) continue;
@@ -73,20 +67,7 @@ public record OWNameEntityPacket(int entityId, String nickname) implements Custo
                     m.currentTeam.getEntityNames().set(mIdx, packet.nickname());
                 }
 
-                SyncOWTeamPacket syncPacket = new SyncOWTeamPacket(
-                        m.getId(),
-                        team.getTeamId(),
-                        team.getTeamName(),
-                        team.getTeamOwnerUUID().toString(),
-                        team.getTeamColor(),
-                        team.getTeamSecondaryColor(),
-                        team.getTeamMosaicPattern().getId(),
-                        team.getTeamCreationDate(),
-                        team.getPlayerNames(),
-                        team.getEntityNames(),
-                        uuidStrings,
-                        paintPixels
-                );
+                SyncOWTeamPacket syncPacket = SyncOWTeamPacket.of(m.getId(), m.currentTeam);
                 for (ServerPlayer player : serverLevel.players()) {
                     OWNetworkHandler.sendToClient(syncPacket, player);
                 }

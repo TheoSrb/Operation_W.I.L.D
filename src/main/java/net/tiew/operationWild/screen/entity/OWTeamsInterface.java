@@ -17,6 +17,7 @@ import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.CreateOWTeamPacket;
 import net.tiew.operationWild.networking.packets.to_server.DeleteOWTeamPacket;
 import net.tiew.operationWild.networking.packets.to_server.RemoveEntityFromTeamPacket;
+import net.tiew.operationWild.networking.packets.to_server.RemovePlayerFromTeamPacket;
 import net.tiew.operationWild.team.OWTeam;
 import net.tiew.operationWild.team.OWTeamMosaicPattern;
 
@@ -121,10 +122,12 @@ public class OWTeamsInterface extends Screen {
                 .bounds(0, 0, 48, 14).build();
         this.addRenderableWidget(confirmNoBtn);
 
-        // Bouton ajouter joueur
+        // Bouton ajouter joueur → scan des joueurs proches puis invitation
         addPlayerBtn = Button.builder(
                         Component.empty(),
-                        btn -> { /* pas encore de logique */ })
+                        btn -> {
+                            if (isOwner()) Minecraft.getInstance().setScreen(new OWAddPlayerScanScreen(entity));
+                        })
                 .bounds(0, 0, BOTTOM_BTN_SIZE, BOTTOM_BTN_SIZE).build();
         this.addRenderableWidget(addPlayerBtn);
 
@@ -186,19 +189,18 @@ public class OWTeamsInterface extends Screen {
         }
 
         switch (confirmState) {
-            case REMOVE_PLAYER, REMOVE_ENTITY -> OWNetworkHandler.sendToServer(
+            case REMOVE_PLAYER -> OWNetworkHandler.sendToServer(
+                    new RemovePlayerFromTeamPacket(entity.getId(), confirmTargetIndex));
+
+            case REMOVE_ENTITY -> OWNetworkHandler.sendToServer(
                     new RemoveEntityFromTeamPacket(entity.getId(), confirmTargetIndex));
 
             case LEAVE_TEAM -> {
-                if (entity.currentTeam != null) {
-                    int idx = entity.currentTeam.getEntityUUIDs().indexOf(entity.getUUID());
-                    if (idx >= 0) {
-                        OWNetworkHandler.sendToServer(
-                                new RemoveEntityFromTeamPacket(entity.getId(), idx));
-                        this.onClose();
-                        return;
-                    }
-                }
+                // Index -1 = « self-leave » : le serveur retire l'entité par sa propre identité
+                // (robuste même si son UUID n'est pas dans la liste synchronisée — entrées héritées).
+                OWNetworkHandler.sendToServer(new RemoveEntityFromTeamPacket(entity.getId(), -1));
+                this.onClose();
+                return;
             }
 
             default -> { /* rien */ }
@@ -253,14 +255,16 @@ public class OWTeamsInterface extends Screen {
         if (names == null || names.isEmpty()) return false;
         int btnX = leftPos + RIGHT_X + LIST_W - REMOVE_W - 3;
 
-        String ownerName = (entity != null && entity.currentTeam != null) ? entity.getCachedOwnerName() : null;
-        String mainEntityNickname = entity != null ? entity.getNickname() : null;
+        OWTeam team = entity != null ? entity.currentTeam : null;
 
         for (int i = scrollOff; i < Math.min(scrollOff + VISIBLE_ROWS, names.size()); i++) {
-            if (isPlayer && ownerName != null && ownerName.equals(names.get(i))) continue;
-            if (!isPlayer && entity != null && entity.currentTeam != null
-                    && i < entity.currentTeam.getEntityUUIDs().size()
-                    && entity.getUUID().equals(entity.currentTeam.getEntityUUIDs().get(i))) continue;
+            // Le chef (par UUID) n'est jamais retirable.
+            if (isPlayer && team != null && i < team.getPlayerUUIDs().size()
+                    && team.getPlayerUUIDs().get(i).equals(team.getTeamOwnerUUID())) continue;
+            // L'entité fondatrice (l'entité depuis laquelle l'écran est ouvert) n'est pas retirable.
+            if (!isPlayer && team != null
+                    && i < team.getEntityUUIDs().size()
+                    && entity.getUUID().equals(team.getEntityUUIDs().get(i))) continue;
 
             int rowY = topPos + listRelY + (i - scrollOff) * ROW_H + 1;
             if (mx >= btnX && mx < btnX + REMOVE_W && my >= rowY && my < rowY + ROW_H - 1) {
@@ -388,7 +392,8 @@ public class OWTeamsInterface extends Screen {
         if (isConfirm) {
             g.pose().pushPose();
             g.pose().translate(0.0, 0.0, 100.0);
-            g.fill(leftPos, topPos, leftPos + IMAGE_WIDTH, topPos + IMAGE_HEIGHT, 0xBB000000);
+            // Voile sur tout l'écran : le panneau de confirmation peut être plus large que la GUI.
+            g.fill(0, 0, this.width, this.height, 0xBB000000);
             renderConfirmOverlay(g, mouseX, mouseY, partial);
             g.pose().popPose();
         }
@@ -419,7 +424,7 @@ public class OWTeamsInterface extends Screen {
                                      OWTeam team, boolean isConfirm) {
         addPlayerBtn.setX(leftPos + IMAGE_WIDTH - 1);
         addPlayerBtn.setY(topPos + 3);
-        addPlayerBtn.active = team != null;
+        addPlayerBtn.active = isOwner();
         addPlayerBtn.visible = true;
         addPlayerBtn.render(g, mouseX, mouseY, partial);
         g.blit(OW_TEAMS_LOCATION,
@@ -495,8 +500,7 @@ public class OWTeamsInterface extends Screen {
 
         g.enableScissor(lx + 1, ly + 1, lx + LIST_W - 1, ly + LIST_H - 1);
 
-        String ownerName = (entity != null && entity.currentTeam != null)
-                ? entity.getCachedOwnerName() : null;
+        OWTeam team = entity != null ? entity.currentTeam : null;
 
         for (int i = scrollOff; i < Math.min(scrollOff + VISIBLE_ROWS, names.size()); i++) {
             int rowY = ly + (i - scrollOff) * ROW_H + 1;
@@ -504,11 +508,13 @@ public class OWTeamsInterface extends Screen {
             if (i % 2 == 0) g.fill(lx + 1, rowY, lx + LIST_W - 1, rowY + ROW_H, 0x18FFFFFF);
 
             String rawName = names.get(i);
-            boolean isOwnerRow = isPlayer && ownerName != null && ownerName.equals(rawName);
+            boolean isOwnerRow = isPlayer && team != null && i < team.getPlayerUUIDs().size()
+                    && team.getPlayerUUIDs().get(i).equals(team.getTeamOwnerUUID());
             int nameColor = isPlayer ? (isOwnerRow ? 0xFFD700 : 0xFFFFFF) : getEntityNameColor(rawName);
 
-            String mainEntityNickname = entity != null ? entity.getNickname() : null;
-            boolean isFounderEntity = !isPlayer && mainEntityNickname != null && mainEntityNickname.equals(rawName);
+            boolean isFounderEntity = !isPlayer && team != null
+                    && i < team.getEntityUUIDs().size()
+                    && entity.getUUID().equals(team.getEntityUUIDs().get(i));
             boolean showRemoveBtn = isOwner() && !(isPlayer && isOwnerRow) && !isFounderEntity;
             int removeReserved = showRemoveBtn ? (REMOVE_W + 4) : 0;
             int iconReserved = isPlayer ? 0 : ICON_RESERVED;
@@ -672,35 +678,34 @@ public class OWTeamsInterface extends Screen {
 
     // ── Overlay confirmation ──────────────────────────────────────────────────
     private void renderConfirmOverlay(GuiGraphics g, int mouseX, int mouseY, float partial) {
+        // Construire d'abord les deux lignes de texte pour dimensionner le panneau autour d'elles.
+        String teamName = entity != null && entity.currentTeam != null
+                ? entity.currentTeam.getTeamName() : "?";
+        Component title, body;
+        if (confirmState == ConfirmState.LEAVE_TEAM) {
+            String entityDisplayName = entity != null ? entity.getNickname() : "?";
+            title = Component.translatable("owteams.confirm.leave_title");
+            body  = Component.translatable("owteams.confirm.leave_body", entityDisplayName, teamName);
+        } else {
+            title = Component.translatable("owteams.confirm.remove_title", confirmTargetName);
+            body  = Component.translatable("owteams.confirm.from_team", teamName);
+        }
+
+        // Largeur dynamique : la plus longue des lignes (ou la rangée de boutons), + marges,
+        // bornée à l'écran pour ne jamais déborder.
+        final int PAD = 12;
+        final int BUTTONS_W = 48 + 8 + 48; // deux boutons + écart central
+        int contentW = Math.max(BUTTONS_W, Math.max(this.font.width(title), this.font.width(body)));
+        int ow = Math.min(this.width - 12, contentW + PAD * 2);
+        int oh = 54;
         int cx = leftPos + IMAGE_WIDTH / 2;
-        int ow = 144, oh = 52;
-        int ox = cx - ow / 2, oy = topPos + IMAGE_HEIGHT / 2 - oh / 2;
+        int ox = cx - ow / 2;
+        int oy = topPos + IMAGE_HEIGHT / 2 - oh / 2;
 
         drawOverlayPanel(g, ox, oy, ow, oh);
 
-        switch (confirmState) {
-            case LEAVE_TEAM -> {
-                String entityDisplayName = entity != null ? entity.getNickname() : "?";
-                String teamName = entity != null && entity.currentTeam != null
-                        ? entity.currentTeam.getTeamName() : "?";
-                g.drawCenteredString(this.font,
-                        Component.translatable("owteams.confirm.leave_title").getString(),
-                        cx, oy + 6, 0xFFFFFF);
-                g.drawCenteredString(this.font,
-                        Component.translatable("owteams.confirm.leave_body", entityDisplayName, teamName).getString(),
-                        cx, oy + 16, 0xAAAAAA);
-            }
-            default -> {
-                String teamName = entity != null && entity.currentTeam != null
-                        ? entity.currentTeam.getTeamName() : "?";
-                g.drawCenteredString(this.font,
-                        Component.translatable("owteams.confirm.remove_title", confirmTargetName).getString(),
-                        cx, oy + 6, 0xFFFFFF);
-                g.drawCenteredString(this.font,
-                        Component.translatable("owteams.confirm.from_team", teamName).getString(),
-                        cx, oy + 16, 0xAAAAAA);
-            }
-        }
+        g.drawCenteredString(this.font, title, cx, oy + 7, 0xFFFFFF);
+        g.drawCenteredString(this.font, body,  cx, oy + 19, 0xAAAAAA);
 
         confirmYesBtn.setX(cx - 52);
         confirmYesBtn.setY(oy + oh - 18);

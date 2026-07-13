@@ -54,7 +54,8 @@
       "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 15; Write-Output \"EXIT=$LASTEXITCODE\")",
       "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 12; Write-Output \"EXIT=$LASTEXITCODE\")",
       "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 8; Write-Output \"EXIT=$LASTEXITCODE\")",
-      "PowerShell(.\\\\gradlew.bat compileJava -q --console=plain 2>&1)"
+      "PowerShell(.\\\\gradlew.bat compileJava -q --console=plain 2>&1)",
+      "Bash(python insert_lang.py)"
     ]
   }
 }

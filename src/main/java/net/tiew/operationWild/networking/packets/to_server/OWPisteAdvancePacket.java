@@ -112,7 +112,13 @@ public record OWPisteAdvancePacket(int nodeId, int choice) implements CustomPack
 
     private static void applyReward(OWEntity entity, ServerPlayer player, OWPisteNode.Type type, int amount) {
         switch (type) {
-            case XP -> entity.gainLevelXp(amount);
+            case XP -> {
+                entity.gainLevelXp(amount);
+                // Animation d'obtention (« +N »), comme la récompense d'une quête quotidienne.
+                net.tiew.operationWild.networking.OWNetworkHandler.sendToClient(
+                        new net.tiew.operationWild.networking.packets.to_client.OWXpGainPacket(amount, false), player);
+            }
+            // Les pièces déclenchent déjà l'animation via OWCurrency.grantWildCoins → OWCoinsSyncPacket.
             case COINS -> OWCurrency.grantWildCoins(player, amount);
             default -> {}
         }
