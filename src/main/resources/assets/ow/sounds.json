@@ -100,5 +100,7 @@
   "plant_empress_defeated": {"category": "music", "sounds": [{"name": "ow:boss/plant_empress_defeated", "stream": true, "volume": 0.8, "pitch": 1.0}], "subtitle": "Boss music plays"},
   "ritual_intro": {"category": "music", "sounds": [{"name": "ow:musics/resurrection_ritual_intro", "stream": true, "volume": 1.5, "pitch": 1.0}], "subtitle": "Communion of Souls"},
   "ritual_theme": {"category": "music", "sounds": [{"name": "ow:musics/resurrection_ritual", "stream": true, "volume": 1.5, "pitch": 1.0}], "subtitle": "Communion of Souls"},
-  "ritual_end": {"category": "music", "sounds": [{"name": "ow:musics/resurrection_ritual_end", "stream": true, "volume": 1.5, "pitch": 1.0}], "subtitle": "Communion of Souls"}
+  "ritual_end": {"category": "music", "sounds": [{"name": "ow:musics/resurrection_ritual_end", "stream": true, "volume": 1.5, "pitch": 1.0}], "subtitle": "Communion of Souls"},
+
+  "menu_music": {"category": "music", "sounds": [{"name": "ow:ow_main_theme", "stream": true, "volume": 1.0, "pitch": 1.0}]}
 }

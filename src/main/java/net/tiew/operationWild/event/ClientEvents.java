@@ -193,6 +193,7 @@ public class ClientEvents {
         waypointStates.clear();
         computedWaypoints.clear();
         currentEntityIds.clear();
+        lastWaypointLevel = new java.lang.ref.WeakReference<>(null);
         cachedWorldName = null;
         cachedWaypointKey = null;
         pendingWarning = false;
@@ -1330,6 +1331,19 @@ public class ClientEvents {
     private static final Map<UUID, WaypointState> waypointStates = new LinkedHashMap<>();
     private static final Map<UUID, Integer> currentEntityIds = new HashMap<>();
 
+    /**
+     * Dernier {@link ClientLevel} pour lequel les waypoints ont été synchronisés.
+     * <p>
+     * Sert à détecter au rendu un changement de monde/dimension (le ClientLevel change
+     * d'instance) et à resynchroniser la persistance sur le BON monde. Corrige le bug où les
+     * waypoints d'un monde A apparaissaient dans un monde B : la clé de monde pouvait être
+     * résolue trop tôt (au {@code LoggingIn}, avant que le serveur intégré du nouveau monde ne
+     * soit prêt), faisant charger le fichier du mauvais monde. Au rendu, le serveur du monde
+     * courant est garanti prêt, donc la clé se résout correctement.
+     */
+    private static java.lang.ref.WeakReference<ClientLevel> lastWaypointLevel =
+            new java.lang.ref.WeakReference<>(null);
+
     private static class WaypointState {
         UUID ownerUUID;
         Vec3 lastPos = null;
@@ -1378,7 +1392,16 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
         computedWaypoints.clear();
-        if (player == null || mc.level == null || mc.options.hideGui) return;
+        if (player == null || mc.level == null) return;
+
+        // Changement de monde/dimension détecté au rendu : on resynchronise la persistance des
+        // waypoints sur le monde courant (voir lastWaypointLevel). Fait ici car, contrairement au
+        // LoggingIn, le serveur intégré du bon monde est garanti prêt à cet instant.
+        if (lastWaypointLevel.get() != mc.level) {
+            handleWaypointWorldChange(player, mc.level);
+        }
+
+        if (mc.options.hideGui) return;
 
         float pt = event.getPartialTick().getGameTimeDeltaPartialTick(true);
 
@@ -1733,6 +1756,27 @@ public class ClientEvents {
         String key = resolveUniqueWorldKey();
         if (key == null) return null;
         return new File("config/ow_waypoints_" + key.replace(":", "_") + ".dat");
+    }
+
+    /**
+     * Resynchronise la persistance des waypoints quand le {@link ClientLevel} courant change
+     * (changement de monde ou de dimension).
+     * <p>
+     * Sauvegarde l'état courant dans le fichier du monde qu'on quitte (clé encore en cache),
+     * invalide les clés de monde en cache, vide la mémoire, puis recharge depuis le fichier du
+     * monde courant — dont la clé est désormais résolue correctement (serveur intégré prêt).
+     */
+    private static void handleWaypointWorldChange(Player player, ClientLevel newLevel) {
+        saveWaypointStates(player);
+        cachedWaypointKey = null;
+        cachedWorldName = null;
+        waypointStates.clear();
+        computedWaypoints.clear();
+        computedClusters.clear();
+        clusterPopSmoothed.clear();
+        currentEntityIds.clear();
+        loadWaypointStates(player);
+        lastWaypointLevel = new java.lang.ref.WeakReference<>(newLevel);
     }
 
     public static void saveAndClearWaypoints(Player player) {

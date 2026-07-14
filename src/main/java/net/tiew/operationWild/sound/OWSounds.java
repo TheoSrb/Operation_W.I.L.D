@@ -114,6 +114,9 @@ public class OWSounds {
     public static final ResourceKey<JukeboxSong> PLANT_EMPRESS_THEME_LITE_KEY = ResourceKey.create(Registries.JUKEBOX_SONG, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "plant_empress_theme_lite"));
     public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_DEFEATED_THEME = registerSoundEvent("plant_empress_defeated");
 
+    /** Thème du menu principal (écran-titre), joué en boucle. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> MENU_MUSIC = registerSoundEvent("menu_music");
+
     /** Musiques du Rituel de Communion (résurrection) : intro → combat (boucle) → outro. */
     public static final DeferredHolder<SoundEvent, SoundEvent> RITUAL_INTRO = registerSoundEvent("ritual_intro");
     public static final DeferredHolder<SoundEvent, SoundEvent> RITUAL_THEME = registerSoundEvent("ritual_theme");

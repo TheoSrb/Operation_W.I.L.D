@@ -55,7 +55,12 @@
       "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 12; Write-Output \"EXIT=$LASTEXITCODE\")",
       "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain 2>&1 | Select-String -Pattern \"error:|BUILD\" | Select-Object -Last 8; Write-Output \"EXIT=$LASTEXITCODE\")",
       "PowerShell(.\\\\gradlew.bat compileJava -q --console=plain 2>&1)",
-      "Bash(python insert_lang.py)"
+      "Bash(python insert_lang.py)",
+      "Bash(grep -iA6 \"music\\\\|menu\" src/main/resources/assets/ow/sounds.json)",
+      "Bash(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" && find \"$HOME/.gradle\" -iname \"*.jar\" 2>/dev/null | grep -iE \"client.*sources|neoforge.*sources|joined\" | grep -i source | head; echo \"--- moddev caches ---\"; find . -path ./.git -prune -o -iname \"*sources*.jar\" -print 2>/dev/null | head; echo \"--- any decompiled TitleScreen ---\"; find \"$HOME/.gradle\" -path \"*net/minecraft/client/gui/screens*\" -iname \"TitleScreen*\" 2>/dev/null | head)",
+      "Bash(mkdir -p __TRACKED_VAR__/textures/gui/title)",
+      "Bash(mv __TRACKED_VAR__/ow_main_theme.ogg __TRACKED_VAR__/sounds/ow_main_theme.ogg)",
+      "Bash(mv __TRACKED_VAR__/ow_main_wallpaper.png __TRACKED_VAR__/textures/gui/title/ow_main_wallpaper.png)"
     ]
   }
 }
