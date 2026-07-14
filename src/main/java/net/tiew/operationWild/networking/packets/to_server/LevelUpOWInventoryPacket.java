@@ -40,7 +40,7 @@ public record LevelUpOWInventoryPacket(String attributeName) implements CustomPa
                 Entity entity = player.getRootVehicle();
                 float pitch = (float) OWUtils.generateRandomInterval(0.8, 1.2);
 
-                if (entity != null && entity instanceof OWEntity owEntity) {
+                if (entity != null && entity instanceof OWEntity owEntity && owEntity.canBeControlledBy(player)) {
                     if (packet.attributeName().equals("MaxHealth")) {
                         owEntity.upgradeAttributes(owEntity, Attributes.MAX_HEALTH);
                     } else if (packet.attributeName().equals("AttackDamage")) {

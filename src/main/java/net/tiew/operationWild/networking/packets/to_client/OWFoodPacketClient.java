@@ -1,6 +1,5 @@
 package net.tiew.operationWild.networking.packets.to_client;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -31,7 +30,7 @@ public record OWFoodPacketClient(int entityId, int foodGiven, int foodWanted) im
 
     public static void handle(OWFoodPacketClient packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            Entity entity = Minecraft.getInstance().level.getEntity(packet.entityId());
+            Entity entity = net.tiew.operationWild.client.OWClientHooks.clientEntity(packet.entityId());
             if (entity instanceof OWEntity owEntity) {
                 owEntity.foodGiven = packet.foodGiven;
                 owEntity.foodWanted = packet.foodWanted;

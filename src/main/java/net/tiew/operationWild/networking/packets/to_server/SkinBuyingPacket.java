@@ -10,8 +10,6 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.networking.OWNetworkHandler;
-import net.tiew.operationWild.networking.packets.to_client.SkinUnlockedPacket;
 
 public record SkinBuyingPacket(int price, int skinIndex) implements CustomPacketPayload {
 
@@ -36,11 +34,18 @@ public record SkinBuyingPacket(int price, int skinIndex) implements CustomPacket
             Entity entity = player.getRootVehicle();
             if (!(entity instanceof OWEntity owEntity)) return;
 
+            // Seul le propriétaire / un membre de sa tribu peut acheter un skin pour ce pet.
+            if (!owEntity.canBeControlledBy(player)) return;
+
+            // Skin déjà débloqué : on ne débite pas.
+            if (owEntity.isSkinUnlocked(packet.skinIndex())) return;
+
             // La monnaie "Pièces Sauvages" appartient au joueur (porte-monnaie partagé entre tous ses pets).
             if (!net.tiew.operationWild.core.OWCurrency.spendWildCoins(player, packet.price())) return;
             net.tiew.operationWild.core.OWCurrency.syncWildCoins(player);
 
-            OWNetworkHandler.sendToClient(new SkinUnlockedPacket(owEntity.getUUID(), packet.skinIndex()), player);
+            // Le déblocage vit sur le pet (serveur-autoritaire) et se synchronise seul à tous les clients.
+            owEntity.unlockSkin(packet.skinIndex());
         });
     }
 }

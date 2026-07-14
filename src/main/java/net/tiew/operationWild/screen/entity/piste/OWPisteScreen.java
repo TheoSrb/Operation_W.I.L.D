@@ -18,7 +18,6 @@ import net.tiew.operationWild.entity.piste.OWPisteGraph;
 import net.tiew.operationWild.entity.piste.OWPisteGraphs;
 import net.tiew.operationWild.entity.piste.OWPisteNode;
 import net.tiew.operationWild.entity.piste.OWPisteRules;
-import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.gui.OWEntityHud;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.OWPisteAdvancePacket;
@@ -272,7 +271,7 @@ public class OWPisteScreen extends Screen {
     private boolean isAffordable(OWPisteNode node) {
         return entity != null
                 && entity.getLevel() >= node.getRequiredLevel()
-                && ClientEvents.tamingExperience >= node.getCost();
+                && net.tiew.operationWild.networking.ClientTamingData.tamingXp >= node.getCost();
     }
 
     @Override
@@ -638,7 +637,7 @@ public class OWPisteScreen extends Screen {
             graphics.drawString(this.font, pct, panelX + IMG_W - 6 - this.font.width(pct), panelY + 6, 0xB8E45A, true);
 
             // Solde d'Expérience d'Apprivoisement (icône patte + nombre) en bas à droite du panneau.
-            String taming = String.valueOf((int) ClientEvents.tamingExperience);
+            String taming = String.valueOf((int) net.tiew.operationWild.networking.ClientTamingData.tamingXp);
             int iconX = panelX + IMG_W - 6 - 10;
             int iconY = panelY + IMG_H - 13;
             graphics.blit(TAMING_TEXTURE, iconX, iconY, 10, 10, 110f, 12f, 11, 11, 256, 256);
@@ -718,7 +717,7 @@ public class OWPisteScreen extends Screen {
         } else if (reachable) {
             if (entity.getLevel() < node.getRequiredLevel()) {
                 status = Component.translatable("piste.need_level", node.getRequiredLevel()); statusColor = 0xFF6B6B;
-            } else if (ClientEvents.tamingExperience < node.getCost()) {
+            } else if (net.tiew.operationWild.networking.ClientTamingData.tamingXp < node.getCost()) {
                 status = Component.translatable("piste.not_enough"); statusColor = 0xFF6B6B;
             } else {
                 status = Component.translatable("piste.reachable"); statusColor = 0x9AD16B;

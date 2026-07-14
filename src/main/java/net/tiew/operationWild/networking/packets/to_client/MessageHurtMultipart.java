@@ -3,14 +3,12 @@ package net.tiew.operationWild.networking.packets.to_client;
 // !! A enregistrer dans OWNetworkHandler (cote to_client) !!
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
@@ -35,10 +33,8 @@ public record MessageHurtMultipart(int partId, int parentId) implements CustomPa
 
     public static void handle(MessageHurtMultipart packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            Level level = Minecraft.getInstance().level;
-            if (level == null) return;
-            Entity part = level.getEntity(packet.partId());
-            Entity parent = level.getEntity(packet.parentId());
+            Entity part = net.tiew.operationWild.client.OWClientHooks.clientEntity(packet.partId());
+            Entity parent = net.tiew.operationWild.client.OWClientHooks.clientEntity(packet.parentId());
             if (part instanceof BoaTailPart boaPart && parent instanceof LivingEntity livingParent) {
                 // Cote client : reproduit l'effet de degats sur le segment.
                 boaPart.hurtTime = livingParent.hurtTime > 0 ? livingParent.hurtTime : 10;

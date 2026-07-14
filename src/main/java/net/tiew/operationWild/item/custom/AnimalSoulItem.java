@@ -1,6 +1,5 @@
 package net.tiew.operationWild.item.custom;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.InteractionHand;
@@ -13,7 +12,6 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.component.SoulData;
-import net.tiew.operationWild.screen.entity.RitualCommunionScreen;
 
 import java.util.List;
 
@@ -77,8 +75,10 @@ public class AnimalSoulItem extends Item {
         if (!wearingAmulet) return InteractionResultHolder.pass(stack);
 
         // L'écran de communion est purement client : il enverra le StartRitualPacket à la validation.
+        // On passe par un hook client dédié (OWClientHooks) pour ne PAS référencer de classe Screen
+        // directement ici : sinon la vérification du bytecode de cet item ferait planter le serveur dédié.
         if (level.isClientSide) {
-            Minecraft.getInstance().setScreen(new RitualCommunionScreen(data));
+            net.tiew.operationWild.client.OWClientHooks.openRitualCommunion(data);
         }
         return InteractionResultHolder.success(stack);
     }

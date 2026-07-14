@@ -1451,6 +1451,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public void setGrabbing(boolean isGrabbing, LivingEntity entity) {
+        // Apprivoisé : ne jamais saisir un allié de la tribu (joueur membre ou entité de la tribu).
+        if (isGrabbing && this.isTameGrabAlly(entity)) return;
         this.entityData.set(IS_GRABBING, isGrabbing);
         this.setGrabbedTarget(entity);
     }
@@ -1601,7 +1603,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public void executePrimalDive(int targetEntityId) {
         if (primalDivePhase != 1) return;
         Entity raw = this.level().getEntity(targetEntityId);
-        if (!(raw instanceof LivingEntity target) || !target.isAlive() || !target.isInWater()) {
+        // Validation serveur : la cible (id fourni par le client) doit être vivante, dans l'eau,
+        // dans le même niveau, ce n'est pas soi-même, et à portée raisonnable (anti-ciblage arbitraire).
+        if (!(raw instanceof LivingEntity target) || target == this || !target.isAlive() || !target.isInWater()
+                || this.distanceToSqr(target) > 32.0 * 32.0) {
             cancelPrimalDive();
             return;
         }

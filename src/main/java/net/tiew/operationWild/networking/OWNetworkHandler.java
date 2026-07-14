@@ -67,7 +67,6 @@ public class OWNetworkHandler {
         registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, (packet, context) -> OpenChooseNameScreenHandler.handle(packet, context));
         registrar.playToClient(TigerLeapStatePacket.TYPE, TigerLeapStatePacket.STREAM_CODEC, TigerLeapStatePacket::handle);
         registrar.playToClient(HeartShotPacket.TYPE, HeartShotPacket.STREAM_CODEC, HeartShotPacket::handle);
-        registrar.playToClient(SkinUnlockedPacket.TYPE, SkinUnlockedPacket.STREAM_CODEC, SkinUnlockedPacket::handle);
         registrar.playToClient(SyncOWTeamPacket.TYPE, SyncOWTeamPacket.STREAM_CODEC, SyncOWTeamPacket::handle);
         registrar.playToClient(ClearOWTeamPacket.TYPE, ClearOWTeamPacket.STREAM_CODEC, ClearOWTeamPacket::handle);
         registrar.playToClient(OWEntityAlreadyInTeamPacket.TYPE, OWEntityAlreadyInTeamPacket.STREAM_CODEC, OWEntityAlreadyInTeamPacket::handle);
@@ -75,6 +74,7 @@ public class OWNetworkHandler {
         registrar.playToClient(RitualSyncPacket.TYPE, RitualSyncPacket.STREAM_CODEC, RitualSyncPacket::handle);
         registrar.playToClient(OWLevelUpPacket.TYPE, OWLevelUpPacket.STREAM_CODEC, OWLevelUpPacket::handle);
         registrar.playToClient(OWCoinsSyncPacket.TYPE, OWCoinsSyncPacket.STREAM_CODEC, OWCoinsSyncPacket::handle);
+        registrar.playToClient(OWTamingXpSyncPacket.TYPE, OWTamingXpSyncPacket.STREAM_CODEC, OWTamingXpSyncPacket::handle);
         registrar.playToClient(OWXpGainPacket.TYPE, OWXpGainPacket.STREAM_CODEC, OWXpGainPacket::handle);
         registrar.playToClient(OWIndicationPacket.TYPE, OWIndicationPacket.STREAM_CODEC, OWIndicationPacket::handle);
 

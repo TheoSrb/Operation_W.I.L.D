@@ -7,7 +7,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.event.ClientEvents;
 
 public record BookNotificationPacket(String entityType, boolean isTaming) implements CustomPacketPayload {
 
@@ -27,8 +26,6 @@ public record BookNotificationPacket(String entityType, boolean isTaming) implem
     }
 
     public static void handle(BookNotificationPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            ClientEvents.isNotifiedOWBook = true;
-        });
+        context.enqueueWork(() -> net.tiew.operationWild.client.OWClientHooks.setBookNotified());
     }
 }

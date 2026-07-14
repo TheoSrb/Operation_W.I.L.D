@@ -754,6 +754,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     public boolean canConstrict(LivingEntity t) {
         if (t == null || !t.isAlive() || t == this) return false;
+        // Apprivoisé : ne pas constrict un allié de la tribu (joueur membre ou entité de la tribu).
+        if (this.isTameGrabAlly(t)) return false;
         if (t instanceof IOWGrabberEntity) {
             if (t.isVehicle()) return false;
             if (t instanceof BoaEntity ob && ob.isConstricting()) return false;
@@ -1074,6 +1076,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     public void setGrabbing(boolean grabbing, LivingEntity entity) {
+        // Apprivoisé : ne jamais saisir un allié de la tribu (joueur membre ou entité de la tribu).
+        if (grabbing && this.isTameGrabAlly(entity)) return;
         this.entityData.set(IS_GRABBING, grabbing);
         this.entityData.set(GRABBED_TARGET_ID, entity == null ? -1 : entity.getId());
     }

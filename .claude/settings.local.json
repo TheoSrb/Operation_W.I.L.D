@@ -60,7 +60,16 @@
       "Bash(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" && find \"$HOME/.gradle\" -iname \"*.jar\" 2>/dev/null | grep -iE \"client.*sources|neoforge.*sources|joined\" | grep -i source | head; echo \"--- moddev caches ---\"; find . -path ./.git -prune -o -iname \"*sources*.jar\" -print 2>/dev/null | head; echo \"--- any decompiled TitleScreen ---\"; find \"$HOME/.gradle\" -path \"*net/minecraft/client/gui/screens*\" -iname \"TitleScreen*\" 2>/dev/null | head)",
       "Bash(mkdir -p __TRACKED_VAR__/textures/gui/title)",
       "Bash(mv __TRACKED_VAR__/ow_main_theme.ogg __TRACKED_VAR__/sounds/ow_main_theme.ogg)",
-      "Bash(mv __TRACKED_VAR__/ow_main_wallpaper.png __TRACKED_VAR__/textures/gui/title/ow_main_wallpaper.png)"
+      "Bash(mv __TRACKED_VAR__/ow_main_wallpaper.png __TRACKED_VAR__/textures/gui/title/ow_main_wallpaper.png)",
+      "Bash(./gradlew compileJava)",
+      "Bash(sed -n '/static void handle/,/^    }$/p' src/main/java/net/tiew/operationWild/networking/packets/to_client/BookNotificationPacket.java)",
+      "Bash(sed -n '/static void handle/,/^    }$/p' src/main/java/net/tiew/operationWild/networking/packets/to_client/HeartShotPacket.java)",
+      "Bash(sed -n '/static void handle/,/^    }$/p' src/main/java/net/tiew/operationWild/networking/packets/to_client/SyncOWTeamPacket.java)",
+      "Bash(sed -n '/static void handle/,/^    }$/p' src/main/java/net/tiew/operationWild/networking/packets/to_client/ClearOWTeamPacket.java)",
+      "PowerShell($procs = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'net.minecraft.server' -or $_.CommandLine -match 'DevLaunch' -or $_.CommandLine -match 'runServer' }; foreach \\($p in $procs\\) { Write-Output \\(\"Stopping PID {0}\" -f $p.ProcessId\\); try { Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop } catch {} }; if \\(-not $procs\\) { Write-Output \"no matching server process found\" })",
+      "PowerShell($still = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'net.minecraft.server' -or $_.CommandLine -match 'DevLaunch' }; if \\($still\\) { Write-Output \"STILL RUNNING:\"; $still | ForEach-Object { Write-Output $_.ProcessId } } else { Write-Output \"server stopped - no minecraft server process remaining\" })",
+      "PowerShell(try { Stop-Process -Id 37164 -Force -ErrorAction Stop; Write-Output \"stopped 37164\" } catch { Write-Output \\(\"could not stop: \" + $_.Exception.Message\\) }; Start-Sleep -Seconds 2; $still = Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'net.minecraft.server' -or $_.CommandLine -match 'DevLaunch' }; if \\($still\\) { Write-Output \\(\"still: \" + \\($still.ProcessId -join ','\\)\\) } else { Write-Output \"all clear\" })",
+      "PowerShell($conn = Get-NetTCPConnection -LocalPort 25565 -State Listen -ErrorAction SilentlyContinue; if \\($conn\\) { Write-Output \\(\"MC server STILL listening on 25565, PID \" + \\($conn.OwningProcess -join ','\\)\\); $conn.OwningProcess | Select-Object -Unique | ForEach-Object { try { Stop-Process -Id $_ -Force } catch {} } ; Write-Output \"killed listener\\(s\\)\" } else { Write-Output \"nothing listening on 25565 - MC server is stopped\" })"
     ]
   }
 }

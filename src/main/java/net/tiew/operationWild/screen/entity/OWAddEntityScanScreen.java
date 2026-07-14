@@ -117,7 +117,9 @@ public class OWAddEntityScanScreen extends Screen {
             if (!owE.isTame()) continue;
             if (owE == mountedEntity) continue;
             if (owE.getOwnerUUID() == null) continue;
-            if (!owE.getOwnerUUID().equals(mountedEntity.currentTeam.getTeamOwnerUUID())) continue;
+            // Afficher les entités appartenant à N'IMPORTE QUEL membre de la tribu (chef inclus),
+            // pas seulement celles du chef — cohérent avec la validation serveur d'AddEntityToTeamPacket.
+            if (!mountedEntity.currentTeam.isMember(owE.getOwnerUUID())) continue;
             if (owE instanceof Submarine) continue;
             // Exclure les entités déjà dans la même tribu
             if (owE.currentTeam != null && owE.currentTeam.getTeamId() == myTeamId) continue;
@@ -162,7 +164,7 @@ public class OWAddEntityScanScreen extends Screen {
         if (confirmTarget == null || mountedEntity == null) { closeConfirm(); return; }
         playUI(SoundEvents.PLAYER_LEVELUP, 0.55f, 1.6f);
         OWNetworkHandler.sendToServer(new AddEntityToTeamPacket(
-                mountedEntity.getId(), confirmTarget.getNickname(), confirmAlreadyInTeam));
+                mountedEntity.getId(), confirmTarget.getId(), confirmAlreadyInTeam));
         closeConfirm();
         Minecraft.getInstance().setScreen(new OWTeamsInterface(Component.empty()));
     }

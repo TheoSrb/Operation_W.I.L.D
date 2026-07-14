@@ -43,6 +43,8 @@ public record OWNameEntityPacket(int entityId, String nickname) implements Custo
             if (!(context.player().level() instanceof ServerLevel serverLevel)) return;
             Entity entity = serverLevel.getEntity(packet.entityId());
             if (!(entity instanceof OWEntity owEntity)) return;
+            // Seul le propriétaire / un membre de la tribu peut renommer ce pet.
+            if (!(context.player() instanceof ServerPlayer sp) || !owEntity.canBeControlledBy(sp)) return;
 
             owEntity.setNickname(packet.nickname());
 
@@ -56,20 +58,24 @@ public record OWNameEntityPacket(int entityId, String nickname) implements Custo
                 team.getEntityNames().set(idx, packet.nickname());
             }
 
-            // Resync chaque membre de la team vers tous les clients
-            for (Entity e : serverLevel.getAllEntities()) {
-                if (!(e instanceof OWEntity m)) continue;
-                if (m.currentTeam == null || m.currentTeam.getTeamId() != team.getTeamId()) continue;
+            // Resync chaque membre de la team vers tous les clients, dans TOUTES les dimensions :
+            // membres et joueurs peuvent être répartis sur plusieurs mondes (l'ancienne version ne
+            // couvrait que la dimension du renommeur).
+            for (ServerLevel level : serverLevel.getServer().getAllLevels()) {
+                for (Entity e : level.getAllEntities()) {
+                    if (!(e instanceof OWEntity m)) continue;
+                    if (m.currentTeam == null || m.currentTeam.getTeamId() != team.getTeamId()) continue;
 
-                // S'assurer que ce membre aussi a le nom à jour (cas objets partagés ou non)
-                int mIdx = m.currentTeam.getEntityUUIDs().indexOf(owEntity.getUUID());
-                if (mIdx >= 0 && mIdx < m.currentTeam.getEntityNames().size()) {
-                    m.currentTeam.getEntityNames().set(mIdx, packet.nickname());
-                }
+                    // S'assurer que ce membre aussi a le nom à jour (cas objets partagés ou non)
+                    int mIdx = m.currentTeam.getEntityUUIDs().indexOf(owEntity.getUUID());
+                    if (mIdx >= 0 && mIdx < m.currentTeam.getEntityNames().size()) {
+                        m.currentTeam.getEntityNames().set(mIdx, packet.nickname());
+                    }
 
-                SyncOWTeamPacket syncPacket = SyncOWTeamPacket.of(m.getId(), m.currentTeam);
-                for (ServerPlayer player : serverLevel.players()) {
-                    OWNetworkHandler.sendToClient(syncPacket, player);
+                    SyncOWTeamPacket syncPacket = SyncOWTeamPacket.of(m.getId(), m.currentTeam);
+                    for (ServerPlayer player : level.players()) {
+                        OWNetworkHandler.sendToClient(syncPacket, player);
+                    }
                 }
             }
         });

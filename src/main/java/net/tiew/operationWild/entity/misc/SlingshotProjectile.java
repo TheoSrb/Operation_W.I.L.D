@@ -1,6 +1,7 @@
 package net.tiew.operationWild.entity.misc;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -22,59 +23,48 @@ import net.tiew.operationWild.core.OWUtils;
 import java.util.*;
 
 public class SlingshotProjectile extends AbstractArrow {
-    private static final Map<BlockPos, Integer> blockDamageMap = new HashMap<>();
-    private static final Timer decayTimer = new Timer(true);
+    // Progression de casse des blocs, indexée par GlobalPos (dimension + position) pour éviter les
+    // collisions entre dimensions. Le décai périodique est piloté par le tick SERVEUR (voir decayTick),
+    // et non plus par un Timer sur un thread annexe (accéder au monde hors thread principal = crashs).
+    private static final Map<GlobalPos, Integer> blockDamageMap = new HashMap<>();
     public int tranquilizerEffectiveness = 35;
 
     private static final Set<SlingshotProjectile> projectilesToRemove = Collections.synchronizedSet(new HashSet<>());
 
-    static {
-        decayTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (blockDamageMap.isEmpty()) return;
-                Set<BlockPos> toRemove = new HashSet<>();
-
-                for (Map.Entry<BlockPos, Integer> entry : blockDamageMap.entrySet()) {
-                    BlockPos pos = entry.getKey();
-                    int damage = entry.getValue() - 1;
-
-                    if (damage < 0) {
-                        toRemove.add(pos);
-                    } else {
-                        blockDamageMap.put(pos, damage);
-                        Level level = getCurrentLevel();
-                        if (level != null) {
-                            level.destroyBlockProgress(0, pos, damage);
-                        }
-                    }
-                }
-
-                for (BlockPos pos : toRemove) {
-                    blockDamageMap.remove(pos);
-                    Level level = getCurrentLevel();
-                    if (level != null) {
-                        level.destroyBlockProgress(0, pos, -1);
-                    }
-                }
-            }
-        }, 10000, 10000);
+    /** Id de « casseur » déterministe par position (même valeur au marquage et au décai), négatif pour ne
+     *  jamais recouvrir l'overlay de casse d'un joueur (ids d'entités positifs). */
+    private static int blockBreakerId(BlockPos pos) {
+        return Integer.MIN_VALUE + Math.floorMod(pos.hashCode(), Integer.MAX_VALUE);
     }
 
-    private static Level currentLevel = null;
-
-    private static Level getCurrentLevel() {
-        return currentLevel;
+    /**
+     * Décrémente la progression de casse de tous les blocs suivis, <b>sur le thread principal</b>.
+     * Appelé périodiquement (toutes les ~10 s) depuis {@link net.tiew.operationWild.event.ServerEvents}.
+     */
+    public static void decayTick(net.minecraft.server.MinecraftServer server) {
+        if (blockDamageMap.isEmpty()) return;
+        Iterator<Map.Entry<GlobalPos, Integer>> it = blockDamageMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<GlobalPos, Integer> entry = it.next();
+            GlobalPos gp = entry.getKey();
+            net.minecraft.server.level.ServerLevel level = server.getLevel(gp.dimension());
+            int damage = entry.getValue() - 1;
+            if (damage < 0) {
+                it.remove();
+                if (level != null) level.destroyBlockProgress(blockBreakerId(gp.pos()), gp.pos(), -1);
+            } else {
+                entry.setValue(damage);
+                if (level != null) level.destroyBlockProgress(blockBreakerId(gp.pos()), gp.pos(), damage);
+            }
+        }
     }
 
     public SlingshotProjectile(EntityType<? extends AbstractArrow> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        currentLevel = pLevel;
     }
 
     public SlingshotProjectile(LivingEntity shooter, Level level) {
         super(OWEntityRegistry.SLINGSHOT_PROJECTILE.get(), shooter, level, new ItemStack(Items.COBBLESTONE), null);
-        currentLevel = level;
     }
 
     @Override
@@ -158,16 +148,18 @@ public class SlingshotProjectile extends AbstractArrow {
         float pitch = (float) OWUtils.generateRandomInterval(0.85f, 1.15f);
         this.playSound(SoundEvents.STONE_BREAK, 1.0f, pitch);
 
-        int currentDamage = blockDamageMap.getOrDefault(blockPos, -1);
+        GlobalPos key = GlobalPos.of(this.level().dimension(), blockPos);
+        int breaker = blockBreakerId(blockPos);
+        int currentDamage = blockDamageMap.getOrDefault(key, -1);
         int newDamage = Math.min(currentDamage + 1, 9);
-        blockDamageMap.put(blockPos, newDamage);
+        blockDamageMap.put(key, newDamage);
 
-        this.level().destroyBlockProgress(this.getId(), blockPos, newDamage);
+        this.level().destroyBlockProgress(breaker, blockPos, newDamage);
 
         if (newDamage >= 9 && !this.level().isClientSide()) {
             this.level().destroyBlock(blockPos, true);
-            blockDamageMap.remove(blockPos);
-            this.level().destroyBlockProgress(this.getId(), blockPos, -1);
+            blockDamageMap.remove(key);
+            this.level().destroyBlockProgress(breaker, blockPos, -1);
         }
 
         this.setDespawnCounter(5);

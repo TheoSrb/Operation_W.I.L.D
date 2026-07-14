@@ -26,8 +26,8 @@ public final class OWPistePassives {
     /** Probabilité de désarmement : 1 chance sur {@value} (identique à l'état sauvage du tigre). */
     public static final int DISARM_CHANCE = 7;
 
-    /** DEBUG temporaire : trace la résolution des passifs dans le log. Repasser à false ensuite. */
-    public static boolean DEBUG = true;
+    /** DEBUG temporaire : trace la résolution des passifs dans le log. */
+    public static boolean DEBUG = false;
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger("OWPistePassives");
 
     /** {@code true} si {@code entity} a débloqué le passif {@code passiveId} via sa Piste. */

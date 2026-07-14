@@ -1,6 +1,5 @@
 package net.tiew.operationWild.networking.packets.to_client;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -107,7 +106,7 @@ public record OWQuestProgressToClient(
 
     public static void handle(OWQuestProgressToClient packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            Entity entity = Minecraft.getInstance().level.getEntity(packet.entityId());
+            Entity entity = net.tiew.operationWild.client.OWClientHooks.clientEntity(packet.entityId());
             if (entity instanceof OWEntity owEntity) {
                 owEntity.activeQuest0 = packet.activeQuest0();
                 owEntity.activeQuest1 = packet.activeQuest1();

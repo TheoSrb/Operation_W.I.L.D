@@ -92,7 +92,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 public class ClientEvents {
 
     public static boolean isNotifiedOWBook = false;
-    public static double tamingExperience = 0;
     private static float damageTimer = 0.0f;
 
     private static int questUpdateTick = 0;
@@ -623,13 +622,20 @@ public class ClientEvents {
 
         if (minecraft.level != null && minecraft.level.isClientSide()) {
             if (minecraft.player != null && minecraft.player.getVehicle() instanceof OWEntity owEntity) {
-                boolean isSprintKeyDown = minecraft.options.keySprint.isDown();
-                OWNetworkHandler.sendToServer(new OWRunningPacket(isSprintKeyDown));
+                // Conducteur = passager principal (index 0), comme la permission d'attaque côté serveur.
+                boolean isDriver = !owEntity.getPassengers().isEmpty()
+                        && owEntity.getPassengers().get(0) == minecraft.player;
 
-                // Une seule évaluation par montage (au changement de monture).
-                if (owEntity.getId() != lastTutorialVehicleId) {
-                    lastTutorialVehicleId = owEntity.getId();
-                    tryShowMountTutorials(owEntity);
+                if (isDriver) {
+                    boolean isSprintKeyDown = minecraft.options.keySprint.isDown();
+                    OWNetworkHandler.sendToServer(new OWRunningPacket(isSprintKeyDown));
+
+                    // Le didacticiel des attaques ne concerne QUE le conducteur : un passager annexe
+                    // ne peut pas attaquer, donc pas de « appuyez sur X pour afficher les attaques ».
+                    if (owEntity.getId() != lastTutorialVehicleId) {
+                        lastTutorialVehicleId = owEntity.getId();
+                        tryShowMountTutorials(owEntity);
+                    }
                 }
             } else if (minecraft.player == null || !(minecraft.player.getVehicle() instanceof OWEntity)) {
                 lastTutorialVehicleId = -1;

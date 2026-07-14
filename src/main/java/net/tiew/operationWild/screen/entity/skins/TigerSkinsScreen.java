@@ -6,7 +6,6 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.quests.CosmeticsQuestsRegistry;
 import net.tiew.operationWild.screen.entity.OWSkinsInterface;
 import net.tiew.operationWild.screen.entity.SkinRarity;
@@ -120,12 +119,12 @@ public class TigerSkinsScreen extends OWSkinsInterface {
             CosmeticsQuestsRegistry.getById(1).update(entity.getUUID());
 
             setLockState(1, entity.getLevel() < 50);
-            setLockState(2, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 2));
-            setLockState(3, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 3));
-            setLockState(4, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 4));
+            setLockState(2, !entity.isSkinUnlocked(2));
+            setLockState(3, !entity.isSkinUnlocked(3));
+            setLockState(4, !entity.isSkinUnlocked(4));
             setLockState(5, !CosmeticsQuestsRegistry.isCompleted(1, entity.getUUID()));
             setLockState(6, !CosmeticsQuestsRegistry.isCompleted(0, entity.getUUID()));
-            setLockState(7, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 7));
+            setLockState(7, !entity.isSkinUnlocked(7));
             setLockState(8, false);
         }
     }

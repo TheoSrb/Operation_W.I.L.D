@@ -31,7 +31,7 @@ import java.util.UUID;
  *            pour déclencher la boîte de confirmation.
  * - true   → le joueur a confirmé : l'entité est transférée sans vérification supplémentaire.
  */
-public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boolean force)
+public record AddEntityToTeamPacket(int teamEntityId, int targetEntityId, boolean force)
         implements CustomPacketPayload {
 
     public static final Type<AddEntityToTeamPacket> TYPE = new Type<>(
@@ -39,9 +39,9 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
 
     public static final StreamCodec<ByteBuf, AddEntityToTeamPacket> STREAM_CODEC =
             StreamCodec.composite(
-                    ByteBufCodecs.INT,         AddEntityToTeamPacket::teamEntityId,
-                    ByteBufCodecs.STRING_UTF8, AddEntityToTeamPacket::targetNickname,
-                    ByteBufCodecs.BOOL,        AddEntityToTeamPacket::force,
+                    ByteBufCodecs.INT,  AddEntityToTeamPacket::teamEntityId,
+                    ByteBufCodecs.INT,  AddEntityToTeamPacket::targetEntityId,
+                    ByteBufCodecs.BOOL, AddEntityToTeamPacket::force,
                     AddEntityToTeamPacket::new);
 
     @Override
@@ -56,25 +56,22 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
             if (owEntity.currentTeam == null) return;
             if (!context.player().getUUID().equals(owEntity.currentTeam.getTeamOwnerUUID())) return;
 
-            String nickname = packet.targetNickname().trim();
-            if (nickname.isEmpty()) return;
-
-            // Find target by nickname (initial lookup from client input)
-            OWEntity target = null;
-            for (Entity e : serverLevel.getAllEntities()) {
-                if (!(e instanceof OWEntity owE)) continue;
-                if (!owE.getNickname().equals(nickname)) continue;
-                if (owE.getOwnerUUID() == null) continue;
-                if (!owE.getOwnerUUID().equals(owEntity.currentTeam.getTeamOwnerUUID())) continue;
-                target = owE;
-                break;
-            }
-            if (target == null) return;
-
             OWTeam team = owEntity.currentTeam;
+
+            // Cible résolue par id réseau (fiable, sans ambiguïté de nom ; les pets non nommés
+            // étaient jusqu'ici refusés). Validation serveur : apprivoisée, pas soi-même, et surtout
+            // propriétaire MEMBRE de la tribu (chef inclus) — on peut donc ajouter les pets des membres.
+            if (!(serverLevel.getEntity(packet.targetEntityId()) instanceof OWEntity target)) return;
+            if (target == owEntity) return;
+            if (!target.isTame()) return;
+            if (target.getOwnerUUID() == null) return;
+            if (!team.isMember(target.getOwnerUUID())) return;
 
             // ── Already in this team? Check by UUID ────────────────────────────
             if (team.getEntityUUIDs().contains(target.getUUID())) return;
+
+            // ── Capacité maximale d'entités de la tribu ────────────────────────
+            if (team.getEntityUUIDs().size() >= team.getMaxEntities()) return;
 
             // ── Vérification : l'entité est-elle dans une autre tribu ? ────────
             if (!packet.force()
@@ -82,7 +79,7 @@ public record AddEntityToTeamPacket(int teamEntityId, String targetNickname, boo
                     && target.currentTeam.getTeamId() != team.getTeamId()) {
                 if (context.player() instanceof ServerPlayer sp) {
                     OWNetworkHandler.sendToClient(
-                            new OWEntityAlreadyInTeamPacket(nickname, target.currentTeam.getTeamName()),
+                            new OWEntityAlreadyInTeamPacket(target.getNickname(), target.currentTeam.getTeamName()),
                             sp);
                 }
                 return;

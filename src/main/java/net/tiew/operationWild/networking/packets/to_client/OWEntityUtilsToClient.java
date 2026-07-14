@@ -1,6 +1,5 @@
 package net.tiew.operationWild.networking.packets.to_client;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -31,7 +30,7 @@ public record OWEntityUtilsToClient(int entityId, int resurrectionTimer, int att
 
     public static void handle(OWEntityUtilsToClient packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            Entity entity = Minecraft.getInstance().level.getEntity(packet.entityId());
+            Entity entity = net.tiew.operationWild.client.OWClientHooks.clientEntity(packet.entityId());
             if (entity instanceof OWEntity owEntity) {
                 owEntity.resurrectionTimer = packet.resurrectionTimer();
                 owEntity.attackTimer = packet.attackTimer();

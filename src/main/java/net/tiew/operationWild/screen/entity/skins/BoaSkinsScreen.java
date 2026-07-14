@@ -5,7 +5,6 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.core.OWDatasSave;
 import net.tiew.operationWild.screen.entity.OWSkinsInterface;
 import net.tiew.operationWild.screen.entity.SkinRarity;
 
@@ -90,8 +89,8 @@ public class BoaSkinsScreen extends OWSkinsInterface {
     protected void updateLockStates() {
         if (this.entity != null) {
             setLockState(1, entity.getLevel() < 50);
-            setLockState(4, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 4));
-            setLockState(5, !OWDatasSave.hasPurchasedSkin(entity.getUUID(), 5));
+            setLockState(4, !entity.isSkinUnlocked(4));
+            setLockState(5, !entity.isSkinUnlocked(5));
             setLockState(7, false);
         }
     }

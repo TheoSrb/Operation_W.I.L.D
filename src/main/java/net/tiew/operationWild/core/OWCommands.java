@@ -14,7 +14,6 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.networking.packets.to_client.SyncOWTeamPacket;
 import net.tiew.operationWild.team.OWTeam;
 import net.tiew.operationWild.team.OWTeamInvites;
@@ -208,7 +207,7 @@ public class OWCommands {
             CommandSourceStack source = context.getSource();
             try {
                 ServerPlayer player = source.getPlayerOrException();
-                player.sendSystemMessage(Component.translatable(String.valueOf(ClientEvents.tamingExperience)));
+                player.sendSystemMessage(Component.translatable(String.valueOf(OWTamingXp.getTamingXp(player))));
             } catch (Exception ignored) {
             }
             return 1;

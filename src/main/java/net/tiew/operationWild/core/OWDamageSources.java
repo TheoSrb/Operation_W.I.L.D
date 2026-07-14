@@ -13,7 +13,9 @@ import java.util.Random;
 
 public class OWDamageSources {
 
-    public static Random random = new Random();
+    // Sélection aléatoire de messages de mort côté serveur uniquement. java.util.Random est thread-safe ;
+    // final pour éviter toute réaffectation partagée.
+    private static final Random random = new Random();
 
     public static DamageSource createWaterPressureDamage(ServerLevel level) {
         return new DamageSource(

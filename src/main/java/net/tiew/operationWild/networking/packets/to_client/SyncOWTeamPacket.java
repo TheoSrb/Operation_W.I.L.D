@@ -1,13 +1,10 @@
 package net.tiew.operationWild.networking.packets.to_client;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
@@ -138,10 +135,8 @@ public record SyncOWTeamPacket(
 
     public static void handle(SyncOWTeamPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            Level level = Minecraft.getInstance().level;
-            if (level == null) return;
-            Entity entity = level.getEntity(packet.entityId());
-            if (entity instanceof OWEntity owEntity) {
+            OWEntity owEntity = net.tiew.operationWild.client.OWClientHooks.clientOWEntity(packet.entityId());
+            if (owEntity != null) {
                 OWTeamMosaicPattern pattern = OWTeamMosaicPattern.byId(packet.mosaicPatternId());
 
                 // Décompacter les pixels si le pattern est CUSTOM_PAINT

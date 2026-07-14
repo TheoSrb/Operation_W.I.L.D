@@ -9,6 +9,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Bee;
 import net.minecraft.world.entity.animal.Salmon;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -96,12 +97,9 @@ public class KodiakBehaviorHandler {
     public void catchSalmon() {
         this.kodiak.setCombo(true, 1);
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                pickupItemInHisMouth(chooseWhatItemCatchInWater());
-            }
-        }, 750);
+        OWUtils.scheduleServer(kodiak.level(), 15, () -> {
+            if (kodiak.isAlive()) pickupItemInHisMouth(chooseWhatItemCatchInWater());
+        });
     }
 
     protected ItemStack chooseWhatItemCatchInWater() {
@@ -121,24 +119,17 @@ public class KodiakBehaviorHandler {
 
         int timeForClosingChest = kodiak.getRandom().nextInt(2000) + 3000;
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                closeChest(chestBlockEntity);
-            }
-        }, timeForClosingChest);
+        OWUtils.scheduleServer(kodiak.level(), timeForClosingChest / 50, () -> {
+            if (kodiak.isAlive()) closeChest(chestBlockEntity);
+        });
     }
 
     public void closeChest(ChestBlockEntity chestBlockEntity) {
         List<Integer> foodSlots = new ArrayList<>();
 
-        new Timer().schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-                kodiak.closeChestAnimation(chestBlockEntity);
-            }
-        }, 500);
+        OWUtils.scheduleServer(kodiak.level(), 10, () -> {
+            if (kodiak.isAlive()) kodiak.closeChestAnimation(chestBlockEntity);
+        });
 
         for (int i = 0; i < chestBlockEntity.getContainerSize(); i++) {
             ItemStack item = chestBlockEntity.getItem(i);
@@ -271,13 +262,14 @@ public class KodiakBehaviorHandler {
             if (kodiak.getFoodPick().is(OWTags.Items.KODIAK_DANGEROUS_FOOD)) {
                 kodiak.addEffect(new MobEffectInstance(MobEffects.POISON, 350, 0));
 
-                if (kodiak.lastPlayerWhoFeedHim != null) {
-                    if (!kodiak.level().isClientSide()) {
-                        kodiak.setTarget(kodiak.lastPlayerWhoFeedHim);
+                if (!kodiak.level().isClientSide()) {
+                    Player feeder = kodiak.getLastFeeder();
+                    if (feeder != null) {
+                        kodiak.setTarget(feeder);
                     }
                 }
             } else {
-                kodiak.lastPlayerWhoFeedHim = null;
+                kodiak.clearLastFeeder();
             }
 
             if (kodiak.getFoodPick().is(Items.HONEYCOMB)) {
@@ -286,15 +278,13 @@ public class KodiakBehaviorHandler {
         } else {
             kodiak.setRejectItem(true);
 
-            new Timer().schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    float pitch = (float) (OWUtils.generateRandomInterval(0.8, 1.0));
-                    kodiak.spawnAtLocation(itemStack.copy());
-                    kodiak.playSound(SoundEvents.ITEM_PICKUP);
-                    kodiak.playSound(OWSounds.KODIAK_HURTING.get(), 1.0f, pitch);
-                }
-            }, 500);
+            OWUtils.scheduleServer(kodiak.level(), 10, () -> {
+                if (!kodiak.isAlive()) return;
+                float pitch = (float) (OWUtils.generateRandomInterval(0.8, 1.0));
+                kodiak.spawnAtLocation(itemStack.copy());
+                kodiak.playSound(SoundEvents.ITEM_PICKUP);
+                kodiak.playSound(OWSounds.KODIAK_HURTING.get(), 1.0f, pitch);
+            });
         }
 
         kodiak.setFoodPick(ItemStack.EMPTY);

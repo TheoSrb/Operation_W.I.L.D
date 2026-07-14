@@ -574,6 +574,8 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         LivingEntity owner = this.getOwner();
         if (owner != null && target == owner) return false;
         if (target instanceof TamableAnimal tamed && tamed.isOwnedBy(owner)) return false;
+        // Ne pas cibler un allié de la tribu (joueur membre, ou entité de la tribu / d'un membre).
+        if (this.isTameGrabAlly(target)) return false;
         return true;
     }
 

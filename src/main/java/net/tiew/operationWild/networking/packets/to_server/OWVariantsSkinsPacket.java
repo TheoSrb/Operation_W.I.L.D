@@ -32,7 +32,7 @@ public record OWVariantsSkinsPacket(int skinIndex) implements CustomPacketPayloa
             if (context.player() instanceof ServerPlayer player) {
                 Entity entity = player.getRootVehicle();
 
-                if (entity instanceof OWEntity owEntity) {
+                if (entity instanceof OWEntity owEntity && owEntity.canBeControlledBy(player)) {
                     owEntity.changeSkin(packet.skinIndex(), true);
                 }
             }

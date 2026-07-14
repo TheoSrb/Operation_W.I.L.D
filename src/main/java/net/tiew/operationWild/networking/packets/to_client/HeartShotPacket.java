@@ -7,7 +7,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.event.ClientEvents;
 
 /**
  * Envoyé au rider du Boa quand un « tir au cœur » (passif Vision Thermique) touche une entité,
@@ -30,6 +29,6 @@ public record HeartShotPacket(int entityId) implements CustomPacketPayload {
     }
 
     public static void handle(HeartShotPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> ClientEvents.triggerHeartHit(packet.entityId()));
+        context.enqueueWork(() -> net.tiew.operationWild.client.OWClientHooks.triggerHeartHit(packet.entityId()));
     }
 }

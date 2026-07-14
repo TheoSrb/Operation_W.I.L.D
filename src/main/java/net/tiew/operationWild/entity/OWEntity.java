@@ -687,6 +687,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void setNecklaceColor(int necklaceColor) { this.entityData.set(NECKLACE_COLOR, necklaceColor);}
 
     public static final EntityDataAccessor<Integer> SKIN_INDEX = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    // CSV des indices de skins débloqués (achetés avec des Pièces Sauvages). Appartient au pet, donc
+    // stocké et synchronisé sur l'entité (serveur-autoritaire), sauvegardé en NBT et restauré à la résurrection.
+    public static final EntityDataAccessor<String> SKINS_UNLOCKED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
     public boolean nbtRestoring = false;
 
     // --- Piste Sauvage (labyrinthe de progression par individu) ---
@@ -714,6 +717,28 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void changeSkinSilent(int skinIndex) {
         this.entityData.set(SKIN_INDEX, skinIndex);
+    }
+
+    // --- Skins débloqués (achetés) : appartiennent au pet, serveur-autoritaire + synchronisés ---
+
+    /** CSV brut des indices de skins débloqués (pour la sérialisation Âme / NBT). */
+    public String getUnlockedSkinsRaw() { return this.entityData.get(SKINS_UNLOCKED); }
+
+    /** Restaure l'ensemble des skins débloqués depuis un CSV (NBT / résurrection). */
+    public void setUnlockedSkinsRaw(String csv) { this.entityData.set(SKINS_UNLOCKED, csv == null ? "" : csv); }
+
+    public java.util.Set<Integer> getUnlockedSkins() { return parsePisteIds(this.entityData.get(SKINS_UNLOCKED)); }
+
+    /** Le skin d'index 0 (défaut) est toujours débloqué. */
+    public boolean isSkinUnlocked(int skinIndex) {
+        return skinIndex == 0 || getUnlockedSkins().contains(skinIndex);
+    }
+
+    /** Débloque un skin (idempotent). À n'appeler que côté serveur. */
+    public void unlockSkin(int skinIndex) {
+        if (skinIndex == 0) return;
+        java.util.Set<Integer> ids = getUnlockedSkins();
+        if (ids.add(skinIndex)) this.entityData.set(SKINS_UNLOCKED, joinPisteIds(ids));
     }
 
     protected void playSkinChangeEffect() {
@@ -1194,7 +1219,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (this.currentTeam != null) this.writeTeamToTag(teamTag);
         return new SoulData(typeId, this.getUUID(), ownerUuid, ownerName, nickname,
                 this.isMale(), this.getMaxHealth(), this.getDamage(), this.getSpeed(),
-                this.getScale(), this.getLevel(), this.getTypeVariant(), this.getSkinIndex(), teamTag);
+                this.getScale(), this.getLevel(), this.getTypeVariant(), this.getSkinIndex(),
+                this.getUnlockedSkinsRaw(), teamTag);
     }
 
     /** Crée l'item Âme portant le snapshot de ce compagnon. */
@@ -1225,6 +1251,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.setBaseSpeed((float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
         if (!data.nickname().isEmpty()) this.setNickname(data.nickname());
         try {
+            this.setUnlockedSkinsRaw(data.skinsUnlocked());
             if (data.skinIndex() != 0) this.changeSkinSilent(data.skinIndex());
         } catch (Exception ignored) {
             // Restauration de skin non critique : ne doit jamais interrompre la résurrection.
@@ -1468,6 +1495,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void upgradeAttributes(OWEntity entity, Holder<Attribute> attribute) {
         if (attribute == null) return;
+        // Garde serveur : sans point de niveau disponible, aucune amélioration (empêche le spam de
+        // paquets qui ferait grimper les stats gratuitement et passerait les points en négatif).
+        if (this.getLevelPoints() <= 0) return;
         if (attribute == Attributes.MAX_HEALTH) {
             entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(entity.getAttribute(attribute).getBaseValue() + (1 * getArchetype().getHealthMultiplier()));
         } else if (attribute == Attributes.ATTACK_DAMAGE) {
@@ -2252,6 +2282,34 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         UUID id = player.getUUID();
         if (id.equals(this.getOwnerUUID())) return true;
         return this.isInMyTribe(id);
+    }
+
+    /**
+     * Vrai si {@code target} est un allié de cette entité <b>apprivoisée</b> qu'une attaque de grab ne
+     * doit jamais saisir : le propriétaire, un membre joueur de la tribu, une entité de la même tribu,
+     * ou une entité possédée par le propriétaire / un membre de la tribu. Toujours {@code false} à l'état
+     * sauvage (aucune protection). Sert de garde commun aux grabbers (Tigre, Crocodile, Boa).
+     */
+    public boolean isTameGrabAlly(Entity target) {
+        if (target == null || !this.isTame()) return false;
+
+        // Joueur : propriétaire ou membre de la tribu.
+        if (target instanceof Player player) {
+            return this.canBeControlledBy(player);
+        }
+
+        // Entité OW : même tribu, ou possédée par le propriétaire / un membre de la tribu.
+        if (target instanceof OWEntity owE) {
+            if (owE == this) return true;
+            if (this.currentTeam != null && owE.currentTeam != null
+                    && this.currentTeam.getTeamId() == owE.currentTeam.getTeamId()) return true;
+            UUID myOwner = this.getOwnerUUID();
+            UUID theirOwner = owE.getOwnerUUID();
+            if (myOwner != null && myOwner.equals(theirOwner)) return true;
+            return theirOwner != null && this.isInMyTribe(theirOwner);
+        }
+
+        return false;
     }
 
     @Override
@@ -3345,14 +3403,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean isTame() { return (this.entityData.get(DATA_FLAGS_ID) & 4) != 0;}
 
     public void addTamingExperience(double experience, Player player) {
-        ClientEvents.tamingExperience += experience;
+        // Cagnotte par joueur, serveur-autoritaire (voir OWTamingXp). Ne fait rien hors serveur.
+        if (!(player instanceof ServerPlayer serverPlayer)) return;
 
-        if (player instanceof ServerPlayer serverPlayer) {
+        net.tiew.operationWild.core.OWTamingXp.grantTamingXp(serverPlayer, experience);
+
+        double total = net.tiew.operationWild.core.OWTamingXp.getTamingXp(serverPlayer);
+        String advancement = selectTamingAdvancement(total);
+        if (!advancement.isEmpty()) {
             serverPlayer.getServer().getCommands().performPrefixedCommand(serverPlayer.getServer().createCommandSourceStack().withSuppressedOutput(),
-                    "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + selectTamingAdvancement(ClientEvents.tamingExperience));
+                    "advancement grant " + serverPlayer.getGameProfile().getName() + " only " + OperationWild.MOD_ID + ":" + advancement);
         }
-
-        OWDatasSave.saveTamingExperience(OWDatasSave.owDatas, ClientEvents.tamingExperience);
     }
 
     private String selectTamingAdvancement(double tamingExperience) {
@@ -3953,6 +4014,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(RESURRECTION_MAX_TIMER, 0);
         builder.define(NAME, "");
         builder.define(SKIN_INDEX, 0);
+        builder.define(SKINS_UNLOCKED, "");
         builder.define(CACHED_OWNER_NAME, "");
     }
 
@@ -4076,6 +4138,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putBoolean("quest9isLocked", this.quest9isLocked);
         tag.putBoolean("quest10isLocked", this.quest10isLocked);
         tag.putInt("skinIndex", this.getSkinIndex());
+        tag.putString("SkinsUnlocked", this.entityData.get(SKINS_UNLOCKED));
 
         tag.putString("cachedOwnerName", this.getCachedOwnerName());
 
@@ -4241,6 +4304,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.quest9isLocked = tag.getBoolean("quest9isLocked");
         this.quest10isLocked = tag.getBoolean("quest10isLocked");
         this.entityData.set(SKIN_INDEX, tag.getInt("skinIndex"));
+        this.entityData.set(SKINS_UNLOCKED, tag.contains("SkinsUnlocked") ? tag.getString("SkinsUnlocked") : "");
 
         this.setCachedOwnerName(tag.getString("cachedOwnerName"));
 

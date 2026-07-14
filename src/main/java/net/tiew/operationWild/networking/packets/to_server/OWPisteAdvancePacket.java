@@ -11,8 +11,6 @@ import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWCurrency;
-import net.tiew.operationWild.core.OWDatasSave;
-import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.piste.OWPisteGraph;
 import net.tiew.operationWild.entity.piste.OWPisteGraphs;
@@ -74,11 +72,10 @@ public record OWPisteAdvancePacket(int nodeId, int choice) implements CustomPack
             if (target.hasChoice() && (packet.choice() < 0 || packet.choice() >= target.getOptions().size())) return;
             if (isAttack && (packet.choice() < 0 || packet.choice() >= target.getAttackIds().size())) return;
 
-            // Coût en Expérience d'Apprivoisement (cagnotte du joueur). Débite si assez, sinon refus.
-            // Même stockage que OWEntity#addTamingExperience : statique client partagé + fichier local.
-            if (ClientEvents.tamingExperience < target.getCost()) return;
-            ClientEvents.tamingExperience -= target.getCost();
-            OWDatasSave.saveTamingExperience(OWDatasSave.owDatas, ClientEvents.tamingExperience);
+            // Coût en Expérience d'Apprivoisement (cagnotte par joueur, serveur-autoritaire — voir OWTamingXp).
+            // Débite si assez, sinon refus. La resynchro vers le client est faite par spendTamingXp/syncTamingXp.
+            if (!net.tiew.operationWild.core.OWTamingXp.spendTamingXp(player, target.getCost())) return;
+            net.tiew.operationWild.core.OWTamingXp.syncTamingXp(player);
 
             // --- Validation OK : on applique ---
             entity.addPisteUnlockedNode(targetId);

@@ -166,7 +166,21 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int eatingTimer = 0;
     public boolean startHoneyTimer = false;
     private int honeyTimer = 0;
-    public Player lastPlayerWhoFeedHim = null;
+    // On stocke l'UUID (et non une référence Player, qui deviendrait obsolète à la déconnexion / au changement de dimension).
+    private UUID lastFeederUUID = null;
+
+    /** Dernier joueur ayant nourri ce Kodiak, résolu à la volée (ou {@code null} s'il est hors ligne / hors portée). */
+    public Player getLastFeeder() {
+        return lastFeederUUID == null ? null : this.level().getPlayerByUUID(lastFeederUUID);
+    }
+
+    public void setLastFeeder(Player player) {
+        this.lastFeederUUID = (player == null) ? null : player.getUUID();
+    }
+
+    public void clearLastFeeder() {
+        this.lastFeederUUID = null;
+    }
 
     public int numberOfBonusSearching = 0;
     public int numberOfBonusSearchingMax = this.random.nextInt(7) + 5;
@@ -1028,7 +1042,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 if (!this.level().isClientSide()) {
                     kodiakBehaviorHandler.pickupItemInHisMouth(heldItem.getDefaultInstance().copy());
                     itemStack.shrink(1);
-                    lastPlayerWhoFeedHim = player;
+                    setLastFeeder(player);
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -1383,8 +1397,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         tag.putInt("napKillCount", getNapKillCount());
 
-        if (lastPlayerWhoFeedHim != null) {
-            tag.putUUID("LastFeederUUID", lastPlayerWhoFeedHim.getUUID());
+        if (lastFeederUUID != null) {
+            tag.putUUID("LastFeederUUID", lastFeederUUID);
         }
     }
 
@@ -1402,8 +1416,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.entityData.set(ULTIMATE_NAP_KILL_COUNT, tag.getInt("napKillCount"));
 
         if (tag.hasUUID("LastFeederUUID")) {
-            UUID feederUUID = tag.getUUID("LastFeederUUID");
-            lastPlayerWhoFeedHim = this.level().getPlayerByUUID(feederUUID);
+            lastFeederUUID = tag.getUUID("LastFeederUUID");
         }
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }

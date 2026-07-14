@@ -19,10 +19,10 @@ import java.util.UUID;
  * le type est stocké sous forme de {@link ResourceLocation}, ce qui rend la résurrection
  * automatiquement compatible avec n'importe quel OWEntity (hors véhicules) sans code dédié.</p>
  *
- * <p>L'{@link #originalUuid} est la clé de voûte : en ré-ancrant l'entité ressuscitée avec le
- * MÊME uuid, les skins débloqués ({@code OWDatasSave.purchasedSkins}) et la progression des
- * quêtes cosmétiques ({@code CosmeticsQuest}) — toutes deux indexées par UUID d'entité —
- * sont restaurées automatiquement.</p>
+ * <p>L'{@link #originalUuid} est ré-ancré à la résurrection (utile pour les systèmes encore indexés
+ * par UUID d'entité, ex. quêtes cosmétiques {@code CosmeticsQuest}). Les skins débloqués, eux, sont
+ * désormais portés directement par ce snapshot ({@link #skinsUnlocked}) puis réappliqués sur le pet
+ * ressuscité, car ils vivent sur l'entité (serveur-autoritaire) et non plus dans un fichier local.</p>
  */
 public record SoulData(
         ResourceLocation entityType,
@@ -38,6 +38,7 @@ public record SoulData(
         int level,
         int variant,
         int skinIndex,
+        String skinsUnlocked,
         CompoundTag teamTag
 ) {
 
@@ -48,7 +49,7 @@ public record SoulData(
             ResourceLocation.withDefaultNamespace("empty"),
             NO_UUID, NO_UUID, "", "",
             false, 1.0f, 1.0f, 0.25f, 1.0f,
-            1, 0, 0, new CompoundTag());
+            1, 0, 0, "", new CompoundTag());
 
     public static final Codec<SoulData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ResourceLocation.CODEC.fieldOf("entity_type").forGetter(SoulData::entityType),
@@ -64,6 +65,7 @@ public record SoulData(
             Codec.INT.optionalFieldOf("level", 1).forGetter(SoulData::level),
             Codec.INT.optionalFieldOf("variant", 0).forGetter(SoulData::variant),
             Codec.INT.optionalFieldOf("skin_index", 0).forGetter(SoulData::skinIndex),
+            Codec.STRING.optionalFieldOf("skins_unlocked", "").forGetter(SoulData::skinsUnlocked),
             CompoundTag.CODEC.optionalFieldOf("team", new CompoundTag()).forGetter(SoulData::teamTag)
     ).apply(instance, SoulData::new));
 
@@ -83,6 +85,7 @@ public record SoulData(
                 buf.writeVarInt(data.level);
                 buf.writeVarInt(data.variant);
                 buf.writeVarInt(data.skinIndex);
+                buf.writeUtf(data.skinsUnlocked);
                 buf.writeNbt(data.teamTag);
             },
             buf -> {
@@ -99,10 +102,11 @@ public record SoulData(
                 int level = buf.readVarInt();
                 int variant = buf.readVarInt();
                 int skinIndex = buf.readVarInt();
+                String skinsUnlocked = buf.readUtf();
                 CompoundTag teamTag = buf.readNbt();
                 return new SoulData(entityType, originalUuid, ownerUuid, ownerName, nickname,
                         male, maxHealth, damage, speed, scale, level, variant, skinIndex,
-                        teamTag == null ? new CompoundTag() : teamTag);
+                        skinsUnlocked, teamTag == null ? new CompoundTag() : teamTag);
             }
     );
 

@@ -116,19 +116,34 @@ public class ServerEvents {
         }
     }
 
-    /** Synchronise les Pièces Sauvages vers le client à la connexion. */
+    /** Synchronise les cagnottes par joueur (Pièces Sauvages + Expérience d'Apprivoisement) à la connexion. */
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
             net.tiew.operationWild.core.OWCurrency.syncWildCoins(player);
+            net.tiew.operationWild.core.OWTamingXp.syncTamingXp(player);
         }
     }
 
-    /** Conserve le porte-monnaie de Pièces Sauvages à travers la mort / le changement de dimension. */
+    /** Conserve les cagnottes par joueur (Pièces + Expérience d'Apprivoisement) à travers la mort / le changement de dimension. */
     @SubscribeEvent
     public static void onPlayerClone(PlayerEvent.Clone event) {
         int coins = net.tiew.operationWild.core.OWCurrency.getWildCoins(event.getOriginal());
         net.tiew.operationWild.core.OWCurrency.setWildCoins(event.getEntity(), coins);
+
+        double tamingXp = net.tiew.operationWild.core.OWTamingXp.getTamingXp(event.getOriginal());
+        net.tiew.operationWild.core.OWTamingXp.setTamingXp(event.getEntity(), tamingXp);
+    }
+
+    private static int slingshotDecayCounter = 0;
+
+    /** Décai périodique (~10 s) des fissures de la fronde, exécuté sur le thread principal (remplace l'ancien Timer). */
+    @SubscribeEvent
+    public static void onServerTick(net.neoforged.neoforge.event.tick.ServerTickEvent.Post event) {
+        if (++slingshotDecayCounter >= 200) {
+            slingshotDecayCounter = 0;
+            net.tiew.operationWild.entity.misc.SlingshotProjectile.decayTick(event.getServer());
+        }
     }
 
     @SubscribeEvent

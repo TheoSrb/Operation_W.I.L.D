@@ -23,6 +23,23 @@ import org.joml.Vector3f;
 
 public class OWUtils {
 
+    /**
+     * Planifie une action sur le thread <b>principal</b> du serveur après {@code delayTicks} ticks (20 ticks = 1 s).
+     * À utiliser systématiquement à la place de {@code new Timer()}/{@code TimerTask} : accéder au monde ou aux
+     * entités depuis un thread annexe provoque des {@code ConcurrentModificationException}, de la corruption d'état
+     * et des crashs (surtout en multijoueur). Sans effet côté client ou si le serveur est indisponible.
+     */
+    public static void scheduleServer(Level level, int delayTicks, Runnable action) {
+        if (level == null || level.isClientSide()) return;
+        net.minecraft.server.MinecraftServer server = level.getServer();
+        if (server == null) return;
+        if (delayTicks <= 0) {
+            server.execute(action);
+        } else {
+            server.tell(new net.minecraft.server.TickTask(server.getTickCount() + delayTicks, action));
+        }
+    }
+
     public static boolean RANDOM(int i) { return OWEntity.RANDOM.nextInt(i) == 0;}
 
     public static double generateRandomInterval(double min, double max) { return (min + (Math.random() * (max - min)));}

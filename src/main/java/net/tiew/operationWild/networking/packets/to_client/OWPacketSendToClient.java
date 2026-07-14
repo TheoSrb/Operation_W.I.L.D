@@ -1,6 +1,5 @@
 package net.tiew.operationWild.networking.packets.to_client;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -70,7 +69,7 @@ public record OWPacketSendToClient(
 
     public static void handle(OWPacketSendToClient packet, IPayloadContext context) {
         context.enqueueWork(() -> {
-            Entity entity = Minecraft.getInstance().level.getEntity(packet.entityId());
+            Entity entity = net.tiew.operationWild.client.OWClientHooks.clientEntity(packet.entityId());
             if (entity instanceof OWEntity owEntity) {
                 owEntity.actualMaturation = packet.actualMaturation();
                 owEntity.maxMaturation = packet.maxMaturation();
