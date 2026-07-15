@@ -796,7 +796,7 @@
   "owteams.invite.target_in_tribe": "%s 은(는) 이미 부족에 속해 있습니다.",
   "owteams.creation.confirm_edit": "저장",
   "owteams.settings.title": "설정",
-  "owteams.banner.select.warning": "⚠ 모양 선택은 영구적입니다",
+  "owteams.banner.select.warning": "형태 선택은 되돌릴 수 없습니다",
   "owteams.chief_role": "족장",
   "owteams.banner.bandeaux": "띠",
   "owteams.creation.tertiary": "색상 3",
@@ -829,5 +829,9 @@
   "owteams.settings.visibility.desc": "누가 부족에 가입할 수 있는지.",
   "owteams.settings.coins.desc": "가입에 필요한 최소 야생 코인.",
   "owteams.settings.transfer.desc": "족장 역할을 구성원에게 넘깁니다.",
-  "owteams.settings.disband.desc": "부족을 영구적으로 삭제합니다."
+  "owteams.settings.disband.desc": "부족을 영구적으로 삭제합니다.",
+  "owteams.banner.buy.confirm": "잠금 해제",
+  "owteams.banner.buy.question": "\"%s\" 깃발의 잠금을 해제할까요?",
+  "owteams.creation.name_taken_hint": "이미 사용 중인 이름입니다",
+  "owteams.banner.select.warning2": "이후에는 형태를 변경할 수 없습니다."
 }

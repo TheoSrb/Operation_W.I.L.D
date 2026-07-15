@@ -69,6 +69,7 @@ public class OWNetworkHandler {
         registrar.playToServer(InvitePlayerToTribePacket.TYPE, InvitePlayerToTribePacket.STREAM_CODEC, InvitePlayerToTribePacket::handle);
         registrar.playToServer(SetDeputyPacket.TYPE, SetDeputyPacket.STREAM_CODEC, SetDeputyPacket::handle);
         registrar.playToServer(SetMemberPermissionPacket.TYPE, SetMemberPermissionPacket.STREAM_CODEC, SetMemberPermissionPacket::handle);
+        registrar.playToServer(BuyBannerShapePacket.TYPE, BuyBannerShapePacket.STREAM_CODEC, BuyBannerShapePacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);
@@ -95,6 +96,7 @@ public class OWNetworkHandler {
         // Tribu player-centric (refonte)
         registrar.playToClient(SyncPlayerTribePacket.TYPE, SyncPlayerTribePacket.STREAM_CODEC, SyncPlayerTribePacket::handle);
         registrar.playToClient(SyncTribeListPacket.TYPE, SyncTribeListPacket.STREAM_CODEC, SyncTribeListPacket::handle);
+        registrar.playToClient(SyncBannerUnlocksPacket.TYPE, SyncBannerUnlocksPacket.STREAM_CODEC, SyncBannerUnlocksPacket::handle);
     }
 
     public static void sendToServer(CustomPacketPayload packet) {

@@ -796,7 +796,7 @@
   "owteams.invite.target_in_tribe": "%s уже состоит в племени.",
   "owteams.creation.confirm_edit": "Сохранить",
   "owteams.settings.title": "Настройки",
-  "owteams.banner.select.warning": "⚠ Выбор формы окончательный",
+  "owteams.banner.select.warning": "Выбор формы окончателен",
   "owteams.chief_role": "Вождь",
   "owteams.banner.bandeaux": "Полосы",
   "owteams.creation.tertiary": "Цвет 3",
@@ -829,5 +829,9 @@
   "owteams.settings.visibility.desc": "Кто может вступить в племя.",
   "owteams.settings.coins.desc": "Мин. диких монет для вступления.",
   "owteams.settings.transfer.desc": "Передать роль вождя участнику.",
-  "owteams.settings.disband.desc": "Безвозвратно удаляет племя."
+  "owteams.settings.disband.desc": "Безвозвратно удаляет племя.",
+  "owteams.banner.buy.confirm": "Разблокировать",
+  "owteams.banner.buy.question": "Разблокировать флаг «%s»?",
+  "owteams.creation.name_taken_hint": "Это имя уже занято",
+  "owteams.banner.select.warning2": "Изменить форму потом будет нельзя."
 }

@@ -796,7 +796,7 @@
   "owteams.invite.target_in_tribe": "%s ya está en una tribu.",
   "owteams.creation.confirm_edit": "Guardar",
   "owteams.settings.title": "Ajustes",
-  "owteams.banner.select.warning": "⚠ La forma elegida es permanente",
+  "owteams.banner.select.warning": "La elección de la forma es definitiva",
   "owteams.chief_role": "Jefe",
   "owteams.banner.bandeaux": "Bandas",
   "owteams.creation.tertiary": "Color 3",
@@ -829,5 +829,9 @@
   "owteams.settings.visibility.desc": "Quién puede unirse a tu tribu.",
   "owteams.settings.coins.desc": "Monedas Salvajes mínimas para unirse.",
   "owteams.settings.transfer.desc": "Cede el rol de jefe a un miembro.",
-  "owteams.settings.disband.desc": "Elimina la tribu para siempre."
+  "owteams.settings.disband.desc": "Elimina la tribu para siempre.",
+  "owteams.banner.buy.confirm": "Desbloquear",
+  "owteams.banner.buy.question": "¿Desbloquear el estandarte «%s»?",
+  "owteams.creation.name_taken_hint": "Este nombre ya está en uso",
+  "owteams.banner.select.warning2": "La forma no podrá cambiarse después."
 }

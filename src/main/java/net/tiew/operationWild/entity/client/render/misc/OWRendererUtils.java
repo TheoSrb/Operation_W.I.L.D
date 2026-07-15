@@ -26,6 +26,7 @@ import org.joml.Vector3f;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.team.OWTeam;
+import net.tiew.operationWild.team.OWTeamBannerShape;
 import net.tiew.operationWild.team.OWTeamMosaicPattern;
 
 import java.util.*;
@@ -35,6 +36,10 @@ public class OWRendererUtils {
     private static final ResourceLocation ICONS       = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
     private static final ResourceLocation OW_TEAMS_GUI = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_teams_interface.png");
     private static final ResourceLocation WHITE        = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/misc/white.png");
+
+    // Origine UV (dans ow_teams_banners_styles.png) de la silhouette en cours de rendu, positionnée
+    // par renderBannerPattern selon la forme de la bannière. Le rendu 3D est mono-thread (render thread).
+    private static int bnUBase = 0, bnVBase = 0;
 
     public static void displayOverlayOnEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int opacity, double offsetX, double offsetY, double offsetZ) {
         ResourceLocation overlayTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information.png");
@@ -203,11 +208,11 @@ public class OWRendererUtils {
 
             poseStack.pushPose();
             poseStack.translate(0, 0, 0.003f);
-            VertexConsumer vcB = bufferSource.getBuffer(RenderType.entityTranslucent(OW_TEAMS_GUI));
+            VertexConsumer vcB = bufferSource.getBuffer(RenderType.entityTranslucent(OWTeamBannerShape.TEXTURE));
             renderBannerPattern(vcB, poseStack.last().pose(),
                     bbx0, bby0, bbx1, bby1,
                     bbx0, bby0, BBW, BBH,
-                    bTeam.getTeamMosaicPattern(),
+                    bTeam.getBannerShape(), bTeam.getTeamMosaicPattern(),
                     bpr, bpg, bpb, bsr, bsg, bsb,
                     btr, btg, btb, bTeam.isUseTertiary(),
                     bTeam.getPaintPixels(), lightU, lightV);
@@ -820,10 +825,10 @@ public class OWRendererUtils {
         int lightU = packedLight & 0xFFFF;
         int lightV = (packedLight >> 16) & 0xFFFF;
 
-        VertexConsumer vc = bufferSource.getBuffer(RenderType.entityTranslucent(OW_TEAMS_GUI));
+        VertexConsumer vc = bufferSource.getBuffer(RenderType.entityTranslucent(OWTeamBannerShape.TEXTURE));
         renderBannerPattern(vc, poseStack.last().pose(),
                 x0, y0, x1, y1, x0, y0, BW, BH,
-                team.getTeamMosaicPattern(), pr, pg, pb, sr, sg, sb,
+                team.getBannerShape(), team.getTeamMosaicPattern(), pr, pg, pb, sr, sg, sb,
                 tr, tg, tb, team.isUseTertiary(),
                 team.getPaintPixels(), lightU, lightV);
 
@@ -849,10 +854,16 @@ public class OWRendererUtils {
     private static void renderBannerPattern(VertexConsumer vc, Matrix4f mat,
             float bx0, float by0, float bx1, float by1,
             float bbx0, float bby0, float bbw, float bbh,
-            OWTeamMosaicPattern pattern,
+            OWTeamBannerShape shape, OWTeamMosaicPattern pattern,
             int pr, int pg, int pb, int sr, int sg, int sb,
             int tr, int tg, int tb, boolean useTertiary,
             byte[] paintPixels, int lightU, int lightV) {
+
+        if (shape == null) shape = OWTeamBannerShape.CLASSIC;
+        // La silhouette de la forme (dans ow_teams_banners_styles.png) découpe le motif : flagRect
+        // & co. lisent bnUBase/bnVBase pour échantillonner la bonne région, sa transparence masque.
+        bnUBase = shape.getBaseU();
+        bnVBase = shape.getBaseV();
 
         final float xM = (bx0 + bx1) / 2f, yM = (by0 + by1) / 2f;
         final float BW = bx1 - bx0, BH = by1 - by0;
@@ -877,6 +888,7 @@ public class OWRendererUtils {
             } else {
                 flagRect(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
             }
+            renderBannerHighlights(vc, mat, bx0, by0, bx1, by1, shape, lightU, lightV);
             return;
         }
 
@@ -996,17 +1008,42 @@ public class OWRendererUtils {
             }
             default -> flagRect(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
         }
+
+        renderBannerHighlights(vc, mat, bx0, by0, bx1, by1, shape, lightU, lightV);
     }
 
-    // Renders a sub-rectangle of the flag texture (U=200..256, V=0..93/256) with vertex color tinting.
+    /**
+     * Superpose le calque de highlights (ombrage/brillance) de la forme, aligné en bas de la bannière,
+     * teinté en blanc (couleurs d'origine de la texture). Reproduit {@code OWBannerRenderer.renderHighlights}.
+     */
+    private static void renderBannerHighlights(VertexConsumer vc, Matrix4f mat,
+            float bx0, float by0, float bx1, float by1,
+            OWTeamBannerShape shape, int lightU, int lightV) {
+        int hlH = shape.getHighlightH();
+        if (hlH <= 0) return;
+        final float BH = by1 - by0;
+        // Le highlight occupe la bande basse de la bannière (hlH px sur 93).
+        float hy0 = by0;                                                    // bas
+        float hy1 = by0 + BH * ((float) hlH / OWTeamBannerShape.BASE_H);    // haut du calque
+        float u0 = shape.getHighlightU() / (float) OWTeamBannerShape.TEXTURE_SIZE;
+        float u1 = (shape.getHighlightU() + OWTeamBannerShape.BASE_W) / (float) OWTeamBannerShape.TEXTURE_SIZE;
+        float v0 = shape.getHighlightV() / (float) OWTeamBannerShape.TEXTURE_SIZE;         // haut
+        float v1 = (shape.getHighlightV() + hlH) / (float) OWTeamBannerShape.TEXTURE_SIZE; // bas
+        vc.addVertex(mat, bx0, hy0, 0).setColor(255, 255, 255, 255).setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, bx1, hy0, 0).setColor(255, 255, 255, 255).setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, bx1, hy1, 0).setColor(255, 255, 255, 255).setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, bx0, hy1, 0).setColor(255, 255, 255, 255).setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+    }
+
+    // Renders a sub-rectangle of the banner silhouette texture (region set via bnUBase/bnVBase) with vertex color tinting.
     private static void flagRect(VertexConsumer vc, Matrix4f mat,
             float wx0, float wy0, float wx1, float wy1,
             float bx0, float by0, float bw, float bh,
             int lightU, int lightV, int r, int g, int b) {
-        float fu0 = (200f + (wx0 - bx0) / bw * 56f) / 256f;
-        float fu1 = (200f + (wx1 - bx0) / bw * 56f) / 256f;
-        float fv0 = (1f - (wy1 - by0) / bh) * 93f / 256f;
-        float fv1 = (1f - (wy0 - by0) / bh) * 93f / 256f;
+        float fu0 = (bnUBase + (wx0 - bx0) / bw * OWTeamBannerShape.BASE_W) / OWTeamBannerShape.TEXTURE_SIZE;
+        float fu1 = (bnUBase + (wx1 - bx0) / bw * OWTeamBannerShape.BASE_W) / OWTeamBannerShape.TEXTURE_SIZE;
+        float fv0 = (bnVBase + (1f - (wy1 - by0) / bh) * OWTeamBannerShape.BASE_H) / OWTeamBannerShape.TEXTURE_SIZE;
+        float fv1 = (bnVBase + (1f - (wy0 - by0) / bh) * OWTeamBannerShape.BASE_H) / OWTeamBannerShape.TEXTURE_SIZE;
         vc.addVertex(mat, wx0, wy0, 0).setColor(r, g, b, 255).setUv(fu0, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
         vc.addVertex(mat, wx1, wy0, 0).setColor(r, g, b, 255).setUv(fu1, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
         vc.addVertex(mat, wx1, wy1, 0).setColor(r, g, b, 255).setUv(fu1, fv0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
@@ -1019,10 +1056,10 @@ public class OWRendererUtils {
             float bx0, float by0, float bw, float bh,
             int lightU, int lightV,
             int rBot, int gBot, int bBot, int rTop, int gTop, int bTop) {
-        float fu0 = (200f + (wx0 - bx0) / bw * 56f) / 256f;
-        float fu1 = (200f + (wx1 - bx0) / bw * 56f) / 256f;
-        float fv0 = (1f - (wy1 - by0) / bh) * 93f / 256f;
-        float fv1 = (1f - (wy0 - by0) / bh) * 93f / 256f;
+        float fu0 = (bnUBase + (wx0 - bx0) / bw * OWTeamBannerShape.BASE_W) / OWTeamBannerShape.TEXTURE_SIZE;
+        float fu1 = (bnUBase + (wx1 - bx0) / bw * OWTeamBannerShape.BASE_W) / OWTeamBannerShape.TEXTURE_SIZE;
+        float fv0 = (bnVBase + (1f - (wy1 - by0) / bh) * OWTeamBannerShape.BASE_H) / OWTeamBannerShape.TEXTURE_SIZE;
+        float fv1 = (bnVBase + (1f - (wy0 - by0) / bh) * OWTeamBannerShape.BASE_H) / OWTeamBannerShape.TEXTURE_SIZE;
         vc.addVertex(mat, wx0, wy0, 0).setColor(rBot, gBot, bBot, 255).setUv(fu0, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
         vc.addVertex(mat, wx1, wy0, 0).setColor(rBot, gBot, bBot, 255).setUv(fu1, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
         vc.addVertex(mat, wx1, wy1, 0).setColor(rTop, gTop, bTop, 255).setUv(fu1, fv0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
@@ -1035,10 +1072,10 @@ public class OWRendererUtils {
             float bx0, float by0, float bw, float bh,
             int lightU, int lightV,
             int rLeft, int gLeft, int bLeft, int rRight, int gRight, int bRight) {
-        float fu0 = (200f + (wx0 - bx0) / bw * 56f) / 256f;
-        float fu1 = (200f + (wx1 - bx0) / bw * 56f) / 256f;
-        float fv0 = (1f - (wy1 - by0) / bh) * 93f / 256f;
-        float fv1 = (1f - (wy0 - by0) / bh) * 93f / 256f;
+        float fu0 = (bnUBase + (wx0 - bx0) / bw * OWTeamBannerShape.BASE_W) / OWTeamBannerShape.TEXTURE_SIZE;
+        float fu1 = (bnUBase + (wx1 - bx0) / bw * OWTeamBannerShape.BASE_W) / OWTeamBannerShape.TEXTURE_SIZE;
+        float fv0 = (bnVBase + (1f - (wy1 - by0) / bh) * OWTeamBannerShape.BASE_H) / OWTeamBannerShape.TEXTURE_SIZE;
+        float fv1 = (bnVBase + (1f - (wy0 - by0) / bh) * OWTeamBannerShape.BASE_H) / OWTeamBannerShape.TEXTURE_SIZE;
         vc.addVertex(mat, wx0, wy0, 0).setColor(rLeft,  gLeft,  bLeft,  255).setUv(fu0, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
         vc.addVertex(mat, wx1, wy0, 0).setColor(rRight, gRight, bRight, 255).setUv(fu1, fv1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
         vc.addVertex(mat, wx1, wy1, 0).setColor(rRight, gRight, bRight, 255).setUv(fu1, fv0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);

@@ -153,6 +153,24 @@ public class OWCommands {
         }
     }
 
+    // ── Debug : réinitialiser les achats de formes de bannière ─────────────────
+    public static class ResetBannerUnlocksCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owresetbannerunlocks").executes(ResetBannerUnlocksCommand::execute));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            try {
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                net.tiew.operationWild.core.OWBannerUnlocks.setMask(player, 0);
+                net.tiew.operationWild.core.OWBannerUnlocks.sync(player);
+                player.sendSystemMessage(Component.literal("Achats de bannières réinitialisés.")
+                        .setStyle(Style.EMPTY.withColor(0x7ddd73)));
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
     // ── Invitations player-centric (refonte) : /owtribeaccept /owtribedecline ──
     public static class TribeInviteAcceptCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {

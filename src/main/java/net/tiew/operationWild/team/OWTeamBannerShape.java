@@ -19,13 +19,13 @@ import net.tiew.operationWild.OperationWild;
  */
 public enum OWTeamBannerShape {
 
-    CLASSIC  (0, "owteams.banner.classic",   0,   0,  0,  98, 25),
-    DIAMOND  (1, "owteams.banner.diamond",  55,   0, 55,  93, 28),
-    RECTANGLE(2, "owteams.banner.rectangle",110,  0,110,  93,  1),
-    ROUND    (3, "owteams.banner.round",   165,   0,165,  93, 23),
-    SPIKES   (4, "owteams.banner.spikes",    0, 125,  0, 218, 27),
-    TORN     (5, "owteams.banner.torn",     55, 125, 55, 218, 23),
-    BANDEAUX (6, "owteams.banner.bandeaux",110, 125,165, 141, 78);
+    CLASSIC  (0, "owteams.banner.classic",   0,   0,  0,  98, 25,  0),
+    DIAMOND  (1, "owteams.banner.diamond",  55,   0, 55,  93, 28,  0),
+    RECTANGLE(2, "owteams.banner.rectangle",110,  0,110,  93,  1,  0),
+    ROUND    (3, "owteams.banner.round",   165,   0,165,  93, 23,  0),
+    SPIKES   (4, "owteams.banner.spikes",    0, 125,  0, 218, 27, 30),
+    TORN     (5, "owteams.banner.torn",     55, 125, 55, 218, 23, 50),
+    BANDEAUX (6, "owteams.banner.bandeaux",110, 125,165, 141, 78, 30);
 
     public static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_teams_banners_styles.png");
@@ -39,9 +39,11 @@ public enum OWTeamBannerShape {
     private final String translationKey;
     private final int baseU, baseV;
     private final int hlU, hlV, hlH;
+    /** Prix en Pièces Sauvages pour débloquer cette forme (0 = gratuite / débloquée par défaut). */
+    private final int price;
 
     OWTeamBannerShape(int id, String translationKey,
-                      int baseU, int baseV, int hlU, int hlV, int hlH) {
+                      int baseU, int baseV, int hlU, int hlV, int hlH, int price) {
         this.id = id;
         this.translationKey = translationKey;
         this.baseU = baseU;
@@ -49,7 +51,11 @@ public enum OWTeamBannerShape {
         this.hlU = hlU;
         this.hlV = hlV;
         this.hlH = hlH;
+        this.price = price;
     }
+
+    public int getPrice()          { return price; }
+    public boolean isPurchasable() { return price > 0; }
 
     public int getId()             { return id; }
     public String getDisplayName() { return translationKey; }

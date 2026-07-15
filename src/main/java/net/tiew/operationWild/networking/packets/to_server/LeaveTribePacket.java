@@ -57,6 +57,8 @@ public record LeaveTribePacket() implements CustomPacketPayload {
                     return;
                 }
                 team.setTeamOwnerUUID(successor);
+                team.getDeputyUUIDs().remove(successor);      // le nouveau chef n'est plus « adjoint »
+                team.getMemberPermissions().remove(successor); // ni soumis aux permissions
             }
 
             team.removePlayerMember(sp.getUUID());

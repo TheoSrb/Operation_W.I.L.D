@@ -796,7 +796,7 @@
   "owteams.invite.target_in_tribe": "%s est déjà dans une tribu.",
   "owteams.creation.confirm_edit": "Enregistrer",
   "owteams.settings.title": "Paramètres",
-  "owteams.banner.select.warning": "⚠ Le choix de la forme est définitif",
+  "owteams.banner.select.warning": "Le choix de la forme est définitif",
   "owteams.chief_role": "Chef",
   "owteams.banner.bandeaux": "Bandeaux",
   "owteams.creation.tertiary": "Teinte 3",
@@ -829,5 +829,9 @@
   "owteams.settings.visibility.desc": "Qui peut rejoindre ta tribu.",
   "owteams.settings.coins.desc": "Pièces Sauvages minimum pour rejoindre.",
   "owteams.settings.transfer.desc": "Cède le rôle de chef à un membre.",
-  "owteams.settings.disband.desc": "Supprime définitivement la tribu."
+  "owteams.settings.disband.desc": "Supprime définitivement la tribu.",
+  "owteams.banner.buy.confirm": "Débloquer",
+  "owteams.banner.buy.question": "Débloquer la bannière « %s » ?",
+  "owteams.creation.name_taken_hint": "Ce nom est déjà utilisé",
+  "owteams.banner.select.warning2": "La forme ne pourra plus être changée ensuite."
 }

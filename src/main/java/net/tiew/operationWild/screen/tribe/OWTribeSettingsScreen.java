@@ -77,7 +77,7 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
     private void drawRow(GuiGraphics g, int x, int y, int w, boolean alt, Component label, Component desc,
                          int textMaxW, int mouseX, int mouseY) {
         boolean hov = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + ROW_H;
-        g.fill(x, y, x + w, y + ROW_H, alt ? 0x33000000 : 0x1C000000);
+        g.fill(x, y, x + w, y + ROW_H, alt ? 0xAA111111: 0xCC111111);
         if (hov) g.fill(x, y, x + w, y + ROW_H, 0x12FFFFFF);
         g.fill(x, y + ROW_H - 1, x + w, y + ROW_H, 0x40000000);
         g.drawString(this.font, trim(label.getString(), textMaxW), x + PAD, y + 5, 0xE8E8E8, false);

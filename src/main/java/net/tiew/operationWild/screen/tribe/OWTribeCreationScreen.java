@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.tiew.operationWild.client.OWClientTribeData;
+import net.tiew.operationWild.client.OWClientTribeList;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.CreateTribePacket;
 import net.tiew.operationWild.networking.packets.to_server.UpdateTribeBannerPacket;
@@ -66,8 +67,9 @@ public class OWTribeCreationScreen extends OWTribeScreen {
     private final boolean editMode;
     private int cpW;
 
-    private EditBox nameBox;
+    private EditBox nameBox, hexBox;
     private Button confirmBtn, cancelBtn, clearBtn;
+    private static final int HEX_W = 48, HEX_H = 12;
 
     // 3 teintes : 0 = primaire, 1 = secondaire, 2 = tertiaire (optionnelle).
     private final int[] cols = {0xD12020, 0x2050D1, 0x30B030};
@@ -137,11 +139,83 @@ public class OWTribeCreationScreen extends OWTribeScreen {
         cancelBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.creation.cancel"),
                 b -> Minecraft.getInstance().setScreen(new OWBannerShapeSelectScreen(editMode)))
                 .bounds(leftPos + IMG_W - 8 - 56, topPos + ACT_Y, 56, 16).build());
+
+        // Champ de saisie hexadécimale, aligné à droite sous les pastilles (bord droit = bord droit
+        // du sélecteur de couleur). Saisir un code #RRGGBB positionne directement la teinte active.
+        int hexX = leftPos + CP_X + cpW - HEX_W;
+        hexBox = new EditBox(this.font, hexX, topPos + SWATCH_Y - 2, HEX_W, HEX_H, Component.literal("#RRGGBB"));
+        hexBox.setMaxLength(7);
+        hexBox.setFilter(s -> s.matches("#?[0-9a-fA-F]{0,6}"));
+        hexBox.setValue(String.format("#%06X", cols[editIdx] & 0xFFFFFF));
+        hexBox.setResponder(this::applyHex);
+        this.addRenderableWidget(hexBox);
+    }
+
+    /** Applique un code hexadécimal (#RRGGBB ou RRGGBB) à la teinte active, en réalignant le HSV. */
+    private void applyHex(String s) {
+        if (s == null) return;
+        String h = s.trim();
+        if (h.startsWith("#")) h = h.substring(1);
+        if (h.length() != 6) return;
+        int rgb;
+        try { rgb = Integer.parseInt(h, 16); } catch (NumberFormatException e) { return; }
+        if (rgb == cols[editIdx]) return;
+        cols[editIdx] = rgb;
+        float[] hsv = rgbToHsv(rgb);
+        cH[editIdx] = hsv[0]; cS[editIdx] = hsv[1]; cV[editIdx] = hsv[2];
     }
 
     private boolean isPaintMode() { return selectedPattern == OWTeamMosaicPattern.CUSTOM_PAINT; }
 
+    /** Nom effectif tel que le serveur le retiendrait (défaut si vide, tronqué à 15). */
+    private String effectiveName() {
+        String name = nameBox != null ? nameBox.getValue().trim() : "";
+        if (name.isEmpty()) {
+            var p = Minecraft.getInstance().player;
+            name = p != null
+                    ? Component.translatable("owteams.creation.default_name", p.getName().getString()).getString()
+                    : "Tribu";
+        }
+        return name.length() > 15 ? name.substring(0, 15) : name;
+    }
+
+    /** Vérif live (à chaque frappe) : le nom courant est-il déjà pris par une tribu connue du client ?
+     *  Mirroir de {@code OWTribesSavedData.isNameTaken} (comparaison insensible à la casse). */
+    private boolean isNameTaken() {
+        if (editMode) return false;
+        String name = effectiveName();
+        for (OWClientTribeList.Entry e : OWClientTribeList.get()) {
+            if (e.name() != null && e.name().equalsIgnoreCase(name)) return true;
+        }
+        return false;
+    }
+
+    /** Carte d'erreur « nom déjà utilisé », détachée à côté du panneau avec pointeur vers le champ. */
+    private void drawNameError(GuiGraphics g) {
+        String msg = Component.translatable("owteams.creation.name_taken_hint").getString();
+        int pad = 6, gap = 4, iconW = this.font.width("⚠");
+        int cw = pad + iconW + gap + this.font.width(msg) + pad, ch = 18;
+        int cy = topPos + NAME_Y + NAME_H / 2 - ch / 2;
+        boolean left = (leftPos - cw - 6) >= 2;                      // à gauche si la place le permet
+        int cx = left ? leftPos - cw - 6 : leftPos + IMG_W + 6;
+        if (!left && cx + cw > this.width - 2) cx = this.width - 2 - cw;
+
+        int fieldMidY = topPos + NAME_Y + NAME_H / 2;
+        g.fill(cx + 1, cy + 1, cx + cw + 1, cy + ch + 1, 0x80000000);   // ombre portée
+        g.fill(cx, cy, cx + cw, cy + ch, 0xF0301418);                   // fond rouge très sombre
+        drawBorder(g, cx, cy, cw, ch, 0xFFE0554F);
+        // Petit pointeur triangulaire vers le champ de nom.
+        for (int i = 0; i < 4; i++) {
+            int px = left ? cx + cw + i : cx - 1 - i;
+            g.fill(px, fieldMidY - (3 - i), px + 1, fieldMidY + (3 - i), 0xFFE0554F);
+        }
+        int ty = cy + (ch - this.font.lineHeight) / 2 + 1;
+        g.drawString(this.font, "⚠", cx + pad, ty, 0xFFF25B54, false);
+        g.drawString(this.font, msg, cx + pad + iconW + gap, ty, 0xFFF2D6D2, false);
+    }
+
     private void onConfirm() {
+        if (isNameTaken()) return; // sécurité : le bouton est déjà grisé dans ce cas
         byte[] packed = isPaintMode() ? OWTeamMosaicPattern.packPixels3(paintPixels) : new byte[0];
         if (editMode) {
             OWNetworkHandler.sendToServer(new UpdateTribeBannerPacket(
@@ -175,6 +249,7 @@ public class OWTribeCreationScreen extends OWTribeScreen {
                 } else {
                     editIdx = 2;                   // sélectionner pour édition
                 }
+                this.setFocused(null); // le champ hexa se resynchronise sur la nouvelle teinte
                 return true;
             }
         }
@@ -268,8 +343,8 @@ public class OWTribeCreationScreen extends OWTribeScreen {
             lastPaintCX = Integer.MIN_VALUE; lastPaintCY = Integer.MIN_VALUE;
             snapshotBeforeStroke = paintPixels.clone(); draggingCanvas = true; applyBrushAt(mx, my); return true;
         }
-        if (inHue(mx, my)) { draggingHue = true; pickHue(mx); return true; }
-        if (inSV(mx, my)) { draggingSV = true; pickSV(mx, my); return true; }
+        if (inHue(mx, my)) { this.setFocused(null); draggingHue = true; pickHue(mx); return true; }
+        if (inSV(mx, my)) { this.setFocused(null); draggingSV = true; pickSV(mx, my); return true; }
         return super.mouseClicked(mx, my, button);
     }
 
@@ -443,6 +518,16 @@ public class OWTribeCreationScreen extends OWTribeScreen {
 
         clearBtn.visible = isPaintMode();
 
+        // Vérification live du nom : bouton Créer grisé tant que le nom est déjà pris.
+        boolean nameTaken = isNameTaken();
+        confirmBtn.active = editMode || !nameTaken;
+
+        // Le champ hexa reflète la teinte active tant qu'on n'y tape pas.
+        if (hexBox != null && !hexBox.isFocused()) {
+            String cur = String.format("#%06X", cols[editIdx] & 0xFFFFFF);
+            if (!cur.equalsIgnoreCase(hexBox.getValue())) hexBox.setValue(cur);
+        }
+
         drawPanel(g, mouseX, mouseY, partial);
         drawHeader(g, Component.translatable(editMode ? "owteams.creation.title_edit" : "owteams.creation.title"));
 
@@ -462,6 +547,13 @@ public class OWTribeCreationScreen extends OWTribeScreen {
 
         // Widgets vanilla (boutons, EditBox) au-dessus du contenu manuel
         super.render(g, mouseX, mouseY, partial);
+
+        // Validation du nom : liseré rouge autour du champ + carte d'erreur détachée (côté panneau,
+        // hors de la zone du titre pour ne rien chevaucher).
+        if (!editMode && nameTaken) {
+            drawBorder(g, leftPos + 8 - 1, topPos + NAME_Y - 1, IMG_W - 16 + 2, NAME_H + 2, 0xFFE0554F);
+            drawNameError(g);
+        }
 
         // Panneau latéral de peinture + overlays (au-dessus des widgets)
         if (isPaintMode()) {

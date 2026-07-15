@@ -796,7 +796,7 @@
   "owteams.invite.target_in_tribe": "%s ist bereits in einem Stamm.",
   "owteams.creation.confirm_edit": "Speichern",
   "owteams.settings.title": "Einstellungen",
-  "owteams.banner.select.warning": "⚠ Die Formwahl ist endgültig",
+  "owteams.banner.select.warning": "Die Wahl der Form ist endgültig",
   "owteams.chief_role": "Anführer",
   "owteams.banner.bandeaux": "Streifen",
   "owteams.creation.tertiary": "Farbe 3",
@@ -829,5 +829,9 @@
   "owteams.settings.visibility.desc": "Wer deinem Stamm beitreten kann.",
   "owteams.settings.coins.desc": "Minimale Wildmünzen zum Beitreten.",
   "owteams.settings.transfer.desc": "Gib die Anführerrolle an ein Mitglied.",
-  "owteams.settings.disband.desc": "Löscht den Stamm endgültig."
+  "owteams.settings.disband.desc": "Löscht den Stamm endgültig.",
+  "owteams.banner.buy.confirm": "Freischalten",
+  "owteams.banner.buy.question": "Das Banner „%s“ freischalten?",
+  "owteams.creation.name_taken_hint": "Dieser Name ist bereits vergeben",
+  "owteams.banner.select.warning2": "Die Form kann danach nicht mehr geändert werden."
 }

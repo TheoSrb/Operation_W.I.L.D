@@ -796,7 +796,7 @@
   "owteams.invite.target_in_tribe": "%s is already in a tribe.",
   "owteams.creation.confirm_edit": "Save",
   "owteams.settings.title": "Settings",
-  "owteams.banner.select.warning": "⚠ The shape choice is permanent",
+  "owteams.banner.select.warning": "Your shape choice is final",
   "owteams.chief_role": "Chief",
   "owteams.banner.bandeaux": "Bands",
   "owteams.creation.tertiary": "Color 3",
@@ -829,5 +829,9 @@
   "owteams.settings.visibility.desc": "Who can join your tribe.",
   "owteams.settings.coins.desc": "Minimum Wild Coins to join.",
   "owteams.settings.transfer.desc": "Give the chief role to a member.",
-  "owteams.settings.disband.desc": "Permanently deletes the tribe."
+  "owteams.settings.disband.desc": "Permanently deletes the tribe.",
+  "owteams.banner.buy.confirm": "Unlock",
+  "owteams.banner.buy.question": "Unlock the \"%s\" banner?",
+  "owteams.creation.name_taken_hint": "This name is already taken",
+  "owteams.banner.select.warning2": "The shape cannot be changed afterwards."
 }

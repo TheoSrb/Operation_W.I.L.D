@@ -38,13 +38,12 @@ public class OWTribeListScreen extends OWTribeScreen {
         visibleRows = listH / ROW_H;
 
         int by = topPos + IMG_H - FOOTER_H + 4;
+        // Bouton « Créer une tribu » centré (le bouton « Terminé » a été retiré : Échap ferme l'écran).
+        int createW = 120;
         this.addRenderableWidget(Button.builder(
                         Component.translatable("owteams.list.create"),
                         b -> Minecraft.getInstance().setScreen(new OWBannerShapeSelectScreen()))
-                .bounds(leftPos + LIST_MX, by, 108, 16).build());
-        this.addRenderableWidget(Button.builder(
-                        Component.translatable("gui.done"), b -> this.onClose())
-                .bounds(leftPos + IMG_W - LIST_MX - 50, by, 50, 16).build());
+                .bounds(leftPos + (IMG_W - createW) / 2, by, createW, 16).build());
     }
 
     @Override

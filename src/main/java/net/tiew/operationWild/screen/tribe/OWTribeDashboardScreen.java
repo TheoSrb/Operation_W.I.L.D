@@ -4,8 +4,10 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.client.OWClientTribeData;
 import net.tiew.operationWild.networking.OWNetworkHandler;
@@ -95,7 +97,12 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         switch (confirm) {
             case LEAVE -> OWNetworkHandler.sendToServer(new LeaveTribePacket());
             case KICK -> { if (confirmTarget != null) OWNetworkHandler.sendToServer(new KickMemberPacket(confirmTarget.toString())); }
-            case DEPUTY -> { if (confirmTarget != null) OWNetworkHandler.sendToServer(new SetDeputyPacket(confirmTarget.toString(), confirmDeputyPromote)); }
+            case DEPUTY -> {
+                if (confirmTarget != null) OWNetworkHandler.sendToServer(new SetDeputyPacket(confirmTarget.toString(), confirmDeputyPromote));
+                /*Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(
+                        confirmDeputyPromote ? SoundEvents.PLAYER_LEVELUP : SoundEvents.UI_BUTTON_CLICK,
+                        confirmDeputyPromote ? 1.1f : 0.55f));*/
+            }
             default -> {}
         }
         confirm = Confirm.NONE;
@@ -138,15 +145,23 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         return mx >= x && mx < x + 10 && my >= rowY && my < rowY + LIST_ROW_H - 1;
     }
 
+    /** Son de changement d'onglet, identique à l'inventaire d'entité (clic bouton vanilla). */
+    private void playTabSwitch() {
+        Minecraft.getInstance().getSoundManager().play(
+                SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+    }
+
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (confirm != Confirm.NONE) return super.mouseClicked(mx, my, button);
         boolean chief = isChief(), deputy = isDeputyLocal();
         if (button == 0 && (chief || deputy) && overTab(mx, my, PERM_TAB_X_OFF)) {
+            playTabSwitch();
             Minecraft.getInstance().setScreen(new OWTribePermissionsScreen());
             return true;
         }
         if (button == 0 && chief && overTab(mx, my, SETTINGS_TAB_X_OFF)) {
+            playTabSwitch();
             Minecraft.getInstance().setScreen(new OWTribeSettingsScreen());
             return true;
         }

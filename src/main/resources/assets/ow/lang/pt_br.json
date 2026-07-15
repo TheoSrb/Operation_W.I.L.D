@@ -796,7 +796,7 @@
   "owteams.invite.target_in_tribe": "%s já está em uma tribo.",
   "owteams.creation.confirm_edit": "Salvar",
   "owteams.settings.title": "Configurações",
-  "owteams.banner.select.warning": "⚠ A escolha da forma é definitiva",
+  "owteams.banner.select.warning": "A escolha da forma é definitiva",
   "owteams.chief_role": "Chefe",
   "owteams.banner.bandeaux": "Faixas",
   "owteams.creation.tertiary": "Cor 3",
@@ -829,5 +829,9 @@
   "owteams.settings.visibility.desc": "Quem pode entrar na sua tribo.",
   "owteams.settings.coins.desc": "Moedas Selvagens mínimas para entrar.",
   "owteams.settings.transfer.desc": "Cede o cargo de chefe a um membro.",
-  "owteams.settings.disband.desc": "Exclui a tribo permanentemente."
+  "owteams.settings.disband.desc": "Exclui a tribo permanentemente.",
+  "owteams.banner.buy.confirm": "Desbloquear",
+  "owteams.banner.buy.question": "Desbloquear o estandarte \"%s\"?",
+  "owteams.creation.name_taken_hint": "Este nome já está em uso",
+  "owteams.banner.select.warning2": "A forma não poderá ser alterada depois."
 }

@@ -796,7 +796,7 @@
   "owteams.invite.target_in_tribe": "%s 已经在一个部落中了。",
   "owteams.creation.confirm_edit": "保存",
   "owteams.settings.title": "设置",
-  "owteams.banner.select.warning": "⚠ 形状选择不可更改",
+  "owteams.banner.select.warning": "形状选择是最终的",
   "owteams.chief_role": "首领",
   "owteams.banner.bandeaux": "条带",
   "owteams.creation.tertiary": "颜色 3",
@@ -829,5 +829,9 @@
   "owteams.settings.visibility.desc": "谁可以加入你的部落。",
   "owteams.settings.coins.desc": "加入所需的最低野性金币。",
   "owteams.settings.transfer.desc": "将首领身份让给一名成员。",
-  "owteams.settings.disband.desc": "永久删除该部落。"
+  "owteams.settings.disband.desc": "永久删除该部落。",
+  "owteams.banner.buy.confirm": "解锁",
+  "owteams.banner.buy.question": "解锁“%s”旗帜？",
+  "owteams.creation.name_taken_hint": "该名称已被使用",
+  "owteams.banner.select.warning2": "之后将无法更改形状。"
 }

@@ -129,6 +129,7 @@ public class ServerEvents {
                 net.tiew.operationWild.team.OWTribeManager.syncPlayerTribe(server, player);
                 net.tiew.operationWild.team.OWTribeManager.syncTribeList(server, player);
             }
+            net.tiew.operationWild.core.OWBannerUnlocks.sync(player);
         }
     }
 

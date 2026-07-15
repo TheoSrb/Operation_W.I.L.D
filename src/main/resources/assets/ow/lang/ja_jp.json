@@ -796,7 +796,7 @@
   "owteams.invite.target_in_tribe": "%s はすでにトライブに所属しています。",
   "owteams.creation.confirm_edit": "保存",
   "owteams.settings.title": "設定",
-  "owteams.banner.select.warning": "⚠ 形の選択は変更できません",
+  "owteams.banner.select.warning": "形状の選択は最終です",
   "owteams.chief_role": "族長",
   "owteams.banner.bandeaux": "バンド",
   "owteams.creation.tertiary": "色 3",
@@ -829,5 +829,9 @@
   "owteams.settings.visibility.desc": "誰がトライブに参加できるか。",
   "owteams.settings.coins.desc": "参加に必要な最低ワイルドコイン。",
   "owteams.settings.transfer.desc": "族長の役割をメンバーに譲る。",
-  "owteams.settings.disband.desc": "トライブを完全に削除します。"
+  "owteams.settings.disband.desc": "トライブを完全に削除します。",
+  "owteams.banner.buy.confirm": "解除",
+  "owteams.banner.buy.question": "「%s」の旗を解除しますか？",
+  "owteams.creation.name_taken_hint": "この名前は既に使われています",
+  "owteams.banner.select.warning2": "後で形状を変更することはできません。"
 }
