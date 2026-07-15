@@ -233,6 +233,8 @@ public class OperationWild {
         OWCommands.GetTamingExperienceCommand.register(event.getDispatcher());
         OWCommands.TeamInviteAcceptCommand.register(event.getDispatcher());
         OWCommands.TeamInviteDeclineCommand.register(event.getDispatcher());
+        OWCommands.TribeInviteAcceptCommand.register(event.getDispatcher());
+        OWCommands.TribeInviteDeclineCommand.register(event.getDispatcher());
     }
 
     @EventBusSubscriber(modid = MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

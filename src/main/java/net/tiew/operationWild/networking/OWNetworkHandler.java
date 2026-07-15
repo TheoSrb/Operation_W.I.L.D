@@ -56,6 +56,18 @@ public class OWNetworkHandler {
         registrar.playToServer(StartRitualPacket.TYPE, StartRitualPacket.STREAM_CODEC, StartRitualPacket::handle);
         registrar.playToServer(OWPisteAdvancePacket.TYPE, OWPisteAdvancePacket.STREAM_CODEC, OWPisteAdvancePacket::handle);
 
+        // Tribu player-centric (refonte)
+        registrar.playToServer(OpenTribeMenuPacket.TYPE, OpenTribeMenuPacket.STREAM_CODEC, OpenTribeMenuPacket::handle);
+        registrar.playToServer(CreateTribePacket.TYPE, CreateTribePacket.STREAM_CODEC, CreateTribePacket::handle);
+        registrar.playToServer(JoinTribePacket.TYPE, JoinTribePacket.STREAM_CODEC, JoinTribePacket::handle);
+        registrar.playToServer(LeaveTribePacket.TYPE, LeaveTribePacket.STREAM_CODEC, LeaveTribePacket::handle);
+        registrar.playToServer(DisbandTribePacket.TYPE, DisbandTribePacket.STREAM_CODEC, DisbandTribePacket::handle);
+        registrar.playToServer(TransferChiefPacket.TYPE, TransferChiefPacket.STREAM_CODEC, TransferChiefPacket::handle);
+        registrar.playToServer(UpdateTribeSettingsPacket.TYPE, UpdateTribeSettingsPacket.STREAM_CODEC, UpdateTribeSettingsPacket::handle);
+        registrar.playToServer(UpdateTribeBannerPacket.TYPE, UpdateTribeBannerPacket.STREAM_CODEC, UpdateTribeBannerPacket::handle);
+        registrar.playToServer(KickMemberPacket.TYPE, KickMemberPacket.STREAM_CODEC, KickMemberPacket::handle);
+        registrar.playToServer(InvitePlayerToTribePacket.TYPE, InvitePlayerToTribePacket.STREAM_CODEC, InvitePlayerToTribePacket::handle);
+
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);
         registrar.playToClient(OWQuestProgressToClient.TYPE, OWQuestProgressToClient.STREAM_CODEC, OWQuestProgressToClient::handle);
@@ -78,6 +90,9 @@ public class OWNetworkHandler {
         registrar.playToClient(OWXpGainPacket.TYPE, OWXpGainPacket.STREAM_CODEC, OWXpGainPacket::handle);
         registrar.playToClient(OWIndicationPacket.TYPE, OWIndicationPacket.STREAM_CODEC, OWIndicationPacket::handle);
 
+        // Tribu player-centric (refonte)
+        registrar.playToClient(SyncPlayerTribePacket.TYPE, SyncPlayerTribePacket.STREAM_CODEC, SyncPlayerTribePacket::handle);
+        registrar.playToClient(SyncTribeListPacket.TYPE, SyncTribeListPacket.STREAM_CODEC, SyncTribeListPacket::handle);
     }
 
     public static void sendToServer(CustomPacketPayload packet) {

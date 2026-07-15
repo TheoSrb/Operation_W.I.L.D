@@ -2317,6 +2317,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         super.tick();
 
         if (!this.level().isClientSide) {
+            // Résout la tribu depuis le propriétaire (registre serveur) une fois après le chargement.
+            resolveTeamFromOwnerIfNeeded();
             if (this.level().getGameRules().getBoolean(OWGameRules.ANIMALS_NO_EFFORT)) {
                 this.setVitalEnergy(0);
             }
@@ -4142,39 +4144,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         tag.putString("cachedOwnerName", this.getCachedOwnerName());
 
-        if (this.currentTeam != null) {
-            CompoundTag teamTag = new CompoundTag();
-            teamTag.putInt("teamId", currentTeam.getTeamId());
-            teamTag.putString("teamName", currentTeam.getTeamName());
-            teamTag.putString("teamOwnerUUID", currentTeam.getTeamOwnerUUID().toString());
-            teamTag.putInt("teamColor", currentTeam.getTeamColor());
-            teamTag.putString("teamCreationDate", currentTeam.getTeamCreationDate());
-
-            ListTag pNames = new ListTag();
-            for (String n : currentTeam.getPlayerNames()) pNames.add(net.minecraft.nbt.StringTag.valueOf(n));
-            teamTag.put("playerNames", pNames);
-
-            ListTag eNames = new ListTag();
-            for (String n : currentTeam.getEntityNames()) eNames.add(net.minecraft.nbt.StringTag.valueOf(n));
-            teamTag.put("entityNames", eNames);
-
-            ListTag eUUIDs = new ListTag();
-            for (java.util.UUID u : currentTeam.getEntityUUIDs()) eUUIDs.add(net.minecraft.nbt.StringTag.valueOf(u.toString()));
-            teamTag.put("entityUUIDs", eUUIDs);
-
-            ListTag pUUIDs = new ListTag();
-            for (java.util.UUID u : currentTeam.getPlayerUUIDs()) pUUIDs.add(net.minecraft.nbt.StringTag.valueOf(u.toString()));
-            teamTag.put("playerUUIDs", pUUIDs);
-
-            tag.put("currentTeam", teamTag);
-
-            teamTag.putInt("teamSecondaryColor", currentTeam.getTeamSecondaryColor());
-            teamTag.putInt("teamMosaicPatternId", currentTeam.getTeamMosaicPattern().getId());
-            boolean[] pixels = currentTeam.getPaintPixels();
-            teamTag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels(
-                    pixels != null ? pixels : new boolean[0]
-            ));
-        }
+        // Refonte player-centric : la tribu n'est plus persistée sur l'entité. Elle est portée par
+        // le registre serveur (OWTribesSavedData) et dérivée à l'exécution du propriétaire de l'entité.
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -4308,56 +4279,27 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         this.setCachedOwnerName(tag.getString("cachedOwnerName"));
 
-        if (tag.contains("currentTeam")) {
-            CompoundTag teamTag = tag.getCompound("currentTeam");
+        // Refonte player-centric : la tribu n'est plus lue depuis l'entité (les anciennes tribus
+        // hébergées par entité sont volontairement abandonnées). currentTeam est résolu au tick
+        // serveur depuis OWTribesSavedData via le propriétaire (cf. resolveTeamFromOwner).
+    }
 
-            List<String> pNames = new ArrayList<>();
-            ListTag pTag = teamTag.getList("playerNames", Tag.TAG_STRING);
-            for (int i = 0; i < pTag.size(); i++) pNames.add(pTag.getString(i));
+    /**
+     * Résout {@code currentTeam} depuis le registre serveur en fonction du propriétaire de l'entité,
+     * une seule fois après le chargement. Les changements ultérieurs de tribu sont poussés par
+     * {@link net.tiew.operationWild.team.OWTribeManager}.
+     */
+    private boolean teamResolvedFromOwner = false;
 
-            List<String> eNames = new ArrayList<>();
-            ListTag eTag = teamTag.getList("entityNames", Tag.TAG_STRING);
-            for (int i = 0; i < eTag.size(); i++) eNames.add(eTag.getString(i));
-
-            List<java.util.UUID> eUUIDs = new ArrayList<>();
-            if (teamTag.contains("entityUUIDs")) {
-                ListTag euTag = teamTag.getList("entityUUIDs", Tag.TAG_STRING);
-                for (int i = 0; i < euTag.size(); i++) {
-                    try { eUUIDs.add(java.util.UUID.fromString(euTag.getString(i))); }
-                    catch (IllegalArgumentException ignored) {}
-                }
-            }
-
-            UUID ownerUUID = UUID.fromString(teamTag.getString("teamOwnerUUID"));
-            List<java.util.UUID> pUUIDs = new ArrayList<>();
-            if (teamTag.contains("playerUUIDs")) {
-                ListTag puTag = teamTag.getList("playerUUIDs", Tag.TAG_STRING);
-                for (int i = 0; i < puTag.size(); i++) {
-                    try { pUUIDs.add(java.util.UUID.fromString(puTag.getString(i))); }
-                    catch (IllegalArgumentException ignored) {}
-                }
-            }
-            // Migration : anciennes sauvegardes sans UUID joueur → le chef reste membre.
-            if (pUUIDs.isEmpty()) pUUIDs.add(ownerUUID);
-
-            boolean[] savedPixels = OWTeamMosaicPattern.unpackPixels(
-                    teamTag.contains("paintPixels") ? teamTag.getByteArray("paintPixels") : new byte[0],
-                    OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT
-            );
-            this.currentTeam = new OWTeam(
-                    teamTag.getInt("teamId"),
-                    teamTag.getString("teamName"),
-                    ownerUUID,
-                    teamTag.getInt("teamColor"),
-                    teamTag.contains("teamSecondaryColor") ? teamTag.getInt("teamSecondaryColor") : 0xFFFFFF,
-                    OWTeamMosaicPattern.byId(teamTag.contains("teamMosaicPatternId") ? teamTag.getInt("teamMosaicPatternId") : 0),
-                    new UUID[]{}, new OWEntity[]{},
-                    teamTag.getString("teamCreationDate"),
-                    pNames, eNames,
-                    savedPixels
-            );
-            this.currentTeam.setEntityUUIDs(eUUIDs);
-            this.currentTeam.setPlayerUUIDs(pUUIDs);
-        }
+    public void resolveTeamFromOwnerIfNeeded() {
+        if (teamResolvedFromOwner) return;
+        if (this.level().isClientSide) return;
+        net.minecraft.server.MinecraftServer server = this.level().getServer();
+        if (server == null) return;
+        // On attend de connaître le propriétaire (apprivoisement) avant de figer la résolution,
+        // afin qu'une entité apprivoisée après coup hérite bien de la tribu de son maître.
+        if (this.getOwnerUUID() == null) return;
+        teamResolvedFromOwner = true;
+        net.tiew.operationWild.team.OWTribeManager.refreshEntityTeam(server, this);
     }
 }

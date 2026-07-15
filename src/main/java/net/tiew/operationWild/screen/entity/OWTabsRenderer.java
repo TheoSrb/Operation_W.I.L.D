@@ -178,11 +178,9 @@ public class OWTabsRenderer {
 
     public void onTeamClicked(OWEntity entity) {
         setNotification(3, 0);
-        if (entity.currentTeam == null) {
-            Minecraft.getInstance().setScreen(new OWTeamCreationScreen(entity));
-        } else {
-            Minecraft.getInstance().setScreen(new OWTeamsInterface(Component.empty()));
-        }
+        // Refonte player-centric : l'onglet tribu de l'entité est désormais en LECTURE SEULE.
+        // La création / gestion se fait côté joueur (touche T). L'entité suit son propriétaire.
+        Minecraft.getInstance().setScreen(new OWTeamsInterface(Component.empty()));
     }
 
     public void onDailyQuestsClicked(OWEntity entity) {

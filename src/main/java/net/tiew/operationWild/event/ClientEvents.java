@@ -258,6 +258,14 @@ public class ClientEvents {
             isNotifiedOWBook = false;
             minecraft.player.playSound(SoundEvents.BOOK_PAGE_TURN);
         }
+        // Menu de tribu (touche T) : demande les données au serveur puis ouvre l'écran.
+        if (minecraft.player != null && OWKeysBinding.OW_TRIBE_MENU.isDown()
+                && event.getAction() == GLFW.GLFW_PRESS
+                && minecraft.screen == null
+                && !OWIndicationOverlay.isActive()) {
+            OWNetworkHandler.sendToServer(new net.tiew.operationWild.networking.packets.to_server.OpenTribeMenuPacket());
+            minecraft.setScreen(new net.tiew.operationWild.screen.tribe.OWTribeMenuScreen());
+        }
     }
 
     @SubscribeEvent

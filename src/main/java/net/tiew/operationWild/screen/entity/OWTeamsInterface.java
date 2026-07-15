@@ -108,48 +108,15 @@ public class OWTeamsInterface extends Screen {
         tabsRenderer.init(this.width, this.height, IMAGE_WIDTH, IMAGE_HEIGHT, entity, this::addRenderableWidget);
         tabsRenderer.setActiveTab(OWTabsRenderer.Tab.TEAM);
 
-        confirmYesBtn = Button.builder(
-                        Component.translatable("owteams.confirm.yes")
-                                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x7ddd73))),
-                        btn -> onConfirmYes())
-                .bounds(0, 0, 48, 14).build();
-        this.addRenderableWidget(confirmYesBtn);
-
-        confirmNoBtn = Button.builder(
-                        Component.translatable("owteams.confirm.no")
-                                .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xdd4444))),
-                        btn -> confirmState = ConfirmState.NONE)
-                .bounds(0, 0, 48, 14).build();
-        this.addRenderableWidget(confirmNoBtn);
-
-        // Bouton ajouter joueur → scan des joueurs proches puis invitation
-        addPlayerBtn = Button.builder(
-                        Component.empty(),
-                        btn -> {
-                            if (isOwner()) Minecraft.getInstance().setScreen(new OWAddPlayerScanScreen(entity));
-                        })
-                .bounds(0, 0, BOTTOM_BTN_SIZE, BOTTOM_BTN_SIZE).build();
-        this.addRenderableWidget(addPlayerBtn);
-
-        // Bouton ajouter entité
-        addEntityBtn = Button.builder(
-                        Component.empty(),
-                        btn -> {
-                            if (isOwner()) Minecraft.getInstance().setScreen(new OWAddEntityScanScreen(entity));
-                        })
-                .bounds(0, 0, BOTTOM_BTN_SIZE, BOTTOM_BTN_SIZE).build();
-        this.addRenderableWidget(addEntityBtn);
-
-        // Bouton quitter la tribu (remplace l'ancienne suppression)
-        leaveTeamBtn = Button.builder(
-                        Component.empty(),
-                        btn -> {
-                            if (entity != null && entity.currentTeam != null) {
-                                confirmState = ConfirmState.LEAVE_TEAM;
-                            }
-                        })
-                .bounds(0, 0, BOTTOM_BTN_SIZE, BOTTOM_BTN_SIZE).build();
-        this.addRenderableWidget(leaveTeamBtn);
+        // Refonte player-centric : onglet entité en LECTURE SEULE. Les boutons d'action
+        // (ajouter joueur / entité, quitter) et la confirmation ne sont plus branchés :
+        // toute la gestion se fait côté joueur via la touche T. Les boutons restent construits
+        // pour éviter les NPE dans le rendu, mais ne sont pas ajoutés à l'arbre de widgets.
+        confirmYesBtn = Button.builder(Component.empty(), btn -> {}).bounds(0, 0, 48, 14).build();
+        confirmNoBtn = Button.builder(Component.empty(), btn -> {}).bounds(0, 0, 48, 14).build();
+        addPlayerBtn = Button.builder(Component.empty(), btn -> {}).bounds(0, 0, BOTTOM_BTN_SIZE, BOTTOM_BTN_SIZE).build();
+        addEntityBtn = Button.builder(Component.empty(), btn -> {}).bounds(0, 0, BOTTOM_BTN_SIZE, BOTTOM_BTN_SIZE).build();
+        leaveTeamBtn = Button.builder(Component.empty(), btn -> {}).bounds(0, 0, BOTTOM_BTN_SIZE, BOTTOM_BTN_SIZE).build();
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────
@@ -167,14 +134,16 @@ public class OWTeamsInterface extends Screen {
     public void tick() {
         super.tick();
 
-        // Si l'entité n'est plus dans une team, fermer l'écran
-        if (entity == null || entity.currentTeam == null) {
+        // Lecture seule : on ferme seulement si l'entité disparaît ; une entité sans tribu
+        // affiche simplement l'état « aucune tribu ».
+        if (entity == null) {
             this.onClose();
             return;
         }
 
-        // Si le scrollOffset dépasse la taille réelle (suite à une suppression), corriger
         OWTeam team = entity.currentTeam;
+        if (team == null) return;
+        // Si le scrollOffset dépasse la taille réelle, corriger
         if (team.getPlayerNames() != null)
             playerScrollOffset = clamp(playerScrollOffset, team.getPlayerNames().size());
         if (team.getEntityNames() != null)
@@ -238,15 +207,7 @@ public class OWTeamsInterface extends Screen {
     // ── Clics ────────────────────────────────────────────────────────────────
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
-        if (confirmState != ConfirmState.NONE)
-            return super.mouseClicked(mx, my, button);
-
-        if (button == 0 && isOwner() && entity != null && entity.currentTeam != null) {
-            if (handleRemoveClick(mx, my, entity.currentTeam.getPlayerNames(),
-                    PLAYERS_LIST_Y, playerScrollOffset, true)) return true;
-            if (handleRemoveClick(mx, my, entity.currentTeam.getEntityNames(),
-                    ENTITIES_LIST_Y, entityScrollOffset, false)) return true;
-        }
+        // Lecture seule : aucune action de retrait de membre côté entité.
         return super.mouseClicked(mx, my, button);
     }
 
@@ -315,18 +276,14 @@ public class OWTeamsInterface extends Screen {
                     leftPos + IMAGE_WIDTH - this.font.width(chefComp) - 8, topPos + 7, 0x555555, false);
         }
 
-        // ── Drapeau ──────────────────────────────────────────────────────────
+        // ── Bannière (forme choisie côté joueur) ──────────────────────────────
         if (team != null) {
-            renderFlagWithPattern(g, team.getTeamColor(), team.getTeamSecondaryColor(),
+            net.tiew.operationWild.screen.tribe.OWBannerRenderer.render(
+                    g, leftPos + ELEMENT_X, topPos + ELEMENT_Y, team.getBannerShape(),
+                    team.getTeamColor(), team.getTeamSecondaryColor(),
                     team.getTeamMosaicPattern(), team.getPaintPixels());
-        } else {
-            setElementColor(0xFFFFFF);
-            g.blit(OW_TEAMS_LOCATION, leftPos + ELEMENT_X, topPos + ELEMENT_Y,
-                    ELEMENT_U, ELEMENT_V, ELEMENT_WIDTH, ELEMENT_HEIGHT);
             RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         }
-
-        g.blit(OW_TEAMS_LOCATION, leftPos + 10, topPos + 93, 203, 98, 50, 25);
 
         if (team != null) {
             final float SCALE = 0.7f;
@@ -366,22 +323,7 @@ public class OWTeamsInterface extends Screen {
                     entityScrollOffset, false, mouseX, mouseY);
         }
 
-        // ── Boutons bas ───────────────────────────────────────────────────────
-        renderBottomButtons(g, mouseX, mouseY, partial, team, isConfirm);
-
-        // ── Tooltips boutons bas (hors overlay) ───────────────────────────────
-        if (!isConfirm) {
-            if (addPlayerBtn.isMouseOver(mouseX, mouseY)) {
-                renderSimpleTooltip(g, mouseX, mouseY,
-                        Component.translatable("owteams.button.add_player.tooltip").getString());
-            } else if (addEntityBtn.isMouseOver(mouseX, mouseY)) {
-                renderSimpleTooltip(g, mouseX, mouseY,
-                        Component.translatable("owteams.button.add_entity.tooltip").getString());
-            } else if (leaveTeamBtn.isMouseOver(mouseX, mouseY)) {
-                renderSimpleTooltip(g, mouseX, mouseY,
-                        Component.translatable("owteams.button.leave_team.tooltip").getString());
-            }
-        }
+        // ── Onglet entité en lecture seule : plus de boutons d'action côté entité. ──
 
         // ── Tooltip entité survolée ───────────────────────────────────────────
         if (hoveredEntityName != null && !isConfirm) {
@@ -515,7 +457,7 @@ public class OWTeamsInterface extends Screen {
             boolean isFounderEntity = !isPlayer && team != null
                     && i < team.getEntityUUIDs().size()
                     && entity.getUUID().equals(team.getEntityUUIDs().get(i));
-            boolean showRemoveBtn = isOwner() && !(isPlayer && isOwnerRow) && !isFounderEntity;
+            boolean showRemoveBtn = false; // lecture seule côté entité
             int removeReserved = showRemoveBtn ? (REMOVE_W + 4) : 0;
             int iconReserved = isPlayer ? 0 : ICON_RESERVED;
             int maxNameW = LIST_W - 6 - iconReserved - removeReserved;

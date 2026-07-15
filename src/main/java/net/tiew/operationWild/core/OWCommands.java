@@ -92,6 +92,81 @@ public class OWCommands {
         player.sendSystemMessage(Component.translatable(key, args).setStyle(Style.EMPTY.withColor(color)));
     }
 
+    // ── Invitations player-centric (refonte) : /owtribeaccept /owtribedecline ──
+    public static class TribeInviteAcceptCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owtribeaccept").executes(TribeInviteAcceptCommand::execute));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            try {
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                net.minecraft.server.MinecraftServer server = context.getSource().getServer();
+                net.tiew.operationWild.team.OWTribeInvites.Invite inv =
+                        net.tiew.operationWild.team.OWTribeInvites.get(player.getUUID());
+                if (inv == null) { reply(player, "owteams.invite.none", 0xFF9944); return 1; }
+
+                net.tiew.operationWild.team.OWTribesSavedData data =
+                        net.tiew.operationWild.team.OWTribesSavedData.get(server);
+                if (data.findTeamByMember(player.getUUID()) != null) {
+                    net.tiew.operationWild.team.OWTribeInvites.consume(player.getUUID());
+                    reply(player, "owteams.invite.already_in", 0xFF9944);
+                    return 1;
+                }
+                OWTeam team = data.findTeamById(inv.teamId());
+                if (team == null) {
+                    net.tiew.operationWild.team.OWTribeInvites.consume(player.getUUID());
+                    reply(player, "owteams.invite.none", 0xFF9944);
+                    return 1;
+                }
+                if (team.getPlayerUUIDs().size() >= team.getMaxPlayers()) {
+                    net.tiew.operationWild.team.OWTribeInvites.consume(player.getUUID());
+                    reply(player, "owteams.invite.full", 0xFF6666);
+                    return 1;
+                }
+
+                team.addPlayerMember(player.getUUID(), player.getName().getString());
+                data.putTribe(team);
+                net.tiew.operationWild.team.OWTribeInvites.consume(player.getUUID());
+
+                net.tiew.operationWild.team.OWTribeManager.refreshEntitiesOfPlayer(server, player.getUUID());
+                net.tiew.operationWild.team.OWTribeManager.syncTribeToOnlineMembers(server, team);
+                net.tiew.operationWild.team.OWTribeManager.broadcastTribeList(server);
+
+                reply(player, "owteams.invite.accepted_self", 0x7ddd73, team.getTeamName());
+                ServerPlayer inviter = server.getPlayerList().getPlayer(inv.inviterUUID());
+                if (inviter != null) {
+                    inviter.sendSystemMessage(Component.translatable("owteams.invite.accepted_inviter",
+                            player.getName().getString()).setStyle(Style.EMPTY.withColor(0x7ddd73)));
+                }
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
+    public static class TribeInviteDeclineCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owtribedecline").executes(TribeInviteDeclineCommand::execute));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            try {
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                net.tiew.operationWild.team.OWTribeInvites.Invite inv =
+                        net.tiew.operationWild.team.OWTribeInvites.consume(player.getUUID());
+                if (inv == null) { reply(player, "owteams.invite.none", 0xFF9944); return 1; }
+                reply(player, "owteams.invite.declined_self", 0xAAAAAA);
+                net.minecraft.server.MinecraftServer server = context.getSource().getServer();
+                ServerPlayer inviter = server.getPlayerList().getPlayer(inv.inviterUUID());
+                if (inviter != null) {
+                    inviter.sendSystemMessage(Component.translatable("owteams.invite.declined_inviter",
+                            player.getName().getString()).setStyle(Style.EMPTY.withColor(0xdd8844)));
+                }
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
     public static class AddExperienceCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
             dispatcher.register(

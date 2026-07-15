@@ -122,6 +122,13 @@ public class ServerEvents {
         if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
             net.tiew.operationWild.core.OWCurrency.syncWildCoins(player);
             net.tiew.operationWild.core.OWTamingXp.syncTamingXp(player);
+            // Tribu : rétablit la tribu de ses entités chargées, et lui pousse sa tribu + la liste serveur.
+            net.minecraft.server.MinecraftServer server = player.getServer();
+            if (server != null) {
+                net.tiew.operationWild.team.OWTribeManager.refreshEntitiesOfPlayer(server, player.getUUID());
+                net.tiew.operationWild.team.OWTribeManager.syncPlayerTribe(server, player);
+                net.tiew.operationWild.team.OWTribeManager.syncTribeList(server, player);
+            }
         }
     }
 

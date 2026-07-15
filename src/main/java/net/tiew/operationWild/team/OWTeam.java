@@ -23,6 +23,17 @@ public class OWTeam {
     private List<UUID> playerUUIDs;
     private boolean[] paintPixels;
 
+    // ── Nouveaux champs (refonte player-centric) ─────────────────────────────
+    /** Forme de la bannière (silhouette). Par défaut : classique. */
+    private OWTeamBannerShape bannerShape = OWTeamBannerShape.CLASSIC;
+    /** Confidentialité : privée par défaut. Une tribu publique est rejoignable par n'importe quel joueur. */
+    private boolean isPublic = false;
+    /** Condition d'entrée d'une tribu publique : nombre minimum de Pièces Sauvages du joueur. */
+    private int minWildCoins = 0;
+    /** 3ᵉ couleur optionnelle (utilisée par certains motifs si {@link #useTertiary} est vrai). */
+    private int tertiaryColor = 0x30B030;
+    private boolean useTertiary = false;
+
     // Constructeur complet
     public OWTeam(int teamId, String teamName, UUID teamOwnerUUID,
                   int teamColor, int teamSecondaryColor, OWTeamMosaicPattern mosaicPattern,
@@ -210,5 +221,69 @@ public class OWTeam {
 
     public void setPaintPixels(boolean[] v) {
         this.paintPixels = v;
+    }
+
+    // ── Nouveaux champs (refonte player-centric) ─────────────────────────────
+    public OWTeamBannerShape getBannerShape() {
+        return bannerShape != null ? bannerShape : OWTeamBannerShape.CLASSIC;
+    }
+
+    public void setBannerShape(OWTeamBannerShape v) {
+        this.bannerShape = v != null ? v : OWTeamBannerShape.CLASSIC;
+    }
+
+    public boolean isPublic() {
+        return isPublic;
+    }
+
+    public void setPublic(boolean v) {
+        this.isPublic = v;
+    }
+
+    public int getMinWildCoins() {
+        return minWildCoins;
+    }
+
+    public void setMinWildCoins(int v) {
+        this.minWildCoins = Math.max(0, v);
+    }
+
+    public int getTertiaryColor() {
+        return tertiaryColor;
+    }
+
+    public void setTertiaryColor(int v) {
+        this.tertiaryColor = v;
+    }
+
+    public boolean isUseTertiary() {
+        return useTertiary;
+    }
+
+    public void setUseTertiary(boolean v) {
+        this.useTertiary = v;
+    }
+
+    /**
+     * Ajoute un joueur comme membre (par UUID + nom d'affichage). Idempotent.
+     * L'appartenance des joueurs est la source de vérité ; les entités suivent leur propriétaire.
+     */
+    public void addPlayerMember(UUID uuid, String name) {
+        if (uuid == null) return;
+        if (!getPlayerUUIDs().contains(uuid)) {
+            getPlayerUUIDs().add(uuid);
+            if (playerNames == null) playerNames = new ArrayList<>();
+            playerNames.add(name != null ? name : uuid.toString().substring(0, 8));
+        }
+    }
+
+    /** Retire un joueur membre (par UUID) et son nom d'affichage à l'index correspondant. */
+    public void removePlayerMember(UUID uuid) {
+        if (uuid == null) return;
+        int idx = getPlayerUUIDs().indexOf(uuid);
+        if (idx >= 0) {
+            getPlayerUUIDs().remove(idx);
+            if (playerNames != null && idx < playerNames.size()) playerNames.remove(idx);
+        }
     }
 }
