@@ -67,6 +67,8 @@ public class OWNetworkHandler {
         registrar.playToServer(UpdateTribeBannerPacket.TYPE, UpdateTribeBannerPacket.STREAM_CODEC, UpdateTribeBannerPacket::handle);
         registrar.playToServer(KickMemberPacket.TYPE, KickMemberPacket.STREAM_CODEC, KickMemberPacket::handle);
         registrar.playToServer(InvitePlayerToTribePacket.TYPE, InvitePlayerToTribePacket.STREAM_CODEC, InvitePlayerToTribePacket::handle);
+        registrar.playToServer(SetDeputyPacket.TYPE, SetDeputyPacket.STREAM_CODEC, SetDeputyPacket::handle);
+        registrar.playToServer(SetMemberPermissionPacket.TYPE, SetMemberPermissionPacket.STREAM_CODEC, SetMemberPermissionPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);

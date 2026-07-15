@@ -154,6 +154,19 @@ public class OWTribesSavedData extends SavedData {
 
         byte[] pixels = t.getPaintPixels();
         tag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels3(pixels != null ? pixels : new byte[0]));
+
+        ListTag deputies = new ListTag();
+        for (UUID u : t.getDeputyUUIDs()) deputies.add(StringTag.valueOf(u.toString()));
+        tag.put("deputies", deputies);
+
+        ListTag perms = new ListTag();
+        for (Map.Entry<UUID, Integer> e : t.getMemberPermissions().entrySet()) {
+            CompoundTag pe = new CompoundTag();
+            pe.putString("uuid", e.getKey().toString());
+            pe.putInt("mask", e.getValue());
+            perms.add(pe);
+        }
+        tag.put("memberPermissions", perms);
         return tag;
     }
 
@@ -193,6 +206,20 @@ public class OWTribesSavedData extends SavedData {
             team.setMinWildCoins(tag.getInt("minWildCoins"));
             if (tag.contains("tertiaryColor")) team.setTertiaryColor(tag.getInt("tertiaryColor"));
             team.setUseTertiary(tag.getBoolean("useTertiary"));
+
+            List<UUID> deputies = new ArrayList<>();
+            ListTag depTag = tag.getList("deputies", Tag.TAG_STRING);
+            for (int i = 0; i < depTag.size(); i++) {
+                try { deputies.add(UUID.fromString(depTag.getString(i))); } catch (IllegalArgumentException ignored) {}
+            }
+            team.setDeputyUUIDs(deputies);
+
+            ListTag permTag = tag.getList("memberPermissions", Tag.TAG_COMPOUND);
+            for (int i = 0; i < permTag.size(); i++) {
+                CompoundTag pe = permTag.getCompound(i);
+                try { team.setPermissions(UUID.fromString(pe.getString("uuid")), pe.getInt("mask")); }
+                catch (IllegalArgumentException ignored) {}
+            }
             return team;
         } catch (Exception e) {
             return null;

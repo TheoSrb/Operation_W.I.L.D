@@ -28,7 +28,8 @@ public record SyncPlayerTribePacket(
         String creationDate,
         List<String> playerNames, List<String> playerUUIDs,
         byte[] paintPixels,
-        int tertiaryColor, boolean useTertiary
+        int tertiaryColor, boolean useTertiary,
+        List<String> deputyUUIDs, List<String> permUUIDs, List<Integer> permMasks
 ) implements CustomPacketPayload {
 
     public static final Type<SyncPlayerTribePacket> TYPE = new Type<>(
@@ -56,6 +57,13 @@ public record SyncPlayerTribePacket(
                 for (byte b : px) buf.writeByte(b);
                 ByteBufCodecs.INT.encode(buf, p.tertiaryColor());
                 ByteBufCodecs.BOOL.encode(buf, p.useTertiary());
+                ByteBufCodecs.INT.encode(buf, p.deputyUUIDs().size());
+                for (String s : p.deputyUUIDs()) ByteBufCodecs.STRING_UTF8.encode(buf, s);
+                ByteBufCodecs.INT.encode(buf, p.permUUIDs().size());
+                for (int i = 0; i < p.permUUIDs().size(); i++) {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, p.permUUIDs().get(i));
+                    ByteBufCodecs.INT.encode(buf, p.permMasks().get(i));
+                }
             },
             buf -> {
                 boolean has = ByteBufCodecs.BOOL.decode(buf);
@@ -80,9 +88,16 @@ public record SyncPlayerTribePacket(
                 for (int i = 0; i < pxLen; i++) pixels[i] = buf.readByte();
                 int tertiary = ByteBufCodecs.INT.decode(buf);
                 boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
+                int dc = ByteBufCodecs.INT.decode(buf);
+                List<String> deputies = new ArrayList<>(dc);
+                for (int i = 0; i < dc; i++) deputies.add(ByteBufCodecs.STRING_UTF8.decode(buf));
+                int prc = ByteBufCodecs.INT.decode(buf);
+                List<String> permU = new ArrayList<>(prc);
+                List<Integer> permM = new ArrayList<>(prc);
+                for (int i = 0; i < prc; i++) { permU.add(ByteBufCodecs.STRING_UTF8.decode(buf)); permM.add(ByteBufCodecs.INT.decode(buf)); }
                 return new SyncPlayerTribePacket(has, teamId, name, owner, primary, secondary,
                         patternId, bannerShapeId, isPublic, minCoins, date, pNames, pUuids, pixels,
-                        tertiary, useTertiary);
+                        tertiary, useTertiary, deputies, permU, permM);
             });
 
     @Override
@@ -92,10 +107,16 @@ public record SyncPlayerTribePacket(
         if (team == null) {
             return new SyncPlayerTribePacket(false, 0, "", "",
                     0xFFFFFF, 0xFFFFFF, 0, 0, false, 0, "",
-                    new ArrayList<>(), new ArrayList<>(), new byte[0], 0xFFFFFF, false);
+                    new ArrayList<>(), new ArrayList<>(), new byte[0], 0xFFFFFF, false,
+                    new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         }
         List<String> pUuids = new ArrayList<>();
         for (UUID u : team.getPlayerUUIDs()) pUuids.add(u.toString());
+        List<String> deputies = new ArrayList<>();
+        for (UUID u : team.getDeputyUUIDs()) deputies.add(u.toString());
+        List<String> permU = new ArrayList<>();
+        List<Integer> permM = new ArrayList<>();
+        for (var e : team.getMemberPermissions().entrySet()) { permU.add(e.getKey().toString()); permM.add(e.getValue()); }
         return new SyncPlayerTribePacket(
                 true,
                 team.getTeamId(),
@@ -112,7 +133,8 @@ public record SyncPlayerTribePacket(
                 pUuids,
                 OWTeamMosaicPattern.packPixels3(team.getPaintPixels() != null ? team.getPaintPixels() : new byte[0]),
                 team.getTertiaryColor(),
-                team.isUseTertiary());
+                team.isUseTertiary(),
+                deputies, permU, permM);
     }
 
     public static void handle(SyncPlayerTribePacket packet, IPayloadContext context) {
@@ -145,6 +167,15 @@ public record SyncPlayerTribePacket(
             team.setMinWildCoins(packet.minWildCoins());
             team.setTertiaryColor(packet.tertiaryColor());
             team.setUseTertiary(packet.useTertiary());
+            List<UUID> deps = new ArrayList<>();
+            for (String s : packet.deputyUUIDs()) {
+                try { deps.add(UUID.fromString(s)); } catch (IllegalArgumentException ignored) {}
+            }
+            team.setDeputyUUIDs(deps);
+            for (int i = 0; i < packet.permUUIDs().size(); i++) {
+                try { team.setPermissions(UUID.fromString(packet.permUUIDs().get(i)), packet.permMasks().get(i)); }
+                catch (IllegalArgumentException ignored) {}
+            }
             OWClientTribeData.set(team);
         });
     }

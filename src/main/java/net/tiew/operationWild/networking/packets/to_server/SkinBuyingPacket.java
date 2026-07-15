@@ -35,7 +35,7 @@ public record SkinBuyingPacket(int price, int skinIndex) implements CustomPacket
             if (!(entity instanceof OWEntity owEntity)) return;
 
             // Seul le propriétaire / un membre de sa tribu peut acheter un skin pour ce pet.
-            if (!owEntity.canBeControlledBy(player)) return;
+            if (!owEntity.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.SKINS)) return;
 
             // Skin déjà débloqué : on ne débite pas.
             if (owEntity.isSkinUnlocked(packet.skinIndex())) return;

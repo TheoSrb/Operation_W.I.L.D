@@ -11,7 +11,7 @@ import net.tiew.operationWild.client.OWClientTribeData;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.KickMemberPacket;
 import net.tiew.operationWild.networking.packets.to_server.LeaveTribePacket;
-import net.tiew.operationWild.networking.packets.to_server.TransferChiefPacket;
+import net.tiew.operationWild.networking.packets.to_server.SetDeputyPacket;
 import net.tiew.operationWild.team.OWTeam;
 
 import java.util.List;
@@ -30,8 +30,9 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
     private static final int BANNER_X = 6, BANNER_Y = 18;   // remontée de 15 px
     private static final float BANNER_SCALE = 1.15f;   // un peu plus grande que la pleine taille
     private static final int LIST_X_OFF = 76, LIST_Y = 34, LIST_ROW_H = 12, LIST_ROWS = 9;
-    // Onglet paramètres à GAUCHE au-dessus du panneau ; icônes inviter / quitter à droite (comme l'ancien écran).
-    private static final int SETTINGS_TAB_X_OFF = 2, SETTINGS_TAB_Y = -18, TAB_W = 20, TAB_H = 18;
+    // Onglets à GAUCHE au-dessus du panneau : Permissions puis Paramètres. Icônes inviter/quitter à droite.
+    private static final int TAB_Y = -18, TAB_W = 20, TAB_H = 18;
+    private static final int PERM_TAB_X_OFF = 2, SETTINGS_TAB_X_OFF = 2 + TAB_W + 1;
     private static final int RIGHT_X_OFF = IMG_W - 1, ICON_SIZE = 18;
     private static final int INVITE_Y = 3, LEAVE_Y = INVITE_Y + ICON_SIZE + 4;
 
@@ -41,14 +42,15 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
     private Button inviteBtn, leaveBtn, exitBtn;
     private Button confirmYes, confirmNo;
 
-    // Tooltip de la couronne du chef (rendu en fin de frame)
-    private boolean hoverChiefCrown = false;
-    private int crownMx, crownMy;
+    // Tooltip de rôle (rendu en fin de frame) : 0 aucun, 1 chef, 2 adjoint.
+    private int hoverRole = 0;
+    private int roleMx, roleMy;
 
-    private enum Confirm { NONE, LEAVE, TRANSFER, KICK }
+    private enum Confirm { NONE, LEAVE, KICK, DEPUTY }
     private Confirm confirm = Confirm.NONE;
     private UUID confirmTarget = null;
     private String confirmTargetName = "";
+    private boolean confirmDeputyPromote = false; // pour Confirm.DEPUTY : true = promouvoir, false = rétrograder
 
     public OWTribeDashboardScreen() {
         super(Component.translatable("owteams.dashboard.title"));
@@ -58,6 +60,12 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         OWTeam t = OWClientTribeData.get();
         Minecraft mc = Minecraft.getInstance();
         return t != null && mc.player != null && mc.player.getUUID().equals(t.getTeamOwnerUUID());
+    }
+
+    private boolean isDeputyLocal() {
+        OWTeam t = OWClientTribeData.get();
+        Minecraft mc = Minecraft.getInstance();
+        return t != null && mc.player != null && t.isDeputy(mc.player.getUUID());
     }
 
     @Override
@@ -86,8 +94,8 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
     private void onConfirmYes() {
         switch (confirm) {
             case LEAVE -> OWNetworkHandler.sendToServer(new LeaveTribePacket());
-            case TRANSFER -> { if (confirmTarget != null) OWNetworkHandler.sendToServer(new TransferChiefPacket(confirmTarget.toString())); }
             case KICK -> { if (confirmTarget != null) OWNetworkHandler.sendToServer(new KickMemberPacket(confirmTarget.toString())); }
+            case DEPUTY -> { if (confirmTarget != null) OWNetworkHandler.sendToServer(new SetDeputyPacket(confirmTarget.toString(), confirmDeputyPromote)); }
             default -> {}
         }
         confirm = Confirm.NONE;
@@ -109,32 +117,56 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         return true;
     }
 
-    private boolean overSettingsTab(double mx, double my) {
-        int x = leftPos + SETTINGS_TAB_X_OFF, y = topPos + SETTINGS_TAB_Y;
+    private boolean overTab(double mx, double my, int xOff) {
+        int x = leftPos + xOff, y = topPos + TAB_Y;
         return mx >= x && mx < x + TAB_W && my >= y && my < y + TAB_H;
+    }
+
+    /** Positions (offsets depuis listX) des boutons d'une ligne : {adjoint, kick, sprite} ; -1 si absent. */
+    private int[] rowButtonsX(int contentW, boolean tChief, boolean tDeputy, boolean chiefV, boolean deputyV) {
+        int rx = contentW, spriteX = -1;
+        if (tChief || tDeputy) { spriteX = rx - 9; rx -= 10; }
+        int kickX = -1, deputyX = -1;
+        boolean canKick = !tChief && (chiefV || (deputyV && !tDeputy));
+        boolean canManage = chiefV && !tChief; // promouvoir/rétrograder adjoint = chef uniquement
+        if (canKick) { kickX = rx - 10; rx -= 11; }
+        if (canManage) { deputyX = rx - 10; rx -= 11; }
+        return new int[]{ deputyX, kickX, spriteX };
+    }
+
+    private boolean hitBtn(double mx, double my, int x, int rowY) {
+        return mx >= x && mx < x + 10 && my >= rowY && my < rowY + LIST_ROW_H - 1;
     }
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (confirm != Confirm.NONE) return super.mouseClicked(mx, my, button);
-        if (button == 0 && isChief() && overSettingsTab(mx, my)) {
+        boolean chief = isChief(), deputy = isDeputyLocal();
+        if (button == 0 && (chief || deputy) && overTab(mx, my, PERM_TAB_X_OFF)) {
+            Minecraft.getInstance().setScreen(new OWTribePermissionsScreen());
+            return true;
+        }
+        if (button == 0 && chief && overTab(mx, my, SETTINGS_TAB_X_OFF)) {
             Minecraft.getInstance().setScreen(new OWTribeSettingsScreen());
             return true;
         }
         OWTeam t = OWClientTribeData.get();
-        if (button == 0 && t != null && isChief()) {
+        if (button == 0 && t != null && (chief || deputy)) {
             List<UUID> uuids = t.getPlayerUUIDs();
+            boolean hasScroll = uuids.size() > LIST_ROWS;
+            int contentW = hasScroll ? listW - 6 : listW;
             for (int i = scroll; i < Math.min(scroll + LIST_ROWS, uuids.size()); i++) {
                 UUID u = uuids.get(i);
                 if (u.equals(t.getTeamOwnerUUID())) continue;
+                boolean tDeputy = t.isDeputy(u);
                 int rowY = topPos + LIST_Y + (i - scroll) * LIST_ROW_H;
-                int kickX = listX + listW - 11, crownX = listX + listW - 23;
+                int[] lay = rowButtonsX(contentW, false, tDeputy, chief, deputy); // {adjoint, kick, sprite}
                 String name = i < t.getPlayerNames().size() ? t.getPlayerNames().get(i) : u.toString().substring(0, 6);
-                if (mx >= kickX && mx < kickX + 10 && my >= rowY && my < rowY + LIST_ROW_H - 1) {
+                if (lay[1] >= 0 && hitBtn(mx, my, listX + lay[1], rowY)) {
                     confirm = Confirm.KICK; confirmTarget = u; confirmTargetName = name; return true;
                 }
-                if (mx >= crownX && mx < crownX + 10 && my >= rowY && my < rowY + LIST_ROW_H - 1) {
-                    confirm = Confirm.TRANSFER; confirmTarget = u; confirmTargetName = name; return true;
+                if (lay[0] >= 0 && hitBtn(mx, my, listX + lay[0], rowY)) {
+                    confirm = Confirm.DEPUTY; confirmTarget = u; confirmTargetName = name; confirmDeputyPromote = !tDeputy; return true;
                 }
             }
         }
@@ -147,16 +179,21 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         boolean chief = isChief();
         boolean isConfirm = confirm != Confirm.NONE;
 
+        boolean deputy = isDeputyLocal();
         inviteBtn.visible = chief && !isConfirm;
         leaveBtn.visible = !isConfirm;
         exitBtn.visible = !isConfirm;
         confirmYes.visible = isConfirm;
         confirmNo.visible = isConfirm;
-        hoverChiefCrown = false;
+        hoverRole = 0;
 
         drawPanel(g, mouseX, mouseY, partial);
 
-        if (chief && !isConfirm) renderSettingsTab(g, mouseX, mouseY);
+        if (!isConfirm) {
+            // Onglet Permissions : icône de ow_teams_sprites.png (0,24) ; Paramètres : icône d'inventaire.
+            if (chief || deputy) renderTab(g, mouseX, mouseY, PERM_TAB_X_OFF, OW_SPRITES, 0, 24, "owteams.permissions.title");
+            if (chief) renderTab(g, mouseX, mouseY, SETTINGS_TAB_X_OFF, OW_INVENTORY, 176, 80, "owteams.settings.title");
+        }
 
         if (t == null) { super.render(g, mouseX, mouseY, partial); return; }
 
@@ -188,12 +225,14 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         if (leaveBtn.visible)
             g.blit(OW_TEAMS, leaveBtn.getX() + (ICON_SIZE - 16) / 2, leaveBtn.getY() + (ICON_SIZE - 16) / 2, 32, 166, 16, 16);
 
-        // Tooltip couronne du chef (« Chef » en doré), au-dessus de tout.
-        if (hoverChiefCrown && !isConfirm) {
+        // Tooltip de rôle (Chef en doré / Chef Adjoint en bleu clair), au-dessus de tout.
+        if (hoverRole != 0 && !isConfirm) {
+            int col = hoverRole == 1 ? 0xFFD700 : 0x66CCFF;
+            String key = hoverRole == 1 ? "owteams.chief_role" : "owteams.deputy_role";
             g.renderTooltip(this.font,
-                    Component.translatable("owteams.chief_role").withStyle(net.minecraft.network.chat.Style.EMPTY
-                            .withColor(net.minecraft.network.chat.TextColor.fromRgb(0xFFD700))),
-                    crownMx, crownMy);
+                    Component.translatable(key).withStyle(net.minecraft.network.chat.Style.EMPTY
+                            .withColor(net.minecraft.network.chat.TextColor.fromRgb(col))),
+                    roleMx, roleMy);
         }
 
         if (isConfirm) {
@@ -202,19 +241,33 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         }
     }
 
-    private void renderSettingsTab(GuiGraphics g, int mouseX, int mouseY) {
-        int x = leftPos + SETTINGS_TAB_X_OFF, y = topPos + SETTINGS_TAB_Y;
-        boolean hov = overSettingsTab(mouseX, mouseY);
+    private void renderTab(GuiGraphics g, int mouseX, int mouseY, int xOff,
+                           ResourceLocation iconTex, int iconU, int iconV, String tooltipKey) {
+        int x = leftPos + xOff, y = topPos + TAB_Y;
+        boolean hov = overTab(mouseX, mouseY, xOff);
         g.blit(OW_INVENTORY, x, y, hov ? 20 : 0, 206, TAB_W, TAB_H);
-        g.blit(OW_INVENTORY, x + 2, y + 2, 176, 80, 16, 16);
-        if (hov) g.renderTooltip(this.font, Component.translatable("owteams.settings.title"), mouseX, mouseY);
+        g.blit(iconTex, x + 2, y + 2, iconU, iconV, 16, 16);
+        if (hov) g.renderTooltip(this.font, Component.translatable(tooltipKey), mouseX, mouseY);
+    }
+
+    private String trim(String s, int maxW) {
+        if (s == null) return "";
+        String out = s;
+        while (this.font.width(out) > maxW && out.length() > 1) out = out.substring(0, out.length() - 1);
+        return out;
+    }
+
+    private void drawRowBtn(GuiGraphics g, int x, int rowY, String glyph, int textCol, int bg, int bgHov, int mx, int my) {
+        boolean hov = mx >= x && mx < x + 10 && my >= rowY && my < rowY + LIST_ROW_H - 1;
+        g.fill(x, rowY + 1, x + 10, rowY + LIST_ROW_H - 1, hov ? bgHov : bg);
+        g.drawString(this.font, glyph, x + 2, rowY + 2, textCol, false);
     }
 
     private void renderMemberList(GuiGraphics g, OWTeam t, int mouseX, int mouseY) {
         int ly = topPos + LIST_Y, h = LIST_ROWS * LIST_ROW_H;
         List<UUID> uuids = t.getPlayerUUIDs();
         List<String> names = t.getPlayerNames();
-        boolean chief = isChief();
+        boolean chief = isChief(), deputy = isDeputyLocal();
         boolean hasScroll = uuids.size() > LIST_ROWS;
         int contentW = hasScroll ? listW - 6 : listW;
 
@@ -225,27 +278,30 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         for (int i = scroll; i < Math.min(scroll + LIST_ROWS, uuids.size()); i++) {
             UUID u = uuids.get(i);
             int rowY = ly + (i - scroll) * LIST_ROW_H;
-            boolean chiefRow = u.equals(t.getTeamOwnerUUID());
+            boolean tChief = u.equals(t.getTeamOwnerUUID());
+            boolean tDeputy = t.isDeputy(u);
             String name = i < names.size() ? names.get(i) : u.toString().substring(0, 6);
             if ((i & 1) == 0) g.fill(listX, rowY, listX + contentW, rowY + LIST_ROW_H, 0x18FFFFFF);
-            g.drawString(this.font, name, listX + 3, rowY + 2, chiefRow ? 0xFFD700 : 0xFFFFFF, false);
 
-            if (chiefRow) {
-                // Couronne (8×8, sprites @0,0) à droite de la case du chef.
-                int crx = listX + contentW - 10, cry = rowY + 2;
-                g.blit(OW_SPRITES, crx, cry, 0, 0, 8, 8, 256, 256);
-                if (mouseX >= crx && mouseX < crx + 8 && mouseY >= cry && mouseY < cry + 8) {
-                    hoverChiefCrown = true; crownMx = mouseX; crownMy = mouseY;
+            int[] lay = rowButtonsX(contentW, tChief, tDeputy, chief, deputy); // {adjoint, kick, sprite}
+            int deputyX = lay[0], kickX = lay[1], spriteX = lay[2];
+
+            int rightUsed = contentW;
+            for (int v : new int[]{ spriteX, kickX, deputyX }) if (v >= 0) rightUsed = Math.min(rightUsed, v);
+            int nameMaxW = rightUsed - 3 - 2;
+            int nameCol = tChief ? 0xFFD700 : (tDeputy ? 0x66CCFF : 0xFFFFFF);
+            g.drawString(this.font, trim(name, nameMaxW), listX + 3, rowY + 2, nameCol, false);
+
+            if (spriteX >= 0) {
+                int sx = listX + spriteX, sy = rowY + 2;
+                g.blit(OW_SPRITES, sx, sy, 0, tChief ? 0 : 8, 8, 8, 256, 256); // couronne (0,0) / adjoint (0,8)
+                if (mouseX >= sx && mouseX < sx + 8 && mouseY >= sy && mouseY < sy + 8) {
+                    hoverRole = tChief ? 1 : 2; roleMx = mouseX; roleMy = mouseY;
                 }
-            } else if (chief) {
-                int kickX = listX + contentW - 11, crownX = listX + contentW - 23;
-                boolean kHov = mouseX >= kickX && mouseX < kickX + 10 && mouseY >= rowY && mouseY < rowY + LIST_ROW_H - 1;
-                boolean cHov = mouseX >= crownX && mouseX < crownX + 10 && mouseY >= rowY && mouseY < rowY + LIST_ROW_H - 1;
-                g.fill(kickX, rowY + 1, kickX + 10, rowY + LIST_ROW_H - 1, kHov ? 0xCCCC2222 : 0x66AA2222);
-                g.drawString(this.font, "−", kickX + 2, rowY + 2, 0xFFDDDD, false);
-                g.fill(crownX, rowY + 1, crownX + 10, rowY + LIST_ROW_H - 1, cHov ? 0xCCBFA030 : 0x66907010);
-                g.drawString(this.font, "★", crownX + 2, rowY + 2, 0xFFE070, false);
             }
+            if (kickX >= 0) drawRowBtn(g, listX + kickX, rowY, "−", 0xFFDDDD, 0x66AA2222, 0xCCCC2222, mouseX, mouseY);
+            if (deputyX >= 0) drawRowBtn(g, listX + deputyX, rowY, "★", tDeputy ? 0x66CCFF : 0xAAAAAA,
+                    tDeputy ? 0x664488AA : 0x55444444, 0xCC5588BB, mouseX, mouseY);
         }
         g.disableScissor();
 
@@ -281,24 +337,41 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
 
     private void renderConfirmOverlay(GuiGraphics g, int mouseX, int mouseY, float partial, OWTeam t) {
         Component title, body;
+        int accent;
         switch (confirm) {
-            case TRANSFER -> { title = Component.translatable("owteams.confirm.transfer_title");
-                body = Component.translatable("owteams.confirm.transfer_body", confirmTargetName); }
+            case DEPUTY -> {
+                title = Component.translatable(confirmDeputyPromote ? "owteams.confirm.promote_title" : "owteams.confirm.demote_title");
+                body = Component.translatable(confirmDeputyPromote ? "owteams.confirm.promote_body" : "owteams.confirm.demote_body", confirmTargetName);
+                accent = confirmDeputyPromote ? 0x4CA3FF : 0xE06A2A; // bleu (gratifier) / orange-rouge (rétrograder)
+            }
             case KICK -> { title = Component.translatable("owteams.confirm.kick_title", confirmTargetName);
-                body = Component.translatable("owteams.confirm.kick_body"); }
+                body = Component.translatable("owteams.confirm.kick_body"); accent = 0xE04444; } // rouge
             default -> { title = Component.translatable("owteams.confirm.leave_title");
-                body = Component.translatable("owteams.dashboard.leave_body", t.getTeamName()); }
+                body = Component.translatable("owteams.dashboard.leave_body", t.getTeamName()); accent = 0xE0A030; } // ambre
         }
         int ow = Math.min(this.width - 20, Math.max(180, Math.max(this.font.width(title), this.font.width(body)) + 24));
         int oh = 58, cx = this.width / 2, ox = cx - ow / 2, oy = this.height / 2 - oh / 2;
-        g.fill(ox, oy, ox + ow, oy + oh, 0xF01A1A1A);
-        g.fill(ox, oy, ox + ow, oy + 1, 0xFF888888); g.fill(ox, oy + oh - 1, ox + ow, oy + oh, 0xFF888888);
-        g.fill(ox, oy, ox + 1, oy + oh, 0xFF888888); g.fill(ox + ow - 1, oy, ox + ow, oy + oh, 0xFF888888);
-        g.drawCenteredString(this.font, title, cx, oy + 8, 0xFFFFFF);
-        g.drawCenteredString(this.font, body, cx, oy + 20, 0xBBBBBB);
+        drawConfirmBox(g, ox, oy, ow, oh, title, body, accent);
         confirmYes.setPosition(cx - 64, oy + oh - 20);
         confirmNo.setPosition(cx + 4, oy + oh - 20);
         confirmYes.render(g, mouseX, mouseY, partial);
         confirmNo.render(g, mouseX, mouseY, partial);
+    }
+
+    /** Boîte de confirmation avec une couleur d'accent (barre supérieure, bordure et titre). */
+    static void drawConfirmBox(GuiGraphics g, int ox, int oy, int ow, int oh,
+                               Component title, Component body, int accent) {
+        int a = 0xFF000000 | (accent & 0xFFFFFF);
+        g.fill(ox, oy, ox + ow, oy + oh, 0xF0121214);
+        // bordure teintée
+        g.fill(ox, oy, ox + ow, oy + 1, a);
+        g.fill(ox, oy + oh - 1, ox + ow, oy + oh, a);
+        g.fill(ox, oy, ox + 1, oy + oh, a);
+        g.fill(ox + ow - 1, oy, ox + ow, oy + oh, a);
+        // barre d'accent sous le titre
+        g.fill(ox + 6, oy + 17, ox + ow - 6, oy + 18, (0x66 << 24) | (accent & 0xFFFFFF));
+        net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
+        g.drawCenteredString(font, title, ox + ow / 2, oy + 6, accent);
+        g.drawCenteredString(font, body, ox + ow / 2, oy + 24, 0xCCCCCC);
     }
 }

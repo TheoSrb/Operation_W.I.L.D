@@ -44,7 +44,7 @@ public record OWNameEntityPacket(int entityId, String nickname) implements Custo
             Entity entity = serverLevel.getEntity(packet.entityId());
             if (!(entity instanceof OWEntity owEntity)) return;
             // Seul le propriétaire / un membre de la tribu peut renommer ce pet.
-            if (!(context.player() instanceof ServerPlayer sp) || !owEntity.canBeControlledBy(sp)) return;
+            if (!(context.player() instanceof ServerPlayer sp) || !owEntity.hasTribePermission(sp, net.tiew.operationWild.team.OWTribePermission.RENAME)) return;
 
             owEntity.setNickname(packet.nickname());
 

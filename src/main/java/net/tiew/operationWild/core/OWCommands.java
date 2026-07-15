@@ -92,6 +92,67 @@ public class OWCommands {
         player.sendSystemMessage(Component.translatable(key, args).setStyle(Style.EMPTY.withColor(color)));
     }
 
+    // ── Debug : peupler sa tribu de faux membres pour tester les permissions ──
+    public static class TribeTestMembersCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owtribetestmembers").executes(TribeTestMembersCommand::add));
+            dispatcher.register(Commands.literal("owtriberemovetestmembers").executes(TribeTestMembersCommand::remove));
+        }
+
+        private static final String[] FAKE = { "DevAdjoint", "DevMembre1", "DevMembre2" };
+
+        private static java.util.UUID fakeUuid(String name) {
+            return java.util.UUID.nameUUIDFromBytes(("owfake:" + name).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
+
+        private static int add(CommandContext<CommandSourceStack> context) {
+            try {
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                net.minecraft.server.MinecraftServer server = context.getSource().getServer();
+                net.tiew.operationWild.team.OWTribesSavedData data =
+                        net.tiew.operationWild.team.OWTribesSavedData.get(server);
+                net.tiew.operationWild.team.OWTeam team = data.findTeamByMember(player.getUUID());
+                if (team == null) {
+                    player.sendSystemMessage(Component.literal("Tu n'as pas de tribu (touche T pour en créer une).")
+                            .setStyle(Style.EMPTY.withColor(0xFF9944)));
+                    return 1;
+                }
+                for (int i = 0; i < FAKE.length; i++) {
+                    java.util.UUID u = fakeUuid(FAKE[i]);
+                    if (!team.isMember(u)) team.addPlayerMember(u, FAKE[i]);
+                    team.setDeputy(u, i == 0); // le premier = chef adjoint
+                    team.setPermissions(u, i == 0
+                            ? net.tiew.operationWild.team.OWTribePermission.DEPUTY_DEFAULT
+                            : net.tiew.operationWild.team.OWTribePermission.MEMBER_DEFAULT);
+                }
+                data.putTribe(team);
+                net.tiew.operationWild.team.OWTribeManager.syncTribeToOnlineMembers(server, team);
+                net.tiew.operationWild.team.OWTribeManager.broadcastTribeList(server);
+                player.sendSystemMessage(Component.literal("3 membres de test ajoutés (1 adjoint + 2 membres).")
+                        .setStyle(Style.EMPTY.withColor(0x7ddd73)));
+            } catch (Exception ignored) {}
+            return 1;
+        }
+
+        private static int remove(CommandContext<CommandSourceStack> context) {
+            try {
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                net.minecraft.server.MinecraftServer server = context.getSource().getServer();
+                net.tiew.operationWild.team.OWTribesSavedData data =
+                        net.tiew.operationWild.team.OWTribesSavedData.get(server);
+                net.tiew.operationWild.team.OWTeam team = data.findTeamByMember(player.getUUID());
+                if (team == null) return 1;
+                for (String name : FAKE) team.removePlayerMember(fakeUuid(name));
+                data.putTribe(team);
+                net.tiew.operationWild.team.OWTribeManager.syncTribeToOnlineMembers(server, team);
+                net.tiew.operationWild.team.OWTribeManager.broadcastTribeList(server);
+                player.sendSystemMessage(Component.literal("Membres de test retirés.")
+                        .setStyle(Style.EMPTY.withColor(0xAAAAAA)));
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
     // ── Invitations player-centric (refonte) : /owtribeaccept /owtribedecline ──
     public static class TribeInviteAcceptCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -126,6 +187,7 @@ public class OWCommands {
                 }
 
                 team.addPlayerMember(player.getUUID(), player.getName().getString());
+                team.setPermissions(player.getUUID(), net.tiew.operationWild.team.OWTribePermission.MEMBER_DEFAULT);
                 data.putTribe(team);
                 net.tiew.operationWild.team.OWTribeInvites.consume(player.getUUID());
 

@@ -34,7 +34,7 @@ public record OpenOWInventoryPacket() implements CustomPacketPayload {
                     List<Entity> passengers = entity.getPassengers();
                     boolean isDriver = !passengers.isEmpty() && passengers.get(0) == player;
                     // Propriétaire OU membre de la tribu : mêmes droits sur l'inventaire.
-                    boolean canControl = owEntity.canBeControlledBy(player);
+                    boolean canControl = owEntity.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.INVENTORY);
 
                     if (isDriver && canControl) {
                         player.openMenu(owEntity);

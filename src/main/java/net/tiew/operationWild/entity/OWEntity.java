@@ -2285,6 +2285,27 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     /**
+     * Vrai si {@code player} a la permission {@code perm} sur cette entité. Le propriétaire, le chef et
+     * les chefs adjoints ont toujours l'accès complet ; un membre simple doit posséder le bit de
+     * permission correspondant (cf. onglet Permissions de la tribu).
+     */
+    public boolean hasTribePermission(Player player, net.tiew.operationWild.team.OWTribePermission perm) {
+        if (player == null) return false;
+        UUID id = player.getUUID();
+        if (id.equals(this.getOwnerUUID())) return true;
+        net.tiew.operationWild.team.OWTeam t = this.currentTeam;
+        if (t == null || !t.isMember(id)) return false;
+        if (t.isChief(id)) return true;              // le chef seul a l'accès total
+        return t.hasPermissionBit(id, perm.bit());   // adjoint ET membre : selon leur bitmask
+    }
+
+    /** Permissions par défaut selon le rôle (utilisé à l'entrée / promotion). */
+    public static int defaultPermissionsFor(net.tiew.operationWild.team.OWTeam team, java.util.UUID uuid) {
+        if (team != null && team.isDeputy(uuid)) return net.tiew.operationWild.team.OWTribePermission.DEPUTY_DEFAULT;
+        return net.tiew.operationWild.team.OWTribePermission.MEMBER_DEFAULT;
+    }
+
+    /**
      * Vrai si {@code target} est un allié de cette entité <b>apprivoisée</b> qu'une attaque de grab ne
      * doit jamais saisir : le propriétaire, un membre joueur de la tribu, une entité de la même tribu,
      * ou une entité possédée par le propriétaire / un membre de la tribu. Toujours {@code false} à l'état
@@ -3339,7 +3360,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (this.isSittingToggleLocked()) return InteractionResult.PASS;
 
                 // Propriétaire OU membre de la tribu : peut basculer assis/suivre.
-                if (!this.canBeControlledBy(player)) return InteractionResult.PASS;
+                if (!this.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) return InteractionResult.PASS;
                 if (this.getControllingPassenger() != null) return InteractionResult.PASS;
                 if (this.sittingCooldown > 0) return InteractionResult.PASS;
 

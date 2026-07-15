@@ -54,6 +54,7 @@ public record JoinTribePacket(int teamId) implements CustomPacketPayload {
             }
 
             team.addPlayerMember(sp.getUUID(), sp.getName().getString());
+            team.setPermissions(sp.getUUID(), net.tiew.operationWild.team.OWTribePermission.MEMBER_DEFAULT);
             data.putTribe(team); // marque dirty
 
             OWTribeManager.refreshEntitiesOfPlayer(server, sp.getUUID());

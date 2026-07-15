@@ -235,6 +235,7 @@ public class OperationWild {
         OWCommands.TeamInviteDeclineCommand.register(event.getDispatcher());
         OWCommands.TribeInviteAcceptCommand.register(event.getDispatcher());
         OWCommands.TribeInviteDeclineCommand.register(event.getDispatcher());
+        OWCommands.TribeTestMembersCommand.register(event.getDispatcher());
     }
 
     @EventBusSubscriber(modid = MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

@@ -17,19 +17,20 @@ import net.tiew.operationWild.team.OWTribesSavedData;
 
 import java.util.UUID;
 
-/** Le chef transfère son rôle à un autre membre (par UUID). */
-public record TransferChiefPacket(String targetUuid) implements CustomPacketPayload {
+/** Le chef promeut / rétrograde un membre au rang de Chef Adjoint. */
+public record SetDeputyPacket(String targetUuid, boolean deputy) implements CustomPacketPayload {
 
-    public static final Type<TransferChiefPacket> TYPE = new Type<>(
-            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "transfer_chief"));
+    public static final Type<SetDeputyPacket> TYPE = new Type<>(
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "set_deputy"));
 
-    public static final StreamCodec<ByteBuf, TransferChiefPacket> STREAM_CODEC =
-            StreamCodec.composite(ByteBufCodecs.STRING_UTF8, TransferChiefPacket::targetUuid, TransferChiefPacket::new);
+    public static final StreamCodec<ByteBuf, SetDeputyPacket> STREAM_CODEC = StreamCodec.of(
+            (buf, p) -> { ByteBufCodecs.STRING_UTF8.encode(buf, p.targetUuid()); ByteBufCodecs.BOOL.encode(buf, p.deputy()); },
+            buf -> new SetDeputyPacket(ByteBufCodecs.STRING_UTF8.decode(buf), ByteBufCodecs.BOOL.decode(buf)));
 
     @Override
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
-    public static void handle(TransferChiefPacket packet, IPayloadContext context) {
+    public static void handle(SetDeputyPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer sp)) return;
             MinecraftServer server = sp.getServer();
@@ -37,21 +38,20 @@ public record TransferChiefPacket(String targetUuid) implements CustomPacketPayl
             OWTribesSavedData data = OWTribesSavedData.get(server);
 
             OWTeam team = data.findTeamByMember(sp.getUUID());
-            if (team == null || !sp.getUUID().equals(team.getTeamOwnerUUID())) return;
+            if (team == null || !team.isChief(sp.getUUID())) return; // chef uniquement
 
             UUID target;
-            try { target = UUID.fromString(packet.targetUuid()); }
-            catch (IllegalArgumentException e) { return; }
+            try { target = UUID.fromString(packet.targetUuid()); } catch (IllegalArgumentException e) { return; }
             if (target.equals(team.getTeamOwnerUUID()) || !team.isMember(target)) return;
 
-            team.setTeamOwnerUUID(target);
-            team.getDeputyUUIDs().remove(target);      // le nouveau chef n'est plus « adjoint »
-            team.getMemberPermissions().remove(target); // ni soumis aux permissions
-            data.putTribe(team); // dirty
+            team.setDeputy(target, packet.deputy());
+            // Réinitialise les permissions au défaut du nouveau rôle.
+            team.setPermissions(target, packet.deputy()
+                    ? net.tiew.operationWild.team.OWTribePermission.DEPUTY_DEFAULT
+                    : net.tiew.operationWild.team.OWTribePermission.MEMBER_DEFAULT);
+            data.putTribe(team);
 
-            OWTribeManager.refreshEntitiesOfTribe(server, team);
             OWTribeManager.syncTribeToOnlineMembers(server, team);
-            OWTribeManager.broadcastTribeList(server);
         });
     }
 }

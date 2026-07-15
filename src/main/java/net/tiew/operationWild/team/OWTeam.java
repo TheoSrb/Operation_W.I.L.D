@@ -3,7 +3,9 @@ package net.tiew.operationWild.team;
 import net.tiew.operationWild.entity.OWEntity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class OWTeam {
@@ -34,6 +36,10 @@ public class OWTeam {
     /** 3ᵉ couleur optionnelle (utilisée par certains motifs si {@link #useTertiary} est vrai). */
     private int tertiaryColor = 0x30B030;
     private boolean useTertiary = false;
+    /** Chefs adjoints (par UUID) : rôle intermédiaire (peut virer les membres simples + gérer leurs permissions). */
+    private List<UUID> deputyUUIDs = new ArrayList<>();
+    /** Permissions granulaires par membre simple (UUID → bitmask {@link net.tiew.operationWild.team.OWTribePermission}). */
+    private Map<UUID, Integer> memberPermissions = new HashMap<>();
 
     // Constructeur complet
     public OWTeam(int teamId, String teamName, UUID teamOwnerUUID,
@@ -286,5 +292,38 @@ public class OWTeam {
             getPlayerUUIDs().remove(idx);
             if (playerNames != null && idx < playerNames.size()) playerNames.remove(idx);
         }
+        getDeputyUUIDs().remove(uuid);
+        getMemberPermissions().remove(uuid);
     }
+
+    // ── Rôles & permissions ─────────────────────────────────────────────────────
+    public boolean isChief(UUID u) { return u != null && u.equals(teamOwnerUUID); }
+
+    public List<UUID> getDeputyUUIDs() {
+        if (deputyUUIDs == null) deputyUUIDs = new ArrayList<>();
+        return deputyUUIDs;
+    }
+
+    public void setDeputyUUIDs(List<UUID> v) { this.deputyUUIDs = v != null ? v : new ArrayList<>(); }
+
+    public boolean isDeputy(UUID u) { return u != null && getDeputyUUIDs().contains(u); }
+
+    public void setDeputy(UUID u, boolean deputy) {
+        if (u == null || u.equals(teamOwnerUUID)) return; // le chef n'est jamais « adjoint »
+        if (deputy) { if (!getDeputyUUIDs().contains(u)) getDeputyUUIDs().add(u); }
+        else getDeputyUUIDs().remove(u);
+    }
+
+    public Map<UUID, Integer> getMemberPermissions() {
+        if (memberPermissions == null) memberPermissions = new HashMap<>();
+        return memberPermissions;
+    }
+
+    public void setMemberPermissions(Map<UUID, Integer> v) { this.memberPermissions = v != null ? v : new HashMap<>(); }
+
+    public int getPermissions(UUID u) { return getMemberPermissions().getOrDefault(u, 0); }
+
+    public void setPermissions(UUID u, int mask) { if (u != null) getMemberPermissions().put(u, mask); }
+
+    public boolean hasPermissionBit(UUID u, int bit) { return (getPermissions(u) & bit) != 0; }
 }

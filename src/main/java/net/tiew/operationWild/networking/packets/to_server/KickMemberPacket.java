@@ -37,12 +37,17 @@ public record KickMemberPacket(String targetUuid) implements CustomPacketPayload
             OWTribesSavedData data = OWTribesSavedData.get(server);
 
             OWTeam team = data.findTeamByMember(sp.getUUID());
-            if (team == null || !sp.getUUID().equals(team.getTeamOwnerUUID())) return;
+            if (team == null) return;
+            boolean isChief = team.isChief(sp.getUUID());
+            boolean isDeputy = team.isDeputy(sp.getUUID());
+            if (!isChief && !isDeputy) return; // chef ou adjoint uniquement
 
             UUID target;
             try { target = UUID.fromString(packet.targetUuid()); }
             catch (IllegalArgumentException e) { return; }
             if (target.equals(team.getTeamOwnerUUID()) || !team.isMember(target)) return;
+            // Un adjoint ne peut virer ni le chef ni un autre adjoint (seul le chef le peut).
+            if (team.isDeputy(target) && !isChief) return;
 
             team.removePlayerMember(target);
             data.putTribe(team); // dirty
