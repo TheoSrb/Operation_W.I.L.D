@@ -798,5 +798,6 @@
   "owteams.settings.title": "設定",
   "owteams.banner.select.warning": "⚠ 形の選択は変更できません",
   "owteams.chief_role": "族長",
-  "owteams.banner.bandeaux": "バンド"
+  "owteams.banner.bandeaux": "バンド",
+  "owteams.creation.tertiary": "色 3"
 }

@@ -798,5 +798,6 @@
   "owteams.settings.title": "设置",
   "owteams.banner.select.warning": "⚠ 形状选择不可更改",
   "owteams.chief_role": "首领",
-  "owteams.banner.bandeaux": "条带"
+  "owteams.banner.bandeaux": "条带",
+  "owteams.creation.tertiary": "颜色 3"
 }

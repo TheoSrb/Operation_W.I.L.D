@@ -168,7 +168,8 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         g.pose().translate(leftPos + BANNER_X, topPos + BANNER_Y, 0);
         g.pose().scale(BANNER_SCALE, BANNER_SCALE, 1f);
         OWBannerRenderer.render(g, 0, 0, t.getBannerShape(),
-                t.getTeamColor(), t.getTeamSecondaryColor(), t.getTeamMosaicPattern(), t.getPaintPixels());
+                t.getTeamColor(), t.getTeamSecondaryColor(), t.getTertiaryColor(), t.isUseTertiary(),
+                t.getTeamMosaicPattern(), t.getPaintPixels());
         g.pose().popPose();
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 

@@ -798,5 +798,6 @@
   "owteams.settings.title": "Einstellungen",
   "owteams.banner.select.warning": "⚠ Die Formwahl ist endgültig",
   "owteams.chief_role": "Anführer",
-  "owteams.banner.bandeaux": "Streifen"
+  "owteams.banner.bandeaux": "Streifen",
+  "owteams.creation.tertiary": "Farbe 3"
 }

@@ -1287,8 +1287,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         for (UUID u : currentTeam.getPlayerUUIDs()) pUUIDs.add(net.minecraft.nbt.StringTag.valueOf(u.toString()));
         teamTag.put("playerUUIDs", pUUIDs);
 
-        boolean[] pixels = currentTeam.getPaintPixels();
-        teamTag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels(pixels != null ? pixels : new boolean[0]));
+        byte[] pixels = currentTeam.getPaintPixels();
+        teamTag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels3(pixels != null ? pixels : new byte[0]));
     }
 
     /** Reconstruit et applique une tribu depuis un tag (même format que la sauvegarde NBT). */
@@ -1323,7 +1323,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         // Migration des anciennes sauvegardes (aucun UUID joueur stocké) : le chef reste membre.
         if (pUUIDs.isEmpty()) pUUIDs.add(ownerUUID);
 
-        boolean[] savedPixels = OWTeamMosaicPattern.unpackPixels(
+        byte[] savedPixels = OWTeamMosaicPattern.unpackPixels3(
                 teamTag.contains("paintPixels") ? teamTag.getByteArray("paintPixels") : new byte[0],
                 OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT);
 

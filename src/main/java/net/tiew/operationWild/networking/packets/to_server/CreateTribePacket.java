@@ -21,7 +21,8 @@ import net.tiew.operationWild.team.OWTribesSavedData;
 /** Le joueur crée sa tribu (chef = lui). Refusé s'il est déjà dans une tribu ou si le nom est pris. */
 public record CreateTribePacket(
         String teamName, int primaryColor, int secondaryColor,
-        int mosaicPatternId, int bannerShapeId, byte[] paintPixels
+        int mosaicPatternId, int bannerShapeId, byte[] paintPixels,
+        int tertiaryColor, boolean useTertiary
 ) implements CustomPacketPayload {
 
     public static final Type<CreateTribePacket> TYPE = new Type<>(
@@ -37,6 +38,8 @@ public record CreateTribePacket(
                 byte[] px = p.paintPixels() != null ? p.paintPixels() : new byte[0];
                 ByteBufCodecs.INT.encode(buf, px.length);
                 for (byte b : px) buf.writeByte(b);
+                ByteBufCodecs.INT.encode(buf, p.tertiaryColor());
+                ByteBufCodecs.BOOL.encode(buf, p.useTertiary());
             },
             buf -> {
                 String name = ByteBufCodecs.STRING_UTF8.decode(buf);
@@ -47,7 +50,9 @@ public record CreateTribePacket(
                 int len = ByteBufCodecs.INT.decode(buf);
                 byte[] px = new byte[len];
                 for (int i = 0; i < len; i++) px[i] = buf.readByte();
-                return new CreateTribePacket(name, primary, secondary, patternId, bannerShapeId, px);
+                int tertiary = ByteBufCodecs.INT.decode(buf);
+                boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
+                return new CreateTribePacket(name, primary, secondary, patternId, bannerShapeId, px, tertiary, useTertiary);
             });
 
     @Override
@@ -76,13 +81,16 @@ public record CreateTribePacket(
             }
 
             OWTeamMosaicPattern pattern = OWTeamMosaicPattern.byId(packet.mosaicPatternId());
-            boolean[] pixels = pattern == OWTeamMosaicPattern.CUSTOM_PAINT
-                    ? OWTeamMosaicPattern.unpackPixels(packet.paintPixels(), OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT)
+            byte[] pixels = pattern == OWTeamMosaicPattern.CUSTOM_PAINT
+                    ? OWTeamMosaicPattern.unpackPixels3(packet.paintPixels(), OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT)
                     : null;
 
             OWTeam team = data.createTribe(sp.getUUID(), sp.getName().getString(), name,
                     packet.primaryColor(), packet.secondaryColor(), pattern,
                     OWTeamBannerShape.byId(packet.bannerShapeId()), pixels);
+            team.setTertiaryColor(packet.tertiaryColor());
+            team.setUseTertiary(packet.useTertiary());
+            data.putTribe(team);
 
             OWTribeManager.refreshEntitiesOfPlayer(server, sp.getUUID());
             OWTribeManager.syncPlayerTribe(server, sp);

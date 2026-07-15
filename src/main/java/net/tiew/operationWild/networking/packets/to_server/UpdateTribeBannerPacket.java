@@ -19,7 +19,8 @@ import net.tiew.operationWild.team.OWTribesSavedData;
 
 /** Le chef modifie l'apparence de la bannière (forme + couleurs + motif) depuis le dashboard. */
 public record UpdateTribeBannerPacket(
-        int primaryColor, int secondaryColor, int mosaicPatternId, int bannerShapeId, byte[] paintPixels
+        int primaryColor, int secondaryColor, int mosaicPatternId, int bannerShapeId, byte[] paintPixels,
+        int tertiaryColor, boolean useTertiary
 ) implements CustomPacketPayload {
 
     public static final Type<UpdateTribeBannerPacket> TYPE = new Type<>(
@@ -34,6 +35,8 @@ public record UpdateTribeBannerPacket(
                 byte[] px = p.paintPixels() != null ? p.paintPixels() : new byte[0];
                 ByteBufCodecs.INT.encode(buf, px.length);
                 for (byte b : px) buf.writeByte(b);
+                ByteBufCodecs.INT.encode(buf, p.tertiaryColor());
+                ByteBufCodecs.BOOL.encode(buf, p.useTertiary());
             },
             buf -> {
                 int primary = ByteBufCodecs.INT.decode(buf);
@@ -43,7 +46,9 @@ public record UpdateTribeBannerPacket(
                 int len = ByteBufCodecs.INT.decode(buf);
                 byte[] px = new byte[len];
                 for (int i = 0; i < len; i++) px[i] = buf.readByte();
-                return new UpdateTribeBannerPacket(primary, secondary, patternId, bannerShapeId, px);
+                int tertiary = ByteBufCodecs.INT.decode(buf);
+                boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
+                return new UpdateTribeBannerPacket(primary, secondary, patternId, bannerShapeId, px, tertiary, useTertiary);
             });
 
     @Override
@@ -64,8 +69,10 @@ public record UpdateTribeBannerPacket(
             team.setTeamSecondaryColor(packet.secondaryColor());
             team.setTeamMosaicPattern(pattern);
             team.setBannerShape(OWTeamBannerShape.byId(packet.bannerShapeId()));
+            team.setTertiaryColor(packet.tertiaryColor());
+            team.setUseTertiary(packet.useTertiary());
             team.setPaintPixels(pattern == OWTeamMosaicPattern.CUSTOM_PAINT
-                    ? OWTeamMosaicPattern.unpackPixels(packet.paintPixels(), OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT)
+                    ? OWTeamMosaicPattern.unpackPixels3(packet.paintPixels(), OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT)
                     : null);
             data.putTribe(team); // dirty
 

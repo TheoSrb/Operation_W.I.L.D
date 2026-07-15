@@ -67,17 +67,18 @@ public class OWTribeCreationScreen extends OWTribeScreen {
     private int cpW;
 
     private EditBox nameBox;
-    private Button primTabBtn, secTabBtn, confirmBtn, cancelBtn, clearBtn;
+    private Button confirmBtn, cancelBtn, clearBtn;
 
-    private int primaryColor = 0xD12020, secondaryColor = 0x2050D1;
-    private float primH = 0f, primS = 1f, primV = 0.82f;
-    private float secH = 0.62f, secS = 1f, secV = 0.82f;
-    private boolean editingPrimary = true;
+    // 3 teintes : 0 = primaire, 1 = secondaire, 2 = tertiaire (optionnelle).
+    private final int[] cols = {0xD12020, 0x2050D1, 0x30B030};
+    private final float[] cH = new float[3], cS = new float[3], cV = new float[3];
+    private int editIdx = 0;
+    private boolean useTertiary = false;
 
     private OWTeamMosaicPattern selectedPattern = OWTeamMosaicPattern.GRADIENT_DOWN;
     private final List<OWTeamMosaicPattern> patterns = new ArrayList<>();
 
-    private boolean[] paintPixels = new boolean[PAINT_COUNT];
+    private byte[] paintPixels = new byte[PAINT_COUNT];
     private int brushSize = 3;
     private BrushShape brushShape = BrushShape.ROUND;
     private boolean mirrorX = false, mirrorY = false;
@@ -86,27 +87,29 @@ public class OWTribeCreationScreen extends OWTribeScreen {
 
     private boolean draggingCanvas, draggingVBar, draggingHue, draggingSV;
     private int lastPaintCX = Integer.MIN_VALUE, lastPaintCY = Integer.MIN_VALUE;
-    private final ArrayDeque<boolean[]> undoStack = new ArrayDeque<>();
-    private boolean[] snapshotBeforeStroke = null;
+    private final ArrayDeque<byte[]> undoStack = new ArrayDeque<>();
+    private byte[] snapshotBeforeStroke = null;
     private boolean ctrlZWasDown = false;
 
     public OWTribeCreationScreen(OWTeamBannerShape shape, boolean editMode) {
         super(Component.translatable("owteams.creation.title"));
         this.bannerShape = shape != null ? shape : OWTeamBannerShape.CLASSIC;
         this.editMode = editMode;
-        primaryColor = hsvToRgb(primH, primS, primV);
-        secondaryColor = hsvToRgb(secH, secS, secV);
         for (OWTeamMosaicPattern p : OWTeamMosaicPattern.values()) if (!p.isUnlockable()) patterns.add(p);
         if (editMode) {
             OWTeam t = OWClientTribeData.get();
             if (t != null) {
-                primaryColor = t.getTeamColor();
-                secondaryColor = t.getTeamSecondaryColor();
+                cols[0] = t.getTeamColor();
+                cols[1] = t.getTeamSecondaryColor();
+                cols[2] = t.getTertiaryColor();
+                useTertiary = t.isUseTertiary();
                 selectedPattern = t.getTeamMosaicPattern();
                 if (t.getPaintPixels() != null && t.getPaintPixels().length >= PAINT_COUNT) paintPixels = t.getPaintPixels().clone();
-                float[] ph = rgbToHsv(primaryColor); primH = ph[0]; primS = ph[1]; primV = ph[2];
-                float[] sh = rgbToHsv(secondaryColor); secH = sh[0]; secS = sh[1]; secV = sh[2];
             }
+        }
+        for (int i = 0; i < 3; i++) {
+            float[] hsv = rgbToHsv(cols[i]);
+            cH[i] = hsv[0]; cS[i] = hsv[1]; cV[i] = hsv[2];
         }
     }
 
@@ -125,40 +128,85 @@ public class OWTribeCreationScreen extends OWTribeScreen {
         nameBox.setValue(def);
         if (!editMode) this.addRenderableWidget(nameBox);
 
-        primTabBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.creation.primary"),
-                b -> { editingPrimary = true; refreshTabs(); })
-                .bounds(leftPos + CP_X, topPos + TAB_Y, cpW / 2 - 2, TAB_H).build());
-        secTabBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.creation.secondary"),
-                b -> { editingPrimary = false; refreshTabs(); })
-                .bounds(leftPos + CP_X + cpW / 2 + 2, topPos + TAB_Y, cpW / 2 - 2, TAB_H).build());
-        refreshTabs();
-
         confirmBtn = addRenderableWidget(Button.builder(
                 Component.translatable(editMode ? "owteams.creation.confirm_edit" : "owteams.creation.confirm"),
-                b -> onConfirm()).bounds(leftPos + 8, topPos + ACT_Y, 66, 16).build());
+                b -> onConfirm()).bounds(leftPos + 8, topPos + ACT_Y, 54, 16).build());
         clearBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.paint.clear"),
-                b -> { pushUndoFull(); Arrays.fill(paintPixels, false); })
-                .bounds(leftPos + 78, topPos + ACT_Y, 38, 16).build());
+                b -> { pushUndoFull(); Arrays.fill(paintPixels, (byte) 0); })
+                .bounds(leftPos + 64, topPos + ACT_Y, 44, 16).build());
         cancelBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.creation.cancel"),
                 b -> Minecraft.getInstance().setScreen(new OWBannerShapeSelectScreen(editMode)))
-                .bounds(leftPos + IMG_W - 8 - 58, topPos + ACT_Y, 58, 16).build());
+                .bounds(leftPos + IMG_W - 8 - 56, topPos + ACT_Y, 56, 16).build());
     }
 
-    private void refreshTabs() { primTabBtn.active = !editingPrimary; secTabBtn.active = editingPrimary; }
     private boolean isPaintMode() { return selectedPattern == OWTeamMosaicPattern.CUSTOM_PAINT; }
 
     private void onConfirm() {
-        byte[] packed = isPaintMode() ? OWTeamMosaicPattern.packPixels(paintPixels) : new byte[0];
+        byte[] packed = isPaintMode() ? OWTeamMosaicPattern.packPixels3(paintPixels) : new byte[0];
         if (editMode) {
             OWNetworkHandler.sendToServer(new UpdateTribeBannerPacket(
-                    primaryColor, secondaryColor, selectedPattern.getId(), bannerShape.getId(), packed));
+                    cols[0], cols[1], selectedPattern.getId(), bannerShape.getId(), packed,
+                    cols[2], useTertiary));
             Minecraft.getInstance().setScreen(new OWTribeDashboardScreen());
         } else {
             OWNetworkHandler.sendToServer(new CreateTribePacket(
-                    nameBox.getValue().trim(), primaryColor, secondaryColor,
-                    selectedPattern.getId(), bannerShape.getId(), packed));
+                    nameBox.getValue().trim(), cols[0], cols[1],
+                    selectedPattern.getId(), bannerShape.getId(), packed, cols[2], useTertiary));
             Minecraft.getInstance().setScreen(new OWTribeMenuScreen());
         }
+    }
+
+    // ── Onglets de teinte (3, dont le 3ᵉ optionnel) ─────────────────────────────
+    private int tabW() { return (cpW - 4) / 3; }
+    private int tabX(int i) { return leftPos + CP_X + i * (tabW() + 2); }
+
+    /** Renvoie true si le clic a été absorbé par les onglets de teinte. */
+    private boolean handleTabClick(double mx, double my) {
+        int ty = topPos + TAB_Y, tw = tabW();
+        for (int i = 0; i < 3; i++) {
+            int tx = tabX(i);
+            if (mx >= tx && mx < tx + tw && my >= ty && my < ty + TAB_H) {
+                if (i < 2) {
+                    editIdx = i;
+                } else if (!useTertiary) {        // activer la 3ᵉ teinte
+                    useTertiary = true; editIdx = 2;
+                } else if (editIdx == 2) {         // re-cliquer l'onglet actif → désactiver
+                    useTertiary = false; editIdx = 0;
+                } else {
+                    editIdx = 2;                   // sélectionner pour édition
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static final String[] TAB_KEYS = {
+            "owteams.creation.primary", "owteams.creation.secondary", "owteams.creation.tertiary"};
+
+    private void renderTabs(GuiGraphics g, int mx, int my) {
+        int ty = topPos + TAB_Y, tw = tabW();
+        for (int i = 0; i < 3; i++) {
+            int tx = tabX(i);
+            boolean sel = editIdx == i;
+            boolean disabled = i == 2 && !useTertiary;
+            boolean hov = mx >= tx && mx < tx + tw && my >= ty && my < ty + TAB_H;
+            g.fill(tx, ty, tx + tw, ty + TAB_H, disabled ? 0xFF2A2A2A : (sel ? 0xFF555555 : (hov ? 0xFF3A3A3A : 0xFF222222)));
+            drawBorder(g, tx, ty, tw, TAB_H, sel ? 0xFFFFD700 : 0xFF555555);
+            int col = disabled ? 0xFF777777 : (sel ? 0xFFFFD700 : 0xFFDDDDDD);
+            drawScaledCentered(g, Component.translatable(TAB_KEYS[i]), tx + tw / 2, ty + TAB_H / 2, tw - 4, col);
+        }
+    }
+
+    /** Dessine un texte centré, réduit si nécessaire pour tenir dans {@code maxW}. */
+    private void drawScaledCentered(GuiGraphics g, Component text, int cxCenter, int cyCenter, int maxW, int color) {
+        int w = this.font.width(text);
+        float scale = Math.min(1f, (float) maxW / Math.max(1, w));
+        g.pose().pushPose();
+        g.pose().translate(cxCenter, cyCenter, 0);
+        g.pose().scale(scale, scale, 1f);
+        g.drawString(this.font, text, -w / 2, -this.font.lineHeight / 2, color, false);
+        g.pose().popPose();
     }
 
     // ── Zones ───────────────────────────────────────────────────────────────────
@@ -215,6 +263,7 @@ public class OWTribeCreationScreen extends OWTribeScreen {
                 selectedPattern = patterns.get(i); return true;
             }
         }
+        if (handleTabClick(mx, my)) return true;
         if (isPaintMode() && inPreview(mx, my)) {
             lastPaintCX = Integer.MIN_VALUE; lastPaintCY = Integer.MIN_VALUE;
             snapshotBeforeStroke = paintPixels.clone(); draggingCanvas = true; applyBrushAt(mx, my); return true;
@@ -266,7 +315,7 @@ public class OWTribeCreationScreen extends OWTribeScreen {
     private void applyBrushAt(double mx, double my) {
         int cx = (int) (mx - (leftPos + PREV_X));
         int cy = (int) (my - (topPos + PREV_Y));
-        boolean sec = !editingPrimary;
+        int val = editIdx; // teinte peinte : 0 (primaire) / 1 (secondaire) / 2 (tertiaire)
         if (gridSize > 1) {
             int ciX0 = lastPaintCX == Integer.MIN_VALUE ? Math.floorDiv(cx, gridSize) : Math.floorDiv(lastPaintCX, gridSize);
             int ciY0 = lastPaintCY == Integer.MIN_VALUE ? Math.floorDiv(cy, gridSize) : Math.floorDiv(lastPaintCY, gridSize);
@@ -277,10 +326,10 @@ public class OWTribeCreationScreen extends OWTribeScreen {
                 float t = (steps == 0) ? 1f : (float) i / steps;
                 int iCX = Math.round(ciX0 + (ciX1 - ciX0) * t), iCY = Math.round(ciY0 + (ciY1 - ciY0) * t);
                 int px = iCX * gridSize + gridSize / 2, py = iCY * gridSize + gridSize / 2;
-                paintBrushAt(px, py, sec);
-                if (mirrorX) paintBrushAt(mirX(px), py, sec);
-                if (mirrorY) paintBrushAt(px, mirY(py), sec);
-                if (mirrorX && mirrorY) paintBrushAt(mirX(px), mirY(py), sec);
+                paintBrushAt(px, py, val);
+                if (mirrorX) paintBrushAt(mirX(px), py, val);
+                if (mirrorY) paintBrushAt(px, mirY(py), val);
+                if (mirrorX && mirrorY) paintBrushAt(mirX(px), mirY(py), val);
             }
         } else {
             if (lastPaintCX != Integer.MIN_VALUE) {
@@ -289,29 +338,29 @@ public class OWTribeCreationScreen extends OWTribeScreen {
                 for (int i = 1; i <= steps; i++) {
                     float t = (float) i / steps;
                     int ix = Math.round(lastPaintCX + fdx * t), iy = Math.round(lastPaintCY + fdy * t);
-                    paintBrushAt(ix, iy, sec);
-                    if (mirrorX) paintBrushAt(W - ix, iy, sec);
-                    if (mirrorY) paintBrushAt(ix, H - 1 - iy, sec);
-                    if (mirrorX && mirrorY) paintBrushAt(W - ix, H - 1 - iy, sec);
+                    paintBrushAt(ix, iy, val);
+                    if (mirrorX) paintBrushAt(W - ix, iy, val);
+                    if (mirrorY) paintBrushAt(ix, H - 1 - iy, val);
+                    if (mirrorX && mirrorY) paintBrushAt(W - ix, H - 1 - iy, val);
                 }
             } else {
-                paintBrushAt(cx, cy, sec);
-                if (mirrorX) paintBrushAt(mirX(cx), cy, sec);
-                if (mirrorY) paintBrushAt(cx, mirY(cy), sec);
-                if (mirrorX && mirrorY) paintBrushAt(mirX(cx), mirY(cy), sec);
+                paintBrushAt(cx, cy, val);
+                if (mirrorX) paintBrushAt(mirX(cx), cy, val);
+                if (mirrorY) paintBrushAt(cx, mirY(cy), val);
+                if (mirrorX && mirrorY) paintBrushAt(mirX(cx), mirY(cy), val);
             }
         }
         lastPaintCX = cx; lastPaintCY = cy;
     }
 
-    private void paintBrushAt(int cx, int cy, boolean useSec) {
+    private void paintBrushAt(int cx, int cy, int val) {
         int r = brushSize;
         if (gridSize > 1) {
             for (int dci = -r; dci <= r; dci++) for (int dcj = -r; dcj <= r; dcj++)
-                if (insideBrush(dci, dcj, r)) setPixel(cx + dci * gridSize, cy + dcj * gridSize, useSec);
+                if (insideBrush(dci, dcj, r)) setPixel(cx + dci * gridSize, cy + dcj * gridSize, val);
         } else {
             for (int dy = -r; dy <= r; dy++) for (int dx = -r; dx <= r; dx++)
-                if (insideBrush(dx, dy, r)) setPixel(cx + dx, cy + dy, useSec);
+                if (insideBrush(dx, dy, r)) setPixel(cx + dx, cy + dy, val);
         }
     }
     private boolean insideBrush(int dx, int dy, int r) {
@@ -321,15 +370,16 @@ public class OWTribeCreationScreen extends OWTribeScreen {
             case DIAMOND -> Math.abs(dx) + Math.abs(dy) <= r;
         };
     }
-    private void setPixel(int px, int py, boolean useSec) {
+    private void setPixel(int px, int py, int val) {
+        byte v = (byte) val;
         if (gridSize > 1) {
             int cellX = Math.floorDiv(px, gridSize) * gridSize, cellY = Math.floorDiv(py, gridSize) * gridSize;
             for (int gy = 0; gy < gridSize; gy++) for (int gx = 0; gx < gridSize; gx++) {
                 int fpx = cellX + gx, fpy = cellY + gy;
-                if (fpx >= 0 && fpx < W && fpy >= 0 && fpy < H) paintPixels[fpy * W + fpx] = useSec;
+                if (fpx >= 0 && fpx < W && fpy >= 0 && fpy < H) paintPixels[fpy * W + fpx] = v;
             }
         } else {
-            if (px >= 0 && px < W && py >= 0 && py < H) paintPixels[py * W + px] = useSec;
+            if (px >= 0 && px < W && py >= 0 && py < H) paintPixels[py * W + px] = v;
         }
     }
 
@@ -369,14 +419,13 @@ public class OWTribeCreationScreen extends OWTribeScreen {
     }
 
     private void pickHue(double mx) {
-        float h = clamp01((mx - (leftPos + CP_X)) / cpW);
-        if (editingPrimary) { primH = h; primaryColor = hsvToRgb(primH, primS, primV); }
-        else { secH = h; secondaryColor = hsvToRgb(secH, secS, secV); }
+        cH[editIdx] = clamp01((mx - (leftPos + CP_X)) / cpW);
+        cols[editIdx] = hsvToRgb(cH[editIdx], cS[editIdx], cV[editIdx]);
     }
     private void pickSV(double mx, double my) {
-        float s = clamp01((mx - (leftPos + CP_X)) / cpW), v = clamp01(1.0 - (my - (topPos + SV_Y)) / SV_H);
-        if (editingPrimary) { primS = s; primV = v; primaryColor = hsvToRgb(primH, primS, primV); }
-        else { secS = s; secV = v; secondaryColor = hsvToRgb(secH, secS, secV); }
+        cS[editIdx] = clamp01((mx - (leftPos + CP_X)) / cpW);
+        cV[editIdx] = clamp01(1.0 - (my - (topPos + SV_Y)) / SV_H);
+        cols[editIdx] = hsvToRgb(cH[editIdx], cS[editIdx], cV[editIdx]);
     }
 
     // ── Rendu ─────────────────────────────────────────────────────────────────
@@ -404,10 +453,11 @@ public class OWTribeCreationScreen extends OWTribeScreen {
 
         // Preview bannière (forme choisie)
         OWBannerRenderer.render(g, leftPos + PREV_X, topPos + PREV_Y, bannerShape,
-                primaryColor, secondaryColor, selectedPattern, paintPixels);
+                cols[0], cols[1], cols[2], useTertiary, selectedPattern, paintPixels);
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 
         renderColorPicker(g);
+        renderTabs(g, mouseX, mouseY);
         renderPatternSelector(g, mouseX, mouseY);
 
         // Widgets vanilla (boutons, EditBox) au-dessus du contenu manuel
@@ -432,7 +482,7 @@ public class OWTribeCreationScreen extends OWTribeScreen {
             g.fill(x0, cyHue, x1, cyHue + HUE_H, 0xFF000000 | hsvToRgb((float) i / STEPS, 1f, 1f));
         }
         drawPaletteBevel(g, cx, cyHue, cpW, HUE_H);
-        float curH = editingPrimary ? primH : secH;
+        float curH = cH[editIdx];
         int hx = cx + (int) (curH * cpW);
         g.fill(hx - 1, cyHue - 1, hx + 1, cyHue + HUE_H + 1, 0xFFFFFFFF);
 
@@ -445,20 +495,34 @@ public class OWTribeCreationScreen extends OWTribeScreen {
             }
         }
         drawPaletteBevel(g, cx, svY, cpW, SV_H);
-        float curS = editingPrimary ? primS : secS, curV = editingPrimary ? primV : secV;
+        float curS = cS[editIdx], curV = cV[editIdx];
         int sx = cx + (int) (curS * cpW), sy = svY + (int) ((1f - curV) * SV_H);
         g.fill(sx - 1, sy - 1, sx + 2, sy + 2, 0xFFFFFFFF);
         g.fill(sx, sy, sx + 1, sy + 1, 0xFF000000);
 
-        // Pastilles carrées (couleur 1 / 2) avec bordure noire
+        // Pastilles carrées (teintes 1 / 2 / 3). La 3ᵉ est grisée si non activée.
         int swY = topPos + SWATCH_Y;
-        drawSwatch(g, cx, swY, primaryColor, editingPrimary);
-        drawSwatch(g, cx + SWATCH_SIZE + SWATCH_GAP, swY, secondaryColor, !editingPrimary);
+        for (int i = 0; i < 3; i++) {
+            int x = cx + i * (SWATCH_SIZE + SWATCH_GAP);
+            boolean off = i == 2 && !useTertiary;
+            g.fill(x, swY, x + SWATCH_SIZE, swY + SWATCH_SIZE, 0xFF000000 | (off ? dim(cols[i]) : cols[i]));
+            drawPaletteBevel(g, x, swY, SWATCH_SIZE, SWATCH_SIZE);
+            if (editIdx == i) { // liseré de sélection
+                g.fill(x - 1, swY - 1, x + SWATCH_SIZE + 1, swY, 0xFFFFD700);
+                g.fill(x - 1, swY + SWATCH_SIZE, x + SWATCH_SIZE + 1, swY + SWATCH_SIZE + 1, 0xFFFFD700);
+            }
+        }
     }
 
-    private void drawSwatch(GuiGraphics g, int x, int y, int color, boolean active) {
-        g.fill(x, y, x + SWATCH_SIZE, y + SWATCH_SIZE, 0xFF000000 | color);
-        drawPaletteBevel(g, x, y, SWATCH_SIZE, SWATCH_SIZE);
+    private static int dim(int c) {
+        int r = ((c >> 16) & 0xFF) / 3, g = ((c >> 8) & 0xFF) / 3, b = (c & 0xFF) / 3;
+        return (r << 16) | (g << 8) | b;
+    }
+
+    /** Dégradé mini à 2 stops (a→b) ou 3 stops (a→b→c). */
+    private static int miniStop(int a, int b, int c, boolean useThree, float t) {
+        if (!useThree) return lerpColor(a, b, t);
+        return t < 0.5f ? lerpColor(a, b, t * 2f) : lerpColor(b, c, (t - 0.5f) * 2f);
     }
 
     /** Bordure biseautée : haut blanc, gauche/droite/bas noirs. */
@@ -495,31 +559,40 @@ public class OWTribeCreationScreen extends OWTribeScreen {
 
     // ── Mini aperçu d'un motif (indépendant de toute texture) ───────────────────
     private void renderMiniPattern(GuiGraphics g, int bx, int by, int size, OWTeamMosaicPattern pattern) {
-        int p = primaryColor | 0xFF000000, s = secondaryColor | 0xFF000000;
+        int p = cols[0] | 0xFF000000, s = cols[1] | 0xFF000000;
+        int th = (useTertiary ? cols[2] : cols[0]) | 0xFF000000; // 3ᵉ bande si activée
         int strips = Math.max(1, size / 3);
         switch (pattern) {
             case GRADIENT_DOWN -> { for (int i = 0; i < strips; i++) { float t = (float) i / Math.max(1, strips - 1);
-                int col = 0xFF000000 | lerpColor(primaryColor, secondaryColor, t);
+                int col = 0xFF000000 | miniStop(cols[0], cols[1], cols[2], useTertiary, t);
                 g.fill(bx, by + i * size / strips, bx + size, by + (i + 1) * size / strips, col); } }
             case GRADIENT_RIGHT -> { for (int i = 0; i < strips; i++) { float t = (float) i / Math.max(1, strips - 1);
-                int col = 0xFF000000 | lerpColor(primaryColor, secondaryColor, t);
+                int col = 0xFF000000 | miniStop(cols[0], cols[1], cols[2], useTertiary, t);
                 g.fill(bx + i * size / strips, by, bx + (i + 1) * size / strips, by + size, col); } }
             case SPLIT_H -> { int half = size / 2; g.fill(bx, by, bx + size, by + half, p); g.fill(bx, by + half, bx + size, by + size, s); }
             case SPLIT_V -> { int half = size / 2; g.fill(bx, by, bx + half, by + size, p); g.fill(bx + half, by, bx + size, by + size, s); }
-            case DIAGONAL_TL_BR -> { for (int row = 0; row < size; row++) { int split = size - row;
-                if (split > 0) g.fill(bx, by + row, bx + Math.min(split, size), by + row + 1, p);
-                if (split < size) g.fill(bx + Math.max(split, 0), by + row, bx + size, by + row + 1, s); } }
+            case DIAGONAL_TL_BR -> { for (int row = 0; row < size; row++) {
+                float t = (row + 0.5f) / size;
+                if (useTertiary) {
+                    int x1 = Math.max(0, Math.min(size, Math.round(size * (2f / 3f - t))));
+                    int x2 = Math.max(0, Math.min(size, Math.round(size * (4f / 3f - t))));
+                    if (x1 > 0) g.fill(bx, by + row, bx + x1, by + row + 1, p);
+                    if (x2 > x1) g.fill(bx + x1, by + row, bx + x2, by + row + 1, s);
+                    if (size > x2) g.fill(bx + x2, by + row, bx + size, by + row + 1, th);
+                } else { int split = size - row;
+                    if (split > 0) g.fill(bx, by + row, bx + Math.min(split, size), by + row + 1, p);
+                    if (split < size) g.fill(bx + Math.max(split, 0), by + row, bx + size, by + row + 1, s); } } }
             case THIRDS_H -> { int t1 = Math.round(size / 3f), t2 = size - t1;
-                g.fill(bx, by, bx + size, by + t1, p); g.fill(bx, by + t1, bx + size, by + t2, s); g.fill(bx, by + t2, bx + size, by + size, p); }
+                g.fill(bx, by, bx + size, by + t1, p); g.fill(bx, by + t1, bx + size, by + t2, s); g.fill(bx, by + t2, bx + size, by + size, th); }
             case THIRDS_V -> { int t1 = Math.round(size / 3f), t2 = size - t1;
-                g.fill(bx, by, bx + t1, by + size, p); g.fill(bx + t1, by, bx + t2, by + size, s); g.fill(bx + t2, by, bx + size, by + size, p); }
-            case CIRCLE_PRI -> renderMiniCircle(g, bx, by, size, primaryColor, secondaryColor);
+                g.fill(bx, by, bx + t1, by + size, p); g.fill(bx + t1, by, bx + t2, by + size, s); g.fill(bx + t2, by, bx + size, by + size, th); }
+            case CIRCLE_PRI -> renderMiniCircle(g, bx, by, size, cols[0], cols[1]);
             case STRIPES -> { int total = 2 * size; for (int row = 0; row < size; row++) {
                 int b1 = total / 3 - row, b2 = total * 2 / 3 - row;
                 int s1 = Math.max(0, Math.min(b1, size)), s2 = Math.max(0, Math.min(b2, size));
                 if (s1 > 0) g.fill(bx, by + row, bx + s1, by + row + 1, p);
                 if (s2 > s1) g.fill(bx + s1, by + row, bx + s2, by + row + 1, s);
-                if (size > s2) g.fill(bx + s2, by + row, bx + size, by + row + 1, p); } }
+                if (size > s2) g.fill(bx + s2, by + row, bx + size, by + row + 1, th); } }
             case CHECKER -> { int half = size / 2;
                 g.fill(bx, by, bx + half, by + half, p); g.fill(bx + half, by, bx + size, by + half, s);
                 g.fill(bx, by + half, bx + half, by + size, s); g.fill(bx + half, by + half, bx + size, by + size, p); }
@@ -531,9 +604,10 @@ public class OWTribeCreationScreen extends OWTribeScreen {
                     if (x1 > 0) g.fill(bx, by + row, bx + x1, by + row + 1, p);
                     if (x2 > x1) g.fill(bx + x1, by + row, bx + Math.min(x2, size), by + row + 1, s);
                     if (x2 < size) g.fill(bx + Math.max(x2, 0), by + row, bx + size, by + row + 1, p); } }
-            case CUSTOM_PAINT -> { for (int py = 0; py < size; py++) for (int px = 0; px < size; px++) {
+            case CUSTOM_PAINT -> { int[] pal = { p, s, cols[2] | 0xFF000000 }; for (int py = 0; py < size; py++) for (int px = 0; px < size; px++) {
                 int oPx = px * W / size, oPy = py * H / size;
-                g.fill(bx + px, by + py, bx + px + 1, by + py + 1, paintPixels[oPy * W + oPx] ? s : p); } }
+                int pv = paintPixels[oPy * W + oPx] & 3;
+                g.fill(bx + px, by + py, bx + px + 1, by + py + 1, pal[Math.min(pv, 2)]); } }
             default -> g.fill(bx, by, bx + size, by + size, p);
         }
     }

@@ -798,5 +798,6 @@
   "owteams.settings.title": "설정",
   "owteams.banner.select.warning": "⚠ 모양 선택은 영구적입니다",
   "owteams.chief_role": "족장",
-  "owteams.banner.bandeaux": "띠"
+  "owteams.banner.bandeaux": "띠",
+  "owteams.creation.tertiary": "색상 3"
 }

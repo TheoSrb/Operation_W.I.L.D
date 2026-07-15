@@ -23,7 +23,8 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
 
     public record Entry(int teamId, String name, String chiefName, int memberCount,
                         int primaryColor, int secondaryColor, int mosaicPatternId,
-                        int bannerShapeId, boolean isPublic, int minWildCoins, byte[] paintPixels) {}
+                        int bannerShapeId, boolean isPublic, int minWildCoins, byte[] paintPixels,
+                        int tertiaryColor, boolean useTertiary) {}
 
     public static final Type<SyncTribeListPacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "sync_tribe_list"));
@@ -45,6 +46,8 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                     byte[] px = e.paintPixels() != null ? e.paintPixels() : new byte[0];
                     ByteBufCodecs.INT.encode(buf, px.length);
                     for (byte b : px) buf.writeByte(b);
+                    ByteBufCodecs.INT.encode(buf, e.tertiaryColor());
+                    ByteBufCodecs.BOOL.encode(buf, e.useTertiary());
                 }
             },
             buf -> {
@@ -64,8 +67,10 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                     int pxLen = ByteBufCodecs.INT.decode(buf);
                     byte[] px = new byte[pxLen];
                     for (int j = 0; j < pxLen; j++) px[j] = buf.readByte();
+                    int tertiary = ByteBufCodecs.INT.decode(buf);
+                    boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
                     entries.add(new Entry(teamId, name, chief, members, primary, secondary,
-                            patternId, bannerShapeId, isPublic, minCoins, px));
+                            patternId, bannerShapeId, isPublic, minCoins, px, tertiary, useTertiary));
                 }
                 return new SyncTribeListPacket(entries);
             });
@@ -84,12 +89,12 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                 chiefName = t.getPlayerNames().get(0);
             }
             byte[] px = t.getTeamMosaicPattern() == OWTeamMosaicPattern.CUSTOM_PAINT
-                    ? OWTeamMosaicPattern.packPixels(t.getPaintPixels() != null ? t.getPaintPixels() : new boolean[0])
+                    ? OWTeamMosaicPattern.packPixels3(t.getPaintPixels() != null ? t.getPaintPixels() : new byte[0])
                     : new byte[0];
             entries.add(new Entry(t.getTeamId(), t.getTeamName(), chiefName,
                     t.getPlayerUUIDs().size(), t.getTeamColor(), t.getTeamSecondaryColor(),
                     t.getTeamMosaicPattern().getId(), t.getBannerShape().getId(),
-                    t.isPublic(), t.getMinWildCoins(), px));
+                    t.isPublic(), t.getMinWildCoins(), px, t.getTertiaryColor(), t.isUseTertiary()));
         }
         return new SyncTribeListPacket(entries);
     }
@@ -99,14 +104,15 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
             List<OWClientTribeList.Entry> out = new ArrayList<>();
             for (Entry e : packet.entries()) {
                 OWTeamMosaicPattern pattern = OWTeamMosaicPattern.byId(e.mosaicPatternId());
-                boolean[] pixels = null;
+                byte[] pixels = null;
                 if (pattern == OWTeamMosaicPattern.CUSTOM_PAINT && e.paintPixels() != null && e.paintPixels().length > 0) {
-                    pixels = OWTeamMosaicPattern.unpackPixels(e.paintPixels(),
+                    pixels = OWTeamMosaicPattern.unpackPixels3(e.paintPixels(),
                             OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT);
                 }
                 out.add(new OWClientTribeList.Entry(e.teamId(), e.name(), e.chiefName(), e.memberCount(),
                         e.primaryColor(), e.secondaryColor(), pattern,
-                        OWTeamBannerShape.byId(e.bannerShapeId()), e.isPublic(), e.minWildCoins(), pixels));
+                        OWTeamBannerShape.byId(e.bannerShapeId()), e.isPublic(), e.minWildCoins(), pixels,
+                        e.tertiaryColor(), e.useTertiary()));
             }
             OWClientTribeList.set(out);
         });

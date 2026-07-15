@@ -281,6 +281,7 @@ public class OWTeamsInterface extends Screen {
             net.tiew.operationWild.screen.tribe.OWBannerRenderer.render(
                     g, leftPos + ELEMENT_X, topPos + ELEMENT_Y, team.getBannerShape(),
                     team.getTeamColor(), team.getTeamSecondaryColor(),
+                    team.getTertiaryColor(), team.isUseTertiary(),
                     team.getTeamMosaicPattern(), team.getPaintPixels());
             RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         }

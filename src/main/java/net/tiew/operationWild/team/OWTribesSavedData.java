@@ -93,7 +93,7 @@ public class OWTribesSavedData extends SavedData {
     /** Crée une tribu neuve (chef = créateur, seul membre au départ) et l'enregistre. */
     public OWTeam createTribe(UUID chief, String chiefName, String name,
                               int primary, int secondary, OWTeamMosaicPattern pattern,
-                              OWTeamBannerShape shape, boolean[] paintPixels) {
+                              OWTeamBannerShape shape, byte[] paintPixels) {
         int id = nextTeamId();
         List<String> playerNames = new ArrayList<>();
         playerNames.add(chiefName);
@@ -140,6 +140,8 @@ public class OWTribesSavedData extends SavedData {
         tag.putInt("bannerShapeId", t.getBannerShape().getId());
         tag.putBoolean("isPublic", t.isPublic());
         tag.putInt("minWildCoins", t.getMinWildCoins());
+        tag.putInt("tertiaryColor", t.getTertiaryColor());
+        tag.putBoolean("useTertiary", t.isUseTertiary());
         tag.putString("teamCreationDate", t.getTeamCreationDate() != null ? t.getTeamCreationDate() : "");
 
         ListTag pUUIDs = new ListTag();
@@ -150,8 +152,8 @@ public class OWTribesSavedData extends SavedData {
         for (String n : t.getPlayerNames()) pNames.add(StringTag.valueOf(n));
         tag.put("playerNames", pNames);
 
-        boolean[] pixels = t.getPaintPixels();
-        tag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels(pixels != null ? pixels : new boolean[0]));
+        byte[] pixels = t.getPaintPixels();
+        tag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels3(pixels != null ? pixels : new byte[0]));
         return tag;
     }
 
@@ -171,7 +173,7 @@ public class OWTribesSavedData extends SavedData {
             }
             if (pUUIDs.isEmpty()) pUUIDs.add(owner);
 
-            boolean[] pixels = OWTeamMosaicPattern.unpackPixels(
+            byte[] pixels = OWTeamMosaicPattern.unpackPixels3(
                     tag.contains("paintPixels") ? tag.getByteArray("paintPixels") : new byte[0],
                     OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT);
 
@@ -189,6 +191,8 @@ public class OWTribesSavedData extends SavedData {
             team.setBannerShape(OWTeamBannerShape.byId(tag.getInt("bannerShapeId")));
             team.setPublic(tag.getBoolean("isPublic"));
             team.setMinWildCoins(tag.getInt("minWildCoins"));
+            if (tag.contains("tertiaryColor")) team.setTertiaryColor(tag.getInt("tertiaryColor"));
+            team.setUseTertiary(tag.getBoolean("useTertiary"));
             return team;
         } catch (Exception e) {
             return null;

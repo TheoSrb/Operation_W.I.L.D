@@ -798,5 +798,6 @@
   "owteams.settings.title": "Настройки",
   "owteams.banner.select.warning": "⚠ Выбор формы окончательный",
   "owteams.chief_role": "Вождь",
-  "owteams.banner.bandeaux": "Полосы"
+  "owteams.banner.bandeaux": "Полосы",
+  "owteams.creation.tertiary": "Цвет 3"
 }

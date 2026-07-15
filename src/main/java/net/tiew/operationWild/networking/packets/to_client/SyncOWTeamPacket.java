@@ -23,7 +23,8 @@ public record SyncOWTeamPacket(
         List<String> entityUUIDs, // UUID strings — canonical entity membership, rename-safe
         List<String> playerUUIDs, // UUID strings — canonical player membership, pseudo-safe
         byte[] paintPixels,
-        int bannerShapeId, boolean isPublic, int minWildCoins
+        int bannerShapeId, boolean isPublic, int minWildCoins,
+        int tertiaryColor, boolean useTertiary
 ) implements CustomPacketPayload {
 
     public static final Type<SyncOWTeamPacket> TYPE = new Type<>(
@@ -56,6 +57,8 @@ public record SyncOWTeamPacket(
                 ByteBufCodecs.INT.encode(buf, p.bannerShapeId());
                 ByteBufCodecs.BOOL.encode(buf, p.isPublic());
                 ByteBufCodecs.INT.encode(buf, p.minWildCoins());
+                ByteBufCodecs.INT.encode(buf, p.tertiaryColor());
+                ByteBufCodecs.BOOL.encode(buf, p.useTertiary());
             },
             buf -> {
                 int entityId = ByteBufCodecs.INT.decode(buf);
@@ -85,10 +88,12 @@ public record SyncOWTeamPacket(
                 int bannerShapeId = ByteBufCodecs.INT.decode(buf);
                 boolean isPublic = ByteBufCodecs.BOOL.decode(buf);
                 int minWildCoins = ByteBufCodecs.INT.decode(buf);
+                int tertiaryColor = ByteBufCodecs.INT.decode(buf);
+                boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
                 return new SyncOWTeamPacket(entityId, teamId, name, owner,
                         color, secondaryColor, patternId, date,
                         playerNames, entityNames, entityUUIDs, playerUUIDs, paintPixels,
-                        bannerShapeId, isPublic, minWildCoins);
+                        bannerShapeId, isPublic, minWildCoins, tertiaryColor, useTertiary);
             }
     );
 
@@ -136,11 +141,13 @@ public record SyncOWTeamPacket(
                 new ArrayList<>(team.getEntityNames()),
                 eUuids,
                 pUuids,
-                OWTeamMosaicPattern.packPixels(
-                        team.getPaintPixels() != null ? team.getPaintPixels() : new boolean[0]),
+                OWTeamMosaicPattern.packPixels3(
+                        team.getPaintPixels() != null ? team.getPaintPixels() : new byte[0]),
                 team.getBannerShape().getId(),
                 team.isPublic(),
-                team.getMinWildCoins()
+                team.getMinWildCoins(),
+                team.getTertiaryColor(),
+                team.isUseTertiary()
         );
     }
 
@@ -151,12 +158,12 @@ public record SyncOWTeamPacket(
                 OWTeamMosaicPattern pattern = OWTeamMosaicPattern.byId(packet.mosaicPatternId());
 
                 // Décompacter les pixels si le pattern est CUSTOM_PAINT
-                boolean[] pixels = null;
+                byte[] pixels = null;
                 if (pattern == OWTeamMosaicPattern.CUSTOM_PAINT
                         && packet.paintPixels() != null
                         && packet.paintPixels().length > 0) {
-                    pixels = OWTeamMosaicPattern.unpackPixels(
-                            packet.paintPixels(), 56 * 93);
+                    pixels = OWTeamMosaicPattern.unpackPixels3(
+                            packet.paintPixels(), OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT);
                 }
 
                 OWTeam newTeam = new OWTeam(
@@ -187,6 +194,8 @@ public record SyncOWTeamPacket(
                 newTeam.setBannerShape(net.tiew.operationWild.team.OWTeamBannerShape.byId(packet.bannerShapeId()));
                 newTeam.setPublic(packet.isPublic());
                 newTeam.setMinWildCoins(packet.minWildCoins());
+                newTeam.setTertiaryColor(packet.tertiaryColor());
+                newTeam.setUseTertiary(packet.useTertiary());
                 owEntity.currentTeam = newTeam;
             }
         });

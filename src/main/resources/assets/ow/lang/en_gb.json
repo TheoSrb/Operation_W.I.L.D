@@ -798,5 +798,6 @@
   "owteams.settings.title": "Settings",
   "owteams.banner.select.warning": "⚠ The shape choice is permanent",
   "owteams.chief_role": "Chief",
-  "owteams.banner.bandeaux": "Bands"
+  "owteams.banner.bandeaux": "Bands",
+  "owteams.creation.tertiary": "Colour 3"
 }

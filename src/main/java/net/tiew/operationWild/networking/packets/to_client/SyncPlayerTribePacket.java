@@ -27,7 +27,8 @@ public record SyncPlayerTribePacket(
         int bannerShapeId, boolean isPublic, int minWildCoins,
         String creationDate,
         List<String> playerNames, List<String> playerUUIDs,
-        byte[] paintPixels
+        byte[] paintPixels,
+        int tertiaryColor, boolean useTertiary
 ) implements CustomPacketPayload {
 
     public static final Type<SyncPlayerTribePacket> TYPE = new Type<>(
@@ -53,6 +54,8 @@ public record SyncPlayerTribePacket(
                 byte[] px = p.paintPixels() != null ? p.paintPixels() : new byte[0];
                 ByteBufCodecs.INT.encode(buf, px.length);
                 for (byte b : px) buf.writeByte(b);
+                ByteBufCodecs.INT.encode(buf, p.tertiaryColor());
+                ByteBufCodecs.BOOL.encode(buf, p.useTertiary());
             },
             buf -> {
                 boolean has = ByteBufCodecs.BOOL.decode(buf);
@@ -75,8 +78,11 @@ public record SyncPlayerTribePacket(
                 int pxLen = ByteBufCodecs.INT.decode(buf);
                 byte[] pixels = new byte[pxLen];
                 for (int i = 0; i < pxLen; i++) pixels[i] = buf.readByte();
+                int tertiary = ByteBufCodecs.INT.decode(buf);
+                boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
                 return new SyncPlayerTribePacket(has, teamId, name, owner, primary, secondary,
-                        patternId, bannerShapeId, isPublic, minCoins, date, pNames, pUuids, pixels);
+                        patternId, bannerShapeId, isPublic, minCoins, date, pNames, pUuids, pixels,
+                        tertiary, useTertiary);
             });
 
     @Override
@@ -86,7 +92,7 @@ public record SyncPlayerTribePacket(
         if (team == null) {
             return new SyncPlayerTribePacket(false, 0, "", "",
                     0xFFFFFF, 0xFFFFFF, 0, 0, false, 0, "",
-                    new ArrayList<>(), new ArrayList<>(), new byte[0]);
+                    new ArrayList<>(), new ArrayList<>(), new byte[0], 0xFFFFFF, false);
         }
         List<String> pUuids = new ArrayList<>();
         for (UUID u : team.getPlayerUUIDs()) pUuids.add(u.toString());
@@ -104,7 +110,9 @@ public record SyncPlayerTribePacket(
                 team.getTeamCreationDate() != null ? team.getTeamCreationDate() : "",
                 new ArrayList<>(team.getPlayerNames()),
                 pUuids,
-                OWTeamMosaicPattern.packPixels(team.getPaintPixels() != null ? team.getPaintPixels() : new boolean[0]));
+                OWTeamMosaicPattern.packPixels3(team.getPaintPixels() != null ? team.getPaintPixels() : new byte[0]),
+                team.getTertiaryColor(),
+                team.isUseTertiary());
     }
 
     public static void handle(SyncPlayerTribePacket packet, IPayloadContext context) {
@@ -114,10 +122,10 @@ public record SyncPlayerTribePacket(
                 return;
             }
             OWTeamMosaicPattern pattern = OWTeamMosaicPattern.byId(packet.mosaicPatternId());
-            boolean[] pixels = null;
+            byte[] pixels = null;
             if (pattern == OWTeamMosaicPattern.CUSTOM_PAINT
                     && packet.paintPixels() != null && packet.paintPixels().length > 0) {
-                pixels = OWTeamMosaicPattern.unpackPixels(packet.paintPixels(),
+                pixels = OWTeamMosaicPattern.unpackPixels3(packet.paintPixels(),
                         OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT);
             }
             OWTeam team = new OWTeam(
@@ -135,6 +143,8 @@ public record SyncPlayerTribePacket(
             team.setBannerShape(OWTeamBannerShape.byId(packet.bannerShapeId()));
             team.setPublic(packet.isPublic());
             team.setMinWildCoins(packet.minWildCoins());
+            team.setTertiaryColor(packet.tertiaryColor());
+            team.setUseTertiary(packet.useTertiary());
             OWClientTribeData.set(team);
         });
     }

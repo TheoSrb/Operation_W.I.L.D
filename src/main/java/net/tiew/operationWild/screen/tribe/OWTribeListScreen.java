@@ -127,7 +127,8 @@ public class OWTribeListScreen extends OWTribeScreen {
         g.pose().translate(listX + 3, rowY + 2, 0);
         g.pose().scale(s, s, 1f);
         OWBannerRenderer.render(g, 0, 0, e.bannerShape(),
-                e.primaryColor(), e.secondaryColor(), e.pattern(), e.paintPixels());
+                e.primaryColor(), e.secondaryColor(), e.tertiaryColor(), e.useTertiary(),
+                e.pattern(), e.paintPixels());
         g.pose().popPose();
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 

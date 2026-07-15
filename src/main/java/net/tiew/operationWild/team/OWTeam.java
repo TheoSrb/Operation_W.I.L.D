@@ -21,7 +21,8 @@ public class OWTeam {
     private List<String> entityNames;
     private List<UUID> entityUUIDs;
     private List<UUID> playerUUIDs;
-    private boolean[] paintPixels;
+    /** Peinture custom : 1 valeur par pixel (0 = teinte 1, 1 = teinte 2, 2 = teinte 3). */
+    private byte[] paintPixels;
 
     // ── Nouveaux champs (refonte player-centric) ─────────────────────────────
     /** Forme de la bannière (silhouette). Par défaut : classique. */
@@ -39,7 +40,7 @@ public class OWTeam {
                   int teamColor, int teamSecondaryColor, OWTeamMosaicPattern mosaicPattern,
                   UUID[] teamMembers, OWEntity[] teamEntitiesMembers, String teamCreationDate,
                   List<String> playerNames, List<String> entityNames,
-                  boolean[] paintPixels) {
+                  byte[] paintPixels) {
         this.teamId = teamId;
         this.teamName = teamName;
         this.teamOwnerUUID = teamOwnerUUID;
@@ -215,11 +216,11 @@ public class OWTeam {
         this.entityUUIDs = v != null ? v : new ArrayList<>();
     }
 
-    public boolean[] getPaintPixels() {
+    public byte[] getPaintPixels() {
         return paintPixels;
     }
 
-    public void setPaintPixels(boolean[] v) {
+    public void setPaintPixels(byte[] v) {
         this.paintPixels = v;
     }
 

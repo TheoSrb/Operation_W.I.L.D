@@ -35,7 +35,7 @@ public class OWBannerShapeSelectScreen extends Screen {
     private int previewPrimary = 0xD12020;
     private int previewSecondary = 0x2050D1;
     private OWTeamMosaicPattern previewPattern = OWTeamMosaicPattern.GRADIENT_DOWN;
-    private boolean[] previewPixels = null;
+    private byte[] previewPixels = null;
 
     private Button nextBtn, cancelBtn, confirmYesBtn, confirmNoBtn;
     private boolean confirmNext = false;

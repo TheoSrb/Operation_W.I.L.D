@@ -798,5 +798,6 @@
   "owteams.settings.title": "Paramètres",
   "owteams.banner.select.warning": "⚠ Le choix de la forme est définitif",
   "owteams.chief_role": "Chef",
-  "owteams.banner.bandeaux": "Bandeaux"
+  "owteams.banner.bandeaux": "Bandeaux",
+  "owteams.creation.tertiary": "Teinte 3"
 }

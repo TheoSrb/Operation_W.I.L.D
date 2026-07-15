@@ -66,6 +66,29 @@ public enum OWTeamMosaicPattern {
         return pixels;
     }
 
+    // ── Peinture 3 couleurs : 2 bits par pixel (valeurs 0 / 1 / 2) ──────────────
+    /** Compacte un tableau byte[] (valeurs 0-2) en byte[], 4 pixels par octet. */
+    public static byte[] packPixels3(byte[] pixels) {
+        if (pixels == null || pixels.length == 0) return new byte[0];
+        byte[] packed = new byte[(pixels.length + 3) / 4];
+        for (int i = 0; i < pixels.length; i++) {
+            int v = pixels[i] & 3;
+            packed[i >> 2] |= (byte) (v << ((i & 3) * 2));
+        }
+        return packed;
+    }
+
+    /** Décompacte un byte[] (2 bits/pixel) en byte[] de longueur `count`. */
+    public static byte[] unpackPixels3(byte[] packed, int count) {
+        byte[] pixels = new byte[count];
+        if (packed == null || packed.length == 0) return pixels;
+        int limit = Math.min(count, packed.length * 4);
+        for (int i = 0; i < limit; i++) {
+            pixels[i] = (byte) ((packed[i >> 2] >> ((i & 3) * 2)) & 3);
+        }
+        return pixels;
+    }
+
     public boolean isUnlockable() {
         return isUnlockable;
     }

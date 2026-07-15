@@ -798,5 +798,6 @@
   "owteams.settings.title": "Definições",
   "owteams.banner.select.warning": "⚠ A escolha da forma é definitiva",
   "owteams.chief_role": "Chefe",
-  "owteams.banner.bandeaux": "Faixas"
+  "owteams.banner.bandeaux": "Faixas",
+  "owteams.creation.tertiary": "Cor 3"
 }

@@ -80,10 +80,13 @@ public record CreateOWTeamWithParamsPacket(
                     ? "Nouvelle Tribu"
                     : packet.teamName().trim();
 
-            boolean[] paintPixels = OWTeamMosaicPattern.unpackPixels(
+            // (Chemin legacy, non atteint.) Conversion masque 1 bit → byte[] 0/1 pour OWTeam.
+            boolean[] mask = OWTeamMosaicPattern.unpackPixels(
                     packet.paintPixels(),
                     OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT
             );
+            byte[] paintPixels = new byte[mask.length];
+            for (int i = 0; i < mask.length; i++) paintPixels[i] = (byte) (mask[i] ? 1 : 0);
 
             OWTeam team = new OWTeam(
                     (int)(System.currentTimeMillis() & 0x7FFFFFFF),

@@ -168,8 +168,10 @@ public class OWRendererUtils {
             OWTeam bTeam = entity.currentTeam;
             int bPrimary   = bTeam.getTeamColor();
             int bSecondary = bTeam.getTeamSecondaryColor();
+            int bTertiary = bTeam.getTertiaryColor();
             int bpr = (bPrimary >> 16) & 0xFF,   bpg = (bPrimary >> 8) & 0xFF,   bpb = bPrimary & 0xFF;
             int bsr = (bSecondary >> 16) & 0xFF,  bsg = (bSecondary >> 8) & 0xFF, bsb = bSecondary & 0xFF;
+            int btr = (bTertiary >> 16) & 0xFF,   btg = (bTertiary >> 8) & 0xFF,  btb = bTertiary & 0xFF;
 
             Font bFont = Minecraft.getInstance().font;
             String rawTeamName = bTeam.getTeamName();
@@ -207,6 +209,7 @@ public class OWRendererUtils {
                     bbx0, bby0, BBW, BBH,
                     bTeam.getTeamMosaicPattern(),
                     bpr, bpg, bpb, bsr, bsg, bsb,
+                    btr, btg, btb, bTeam.isUseTertiary(),
                     bTeam.getPaintPixels(), lightU, lightV);
             poseStack.popPose();
         }
@@ -802,8 +805,10 @@ public class OWRendererUtils {
         OWTeam team = entity.currentTeam;
         int primary   = team.getTeamColor();
         int secondary = team.getTeamSecondaryColor();
+        int tertiary  = team.getTertiaryColor();
         int pr = (primary >> 16) & 0xFF,   pg = (primary >> 8) & 0xFF,   pb = primary & 0xFF;
         int sr = (secondary >> 16) & 0xFF, sg = (secondary >> 8) & 0xFF, sb = secondary & 0xFF;
+        int tr = (tertiary >> 16) & 0xFF,  tg = (tertiary >> 8) & 0xFF,  tb = tertiary & 0xFF;
 
         poseStack.pushPose();
         poseStack.translate(0, entity.getBbHeight() + upOffset, 0);
@@ -819,6 +824,7 @@ public class OWRendererUtils {
         renderBannerPattern(vc, poseStack.last().pose(),
                 x0, y0, x1, y1, x0, y0, BW, BH,
                 team.getTeamMosaicPattern(), pr, pg, pb, sr, sg, sb,
+                tr, tg, tb, team.isUseTertiary(),
                 team.getPaintPixels(), lightU, lightV);
 
         // ── Team name below the banner ─────────────────────────────────────────
@@ -845,18 +851,22 @@ public class OWRendererUtils {
             float bbx0, float bby0, float bbw, float bbh,
             OWTeamMosaicPattern pattern,
             int pr, int pg, int pb, int sr, int sg, int sb,
-            boolean[] paintPixels, int lightU, int lightV) {
+            int tr, int tg, int tb, boolean useTertiary,
+            byte[] paintPixels, int lightU, int lightV) {
 
         final float xM = (bx0 + bx1) / 2f, yM = (by0 + by1) / 2f;
         final float BW = bx1 - bx0, BH = by1 - by0;
+        // 3ᵉ bande = tertiaire si activée, sinon primaire.
+        final int qr = useTertiary ? tr : pr, qg = useTertiary ? tg : pg, qb = useTertiary ? tb : pb;
 
         if (pattern == OWTeamMosaicPattern.CUSTOM_PAINT) {
-            // Stride = 55 (matching OWTeamCreationScreen / renderFlagCustomPaint in GUI)
             if (paintPixels != null && paintPixels.length >= 55 * 93) {
                 for (int row = 0; row < 93; row++) {
                     for (int col = 0; col < 55; col++) {
-                        boolean painted = paintPixels[row * 55 + col];
-                        int cr = painted ? sr : pr, cg = painted ? sg : pg, cb = painted ? sb : pb;
+                        int v = paintPixels[row * 55 + col] & 3;
+                        int cr = v == 2 ? tr : (v == 1 ? sr : pr);
+                        int cg = v == 2 ? tg : (v == 1 ? sg : pg);
+                        int cb = v == 2 ? tb : (v == 1 ? sb : pb);
                         float wx0 = bx0 + (float) col / 55 * BW;
                         float wx1 = bx0 + (float)(col + 1) / 55 * BW;
                         float wy1 = by1 - (float) row / 93 * BH;
@@ -872,12 +882,22 @@ public class OWRendererUtils {
 
         final int STRIPS = 32;
         switch (pattern) {
-            case GRADIENT_DOWN ->
-                flagRectGradV(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV,
-                        sr, sg, sb, pr, pg, pb);
-            case GRADIENT_RIGHT ->
-                flagRectGradH(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV,
-                        pr, pg, pb, sr, sg, sb);
+            case GRADIENT_DOWN -> {
+                if (useTertiary) {
+                    flagRectGradV(vc, mat, bx0, yM, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb, pr, pg, pb);
+                    flagRectGradV(vc, mat, bx0, by0, bx1, yM, bbx0, bby0, bbw, bbh, lightU, lightV, tr, tg, tb, sr, sg, sb);
+                } else {
+                    flagRectGradV(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb, pr, pg, pb);
+                }
+            }
+            case GRADIENT_RIGHT -> {
+                if (useTertiary) {
+                    flagRectGradH(vc, mat, bx0, by0, xM, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb, sr, sg, sb);
+                    flagRectGradH(vc, mat, xM, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb, tr, tg, tb);
+                } else {
+                    flagRectGradH(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb, sr, sg, sb);
+                }
+            }
             case SPLIT_H -> {
                 flagRect(vc, mat, bx0, yM, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
                 flagRect(vc, mat, bx0, by0, bx1, yM,  bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
@@ -890,22 +910,31 @@ public class OWRendererUtils {
                 for (int j = 0; j < STRIPS; j++) {
                     float wyTop = by1 - (float) j / STRIPS * BH;
                     float wyBot = by1 - (float)(j + 1) / STRIPS * BH;
-                    float splitX = bx1 - (float) j / STRIPS * BW;
-                    if (splitX > bx0) flagRect(vc, mat, bx0, wyBot, splitX, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
-                    if (splitX < bx1) flagRect(vc, mat, splitX, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                    if (useTertiary) {
+                        float t = (j + 0.5f) / STRIPS;
+                        float sx1 = bx0 + Math.max(0f, Math.min(1f, 2f / 3f - t)) * BW;
+                        float sx2 = bx0 + Math.max(0f, Math.min(1f, 4f / 3f - t)) * BW;
+                        if (sx1 > bx0) flagRect(vc, mat, bx0, wyBot, sx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                        if (sx2 > sx1) flagRect(vc, mat, sx1, wyBot, sx2, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                        if (sx2 < bx1) flagRect(vc, mat, sx2, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, tr, tg, tb);
+                    } else {
+                        float splitX = bx1 - (float) j / STRIPS * BW;
+                        if (splitX > bx0) flagRect(vc, mat, bx0, wyBot, splitX, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                        if (splitX < bx1) flagRect(vc, mat, splitX, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
+                    }
                 }
             }
             case THIRDS_H -> {
                 float y2 = by0 + BH / 3f, y3 = by0 + 2f * BH / 3f;
                 flagRect(vc, mat, bx0, y3,  bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
                 flagRect(vc, mat, bx0, y2,  bx1, y3,  bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
-                flagRect(vc, mat, bx0, by0, bx1, y2,  bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                flagRect(vc, mat, bx0, by0, bx1, y2,  bbx0, bby0, bbw, bbh, lightU, lightV, qr, qg, qb);
             }
             case THIRDS_V -> {
                 float x2 = bx0 + BW / 3f, x3 = bx0 + 2f * BW / 3f;
                 flagRect(vc, mat, bx0, by0, x2,  by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
                 flagRect(vc, mat, x2,  by0, x3,  by1, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
-                flagRect(vc, mat, x3,  by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                flagRect(vc, mat, x3,  by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, qr, qg, qb);
             }
             case CHECKER -> {
                 flagRect(vc, mat, bx0, yM,  xM,  by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
@@ -925,7 +954,7 @@ public class OWRendererUtils {
                     float ws2 = bx0 + (float) s2 / 56 * BW;
                     if (s1 > 0)  flagRect(vc, mat, bx0, wyBot, ws1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
                     if (s2 > s1) flagRect(vc, mat, ws1, wyBot, ws2, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, sr, sg, sb);
-                    if (s2 < 56) flagRect(vc, mat, ws2, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
+                    if (s2 < 56) flagRect(vc, mat, ws2, wyBot, bx1, wyTop, bbx0, bby0, bbw, bbh, lightU, lightV, qr, qg, qb);
                 }
             }
             case DIAMOND -> {

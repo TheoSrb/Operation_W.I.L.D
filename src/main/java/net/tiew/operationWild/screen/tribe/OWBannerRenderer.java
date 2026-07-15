@@ -21,13 +21,24 @@ public final class OWBannerRenderer {
 
     private OWBannerRenderer() {}
 
-    /** Dessine la bannière complète (silhouette + motif + highlights) à l'écran en (x, y). */
+    /** Version 2 couleurs (rétrocompatible). */
     public static void render(GuiGraphics g, int x, int y, OWTeamBannerShape shape,
-                              int primary, int secondary, OWTeamMosaicPattern pattern, boolean[] paintPixels) {
+                              int primary, int secondary, OWTeamMosaicPattern pattern, byte[] paintPixels) {
+        render(g, x, y, shape, primary, secondary, secondary, false, pattern, paintPixels);
+    }
+
+    /**
+     * Dessine la bannière complète avec une 3ᵉ couleur optionnelle. Si {@code useTertiary} est faux,
+     * le rendu est identique à la version 2 couleurs. Sinon, les motifs qui le supportent (tiers H/V,
+     * rayures, dégradés) utilisent {@code tertiary} comme 3ᵉ teinte.
+     */
+    public static void render(GuiGraphics g, int x, int y, OWTeamBannerShape shape,
+                              int primary, int secondary, int tertiary, boolean useTertiary,
+                              OWTeamMosaicPattern pattern, byte[] paintPixels) {
         if (shape == null) shape = OWTeamBannerShape.CLASSIC;
         if (pattern == null) pattern = OWTeamMosaicPattern.GRADIENT_DOWN;
 
-        renderPattern(g, x, y, shape, primary, secondary, pattern, paintPixels);
+        renderPattern(g, x, y, shape, primary, secondary, tertiary, useTertiary, pattern, paintPixels);
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         renderHighlights(g, x, y, shape);
     }
@@ -44,10 +55,13 @@ public final class OWBannerRenderer {
 
     // ── Motifs ─────────────────────────────────────────────────────────────────
     private static void renderPattern(GuiGraphics g, int fx, int fy, OWTeamBannerShape shape,
-                                      int primary, int secondary, OWTeamMosaicPattern pattern, boolean[] paintPixels) {
+                                      int primary, int secondary, int tertiary, boolean useTertiary,
+                                      OWTeamMosaicPattern pattern, byte[] paintPixels) {
+        // 3ᵉ bande = tertiary si activé, sinon on retombe sur primary (comportement 2 couleurs).
+        int third = useTertiary ? tertiary : primary;
         switch (pattern) {
-            case GRADIENT_DOWN -> gradientY(g, fx, fy, shape, primary, secondary);
-            case GRADIENT_RIGHT -> gradientX(g, fx, fy, shape, primary, secondary);
+            case GRADIENT_DOWN -> gradientY(g, fx, fy, shape, primary, secondary, tertiary, useTertiary);
+            case GRADIENT_RIGHT -> gradientX(g, fx, fy, shape, primary, secondary, tertiary, useTertiary);
             case SPLIT_H -> {
                 int half = H / 2;
                 rect(g, fx, fy, shape, 0, 0, W, half, primary);
@@ -58,18 +72,21 @@ public final class OWBannerRenderer {
                 rect(g, fx, fy, shape, 0, 0, half, H, primary);
                 rect(g, fx, fy, shape, half, 0, W - half, H, secondary);
             }
-            case DIAGONAL_TL_BR -> diagonal(g, fx, fy, shape, primary, secondary);
+            case DIAGONAL_TL_BR -> {
+                if (useTertiary) diagonal3(g, fx, fy, shape, primary, secondary, tertiary);
+                else diagonal(g, fx, fy, shape, primary, secondary);
+            }
             case THIRDS_H -> {
                 int t1 = H / 3, t2 = H * 2 / 3;
                 rect(g, fx, fy, shape, 0, 0, W, t1, primary);
                 rect(g, fx, fy, shape, 0, t1, W, t2 - t1, secondary);
-                rect(g, fx, fy, shape, 0, t2, W, H - t2, primary);
+                rect(g, fx, fy, shape, 0, t2, W, H - t2, third);
             }
             case THIRDS_V -> {
                 int t1 = W / 3, t2 = W * 2 / 3;
                 rect(g, fx, fy, shape, 0, 0, t1, H, primary);
                 rect(g, fx, fy, shape, t1, 0, t2 - t1, H, secondary);
-                rect(g, fx, fy, shape, t2, 0, W - t2, H, primary);
+                rect(g, fx, fy, shape, t2, 0, W - t2, H, third);
             }
             case CIRCLE_PRI -> circle(g, fx, fy, shape, primary, secondary);
             case STRIPES -> {
@@ -80,7 +97,7 @@ public final class OWBannerRenderer {
                     int s2 = Math.max(0, Math.min(b2, W));
                     if (s1 > 0) rect(g, fx, fy, shape, 0, row, s1, 1, primary);
                     if (s2 > s1) rect(g, fx, fy, shape, s1, row, s2 - s1, 1, secondary);
-                    if (W > s2) rect(g, fx, fy, shape, s2, row, W - s2, 1, primary);
+                    if (W > s2) rect(g, fx, fy, shape, s2, row, W - s2, 1, third);
                 }
             }
             case CHECKER -> {
@@ -105,7 +122,7 @@ public final class OWBannerRenderer {
             }
             case CUSTOM_PAINT -> {
                 if (paintPixels != null && paintPixels.length >= W * H) {
-                    customPaint(g, fx, fy, shape, primary, secondary, paintPixels);
+                    customPaint(g, fx, fy, shape, primary, secondary, tertiary, paintPixels);
                 } else {
                     rect(g, fx, fy, shape, 0, 0, W, H, primary);
                 }
@@ -115,39 +132,64 @@ public final class OWBannerRenderer {
     }
 
     private static void customPaint(GuiGraphics g, int fx, int fy, OWTeamBannerShape shape,
-                                    int primary, int secondary, boolean[] pixels) {
+                                    int primary, int secondary, int tertiary, byte[] pixels) {
+        int[] palette = { primary, secondary, tertiary };
         for (int py = 0; py < H; py++) {
             int startPx = 0;
-            boolean curSec = pixels[py * W];
+            int cur = pixels[py * W] & 3;
             for (int px = 1; px <= W; px++) {
-                boolean nextSec = (px < W) && pixels[py * W + px];
-                if (px == W || nextSec != curSec) {
-                    rect(g, fx, fy, shape, startPx, py, px - startPx, 1, curSec ? secondary : primary);
+                int next = (px < W) ? (pixels[py * W + px] & 3) : -1;
+                if (px == W || next != cur) {
+                    rect(g, fx, fy, shape, startPx, py, px - startPx, 1, palette[Math.min(cur, 2)]);
                     startPx = px;
-                    curSec = nextSec;
+                    cur = next;
                 }
             }
         }
     }
 
-    private static void gradientY(GuiGraphics g, int fx, int fy, OWTeamBannerShape shape, int top, int bot) {
+    /** Diagonale à 3 bandes (teinte1 → teinte2 → teinte3) selon la valeur diagonale x/W + y/H. */
+    private static void diagonal3(GuiGraphics g, int fx, int fy, OWTeamBannerShape shape,
+                                  int a, int b, int c) {
+        final int STRIPS = 32;
+        for (int i = 0; i < STRIPS; i++) {
+            int y0 = i * H / STRIPS;
+            int stripH = (i + 1) * H / STRIPS - y0;
+            float t = (i + 0.5f) / STRIPS;
+            int x1 = Math.max(0, Math.min(W, Math.round(W * (2f / 3f - t))));
+            int x2 = Math.max(0, Math.min(W, Math.round(W * (4f / 3f - t))));
+            if (x1 > 0) rect(g, fx, fy, shape, 0, y0, x1, stripH, a);
+            if (x2 > x1) rect(g, fx, fy, shape, x1, y0, x2 - x1, stripH, b);
+            if (W > x2) rect(g, fx, fy, shape, x2, y0, W - x2, stripH, c);
+        }
+    }
+
+    private static void gradientY(GuiGraphics g, int fx, int fy, OWTeamBannerShape shape,
+                                  int a, int b, int c, boolean useThree) {
         final int STRIPS = 32;
         for (int i = 0; i < STRIPS; i++) {
             float t = (float) i / (STRIPS - 1);
-            int col = lerp(top, bot, t);
+            int col = threeStop(a, b, c, useThree, t);
             int y0 = i * H / STRIPS, y1 = (i + 1) * H / STRIPS;
             rect(g, fx, fy, shape, 0, y0, W, y1 - y0, col);
         }
     }
 
-    private static void gradientX(GuiGraphics g, int fx, int fy, OWTeamBannerShape shape, int left, int right) {
+    private static void gradientX(GuiGraphics g, int fx, int fy, OWTeamBannerShape shape,
+                                  int a, int b, int c, boolean useThree) {
         final int STRIPS = 32;
         for (int i = 0; i < STRIPS; i++) {
             float t = (float) i / (STRIPS - 1);
-            int col = lerp(left, right, t);
+            int col = threeStop(a, b, c, useThree, t);
             int x0 = i * W / STRIPS, x1 = (i + 1) * W / STRIPS;
             rect(g, fx, fy, shape, x0, 0, x1 - x0, H, col);
         }
+    }
+
+    /** Dégradé à 2 stops (a→b) ou 3 stops (a→b→c) selon {@code useThree}. */
+    private static int threeStop(int a, int b, int c, boolean useThree, float t) {
+        if (!useThree) return lerp(a, b, t);
+        return t < 0.5f ? lerp(a, b, t * 2f) : lerp(b, c, (t - 0.5f) * 2f);
     }
 
     private static void diagonal(GuiGraphics g, int fx, int fy, OWTeamBannerShape shape, int primary, int secondary) {
