@@ -18,7 +18,7 @@ public final class OWClientTribeList {
                         int primaryColor, int secondaryColor,
                         OWTeamMosaicPattern pattern, OWTeamBannerShape bannerShape,
                         boolean isPublic, int minWildCoins, byte[] paintPixels,
-                        int tertiaryColor, boolean useTertiary) {}
+                        int tertiaryColor, boolean useTertiary, int reputation) {}
 
     private static final List<Entry> ENTRIES = new ArrayList<>();
 

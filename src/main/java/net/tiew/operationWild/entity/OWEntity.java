@@ -2334,6 +2334,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     @Override
+    public void remove(net.minecraft.world.entity.Entity.RemovalReason reason) {
+        // Réputation : ne purge l'entrée que lors d'une suppression réelle (mort / discard),
+        // jamais lors d'un simple déchargement de chunk (sinon on perdrait les contributions
+        // des créatures des membres hors-ligne).
+        if (!this.level().isClientSide
+                && (reason == net.minecraft.world.entity.Entity.RemovalReason.KILLED
+                || reason == net.minecraft.world.entity.Entity.RemovalReason.DISCARDED)) {
+            net.minecraft.server.MinecraftServer srv = this.level().getServer();
+            if (srv != null) net.tiew.operationWild.team.OWReputationData.get(srv).removeEntity(this.getUUID());
+        }
+        super.remove(reason);
+    }
+
+    @Override
     public void tick() {
         super.tick();
 
@@ -2350,6 +2364,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     this.setXpStage(OWUtils.xpToNextLevel(1));
                 }
                 absorbNearbyXpOrbs();
+            }
+            // Réputation de tribu : upsert throttlé de cette créature dans le registre serveur persistant.
+            if ((this.tickCount + this.getId()) % 100 == 0) {
+                net.minecraft.server.MinecraftServer srv = this.level().getServer();
+                if (srv != null) {
+                    net.tiew.operationWild.team.OWReputationData rep = net.tiew.operationWild.team.OWReputationData.get(srv);
+                    if (this.isTame() && this.getOwnerUUID() != null) rep.upsertEntity(this);
+                    else rep.removeEntity(this.getUUID());
+                }
             }
         }
 

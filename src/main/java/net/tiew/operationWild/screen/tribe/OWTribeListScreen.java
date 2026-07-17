@@ -131,9 +131,15 @@ public class OWTribeListScreen extends OWTribeScreen {
         g.pose().popPose();
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
 
+        // Badge de réputation (petit) à gauche du bouton rejoindre / tag privé.
+        net.tiew.operationWild.core.OWReputation.Badge badge =
+                net.tiew.operationWild.core.OWReputation.badgeFor(e.reputation());
+        int badgeSize = 16;
+        int badgeSpace = badge.hasSprite() ? badgeSize + 3 : 0;
+
         int textX = listX + 3 + (int) (OWBannerRenderer.W * s) + 6;
         int nameColor = priv ? 0x808080 : 0x303030;
-        int nameMaxW = rowW - (textX - listX) - JOIN_W - 14;
+        int nameMaxW = rowW - (textX - listX) - JOIN_W - 14 - badgeSpace;
         g.drawString(this.font, trim(e.name(), nameMaxW), textX, rowY + 4, nameColor, false);
 
         // Ligne méta : chef · membres (· min pièces si public conditionné)
@@ -147,6 +153,11 @@ public class OWTribeListScreen extends OWTribeScreen {
         // Bouton rejoindre (public) ou tag « Privée »
         int jx = listX + rowW - JOIN_W - 8;
         int jy = rowY + (ROW_H - JOIN_H) / 2;
+
+        // Badge de réputation, juste à gauche du bouton / tag.
+        if (badge.hasSprite()) {
+            OWTribeReputationScreen.renderBadge(g, badge, jx - badgeSize - 3, rowY + (ROW_H - badgeSize) / 2, badgeSize);
+        }
         if (priv) {
             Component tag = Component.translatable("owteams.list.private");
             g.drawString(this.font, tag, jx + JOIN_W - this.font.width(tag), rowY + (ROW_H - 8) / 2, 0x909090, false);

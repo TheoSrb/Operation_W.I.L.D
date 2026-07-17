@@ -21,7 +21,7 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
     private static final int PAD = 4, ROW_H = 28, CONTENT_Y = 22;
     private static final int BTN_W = 64, BTN_H = 14, COIN_BTN = 14;
 
-    private Button visibilityBtn, coinMinusBtn, coinPlusBtn, transferBtn, disbandBtn, backBtn, confirmYes, confirmNo;
+    private Button visibilityBtn, coinMinusBtn, coinPlusBtn, transferBtn, disbandBtn, confirmYes, confirmNo;
     private boolean confirmDisband = false;
 
     public OWTribeSettingsScreen() {
@@ -51,10 +51,6 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
                 Component.translatable("owteams.settings.disband_action").setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xE86A6A))),
                 b -> confirmDisband = true).bounds(0, 0, BTN_W, BTN_H).build());
 
-        backBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.scan.back"),
-                        b -> Minecraft.getInstance().setScreen(new OWTribeDashboardScreen()))
-                .bounds(leftPos + IMG_W / 2 - 40, topPos + IMG_H - 22, 80, 16).build());
-
         confirmYes = addRenderableWidget(Button.builder(Component.translatable("owteams.confirm.yes"),
                 b -> { OWNetworkHandler.sendToServer(new DisbandTribePacket()); confirmDisband = false; }).bounds(0, 0, 60, 16).build());
         confirmNo = addRenderableWidget(Button.builder(Component.translatable("owteams.confirm.no"),
@@ -71,6 +67,12 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
     public void tick() {
         super.tick();
         if (!OWClientTribeData.hasTribe()) Minecraft.getInstance().setScreen(new OWTribeMenuScreen());
+    }
+
+    @Override
+    public boolean mouseClicked(double mx, double my, int button) {
+        if (button == 0 && !confirmDisband && tribeTabClicked(mx, my, Tab.SETTINGS)) return true;
+        return super.mouseClicked(mx, my, button);
     }
 
     /** Dessine une ligne de réglage (fond zébré + survol, libellé + description tronqués). */
@@ -97,12 +99,13 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
         coinPlusBtn.visible = rows && pub;
         transferBtn.visible = rows && canTransfer;
         disbandBtn.visible = rows;
-        backBtn.visible = !confirmDisband;
         confirmYes.visible = confirmDisband;
         confirmNo.visible = confirmDisband;
 
         drawPanel(g, mouseX, mouseY, partial);
         drawHeader(g, Component.translatable("owteams.settings.title"));
+        g.fill(leftPos + 6, topPos + 18, leftPos + IMG_W - 6, topPos + 19, 0xFF9A9A9A); // séparateur d'en-tête
+        if (!confirmDisband) renderTribeTabs(g, mouseX, mouseY, Tab.SETTINGS);
 
         if (t == null || !chief) { super.render(g, mouseX, mouseY, partial); return; }
 

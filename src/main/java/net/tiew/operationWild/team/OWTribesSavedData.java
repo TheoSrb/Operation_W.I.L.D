@@ -81,6 +81,13 @@ public class OWTribesSavedData extends SavedData {
         if (tribes.remove(teamId) != null) setDirty();
     }
 
+    /** Supprime TOUTES les tribus (debug/tests). Renvoie le nombre supprimé. */
+    public int clearAll() {
+        int n = tribes.size();
+        if (n > 0) { tribes.clear(); setDirty(); }
+        return n;
+    }
+
     /** Génère un id de tribu unique. */
     public int nextTeamId() {
         int id;
@@ -142,6 +149,8 @@ public class OWTribesSavedData extends SavedData {
         tag.putInt("minWildCoins", t.getMinWildCoins());
         tag.putInt("tertiaryColor", t.getTertiaryColor());
         tag.putBoolean("useTertiary", t.isUseTertiary());
+        tag.putInt("reputationOverride", t.getReputationOverride());
+        tag.putBoolean("reputationEnabled", t.isReputationEnabled());
         tag.putString("teamCreationDate", t.getTeamCreationDate() != null ? t.getTeamCreationDate() : "");
 
         ListTag pUUIDs = new ListTag();
@@ -206,6 +215,8 @@ public class OWTribesSavedData extends SavedData {
             team.setMinWildCoins(tag.getInt("minWildCoins"));
             if (tag.contains("tertiaryColor")) team.setTertiaryColor(tag.getInt("tertiaryColor"));
             team.setUseTertiary(tag.getBoolean("useTertiary"));
+            team.setReputationOverride(tag.contains("reputationOverride") ? tag.getInt("reputationOverride") : -1);
+            team.setReputationEnabled(tag.getBoolean("reputationEnabled"));
 
             List<UUID> deputies = new ArrayList<>();
             ListTag depTag = tag.getList("deputies", Tag.TAG_STRING);

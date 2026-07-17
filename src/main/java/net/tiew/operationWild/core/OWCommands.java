@@ -302,6 +302,80 @@ public class OWCommands {
         }
     }
 
+    // ── Debug : supprimer TOUTES les tribus du serveur ─────────────────────────
+    public static class WipeTribesCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owtribewipe")
+                    .requires(s -> s.hasPermission(2))
+                    .executes(WipeTribesCommand::execute));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            CommandSourceStack source = context.getSource();
+            try {
+                net.minecraft.server.MinecraftServer server = source.getServer();
+                net.tiew.operationWild.team.OWTribesSavedData data =
+                        net.tiew.operationWild.team.OWTribesSavedData.get(server);
+                int count = data.clearAll();
+                // Chaque joueur en ligne : plus de tribu, entités détachées, liste vidée.
+                for (ServerPlayer p : server.getPlayerList().getPlayers()) {
+                    net.tiew.operationWild.team.OWTribeManager.refreshEntitiesOfPlayer(server, p.getUUID());
+                    net.tiew.operationWild.team.OWTribeManager.syncPlayerTribe(server, p);
+                }
+                net.tiew.operationWild.team.OWTribeManager.broadcastTribeList(server);
+                source.sendSuccess(() -> Component.literal(count + " tribu(s) supprimée(s).")
+                        .setStyle(Style.EMPTY.withColor(0x7ddd73)), true);
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
+    // ── Admin : forcer / réinitialiser la réputation d'une tribu ────────────────
+    public static class SetTribeReputationCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(
+                    Commands.literal("owtribereputation")
+                            .requires(s -> s.hasPermission(2))
+                            .then(Commands.literal("set")
+                                    .then(Commands.argument("player", EntityArgument.player())
+                                            .then(Commands.argument("amount", IntegerArgumentType.integer(0))
+                                                    .executes(ctx -> apply(ctx, IntegerArgumentType.getInteger(ctx, "amount"))))))
+                            .then(Commands.literal("clear")
+                                    .then(Commands.argument("player", EntityArgument.player())
+                                            .executes(ctx -> apply(ctx, -1))))
+            );
+        }
+
+        /** {@code value >= 0} force la réputation ; {@code -1} enlève l'override (réputation recalculée). */
+        private static int apply(CommandContext<CommandSourceStack> context, int value) {
+            CommandSourceStack source = context.getSource();
+            try {
+                ServerPlayer player = EntityArgument.getPlayer(context, "player");
+                net.minecraft.server.MinecraftServer server = source.getServer();
+                net.tiew.operationWild.team.OWTribesSavedData data =
+                        net.tiew.operationWild.team.OWTribesSavedData.get(server);
+                OWTeam team = data.findTeamByMember(player.getUUID());
+                if (team == null) {
+                    source.sendFailure(Component.translatable("owteams.reputation.command.no_tribe", player.getName().getString()));
+                    return 0;
+                }
+                team.setReputationOverride(value);
+                data.putTribe(team);
+                net.tiew.operationWild.team.OWTribeManager.syncTribeToOnlineMembers(server, team);
+                net.tiew.operationWild.team.OWTribeManager.broadcastTribeList(server);
+
+                if (value >= 0) {
+                    source.sendSuccess(() -> Component.translatable("owteams.reputation.command.set",
+                            team.getTeamName(), value).setStyle(Style.EMPTY.withColor(0x7ddd73)), true);
+                } else {
+                    source.sendSuccess(() -> Component.translatable("owteams.reputation.command.cleared",
+                            team.getTeamName()).setStyle(Style.EMPTY.withColor(0x7ddd73)), true);
+                }
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
     public static class ForceTameCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
             dispatcher.register(

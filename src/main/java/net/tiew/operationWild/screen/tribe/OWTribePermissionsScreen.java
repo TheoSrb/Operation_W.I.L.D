@@ -55,10 +55,6 @@ public class OWTribePermissionsScreen extends OWTribeScreen {
     protected void init() {
         super.init();
         listRows = (IMG_H - LIST_Y - FOOTER_H) / ROW_H;
-        this.addRenderableWidget(Button.builder(
-                        Component.translatable("owteams.scan.back"),
-                        b -> Minecraft.getInstance().setScreen(new OWTribeDashboardScreen()))
-                .bounds(leftPos + 8, topPos + IMG_H - FOOTER_H + 4, IMG_W - 16, 14).build());
     }
 
     private boolean canEdit() {
@@ -98,6 +94,7 @@ public class OWTribePermissionsScreen extends OWTribeScreen {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        if (button == 0 && tribeTabClicked(mx, my, Tab.PERMISSIONS)) return true;
         OWTeam t = OWClientTribeData.get();
         if (t != null && button == 0) {
             List<UUID> uuids = t.getPlayerUUIDs();
@@ -213,6 +210,7 @@ public class OWTribePermissionsScreen extends OWTribeScreen {
         }
 
         super.render(g, mouseX, mouseY, partial);
+        renderTribeTabs(g, mouseX, mouseY, Tab.PERMISSIONS);
 
         // Tooltip descriptif de la permission survolée (au-dessus de tout).
         if (hoveredPerm >= 0) {

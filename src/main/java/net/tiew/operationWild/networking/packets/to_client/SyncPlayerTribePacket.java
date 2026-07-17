@@ -29,7 +29,8 @@ public record SyncPlayerTribePacket(
         List<String> playerNames, List<String> playerUUIDs,
         byte[] paintPixels,
         int tertiaryColor, boolean useTertiary,
-        List<String> deputyUUIDs, List<String> permUUIDs, List<Integer> permMasks
+        List<String> deputyUUIDs, List<String> permUUIDs, List<Integer> permMasks,
+        int reputation, boolean reputationEnabled
 ) implements CustomPacketPayload {
 
     public static final Type<SyncPlayerTribePacket> TYPE = new Type<>(
@@ -64,6 +65,8 @@ public record SyncPlayerTribePacket(
                     ByteBufCodecs.STRING_UTF8.encode(buf, p.permUUIDs().get(i));
                     ByteBufCodecs.INT.encode(buf, p.permMasks().get(i));
                 }
+                ByteBufCodecs.INT.encode(buf, p.reputation());
+                ByteBufCodecs.BOOL.encode(buf, p.reputationEnabled());
             },
             buf -> {
                 boolean has = ByteBufCodecs.BOOL.decode(buf);
@@ -95,20 +98,22 @@ public record SyncPlayerTribePacket(
                 List<String> permU = new ArrayList<>(prc);
                 List<Integer> permM = new ArrayList<>(prc);
                 for (int i = 0; i < prc; i++) { permU.add(ByteBufCodecs.STRING_UTF8.decode(buf)); permM.add(ByteBufCodecs.INT.decode(buf)); }
+                int reputation = ByteBufCodecs.INT.decode(buf);
+                boolean repEnabled = ByteBufCodecs.BOOL.decode(buf);
                 return new SyncPlayerTribePacket(has, teamId, name, owner, primary, secondary,
                         patternId, bannerShapeId, isPublic, minCoins, date, pNames, pUuids, pixels,
-                        tertiary, useTertiary, deputies, permU, permM);
+                        tertiary, useTertiary, deputies, permU, permM, reputation, repEnabled);
             });
 
     @Override
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
-    public static SyncPlayerTribePacket of(OWTeam team) {
+    public static SyncPlayerTribePacket of(OWTeam team, int reputation) {
         if (team == null) {
             return new SyncPlayerTribePacket(false, 0, "", "",
                     0xFFFFFF, 0xFFFFFF, 0, 0, false, 0, "",
                     new ArrayList<>(), new ArrayList<>(), new byte[0], 0xFFFFFF, false,
-                    new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+                    new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 0, false);
         }
         List<String> pUuids = new ArrayList<>();
         for (UUID u : team.getPlayerUUIDs()) pUuids.add(u.toString());
@@ -134,7 +139,7 @@ public record SyncPlayerTribePacket(
                 OWTeamMosaicPattern.packPixels3(team.getPaintPixels() != null ? team.getPaintPixels() : new byte[0]),
                 team.getTertiaryColor(),
                 team.isUseTertiary(),
-                deputies, permU, permM);
+                deputies, permU, permM, reputation, team.isReputationEnabled());
     }
 
     public static void handle(SyncPlayerTribePacket packet, IPayloadContext context) {
@@ -176,6 +181,8 @@ public record SyncPlayerTribePacket(
                 try { team.setPermissions(UUID.fromString(packet.permUUIDs().get(i)), packet.permMasks().get(i)); }
                 catch (IllegalArgumentException ignored) {}
             }
+            team.setReputation(packet.reputation());
+            team.setReputationEnabled(packet.reputationEnabled());
             OWClientTribeData.set(team);
         });
     }

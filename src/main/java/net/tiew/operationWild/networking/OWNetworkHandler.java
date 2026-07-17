@@ -70,6 +70,7 @@ public class OWNetworkHandler {
         registrar.playToServer(SetDeputyPacket.TYPE, SetDeputyPacket.STREAM_CODEC, SetDeputyPacket::handle);
         registrar.playToServer(SetMemberPermissionPacket.TYPE, SetMemberPermissionPacket.STREAM_CODEC, SetMemberPermissionPacket::handle);
         registrar.playToServer(BuyBannerShapePacket.TYPE, BuyBannerShapePacket.STREAM_CODEC, BuyBannerShapePacket::handle);
+        registrar.playToServer(EnableTribeReputationPacket.TYPE, EnableTribeReputationPacket.STREAM_CODEC, EnableTribeReputationPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);

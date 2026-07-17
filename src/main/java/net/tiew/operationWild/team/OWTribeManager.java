@@ -82,19 +82,21 @@ public final class OWTribeManager {
     public static void syncPlayerTribe(MinecraftServer server, ServerPlayer player) {
         if (server == null || player == null) return;
         OWTeam team = OWTribesSavedData.get(server).findTeamByMember(player.getUUID());
-        OWNetworkHandler.sendToClient(SyncPlayerTribePacket.of(team), player);
+        int reputation = team != null
+                ? net.tiew.operationWild.core.OWReputation.compute(OWReputationData.get(server), team) : 0;
+        OWNetworkHandler.sendToClient(SyncPlayerTribePacket.of(team, reputation), player);
     }
 
     /** Pousse au joueur la liste de toutes les tribus du serveur (pour l'écran liste). */
     public static void syncTribeList(MinecraftServer server, ServerPlayer player) {
         if (server == null || player == null) return;
-        OWNetworkHandler.sendToClient(SyncTribeListPacket.of(OWTribesSavedData.get(server)), player);
+        OWNetworkHandler.sendToClient(SyncTribeListPacket.of(server), player);
     }
 
     /** Diffuse la liste des tribus à tous les joueurs connectés (après création / dissolution / réglages). */
     public static void broadcastTribeList(MinecraftServer server) {
         if (server == null) return;
-        SyncTribeListPacket pkt = SyncTribeListPacket.of(OWTribesSavedData.get(server));
+        SyncTribeListPacket pkt = SyncTribeListPacket.of(server);
         for (ServerPlayer p : server.getPlayerList().getPlayers()) OWNetworkHandler.sendToClient(pkt, p);
     }
 

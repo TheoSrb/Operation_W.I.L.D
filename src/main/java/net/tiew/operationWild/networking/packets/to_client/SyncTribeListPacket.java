@@ -24,7 +24,7 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
     public record Entry(int teamId, String name, String chiefName, int memberCount,
                         int primaryColor, int secondaryColor, int mosaicPatternId,
                         int bannerShapeId, boolean isPublic, int minWildCoins, byte[] paintPixels,
-                        int tertiaryColor, boolean useTertiary) {}
+                        int tertiaryColor, boolean useTertiary, int reputation) {}
 
     public static final Type<SyncTribeListPacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "sync_tribe_list"));
@@ -48,6 +48,7 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                     for (byte b : px) buf.writeByte(b);
                     ByteBufCodecs.INT.encode(buf, e.tertiaryColor());
                     ByteBufCodecs.BOOL.encode(buf, e.useTertiary());
+                    ByteBufCodecs.INT.encode(buf, e.reputation());
                 }
             },
             buf -> {
@@ -69,8 +70,9 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                     for (int j = 0; j < pxLen; j++) px[j] = buf.readByte();
                     int tertiary = ByteBufCodecs.INT.decode(buf);
                     boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
+                    int reputation = ByteBufCodecs.INT.decode(buf);
                     entries.add(new Entry(teamId, name, chief, members, primary, secondary,
-                            patternId, bannerShapeId, isPublic, minCoins, px, tertiary, useTertiary));
+                            patternId, bannerShapeId, isPublic, minCoins, px, tertiary, useTertiary, reputation));
                 }
                 return new SyncTribeListPacket(entries);
             });
@@ -78,9 +80,12 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
     @Override
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
-    public static SyncTribeListPacket of(OWTribesSavedData data) {
+    public static SyncTribeListPacket of(net.minecraft.server.MinecraftServer server) {
+        OWTribesSavedData data = OWTribesSavedData.get(server);
+        net.tiew.operationWild.team.OWReputationData repData = net.tiew.operationWild.team.OWReputationData.get(server);
         List<Entry> entries = new ArrayList<>();
         for (OWTeam t : data.getAllTribes()) {
+            int reputation = net.tiew.operationWild.core.OWReputation.compute(repData, t);
             String chiefName = "?";
             int chiefIdx = t.getPlayerUUIDs().indexOf(t.getTeamOwnerUUID());
             if (chiefIdx >= 0 && chiefIdx < t.getPlayerNames().size()) {
@@ -94,7 +99,7 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
             entries.add(new Entry(t.getTeamId(), t.getTeamName(), chiefName,
                     t.getPlayerUUIDs().size(), t.getTeamColor(), t.getTeamSecondaryColor(),
                     t.getTeamMosaicPattern().getId(), t.getBannerShape().getId(),
-                    t.isPublic(), t.getMinWildCoins(), px, t.getTertiaryColor(), t.isUseTertiary()));
+                    t.isPublic(), t.getMinWildCoins(), px, t.getTertiaryColor(), t.isUseTertiary(), reputation));
         }
         return new SyncTribeListPacket(entries);
     }
@@ -112,7 +117,7 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                 out.add(new OWClientTribeList.Entry(e.teamId(), e.name(), e.chiefName(), e.memberCount(),
                         e.primaryColor(), e.secondaryColor(), pattern,
                         OWTeamBannerShape.byId(e.bannerShapeId()), e.isPublic(), e.minWildCoins(), pixels,
-                        e.tertiaryColor(), e.useTertiary()));
+                        e.tertiaryColor(), e.useTertiary(), e.reputation()));
             }
             OWClientTribeList.set(out);
         });

@@ -125,6 +125,9 @@ public class ServerEvents {
             // Tribu : rétablit la tribu de ses entités chargées, et lui pousse sa tribu + la liste serveur.
             net.minecraft.server.MinecraftServer server = player.getServer();
             if (server != null) {
+                // Réputation : instantané de l'Expérience d'Apprivoisement du joueur dans le registre.
+                net.tiew.operationWild.team.OWReputationData.get(server)
+                        .setTamingXp(player.getUUID(), net.tiew.operationWild.core.OWTamingXp.getTamingXp(player));
                 net.tiew.operationWild.team.OWTribeManager.refreshEntitiesOfPlayer(server, player.getUUID());
                 net.tiew.operationWild.team.OWTribeManager.syncPlayerTribe(server, player);
                 net.tiew.operationWild.team.OWTribeManager.syncTribeList(server, player);
@@ -144,6 +147,7 @@ public class ServerEvents {
     }
 
     private static int slingshotDecayCounter = 0;
+    private static int reputationSyncCounter = 0;
 
     /** Décai périodique (~10 s) des fissures de la fronde, exécuté sur le thread principal (remplace l'ancien Timer). */
     @SubscribeEvent
@@ -151,6 +155,25 @@ public class ServerEvents {
         if (++slingshotDecayCounter >= 200) {
             slingshotDecayCounter = 0;
             net.tiew.operationWild.entity.misc.SlingshotProjectile.decayTick(event.getServer());
+        }
+
+        // Réputation de tribu : rafraîchissement périodique (~5 s) — instantané de l'Expérience
+        // d'Apprivoisement des joueurs en ligne, puis resync du dashboard + de la liste pour que le
+        // score affiché reste vivant pendant qu'un écran de tribu est ouvert.
+        if (++reputationSyncCounter >= 100) {
+            reputationSyncCounter = 0;
+            net.minecraft.server.MinecraftServer server = event.getServer();
+            java.util.List<net.minecraft.server.level.ServerPlayer> players = server.getPlayerList().getPlayers();
+            if (!players.isEmpty()) {
+                net.tiew.operationWild.team.OWReputationData repData = net.tiew.operationWild.team.OWReputationData.get(server);
+                for (net.minecraft.server.level.ServerPlayer p : players) {
+                    repData.setTamingXp(p.getUUID(), net.tiew.operationWild.core.OWTamingXp.getTamingXp(p));
+                }
+                for (net.minecraft.server.level.ServerPlayer p : players) {
+                    net.tiew.operationWild.team.OWTribeManager.syncPlayerTribe(server, p);
+                }
+                net.tiew.operationWild.team.OWTribeManager.broadcastTribeList(server);
+            }
         }
     }
 

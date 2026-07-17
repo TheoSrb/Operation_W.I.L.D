@@ -24,17 +24,11 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
 
     private static final ResourceLocation OW_TEAMS =
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_teams_interface.png");
-    private static final ResourceLocation OW_INVENTORY =
-            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_inventory_gui.png");
-    private static final ResourceLocation OW_SPRITES =
-            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_teams_sprites.png");
 
     private static final int BANNER_X = 6, BANNER_Y = 18;   // remontée de 15 px
     private static final float BANNER_SCALE = 1.15f;   // un peu plus grande que la pleine taille
     private static final int LIST_X_OFF = 76, LIST_Y = 34, LIST_ROW_H = 12, LIST_ROWS = 9;
-    // Onglets à GAUCHE au-dessus du panneau : Permissions puis Paramètres. Icônes inviter/quitter à droite.
-    private static final int TAB_Y = -18, TAB_W = 20, TAB_H = 18;
-    private static final int PERM_TAB_X_OFF = 2, SETTINGS_TAB_X_OFF = 2 + TAB_W + 1;
+    // Barre d'onglets (Tribu / Permissions / Réputation / Paramètres) gérée par OWTribeScreen. Icônes inviter/quitter à droite.
     private static final int RIGHT_X_OFF = IMG_W - 1, ICON_SIZE = 18;
     private static final int INVITE_Y = 3, LEAVE_Y = INVITE_Y + ICON_SIZE + 4;
 
@@ -124,11 +118,6 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         return true;
     }
 
-    private boolean overTab(double mx, double my, int xOff) {
-        int x = leftPos + xOff, y = topPos + TAB_Y;
-        return mx >= x && mx < x + TAB_W && my >= y && my < y + TAB_H;
-    }
-
     /** Positions (offsets depuis listX) des boutons d'une ligne : {adjoint, kick, sprite} ; -1 si absent. */
     private int[] rowButtonsX(int contentW, boolean tChief, boolean tDeputy, boolean chiefV, boolean deputyV) {
         int rx = contentW, spriteX = -1;
@@ -145,26 +134,11 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         return mx >= x && mx < x + 10 && my >= rowY && my < rowY + LIST_ROW_H - 1;
     }
 
-    /** Son de changement d'onglet, identique à l'inventaire d'entité (clic bouton vanilla). */
-    private void playTabSwitch() {
-        Minecraft.getInstance().getSoundManager().play(
-                SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-    }
-
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
         if (confirm != Confirm.NONE) return super.mouseClicked(mx, my, button);
         boolean chief = isChief(), deputy = isDeputyLocal();
-        if (button == 0 && (chief || deputy) && overTab(mx, my, PERM_TAB_X_OFF)) {
-            playTabSwitch();
-            Minecraft.getInstance().setScreen(new OWTribePermissionsScreen());
-            return true;
-        }
-        if (button == 0 && chief && overTab(mx, my, SETTINGS_TAB_X_OFF)) {
-            playTabSwitch();
-            Minecraft.getInstance().setScreen(new OWTribeSettingsScreen());
-            return true;
-        }
+        if (button == 0 && tribeTabClicked(mx, my, Tab.DASHBOARD)) return true;
         OWTeam t = OWClientTribeData.get();
         if (button == 0 && t != null && (chief || deputy)) {
             List<UUID> uuids = t.getPlayerUUIDs();
@@ -204,13 +178,11 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
 
         drawPanel(g, mouseX, mouseY, partial);
 
-        if (!isConfirm) {
-            // Onglet Permissions : icône de ow_teams_sprites.png (0,24) ; Paramètres : icône d'inventaire.
-            if (chief || deputy) renderTab(g, mouseX, mouseY, PERM_TAB_X_OFF, OW_SPRITES, 0, 24, "owteams.permissions.title");
-            if (chief) renderTab(g, mouseX, mouseY, SETTINGS_TAB_X_OFF, OW_INVENTORY, 176, 80, "owteams.settings.title");
+        if (t == null) {
+            if (!isConfirm) renderTribeTabs(g, mouseX, mouseY, Tab.DASHBOARD);
+            super.render(g, mouseX, mouseY, partial);
+            return;
         }
-
-        if (t == null) { super.render(g, mouseX, mouseY, partial); return; }
 
         // Titre de la tribu tout en haut, aligné à gauche.
         g.drawString(this.font, Component.literal(t.getTeamName()), leftPos + 8, topPos + 7, 0x404040, false);
@@ -224,6 +196,13 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
                 t.getTeamMosaicPattern(), t.getPaintPixels());
         g.pose().popPose();
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+
+        // Badge de réputation posé sur le bas de la bannière (comme une médaille), plus gros.
+        net.tiew.operationWild.core.OWReputation.Badge badge =
+                net.tiew.operationWild.core.OWReputation.badgeFor(t.getReputation());
+        int badgeSize = 42;
+        int badgeX = leftPos + 34, badgeY = topPos + 95;
+        if (badge.hasSprite()) OWTribeReputationScreen.renderBadge(g, badge, badgeX, badgeY, badgeSize);
 
         // Liste des membres (droite)
         g.drawString(this.font, Component.translatable("owteams.players_label"), listX, topPos + 24, 0x404040, false);
@@ -240,6 +219,9 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
         if (leaveBtn.visible)
             g.blit(OW_TEAMS, leaveBtn.getX() + (ICON_SIZE - 16) / 2, leaveBtn.getY() + (ICON_SIZE - 16) / 2, 32, 166, 16, 16);
 
+        // Barre d'onglets (Tribu / Permissions / Réputation / Paramètres) au-dessus du panneau.
+        if (!isConfirm) renderTribeTabs(g, mouseX, mouseY, Tab.DASHBOARD);
+
         // Tooltip de rôle (Chef en doré / Chef Adjoint en bleu clair), au-dessus de tout.
         if (hoverRole != 0 && !isConfirm) {
             int col = hoverRole == 1 ? 0xFFD700 : 0x66CCFF;
@@ -250,19 +232,24 @@ public class OWTribeDashboardScreen extends OWTribeScreen {
                     roleMx, roleMy);
         }
 
+        // Tooltip du badge de réputation (nom + score).
+        if (badge.hasSprite() && !isConfirm
+                && mouseX >= badgeX && mouseX < badgeX + badgeSize
+                && mouseY >= badgeY && mouseY < badgeY + badgeSize) {
+            java.util.List<net.minecraft.util.FormattedCharSequence> tip = new java.util.ArrayList<>();
+            tip.add(Component.translatable(badge.translationKey()).withStyle(net.minecraft.network.chat.Style.EMPTY
+                    .withBold(true).withColor(net.minecraft.network.chat.TextColor.fromRgb(badge.accent()))).getVisualOrderText());
+            tip.add(Component.translatable("owteams.reputation.score",
+                            OWTribeReputationScreen.formatNumber(t.getReputation()))
+                    .withStyle(net.minecraft.network.chat.Style.EMPTY
+                            .withColor(net.minecraft.network.chat.TextColor.fromRgb(0xBBBBBB))).getVisualOrderText());
+            g.renderTooltip(this.font, tip, mouseX, mouseY);
+        }
+
         if (isConfirm) {
             g.fill(0, 0, this.width, this.height, 0x99000000);
             renderConfirmOverlay(g, mouseX, mouseY, partial, t);
         }
-    }
-
-    private void renderTab(GuiGraphics g, int mouseX, int mouseY, int xOff,
-                           ResourceLocation iconTex, int iconU, int iconV, String tooltipKey) {
-        int x = leftPos + xOff, y = topPos + TAB_Y;
-        boolean hov = overTab(mouseX, mouseY, xOff);
-        g.blit(OW_INVENTORY, x, y, hov ? 20 : 0, 206, TAB_W, TAB_H);
-        g.blit(iconTex, x + 2, y + 2, iconU, iconV, 16, 16);
-        if (hov) g.renderTooltip(this.font, Component.translatable(tooltipKey), mouseX, mouseY);
     }
 
     private String trim(String s, int maxW) {

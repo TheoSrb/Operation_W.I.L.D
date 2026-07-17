@@ -40,6 +40,13 @@ public class OWTeam {
     private List<UUID> deputyUUIDs = new ArrayList<>();
     /** Permissions granulaires par membre simple (UUID → bitmask {@link net.tiew.operationWild.team.OWTribePermission}). */
     private Map<UUID, Integer> memberPermissions = new HashMap<>();
+    /** Réputation de tribu (score de prestige) — calculée côté serveur, poussée au client pour l'affichage.
+     *  Non sérialisée : la source de vérité est {@link net.tiew.operationWild.team.OWReputationData}. */
+    private transient int reputation = 0;
+    /** Réputation forcée par admin (commande) : -1 = pas d'override (réputation calculée normalement). Persistée. */
+    private int reputationOverride = -1;
+    /** La réputation doit être activée une fois par la tribu (dans l'onglet) avant d'être suivie et affichée. */
+    private boolean reputationEnabled = false;
 
     // Constructeur complet
     public OWTeam(int teamId, String teamName, UUID teamOwnerUUID,
@@ -326,4 +333,18 @@ public class OWTeam {
     public void setPermissions(UUID u, int mask) { if (u != null) getMemberPermissions().put(u, mask); }
 
     public boolean hasPermissionBit(UUID u, int bit) { return (getPermissions(u) & bit) != 0; }
+
+    // ── Réputation (affichage client) ────────────────────────────────────────────
+    public int getReputation() { return reputation; }
+
+    public void setReputation(int v) { this.reputation = Math.max(0, v); }
+
+    /** -1 = pas d'override (réputation calculée). Sinon, valeur forcée par la commande admin. */
+    public int getReputationOverride() { return reputationOverride; }
+
+    public void setReputationOverride(int v) { this.reputationOverride = v < 0 ? -1 : v; }
+
+    public boolean isReputationEnabled() { return reputationEnabled; }
+
+    public void setReputationEnabled(boolean v) { this.reputationEnabled = v; }
 }
