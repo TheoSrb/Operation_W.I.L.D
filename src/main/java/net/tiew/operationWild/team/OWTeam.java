@@ -10,6 +10,9 @@ import java.util.UUID;
 
 public class OWTeam {
 
+    /** Nombre maximum de conditions d'entrée cumulables sur une tribu publique. */
+    public static final int MAX_JOIN_REQUIREMENTS = 3;
+
     private int teamId;
     private String teamName;
     private UUID teamOwnerUUID;
@@ -31,8 +34,12 @@ public class OWTeam {
     private OWTeamBannerShape bannerShape = OWTeamBannerShape.CLASSIC;
     /** Confidentialité : privée par défaut. Une tribu publique est rejoignable par n'importe quel joueur. */
     private boolean isPublic = false;
-    /** Condition d'entrée d'une tribu publique : nombre minimum de Pièces Sauvages du joueur. */
-    private int minWildCoins = 0;
+    /** Conditions d'entrée d'une tribu publique : 0 à {@link #MAX_JOIN_REQUIREMENTS}, toutes requises
+     *  simultanément. Liste vide = tribu publique ouverte à tous. */
+    private List<OWTribeJoinRequirement> joinRequirements = new ArrayList<>();
+    /** Tribu publique : un joueur qui remplit les conditions entre-t-il directement ({@code true}), ou
+     *  sa demande part-elle au chef et aux adjoints pour validation ({@code false}, défaut) ? */
+    private boolean directJoin = false;
     /** 3ᵉ couleur optionnelle (utilisée par certains motifs si {@link #useTertiary} est vrai). */
     private int tertiaryColor = 0x30B030;
     private boolean useTertiary = false;
@@ -254,12 +261,35 @@ public class OWTeam {
         this.isPublic = v;
     }
 
-    public int getMinWildCoins() {
-        return minWildCoins;
+    public List<OWTribeJoinRequirement> getJoinRequirements() {
+        if (joinRequirements == null) joinRequirements = new ArrayList<>();
+        return joinRequirements;
     }
 
-    public void setMinWildCoins(int v) {
-        this.minWildCoins = Math.max(0, v);
+    /** Remplace les conditions d'entrée. La liste est nettoyée (doublons, {@code NONE}, seuils, nombre max). */
+    public void setJoinRequirements(List<OWTribeJoinRequirement> v) {
+        this.joinRequirements = OWTribeJoinRequirement.sanitize(v);
+    }
+
+    /** Vrai si la tribu impose au moins une condition d'entrée. */
+    public boolean hasJoinRequirements() {
+        return !getJoinRequirements().isEmpty();
+    }
+
+    public boolean isDirectJoin() {
+        return directJoin;
+    }
+
+    public void setDirectJoin(boolean v) {
+        this.directJoin = v;
+    }
+
+    /** L'exigence portant sur {@code condition}, ou {@code null} si la tribu ne l'impose pas. */
+    public OWTribeJoinRequirement requirementFor(OWTribeJoinCondition condition) {
+        for (OWTribeJoinRequirement r : getJoinRequirements()) {
+            if (r.condition() == condition) return r;
+        }
+        return null;
     }
 
     public int getTertiaryColor() {

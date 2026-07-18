@@ -13,17 +13,29 @@ import net.tiew.operationWild.client.OWClientTribeList;
 import net.tiew.operationWild.team.OWTeam;
 import net.tiew.operationWild.team.OWTeamBannerShape;
 import net.tiew.operationWild.team.OWTeamMosaicPattern;
+import net.tiew.operationWild.team.OWTribeJoinRequirement;
 import net.tiew.operationWild.team.OWTribesSavedData;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/** Liste de toutes les tribus du serveur, pour l'écran de découverte / adhésion. */
+/**
+ * Liste de toutes les tribus du serveur, pour l'écran de découverte / adhésion.
+ *
+ * <p>Le paquet est <b>propre à chaque joueur</b> : chaque {@link Req#met()} dit si le destinataire
+ * remplit cette condition d'entrée, pour l'afficher en vert / rouge sans que le client ait à mesurer
+ * quoi que ce soit. Le serveur revérifie à l'adhésion.</p>
+ */
 public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPayload {
+
+    /** Une condition d'entrée d'une tribu, assortie du verdict pour le destinataire du paquet. */
+    public record Req(OWTribeJoinRequirement requirement, boolean met) {}
 
     public record Entry(int teamId, String name, String chiefName, int memberCount,
                         int primaryColor, int secondaryColor, int mosaicPatternId,
-                        int bannerShapeId, boolean isPublic, int minWildCoins, byte[] paintPixels,
+                        int bannerShapeId, boolean isPublic,
+                        List<Req> joinRequirements, boolean directJoin,
+                        byte[] paintPixels,
                         int tertiaryColor, boolean useTertiary, int reputation) {}
 
     public static final Type<SyncTribeListPacket> TYPE = new Type<>(
@@ -42,7 +54,12 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                     ByteBufCodecs.INT.encode(buf, e.mosaicPatternId());
                     ByteBufCodecs.INT.encode(buf, e.bannerShapeId());
                     ByteBufCodecs.BOOL.encode(buf, e.isPublic());
-                    ByteBufCodecs.INT.encode(buf, e.minWildCoins());
+                    ByteBufCodecs.BOOL.encode(buf, e.directJoin());
+                    ByteBufCodecs.INT.encode(buf, e.joinRequirements().size());
+                    for (Req r : e.joinRequirements()) {
+                        OWTribeJoinRequirement.STREAM_CODEC.encode(buf, r.requirement());
+                        ByteBufCodecs.BOOL.encode(buf, r.met());
+                    }
                     byte[] px = e.paintPixels() != null ? e.paintPixels() : new byte[0];
                     ByteBufCodecs.INT.encode(buf, px.length);
                     for (byte b : px) buf.writeByte(b);
@@ -64,7 +81,13 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                     int patternId = ByteBufCodecs.INT.decode(buf);
                     int bannerShapeId = ByteBufCodecs.INT.decode(buf);
                     boolean isPublic = ByteBufCodecs.BOOL.decode(buf);
-                    int minCoins = ByteBufCodecs.INT.decode(buf);
+                    boolean directJoin = ByteBufCodecs.BOOL.decode(buf);
+                    int reqCount = ByteBufCodecs.INT.decode(buf);
+                    List<Req> reqs = new ArrayList<>(Math.max(0, reqCount));
+                    for (int j = 0; j < reqCount; j++) {
+                        reqs.add(new Req(OWTribeJoinRequirement.STREAM_CODEC.decode(buf),
+                                ByteBufCodecs.BOOL.decode(buf)));
+                    }
                     int pxLen = ByteBufCodecs.INT.decode(buf);
                     byte[] px = new byte[pxLen];
                     for (int j = 0; j < pxLen; j++) px[j] = buf.readByte();
@@ -72,7 +95,8 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                     boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
                     int reputation = ByteBufCodecs.INT.decode(buf);
                     entries.add(new Entry(teamId, name, chief, members, primary, secondary,
-                            patternId, bannerShapeId, isPublic, minCoins, px, tertiary, useTertiary, reputation));
+                            patternId, bannerShapeId, isPublic, reqs, directJoin,
+                            px, tertiary, useTertiary, reputation));
                 }
                 return new SyncTribeListPacket(entries);
             });
@@ -80,9 +104,14 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
     @Override
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
 
-    public static SyncTribeListPacket of(net.minecraft.server.MinecraftServer server) {
+    /** Construit la liste telle que la voit {@code viewer} (verdict des conditions inclus). */
+    public static SyncTribeListPacket of(net.minecraft.server.MinecraftServer server,
+                                         net.minecraft.server.level.ServerPlayer viewer) {
         OWTribesSavedData data = OWTribesSavedData.get(server);
         net.tiew.operationWild.team.OWReputationData repData = net.tiew.operationWild.team.OWReputationData.get(server);
+        // Une seule mesure du joueur, réutilisée pour toutes les tribus.
+        net.tiew.operationWild.team.OWTribeJoinCheck.Snapshot snapshot =
+                net.tiew.operationWild.team.OWTribeJoinCheck.snapshot(server, viewer);
         List<Entry> entries = new ArrayList<>();
         for (OWTeam t : data.getAllTribes()) {
             int reputation = net.tiew.operationWild.core.OWReputation.compute(repData, t);
@@ -96,10 +125,15 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
             byte[] px = t.getTeamMosaicPattern() == OWTeamMosaicPattern.CUSTOM_PAINT
                     ? OWTeamMosaicPattern.packPixels3(t.getPaintPixels() != null ? t.getPaintPixels() : new byte[0])
                     : new byte[0];
+            List<Req> reqs = new ArrayList<>();
+            for (OWTribeJoinRequirement r : t.getJoinRequirements()) {
+                reqs.add(new Req(r, net.tiew.operationWild.team.OWTribeJoinCheck.meets(snapshot, r)));
+            }
             entries.add(new Entry(t.getTeamId(), t.getTeamName(), chiefName,
                     t.getPlayerUUIDs().size(), t.getTeamColor(), t.getTeamSecondaryColor(),
                     t.getTeamMosaicPattern().getId(), t.getBannerShape().getId(),
-                    t.isPublic(), t.getMinWildCoins(), px, t.getTertiaryColor(), t.isUseTertiary(), reputation));
+                    t.isPublic(), reqs, t.isDirectJoin(),
+                    px, t.getTertiaryColor(), t.isUseTertiary(), reputation));
         }
         return new SyncTribeListPacket(entries);
     }
@@ -114,10 +148,14 @@ public record SyncTribeListPacket(List<Entry> entries) implements CustomPacketPa
                     pixels = OWTeamMosaicPattern.unpackPixels3(e.paintPixels(),
                             OWTeamMosaicPattern.CUSTOM_PAINT_PIXEL_COUNT);
                 }
+                List<OWClientTribeList.Req> reqs = new ArrayList<>();
+                for (Req r : e.joinRequirements()) {
+                    reqs.add(new OWClientTribeList.Req(r.requirement(), r.met()));
+                }
                 out.add(new OWClientTribeList.Entry(e.teamId(), e.name(), e.chiefName(), e.memberCount(),
                         e.primaryColor(), e.secondaryColor(), pattern,
-                        OWTeamBannerShape.byId(e.bannerShapeId()), e.isPublic(), e.minWildCoins(), pixels,
-                        e.tertiaryColor(), e.useTertiary(), e.reputation()));
+                        OWTeamBannerShape.byId(e.bannerShapeId()), e.isPublic(), reqs, e.directJoin(),
+                        pixels, e.tertiaryColor(), e.useTertiary(), e.reputation()));
             }
             OWClientTribeList.set(out);
         });

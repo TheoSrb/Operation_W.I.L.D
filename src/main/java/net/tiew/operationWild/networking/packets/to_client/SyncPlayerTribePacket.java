@@ -14,6 +14,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.team.OWTeam;
 import net.tiew.operationWild.team.OWTeamBannerShape;
 import net.tiew.operationWild.team.OWTeamMosaicPattern;
+import net.tiew.operationWild.team.OWTribeJoinRequirement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ public record SyncPlayerTribePacket(
         boolean hasTribe,
         int teamId, String teamName, String ownerUUID,
         int primaryColor, int secondaryColor, int mosaicPatternId,
-        int bannerShapeId, boolean isPublic, int minWildCoins,
+        int bannerShapeId, boolean isPublic, List<OWTribeJoinRequirement> joinRequirements, boolean directJoin,
         String creationDate,
         List<String> playerNames, List<String> playerUUIDs,
         byte[] paintPixels,
@@ -47,7 +48,8 @@ public record SyncPlayerTribePacket(
                 ByteBufCodecs.INT.encode(buf, p.mosaicPatternId());
                 ByteBufCodecs.INT.encode(buf, p.bannerShapeId());
                 ByteBufCodecs.BOOL.encode(buf, p.isPublic());
-                ByteBufCodecs.INT.encode(buf, p.minWildCoins());
+                OWTribeJoinRequirement.LIST_STREAM_CODEC.encode(buf, p.joinRequirements());
+                ByteBufCodecs.BOOL.encode(buf, p.directJoin());
                 ByteBufCodecs.STRING_UTF8.encode(buf, p.creationDate());
                 ByteBufCodecs.INT.encode(buf, p.playerNames().size());
                 for (String s : p.playerNames()) ByteBufCodecs.STRING_UTF8.encode(buf, s);
@@ -78,7 +80,8 @@ public record SyncPlayerTribePacket(
                 int patternId = ByteBufCodecs.INT.decode(buf);
                 int bannerShapeId = ByteBufCodecs.INT.decode(buf);
                 boolean isPublic = ByteBufCodecs.BOOL.decode(buf);
-                int minCoins = ByteBufCodecs.INT.decode(buf);
+                List<OWTribeJoinRequirement> joinReqs = OWTribeJoinRequirement.LIST_STREAM_CODEC.decode(buf);
+                boolean directJoin = ByteBufCodecs.BOOL.decode(buf);
                 String date = ByteBufCodecs.STRING_UTF8.decode(buf);
                 int pc = ByteBufCodecs.INT.decode(buf);
                 List<String> pNames = new ArrayList<>(pc);
@@ -101,7 +104,7 @@ public record SyncPlayerTribePacket(
                 int reputation = ByteBufCodecs.INT.decode(buf);
                 boolean repEnabled = ByteBufCodecs.BOOL.decode(buf);
                 return new SyncPlayerTribePacket(has, teamId, name, owner, primary, secondary,
-                        patternId, bannerShapeId, isPublic, minCoins, date, pNames, pUuids, pixels,
+                        patternId, bannerShapeId, isPublic, joinReqs, directJoin, date, pNames, pUuids, pixels,
                         tertiary, useTertiary, deputies, permU, permM, reputation, repEnabled);
             });
 
@@ -111,7 +114,7 @@ public record SyncPlayerTribePacket(
     public static SyncPlayerTribePacket of(OWTeam team, int reputation) {
         if (team == null) {
             return new SyncPlayerTribePacket(false, 0, "", "",
-                    0xFFFFFF, 0xFFFFFF, 0, 0, false, 0, "",
+                    0xFFFFFF, 0xFFFFFF, 0, 0, false, new ArrayList<>(), false, "",
                     new ArrayList<>(), new ArrayList<>(), new byte[0], 0xFFFFFF, false,
                     new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 0, false);
         }
@@ -132,7 +135,8 @@ public record SyncPlayerTribePacket(
                 team.getTeamMosaicPattern().getId(),
                 team.getBannerShape().getId(),
                 team.isPublic(),
-                team.getMinWildCoins(),
+                new ArrayList<>(team.getJoinRequirements()),
+                team.isDirectJoin(),
                 team.getTeamCreationDate() != null ? team.getTeamCreationDate() : "",
                 new ArrayList<>(team.getPlayerNames()),
                 pUuids,
@@ -169,7 +173,8 @@ public record SyncPlayerTribePacket(
             team.setPlayerUUIDs(pUuids);
             team.setBannerShape(OWTeamBannerShape.byId(packet.bannerShapeId()));
             team.setPublic(packet.isPublic());
-            team.setMinWildCoins(packet.minWildCoins());
+            team.setJoinRequirements(packet.joinRequirements());
+            team.setDirectJoin(packet.directJoin());
             team.setTertiaryColor(packet.tertiaryColor());
             team.setUseTertiary(packet.useTertiary());
             List<UUID> deps = new ArrayList<>();

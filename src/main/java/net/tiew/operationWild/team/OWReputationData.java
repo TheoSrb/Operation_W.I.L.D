@@ -104,6 +104,16 @@ public class OWReputationData extends SavedData {
     }
 
     // ── Agrégats ────────────────────────────────────────────────────────────────
+    /** Créatures connues possédées par {@code owner} (copie ; sert aux conditions d'entrée de tribu). */
+    public java.util.List<EntityRep> entitiesOf(UUID owner) {
+        java.util.List<EntityRep> out = new java.util.ArrayList<>();
+        if (owner == null) return out;
+        for (EntityRep rep : entities.values()) {
+            if (owner.equals(rep.owner)) out.add(rep);
+        }
+        return out;
+    }
+
     /** Somme de la valeur de réputation des créatures possédées par {@code owner}. */
     public double playerEntityValue(UUID owner) {
         if (owner == null) return 0.0;

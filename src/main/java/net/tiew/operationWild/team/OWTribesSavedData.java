@@ -146,7 +146,15 @@ public class OWTribesSavedData extends SavedData {
         tag.putInt("teamMosaicPatternId", t.getTeamMosaicPattern().getId());
         tag.putInt("bannerShapeId", t.getBannerShape().getId());
         tag.putBoolean("isPublic", t.isPublic());
-        tag.putInt("minWildCoins", t.getMinWildCoins());
+        ListTag joinReqs = new ListTag();
+        for (OWTribeJoinRequirement r : t.getJoinRequirements()) {
+            CompoundTag rt = new CompoundTag();
+            rt.putInt("id", r.condition().getId());
+            rt.putInt("threshold", r.threshold());
+            joinReqs.add(rt);
+        }
+        tag.put("joinRequirements", joinReqs);
+        tag.putBoolean("directJoin", t.isDirectJoin());
         tag.putInt("tertiaryColor", t.getTertiaryColor());
         tag.putBoolean("useTertiary", t.isUseTertiary());
         tag.putInt("reputationOverride", t.getReputationOverride());
@@ -177,6 +185,29 @@ public class OWTribesSavedData extends SavedData {
         }
         tag.put("memberPermissions", perms);
         return tag;
+    }
+
+    /**
+     * Lit les conditions d'entrée, en rattrapant les deux formats antérieurs : {@code joinConditionId}
+     * (condition unique) puis, plus ancien, {@code minWildCoins} (seule condition qui ait existé).
+     * Une tribu sauvegardée avant ces réglages ressort simplement sans condition.
+     */
+    private static List<OWTribeJoinRequirement> readJoinRequirements(CompoundTag tag) {
+        List<OWTribeJoinRequirement> out = new ArrayList<>();
+        if (tag.contains("joinRequirements")) {
+            ListTag list = tag.getList("joinRequirements", Tag.TAG_COMPOUND);
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag rt = list.getCompound(i);
+                out.add(new OWTribeJoinRequirement(
+                        OWTribeJoinCondition.byId(rt.getInt("id")), rt.getInt("threshold")));
+            }
+        } else if (tag.contains("joinConditionId")) {
+            out.add(new OWTribeJoinRequirement(
+                    OWTribeJoinCondition.byId(tag.getInt("joinConditionId")), tag.getInt("joinThreshold")));
+        } else if (tag.getInt("minWildCoins") > 0) {
+            out.add(new OWTribeJoinRequirement(OWTribeJoinCondition.WILD_COINS, tag.getInt("minWildCoins")));
+        }
+        return out;
     }
 
     private static OWTeam readTeam(CompoundTag tag) {
@@ -212,7 +243,9 @@ public class OWTribesSavedData extends SavedData {
             team.setPlayerUUIDs(pUUIDs);
             team.setBannerShape(OWTeamBannerShape.byId(tag.getInt("bannerShapeId")));
             team.setPublic(tag.getBoolean("isPublic"));
-            team.setMinWildCoins(tag.getInt("minWildCoins"));
+            team.setJoinRequirements(readJoinRequirements(tag));
+            // Absent des sauvegardes antérieures → false : validation par le chef, le défaut voulu.
+            team.setDirectJoin(tag.getBoolean("directJoin"));
             if (tag.contains("tertiaryColor")) team.setTertiaryColor(tag.getInt("tertiaryColor"));
             team.setUseTertiary(tag.getBoolean("useTertiary"));
             team.setReputationOverride(tag.contains("reputationOverride") ? tag.getInt("reputationOverride") : -1);

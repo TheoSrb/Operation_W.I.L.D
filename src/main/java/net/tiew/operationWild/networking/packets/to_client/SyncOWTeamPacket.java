@@ -23,7 +23,8 @@ public record SyncOWTeamPacket(
         List<String> entityUUIDs, // UUID strings — canonical entity membership, rename-safe
         List<String> playerUUIDs, // UUID strings — canonical player membership, pseudo-safe
         byte[] paintPixels,
-        int bannerShapeId, boolean isPublic, int minWildCoins,
+        int bannerShapeId, boolean isPublic,
+        List<net.tiew.operationWild.team.OWTribeJoinRequirement> joinRequirements, boolean directJoin,
         int tertiaryColor, boolean useTertiary
 ) implements CustomPacketPayload {
 
@@ -56,7 +57,9 @@ public record SyncOWTeamPacket(
                 for (byte b : px) buf.writeByte(b);
                 ByteBufCodecs.INT.encode(buf, p.bannerShapeId());
                 ByteBufCodecs.BOOL.encode(buf, p.isPublic());
-                ByteBufCodecs.INT.encode(buf, p.minWildCoins());
+                net.tiew.operationWild.team.OWTribeJoinRequirement.LIST_STREAM_CODEC
+                        .encode(buf, p.joinRequirements());
+                ByteBufCodecs.BOOL.encode(buf, p.directJoin());
                 ByteBufCodecs.INT.encode(buf, p.tertiaryColor());
                 ByteBufCodecs.BOOL.encode(buf, p.useTertiary());
             },
@@ -87,13 +90,15 @@ public record SyncOWTeamPacket(
                 for (int i = 0; i < pxLen; i++) paintPixels[i] = buf.readByte();
                 int bannerShapeId = ByteBufCodecs.INT.decode(buf);
                 boolean isPublic = ByteBufCodecs.BOOL.decode(buf);
-                int minWildCoins = ByteBufCodecs.INT.decode(buf);
+                List<net.tiew.operationWild.team.OWTribeJoinRequirement> joinRequirements =
+                        net.tiew.operationWild.team.OWTribeJoinRequirement.LIST_STREAM_CODEC.decode(buf);
+                boolean directJoin = ByteBufCodecs.BOOL.decode(buf);
                 int tertiaryColor = ByteBufCodecs.INT.decode(buf);
                 boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
                 return new SyncOWTeamPacket(entityId, teamId, name, owner,
                         color, secondaryColor, patternId, date,
                         playerNames, entityNames, entityUUIDs, playerUUIDs, paintPixels,
-                        bannerShapeId, isPublic, minWildCoins, tertiaryColor, useTertiary);
+                        bannerShapeId, isPublic, joinRequirements, directJoin, tertiaryColor, useTertiary);
             }
     );
 
@@ -145,7 +150,8 @@ public record SyncOWTeamPacket(
                         team.getPaintPixels() != null ? team.getPaintPixels() : new byte[0]),
                 team.getBannerShape().getId(),
                 team.isPublic(),
-                team.getMinWildCoins(),
+                new ArrayList<>(team.getJoinRequirements()),
+                team.isDirectJoin(),
                 team.getTertiaryColor(),
                 team.isUseTertiary()
         );
@@ -193,7 +199,8 @@ public record SyncOWTeamPacket(
                 }
                 newTeam.setBannerShape(net.tiew.operationWild.team.OWTeamBannerShape.byId(packet.bannerShapeId()));
                 newTeam.setPublic(packet.isPublic());
-                newTeam.setMinWildCoins(packet.minWildCoins());
+                newTeam.setJoinRequirements(packet.joinRequirements());
+                newTeam.setDirectJoin(packet.directJoin());
                 newTeam.setTertiaryColor(packet.tertiaryColor());
                 newTeam.setUseTertiary(packet.useTertiary());
                 owEntity.currentTeam = newTeam;

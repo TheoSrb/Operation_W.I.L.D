@@ -90,14 +90,16 @@ public final class OWTribeManager {
     /** Pousse au joueur la liste de toutes les tribus du serveur (pour l'écran liste). */
     public static void syncTribeList(MinecraftServer server, ServerPlayer player) {
         if (server == null || player == null) return;
-        OWNetworkHandler.sendToClient(SyncTribeListPacket.of(server), player);
+        OWNetworkHandler.sendToClient(SyncTribeListPacket.of(server, player), player);
     }
 
-    /** Diffuse la liste des tribus à tous les joueurs connectés (après création / dissolution / réglages). */
+    /**
+     * Diffuse la liste des tribus à tous les joueurs connectés (après création / dissolution / réglages).
+     * Le paquet est reconstruit pour chaque joueur : le verdict des conditions d'entrée lui est propre.
+     */
     public static void broadcastTribeList(MinecraftServer server) {
         if (server == null) return;
-        SyncTribeListPacket pkt = SyncTribeListPacket.of(server);
-        for (ServerPlayer p : server.getPlayerList().getPlayers()) OWNetworkHandler.sendToClient(pkt, p);
+        for (ServerPlayer p : server.getPlayerList().getPlayers()) syncTribeList(server, p);
     }
 
     /** Pousse SA tribu à chaque membre en ligne de {@code team} (liste des membres modifiée). */

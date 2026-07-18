@@ -5,11 +5,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.util.FormattedCharSequence;
 import net.tiew.operationWild.client.OWClientTribeData;
 import net.tiew.operationWild.client.OWClientTribeList;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.JoinTribePacket;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /** Découverte des tribus : liste déroulante (publiques d'abord, privées grisées en fin) + création. */
@@ -17,12 +21,17 @@ public class OWTribeListScreen extends OWTribeScreen {
 
     private static final int LIST_MX = 6;
     private static final int LIST_TOP = 22;
-    private static final int ROW_H = 27;
+    /** 3 lignes de texte par tribu : nom, méta (chef · membres), conditions d'entrée. */
+    private static final int ROW_H = 30;
     private static final int FOOTER_H = 24;
     private static final int JOIN_W = 40, JOIN_H = 16;
+    /** Condition remplie / non remplie — teintes sombres, lisibles sur le panneau gris clair. */
+    private static final int COND_OK = 0x1E7A1E, COND_KO = 0xB02020;
 
     private int listX, listY, listW, listH, visibleRows;
     private int scroll = 0;
+    /** Tribu survolée dont il faut détailler les conditions en tooltip, ou {@code null}. */
+    private OWClientTribeList.Entry hoveredEntry = null;
 
     public OWTribeListScreen() {
         super(Component.translatable("owteams.list.title"));
@@ -86,6 +95,7 @@ public class OWTribeListScreen extends OWTribeScreen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
+        hoveredEntry = null;
         drawPanel(g, mouseX, mouseY, partial);
         drawHeader(g, Component.translatable("owteams.list.title"));
 
@@ -110,6 +120,19 @@ public class OWTribeListScreen extends OWTribeScreen {
         }
 
         super.render(g, mouseX, mouseY, partial);
+
+        // Détail des conditions de la tribu survolée : une ligne verte / rouge par condition.
+        if (hoveredEntry != null) {
+            List<FormattedCharSequence> tip = new ArrayList<>();
+            tip.add(Component.translatable("owteams.list.conditions_title")
+                    .copy().withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(0xFFE070)))
+                    .getVisualOrderText());
+            for (OWClientTribeList.Req r : hoveredEntry.joinRequirements()) {
+                tip.add(r.requirement().describe().copy().withStyle(Style.EMPTY
+                        .withColor(TextColor.fromRgb(r.met() ? 0x6FDD6F : 0xE86A6A))).getVisualOrderText());
+            }
+            g.renderTooltip(this.font, tip, mouseX, mouseY);
+        }
     }
 
     private void renderRow(GuiGraphics g, OWClientTribeList.Entry e, int index, int rowY, int rowW, int mouseX, int mouseY) {
@@ -140,15 +163,32 @@ public class OWTribeListScreen extends OWTribeScreen {
         int textX = listX + 3 + (int) (OWBannerRenderer.W * s) + 6;
         int nameColor = priv ? 0x808080 : 0x303030;
         int nameMaxW = rowW - (textX - listX) - JOIN_W - 14 - badgeSpace;
-        g.drawString(this.font, trim(e.name(), nameMaxW), textX, rowY + 4, nameColor, false);
+        g.drawString(this.font, trim(e.name(), nameMaxW), textX, rowY + 3, nameColor, false);
 
-        // Ligne méta : chef · membres (· min pièces si public conditionné)
+        // Ligne méta : chef · membres
         String meta = Component.translatable("owteams.list.chief", e.chiefName()).getString()
                 + "  " + Component.translatable("owteams.list.members", e.memberCount()).getString();
-        if (!priv && e.minWildCoins() > 0) {
-            meta += "  " + Component.translatable("owteams.list.min_coins", e.minWildCoins()).getString();
+        g.drawString(this.font, trim(meta, nameMaxW), textX, rowY + 12, priv ? 0x909090 : 0x606060, false);
+
+        // Ligne conditions d'entrée : verte si le joueur les remplit, rouge sinon (verdict du serveur).
+        // Une tribu privée ne se rejoint que sur invitation : ses conditions n'ont rien à dire ici.
+        if (!priv) {
+            List<OWClientTribeList.Req> reqs = e.joinRequirements();
+            Component cond;
+            int color;
+            if (reqs.isEmpty()) {
+                cond = Component.translatable("owteams.list.no_condition");
+                color = 0x707070;
+            } else {
+                // Une seule condition tient en toutes lettres ; au-delà, on résume et le survol détaille.
+                cond = reqs.size() == 1
+                        ? reqs.get(0).requirement().describe()
+                        : Component.translatable("owteams.list.conditions_met", e.conditionsMetCount(), reqs.size());
+                color = e.allConditionsMet() ? COND_OK : COND_KO;
+                if (hovered) hoveredEntry = e;
+            }
+            g.drawString(this.font, trim(cond.getString(), nameMaxW), textX, rowY + 21, color, false);
         }
-        g.drawString(this.font, trim(meta, nameMaxW), textX, rowY + 15, priv ? 0x909090 : 0x606060, false);
 
         // Bouton rejoindre (public) ou tag « Privée »
         int jx = listX + rowW - JOIN_W - 8;
@@ -163,7 +203,12 @@ public class OWTribeListScreen extends OWTribeScreen {
             g.drawString(this.font, tag, jx + JOIN_W - this.font.width(tag), rowY + (ROW_H - 8) / 2, 0x909090, false);
         } else {
             boolean jHov = mouseX >= jx && mouseX < jx + JOIN_W && mouseY >= jy && mouseY < jy + JOIN_H;
-            drawSpriteButton(g, jx, jy, JOIN_W, JOIN_H, Component.translatable("owteams.list.join"), jHov, 0xFFFFFF);
+            // Sans entrée directe, le clic n'inscrit pas : il envoie une demande au chef et aux adjoints.
+            Component label = Component.translatable(e.directJoin() ? "owteams.list.join" : "owteams.list.request");
+            // Le bouton reste cliquable même si la condition n'est pas remplie : le serveur répond
+            // alors par le détail de ce qui manque, plus parlant qu'un bouton mort.
+            drawSpriteButton(g, jx, jy, JOIN_W, JOIN_H, label, jHov,
+                    e.allConditionsMet() ? 0xFFFFFF : 0xA0A0A0);
         }
     }
 

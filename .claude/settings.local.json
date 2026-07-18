@@ -89,7 +89,12 @@
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/3fa29cf7-69fa-4f07-a10e-ba89effde10f/scratchpad/bannerbuy_lang.py\")",
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/3fa29cf7-69fa-4f07-a10e-ba89effde10f/scratchpad/bannerbuy_q3.py\")",
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/3fa29cf7-69fa-4f07-a10e-ba89effde10f/scratchpad/nametaken_lang.py\")",
-      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/3fa29cf7-69fa-4f07-a10e-ba89effde10f/scratchpad/lang_polish.py\")"
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/3fa29cf7-69fa-4f07-a10e-ba89effde10f/scratchpad/lang_polish.py\")",
+      "Bash(./gradlew compileJava -q --console=plain)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/a7ed1f73-5e52-4914-b8af-6109f8fd3d19/scratchpad/lang_conditions.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/a7ed1f73-5e52-4914-b8af-6109f8fd3d19/scratchpad/lang_multi.py\")",
+      "Bash(python -)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/a7ed1f73-5e52-4914-b8af-6109f8fd3d19/scratchpad/lang_directjoin.py\")"
     ]
   }
 }

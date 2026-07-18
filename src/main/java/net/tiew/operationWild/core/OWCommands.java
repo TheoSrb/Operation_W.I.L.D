@@ -3,7 +3,9 @@ package net.tiew.operationWild.core;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -218,6 +220,135 @@ public class OWCommands {
                 if (inviter != null) {
                     inviter.sendSystemMessage(Component.translatable("owteams.invite.accepted_inviter",
                             player.getName().getString()).setStyle(Style.EMPTY.withColor(0x7ddd73)));
+                }
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
+    // ── Demandes d'adhésion (tribu publique sans entrée directe) : /owtribeapprove /owtribereject ──
+    /**
+     * Base commune aux deux commandes : le chef ou un adjoint traite la demande d'un joueur nommé.
+     * Le demandeur doit être en ligne — on revérifie ses conditions au moment de la validation,
+     * ce qui suppose de pouvoir le mesurer.
+     */
+    private abstract static class TribeRequestCommand {
+
+        /** Suggère les demandeurs en attente pour la tribu du responsable qui tape la commande. */
+        static SuggestionProvider<CommandSourceStack> pendingRequesters() {
+            return (context, builder) -> {
+                try {
+                    ServerPlayer player = context.getSource().getPlayerOrException();
+                    OWTeam team = net.tiew.operationWild.team.OWTribesSavedData
+                            .get(context.getSource().getServer()).findTeamByMember(player.getUUID());
+                    if (team != null) {
+                        for (var req : net.tiew.operationWild.team.OWTribeJoinRequests.forTeam(team.getTeamId())) {
+                            builder.suggest(req.requesterName());
+                        }
+                    }
+                } catch (Exception ignored) {}
+                return builder.buildFuture();
+            };
+        }
+
+        /** Tribu du joueur s'il a le droit de valider (chef ou adjoint), sinon {@code null} + message. */
+        static OWTeam approverTeam(ServerPlayer player, net.minecraft.server.MinecraftServer server) {
+            OWTeam team = net.tiew.operationWild.team.OWTribesSavedData.get(server).findTeamByMember(player.getUUID());
+            if (team == null || (!team.isChief(player.getUUID()) && !team.isDeputy(player.getUUID()))) {
+                reply(player, "owteams.request.not_allowed", 0xFF9944);
+                return null;
+            }
+            return team;
+        }
+    }
+
+    public static class TribeRequestApproveCommand extends TribeRequestCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owtribeapprove")
+                    .then(Commands.argument("player", StringArgumentType.word())
+                            .suggests(pendingRequesters())
+                            .executes(TribeRequestApproveCommand::execute)));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            try {
+                ServerPlayer approver = context.getSource().getPlayerOrException();
+                net.minecraft.server.MinecraftServer server = context.getSource().getServer();
+                String name = StringArgumentType.getString(context, "player");
+
+                OWTeam team = approverTeam(approver, server);
+                if (team == null) return 1;
+
+                net.tiew.operationWild.team.OWTribeJoinRequests.Request req =
+                        net.tiew.operationWild.team.OWTribeJoinRequests.findByName(team.getTeamId(), name);
+                if (req == null) { reply(approver, "owteams.request.none", 0xFF9944, name); return 1; }
+
+                net.tiew.operationWild.team.OWTribesSavedData data =
+                        net.tiew.operationWild.team.OWTribesSavedData.get(server);
+                if (data.findTeamByMember(req.requesterUUID()) != null) {
+                    net.tiew.operationWild.team.OWTribeJoinRequests.consume(req.requesterUUID());
+                    reply(approver, "owteams.invite.target_in_tribe", 0xFF9944, req.requesterName());
+                    return 1;
+                }
+                if (team.getPlayerUUIDs().size() >= team.getMaxPlayers()) {
+                    reply(approver, "owteams.invite.full", 0xFF6666);
+                    return 1;
+                }
+
+                ServerPlayer requester = server.getPlayerList().getPlayer(req.requesterUUID());
+                if (requester == null) { reply(approver, "owteams.request.offline", 0xFF9944, req.requesterName()); return 1; }
+
+                // Les conditions ont pu cesser d'être remplies depuis la demande : on remesure.
+                var snapshot = net.tiew.operationWild.team.OWTribeJoinCheck.snapshot(server, requester);
+                if (!net.tiew.operationWild.team.OWTribeJoinCheck.meets(snapshot, team)) {
+                    net.tiew.operationWild.team.OWTribeJoinRequests.consume(req.requesterUUID());
+                    reply(approver, "owteams.request.no_longer_eligible", 0xFF9944, req.requesterName());
+                    return 1;
+                }
+
+                team.addPlayerMember(req.requesterUUID(), req.requesterName());
+                team.setPermissions(req.requesterUUID(), net.tiew.operationWild.team.OWTribePermission.MEMBER_DEFAULT);
+                data.putTribe(team);
+                net.tiew.operationWild.team.OWTribeJoinRequests.consume(req.requesterUUID());
+
+                net.tiew.operationWild.team.OWTribeManager.refreshEntitiesOfPlayer(server, req.requesterUUID());
+                net.tiew.operationWild.team.OWTribeManager.syncTribeToOnlineMembers(server, team);
+                net.tiew.operationWild.team.OWTribeManager.broadcastTribeList(server);
+
+                reply(approver, "owteams.request.approved_staff", 0x7ddd73, req.requesterName());
+                reply(requester, "owteams.request.approved_self", 0x7ddd73, team.getTeamName());
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
+    public static class TribeRequestRejectCommand extends TribeRequestCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owtribereject")
+                    .then(Commands.argument("player", StringArgumentType.word())
+                            .suggests(pendingRequesters())
+                            .executes(TribeRequestRejectCommand::execute)));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            try {
+                ServerPlayer approver = context.getSource().getPlayerOrException();
+                net.minecraft.server.MinecraftServer server = context.getSource().getServer();
+                String name = StringArgumentType.getString(context, "player");
+
+                OWTeam team = approverTeam(approver, server);
+                if (team == null) return 1;
+
+                net.tiew.operationWild.team.OWTribeJoinRequests.Request req =
+                        net.tiew.operationWild.team.OWTribeJoinRequests.findByName(team.getTeamId(), name);
+                if (req == null) { reply(approver, "owteams.request.none", 0xFF9944, name); return 1; }
+
+                net.tiew.operationWild.team.OWTribeJoinRequests.consume(req.requesterUUID());
+                reply(approver, "owteams.request.rejected_staff", 0xdd8844, req.requesterName());
+
+                ServerPlayer requester = server.getPlayerList().getPlayer(req.requesterUUID());
+                if (requester != null) {
+                    reply(requester, "owteams.request.rejected_self", 0xdd8844, team.getTeamName());
                 }
             } catch (Exception ignored) {}
             return 1;

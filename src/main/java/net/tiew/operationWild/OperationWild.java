@@ -235,6 +235,8 @@ public class OperationWild {
         OWCommands.TeamInviteDeclineCommand.register(event.getDispatcher());
         OWCommands.TribeInviteAcceptCommand.register(event.getDispatcher());
         OWCommands.TribeInviteDeclineCommand.register(event.getDispatcher());
+        OWCommands.TribeRequestApproveCommand.register(event.getDispatcher());
+        OWCommands.TribeRequestRejectCommand.register(event.getDispatcher());
         OWCommands.TribeTestMembersCommand.register(event.getDispatcher());
         OWCommands.ResetBannerUnlocksCommand.register(event.getDispatcher());
         OWCommands.SetTribeReputationCommand.register(event.getDispatcher());

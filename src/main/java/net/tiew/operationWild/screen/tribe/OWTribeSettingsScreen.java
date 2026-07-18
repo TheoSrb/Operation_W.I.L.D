@@ -6,23 +6,31 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.util.FormattedCharSequence;
 import net.tiew.operationWild.client.OWClientTribeData;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.DisbandTribePacket;
 import net.tiew.operationWild.networking.packets.to_server.UpdateTribeSettingsPacket;
 import net.tiew.operationWild.team.OWTeam;
+import net.tiew.operationWild.team.OWTribeJoinRequirement;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Écran « Paramètres » de la tribu, présenté façon options d'entité : une ligne par réglage (libellé +
- * description + contrôle à droite), fond zébré. Regroupe visibilité, pièces min, transfert et dissolution.
+ * description + contrôle à droite), fond zébré. Regroupe visibilité, conditions d'entrée (déléguées à
+ * {@link OWTribeJoinConditionScreen}), transfert et dissolution.
  */
 public class OWTribeSettingsScreen extends OWTribeScreen {
 
     private static final int PAD = 4, ROW_H = 28, CONTENT_Y = 22;
-    private static final int BTN_W = 64, BTN_H = 14, COIN_BTN = 14;
+    private static final int BTN_W = 64, BTN_H = 14;
 
-    private Button visibilityBtn, coinMinusBtn, coinPlusBtn, transferBtn, disbandBtn, confirmYes, confirmNo;
+    private Button visibilityBtn, conditionBtn, directJoinBtn, transferBtn, disbandBtn, confirmYes, confirmNo;
     private boolean confirmDisband = false;
+    /** Ligne survolée : les textes y sont tronqués, le tooltip les redonne en entier. */
+    private Component hoveredLabel = null, hoveredDesc = null;
 
     public OWTribeSettingsScreen() {
         super(Component.translatable("owteams.settings.title"));
@@ -41,10 +49,17 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
         visibilityBtn = addRenderableWidget(Button.builder(Component.empty(), b -> {
             OWTeam t = OWClientTribeData.get();
             if (t != null && isChief())
-                OWNetworkHandler.sendToServer(new UpdateTribeSettingsPacket(!t.isPublic(), t.getMinWildCoins()));
+                OWNetworkHandler.sendToServer(new UpdateTribeSettingsPacket(
+                        !t.isPublic(), new ArrayList<>(t.getJoinRequirements()), t.isDirectJoin()));
         }).bounds(0, 0, BTN_W, BTN_H).build());
-        coinMinusBtn = addRenderableWidget(Button.builder(Component.literal("-"), b -> adjustCoins(-10)).bounds(0, 0, COIN_BTN, BTN_H).build());
-        coinPlusBtn = addRenderableWidget(Button.builder(Component.literal("+"), b -> adjustCoins(10)).bounds(0, 0, COIN_BTN, BTN_H).build());
+        conditionBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.settings.condition_action"),
+                b -> Minecraft.getInstance().setScreen(new OWTribeJoinConditionScreen())).bounds(0, 0, BTN_W, BTN_H).build());
+        directJoinBtn = addRenderableWidget(Button.builder(Component.empty(), b -> {
+            OWTeam t = OWClientTribeData.get();
+            if (t != null && isChief())
+                OWNetworkHandler.sendToServer(new UpdateTribeSettingsPacket(
+                        t.isPublic(), new ArrayList<>(t.getJoinRequirements()), !t.isDirectJoin()));
+        }).bounds(0, 0, BTN_W, BTN_H).build());
         transferBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.settings.transfer_action"),
                 b -> Minecraft.getInstance().setScreen(new OWTribeTransferScreen())).bounds(0, 0, BTN_W, BTN_H).build());
         disbandBtn = addRenderableWidget(Button.builder(
@@ -55,12 +70,6 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
                 b -> { OWNetworkHandler.sendToServer(new DisbandTribePacket()); confirmDisband = false; }).bounds(0, 0, 60, 16).build());
         confirmNo = addRenderableWidget(Button.builder(Component.translatable("owteams.confirm.no"),
                 b -> confirmDisband = false).bounds(0, 0, 60, 16).build());
-    }
-
-    private void adjustCoins(int d) {
-        OWTeam t = OWClientTribeData.get();
-        if (t != null && isChief())
-            OWNetworkHandler.sendToServer(new UpdateTribeSettingsPacket(t.isPublic(), Math.max(0, t.getMinWildCoins() + d)));
     }
 
     @Override
@@ -79,6 +88,7 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
     private void drawRow(GuiGraphics g, int x, int y, int w, boolean alt, Component label, Component desc,
                          int textMaxW, int mouseX, int mouseY) {
         boolean hov = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + ROW_H;
+        if (hov) { hoveredLabel = label; hoveredDesc = desc; }
         g.fill(x, y, x + w, y + ROW_H, alt ? 0xAA111111: 0xCC111111);
         if (hov) g.fill(x, y, x + w, y + ROW_H, 0x12FFFFFF);
         g.fill(x, y + ROW_H - 1, x + w, y + ROW_H, 0x40000000);
@@ -88,6 +98,7 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
+        hoveredLabel = null; hoveredDesc = null;
         OWTeam t = OWClientTribeData.get();
         boolean chief = isChief();
         boolean pub = t != null && t.isPublic();
@@ -95,8 +106,8 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
         boolean rows = chief && !confirmDisband && t != null;
 
         visibilityBtn.visible = rows;
-        coinMinusBtn.visible = rows && pub;
-        coinPlusBtn.visible = rows && pub;
+        conditionBtn.visible = rows && pub;
+        directJoinBtn.visible = rows && pub;
         transferBtn.visible = rows && canTransfer;
         disbandBtn.visible = rows;
         confirmYes.visible = confirmDisband;
@@ -120,15 +131,29 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
         visibilityBtn.setPosition(btnX, y + (ROW_H - BTN_H) / 2 - 1);
         y += ROW_H; alt++;
 
-        // Pièces minimum (tribu publique)
+        // Conditions d'entrée (tribu publique uniquement : une tribu privée se rejoint sur invitation)
         if (pub) {
-            int plusX = x + w - PAD - COIN_BTN;
-            int minusX = plusX - 34;
-            drawRow(g, x, y, w, alt % 2 == 1, Component.translatable("owteams.dashboard.min_coins"),
-                    Component.translatable("owteams.settings.coins.desc"), minusX - x - PAD - 4, mouseX, mouseY);
-            coinMinusBtn.setPosition(minusX, y + (ROW_H - BTN_H) / 2 - 1);
-            coinPlusBtn.setPosition(plusX, y + (ROW_H - BTN_H) / 2 - 1);
-            g.drawCenteredString(this.font, String.valueOf(t.getMinWildCoins()), (minusX + COIN_BTN + plusX) / 2, y + (ROW_H - 8) / 2, 0xFFFFFF);
+            int cbx = x + w - PAD - BTN_W;
+            // Une seule condition tient sur la ligne ; au-delà, on n'annonce que le nombre (détail dans l'écran).
+            List<OWTribeJoinRequirement> reqs = t.getJoinRequirements();
+            Component current = switch (reqs.size()) {
+                case 0 -> Component.translatable("owteams.cond.none.band");
+                case 1 -> Component.translatable("owteams.settings.condition.current", reqs.get(0).describe());
+                default -> Component.translatable("owteams.settings.condition.count", reqs.size());
+            };
+            drawRow(g, x, y, w, alt % 2 == 1, Component.translatable("owteams.settings.condition"),
+                    current, cbx - x - PAD - 4, mouseX, mouseY);
+            conditionBtn.setPosition(cbx, y + (ROW_H - BTN_H) / 2 - 1);
+            y += ROW_H; alt++;
+
+            // Entrée directe : sinon, la demande passe par le chef et les adjoints.
+            boolean direct = t.isDirectJoin();
+            int djx = x + w - PAD - BTN_W;
+            drawRow(g, x, y, w, alt % 2 == 1, Component.translatable("owteams.settings.direct_join"),
+                    Component.translatable("owteams.settings.direct_join.desc"), djx - x - PAD - 4, mouseX, mouseY);
+            directJoinBtn.setMessage(Component.translatable(direct ? "owteams.confirm.yes" : "owteams.confirm.no")
+                    .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(direct ? 0x66DD77 : 0xDD8866))));
+            directJoinBtn.setPosition(djx, y + (ROW_H - BTN_H) / 2 - 1);
             y += ROW_H; alt++;
         }
 
@@ -160,6 +185,19 @@ public class OWTribeSettingsScreen extends OWTribeScreen {
             confirmNo.setPosition(cx + 4, oy + oh - 20);
             confirmYes.render(g, mouseX, mouseY, partial);
             confirmNo.render(g, mouseX, mouseY, partial);
+            return; // pas de tooltip de ligne derrière le voile de confirmation
+        }
+
+        // Tooltip : libellé + description complète de la ligne survolée (la ligne les tronque).
+        if (hoveredLabel != null) {
+            List<FormattedCharSequence> tip = new ArrayList<>();
+            tip.add(hoveredLabel.copy().withStyle(Style.EMPTY.withBold(true)
+                    .withColor(TextColor.fromRgb(0xFFE070))).getVisualOrderText());
+            for (FormattedCharSequence line : this.font.split(
+                    hoveredDesc.copy().withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xBBBBBB))), 160)) {
+                tip.add(line);
+            }
+            g.renderTooltip(this.font, tip, mouseX, mouseY);
         }
     }
 
