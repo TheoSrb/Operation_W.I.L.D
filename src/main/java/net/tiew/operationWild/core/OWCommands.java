@@ -507,6 +507,87 @@ public class OWCommands {
         }
     }
 
+    // ── Admin : points de prestige d'arène d'une tribu ─────────────────────────
+    /** {@code /owarenaprestige set|add <joueur> <montant>} — sert surtout à tester les coffres. */
+    public static class ArenaPrestigeCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(
+                    Commands.literal("owarenaprestige")
+                            .requires(s -> s.hasPermission(2))
+                            .then(Commands.literal("set")
+                                    .then(Commands.argument("player", EntityArgument.player())
+                                            .then(Commands.argument("amount", IntegerArgumentType.integer(0))
+                                                    .executes(ctx -> apply(ctx, IntegerArgumentType.getInteger(ctx, "amount"), false)))))
+                            .then(Commands.literal("add")
+                                    .then(Commands.argument("player", EntityArgument.player())
+                                            .then(Commands.argument("amount", IntegerArgumentType.integer(1))
+                                                    .executes(ctx -> apply(ctx, IntegerArgumentType.getInteger(ctx, "amount"), true)))))
+            );
+        }
+
+        private static int apply(CommandContext<CommandSourceStack> context, int amount, boolean add) {
+            CommandSourceStack source = context.getSource();
+            try {
+                ServerPlayer player = EntityArgument.getPlayer(context, "player");
+                net.minecraft.server.MinecraftServer server = source.getServer();
+                net.tiew.operationWild.team.OWTribesSavedData data =
+                        net.tiew.operationWild.team.OWTribesSavedData.get(server);
+                OWTeam team = data.findTeamByMember(player.getUUID());
+                if (team == null) {
+                    source.sendFailure(Component.translatable("owteams.reputation.command.no_tribe", player.getName().getString()));
+                    return 0;
+                }
+                if (add) team.addArenaPrestige(amount); else team.setArenaPrestige(amount);
+                data.putTribe(team);
+                net.tiew.operationWild.team.OWTribeManager.syncTribeToOnlineMembers(server, team);
+
+                final int total = team.getArenaPrestige();
+                source.sendSuccess(() -> Component.translatable("owteams.arena.command.set",
+                        team.getTeamName(), total).setStyle(Style.EMPTY.withColor(0x7ddd73)), true);
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
+    // ── Test en solo : adversaire d'entraînement ───────────────────────────────
+    /**
+     * {@code /owarenaspar start [combattants]} ouvre un match contre une tribu fictive dont le camp
+     * est déjà composé et confirmé : il ne reste qu'à choisir son équipe et lancer le combat.
+     * {@code /owarenaspar stop} nettoie tout (match, créatures, tribu).
+     */
+    public static class ArenaSparringCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(
+                    Commands.literal("owarenaspar")
+                            .requires(s -> s.hasPermission(2))
+                            .then(Commands.literal("start")
+                                    .executes(ctx -> start(ctx, 4))
+                                    .then(Commands.argument("fighters", IntegerArgumentType.integer(1, 5))
+                                            .executes(ctx -> start(ctx, IntegerArgumentType.getInteger(ctx, "fighters")))))
+                            .then(Commands.literal("stop").executes(ArenaSparringCommand::stop))
+            );
+        }
+
+        private static int start(CommandContext<CommandSourceStack> context, int fighters) {
+            try {
+                ServerPlayer player = context.getSource().getPlayerOrException();
+                net.tiew.operationWild.team.OWArenaManager.startSparring(
+                        context.getSource().getServer(), player, fighters);
+            } catch (Exception ignored) {}
+            return 1;
+        }
+
+        private static int stop(CommandContext<CommandSourceStack> context) {
+            CommandSourceStack source = context.getSource();
+            try {
+                int removed = net.tiew.operationWild.team.OWArenaManager.stopSparring(source.getServer());
+                source.sendSuccess(() -> Component.translatable("owteams.arena.spar.stopped", removed)
+                        .setStyle(Style.EMPTY.withColor(0x7ddd73)), true);
+            } catch (Exception ignored) {}
+            return 1;
+        }
+    }
+
     public static class ForceTameCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
             dispatcher.register(

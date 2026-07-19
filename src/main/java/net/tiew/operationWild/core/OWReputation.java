@@ -88,7 +88,9 @@ public final class OWReputation {
             raw += contribution;
         }
         double synergy = 1.0 + SYNERGY_STEP * Math.max(0, activeMembers - 1);
-        return (int) Math.round(raw * synergy);
+        // La réputation gagnée en arène s'ajoute au score des créatures sans passer par la synergie :
+        // elle a déjà été méritée collectivement sur le terrain.
+        return (int) Math.round(raw * synergy) + team.getArenaReputationBonus();
     }
 
     // ── Paliers de badge ────────────────────────────────────────────────────────

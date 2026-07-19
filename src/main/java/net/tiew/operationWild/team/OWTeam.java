@@ -55,6 +55,16 @@ public class OWTeam {
     /** La réputation doit être activée une fois par la tribu (dans l'onglet) avant d'être suivie et affichée. */
     private boolean reputationEnabled = false;
 
+    // ── Arène ────────────────────────────────────────────────────────────────
+    /** Le chef a accepté le règlement de l'arène : tant que c'est faux, l'onglet reste caché aux membres. */
+    private boolean arenaAccepted = false;
+    /** Points de prestige d'arène — compteur <b>partagé par la tribu</b>, alimenté par les victoires. */
+    private int arenaPrestige = 0;
+    /** Coffres d'arène déjà réclamés, par membre. Cf. {@link net.tiew.operationWild.core.OWArena}. */
+    private Map<UUID, Integer> arenaChestsClaimed = new HashMap<>();
+    /** Réputation cumulée gagnée en arène — s'ajoute au score calculé depuis les créatures. Persistée. */
+    private int arenaReputationBonus = 0;
+
     // Constructeur complet
     public OWTeam(int teamId, String teamName, UUID teamOwnerUUID,
                   int teamColor, int teamSecondaryColor, OWTeamMosaicPattern mosaicPattern,
@@ -377,4 +387,45 @@ public class OWTeam {
     public boolean isReputationEnabled() { return reputationEnabled; }
 
     public void setReputationEnabled(boolean v) { this.reputationEnabled = v; }
+
+    // ── Arène ────────────────────────────────────────────────────────────────
+    public boolean isArenaAccepted() { return arenaAccepted; }
+
+    public void setArenaAccepted(boolean v) { this.arenaAccepted = v; }
+
+    public int getArenaPrestige() { return arenaPrestige; }
+
+    public void setArenaPrestige(int v) { this.arenaPrestige = Math.max(0, v); }
+
+    public void addArenaPrestige(int v) { setArenaPrestige(arenaPrestige + v); }
+
+    public Map<UUID, Integer> getArenaChestsClaimed() {
+        if (arenaChestsClaimed == null) arenaChestsClaimed = new HashMap<>();
+        return arenaChestsClaimed;
+    }
+
+    public void setArenaChestsClaimed(Map<UUID, Integer> v) {
+        this.arenaChestsClaimed = v != null ? v : new HashMap<>();
+    }
+
+    /** Nombre de coffres d'arène déjà réclamés par {@code u}. */
+    public int getArenaChestsClaimed(UUID u) { return getArenaChestsClaimed().getOrDefault(u, 0); }
+
+    /** Coffres d'arène qu'il reste à réclamer à {@code u} (0 si aucun). */
+    public int pendingArenaChests(UUID u) {
+        return net.tiew.operationWild.core.OWArena.pendingChests(arenaPrestige, getArenaChestsClaimed(u));
+    }
+
+    public int getArenaReputationBonus() { return arenaReputationBonus; }
+
+    public void setArenaReputationBonus(int v) { this.arenaReputationBonus = Math.max(0, v); }
+
+    public void addArenaReputationBonus(int v) { setArenaReputationBonus(arenaReputationBonus + v); }
+
+    /** Enregistre l'ouverture d'un coffre par {@code u}. Sans effet s'il n'en a aucun en attente. */
+    public boolean claimArenaChest(UUID u) {
+        if (u == null || pendingArenaChests(u) <= 0) return false;
+        getArenaChestsClaimed().merge(u, 1, Integer::sum);
+        return true;
+    }
 }

@@ -184,6 +184,18 @@ public class OWTribesSavedData extends SavedData {
             perms.add(pe);
         }
         tag.put("memberPermissions", perms);
+
+        tag.putBoolean("arenaAccepted", t.isArenaAccepted());
+        tag.putInt("arenaPrestige", t.getArenaPrestige());
+        tag.putInt("arenaReputationBonus", t.getArenaReputationBonus());
+        ListTag arenaClaims = new ListTag();
+        for (Map.Entry<UUID, Integer> e : t.getArenaChestsClaimed().entrySet()) {
+            CompoundTag ce = new CompoundTag();
+            ce.putString("uuid", e.getKey().toString());
+            ce.putInt("count", e.getValue());
+            arenaClaims.add(ce);
+        }
+        tag.put("arenaChestsClaimed", arenaClaims);
         return tag;
     }
 
@@ -262,6 +274,17 @@ public class OWTribesSavedData extends SavedData {
             for (int i = 0; i < permTag.size(); i++) {
                 CompoundTag pe = permTag.getCompound(i);
                 try { team.setPermissions(UUID.fromString(pe.getString("uuid")), pe.getInt("mask")); }
+                catch (IllegalArgumentException ignored) {}
+            }
+
+            // Arène — absente des sauvegardes antérieures : la tribu repart d'un état « non accepté ».
+            team.setArenaAccepted(tag.getBoolean("arenaAccepted"));
+            team.setArenaPrestige(tag.getInt("arenaPrestige"));
+            team.setArenaReputationBonus(tag.getInt("arenaReputationBonus"));
+            ListTag claimTag = tag.getList("arenaChestsClaimed", Tag.TAG_COMPOUND);
+            for (int i = 0; i < claimTag.size(); i++) {
+                CompoundTag ce = claimTag.getCompound(i);
+                try { team.getArenaChestsClaimed().put(UUID.fromString(ce.getString("uuid")), ce.getInt("count")); }
                 catch (IllegalArgumentException ignored) {}
             }
             return team;

@@ -468,6 +468,13 @@ public class ClientEvents {
         OWCoinGainOverlay.render(event.getGuiGraphics(),
                 event.getGuiGraphics().guiWidth(),
                 event.getGuiGraphics().guiHeight());
+        // Duel d'arène : rendu en dernier pour passer par-dessus tout le HUD.
+        net.tiew.operationWild.gui.OWArenaClashOverlay.render(event.getGuiGraphics(),
+                event.getGuiGraphics().guiWidth(),
+                event.getGuiGraphics().guiHeight());
+        net.tiew.operationWild.gui.OWArenaVictoryOverlay.render(event.getGuiGraphics(),
+                event.getGuiGraphics().guiWidth(),
+                event.getGuiGraphics().guiHeight());
         net.tiew.operationWild.gui.OWXpGainOverlay.render(event.getGuiGraphics(),
                 event.getGuiGraphics().guiWidth(),
                 event.getGuiGraphics().guiHeight());

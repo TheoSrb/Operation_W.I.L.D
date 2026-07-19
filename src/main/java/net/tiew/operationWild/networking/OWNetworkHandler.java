@@ -71,6 +71,13 @@ public class OWNetworkHandler {
         registrar.playToServer(SetMemberPermissionPacket.TYPE, SetMemberPermissionPacket.STREAM_CODEC, SetMemberPermissionPacket::handle);
         registrar.playToServer(BuyBannerShapePacket.TYPE, BuyBannerShapePacket.STREAM_CODEC, BuyBannerShapePacket::handle);
         registrar.playToServer(EnableTribeReputationPacket.TYPE, EnableTribeReputationPacket.STREAM_CODEC, EnableTribeReputationPacket::handle);
+        registrar.playToServer(AcceptArenaPacket.TYPE, AcceptArenaPacket.STREAM_CODEC, AcceptArenaPacket::handle);
+        registrar.playToServer(ClaimArenaChestPacket.TYPE, ClaimArenaChestPacket.STREAM_CODEC, ClaimArenaChestPacket::handle);
+        registrar.playToServer(ChallengeTribePacket.TYPE, ChallengeTribePacket.STREAM_CODEC, ChallengeTribePacket::handle);
+        registrar.playToServer(RespondArenaChallengePacket.TYPE, RespondArenaChallengePacket.STREAM_CODEC, RespondArenaChallengePacket::handle);
+        registrar.playToServer(SelectArenaFighterPacket.TYPE, SelectArenaFighterPacket.STREAM_CODEC, SelectArenaFighterPacket::handle);
+        registrar.playToServer(ConfirmArenaFightersPacket.TYPE, ConfirmArenaFightersPacket.STREAM_CODEC, ConfirmArenaFightersPacket::handle);
+        registrar.playToServer(CancelArenaPacket.TYPE, CancelArenaPacket.STREAM_CODEC, CancelArenaPacket::handle);
 
         // To Client packets
         registrar.playToClient(OWEntityUtilsToClient.TYPE, OWEntityUtilsToClient.STREAM_CODEC, OWEntityUtilsToClient::handle);
@@ -98,6 +105,10 @@ public class OWNetworkHandler {
         registrar.playToClient(SyncPlayerTribePacket.TYPE, SyncPlayerTribePacket.STREAM_CODEC, SyncPlayerTribePacket::handle);
         registrar.playToClient(SyncTribeListPacket.TYPE, SyncTribeListPacket.STREAM_CODEC, SyncTribeListPacket::handle);
         registrar.playToClient(SyncBannerUnlocksPacket.TYPE, SyncBannerUnlocksPacket.STREAM_CODEC, SyncBannerUnlocksPacket::handle);
+        registrar.playToClient(ArenaChestRewardPacket.TYPE, ArenaChestRewardPacket.STREAM_CODEC, ArenaChestRewardPacket::handle);
+        registrar.playToClient(SyncArenaStatePacket.TYPE, SyncArenaStatePacket.STREAM_CODEC, SyncArenaStatePacket::handle);
+        registrar.playToClient(ArenaClashPacket.TYPE, ArenaClashPacket.STREAM_CODEC, ArenaClashPacket::handle);
+        registrar.playToClient(ArenaVictoryPacket.TYPE, ArenaVictoryPacket.STREAM_CODEC, ArenaVictoryPacket::handle);
     }
 
     public static void sendToServer(CustomPacketPayload packet) {

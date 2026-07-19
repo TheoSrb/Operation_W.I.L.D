@@ -27,7 +27,8 @@ public class OWDataGenerators {
         generator.addProvider(event.includeServer(), new LootTableProvider(packOutput, Collections.emptySet(),
                 List.of(
                         new LootTableProvider.SubProviderEntry(OWBlockLootTableProvider::new, LootContextParamSets.BLOCK),
-                        new LootTableProvider.SubProviderEntry(OWEntityLootTableProvider::new, LootContextParamSets.ENTITY)
+                        new LootTableProvider.SubProviderEntry(OWEntityLootTableProvider::new, LootContextParamSets.ENTITY),
+                        new LootTableProvider.SubProviderEntry(OWArenaChestLootProvider::new, LootContextParamSets.CHEST)
                 ), lookupProvider));
 
         generator.addProvider(event.includeServer(), new OWRecipeProvider(packOutput, lookupProvider));

@@ -31,7 +31,9 @@ public record SyncPlayerTribePacket(
         byte[] paintPixels,
         int tertiaryColor, boolean useTertiary,
         List<String> deputyUUIDs, List<String> permUUIDs, List<Integer> permMasks,
-        int reputation, boolean reputationEnabled
+        int reputation, boolean reputationEnabled,
+        boolean arenaAccepted, int arenaPrestige,
+        List<String> arenaClaimUUIDs, List<Integer> arenaClaimCounts
 ) implements CustomPacketPayload {
 
     public static final Type<SyncPlayerTribePacket> TYPE = new Type<>(
@@ -69,6 +71,13 @@ public record SyncPlayerTribePacket(
                 }
                 ByteBufCodecs.INT.encode(buf, p.reputation());
                 ByteBufCodecs.BOOL.encode(buf, p.reputationEnabled());
+                ByteBufCodecs.BOOL.encode(buf, p.arenaAccepted());
+                ByteBufCodecs.INT.encode(buf, p.arenaPrestige());
+                ByteBufCodecs.INT.encode(buf, p.arenaClaimUUIDs().size());
+                for (int i = 0; i < p.arenaClaimUUIDs().size(); i++) {
+                    ByteBufCodecs.STRING_UTF8.encode(buf, p.arenaClaimUUIDs().get(i));
+                    ByteBufCodecs.INT.encode(buf, p.arenaClaimCounts().get(i));
+                }
             },
             buf -> {
                 boolean has = ByteBufCodecs.BOOL.decode(buf);
@@ -103,9 +112,16 @@ public record SyncPlayerTribePacket(
                 for (int i = 0; i < prc; i++) { permU.add(ByteBufCodecs.STRING_UTF8.decode(buf)); permM.add(ByteBufCodecs.INT.decode(buf)); }
                 int reputation = ByteBufCodecs.INT.decode(buf);
                 boolean repEnabled = ByteBufCodecs.BOOL.decode(buf);
+                boolean arenaAccepted = ByteBufCodecs.BOOL.decode(buf);
+                int arenaPrestige = ByteBufCodecs.INT.decode(buf);
+                int acc = ByteBufCodecs.INT.decode(buf);
+                List<String> claimU = new ArrayList<>(acc);
+                List<Integer> claimC = new ArrayList<>(acc);
+                for (int i = 0; i < acc; i++) { claimU.add(ByteBufCodecs.STRING_UTF8.decode(buf)); claimC.add(ByteBufCodecs.INT.decode(buf)); }
                 return new SyncPlayerTribePacket(has, teamId, name, owner, primary, secondary,
                         patternId, bannerShapeId, isPublic, joinReqs, directJoin, date, pNames, pUuids, pixels,
-                        tertiary, useTertiary, deputies, permU, permM, reputation, repEnabled);
+                        tertiary, useTertiary, deputies, permU, permM, reputation, repEnabled,
+                        arenaAccepted, arenaPrestige, claimU, claimC);
             });
 
     @Override
@@ -116,7 +132,8 @@ public record SyncPlayerTribePacket(
             return new SyncPlayerTribePacket(false, 0, "", "",
                     0xFFFFFF, 0xFFFFFF, 0, 0, false, new ArrayList<>(), false, "",
                     new ArrayList<>(), new ArrayList<>(), new byte[0], 0xFFFFFF, false,
-                    new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 0, false);
+                    new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 0, false,
+                    false, 0, new ArrayList<>(), new ArrayList<>());
         }
         List<String> pUuids = new ArrayList<>();
         for (UUID u : team.getPlayerUUIDs()) pUuids.add(u.toString());
@@ -125,6 +142,9 @@ public record SyncPlayerTribePacket(
         List<String> permU = new ArrayList<>();
         List<Integer> permM = new ArrayList<>();
         for (var e : team.getMemberPermissions().entrySet()) { permU.add(e.getKey().toString()); permM.add(e.getValue()); }
+        List<String> claimU = new ArrayList<>();
+        List<Integer> claimC = new ArrayList<>();
+        for (var e : team.getArenaChestsClaimed().entrySet()) { claimU.add(e.getKey().toString()); claimC.add(e.getValue()); }
         return new SyncPlayerTribePacket(
                 true,
                 team.getTeamId(),
@@ -143,7 +163,8 @@ public record SyncPlayerTribePacket(
                 OWTeamMosaicPattern.packPixels3(team.getPaintPixels() != null ? team.getPaintPixels() : new byte[0]),
                 team.getTertiaryColor(),
                 team.isUseTertiary(),
-                deputies, permU, permM, reputation, team.isReputationEnabled());
+                deputies, permU, permM, reputation, team.isReputationEnabled(),
+                team.isArenaAccepted(), team.getArenaPrestige(), claimU, claimC);
     }
 
     public static void handle(SyncPlayerTribePacket packet, IPayloadContext context) {
@@ -188,6 +209,12 @@ public record SyncPlayerTribePacket(
             }
             team.setReputation(packet.reputation());
             team.setReputationEnabled(packet.reputationEnabled());
+            team.setArenaAccepted(packet.arenaAccepted());
+            team.setArenaPrestige(packet.arenaPrestige());
+            for (int i = 0; i < packet.arenaClaimUUIDs().size(); i++) {
+                try { team.getArenaChestsClaimed().put(UUID.fromString(packet.arenaClaimUUIDs().get(i)), packet.arenaClaimCounts().get(i)); }
+                catch (IllegalArgumentException ignored) {}
+            }
             OWClientTribeData.set(team);
         });
     }

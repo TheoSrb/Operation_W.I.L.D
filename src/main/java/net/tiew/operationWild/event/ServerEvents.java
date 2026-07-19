@@ -131,6 +131,9 @@ public class ServerEvents {
                 net.tiew.operationWild.team.OWTribeManager.refreshEntitiesOfPlayer(server, player.getUUID());
                 net.tiew.operationWild.team.OWTribeManager.syncPlayerTribe(server, player);
                 net.tiew.operationWild.team.OWTribeManager.syncTribeList(server, player);
+                // Arène : filet de sécurité si le serveur a redémarré pendant un combat, puis état initial.
+                net.tiew.operationWild.team.OWArenaManager.rescueStrandedPlayer(server, player);
+                net.tiew.operationWild.team.OWArenaManager.syncTo(server, player);
             }
             net.tiew.operationWild.core.OWBannerUnlocks.sync(player);
         }
@@ -148,6 +151,7 @@ public class ServerEvents {
 
     private static int slingshotDecayCounter = 0;
     private static int reputationSyncCounter = 0;
+    private static int arenaTickCounter = 0;
 
     /** Décai périodique (~10 s) des fissures de la fronde, exécuté sur le thread principal (remplace l'ancien Timer). */
     @SubscribeEvent
@@ -155,6 +159,12 @@ public class ServerEvents {
         if (++slingshotDecayCounter >= 200) {
             slingshotDecayCounter = 0;
             net.tiew.operationWild.entity.misc.SlingshotProjectile.decayTick(event.getServer());
+        }
+
+        // Arène : avancement des matchs (survivants, ciblage, verdict) une fois par seconde.
+        if (++arenaTickCounter >= 20) {
+            arenaTickCounter = 0;
+            net.tiew.operationWild.team.OWArenaManager.tick(event.getServer());
         }
 
         // Réputation de tribu : rafraîchissement périodique (~5 s) — instantané de l'Expérience
@@ -171,6 +181,9 @@ public class ServerEvents {
                 }
                 for (net.minecraft.server.level.ServerPlayer p : players) {
                     net.tiew.operationWild.team.OWTribeManager.syncPlayerTribe(server, p);
+                    // L'état d'arène suit le même rythme : défis expirés, survivants, candidats
+                    // chargés/déchargés changent sans qu'aucune action ne les déclenche.
+                    net.tiew.operationWild.team.OWArenaManager.syncTo(server, p);
                 }
                 net.tiew.operationWild.team.OWTribeManager.broadcastTribeList(server);
             }

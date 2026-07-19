@@ -41,6 +41,9 @@ public record DisbandTribePacket() implements CustomPacketPayload {
             if (team == null || !sp.getUUID().equals(team.getTeamOwnerUUID())) return;
 
             List<UUID> members = new ArrayList<>(team.getPlayerUUIDs());
+            // Arène : clôt défi et match en cours (l'adversaire l'emporte) AVANT que la tribu
+            // ne disparaisse, sinon le match resterait orphelin et les combattants coincés.
+            net.tiew.operationWild.team.OWArenaManager.onTribeRemoved(server, team.getTeamId());
             data.removeTribe(team.getTeamId());
 
             for (UUID member : members) {

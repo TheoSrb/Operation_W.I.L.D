@@ -240,6 +240,8 @@ public class OperationWild {
         OWCommands.TribeTestMembersCommand.register(event.getDispatcher());
         OWCommands.ResetBannerUnlocksCommand.register(event.getDispatcher());
         OWCommands.SetTribeReputationCommand.register(event.getDispatcher());
+        OWCommands.ArenaPrestigeCommand.register(event.getDispatcher());
+        OWCommands.ArenaSparringCommand.register(event.getDispatcher());
         OWCommands.WipeTribesCommand.register(event.getDispatcher());
     }
 

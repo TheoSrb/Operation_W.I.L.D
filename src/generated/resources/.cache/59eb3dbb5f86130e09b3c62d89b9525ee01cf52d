@@ -1,4 +1,4 @@
-// 1.21	2026-06-09T11:41:50.827521	Loot Tables
+// 1.21	2026-07-19T21:06:45.4314145	Loot Tables
 39411953e31428b0099044fec99043fae3ff3335 data/ow/loot_table/blocks/animal_carcass.json
 21b0793ae3d401beeb314311ffbd4936db7dfe6d data/ow/loot_table/blocks/bear_trap.json
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
@@ -38,6 +38,15 @@ b24bafc5cbed78e626c6b2b5c7b9e39a6629d7ab data/ow/loot_table/blocks/scarified_dar
 067bd9d34994f9e06dea31b91ea4edfc09e977a6 data/ow/loot_table/blocks/stripped_redwood_log.json
 1c457b93eaec97aedfd1ae2c58459efc4b40e1b1 data/ow/loot_table/blocks/stripped_redwood_wood.json
 13d7679ab22070b0d9b56beb22aa65670ebd584c data/ow/loot_table/blocks/teddy_bear.json
+4cf935a50f52b399ea75e039491913a980d6305b data/ow/loot_table/chests/arena_gold_large.json
+6a7d317bd6459535fd4cabd9966c0de9aeb24c27 data/ow/loot_table/chests/arena_gold_normal.json
+7275628cc417ac058ccb5ee48da3035fcf00e11d data/ow/loot_table/chests/arena_gold_small.json
+df3faa39834919056cf3d6cee15056385de84922 data/ow/loot_table/chests/arena_jade_large.json
+97fbae8e07bcdb9d58f902ca9252d9bdf20ea056 data/ow/loot_table/chests/arena_jade_normal.json
+4bf6b6264591d2ebbaf45c088f1ab175cbf723b6 data/ow/loot_table/chests/arena_jade_small.json
+2491a669bd6c6151a7814bb90e688535f3061313 data/ow/loot_table/chests/arena_ruby_large.json
+faa4ae4db8e999a051243e6700c6c6f16a64672e data/ow/loot_table/chests/arena_ruby_normal.json
+ef672fa6436ed86a4aaa9529a3a47f579e8511fa data/ow/loot_table/chests/arena_ruby_small.json
 c126029e496776a2517b9e0319571465950de1d0 data/ow/loot_table/entities/boa.json
 ae09f7776c5de886119eb2a8361cf101d520afe6 data/ow/loot_table/entities/crocodile.json
 ac439941d9641cf5781efaab6ef5e6c96daf8c97 data/ow/loot_table/entities/kangaroo.json
