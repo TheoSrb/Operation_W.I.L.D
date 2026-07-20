@@ -931,10 +931,8 @@
   "owteams.arena.intro.wait": "Only the chief can commit the tribe.",
   "owteams.arena.chest_ready": "Click to open!",
   "owteams.arena.chest_locked": "No chest available",
-  "owteams.arena.prestige_total": "Tribe prestige: %s",
   "owteams.arena.opening": "Opening…",
   "owteams.arena.reward.title": "Rewards!",
-  "owteams.arena.reward.coins": "+%s Wild Coins",
   "owteams.arena.reward.dismiss": "Click to continue",
   "owteams.arena.switch.to_combat": "Go to Battle",
   "owteams.arena.switch.to_rewards": "Go to Rewards",
@@ -955,6 +953,7 @@
   "owteams.arena.challenge.decline": "Decline",
   "owteams.arena.challenge.confirm_title": "Declare a battle",
   "owteams.arena.challenge.confirm_body": "Challenge tribe \"%s\"?",
+  "owteams.arena.challenge.potential_prestige": "Potential prestige: +%s",
   "owteams.arena.cancel": "Cancel",
   "owteams.arena.match.started": "The battle is on! Pick your team.",
   "owteams.arena.selection.you": "You",
@@ -999,6 +998,7 @@
   "owteams.arena.chest.ruby_small": "Small Ruby Chest",
   "owteams.arena.chest.ruby_normal": "Ruby Chest",
   "owteams.arena.chest.ruby_large": "Large Ruby Chest",
+  "owteams.arena.chest.tribe": "Tribe Chest",
   "owteams.arena.selection.count": "Team: %s/%s",
   "owteams.arena.result.versus": "against %s",
   "owteams.arena.result.gains": "+%s reputation, +%s prestige",
@@ -1007,5 +1007,9 @@
   "owteams.arena.combat.click_to_challenge": "Click to challenge",
   "owteams.arena.clash.versus": "VS",
   "owteams.arena.zone.shrinking": "The battle zone is closing in!",
-  "owteams.arena.zone.busy": "The arena is busy: the battle will start as soon as it frees up."
+  "owteams.arena.zone.busy": "The arena is busy: the battle will start as soon as it frees up.",
+  "owteams.arena.protected": "The arena scenery cannot be modified.",
+  "owteams.arena.soul_returned": "Your companion's soul has been returned to you.",
+  "owteams.arena.tribe_chest.locked": "Requires %s",
+  "owteams.arena.tribe_chest.progress": "%s / %s chests opened"
 }

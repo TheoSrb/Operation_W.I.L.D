@@ -931,10 +931,8 @@
   "owteams.arena.intro.wait": "Somente o chefe pode comprometer a tribo.",
   "owteams.arena.chest_ready": "Clique para abrir!",
   "owteams.arena.chest_locked": "Nenhum baú disponível",
-  "owteams.arena.prestige_total": "Prestígio da tribo: %s",
   "owteams.arena.opening": "Abrindo…",
   "owteams.arena.reward.title": "Recompensas!",
-  "owteams.arena.reward.coins": "+%s Moedas Selvagens",
   "owteams.arena.reward.dismiss": "Clique para continuar",
   "owteams.arena.switch.to_combat": "Ir para Combate",
   "owteams.arena.switch.to_rewards": "Ir para Recompensas",
@@ -955,6 +953,7 @@
   "owteams.arena.challenge.decline": "Recusar",
   "owteams.arena.challenge.confirm_title": "Declarar um combate",
   "owteams.arena.challenge.confirm_body": "Desafiar a tribo \"%s\"?",
+  "owteams.arena.challenge.potential_prestige": "Prestígio potencial: +%s",
   "owteams.arena.cancel": "Cancelar",
   "owteams.arena.match.started": "O combate foi aceito! Monte seu time.",
   "owteams.arena.selection.you": "Você",
@@ -999,6 +998,7 @@
   "owteams.arena.chest.ruby_small": "Baú de rubi pequeno",
   "owteams.arena.chest.ruby_normal": "Baú de rubi",
   "owteams.arena.chest.ruby_large": "Baú de rubi grande",
+  "owteams.arena.chest.tribe": "Baú da tribo",
   "owteams.arena.selection.count": "Time: %s/%s",
   "owteams.arena.result.versus": "contra %s",
   "owteams.arena.result.gains": "+%s reputação, +%s prestígio",
@@ -1007,5 +1007,9 @@
   "owteams.arena.combat.click_to_challenge": "Clique para desafiar",
   "owteams.arena.clash.versus": "VS",
   "owteams.arena.zone.shrinking": "A zona de combate começa a se fechar!",
-  "owteams.arena.zone.busy": "A arena está ocupada: o combate começará assim que ela liberar."
+  "owteams.arena.zone.busy": "A arena está ocupada: o combate começará assim que ela liberar.",
+  "owteams.arena.protected": "O cenário da arena não pode ser modificado.",
+  "owteams.arena.soul_returned": "A alma do seu companheiro foi devolvida a você.",
+  "owteams.arena.tribe_chest.locked": "Requer %s",
+  "owteams.arena.tribe_chest.progress": "%s / %s baús abertos"
 }

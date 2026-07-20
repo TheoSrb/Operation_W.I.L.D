@@ -60,6 +60,58 @@ public final class OWCinematicFx {
 
     // ── Effets d'impact ──────────────────────────────────────────────────────────
     /** Anneaux concentriques qui s'écartent d'un point. */
+    /**
+     * Disque plein translucide, tracé par lignes de balayage.
+     *
+     * <p>{@code GuiGraphics} ne sait remplir que des rectangles ; approcher un halo par un carré se
+     * voit immédiatement dès que le rayon dépasse quelques dizaines de pixels — le « halo » devient
+     * une plaque. Une demi-largeur calculée par ligne donne un vrai cercle pour un coût négligeable
+     * à ces tailles.</p>
+     */
+    public static void drawDisc(GuiGraphics g, int cx, int cy, int radius, int argb) {
+        if (radius <= 0 || (argb >>> 24) == 0) return;
+        int r2 = radius * radius;
+        for (int dy = -radius; dy <= radius; dy++) {
+            int half = (int) Math.sqrt(Math.max(0, r2 - dy * dy));
+            if (half <= 0) continue;
+            g.fill(cx - half, cy + dy, cx + half, cy + dy + 1, argb);
+        }
+    }
+
+    /**
+     * Halo radial : disques concentriques d'opacité croissante vers le centre. Rend une vraie
+     * lueur ronde là où des rectangles empilés donnaient des angles bien visibles.
+     */
+    public static void drawGlow(GuiGraphics g, int cx, int cy, int radius, int rgb, float intensity) {
+        if (intensity <= 0.01f || radius <= 0) return;
+        final int layers = 5;
+        int base = rgb & 0xFFFFFF;
+        for (int i = layers; i >= 1; i--) {
+            int r = radius * i / layers;
+            int a = (int) (26 * intensity * (1f - (i - 1) / (float) layers));
+            if (a <= 0) continue;
+            drawDisc(g, cx, cy, r, (Math.min(255, a) << 24) | base);
+        }
+    }
+
+    /** Anneau circulaire d'épaisseur {@code thickness}, tracé par lignes de balayage. */
+    public static void drawRing(GuiGraphics g, int cx, int cy, int radius, int thickness, int argb) {
+        if (radius <= 0 || thickness <= 0 || (argb >>> 24) == 0) return;
+        int inner = Math.max(0, radius - thickness);
+        int r2 = radius * radius, i2 = inner * inner;
+        for (int dy = -radius; dy <= radius; dy++) {
+            int outerHalf = (int) Math.sqrt(Math.max(0, r2 - dy * dy));
+            if (outerHalf <= 0) continue;
+            int innerHalf = Math.abs(dy) < inner ? (int) Math.sqrt(Math.max(0, i2 - dy * dy)) : 0;
+            if (innerHalf <= 0) {
+                g.fill(cx - outerHalf, cy + dy, cx + outerHalf, cy + dy + 1, argb);
+            } else {
+                g.fill(cx - outerHalf, cy + dy, cx - innerHalf, cy + dy + 1, argb);
+                g.fill(cx + innerHalf, cy + dy, cx + outerHalf, cy + dy + 1, argb);
+            }
+        }
+    }
+
     public static void drawShockwave(GuiGraphics g, int cx, int cy, float since, float fade) {
         for (int k = 0; k < 4; k++) {
             float p = since * 1.5f - k * 0.13f;
@@ -68,11 +120,7 @@ public final class OWCinematicFx {
             int alpha = (int) (165 * (1f - p) * fade);
             if (alpha <= 0) continue;
             int thickness = Math.max(1, (int) (7 * (1f - p)));
-            // Anneau approché par quatre bandes : imperceptible à cette vitesse, et sans coût.
-            g.fill(cx - r, cy - r, cx + r, cy - r + thickness, (alpha << 24) | 0xFFFFFF);
-            g.fill(cx - r, cy + r - thickness, cx + r, cy + r, (alpha << 24) | 0xFFFFFF);
-            g.fill(cx - r, cy - r, cx - r + thickness, cy + r, (alpha << 24) | 0xFFFFFF);
-            g.fill(cx + r - thickness, cy - r, cx + r, cy + r, (alpha << 24) | 0xFFFFFF);
+            drawRing(g, cx, cy, r, thickness, (alpha << 24) | 0xFFFFFF);
         }
     }
 

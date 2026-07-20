@@ -1,5 +1,6 @@
 package net.tiew.operationWild.screen.tribe;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -23,6 +24,7 @@ import net.tiew.operationWild.core.OWArena;
 import net.tiew.operationWild.core.OWReputation;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.gui.OWCinematicFx;
+import net.tiew.operationWild.gui.OWCinematicState;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.AcceptArenaPacket;
 import net.tiew.operationWild.networking.packets.to_server.CancelArenaPacket;
@@ -67,14 +69,24 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     private static final int CONTENT_Y = 22;
     private static final int SWITCH_W = 20, SWITCH_H = 18;   // même gabarit que les onglets
     private static final int BAR_W = 140, BAR_H = 9;
-    private static final int CHEST_W = 52, CHEST_H = 40;
+    /**
+     * Dimensions natives des sprites de coffre dans {@code ow_teams_sprites.png}.
+     *
+     * <p>Les trois gabarits (petit / moyen / grand) partagent la <b>même toile</b> : la différence de
+     * taille est dessinée dans l'image, pas appliquée à l'exécution. Aucun facteur d'échelle n'est
+     * donc utilisé — ce qui préserve la netteté du pixel-art, une réduction non entière la détruisant.</p>
+     */
+    private static final int CHEST_W = 37, CHEST_H = 29;
 
     // Durées de l'animation (ms).
     private static final long ANTICIPATION_MS = 700;   // le coffre s'installe, le monde s'efface
     private static final long SHAKE_MS = 2000;         // tremblement qui s'emballe, lumière qui fuit
     private static final long CHARGE_MS = 550;         // silence : tout se fige avant de céder
-    private static final long BURST_MS = 550;          // rupture
+    private static final long BURST_MS = 720;          // rupture : le couvercle doit avoir le temps de partir
     private static final long REVEAL_STEP_MS = 170;    // cadence de révélation des lots
+    private static final long COINS_DELAY_MS = 520;    // silence avant d'annoncer les Pièces Sauvages
+    private static final long FLIGHT_MS = 280;         // trajet d'un lot, du coffre à sa case
+    private static final long DISMISS_DELAY_MS = 720;  // avant « Cliquez pour continuer »
     /** Au-delà, on renonce à attendre le butin : le serveur a refusé la demande (ou le paquet s'est perdu). */
     private static final long CLAIM_TIMEOUT_MS = 6000;
 
@@ -92,13 +104,35 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     private final List<float[]> burstRays = new ArrayList<>();      // {angle, longueur, épaisseur}
     /** Nombre de battements déjà joués pendant le tremblement (cadence croissante). */
     private int shakeTicks = 0;
+    /**
+     * Le joueur a cliqué pour abréger l'animation.
+     *
+     * <p>Mémorisé plutôt qu'appliqué sur-le-champ : tant que le serveur n'a pas renvoyé le butin,
+     * il n'y a rien à révéler. Le saut s'exécute donc dès son arrivée.</p>
+     */
+    private boolean skipRequested = false;
+    /** Nombre de lots dont l'atterrissage a déjà été sonorisé (évite de rejouer à chaque frame). */
+    private int landedSounds = 0;
     /** Zone cliquable du coffre, recalculée à chaque frame (le gabarit dépend du palier). */
     private int chestX, chestY, chestW = CHEST_W, chestH = CHEST_H;
+    /** Zone du coffre de tribu, affiché à côté du précédent quand il y en a un à réclamer. */
+    private int tribeChestX, tribeChestY;
+    private boolean tribeChestShown = false;
 
     // ── Animations ───────────────────────────────────────────────────────────────
     /** Valeurs animées par nom : chaque valeur glisse doucement vers sa cible. */
     private final Map<String, Float> animated = new HashMap<>();
     private long lastFrameMs = System.currentTimeMillis();
+    /**
+     * Origine des temps de cet écran. Toutes les animations cycliques s'y rapportent.
+     *
+     * <p>Indispensable : {@code System.currentTimeMillis() / 1000f} vaut ~1,7 milliard, magnitude à
+     * laquelle deux {@code float} consécutifs sont distants de <b>128 secondes</b>. Un temps absolu
+     * stocké en {@code float} est donc gelé pendant des minutes entières, et tout ce qui en dépend
+     * reste parfaitement immobile. En repartant de zéro à l'ouverture, la magnitude reste petite et
+     * la précision totale.</p>
+     */
+    private final long screenEpochMs = System.currentTimeMillis();
     /** Delta de la frame courante, en secondes (borné pour survivre à un freeze). */
     private float frameDelta = 0f;
     /** Début de la transition d'apparition du contenu (changement de vue ou de phase). */
@@ -115,6 +149,14 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     private static final int SLOT = 20, SLOT_GAP = 1;
 
     private int combatScroll = 0, combatScrollMax = 0, candidateRows = 0;
+    /**
+     * Position de défilement telle qu'elle a été <b>dessinée</b> à la dernière frame.
+     *
+     * <p>Le défilement étant animé, la valeur logique et la valeur affichée diffèrent pendant la
+     * transition. Les zones de clic se calent sur celle-ci : on clique toujours sur la ligne qu'on
+     * voit, jamais sur celle où elle sera dans 150 ms.</p>
+     */
+    private float pickerScrollShown = 0f, candidateScrollShown = 0f;
     /** Éléments survolés cette frame (tooltips rendus en fin de frame). */
     private OWArenaFighter hoverFighter = null, hoverCandidate = null;
     /** Tribu survolée dans le sélecteur d'adversaire (tooltip de décision en fin de frame). */
@@ -194,6 +236,9 @@ public class OWTribeArenaScreen extends OWTribeScreen {
 
     @Override
     public void onClose() {
+        // Fermeture en plein milieu de l'animation : l'état ne doit pas rester coincé à « vrai »,
+        // sinon le tchat resterait masqué indéfiniment.
+        OWCinematicState.setChestOpening(false);
         OWClientArenaReward.clear();
         super.onClose();
     }
@@ -217,7 +262,14 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     public boolean mouseClicked(double mx, double my, int button) {
         // Pendant l'animation, tout clic sert uniquement à la faire avancer / la clore.
         if (opening != Opening.NONE) {
-            if (button == 0 && opening == Opening.REVEAL) closeOpening();
+            if (button == 0) {
+                boolean allShown = opening == Opening.REVEAL
+                        && System.currentTimeMillis() - openingStart >= fullRevealMs();
+                // Premier clic : on abrège l'animation. Second : on ferme.
+                if (allShown) closeOpening();
+                else if (reward != null) skipToReveal();
+                else skipRequested = true;   // butin pas encore reçu : saut différé
+            }
             return true;
         }
         // La confirmation de défi capte tout sauf ses deux boutons.
@@ -237,10 +289,16 @@ public class OWTribeArenaScreen extends OWTribeScreen {
                 playTabSwitch();
                 return true;
             }
-            // Coffre cliquable (uniquement si le joueur en a un en attente).
+            // Coffres cliquables (uniquement si le joueur en a un en attente).
             if (view == View.REWARDS && pendingChests() > 0
                     && mx >= chestX && mx < chestX + chestW && my >= chestY && my < chestY + chestH) {
-                beginOpening();
+                beginOpening(false);
+                return true;
+            }
+            if (view == View.REWARDS && tribeChestShown
+                    && mx >= tribeChestX && mx < tribeChestX + CHEST_W
+                    && my >= tribeChestY && my < tribeChestY + CHEST_H) {
+                beginOpening(true);
                 return true;
             }
         }
@@ -258,12 +316,15 @@ public class OWTribeArenaScreen extends OWTribeScreen {
             List<OWClientTribeList.Entry> targets = challengeableTribes();
             if (targets.isEmpty()) return false;
             int x1 = leftPos + 7, y1 = topPos + CONTENT_Y, x2 = leftPos + IMG_W - 7, y2 = topPos + IMG_H - 26;
-            int listY = y1 + 16, rowH = 14;
+            int listY = y1 + 16, rowH = 20;
             int rows = (y2 - listY - 2) / rowH;
             boolean hasScroll = targets.size() > rows;
             int listX = x1 + 2, listW = x2 - x1 - 4 - (hasScroll ? 6 : 0);
-            for (int i = combatScroll; i < Math.min(combatScroll + rows, targets.size()); i++) {
-                int y = listY + (i - combatScroll) * rowH;
+            int firstRow = Math.max(0, (int) Math.floor(pickerScrollShown));
+            int lastRow = Math.min(targets.size(), (int) Math.ceil(pickerScrollShown) + rows + 1);
+            for (int i = firstRow; i < lastRow; i++) {
+                int y = Math.round(listY + (i - pickerScrollShown) * rowH);
+                if (my < listY || my >= listY + rows * rowH) break;
                 if (mx >= listX && mx < listX + listW && my >= y && my < y + rowH) {
                     OWClientTribeList.Entry e = targets.get(i);
                     pendingChallengeId = e.teamId();
@@ -298,8 +359,11 @@ public class OWTribeArenaScreen extends OWTribeScreen {
             boolean hasScroll = candidates.size() > candidateRows;
             int contentW = hasScroll ? listW - 6 : listW;
             int rowH = 13;
-            for (int i = combatScroll; i < Math.min(combatScroll + candidateRows, candidates.size()); i++) {
-                int ry = slotsY + (i - combatScroll) * rowH;
+            int firstRow = Math.max(0, (int) Math.floor(candidateScrollShown));
+            int lastRow = Math.min(candidates.size(), (int) Math.ceil(candidateScrollShown) + candidateRows + 1);
+            for (int i = firstRow; i < lastRow; i++) {
+                int ry = Math.round(slotsY + (i - candidateScrollShown) * rowH);
+                if (my < slotsY || my >= slotsY + candidateRows * rowH) break;
                 if (mx < listX || mx >= listX + contentW || my < ry || my >= ry + rowH) continue;
                 OWArenaFighter f = candidates.get(i);
                 boolean selected = OWClientArenaState.isSelected(f.entityUuid());
@@ -331,21 +395,70 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         return t != null && me != null ? t.pendingArenaChests(me) : 0;
     }
 
+    /**
+     * Coffres de tribu en attente. Ils exigent un badge minimal : sous ce rang, ils restent
+     * comptabilisés côté serveur mais ne sont ni affichés ni réclamables.
+     */
+    private int pendingTribeChests() {
+        OWTeam t = OWClientTribeData.get();
+        UUID me = selfUuid();
+        if (t == null || me == null) return 0;
+        if (!OWArena.tribeChestUnlocked(t.getReputation())) return 0;
+        return t.pendingTribeChests(me);
+    }
+
     // ── Animation d'ouverture ────────────────────────────────────────────────────
-    private void beginOpening() {
+    private void beginOpening(boolean tribeChest) {
         opening = Opening.ANTICIPATION;
+        skipRequested = false;
+        landedSounds = 0;
+        OWCinematicState.setChestOpening(true);
         openingStart = System.currentTimeMillis();
         reward = null;
         shakeTicks = 0;
         OWClientArenaReward.clear();
-        OWNetworkHandler.sendToServer(new ClaimArenaChestPacket());
+        OWNetworkHandler.sendToServer(new ClaimArenaChestPacket(tribeChest));
         playUi(SoundEvents.CHEST_OPEN, 0.7f);
     }
 
     private void closeOpening() {
         opening = Opening.NONE;
+        skipRequested = false;
+        OWCinematicState.setChestOpening(false);
         reward = null;
         burstParticles.clear();
+    }
+
+    /** Fanfare de trouvaille rare : trois notes montantes doublées d'un éclat cristallin. */
+    private void playRareChime() {
+        playUi(SoundEvents.AMETHYST_BLOCK_CHIME, 1.4f);
+        playUi(SoundEvents.PLAYER_LEVELUP, 1.6f);
+        playUi(SoundEvents.BEACON_POWER_SELECT, 1.8f);
+    }
+
+    /** Instant, depuis le début de la révélation, où absolument tout est affiché. */
+    private long fullRevealMs() {
+        int n = reward != null ? reward.items().size() : 0;
+        return Math.max(0, n - 1) * REVEAL_STEP_MS + FLIGHT_MS + COINS_DELAY_MS + DISMISS_DELAY_MS;
+    }
+
+    /** Saute directement à la fin : tous les lots posés, les pièces annoncées, l'invite affichée. */
+    private void skipToReveal() {
+        opening = Opening.REVEAL;
+        // On recule l'origine du chronomètre : la séquence se retrouve « déjà jouée », sans
+        // avoir à dupliquer un état de fin quelque part.
+        openingStart = System.currentTimeMillis() - fullRevealMs();
+        skipRequested = false;
+        if (reward != null) spawnBurst(reward.chest().accent());
+        // Tout est révélé d'un coup : on neutralise les sons d'atterrissage individuels et on
+        // résume par un seul son, plus intense s'il y avait une trouvaille rare.
+        boolean anyRare = false;
+        if (reward != null) {
+            landedSounds = reward.items().size();
+            for (int i = 0; i < reward.items().size(); i++) anyRare |= reward.isRare(i);
+        }
+        if (anyRare) playRareChime();
+        else playUi(SoundEvents.PLAYER_LEVELUP, 1.1f);
     }
 
     /** Passe à l'étape suivante et repart de zéro sur le chronomètre. */
@@ -361,6 +474,9 @@ public class OWTribeArenaScreen extends OWTribeScreen {
             OWClientArenaReward.Reward r = OWClientArenaReward.poll();
             if (r != null) reward = r;
         }
+        // Saut demandé : on attend d'avoir le butin, puis on va droit à la fin.
+        if (skipRequested && reward != null) { skipToReveal(); return; }
+
         long elapsed = System.currentTimeMillis() - openingStart;
         switch (opening) {
             case ANTICIPATION -> {
@@ -528,8 +644,11 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         int maxScroll = Math.max(0, introContentH - introViewH);
         introScroll = Math.min(introScroll, maxScroll);
 
+        // Le défilement glisse vers sa cible plutôt que de sauter de 9 px par cran de molette.
+        float scrollAnim = animate("introScroll", introScroll, 18f);
+
         g.enableScissor(x1 + 1, y1 + 1, x2 - 1, y2 - 1);
-        int y = y1 + 3 - introScroll;
+        int y = Math.round(y1 + 3 - scrollAnim);
         for (Object[] row : rendered) {
             if (row[0] != null && y + lineH >= y1 && y <= y2) {
                 g.pose().pushPose();
@@ -542,6 +661,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         }
         g.disableScissor();
 
+        drawScrollFade(g, x1 + 1, y1 + 1, x2 - 1, y2 - 1, scrollAnim, maxScroll);
         if (maxScroll > 0) {
             drawScrollbar(g, x2 - 6, y1 + 1, introViewH - 2, introScroll, maxScroll, introViewH, introContentH);
         }
@@ -570,6 +690,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         int cx = leftPos + IMG_W / 2;
         int prestige = t.getArenaPrestige();
         int pending = pendingChests();
+        int tribePending = pendingTribeChests();
         OWReputation.Badge badge = OWReputation.badgeFor(t.getReputation());
         OWArena.Chest chest = OWArena.chestFor(badge);
 
@@ -583,47 +704,26 @@ public class OWTribeArenaScreen extends OWTribeScreen {
                         .withColor(TextColor.fromRgb(chest.accent()))),
                 cx - labelW / 2, topPos + CONTENT_Y, chest.accent(), false);
 
-        // Le gabarit du coffre suit la division du badge : petit / normal / grand. On lui réserve
-        // une bande de hauteur fixe, dimensionnée sur le PLUS GRAND coffre, et on l'y centre :
-        // sinon un grand coffre débordait sur le libellé posé juste en dessous.
-        int cw = Math.round(CHEST_W * chest.size().scale());
-        int ch = Math.round(CHEST_H * chest.size().scale());
-        int bandTop = topPos + CONTENT_Y + 14;
-        int bandH = Math.round(CHEST_H * OWArena.Size.LARGE.scale());
-        chestX = cx - cw / 2;
-        chestY = bandTop + (bandH - ch) / 2;
-        chestW = cw; chestH = ch;
+        // Le coffre de badge occupe seul le haut : le coffre de tribu a sa propre section, tout en
+        // bas, sous la barre de progression.
+        //
+        // Le dégagement sous le titre tient compte de l'ANIMATION, pas seulement du coffre : la pile
+        // monte de 8 px et le soubresaut de 4 de plus. Sans cette marge, un coffre empilé venait
+        // recouvrir le libellé du palier à chaque secousse.
+        int bandTop = topPos + CONTENT_Y + 22;
+        chestX = cx - CHEST_W / 2;
+        chestY = bandTop;
+        chestW = CHEST_W; chestH = CHEST_H;
 
         boolean hovered = pending > 0
-                && mouseX >= chestX && mouseX < chestX + cw
-                && mouseY >= chestY && mouseY < chestY + ch;
+                && mouseX >= chestX && mouseX < chestX + CHEST_W
+                && mouseY >= chestY && mouseY < chestY + CHEST_H;
 
-        // Flottement + halo pulsé tant qu'un coffre attend d'être ouvert.
-        float t0 = System.currentTimeMillis() / 1000f;
-        float bob = pending > 0 ? (float) Math.sin(t0 * 3.1) * 1.8f : 0f;
-        if (pending > 0) {
-            float pulse = 0.5f + 0.5f * (float) Math.sin(t0 * 2.4);
-            int glowA = (int) (34 + 46 * pulse) + (hovered ? 40 : 0);
-            int r = Math.round(cw * 0.62f);
-            g.fill(cx - r, chestY + ch / 2 - r, cx + r, chestY + ch / 2 + r,
-                    (glowA << 24) | (chest.accent() & 0xFFFFFF));
-        }
-        drawChest(g, chestX, chestY + Math.round(bob), cw, ch,
-                chest.accent(), pending > 0, hovered, 0f);
+        float t0 = clock();
+        drawIdleChest(g, cx, bandTop, chest, pending, hovered, t0, 0f);
 
-        // Pastille du nombre de coffres en attente (façon badge de notification).
-        if (pending > 1) {
-            String n = "x" + pending;
-            int bx = chestX + cw - 4, by = chestY - 2;
-            int bw = this.font.width(n) + 5;
-            g.fill(bx - bw / 2, by, bx + bw / 2, by + 11, 0xFF1E1E22);
-            g.fill(bx - bw / 2, by, bx + bw / 2, by + 1, 0xFF000000 | chest.accent());
-            g.drawString(this.font, n, bx - bw / 2 + 3, by + 2, 0xFFFFFF, false);
-        }
-
-        // Invitation à cliquer (clignotante), ou rappel qu'il faut encore progresser. Posé sous la
-        // bande réservée au coffre, donc jamais recouvert quel que soit son gabarit.
-        int hintY = bandTop + bandH + 4;
+        // Invitation à cliquer (clignotante), ou rappel qu'il faut encore progresser.
+        int hintY = bandTop + CHEST_H + 4;
         if (pending > 0) {
             int a = (int) (170 + 85 * (0.5 + 0.5 * Math.sin(t0 * 4.0)));
             g.drawCenteredString(this.font, Component.translatable("owteams.arena.chest_ready"),
@@ -634,24 +734,229 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         }
 
         // Barre de progression vers le prochain coffre (remplissage lissé).
-        int barX = cx - BAR_W / 2, barY = hintY + 16;
+        int barX = cx - BAR_W / 2, barY = hintY + 14;
         drawProgressBar(g, barX, barY, animate("prestige", OWArena.barProgress(prestige)), chest.accent());
-        g.drawCenteredString(this.font,
-                OWArena.prestigeInTier(prestige) + " / " + OWArena.PRESTIGE_PER_CHEST,
-                cx, barY + BAR_H + 3, 0xBBBBBB);
 
-        // Total de prestige de la tribu, en petit.
-        drawSmallCentered(g, Component.translatable("owteams.arena.prestige_total",
-                OWTribeReputationScreen.formatNumber(prestige)), cx, barY + BAR_H + 15, 0x4A4A4A);
+        // Ratio écrit DANS la barre plutôt qu'en dessous : douze pixels de gagnés, dont la section
+        // du coffre de tribu a besoin pour tenir au-dessus du bouton de bascule.
+        String ratio = OWArena.prestigeInTier(prestige) + " / " + OWArena.PRESTIGE_PER_CHEST;
+        g.drawString(this.font, ratio, cx - this.font.width(ratio) / 2, barY + 1, 0xFFFFFFFF, true);
+
+        renderTribeChestSection(g, t, barY + BAR_H + 10, mouseX, mouseY, t0, tribePending);
+    }
+
+    /**
+     * Bandeau du coffre de tribu, en pied d'onglet : le coffre à gauche, son avancement à droite.
+     *
+     * <p>Toujours affiché — même verrouillé — pour que la récompense soit connue avant d'être
+     * atteignable. Trois états : rang insuffisant, progression en cours, coffre à réclamer.</p>
+     */
+    private void renderTribeChestSection(GuiGraphics g, OWTeam t, int top,
+                                         int mouseX, int mouseY, float t0, int tribePending) {
+        boolean unlocked = OWArena.tribeChestUnlocked(t.getReputation());
+        boolean ready = tribePending > 0;
+
+        // Filet de séparation : la section n'appartient pas à la progression du dessus.
+        g.fill(leftPos + 14, top - 5, leftPos + IMG_W - 14, top - 4, 0x33000000);
+
+        int chestLeft = leftPos + 10;
+        tribeChestX = chestLeft;
+        tribeChestY = top;
+        tribeChestShown = ready;
+
+        boolean hovered = ready
+                && mouseX >= tribeChestX && mouseX < tribeChestX + CHEST_W
+                && mouseY >= tribeChestY && mouseY < tribeChestY + CHEST_H;
+
+        if (ready) {
+            // Déphasé : les deux coffres ne doivent pas s'agiter à l'unisson, ce qui trahirait une
+            // animation commune plutôt que deux objets distincts.
+            drawIdleChest(g, chestLeft + CHEST_W / 2, top, OWArena.Chest.TRIBE,
+                    tribePending, hovered, t0, 1.7f);
+        } else {
+            // Verrouillé : coffre éteint, sans halo ni étincelles.
+            drawChest(g, chestLeft, top, OWArena.Chest.TRIBE, false, false, 0f, 1f);
+        }
+
+        int textX = chestLeft + CHEST_W + 8;
+        int textW = leftPos + IMG_W - 10 - textX;
+        int accent = OWArena.Chest.TRIBE.accent();
+
+        // Les teintes du coffre servent sur fond sombre (cinématiques) ; sur le panneau clair, il
+        // faut les assombrir, sinon l'ivoire disparaît purement et simplement.
+        int nameCol = ready ? onPanel(accent) : 0x8A8A84;
+        Component name = Component.translatable("owteams.arena.chest.tribe");
+        g.drawString(this.font, name.copy().withStyle(Style.EMPTY.withBold(true)
+                        .withColor(TextColor.fromRgb(nameCol))),
+                textX, top + 1, nameCol, false);
+
+        if (!unlocked) {
+            // Rang insuffisant : on nomme la condition plutôt que d'afficher une barre trompeuse.
+            drawSmall(g, Component.translatable("owteams.arena.tribe_chest.locked",
+                            Component.translatable(OWArena.TRIBE_CHEST_MIN_BADGE.translationKey())),
+                    textX, top + 13, 0x8A5A4A);
+            return;
+        }
+
+        if (ready) {
+            // Coffre dû : la barre d'avancement n'apprendrait plus rien, on la remplace par
+            // l'invite. La section garde ainsi la hauteur du coffre, quel que soit son état.
+            int a = (int) (170 + 85 * (0.5 + 0.5 * Math.sin(t0 * 4.0)));
+            drawSmall(g, Component.translatable("owteams.arena.chest_ready"),
+                    textX, top + 14, (a << 24) | 0xA8791A);
+            return;
+        }
+
+        // Avancement vers le prochain coffre de tribu : coffres de badge ouverts, modulo dix.
+        int opened = tribeProgress();
+        int goal = OWArena.CHESTS_PER_TRIBE_CHEST;
+        drawSmall(g, Component.translatable("owteams.arena.tribe_chest.progress", opened, goal),
+                textX, top + 13, 0x82807A);
+
+        int miniY = top + 23, miniH = 5;
+        g.fill(textX - 1, miniY - 1, textX + textW + 1, miniY + miniH + 1, 0xFF000000);
+        g.fill(textX, miniY, textX + textW, miniY + miniH, 0xFF16161A);
+        int fill = Math.round(textW * animate("tribeBar", opened / (float) goal, 8f));
+        if (fill > 0) {
+            g.fill(textX, miniY, textX + fill, miniY + miniH, 0xFF000000 | accent);
+            g.fill(textX, miniY, textX + fill, miniY + 2, 0x44FFFFFF);
+        }
+    }
+
+    /**
+     * Assombrit une teinte jusqu'à ce qu'elle se détache du panneau, en préservant sa couleur.
+     *
+     * <p>Le pendant de {@code readable} des cinématiques, qui éclaircit pour un fond noir : ici le
+     * fond est le panneau gris clair. L'accent du coffre de tribu, un ivoire de luminance 0,82,
+     * y était tout bonnement invisible — d'autant que le petit texte est tracé <b>sans ombre
+     * portée</b>, contrairement aux titres centrés.</p>
+     */
+    private static int onPanel(int rgb) {
+        int r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
+        float luma = (0.299f * r + 0.587f * g + 0.114f * b) / 255f;
+        final float ceiling = 0.42f;
+        if (luma <= ceiling) return rgb & 0xFFFFFF;
+        float k = ceiling / Math.max(0.04f, luma);
+        return (Math.round(r * k) << 16) | (Math.round(g * k) << 8) | Math.round(b * k);
+    }
+
+    /** Coffres de badge ouverts depuis le dernier coffre de tribu (0 → 9). */
+    private int tribeProgress() {
+        OWTeam t = OWClientTribeData.get();
+        UUID me = selfUuid();
+        if (t == null || me == null) return 0;
+        return t.getArenaChestsClaimed(me) % OWArena.CHESTS_PER_TRIBE_CHEST;
+    }
+
+    /**
+     * Étincelles gravitant autour d'un coffre en attente. Déterministes (fonction du temps seul),
+     * donc sans état à conserver ni allocation par frame.
+     */
+    private void drawIdleSparkles(GuiGraphics g, int cx, int cy, int accent, float t) {
+        final int count = 7;
+        int base = accent & 0xFFFFFF;
+        for (int i = 0; i < count; i++) {
+            float speed = 0.55f + (i % 3) * 0.22f;
+            float angle = t * speed + i * (float) (Math.PI * 2 / count);
+            float radiusX = CHEST_W * (0.58f + 0.10f * ((i * 5 % 7) / 7f));
+            float radiusY = CHEST_H * (0.62f + 0.12f * ((i * 3 % 5) / 5f));
+            float x = cx + (float) Math.cos(angle) * radiusX;
+            float y = cy + (float) Math.sin(angle * 1.3f + i) * radiusY;
+
+            float twinkle = 0.5f + 0.5f * (float) Math.sin(t * 3.4f + i * 2.1f);
+            int a = (int) (200 * twinkle);
+            if (a <= 8) continue;
+
+            // Taille par mise à l'échelle continue et position en sous-pixel : basculer d'un carré
+            // de 1 px à 2 px se voyait comme un clignotement, et arrondir la position faisait
+            // sauter l'étincelle au lieu de la faire glisser.
+            float size = 0.7f + 1.5f * twinkle;
+            g.pose().pushPose();
+            g.pose().translate(x, y, 0);
+            g.pose().scale(size, size, 1f);
+            g.fill(-1, -1, 1, 1, (a << 24) | base);
+            g.fill(0, -1, 1, 0, (Math.min(255, a + 60) << 24) | 0xFFFFFF);
+            g.pose().popPose();
+        }
     }
 
     /** Petit texte aligné à gauche (échelle 0.75). */
     private void drawSmall(GuiGraphics g, Component text, int x, int y, int color) {
-        final float s = 0.75f;
+        final float sc = 0.75f;
         g.pose().pushPose();
         g.pose().translate(x, y, 0);
-        g.pose().scale(s, s, 1f);
+        g.pose().scale(sc, sc, 1f);
         g.drawString(this.font, text, 0, 0, color, false);
+        g.pose().popPose();
+    }
+
+    /**
+     * Dessine un coffre en attente d'ouverture, avec toute sa vie : halo, étincelles, flottement,
+     * soubresaut périodique, pile et pastille de comptage.
+     *
+     * <p>{@code phaseOffset} décale l'horloge de ce coffre : deux coffres affichés en même temps ne
+     * doivent pas s'agiter à l'unisson, ce qui trahirait une animation commune.</p>
+     */
+    private void drawIdleChest(GuiGraphics g, int centerX, int top, OWArena.Chest chest,
+                               int pending, boolean hovered, float clock, float phaseOffset) {
+        int x = centerX - CHEST_W / 2;
+        float t0 = clock + phaseOffset;
+
+        // Décalages gardés en FLOTTANT et appliqués par la pile de matrices : arrondir au pixel
+        // entier faisait avancer le coffre par sauts de 4 px à l'écran (échelle d'interface).
+        float bob = 0f, jolt = 0f, tilt = 0f;
+        if (pending > 0) {
+            bob = (float) Math.sin(t0 * 2.6) * 1.9f;
+
+            // Soubresaut périodique, enveloppe en cloche : l'agitation naît et s'éteint en douceur.
+            final float RATTLE_PERIOD = 3.6f, RATTLE_LEN = 0.75f;
+            float phase = t0 % RATTLE_PERIOD;
+            if (phase < RATTLE_LEN) {
+                float u = phase / RATTLE_LEN;
+                float envelope = (float) Math.sin(u * Math.PI);
+                envelope *= envelope;
+                jolt = (float) Math.sin(u * Math.PI * 6.0) * 2.6f * envelope;
+                tilt = (float) Math.sin(u * Math.PI * 6.0) * 3.4f * envelope;
+                bob -= 2.2f * envelope;
+            }
+
+            // Le halo respire par son INTENSITÉ : l'alpha a 256 niveaux, le rayon des pixels entiers.
+            float pulse = 0.5f + 0.5f * (float) Math.sin(t0 * 2.0);
+            int radius = Math.round(CHEST_W * 0.64f * (hovered ? 1.16f : 1f));
+            OWCinematicFx.drawGlow(g, centerX, top + CHEST_H / 2, radius,
+                    chest.accent(), (hovered ? 1.5f : 1.0f) * (0.7f + 0.45f * pulse));
+
+            drawIdleSparkles(g, centerX, top + CHEST_H / 2, chest.accent(), t0);
+        }
+
+        float hoverScale = animate("hover" + chest.material().name(), hovered ? 1.10f : 1f, 14f);
+        float pivotX = centerX, pivotY = top + CHEST_H / 2f;
+
+        g.pose().pushPose();
+        g.pose().translate(pivotX + jolt, pivotY + bob, 0);
+        g.pose().scale(hoverScale, hoverScale, 1f);
+        if (tilt != 0f) g.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(tilt));
+        g.pose().translate(-pivotX, -pivotY, 0);
+
+        // Pile : les coffres en attente s'empilent, le plus profond étant le plus sombre.
+        int depth = Math.min(pending, 4);
+        for (int i = depth - 1; i >= 1; i--) {
+            float off = i * 2.6f;
+            drawChest(g, Math.round(x + off * 0.55f), Math.round(top - off),
+                    chest, true, false, 0f, 1f - i * 0.19f);
+        }
+        drawChest(g, x, top, chest, pending > 0, hovered, 0f, 1f);
+
+        if (pending > 1) {
+            String n = "×" + pending;
+            int bw = this.font.width(n) + 6;
+            int bx = x + CHEST_W + 1, by = top - 3;
+            g.fill(bx - bw / 2 - 1, by - 1, bx + bw / 2 + 1, by + 12, 0xFF000000);
+            g.fill(bx - bw / 2, by, bx + bw / 2, by + 11, 0xFF1E1E22);
+            g.fill(bx - bw / 2, by, bx + bw / 2, by + 1, 0xFF000000 | chest.accent());
+            g.drawString(this.font, n, bx - this.font.width(n) / 2, by + 2,
+                    0xFF000000 | chest.accent(), false);
+        }
         g.pose().popPose();
     }
 
@@ -712,18 +1017,30 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         g.drawCenteredString(this.font, Component.translatable("owteams.arena.combat.pick_target")
                 .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFD257))), cx, f[1] + 4, 0xFFD257);
 
-        int listY = f[1] + 16, rowH = 14;
+        int listY = f[1] + 16, rowH = 20;
         int rows = (f[3] - listY - 2) / rowH;
         boolean hasScroll = targets.size() > rows;
         int listX = f[0] + 2, listW = f[2] - f[0] - 4 - (hasScroll ? 6 : 0);
         combatScrollMax = Math.max(0, targets.size() - rows);
         combatScroll = Math.min(combatScroll, combatScrollMax);
 
-        g.enableScissor(listX, listY, listX + listW, listY + rows * rowH);
-        for (int i = combatScroll; i < Math.min(combatScroll + rows, targets.size()); i++) {
+        // Défilement continu : la liste glisse vers sa nouvelle position au lieu de sauter d'une
+        // ligne entière. On déborde d'une rangée de chaque côté pour qu'aucun trou n'apparaisse
+        // pendant la transition.
+        float scrollAnim = animate("pickerScroll", combatScroll, 17f);
+        pickerScrollShown = scrollAnim;
+        int listBottom = listY + rows * rowH;
+        int first = Math.max(0, (int) Math.floor(scrollAnim) - 1);
+        int last = Math.min(targets.size(), (int) Math.ceil(scrollAnim) + rows + 1);
+
+        g.enableScissor(listX, listY, listX + listW, listBottom);
+        for (int i = first; i < last; i++) {
             OWClientTribeList.Entry e = targets.get(i);
-            int y = listY + (i - combatScroll) * rowH;
-            boolean hov = mouseX >= listX && mouseX < listX + listW && mouseY >= y && mouseY < y + rowH;
+            int y = Math.round(listY + (i - scrollAnim) * rowH);
+            boolean hov = mouseY >= y && mouseY < y + rowH
+                    && mouseX >= listX && mouseX < listX + listW
+                    && mouseY >= listY && mouseY < listBottom;
+
             if ((i & 1) == 0) g.fill(listX, y, listX + listW, y + rowH - 1, 0x18FFFFFF);
             float hoverAmt = animate("tribe" + i, hov ? 1f : 0f, 14f);
             if (hoverAmt > 0.01f) {
@@ -731,14 +1048,30 @@ public class OWTribeArenaScreen extends OWTribeScreen {
                 g.fill(listX, y, listX + 1, y + rowH - 1, ((int) (255 * hoverAmt) << 24) | 0xE8956A);
             }
             if (hov) hoverTribe = e;
-            // La réputation adverse est l'information qui décide : on la double du gain potentiel.
+
+            // Bannière miniature : on reconnaît une tribu à ses couleurs bien avant de lire son nom.
+            float bs = (rowH - 5) / (float) OWBannerRenderer.H;
+            float bw = OWBannerRenderer.W * bs;
+            g.pose().pushPose();
+            g.pose().translate(listX + 3 + hoverAmt * 1.5f, y + 2, 0);
+            g.pose().scale(bs, bs, 1f);
+            OWBannerRenderer.render(g, 0, 0, e.bannerShape(),
+                    e.primaryColor(), e.secondaryColor(), e.tertiaryColor(), e.useTertiary(),
+                    e.pattern(), e.paintPixels());
+            g.pose().popPose();
+            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+
+            int textX = listX + 6 + Math.round(bw) + Math.round(hoverAmt * 2f);
             String rep = OWTribeReputationScreen.formatNumber(e.reputation());
-            g.drawString(this.font, trimTo(e.name(), listW - 16 - this.font.width(rep)),
-                    listX + 4, y + 3, 0xE8E8E8, false);
-            g.drawString(this.font, rep, listX + listW - this.font.width(rep) - 3, y + 3,
-                    hov ? 0xD8D8D8 : 0x9A9A9A, false);
+            int repW = this.font.width(rep);
+            g.drawString(this.font, trimTo(e.name(), listX + listW - textX - repW - 8),
+                    textX, y + 3, 0xE8E8E8, false);
+            drawSmall(g, Component.translatable("owteams.reputation.score", rep),
+                    textX, y + 13, hov ? 0xC8C8C8 : 0x8A8A8A);
         }
         g.disableScissor();
+
+        drawScrollFade(g, listX, listY, listX + listW, listBottom, scrollAnim, combatScrollMax);
         if (hasScroll) drawScrollbar(g, f[2] - 7, listY, rows * rowH, combatScroll, combatScrollMax, rows, targets.size());
     }
 
@@ -779,10 +1112,15 @@ public class OWTribeArenaScreen extends OWTribeScreen {
                 OWTribeReputationScreen.formatNumber(st.opponentReputation())), cx, cy + 30, 0xBBBBBB);
         drawSmallCentered(g, Component.translatable("owteams.arena.challenge.your_rep",
                 OWTribeReputationScreen.formatNumber(st.myReputation())), cx, cy + 40, 0xBBBBBB);
+        // Les deux gains sont calculables d'avance : on les annonce tous les deux, pour qu'un chef
+        // accepte ou décline en connaissance de cause.
         int gain = OWArena.reputationGain(st.myReputation(), st.opponentReputation());
         g.drawCenteredString(this.font, Component.translatable("owteams.arena.challenge.potential_gain",
                         OWTribeReputationScreen.formatNumber(gain))
-                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x7ddd73))), cx, cy + 54, 0x7ddd73);
+                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x7ddd73))), cx, cy + 52, 0x7ddd73);
+        drawSmallCentered(g, Component.translatable("owteams.arena.challenge.potential_prestige",
+                        OWArena.prestigeGain(st.myReputation(), st.opponentReputation())),
+                cx, cy + 64, 0x9AC88A);
 
         if (!isChief()) {
             g.drawCenteredString(this.font, Component.translatable("owteams.arena.combat.chief_only"),
@@ -904,46 +1242,49 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         combatScrollMax = Math.max(0, candidates.size() - rows);
         combatScroll = Math.min(combatScroll, combatScrollMax);
 
+        float scrollAnim = animate("candidateScroll", combatScroll, 17f);
+        candidateScrollShown = scrollAnim;
+        int first = Math.max(0, (int) Math.floor(scrollAnim) - 1);
+        int last = Math.min(candidates.size(), (int) Math.ceil(scrollAnim) + rows + 1);
+
         g.enableScissor(x, y, x + contentW, y + h);
-        for (int i = combatScroll; i < Math.min(combatScroll + rows, candidates.size()); i++) {
+        for (int i = first; i < last; i++) {
             OWArenaFighter f = candidates.get(i);
-            int ry = y + (i - combatScroll) * rowH;
+            int ry = Math.round(y + (i - scrollAnim) * rowH);
             boolean selected = OWClientArenaState.isSelected(f.entityUuid());
             boolean blocked = !selected && OWClientArenaState.archetypeTaken(f.archetypeOrdinal(), f.entityUuid());
-            boolean hov = mouseX >= x && mouseX < x + contentW && mouseY >= ry && mouseY < ry + rowH;
+            boolean hov = mouseX >= x && mouseX < x + contentW
+                    && mouseY >= ry && mouseY < ry + rowH
+                    && mouseY >= y && mouseY < y + h;
 
-            if ((i & 1) == 0) g.fill(x, ry, x + contentW, ry + rowH - 1, 0x14FFFFFF);
-            if (selected) {
-                // Engagé : liseré vert plein largeur, sans ambiguïté avec un simple survol.
-                g.fill(x, ry, x + contentW, ry + rowH - 1, 0x384C9A5A);
-                g.fill(x, ry, x + 1, ry + rowH - 1, 0xFF7ddd73);
-            }
-            // Le survol glisse au lieu d'apparaître sec (une valeur animée par ligne).
-            float hoverAmt = animate("cand" + i, hov && !blocked ? 1f : 0f, 14f);
-            if (hoverAmt > 0.01f) {
-                g.fill(x, ry, x + contentW, ry + rowH - 1, ((int) (56 * hoverAmt) << 24) | 0xFFFFFF);
-            }
+            float hoverAmt = animate("cand" + i, hov && !blocked ? 1f : 0f, 15f);
+            if (selected) g.fill(x, ry, x + contentW, ry + rowH - 1, 0x334C9A5A);
+            else if ((i & 1) == 0) g.fill(x, ry, x + contentW, ry + rowH - 1, 0x14FFFFFF);
+            if (hoverAmt > 0.01f) g.fill(x, ry, x + contentW, ry + rowH - 1,
+                    ((int) (55 * hoverAmt) << 24) | 0xFFFFFF);
 
-            // Pastille d'archétype à gauche : lecture immédiate de la contrainte d'unicité.
+            // Pastille d'archétype : elle s'étire au survol, ce qui désigne la ligne visée sans
+            // dépendre d'un simple éclaircissement du fond.
             int chip = archetypeColor(f.archetypeOrdinal());
-            g.fill(x + 2, ry + 3, x + 5, ry + rowH - 4, 0xFF000000 | (blocked ? dim(chip) : chip));
+            int chipW = 3 + Math.round(hoverAmt * 2f);
+            g.fill(x + 2, ry + 3, x + 2 + chipW, ry + rowH - 4, 0xFF000000 | (blocked ? dim(chip) : chip));
 
             int nameCol = blocked ? 0x666666 : (selected ? 0xB8F0C8 : 0xE8E8E8);
-            // Suffixe d'état : coche si engagé, cadenas si l'archétype est déjà pris.
-            String mark = selected ? "✔ " : (blocked ? "✖ " : "");
             String lvl = "L" + f.level();
-            int markW = this.font.width(mark);
-            if (!mark.isEmpty()) {
-                g.drawString(this.font, mark, x + 8, ry + 3, selected ? 0x7ddd73 : 0x8A5A5A, false);
-            }
-            g.drawString(this.font, trimTo(f.name(), contentW - 12 - markW - this.font.width(lvl)),
-                    x + 8 + markW, ry + 3, nameCol, false);
+            int nameX = x + 8 + Math.round(hoverAmt * 2f);
+            g.drawString(this.font, trimTo(f.name(), contentW - 14 - this.font.width(lvl)),
+                    nameX, ry + 3, nameCol, false);
             g.drawString(this.font, lvl, x + contentW - this.font.width(lvl) - 3, ry + 3,
                     blocked ? 0x555555 : 0x9A9A9A, false);
 
+            // Une croix discrète dit pourquoi la ligne est refusée : l'archétype est déjà pris.
+            if (blocked && hov) {
+                g.drawString(this.font, "✕", x + contentW - this.font.width(lvl) - 13, ry + 3, 0xC05555, false);
+            }
             if (hov) hoverCandidate = f;
         }
         g.disableScissor();
+        drawScrollFade(g, x, y, x + contentW, y + h, scrollAnim, combatScrollMax);
         if (hasScroll) drawScrollbar(g, x + w - 5, y, h, combatScroll, combatScrollMax, rows, candidates.size());
     }
 
@@ -991,7 +1332,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         float px, py;
         if (Float.isNaN(mx)) {
             // Oscillation lente, déphasée par slot : la colonne « respire » sans être agitée.
-            float phase = (System.currentTimeMillis() / 1000f) * 0.8f + my * 1.3f;
+            float phase = clock() * 0.8f + my * 1.3f;
             px = x + box / 2f + (float) Math.sin(phase) * 26f;
             py = y + box * 0.35f;
         } else {
@@ -1076,7 +1417,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
 
     /** Jauge de survivants : le remplissage descend en glissant, pas d'un coup, à chaque perte. */
     private void drawSurvivorBar(GuiGraphics g, int x, int y, int w, Component label,
-                                 int alive, int total, int color, String animKey) {
+                                 int alive, int total, int color, String key) {
         g.drawString(this.font, label, x, y, 0xE8E8E8, false);
         String count = alive + " / " + total;
         g.drawString(this.font, count, x + w - this.font.width(count), y, 0xBBBBBB, false);
@@ -1085,20 +1426,19 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         g.fill(x - 1, by - 1, x + w + 1, by + bh + 1, 0xFF000000);
         g.fill(x, by, x + w, by + bh, 0xFF16161A);
 
+        // La jauge glisse vers sa nouvelle valeur : une chute instantanée passerait inaperçue,
+        // alors qu'un combattant qui tombe est l'information la plus importante de l'écran.
         float target = total <= 0 ? 0f : alive / (float) total;
-        float shown = animate(animKey, target, 4.5f);
+        float shown = animate(key, target, 6f);
         int fill = Math.round(w * shown);
         if (fill > 0) {
             g.fill(x, by, x + fill, by + bh, 0xFF000000 | color);
-            g.fill(x, by, x + fill, by + 2, 0x40FFFFFF);
+            g.fill(x, by, x + fill, by + 2, 0x33FFFFFF);
         }
-        // Traîne claire là où la jauge est en train de redescendre : la perte est lisible.
+        // Sillage clair sur la portion qui vient d'être perdue.
         int targetFill = Math.round(w * target);
-        if (fill > targetFill) g.fill(x + targetFill, by, x + fill, by + bh, 0x66FFFFFF);
-        // Graduations : une par combattant.
-        for (int i = 1; i < total; i++) {
-            int gx = x + Math.round(w * (i / (float) total));
-            g.fill(gx, by, gx + 1, by + bh, 0x55000000);
+        if (fill > targetFill + 1) {
+            g.fill(x + targetFill, by, x + fill, by + bh, 0x77FFFFFF);
         }
     }
 
@@ -1136,14 +1476,17 @@ public class OWTribeArenaScreen extends OWTribeScreen {
             drawSmallCentered(g, Component.translatable("owteams.arena.result.versus", st.opponentName()),
                     cx, cy + 6, 0x9A9A9A);
         }
+        int prestige = OWArena.prestigeGain(st.myReputation(), st.opponentReputation());
         if (r == OWArena.Result.WIN) {
             int gain = OWArena.reputationGain(st.myReputation(), st.opponentReputation());
             g.drawCenteredString(this.font, Component.translatable("owteams.arena.result.gains",
-                            OWTribeReputationScreen.formatNumber(gain), OWArena.PRESTIGE_WIN)
+                            OWTribeReputationScreen.formatNumber(gain), prestige)
                     .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x7ddd73))), cx, cy + 18, 0x7ddd73);
         } else if (r == OWArena.Result.LOSS) {
+            // Le vaincu touche une part de ce qu'aurait valu SA victoire : le calcul est donc mené
+            // depuis son propre point de vue, celui déjà porté par l'état d'arène.
             g.drawCenteredString(this.font, Component.translatable("owteams.arena.result.consolation",
-                            OWArena.PRESTIGE_LOSS)
+                            OWArena.prestigeConsolation(prestige))
                     .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xBBBBBB))), cx, cy + 18, 0xBBBBBB);
         }
 
@@ -1227,6 +1570,39 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         g.renderTooltip(this.font, tip, mouseX, mouseY);
     }
 
+    /**
+     * Estompe le haut et le bas d'une zone défilante, proportionnellement à ce qui dépasse.
+     *
+     * <p>Une liste tronquée net ne dit pas qu'elle continue. Ce dégradé le signale en permanence,
+     * et disparaît de lui-même quand on atteint une extrémité.</p>
+     */
+    private void drawScrollFade(GuiGraphics g, int x1, int y1, int x2, int y2,
+                                float scroll, float maxScroll) {
+        final int depth = 10;
+        float top = Math.min(1f, scroll / 12f);
+        float bottom = Math.min(1f, (maxScroll - scroll) / 12f);
+        for (int i = 0; i < depth; i++) {
+            float k = 1f - i / (float) depth;
+            int aTop = (int) (150 * k * top), aBot = (int) (150 * k * bottom);
+            if (aTop > 0) g.fill(x1, y1 + i, x2, y1 + i + 1, aTop << 24);
+            if (aBot > 0) g.fill(x1, y2 - i - 1, x2, y2 - i, aBot << 24);
+        }
+    }
+
+    /** Balayage lumineux périodique sur une barre de progression remplie. */
+    private void drawBarShimmer(GuiGraphics g, int x, int y, int w, int h, int fillW, float t) {
+        if (fillW <= 2) return;
+        float cycle = (t * 0.42f) % 1f;
+        int sweep = Math.round(cycle * (fillW + 24)) - 12;
+        for (int i = -6; i <= 6; i++) {
+            int sx = x + sweep + i;
+            if (sx < x || sx >= x + fillW) continue;
+            int a = (int) (95 * (1f - Math.abs(i) / 6f));
+            if (a <= 0) continue;
+            g.fill(sx, y, sx + 1, y + h, (a << 24) | 0xFFFFFF);
+        }
+    }
+
     // ── Animation ────────────────────────────────────────────────────────────────
     /**
      * Fait glisser une valeur nommée vers {@code target} au lieu de la faire sauter. Le lissage est
@@ -1242,6 +1618,11 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         if (Math.abs(target - next) < 0.0005f) next = target;
         animated.put(key, next);
         return next;
+    }
+
+    /** Secondes écoulées depuis l'ouverture de l'écran, en pleine précision (cf. {@link #screenEpochMs}). */
+    private float clock() {
+        return (System.currentTimeMillis() - screenEpochMs) / 1000f;
     }
 
     /** Progression [0..1] du fondu d'apparition du contenu courant. */
@@ -1286,11 +1667,20 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     }
 
     /** Bouton de bascule Récompenses ⇄ Combat, au gabarit d'un onglet (image à venir : fond seul). */
+    /**
+     * Bouton de bascule Récompenses ⇄ Combat : un bouton vanilla ordinaire, portant l'icône de la
+     * vue <b>en cours</b>.
+     */
     private void renderSwitchButton(GuiGraphics g, int mouseX, int mouseY) {
         int x = switchX(), y = switchY();
         boolean hov = mouseX >= x && mouseX < x + SWITCH_W && mouseY >= y && mouseY < y + SWITCH_H;
-        g.blit(OW_INVENTORY, x, y, hov ? 20 : 0, 206, SWITCH_W, SWITCH_H);
-        // L'icône reste vide tant que l'image dédiée n'existe pas ; le tooltip est rendu en fin de frame.
+
+        g.blitSprite(net.minecraft.resources.ResourceLocation.withDefaultNamespace(
+                        hov ? "widget/button_highlighted" : "widget/button"),
+                x, y, SWITCH_W, SWITCH_H);
+
+        int v = view == View.REWARDS ? 72 : 88;
+        g.blit(OW_SPRITES, x + (SWITCH_W - 16) / 2, y + (SWITCH_H - 16) / 2, 0, v, 16, 16);
     }
 
     // ── Coffre dessiné à la main ─────────────────────────────────────────────────
@@ -1299,79 +1689,110 @@ public class OWTribeArenaScreen extends OWTribeScreen {
      * ferrures et serrure teintés par la couleur du palier. {@code lift} soulève le couvercle
      * (0 = fermé, 1 = grand ouvert) pendant l'animation d'ouverture.
      */
-    private void drawChest(GuiGraphics g, int x, int y, int w, int h,
-                           int accent, boolean active, boolean hovered, float lift) {
-        int base = accent & 0xFFFFFF;
-        float dim = active ? 1f : 0.32f;
-        int body = shade(base, hovered && active ? 1.15f : 1.0f, dim);
-        int bodyDark = shade(base, 0.55f, dim);
-        int bodyLight = shade(base, 1.45f, dim);
-        int iron = shade(0xC8C8D0, hovered && active ? 1.1f : 1.0f, dim);
-        int ironDark = shade(0x50505A, 1.0f, dim);
-        int outline = shade(0x1A1A1E, 1.0f, 1f);
+    /**
+     * Coordonnée {@code v} du sprite d'une matière dans {@code ow_teams_sprites.png}, ou {@code -1}
+     * si son visuel n'a pas encore été dessiné (on retombe alors sur le tracé procédural).
+     */
+    /**
+     * Emplacement des sprites d'une matière dans {@code ow_teams_sprites.png}.
+     *
+     * <p>{@code u0} est la colonne du plus petit gabarit ; les trois se suivent de {@link #CHEST_W}
+     * en {@code u}. {@code seam} est la ligne de séparation couvercle / caisse, comptée depuis le
+     * haut du sprite — elle <b>diffère d'une matière à l'autre</b> selon le dessin, d'où son
+     * stockage ici plutôt qu'en constante partagée.</p>
+     */
+    private record ChestSprite(int u0, int v, int seam) {}
 
-        int lidH = Math.round(h * 0.42f);
-        int lidY = y - Math.round(lift * (h * 0.55f));
-
-        // Corps.
-        int bodyY = y + lidH;
-        g.fill(x, bodyY, x + w, y + h, outline);
-        g.fill(x + 1, bodyY + 1, x + w - 1, y + h - 1, body);
-        g.fill(x + 1, bodyY + 1, x + w - 1, bodyY + 3, bodyLight);          // arête supérieure
-        g.fill(x + 1, y + h - 3, x + w - 1, y + h - 1, bodyDark);           // ombre basse
-        // Ferrures verticales du corps.
-        for (int fx : new int[]{ x + 6, x + w - 9 }) {
-            g.fill(fx, bodyY + 1, fx + 3, y + h - 1, iron);
-            g.fill(fx, bodyY + 1, fx + 1, y + h - 1, ironDark);
-        }
-
-        // Couvercle (bombé : deux paliers de largeur).
-        g.fill(x, lidY + 2, x + w, lidY + lidH, outline);
-        g.fill(x + 2, lidY, x + w - 2, lidY + 3, outline);
-        g.fill(x + 1, lidY + 3, x + w - 1, lidY + lidH, body);
-        g.fill(x + 3, lidY + 1, x + w - 3, lidY + 4, body);
-        g.fill(x + 3, lidY + 1, x + w - 3, lidY + 2, bodyLight);           // reflet du dôme
-        g.fill(x + 1, lidY + lidH - 2, x + w - 1, lidY + lidH, bodyDark);  // ombre sous le couvercle
-        for (int fx : new int[]{ x + 6, x + w - 9 }) {
-            g.fill(fx, lidY + 2, fx + 3, lidY + lidH, iron);
-            g.fill(fx, lidY + 2, fx + 1, lidY + lidH, ironDark);
-        }
-
-        // Serrure, à cheval sur le couvercle fermé (disparaît quand il se soulève).
-        if (lift < 0.15f) {
-            int lx = x + w / 2 - 4, ly = y + lidH - 4;
-            g.fill(lx, ly, lx + 8, ly + 9, ironDark);
-            g.fill(lx + 1, ly + 1, lx + 7, ly + 8, iron);
-            g.fill(lx + 3, ly + 3, lx + 5, ly + 6, 0xFF15151A);
-        }
-
-        // Lueur intérieure quand le couvercle est levé.
-        if (lift > 0.05f) {
-            int a = (int) (200 * Math.min(1f, lift * 1.6f));
-            g.fill(x + 3, bodyY - 2, x + w - 3, bodyY + 4, (a << 24) | 0xFFF2C0);
-        }
-
-        // Halo de survol.
-        if (hovered && active && lift == 0f) {
-            g.fill(x - 1, y - 1, x + w + 1, y, 0x55FFFFFF);
-            g.fill(x - 1, y + h, x + w + 1, y + h + 1, 0x55FFFFFF);
-            g.fill(x - 1, y, x, y + h, 0x55FFFFFF);
-            g.fill(x + w, y, x + w + 1, y + h, 0x55FFFFFF);
-        }
+    /**
+     * Emplacement du sprite d'un coffre. Les coffres de badge se déclinent en trois gabarits alignés
+     * horizontalement depuis {@code u0} ; le coffre de tribu est unique et occupe une seule case.
+     *
+     * <p>Le {@code switch} est exhaustif sur les matières : en ajouter une sans lui donner de
+     * coordonnées ne compilera pas — un repli silencieux serait plus difficile à repérer.</p>
+     */
+    private static ChestSprite chestSprite(OWArena.Chest chest) {
+        int step = chest.size().ordinal() * CHEST_W;
+        return switch (chest.material()) {
+            case RUBY  -> new ChestSprite(0 + step, 198, 212 - 198);
+            case GOLD  -> new ChestSprite(0 + step, 227, 238 - 227);
+            case JADE  -> new ChestSprite(111 + step, 227, 245 - 227);
+            case TRIBE -> new ChestSprite(111, 198, 207 - 198);   // gabarit unique
+        };
     }
 
-    /** Éclaircit/assombrit une couleur RGB puis applique un facteur de désaturation vers le gris. */
-    private static int shade(int rgb, float factor, float vividness) {
-        int r = Math.min(255, Math.round(((rgb >> 16) & 0xFF) * factor));
-        int gg = Math.min(255, Math.round(((rgb >> 8) & 0xFF) * factor));
-        int b = Math.min(255, Math.round((rgb & 0xFF) * factor));
-        if (vividness < 1f) {
-            int grey = Math.round((r + gg + b) / 3f * 0.75f);
-            r = Math.round(grey + (r - grey) * vividness);
-            gg = Math.round(grey + (gg - grey) * vividness);
-            b = Math.round(grey + (b - grey) * vividness);
+    /** Ligne de séparation couvercle / caisse du coffre. */
+    private static int chestSeam(OWArena.Chest chest) {
+        return chestSprite(chest).seam();
+    }
+
+    /**
+     * Dessine un coffre. Utilise le sprite de sa matière s'il existe, sinon le tracé procédural
+     * (Jade et Rubis, en attendant leurs visuels).
+     *
+     * <p>{@code lift} soulève le couvercle : le sprite est alors blitté en <b>deux morceaux</b>
+     * découpés sur la ligne de jointure, le haut s'écartant du bas. C'est ce qui rend l'ouverture
+     * crédible sans seconde image.</p>
+     */
+    private void drawChest(GuiGraphics g, int x, int y, OWArena.Chest chest,
+                           boolean active, boolean hovered, float lift) {
+        drawChest(g, x, y, chest, active, hovered, lift, 1f);
+    }
+
+    /** {@code tint} < 1 assombrit le coffre : sert aux exemplaires du fond dans une pile. */
+    private void drawChest(GuiGraphics g, int x, int y, OWArena.Chest chest,
+                           boolean active, boolean hovered, float lift, float tint) {
+        ChestSprite sprite = chestSprite(chest);
+        int u = sprite.u0(), v = sprite.v(), seam = sprite.seam();
+
+        // Coffre indisponible : assombri, pour qu'on voie qu'il n'y a rien à réclamer.
+        if (!active) RenderSystem.setShaderColor(0.42f * tint, 0.42f * tint, 0.46f * tint, 1f);
+        else if (hovered) RenderSystem.setShaderColor(1.18f * tint, 1.18f * tint, 1.18f * tint, 1f);
+        else if (tint != 1f) RenderSystem.setShaderColor(tint, tint, tint, 1f);
+
+        if (lift <= 0.001f) {
+            g.blit(OW_SPRITES, x, y, u, v, CHEST_W, CHEST_H, 256, 256);
+        } else {
+            // Bas du coffre, immobile — la caisse ne bouge pas, seul le couvercle part.
+            g.blit(OW_SPRITES, x, y + seam, u, v + seam,
+                    CHEST_W, CHEST_H - seam, 256, 256);
+
+            // Bouche du coffre : la lumière est dense sur la ligne de jointure et s'évanouit en
+            // montant. Un aplat à bord franc se lisait comme une barre posée là ; un dégradé se
+            // raccorde naturellement à la colonne de lumière qui monte au-dessus.
+            float mouth = Math.min(1f, lift * 2.2f);
+            int light = chestLightColor(chest);
+            // ATTENTION au sens : dans une interface, y croît vers le BAS. Un décalage négatif
+            // monte donc à l'écran. La lumière est dense sur la jointure — sa source — et
+            // s'évanouit en s'élevant ; elle ne déborde pas sur la façade du coffre en dessous.
+            final int fadeRows = 8;
+            for (int i = -fadeRows; i <= 1; i++) {
+                float k = i >= 0 ? 1f : 1f + i / (float) fadeRows;
+                int a = (int) (235 * mouth * k * k);
+                if (a <= 0) continue;
+                // Le halo se resserre à mesure qu'il s'élève, comme la base d'un faisceau.
+                int inset = 3 + Math.max(0, -i) / 2;
+                g.fill(x + inset, y + seam + i, x + CHEST_W - inset, y + seam + i + 1,
+                        (a << 24) | light);
+            }
+
+            // Couvercle propulsé : il monte en décélérant, bascule, et sort du cadre.
+            float e = 1f - (1f - lift) * (1f - lift);
+            int rise = Math.round(e * CHEST_H * 2.6f);
+            g.pose().pushPose();
+            g.pose().translate(x + CHEST_W / 2f, y + seam - rise, 0);
+            g.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(-38f * e));
+            g.pose().translate(-CHEST_W / 2f, -seam, 0);
+            g.blit(OW_SPRITES, 0, 0, u, v, CHEST_W, seam, 256, 256);
+            g.pose().popPose();
         }
-        return 0xFF000000 | (r << 16) | (gg << 8) | b;
+        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+
+        if (hovered && active && lift == 0f) {
+            g.fill(x - 1, y - 1, x + CHEST_W + 1, y, 0x55FFFFFF);
+            g.fill(x - 1, y + CHEST_H, x + CHEST_W + 1, y + CHEST_H + 1, 0x55FFFFFF);
+            g.fill(x - 1, y, x, y + CHEST_H, 0x55FFFFFF);
+            g.fill(x + CHEST_W, y, x + CHEST_W + 1, y + CHEST_H, 0x55FFFFFF);
+        }
     }
 
     /** Barre de progression vers le prochain coffre (remplissage teinté + curseur). */
@@ -1382,6 +1803,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         if (fillW > 0) {
             g.fill(x, y, x + fillW, y + BAR_H, 0xFF000000 | (accent & 0xFFFFFF));
             g.fill(x, y, x + fillW, y + 2, 0x44FFFFFF);                      // reflet
+            drawBarShimmer(g, x, y, BAR_W, BAR_H, fillW, clock());
             if (fillW < BAR_W) g.fill(x + fillW - 1, y - 1, x + fillW + 1, y + BAR_H + 1, 0xFFFFFFFF);
         }
     }
@@ -1430,30 +1852,92 @@ public class OWTribeArenaScreen extends OWTribeScreen {
                 drawChestGlow(g, cx, cy, accent, 1f + 2.4f * p, 1f);
                 drawBigChest(g, cx, cy, accent, 0f, 1f + 0.08f * p);
                 drawSeamCracks(g, cx, cy, 1f, elapsed);
-                // Voile blanc qui envahit l'écran juste avant la rupture.
-                g.fill(0, 0, this.width, this.height, ((int) (150 * p * p) << 24) | 0xFFFFFF);
+                // Voile blanc qui envahit l'écran juste avant la rupture. Il monte jusqu'à saturation
+                // pour se raccorder sans couture à l'éclair de la phase suivante.
+                g.fill(0, 0, this.width, this.height, ((int) (255 * p * p) << 24) | 0xFFFFFF);
             }
             case BURST -> {
                 float p = Math.min(1f, elapsed / (float) BURST_MS);
                 float since = elapsed / 1000f;
-                // Éclair de rupture, puis les effets prennent le relais.
-                g.fill(0, 0, this.width, this.height, ((int) (235 * (1f - p) * (1f - p)) << 24) | 0xFFFFFF);
+
                 OWCinematicFx.drawRays(g, cx, cy, burstRays, since, 1f, accent, 0.8f);
                 OWCinematicFx.drawShockwave(g, cx, cy, since, 1f);
                 drawChestGlow(g, cx, cy, accent, 2.0f * (1f - p), 1f);
+                // Faisceau posé AVANT le coffre : il jaillit de derrière la caisse, pas devant.
+                drawLightColumn(g, cx, chestMouthY(cy), accent, 0.4f + 1.5f * p, chestSpanX());
                 drawBigChest(g, cx, cy, accent, p, 1f);
                 drawBurstParticles(g, cx, cy - 10, since, accent);
+
+                // Éclair posé EN DERNIER, et non en fond : il doit recouvrir la scène au moment
+                // précis où le couvercle se détache. C'est ce voile qui masque la bascule — sans
+                // lui on voit le couvercle « sauter » d'un état à l'autre, ce qui fait brouillon.
+                float flash = 1f - Math.min(1f, elapsed / 260f);
+                int a = (int) (255 * flash * flash);
+                if (a > 0) g.fill(0, 0, this.width, this.height, (a << 24) | 0xFFFFFF);
             }
             case REVEAL -> {
                 float since = (BURST_MS + elapsed) / 1000f;
-                OWCinematicFx.drawRays(g, cx, cy - 46, burstRays, since, 1f, accent, 0.8f);
-                drawChestGlow(g, cx, cy - 46, accent, 0.5f, 1f);
-                drawBigChest(g, cx, cy - 46, accent, 1f, 1f);
-                drawBurstParticles(g, cx, cy - 56, since, accent);
-                renderRewardCards(g, cx, cy - 4, elapsed, accent);
+                // Plus il y a de rangées, plus la composition est haute : on la remonte d'autant
+                // pour qu'elle reste centrée et que la ligne « Cliquez pour continuer » ne sorte
+                // jamais de l'écran, même en interface très agrandie.
+                int lift = reward != null
+                        ? (rewardGrid(reward.items().size()).rows() - 1) * 15 : 0;
+                // Borné pour que le sommet du coffre reste visible : mieux vaut une composition
+                // légèrement basse qu'un coffre à moitié sorti par le haut.
+                int chestHalf = (CHEST_H * bigChestScale()) / 2;
+                lift = Math.min(lift, Math.max(0, cy - 46 - chestHalf - 4));
+                int chestCy = cy - 46 - lift;
+                OWCinematicFx.drawRays(g, cx, chestCy, burstRays, since, 1f, accent, 0.8f);
+                drawChestGlow(g, cx, chestCy, accent, 0.5f, 1f);
+                // Le faisceau persiste et respire : le coffre reste « vivant » pendant la remise.
+                float breath = 0.55f + 0.18f * (float) Math.sin(System.currentTimeMillis() / 260.0);
+                drawLightColumn(g, cx, chestMouthY(chestCy), accent, breath, chestSpanX());
+                drawBigChest(g, cx, chestCy, accent, 1f, 1f);
+                drawBurstParticles(g, cx, chestCy - 10, since, accent);
+                renderRewardCards(g, cx, cy - 4 - lift, elapsed, accent);
             }
             default -> {}
         }
+    }
+
+    /**
+     * Couleur de la lumière que dégage un coffre : teintes choisies à la main, matière par matière.
+     *
+     * <p>Elles étaient auparavant dérivées de l'accent par éclaircissement automatique ; la table
+     * explicite l'emporte, une lumière se règle à l'œil et non par formule. Le {@code switch} est
+     * exhaustif : une matière ajoutée sans sa teinte ne compilera pas.</p>
+     */
+    private static int chestLightColor(OWArena.Chest chest) {
+        return switch (chest.material()) {
+            case RUBY -> 0xFFB78C;
+            case JADE -> 0xC0D988;
+            case GOLD, TRIBE -> 0xFFFFFF;
+        };
+    }
+
+    /** Coffre courant de l'animation, ou un repli si le butin n'est pas encore arrivé. */
+    private OWArena.Chest currentChest() {
+        return reward != null ? reward.chest() : OWArena.Chest.GOLD_NORMAL;
+    }
+
+    /**
+     * Facteur d'agrandissement du coffre en gros plan. <b>Toujours entier</b>, sous peine de rendre
+     * le pixel-art flou : on descend à ×2 sur les interfaces trop courtes (petite résolution ou
+     * échelle d'interface élevée) plutôt que d'accepter une valeur intermédiaire.
+     */
+    private int bigChestScale() { return this.height < 220 ? 2 : 3; }
+
+    /**
+     * Largeur du faisceau en gros plan. Volontairement plus étroite que la caisse : la lumière sort
+     * de la bouche du coffre, pas de ses flancs.
+     */
+    private int chestSpanX() { return Math.round(CHEST_W * bigChestScale() * 0.58f); }
+
+    /** Ordonnée de la bouche du coffre en gros plan, centré sur {@code cy}. */
+    private int chestMouthY(int cy) {
+        int scale = bigChestScale();
+        int seam = chestSeam(reward != null ? reward.chest() : OWArena.Chest.GOLD_NORMAL);
+        return cy - (CHEST_H * scale) / 2 + seam * scale;
     }
 
     /** Légende sous le coffre pendant les phases d'attente. */
@@ -1470,30 +1954,57 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     private void drawChestGlow(GuiGraphics g, int cx, int cy, int accent, float intensity, float pulse) {
         if (intensity <= 0.01f) return;
         int base = accent & 0xFFFFFF;
-        for (int k = 0; k < 5; k++) {
-            float layer = 1f - k / 5f;
-            int r = (int) ((34 + k * 26) * (0.6f + intensity) * pulse);
-            int a = (int) (46 * layer * Math.min(2.2f, intensity));
+        // Au-delà de la pleine intensité, la teinte se décolore vers le blanc : la lumière « sature ».
+        int color = intensity > 1f ? blend(base, 0xFFFFFF, Math.min(1f, intensity - 1f)) : base;
+        int radius = Math.round(66 * (0.55f + 0.75f * Math.min(2.2f, intensity)) * pulse);
+        OWCinematicFx.drawGlow(g, cx, cy, radius, color, Math.min(2.2f, intensity));
+    }
+
+    /**
+     * Colonne de lumière jaillissant de la bouche du coffre. Dessinée en bandes de plus en plus
+     * étroites et transparentes vers le haut : c'est ce qui donne un faisceau, là où un rectangle
+     * plein ne donnait qu'une dalle opaque.
+     */
+    private void drawLightColumn(GuiGraphics g, int cx, int mouthY, int accent,
+                                 float intensity, int width) {
+        if (intensity <= 0.01f) return;
+        // Beaucoup de tranches fines plutôt que quelques bandes épaisses : avec 16 segments de
+        // 14 px, l'écart d'opacité entre deux voisines se voyait comme des marches d'escalier.
+        final int segments = 56;
+        final float segH = 4.5f;
+        int light = chestLightColor(currentChest());
+        int base = accent & 0xFFFFFF;
+
+        for (int i = 0; i < segments; i++) {
+            float t = i / (float) segments;
+            // Effilement en racine : large à la base, resserré en montant, sans cassure.
+            float taper = (1f - t) * (1f - t) * 0.75f + 0.12f;
+            int halfW = Math.max(1, Math.round(width * 0.5f * taper * Math.min(1.3f, intensity)));
+            int a = (int) (105 * intensity * (1f - t) * (1f - t));
             if (a <= 0) continue;
-            // Au-delà de la pleine intensité, la teinte se décolore vers le blanc.
-            int color = intensity > 1f ? blend(base, 0xFFFFFF, Math.min(1f, intensity - 1f)) : base;
-            g.fill(cx - r, cy - r, cx + r, cy + r, (Math.min(255, a) << 24) | color);
+            // Le cœur du faisceau vire au blanc, ses bords gardent la teinte de la matière.
+            int color = blend(base, light, Math.min(1f, 0.35f + (1f - t)));
+            int y0 = Math.round(mouthY - segH * (i + 1));
+            int y1 = Math.round(mouthY - segH * i);
+            g.fill(cx - halfW, y0, cx + halfW, y1, (a << 24) | color);
         }
     }
 
     /** Fissures de lumière s'échappant de la jointure du couvercle, de plus en plus larges. */
     private void drawSeamCracks(GuiGraphics g, int cx, int cy, float p, long elapsed) {
         if (p <= 0.05f) return;
-        float scale = 2.0f * (reward != null ? reward.chest().size().scale() : 1f);
+        float scale = bigChestScale();
         int halfW = (int) (CHEST_W * scale / 2f);
-        int seamY = cy - (int) (CHEST_H * scale / 2f) + (int) (CHEST_H * 0.42f * scale);
+        // Calée sur la vraie ligne de jointure du sprite, pas sur une proportion approchée.
+        int seam = chestSeam(reward != null ? reward.chest() : OWArena.Chest.GOLD_NORMAL);
+        int seamY = cy - (int) (CHEST_H * scale / 2f) + (int) (seam * scale);
 
         // Scintillement : la lumière n'est jamais tout à fait stable.
         float flicker = 0.75f + 0.25f * (float) Math.sin(elapsed / 45.0);
         int thickness = Math.max(1, (int) (p * 6f * flicker));
         int alpha = (int) (255 * Math.min(1f, p * 1.3f) * flicker);
         g.fill(cx - halfW, seamY - thickness / 2, cx + halfW, seamY - thickness / 2 + thickness,
-                (alpha << 24) | 0xFFF6D0);
+                (alpha << 24) | chestLightColor(currentChest()));
 
         // Rais verticaux qui percent par la fente, de plus en plus longs.
         int beams = 7;
@@ -1502,7 +2013,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
             int len = (int) (p * p * (26 + (i * 13 % 22)) * flicker);
             if (len <= 0) continue;
             int a = (int) (150 * p * flicker);
-            g.fill(bx - 1, seamY - len, bx + 1, seamY, (a << 24) | 0xFFF6D0);
+            g.fill(bx - 1, seamY - len, bx + 1, seamY, (a << 24) | chestLightColor(currentChest()));
         }
     }
 
@@ -1516,13 +2027,18 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     }
 
     /** Le coffre de l'overlay, à l'échelle ×2 et centré sur {@code (cx, cy)}. */
+    /**
+     * Gros plan du coffre pendant l'ouverture. Le facteur de base est un <b>entier</b> (×3) : toute
+     * autre valeur rendrait le pixel-art flou. {@code extraScale} ne s'en écarte que le temps d'une
+     * respiration ou d'un gonflement, jamais à l'arrêt.
+     */
     private void drawBigChest(GuiGraphics g, int cx, int cy, int accent, float lift, float extraScale) {
-        // Le gros plan reprend le gabarit du coffre gagné (petit / normal / grand).
-        final float scale = 2.0f * (reward != null ? reward.chest().size().scale() : 1f) * extraScale;
+        final float scale = bigChestScale() * extraScale;
+        OWArena.Chest chest = reward != null ? reward.chest() : OWArena.Chest.GOLD_NORMAL;
         g.pose().pushPose();
         g.pose().translate(cx, cy, 0);
         g.pose().scale(scale, scale, 1f);
-        drawChest(g, -CHEST_W / 2, -CHEST_H / 2, CHEST_W, CHEST_H, accent, true, false, lift);
+        drawChest(g, -CHEST_W / 2, -CHEST_H / 2, chest, true, false, lift);
         g.pose().popPose();
     }
 
@@ -1550,41 +2066,156 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         g.drawCenteredString(this.font, Component.translatable("owteams.arena.reward.title")
                 .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(accent))), cx, cy, accent);
 
-        final int card = 26, gap = 4;
         int n = items.size();
-        int rowW = n * card + Math.max(0, n - 1) * gap;
-        int startX = cx - rowW / 2, cardY = cy + 14;
+        RewardGrid grid = rewardGrid(n);
+        int card = grid.card(), gap = grid.gap(), perRow = grid.perRow(), rows = grid.rows();
+        int cardY = cy + 14;
+
+        // Point de départ des lots : la bouche du coffre, juste au-dessus.
+        int sourceY = cy - 34;
 
         int revealed = (int) Math.min(n, elapsed / REVEAL_STEP_MS);
         for (int i = 0; i < revealed; i++) {
-            int x = startX + i * (card + gap);
+            int row = i / perRow, col = i % perRow;
+            // Chaque rangée est centrée sur elle-même : la dernière, souvent incomplète, ne part
+            // pas en biais sur la gauche.
+            int inRow = Math.min(perRow, n - row * perRow);
+            int rowW = inRow * card + Math.max(0, inRow - 1) * gap;
+            int x = cx - rowW / 2 + col * (card + gap);
+            int rowY = cardY + row * (card + gap);
             long age = elapsed - i * REVEAL_STEP_MS;
-            float pop = age < 140 ? 1f + 0.30f * (float) Math.sin(age / 140f * Math.PI) : 1f;
+
+            // Chaque lot s'échappe du coffre puis rejoint sa case : un arc, pas une apparition.
+            float flight = easeOut(Math.min(1f, age / (float) FLIGHT_MS));
+            int drawX = Math.round(cx + (x - cx) * flight);
+            int drawY = Math.round(sourceY + (rowY - sourceY) * flight);
+            // Léger rebond en fin de course, pour que l'arrivée claque.
+            float pop = age < FLIGHT_MS ? 0.45f + 0.55f * flight
+                    : (age < FLIGHT_MS + 130
+                        ? 1f + 0.22f * (float) Math.sin((age - FLIGHT_MS) / 130f * Math.PI) : 1f);
+
+            // Une trouvaille remarquable porte la couleur du coffre en version claire, sur les
+            // quatre bords plutôt qu'un simple liseré : elle doit sauter aux yeux dans la grille.
+            boolean rare = reward.isRare(i);
+            int edge = rare ? chestLightColor(reward.chest()) : (accent & 0xFFFFFF);
+
+            if (rare) {
+                // Halo derrière la carte, pulsé, pour la détacher de ses voisines.
+                float pulse = 0.55f + 0.45f * (float) Math.sin(clock() * 3.6f + i);
+                OWCinematicFx.drawGlow(g, drawX + card / 2, drawY + card / 2,
+                        Math.round(card * 0.95f), edge, 0.85f + 0.5f * pulse);
+            }
 
             g.pose().pushPose();
-            g.pose().translate(x + card / 2f, cardY + card / 2f, 0);
+            g.pose().translate(drawX + card / 2f, drawY + card / 2f, 0);
             g.pose().scale(pop, pop, 1f);
             g.pose().translate(-card / 2f, -card / 2f, 0);
-            g.fill(0, 0, card, card, 0xF0141418);
-            g.fill(0, 0, card, 1, 0xFF000000 | (accent & 0xFFFFFF));
-            g.fill(0, card - 1, card, card, 0x33FFFFFF);
+            g.fill(0, 0, card, card, rare ? 0xF01C1C22 : 0xF0141418);
+            if (rare) {
+                g.fill(0, 0, card, 1, 0xFF000000 | edge);
+                g.fill(0, card - 1, card, card, 0xFF000000 | edge);
+                g.fill(0, 0, 1, card, 0xFF000000 | edge);
+                g.fill(card - 1, 0, card, card, 0xFF000000 | edge);
+            } else {
+                g.fill(0, 0, card, 1, 0xFF000000 | edge);
+                g.fill(0, card - 1, card, card, 0x33FFFFFF);
+            }
             g.pose().popPose();
+
+            // Son au moment précis où le lot se pose, une seule fois par lot.
+            if (age >= FLIGHT_MS && i >= landedSounds) {
+                landedSounds = i + 1;
+                if (rare) playRareChime();
+                else playUi(SoundEvents.NOTE_BLOCK_HAT.value(), 1.5f);
+            }
+
+            // Traînée lumineuse derrière le lot encore en vol.
+            if (flight < 1f) {
+                int a = (int) (150 * (1f - flight));
+                g.fill(drawX + card / 2 - 2, drawY + card / 2, drawX + card / 2 + 2,
+                        sourceY + card / 2, (a << 24) | edge);
+            }
 
             // L'item et sa quantité sont rendus hors du pop : renderItem gère sa propre pile de matrices.
             ItemStack stack = items.get(i);
-            g.renderItem(stack, x + (card - 16) / 2, cardY + (card - 16) / 2);
-            g.renderItemDecorations(this.font, stack, x + (card - 16) / 2, cardY + (card - 16) / 2);
+            g.renderItem(stack, drawX + (card - 16) / 2, drawY + (card - 16) / 2);
+            g.renderItemDecorations(this.font, stack, drawX + (card - 16) / 2, drawY + (card - 16) / 2);
         }
 
-        // Pièces Sauvages une fois tous les items révélés.
-        if (revealed >= n) {
-            int coinsY = cardY + card + 8;
-            g.drawCenteredString(this.font, Component.translatable("owteams.arena.reward.coins", reward.coins())
-                    .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xFFD257))), cx, coinsY, 0xFFD257);
-            if (elapsed > (n + 1) * REVEAL_STEP_MS + 400) {
+        // Pièces Sauvages : annoncées APRÈS les objets, avec un temps mort volontaire. Les révéler
+        // dans la foulée noyait le montant au milieu des lots qui volaient encore.
+        long coinsAt = (n - 1) * REVEAL_STEP_MS + FLIGHT_MS + COINS_DELAY_MS;
+        if (revealed >= n && elapsed >= coinsAt) {
+            int coinsY = cardY + rows * (card + gap) + 6;
+            long coinsAge = elapsed - coinsAt;
+            float pop = coinsAge < 200 ? 0.6f + 0.4f * easeOut(coinsAge / 200f)
+                    : (coinsAge < 340 ? 1f + 0.14f * (float) Math.sin((coinsAge - 200) / 140f * Math.PI) : 1f);
+
+            String label = "+" + reward.coins();
+            int labelW = this.font.width(label);
+            final int icon = 16, gapIcon = 3;
+            int totalW = labelW + gapIcon + icon;
+
+            g.pose().pushPose();
+            g.pose().translate(cx, coinsY + 6, 0);
+            g.pose().scale(pop, pop, 1f);
+            g.drawString(this.font, label, -totalW / 2, -4, 0xFFFFD257, true);
+            g.blit(coinTexture(reward.coins()), -totalW / 2 + labelW + gapIcon, -icon / 2,
+                    0, 0, icon, icon, icon, icon);
+            g.pose().popPose();
+
+            if (elapsed > coinsAt + 700) {
                 g.drawCenteredString(this.font, Component.translatable("owteams.arena.reward.dismiss"),
-                        cx, coinsY + 18, 0x8A8A8A);
+                        cx, coinsY + 20, 0x8A8A8A);
             }
         }
+    }
+
+    /** Disposition des lots : taille de case, nombre par rangée et nombre de rangées. */
+    private record RewardGrid(int card, int gap, int perRow, int rows) {
+        /** Hauteur totale occupée par la grille. */
+        int height() { return rows * (card + gap); }
+    }
+
+    /**
+     * Répartit {@code n} lots en une grille bornée en largeur.
+     *
+     * <p>Un grand coffre de rubis peut lâcher une vingtaine d'objets : sur une seule ligne ils
+     * débordaient de l'écran des deux côtés. On étale donc sur plusieurs rangées, et on ne rétrécit
+     * les cases que si trois rangées n'y suffisent toujours pas.</p>
+     */
+    private RewardGrid rewardGrid(int n) {
+        final int gap = 4;
+        // La grille doit tenir en largeur ET en hauteur : sur une interface très courte
+        // (petite résolution à forte échelle), trois rangées de grandes cases plus le coffre
+        // et les deux lignes de texte ne rentrent tout simplement pas.
+        boolean cramped = this.height < 200;
+        int maxRows = cramped ? 2 : 3;
+        int card = cramped ? 20 : 26;
+        int maxRowW = Math.min(this.width - 40, 360);
+
+        int perRow = Math.max(1, maxRowW / (card + gap));
+        if (n > perRow * maxRows) {
+            // Trop de lots pour la grille : on resserre les cases plutôt que d'ajouter une rangée.
+            perRow = (n + maxRows - 1) / maxRows;
+            card = Math.max(12, maxRowW / perRow - gap);
+        }
+        return new RewardGrid(card, gap, perRow, Math.max(1, (n + perRow - 1) / perRow));
+    }
+
+    /**
+     * Icône de bourse correspondant au montant : plus la somme est grosse, plus le tas est fourni.
+     * Les seuils suivent les fourchettes des coffres, du plus petit doré au plus grand rubis.
+     */
+    private static ResourceLocation coinTexture(int coins) {
+        // Paliers fixés à la main : 0-6, 7-16, 17-32, 33 et plus. Ils sont volontairement
+        // indépendants des montants de l'énumération Chest — si ceux-ci sont rééquilibrés,
+        // c'est ici qu'il faut repasser.
+        String name = coins >= 33 ? "coin_4"
+                : coins >= 17 ? "coin_3"
+                : coins >= 7 ? "coin_2"
+                : "coin";
+        return ResourceLocation.fromNamespaceAndPath(
+                net.tiew.operationWild.OperationWild.MOD_ID, "textures/misc/" + name + ".png");
     }
 }

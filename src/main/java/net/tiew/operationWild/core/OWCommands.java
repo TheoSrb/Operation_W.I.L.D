@@ -515,20 +515,30 @@ public class OWCommands {
                     Commands.literal("owarenaprestige")
                             .requires(s -> s.hasPermission(2))
                             .then(Commands.literal("set")
+                                    // Forme courte : sans joueur nommé, la commande s'applique à
+                                    // son auteur. Le cas de loin le plus fréquent en test.
+                                    .then(Commands.argument("amount", IntegerArgumentType.integer(0))
+                                            .executes(ctx -> apply(ctx, null, IntegerArgumentType.getInteger(ctx, "amount"), false)))
                                     .then(Commands.argument("player", EntityArgument.player())
                                             .then(Commands.argument("amount", IntegerArgumentType.integer(0))
-                                                    .executes(ctx -> apply(ctx, IntegerArgumentType.getInteger(ctx, "amount"), false)))))
+                                                    .executes(ctx -> apply(ctx, "player", IntegerArgumentType.getInteger(ctx, "amount"), false)))))
                             .then(Commands.literal("add")
+                                    .then(Commands.argument("amount", IntegerArgumentType.integer(1))
+                                            .executes(ctx -> apply(ctx, null, IntegerArgumentType.getInteger(ctx, "amount"), true)))
                                     .then(Commands.argument("player", EntityArgument.player())
                                             .then(Commands.argument("amount", IntegerArgumentType.integer(1))
-                                                    .executes(ctx -> apply(ctx, IntegerArgumentType.getInteger(ctx, "amount"), true)))))
+                                                    .executes(ctx -> apply(ctx, "player", IntegerArgumentType.getInteger(ctx, "amount"), true)))))
             );
         }
 
-        private static int apply(CommandContext<CommandSourceStack> context, int amount, boolean add) {
+        /** {@code playerArg} vaut {@code null} pour viser l'auteur de la commande. */
+        private static int apply(CommandContext<CommandSourceStack> context, String playerArg,
+                                 int amount, boolean add) {
             CommandSourceStack source = context.getSource();
             try {
-                ServerPlayer player = EntityArgument.getPlayer(context, "player");
+                ServerPlayer player = playerArg != null
+                        ? EntityArgument.getPlayer(context, playerArg)
+                        : source.getPlayerOrException();
                 net.minecraft.server.MinecraftServer server = source.getServer();
                 net.tiew.operationWild.team.OWTribesSavedData data =
                         net.tiew.operationWild.team.OWTribesSavedData.get(server);

@@ -25,8 +25,23 @@ public class OWCoinGainOverlay {
     private static final long DURATION_MS = 1600L;
     private static final int TEXT_COLOR = 0x6E8751;
 
+    /** Gain reçu pendant une cinématique, mis en attente jusqu'à ce qu'elle s'achève. */
+    private static int deferred = 0;
+
     public static void trigger(int gained) {
         if (gained <= 0) return;
+
+        // Un coffre crédite ses Pièces Sauvages dès l'instant où le serveur valide l'ouverture,
+        // c'est-à-dire pendant le tremblement — le popup révélerait donc le montant bien avant que
+        // le coffre ne s'ouvre. On attend la fin de la cinématique pour l'annoncer.
+        if (OWCinematicState.anyPlaying()) {
+            deferred += gained;
+            return;
+        }
+        start(gained);
+    }
+
+    private static void start(int gained) {
         // Cumule si une animation est déjà en cours.
         if (startTime >= 0 && System.currentTimeMillis() - startTime < DURATION_MS) {
             amount += gained;
@@ -42,6 +57,12 @@ public class OWCoinGainOverlay {
     }
 
     public static void render(GuiGraphics g, int screenW, int screenH) {
+        // Cinématique terminée : on libère le gain mis en attente.
+        if (deferred > 0 && !OWCinematicState.anyPlaying()) {
+            int pending = deferred;
+            deferred = 0;
+            start(pending);
+        }
         if (startTime < 0) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.options.hideGui) return;

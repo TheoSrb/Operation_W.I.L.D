@@ -196,6 +196,14 @@ public class OWTribesSavedData extends SavedData {
             arenaClaims.add(ce);
         }
         tag.put("arenaChestsClaimed", arenaClaims);
+        ListTag tribeClaims = new ListTag();
+        for (Map.Entry<UUID, Integer> e : t.getArenaTribeChestsClaimed().entrySet()) {
+            CompoundTag ce = new CompoundTag();
+            ce.putString("uuid", e.getKey().toString());
+            ce.putInt("count", e.getValue());
+            tribeClaims.add(ce);
+        }
+        tag.put("arenaTribeChestsClaimed", tribeClaims);
         return tag;
     }
 
@@ -285,6 +293,12 @@ public class OWTribesSavedData extends SavedData {
             for (int i = 0; i < claimTag.size(); i++) {
                 CompoundTag ce = claimTag.getCompound(i);
                 try { team.getArenaChestsClaimed().put(UUID.fromString(ce.getString("uuid")), ce.getInt("count")); }
+                catch (IllegalArgumentException ignored) {}
+            }
+            ListTag tribeTag = tag.getList("arenaTribeChestsClaimed", Tag.TAG_COMPOUND);
+            for (int i = 0; i < tribeTag.size(); i++) {
+                CompoundTag ce = tribeTag.getCompound(i);
+                try { team.getArenaTribeChestsClaimed().put(UUID.fromString(ce.getString("uuid")), ce.getInt("count")); }
                 catch (IllegalArgumentException ignored) {}
             }
             return team;

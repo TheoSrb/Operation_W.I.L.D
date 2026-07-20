@@ -33,7 +33,8 @@ public record SyncPlayerTribePacket(
         List<String> deputyUUIDs, List<String> permUUIDs, List<Integer> permMasks,
         int reputation, boolean reputationEnabled,
         boolean arenaAccepted, int arenaPrestige,
-        List<String> arenaClaimUUIDs, List<Integer> arenaClaimCounts
+        List<String> arenaClaimUUIDs, List<Integer> arenaClaimCounts,
+        List<Integer> arenaTribeClaimCounts
 ) implements CustomPacketPayload {
 
     public static final Type<SyncPlayerTribePacket> TYPE = new Type<>(
@@ -77,6 +78,7 @@ public record SyncPlayerTribePacket(
                 for (int i = 0; i < p.arenaClaimUUIDs().size(); i++) {
                     ByteBufCodecs.STRING_UTF8.encode(buf, p.arenaClaimUUIDs().get(i));
                     ByteBufCodecs.INT.encode(buf, p.arenaClaimCounts().get(i));
+                    ByteBufCodecs.INT.encode(buf, p.arenaTribeClaimCounts().get(i));
                 }
             },
             buf -> {
@@ -117,11 +119,16 @@ public record SyncPlayerTribePacket(
                 int acc = ByteBufCodecs.INT.decode(buf);
                 List<String> claimU = new ArrayList<>(acc);
                 List<Integer> claimC = new ArrayList<>(acc);
-                for (int i = 0; i < acc; i++) { claimU.add(ByteBufCodecs.STRING_UTF8.decode(buf)); claimC.add(ByteBufCodecs.INT.decode(buf)); }
+                List<Integer> tribeC = new ArrayList<>(acc);
+                for (int i = 0; i < acc; i++) {
+                    claimU.add(ByteBufCodecs.STRING_UTF8.decode(buf));
+                    claimC.add(ByteBufCodecs.INT.decode(buf));
+                    tribeC.add(ByteBufCodecs.INT.decode(buf));
+                }
                 return new SyncPlayerTribePacket(has, teamId, name, owner, primary, secondary,
                         patternId, bannerShapeId, isPublic, joinReqs, directJoin, date, pNames, pUuids, pixels,
                         tertiary, useTertiary, deputies, permU, permM, reputation, repEnabled,
-                        arenaAccepted, arenaPrestige, claimU, claimC);
+                        arenaAccepted, arenaPrestige, claimU, claimC, tribeC);
             });
 
     @Override
@@ -133,7 +140,7 @@ public record SyncPlayerTribePacket(
                     0xFFFFFF, 0xFFFFFF, 0, 0, false, new ArrayList<>(), false, "",
                     new ArrayList<>(), new ArrayList<>(), new byte[0], 0xFFFFFF, false,
                     new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), 0, false,
-                    false, 0, new ArrayList<>(), new ArrayList<>());
+                    false, 0, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
         }
         List<String> pUuids = new ArrayList<>();
         for (UUID u : team.getPlayerUUIDs()) pUuids.add(u.toString());
@@ -142,9 +149,18 @@ public record SyncPlayerTribePacket(
         List<String> permU = new ArrayList<>();
         List<Integer> permM = new ArrayList<>();
         for (var e : team.getMemberPermissions().entrySet()) { permU.add(e.getKey().toString()); permM.add(e.getValue()); }
+        // Un seul jeu de clés : les deux compteurs voyagent alignés sur la même liste d'UUID,
+        // ce qui évite d'en sérialiser deux fois les identifiants.
         List<String> claimU = new ArrayList<>();
         List<Integer> claimC = new ArrayList<>();
-        for (var e : team.getArenaChestsClaimed().entrySet()) { claimU.add(e.getKey().toString()); claimC.add(e.getValue()); }
+        List<Integer> tribeC = new ArrayList<>();
+        java.util.Set<UUID> holders = new java.util.LinkedHashSet<>(team.getArenaChestsClaimed().keySet());
+        holders.addAll(team.getArenaTribeChestsClaimed().keySet());
+        for (UUID u : holders) {
+            claimU.add(u.toString());
+            claimC.add(team.getArenaChestsClaimed(u));
+            tribeC.add(team.getArenaTribeChestsClaimed(u));
+        }
         return new SyncPlayerTribePacket(
                 true,
                 team.getTeamId(),
@@ -164,7 +180,7 @@ public record SyncPlayerTribePacket(
                 team.getTertiaryColor(),
                 team.isUseTertiary(),
                 deputies, permU, permM, reputation, team.isReputationEnabled(),
-                team.isArenaAccepted(), team.getArenaPrestige(), claimU, claimC);
+                team.isArenaAccepted(), team.getArenaPrestige(), claimU, claimC, tribeC);
     }
 
     public static void handle(SyncPlayerTribePacket packet, IPayloadContext context) {
@@ -212,8 +228,12 @@ public record SyncPlayerTribePacket(
             team.setArenaAccepted(packet.arenaAccepted());
             team.setArenaPrestige(packet.arenaPrestige());
             for (int i = 0; i < packet.arenaClaimUUIDs().size(); i++) {
-                try { team.getArenaChestsClaimed().put(UUID.fromString(packet.arenaClaimUUIDs().get(i)), packet.arenaClaimCounts().get(i)); }
-                catch (IllegalArgumentException ignored) {}
+                try {
+                    UUID u = UUID.fromString(packet.arenaClaimUUIDs().get(i));
+                    team.getArenaChestsClaimed().put(u, packet.arenaClaimCounts().get(i));
+                    if (i < packet.arenaTribeClaimCounts().size())
+                        team.getArenaTribeChestsClaimed().put(u, packet.arenaTribeClaimCounts().get(i));
+                } catch (IllegalArgumentException ignored) {}
             }
             OWClientTribeData.set(team);
         });

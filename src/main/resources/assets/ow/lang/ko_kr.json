@@ -931,10 +931,8 @@
   "owteams.arena.intro.wait": "족장만 부족을 등록할 수 있습니다.",
   "owteams.arena.chest_ready": "클릭하여 열기!",
   "owteams.arena.chest_locked": "사용 가능한 상자 없음",
-  "owteams.arena.prestige_total": "부족 명예: %s",
   "owteams.arena.opening": "여는 중…",
   "owteams.arena.reward.title": "보상!",
-  "owteams.arena.reward.coins": "+%s 와일드 코인",
   "owteams.arena.reward.dismiss": "클릭하여 계속",
   "owteams.arena.switch.to_combat": "전투로 이동",
   "owteams.arena.switch.to_rewards": "보상으로 이동",
@@ -955,6 +953,7 @@
   "owteams.arena.challenge.decline": "거절",
   "owteams.arena.challenge.confirm_title": "전투 선언",
   "owteams.arena.challenge.confirm_body": "부족 \"%s\"에 도전하시겠습니까?",
+  "owteams.arena.challenge.potential_prestige": "예상 명예: +%s",
   "owteams.arena.cancel": "취소",
   "owteams.arena.match.started": "전투가 성사되었습니다! 팀을 구성하세요.",
   "owteams.arena.selection.you": "아군",
@@ -999,6 +998,7 @@
   "owteams.arena.chest.ruby_small": "작은 루비 상자",
   "owteams.arena.chest.ruby_normal": "루비 상자",
   "owteams.arena.chest.ruby_large": "큰 루비 상자",
+  "owteams.arena.chest.tribe": "부족 상자",
   "owteams.arena.selection.count": "팀: %s/%s",
   "owteams.arena.result.versus": "상대 %s",
   "owteams.arena.result.gains": "명성 +%s, 명예 +%s",
@@ -1007,5 +1007,9 @@
   "owteams.arena.combat.click_to_challenge": "클릭하여 도전",
   "owteams.arena.clash.versus": "대결",
   "owteams.arena.zone.shrinking": "전투 구역이 좁혀지기 시작합니다!",
-  "owteams.arena.zone.busy": "아레나가 사용 중입니다. 비는 대로 전투가 시작됩니다."
+  "owteams.arena.zone.busy": "아레나가 사용 중입니다. 비는 대로 전투가 시작됩니다.",
+  "owteams.arena.protected": "아레나 지형은 변경할 수 없습니다.",
+  "owteams.arena.soul_returned": "동료의 영혼이 당신에게 반환되었습니다.",
+  "owteams.arena.tribe_chest.locked": "%s 필요",
+  "owteams.arena.tribe_chest.progress": "상자 %s / %s 개봉"
 }

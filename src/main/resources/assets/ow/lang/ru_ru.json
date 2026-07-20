@@ -931,10 +931,8 @@
   "owteams.arena.intro.wait": "Только вождь может записать племя.",
   "owteams.arena.chest_ready": "Нажмите, чтобы открыть!",
   "owteams.arena.chest_locked": "Нет доступных сундуков",
-  "owteams.arena.prestige_total": "Престиж племени: %s",
   "owteams.arena.opening": "Открытие…",
   "owteams.arena.reward.title": "Награды!",
-  "owteams.arena.reward.coins": "+%s Диких монет",
   "owteams.arena.reward.dismiss": "Нажмите, чтобы продолжить",
   "owteams.arena.switch.to_combat": "К бою",
   "owteams.arena.switch.to_rewards": "К наградам",
@@ -955,6 +953,7 @@
   "owteams.arena.challenge.decline": "Отклонить",
   "owteams.arena.challenge.confirm_title": "Объявить бой",
   "owteams.arena.challenge.confirm_body": "Вызвать племя «%s»?",
+  "owteams.arena.challenge.potential_prestige": "Возможный престиж: +%s",
   "owteams.arena.cancel": "Отмена",
   "owteams.arena.match.started": "Бой принят! Соберите команду.",
   "owteams.arena.selection.you": "Вы",
@@ -999,6 +998,7 @@
   "owteams.arena.chest.ruby_small": "Малый рубиновый сундук",
   "owteams.arena.chest.ruby_normal": "Рубиновый сундук",
   "owteams.arena.chest.ruby_large": "Большой рубиновый сундук",
+  "owteams.arena.chest.tribe": "Сундук племени",
   "owteams.arena.selection.count": "Команда: %s/%s",
   "owteams.arena.result.versus": "против %s",
   "owteams.arena.result.gains": "+%s репутации, +%s престижа",
@@ -1007,5 +1007,9 @@
   "owteams.arena.combat.click_to_challenge": "Нажмите, чтобы вызвать",
   "owteams.arena.clash.versus": "ПРОТИВ",
   "owteams.arena.zone.shrinking": "Зона боя начинает сужаться!",
-  "owteams.arena.zone.busy": "Арена занята: бой начнётся, как только она освободится."
+  "owteams.arena.zone.busy": "Арена занята: бой начнётся, как только она освободится.",
+  "owteams.arena.protected": "Оформление арены нельзя изменять.",
+  "owteams.arena.soul_returned": "Душа вашего спутника возвращена вам.",
+  "owteams.arena.tribe_chest.locked": "Требуется %s",
+  "owteams.arena.tribe_chest.progress": "Открыто сундуков: %s / %s"
 }

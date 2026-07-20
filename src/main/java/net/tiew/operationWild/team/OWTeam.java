@@ -62,6 +62,8 @@ public class OWTeam {
     private int arenaPrestige = 0;
     /** Coffres d'arène déjà réclamés, par membre. Cf. {@link net.tiew.operationWild.core.OWArena}. */
     private Map<UUID, Integer> arenaChestsClaimed = new HashMap<>();
+    /** Coffres de <b>tribu</b> déjà réclamés, par membre (récompense d'assiduité, hors badge). */
+    private Map<UUID, Integer> arenaTribeChestsClaimed = new HashMap<>();
     /** Réputation cumulée gagnée en arène — s'ajoute au score calculé depuis les créatures. Persistée. */
     private int arenaReputationBonus = 0;
 
@@ -421,6 +423,36 @@ public class OWTeam {
     public void setArenaReputationBonus(int v) { this.arenaReputationBonus = Math.max(0, v); }
 
     public void addArenaReputationBonus(int v) { setArenaReputationBonus(arenaReputationBonus + v); }
+
+    public Map<UUID, Integer> getArenaTribeChestsClaimed() {
+        if (arenaTribeChestsClaimed == null) arenaTribeChestsClaimed = new HashMap<>();
+        return arenaTribeChestsClaimed;
+    }
+
+    public void setArenaTribeChestsClaimed(Map<UUID, Integer> v) {
+        this.arenaTribeChestsClaimed = v != null ? v : new HashMap<>();
+    }
+
+    public int getArenaTribeChestsClaimed(UUID u) { return getArenaTribeChestsClaimed().getOrDefault(u, 0); }
+
+    /**
+     * Coffres de tribu qu'il reste à réclamer à {@code u}, gagnés au rythme d'un pour
+     * {@link net.tiew.operationWild.core.OWArena#CHESTS_PER_TRIBE_CHEST} coffres de badge ouverts.
+     *
+     * <p>Ne tient pas compte du badge minimal exigé : cette condition dépend de la réputation, qui
+     * est calculée par le serveur, et est vérifiée au moment de la réclamation.</p>
+     */
+    public int pendingTribeChests(UUID u) {
+        return net.tiew.operationWild.core.OWArena.pendingTribeChests(
+                getArenaChestsClaimed(u), getArenaTribeChestsClaimed(u));
+    }
+
+    /** Enregistre l'ouverture d'un coffre de tribu par {@code u}. */
+    public boolean claimTribeChest(UUID u) {
+        if (u == null || pendingTribeChests(u) <= 0) return false;
+        getArenaTribeChestsClaimed().merge(u, 1, Integer::sum);
+        return true;
+    }
 
     /** Enregistre l'ouverture d'un coffre par {@code u}. Sans effet s'il n'en a aucun en attente. */
     public boolean claimArenaChest(UUID u) {

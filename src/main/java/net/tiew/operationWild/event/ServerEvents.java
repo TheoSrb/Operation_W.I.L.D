@@ -133,6 +133,8 @@ public class ServerEvents {
                 net.tiew.operationWild.team.OWTribeManager.syncTribeList(server, player);
                 // Arène : filet de sécurité si le serveur a redémarré pendant un combat, puis état initial.
                 net.tiew.operationWild.team.OWArenaManager.rescueStrandedPlayer(server, player);
+                // Âmes tombées en arène pendant son absence : on les lui remet maintenant.
+                net.tiew.operationWild.team.OWPendingSouls.get(server).deliver(player);
                 net.tiew.operationWild.team.OWArenaManager.syncTo(server, player);
             }
             net.tiew.operationWild.core.OWBannerUnlocks.sync(player);

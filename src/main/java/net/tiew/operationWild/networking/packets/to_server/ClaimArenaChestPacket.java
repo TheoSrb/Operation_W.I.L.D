@@ -34,13 +34,14 @@ import java.util.List;
  * demander, le serveur vérifie qu'un coffre est réellement dû, tire le butin, le remet, puis renvoie
  * le contenu pour l'animation d'ouverture.
  */
-public record ClaimArenaChestPacket() implements CustomPacketPayload {
+public record ClaimArenaChestPacket(boolean tribeChest) implements CustomPacketPayload {
 
     public static final Type<ClaimArenaChestPacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "claim_arena_chest"));
 
-    public static final StreamCodec<ByteBuf, ClaimArenaChestPacket> STREAM_CODEC =
-            StreamCodec.unit(new ClaimArenaChestPacket());
+    public static final StreamCodec<ByteBuf, ClaimArenaChestPacket> STREAM_CODEC = StreamCodec.of(
+            (buf, p) -> net.minecraft.network.codec.ByteBufCodecs.BOOL.encode(buf, p.tribeChest()),
+            buf -> new ClaimArenaChestPacket(net.minecraft.network.codec.ByteBufCodecs.BOOL.decode(buf)));
 
     @Override
     public Type<? extends CustomPacketPayload> type() { return TYPE; }
@@ -54,13 +55,20 @@ public record ClaimArenaChestPacket() implements CustomPacketPayload {
 
             OWTeam team = data.findTeamByMember(sp.getUUID());
             if (team == null || !team.isArenaAccepted()) return;
-            // Consomme le coffre AVANT de tirer le butin : un double-clic ne peut pas doubler la mise.
-            if (!team.claimArenaChest(sp.getUUID())) return;
-            data.putTribe(team);
-
-            // Le palier dépend du badge de réputation de la tribu au moment de l'ouverture.
             int reputation = OWReputation.compute(OWReputationData.get(server), team);
-            OWArena.Chest chest = OWArena.chestForReputation(reputation);
+
+            // Consomme le coffre AVANT de tirer le butin : un double-clic ne peut pas doubler la mise.
+            OWArena.Chest chest;
+            if (packet.tribeChest()) {
+                // Le rang minimal est revérifié ici : le client peut demander n'importe quoi.
+                if (!OWArena.tribeChestUnlocked(reputation)) return;
+                if (!team.claimTribeChest(sp.getUUID())) return;
+                chest = OWArena.Chest.TRIBE;
+            } else {
+                if (!team.claimArenaChest(sp.getUUID())) return;
+                chest = OWArena.chestForReputation(reputation);
+            }
+            data.putTribe(team);
 
             List<ItemStack> loot = rollLoot(server, level, sp, chest);
             for (ItemStack stack : loot) {

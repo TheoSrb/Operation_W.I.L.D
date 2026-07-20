@@ -117,7 +117,24 @@
       "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/world/level/border/WorldBorder.java\" \"net/minecraft/world/entity/Entity.java\")",
       "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/**\" -x \"net/minecraft/data/**\")",
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/border2.py\")",
-      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && rm -rf run/server/world && timeout 240 ./gradlew runServer 2>&1 | grep -iE \"Done \\\\\\(|ERROR|Exception\" | grep -vi \"RegisterSpawnPlacements\\\\|BiomeFilter\\\\|ModDiscoverer\\\\|NetUtil\" | head -5; rm -rf /tmp/mcsrc)"
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && rm -rf run/server/world && timeout 240 ./gradlew runServer 2>&1 | grep -iE \"Done \\\\\\(|ERROR|Exception\" | grep -vi \"RegisterSpawnPlacements\\\\|BiomeFilter\\\\|ModDiscoverer\\\\|NetUtil\" | head -5; rm -rf /tmp/mcsrc)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/harden.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/chest_sprite.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/chest_callers.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/opening_fix.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/cards.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/opening2.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/idle_chest.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/idle_smooth.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/jade.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/light_color.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/ux.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/ux2.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/tribechest_ui.py\")",
+      "Bash(awk '/private void renderRewards\\\\\\(GuiGraphics g, OWTeam t/,/^    }$/' src/main/java/net/tiew/operationWild/screen/tribe/OWTribeArenaScreen.java)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/tribe_section.py\")",
+      "Bash(awk '/private void renderSwitchButton/,/^    }$/' src/main/java/net/tiew/operationWild/screen/tribe/OWTribeArenaScreen.java)",
+      "Bash(awk '/private static void awardVictory/,/^    }$/' src/main/java/net/tiew/operationWild/team/OWArenaManager.java)"
     ]
   }
 }

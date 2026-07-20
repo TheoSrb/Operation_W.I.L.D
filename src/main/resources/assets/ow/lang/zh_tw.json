@@ -931,10 +931,8 @@
   "owteams.arena.intro.wait": "只有酋長可以讓部落加入。",
   "owteams.arena.chest_ready": "點擊開啟！",
   "owteams.arena.chest_locked": "暫無可用寶箱",
-  "owteams.arena.prestige_total": "部落威望：%s",
   "owteams.arena.opening": "開啟中…",
   "owteams.arena.reward.title": "獎勵！",
-  "owteams.arena.reward.coins": "+%s 野性幣",
   "owteams.arena.reward.dismiss": "點擊繼續",
   "owteams.arena.switch.to_combat": "前往對戰",
   "owteams.arena.switch.to_rewards": "前往獎勵",
@@ -955,6 +953,7 @@
   "owteams.arena.challenge.decline": "拒絕",
   "owteams.arena.challenge.confirm_title": "發起對戰",
   "owteams.arena.challenge.confirm_body": "向部落「%s」發起挑戰？",
+  "owteams.arena.challenge.potential_prestige": "預計威望：+%s",
   "owteams.arena.cancel": "取消",
   "owteams.arena.match.started": "對戰已達成！請組建你的隊伍。",
   "owteams.arena.selection.you": "我方",
@@ -999,6 +998,7 @@
   "owteams.arena.chest.ruby_small": "小型紅寶石寶箱",
   "owteams.arena.chest.ruby_normal": "紅寶石寶箱",
   "owteams.arena.chest.ruby_large": "大型紅寶石寶箱",
+  "owteams.arena.chest.tribe": "部落寶箱",
   "owteams.arena.selection.count": "隊伍：%s/%s",
   "owteams.arena.result.versus": "對陣 %s",
   "owteams.arena.result.gains": "聲望 +%s，威望 +%s",
@@ -1007,5 +1007,9 @@
   "owteams.arena.combat.click_to_challenge": "點擊發起挑戰",
   "owteams.arena.clash.versus": "對決",
   "owteams.arena.zone.shrinking": "戰鬥區域開始縮小！",
-  "owteams.arena.zone.busy": "競技場正在使用中：一旦空出便會開始對戰。"
+  "owteams.arena.zone.busy": "競技場正在使用中：一旦空出便會開始對戰。",
+  "owteams.arena.protected": "競技場場景無法修改。",
+  "owteams.arena.soul_returned": "你的夥伴之魂已歸還給你。",
+  "owteams.arena.tribe_chest.locked": "需要%s",
+  "owteams.arena.tribe_chest.progress": "已開啟 %s / %s 個寶箱"
 }

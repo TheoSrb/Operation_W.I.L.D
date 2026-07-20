@@ -135,6 +135,18 @@ public class OperationWild {
         Player player = event.getPlayer();
 
         if (pickedUpStack.getItem() == OWItems.ANIMAL_SOUL.get()) {
+            // Une âme n'appartient qu'à son propriétaire — en toutes circonstances, pas seulement
+            // en arène. Personne ne peut ramasser le compagnon défunt de quelqu'un d'autre.
+            // Une âme sans propriétaire (créature jamais apprivoisée) reste libre d'accès.
+            net.tiew.operationWild.component.SoulData soul =
+                    net.tiew.operationWild.item.custom.AnimalSoulItem.getSoul(pickedUpStack);
+            UUID soulOwner = soul.ownerUuid();
+            if (soulOwner != null && !net.tiew.operationWild.component.SoulData.NO_UUID.equals(soulOwner)
+                    && !soulOwner.equals(player.getUUID())) {
+                event.setCanPickup(TriState.FALSE);
+                return;
+            }
+
             boolean alreadyHasItem = player.getInventory().items.stream()
                     .anyMatch(stack -> stack.getItem() == OWItems.ANIMAL_SOUL.get());
 

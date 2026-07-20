@@ -285,26 +285,46 @@ public final class OWArenaManager {
      * Ordonnée sûre au-dessus du sol, lue sur le <b>heightmap réel</b> plutôt que sur une constante :
      * si la configuration du monde plat change, le placement suit sans qu'on ait à y penser.
      */
-    private static double groundY(ServerLevel arena, int x, int z) {
-        // getChunk force la génération complète si nécessaire ; le heightmap est alors fiable.
-        arena.getChunk(x >> 4, z >> 4);
-        int y = arena.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
-        // Garde-fou si le heightmap ressort au plancher du monde (chunk vide) : on retombe sur la
-        // constante de la dimension plutôt que de laisser tomber quelqu'un dans le vide.
-        if (y <= arena.getMinBuildHeight() + 1) y = OWArena.ARENA_Y;
+    /**
+     * Ordonnée sûre pour déposer quelqu'un en {@code (x, z)}, sur <b>n'importe quel</b> niveau.
+     *
+     * <p>Utilisé pour tous les trajets, aller <i>comme</i> retour. Un point de retour mémorisé peut
+     * être devenu invalide (terrain modifié, coordonnée légèrement enterrée) : arriver encastré
+     * bloque toutes les interactions, le raycast partant de l'intérieur d'un bloc.</p>
+     *
+     * <p>Trois filets successifs : la position souhaitée si elle est libre, sinon la surface lue sur
+     * le heightmap, et dans tous les cas une remontée tant que les deux blocs occupés ne sont pas
+     * dégagés — le heightmap pouvant mentir sur un chunk fraîchement généré.</p>
+     */
+    private static double safeY(ServerLevel level, double x, double z, double preferredY) {
+        int bx = net.minecraft.util.Mth.floor(x), bz = net.minecraft.util.Mth.floor(z);
+        level.getChunk(bx >> 4, bz >> 4);   // force la génération : sans terrain, tout le reste ment
 
-        // Ceinture et bretelles : on remonte tant que les deux blocs occupés ne sont pas libres.
-        // Le heightmap peut mentir sur un chunk fraîchement généré, et se retrouver encastré bloque
-        // TOUTES les interactions (le raycast part de l'intérieur d'un bloc).
-        net.minecraft.core.BlockPos.MutableBlockPos pos =
-                new net.minecraft.core.BlockPos.MutableBlockPos(x, y, z);
-        int ceiling = Math.min(arena.getMaxBuildHeight() - 2, y + 16);
-        while (pos.getY() < ceiling
-                && (!arena.getBlockState(pos).getCollisionShape(arena, pos).isEmpty()
-                 || !arena.getBlockState(pos.above()).getCollisionShape(arena, pos.above()).isEmpty())) {
-            pos.move(net.minecraft.core.Direction.UP);
+        int min = level.getMinBuildHeight() + 1;
+        int max = level.getMaxBuildHeight() - 2;
+        int y = net.minecraft.util.Mth.clamp(net.minecraft.util.Mth.floor(preferredY), min, max);
+
+        if (!isFree(level, bx, y, bz)) {
+            int surface = level.getHeight(
+                    net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, bx, bz);
+            y = net.minecraft.util.Mth.clamp(surface, min, max);
         }
-        return pos.getY();
+        int guard = 0;
+        while (y < max && !isFree(level, bx, y, bz) && guard++ < 48) y++;
+        return y;
+    }
+
+    /** Vrai si les deux blocs occupés par une créature de taille standard sont libres de collision. */
+    private static boolean isFree(ServerLevel level, int x, int y, int z) {
+        net.minecraft.core.BlockPos pos = new net.minecraft.core.BlockPos(x, y, z);
+        net.minecraft.core.BlockPos above = pos.above();
+        return level.getBlockState(pos).getCollisionShape(level, pos).isEmpty()
+                && level.getBlockState(above).getCollisionShape(level, above).isEmpty();
+    }
+
+    /** Ordonnée d'arrivée dans l'arène : on vise le plain-pied de la dimension. */
+    private static double arenaY(ServerLevel arena, int x, int z) {
+        return safeY(arena, x, z, OWArena.ARENA_Y);
     }
 
     private static void placeSide(MinecraftServer server, ServerLevel arena, OWArenaMatch match,
@@ -324,7 +344,7 @@ public final class OWArenaManager {
 
             int z = (int) Math.round((i - (fighters.size() - 1) / 2.0) * 4.0);
             Entity moved = owE.changeDimension(new DimensionTransition(
-                    arena, new Vec3(x + 0.5, groundY(arena, x, z), z + 0.5), Vec3.ZERO, yRot, 0f,
+                    arena, new Vec3(x + 0.5, arenaY(arena, x, z), z + 0.5), Vec3.ZERO, yRot, 0f,
                     DimensionTransition.DO_NOTHING));
             if (moved instanceof OWEntity arrived) {
                 readyForBattle(arrived, match, teamId);
@@ -363,7 +383,7 @@ public final class OWArenaManager {
         // qui part ailleurs se retrouve dans un état incohérent.
         p.stopRiding();
         p.changeDimension(new DimensionTransition(
-                arena, new Vec3(x + 0.5, groundY(arena, x, 0), 0.5), Vec3.ZERO, yRot, 0f,
+                arena, new Vec3(x + 0.5, arenaY(arena, x, 0), 0.5), Vec3.ZERO, yRot, 0f,
                 DimensionTransition.DO_NOTHING));
     }
 
@@ -497,6 +517,46 @@ public final class OWArenaManager {
         return false;
     }
 
+    /**
+     * Vide l'arène des objets tombés à terre en fin de combat.
+     *
+     * <p><b>Sauf les âmes.</b> Une créature apprivoisée qui meurt lâche son âme
+     * ({@code OWEntity#shouldDropSoulOnDeath}), seul moyen de la ressusciter : la détruire avec le
+     * reste du butin ferait perdre définitivement le compagnon à son propriétaire. Les âmes sont
+     * donc rendues à leur propriétaire s'il est connecté, et laissées intactes sinon — mieux vaut
+     * un objet oublié dans l'arène qu'un compagnon effacé.</p>
+     */
+    private static void clearArenaGroundItems(MinecraftServer server, ServerLevel arena) {
+        List<Entity> snapshot = new ArrayList<>();
+        arena.getAllEntities().forEach(snapshot::add);
+
+        for (Entity e : snapshot) {
+            if (!(e instanceof net.minecraft.world.entity.item.ItemEntity item) || !item.isAlive()) continue;
+            net.minecraft.world.item.ItemStack stack = item.getItem();
+
+            if (stack.is(net.tiew.operationWild.item.OWItems.ANIMAL_SOUL.get())) {
+                UUID owner = net.tiew.operationWild.item.custom.AnimalSoulItem.getSoul(stack).ownerUuid();
+                boolean real = owner != null
+                        && !net.tiew.operationWild.component.SoulData.NO_UUID.equals(owner);
+                ServerPlayer p = real ? server.getPlayerList().getPlayer(owner) : null;
+
+                if (p != null) {
+                    if (!p.getInventory().add(stack.copy())) p.drop(stack.copy(), false);
+                    p.sendSystemMessage(Component.translatable("owteams.arena.soul_returned")
+                            .setStyle(Style.EMPTY.withColor(0x86DBFF)));
+                } else if (real) {
+                    // Propriétaire hors ligne : mise de côté pour sa prochaine connexion. La laisser
+                    // au sol reviendrait à la détruire — l'arène n'est accessible à personne.
+                    OWPendingSouls.get(server).stash(owner, stack);
+                }
+                // Âme sans propriétaire réel (créature du mode entraînement) : rien à conserver.
+                item.discard();
+                continue;
+            }
+            item.discard();
+        }
+    }
+
     /** Boucle de combat : cadencée par {@link #tick}, ~1 fois par seconde. */
     private static void tickFight(MinecraftServer server, OWArenaMatch match) {
         ServerLevel arena = server.getLevel(OWDimensions.ARENA);
@@ -590,6 +650,8 @@ public final class OWArenaManager {
         // Les chunks forcés doivent être libérés, sinon l'aire de combat reste chargée pour toujours.
         ServerLevel arena = server.getLevel(OWDimensions.ARENA);
         if (arena != null) {
+            // Nettoyage AVANT de relâcher les chunks : sinon les objets seraient hors de portée.
+            clearArenaGroundItems(server, arena);
             forceArenaChunks(arena, match, match.arenaOffsetX(), false);
             resetBattleZone(server, arena, match);
         }
@@ -632,17 +694,21 @@ public final class OWArenaManager {
         int winnerRep = match.isSideA(winnerTeamId) ? match.getReputationA() : match.getReputationB();
         int loserRep = match.isSideA(winnerTeamId) ? match.getReputationB() : match.getReputationA();
         int gain = OWArena.reputationGain(winnerRep, loserRep);
+        // Réputations figées à l'ouverture du match : le prestige promis avant le duel est
+        // exactement celui qui sera versé, même si les scores ont bougé entre-temps.
+        int prestige = OWArena.prestigeGain(winnerRep, loserRep);
+        int consolation = OWArena.prestigeConsolation(prestige);
 
         winner.addArenaReputationBonus(gain);
-        winner.addArenaPrestige(OWArena.PRESTIGE_WIN);
-        loser.addArenaPrestige(OWArena.PRESTIGE_LOSS);
+        winner.addArenaPrestige(prestige);
+        loser.addArenaPrestige(consolation);
         data.putTribe(winner);
         data.putTribe(loser);
 
         announce(server, winner, Component.translatable("owteams.arena.result.win",
-                loser.getTeamName(), gain, OWArena.PRESTIGE_WIN).setStyle(Style.EMPTY.withColor(0x7ddd73)));
+                loser.getTeamName(), gain, prestige).setStyle(Style.EMPTY.withColor(0x7ddd73)));
         announce(server, loser, Component.translatable("owteams.arena.result.loss",
-                winner.getTeamName(), OWArena.PRESTIGE_LOSS).setStyle(Style.EMPTY.withColor(0xE04444)));
+                winner.getTeamName(), consolation).setStyle(Style.EMPTY.withColor(0xE04444)));
 
         OWTribeManager.syncTribeToOnlineMembers(server, winner);
         OWTribeManager.syncTribeToOnlineMembers(server, loser);
@@ -664,9 +730,11 @@ public final class OWArenaManager {
             ServerLevel dest = server.getLevel(rp.dimension());
             if (dest == null) dest = server.overworld();
 
+            double y = safeY(dest, rp.x(), rp.z(), rp.y());
+
             ServerPlayer player = server.getPlayerList().getPlayer(uuid);
             if (player != null) {
-                player.changeDimension(new DimensionTransition(dest, new Vec3(rp.x(), rp.y(), rp.z()),
+                player.changeDimension(new DimensionTransition(dest, new Vec3(rp.x(), y, rp.z()),
                         Vec3.ZERO, player.getYRot(), player.getXRot(), DimensionTransition.DO_NOTHING));
                 clearRescuePoint(player);
                 continue;
@@ -674,7 +742,7 @@ public final class OWArenaManager {
             // Entités : seules les survivantes sont encore là ; les mortes n'ont rien à ramener.
             Entity entity = findEntity(server, uuid);
             if (entity != null && entity.isAlive()) {
-                Entity back = entity.changeDimension(new DimensionTransition(dest, new Vec3(rp.x(), rp.y(), rp.z()),
+                Entity back = entity.changeDimension(new DimensionTransition(dest, new Vec3(rp.x(), y, rp.z()),
                         Vec3.ZERO, entity.getYRot(), entity.getXRot(), DimensionTransition.DO_NOTHING));
                 // Nouvelle instance, donc currentTeam de nouveau vide : on le rétablit, sinon les
                 // permissions de tribu resteraient cassées sur la créature après son retour.
@@ -685,6 +753,25 @@ public final class OWArenaManager {
             }
         }
         match.getReturnPoints().clear();
+
+        // Deuxième passe, indépendante des points de retour : toute créature encore présente dans
+        // l'arène et appartenant à l'une des deux tribus rentre aussi. Si une créature avait échappé
+        // au recensement (téléportation partielle, entité rechargée sous une autre instance), elle
+        // ne resterait pas abandonnée sur place — vainqueur comme vaincu.
+        ServerLevel arena = server.getLevel(OWDimensions.ARENA);
+        if (arena == null) return;
+        OWTribesSavedData data = OWTribesSavedData.get(server);
+        OWTeam teamA = data.findTeamById(match.getTeamAId());
+        OWTeam teamB = data.findTeamById(match.getTeamBId());
+        List<Entity> leftovers = new ArrayList<>();
+        arena.getAllEntities().forEach(leftovers::add);
+        for (Entity e : leftovers) {
+            if (!(e instanceof OWEntity owE) || !owE.isAlive()) continue;
+            UUID owner = owE.getOwnerUUID();
+            if (owner == null) continue;
+            boolean ours = (teamA != null && teamA.isMember(owner)) || (teamB != null && teamB.isMember(owner));
+            if (ours) returnEntityHome(server, owE);
+        }
     }
 
     // ── Boucle serveur ───────────────────────────────────────────────────────────
@@ -727,21 +814,34 @@ public final class OWArenaManager {
      */
     private static void rescueStragglers(MinecraftServer server) {
         ServerLevel arena = server.getLevel(OWDimensions.ARENA);
-        if (arena == null || arena.players().isEmpty()) return;
+        if (arena == null) return;
+
         for (ServerPlayer p : new ArrayList<>(arena.players())) {
             if (matchOfPlayer(server, p) != null) continue;   // combat en cours : sa place est ici
             rescueStrandedPlayer(server, p);
         }
 
-        // Même invariant pour les créatures : aucune ne doit rester dans l'arène hors combat.
-        // C'est ce qui garantit que les combattants du vainqueur — qui, eux, survivent — sont
-        // bien évacués de la dimension à la fin du match.
-        if (!MATCHES.isEmpty()) return;   // un combat tourne encore : ses créatures sont légitimes
+        // Même invariant pour les créatures. On ne s'arrête surtout pas à « plus aucun joueur dans
+        // l'arène » : c'est précisément le cas où des animaux oubliés y tourneraient en rond sans
+        // que personne ne le voie.
+        //
+        // Seul un match qui OCCUPE réellement l'arène (combat en cours, ou verdict en cours de
+        // contemplation) rend ses créatures légitimes ; un match encore en composition, lui, n'a
+        // rien à y faire.
+        for (OWArenaMatch m : MATCHES.values()) {
+            if (m.getState() == OWArenaMatch.State.FIGHTING
+                    || m.getState() == OWArenaMatch.State.ENDED) return;
+        }
         List<Entity> snapshot = new ArrayList<>();
         arena.getAllEntities().forEach(snapshot::add);
         for (Entity e : snapshot) {
             if (e instanceof OWEntity owE && owE.isAlive()) returnEntityHome(server, owE);
         }
+
+        // Et les objets au sol : hors combat, l'arène doit être parfaitement vide. Le nettoyage de
+        // fin de match s'en charge déjà, mais un match clos par un chemin détourné (tribu dissoute,
+        // redémarrage) le contournerait — cette passe garantit l'invariant dans tous les cas.
+        clearArenaGroundItems(server, arena);
     }
 
     // ── Synchronisation client ───────────────────────────────────────────────────
@@ -823,6 +923,7 @@ public final class OWArenaManager {
         }
         entity.getPersistentData().remove(RETURN_KEY);
         entity.setTarget(null);
+        y = safeY(dest, x, z, y);
         Entity back = entity.changeDimension(new DimensionTransition(dest, new Vec3(x, y, z),
                 Vec3.ZERO, entity.getYRot(), entity.getXRot(), DimensionTransition.DO_NOTHING));
         if (back instanceof OWEntity owE) {
@@ -866,6 +967,7 @@ public final class OWArenaManager {
             net.minecraft.core.BlockPos spawn = dest.getSharedSpawnPos();
             x = spawn.getX() + 0.5; y = spawn.getY(); z = spawn.getZ() + 0.5;
         }
+        y = safeY(dest, x, z, y);
         player.changeDimension(new DimensionTransition(dest, new Vec3(x, y, z), Vec3.ZERO,
                 player.getYRot(), player.getXRot(), DimensionTransition.DO_NOTHING));
         clearRescuePoint(player);

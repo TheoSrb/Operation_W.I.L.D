@@ -931,10 +931,8 @@
   "owteams.arena.intro.wait": "族長のみが部族を登録できます。",
   "owteams.arena.chest_ready": "クリックして開封！",
   "owteams.arena.chest_locked": "利用可能なチェストがありません",
-  "owteams.arena.prestige_total": "部族の威信：%s",
   "owteams.arena.opening": "開封中…",
   "owteams.arena.reward.title": "報酬！",
-  "owteams.arena.reward.coins": "+%s ワイルドコイン",
   "owteams.arena.reward.dismiss": "クリックして続行",
   "owteams.arena.switch.to_combat": "戦闘へ",
   "owteams.arena.switch.to_rewards": "報酬へ",
@@ -955,6 +953,7 @@
   "owteams.arena.challenge.decline": "辞退",
   "owteams.arena.challenge.confirm_title": "戦いを宣言",
   "owteams.arena.challenge.confirm_body": "部族「%s」に挑戦しますか？",
+  "owteams.arena.challenge.potential_prestige": "獲得見込みの威信：+%s",
   "owteams.arena.cancel": "キャンセル",
   "owteams.arena.match.started": "戦いが成立しました！チームを編成してください。",
   "owteams.arena.selection.you": "自陣",
@@ -999,6 +998,7 @@
   "owteams.arena.chest.ruby_small": "小さなルビーの宝箱",
   "owteams.arena.chest.ruby_normal": "ルビーの宝箱",
   "owteams.arena.chest.ruby_large": "大きなルビーの宝箱",
+  "owteams.arena.chest.tribe": "部族のチェスト",
   "owteams.arena.selection.count": "チーム：%s/%s",
   "owteams.arena.result.versus": "対 %s",
   "owteams.arena.result.gains": "評判 +%s、威信 +%s",
@@ -1007,5 +1007,9 @@
   "owteams.arena.combat.click_to_challenge": "クリックで挑戦",
   "owteams.arena.clash.versus": "対決",
   "owteams.arena.zone.shrinking": "戦闘エリアが縮小を開始しました！",
-  "owteams.arena.zone.busy": "アリーナが使用中です。空き次第、戦闘を開始します。"
+  "owteams.arena.zone.busy": "アリーナが使用中です。空き次第、戦闘を開始します。",
+  "owteams.arena.protected": "アリーナの地形は変更できません。",
+  "owteams.arena.soul_returned": "仲間の魂があなたに返されました。",
+  "owteams.arena.tribe_chest.locked": "%s が必要",
+  "owteams.arena.tribe_chest.progress": "チェスト %s / %s 개封"
 }

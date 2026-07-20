@@ -931,10 +931,8 @@
   "owteams.arena.intro.wait": "Solo el jefe puede comprometer a la tribu.",
   "owteams.arena.chest_ready": "¡Haz clic para abrir!",
   "owteams.arena.chest_locked": "Ningún cofre disponible",
-  "owteams.arena.prestige_total": "Prestigio de tribu: %s",
   "owteams.arena.opening": "Abriendo…",
   "owteams.arena.reward.title": "¡Recompensas!",
-  "owteams.arena.reward.coins": "+%s Monedas Salvajes",
   "owteams.arena.reward.dismiss": "Haz clic para continuar",
   "owteams.arena.switch.to_combat": "Ir a Combate",
   "owteams.arena.switch.to_rewards": "Ir a Recompensas",
@@ -955,6 +953,7 @@
   "owteams.arena.challenge.decline": "Rechazar",
   "owteams.arena.challenge.confirm_title": "Declarar un combate",
   "owteams.arena.challenge.confirm_body": "¿Desafiar a la tribu «%s»?",
+  "owteams.arena.challenge.potential_prestige": "Prestigio potencial: +%s",
   "owteams.arena.cancel": "Cancelar",
   "owteams.arena.match.started": "¡Combate aceptado! Forma tu equipo.",
   "owteams.arena.selection.you": "Tú",
@@ -999,6 +998,7 @@
   "owteams.arena.chest.ruby_small": "Cofre de rubí pequeño",
   "owteams.arena.chest.ruby_normal": "Cofre de rubí",
   "owteams.arena.chest.ruby_large": "Cofre de rubí grande",
+  "owteams.arena.chest.tribe": "Cofre de tribu",
   "owteams.arena.selection.count": "Equipo: %s/%s",
   "owteams.arena.result.versus": "contra %s",
   "owteams.arena.result.gains": "+%s reputación, +%s prestigio",
@@ -1007,5 +1007,9 @@
   "owteams.arena.combat.click_to_challenge": "Clic para desafiar",
   "owteams.arena.clash.versus": "VS",
   "owteams.arena.zone.shrinking": "¡La zona de combate empieza a cerrarse!",
-  "owteams.arena.zone.busy": "La arena está ocupada: el combate empezará en cuanto se libere."
+  "owteams.arena.zone.busy": "La arena está ocupada: el combate empezará en cuanto se libere.",
+  "owteams.arena.protected": "El escenario de la arena no se puede modificar.",
+  "owteams.arena.soul_returned": "El alma de tu compañero te ha sido devuelta.",
+  "owteams.arena.tribe_chest.locked": "Requiere %s",
+  "owteams.arena.tribe_chest.progress": "%s / %s cofres abiertos"
 }

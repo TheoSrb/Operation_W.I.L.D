@@ -26,7 +26,8 @@ import java.util.List;
  * le butin d'arène n'a aucun composant custom, et cela évite d'exiger un {@code RegistryFriendlyByteBuf}.</p>
  */
 public record ArenaChestRewardPacket(
-        int chestOrdinal, int coins, List<String> itemIds, List<Integer> itemCounts
+        int chestOrdinal, int coins, List<String> itemIds, List<Integer> itemCounts,
+        List<Boolean> itemRare
 ) implements CustomPacketPayload {
 
     public static final Type<ArenaChestRewardPacket> TYPE = new Type<>(
@@ -40,6 +41,7 @@ public record ArenaChestRewardPacket(
                 for (int i = 0; i < p.itemIds().size(); i++) {
                     ByteBufCodecs.STRING_UTF8.encode(buf, p.itemIds().get(i));
                     ByteBufCodecs.INT.encode(buf, p.itemCounts().get(i));
+                    ByteBufCodecs.BOOL.encode(buf, p.itemRare().get(i));
                 }
             },
             buf -> {
@@ -48,8 +50,13 @@ public record ArenaChestRewardPacket(
                 int n = ByteBufCodecs.INT.decode(buf);
                 List<String> ids = new ArrayList<>(n);
                 List<Integer> counts = new ArrayList<>(n);
-                for (int i = 0; i < n; i++) { ids.add(ByteBufCodecs.STRING_UTF8.decode(buf)); counts.add(ByteBufCodecs.INT.decode(buf)); }
-                return new ArenaChestRewardPacket(tier, coins, ids, counts);
+                List<Boolean> rare = new ArrayList<>(n);
+                for (int i = 0; i < n; i++) {
+                    ids.add(ByteBufCodecs.STRING_UTF8.decode(buf));
+                    counts.add(ByteBufCodecs.INT.decode(buf));
+                    rare.add(ByteBufCodecs.BOOL.decode(buf));
+                }
+                return new ArenaChestRewardPacket(tier, coins, ids, counts, rare);
             });
 
     @Override
@@ -59,26 +66,31 @@ public record ArenaChestRewardPacket(
     public static ArenaChestRewardPacket of(OWArena.Chest chest, int coins, List<ItemStack> loot) {
         List<String> ids = new ArrayList<>();
         List<Integer> counts = new ArrayList<>();
+        List<Boolean> rare = new ArrayList<>();
         for (ItemStack stack : loot) {
             if (stack == null || stack.isEmpty()) continue;
             ids.add(BuiltInRegistries.ITEM.getKey(stack.getItem()).toString());
             counts.add(stack.getCount());
+            // La rareté est jugée côté serveur : lui seul connaît le coffre d'origine.
+            rare.add(OWArena.isRareReward(chest, stack.getItem()));
         }
-        return new ArenaChestRewardPacket(chest.ordinal(), coins, ids, counts);
+        return new ArenaChestRewardPacket(chest.ordinal(), coins, ids, counts, rare);
     }
 
     public static void handle(ArenaChestRewardPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             OWArena.Chest chest = OWArena.Chest.byOrdinal(packet.chestOrdinal());
             List<ItemStack> stacks = new ArrayList<>();
+            List<Boolean> rare = new ArrayList<>();
             for (int i = 0; i < packet.itemIds().size(); i++) {
                 ResourceLocation id = ResourceLocation.tryParse(packet.itemIds().get(i));
                 if (id == null) continue;
                 var item = BuiltInRegistries.ITEM.get(id);
                 if (item == null) continue;
                 stacks.add(new ItemStack(item, packet.itemCounts().get(i)));
+                rare.add(i < packet.itemRare().size() && packet.itemRare().get(i));
             }
-            OWClientArenaReward.deliver(chest, packet.coins(), stacks);
+            OWClientArenaReward.deliver(chest, packet.coins(), stacks, rare);
         });
     }
 }

@@ -931,10 +931,8 @@
   "owteams.arena.intro.wait": "Nur der Häuptling kann den Stamm anmelden.",
   "owteams.arena.chest_ready": "Zum Öffnen klicken!",
   "owteams.arena.chest_locked": "Keine Truhe verfügbar",
-  "owteams.arena.prestige_total": "Stammesprestige: %s",
   "owteams.arena.opening": "Wird geöffnet…",
   "owteams.arena.reward.title": "Belohnungen!",
-  "owteams.arena.reward.coins": "+%s Wilde Münzen",
   "owteams.arena.reward.dismiss": "Zum Fortfahren klicken",
   "owteams.arena.switch.to_combat": "Zum Kampf",
   "owteams.arena.switch.to_rewards": "Zu den Belohnungen",
@@ -955,6 +953,7 @@
   "owteams.arena.challenge.decline": "Ablehnen",
   "owteams.arena.challenge.confirm_title": "Kampf erklären",
   "owteams.arena.challenge.confirm_body": "Stamm „%s“ herausfordern?",
+  "owteams.arena.challenge.potential_prestige": "Möglicher Prestigegewinn: +%s",
   "owteams.arena.cancel": "Abbrechen",
   "owteams.arena.match.started": "Der Kampf steht! Stelle dein Team auf.",
   "owteams.arena.selection.you": "Du",
@@ -999,6 +998,7 @@
   "owteams.arena.chest.ruby_small": "Kleine Rubintruhe",
   "owteams.arena.chest.ruby_normal": "Rubintruhe",
   "owteams.arena.chest.ruby_large": "Große Rubintruhe",
+  "owteams.arena.chest.tribe": "Stammestruhe",
   "owteams.arena.selection.count": "Team: %s/%s",
   "owteams.arena.result.versus": "gegen %s",
   "owteams.arena.result.gains": "+%s Ansehen, +%s Prestige",
@@ -1007,5 +1007,9 @@
   "owteams.arena.combat.click_to_challenge": "Klicken zum Herausfordern",
   "owteams.arena.clash.versus": "VS",
   "owteams.arena.zone.shrinking": "Die Kampfzone beginnt sich zu schließen!",
-  "owteams.arena.zone.busy": "Die Arena ist belegt: Der Kampf startet, sobald sie frei wird."
+  "owteams.arena.zone.busy": "Die Arena ist belegt: Der Kampf startet, sobald sie frei wird.",
+  "owteams.arena.protected": "Die Arena-Kulisse kann nicht verändert werden.",
+  "owteams.arena.soul_returned": "Die Seele deines Gefährten wurde dir zurückgegeben.",
+  "owteams.arena.tribe_chest.locked": "Erfordert %s",
+  "owteams.arena.tribe_chest.progress": "%s / %s Truhen geöffnet"
 }

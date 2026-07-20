@@ -14,8 +14,9 @@ import net.tiew.operationWild.OperationWild;
  * datagen : les deux fichiers sont statiques et l'API {@code FlatLevelGeneratorSettings} est bien
  * plus fragile d'une version à l'autre que le JSON qu'elle produit.</p>
  *
- * <p>Chaque combat occupe sa propre aire, espacée de {@code OWArena.ARENA_SPACING} sur l'axe X, ce
- * qui permet plusieurs affrontements simultanés dans la même dimension.</p>
+ * <p>Tous les combats se déroulent au <b>même endroit</b>, autour de l'origine : l'arène n'en
+ * accueille qu'un à la fois (une seule world border par dimension), et une aire fixe permet d'y
+ * bâtir un décor permanent. Le terrain y est protégé par {@code OWArenaProtection}.</p>
  */
 public final class OWDimensions {
 

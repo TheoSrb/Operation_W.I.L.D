@@ -21,7 +21,7 @@ import net.tiew.operationWild.OperationWild;
  * aucun coffre n'est perdu.</p>
  *
  * <p>La qualité du butin dépend du badge de réputation de la tribu au moment de l'ouverture
- * (cf. {@link Tier}). Les tables de butin sont générées par le datagen
+ * (cf. {@link Chest}). Les tables de butin sont générées par le datagen
  * ({@code net.tiew.operationWild.datagen.OWArenaChestLootProvider}).</p>
  */
 public final class OWArena {
@@ -31,18 +31,63 @@ public final class OWArena {
     /** Points de prestige nécessaires pour débloquer un coffre. */
     public static final int PRESTIGE_PER_CHEST = 300;
 
+    /**
+     * Coffres de badge à ouvrir pour mériter un <b>coffre de tribu</b>, et badge minimal exigé.
+     *
+     * <p>Récompense de fidélité, hors du système de badges : elle ne dépend pas du palier de
+     * réputation atteint mais de l'assiduité, et n'est accessible qu'aux tribus déjà établies.</p>
+     */
+    public static final int CHESTS_PER_TRIBE_CHEST = 10;
+    public static final OWReputation.Badge TRIBE_CHEST_MIN_BADGE = OWReputation.Badge.GOLD_LAST;
+
+    /** La tribu a-t-elle le rang requis pour recevoir des coffres de tribu ? */
+    public static boolean tribeChestUnlocked(int reputation) {
+        return OWReputation.badgeFor(reputation).ordinal() >= TRIBE_CHEST_MIN_BADGE.ordinal();
+    }
+
+    /** Coffres de tribu restant à réclamer, d'après les coffres de badge déjà ouverts. */
+    public static int pendingTribeChests(int badgeChestsClaimed, int tribeChestsClaimed) {
+        return Math.max(0, badgeChestsClaimed / CHESTS_PER_TRIBE_CHEST - Math.max(0, tribeChestsClaimed));
+    }
+
     /** Réputation minimale gagnée par une victoire en arène, même face à une tribu plus faible. */
     public static final int MIN_REPUTATION_GAIN = 100;
 
     /** Nombre maximum de combattants par camp — tous d'archétypes différents. */
     public static final int MAX_FIGHTERS = 5;
 
-    /** Points de prestige gagnés par la tribu victorieuse / vaincue. */
-    public static final int PRESTIGE_WIN = 150, PRESTIGE_LOSS = 40;
+    /** Bornes du gain de prestige d'une victoire, et part reversée au vaincu. */
+    public static final int PRESTIGE_MIN = 10, PRESTIGE_MAX = 300;
+    private static final double PRESTIGE_LOSER_SHARE = 0.25;
+
+    /**
+     * Points de prestige gagnés en battant une tribu de réputation {@code opponentReputation}.
+     *
+     * <p>{@code ((adverse − mienne) / 1000) × 2 × 40}, borné entre {@link #PRESTIGE_MIN} et
+     * {@link #PRESTIGE_MAX}. Battre plus fort que soi rapporte donc beaucoup ; s'acharner sur
+     * plus faible ne rapporte que le plancher.</p>
+     *
+     * <p>Le calcul est en <b>virgule flottante</b> : en division entière, un écart de 1100 points
+     * donnerait 1 au lieu de 1,1, et le gain tomberait à 80 au lieu de 88.</p>
+     */
+    public static int prestigeGain(int ownReputation, int opponentReputation) {
+        double raw = (opponentReputation - ownReputation) / 1000.0 * 2.0 * 40.0;
+        return (int) Math.max(PRESTIGE_MIN, Math.min(PRESTIGE_MAX, Math.round(raw)));
+    }
+
+    /**
+     * Prestige de consolation du vaincu : une fraction de ce qu'aurait valu sa victoire.
+     *
+     * <p>Indexé sur le gain plutôt que fixe, sans quoi une victoire au plancher (10) rapporterait
+     * moins qu'une défaite — le vaincu serait mieux loti que le vainqueur.</p>
+     */
+    public static int prestigeConsolation(int winnerGain) {
+        return (int) Math.max(1, Math.round(winnerGain * PRESTIGE_LOSER_SHARE));
+    }
 
     // ── Dimension d'arène ───────────────────────────────────────────────────────
-    /** Écart en X entre deux aires de combat simultanées (monde plat, aires alignées sur l'axe X). */
-    public static final int ARENA_SPACING = 512;
+    /** Rayon de l'aire de combat autour de l'origine : chunks maintenus chargés et protégés. */
+    public static final int ARENA_RADIUS = 64;
     /** Altitude de plain-pied de la dimension d'arène (surface du monde plat + 1). */
     public static final int ARENA_Y = 64;
     /** Demi-écart entre les deux camps de départ. */
@@ -79,20 +124,104 @@ public final class OWArena {
         return Math.max(MIN_REPUTATION_GAIN, loserReputation - winnerReputation);
     }
 
+    // ── Rareté d'un lot ─────────────────────────────────────────────────────────
+    /**
+     * Un objet est-il une <b>trouvaille remarquable</b> dans ce coffre précis ?
+     *
+     * <p>La rareté est <b>relative au coffre</b> : du jade sorti d'un coffre doré est une belle
+     * surprise, alors que le même jade dans un coffre de jade est l'ordinaire. On compare donc le
+     * rang de convoitise de l'objet au rang de la matière du coffre.</p>
+     *
+     * <p>Classement tenu à la main, en regard des tables de butin
+     * ({@code OWArenaChestLootProvider}) : un objet qu'on y rend plus généreux doit descendre de
+     * rang ici, sous peine d'être annoncé comme rare alors qu'il tombe tout le temps.</p>
+     */
+    public static boolean isRareReward(Chest chest, net.minecraft.world.item.Item item) {
+        return rewardRank(item) > materialRank(chest.material());
+    }
+
+    private static int materialRank(Material material) {
+        return switch (material) { case GOLD -> 0; case JADE, TRIBE -> 1; case RUBY -> 2; };
+    }
+
+    /** 0 = courant, 1 = gamme jade, 2 = gamme rubis, 3 = exceptionnel. */
+    private static int rewardRank(net.minecraft.world.item.Item item) {
+        // Exceptionnel : reste remarquable jusque dans un coffre de rubis.
+        if (item == net.minecraft.world.item.Items.NETHERITE_INGOT
+                || item == net.minecraft.world.item.Items.ANCIENT_DEBRIS
+                || item == net.minecraft.world.item.Items.ENCHANTED_GOLDEN_APPLE
+                || item == net.minecraft.world.item.Items.WITHER_SKELETON_SKULL
+                || item == net.minecraft.world.item.Items.SHULKER_SHELL
+                || item == net.minecraft.world.item.Items.NAUTILUS_SHELL) return 3;
+
+        // Gamme rubis.
+        if (item == net.tiew.operationWild.item.OWItems.RUBY.get()
+                || item == net.tiew.operationWild.item.OWItems.RUBY_SWORD.get()
+                || item == net.tiew.operationWild.item.OWItems.RUBY_PICKAXE.get()
+                || item == net.tiew.operationWild.item.OWItems.RUBY_AXE.get()
+                || item == net.tiew.operationWild.item.OWItems.RUBY_SHOVEL.get()
+                || item == net.tiew.operationWild.item.OWItems.RUBY_HOE.get()
+                || item == net.tiew.operationWild.item.OWItems.REPTILIAN_DAGGER.get()
+                || item == net.tiew.operationWild.item.OWItems.BOXING_GLOVES.get()
+                || item == net.tiew.operationWild.item.OWItems.CAMOUFLAGE_CHESTPLATE.get()
+                || item == net.tiew.operationWild.item.OWItems.CAMOUFLAGE_LEGGINGS.get()
+                || item == net.tiew.operationWild.item.OWItems.VENOMOUS_GLANDS.get()
+                || item == net.tiew.operationWild.item.OWItems.STINGING_FILAMENT.get()
+                || item == net.minecraft.world.item.Items.DIAMOND
+                || item == net.minecraft.world.item.Items.EMERALD
+                || item == net.minecraft.world.item.Items.NETHERITE_SCRAP
+                || item == net.minecraft.world.item.Items.GHAST_TEAR
+                || item == net.minecraft.world.item.Items.DIAMOND_CHESTPLATE
+                || item == net.minecraft.world.item.Items.DIAMOND_LEGGINGS
+                || item == net.minecraft.world.item.Items.DIAMOND_HELMET
+                || item == net.minecraft.world.item.Items.DIAMOND_BOOTS) return 2;
+
+        // Gamme jade.
+        if (item == net.tiew.operationWild.item.OWItems.JADE.get()
+                || item == net.tiew.operationWild.item.OWItems.JADE_SWORD.get()
+                || item == net.tiew.operationWild.item.OWItems.JADE_PICKAXE.get()
+                || item == net.tiew.operationWild.item.OWItems.JADE_AXE.get()
+                || item == net.tiew.operationWild.item.OWItems.JADE_SHOVEL.get()
+                || item == net.tiew.operationWild.item.OWItems.JADE_HOE.get()
+                || item == net.tiew.operationWild.item.OWItems.JADE_HELMET.get()
+                || item == net.tiew.operationWild.item.OWItems.JADE_CHESTPLATE.get()
+                || item == net.tiew.operationWild.item.OWItems.JADE_LEGGINGS.get()
+                || item == net.tiew.operationWild.item.OWItems.JADE_BOOTS.get()
+                || item == net.tiew.operationWild.item.OWItems.PREDATOR_TOOTH.get()
+                || item == net.tiew.operationWild.item.OWItems.KODIAK_COAT.get()
+                || item == net.tiew.operationWild.item.OWItems.SHARK_FIN.get()
+                || item == net.tiew.operationWild.item.OWItems.CROCODILE_SCALE.get()
+                || item == net.tiew.operationWild.item.OWItems.BIOLUMINESCENT_JELLY.get()
+                || item == net.tiew.operationWild.item.OWItems.MAYA_BLOWPIPE.get()
+                || item == net.minecraft.world.item.Items.AMETHYST_SHARD
+                || item == net.minecraft.world.item.Items.ENDER_PEARL
+                || item == net.minecraft.world.item.Items.BLAZE_ROD
+                || item == net.minecraft.world.item.Items.PHANTOM_MEMBRANE
+                || item == net.minecraft.world.item.Items.GOLDEN_APPLE
+                || item == net.minecraft.world.item.Items.DIAMOND_SWORD
+                || item == net.minecraft.world.item.Items.DIAMOND_PICKAXE) return 1;
+
+        return 0;
+    }
+
     /** Matière du coffre, calquée sur le métal du badge. */
-    public enum Material { GOLD(0xE9B115), JADE(0x388C3C), RUBY(0xBF3131);
+    public enum Material {
+        GOLD(0xE9B115), JADE(0x388C3C), RUBY(0xBF3131),
+        /** Coffre de tribu : hors badge, teinte d'ivoire pour le distinguer des trois métaux. */
+        TRIBE(0xD8D2C4);
         private final int accent;
         Material(int accent) { this.accent = accent; }
         public int accent() { return accent; }
     }
 
-    /** Gabarit du coffre, calqué sur la division du badge (I → petit, II → normal, III → grand). */
-    public enum Size { SMALL(0.72f), NORMAL(1.0f), LARGE(1.28f);
-        private final float scale;
-        Size(float scale) { this.scale = scale; }
-        /** Facteur d'échelle du dessin du coffre. */
-        public float scale() { return scale; }
-    }
+    /**
+     * Gabarit du coffre, calqué sur la division du badge (I → petit, II → moyen, III → grand).
+     *
+     * <p>Aucun facteur d'échelle : les trois gabarits sont <b>dessinés</b> à leur taille dans la
+     * feuille de sprites, sur une toile commune. Redimensionner à l'exécution détruirait le
+     * pixel-art, les ratios utiles n'étant pas entiers.</p>
+     */
+    public enum Size { SMALL, NORMAL, LARGE }
 
     /**
      * Les neuf coffres d'arène, en correspondance <b>exacte</b> avec les neuf badges de réputation :
@@ -103,15 +232,23 @@ public final class OWArena {
      * mort : chaque division de badge gagnée se voit immédiatement dans le coffre.</p>
      */
     public enum Chest {
-        GOLD_SMALL (Material.GOLD, Size.SMALL,   120,  300),
-        GOLD_NORMAL(Material.GOLD, Size.NORMAL,  250,  560),
-        GOLD_LARGE (Material.GOLD, Size.LARGE,   450,  920),
-        JADE_SMALL (Material.JADE, Size.SMALL,   700, 1300),
-        JADE_NORMAL(Material.JADE, Size.NORMAL, 1100, 1950),
-        JADE_LARGE (Material.JADE, Size.LARGE,  1600, 2750),
-        RUBY_SMALL (Material.RUBY, Size.SMALL,  2300, 3800),
-        RUBY_NORMAL(Material.RUBY, Size.NORMAL, 3400, 5400),
-        RUBY_LARGE (Material.RUBY, Size.LARGE,  5000, 8200);
+        GOLD_SMALL (Material.GOLD, Size.SMALL,   0,  2),
+        GOLD_NORMAL(Material.GOLD, Size.NORMAL,  1,  4),
+        GOLD_LARGE (Material.GOLD, Size.LARGE,   3,  7),
+
+        JADE_SMALL (Material.JADE, Size.SMALL,   5, 10),
+        JADE_NORMAL(Material.JADE, Size.NORMAL, 11, 16),
+        JADE_LARGE (Material.JADE, Size.LARGE,  15, 20),
+
+        RUBY_SMALL (Material.RUBY, Size.SMALL,  22, 27),
+        RUBY_NORMAL(Material.RUBY, Size.NORMAL, 30, 39),
+        RUBY_LARGE (Material.RUBY, Size.LARGE,  35, 50),
+
+        /**
+         * Coffre de tribu — récompense d'assiduité, indépendante du badge. Un seul gabarit :
+         * {@link Size#NORMAL} n'est ici qu'une valeur de remplissage, son sprite est unique.
+         */
+        TRIBE (Material.TRIBE, Size.NORMAL, 5, 20);
 
         private final Material material;
         private final Size size;

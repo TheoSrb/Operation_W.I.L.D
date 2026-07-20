@@ -153,6 +153,10 @@ public class OWArenaMatch {
     public boolean isBorderShrinking() { return borderShrinking; }
     public void setBorderShrinking(boolean v) { this.borderShrinking = v; }
 
-    /** Décalage en X de l'aire de combat de ce match, pour que deux matchs simultanés ne se croisent pas. */
-    public int arenaOffsetX() { return matchId * OWArena.ARENA_SPACING; }
+    /**
+     * Décalage en X de l'aire de combat. <b>Toujours 0</b> : l'arène n'accueille qu'un combat à la
+     * fois (une seule zone par dimension), et une aire fixe permet d'y bâtir un décor permanent
+     * plutôt que de se battre sur du plat régénéré ailleurs à chaque match.
+     */
+    public int arenaOffsetX() { return 0; }
 }

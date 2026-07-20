@@ -458,6 +458,23 @@ public class ClientEvents {
     private static final long HYP_OVERLAY_FRAME_MS = 60;
     private static final float HYP_OVERLAY_SCALE = 2.3f;
 
+    /**
+     * Escamote <b>tout</b> le HUD pendant les cinématiques d'arène, comme le ferait F1 : barre
+     * d'action, vie, faim, expérience, tchat, effets…
+     *
+     * <p>On supprime les couches à la source plutôt que de basculer {@code options.hideGui} : ce
+     * réglage appartient au joueur, et le forcer obligerait à le restaurer — au moindre chemin de
+     * sortie oublié, l'interface resterait éteinte. Ici, il suffit que la cinématique s'achève pour
+     * que tout revienne, sans état à défaire.</p>
+     *
+     * <p>Nos propres animations ne passent pas par une couche mais par {@code RenderGuiEvent.Post},
+     * qui est émis après cette phase : elles restent donc affichées.</p>
+     */
+    @SubscribeEvent
+    public static void onRenderGuiLayer(net.neoforged.neoforge.client.event.RenderGuiLayerEvent.Pre event) {
+        if (net.tiew.operationWild.gui.OWCinematicState.anyPlaying()) event.setCanceled(true);
+    }
+
     @SubscribeEvent
     public static void onRenderLevelUpOverlay(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
