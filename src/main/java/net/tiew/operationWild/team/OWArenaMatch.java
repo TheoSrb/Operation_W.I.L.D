@@ -61,8 +61,17 @@ public class OWArenaMatch {
      * repart blessé.</p>
      */
     private final Map<UUID, Float> preFightHealth = new HashMap<>();
-    /** Combattants mis hors de combat — vivants, mais retirés de la mêlée. */
+    /** Combattants tombés au combat — bien morts dans l'arène, ressuscités à la sortie. */
     private final Set<UUID> defeated = new HashSet<>();
+    /**
+     * Copie intégrale (NBT) de chaque combattant, prise à son entrée dans l'arène.
+     *
+     * <p>C'est ce qui permet de laisser les créatures <b>mourir pour de bon</b> pendant le duel —
+     * avec l'animation, la disparition, tout l'enjeu du combat — puis de les rendre intactes à
+     * leur propriétaire une fois le verdict tombé. Un duel doit se jouer, pas se simuler ; il ne
+     * doit pas pour autant coûter une bête élevée pendant des heures.</p>
+     */
+    private final Map<UUID, net.minecraft.nbt.CompoundTag> snapshots = new HashMap<>();
 
     /** Relevés consécutifs où un combattant est resté introuvable (cf. OWArena#MISSING_TOLERANCE). */
     private final Map<UUID, Integer> missingStreak = new HashMap<>();
@@ -165,6 +174,7 @@ public class OWArenaMatch {
 
     public Map<UUID, Float> getPreFightHealth() { return preFightHealth; }
     public Set<UUID> getDefeated() { return defeated; }
+    public Map<UUID, net.minecraft.nbt.CompoundTag> getSnapshots() { return snapshots; }
 
     /** Vrai si {@code entityUuid} est un combattant de ce match, quel que soit son camp. */
     public boolean isCombatant(UUID entityUuid) {

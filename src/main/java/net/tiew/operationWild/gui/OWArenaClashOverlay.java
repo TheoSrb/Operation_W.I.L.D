@@ -237,19 +237,17 @@ public final class OWArenaClashOverlay {
         if (alpha <= 0.01f) return;
         var font = Minecraft.getInstance().font;
         int a = (int) (255 * alpha);
-        drawCenteredShadow(g, font, data.leftName(),
-                (int) (cx - bannerOffset) + shakeX, y, (a << 24) | 0x8FE8B0);
-        drawCenteredShadow(g, font, data.rightName(),
-                (int) (cx + bannerOffset) - shakeX, y, (a << 24) | 0xE8956A);
+        drawCenteredShadow(g, font, data.leftName(), (int) (cx - bannerOffset) + shakeX, y, 0x8FE8B0, a);
+        drawCenteredShadow(g, font, data.rightName(), (int) (cx + bannerOffset) - shakeX, y, 0xE8956A, a);
     }
 
     private static void drawCenteredShadow(GuiGraphics g, net.minecraft.client.gui.Font font,
-                                           String text, int cx, int y, int color) {
+                                           String text, int cx, int y, int rgb, int alpha) {
         if (text == null || text.isEmpty()) return;
         g.pose().pushPose();
         g.pose().translate(cx, y, 0);
         g.pose().scale(1.45f, 1.45f, 1f);
-        g.drawString(font, text, -font.width(text) / 2, 0, color, true);
+        OWCinematicFx.drawCenteredOutlined(g, font, text, 0, 0, rgb, false, alpha);
         g.pose().popPose();
     }
 

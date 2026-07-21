@@ -2,6 +2,7 @@ package net.tiew.operationWild.team;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
@@ -370,6 +371,9 @@ public final class OWArenaManager {
                     DimensionTransition.DO_NOTHING));
             if (moved instanceof OWEntity arrived) {
                 readyForBattle(arrived, match, teamId);
+                match.getSnapshots().put(f.entityUuid(), snapshotOf(arrived));
+                // Aucune âme ne tombe dans l'arène : la créature n'est pas perdue, elle rentrera.
+                arrived.setCanDropSoul(false);
                 match.aliveOf(teamId).add(f.entityUuid());
                 match.getTeleportedEntities().add(f.entityUuid());
             }
@@ -781,22 +785,26 @@ public final class OWArenaManager {
                 clearRescuePoint(player);
                 continue;
             }
-            // Entités : survivantes comme mises hors de combat — aucune n'est morte.
+            // Créature tombée pendant le duel : elle est bien morte dans l'arène, on la recrée
+            // chez elle telle qu'elle y était entrée.
             Entity entity = findEntity(server, uuid);
-            if (entity != null && entity.isAlive()) {
-                if (entity instanceof OWEntity fighter) restoreFighter(match, fighter);
-                Entity back = entity.changeDimension(new DimensionTransition(dest, new Vec3(rp.x(), y, rp.z()),
-                        Vec3.ZERO, entity.getYRot(), entity.getXRot(), DimensionTransition.DO_NOTHING));
-                // Nouvelle instance, donc currentTeam de nouveau vide : on le rétablit, sinon les
-                // permissions de tribu resteraient cassées sur la créature après son retour.
-                if (back instanceof OWEntity owE) {
-                    owE.setTarget(null);
-                    // Rejoué sur la nouvelle instance : la santé se recopie bien au changement de
-                    // dimension, mais c'est la promesse centrale du duel — on ne la laisse pas
-                    // dépendre d'un détail d'implémentation du moteur.
-                    restoreFighter(match, owE);
-                    OWTribeManager.refreshEntityTeam(server, owE);
-                }
+            if (entity == null || !entity.isAlive()) {
+                reviveFighter(server, match, uuid, dest, rp.x(), y, rp.z());
+                continue;
+            }
+
+            if (entity instanceof OWEntity fighter) restoreFighter(match, fighter);
+            Entity back = entity.changeDimension(new DimensionTransition(dest, new Vec3(rp.x(), y, rp.z()),
+                    Vec3.ZERO, entity.getYRot(), entity.getXRot(), DimensionTransition.DO_NOTHING));
+            // Nouvelle instance, donc currentTeam de nouveau vide : on le rétablit, sinon les
+            // permissions de tribu resteraient cassées sur la créature après son retour.
+            if (back instanceof OWEntity owE) {
+                owE.setTarget(null);
+                // Rejoué sur la nouvelle instance : la santé se recopie bien au changement de
+                // dimension, mais c'est la promesse centrale du duel — on ne la laisse pas
+                // dépendre d'un détail d'implémentation du moteur.
+                restoreFighter(match, owE);
+                OWTribeManager.refreshEntityTeam(server, owE);
             }
         }
         match.getReturnPoints().clear();
@@ -941,12 +949,56 @@ public final class OWArenaManager {
     }
 
     /**
+     * Copie intégrale d'une créature, prête à être rejouée telle quelle.
+     *
+     * <p>L'identifiant de type est ajouté à la main : {@code saveWithoutId} ne l'écrit pas, et il
+     * est indispensable pour reconstruire l'entité. L'UUID, lui, fait partie de la copie — la
+     * créature ressuscitée est donc la <b>même</b> aux yeux de la tribu, du registre des champions
+     * et de son propriétaire, et non un sosie.</p>
+     */
+    private static CompoundTag snapshotOf(OWEntity entity) {
+        CompoundTag tag = entity.saveWithoutId(new CompoundTag());
+        ResourceLocation typeId = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE
+                .getKey(entity.getType());
+        if (typeId != null) tag.putString("id", typeId.toString());
+        return tag;
+    }
+
+    /**
+     * Recrée un combattant tombé pendant le duel, à son point de départ et dans l'état où il est
+     * entré dans l'arène.
+     *
+     * <p>Sans instantané — cas d'un serveur redémarré en plein combat — il n'y a rien à faire :
+     * mieux vaut une créature perdue qu'une créature inventée.</p>
+     */
+    private static void reviveFighter(MinecraftServer server, OWArenaMatch match, UUID uuid,
+                                      ServerLevel dest, double x, double y, double z) {
+        CompoundTag tag = match.getSnapshots().get(uuid);
+        if (tag == null) {
+            LOGGER.warn("[Arène] Aucun instantané pour {} : impossible de la ramener.", uuid);
+            return;
+        }
+        Entity revived = EntityType.loadEntityRecursive(tag, dest, e -> {
+            e.moveTo(x, y, z, e.getYRot(), e.getXRot());
+            return e;
+        });
+        if (!(revived instanceof OWEntity owE)) return;
+
+        owE.setCanDropSoul(true);
+        owE.setDeltaMovement(Vec3.ZERO);
+        restoreFighter(match, owE);
+        dest.addFreshEntity(owE);
+        OWTribeManager.refreshEntityTeam(server, owE);
+    }
+
+    /**
      * Rend à un combattant son état d'avant-duel : santé initiale, invulnérabilité levée, plus
      * aucune cible. Le combat n'aura donc laissé aucune trace sur la créature.
      */
     private static void restoreFighter(OWArenaMatch match, OWEntity entity) {
         Float before = match.getPreFightHealth().get(entity.getUUID());
         entity.setInvulnerable(false);
+        entity.setCanDropSoul(true); // coupée à l'entrée dans l'arène, rendue à la sortie
         entity.setTarget(null);
         entity.setLastHurtByMob(null);
         if (before != null) entity.setHealth(Math.min(before, entity.getMaxHealth()));
@@ -1040,11 +1092,11 @@ public final class OWArenaManager {
     }
 
     /**
-     * Met un combattant hors de combat <b>sans le tuer</b>.
+     * Enregistre la chute d'un combattant. La créature <b>meurt réellement</b> dans l'arène ; elle
+     * sera recréée à partir de son instantané au moment du renvoi.
      *
-     * <p>Appelé à la place de la mort : la créature est soignée à un demi-cœur, rendue invulnérable
-     * et retirée de la mêlée. Elle rentrera vivante, avec la santé qu'elle avait avant le duel.
-     * C'est ce qui garantit qu'aucun duel ne coûte une créature à son propriétaire.</p>
+     * <p>Appelé depuis l'événement de mort plutôt que laissé au balayage de {@code pruneDead} : le
+     * verdict tombe ainsi dans le tick même de la chute, sans le battement d'un tour de boucle.</p>
      */
     public static void knockOut(OWArenaMatch match, OWEntity entity) {
         UUID id = entity.getUUID();
@@ -1052,11 +1104,7 @@ public final class OWArenaManager {
         match.getAliveB().remove(id);
         match.getDefeated().add(id);
 
-        entity.setHealth(Math.max(1f, entity.getMaxHealth() * 0.1f));
-        entity.setInvulnerable(true);
-        entity.setTarget(null);
-        entity.setLastHurtByMob(null);
-        // Les adversaires doivent cesser de s'acharner sur un combattant déjà hors jeu.
+        // Les adversaires doivent cesser de viser un combattant déjà hors jeu.
         if (entity.level() instanceof ServerLevel level) {
             for (UUID other : allCombatants(match)) {
                 if (level.getEntity(other) instanceof OWEntity o && o.getTarget() == entity) o.setTarget(null);

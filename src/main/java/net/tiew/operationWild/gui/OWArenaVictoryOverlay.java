@@ -266,13 +266,12 @@ public final class OWArenaVictoryOverlay {
         if (slide <= 0.01f) return;
         int nameY = cy + BANNER_H / 2 + 18 + (int) (40 * (1f - slide));
         int tribeColor = readable(data.winnerLook().primary());
-        Component champion = Component.literal(data.winnerName())
-                .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(tribeColor)));
         int na = (int) (255 * alpha * slide);
         g.pose().pushPose();
         g.pose().translate(cx, nameY, 0);
         g.pose().scale(1.6f, 1.6f, 1f);
-        g.drawString(font, champion, -font.width(champion) / 2, 0, (na << 24) | tribeColor, true);
+        // Cerné de blanc : une tribu aux couleurs sombres resterait invisible sur ce fond noir.
+        OWCinematicFx.drawCenteredOutlined(g, font, data.winnerName(), 0, 0, tribeColor, true, na);
         g.pose().popPose();
     }
 

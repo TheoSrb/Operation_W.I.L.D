@@ -1300,9 +1300,10 @@ public class OWTribeArenaScreen extends OWTribeScreen {
             if (hoverAmt > 0.01f) g.fill(x, ry, x + contentW, ry + rowH - 1,
                     ((int) (55 * hoverAmt) << 24) | 0xFFFFFF);
 
-            // Pastille d'archétype : elle s'étire au survol, ce qui désigne la ligne visée sans
-            // dépendre d'un simple éclaircissement du fond.
-            int chip = archetypeColor(f.archetypeOrdinal());
+            // Pastille aux couleurs de l'espèce : elle s'étire au survol, ce qui désigne la ligne
+            // visée sans dépendre d'un simple éclaircissement du fond. L'archétype, lui, se lit sur
+            // les emplacements de gauche, où sa contrainte d'unicité a un sens.
+            int chip = entityColorOf(f);
             int chipW = 3 + Math.round(hoverAmt * 2f);
             g.fill(x + 2, ry + 3, x + 2 + chipW, ry + rowH - 4, 0xFF000000 | (blocked ? dim(chip) : chip));
 
@@ -1397,6 +1398,14 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         float h = entity.getBbHeight();
         if (h <= 0.01f) return 0.0625f;
         return Math.max(0f, Math.min(0.4f, 0.0625f + (h - 1.4f) * 0.06f));
+    }
+
+    /**
+     * Couleur propre à l'espèce, celle dont {@code OWRendererUtils} teinte déjà son étiquette dans
+     * le monde. Lue sur l'aperçu déjà construit — aucun champ à faire voyager sur le réseau.
+     */
+    private int entityColorOf(OWArenaFighter f) {
+        return previewFor(f) instanceof OWEntity owE ? owE.getEntityColor() : 0xAAAAAA;
     }
 
     private LivingEntity previewFor(OWArenaFighter f) {

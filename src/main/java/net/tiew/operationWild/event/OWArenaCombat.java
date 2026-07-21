@@ -13,18 +13,16 @@ import net.tiew.operationWild.team.OWArenaMatch;
 import net.tiew.operationWild.worldgen.dimension.OWDimensions;
 
 /**
- * L'arène ne tue personne.
+ * Ce qui se passe dans l'arène ne sort pas de l'arène.
  *
- * <p>Un duel de tribus est une <b>joute</b> : on y met l'adversaire hors de combat, on ne l'abat
- * pas. Une créature vaincue est retirée de la mêlée puis rendue vivante à son propriétaire avec la
- * santé qu'elle avait avant le duel ; un chef venu assister au combat ne peut pas y mourir.</p>
+ * <p>Les créatures y <b>meurent pour de bon</b> — sans quoi il n'y aurait pas de combat, juste une
+ * simulation — mais rien de cette mort ne les suit dehors : une copie intégrale est prise à
+ * l'entrée, et le renvoi de fin de match les recrée chez elles avec la santé qu'elles avaient
+ * avant le duel. Elles n'y laissent ni âme ni butin.</p>
  *
- * <p>C'est un choix de conception, pas un garde-fou : perdre définitivement une créature
- * apprivoisée — élevée sur des heures de jeu — serait un prix sans commune mesure avec l'enjeu
- * d'un match, et personne n'engagerait ses meilleures bêtes.</p>
- *
- * <p>Le verdict n'en souffre pas : {@code knockOut} sort le vaincu des ensembles de vivants, donc
- * le camp vidé perd exactement comme si ses combattants étaient tombés.</p>
+ * <p>C'est un choix de conception : perdre définitivement une créature apprivoisée — élevée sur des
+ * heures de jeu — serait un prix sans commune mesure avec l'enjeu d'un match, et personne
+ * n'engagerait ses meilleures bêtes. Le chef, lui, vient en témoin et ne peut pas y mourir.</p>
  */
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class OWArenaCombat {
@@ -35,10 +33,12 @@ public class OWArenaCombat {
     }
 
     /**
-     * Intercepte le coup fatal porté à un combattant : au lieu de mourir, il est mis hors de combat.
+     * Enregistre la chute d'un combattant. La mort <b>suit son cours</b> : animation, disparition,
+     * camp qui se vide — un duel doit se jouer pour de vrai.
      *
-     * <p>Annuler la mort plutôt que la laisser survenir évite d'un même geste la perte de la
-     * créature, la chute de son âme au sol et le butin qu'elle laisserait dans l'arène.</p>
+     * <p>La créature n'est pas perdue pour autant : une copie intégrale a été prise à son entrée
+     * dans l'arène, et le renvoi de fin de match la recrée chez elle avec la santé qu'elle avait
+     * avant le duel. Elle n'y laisse pas non plus son âme, coupée à l'entrée.</p>
      */
     @SubscribeEvent
     public static void onDeath(LivingDeathEvent event) {
@@ -47,7 +47,6 @@ public class OWArenaCombat {
         OWArenaMatch match = OWArenaManager.matchOfCombatant(fighter.getUUID());
         if (match == null) return;
 
-        event.setCanceled(true);
         OWArenaManager.knockOut(match, fighter);
     }
 

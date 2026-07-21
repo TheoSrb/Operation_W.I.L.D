@@ -2,7 +2,11 @@ package net.tiew.operationWild.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.tiew.operationWild.screen.tribe.OWBannerRenderer;
 import net.tiew.operationWild.team.OWBannerLook;
 import net.tiew.operationWild.team.OWTeamBannerShape;
@@ -203,5 +207,36 @@ public final class OWCinematicFx {
             int x2 = towardRight ? x : x + w + len;
             g.fill(x1, lineY, x2, lineY + thick, (alpha << 24) | base);
         }
+    }
+
+    /**
+     * Écrit un texte cerné de blanc, centré sur {@code cx}.
+     *
+     * <p>Remplace l'ombre portée du jeu, qui est <b>sombre</b> : le nom d'une tribu aux couleurs
+     * noires y devenait invisible sur le fond noir des cinématiques. Un liseré blanc sur les huit
+     * directions détache le texte quelle que soit la couleur choisie par la tribu, sans avoir à
+     * corriger cette couleur — un nom de tribu doit s'afficher tel que son chef l'a voulu.</p>
+     *
+     * <p>La transparence vient du paramètre {@code alpha} et la teinte du style : le moteur combine
+     * l'alpha de la couleur passée avec la couleur du style, ce qui laisse le texte s'estomper avec
+     * le reste de la scène.</p>
+     */
+    public static void drawCenteredOutlined(GuiGraphics g, Font font, String text,
+                                            int cx, int y, int rgb, boolean bold, int alpha) {
+        if (text == null || text.isEmpty() || alpha <= 0) return;
+        Component halo = Component.literal(text).withStyle(
+                Style.EMPTY.withColor(TextColor.fromRgb(0xFFFFFF)).withBold(bold));
+        Component body = Component.literal(text).withStyle(
+                Style.EMPTY.withColor(TextColor.fromRgb(rgb & 0xFFFFFF)).withBold(bold));
+
+        int x = cx - font.width(body) / 2;
+        int haloColor = (Math.min(255, alpha) << 24) | 0xFFFFFF;
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if (dx == 0 && dy == 0) continue;
+                g.drawString(font, halo, x + dx, y + dy, haloColor, false);
+            }
+        }
+        g.drawString(font, body, x, y, (Math.min(255, alpha) << 24) | 0xFFFFFF, false);
     }
 }

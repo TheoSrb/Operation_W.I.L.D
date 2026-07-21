@@ -1157,6 +1157,17 @@ public class ClientEvents {
             return;
         }
 
+        // Shadow Strike : le cavalier est invisible, on annule son rendu — AVANT toute modification
+        // de ses rotations. Annuler l'evenement empeche RenderPlayerEvent.Post d'etre emis, donc
+        // rien ne serait restaure : les champs du joueur resteraient ecrases par le lacet de la
+        // monture a chaque image, en concurrence avec la logique de rotation du tick.
+        if (player.getRootVehicle() instanceof TigerEntity tiger && tiger.isShadowStrikeActive()) {
+            event.setCanceled(true);
+            shadowStrikeHiddenRiders.add(player.getId());
+            return;
+        }
+        shadowStrikeHiddenRiders.remove(player.getId());
+
         SAVED_PLAYER_ROTS.put(player.getUUID(), new SavedRots(
                 player.getXRot(), player.xRotO,
                 player.yBodyRot, player.yBodyRotO,
@@ -1184,13 +1195,6 @@ public class ClientEvents {
             player.setYHeadRot(vehicleYaw);
             player.yHeadRotO = vehicleYawO;
         }
-
-        if (player.getRootVehicle() instanceof TigerEntity tiger && tiger.isShadowStrikeActive()) {
-            event.setCanceled(true);
-            shadowStrikeHiddenRiders.add(player.getId());
-            return;
-        }
-        shadowStrikeHiddenRiders.remove(player.getId());
 
         if (owVehicle instanceof CrocodileEntity croc && croc.isInWater()) {
             player.setXRot(0f);
@@ -2319,6 +2323,28 @@ public class ClientEvents {
         return Minecraft.getInstance().options.getCameraType().isFirstPerson() && player.getVehicle() instanceof Submarine submarine && submarine.isLightOn() && submarine.isInWater() && player.isInWater() && !submarine.isOff();
     }
 
+    // --- Cache du surlignage de passif ---
+    // getHighlightEntityIds fait une recherche d'entites dans une AABB : celle du Tigre couvre un
+    // cube de 64 blocs de cote et n'a, contrairement aux autres passifs, aucune sortie anticipee.
+    // Appelee depuis le rendu, elle tournait donc a la frequence d'images (100+ fois par seconde au
+    // lieu de 20), en allouant un Set a chaque passage — d'ou des a-coups de ramasse-miettes en
+    // plein combat, la ou il y a le plus d'entites a filtrer. Un rafraichissement par tick suffit
+    // amplement : le surlignage ne bouge de toute facon qu'au rythme des ticks.
+    private static long espCacheTime = Long.MIN_VALUE;
+    private static int espCacheEntityId = -1;
+    private static java.util.Set<Integer> espCachedIds = java.util.Set.of();
+
+    private static java.util.Set<Integer> highlightIdsCached(OWEntity owEntity, net.minecraft.world.level.Level level) {
+        long now = level.getGameTime();
+        if (now != espCacheTime || owEntity.getId() != espCacheEntityId) {
+            espCacheTime = now;
+            espCacheEntityId = owEntity.getId();
+            OWPassive passive = OWAttacksHandler.getPassive(owEntity.getClass());
+            espCachedIds = passive == null ? java.util.Set.of() : passive.getHighlightEntityIds(owEntity, level);
+        }
+        return espCachedIds;
+    }
+
     private static void renderPassiveEsp(RenderLevelStageEvent event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
@@ -2327,7 +2353,7 @@ public class ClientEvents {
         OWPassive passive = OWAttacksHandler.getPassive(owEntity.getClass());
         if (passive == null) return;
 
-        java.util.Set<Integer> ids = passive.getHighlightEntityIds(owEntity, mc.level);
+        java.util.Set<Integer> ids = highlightIdsCached(owEntity, mc.level);
         if (ids.isEmpty()) return;
 
         org.joml.Quaternionf camRot = event.getCamera().rotation();
