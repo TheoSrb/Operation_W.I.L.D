@@ -25,7 +25,8 @@ public record SyncOWTeamPacket(
         byte[] paintPixels,
         int bannerShapeId, boolean isPublic,
         List<net.tiew.operationWild.team.OWTribeJoinRequirement> joinRequirements, boolean directJoin,
-        int tertiaryColor, boolean useTertiary
+        int tertiaryColor, boolean useTertiary,
+        List<String> championUUIDs // UUID des créatures qui portent l'étendard
 ) implements CustomPacketPayload {
 
     public static final Type<SyncOWTeamPacket> TYPE = new Type<>(
@@ -62,6 +63,9 @@ public record SyncOWTeamPacket(
                 ByteBufCodecs.BOOL.encode(buf, p.directJoin());
                 ByteBufCodecs.INT.encode(buf, p.tertiaryColor());
                 ByteBufCodecs.BOOL.encode(buf, p.useTertiary());
+                List<String> champs = p.championUUIDs() != null ? p.championUUIDs() : List.of();
+                ByteBufCodecs.INT.encode(buf, champs.size());
+                for (String s : champs) ByteBufCodecs.STRING_UTF8.encode(buf, s);
             },
             buf -> {
                 int entityId = ByteBufCodecs.INT.decode(buf);
@@ -95,10 +99,14 @@ public record SyncOWTeamPacket(
                 boolean directJoin = ByteBufCodecs.BOOL.decode(buf);
                 int tertiaryColor = ByteBufCodecs.INT.decode(buf);
                 boolean useTertiary = ByteBufCodecs.BOOL.decode(buf);
+                int cc = ByteBufCodecs.INT.decode(buf);
+                List<String> championUUIDs = new ArrayList<>(cc);
+                for (int i = 0; i < cc; i++) championUUIDs.add(ByteBufCodecs.STRING_UTF8.decode(buf));
                 return new SyncOWTeamPacket(entityId, teamId, name, owner,
                         color, secondaryColor, patternId, date,
                         playerNames, entityNames, entityUUIDs, playerUUIDs, paintPixels,
-                        bannerShapeId, isPublic, joinRequirements, directJoin, tertiaryColor, useTertiary);
+                        bannerShapeId, isPublic, joinRequirements, directJoin, tertiaryColor, useTertiary,
+                        championUUIDs);
             }
     );
 
@@ -133,6 +141,8 @@ public record SyncOWTeamPacket(
         for (UUID u : team.getEntityUUIDs()) eUuids.add(u.toString());
         List<String> pUuids = new ArrayList<>();
         for (UUID u : team.getPlayerUUIDs()) pUuids.add(u.toString());
+        List<String> cUuids = new ArrayList<>();
+        for (UUID u : team.getChampionUUIDs()) cUuids.add(u.toString());
         return new SyncOWTeamPacket(
                 entityId,
                 team.getTeamId(),
@@ -153,7 +163,8 @@ public record SyncOWTeamPacket(
                 new ArrayList<>(team.getJoinRequirements()),
                 team.isDirectJoin(),
                 team.getTertiaryColor(),
-                team.isUseTertiary()
+                team.isUseTertiary(),
+                cUuids
         );
     }
 
@@ -203,6 +214,13 @@ public record SyncOWTeamPacket(
                 newTeam.setDirectJoin(packet.directJoin());
                 newTeam.setTertiaryColor(packet.tertiaryColor());
                 newTeam.setUseTertiary(packet.useTertiary());
+                if (packet.championUUIDs() != null) {
+                    List<UUID> champs = new ArrayList<>(packet.championUUIDs().size());
+                    for (String s : packet.championUUIDs()) {
+                        try { champs.add(UUID.fromString(s)); } catch (IllegalArgumentException ignored) {}
+                    }
+                    newTeam.setChampionUUIDs(champs);
+                }
                 owEntity.currentTeam = newTeam;
             }
         });

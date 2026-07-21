@@ -378,6 +378,11 @@ public class ResurrectionRitual {
         owEntity.setResurrection(false);
         owEntity.setHealth(owEntity.getMaxHealth());
 
+        // Une Âme ne se donne qu'une fois. Ce compagnon est déjà revenu d'entre les morts : sa
+        // prochaine mort sera définitive et ne laissera aucune Âme à ramasser, donc aucun second
+        // rituel possible. Le drapeau est persisté en NBT et voyage avec l'entité (même uuid).
+        owEntity.setCanDropSoul(false);
+
         level.addFreshEntity(owEntity);
 
         player.giveExperienceLevels(-soulData.xpLevelCost());

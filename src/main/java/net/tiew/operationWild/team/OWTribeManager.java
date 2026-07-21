@@ -85,6 +85,10 @@ public final class OWTribeManager {
         int reputation = team != null
                 ? net.tiew.operationWild.core.OWReputation.compute(OWReputationData.get(server), team) : 0;
         OWNetworkHandler.sendToClient(SyncPlayerTribePacket.of(team, reputation), player);
+        // Greffé ici plutôt qu'à chaque appelant : tous les chemins qui rafraîchissent l'écran de
+        // tribu (connexion, ouverture du menu, changement d'effectif) doivent aussi rafraîchir les
+        // champions, et il y en a une dizaine.
+        OWChampionManager.syncTo(server, player);
     }
 
     /** Pousse au joueur la liste de toutes les tribus du serveur (pour l'écran liste). */

@@ -11,11 +11,11 @@ import net.tiew.operationWild.entity.client.model.OWFlagModel;
 import net.tiew.operationWild.entity.client.render.misc.OWTribeFlagRenderer;
 
 /**
- * Fait arborer à une entité sellée et membre d'une tribu la bannière de celle-ci, sur la hampe
- * portée par son modèle ({@link OWFlagModel}).
+ * Fait arborer à un <b>champion</b> de tribu la bannière de celle-ci, sur la hampe portée par son
+ * modèle ({@link OWFlagModel}).
  *
  * <p>La hampe et la toile restent masquées en dehors de ce layer : elles n'apparaissent donc que si
- * l'entité est apprivoisée, sellée <i>et</i> membre d'une tribu. Le layer se contente de décider de
+ * l'entité est apprivoisée, sellée <i>et</i> désignée championne par son chef. Le layer se contente de décider de
  * l'affichage et de fournir les grandeurs qui pilotent l'animation ; tout le reste — chaîne
  * articulée, ondulation, comportement sous l'eau — appartient à {@link OWTribeFlagRenderer}.</p>
  *
@@ -49,12 +49,11 @@ public class OWTribeFlagLayer<T extends OWEntity, M extends EntityModel<T> & OWF
      * Conditions d'affichage propres à l'entité, au-delà de l'appartenance à une tribu.
      * Les sous-classes y ajoutent leurs états d'invisibilité (camouflage, rituel, etc.).
      *
-     * <p>La selle est requise : c'est elle qui porte la hampe. Une entité dessellée range donc
-     * son drapeau, quelle que soit sa tribu.</p>
+     * <p>Le détail de la règle vit sur {@link OWEntity#carriesTribeFlag()} : seuls les champions
+     * désignés par le chef portent l'étendard, et il leur faut encore une selle pour tenir la
+     * hampe.</p>
      */
     protected boolean shouldRenderFlag(T entity) {
-        return entity.isSaddled() && entity.isShowTribeFlag()
-                && entity.isTame() && entity.isAlive()
-                && !entity.isInvisible() && !entity.isInResurrection();
+        return entity.carriesTribeFlag();
     }
 }

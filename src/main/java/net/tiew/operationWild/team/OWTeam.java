@@ -55,6 +55,21 @@ public class OWTeam {
     /** La réputation doit être activée une fois par la tribu (dans l'onglet) avant d'être suivie et affichée. */
     private boolean reputationEnabled = false;
 
+    // ── Champions ────────────────────────────────────────────────────────────
+    /**
+     * Les créatures qui représentent la tribu, dans l'ordre choisi par le chef.
+     *
+     * <p>Elles seules arborent l'étendard : le drapeau n'est plus un attribut d'appartenance porté
+     * par tout le monde, mais une distinction accordée à cinq bêtes au plus. La liste est
+     * <b>répliquée aux clients</b> avec le reste de la tribu ({@code SyncOWTeamPacket}), car c'est
+     * elle que consulte le layer de rendu — un drapeau doit se voir sur les créatures des autres
+     * tribus aussi.</p>
+     *
+     * <p>Les UUID sont conservés même si la créature est déchargée ou dans une autre dimension :
+     * un champion reste un champion tant que le chef ne l'a pas révoqué.</p>
+     */
+    private List<UUID> championUUIDs = new ArrayList<>();
+
     // ── Arène ────────────────────────────────────────────────────────────────
     /** Le chef a accepté le règlement de l'arène : tant que c'est faux, l'onglet reste caché aux membres. */
     private boolean arenaAccepted = false;
@@ -389,6 +404,18 @@ public class OWTeam {
     public void setReputation(int v) { this.reputation = Math.max(0, v); }
 
     /** -1 = pas d'override (réputation calculée). Sinon, valeur forcée par la commande admin. */
+    // ── Champions ────────────────────────────────────────────────────────────
+    public List<UUID> getChampionUUIDs() { return championUUIDs; }
+
+    public void setChampionUUIDs(List<UUID> v) {
+        this.championUUIDs = v != null ? new ArrayList<>(v) : new ArrayList<>();
+    }
+
+    /** Cette créature porte-t-elle l'étendard de la tribu ? */
+    public boolean isChampion(UUID entityUuid) {
+        return entityUuid != null && championUUIDs.contains(entityUuid);
+    }
+
     public int getReputationOverride() { return reputationOverride; }
 
     public void setReputationOverride(int v) { this.reputationOverride = v < 0 ? -1 : v; }

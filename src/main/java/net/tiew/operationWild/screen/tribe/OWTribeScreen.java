@@ -36,7 +36,7 @@ public abstract class OWTribeScreen extends Screen {
 
     // ── Barre d'onglets partagée (au-dessus du panneau) ──────────────────────────
     /** Onglets de navigation communs à tous les écrans de tribu. */
-    protected enum Tab { DASHBOARD, PERMISSIONS, REPUTATION, ARENA, SETTINGS }
+    protected enum Tab { DASHBOARD, PERMISSIONS, REPUTATION, CHAMPIONS, ARENA, SETTINGS }
     protected static final int TAB_Y = -18, TAB_W = 20, TAB_H = 18, TAB_GAP = 1, TAB_X0 = 2;
 
     protected int leftPos, topPos;
@@ -129,7 +129,7 @@ public abstract class OWTribeScreen extends Screen {
         return t != null && mc.player != null && t.isDeputy(mc.player.getUUID());
     }
 
-    /** Onglets visibles selon le rôle, dans l'ordre : Tribu, Permissions, Réputation, Arène, Paramètres. */
+    /** Onglets visibles selon le rôle : Tribu, Permissions, Réputation, Champions, Arène, Paramètres. */
     protected List<Tab> visibleTabs() {
         OWTeam t = OWClientTribeData.get();
         boolean chief = isChiefLocal(t), deputy = isDeputyLocal(t);
@@ -137,6 +137,9 @@ public abstract class OWTribeScreen extends Screen {
         tabs.add(Tab.DASHBOARD);
         if (chief || deputy) tabs.add(Tab.PERMISSIONS);
         tabs.add(Tab.REPUTATION);
+        // Champions : visible de tous — savoir qui porte les couleurs de la tribu la regarde
+        // entière — mais seul le chef peut y toucher (l'écran est en lecture seule pour les autres).
+        if (t != null) tabs.add(Tab.CHAMPIONS);
         // Arène : réservée aux tribus qui portent un badge (Or I au minimum). En deçà, l'onglet
         // n'existe pas — annoncer une porte fermée n'apporterait rien de plus que la page de
         // réputation, qui montre déjà le chemin jusqu'au premier badge.
@@ -189,6 +192,7 @@ public abstract class OWTribeScreen extends Screen {
             }
             case PERMISSIONS -> g.blit(OW_SPRITES, x + 2, y + 2, 0, 24, 16, 16);
             case REPUTATION -> g.blit(OW_SPRITES, x + 2, y + 2, 0, 40, 16, 16);
+            case CHAMPIONS -> g.blit(OW_SPRITES, x + 2, y + 2, 0, 104, 16, 16);
             case ARENA -> g.blit(OW_SPRITES, x + 2, y + 2, 0, 56, 16, 16);
             case SETTINGS -> g.blit(OW_INVENTORY, x + 2, y + 2, 176, 80, 16, 16);
         }
@@ -199,6 +203,7 @@ public abstract class OWTribeScreen extends Screen {
             case DASHBOARD -> "owteams.dashboard.title";
             case PERMISSIONS -> "owteams.permissions.title";
             case REPUTATION -> "owteams.reputation.title";
+            case CHAMPIONS -> "owteams.champions.title";
             case ARENA -> "owteams.arena.title";
             case SETTINGS -> "owteams.settings.title";
         };
@@ -225,6 +230,7 @@ public abstract class OWTribeScreen extends Screen {
             case DASHBOARD -> mc.setScreen(new OWTribeDashboardScreen());
             case PERMISSIONS -> mc.setScreen(new OWTribePermissionsScreen());
             case REPUTATION -> mc.setScreen(new OWTribeReputationScreen());
+            case CHAMPIONS -> mc.setScreen(new OWTribeChampionsScreen());
             case ARENA -> mc.setScreen(new OWTribeArenaScreen());
             case SETTINGS -> mc.setScreen(new OWTribeSettingsScreen());
         }

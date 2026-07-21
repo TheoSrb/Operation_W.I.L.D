@@ -21,7 +21,8 @@ import java.util.UUID;
  */
 public record OWArenaFighter(
         UUID entityUuid, UUID ownerUuid, String ownerName,
-        String entityTypeId, String name, int level, int archetypeOrdinal, int skinIndex, int typeVariant
+        String entityTypeId, String name, int level, int archetypeOrdinal, int skinIndex, int typeVariant,
+        boolean male
 ) {
 
     public static final StreamCodec<ByteBuf, OWArenaFighter> STREAM_CODEC = StreamCodec.of(
@@ -35,6 +36,7 @@ public record OWArenaFighter(
                 ByteBufCodecs.INT.encode(buf, f.archetypeOrdinal());
                 ByteBufCodecs.INT.encode(buf, f.skinIndex());
                 ByteBufCodecs.INT.encode(buf, f.typeVariant());
+                ByteBufCodecs.BOOL.encode(buf, f.male());
             },
             buf -> new OWArenaFighter(
                     parseUuid(ByteBufCodecs.STRING_UTF8.decode(buf)),
@@ -45,7 +47,8 @@ public record OWArenaFighter(
                     ByteBufCodecs.INT.decode(buf),
                     ByteBufCodecs.INT.decode(buf),
                     ByteBufCodecs.INT.decode(buf),
-                    ByteBufCodecs.INT.decode(buf)));
+                    ByteBufCodecs.INT.decode(buf),
+                    ByteBufCodecs.BOOL.decode(buf)));
 
     public static final StreamCodec<ByteBuf, List<OWArenaFighter>> LIST_STREAM_CODEC = StreamCodec.of(
             (buf, list) -> {
@@ -70,16 +73,25 @@ public record OWArenaFighter(
         String name = entity.hasCustomName() && entity.getCustomName() != null
                 ? entity.getCustomName().getString()
                 : entity.getType().getDescription().getString();
+        // getArchetype() vaut null sur OWEntity et n'est renseigné que par les sous-classes qui le
+        // surchargent : une créature qui n'en déclare pas est un cas normal, pas une anomalie. On
+        // la range en NORMAL plutôt que de planter ou de l'escamoter de la liste.
+        OWEntityConfig.Archetypes archetype = entity.getArchetype();
+        int archetypeOrdinal = (archetype != null ? archetype : OWEntityConfig.Archetypes.NORMAL).ordinal();
         return new OWArenaFighter(
                 entity.getUUID(), entity.getOwnerUUID(), ownerName != null ? ownerName : "",
                 typeId, name, entity.getLevel(),
-                entity.getArchetype().ordinal(), entity.getSkinIndex(), entity.getTypeVariant());
+                archetypeOrdinal, entity.getSkinIndex(), entity.getTypeVariant(),
+                entity.isMale());
     }
 
     public OWEntityConfig.Archetypes archetype() {
         OWEntityConfig.Archetypes[] all = OWEntityConfig.Archetypes.values();
         return all[Math.max(0, Math.min(all.length - 1, archetypeOrdinal))];
     }
+
+    /** Clé de traduction du genre, telle qu'affichée au-dessus de la créature dans le monde. */
+    public String genderKey() { return male ? "tooltip.genderMale" : "tooltip.genderFemale"; }
 
     /** Clé de traduction du nom de l'archétype (ex. {@code owteams.arena.archetype.tank}). */
     public String archetypeKey() {

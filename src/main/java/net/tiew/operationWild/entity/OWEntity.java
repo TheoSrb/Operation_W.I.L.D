@@ -688,6 +688,24 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void setShowTribeFlag(boolean value) { this.entityData.set(SHOW_TRIBE_FLAG, value); }
 
+    /**
+     * Cette créature arbore-t-elle l'étendard de sa tribu ?
+     *
+     * <p>Règle unique, partagée par tous les layers de drapeau (entités d'un seul tenant comme
+     * segments de boa) : le port de l'étendard est un <b>honneur</b>, réservé aux champions
+     * désignés par le chef, et non un signe d'appartenance porté par toute la tribu.</p>
+     *
+     * <p>Trois conditions cumulées : être champion, porter la selle (c'est elle qui tient la
+     * hampe), et ne pas avoir été masquée par son propriétaire. S'y ajoutent les états où la
+     * créature ne se montre pas du tout.</p>
+     */
+    public boolean carriesTribeFlag() {
+        return this.currentTeam != null && this.currentTeam.isChampion(this.getUUID())
+                && this.isSaddled() && this.isShowTribeFlag()
+                && this.isTame() && this.isAlive()
+                && !this.isInvisible() && !this.isInResurrection();
+    }
+
     public float getAcceleration() { return this.entityData.get(ACCELERATION);}
 
     public void setAcceleration(float getAcceleration) { this.entityData.set(ACCELERATION, getAcceleration);}

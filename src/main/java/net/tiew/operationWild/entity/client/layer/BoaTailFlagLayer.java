@@ -41,10 +41,7 @@ public class BoaTailFlagLayer extends RenderLayer<BoaTailPart, EntityModel<BoaTa
         // getParent() ne repond que sur le serveur : cote client on passe par l'identifiant reseau
         // synchronise (cf. BoaTailPart.getParentForRender).
         Entity parent = part.getParentForRender();
-        if (!(parent instanceof OWEntity boa) || boa.currentTeam == null) return;
-        if (!boa.isSaddled() || !boa.isShowTribeFlag()
-                || !boa.isTame() || !boa.isAlive()
-                || boa.isInvisible() || boa.isInResurrection()) return;
+        if (!(parent instanceof OWEntity boa) || !boa.carriesTribeFlag()) return;
 
         // Le segment porte sa propre orientation (yHeadRot, calculée serveur et synchronisée) :
         // c'est elle qui doit piloter le fouet du drapeau, pas celle de la tête, qui vire avant lui.

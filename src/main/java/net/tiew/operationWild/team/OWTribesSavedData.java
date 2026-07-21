@@ -185,6 +185,10 @@ public class OWTribesSavedData extends SavedData {
         }
         tag.put("memberPermissions", perms);
 
+        ListTag champions = new ListTag();
+        for (UUID u : t.getChampionUUIDs()) champions.add(StringTag.valueOf(u.toString()));
+        tag.put("champions", champions);
+
         tag.putBoolean("arenaAccepted", t.isArenaAccepted());
         tag.putInt("arenaPrestige", t.getArenaPrestige());
         tag.putInt("arenaReputationBonus", t.getArenaReputationBonus());
@@ -286,6 +290,13 @@ public class OWTribesSavedData extends SavedData {
             }
 
             // Arène — absente des sauvegardes antérieures : la tribu repart d'un état « non accepté ».
+            List<UUID> champions = new ArrayList<>();
+            ListTag champTag = tag.getList("champions", Tag.TAG_STRING);
+            for (int i = 0; i < champTag.size(); i++) {
+                try { champions.add(UUID.fromString(champTag.getString(i))); } catch (IllegalArgumentException ignored) {}
+            }
+            team.setChampionUUIDs(champions);
+
             team.setArenaAccepted(tag.getBoolean("arenaAccepted"));
             team.setArenaPrestige(tag.getInt("arenaPrestige"));
             team.setArenaReputationBonus(tag.getInt("arenaReputationBonus"));
