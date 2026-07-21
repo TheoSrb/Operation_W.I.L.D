@@ -1008,8 +1008,10 @@
   "owteams.arena.clash.versus": "対決",
   "owteams.arena.zone.shrinking": "戦闘エリアが縮小を開始しました！",
   "owteams.arena.zone.busy": "アリーナが使用中です。空き次第、戦闘を開始します。",
+  "owteams.arena.locked.chat": "アリーナに入るには、部族が%sに到達する必要があります。",
   "owteams.arena.protected": "アリーナの地形は変更できません。",
   "owteams.arena.soul_returned": "仲間の魂があなたに返されました。",
   "owteams.arena.tribe_chest.locked": "%s が必要",
-  "owteams.arena.tribe_chest.progress": "チェスト %s / %s 개封"
+  "owteams.arena.tribe_chest.progress": "チェスト %s / %s 개封",
+  "owteams.arena.error.start_failed": "戦闘を開始できません：戦士が見つかりません。"
 }

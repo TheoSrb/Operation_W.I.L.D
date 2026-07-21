@@ -1008,8 +1008,10 @@
   "owteams.arena.clash.versus": "ПРОТИВ",
   "owteams.arena.zone.shrinking": "Зона боя начинает сужаться!",
   "owteams.arena.zone.busy": "Арена занята: бой начнётся, как только она освободится.",
+  "owteams.arena.locked.chat": "Ваше племя должно достичь %s, прежде чем выйти на арену.",
   "owteams.arena.protected": "Оформление арены нельзя изменять.",
   "owteams.arena.soul_returned": "Душа вашего спутника возвращена вам.",
   "owteams.arena.tribe_chest.locked": "Требуется %s",
-  "owteams.arena.tribe_chest.progress": "Открыто сундуков: %s / %s"
+  "owteams.arena.tribe_chest.progress": "Открыто сундуков: %s / %s",
+  "owteams.arena.error.start_failed": "Бой не удалось начать: часть бойцов не найдена."
 }

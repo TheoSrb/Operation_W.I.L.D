@@ -134,7 +134,15 @@
       "Bash(awk '/private void renderRewards\\\\\\(GuiGraphics g, OWTeam t/,/^    }$/' src/main/java/net/tiew/operationWild/screen/tribe/OWTribeArenaScreen.java)",
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed01c686-2777-49ac-a500-aa181fce80f0/scratchpad/tribe_section.py\")",
       "Bash(awk '/private void renderSwitchButton/,/^    }$/' src/main/java/net/tiew/operationWild/screen/tribe/OWTribeArenaScreen.java)",
-      "Bash(awk '/private static void awardVictory/,/^    }$/' src/main/java/net/tiew/operationWild/team/OWArenaManager.java)"
+      "Bash(awk '/private static void awardVictory/,/^    }$/' src/main/java/net/tiew/operationWild/team/OWArenaManager.java)",
+      "Bash(awk '/private static void beginFight/,/^    }$/' src/main/java/net/tiew/operationWild/team/OWArenaManager.java)",
+      "Bash(awk '/private static void placeSide/,/^    }$/' src/main/java/net/tiew/operationWild/team/OWArenaManager.java)",
+      "Bash(awk '/private static Entity findEntity/,/^    }$/' src/main/java/net/tiew/operationWild/team/OWArenaManager.java)",
+      "Bash(awk '/private static void pruneDead/,/^    }$/' src/main/java/net/tiew/operationWild/team/OWArenaManager.java)",
+      "Bash(awk '/private static void tickFight/,/^    }$/' src/main/java/net/tiew/operationWild/team/OWArenaManager.java)",
+      "Bash(grep -Ev \"^Note:|^$\")",
+      "Bash(echo \"---EXIT $?---\")",
+      "Bash(grep -v \"//\")"
     ]
   }
 }

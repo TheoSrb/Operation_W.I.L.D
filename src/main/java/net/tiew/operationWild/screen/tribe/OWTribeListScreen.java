@@ -212,10 +212,19 @@ public class OWTribeListScreen extends OWTribeScreen {
         }
     }
 
+    /**
+     * Raccourcit un texte à {@code maxW} pixels, en terminant par « … ».
+     *
+     * <p>Sans ce signal, une coupure sèche se lit comme une donnée fausse : « Ouverte à to » a
+     * l'air d'être le texte complet, alors que « Ouverte à to… » se lit comme une troncature.</p>
+     */
     private String trim(String s, int maxW) {
         if (s == null) return "";
+        if (this.font.width(s) <= maxW) return s;
         String out = s;
-        while (this.font.width(out) > maxW && out.length() > 1) out = out.substring(0, out.length() - 1);
-        return out;
+        while (out.length() > 1 && this.font.width(out + "…") > maxW) {
+            out = out.substring(0, out.length() - 1);
+        }
+        return out.stripTrailing() + "…";
     }
 }

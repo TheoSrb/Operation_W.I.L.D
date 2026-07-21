@@ -28,6 +28,21 @@ public final class OWArena {
 
     private OWArena() {}
 
+    /**
+     * Badge minimal pour que l'arène soit accessible.
+     *
+     * <p>Une tribu sans badge n'entre pas dans l'arène : les coffres y sont indexés sur le palier
+     * de réputation, et sans badge il n'y a tout simplement pas de coffre à donner. C'est aussi ce
+     * qui évite qu'une tribu créée à l'instant vienne défier une maison établie pour lui rafler sa
+     * réputation sans rien risquer de son côté.</p>
+     */
+    public static final OWReputation.Badge ARENA_MIN_BADGE = OWReputation.Badge.GOLD_FIRST;
+
+    /** La tribu a-t-elle le rang requis pour accéder à l'arène ? */
+    public static boolean arenaUnlocked(int reputation) {
+        return OWReputation.badgeFor(reputation).ordinal() >= ARENA_MIN_BADGE.ordinal();
+    }
+
     /** Points de prestige nécessaires pour débloquer un coffre. */
     public static final int PRESTIGE_PER_CHEST = 300;
 
@@ -113,6 +128,22 @@ public final class OWArena {
     public static final long FIGHT_TIMEOUT_MS = BORDER_HOLD_MS + BORDER_SHRINK_MS + 60_000L;
     /** Délai de sélection des combattants avant annulation automatique du match (ms). */
     public static final long SELECTION_TIMEOUT_MS = 5 * 60_000L;
+    /**
+     * Délai avant que le verdict ne puisse tomber, une fois le combat lancé.
+     *
+     * <p>Une entité qui vient de changer de dimension n'apparaît pas immédiatement dans l'index du
+     * niveau : le chargement des chunks est asynchrone, et sa section doit devenir visible. Sans ce
+     * répit, un camp encore en cours d'enregistrement passait pour anéanti et perdait sur-le-champ.</p>
+     */
+    public static final long FIGHT_GRACE_MS = 6_000L;
+
+    /**
+     * Nombre de relevés consécutifs pendant lesquels un combattant peut rester introuvable avant
+     * d'être compté comme mort. Une absence est presque toujours un chunk qui n'a pas suivi, pas un
+     * décès — celui-ci se constate directement sur l'entité.
+     */
+    public static final int MISSING_TOLERANCE = 5;
+
     /** Temps d'affichage du verdict avant renvoi de tout le monde chez soi (ms). */
     public static final long ENDED_LINGER_MS = 8_000L;
 

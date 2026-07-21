@@ -47,6 +47,8 @@ public final class OWArenaManager {
 
     private OWArenaManager() {}
 
+    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
+
     /** Clé du point de retour de secours dans les données persistantes du joueur. */
     private static final String RETURN_KEY = "ow_arena_return";
 
@@ -258,6 +260,19 @@ public final class OWArenaManager {
         placeChief(server, arena, match, match.getChiefB(),
                 ox + OWArena.ARENA_HALF_SPAN + OWArena.ARENA_CHIEF_BACK, -90f);
 
+        // Un camp sans aucun combattant posé traduit un échec de téléportation, jamais une victoire
+        // adverse légitime. On annule plutôt que de décerner un verdict absurde.
+        if (match.getAliveA().isEmpty() || match.getAliveB().isEmpty()) {
+            LOGGER.warn(
+                    "[Arène] Démarrage annulé : {} combattant(s) posé(s) côté A sur {}, {} côté B sur {}.",
+                    match.getAliveA().size(), match.fightersOf(match.getTeamAId()).size(),
+                    match.getAliveB().size(), match.fightersOf(match.getTeamBId()).size());
+            broadcastToMatch(server, match, Component.translatable("owteams.arena.error.start_failed")
+                    .setStyle(Style.EMPTY.withColor(0xE04444)));
+            endMatch(server, match, 0, true);
+            return;
+        }
+
         openBattleZone(server, arena, match, ox);
 
         broadcastToMatch(server, match, Component.translatable("owteams.arena.fight.begin")
@@ -333,10 +348,17 @@ public final class OWArenaManager {
         for (int i = 0; i < fighters.size(); i++) {
             OWArenaFighter f = fighters.get(i);
             Entity entity = findEntity(server, f.entityUuid());
-            if (!(entity instanceof OWEntity owE)) continue;
+            if (!(entity instanceof OWEntity owE)) {
+                // Créature déchargée entre la composition et le coup d'envoi : elle ne combattra pas.
+                LOGGER.warn("[Arène] Combattant introuvable au placement : {} ({})",
+                        f.name(), f.entityUuid());
+                continue;
+            }
 
             match.getReturnPoints().put(f.entityUuid(), new OWArenaMatch.ReturnPoint(
                     owE.level().dimension(), owE.getX(), owE.getY(), owE.getZ()));
+            // Santé d'avant-combat : elle sera rendue telle quelle à la fin du duel.
+            match.getPreFightHealth().put(f.entityUuid(), owE.getHealth());
             // Doublé dans les données persistantes de la créature : elles survivent au changement
             // de dimension (qui recrée l'entité) et permettent au balayage de sécurité de la
             // ramener même si le renvoi de fin de match n'a pas abouti.
@@ -370,6 +392,8 @@ public final class OWArenaManager {
         entity.setSleeping(false);
         entity.ejectPassengers();
         entity.setTarget(null);
+        // Repart vulnérable : un match précédent interrompu a pu la laisser mise hors de combat.
+        entity.setInvulnerable(false);
     }
 
     private static void placeChief(MinecraftServer server, ServerLevel arena, OWArenaMatch match,
@@ -574,9 +598,13 @@ public final class OWArenaManager {
         }
 
         applyZoneDamage(arena, match);
-        pruneDead(arena, match.getAliveA());
-        pruneDead(arena, match.getAliveB());
+        pruneDead(arena, match, match.getAliveA());
+        pruneDead(arena, match, match.getAliveB());
         retarget(arena, match);
+
+        // Répit initial : le temps que tout le monde soit indexé dans la dimension. Aucun verdict
+        // ne peut tomber avant, sans quoi un camp encore en cours d'arrivée perdrait d'office.
+        if (match.elapsedInStateMs() < OWArena.FIGHT_GRACE_MS) return;
 
         boolean aDown = match.getAliveA().isEmpty();
         boolean bDown = match.getAliveB().isEmpty();
@@ -594,10 +622,24 @@ public final class OWArenaManager {
         }
     }
 
-    private static void pruneDead(ServerLevel arena, java.util.Set<UUID> alive) {
+    /**
+     * Retire les combattants réellement morts.
+     *
+     * <p>Une entité <b>introuvable</b> n'est pas comptée comme morte : juste après un changement de
+     * dimension, elle n'est pas encore dans l'index du niveau — le chargement des chunks est
+     * asynchrone et sa section doit d'abord devenir visible. C'est ce raccourci qui faisait perdre
+     * un camp entier dès le coup d'envoi. Il faut désormais {@link OWArena#MISSING_TOLERANCE}
+     * relevés consécutifs sans la voir ; une mort constatée sur l'entité, elle, compte tout de suite.</p>
+     */
+    private static void pruneDead(ServerLevel arena, OWArenaMatch match, java.util.Set<UUID> alive) {
         alive.removeIf(uuid -> {
             Entity e = arena.getEntity(uuid);
-            return e == null || !e.isAlive() || (e instanceof LivingEntity le && le.isDeadOrDying());
+            if (e == null) {
+                int streak = match.getMissingStreak().merge(uuid, 1, Integer::sum);
+                return streak >= OWArena.MISSING_TOLERANCE;
+            }
+            match.getMissingStreak().remove(uuid);
+            return !e.isAlive() || (e instanceof LivingEntity le && le.isDeadOrDying());
         });
     }
 
@@ -739,15 +781,20 @@ public final class OWArenaManager {
                 clearRescuePoint(player);
                 continue;
             }
-            // Entités : seules les survivantes sont encore là ; les mortes n'ont rien à ramener.
+            // Entités : survivantes comme mises hors de combat — aucune n'est morte.
             Entity entity = findEntity(server, uuid);
             if (entity != null && entity.isAlive()) {
+                if (entity instanceof OWEntity fighter) restoreFighter(match, fighter);
                 Entity back = entity.changeDimension(new DimensionTransition(dest, new Vec3(rp.x(), y, rp.z()),
                         Vec3.ZERO, entity.getYRot(), entity.getXRot(), DimensionTransition.DO_NOTHING));
                 // Nouvelle instance, donc currentTeam de nouveau vide : on le rétablit, sinon les
                 // permissions de tribu resteraient cassées sur la créature après son retour.
                 if (back instanceof OWEntity owE) {
                     owE.setTarget(null);
+                    // Rejoué sur la nouvelle instance : la santé se recopie bien au changement de
+                    // dimension, mais c'est la promesse centrale du duel — on ne la laisse pas
+                    // dépendre d'un détail d'implémentation du moteur.
+                    restoreFighter(match, owE);
                     OWTribeManager.refreshEntityTeam(server, owE);
                 }
             }
@@ -893,6 +940,19 @@ public final class OWArenaManager {
         closeEndedMatch(server, match);
     }
 
+    /**
+     * Rend à un combattant son état d'avant-duel : santé initiale, invulnérabilité levée, plus
+     * aucune cible. Le combat n'aura donc laissé aucune trace sur la créature.
+     */
+    private static void restoreFighter(OWArenaMatch match, OWEntity entity) {
+        Float before = match.getPreFightHealth().get(entity.getUUID());
+        entity.setInvulnerable(false);
+        entity.setTarget(null);
+        entity.setLastHurtByMob(null);
+        if (before != null) entity.setHealth(Math.min(before, entity.getMaxHealth()));
+        else entity.setHealth(entity.getMaxHealth());
+    }
+
     /** Mémorise dans la créature d'où elle vient, pour pouvoir l'y renvoyer en dernier recours. */
     private static void saveEntityRescuePoint(OWEntity entity) {
         CompoundTag tag = new CompoundTag();
@@ -928,6 +988,10 @@ public final class OWArenaManager {
                 Vec3.ZERO, entity.getYRot(), entity.getXRot(), DimensionTransition.DO_NOTHING));
         if (back instanceof OWEntity owE) {
             owE.setTarget(null);
+            // Rapatriement de secours : la santé d'origine n'est plus connue (le match a pu
+            // disparaître avec un redémarrage), on rend donc la créature intacte.
+            owE.setInvulnerable(false);
+            owE.setHealth(owE.getMaxHealth());
             OWTribeManager.refreshEntityTeam(server, owE);
         }
     }
@@ -973,6 +1037,56 @@ public final class OWArenaManager {
         clearRescuePoint(player);
         player.sendSystemMessage(Component.translatable("owteams.arena.rescued")
                 .setStyle(Style.EMPTY.withColor(0xE8956A)));
+    }
+
+    /**
+     * Met un combattant hors de combat <b>sans le tuer</b>.
+     *
+     * <p>Appelé à la place de la mort : la créature est soignée à un demi-cœur, rendue invulnérable
+     * et retirée de la mêlée. Elle rentrera vivante, avec la santé qu'elle avait avant le duel.
+     * C'est ce qui garantit qu'aucun duel ne coûte une créature à son propriétaire.</p>
+     */
+    public static void knockOut(OWArenaMatch match, OWEntity entity) {
+        UUID id = entity.getUUID();
+        match.getAliveA().remove(id);
+        match.getAliveB().remove(id);
+        match.getDefeated().add(id);
+
+        entity.setHealth(Math.max(1f, entity.getMaxHealth() * 0.1f));
+        entity.setInvulnerable(true);
+        entity.setTarget(null);
+        entity.setLastHurtByMob(null);
+        // Les adversaires doivent cesser de s'acharner sur un combattant déjà hors jeu.
+        if (entity.level() instanceof ServerLevel level) {
+            for (UUID other : allCombatants(match)) {
+                if (level.getEntity(other) instanceof OWEntity o && o.getTarget() == entity) o.setTarget(null);
+            }
+        }
+    }
+
+    /** Tous les combattants du match, vivants ou mis hors de combat. */
+    private static List<UUID> allCombatants(OWArenaMatch match) {
+        List<UUID> all = new ArrayList<>(match.getAliveA());
+        all.addAll(match.getAliveB());
+        all.addAll(match.getDefeated());
+        return all;
+    }
+
+    /** Match en cours dont {@code entityUuid} est un combattant, ou {@code null}. */
+    public static OWArenaMatch matchOfCombatant(UUID entityUuid) {
+        for (OWArenaMatch m : MATCHES.values()) {
+            if (m.getState() == OWArenaMatch.State.FIGHTING && m.isCombatant(entityUuid)) return m;
+        }
+        return null;
+    }
+
+    /** Vrai si {@code playerUuid} est un chef assistant à un duel en cours. */
+    public static boolean isSpectatingChief(UUID playerUuid) {
+        for (OWArenaMatch m : MATCHES.values()) {
+            if (m.getState() != OWArenaMatch.State.FIGHTING) continue;
+            if (playerUuid.equals(m.getChiefA()) || playerUuid.equals(m.getChiefB())) return true;
+        }
+        return false;
     }
 
     /** Vrai si {@code level} est la dimension d'arène (utilisé pour désactiver certaines règles). */

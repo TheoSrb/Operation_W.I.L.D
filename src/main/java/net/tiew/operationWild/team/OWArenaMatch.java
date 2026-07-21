@@ -54,6 +54,19 @@ public class OWArenaMatch {
     /** 0 = match nul / non tranché. */
     private int winnerTeamId = 0;
 
+    /**
+     * Santé de chaque combattant <b>avant</b> le duel, pour la lui rendre à l'issue.
+     *
+     * <p>Un duel d'arène est une joute, pas une boucherie : personne n'y perd sa créature ni ne
+     * repart blessé.</p>
+     */
+    private final Map<UUID, Float> preFightHealth = new HashMap<>();
+    /** Combattants mis hors de combat — vivants, mais retirés de la mêlée. */
+    private final Set<UUID> defeated = new HashSet<>();
+
+    /** Relevés consécutifs où un combattant est resté introuvable (cf. OWArena#MISSING_TOLERANCE). */
+    private final Map<UUID, Integer> missingStreak = new HashMap<>();
+
     /** Le rétrécissement de la zone de combat a-t-il déjà été lancé ? */
     private boolean borderShrinking = false;
 
@@ -149,6 +162,17 @@ public class OWArenaMatch {
 
     public int getWinnerTeamId() { return winnerTeamId; }
     public void setWinnerTeamId(int v) { this.winnerTeamId = v; }
+
+    public Map<UUID, Float> getPreFightHealth() { return preFightHealth; }
+    public Set<UUID> getDefeated() { return defeated; }
+
+    /** Vrai si {@code entityUuid} est un combattant de ce match, quel que soit son camp. */
+    public boolean isCombatant(UUID entityUuid) {
+        return aliveA.contains(entityUuid) || aliveB.contains(entityUuid)
+                || defeated.contains(entityUuid);
+    }
+
+    public Map<UUID, Integer> getMissingStreak() { return missingStreak; }
 
     public boolean isBorderShrinking() { return borderShrinking; }
     public void setBorderShrinking(boolean v) { this.borderShrinking = v; }

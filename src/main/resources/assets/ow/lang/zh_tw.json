@@ -1008,8 +1008,10 @@
   "owteams.arena.clash.versus": "對決",
   "owteams.arena.zone.shrinking": "戰鬥區域開始縮小！",
   "owteams.arena.zone.busy": "競技場正在使用中：一旦空出便會開始對戰。",
+  "owteams.arena.locked.chat": "你的部族需達到%s才能進入競技場。",
   "owteams.arena.protected": "競技場場景無法修改。",
   "owteams.arena.soul_returned": "你的夥伴之魂已歸還給你。",
   "owteams.arena.tribe_chest.locked": "需要%s",
-  "owteams.arena.tribe_chest.progress": "已開啟 %s / %s 個寶箱"
+  "owteams.arena.tribe_chest.progress": "已開啟 %s / %s 個寶箱",
+  "owteams.arena.error.start_failed": "對戰無法開始：部分戰士未找到。"
 }

@@ -10,6 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.client.OWClientTribeData;
+import net.tiew.operationWild.core.OWArena;
 import net.tiew.operationWild.team.OWTeam;
 
 import java.util.ArrayList;
@@ -88,9 +89,33 @@ public abstract class OWTribeScreen extends Screen {
                         ? ResourceLocation.withDefaultNamespace("widget/button_highlighted")
                         : ResourceLocation.withDefaultNamespace("widget/button"),
                 x, y, w, h);
-        int tx = x + w / 2 - this.font.width(label) / 2;
-        int ty = y + (h - 8) / 2;
-        g.drawString(this.font, label, tx, ty, textColor, false);
+        drawLabelFitted(g, label, x, y, w, h, textColor);
+    }
+
+    /**
+     * Écrit un libellé centré dans une boîte, en le rétrécissant s'il déborde.
+     *
+     * <p>Indispensable pour les quatorze traductions : « Join » tient dans un bouton où
+     * « Demander » ou « Beitreten anfragen » déborderaient sur ce qui est à côté. Plutôt que de
+     * couper le mot, on réduit la taille jusqu'à 65 % — en deçà, le texte deviendrait illisible,
+     * et c'est le gabarit du bouton qu'il faut revoir.</p>
+     */
+    protected void drawLabelFitted(GuiGraphics g, Component label, int x, int y, int w, int h, int color) {
+        int textW = this.font.width(label);
+        int avail = w - 4;
+        float sc = textW > avail ? Math.max(0.65f, avail / (float) textW) : 1f;
+        float drawnW = textW * sc;
+        float tx = x + (w - drawnW) / 2f;
+        float ty = y + (h - 8 * sc) / 2f;
+        if (sc == 1f) {
+            g.drawString(this.font, label, (int) tx, (int) ty, color, false);
+            return;
+        }
+        g.pose().pushPose();
+        g.pose().translate(tx, ty, 0);
+        g.pose().scale(sc, sc, 1f);
+        g.drawString(this.font, label, 0, 0, color, false);
+        g.pose().popPose();
     }
 
     // ── Onglets de navigation ────────────────────────────────────────────────────
@@ -112,9 +137,13 @@ public abstract class OWTribeScreen extends Screen {
         tabs.add(Tab.DASHBOARD);
         if (chief || deputy) tabs.add(Tab.PERMISSIONS);
         tabs.add(Tab.REPUTATION);
-        // Arène : le chef y a toujours accès (c'est lui qui l'engage) ; les autres membres ne la
-        // voient qu'une fois la tribu inscrite.
-        if (t != null && (chief || t.isArenaAccepted())) tabs.add(Tab.ARENA);
+        // Arène : réservée aux tribus qui portent un badge (Or I au minimum). En deçà, l'onglet
+        // n'existe pas — annoncer une porte fermée n'apporterait rien de plus que la page de
+        // réputation, qui montre déjà le chemin jusqu'au premier badge.
+        boolean arenaUnlocked = t != null && OWArena.arenaUnlocked(t.getReputation());
+        // Le chef y a toujours accès (c'est lui qui l'engage) ; les autres membres ne la voient
+        // qu'une fois la tribu inscrite.
+        if (arenaUnlocked && (chief || t.isArenaAccepted())) tabs.add(Tab.ARENA);
         if (chief) tabs.add(Tab.SETTINGS);
         return tabs;
     }

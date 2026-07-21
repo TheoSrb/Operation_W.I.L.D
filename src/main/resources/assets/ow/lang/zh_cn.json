@@ -1008,8 +1008,10 @@
   "owteams.arena.clash.versus": "对决",
   "owteams.arena.zone.shrinking": "战斗区域开始缩小！",
   "owteams.arena.zone.busy": "竞技场正在使用中：一旦空出便会开始对战。",
+  "owteams.arena.locked.chat": "你的部族需达到%s才能进入竞技场。",
   "owteams.arena.protected": "竞技场场景无法修改。",
   "owteams.arena.soul_returned": "你的伙伴之魂已归还给你。",
   "owteams.arena.tribe_chest.locked": "需要%s",
-  "owteams.arena.tribe_chest.progress": "已开启 %s / %s 个宝箱"
+  "owteams.arena.tribe_chest.progress": "已开启 %s / %s 个宝箱",
+  "owteams.arena.error.start_failed": "对战无法开始：部分战士未找到。"
 }

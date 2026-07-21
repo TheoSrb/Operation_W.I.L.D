@@ -1008,8 +1008,10 @@
   "owteams.arena.clash.versus": "VS",
   "owteams.arena.zone.shrinking": "A zona de combate começa a se fechar!",
   "owteams.arena.zone.busy": "A arena está ocupada: o combate começará assim que ela liberar.",
+  "owteams.arena.locked.chat": "A tua tribo tem de alcançar %s antes de entrar na arena.",
   "owteams.arena.protected": "O cenário da arena não pode ser modificado.",
   "owteams.arena.soul_returned": "A alma do seu companheiro foi devolvida a você.",
   "owteams.arena.tribe_chest.locked": "Requer %s",
-  "owteams.arena.tribe_chest.progress": "%s / %s baús abertos"
+  "owteams.arena.tribe_chest.progress": "%s / %s baús abertos",
+  "owteams.arena.error.start_failed": "O combate não pôde começar: faltam combatentes."
 }

@@ -1008,8 +1008,10 @@
   "owteams.arena.clash.versus": "VS",
   "owteams.arena.zone.shrinking": "The battle zone is closing in!",
   "owteams.arena.zone.busy": "The arena is busy: the battle will start as soon as it frees up.",
+  "owteams.arena.locked.chat": "Your tribe must reach %s before entering the arena.",
   "owteams.arena.protected": "The arena scenery cannot be modified.",
   "owteams.arena.soul_returned": "Your companion's soul has been returned to you.",
   "owteams.arena.tribe_chest.locked": "Requires %s",
-  "owteams.arena.tribe_chest.progress": "%s / %s chests opened"
+  "owteams.arena.tribe_chest.progress": "%s / %s chests opened",
+  "owteams.arena.error.start_failed": "The battle could not start: some fighters are missing."
 }

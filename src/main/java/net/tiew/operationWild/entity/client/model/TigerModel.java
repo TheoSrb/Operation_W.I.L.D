@@ -48,6 +48,8 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 	private final ModelPart tail;
 	private final ModelPart front_tail;
 	private final ModelPart back_tail;
+	private final ModelPart mainFlag;
+	private final ModelPart flag;
 	private final ModelPart left_arm;
 	private final ModelPart left_leg;
 	private final ModelPart right_leg;
@@ -65,6 +67,8 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		this.tail = this.body.getChild("tail");
 		this.front_tail = this.tail.getChild("front_tail");
 		this.back_tail = this.front_tail.getChild("back_tail");
+		this.mainFlag = this.body.getChild("mainFlag");
+		this.flag = this.mainFlag.getChild("flag");
 		this.left_arm = this.ALL.getChild("left_arm");
 		this.left_leg = this.ALL.getChild("left_leg");
 		this.right_leg = this.ALL.getChild("right_leg");
@@ -112,6 +116,16 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		PartDefinition front_tail = tail.addOrReplaceChild("front_tail", CubeListBuilder.create().texOffs(18, 58).addBox(-2.0F, -1.5F, 0.0F, 3.0F, 3.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
 		PartDefinition back_tail = front_tail.addOrReplaceChild("back_tail", CubeListBuilder.create().texOffs(68, 0).addBox(-2.0F, -1.5F, 0.0F, 3.0F, 3.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 10.0F));
+
+		PartDefinition mainFlag = body.addOrReplaceChild("mainFlag", CubeListBuilder.create().texOffs(15, 1).addBox(-0.5F, -18.75F, -0.5F, 1.0F, 20.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(20, 0).addBox(-0.5F, -18.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(20, 0).addBox(-0.5F, -6.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(7, 15).addBox(-1.0F, -3.725F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+				.texOffs(7, 15).addBox(-1.0F, 0.275F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+				.texOffs(0, 8).addBox(-1.0F, -2.725F, -1.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(-0.1F))
+				.texOffs(0, 0).addBox(-1.0F, -20.75F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(5.5F, -4.0F, 5.5F));
+
+		PartDefinition flag = mainFlag.addOrReplaceChild("flag", CubeListBuilder.create().texOffs(0, 98).addBox(0.0F, -5.75F, 0.5F, 0.0F, 11.0F, 19.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, -12.0F, 0.0F));
 
 		PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(34, 36).addBox(-2.5F, -1.0F, -2.5F, 4.0F, 17.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(4.5F, 0.0F, -5.5F));
 

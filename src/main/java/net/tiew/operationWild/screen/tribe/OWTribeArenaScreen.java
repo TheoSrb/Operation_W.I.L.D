@@ -193,6 +193,14 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     @Override
     protected void init() {
         super.init();
+        // L'onglet est déjà masqué sans badge, mais l'écran peut rester ouvert si la tribu vient
+        // d'en perdre le bénéfice (transfert, refonte de la réputation) : on renvoie au tableau
+        // de bord plutôt que d'afficher une arène à laquelle la tribu n'a plus droit.
+        OWTeam here = OWClientTribeData.get();
+        if (here == null || !OWArena.arenaUnlocked(here.getReputation())) {
+            Minecraft.getInstance().setScreen(new OWTribeDashboardScreen());
+            return;
+        }
         acceptBtn = addRenderableWidget(Button.builder(
                         Component.translatable("owteams.arena.intro.accept"),
                         b -> OWNetworkHandler.sendToServer(new AcceptArenaPacket()))
@@ -881,6 +889,23 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     }
 
     /** Petit texte aligné à gauche (échelle 0.75). */
+    /**
+     * Écrit un petit texte calé à droite entre {@code left} et {@code right}, rétréci s'il ne tient
+     * pas. Le plancher à 55 % garde le texte lisible ; en deçà, c'est la mise en page qu'il faut
+     * revoir plutôt que de continuer à réduire.
+     */
+    private void drawSmallRightAligned(GuiGraphics g, Component text, int left, int right, int y, int color) {
+        int raw = this.font.width(text);
+        int avail = Math.max(1, right - left);
+        float sc = Math.min(0.75f, avail / (float) raw);
+        if (sc < 0.55f) sc = 0.55f;
+        g.pose().pushPose();
+        g.pose().translate(right - raw * sc, y, 0);
+        g.pose().scale(sc, sc, 1f);
+        g.drawString(this.font, text, 0, 0, color, false);
+        g.pose().popPose();
+    }
+
     private void drawSmall(GuiGraphics g, Component text, int x, int y, int color) {
         final float sc = 0.75f;
         g.pose().pushPose();
@@ -1092,7 +1117,10 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         int cx = leftPos + IMG_W / 2, cy = (f[1] + f[3]) / 2;
         g.drawCenteredString(this.font, Component.translatable("owteams.arena.challenge.waiting")
                 .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(0xFFD257))), cx, cy - 16, 0xFFD257);
-        g.drawCenteredString(this.font, OWClientArenaState.get().outgoingTargetName(), cx, cy - 2, 0xE8E8E8);
+        // Tronqué à la largeur du cadre : un nom de tribu long sortait du panneau des deux côtés.
+        g.drawCenteredString(this.font,
+                trimTo(OWClientArenaState.get().outgoingTargetName(), f[2] - f[0] - 12),
+                cx, cy - 2, 0xE8E8E8);
         // Trois points animés, pour signaler que l'attente est vivante.
         int dots = (int) ((System.currentTimeMillis() / 400) % 4);
         g.drawCenteredString(this.font, ".".repeat(dots), cx, cy + 12, 0x9A9A9A);
@@ -1105,7 +1133,8 @@ public class OWTribeArenaScreen extends OWTribeScreen {
 
         g.drawCenteredString(this.font, Component.translatable("owteams.arena.challenge.incoming")
                 .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(0xE8956A))), cx, cy, 0xE8956A);
-        g.drawCenteredString(this.font, st.incomingChallengerName(), cx, cy + 14, 0xFFFFFF);
+        g.drawCenteredString(this.font, trimTo(st.incomingChallengerName(), f[2] - f[0] - 12),
+                cx, cy + 14, 0xFFFFFF);
 
         // Comparatif de réputation + gain potentiel : de quoi décider en connaissance de cause.
         drawSmallCentered(g, Component.translatable("owteams.arena.challenge.their_rep",
@@ -1139,11 +1168,15 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         int y0 = topPos + CONTENT_Y;
         float fade = easeOut(contentFade());
 
-        // En-têtes de colonnes.
-        drawSmallCentered(g, Component.translatable("owteams.arena.selection.you"),
-                leftPos + 6 + SLOT / 2, y0, 0x7FD8A8);
-        drawSmallCentered(g, Component.literal(trimTo(st.opponentName(), 60)),
-                leftPos + IMG_W - 6 - SLOT / 2, y0, 0xE8956A);
+        // En-têtes de colonnes, calés sur les BORDS du panneau et non centrés sur leur colonne :
+        // celle de droite est à 16 px du bord, un nom de tribu un peu long débordait donc de
+        // l'écran. Chacun est en outre tronqué à la moitié de la largeur disponible, pour que les
+        // deux ne puissent jamais se rejoindre au milieu.
+        final int headerMax = (IMG_W - 20) / 2;
+        drawSmall(g, Component.translatable("owteams.arena.selection.you"), leftPos + 8, y0, 0x7FD8A8);
+        String oppName = trimTo(st.opponentName(), headerMax);
+        drawSmall(g, Component.literal(oppName),
+                leftPos + IMG_W - 8 - Math.round(this.font.width(oppName) * 0.75f), y0, 0xE8956A);
 
         int slotsY = slotsTop();
         List<OWArenaFighter> mine = st.myFighters();
@@ -1200,9 +1233,13 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         Component oppStatus = Component.translatable(st.opponentReady()
                 ? "owteams.arena.selection.opponent_ready" : "owteams.arena.selection.opponent_waiting");
         int oppColor = st.opponentReady() ? 0x7ddd73 : 0x9A9A9A;
-        float w = this.font.width(oppStatus) * 0.75f;
-        drawSmall(g, oppStatus.copy().withStyle(Style.EMPTY.withColor(TextColor.fromRgb(oppColor))),
-                leftPos + IMG_W - 7 - (int) w, infoY, oppColor);
+        // Les deux libellés partagent une même ligne : l'état de l'adversaire ne prend que la place
+        // que le compteur d'équipe lui laisse, et rétrécit plutôt que de lui passer dessus. Sans
+        // cela, une traduction longue déborde du panneau (constaté en français en multijoueur).
+        int rowRight = leftPos + IMG_W - 7;
+        int rowLeft = leftPos + 7 + (int) Math.ceil(this.font.width(team) * 0.75f) + 6;
+        drawSmallRightAligned(g, oppStatus.copy().withStyle(
+                Style.EMPTY.withColor(TextColor.fromRgb(oppColor))), rowLeft, rowRight, infoY, oppColor);
     }
 
     /** Ordonnée du premier emplacement de combattant. */
@@ -1473,8 +1510,8 @@ public class OWTribeArenaScreen extends OWTribeScreen {
 
         // Adversaire et gains concrets, plutôt qu'un simple « allez voir ailleurs ».
         if (!st.opponentName().isEmpty()) {
-            drawSmallCentered(g, Component.translatable("owteams.arena.result.versus", st.opponentName()),
-                    cx, cy + 6, 0x9A9A9A);
+            drawSmallCentered(g, Component.translatable("owteams.arena.result.versus",
+                            trimTo(st.opponentName(), 110)), cx, cy + 6, 0x9A9A9A);
         }
         int prestige = OWArena.prestigeGain(st.myReputation(), st.opponentReputation());
         if (r == OWArena.Result.WIN) {

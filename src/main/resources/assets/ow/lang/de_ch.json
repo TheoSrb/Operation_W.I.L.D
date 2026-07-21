@@ -1008,8 +1008,10 @@
   "owteams.arena.clash.versus": "VS",
   "owteams.arena.zone.shrinking": "Die Kampfzone beginnt sich zu schließen!",
   "owteams.arena.zone.busy": "Die Arena ist belegt: Der Kampf startet, sobald sie frei wird.",
+  "owteams.arena.locked.chat": "Dein Stamm muss %s erreichen, bevor er die Arena betreten kann.",
   "owteams.arena.protected": "Die Arena-Kulisse kann nicht verändert werden.",
   "owteams.arena.soul_returned": "Die Seele deines Gefährten wurde dir zurückgegeben.",
   "owteams.arena.tribe_chest.locked": "Erfordert %s",
-  "owteams.arena.tribe_chest.progress": "%s / %s Truhen geöffnet"
+  "owteams.arena.tribe_chest.progress": "%s / %s Truhen geöffnet",
+  "owteams.arena.error.start_failed": "Der Kampf konnte nicht starten: Kämpfer fehlen."
 }
