@@ -377,6 +377,13 @@ public class OWTeam {
     public boolean hasPermissionBit(UUID u, int bit) { return (getPermissions(u) & bit) != 0; }
 
     // ── Réputation (affichage client) ────────────────────────────────────────────
+    /**
+     * Réputation de la tribu — <b>valable côté client uniquement</b>.
+     *
+     * <p>Le champ est transitoire et n'est renseigné que par le paquet de synchronisation : sur le
+     * serveur il vaut toujours 0. Côté serveur, passer par
+     * {@code OWReputation.compute(OWReputationData.get(server), team)}.</p>
+     */
     public int getReputation() { return reputation; }
 
     public void setReputation(int v) { this.reputation = Math.max(0, v); }

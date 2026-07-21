@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.client.layer.CrocodileLayer;
+import net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer;
 import net.tiew.operationWild.entity.client.layer.skins.CrocodileSkinRenderLayer;
 import net.tiew.operationWild.entity.client.model.CrocodileModel;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
@@ -32,6 +33,8 @@ public class CrocodileRenderer extends OWEntityRenderer<CrocodileEntity, Crocodi
         this.context = context;
         this.addLayer(new CrocodileLayer(this));
         this.addLayer(new CrocodileSkinRenderLayer(this, context));
+        // En dernier : le drapeau porte la banniere de tribu par-dessus le skin actif.
+        this.addLayer(new OWTribeFlagLayer<>(this));
     }
 
     @Override

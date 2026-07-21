@@ -26,8 +26,18 @@ import net.tiew.operationWild.entity.client.animation.OrcaAnimations;
 
 import javax.swing.text.html.parser.Entity;
 
-public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
+public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> implements OWFlagModel {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "orca_default"), "main");
+
+	/** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
+	private static final ResourceLocation FLAG_POLE_TEXTURE =
+			ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/orca/orca_flag.png");
+
+	/**
+	 * Rectangle de la toile dans l'espace local de l'os {@code flag}, en pixels modele.
+	 * Recopie la boite declaree par {@code createBodyLayer} : Y dans [-5.75, 5.25], Z dans [0.5, 19.5].
+	 */
+	private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
 
 	private float prevLimbSwing = 0f;
 	private int groundRotationTimer = 0;
@@ -46,6 +56,9 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 	private final ModelPart back_tail;
 	private final ModelPart left_fan;
 	private final ModelPart right_fan;
+	/** Nuls sur les definitions de skin qui ne declarent pas le porte-drapeau. */
+	private final ModelPart mainFlag;
+	private final ModelPart flag;
 
 	public OrcaModel(ModelPart root) {
 		this.ALL2 = root.getChild("ALL2");
@@ -60,13 +73,61 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 		this.back_tail = this.tail.getChild("back_tail");
 		this.left_fan = this.body.getChild("left_fan");
 		this.right_fan = this.body.getChild("right_fan");
+		this.mainFlag = this.body.hasChild("mainFlag") ? this.body.getChild("mainFlag") : null;
+		this.flag = this.mainFlag != null ? this.mainFlag.getChild("flag") : null;
+
+		// Le porte-drapeau n'est dessine que par renderTribeFlagPole : masque d'entree, il ne risque
+		// pas de l'etre avec la texture de la peau par le modele de base ni par un modele d'overlay
+		// de skin, qui ne rejoue pas setupAnim.
+		if (this.mainFlag != null) this.mainFlag.visible = false;
+	}
+
+	// -- Drapeau de tribu (OWFlagModel) ------------------------------------------
+
+	@Override
+	public boolean hasTribeFlag() {
+		return this.mainFlag != null && this.flag != null;
+	}
+
+	@Override
+	public void renderTribeFlagPole(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay) {
+		if (!hasTribeFlag()) return;
+		poseStack.pushPose();
+		this.ALL2.translateAndRotate(poseStack);
+		this.ALL.translateAndRotate(poseStack);
+		this.body.translateAndRotate(poseStack);
+		// Visible le temps de ce seul appel : le reste du pipeline doit continuer a l'ignorer.
+		this.mainFlag.visible = true;
+		this.mainFlag.render(poseStack, buffer, packedLight, packedOverlay, 0xFFFFFFFF);
+		this.mainFlag.visible = false;
+		poseStack.popPose();
+	}
+
+	@Override
+	public void translateToTribeFlag(PoseStack poseStack) {
+		if (!hasTribeFlag()) return;
+		this.ALL2.translateAndRotate(poseStack);
+		this.ALL.translateAndRotate(poseStack);
+		this.body.translateAndRotate(poseStack);
+		this.mainFlag.translateAndRotate(poseStack);
+		this.flag.translateAndRotate(poseStack);
+	}
+
+	@Override
+	public ResourceLocation tribeFlagPoleTexture() {
+		return FLAG_POLE_TEXTURE;
+	}
+
+	@Override
+	public Anchor tribeFlagAnchor() {
+		return FLAG_ANCHOR;
 	}
 
 	public static LayerDefinition createBodyLayer() {
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 7.0F, 0.0F));
+		PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 7.0F, -2.0F));
 
 		PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
@@ -109,6 +170,16 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 
 		PartDefinition right_fan = body.addOrReplaceChild("right_fan", CubeListBuilder.create().texOffs(124, 0).mirror().addBox(-21.0F, -1.0F, -6.0F, 21.0F, 2.0F, 12.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-12.0F, 10.0F, -10.0F));
 
+		PartDefinition mainFlag = body.addOrReplaceChild("mainFlag", CubeListBuilder.create().texOffs(55, 288).addBox(-0.5F, -18.75F, -0.5F, 1.0F, 20.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(60, 287).addBox(-0.5F, -18.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(60, 287).addBox(-0.5F, -6.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(47, 302).addBox(-1.0F, -3.725F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+				.texOffs(47, 302).addBox(-1.0F, 0.275F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+				.texOffs(40, 295).addBox(-1.0F, -2.725F, -1.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(-0.1F))
+				.texOffs(40, 287).addBox(-1.0F, -20.75F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(12.5F, -13.0F, 10.5F));
+
+		PartDefinition flag = mainFlag.addOrReplaceChild("flag", CubeListBuilder.create().texOffs(7, 240).addBox(0.0F, -5.75F, 0.5F, 0.0F, 11.0F, 19.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, -12.0F, 0.0F));
+
 		return LayerDefinition.create(meshdefinition, 512, 512);
 	}
 
@@ -117,12 +188,9 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 
 		if (!orca.isInWater()) {
-			// aiStep() détecte onGround → pose y=0.5 (rebond) → setOnGround(false).
-			// À ce moment précis, getDeltaMovement().y ≈ 0.5.
-			// On exclut le bond (y ≈ 1.5+) avec le seuil < 0.7.
 			float yVel = (float) orca.getDeltaMovement().y;
 			if (yVel > 0.3f && yVel < 0.7f) {
-				groundRotationTimer = 25; // tient entre deux rebonds (~20 ticks)
+				groundRotationTimer = 25;
 			}
 			if (groundRotationTimer > 0) {
 				groundRotationTimer--;
@@ -223,11 +291,6 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 		return this.ALL2;
 	}
 
-	/**
-	 * Copie la pose résolue (translation + rotation + échelle) de chaque os depuis un autre
-	 * OrcaModel déjà animé (le modèle de base). Utilisé par les skins en mode OVERLAY pour
-	 * que le modèle d'overlay suive parfaitement la base sans désynchronisation ni z-fighting.
-	 */
 	public void copyPoseFrom(OrcaModel<?> src) {
 		this.ALL2.copyFrom(src.ALL2);
 		this.ALL.copyFrom(src.ALL);
@@ -243,18 +306,6 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 		this.right_fan.copyFrom(src.right_fan);
 	}
 
-	/**
-	 * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.
-	 * Use this to fire one-shot events (sounds, particles) at precise moments of a walk cycle.
-	 *
-	 * <p>How to find {@code triggerTimeMs}: open Blockbench, look at the keyframe timestamp of the
-	 * moment you want (e.g. foot hits the ground), multiply seconds × 1000.</p>
-	 *
-	 * @param animation     the AnimationDefinition played via {@code animateWalk()}
-	 * @param limbSwing     current limbSwing value (first param of setupAnim)
-	 * @param speedScale    the {@code maxAnimationCycles} value passed to {@code animateWalk()}
-	 * @param triggerTimeMs keyframe time in <strong>milliseconds</strong> to fire at
-	 */
 	private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
 		long durationMs = (long)(animation.lengthInSeconds() * 1000f);
 		if (durationMs <= 0) return false;
@@ -262,9 +313,7 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> {
 		long cur  = ((long)(limbSwing     * 50f * speedScale)) % durationMs;
 		long prev = ((long)(prevLimbSwing * 50f * speedScale)) % durationMs;
 
-		// Normal case: no wrap-around in this frame
 		if (prev <= cur) return prev < triggerTimeMs && cur >= triggerTimeMs;
-		// Wrap-around: the cycle looped between prev and cur → target in [0, cur] OR in (prev, duration)
 		return triggerTimeMs <= cur || triggerTimeMs > prev;
 	}
 }

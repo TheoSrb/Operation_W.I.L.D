@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
+import net.tiew.operationWild.entity.client.layer.TigerFlagLayer;
 import net.tiew.operationWild.entity.client.layer.TigerLayer;
 import net.tiew.operationWild.entity.client.layer.skins.TigerSkinRenderLayer;
 import net.tiew.operationWild.entity.client.model.TigerModel;
@@ -34,6 +35,8 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
         this.context = context;
         this.addLayer(new TigerLayer(this));
         this.addLayer(new TigerSkinRenderLayer(this, context));
+        // En dernier : le drapeau porte la bannière de tribu par-dessus le skin actif.
+        this.addLayer(new TigerFlagLayer(this));
     }
 
     @Override

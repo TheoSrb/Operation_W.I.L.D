@@ -142,6 +142,8 @@
   "option.passive.desc": "수동적과 공격적 사이를 전환합니다",
   "option.autoPickup": "자동 줍기",
   "option.autoPickup.desc": "근처의 아이템을 자동으로 줍습니다",
+  "option.tribeFlag": "부족 깃발",
+  "option.tribeFlag.desc": "개체의 등에 부족의 배너를 답니다.",
   "option.sit": "앉기 / 일어서기",
   "option.sit.desc": "엔티티에게 앉거나 일어서라고 명령합니다",
   "option.mode.prefix": "모드: ",

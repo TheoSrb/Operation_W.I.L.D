@@ -5,6 +5,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.client.model.TigerModel;
 
 public class TigerModelSkins {
 
@@ -64,6 +65,10 @@ public class TigerModelSkins {
 
         PartDefinition back_tail = front_tail.addOrReplaceChild("back_tail", CubeListBuilder.create().texOffs(68, 0).addBox(-2.0F, -1.5F, 0.0F, 3.0F, 3.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 10.0F));
 
+        // Porte-drapeau de tribu : identique sur tous les skins, masqué tant que l'entité
+        // n'appartient à aucune tribu (cf. OWTribeFlagLayer).
+        TigerModel.addFlagParts(body);
+
         PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(34, 36).addBox(-2.5F, -1.0F, -2.5F, 4.0F, 17.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(4.5F, 0.0F, -7.5F));
 
         PartDefinition left_leg = ALL.addOrReplaceChild("left_leg", CubeListBuilder.create().texOffs(52, 36).addBox(-2.5F, -1.0F, -2.5F, 5.0F, 14.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(3.5F, 3.0F, 8.5F));
@@ -119,6 +124,10 @@ public class TigerModelSkins {
         PartDefinition front_tail = tail.addOrReplaceChild("front_tail", CubeListBuilder.create().texOffs(18, 58).addBox(-2.0F, -1.5F, 0.0F, 3.0F, 3.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
         PartDefinition back_tail = front_tail.addOrReplaceChild("back_tail", CubeListBuilder.create().texOffs(68, 0).addBox(-2.0F, -1.5F, 0.0F, 3.0F, 3.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 10.0F));
+
+        // Porte-drapeau de tribu : identique sur tous les skins, masqué tant que l'entité
+        // n'appartient à aucune tribu (cf. OWTribeFlagLayer).
+        TigerModel.addFlagParts(body);
 
         PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(34, 36).addBox(-2.5F, -1.0F, -2.5F, 4.0F, 17.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(4.5F, 0.0F, -7.5F));
 
@@ -206,6 +215,10 @@ public class TigerModelSkins {
 
         PartDefinition cube_r13 = back_tail.addOrReplaceChild("cube_r13", CubeListBuilder.create().texOffs(73, 33).addBox(0.0F, -1.5F, 0.0F, 0.0F, 3.0F, 3.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(-0.5F, 0.0F, 2.0F, 0.0F, 0.0F, -1.5708F));
 
+        // Porte-drapeau de tribu : identique sur tous les skins, masqué tant que l'entité
+        // n'appartient à aucune tribu (cf. OWTribeFlagLayer).
+        TigerModel.addFlagParts(body);
+
         PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(34, 36).addBox(-2.5F, -1.0F, -2.5F, 4.0F, 11.0F, 5.0F, new CubeDeformation(0.0F))
                 .texOffs(34, 61).addBox(-2.5F, 10.0F, -2.5F, 4.0F, 2.0F, 5.0F, new CubeDeformation(0.0F))
                 .texOffs(97, 40).addBox(-0.5F, 12.0F, -2.5F, 0.0F, 4.0F, 5.0F, new CubeDeformation(0.01F))
@@ -270,6 +283,10 @@ public class TigerModelSkins {
 
         PartDefinition back_tail = front_tail.addOrReplaceChild("back_tail", CubeListBuilder.create().texOffs(68, 0).addBox(-2.0F, -1.5F, 0.0F, 3.0F, 3.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 10.0F));
 
+        // Porte-drapeau de tribu : identique sur tous les skins, masqué tant que l'entité
+        // n'appartient à aucune tribu (cf. OWTribeFlagLayer).
+        TigerModel.addFlagParts(body);
+
         PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(34, 36).addBox(-2.5F, -1.0F, -2.5F, 4.0F, 17.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(4.5F, 0.0F, -7.5F));
 
         PartDefinition left_leg = ALL.addOrReplaceChild("left_leg", CubeListBuilder.create().texOffs(52, 36).addBox(-2.5F, -1.0F, -2.5F, 5.0F, 14.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(3.5F, 3.0F, 8.5F));
@@ -327,6 +344,10 @@ public class TigerModelSkins {
         PartDefinition front_tail = tail.addOrReplaceChild("front_tail", CubeListBuilder.create().texOffs(18, 58).addBox(-2.0F, -1.5F, 0.0F, 3.0F, 3.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
         PartDefinition back_tail = front_tail.addOrReplaceChild("back_tail", CubeListBuilder.create().texOffs(68, 0).addBox(-2.0F, -1.5F, 0.0F, 3.0F, 3.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 10.0F));
+
+        // Porte-drapeau de tribu : identique sur tous les skins, masqué tant que l'entité
+        // n'appartient à aucune tribu (cf. OWTribeFlagLayer).
+        TigerModel.addFlagParts(body);
 
         PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(34, 36).addBox(-2.5F, -1.0F, -2.5F, 4.0F, 17.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(4.5F, 0.0F, -7.5F));
 

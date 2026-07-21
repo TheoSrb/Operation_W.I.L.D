@@ -28,7 +28,14 @@ public record OWEntityTogglePacket(String option) implements CustomPacketPayload
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player
                     && player.getRootVehicle() instanceof OWEntity entity) {
-                entity.switchMode(player);
+                // L'option bascule est toujours celle de la monture du joueur : aucun identifiant
+                // d'entité n'est accepté depuis le client, donc aucune entité tierce n'est joignable.
+                switch (packet.option()) {
+                    case "passive"    -> entity.switchMode(player);
+                    case "autoPickup" -> entity.setAutoPickup(!entity.isAutoPickup());
+                    case "tribeFlag"  -> entity.setShowTribeFlag(!entity.isShowTribeFlag());
+                    default -> {}
+                }
             }
         });
     }

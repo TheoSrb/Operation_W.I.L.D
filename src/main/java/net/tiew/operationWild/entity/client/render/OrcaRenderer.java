@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
+import net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer;
 import net.tiew.operationWild.entity.client.layer.OrcaLayer;
 import net.tiew.operationWild.entity.client.layer.skins.OrcaSkinRenderLayer;
 import net.tiew.operationWild.entity.client.model.OrcaModel;
@@ -28,6 +29,8 @@ public class OrcaRenderer extends OWEntityRenderer<OrcaEntity, OrcaModel<OrcaEnt
         this.context = context;
         this.addLayer(new OrcaLayer(this));
         this.addLayer(new OrcaSkinRenderLayer(this, context));
+        // En dernier : le drapeau porte la banniere de tribu par-dessus le skin actif.
+        this.addLayer(new OWTribeFlagLayer<>(this));
     }
 
     @Override

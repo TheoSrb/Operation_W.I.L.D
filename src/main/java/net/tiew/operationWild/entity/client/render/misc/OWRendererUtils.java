@@ -215,7 +215,7 @@ public class OWRendererUtils {
                     bTeam.getBannerShape(), bTeam.getTeamMosaicPattern(),
                     bpr, bpg, bpb, bsr, bsg, bsb,
                     btr, btg, btb, bTeam.isUseTertiary(),
-                    bTeam.getPaintPixels(), lightU, lightV);
+                    bTeam.getPaintPixels(), lightU, lightV, true);
             poseStack.popPose();
         }
 
@@ -808,12 +808,7 @@ public class OWRendererUtils {
         if (entity.currentTeam == null) return;
 
         OWTeam team = entity.currentTeam;
-        int primary   = team.getTeamColor();
-        int secondary = team.getTeamSecondaryColor();
-        int tertiary  = team.getTertiaryColor();
-        int pr = (primary >> 16) & 0xFF,   pg = (primary >> 8) & 0xFF,   pb = primary & 0xFF;
-        int sr = (secondary >> 16) & 0xFF, sg = (secondary >> 8) & 0xFF, sb = secondary & 0xFF;
-        int tr = (tertiary >> 16) & 0xFF,  tg = (tertiary >> 8) & 0xFF,  tb = tertiary & 0xFF;
+        int primary = team.getTeamColor();
 
         poseStack.pushPose();
         poseStack.translate(0, entity.getBbHeight() + upOffset, 0);
@@ -822,15 +817,9 @@ public class OWRendererUtils {
         final float BW = 56 * 0.003f, BH = 93 * 0.003f;
         final float x0 = -BW / 2f, x1 = BW / 2f;
         final float y0 = -BH / 2f, y1 = BH / 2f;
-        int lightU = packedLight & 0xFFFF;
-        int lightV = (packedLight >> 16) & 0xFFFF;
 
         VertexConsumer vc = bufferSource.getBuffer(RenderType.entityTranslucent(OWTeamBannerShape.TEXTURE));
-        renderBannerPattern(vc, poseStack.last().pose(),
-                x0, y0, x1, y1, x0, y0, BW, BH,
-                team.getBannerShape(), team.getTeamMosaicPattern(), pr, pg, pb, sr, sg, sb,
-                tr, tg, tb, team.isUseTertiary(),
-                team.getPaintPixels(), lightU, lightV);
+        renderTeamBanner(vc, poseStack.last().pose(), team, x0, y0, x1, y1, packedLight, true);
 
         // ── Team name below the banner ─────────────────────────────────────────
         Font font = Minecraft.getInstance().font;
@@ -847,6 +836,34 @@ public class OWRendererUtils {
     }
 
     /**
+     * Dessine la bannière d'une tribu dans le rectangle [x0..x1] × [y0..y1] du repère courant
+     * (Y vers le haut, quad en Z = 0), forme, motif et couleurs comprises.
+     *
+     * <p>Point d'entrée commun à tous les rendus 3D de bannière : la vignette au-dessus de
+     * l'entité comme la toile du drapeau porté
+     * ({@link net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer}). Le tampon doit
+     * avoir été obtenu sur la texture {@link OWTeamBannerShape#TEXTURE}.</p>
+     *
+     * @param highlights superpose le calque d'ombrage de la forme. Pertinent sur une vignette vue
+     *                   de face, à désactiver sur une toile portée : ce calque est peint pour une
+     *                   bannière droite et immobile, il contredit l'ondulation et l'éclairage réel.
+     */
+    public static void renderTeamBanner(VertexConsumer vc, Matrix4f mat, OWTeam team,
+            float x0, float y0, float x1, float y1, int packedLight, boolean highlights) {
+        int primary   = team.getTeamColor();
+        int secondary = team.getTeamSecondaryColor();
+        int tertiary  = team.getTertiaryColor();
+        int pr = (primary >> 16) & 0xFF,   pg = (primary >> 8) & 0xFF,   pb = primary & 0xFF;
+        int sr = (secondary >> 16) & 0xFF, sg = (secondary >> 8) & 0xFF, sb = secondary & 0xFF;
+        int tr = (tertiary >> 16) & 0xFF,  tg = (tertiary >> 8) & 0xFF,  tb = tertiary & 0xFF;
+
+        renderBannerPattern(vc, mat, x0, y0, x1, y1, x0, y0, x1 - x0, y1 - y0,
+                team.getBannerShape(), team.getTeamMosaicPattern(),
+                pr, pg, pb, sr, sg, sb, tr, tg, tb, team.isUseTertiary(),
+                team.getPaintPixels(), packedLight & 0xFFFF, (packedLight >> 16) & 0xFFFF, highlights);
+    }
+
+    /**
      * Renders all pattern fills for a banner rectangle using the OW_TEAMS_GUI flag texture.
      * bx0/by0/bw/bh describe the full banner bounds (used for UV sub-region mapping).
      * The quad to fill is [wx0..wx1] × [wy0..wy1].
@@ -857,7 +874,7 @@ public class OWRendererUtils {
             OWTeamBannerShape shape, OWTeamMosaicPattern pattern,
             int pr, int pg, int pb, int sr, int sg, int sb,
             int tr, int tg, int tb, boolean useTertiary,
-            byte[] paintPixels, int lightU, int lightV) {
+            byte[] paintPixels, int lightU, int lightV, boolean highlights) {
 
         if (shape == null) shape = OWTeamBannerShape.CLASSIC;
         // La silhouette de la forme (dans ow_teams_banners_styles.png) découpe le motif : flagRect
@@ -888,7 +905,7 @@ public class OWRendererUtils {
             } else {
                 flagRect(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
             }
-            renderBannerHighlights(vc, mat, bx0, by0, bx1, by1, shape, lightU, lightV);
+            if (highlights) renderBannerHighlights(vc, mat, bx0, by0, bx1, by1, shape, lightU, lightV);
             return;
         }
 
@@ -1009,7 +1026,7 @@ public class OWRendererUtils {
             default -> flagRect(vc, mat, bx0, by0, bx1, by1, bbx0, bby0, bbw, bbh, lightU, lightV, pr, pg, pb);
         }
 
-        renderBannerHighlights(vc, mat, bx0, by0, bx1, by1, shape, lightU, lightV);
+        if (highlights) renderBannerHighlights(vc, mat, bx0, by0, bx1, by1, shape, lightU, lightV);
     }
 
     /**

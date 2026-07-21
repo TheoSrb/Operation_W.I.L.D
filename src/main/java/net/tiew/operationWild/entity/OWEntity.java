@@ -265,6 +265,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static final EntityDataAccessor<ItemStack> ITEM_FOOD = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<Integer> FOOD_COUNT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> AUTO_PICKUP = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> SHOW_TRIBE_FLAG = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> QUESTS_ARE_UPDATED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TAMING_PERCENTAGE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> MATURATION_PERCENTAGE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
@@ -677,6 +678,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean isAutoPickup() { return this.entityData.get(AUTO_PICKUP); }
 
     public void setAutoPickup(boolean value) { this.entityData.set(AUTO_PICKUP, value); }
+
+    /**
+     * Port de la banniere de tribu sur le dos de l'entite. Synchronise : le drapeau etant rendu
+     * par tous les clients qui voient l'entite, le choix doit valoir pour tout le monde et pas
+     * seulement pour son proprietaire.
+     */
+    public boolean isShowTribeFlag() { return this.entityData.get(SHOW_TRIBE_FLAG); }
+
+    public void setShowTribeFlag(boolean value) { this.entityData.set(SHOW_TRIBE_FLAG, value); }
 
     public float getAcceleration() { return this.entityData.get(ACCELERATION);}
 
@@ -4046,6 +4056,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(ITEM_FOOD, ItemStack.EMPTY);
         builder.define(FOOD_COUNT, 0);
         builder.define(AUTO_PICKUP, true);
+        builder.define(SHOW_TRIBE_FLAG, true);
         builder.define(ULTIMATE, false);
         builder.define(QUESTS_ARE_UPDATED, false);
         builder.define(TAMING_PERCENTAGE, 0);
@@ -4096,6 +4107,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putFloat("Scale", this.getScale());
         tag.putBoolean("isPassive", this.isPassive());
         tag.putBoolean("autoPickup", this.isAutoPickup());
+        tag.putBoolean("showTribeFlag", this.isShowTribeFlag());
         tag.putBoolean("isFemale", this.isFemale());
         tag.putBoolean("isPreparingNapping", this.isPreparingNapping());
         tag.putBoolean("isFed", this.isFed());
@@ -4234,6 +4246,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(SCALE, tag.getFloat("Scale"));
         this.entityData.set(IS_PASSIVE, tag.getBoolean("isPassive"));
         this.entityData.set(AUTO_PICKUP, tag.contains("autoPickup") ? tag.getBoolean("autoPickup") : true);
+        // Absent des entites d'avant la feature : le drapeau est porte par defaut.
+        this.entityData.set(SHOW_TRIBE_FLAG, !tag.contains("showTribeFlag") || tag.getBoolean("showTribeFlag"));
         this.entityData.set(IS_FEMALE, tag.getBoolean("isFemale"));
         this.entityData.set(SADDLED, tag.getBoolean("isSaddled"));
         this.entityData.set(IS_FED, tag.getBoolean("isFed"));

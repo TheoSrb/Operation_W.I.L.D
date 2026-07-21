@@ -32,7 +32,7 @@ import org.joml.Vector3f;
  * modele et sont ignores par KeyframeAnimations). La tete et la queue jouent donc la
  * meme animation, bone par bone.
  */
-public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> {
+public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> implements OWFlagModel {
 
     // 7 layers, une par segment (comme avant, le renderer les bake toutes).
     public static final ModelLayerLocation LAYER_BODY_0 = layer("boa_body_0");
@@ -69,9 +69,19 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> {
     private static final float DIGEST_SECONDS_AT_MIN = 20.0f;
     private static final float DIGEST_SECONDS_AT_MAX = 40.0f;
 
+    /** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
+    private static final ResourceLocation FLAG_POLE_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_flag.png");
+
+    /** Rectangle de la toile dans l'espace local de l'os {@code flag}, en pixels modele. */
+    private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
+
     private final ModelPart root;
     private final ModelPart all;
     private final ModelPart segment;
+    /** Nuls sur tous les segments sauf celui qui porte le drapeau. */
+    private final ModelPart mainFlag;
+    private final ModelPart flag;
 
     /**
      * @param root     le ModelPart racine bake (contient "ALL" -> "body_{index}")
@@ -83,6 +93,53 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> {
         this.root = root;
         this.all = root.getChild("ALL");
         this.segment = this.all.getChild(boneName);
+        this.mainFlag = this.segment.hasChild("mainFlag") ? this.segment.getChild("mainFlag") : null;
+        this.flag = this.mainFlag != null ? this.mainFlag.getChild("flag") : null;
+
+        // Le porte-drapeau n'est dessine que par renderTribeFlagPole : masque d'entree, il ne risque
+        // pas de l'etre avec la texture des ecailles par la passe principale du segment.
+        if (this.mainFlag != null) this.mainFlag.visible = false;
+    }
+
+    // -- Drapeau de tribu (OWFlagModel) ------------------------------------------
+    // Un seul segment declare les os (cf. createBody2Layer) : les six autres repondent simplement
+    // false a hasTribeFlag() et sont ignores par BoaTailFlagLayer.
+
+    @Override
+    public boolean hasTribeFlag() {
+        return this.mainFlag != null && this.flag != null;
+    }
+
+    @Override
+    public void renderTribeFlagPole(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay) {
+        if (!hasTribeFlag()) return;
+        poseStack.pushPose();
+        this.all.translateAndRotate(poseStack);
+        this.segment.translateAndRotate(poseStack);
+        // Visible le temps de ce seul appel : le reste du pipeline doit continuer a l'ignorer.
+        this.mainFlag.visible = true;
+        this.mainFlag.render(poseStack, buffer, packedLight, packedOverlay, 0xFFFFFFFF);
+        this.mainFlag.visible = false;
+        poseStack.popPose();
+    }
+
+    @Override
+    public void translateToTribeFlag(PoseStack poseStack) {
+        if (!hasTribeFlag()) return;
+        this.all.translateAndRotate(poseStack);
+        this.segment.translateAndRotate(poseStack);
+        this.mainFlag.translateAndRotate(poseStack);
+        this.flag.translateAndRotate(poseStack);
+    }
+
+    @Override
+    public ResourceLocation tribeFlagPoleTexture() {
+        return FLAG_POLE_TEXTURE;
+    }
+
+    @Override
+    public Anchor tribeFlagAnchor() {
+        return FLAG_ANCHOR;
     }
 
     @Override
@@ -141,13 +198,17 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> {
 
     public static LayerDefinition createBody2Layer() {
         MeshDefinition mesh = new MeshDefinition();
-        all(mesh).addOrReplaceChild("body_2",
+        PartDefinition segment = all(mesh).addOrReplaceChild("body_2",
                 CubeListBuilder.create()
                         .texOffs(0, 0)
                         .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(-0.001F))
                         .texOffs(135, 138)
                         .addBox(0.0F, -10.0F, 0.0F, 0.0F, 6.0F, 15.0F, new CubeDeformation(0.0F)),
                 PartPose.offset(0f, TAIL_Y, 0f));
+        // C'est CE segment qui porte la banniere de tribu : en jeu la queue est faite d'entites
+        // BoaTailPart independantes, les os body_* du modele de tete y sont masques et restent en
+        // pose de repos. Le drapeau doit donc vivre ici pour suivre reellement le corps.
+        BoaModel.addFlagParts(segment, 11.5F);
         return LayerDefinition.create(mesh, 256, 256);
     }
 

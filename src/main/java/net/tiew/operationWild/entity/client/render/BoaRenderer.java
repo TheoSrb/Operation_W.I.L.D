@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.client.layer.BoaLayer;
+import net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer;
 import net.tiew.operationWild.entity.client.layer.skins.BoaSkinRenderLayer;
 import net.tiew.operationWild.entity.client.model.BoaModel;
 import net.tiew.operationWild.entity.client.skin.BoaSkin;
@@ -25,6 +26,15 @@ public class BoaRenderer extends OWEntityRenderer<BoaEntity, BoaModel<BoaEntity>
         this.context = context;
         this.addLayer(new BoaLayer(this));
         this.addLayer(new BoaSkinRenderLayer(this, context));
+        // Drapeau : uniquement dans les apercus d'ecran, ou le corps complet est reellement
+        // dessine sur ce modele. En jeu, ce sont les entites BoaTailPart qui portent la banniere
+        // (cf. BoaTailFlagLayer) — les os body_* sont masques ici et ne suivraient pas le corps.
+        this.addLayer(new OWTribeFlagLayer<BoaEntity, BoaModel<BoaEntity>>(this) {
+            @Override
+            protected boolean shouldRenderFlag(BoaEntity boa) {
+                return BoaModel.RENDER_FULL_BODY && super.shouldRenderFlag(boa);
+            }
+        });
     }
 
     @Override

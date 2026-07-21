@@ -14,30 +14,23 @@ import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.client.animation.BoaAnimations;
 import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
-public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
+public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> implements OWFlagModel {
 
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "boa_default"), "main");
 
+    /** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
+    private static final ResourceLocation FLAG_POLE_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_flag.png");
+
     /**
-     * Quand true, setupAnim affiche le corps complet (body_0..body_6) directement sur
-     * le modele de la tete, au lieu de le cacher. Sert aux GUI (OWInventoryScreen,
-     * OWSkinsInterface) ou la queue multipart n'existe PAS en tant qu'entites separees :
-     * on veut alors voir le boa entier. Les ecrans activent le flag autour de leur appel
-     * a renderEntityInInventory puis le remettent a false. En jeu il reste a false (la
-     * queue est rendue par les entites BoaTailPart).
+     * Rectangle de la toile dans l'espace local de l'os {@code flag}, en pixels modele.
+     * Recopie la boite declaree par {@code addFlagParts} : Y dans [-5.75, 5.25], Z dans [0.5, 19.5].
      */
+    private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
+
     public static boolean RENDER_FULL_BODY = false;
 
-    // --- Pose statique du corps pour les GUI (preview) ---
-    // Quand on affiche le boa entier dans un ecran, on lui donne une legere ondulation
-    // (yaw cumulatif le long du corps) au lieu d'une barre droite, et on recentre le
-    // long corps dans le cadre. Ces valeurs se reglent a l'oeil :
-    //   GUI_WAVE_AMP  : amplitude du virage local par segment (radians). Monte pour onduler plus.
-    //   GUI_WAVE_STEP : avance de phase d'un segment a l'autre (forme de la vague).
-    //   GUI_BODY_BACK_OFFSET : recule le corps (en px modele) pour le recentrer dans
-    //                          l'apercu. Augmente si la queue deborde encore, inverse
-    //                          le signe si le decalage part du mauvais cote.
     private static final float GUI_WAVE_AMP = 0.75f;
     private static final float GUI_WAVE_STEP = 0.95f;
     private static final float GUI_BODY_BACK_OFFSET = 48.0f;
@@ -56,6 +49,9 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
     private final ModelPart body_4;
     private final ModelPart body_5;
     private final ModelPart body_6;
+    /** Nuls sur les definitions de skin qui ne declarent pas le porte-drapeau. */
+    private final ModelPart mainFlag;
+    private final ModelPart flag;
 
     public BoaModel(ModelPart root) {
         this.ALL2 = root.getChild("ALL2");
@@ -72,13 +68,20 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
         this.body_4 = this.body_3.getChild("body_4");
         this.body_5 = this.body_4.getChild("body_5");
         this.body_6 = this.body_5.getChild("body_6");
+        this.mainFlag = this.body_2.hasChild("mainFlag") ? this.body_2.getChild("mainFlag") : null;
+        this.flag = this.mainFlag != null ? this.mainFlag.getChild("flag") : null;
+
+        // Le porte-drapeau n'est dessine que par renderTribeFlagPole : masque d'entree, il ne risque
+        // pas de l'etre avec la texture des ecailles par le modele de base ni par un modele
+        // d'overlay de skin, qui ne rejoue pas setupAnim.
+        if (this.mainFlag != null) this.mainFlag.visible = false;
     }
 
     public static LayerDefinition createBodyLayer() {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
-
-        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 20.0F, 102.5f));
+        
+        PartDefinition ALL2 = partdefinition.addOrReplaceChild("ALL2", CubeListBuilder.create(), PartPose.offset(0.0F, 20.0F, 102.5F));
 
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, -49.0F));
 
@@ -132,6 +135,7 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
         PartDefinition cube_r11 = body_1.addOrReplaceChild("cube_r11", CubeListBuilder.create().texOffs(212, 82).addBox(0.0F, -2.4362F, -0.3504F, 0.0F, 7.0F, 16.0F, new CubeDeformation(0.01F)), PartPose.offsetAndRotation(5.1F, -4.0F, -3.7F, 0.641F, -0.2116F, -0.4646F));
 
         PartDefinition body_2 = body_1.addOrReplaceChild("body_2", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -4.0F, -1.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(-0.001F))
+                .texOffs(125, 0).addBox(-4.0F, -4.0F, -1.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.5F))
                 .texOffs(135, 138).addBox(0.0F, -10.0F, -1.0F, 0.0F, 6.0F, 15.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 16.0F));
 
         PartDefinition body_3 = body_2.addOrReplaceChild("body_3", CubeListBuilder.create().texOffs(0, 0).mirror().addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.0F)).mirror(false)
@@ -153,22 +157,98 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
                 .texOffs(135, 138).addBox(0.0F, -9.0F, 0.0F, 0.0F, 6.0F, 15.0F, new CubeDeformation(0.001F))
                 .texOffs(14, 171).addBox(-6.0F, 0.0F, 11.0F, 12.0F, 0.0F, 25.0F, new CubeDeformation(0.001F)), PartPose.offset(0.0F, 1.0F, 16.0F));
 
+        addFlagParts(body_2);
+
         return LayerDefinition.create(meshdefinition, 256, 256);
+    }
+
+    /**
+     * Greffe le porte-drapeau de tribu sur le dos du boa : la hampe ({@code mainFlag}) et sa toile
+     * ({@code flag}, quad d'epaisseur nulle de 11 x 19 px). Il est porte par {@code body_2}, le
+     * segment qui suit la selle.
+     *
+     * <p>A appeler depuis <b>chaque</b> definition de calque du boa, skins compris, pour que le
+     * drapeau suive l'entite quelle que soit son apparence. Ces os ne sont jamais dessines avec la
+     * texture du boa : {@link net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer} les
+     * affiche le temps de sa passe, avec la texture de hampe dediee.</p>
+     */
+    public static void addFlagParts(PartDefinition body_2) {
+        addFlagParts(body_2, 10.5F);
+    }
+
+    /**
+     * @param z position de la hampe le long du segment. Le modele de tete et celui des segments de
+     *          queue ne declarent pas leur boite body_2 au meme endroit (z = -1 contre z = 0) : la
+     *          queue demande donc 1 px de plus pour que la hampe tombe au meme point du maillage.
+     */
+    public static void addFlagParts(PartDefinition body_2, float z) {
+        PartDefinition mainFlag = body_2.addOrReplaceChild("mainFlag", CubeListBuilder.create().texOffs(186, 144).addBox(-0.5F, -18.75F, -0.5F, 1.0F, 20.0F, 1.0F, new CubeDeformation(0.0F))
+                .texOffs(191, 143).addBox(-0.5F, -18.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+                .texOffs(191, 143).addBox(-0.5F, -6.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+                .texOffs(178, 158).addBox(-1.0F, -3.725F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+                .texOffs(178, 158).addBox(-1.0F, 0.275F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+                .texOffs(171, 151).addBox(-1.0F, -2.725F, -1.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(-0.1F))
+                .texOffs(171, 143).addBox(-1.0F, -20.75F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(4.0F, -2.0F, z));
+
+        mainFlag.addOrReplaceChild("flag", CubeListBuilder.create().texOffs(206, 129).addBox(0.0F, -5.75F, 0.5F, 0.0F, 11.0F, 19.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, -12.0F, 0.0F));
+    }
+
+    // -- Drapeau de tribu (OWFlagModel) ------------------------------------------
+
+    @Override
+    public boolean hasTribeFlag() {
+        return this.mainFlag != null && this.flag != null;
+    }
+
+    @Override
+    public void renderTribeFlagPole(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay) {
+        if (!hasTribeFlag()) return;
+        poseStack.pushPose();
+        translateToFlagCarrier(poseStack);
+        // Visible le temps de ce seul appel : le reste du pipeline doit continuer a l'ignorer.
+        this.mainFlag.visible = true;
+        this.mainFlag.render(poseStack, buffer, packedLight, packedOverlay, 0xFFFFFFFF);
+        this.mainFlag.visible = false;
+        poseStack.popPose();
+    }
+
+    @Override
+    public void translateToTribeFlag(PoseStack poseStack) {
+        if (!hasTribeFlag()) return;
+        translateToFlagCarrier(poseStack);
+        this.mainFlag.translateAndRotate(poseStack);
+        this.flag.translateAndRotate(poseStack);
+    }
+
+    /**
+     * Chaine menant a {@code body_2}. Chez le boa les segments du corps descendent de {@code head}
+     * et non d'un tronc : la hampe suit donc toute l'ondulation du serpent devant elle.
+     */
+    private void translateToFlagCarrier(PoseStack poseStack) {
+        this.ALL2.translateAndRotate(poseStack);
+        this.ALL.translateAndRotate(poseStack);
+        this.head.translateAndRotate(poseStack);
+        this.body_0.translateAndRotate(poseStack);
+        this.body_1.translateAndRotate(poseStack);
+        this.body_2.translateAndRotate(poseStack);
+    }
+
+    @Override
+    public ResourceLocation tribeFlagPoleTexture() {
+        return FLAG_POLE_TEXTURE;
+    }
+
+    @Override
+    public Anchor tribeFlagAnchor() {
+        return FLAG_ANCHOR;
     }
 
     @Override
     public void setupAnim(T boa, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-        // Copie d'Alex : la tete ne fait pas d'oscillation laterale custom. Elle
-        // suit le corps (yHeadRot gere par l'entite). Pas de balancement artificiel.
         this.head.yRot = 0f;
         this.head.xRot = 0f;
-
-        // body_0-6 sont normalement rendus comme des entites BoaTailPart separees
-        // (queue multipart dans le monde) -> caches sur le modele de la tete.
-        // EXCEPTION GUI : dans les ecrans (inventaire / preview cosmetiques) ces entites
-        // n'existent pas, donc on affiche le corps complet ici (cf. RENDER_FULL_BODY).
 
         if (boa.isCombo(1) || (boa.attack1Combo.isStarted() && !boa.isCombo())) {
             this.animate(boa.attack1Combo, BoaAnimations.ATTACK_STRIKE, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
@@ -206,15 +286,8 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
         if (showBody) applyGuiBodyPose();
     }
 
-    /**
-     * Pose statique du corps pour l'affichage en GUI (preview) : legere ondulation
-     * horizontale le long des segments + recentrage du corps dans le cadre. Appliquee
-     * APRES l'animation pour ne pas etre ecrasee. Sans effet en jeu (showBody=false).
-     */
     private void applyGuiBodyPose() {
-        // Recentre le long corps dans l'apercu (sinon la queue deborde du cadre).
         this.ALL2.z -= GUI_BODY_BACK_OFFSET;
-        // Ondulation : yaw local croissant le long du corps -> vague qui se propage.
         this.body_0.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 0f);
         this.body_1.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 1f);
         this.body_2.yRot = GUI_WAVE_AMP * (float) Math.sin(GUI_WAVE_STEP * 2f);
@@ -234,11 +307,6 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> {
         return this.ALL2;
     }
 
-    /**
-     * Copie la pose résolue (translation + rotation + échelle) de chaque os depuis un autre
-     * BoaModel déjà animé (le modèle de base). Utilisé par les skins en mode OVERLAY pour
-     * que le modèle d'overlay suive parfaitement la base sans désynchronisation ni z-fighting.
-     */
     public void copyPoseFrom(BoaModel<?> src) {
         this.ALL2.copyFrom(src.ALL2);
         this.ALL.copyFrom(src.ALL);

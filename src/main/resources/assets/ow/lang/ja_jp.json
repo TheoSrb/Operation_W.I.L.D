@@ -142,6 +142,8 @@
   "option.passive.desc": "受動と攻撃的を切り替える",
   "option.autoPickup": "自動回収",
   "option.autoPickup.desc": "近くのアイテムを自動的に拾う",
+  "option.tribeFlag": "部族の旗",
+  "option.tribeFlag.desc": "エンティティの背中に部族のバナーを掲げます。",
   "option.sit": "お座り / 立つ",
   "option.sit.desc": "エンティティにお座りまたは立つよう命じる",
   "option.mode.prefix": "モード：",

@@ -10,6 +10,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Salmon;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.client.layer.KodiakLayer;
+import net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer;
 import net.tiew.operationWild.entity.client.layer.skins.KodiakSkinRenderLayer;
 import net.tiew.operationWild.entity.client.model.KodiakModel;
 import net.tiew.operationWild.entity.client.skin.KodiakSkin;
@@ -28,6 +29,8 @@ public class KodiakRenderer extends OWEntityRenderer<KodiakEntity, KodiakModel<K
         this.context = context;
         this.addLayer(new KodiakLayer(this));
         this.addLayer(new KodiakSkinRenderLayer(this, context));
+        // En dernier : le drapeau porte la banniere de tribu par-dessus le skin actif.
+        this.addLayer(new OWTribeFlagLayer<>(this));
     }
 
     @Override

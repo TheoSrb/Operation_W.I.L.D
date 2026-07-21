@@ -1049,11 +1049,47 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                 by += part.bodyBulge * 4.0 * s;
             }
 
+            if (this.level().isClientSide()) {
+                Vec3 smoothed = smoothSeatClient(new Vec3(bx, by, bz));
+                bx = smoothed.x;
+                by = smoothed.y;
+                bz = smoothed.z;
+            }
+
             callback.accept(passenger, bx, by, bz);
         } else {
             double yawR = Math.toRadians(this.getYRot());
             callback.accept(passenger, this.getX() + Math.sin(yawR) * BACK, this.getY() + yOffset, this.getZ() - Math.cos(yawR) * BACK);
         }
+    }
+
+    // --- Lissage client du siege ---
+    // Le siege est accroche au 2e segment de queue, dont la position est calculee UNIQUEMENT cote
+    // serveur (cf. tick()) puis repliquee : cote client il avance par paliers d'interpolation
+    // reseau, avec deux a quatre ticks de retard. La tete, elle, est predite localement des que le
+    // joueur la pilote — donc parfaitement fluide. Assis sur le segment, le cavalier se faisait
+    // donc tirer par une position saccadee pendant que sa monture avancait en continu.
+    //
+    // On ne corrige que l'affichage : au lieu de suivre le segment en absolu, on suit la TETE
+    // (fluide) en lui ajoutant le vecteur tete -> siege, lisse. Ce vecteur ne decrit que la forme
+    // du corps, qui ne varie qu'a la vitesse ou le boa tourne : le filtrer supprime le tremblement
+    // reseau sans introduire de retard sur le deplacement lui-meme. Le serveur, lui, garde le
+    // calcul exact.
+    /** Fraction de rattrapage par tick du vecteur tete -> siege. */
+    private static final double SEAT_FOLLOW = 0.4D;
+    /** Au-dela de cet ecart (en blocs au carre), on recale sec : teleportation, changement de monde. */
+    private static final double SEAT_SNAP_DIST_SQR = 9.0D;
+
+    private Vec3 seatOffset = null;
+
+    private Vec3 smoothSeatClient(Vec3 rawSeat) {
+        Vec3 offset = rawSeat.subtract(this.position());
+        if (this.seatOffset == null || offset.distanceToSqr(this.seatOffset) > SEAT_SNAP_DIST_SQR) {
+            this.seatOffset = offset;
+        } else {
+            this.seatOffset = this.seatOffset.add(offset.subtract(this.seatOffset).scale(SEAT_FOLLOW));
+        }
+        return this.position().add(this.seatOffset);
     }
 
     private void setGrabHold(Vec3 p) {

@@ -142,6 +142,8 @@
   "option.passive.desc": "Toggle between passive and aggressive",
   "option.autoPickup": "Auto Pickup",
   "option.autoPickup.desc": "Automatically pick up nearby items",
+  "option.tribeFlag": "Tribe Flag",
+  "option.tribeFlag.desc": "Carry your tribe's banner on the entity's back.",
   "option.sit": "Sit / Stand",
   "option.sit.desc": "Order your entity to sit or stand",
   "option.mode.prefix": "Mode: ",

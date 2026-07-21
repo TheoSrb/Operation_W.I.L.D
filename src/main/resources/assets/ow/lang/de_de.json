@@ -142,6 +142,8 @@
   "option.passive.desc": "Zwischen passiv und aggressiv wechseln",
   "option.autoPickup": "Auto-Aufsammeln",
   "option.autoPickup.desc": "Nahe Gegenstände automatisch aufsammeln",
+  "option.tribeFlag": "Stammesflagge",
+  "option.tribeFlag.desc": "Das Banner deines Stammes auf dem Rücken der Kreatur tragen.",
   "option.sit": "Sitzen / Aufstehen",
   "option.sit.desc": "Befehle deinem Wesen, sich zu setzen oder aufzustehen",
   "option.mode.prefix": "Modus: ",

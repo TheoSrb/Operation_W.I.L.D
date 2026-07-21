@@ -21,8 +21,18 @@ import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.client.animation.CrocodileAnimations;
 
-public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel<T> {
+public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel<T> implements OWFlagModel {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "crocodile_default"), "main");
+
+	/** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
+	private static final ResourceLocation FLAG_POLE_TEXTURE =
+			ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/crocodile_flag.png");
+
+	/**
+	 * Rectangle de la toile dans l'espace local de l'os {@code flag}, en pixels modele.
+	 * Recopie la boite declaree par {@code addFlagParts} : Y dans [-5.75, 5.25], Z dans [0.5, 19.5].
+	 */
+	private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
 
 	private float prevLimbSwing = 0f;
 
@@ -41,13 +51,15 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 	private final ModelPart tail1;
 	private final ModelPart tail2;
 	private final ModelPart tail3;
-
-	/** Force l'affichage de la queue du modèle (GUI : inventaire, cosmétiques, amulette/rituel). */
-	public static boolean RENDER_FULL_BODY = false;
+	/** Nuls sur les definitions de skin qui ne declarent pas le porte-drapeau. */
+	private final ModelPart mainFlag;
+	private final ModelPart flag;
 	private final ModelPart left_arm;
 	private final ModelPart left_leg;
 	private final ModelPart right_leg;
 	private final ModelPart right_arm;
+
+	public static boolean RENDER_FULL_BODY = false;
 
 	public CrocodileModel(ModelPart root) {
 		this.ALL2 = root.getChild("ALL2");
@@ -63,10 +75,17 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		this.tail1 = this.body.getChild("tail1");
 		this.tail2 = this.tail1.getChild("tail2");
 		this.tail3 = this.tail2.getChild("tail3");
+		this.mainFlag = this.body.hasChild("mainFlag") ? this.body.getChild("mainFlag") : null;
+		this.flag = this.mainFlag != null ? this.mainFlag.getChild("flag") : null;
 		this.left_arm = this.ALL.getChild("left_arm");
 		this.left_leg = this.ALL.getChild("left_leg");
 		this.right_leg = this.ALL.getChild("right_leg");
 		this.right_arm = this.ALL.getChild("right_arm");
+
+		// Le porte-drapeau n'est dessine que par renderTribeFlagPole : masque d'entree, il ne risque
+		// pas de l'etre avec la texture de la peau (ou ses UV tombent sur les ecailles) par le modele
+		// de base ni par un modele d'overlay de skin, qui ne rejoue pas setupAnim.
+		if (this.mainFlag != null) this.mainFlag.visible = false;
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -132,6 +151,8 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 		PartDefinition tail3 = tail2.addOrReplaceChild("tail3", CubeListBuilder.create().texOffs(153, 32).addBox(0.0F, -6.0F, 0.0F, 0.0F, 9.0F, 22.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, 2.0F, 20.0F));
 
+		addFlagParts(body);
+
 		PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(86, 23).addBox(-2.5F, -2.0F, -3.0F, 5.0F, 7.0F, 6.0F, new CubeDeformation(0.0F))
 				.texOffs(114, 83).addBox(-2.5F, 4.9F, -7.0F, 8.0F, 0.0F, 10.0F, new CubeDeformation(0.05F)), PartPose.offset(9.0617F, 4.5453F, -4.0F));
 
@@ -145,6 +166,68 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 				.texOffs(86, 23).mirror().addBox(-2.5F, -2.0F, -3.0F, 5.0F, 7.0F, 6.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-8.9383F, 4.5453F, -4.0F));
 
 		return LayerDefinition.create(meshdefinition, 256, 256);
+	}
+
+	/**
+	 * Greffe le porte-drapeau de tribu sur le dos du crocodile : la hampe ({@code mainFlag}) et sa
+	 * toile ({@code flag}, quad d'epaisseur nulle de 11 x 19 px).
+	 *
+	 * <p>A appeler depuis <b>chaque</b> definition de calque du crocodile, skins compris, pour que
+	 * le drapeau suive l'entite quelle que soit son apparence. Ces os ne sont jamais dessines avec
+	 * la texture du crocodile : {@link net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer}
+	 * les affiche le temps de sa passe, avec la texture de hampe dediee.</p>
+	 */
+	public static void addFlagParts(PartDefinition body) {
+		PartDefinition mainFlag = body.addOrReplaceChild("mainFlag", CubeListBuilder.create().texOffs(229, 51).addBox(-0.5F, -18.75F, -0.5F, 1.0F, 20.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(234, 50).addBox(-0.5F, -18.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(234, 50).addBox(-0.5F, -6.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(221, 65).addBox(-1.0F, -3.725F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+				.texOffs(221, 65).addBox(-1.0F, 0.275F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+				.texOffs(214, 58).addBox(-1.0F, -2.725F, -1.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(-0.1F))
+				.texOffs(214, 50).addBox(-1.0F, -20.75F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(8.4383F, -3.5453F, 4.5F));
+
+		mainFlag.addOrReplaceChild("flag", CubeListBuilder.create().texOffs(218, 56).addBox(0.0F, -5.75F, 0.5F, 0.0F, 11.0F, 19.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, -12.0F, 0.0F));
+	}
+
+	// -- Drapeau de tribu (OWFlagModel) ------------------------------------------
+
+	@Override
+	public boolean hasTribeFlag() {
+		return this.mainFlag != null && this.flag != null;
+	}
+
+	@Override
+	public void renderTribeFlagPole(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay) {
+		if (!hasTribeFlag()) return;
+		poseStack.pushPose();
+		this.ALL2.translateAndRotate(poseStack);
+		this.ALL.translateAndRotate(poseStack);
+		this.body.translateAndRotate(poseStack);
+		// Visible le temps de ce seul appel : le reste du pipeline doit continuer a l'ignorer.
+		this.mainFlag.visible = true;
+		this.mainFlag.render(poseStack, buffer, packedLight, packedOverlay, 0xFFFFFFFF);
+		this.mainFlag.visible = false;
+		poseStack.popPose();
+	}
+
+	@Override
+	public void translateToTribeFlag(PoseStack poseStack) {
+		if (!hasTribeFlag()) return;
+		this.ALL2.translateAndRotate(poseStack);
+		this.ALL.translateAndRotate(poseStack);
+		this.body.translateAndRotate(poseStack);
+		this.mainFlag.translateAndRotate(poseStack);
+		this.flag.translateAndRotate(poseStack);
+	}
+
+	@Override
+	public ResourceLocation tribeFlagPoleTexture() {
+		return FLAG_POLE_TEXTURE;
+	}
+
+	@Override
+	public Anchor tribeFlagAnchor() {
+		return FLAG_ANCHOR;
 	}
 
 	@Override

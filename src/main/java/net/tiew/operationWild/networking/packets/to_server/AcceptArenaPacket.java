@@ -13,6 +13,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWArena;
+import net.tiew.operationWild.core.OWReputation;
+import net.tiew.operationWild.team.OWReputationData;
 import net.tiew.operationWild.team.OWTeam;
 import net.tiew.operationWild.team.OWTribeManager;
 import net.tiew.operationWild.team.OWTribesSavedData;
@@ -46,7 +48,11 @@ public record AcceptArenaPacket() implements CustomPacketPayload {
             if (team.isArenaAccepted()) return; // déjà accepté
             // Verdict du serveur : le client masque déjà l'onglet sans badge, mais c'est ici que la
             // règle est tenue.
-            if (!OWArena.arenaUnlocked(team.getReputation())) {
+            // Réputation recalculée ici : le champ porté par OWTeam est transitoire et n'est
+            // renseigné qu'à la réception du paquet de synchronisation, donc côté client
+            // uniquement — il vaut toujours 0 sur le serveur.
+            int reputation = OWReputation.compute(OWReputationData.get(server), team);
+            if (!OWArena.arenaUnlocked(reputation)) {
                 sp.sendSystemMessage(Component.translatable("owteams.arena.locked.chat",
                                 Component.translatable(OWArena.ARENA_MIN_BADGE.translationKey()))
                         .setStyle(Style.EMPTY.withColor(0xE8956A)));

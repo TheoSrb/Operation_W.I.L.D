@@ -102,6 +102,12 @@ public class OWOptionsScreen extends Screen {
                     entity::isAutoPickup,
                     () -> OWNetworkHandler.sendToServer(new OWEntityTogglePacket("autoPickup"))
             ));
+            scrollPanel.add(toggle(
+                    Component.translatable("option.tribeFlag"),
+                    Component.translatable("option.tribeFlag.desc"),
+                    entity::isShowTribeFlag,
+                    () -> OWNetworkHandler.sendToServer(new OWEntityTogglePacket("tribeFlag"))
+            ));
         }
 
         if (entity instanceof IOWWaypointEntity) {

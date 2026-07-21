@@ -142,6 +142,8 @@
   "option.passive.desc": "Переключение между пассивным и агрессивным",
   "option.autoPickup": "Автоподбор",
   "option.autoPickup.desc": "Автоматически подбирать предметы поблизости",
+  "option.tribeFlag": "Флаг племени",
+  "option.tribeFlag.desc": "Носить знамя вашего племени на спине существа.",
   "option.sit": "Сесть / Встать",
   "option.sit.desc": "Приказать существу сесть или встать",
   "option.mode.prefix": "Режим: ",

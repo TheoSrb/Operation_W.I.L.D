@@ -25,17 +25,27 @@ import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
-public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
+public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> implements OWFlagModel {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kodiak_default"), "main");
 
-    public final ModelPart ALL2;
-    public final ModelPart ALL;
+    /** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
+    private static final ResourceLocation FLAG_POLE_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_flag.png");
+
+    /**
+     * Rectangle de la toile dans l'espace local de l'os {@code flag}, en pixels modele.
+     * Recopie la boite declaree par {@code createBodyLayer} : Y dans [-5.75, 5.25], Z dans [0.5, 19.5].
+     */
+    private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
+
+    private final ModelPart ALL2;
+    private final ModelPart ALL;
     private final ModelPart right_leg;
     private final ModelPart left_leg;
-    public final ModelPart body;
-    public final ModelPart body_2;
-    public final ModelPart body_1;
-    public final ModelPart head;
+    private final ModelPart body;
+    private final ModelPart body_2;
+    private final ModelPart body_1;
+    private final ModelPart head;
     private final ModelPart left_ear;
     private final ModelPart right_ear;
     private final ModelPart left_eyeBall;
@@ -43,6 +53,9 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
     private final ModelPart muzzle;
     private final ModelPart left_arm;
     private final ModelPart right_arm;
+    /** Nuls sur les definitions de skin qui ne declarent pas le porte-drapeau. */
+    private final ModelPart mainFlag;
+    private final ModelPart flag;
 
     private KodiakEntity currentEntity;
 
@@ -62,6 +75,56 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
         this.muzzle = this.head.getChild("muzzle");
         this.left_arm = this.body_1.getChild("left_arm");
         this.right_arm = this.body_1.getChild("right_arm");
+        this.mainFlag = this.body_2.hasChild("mainFlag") ? this.body_2.getChild("mainFlag") : null;
+        this.flag = this.mainFlag != null ? this.mainFlag.getChild("flag") : null;
+
+        // Le porte-drapeau n'est dessine que par renderTribeFlagPole : masque d'entree, il ne risque
+        // pas de l'etre avec la texture du pelage (ou ses UV tombent sur la fourrure) par le modele
+        // de base ni par un modele d'overlay de skin, qui ne rejoue pas setupAnim.
+        if (this.mainFlag != null) this.mainFlag.visible = false;
+    }
+
+    // -- Drapeau de tribu (OWFlagModel) ------------------------------------------
+
+    @Override
+    public boolean hasTribeFlag() {
+        return this.mainFlag != null && this.flag != null;
+    }
+
+    @Override
+    public void renderTribeFlagPole(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay) {
+        if (!hasTribeFlag()) return;
+        poseStack.pushPose();
+        this.ALL2.translateAndRotate(poseStack);
+        this.ALL.translateAndRotate(poseStack);
+        this.body.translateAndRotate(poseStack);
+        this.body_2.translateAndRotate(poseStack);
+        // Visible le temps de ce seul appel : le reste du pipeline doit continuer a l'ignorer.
+        this.mainFlag.visible = true;
+        this.mainFlag.render(poseStack, buffer, packedLight, packedOverlay, 0xFFFFFFFF);
+        this.mainFlag.visible = false;
+        poseStack.popPose();
+    }
+
+    @Override
+    public void translateToTribeFlag(PoseStack poseStack) {
+        if (!hasTribeFlag()) return;
+        this.ALL2.translateAndRotate(poseStack);
+        this.ALL.translateAndRotate(poseStack);
+        this.body.translateAndRotate(poseStack);
+        this.body_2.translateAndRotate(poseStack);
+        this.mainFlag.translateAndRotate(poseStack);
+        this.flag.translateAndRotate(poseStack);
+    }
+
+    @Override
+    public ResourceLocation tribeFlagPoleTexture() {
+        return FLAG_POLE_TEXTURE;
+    }
+
+    @Override
+    public Anchor tribeFlagAnchor() {
+        return FLAG_ANCHOR;
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -111,10 +174,10 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
         PartDefinition head = body_1.addOrReplaceChild("head", CubeListBuilder.create().texOffs(64, 39).addBox(-6.0F, -5.0F, -12.0F, 12.0F, 12.0F, 12.0F, new CubeDeformation(0.0F))
                 .texOffs(208, 0).addBox(-6.0F, -5.0F, -12.0F, 12.0F, 12.0F, 12.0F, new CubeDeformation(0.1F))
-                .texOffs(230, 243).addBox(-6.0F, -5.0F, -1.0F, 12.0F, 12.0F, 1.0F, new CubeDeformation(0.5F))
-                .texOffs(232, 224).addBox(6.0F, -5.0F, -1.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F))
-                .texOffs(231, 198).addBox(-6.0F, -17.0F, -0.5F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F))
-                .texOffs(232, 224).mirror().addBox(-18.0F, -5.0F, -1.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false)
+                .texOffs(219, 198).addBox(-6.0F, -5.0F, -1.0F, 12.0F, 12.0F, 1.0F, new CubeDeformation(0.5F))
+                .texOffs(210, 150).addBox(6.0F, -5.0F, -1.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F))
+                .texOffs(214, 168).addBox(-6.0F, -17.0F, -0.5F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F))
+                .texOffs(210, 150).mirror().addBox(-18.0F, -5.0F, -1.0F, 12.0F, 12.0F, 0.0F, new CubeDeformation(0.05F)).mirror(false)
                 .texOffs(69, 202).addBox(-6.0F, -5.0F, -12.0F, 12.0F, 12.0F, 12.0F, new CubeDeformation(0.5F))
                 .texOffs(62, 126).addBox(-6.0F, -5.0F, -16.0F, 0.0F, 12.0F, 4.0F, new CubeDeformation(0.05F))
                 .texOffs(62, 126).mirror().addBox(6.0F, -5.0F, -16.0F, 0.0F, 12.0F, 4.0F, new CubeDeformation(0.05F)).mirror(false)
@@ -149,6 +212,16 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> {
 
         PartDefinition right_arm = body_1.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(68, 88).mirror().addBox(-3.5F, 0.0F, -3.5F, 7.0F, 10.0F, 7.0F, new CubeDeformation(0.0F)).mirror(false)
                 .texOffs(228, 0).mirror().addBox(-3.5F, 0.0F, -3.5F, 7.0F, 10.0F, 7.0F, new CubeDeformation(0.1F)).mirror(false), PartPose.offset(-4.5F, 8.0F, -10.5F));
+
+        PartDefinition mainFlag = body_2.addOrReplaceChild("mainFlag", CubeListBuilder.create().texOffs(236, 227).addBox(-0.5F, -18.75F, -0.5F, 1.0F, 20.0F, 1.0F, new CubeDeformation(0.0F))
+                .texOffs(241, 226).addBox(-0.5F, -18.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+                .texOffs(241, 226).addBox(-0.5F, -6.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+                .texOffs(228, 241).addBox(-1.0F, -3.725F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+                .texOffs(228, 241).addBox(-1.0F, 0.275F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+                .texOffs(221, 234).addBox(-1.0F, -2.725F, -1.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(-0.1F))
+                .texOffs(221, 226).addBox(-1.0F, -20.75F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(11.5F, -13.0F, 2.5F));
+
+        PartDefinition flag = mainFlag.addOrReplaceChild("flag", CubeListBuilder.create().texOffs(218, 189).addBox(0.0F, -5.75F, 0.5F, 0.0F, 11.0F, 19.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, -12.0F, 0.0F));
 
         return LayerDefinition.create(meshdefinition, 256, 256);
     }

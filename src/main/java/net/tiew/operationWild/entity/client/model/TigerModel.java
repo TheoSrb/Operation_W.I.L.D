@@ -30,9 +30,19 @@ import net.tiew.operationWild.entity.client.model.skin.TigerModelSkins;
 import net.tiew.operationWild.entity.client.render.TigerRenderer;
 import net.tiew.operationWild.entity.variants.TigerVariant;
 
-public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
+public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> implements OWFlagModel {
 
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "tiger_default"), "main");
+
+	/** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
+	private static final ResourceLocation FLAG_POLE_TEXTURE =
+			ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/tiger/tiger_flag.png");
+
+	/**
+	 * Rectangle de la toile dans l'espace local de l'os {@code flag}, en pixels modèle.
+	 * Recopie la boîte déclarée par {@code createBodyLayer} : Y ∈ [-5.75, 5.25], Z ∈ [0.5, 19.5].
+	 */
+	private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
 
 	// Tracks the limbSwing value from the previous frame to detect animation crossings.
 	private float prevLimbSwing = 0f;
@@ -48,6 +58,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 	private final ModelPart tail;
 	private final ModelPart front_tail;
 	private final ModelPart back_tail;
+	/** Nuls sur les définitions de skin qui ne déclarent pas le porte-drapeau. */
 	private final ModelPart mainFlag;
 	private final ModelPart flag;
 	private final ModelPart left_arm;
@@ -67,12 +78,17 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		this.tail = this.body.getChild("tail");
 		this.front_tail = this.tail.getChild("front_tail");
 		this.back_tail = this.front_tail.getChild("back_tail");
-		this.mainFlag = this.body.getChild("mainFlag");
-		this.flag = this.mainFlag.getChild("flag");
+		this.mainFlag = this.body.hasChild("mainFlag") ? this.body.getChild("mainFlag") : null;
+		this.flag = this.mainFlag != null ? this.mainFlag.getChild("flag") : null;
 		this.left_arm = this.ALL.getChild("left_arm");
 		this.left_leg = this.ALL.getChild("left_leg");
 		this.right_leg = this.ALL.getChild("right_leg");
 		this.right_arm = this.ALL.getChild("right_arm");
+
+		// Le porte-drapeau n'est dessiné que par renderTribeFlagPole : masqué d'entrée, il ne risque
+		// pas de l'être avec la texture du pelage (où ses UV tombent sur des rayures) par le modèle
+		// de base ni par un modèle d'overlay de skin, qui ne rejoue pas setupAnim.
+		if (this.mainFlag != null) this.mainFlag.visible = false;
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -117,15 +133,7 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 
 		PartDefinition back_tail = front_tail.addOrReplaceChild("back_tail", CubeListBuilder.create().texOffs(68, 0).addBox(-2.0F, -1.5F, 0.0F, 3.0F, 3.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 10.0F));
 
-		PartDefinition mainFlag = body.addOrReplaceChild("mainFlag", CubeListBuilder.create().texOffs(15, 1).addBox(-0.5F, -18.75F, -0.5F, 1.0F, 20.0F, 1.0F, new CubeDeformation(0.0F))
-				.texOffs(20, 0).addBox(-0.5F, -18.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
-				.texOffs(20, 0).addBox(-0.5F, -6.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
-				.texOffs(7, 15).addBox(-1.0F, -3.725F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
-				.texOffs(7, 15).addBox(-1.0F, 0.275F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
-				.texOffs(0, 8).addBox(-1.0F, -2.725F, -1.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(-0.1F))
-				.texOffs(0, 0).addBox(-1.0F, -20.75F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(5.5F, -4.0F, 5.5F));
-
-		PartDefinition flag = mainFlag.addOrReplaceChild("flag", CubeListBuilder.create().texOffs(0, 98).addBox(0.0F, -5.75F, 0.5F, 0.0F, 11.0F, 19.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, -12.0F, 0.0F));
+		addFlagParts(body);
 
 		PartDefinition left_arm = ALL.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(34, 36).addBox(-2.5F, -1.0F, -2.5F, 4.0F, 17.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(4.5F, 0.0F, -5.5F));
 
@@ -136,6 +144,68 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> {
 		PartDefinition right_arm = ALL.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(34, 36).mirror().addBox(-1.5F, -1.0F, -2.5F, 4.0F, 17.0F, 5.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-4.5F, 0.0F, -5.5F));
 
 		return LayerDefinition.create(meshdefinition, 128, 128);
+	}
+
+	/**
+	 * Greffe le porte-drapeau de tribu sur le dos du tigre : la hampe ({@code mainFlag}) et sa
+	 * toile ({@code flag}, quad d'épaisseur nulle de 11 × 19 px).
+	 *
+	 * <p>À appeler depuis <b>chaque</b> définition de calque du tigre, skins compris, pour que le
+	 * drapeau suive l'entité quelle que soit son apparence. Ces os ne sont jamais dessinés avec la
+	 * texture du tigre : {@link net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer} les
+	 * affiche le temps de sa passe, avec la texture de hampe dédiée.</p>
+	 */
+	public static void addFlagParts(PartDefinition body) {
+		PartDefinition mainFlag = body.addOrReplaceChild("mainFlag", CubeListBuilder.create().texOffs(15, 1).addBox(-0.5F, -18.75F, -0.5F, 1.0F, 20.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(20, 0).addBox(-0.5F, -18.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(20, 0).addBox(-0.5F, -6.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
+				.texOffs(7, 15).addBox(-1.0F, -3.725F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+				.texOffs(7, 15).addBox(-1.0F, 0.275F, -1.0F, 2.0F, 1.0F, 2.0F, new CubeDeformation(0.1F))
+				.texOffs(0, 8).addBox(-1.0F, -2.725F, -1.0F, 2.0F, 4.0F, 2.0F, new CubeDeformation(-0.1F))
+				.texOffs(0, 0).addBox(-1.0F, -20.75F, -1.0F, 2.0F, 2.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(5.5F, -4.0F, 5.5F));
+
+		mainFlag.addOrReplaceChild("flag", CubeListBuilder.create().texOffs(0, 98).addBox(0.0F, -5.75F, 0.5F, 0.0F, 11.0F, 19.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, -12.0F, 0.0F));
+	}
+
+	// ── Drapeau de tribu (OWFlagModel) ───────────────────────────────────────────
+
+	@Override
+	public boolean hasTribeFlag() {
+		return this.mainFlag != null && this.flag != null;
+	}
+
+	@Override
+	public void renderTribeFlagPole(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay) {
+		if (!hasTribeFlag()) return;
+		poseStack.pushPose();
+		this.ALL2.translateAndRotate(poseStack);
+		this.ALL.translateAndRotate(poseStack);
+		this.body.translateAndRotate(poseStack);
+		// Visible le temps de ce seul appel : le reste du pipeline doit continuer à l'ignorer.
+		this.mainFlag.visible = true;
+		this.mainFlag.render(poseStack, buffer, packedLight, packedOverlay, 0xFFFFFFFF);
+		this.mainFlag.visible = false;
+		poseStack.popPose();
+	}
+
+	@Override
+	public void translateToTribeFlag(PoseStack poseStack) {
+		if (!hasTribeFlag()) return;
+		this.ALL2.translateAndRotate(poseStack);
+		this.ALL.translateAndRotate(poseStack);
+		this.body.translateAndRotate(poseStack);
+		this.mainFlag.translateAndRotate(poseStack);
+		this.flag.translateAndRotate(poseStack);
+	}
+
+	@Override
+	public ResourceLocation tribeFlagPoleTexture() {
+		return FLAG_POLE_TEXTURE;
+	}
+
+	@Override
+	public Anchor tribeFlagAnchor() {
+		return FLAG_ANCHOR;
 	}
 
 	@Override

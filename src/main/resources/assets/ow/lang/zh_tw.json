@@ -142,6 +142,8 @@
   "option.passive.desc": "在被動與主動之間切換",
   "option.autoPickup": "自動拾取",
   "option.autoPickup.desc": "自動拾取附近的物品",
+  "option.tribeFlag": "部落旗幟",
+  "option.tribeFlag.desc": "讓實體背負你所在部落的旗幟。",
   "option.sit": "坐下 / 起立",
   "option.sit.desc": "命令你的實體坐下或起立",
   "option.mode.prefix": "模式：",

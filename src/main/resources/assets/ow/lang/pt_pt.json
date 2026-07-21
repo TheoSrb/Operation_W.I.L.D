@@ -142,6 +142,8 @@
   "option.passive.desc": "Alternar entre passivo e agressivo",
   "option.autoPickup": "Coleta Automática",
   "option.autoPickup.desc": "Coletar automaticamente os itens próximos",
+  "option.tribeFlag": "Bandeira da tribo",
+  "option.tribeFlag.desc": "Levar o estandarte da tua tribo nas costas da entidade.",
   "option.sit": "Sentar / Levantar",
   "option.sit.desc": "Ordenar que sua entidade sente ou levante",
   "option.mode.prefix": "Modo: ",

@@ -142,7 +142,25 @@
       "Bash(awk '/private static void tickFight/,/^    }$/' src/main/java/net/tiew/operationWild/team/OWArenaManager.java)",
       "Bash(grep -Ev \"^Note:|^$\")",
       "Bash(echo \"---EXIT $?---\")",
-      "Bash(grep -v \"//\")"
+      "Bash(grep -v \"//\")",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && find ~/.gradle/caches/modules-2 -name \"*neoforge*sources*.jar\" 2>/dev/null | head -3; ls ~/.gradle/caches/ 2>/dev/null | head; find / -name \"ModelPart.java\" -path \"*client*\" 2>/dev/null | head -3)",
+      "Bash(unzip -p neoforge-21.0.167-sources.jar net/minecraft/client/model/geom/ModelPart.java)",
+      "Bash(unzip -l 'C:\\\\Users\\\\Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar')",
+      "Bash(unzip -p 'C:\\\\Users\\\\Tiew_37/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/21.0.167/c20958a7542e558e663479dc2afdf198ed6befec/neoforge-21.0.167-sources.jar' net/neoforged/neoforge/client/model/pipeline/VertexConsumerWrapper.java)",
+      "Bash(find 'C:\\\\Users\\\\Tiew_37/.gradle/caches' -maxdepth 6 -name *minecraft*sources*.jar)",
+      "Bash(find 'C:\\\\Users\\\\Tiew_37/.gradle/caches/neoformruntime' -name *sources*.jar)",
+      "Bash(unzip -p 'C:\\\\Users\\\\Tiew_37/.gradle/caches/neoformruntime/intermediate_results/sourcesAndCompiledWithNeoForge_149d19124062f7a1aca1960a04317267fc0094a6_output.jar' net/minecraft/client/model/geom/ModelPart.java)",
+      "Bash(unzip -p 'C:\\\\Users\\\\Tiew_37/.gradle/caches/neoformruntime/intermediate_results/sourcesAndCompiledWithNeoForge_149d19124062f7a1aca1960a04317267fc0094a6_output.jar' com/mojang/blaze3d/vertex/VertexConsumer.java)",
+      "PowerShell(./gradlew.bat compileJava --console=plain -q 2>&1)",
+      "PowerShell(./gradlew.bat compileJava --console=plain 2>&1)",
+      "Bash(sed -n '/public BoaModel\\(ModelPart root\\)/,/^    }/p' src/main/java/net/tiew/operationWild/entity/client/model/BoaModel.java)",
+      "Bash(git log *)",
+      "Bash(grep -E \"^[0-9a-f]{7} |PartPose.offset\\\\\\(0.0F, 20.0F\")",
+      "Bash(git diff *)",
+      "Bash(grep -n \"PartPose.offset\\(.*\\)\\); *$\" src/main/java/net/tiew/operationWild/entity/client/model/BoaModel.java)",
+      "Bash(awk 'NR>=330 && NR<=505 && \\(/isClientSide/ || /public void tick\\\\\\(\\\\\\)/ || /aiStep/ || /customServerAiStep/\\)' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java)",
+      "Bash(awk -F: '$1>320 && $1<520')",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && grep -n \"OrcaSkins\" -A 8 src/main/java/net/tiew/operationWild/entity/client/skin/skins/../SkinRegistry.java 2>/dev/null | grep -i \"mode\\\\.\\\\|ModelLayer\\\\|new .*Skin\" | head; ls src/main/java/net/tiew/operationWild/entity/client/skin/skins/ | grep -i orca)"
     ]
   }
 }

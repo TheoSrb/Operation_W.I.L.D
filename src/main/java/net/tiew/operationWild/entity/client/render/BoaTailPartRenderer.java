@@ -11,6 +11,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Pose;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
 import net.tiew.operationWild.entity.client.layer.BoaLayer;
+import net.tiew.operationWild.entity.client.layer.BoaTailFlagLayer;
 import net.tiew.operationWild.entity.client.layer.BoaTailPartLayer;
 import net.tiew.operationWild.entity.client.model.BoaTailPartModel;
 import net.tiew.operationWild.entity.client.skin.SkinRegistry;
@@ -42,6 +43,9 @@ public class BoaTailPartRenderer extends LivingEntityRenderer<BoaTailPart, Entit
         models[6] = new BoaTailPartModel(ctx.bakeLayer(BoaTailPartModel.LAYER_TAIL3), "body_6");
 
         this.addLayer(new BoaTailPartLayer(this));
+        // La banniere de tribu est portee par un segment de queue, pas par la tete : c'est donc ici
+        // qu'elle se dessine. Le layer ne fait rien sur les segments qui ne declarent pas la hampe.
+        this.addLayer(new BoaTailFlagLayer(this));
     }
 
     @Override

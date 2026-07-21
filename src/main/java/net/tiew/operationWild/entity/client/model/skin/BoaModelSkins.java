@@ -5,6 +5,7 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.client.model.BoaModel;
 
 public class BoaModelSkins {
 
@@ -75,6 +76,10 @@ public class BoaModelSkins {
 
         PartDefinition body_2 = body_1.addOrReplaceChild("body_2", CubeListBuilder.create().texOffs(0, 0).addBox(-4.0F, -4.0F, -1.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(-0.001F))
                 .texOffs(135, 138).addBox(0.0F, -10.0F, -1.0F, 0.0F, 6.0F, 15.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 16.0F));
+
+        // Porte-drapeau de tribu : identique sur tous les skins, masque tant que l'entite
+        // n'est pas sellee et membre d'une tribu (cf. OWTribeFlagLayer).
+        BoaModel.addFlagParts(body_2);
 
         PartDefinition body_3 = body_2.addOrReplaceChild("body_3", CubeListBuilder.create().texOffs(0, 0).mirror().addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.0F)).mirror(false)
                 .texOffs(135, 138).addBox(0.0F, -10.0F, 0.0F, 0.0F, 6.0F, 15.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 15.0F));

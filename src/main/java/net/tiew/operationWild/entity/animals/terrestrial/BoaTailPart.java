@@ -83,6 +83,11 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.BOOLEAN);
     // Vrai si le Boa parent est selle, copie via copyDataFrom et synchronise. Permet au
     // layer de la queue d'afficher la selle sur chaque segment, comme la tete.
+    // Identifiant reseau du Boa parent. getParent() est volontairement serveur-only (resolution par
+    // UUID), or le rendu du drapeau de tribu a besoin du parent cote client : un simple entier
+    // synchronise suffit, level().getEntity(int) fonctionnant des deux cotes.
+    private static final EntityDataAccessor<Integer> PARENT_ID =
+            SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_SADDLED =
             SynchedEntityData.defineId(BoaTailPart.class, EntityDataSerializers.BOOLEAN);
 
@@ -333,6 +338,18 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         builder.define(COMBO_NUMBER, 0);
         builder.define(IS_CONSTRICTING, false);
         builder.define(IS_SADDLED, false);
+        builder.define(PARENT_ID, -1);
+    }
+
+    /**
+     * Le Boa parent, resolu des deux cotes — contrairement a {@link #getParent()}, qui passe par
+     * l'UUID et ne repond que sur le serveur. Utilise par le rendu du drapeau de tribu, qui doit
+     * lire la tribu et les options du parent depuis le client.
+     */
+    @Nullable
+    public Entity getParentForRender() {
+        int id = this.entityData.get(PARENT_ID);
+        return id == -1 ? null : this.level().getEntity(id);
     }
 
     /** Vrai si le Boa parent est selle, copie via copyDataFrom. */
@@ -434,6 +451,7 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
         this.entityData.set(COMBO_NUMBER, boa.isCombo() ? boa.getComboAttack() : 0);
         this.entityData.set(IS_CONSTRICTING, boa.isConstricting());
         this.entityData.set(IS_SADDLED, boa.isSaddled());
+        this.entityData.set(PARENT_ID, boa.getId());
     }
 
     /**

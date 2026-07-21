@@ -141,6 +141,8 @@
   "option.passive.desc": "Basculer entre mode passif et agressif",
   "option.autoPickup": "Ramassage Auto",
   "option.autoPickup.desc": "Ramasser automatiquement les objets proches",
+  "option.tribeFlag": "Drapeau de tribu",
+  "option.tribeFlag.desc": "Porter la bannière de votre tribu sur le dos de l'entité.",
   "option.sit": "S'asseoir / Se lever",
   "option.sit.desc": "Ordonner à l'entité de s'asseoir ou de se lever",
   "option.mode.prefix": "Mode : ",
