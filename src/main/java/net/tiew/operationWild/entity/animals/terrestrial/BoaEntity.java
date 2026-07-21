@@ -626,6 +626,10 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.entityData.set(VARIANT, v.getId() & 255);
     }
 
+    /** Variante naturelle exposée sous forme générique (cf. {@code OWEntity}). */
+    @Override
+    public int getInitialTypeVariant() { return this.getInitialVariant().getId(); }
+
     public BoaVariant getInitialVariant() {
         return BoaVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));
     }

@@ -105,6 +105,8 @@ public final class OWArena {
     public static final int ARENA_RADIUS = 64;
     /** Altitude de plain-pied de la dimension d'arène (surface du monde plat + 1). */
     public static final int ARENA_Y = 64;
+    /** Niveau du sol : on se tient sur le bloc juste au-dessus. Base de pose du décor livré. */
+    public static final int ARENA_FLOOR_Y = ARENA_Y - 1;
     /** Demi-écart entre les deux camps de départ. */
     public static final int ARENA_HALF_SPAN = 16;
     /** Recul du chef derrière sa ligne, pour qu'il observe sans être au contact. */

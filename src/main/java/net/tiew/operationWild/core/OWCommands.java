@@ -433,6 +433,37 @@ public class OWCommands {
         }
     }
 
+    // ── Admin : reposer le décor d'arène livré avec le mod ─────────────────────
+    /**
+     * Repose les pièces de structure de l'arène, même si le monde les a déjà.
+     *
+     * <p>Indispensable pour itérer : sans elle, il faudrait incrémenter la version du décor ou
+     * recréer un monde à chaque retouche de la construction.</p>
+     */
+    public static class RebuildArenaCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owarenarebuild")
+                    .requires(s -> s.hasPermission(2))
+                    .executes(RebuildArenaCommand::execute));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            CommandSourceStack source = context.getSource();
+            net.minecraft.server.level.ServerLevel arena = source.getServer()
+                    .getLevel(net.tiew.operationWild.worldgen.dimension.OWDimensions.ARENA);
+            if (arena == null) {
+                source.sendFailure(Component.literal("Dimension d'arène introuvable."));
+                return 0;
+            }
+            int placed = net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.rebuild(arena);
+            int total = net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.GRID
+                    * net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.GRID;
+            source.sendSuccess(() -> Component.literal(placed + " / " + total + " pièce(s) d'arène posée(s).")
+                    .setStyle(Style.EMPTY.withColor(placed > 0 ? 0x7ddd73 : 0xE8956A)), true);
+            return placed;
+        }
+    }
+
     // ── Debug : supprimer TOUTES les tribus du serveur ─────────────────────────
     public static class WipeTribesCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {

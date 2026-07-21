@@ -1512,6 +1512,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         changeSkin(skinIndex, false);
     }
 
+    /** Variante naturelle exposée sous forme générique (cf. {@code OWEntity}). */
+    @Override
+    public int getInitialTypeVariant() { return this.getInitialVariant().getId(); }
+
     public TigerVariant getInitialVariant() {
         return TigerVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));
     }

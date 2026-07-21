@@ -66,11 +66,21 @@ public interface IOWEntity {
     }
 
     /**
-     * Vrai si {@code potentialTarget} est le propriétaire de {@code owEntity} ou un animal apprivoisé
-     * appartenant au même propriétaire. Sert à empêcher un pet en mode Agressif de s'en prendre à son
-     * maître ou aux autres pets de son maître (cf. {@link #aggressiveTargetSelector}).
+     * Vrai si {@code potentialTarget} est un allié de {@code owEntity} : son propriétaire, un animal
+     * du même propriétaire, ou <b>n'importe quel membre de sa tribu</b> — joueur comme créature.
+     *
+     * <p>L'appartenance à une tribu vaut alliance. Sans cela, deux créatures de la même tribu mais
+     * de maîtres différents se battaient dès qu'elles se croisaient en mode Agressif : une tribu
+     * n'aurait pas pu tenir un camp commun.</p>
+     *
+     * <p>Sert de filtre aux goals offensifs (cf. {@link #aggressiveTargetSelector}) et à la
+     * riposte.</p>
      */
     default boolean isFriendlyToOwner(OWEntity owEntity, LivingEntity potentialTarget) {
+        if (potentialTarget == null) return false;
+        // Tribu, propriétaire partagé, segments de boa : la règle complète vit sur l'entité.
+        if (owEntity.isAlliedTo(potentialTarget)) return true;
+
         LivingEntity owner = owEntity.getOwner();
         if (owner == null) {
             return false;

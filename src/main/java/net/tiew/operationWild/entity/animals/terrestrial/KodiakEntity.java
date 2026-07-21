@@ -1292,6 +1292,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.entityData.set(VARIANT, variant.getId() & 255);
     }
 
+    /** Variante naturelle exposée sous forme générique (cf. {@code OWEntity}). */
+    @Override
+    public int getInitialTypeVariant() { return this.getInitialVariant().getId(); }
+
     public KodiakVariant getInitialVariant() {
         return KodiakVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));
     }

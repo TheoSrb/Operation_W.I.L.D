@@ -251,6 +251,8 @@ public final class OWArenaManager {
         // Les chunks sont aussi forcés pendant tout le combat, pour que les créatures continuent
         // de tourner même si un chef se déconnecte.
         forceArenaChunks(arena, match, ox, true);
+        // Décor livré avec le mod : posé à la première ouverture de duel, ignoré ensuite.
+        net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.ensureBuilt(arena);
 
         placeSide(server, arena, match, match.getTeamAId(), ox - OWArena.ARENA_HALF_SPAN, 90f);
         placeSide(server, arena, match, match.getTeamBId(), ox + OWArena.ARENA_HALF_SPAN, -90f);
@@ -871,10 +873,19 @@ public final class OWArenaManager {
         ServerLevel arena = server.getLevel(OWDimensions.ARENA);
         if (arena == null) return;
 
+        // Un bâtisseur en créatif (ou un spectateur) travaille sur le décor : on le laisse. Même
+        // échappatoire que pour la protection des blocs — le changement de mode de jeu vaut geste
+        // explicite. Sans cela, l'arène était strictement invisitable : le balayage renvoyait chez
+        // lui quiconque y arrivait, dans le tick suivant.
+        boolean builderPresent = false;
         for (ServerPlayer p : new ArrayList<>(arena.players())) {
+            if (p.isCreative() || p.isSpectator()) { builderPresent = true; continue; }
             if (matchOfPlayer(server, p) != null) continue;   // combat en cours : sa place est ici
             rescueStrandedPlayer(server, p);
         }
+        // Tant qu'on y travaille, rien n'est balayé : une créature amenée pour un essai de cadrage
+        // doit pouvoir rester, et les objets posés au sol aussi.
+        if (builderPresent) return;
 
         // Même invariant pour les créatures. On ne s'arrête surtout pas à « plus aucun joueur dans
         // l'arène » : c'est précisément le cas où des animaux oubliés y tourneraient en rond sans

@@ -88,6 +88,11 @@ public class TigerGhostRenderer {
         MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
 
         TigerRenderer.ghostAlpha = GHOST_ALPHA;
+        // Le fantôme est une projection de trajectoire, pas une créature : il ne doit pas porter
+        // d'étiquette. Sans cela, nom, niveau et barre de vie s'affichaient en double pendant la
+        // charge — la même bascule que celle utilisée pour le fantôme d'âme.
+        boolean prevSuppress = OWEntityRenderer.SUPPRESS_INFO_IN_GUI;
+        OWEntityRenderer.SUPPRESS_INFO_IN_GUI = true;
         try {
             mc.getEntityRenderDispatcher().render(
                     ghostEntity,
@@ -102,6 +107,7 @@ public class TigerGhostRenderer {
             );
         } finally {
             TigerRenderer.ghostAlpha = 0f;
+            OWEntityRenderer.SUPPRESS_INFO_IN_GUI = prevSuppress;
         }
     }
 }

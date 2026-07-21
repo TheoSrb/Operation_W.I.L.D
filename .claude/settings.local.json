@@ -162,7 +162,8 @@
       "Bash(awk -F: '$1>320 && $1<520')",
       "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && grep -n \"OrcaSkins\" -A 8 src/main/java/net/tiew/operationWild/entity/client/skin/skins/../SkinRegistry.java 2>/dev/null | grep -i \"mode\\\\.\\\\|ModelLayer\\\\|new .*Skin\" | head; ls src/main/java/net/tiew/operationWild/entity/client/skin/skins/ | grep -i orca)",
       "Bash(mkdir -p /dev/null)",
-      "Bash(cat)"
+      "Bash(cat)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\({k:d[k] for k in \\('min_y','height','logical_height'\\) if k in d}\\)\")"
     ]
   }
 }

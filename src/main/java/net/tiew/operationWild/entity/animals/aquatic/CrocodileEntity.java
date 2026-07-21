@@ -1390,6 +1390,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         changeSkin(skinIndex, false);
     }
 
+    /** Variante naturelle exposée sous forme générique (cf. {@code OWEntity}). */
+    @Override
+    public int getInitialTypeVariant() { return this.getInitialVariant().getId(); }
+
     public CrocodileVariant getInitialVariant() {
         return CrocodileVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));
     }

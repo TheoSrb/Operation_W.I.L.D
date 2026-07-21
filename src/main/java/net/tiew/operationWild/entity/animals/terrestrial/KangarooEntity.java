@@ -941,6 +941,10 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
+    /** Variante naturelle exposée sous forme générique (cf. {@code OWEntity}). */
+    @Override
+    public int getInitialTypeVariant() { return this.getInitialVariant().getId(); }
+
     public KangarooVariant getInitialVariant() {
         return KangarooVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));
     }

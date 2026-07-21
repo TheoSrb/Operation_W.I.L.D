@@ -21,7 +21,9 @@ import java.util.UUID;
  */
 public record OWArenaFighter(
         UUID entityUuid, UUID ownerUuid, String ownerName,
-        String entityTypeId, String name, int level, int archetypeOrdinal, int skinIndex, int typeVariant,
+        String entityTypeId, String name, int level, int archetypeOrdinal, int skinIndex,
+        /** Variante <b>naturelle</b> : le skin cosmétique se réapplique par-dessus, cf. OWEntity. */
+        int typeVariant,
         boolean male
 ) {
 
@@ -81,7 +83,7 @@ public record OWArenaFighter(
         return new OWArenaFighter(
                 entity.getUUID(), entity.getOwnerUUID(), ownerName != null ? ownerName : "",
                 typeId, name, entity.getLevel(),
-                archetypeOrdinal, entity.getSkinIndex(), entity.getTypeVariant(),
+                archetypeOrdinal, entity.getSkinIndex(), entity.getInitialTypeVariant(),
                 entity.isMale());
     }
 

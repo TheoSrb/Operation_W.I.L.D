@@ -291,7 +291,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         if (button == 0 && accepted()) {
             // Bouton de bascule Récompenses / Combat.
             int sx = switchX(), sy = switchY();
-            if (mx >= sx && mx < sx + SWITCH_W && my >= sy && my < sy + SWITCH_H) {
+            if (switchButtonVisible() && mx >= sx && mx < sx + SWITCH_W && my >= sy && my < sy + SWITCH_H) {
                 view = view == View.REWARDS ? View.COMBAT : View.REWARDS;
                 restartContentFade();
                 playTabSwitch();
@@ -396,6 +396,22 @@ public class OWTribeArenaScreen extends OWTribeScreen {
 
     private int switchX() { return leftPos + IMG_W - SWITCH_W - 4; }
     private int switchY() { return topPos + IMG_H - SWITCH_H - 4; }
+
+    /**
+     * Le bouton de bascule s'efface dès que la vue Combat pose ses propres boutons en bas d'écran.
+     *
+     * <p>Il occupe le coin bas-droit, exactement là où tombent « Refuser », « Annuler » et
+     * « Commencer » : il les chevauchait. Ces phases appellent une réponse — il n'y a rien à
+     * consulter ailleurs tant qu'elle n'est pas donnée. Aucun risque d'impasse : la vue repart
+     * toujours sur les récompenses à la réouverture de l'écran.</p>
+     */
+    private boolean switchButtonVisible() {
+        if (view != View.COMBAT) return true;
+        return switch (OWClientArenaState.phase()) {
+            case CHALLENGE_SENT, CHALLENGE_RECEIVED, SELECTION -> false;
+            case IDLE, FIGHTING, ENDED -> true;
+        };
+    }
 
     private int pendingChests() {
         OWTeam t = OWClientTribeData.get();
@@ -594,7 +610,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         if (view == View.REWARDS) renderRewards(g, t, mouseX, mouseY);
         else renderCombat(g, mouseX, mouseY);
 
-        renderSwitchButton(g, mouseX, mouseY);
+        if (switchButtonVisible()) renderSwitchButton(g, mouseX, mouseY);
         super.render(g, mouseX, mouseY, partial);
         if (!confirming) renderTribeTabs(g, mouseX, mouseY, Tab.ARENA);
 
@@ -607,7 +623,8 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         if (tip != null) { renderFighterTooltip(g, tip, mouseX, mouseY); return; }
 
         int sx = switchX(), sy = switchY();
-        if (mouseX >= sx && mouseX < sx + SWITCH_W && mouseY >= sy && mouseY < sy + SWITCH_H) {
+        if (switchButtonVisible() && mouseX >= sx && mouseX < sx + SWITCH_W
+                && mouseY >= sy && mouseY < sy + SWITCH_H) {
             g.renderTooltip(this.font, Component.translatable(view == View.REWARDS
                     ? "owteams.arena.switch.to_combat" : "owteams.arena.switch.to_rewards"), mouseX, mouseY);
         }

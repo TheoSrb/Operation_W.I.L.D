@@ -843,6 +843,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         changeSkin(skinIndex, false);
     }
 
+    /** Variante naturelle exposée sous forme générique (cf. {@code OWEntity}). */
+    @Override
+    public int getInitialTypeVariant() { return this.getInitialVariant().getId(); }
+
     public OrcaVariant getInitialVariant() {
         return OrcaVariant.byId(this.entityData.get(DATA_INITIAL_VARIANT));
     }

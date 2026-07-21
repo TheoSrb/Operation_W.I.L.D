@@ -92,6 +92,8 @@ import net.tiew.operationWild.entity.variants.*;
 import net.tiew.operationWild.networking.packets.to_client.*;
 import net.tiew.operationWild.screen.entity.OWChooseNameScreen;
 import net.tiew.operationWild.team.OWTeam;
+import net.tiew.operationWild.team.OWTribesSavedData;
+import java.util.UUID;
 import net.tiew.operationWild.team.OWTeamMosaicPattern;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
@@ -2176,6 +2178,41 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return speed;
     }
 
+    /**
+     * Variante <b>naturelle</b> de la créature (son pelage d'origine), indépendamment du skin
+     * cosmétique qu'elle porte.
+     *
+     * <p>{@link #getTypeVariant()} rend la variante <i>courante</i>, qui vaut la variante cosmétique
+     * dès qu'un skin est appliqué. Recréer une créature à partir de celle-ci donne une bête dont le
+     * corps est peint avec la texture de l'accessoire — c'est ce qu'il faut pour un skin de
+     * remplacement, et absolument pas pour un skin en surcouche, dont le corps doit garder son
+     * pelage. Les sous-classes qui distinguent les deux surchargent cette méthode.</p>
+     */
+    /**
+     * Tribu de cette créature, retrouvée depuis le registre si la référence en mémoire manque.
+     *
+     * <p>{@link #currentTeam} n'est <b>pas sérialisé</b> : il est posé par la synchronisation de
+     * tribu et repart à {@code null} à chaque rechargement de chunk, changement de dimension ou
+     * recréation d'entité. Une créature dont le maître est hors ligne pouvait ainsi rester sans
+     * tribu indéfiniment — et donc s'en prendre à ses propres alliés, faute de les reconnaître.</p>
+     *
+     * <p>Le repli interroge la source de vérité par l'UUID du maître, et <b>réamorce</b> le champ au
+     * passage : la recherche n'a lieu qu'une fois par créature. Côté client, où le registre n'existe
+     * pas, on s'en tient à ce qui a été répliqué.</p>
+     */
+    public OWTeam resolvedTeam() {
+        if (this.currentTeam != null) return this.currentTeam;
+        if (this.level().isClientSide() || this.getServer() == null) return null;
+        UUID owner = this.getOwnerUUID();
+        if (owner == null) return null;
+        this.currentTeam = OWTribesSavedData.get(this.getServer()).findTeamByMember(owner);
+        return this.currentTeam;
+    }
+
+    public int getInitialTypeVariant() {
+        return this.getTypeVariant();
+    }
+
     public void setVariant(OWEntity entity, int variant) {
         if (entity instanceof KodiakEntity kodiak) {
             kodiak.setVariant(KodiakVariant.byId(variant));
@@ -3783,13 +3820,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         // Alliance de tribu : deux entités d'une même tribu ne se ciblent/blessent pas...
-        if (this.currentTeam != null) {
-            if (entity instanceof OWEntity other && other.currentTeam != null
-                    && other.currentTeam.getTeamId() == this.currentTeam.getTeamId()) {
-                return true;
+        OWTeam myTeam = this.resolvedTeam();
+        if (myTeam != null) {
+            if (entity instanceof OWEntity other) {
+                OWTeam otherTeam = other.resolvedTeam();
+                if (otherTeam != null && otherTeam.getTeamId() == myTeam.getTeamId()) return true;
             }
             // ...et les membres joueurs de la tribu ne sont pas des cibles.
-            if (entity instanceof Player player && this.currentTeam.isMember(player.getUUID())) {
+            if (entity instanceof Player player && myTeam.isMember(player.getUUID())) {
                 return true;
             }
         }
