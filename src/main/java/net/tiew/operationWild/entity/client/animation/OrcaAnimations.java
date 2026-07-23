@@ -221,7 +221,7 @@ public class OrcaAnimations {
                         new Keyframe(0.2976F, KeyframeAnimations.degreeVec(-26.1311F, 25.3147F, 5.4018F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(0.4762F, KeyframeAnimations.degreeVec(-31.3922F, 18.0578F, -8.7447F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(0.7738F, KeyframeAnimations.degreeVec(17.9536F, -4.6732F, -39.7122F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(1.1309F, KeyframeAnimations.degreeVec(42.8608F, -8.8604F, -4.6547F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.1309F, KeyframeAnimations.degreeVec(12.8608F, -8.8604F, -4.6547F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(1.4286F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
                 ))
                 .addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.POSITION,
@@ -323,7 +323,7 @@ public class OrcaAnimations {
                         new Keyframe(0.2976F, KeyframeAnimations.degreeVec(-26.1311F, -25.3147F, -5.4018F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(0.4762F, KeyframeAnimations.degreeVec(-31.3922F, -18.0578F, 8.7447F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(0.7738F, KeyframeAnimations.degreeVec(17.9536F, 4.6732F, 39.7122F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(1.1309F, KeyframeAnimations.degreeVec(42.8608F, 8.8604F, 4.6547F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.1309F, KeyframeAnimations.degreeVec(12.8608F, 8.8604F, 4.6547F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(1.4286F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
                 ))
                 .addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.POSITION,
@@ -425,7 +425,7 @@ public class OrcaAnimations {
                         new Keyframe(0.2976F, KeyframeAnimations.degreeVec(-26.1311F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(0.4762F, KeyframeAnimations.degreeVec(-31.3922F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(0.7738F, KeyframeAnimations.degreeVec(17.9536F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(1.1309F, KeyframeAnimations.degreeVec(42.8608F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                        new Keyframe(1.1309F, KeyframeAnimations.degreeVec(2.8608F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(1.4286F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
                 ))
                 .addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.POSITION,

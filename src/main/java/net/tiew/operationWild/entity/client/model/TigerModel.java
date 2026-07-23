@@ -223,19 +223,34 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> impl
 		this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (!tiger.isGrabbing()) {
-			// Les coups sont EMPILES : les transformations s'ajoutent a la pose courante, donc la fin
-			// d'un coup et le debut du suivant se melangent d'eux-memes. Un {@code return} par branche
-			// n'en laissait jouer qu'un a la fois : le precedent restait fige sur sa derniere image,
-			// puis la pose sautait. La clause {@code !isCombo()} annulait par ailleurs le repli qui
-			// laisse une animation finir son geste.
-			if (tiger.isCombo(1) || tiger.attack1Combo.isStarted()) {
+			// Un coup a la fois PENDANT la chaine : chez le tigre, empiler les trois attaques et la
+			// course par-dessus donne un resultat brouillon.
+			if (tiger.isCombo(1)) {
 				this.animate(tiger.attack1Combo, TigerAnimations.ATTACK_STRIKE, ageInTicks, 0.925f * OWEntity.comboSpeedMultiplier);
+				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+				return;
 			}
-			if (tiger.isCombo(2) || tiger.attack2Combo.isStarted()) {
+			if (tiger.isCombo(2)) {
 				this.animate(tiger.attack2Combo, TigerAnimations.ATTACK_STRIKE_2, ageInTicks, 1.05f * OWEntity.comboSpeedMultiplier);
+				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+				return;
 			}
-			if (tiger.isCombo(3) || tiger.attack3Combo.isStarted()) {
+			if (tiger.isCombo(3)) {
 				this.animate(tiger.attack3Combo, TigerAnimations.ATTACK_STRIKE_3, ageInTicks, 1.15f * OWEntity.comboSpeedMultiplier);
+				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+				return;
+			}
+
+			// Chaine finie : le dernier geste s'acheve, mais SANS bloquer la suite — la course doit
+			// reprendre par-dessous. Avec un {@code return} ici, elle restait figee tout le temps de la
+			// queue, d'autant plus longtemps que les minuteurs couvrent maintenant l'animation entiere.
+			// On ne joue que la plus recente : les queues des trois coups se chevauchent.
+			if (tiger.attack3Combo.isStarted()) {
+				this.animate(tiger.attack3Combo, TigerAnimations.ATTACK_STRIKE_3, ageInTicks, 1.15f * OWEntity.comboSpeedMultiplier);
+			} else if (tiger.attack2Combo.isStarted()) {
+				this.animate(tiger.attack2Combo, TigerAnimations.ATTACK_STRIKE_2, ageInTicks, 1.05f * OWEntity.comboSpeedMultiplier);
+			} else if (tiger.attack1Combo.isStarted()) {
+				this.animate(tiger.attack1Combo, TigerAnimations.ATTACK_STRIKE, ageInTicks, 0.925f * OWEntity.comboSpeedMultiplier);
 			}
 		}
 

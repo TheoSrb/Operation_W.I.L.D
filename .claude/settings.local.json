@@ -174,7 +174,9 @@
       "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" *)",
       "Bash(awk 'f&&/^    }/{print NR\": \"$0; exit} /void finishQuest/{f=1} f' src/main/java/net/tiew/operationWild/entity/OWEntity.java)",
       "Bash(awk 'NR>=1198 && NR<=1360' src/main/java/net/tiew/operationWild/event/ClientEvents.java)",
-      "Bash(grep -n \"pushPose\\\\|^        if\\\\|^        } else\\\\|^        }$\")"
+      "Bash(grep -n \"pushPose\\\\|^        if\\\\|^        } else\\\\|^        }$\")",
+      "Read(//c/Users/Tiew_37/AppData/Local/Temp/tmp6bxvs6m7/**)",
+      "Bash(\"/c/Program Files/Java/jdk-25/bin/javap\" -p -classpath . net.minecraft.client.Camera)"
     ]
   }
 }

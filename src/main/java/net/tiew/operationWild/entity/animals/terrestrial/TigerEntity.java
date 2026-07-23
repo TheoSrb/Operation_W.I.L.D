@@ -503,7 +503,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
-        if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo() || (this.isLeaping && !isRidingJump));
+        // Yeux furieux tant que le cavalier attaque : pendant un combo, pendant la charge du bond,
+        // et pendant le bond lui-même.
+        if (this.isVehicle() && this.isTame() && !this.isSitting()) {
+            setMadByRider(this.isCombo() || this.isPreparing || (this.isLeaping && !isRidingJump));
+        }
 
         // ------------ FONCTIONNEMENT PROPRE ------------
 
@@ -1536,6 +1540,18 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     public void setMad(boolean isMad) {
         if (isMad) if (this.getCurrentMode() == Mode.Passive) return;
+        this.entityData.set(IS_MAD, isMad);
+    }
+
+    /**
+     * Colère déclenchée par le <b>cavalier</b>, qui ignore le mode passif.
+     *
+     * <p>Le mode ne règle que l'initiative de l'IA : une monture passive ne part pas d'elle-même à
+     * l'attaque. Il n'a rien à dire quand c'est son cavalier qui frappe — or {@link #setMad(boolean)}
+     * refusait tout net en passif, et comme une bête apprivoisée l'est par défaut, ses yeux ne
+     * s'allumaient jamais en combat monté.</p>
+     */
+    public void setMadByRider(boolean isMad) {
         this.entityData.set(IS_MAD, isMad);
     }
 

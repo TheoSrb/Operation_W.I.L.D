@@ -99,16 +99,37 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public volatile float bodyAnimX_passenger = 0f;
 
     /**
-     * De combien les places avancent pendant un combo.
+     * Matrice de la chaine d'os {@code ALL2 -> ALL -> body}, relevee a chaque image par le modele.
      *
-     * <p>Valeur posée à l'œil : la place ne suit que le tangage du corps, et les animations d'attaque
-     * le font aussi lacer et rouler. Plutôt que de reconstruire la chaîne de repères du modèle — ce
-     * qui demande de vérifier le rendu à chaque essai — on rattrape le décalage dominant, celui qui
-     * pousse le cavalier vers l'arrière. Une seule valeur à retoucher si ce n'est pas le bon dosage.</p>
+     * <p>C'est elle qui porte la verite : pivots, ordre de composition des rotations et translations
+     * d'animation. Le siege s'en deduit au lieu d'etre reconstruit en trigonometrie, ce qui evitait
+     * mal les pieges du repere modele (Y vers le bas, pivots herites, axes retournes au rendu).</p>
      */
+    public volatile org.joml.Matrix4f boneMatrix = null;
+
+    /**
+     * Pose de repos de la chaine, en pixels modele : {@code ALL2} est pose a (0, 7, -2),
+     * {@code ALL} et {@code body} n'ajoutent rien (cf. {@code OrcaModel#createBodyLayer}).
+     *
+     * <p>Elle sert de reference : on ne place pas le siege d'apres la matrice, on le DECALE de
+     * l'ecart entre la pose courante et celle-ci. Au repos l'ecart est nul, et le calcul redonne
+     * donc exactement la position d'aujourd'hui — celle qui est juste. Rien ne peut se degrader a
+     * plat, et le mouvement des os vient s'y ajouter proprement.</p>
+     */
+    private static final float REST_X = 0f, REST_Y = 7f, REST_Z = -2f;
+
+    /** Hauteur du repere modele au-dessus de l'origine de l'entite, en blocs (cf. LivingEntityRenderer). */
+    private static final float MODEL_ORIGIN_Y = 1.501f;
+
     /** Avance permanente des places, en blocs. Retouche fine du calage de la selle. */
     private static final float SEAT_FORWARD = 0.1f;
 
+    /**
+     * De combien les places avancent pendant un combo.
+     *
+     * <p>Valeur posée à l'œil, en plus de ce que la matrice d'os mesure : un simple réglage de
+     * l'assise pendant une attaque, à retoucher librement.</p>
+     */
     private static final float COMBO_SEAT_FORWARD = 0.2f;
 
     /**
@@ -718,29 +739,41 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             default -> { seatZ =  1.1f;  seatX = 0f;     }
         }
 
-        // Pendant un combo, le corps se cabre et la selle part vers l'avant : on avance les places
-        // d'autant. Compensation à plat, pas un calcul — la géométrie exacte du siège ne suit que le
-        // tangage, et retrouver le reste demanderait de refaire la chaîne de repères du modèle.
+        // Retouches de calage, sur la position de repos. Le mouvement des os, lui, est desormais
+        // mesure sur la matrice plus bas : ces deux valeurs ne compensent plus rien, elles reglent
+        // simplement ou l'on s'assoit. COMBO_SEAT_FORWARD peut donc revenir a 0 si l'assise animee
+        // tombe juste.
         seatZ += SEAT_FORWARD;
         if (this.isCombo()) seatZ += COMBO_SEAT_FORWARD;
 
-        float boneX = idx == 0
-                ? -bodyAnimX / 16.0f * this.getScale()
-                : -bodyAnimX_passenger / 16.0f * this.getScale();
-        seatX += boneX;
+        final float s = this.getScale();
+        double baseY = getBaseRiderYOffset(idx);
 
-        float pitch = this.bodyAnimXRot;
-        float rotatedY = -seatZ * Mth.sin(pitch);
-        float rotatedZ =  seatZ * Mth.cos(pitch);
+        // Le siege, exprime dans le repere du MODELE (blocs). Y descend, et l'avant de la bete est
+        // vers les Z negatifs — d'ou les deux inversions.
+        float lx =  (float) (seatX / s);
+        float ly =  (float) (MODEL_ORIGIN_Y - baseY / s);
+        float lz = -(float) (seatZ / s);
 
-        Vec3 seatOffset = new Vec3(seatX, rotatedY, rotatedZ)
+        // Ecart entre la pose animee et la pose de repos, mesure sur la matrice elle-meme.
+        double dx = 0, dy = 0, dz = 0;
+        org.joml.Matrix4f bones = this.boneMatrix;
+        if (bones != null) {
+            org.joml.Vector3f now = bones.transformPosition(new org.joml.Vector3f(lx, ly, lz));
+            dx = now.x - (lx + REST_X / 16f);
+            dy = now.y - (ly + REST_Y / 16f);
+            dz = now.z - (lz + REST_Z / 16f);
+        }
+
+        // Retour au repere de l'entite : memes inversions qu'a l'aller, remises a l'echelle.
+        double ex =  dx * s;
+        double ey = -dy * s;
+        double ez = -dz * s;
+
+        Vec3 seatOffset = new Vec3(seatX + ex, ey, seatZ + ez)
                 .yRot((float) Math.toRadians(-this.yBodyRot));
 
-        double baseY = getBaseRiderYOffset(idx);
-        float animY = idx == 0
-                ? getRiderAnimYOffset()
-                : -bodyAnimY_passenger / 16.0f * this.getScale();
-        double riderY = this.getY() + baseY + animY + seatOffset.y;
+        double riderY = this.getY() + baseY + seatOffset.y;
 
         passenger.fallDistance = 0f;
         function.accept(passenger,

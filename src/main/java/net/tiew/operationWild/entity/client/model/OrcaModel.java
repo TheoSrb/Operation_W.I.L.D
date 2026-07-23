@@ -1,6 +1,8 @@
 package net.tiew.operationWild.entity.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.animation.AnimationDefinition;
@@ -270,6 +272,15 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> implem
 		orca.setBodyXRot((float) -Math.toDegrees((this.ALL2.xRot + this.ALL.xRot + this.body.xRot) * riderRotIntensity));
 		orca.bodyYRot = (float) Math.toDegrees((this.ALL2.yRot + this.ALL.yRot + this.body.yRot) * riderRotIntensity);
 		orca.bodyAnimXRot = this.ALL2.xRot + this.ALL.xRot + this.body.xRot;
+
+		// Matrice REELLE de la chaine ALL2 -> ALL -> body, telle que le renderer la compose. On ne
+		// redecrit plus la transformation a la main : on la releve. Pivots, ordre des rotations et
+		// translations d'animation y sont deja, sans convention a deviner.
+		PoseStack bones = new PoseStack();
+		this.ALL2.translateAndRotate(bones);
+		this.ALL.translateAndRotate(bones);
+		this.body.translateAndRotate(bones);
+		orca.boneMatrix = new Matrix4f(bones.last().pose());
 
 		orca.bodyZRot_passenger = orca.getBodyZRot();
 		orca.bodyXRot_passenger = orca.getBodyXRot();
