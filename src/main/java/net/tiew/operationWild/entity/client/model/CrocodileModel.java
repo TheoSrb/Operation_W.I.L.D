@@ -375,11 +375,13 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 
 			if (crocodile.isPlayerMouthCharging()) {
 				Minecraft mc = Minecraft.getInstance();
-				boolean isLocalRider = mc.player != null && mc.player.getVehicle() == crocodile;
-				boolean someoneElseRiding = crocodile.getControllingPassenger() != null && !isLocalRider;
+				// Seul le pilote juge de sa propre charge (prédiction client, sans latence) ; tous les
+				// autres spectateurs — y compris un passager assis derrière lui — s'en remettent à
+				// l'état répliqué par le serveur.
+				boolean isLocalDriver = mc.player != null && crocodile.getControllingPassenger() == mc.player;
 
-				if ((isLocalRider && OWAttackLogic.isCharging) || someoneElseRiding) {
-					float progress = (isLocalRider && OWAttackLogic.isCharging)
+				if (!isLocalDriver || OWAttackLogic.isCharging) {
+					float progress = isLocalDriver
 							? OWAttackLogic.getChargeProgress()
 							: Math.min(crocodile.getChargingMouthTimer() / 60f, 1.0f);
 					applyMouthSlamAnimation(progress, ageInTicks);

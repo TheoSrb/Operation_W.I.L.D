@@ -647,6 +647,12 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return super.killedEntity(serverLevel, entity);
     }
 
+    /** Une orque hors de l'eau n'est pas une combattante, c'est une échouée. */
+    @Override
+    public int arenaTerrainMask() {
+        return net.tiew.operationWild.core.OWArena.Terrain.AQUATIC.bit();
+    }
+
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof OrcaEntity otherOrca) {
@@ -654,9 +660,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 return true;
             }
             if (this.isTame()) {
-                return otherOrca.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherOrca.getOwnerUUID());
-            } else {
-                return !otherOrca.isTame();
+                if (otherOrca.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherOrca.getOwnerUUID())) {
+                    return true;
+                }
+            } else if (!otherOrca.isTame()) {
+                return true;
             }
         }
         return super.isAlliedTo(entity);

@@ -676,9 +676,11 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                 return true;
             }
             if (this.isTame()) {
-                return otherBoa.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherBoa.getOwnerUUID());
-            } else {
-                return !otherBoa.isTame();
+                if (otherBoa.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherBoa.getOwnerUUID())) {
+                    return true;
+                }
+            } else if (!otherBoa.isTame()) {
+                return true;
             }
         }
         return super.isAlliedTo(entity);
@@ -819,7 +821,10 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private void tickConstriction() {
         LivingEntity t = this.constrictTarget;
         boolean riddenByOther = this.isVehicle() && this.getFirstPassenger() != t;
-        if (t == null || !t.isAlive() || riddenByOther) {
+        // Une prise devenue amicale — le serpent a été apprivoisé en plein étouffement, ou sa proie
+        // a rejoint sa tribu — doit se relâcher immédiatement : sans gravité et immobilisé par
+        // l'étreinte, le couple partait sinon à la dérive en l'air.
+        if (t == null || !t.isAlive() || riddenByOther || this.isTameGrabAlly(t)) {
             stopConstrict();
             return;
         }
@@ -1168,6 +1173,30 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     public void cancelConstrictUltimate() {
         this.constrictUltArmed = false;
         this.constrictUltArmedTimer = 0;
+    }
+
+    /**
+     * L'apprivoisement met fin à l'étouffement en cours.
+     *
+     * <p>Un serpent apprivoisé au beau milieu d'une prise gardait sa proie sanglée, sans gravité et
+     * à la position gelée par l'étreinte : le duo montait en l'air et n'en redescendait plus, la
+     * cible restant montée sur le Boa sans que rien ne vienne la libérer. On lâche donc tout —
+     * étreinte, prise, ultime amorcée — avant que l'entité ne change de camp.</p>
+     */
+    @Override
+    public void setTame(boolean tame, Player player) {
+        if (tame && !this.level().isClientSide()) {
+            cancelConstrictUltimate();
+            if (this.constricting) stopConstrict();
+            if (this.isGrabbing()) {
+                LivingEntity grabbed = this.getGrabbedTarget();
+                if (grabbed != null && grabbed.getVehicle() == this) grabbed.stopRiding();
+                this.setGrabbing(false, null);
+                this.setGrabTimeout(0);
+            }
+            this.setNoGravity(false);
+        }
+        super.setTame(tame, player);
     }
 
     public boolean isConstricting() {

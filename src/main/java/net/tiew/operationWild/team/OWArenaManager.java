@@ -2,7 +2,11 @@ package net.tiew.operationWild.team;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
@@ -53,6 +57,13 @@ public final class OWArenaManager {
     /** Clé du point de retour de secours dans les données persistantes du joueur. */
     private static final String RETURN_KEY = "ow_arena_return";
 
+    /** Mode de la créature avant le duel, mémorisé le temps du match pour lui être rendu au retour. */
+    private static final String MODE_KEY = "ow_arena_prev_passive";
+
+    /** Copie de l'inventaire du chef, prise à son départ pour l'arène et rendue à son retour. */
+    private static final String INVENTORY_KEY = "ow_arena_inventory";
+    private static final String SELECTED_SLOT_KEY = "ow_arena_selected_slot";
+
     /** teamId → match en cours (les deux tribus pointent sur le même objet). */
     private static final Map<Integer, OWArenaMatch> MATCHES = new ConcurrentHashMap<>();
     private static final AtomicInteger NEXT_MATCH_ID = new AtomicInteger(1);
@@ -66,8 +77,14 @@ public final class OWArenaManager {
     }
 
     // ── Défis ────────────────────────────────────────────────────────────────────
-    /** Le chef de {@code player} défie la tribu {@code targetTeamId}. */
-    public static void challenge(MinecraftServer server, ServerPlayer player, int targetTeamId) {
+    /**
+     * Le chef de {@code player} défie la tribu {@code targetTeamId} sur le terrain de son choix.
+     *
+     * <p>Le terrain fait partie du défi, pas d'une négociation ultérieure : c'est l'avantage du
+     * défiant, et l'information que le défié pèse avant d'accepter.</p>
+     */
+    public static void challenge(MinecraftServer server, ServerPlayer player, int targetTeamId,
+                                 OWArena.Terrain terrain) {
         OWTribesSavedData data = OWTribesSavedData.get(server);
         OWTeam mine = data.findTeamByMember(player.getUUID());
         OWTeam target = data.findTeamById(targetTeamId);
@@ -76,15 +93,19 @@ public final class OWArenaManager {
         if (!mine.isArenaAccepted() || !target.isArenaAccepted()) return;  // les deux doivent être inscrites
         if (MATCHES.containsKey(mine.getTeamId()) || MATCHES.containsKey(targetTeamId)) return; // déjà en combat
 
-        OWArenaChallenges.put(targetTeamId, mine.getTeamId(), mine.getTeamName(), player.getUUID());
+        OWArena.Terrain chosen = terrain != null ? terrain : OWArena.Terrain.TERRESTRIAL;
+        OWArenaChallenges.put(targetTeamId, mine.getTeamId(), mine.getTeamName(), player.getUUID(), chosen);
 
+        Component terrainName = Component.translatable(chosen.translationKey());
         ServerPlayer targetChief = server.getPlayerList().getPlayer(target.getTeamOwnerUUID());
         if (targetChief != null) {
-            targetChief.sendSystemMessage(Component.translatable("owteams.arena.challenge.received", mine.getTeamName())
+            targetChief.sendSystemMessage(Component.translatable("owteams.arena.challenge.received.terrain",
+                            mine.getTeamName(), terrainName)
                     .setStyle(Style.EMPTY.withColor(0xE8956A)));
             syncTo(server, targetChief);
         }
-        player.sendSystemMessage(Component.translatable("owteams.arena.challenge.sent", target.getTeamName())
+        player.sendSystemMessage(Component.translatable("owteams.arena.challenge.sent.terrain",
+                        target.getTeamName(), terrainName)
                 .setStyle(Style.EMPTY.withColor(0x7ddd73)));
         syncTo(server, player);
     }
@@ -127,14 +148,16 @@ public final class OWArenaManager {
                 challenger.getTeamId(), challenger.getTeamName(), challenger.getTeamOwnerUUID(),
                 OWReputation.compute(repData, challenger),
                 mine.getTeamId(), mine.getTeamName(), mine.getTeamOwnerUUID(),
-                OWReputation.compute(repData, mine));
+                OWReputation.compute(repData, mine),
+                challenge.terrain());
         MATCHES.put(challenger.getTeamId(), match);
         MATCHES.put(mine.getTeamId(), match);
         OWArenaChallenges.clearFor(mine.getTeamId());
         OWArenaChallenges.clearFor(challenger.getTeamId());
 
         for (ServerPlayer p : List.of(player, otherChief)) {
-            p.sendSystemMessage(Component.translatable("owteams.arena.match.started")
+            p.sendSystemMessage(Component.translatable("owteams.arena.match.started.terrain",
+                            Component.translatable(match.getTerrain().translationKey()))
                     .setStyle(Style.EMPTY.withColor(0xFFD257)));
         }
         syncMatch(server, match);
@@ -183,6 +206,13 @@ public final class OWArenaManager {
                 if (c.entityUuid().equals(entityUuid)) { fighter = c; break; }
             }
             if (fighter == null) return;
+            // Créature étrangère à l'élément du duel : on le dit, plutôt que d'ignorer le clic en
+            // silence — l'écran la grise déjà, mais un client trafiqué doit se heurter au serveur.
+            if (!fighter.fits(match.getTerrain())) {
+                player.sendSystemMessage(Component.translatable(match.getTerrain().unfitKey(), fighter.name())
+                        .setStyle(Style.EMPTY.withColor(0xE04444)));
+                return;
+            }
             match.addFighter(team.getTeamId(), fighter);
         } else {
             match.removeFighter(team.getTeamId(), entityUuid);
@@ -389,6 +419,11 @@ public final class OWArenaManager {
      * <p>Le rétablissement de la tribu est indispensable : {@code changeDimension} <b>recrée</b>
      * l'entité, et {@code currentTeam} est un champ transitoire qui repart donc à {@code null} —
      * sans quoi les permissions de tribu et les alliances ne fonctionnent plus dans l'arène.</p>
+     *
+     * <p>Tout le monde entre en <b>mode agressif</b>. Une créature laissée en passif rendrait les
+     * coups sans jamais en porter : le camp qui aurait oublié de basculer ses bêtes perdrait le
+     * duel avant de l'avoir joué. Le mode d'avant-combat est mémorisé sur la créature et lui est
+     * rendu au retour — l'arène ne change rien à la façon dont elle se tient chez elle.</p>
      */
     private static void readyForBattle(OWEntity entity, OWArenaMatch match, int teamId) {
         entity.currentTeam = OWTribesSavedData.get(entity.getServer()).findTeamById(teamId);
@@ -400,6 +435,22 @@ public final class OWArenaManager {
         entity.setTarget(null);
         // Repart vulnérable : un match précédent interrompu a pu la laisser mise hors de combat.
         entity.setInvulnerable(false);
+        entity.getPersistentData().putBoolean(MODE_KEY, entity.isPassive());
+        entity.setCurrentMode(OWEntity.Mode.Aggressive);
+        entity.setPassive(false);
+    }
+
+    /**
+     * Rend à une créature le mode (passif / agressif) qu'elle avait avant d'entrer dans l'arène.
+     * Sans marque mémorisée, on ne touche à rien : mieux vaut ne rien changer que deviner.
+     */
+    private static void restorePreFightMode(OWEntity entity) {
+        CompoundTag data = entity.getPersistentData();
+        if (!data.contains(MODE_KEY)) return;
+        boolean wasPassive = data.getBoolean(MODE_KEY);
+        data.remove(MODE_KEY);
+        entity.setPassive(wasPassive);
+        entity.setCurrentMode(wasPassive ? OWEntity.Mode.Passive : OWEntity.Mode.Aggressive);
     }
 
     private static void placeChief(MinecraftServer server, ServerLevel arena, OWArenaMatch match,
@@ -409,6 +460,7 @@ public final class OWArenaManager {
         match.getReturnPoints().put(chief, new OWArenaMatch.ReturnPoint(
                 p.level().dimension(), p.getX(), p.getY(), p.getZ()));
         saveRescuePoint(p);
+        saveInventory(p);
         // Descendre de monture avant le voyage : un joueur téléporté à cheval sur une créature
         // qui part ailleurs se retrouve dans un état incohérent.
         p.stopRiding();
@@ -785,6 +837,7 @@ public final class OWArenaManager {
                 player.changeDimension(new DimensionTransition(dest, new Vec3(rp.x(), y, rp.z()),
                         Vec3.ZERO, player.getYRot(), player.getXRot(), DimensionTransition.DO_NOTHING));
                 clearRescuePoint(player);
+                restoreInventory(player);
                 continue;
             }
             // Créature tombée pendant le duel : elle est bien morte dans l'arène, on la recrée
@@ -1012,6 +1065,7 @@ public final class OWArenaManager {
         entity.setCanDropSoul(true); // coupée à l'entrée dans l'arène, rendue à la sortie
         entity.setTarget(null);
         entity.setLastHurtByMob(null);
+        restorePreFightMode(entity);
         if (before != null) entity.setHealth(Math.min(before, entity.getMaxHealth()));
         else entity.setHealth(entity.getMaxHealth());
     }
@@ -1046,6 +1100,7 @@ public final class OWArenaManager {
         }
         entity.getPersistentData().remove(RETURN_KEY);
         entity.setTarget(null);
+        restorePreFightMode(entity);
         y = safeY(dest, x, z, y);
         Entity back = entity.changeDimension(new DimensionTransition(dest, new Vec3(x, y, z),
                 Vec3.ZERO, entity.getYRot(), entity.getXRot(), DimensionTransition.DO_NOTHING));
@@ -1057,6 +1112,47 @@ public final class OWArenaManager {
             owE.setHealth(owE.getMaxHealth());
             OWTribeManager.refreshEntityTeam(server, owE);
         }
+    }
+
+    // ── Affaires du chef ─────────────────────────────────────────────────────────
+    /**
+     * Met les affaires du chef de côté avant son départ pour l'arène.
+     *
+     * <p>Les créatures ont leur instantané, pas lui : une mort par une voie que l'invulnérabilité
+     * ne couvre pas (commande, vide, redémarrage en plein duel) lui faisait perdre son équipement
+     * pour de bon, ses affaires tombant dans une dimension qui se vide à la fin du match. La copie
+     * est rangée dans le sous-registre <b>persistant</b> du joueur, le seul qui survive à une mort
+     * et à une réapparition.</p>
+     */
+    private static void saveInventory(ServerPlayer player) {
+        CompoundTag persisted = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG);
+        persisted.put(INVENTORY_KEY, player.getInventory().save(new ListTag()));
+        persisted.putInt(SELECTED_SLOT_KEY, player.getInventory().selected);
+        player.getPersistentData().put(Player.PERSISTED_NBT_TAG, persisted);
+    }
+
+    /**
+     * Rend au chef les affaires qu'il avait en partant, puis oublie la copie.
+     *
+     * <p>Le remplacement est <b>intégral</b>, à l'image de la santé rendue aux créatures : rien ne
+     * s'acquiert dans l'arène — le butin passe par les coffres de prestige, hors du duel — et le sol
+     * y est balayé à la fermeture. Rendre exactement l'inventaire de départ est donc à la fois la
+     * garantie la plus forte et la seule qui interdise de rapporter quoi que ce soit du champ de
+     * bataille.</p>
+     */
+    private static void restoreInventory(ServerPlayer player) {
+        CompoundTag persisted = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG);
+        if (!persisted.contains(INVENTORY_KEY)) return;
+        ListTag saved = persisted.getList(INVENTORY_KEY, Tag.TAG_COMPOUND);
+        int selected = persisted.getInt(SELECTED_SLOT_KEY);
+        persisted.remove(INVENTORY_KEY);
+        persisted.remove(SELECTED_SLOT_KEY);
+
+        player.getInventory().load(saved);
+        if (selected >= 0 && selected < Inventory.getSelectionSize()) {
+            player.getInventory().selected = selected;
+        }
+        player.inventoryMenu.broadcastChanges();
     }
 
     // ── Filet de sécurité redémarrage ────────────────────────────────────────────
@@ -1078,7 +1174,13 @@ public final class OWArenaManager {
      * redémarré en plein combat), on le renvoie à son point de départ mémorisé.
      */
     public static void rescueStrandedPlayer(MinecraftServer server, ServerPlayer player) {
-        if (!player.level().dimension().equals(OWDimensions.ARENA)) { clearRescuePoint(player); return; }
+        if (!player.level().dimension().equals(OWDimensions.ARENA)) {
+            clearRescuePoint(player);
+            // Sorti de l'arène par une autre porte (mort et réapparition au lit, redémarrage) :
+            // ses affaires lui reviennent quand même, tant qu'aucun match ne les attend encore.
+            if (matchOfPlayer(server, player) == null) restoreInventory(player);
+            return;
+        }
         if (matchOfPlayer(server, player) != null) return; // combat toujours en cours : rien à faire
 
         CompoundTag tag = player.getPersistentData().getCompound(RETURN_KEY);
@@ -1098,6 +1200,7 @@ public final class OWArenaManager {
         player.changeDimension(new DimensionTransition(dest, new Vec3(x, y, z), Vec3.ZERO,
                 player.getYRot(), player.getXRot(), DimensionTransition.DO_NOTHING));
         clearRescuePoint(player);
+        restoreInventory(player);
         player.sendSystemMessage(Component.translatable("owteams.arena.rescued")
                 .setStyle(Style.EMPTY.withColor(0xE8956A)));
     }
@@ -1139,10 +1242,19 @@ public final class OWArenaManager {
         return null;
     }
 
-    /** Vrai si {@code playerUuid} est un chef assistant à un duel en cours. */
+    /**
+     * Vrai si {@code playerUuid} est un chef présent dans l'arène pour un match, du coup d'envoi
+     * jusqu'à son renvoi chez lui.
+     *
+     * <p>La protection ne s'arrête <b>pas</b> au verdict. Pendant le temps de contemplation, le
+     * vaincu reste au milieu du champ de bataille avec les créatures survivantes du vainqueur, qui
+     * n'ont aucune raison de s'arrêter : il se faisait rouer de coups en attendant sa
+     * téléportation. Le match est joué, plus personne n'a rien à y perdre.</p>
+     */
     public static boolean isSpectatingChief(UUID playerUuid) {
         for (OWArenaMatch m : MATCHES.values()) {
-            if (m.getState() != OWArenaMatch.State.FIGHTING) continue;
+            OWArenaMatch.State state = m.getState();
+            if (state != OWArenaMatch.State.FIGHTING && state != OWArenaMatch.State.ENDED) continue;
             if (playerUuid.equals(m.getChiefA()) || playerUuid.equals(m.getChiefB())) return true;
         }
         return false;
@@ -1167,13 +1279,22 @@ public final class OWArenaManager {
 
     private static final String SPARRING_TRIBE_NAME = "Entraînement";
 
-    /** Espèces couvrant les archétypes distincts actuellement disponibles dans le mod. */
+    /**
+     * Espèces piochées pour l'adversaire fictif, par ordre de préférence.
+     *
+     * <p>La liste couvre les deux terrains : le tri se fait au moment de faire apparaître les
+     * créatures, en écartant celles que le terrain du duel exclut et celles dont l'archétype est
+     * déjà pris. Un duel aquatique compose donc autour de l'orque et du crocodile, un duel terrestre
+     * autour du tigre et du kodiak, sans qu'il y ait deux listes à tenir à jour.</p>
+     */
     private static final java.util.function.Supplier<net.minecraft.world.entity.EntityType<?>>[] SPARRING_SPECIES =
             new java.util.function.Supplier[]{
-                    () -> net.tiew.operationWild.entity.OWEntityRegistry.TIGER.get(),      // ASSASSIN
+                    () -> net.tiew.operationWild.entity.OWEntityRegistry.TIGER.get(),      // ASSASSIN, terre
                     () -> net.tiew.operationWild.entity.OWEntityRegistry.KANGAROO.get(),   // SCOUT
-                    () -> net.tiew.operationWild.entity.OWEntityRegistry.KODIAK.get(),     // BERSERKER
+                    () -> net.tiew.operationWild.entity.OWEntityRegistry.KODIAK.get(),     // BERSERKER, terre
                     () -> net.tiew.operationWild.entity.OWEntityRegistry.CROCODILE.get(),  // MARAUDER
+                    () -> net.tiew.operationWild.entity.OWEntityRegistry.ORCA.get(),       // BERSERKER, eau
+                    () -> net.tiew.operationWild.entity.OWEntityRegistry.BOA.get(),        // MARAUDER
             };
 
     /**
@@ -1181,7 +1302,8 @@ public final class OWArenaManager {
      * apparaître ses combattants autour du joueur, compose son équipe et la confirme. Il ne reste
      * plus au joueur qu'à choisir la sienne et à lancer le combat.
      */
-    public static boolean startSparring(MinecraftServer server, ServerPlayer player, int fighterCount) {
+    public static boolean startSparring(MinecraftServer server, ServerPlayer player, int fighterCount,
+                                        OWArena.Terrain terrain) {
         OWTribesSavedData data = OWTribesSavedData.get(server);
         OWTeam mine = data.findTeamByMember(player.getUUID());
         if (mine == null) {
@@ -1205,14 +1327,16 @@ public final class OWArenaManager {
             return false;
         }
 
+        OWArena.Terrain ground = terrain != null ? terrain : OWArena.Terrain.TERRESTRIAL;
         OWTeam bot = findOrCreateSparringTribe(server, data);
-        spawnSparringFighters(server, player, bot, fighterCount);
+        spawnSparringFighters(server, player, bot, fighterCount, ground);
 
         OWReputationData repData = OWReputationData.get(server);
         OWArenaMatch match = new OWArenaMatch(
                 NEXT_MATCH_ID.getAndIncrement(),
                 bot.getTeamId(), bot.getTeamName(), SPARRING_CHIEF, OWReputation.compute(repData, bot),
-                mine.getTeamId(), mine.getTeamName(), mine.getTeamOwnerUUID(), OWReputation.compute(repData, mine));
+                mine.getTeamId(), mine.getTeamName(), mine.getTeamOwnerUUID(), OWReputation.compute(repData, mine),
+                ground);
         MATCHES.put(bot.getTeamId(), match);
         MATCHES.put(mine.getTeamId(), match);
 
@@ -1252,17 +1376,31 @@ public final class OWArenaManager {
 
     /** Fait apparaître des créatures apprivoisées appartenant au chef fictif, autour du joueur. */
     private static void spawnSparringFighters(MinecraftServer server, ServerPlayer player,
-                                              OWTeam bot, int count) {
+                                              OWTeam bot, int count, OWArena.Terrain terrain) {
         if (!(player.level() instanceof ServerLevel level)) return;
 
         // On ne recrée que ce qui manque : relancer la commande ne doit pas inonder le monde.
-        int existing = candidatesFor(server, bot).size();
-        int missing = Math.min(OWArena.MAX_FIGHTERS, count) - existing;
+        List<OWArenaFighter> already = candidatesFor(server, bot);
+        int missing = Math.min(OWArena.MAX_FIGHTERS, count) - already.size();
         if (missing <= 0) return;
 
-        for (int i = existing; i < existing + missing && i < SPARRING_SPECIES.length; i++) {
+        // Archétypes déjà couverts : en faire apparaître un deuxième serait peine perdue, la règle
+        // d'unicité le refuserait à l'engagement.
+        java.util.Set<Integer> taken = new java.util.HashSet<>();
+        for (OWArenaFighter f : already) taken.add(f.archetypeOrdinal());
+
+        int made = 0;
+        for (int i = 0; i < SPARRING_SPECIES.length && made < missing; i++) {
             net.minecraft.world.entity.EntityType<?> type = SPARRING_SPECIES[i].get();
             if (!(type.create(level) instanceof OWEntity owE)) continue;
+
+            // Espèce étrangère au terrain, ou archétype déjà pourvu : on la remballe sans la poser.
+            int archetype = OWArenaFighter.archetypeOrdinalOf(owE);
+            if (!OWArena.fitsTerrain(owE.arenaTerrainMask(), terrain) || !taken.add(archetype)) {
+                owE.discard();
+                continue;
+            }
+            made++;
 
             double angle = i * (Math.PI * 2 / SPARRING_SPECIES.length);
             owE.moveTo(player.getX() + Math.cos(angle) * 5, player.getY(), player.getZ() + Math.sin(angle) * 5,

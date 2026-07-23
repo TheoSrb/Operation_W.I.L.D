@@ -166,8 +166,14 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     /** Tribu en attente de confirmation de défi ({@code 0} = aucune). */
     private int pendingChallengeId = 0;
     private String pendingChallengeName = "";
+    /**
+     * Terrain choisi pour le défi en cours de rédaction. La terre ferme par défaut : c'est le duel
+     * que toutes les créatures savent tenir, donc celui qui ne piège pas un chef distrait.
+     */
+    private OWArena.Terrain pendingTerrain = OWArena.Terrain.TERRESTRIAL;
 
     private Button chalAcceptBtn, chalDeclineBtn, cancelArenaBtn, readyBtn, challengeYesBtn, challengeNoBtn;
+    private Button terrainLandBtn, terrainWaterBtn;
 
     public OWTribeArenaScreen() {
         super(Component.translatable("owteams.arena.title"));
@@ -224,13 +230,29 @@ public class OWTribeArenaScreen extends OWTribeScreen {
 
         challengeYesBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.confirm.yes"), b -> {
             if (pendingChallengeId != 0) {
-                OWNetworkHandler.sendToServer(new ChallengeTribePacket(pendingChallengeId));
+                OWNetworkHandler.sendToServer(
+                        new ChallengeTribePacket(pendingChallengeId, pendingTerrain.ordinal()));
                 playUi(SoundEvents.UI_TOAST_OUT, 1.2f);
             }
             pendingChallengeId = 0;
         }).bounds(0, 0, 60, 16).build());
         challengeNoBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.confirm.no"),
                 b -> pendingChallengeId = 0).bounds(0, 0, 60, 16).build());
+
+        // Choix du terrain, dans la boîte de défi : c'est le dernier moment où il se décide, et il
+        // conditionne toute la composition qui suivra.
+        terrainLandBtn = addRenderableWidget(Button.builder(
+                        Component.translatable(OWArena.Terrain.TERRESTRIAL.translationKey()), b -> {
+                            pendingTerrain = OWArena.Terrain.TERRESTRIAL;
+                            playUi(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f);
+                        })
+                .bounds(0, 0, 74, 16).build());
+        terrainWaterBtn = addRenderableWidget(Button.builder(
+                        Component.translatable(OWArena.Terrain.AQUATIC.translationKey()), b -> {
+                            pendingTerrain = OWArena.Terrain.AQUATIC;
+                            playUi(SoundEvents.UI_BUTTON_CLICK.value(), 1.15f);
+                        })
+                .bounds(0, 0, 74, 16).build());
     }
 
     @Override
@@ -375,6 +397,11 @@ public class OWTribeArenaScreen extends OWTribeScreen {
                 if (mx < listX || mx >= listX + contentW || my < ry || my >= ry + rowH) continue;
                 OWArenaFighter f = candidates.get(i);
                 boolean selected = OWClientArenaState.isSelected(f.entityUuid());
+                // Créature hors de son élément : refus sec, quel que soit l'archétype.
+                if (!OWClientArenaState.fitsTerrain(f)) {
+                    playUi(SoundEvents.NOTE_BLOCK_BASS.value(), 0.5f);
+                    return true;
+                }
                 // Un archétype déjà pris par un AUTRE combattant bloque l'ajout.
                 if (!selected && OWClientArenaState.archetypeTaken(f.archetypeOrdinal(), f.entityUuid())) {
                     playUi(SoundEvents.NOTE_BLOCK_BASS.value(), 0.6f);  // refus : archétype déjà pris
@@ -1138,9 +1165,13 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         g.drawCenteredString(this.font,
                 trimTo(OWClientArenaState.get().outgoingTargetName(), f[2] - f[0] - 12),
                 cx, cy - 2, 0xE8E8E8);
+        OWArena.Terrain terrain = OWClientArenaState.terrain();
+        drawSmallCentered(g, Component.translatable("owteams.arena.terrain.imposed",
+                        Component.translatable(terrain.translationKey())),
+                cx, cy + 10, terrainColor(terrain));
         // Trois points animés, pour signaler que l'attente est vivante.
         int dots = (int) ((System.currentTimeMillis() / 400) % 4);
-        g.drawCenteredString(this.font, ".".repeat(dots), cx, cy + 12, 0x9A9A9A);
+        g.drawCenteredString(this.font, ".".repeat(dots), cx, cy + 24, 0x9A9A9A);
     }
 
     private void renderIncomingChallenge(GuiGraphics g) {
@@ -1168,6 +1199,13 @@ public class OWTribeArenaScreen extends OWTribeScreen {
                         OWArena.prestigeGain(st.myReputation(), st.opponentReputation())),
                 cx, cy + 64, 0x9AC88A);
 
+        // Terrain imposé par le défiant : le défié doit le connaître avant d'accepter, c'est lui qui
+        // décide des bêtes qu'il pourra aligner.
+        OWArena.Terrain terrain = OWClientArenaState.terrain();
+        drawSmallCentered(g, Component.translatable("owteams.arena.terrain.imposed",
+                        Component.translatable(terrain.translationKey())),
+                cx, cy + 78, terrainColor(terrain));
+
         if (!isChief()) {
             g.drawCenteredString(this.font, Component.translatable("owteams.arena.combat.chief_only"),
                     cx, f[3] - 12, 0x9A9A9A);
@@ -1194,6 +1232,10 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         String oppName = trimTo(st.opponentName(), headerMax);
         drawSmall(g, Component.literal(oppName),
                 leftPos + IMG_W - 8 - Math.round(this.font.width(oppName) * 0.75f), y0, 0xE8956A);
+        // Rappel permanent du terrain : c'est lui qui explique les lignes grisées de la liste.
+        OWArena.Terrain terrain = OWClientArenaState.terrain();
+        drawSmallCentered(g, Component.translatable(terrain.translationKey()),
+                leftPos + IMG_W / 2, y0, terrainColor(terrain));
 
         int slotsY = slotsTop();
         List<OWArenaFighter> mine = st.myFighters();
@@ -1306,7 +1348,11 @@ public class OWTribeArenaScreen extends OWTribeScreen {
             OWArenaFighter f = candidates.get(i);
             int ry = Math.round(y + (i - scrollAnim) * rowH);
             boolean selected = OWClientArenaState.isSelected(f.entityUuid());
-            boolean blocked = !selected && OWClientArenaState.archetypeTaken(f.archetypeOrdinal(), f.entityUuid());
+            // Le terrain prime : une créature étrangère à l'élément du duel reste visible mais hors
+            // d'atteinte — la masquer laisserait un chef chercher en vain son orque dans la liste.
+            boolean unfit = !OWClientArenaState.fitsTerrain(f);
+            boolean blocked = unfit
+                    || (!selected && OWClientArenaState.archetypeTaken(f.archetypeOrdinal(), f.entityUuid()));
             boolean hov = mouseX >= x && mouseX < x + contentW
                     && mouseY >= ry && mouseY < ry + rowH
                     && mouseY >= y && mouseY < y + h;
@@ -1584,20 +1630,51 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         boolean confirming = pendingChallengeId != 0;
         challengeYesBtn.visible = confirming;
         challengeNoBtn.visible = confirming;
+        terrainLandBtn.visible = confirming;
+        terrainWaterBtn.visible = confirming;
     }
 
-    /** Boîte de confirmation avant d'envoyer un défi (action irréversible côté adversaire). */
+    /**
+     * Boîte de confirmation avant d'envoyer un défi (action irréversible côté adversaire), où se
+     * choisit aussi le <b>terrain</b> du duel.
+     *
+     * <p>Le terrain se décide ici et nulle part ailleurs : une fois le défi parti, il est annoncé à
+     * l'adversaire et verrouille les deux compositions. Le bouton retenu s'affiche en clair, l'autre
+     * en gris — le chef voit d'un coup d'œil ce qu'il s'apprête à imposer.</p>
+     */
     private void renderChallengeConfirm(GuiGraphics g, int mouseX, int mouseY, float partial) {
         g.fill(0, 0, this.width, this.height, 0x99000000);
         Component title = Component.translatable("owteams.arena.challenge.confirm_title");
         Component body = Component.translatable("owteams.arena.challenge.confirm_body", pendingChallengeName);
         int ow = Math.min(this.width - 20, Math.max(190, Math.max(this.font.width(title), this.font.width(body)) + 24));
-        int oh = 58, cx = this.width / 2, ox = cx - ow / 2, oy = this.height / 2 - oh / 2;
+        int oh = 96, cx = this.width / 2, ox = cx - ow / 2, oy = this.height / 2 - oh / 2;
         OWTribeDashboardScreen.drawConfirmBox(g, ox, oy, ow, oh, title, body, 0xE8956A);
+
+        drawSmallCentered(g, Component.translatable("owteams.arena.terrain.choose"), cx, oy + 40, 0x9A9A9A);
+        styleTerrainButton(terrainLandBtn, OWArena.Terrain.TERRESTRIAL);
+        styleTerrainButton(terrainWaterBtn, OWArena.Terrain.AQUATIC);
+        terrainLandBtn.setPosition(cx - 78, oy + 50);
+        terrainWaterBtn.setPosition(cx + 4, oy + 50);
+        terrainLandBtn.render(g, mouseX, mouseY, partial);
+        terrainWaterBtn.render(g, mouseX, mouseY, partial);
+
         challengeYesBtn.setPosition(cx - 64, oy + oh - 20);
         challengeNoBtn.setPosition(cx + 4, oy + oh - 20);
         challengeYesBtn.render(g, mouseX, mouseY, partial);
         challengeNoBtn.render(g, mouseX, mouseY, partial);
+    }
+
+    /** Marque le bouton du terrain retenu : couleur pleine pour le choix actif, gris pour l'autre. */
+    private void styleTerrainButton(Button button, OWArena.Terrain terrain) {
+        boolean active = pendingTerrain == terrain;
+        int color = active ? terrainColor(terrain) : 0x777777;
+        button.setMessage(Component.translatable(terrain.translationKey())
+                .withStyle(Style.EMPTY.withBold(active).withColor(TextColor.fromRgb(color))));
+    }
+
+    /** Teinte propre au terrain : ocre pour la terre, azur pour l'eau. */
+    private static int terrainColor(OWArena.Terrain terrain) {
+        return terrain == OWArena.Terrain.AQUATIC ? 0x5AB4E0 : 0xC9A15A;
     }
 
     /** Tooltip d'un adversaire potentiel : réputation, gain en cas de victoire, et rappel du risque. */
@@ -1630,6 +1707,11 @@ public class OWTribeArenaScreen extends OWTribeScreen {
                 .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xBBBBBB))).getVisualOrderText());
         tip.add(Component.translatable("owteams.arena.fighter.owner", f.ownerName())
                 .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x888888))).getVisualOrderText());
+        // Dire pourquoi la ligne est grisée vaut mieux que de laisser deviner.
+        if (!OWClientArenaState.fitsTerrain(f)) {
+            tip.add(Component.translatable(OWClientArenaState.terrain().unfitKey(), f.name())
+                    .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xC05555))).getVisualOrderText());
+        }
         g.renderTooltip(this.font, tip, mouseX, mouseY);
     }
 

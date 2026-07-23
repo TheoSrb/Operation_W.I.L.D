@@ -1015,6 +1015,12 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return super.killedEntity(serverLevel, entity);
     }
 
+    /** Une masse pareille ne manœuvre pas sous l'eau : duels terrestres uniquement. */
+    @Override
+    public int arenaTerrainMask() {
+        return net.tiew.operationWild.core.OWArena.Terrain.TERRESTRIAL.bit();
+    }
+
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof KodiakEntity otherKodiak) {
@@ -1022,9 +1028,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 return true;
             }
             if (this.isTame()) {
-                return otherKodiak.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherKodiak.getOwnerUUID());
-            } else {
-                return !otherKodiak.isTame();
+                if (otherKodiak.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherKodiak.getOwnerUUID())) {
+                    return true;
+                }
+            } else if (!otherKodiak.isTame()) {
+                return true;
             }
         }
         return super.isAlliedTo(entity);

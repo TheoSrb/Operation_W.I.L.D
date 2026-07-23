@@ -24,7 +24,13 @@ public record OWArenaFighter(
         String entityTypeId, String name, int level, int archetypeOrdinal, int skinIndex,
         /** Variante <b>naturelle</b> : le skin cosmétique se réapplique par-dessus, cf. OWEntity. */
         int typeVariant,
-        boolean male
+        boolean male,
+        /**
+         * Terrains de duel que cette créature sait tenir (cf. {@code OWEntity#arenaTerrainMask()}).
+         * Voyage jusqu'au client pour que l'écran de sélection puisse montrer les inadaptées grisées
+         * plutôt que de les escamoter : le chef comprend ainsi pourquoi son orque est indisponible.
+         */
+        int terrainMask
 ) {
 
     public static final StreamCodec<ByteBuf, OWArenaFighter> STREAM_CODEC = StreamCodec.of(
@@ -39,6 +45,7 @@ public record OWArenaFighter(
                 ByteBufCodecs.INT.encode(buf, f.skinIndex());
                 ByteBufCodecs.INT.encode(buf, f.typeVariant());
                 ByteBufCodecs.BOOL.encode(buf, f.male());
+                ByteBufCodecs.INT.encode(buf, f.terrainMask());
             },
             buf -> new OWArenaFighter(
                     parseUuid(ByteBufCodecs.STRING_UTF8.decode(buf)),
@@ -50,7 +57,8 @@ public record OWArenaFighter(
                     ByteBufCodecs.INT.decode(buf),
                     ByteBufCodecs.INT.decode(buf),
                     ByteBufCodecs.INT.decode(buf),
-                    ByteBufCodecs.BOOL.decode(buf)));
+                    ByteBufCodecs.BOOL.decode(buf),
+                    ByteBufCodecs.INT.decode(buf)));
 
     public static final StreamCodec<ByteBuf, List<OWArenaFighter>> LIST_STREAM_CODEC = StreamCodec.of(
             (buf, list) -> {
@@ -78,13 +86,27 @@ public record OWArenaFighter(
         // getArchetype() vaut null sur OWEntity et n'est renseigné que par les sous-classes qui le
         // surchargent : une créature qui n'en déclare pas est un cas normal, pas une anomalie. On
         // la range en NORMAL plutôt que de planter ou de l'escamoter de la liste.
-        OWEntityConfig.Archetypes archetype = entity.getArchetype();
-        int archetypeOrdinal = (archetype != null ? archetype : OWEntityConfig.Archetypes.NORMAL).ordinal();
+        int archetypeOrdinal = archetypeOrdinalOf(entity);
         return new OWArenaFighter(
                 entity.getUUID(), entity.getOwnerUUID(), ownerName != null ? ownerName : "",
                 typeId, name, entity.getLevel(),
                 archetypeOrdinal, entity.getSkinIndex(), entity.getInitialTypeVariant(),
-                entity.isMale());
+                entity.isMale(), entity.arenaTerrainMask());
+    }
+
+    /** Vrai si cette créature sait combattre sur {@code terrain}. */
+    public boolean fits(net.tiew.operationWild.core.OWArena.Terrain terrain) {
+        return net.tiew.operationWild.core.OWArena.fitsTerrain(terrainMask, terrain);
+    }
+
+    /**
+     * Archétype d'une créature, ramené à son rang. {@code getArchetype()} vaut {@code null} sur
+     * {@code OWEntity} et n'est renseigné que par les sous-classes : une créature qui n'en déclare
+     * pas est un cas normal, on la range en {@code NORMAL}.
+     */
+    public static int archetypeOrdinalOf(OWEntity entity) {
+        OWEntityConfig.Archetypes archetype = entity != null ? entity.getArchetype() : null;
+        return (archetype != null ? archetype : OWEntityConfig.Archetypes.NORMAL).ordinal();
     }
 
     public OWEntityConfig.Archetypes archetype() {

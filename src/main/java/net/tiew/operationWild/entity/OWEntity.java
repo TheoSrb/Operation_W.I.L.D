@@ -2371,6 +2371,48 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     /**
+     * Terrains d'arène sur lesquels cette espèce sait se battre, en masque de bits
+     * ({@link net.tiew.operationWild.core.OWArena.Terrain#bit()}).
+     *
+     * <p>Par défaut une créature est à l'aise partout : seules celles que leur anatomie enferme dans
+     * un élément — l'orque dans l'eau, le tigre et le kodiak sur la terre ferme — restreignent ce
+     * masque. C'est ce qui décide de sa présence sur l'écran de sélection d'un duel.</p>
+     */
+    public int arenaTerrainMask() {
+        return net.tiew.operationWild.core.OWArena.TERRAIN_BOTH;
+    }
+
+    /**
+     * Le porteur de tribu derrière une entité : l'entité elle-même, ou le Boa parent d'un segment de
+     * queue. Toute autre entité (joueur, mob vanilla) n'en a pas.
+     */
+    @Nullable
+    private static OWEntity tribeCarrierOf(@Nullable Entity entity) {
+        if (entity instanceof OWEntity owE) return owE;
+        if (entity instanceof BoaTailPart part && part.getParent() instanceof OWEntity parent) return parent;
+        return null;
+    }
+
+    /**
+     * Vrai si les deux entités appartiennent à la <b>même tribu</b>. Filet de sécurité serveur des
+     * tirs alliés : les gardes par attaque (ciblage, zones d'effet) peuvent être contournés par une
+     * attaque exotique, celui-ci ne l'est pas — il s'applique au moment où les dégâts arrivent.
+     *
+     * <p>Côté client, la tribu n'est répliquée que partiellement : la question ne s'y pose pas, les
+     * dégâts sont décidés par le serveur.</p>
+     */
+    public static boolean shareTribe(@Nullable Entity a, @Nullable Entity b) {
+        OWEntity first = tribeCarrierOf(a);
+        OWEntity second = tribeCarrierOf(b);
+        if (first == null || second == null || first == second) return false;
+        if (first.level().isClientSide() || second.level().isClientSide()) return false;
+        OWTeam teamA = first.resolvedTeam();
+        if (teamA == null) return false;
+        OWTeam teamB = second.resolvedTeam();
+        return teamB != null && teamA.getTeamId() == teamB.getTeamId();
+    }
+
+    /**
      * Vrai si {@code target} est un allié de cette entité <b>apprivoisée</b> qu'une attaque de grab ne
      * doit jamais saisir : le propriétaire, un membre joueur de la tribu, une entité de la même tribu,
      * ou une entité possédée par le propriétaire / un membre de la tribu. Toujours {@code false} à l'état
@@ -3737,7 +3779,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         Aggressive;
     }
     public Mode currentMode;
-    public Mode getCurrentMode() { return currentMode;}
+    /**
+     * Le champ est transitoire : il repart à {@code null} au moindre rechargement de chunk ou
+     * changement de dimension, alors que l'indicateur passif/agressif, lui, est bien sauvegardé et
+     * répliqué. On le redéduit donc de celui-ci plutôt que de laisser la créature sans mode — une
+     * créature « sans mode » ne prend jamais l'initiative du combat, quoi qu'affiche son état.
+     */
+    public Mode getCurrentMode() {
+        if (currentMode == null) currentMode = this.isPassive() ? Mode.Passive : Mode.Aggressive;
+        return currentMode;
+    }
     public void setCurrentMode(Mode mode) { this.currentMode = mode;}
 
     public void switchMode(Player player) {

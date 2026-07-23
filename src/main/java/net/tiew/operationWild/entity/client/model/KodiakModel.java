@@ -264,10 +264,12 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> im
 
         if (kodiak.isPawSlamCharging()) {
             Minecraft mc = Minecraft.getInstance();
-            boolean isLocalRider = mc.player != null && mc.player.getVehicle() == kodiak;
-            boolean someoneElseRiding = kodiak.getControllingPassenger() != null && !isLocalRider;
+            // Seul le pilote juge de sa propre charge (prédiction client, sans latence) ; tous les
+            // autres spectateurs — y compris un passager assis derrière lui — s'en remettent à
+            // l'état répliqué par le serveur, sans quoi ils ne verraient jamais la charge monter.
+            boolean isLocalDriver = mc.player != null && kodiak.getControllingPassenger() == mc.player;
 
-            if ((isLocalRider && OWAttackLogic.isCharging) || someoneElseRiding) {
+            if (!isLocalDriver || OWAttackLogic.isCharging) {
                 this.animate(kodiak.pawSlamChargeAnimState, KodiakAnimations.PAW_SLAM_CHARGE, ageInTicks, 1.0f);
                 if (kodiak.pawSlamChargeAnimState.getAccumulatedTime() >= 3000L) {
                     this.animate(kodiak.pawSlamChargeFullAnimState, KodiakAnimations.PAW_SLAM_CHARGE_FULL, ageInTicks, 1.0f);

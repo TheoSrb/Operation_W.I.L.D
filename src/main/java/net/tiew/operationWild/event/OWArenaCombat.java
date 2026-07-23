@@ -51,7 +51,8 @@ public class OWArenaCombat {
     }
 
     /**
-     * Rend les chefs intouchables dans l'arène pendant leur match.
+     * Rend les chefs intouchables dans l'arène pendant leur match, verdict rendu compris — la
+     * protection ne les quitte qu'une fois rentrés chez eux.
      *
      * <p>Un chef y vient en témoin, pas en combattant. S'il mourait, il réapparaîtrait au point de
      * réapparition du monde et le renvoi de fin de match le ramènerait chez lui depuis un endroit

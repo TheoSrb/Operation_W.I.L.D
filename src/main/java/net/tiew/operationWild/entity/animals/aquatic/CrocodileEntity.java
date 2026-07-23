@@ -527,9 +527,15 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         if (!this.level().isClientSide() && isPlayerMouthCharging()) {
-            float current = getChargingMouthTimer();
-            if (current < 60f) {
-                setChargingMouthTimer(Math.min(current + 1f, 60f));
+            // Une charge n'appartient qu'à un pilote : sans lui, elle n'a plus de raison d'être et
+            // laisserait la gueule ouverte aux yeux de tous les autres joueurs.
+            if (this.getControllingPassenger() == null) {
+                cancelMouthSlamCharge();
+            } else {
+                float current = getChargingMouthTimer();
+                if (current < 60f) {
+                    setChargingMouthTimer(Math.min(current + 1f, 60f));
+                }
             }
         }
 
@@ -983,9 +989,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 return true;
             }
             if (this.isTame()) {
-                return otherCrocodile.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherCrocodile.getOwnerUUID());
-            } else {
-                return !otherCrocodile.isTame();
+                if (otherCrocodile.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherCrocodile.getOwnerUUID())) {
+                    return true;
+                }
+            } else if (!otherCrocodile.isTame()) {
+                return true;
             }
         }
         return super.isAlliedTo(entity);

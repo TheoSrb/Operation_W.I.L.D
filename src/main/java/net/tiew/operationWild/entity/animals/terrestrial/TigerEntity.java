@@ -475,14 +475,22 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             leapJumpTimer++;
             boolean landed = leapJumpTimer > 5 && this.onGround();
             boolean hitWater = this.isInWater();
-            if (landed || hitWater) {
+            // Le bond saisit sa proie en plein vol : c'est le trajet qui accroche, pas l'atterrissage.
+            // Le délai de deux ticks évite d'agripper ce qui se tenait déjà collé au tigre au départ.
+            boolean caughtMidAir = false;
+            if (!this.level().isClientSide() && !landed && !hitWater
+                    && leapJumpTimer >= 2 && !this.isGrabbing()) {
+                tryPlayerGrab();
+                caughtMidAir = this.isGrabbing();
+            }
+            if (landed || hitWater || caughtMidAir) {
                 isPlayerLeaping = false;
                 isRidingJump = false;
                 leapJumpTimer = 0;
                 this.isLeaping = false;
                 if (!this.level().isClientSide()) {
                     syncLeapState(false, false);
-                    if (landed) tryPlayerGrab();
+                    if (landed && !this.isGrabbing()) tryPlayerGrab();
                 }
             }
         } else {
@@ -682,6 +690,12 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         }
     }
 
+    /** Le tigre nage, mais ne se bat pas sous l'eau : duels terrestres uniquement. */
+    @Override
+    public int arenaTerrainMask() {
+        return net.tiew.operationWild.core.OWArena.Terrain.TERRESTRIAL.bit();
+    }
+
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof TigerEntity otherTiger) {
@@ -689,9 +703,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                 return true;
             }
             if (this.isTame()) {
-                return otherTiger.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherTiger.getOwnerUUID());
-            } else {
-                return !otherTiger.isTame();
+                if (otherTiger.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherTiger.getOwnerUUID())) {
+                    return true;
+                }
+            } else if (!otherTiger.isTame()) {
+                return true;
             }
         }
         return super.isAlliedTo(entity);

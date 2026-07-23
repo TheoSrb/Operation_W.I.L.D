@@ -46,7 +46,9 @@ public record SyncArenaStatePacket(
         List<OWArenaFighter> candidates,
         int myReputation, int opponentReputation,
         int aliveMine, int aliveOpponent,
-        int resultOrdinal
+        int resultOrdinal,
+        /** Terrain du duel en cours ou proposé (cf. {@link OWArena.Terrain}). */
+        int terrainOrdinal
 ) implements CustomPacketPayload {
 
     public static final Type<SyncArenaStatePacket> TYPE = new Type<>(
@@ -71,6 +73,7 @@ public record SyncArenaStatePacket(
                 ByteBufCodecs.INT.encode(buf, p.aliveMine());
                 ByteBufCodecs.INT.encode(buf, p.aliveOpponent());
                 ByteBufCodecs.INT.encode(buf, p.resultOrdinal());
+                ByteBufCodecs.INT.encode(buf, p.terrainOrdinal());
             },
             buf -> new SyncArenaStatePacket(
                     ByteBufCodecs.INT.decode(buf),
@@ -89,6 +92,7 @@ public record SyncArenaStatePacket(
                     ByteBufCodecs.INT.decode(buf),
                     ByteBufCodecs.INT.decode(buf),
                     ByteBufCodecs.INT.decode(buf),
+                    ByteBufCodecs.INT.decode(buf),
                     ByteBufCodecs.INT.decode(buf)));
 
     @Override
@@ -98,7 +102,7 @@ public record SyncArenaStatePacket(
     public static SyncArenaStatePacket empty() {
         return new SyncArenaStatePacket(OWArena.Phase.IDLE.ordinal(), 0, "", 0, "", "",
                 List.of(), List.of(), 0, false, false, List.of(), 0, 0, 0, 0,
-                OWArena.Result.NONE.ordinal());
+                OWArena.Result.NONE.ordinal(), OWArena.Terrain.TERRESTRIAL.ordinal());
     }
 
     /** Construit l'état vu par {@code viewer}, membre de {@code team}. */
@@ -143,7 +147,7 @@ public record SyncArenaStatePacket(
                     opponentTeam != null ? OWReputation.compute(repData, opponentTeam) : 0,
                     match.aliveOf(teamId).size(),
                     match.aliveOf(match.opponentOf(teamId)).size(),
-                    result.ordinal());
+                    result.ordinal(), match.getTerrain().ordinal());
         }
 
         // Hors match : défi reçu ou défi émis en attente.
@@ -155,23 +159,25 @@ public record SyncArenaStatePacket(
                     incoming.challengerTeamId(), incoming.challengerTeamName(), "",
                     List.of(), List.of(), 0, false, false, List.of(),
                     myRep, challenger != null ? OWReputation.compute(repData, challenger) : 0,
-                    0, 0, OWArena.Result.NONE.ordinal());
+                    0, 0, OWArena.Result.NONE.ordinal(), incoming.terrain().ordinal());
         }
 
+        OWArenaChallenges.Challenge outgoing = OWArenaChallenges.findOutgoing(teamId);
         int outgoingTarget = OWArenaChallenges.outgoingTarget(teamId);
         if (outgoingTarget != 0) {
             OWTeam target = data.findTeamById(outgoingTarget);
             String name = target != null ? target.getTeamName() : "";
+            OWArena.Terrain sent = outgoing != null ? outgoing.terrain() : OWArena.Terrain.TERRESTRIAL;
             return new SyncArenaStatePacket(
                     OWArena.Phase.CHALLENGE_SENT.ordinal(), teamId, name, 0, "", name,
                     List.of(), List.of(), 0, false, false, List.of(),
                     myRep, target != null ? OWReputation.compute(repData, target) : 0,
-                    0, 0, OWArena.Result.NONE.ordinal());
+                    0, 0, OWArena.Result.NONE.ordinal(), sent.ordinal());
         }
 
         return new SyncArenaStatePacket(OWArena.Phase.IDLE.ordinal(), teamId, "", 0, "", "",
                 List.of(), List.of(), 0, false, false, List.of(), myRep, 0, 0, 0,
-                OWArena.Result.NONE.ordinal());
+                OWArena.Result.NONE.ordinal(), OWArena.Terrain.TERRESTRIAL.ordinal());
     }
 
     public static void handle(SyncArenaStatePacket packet, IPayloadContext context) {

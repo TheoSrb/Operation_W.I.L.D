@@ -71,6 +71,43 @@ public final class OWArena {
     /** Nombre maximum de combattants par camp — tous d'archétypes différents. */
     public static final int MAX_FIGHTERS = 5;
 
+    // ── Terrain du duel ─────────────────────────────────────────────────────────
+    /**
+     * Terrain sur lequel se déroule le duel, choisi par le <b>tribu qui défie</b> au moment
+     * d'envoyer son défi.
+     *
+     * <p>C'est le premier levier tactique du système : le défiant impose le décor et compose donc en
+     * connaissance de cause, mais il annonce du même coup à l'adversaire quelles bêtes il pourra
+     * aligner — le défié voit le terrain avant d'accepter. Une orque n'a rien à faire sur la terre
+     * ferme, un tigre rien à faire au fond de l'eau ; le reste de la ménagerie sait faire les
+     * deux.</p>
+     */
+    public enum Terrain {
+        TERRESTRIAL, AQUATIC;
+
+        /** Masque de ce seul terrain, à confronter à {@code OWEntity#arenaTerrainMask()}. */
+        public int bit() { return 1 << this.ordinal(); }
+
+        /** Clé de traduction du nom du terrain (ex. {@code owteams.arena.terrain.aquatic}). */
+        public String translationKey() { return "owteams.arena.terrain." + name().toLowerCase(); }
+
+        /** Clé de la phrase expliquant qu'une créature n'y a pas sa place. */
+        public String unfitKey() { return "owteams.arena.terrain.unfit." + name().toLowerCase(); }
+
+        public static Terrain byOrdinal(int i) {
+            Terrain[] all = values();
+            return all[Math.max(0, Math.min(all.length - 1, i))];
+        }
+    }
+
+    /** Masque d'une créature à l'aise partout : le cas par défaut. */
+    public static final int TERRAIN_BOTH = Terrain.TERRESTRIAL.bit() | Terrain.AQUATIC.bit();
+
+    /** Vrai si une créature de masque {@code terrainMask} peut combattre sur {@code terrain}. */
+    public static boolean fitsTerrain(int terrainMask, Terrain terrain) {
+        return terrain == null || (terrainMask & terrain.bit()) != 0;
+    }
+
     /** Bornes du gain de prestige d'une victoire, et part reversée au vaincu. */
     public static final int PRESTIGE_MIN = 10, PRESTIGE_MAX = 300;
     private static final double PRESTIGE_LOSER_SHARE = 0.25;

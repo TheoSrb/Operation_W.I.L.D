@@ -816,9 +816,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 return true;
             }
             if (this.isTame()) {
-                return otherKangaroo.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherKangaroo.getOwnerUUID());
-            } else {
-                return !otherKangaroo.isTame();
+                if (otherKangaroo.isTame() && this.getOwnerUUID() != null && this.getOwnerUUID().equals(otherKangaroo.getOwnerUUID())) {
+                    return true;
+                }
+            } else if (!otherKangaroo.isTame()) {
+                return true;
             }
         }
         return super.isAlliedTo(entity);

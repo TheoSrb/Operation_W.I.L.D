@@ -155,7 +155,6 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case 3 -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
                                 croc.startMouthSlamCharge();
-                                croc.setPlayerMouthCharging(true);
                             }
                         }
                     }
@@ -181,7 +180,6 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case 3 -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
                                 croc.cancelMouthSlamCharge();
-                                croc.setPlayerMouthCharging(true);
                             }
                         }
                     }

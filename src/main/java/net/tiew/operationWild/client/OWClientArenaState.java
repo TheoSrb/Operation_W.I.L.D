@@ -29,6 +29,14 @@ public final class OWClientArenaState {
         return all[Math.max(0, Math.min(all.length - 1, state.resultOrdinal()))];
     }
 
+    /** Terrain du duel en cours ou proposé — décide des créatures engageables. */
+    public static OWArena.Terrain terrain() { return OWArena.Terrain.byOrdinal(state.terrainOrdinal()); }
+
+    /** Vrai si cette créature sait tenir le terrain du duel en cours. */
+    public static boolean fitsTerrain(OWArenaFighter fighter) {
+        return fighter != null && fighter.fits(terrain());
+    }
+
     public static List<OWArenaFighter> myFighters() { return state.myFighters(); }
     public static List<OWArenaFighter> opponentFighters() { return state.opponentFighters(); }
     public static List<OWArenaFighter> candidates() { return state.candidates(); }

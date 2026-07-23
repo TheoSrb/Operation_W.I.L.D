@@ -260,6 +260,26 @@ public class ServerEvents {
         }
     }
 
+    /**
+     * Deux créatures d'une même tribu ne se blessent jamais.
+     *
+     * <p>Les gardes posés attaque par attaque (ciblage, filtres de zone d'effet) laissent passer
+     * tout ce qui n'y pense pas : projectile, onde de choc, dégâts différés. Cette vérification-ci
+     * arrive au dernier moment, quand les dégâts frappent, et couvre donc toutes les sources —
+     * y compris celles à venir. Le porteur des dégâts comme l'auteur sont testés : une attaque
+     * lancée par une créature mais portée par autre chose reste attribuée à sa tribu.</p>
+     */
+    @SubscribeEvent
+    public static void onTribeFriendlyFire(LivingIncomingDamageEvent event) {
+        LivingEntity victim = event.getEntity();
+        if (victim.level().isClientSide()) return;
+        DamageSource source = event.getSource();
+        if (OWEntity.shareTribe(source.getEntity(), victim)
+                || OWEntity.shareTribe(source.getDirectEntity(), victim)) {
+            event.setCanceled(true);
+        }
+    }
+
     @SubscribeEvent
     public static void onBeeIncomingDamage(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof Bee bee)) {

@@ -194,7 +194,9 @@ public class ClientEvents {
         currentEntityIds.clear();
         lastWaypointLevel = new java.lang.ref.WeakReference<>(null);
         cachedWorldName = null;
-        cachedWaypointKey = null;
+        // Plus aucun monde d'attache : la partie suivante repartira d'une mémoire vierge, et rien
+        // ne pourra être écrit d'ici là.
+        loadedWaypointKey = null;
         pendingWarning = false;
         warningTick = 0;
         currentVenomBlur = null;
@@ -288,7 +290,19 @@ public class ClientEvents {
         // remet à zéro ses quêtes sur son tick, puis synchronise son cavalier. Plus de reset client ici.
         String worldName = getWorldName(event.getPlayer());
         ClientKillData.createEmptyFile(worldName);
-        loadWaypointStates(event.getPlayer());
+
+        // Les waypoints ne sont volontairement PAS chargés ici. À la connexion, le monde n'est pas
+        // encore identifiable de façon sûre — le serveur intégré démarre, celui qu'on quitte n'a pas
+        // fini de s'éteindre — et c'est en lisant le monde à cet instant qu'on finissait par ouvrir
+        // le fichier de la partie précédente. La mémoire repart vide ; le premier rendu, où le monde
+        // courant est établi sans ambiguïté, s'en chargera (cf. lastWaypointLevel).
+        waypointStates.clear();
+        computedWaypoints.clear();
+        computedClusters.clear();
+        clusterPopSmoothed.clear();
+        currentEntityIds.clear();
+        loadedWaypointKey = null;
+        lastWaypointLevel = new java.lang.ref.WeakReference<>(null);
     }
 
     private static String cachedWorldName = null;
@@ -1757,45 +1771,59 @@ public class ClientEvents {
     }
 
     /**
+     * Monde auquel appartiennent les waypoints actuellement en mémoire, ou {@code null} si aucun.
+     *
+     * <p>C'est la pièce qui manquait. La clé de monde était auparavant <b>mise en cache</b> et
+     * consultée à la volée : dès qu'elle était résolue à un instant où le jeu était entre deux
+     * mondes — déconnexion, serveur intégré en cours d'arrêt ou de démarrage — la valeur périmée
+     * restait collée et le monde suivant lisait, puis réécrivait, le fichier du précédent.</p>
+     *
+     * <p>On ne devine donc plus : la mémoire sait de quel monde elle vient, et une sauvegarde part
+     * toujours vers <b>ce</b> monde-là, jamais vers celui qu'on croit habiter à l'instant T.</p>
+     */
+    private static String loadedWaypointKey = null;
+
+    /** En-tête du fichier de waypoints : reconnaissance du format et numéro de version. */
+    private static final int WAYPOINT_MAGIC = 0x4F57_5750;   // "OWWP"
+    private static final int WAYPOINT_VERSION = 2;
+
+    /**
      * Clé STRICTEMENT unique du monde courant, ou {@code null} si elle ne peut pas être résolue
      * de façon fiable.
-     * <p>
-     * Bug corrigé : auparavant on retombait sur le nom d'affichage du monde (non unique → deux
-     * mondes au même nom partageaient le même fichier) ou sur un bucket partagé {@code "unknown_world"}.
-     * Résultat : des waypoints d'un monde apparaissaient dans un autre. On préfère désormais ne RIEN
-     * charger/sauvegarder plutôt que d'utiliser un fichier partagé.
-     * </p>
      * <ul>
      *   <li>Solo : nom du <b>dossier</b> de sauvegarde (garanti unique par Minecraft).</li>
      *   <li>Multi : IP du serveur.</li>
      * </ul>
+     *
+     * <p>On retombait autrefois sur le nom d'affichage du monde (non unique → deux mondes du même
+     * nom partageaient un fichier) ou sur un panier commun {@code "unknown_world"}. On préfère
+     * désormais ne RIEN charger ni sauvegarder plutôt que d'écrire dans un fichier partagé.</p>
+     *
+     * <p>Résolu <b>à chaque appel</b> depuis l'état vivant du jeu, sans mise en cache : cela ne
+     * coûte qu'un accès au chemin du monde, et n'a lieu qu'aux quelques instants où l'on touche au
+     * fichier. Le cache d'autrefois ne faisait rien gagner et survivait au changement de monde —
+     * c'était la source du mélange.</p>
      */
-    private static String cachedWaypointKey = null;
-
     private static String resolveUniqueWorldKey() {
-        if (cachedWaypointKey != null) return cachedWaypointKey;
         Minecraft mc = Minecraft.getInstance();
 
         if (mc.hasSingleplayerServer() && mc.getSingleplayerServer() != null) {
             try {
                 java.nio.file.Path root = mc.getSingleplayerServer().getWorldPath(LevelResource.ROOT);
-                cachedWaypointKey = "sp_" + root.toAbsolutePath().normalize().getFileName().toString();
-                return cachedWaypointKey;
+                return "sp_" + root.toAbsolutePath().normalize().getFileName().toString();
             } catch (Exception ignored) {
                 return null; // monde non résolu de façon fiable → pas de fichier partagé
             }
         }
 
         if (mc.getCurrentServer() != null) {
-            cachedWaypointKey = "mp_" + mc.getCurrentServer().ip.replace(":", "_").replace(".", "_");
-            return cachedWaypointKey;
+            return "mp_" + mc.getCurrentServer().ip.replace(":", "_").replace(".", "_");
         }
 
         return null;
     }
 
-    private static File getWaypointFile(Player player) {
-        String key = resolveUniqueWorldKey();
+    private static File waypointFileFor(String key) {
         if (key == null) return null;
         return new File("config/ow_waypoints_" + key.replace(":", "_") + ".dat");
     }
@@ -1804,20 +1832,18 @@ public class ClientEvents {
      * Resynchronise la persistance des waypoints quand le {@link ClientLevel} courant change
      * (changement de monde ou de dimension).
      * <p>
-     * Sauvegarde l'état courant dans le fichier du monde qu'on quitte (clé encore en cache),
-     * invalide les clés de monde en cache, vide la mémoire, puis recharge depuis le fichier du
-     * monde courant — dont la clé est désormais résolue correctement (serveur intégré prêt).
+     * L'état courant part d'abord dans le fichier du monde <b>dont il provient</b> — connu, et non
+     * plus déduit —, puis la mémoire est vidée et rechargée depuis le monde où l'on vient d'entrer.
+     * Un changement de dimension au sein d'une même partie retombe naturellement sur le même
+     * fichier, et le passage d'un monde à l'autre ne peut plus les confondre.
      */
     private static void handleWaypointWorldChange(Player player, ClientLevel newLevel) {
         saveWaypointStates(player);
-        cachedWaypointKey = null;
         cachedWorldName = null;
-        waypointStates.clear();
-        computedWaypoints.clear();
         computedClusters.clear();
         clusterPopSmoothed.clear();
         currentEntityIds.clear();
-        loadWaypointStates(player);
+        loadWaypointStates(player);   // vide la mémoire et rattache au monde courant
         lastWaypointLevel = new java.lang.ref.WeakReference<>(newLevel);
     }
 
@@ -1828,16 +1854,27 @@ public class ClientEvents {
         computedClusters.clear();
         clusterPopSmoothed.clear();
         cachedWorldName = null;
-        cachedWaypointKey = null;
+        loadedWaypointKey = null;
     }
 
+    /**
+     * Écrit les waypoints en mémoire dans le fichier du monde <b>dont ils proviennent</b>.
+     *
+     * <p>Sans monde d'origine connu, on n'écrit rien : refuser d'écrire est toujours préférable à
+     * déverser les repères d'une partie dans le fichier d'une autre. La clé est réinscrite dans le
+     * fichier, de sorte qu'une lecture puisse à son tour vérifier à qui il appartient.</p>
+     */
     private static void saveWaypointStates(Player player) {
-        File file = getWaypointFile(player);
-        if (file == null) return; // monde non résolu : on ne sauvegarde pas dans un fichier partagé
+        String key = loadedWaypointKey;
+        File file = waypointFileFor(key);
+        if (file == null) return; // monde d'origine inconnu : on ne touche à aucun fichier
         try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file))) {
             List<Map.Entry<UUID, WaypointState>> toSave = waypointStates.entrySet().stream()
                     .filter(e -> e.getValue().hasBeenSeen && e.getValue().lastPos != null)
                     .toList();
+            out.writeInt(WAYPOINT_MAGIC);
+            out.writeInt(WAYPOINT_VERSION);
+            out.writeUTF(key);
             out.writeInt(toSave.size());
             for (Map.Entry<UUID, WaypointState> entry : toSave) {
                 WaypointState s = entry.getValue();
@@ -1862,11 +1899,29 @@ public class ClientEvents {
         }
     }
 
+    /**
+     * Charge les waypoints du monde courant, et rien d'autre.
+     *
+     * <p>Le fichier porte le nom du monde <i>et</i> le rappelle dans son en-tête : les deux doivent
+     * concorder avec le monde où l'on vient d'entrer, sinon son contenu est rejeté. Cette seconde
+     * vérification est ce qui rattrape une clé mal résolue — et elle écarte du même coup les
+     * fichiers de l'ancien format, sans en-tête, dont on ne peut pas prouver l'origine.</p>
+     */
     private static void loadWaypointStates(Player player) {
         waypointStates.clear();
-        File file = getWaypointFile(player);
+        computedWaypoints.clear();
+        loadedWaypointKey = null;
+
+        String key = resolveUniqueWorldKey();
+        if (key == null) return;   // monde non résolu : ni lecture ni écriture, la mémoire reste vierge
+        // Le monde est identifié : même sans fichier (partie neuve), on saura où sauvegarder.
+        loadedWaypointKey = key;
+
+        File file = waypointFileFor(key);
         if (file == null || !file.exists()) return;
         try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
+            if (in.readInt() != WAYPOINT_MAGIC || in.readInt() != WAYPOINT_VERSION) return;
+            if (!key.equals(in.readUTF())) return;   // fichier d'un autre monde : on n'en prend rien
             int count = in.readInt();
             for (int i = 0; i < count; i++) {
                 UUID uuid = UUID.fromString(in.readUTF());

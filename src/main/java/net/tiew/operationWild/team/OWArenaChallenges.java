@@ -1,5 +1,7 @@
 package net.tiew.operationWild.team;
 
+import net.tiew.operationWild.core.OWArena;
+
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,17 +18,24 @@ public final class OWArenaChallenges {
 
     public static final long TTL_MS = 120_000L;
 
-    /** Défi lancé par {@code challengerTeamId} à la tribu cible. */
+    /**
+     * Défi lancé par {@code challengerTeamId} à la tribu cible.
+     *
+     * <p>Le terrain est fixé par le défiant à l'émission et voyage avec le défi : le défié le voit
+     * avant d'accepter, et il conditionne ensuite la composition des deux camps.</p>
+     */
     public record Challenge(int challengerTeamId, String challengerTeamName,
-                            UUID challengerChief, long expiresAt) {}
+                            UUID challengerChief, OWArena.Terrain terrain, long expiresAt) {}
 
     /** teamId cible → défi en attente. */
     private static final Map<Integer, Challenge> PENDING = new ConcurrentHashMap<>();
 
     private OWArenaChallenges() {}
 
-    public static void put(int targetTeamId, int challengerTeamId, String challengerTeamName, UUID challengerChief) {
+    public static void put(int targetTeamId, int challengerTeamId, String challengerTeamName,
+                           UUID challengerChief, OWArena.Terrain terrain) {
         PENDING.put(targetTeamId, new Challenge(challengerTeamId, challengerTeamName, challengerChief,
+                terrain != null ? terrain : OWArena.Terrain.TERRESTRIAL,
                 System.currentTimeMillis() + TTL_MS));
     }
 

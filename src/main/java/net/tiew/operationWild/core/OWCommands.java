@@ -592,8 +592,10 @@ public class OWCommands {
 
     // ── Test en solo : adversaire d'entraînement ───────────────────────────────
     /**
-     * {@code /owarenaspar start [combattants]} ouvre un match contre une tribu fictive dont le camp
-     * est déjà composé et confirmé : il ne reste qu'à choisir son équipe et lancer le combat.
+     * {@code /owarenaspar start [combattants] [terrestrial|aquatic]} ouvre un match contre une tribu
+     * fictive dont le camp est déjà composé et confirmé : il ne reste qu'à choisir son équipe et
+     * lancer le combat. Le terrain vaut terre ferme par défaut ; l'adversaire fictif ne fait
+     * apparaître que des espèces capables de le tenir.
      * {@code /owarenaspar stop} nettoie tout (match, créatures, tribu).
      */
     public static class ArenaSparringCommand {
@@ -602,18 +604,26 @@ public class OWCommands {
                     Commands.literal("owarenaspar")
                             .requires(s -> s.hasPermission(2))
                             .then(Commands.literal("start")
-                                    .executes(ctx -> start(ctx, 4))
+                                    .executes(ctx -> start(ctx, 4, OWArena.Terrain.TERRESTRIAL))
                                     .then(Commands.argument("fighters", IntegerArgumentType.integer(1, 5))
-                                            .executes(ctx -> start(ctx, IntegerArgumentType.getInteger(ctx, "fighters")))))
+                                            .executes(ctx -> start(ctx, IntegerArgumentType.getInteger(ctx, "fighters"),
+                                                    OWArena.Terrain.TERRESTRIAL))
+                                            .then(Commands.literal("terrestrial")
+                                                    .executes(ctx -> start(ctx, IntegerArgumentType.getInteger(ctx, "fighters"),
+                                                            OWArena.Terrain.TERRESTRIAL)))
+                                            .then(Commands.literal("aquatic")
+                                                    .executes(ctx -> start(ctx, IntegerArgumentType.getInteger(ctx, "fighters"),
+                                                            OWArena.Terrain.AQUATIC)))))
                             .then(Commands.literal("stop").executes(ArenaSparringCommand::stop))
             );
         }
 
-        private static int start(CommandContext<CommandSourceStack> context, int fighters) {
+        private static int start(CommandContext<CommandSourceStack> context, int fighters,
+                                 OWArena.Terrain terrain) {
             try {
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 net.tiew.operationWild.team.OWArenaManager.startSparring(
-                        context.getSource().getServer(), player, fighters);
+                        context.getSource().getServer(), player, fighters, terrain);
             } catch (Exception ignored) {}
             return 1;
         }

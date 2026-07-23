@@ -35,6 +35,11 @@ public class OWArenaMatch {
     private final UUID chiefA, chiefB;
     /** Réputations figées à l'ouverture du match : le gain ne doit pas bouger pendant le combat. */
     private final int reputationA, reputationB;
+    /**
+     * Terrain du duel, imposé par le défiant. Fixé à l'ouverture du match et jamais rejoué : les
+     * deux camps composent sur la même donnée, du premier combattant engagé jusqu'au verdict.
+     */
+    private final OWArena.Terrain terrain;
 
     private final List<OWArenaFighter> fightersA = new ArrayList<>();
     private final List<OWArenaFighter> fightersB = new ArrayList<>();
@@ -80,10 +85,12 @@ public class OWArenaMatch {
     private boolean borderShrinking = false;
 
     public OWArenaMatch(int matchId, int teamAId, String teamAName, UUID chiefA, int reputationA,
-                        int teamBId, String teamBName, UUID chiefB, int reputationB) {
+                        int teamBId, String teamBName, UUID chiefB, int reputationB,
+                        OWArena.Terrain terrain) {
         this.matchId = matchId;
         this.teamAId = teamAId; this.teamAName = teamAName; this.chiefA = chiefA; this.reputationA = reputationA;
         this.teamBId = teamBId; this.teamBName = teamBName; this.chiefB = chiefB; this.reputationB = reputationB;
+        this.terrain = terrain != null ? terrain : OWArena.Terrain.TERRESTRIAL;
     }
 
     // ── Identité ─────────────────────────────────────────────────────────────────
@@ -96,6 +103,7 @@ public class OWArenaMatch {
     public UUID getChiefB() { return chiefB; }
     public int getReputationA() { return reputationA; }
     public int getReputationB() { return reputationB; }
+    public OWArena.Terrain getTerrain() { return terrain; }
 
     public boolean involves(int teamId) { return teamId == teamAId || teamId == teamBId; }
     public boolean isSideA(int teamId) { return teamId == teamAId; }
@@ -120,12 +128,13 @@ public class OWArenaMatch {
     }
 
     /**
-     * Ajoute un combattant à un camp. Refusé si la limite est atteinte, si l'archétype est déjà
-     * représenté (règle « un archétype unique par combattant », façon Paladins), ou si la créature
-     * est déjà engagée.
+     * Ajoute un combattant à un camp. Refusé si la créature n'est pas faite pour le terrain du duel,
+     * si la limite est atteinte, si l'archétype est déjà représenté (règle « un archétype unique par
+     * combattant », façon Paladins), ou si la créature est déjà engagée.
      */
     public boolean addFighter(int teamId, OWArenaFighter fighter) {
         if (state != State.SELECTION || fighter == null) return false;
+        if (!fighter.fits(terrain)) return false;   // le terrain du duel prime sur tout le reste
         List<OWArenaFighter> side = fightersOf(teamId);
         if (side.size() >= OWArena.MAX_FIGHTERS) return false;
         for (OWArenaFighter f : side) {
