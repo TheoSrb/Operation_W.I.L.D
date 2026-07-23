@@ -178,7 +178,7 @@
   "indication.ow.tuto_archetype": "엔티티의 원형(아키타입)으로, 특정 기능을 가집니다",
   "indication.ow.tuto_stats": "획득한 레벨 포인트로 탑승 동물의 능력치를 올리세요",
   "tooltip.skinUnlockQuest": "퀘스트: %s",
-  "tooltip.skinQuestProgress": "%s / %s (%s%%)",
+  "tooltip.skinQuestProgress": "%s%%",
   "tooltip.tigerSkin1.desc": "당신의 호랑이를 황금처럼 빛나게 하세요!",
   "tooltip.tigerSkin2.desc": "당신의 호랑이를 대부처럼 멋지게 만드세요!",
   "tooltip.tigerSkin3.desc": "당신의 호랑이를 컴퓨터 바이러스처럼 위험하게 만드세요!",

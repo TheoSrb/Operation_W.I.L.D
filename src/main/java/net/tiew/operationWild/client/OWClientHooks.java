@@ -26,6 +26,15 @@ public final class OWClientHooks {
 
     private OWClientHooks() {}
 
+    /**
+     * La touche de saut est-elle tenue ? Lue sur les options plutôt que sur {@code LivingEntity#jumping},
+     * qui est protégé et donc hors de portée depuis la monture — c'est le cavalier qu'on interroge,
+     * pas soi-même. Même source que le pilotage du submersible.
+     */
+    public static boolean isJumpKeyDown() {
+        return Minecraft.getInstance().options.keyJump.isDown();
+    }
+
     /** Ouvre l'Écran de Communion pour lancer le Rituel de Résurrection. */
     public static void openRitualCommunion(SoulData data) {
         Minecraft.getInstance().setScreen(new RitualCommunionScreen(data));

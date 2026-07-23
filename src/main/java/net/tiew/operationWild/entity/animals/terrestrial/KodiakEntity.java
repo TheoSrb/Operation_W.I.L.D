@@ -1262,28 +1262,22 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         setupComboAnimations();
     }
 
+    /**
+     * Duree de vie des animations de combo, en ticks. Chacune doit couvrir le geste ENTIER, plus
+     * environ un tiers de rabiot pendant lequel il tient sa pose finale et se melange au coup
+     * suivant — c'est la marge du crocodile, qui sert de reference. En dessous, l'animation est
+     * tranchee avant sa derniere image et l'enchainement saccade.
+     *
+     * <p>Gestes de 1,04 / 1,04 / 1,48 s lus a 1,0 / 1,1 / 1,25 : 20,8 / 18,9 / 23,7 ticks. Le premier, a 20, etait coupe.</p>
+     */
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (20 / comboSpeedMultiplier));
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (20 / comboSpeedMultiplier));
-        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (30 / comboSpeedMultiplier));
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (28 / comboSpeedMultiplier));
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (25 / comboSpeedMultiplier));
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (32 / comboSpeedMultiplier));
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
-        if (this.isCombo(comboNumber)) {
-            if (timer <= 0) {
-                timer = maxTimer;
-                animationState.start(this.tickCount);
-            } else {
-                --timer;
-            }
-        } else {
-            if (comboNumber != 3 && timer > 0) {
-                --timer;
-            } else {
-                timer = 0;
-                animationState.stop();
-            }
-        }
+        timer = tickComboAnimation(comboNumber, animationState, timer, maxTimer, this.isCombo(comboNumber));
 
         switch (comboNumber) {
             case 1: attack1ComboTimer = timer; break;
@@ -1561,7 +1555,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public boolean isPawSlamStriking() { return this.entityData.get(IS_PAW_SLAM_STRIKING); }
 
     @Override
-    protected int getDefaultSkinIndex() { return 4; }
+    protected int getDefaultSkinIndex() { return 7; }   // « Kodiak Par Défaut »
 
     class KodiakMeleeAttackGoal extends MeleeAttackGoal {
 

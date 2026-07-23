@@ -178,7 +178,7 @@
   "indication.ow.tuto_archetype": "エンティティのアーキタイプ。特定の機能を持ちます",
   "indication.ow.tuto_stats": "獲得したレベルポイントで騎乗動物のステータスを上げましょう",
   "tooltip.skinUnlockQuest": "クエスト：%s",
-  "tooltip.skinQuestProgress": "%s / %s（%s%%）",
+  "tooltip.skinQuestProgress": "%s%%",
   "tooltip.tigerSkin1.desc": "あなたのトラを黄金のように輝かせよう！",
   "tooltip.tigerSkin2.desc": "あなたのトラをゴッドファーザーのように粋にしよう！",
   "tooltip.tigerSkin3.desc": "あなたのトラをコンピューターウイルスのように危険にしよう！",

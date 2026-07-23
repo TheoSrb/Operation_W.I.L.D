@@ -215,20 +215,23 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> implem
 
 		this.applyHeadRotation(netHeadYaw, headPitch);
 
-		if (orca.isCombo(1) || (orca.attack1Combo.isStarted() && !orca.isCombo())) {
+		// Les trois coups sont EMPILÉS, sans sortie anticipée : les transformations d'une animation
+		// s'ajoutent à la pose courante, donc la fin du coup précédent et le début du suivant se
+		// mélangent d'eux-mêmes le temps de leur recouvrement. C'est là toute la fluidité du
+		// crocodile, dont ce bloc est la copie.
+		//
+		// Chaque branche coupait auparavant le rendu par un {@code return} : une seule animation
+		// pouvait donc s'appliquer à la fois. Le coup précédent restait figé sur sa dernière image
+		// jusqu'à son arrêt, puis la pose sautait d'un bloc à l'attaque suivante. La nage était par
+		// la même occasion suspendue pendant toute la durée du combo.
+		if (orca.isCombo(1) || orca.attack1Combo.isStarted()) {
 			this.animate(orca.attack1Combo, OrcaAnimations.ATTACK_STRIKE, ageInTicks, 1.0f);
-			captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
-			return;
 		}
-		if (orca.isCombo(2) || (orca.attack2Combo.isStarted() && !orca.isCombo())) {
+		if (orca.isCombo(2) || orca.attack2Combo.isStarted()) {
 			this.animate(orca.attack2Combo, OrcaAnimations.ATTACK_STRIKE_2, ageInTicks, 1.0f);
-			captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
-			return;
 		}
-		if (orca.isCombo(3)) {
+		if (orca.isCombo(3) || orca.attack3Combo.isStarted()) {
 			this.animate(orca.attack3Combo, OrcaAnimations.ATTACK_STRIKE_3, ageInTicks, 1.0f);
-			captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
-			return;
 		}
 
 		if ((orca.isRunning() || orca.getState() == 2)) {
@@ -261,12 +264,21 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> implem
 	private void captureBodyState(OrcaEntity orca, float restPoseYSum, float riderRotIntensity, ModelPart... boneChain) {
 		if (!orca.level().isClientSide()) return;
 
+		// Modele du cavalier : orientation VISIBLE complete, ALL2 compris — il porte le pique
+		// commande au regard, et sans lui le joueur resterait droit pendant que sa monture plonge.
 		orca.setBodyZRot((float) Math.toDegrees((this.ALL2.zRot + this.ALL.zRot + this.body.zRot) * riderRotIntensity));
 		orca.setBodyXRot((float) -Math.toDegrees((this.ALL2.xRot + this.ALL.xRot + this.body.xRot) * riderRotIntensity));
+		orca.bodyYRot = (float) Math.toDegrees((this.ALL2.yRot + this.ALL.yRot + this.body.yRot) * riderRotIntensity);
 		orca.bodyAnimXRot = this.ALL2.xRot + this.ALL.xRot + this.body.xRot;
 
 		orca.bodyZRot_passenger = orca.getBodyZRot();
 		orca.bodyXRot_passenger = orca.getBodyXRot();
+		orca.bodyYRot_passenger = orca.bodyYRot;
+
+		// Camera : ALL + body seuls. Le pique de ALL2 vient du regard du pilote, qui l'applique deja.
+		orca.camZRot = (float)  Math.toDegrees(this.ALL.zRot + this.body.zRot);
+		orca.camXRot = (float) -Math.toDegrees(this.ALL.xRot + this.body.xRot);
+		orca.camYRot = (float)  Math.toDegrees(this.ALL.yRot + this.body.yRot);
 
 		float xSum = this.ALL2.x + this.ALL.x + this.body.x;
 		orca.bodyAnimX = -xSum;

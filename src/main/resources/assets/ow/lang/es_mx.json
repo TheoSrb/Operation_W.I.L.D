@@ -178,7 +178,7 @@
   "indication.ow.tuto_archetype": "El arquetipo de tu entidad, con funciones específicas",
   "indication.ow.tuto_stats": "Aumenta las estadísticas de tu montura con los puntos de nivel obtenidos",
   "tooltip.skinUnlockQuest": "Misión: %s",
-  "tooltip.skinQuestProgress": "%s / %s (%s %%)",
+  "tooltip.skinQuestProgress": "%s %%",
   "tooltip.tigerSkin1.desc": "¡Haz que tu Tigre brille como el oro!",
   "tooltip.tigerSkin2.desc": "¡Haz que tu Tigre sea tan elegante como el padrino!",
   "tooltip.tigerSkin3.desc": "¡Haz que tu Tigre sea tan peligroso como un virus informático!",

@@ -178,7 +178,7 @@
   "indication.ow.tuto_archetype": "實體的原型，具有特定功能",
   "indication.ow.tuto_stats": "用獲得的等級點提升坐騎的屬性",
   "tooltip.skinUnlockQuest": "任務：%s",
-  "tooltip.skinQuestProgress": "%s / %s（%s%%）",
+  "tooltip.skinQuestProgress": "%s%%",
   "tooltip.tigerSkin1.desc": "讓你的老虎像黃金一樣閃耀！",
   "tooltip.tigerSkin2.desc": "讓你的老虎像教父一樣有派頭！",
   "tooltip.tigerSkin3.desc": "讓你的老虎像電腦病毒一樣危險！",

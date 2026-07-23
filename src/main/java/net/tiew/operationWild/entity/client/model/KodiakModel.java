@@ -248,7 +248,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> im
         if (kodiak.isCombo(2) || kodiak.attack2Combo.isStarted()) {
             this.animate(kodiak.attack2Combo, KodiakAnimations.ATTACK_STRIKE2, ageInTicks, 1.1f * OWEntity.comboSpeedMultiplier);
         }
-        if (kodiak.isCombo(3)) {
+        if (kodiak.isCombo(3) || kodiak.attack3Combo.isStarted()) {
             this.animate(kodiak.attack3Combo, KodiakAnimations.ATTACK_STRIKE3, ageInTicks, 1.25f * OWEntity.comboSpeedMultiplier);
         }
 

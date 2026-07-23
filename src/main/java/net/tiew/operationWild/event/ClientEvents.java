@@ -507,7 +507,16 @@ public class ClientEvents {
      */
     @SubscribeEvent
     public static void onRenderGuiLayer(net.neoforged.neoforge.client.event.RenderGuiLayerEvent.Pre event) {
-        if (net.tiew.operationWild.gui.OWCinematicState.anyPlaying()) event.setCanceled(true);
+        if (net.tiew.operationWild.gui.OWCinematicState.anyPlaying()) { event.setCanceled(true); return; }
+
+        // Sortie de combat de la monture : la jauge prend la place de la barre d'expérience — ou de
+        // celle de saut, selon l'espèce. Les deux occupent la même bande, on écarte donc celle qui
+        // se présente et on dessine la nôtre à la suite (cf. onRenderStage).
+        if (net.tiew.operationWild.gui.OWCombatBarOverlay.isActive()
+                && (event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.EXPERIENCE_BAR)
+                || event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.JUMP_METER))) {
+            event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent
@@ -925,7 +934,6 @@ public class ClientEvents {
         boolean renderSeabug = targetedEntity instanceof SeaBugEntity;
         boolean renderKodiak = targetedEntity instanceof KodiakEntity;
         boolean renderCrocodile = targetedEntity instanceof CrocodileEntity;
-        boolean renderFoodOverlay = targetedEntity instanceof OWEntity ow && !ow.getItemFood().isEmpty();
 
         boolean isGrabByCrocodile = player.level().getEntitiesOfClass(CrocodileEntity.class, player.getBoundingBox().inflate(5.0)).stream().anyMatch(
                 crocodile -> crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player
@@ -943,6 +951,13 @@ public class ClientEvents {
         );
 
         boolean isGrabBySomething = isGrabByCrocodile || isGrabByTiger || isGrabByBoa;
+
+        // Jauge de sortie de combat, à l'emplacement de la barre écartée juste avant.
+        if (event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.HOTBAR)) {
+            net.tiew.operationWild.gui.OWCombatBarOverlay.render(event.getGuiGraphics(),
+                    event.getGuiGraphics().guiWidth(),
+                    event.getGuiGraphics().guiHeight());
+        }
 
         if (player != null) {
             PlantEmpressBossBar.render(event.getGuiGraphics(),
@@ -990,11 +1005,9 @@ public class ClientEvents {
                         event.getGuiGraphics().guiHeight());
             }
 
-            if (renderFoodOverlay) {
-                OWEntityFoodOverlay.render(event.getGuiGraphics(),
-                        event.getGuiGraphics().guiWidth(),
-                        event.getGuiGraphics().guiHeight());
-            }
+            // Encart de nourriture retiré du HUD : ranger de la bouffe dans le slot n'a plus à
+            // s'annoncer à l'écran. La monture y pioche d'elle-même hors combat, et c'est la jauge
+            // de sortie de combat qui dit quand — le stock, lui, se consulte dans son inventaire.
         }
     }
 
@@ -1239,6 +1252,13 @@ public class ClientEvents {
         PoseStack poseStack = event.getPoseStack();
         Vec3 pivotPoint = new Vec3(0, 0, 0);
 
+        // Rattrapage du retard du cavalier sur l'os qui le porte : sa place est calculée une fois par
+        // tick sur une animation qui, elle, avance à chaque image. Appliqué AVANT les rotations qui
+        // suivent, pour que leurs points de pivot suivent le modèle. Cf. OWRiderSmoothing.
+        Vec3 seatFix = net.tiew.operationWild.client.OWRiderSmoothing.seatCorrection(
+                player, owVehicle, event.getPartialTick());
+        if (seatFix != null) poseStack.translate(seatFix.x, seatFix.y, seatFix.z);
+
         if (owVehicle instanceof SeaBugEntity seaBug) {
             poseStack.pushPose();
             pivotPoint = new Vec3(0, 1.3, 0);
@@ -1327,6 +1347,13 @@ public class ClientEvents {
                     ? Axis.XP.rotationDegrees(-orca.getBodyXRot_passenger())
                     : Axis.XP.rotationDegrees(-orca.getBodyXRot());
 
+            // Lacet : le cavalier suit desormais les trois axes du corps, et non plus le seul couple
+            // roulis/tangage. Applique en premier, il reste l'axe le plus exterieur des trois.
+            Quaternionf rotationY = isPassenger
+                    ? Axis.YP.rotationDegrees(-orca.getBodyYRot_passenger())
+                    : Axis.YP.rotationDegrees(-orca.getBodyYRot());
+
+            poseStack.rotateAround(rotationY, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
             poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
             poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
 
@@ -1391,8 +1418,12 @@ public class ClientEvents {
                 event.setRoll((float) (event.getRoll() + (crocodile.getBodyZRot() / 4) * intensity));
                 event.setPitch((float) (event.getPitch() + (crocodile.getBodyXRot() / 4) * intensity));
             } else if (rootVehicle instanceof OrcaEntity orca) {
-                event.setRoll((float) (event.getRoll() + (orca.getBodyZRot() / 6) * intensity));
-                event.setPitch((float) (event.getPitch() + (orca.getBodyXRot() / 6) * intensity));
+                // La camera epouse le corps sur les trois axes, au quart : elle n'attenuait
+                // le mouvement qu'au sixieme, et ignorait le lacet. Ce sont ALL + body — le pique
+                // commande au regard, porte par ALL2, est deja dans l'orientation du joueur.
+                event.setRoll((float)  (event.getRoll()  + (orca.camZRot / 4) * intensity));
+                event.setPitch((float) (event.getPitch() + (orca.camXRot / 4) * intensity));
+                event.setYaw((float)   (event.getYaw()   + (orca.camYRot / 4) * intensity));
             } else if (rootVehicle instanceof KangarooEntity kangaroo) {
                 event.setRoll((float) (event.getRoll() + (kangaroo.getBodyZRot() / 6) * intensity));
                 event.setPitch((float) (event.getPitch() + (kangaroo.getBodyXRot() / 6) * intensity));

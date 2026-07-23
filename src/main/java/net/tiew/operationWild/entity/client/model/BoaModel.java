@@ -250,17 +250,19 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> implemen
         this.head.yRot = 0f;
         this.head.xRot = 0f;
 
-        if (boa.isCombo(1) || (boa.attack1Combo.isStarted() && !boa.isCombo())) {
+        // Les coups sont EMPILES : les transformations s'ajoutent a la pose courante, donc la fin
+        // d'un coup et le debut du suivant se melangent d'eux-memes. Un {@code return} par branche
+        // n'en laissait jouer qu'un a la fois : le precedent restait fige sur sa derniere image,
+        // puis la pose sautait. La clause {@code !isCombo()} annulait par ailleurs le repli qui
+        // laisse une animation finir son geste.
+        if (boa.isCombo(1) || boa.attack1Combo.isStarted()) {
             this.animate(boa.attack1Combo, BoaAnimations.ATTACK_STRIKE, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
-            return;
         }
-        if (boa.isCombo(2) || (boa.attack2Combo.isStarted() && !boa.isCombo())) {
+        if (boa.isCombo(2) || boa.attack2Combo.isStarted()) {
             this.animate(boa.attack2Combo, BoaAnimations.ATTACK_STRIKE_2, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
-            return;
         }
-        if (boa.isCombo(3)) {
+        if (boa.isCombo(3) || boa.attack3Combo.isStarted()) {
             this.animate(boa.attack3Combo, BoaAnimations.ATTACK_STRIKE_3, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
-            return;
         }
 
         if (boa.tongAnimationState.isStarted()) {

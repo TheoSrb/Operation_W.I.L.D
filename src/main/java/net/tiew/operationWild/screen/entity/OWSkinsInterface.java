@@ -583,8 +583,14 @@ public class OWSkinsInterface extends Screen {
 
         Component nameComp = Component.translatable(info.nameKey)
                 .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(rc)).withBold(true));
-        g.drawString(this.font, nameComp, px + pw / 2 - this.font.width(nameComp) / 2, curY, rc);
-        curY += 12;
+        // Nom replié sur la largeur du panneau, comme sa description juste dessous. Écrit d'un seul
+        // tenant, « Crocodile Par Défaut » en gras dépasse les cent pixels du cadre et débordait des
+        // deux côtés — et rien ne garantit qu'une traduction soit plus courte que le français.
+        for (FormattedCharSequence nameLine : this.font.split(nameComp, pw - 8)) {
+            g.drawString(this.font, nameLine, px + pw / 2 - this.font.width(nameLine) / 2, curY, rc);
+            curY += 9;
+        }
+        curY += 3;
 
         g.fill(px + 4, curY, px + pw - 4, curY + 1, (0x77 << 24) | (rc & 0x00FFFFFF));
         curY += 5;
@@ -628,7 +634,10 @@ public class OWSkinsInterface extends Screen {
                 float frac = Math.max(0f, Math.min(quest.getProgressFraction(entity.getUUID()), 1f));
                 int barX = px + 6;
                 int barW = pw - 12;
-                int barH = 4;
+                // Assez haute pour porter son propre chiffre : le pourcentage se lit AU MILIEU de la
+                // jauge, il faut donc que les neuf pixels d'une ligne de texte y tiennent. Une barre
+                // de quatre pixels ne laissait d'autre choix que de l'écrire à côté.
+                int barH = 11;
                 g.fill(barX - 1, curY - 1, barX + barW + 1, curY + barH + 1, 0xFF2A2A2A);
                 g.fill(barX, curY, barX + barW, curY + barH, 0xFF111111);
                 // Une progression entamée doit se voir : sans ce plancher, tout ce qui n'atteint pas
@@ -637,15 +646,14 @@ public class OWSkinsInterface extends Screen {
                 if (fillW > 0)
                     g.fill(barX, curY, barX + fillW, curY + barH, completed ? 0xFF44CC66 : 0xFFE8901A);
 
-                // Le décompte se lit SOUS la barre. Il était dessiné à sa hauteur, où huit pixels de
-                // texte recouvraient quatre pixels de jauge : ni l'un ni l'autre n'était lisible.
-                curY += barH + 3;
+                // Blanc et ombré : le chiffre chevauche à la fois le remplissage et le fond vide, et
+                // doit rester lisible sur les deux.
                 Component pctText = Component.translatable("tooltip.skinQuestProgress",
-                                quest.getProgress(entity.getUUID()), quest.getMaxProgress(),
-                                Math.round(frac * 100f))
-                        .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(completed ? 0x8BE45A : 0xDDDDDD)));
+                        Math.round(frac * 100f));
                 g.drawString(this.font, pctText,
-                        px + pw / 2 - this.font.width(pctText) / 2, curY, 0xFFFFFF, false);
+                        px + pw / 2 - this.font.width(pctText) / 2,
+                        curY + (barH - this.font.lineHeight) / 2 + 1, 0xFFFFFF, true);
+                curY += barH;
             }
         }
     }

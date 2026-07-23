@@ -178,7 +178,7 @@
   "indication.ow.tuto_archetype": "Архетип вашего существа, с особыми функциями",
   "indication.ow.tuto_stats": "Повышайте характеристики питомца за полученные очки уровня",
   "tooltip.skinUnlockQuest": "Задание: %s",
-  "tooltip.skinQuestProgress": "%s / %s (%s %%)",
+  "tooltip.skinQuestProgress": "%s %%",
   "tooltip.tigerSkin1.desc": "Сделайте вашего Тигра сияющим, как золото!",
   "tooltip.tigerSkin2.desc": "Сделайте вашего Тигра изысканным, как крёстный отец!",
   "tooltip.tigerSkin3.desc": "Сделайте вашего Тигра опасным, как компьютерный вирус!",

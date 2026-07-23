@@ -281,7 +281,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		if (crocodile.isCombo(2) || crocodile.attack2Combo.isStarted()) {
 			this.animate(crocodile.attack2Combo, CrocodileAnimations.ATTACK_STRIKE_2, ageInTicks, 1.35f);
 		}
-		if (crocodile.isCombo(3)) {
+		if (crocodile.isCombo(3) || crocodile.attack3Combo.isStarted()) {
 			this.animate(crocodile.attack3Combo, CrocodileAnimations.ATTACK_STRIKE_3, ageInTicks, 1.35f);
 		}
 

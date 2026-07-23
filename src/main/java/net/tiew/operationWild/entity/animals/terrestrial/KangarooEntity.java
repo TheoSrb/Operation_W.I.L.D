@@ -810,6 +810,9 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    protected int getDefaultSkinIndex() { return 2; }   // « Kangourou par défaut »
+
+    @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof KangarooEntity otherKangaroo) {
             if (otherKangaroo.isBaby()) {
@@ -873,32 +876,24 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
+    /**
+     * Duree de vie des animations de combo, en ticks. Chacune doit couvrir le geste ENTIER, plus
+     * environ un tiers de rabiot pendant lequel il tient sa pose finale et se melange au coup
+     * suivant — c'est la marge du crocodile, qui sert de reference. En dessous, l'animation est
+     * tranchee avant sa derniere image et l'enchainement saccade.
+     *
+     * <p>Gestes de 1,2917 / 1,2917 / 1,75 s lus a 1,0 / 1,1 / 1,25 : 25,8 / 23,5 / 28,0 ticks. Le premier, a 24, etait coupe ; le troisieme ignorait le multiplicateur de vitesse.</p>
+     */
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (24 / comboSpeedMultiplier));
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (24 / comboSpeedMultiplier));
-        setupComboAnimation(3, attack3Combo, attack3ComboTimer, 50);
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (35 / comboSpeedMultiplier));
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (32 / comboSpeedMultiplier));
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (50 / comboSpeedMultiplier));
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
-        boolean shouldPlay = this.isCombo(comboNumber);
-        if (comboNumber == 3 && fourthHitFired) shouldPlay = false;
-
-        if (shouldPlay) {
-            if (timer <= 0) {
-                timer = maxTimer;
-                animationState.start(this.tickCount);
-            } else {
-                --timer;
-            }
-        } else {
-            if (timer > 0) {
-                --timer;
-            } else {
-                timer = 0;
-                animationState.stop();
-            }
-            if (!this.isCombo(comboNumber)) fourthHitFired = false;
-        }
+        // Le kangourou tait son troisieme coup une fois le quatrieme parti.
+        boolean shouldPlay = this.isCombo(comboNumber) && !(comboNumber == 3 && fourthHitFired);
+        timer = tickComboAnimation(comboNumber, animationState, timer, maxTimer, shouldPlay);
 
         switch (comboNumber) {
             case 1: attack1ComboTimer = timer; break;

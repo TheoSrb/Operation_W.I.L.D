@@ -90,11 +90,43 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimXRot = 0f;
+
+
     public volatile float bodyAnimX = 0f;
     public volatile float bodyAnimY_passenger = 0f;
     public volatile float bodyZRot_passenger  = 0f;
     public volatile float bodyXRot_passenger  = 0f;
     public volatile float bodyAnimX_passenger = 0f;
+
+    /**
+     * De combien les places avancent pendant un combo.
+     *
+     * <p>Valeur posée à l'œil : la place ne suit que le tangage du corps, et les animations d'attaque
+     * le font aussi lacer et rouler. Plutôt que de reconstruire la chaîne de repères du modèle — ce
+     * qui demande de vérifier le rendu à chaque essai — on rattrape le décalage dominant, celui qui
+     * pousse le cavalier vers l'arrière. Une seule valeur à retoucher si ce n'est pas le bon dosage.</p>
+     */
+    /** Avance permanente des places, en blocs. Retouche fine du calage de la selle. */
+    private static final float SEAT_FORWARD = 0.1f;
+
+    private static final float COMBO_SEAT_FORWARD = 0.2f;
+
+    /**
+     * Lacet du corps, pour que le cavalier suive l'orque sur les trois axes et non plus seulement en
+     * roulis et tangage.
+     */
+    public volatile float bodyYRot = 0f;
+    public volatile float bodyYRot_passenger = 0f;
+
+    /**
+     * Orientation a suivre par la CAMERA : {@code ALL + body} seuls, sans {@code ALL2}.
+     *
+     * <p>{@code ALL2} porte le pique commande au regard — c'est lui qui fait plonger l'orque quand
+     * le pilote baisse les yeux. Le repercuter sur la camera reviendrait a compter deux fois le
+     * meme geste : le joueur regarde deja vers le bas. Le modele du cavalier, lui, doit bien
+     * l'inclure, sans quoi il resterait droit pendant que sa monture pique.</p>
+     */
+    public volatile float camXRot = 0f, camYRot = 0f, camZRot = 0f;
 
 
     private int orcaUltimateKillCount = 0;
@@ -676,12 +708,21 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         int idx = this.getPassengers().indexOf(passenger);
 
+        // Assises avancées de 0,45 : le cycle de nage, qui ne tournait plus sous un cavalier, berce à
+        // nouveau le corps et emporte les places vers l'arrière. On reprend ce recul ici plutôt que
+        // de brider l'animation.
         float seatZ, seatX;
         switch (idx) {
-            case 1  -> { seatZ = -0.9f; seatX =  0.45f; }
-            case 2  -> { seatZ = -0.9f; seatX = -0.45f; }
-            default -> { seatZ =  0.65f; seatX = 0f;    }
+            case 1  -> { seatZ = -0.45f; seatX =  0.45f; }
+            case 2  -> { seatZ = -0.45f; seatX = -0.45f; }
+            default -> { seatZ =  1.1f;  seatX = 0f;     }
         }
+
+        // Pendant un combo, le corps se cabre et la selle part vers l'avant : on avance les places
+        // d'autant. Compensation à plat, pas un calcul — la géométrie exacte du siège ne suit que le
+        // tangage, et retrouver le reste demanderait de refaire la chaîne de repères du modèle.
+        seatZ += SEAT_FORWARD;
+        if (this.isCombo()) seatZ += COMBO_SEAT_FORWARD;
 
         float boneX = idx == 0
                 ? -bodyAnimX / 16.0f * this.getScale()
@@ -779,28 +820,28 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         setupComboAnimations();
     }
 
+    /**
+     * Durée de vie d'une animation de combo, en ticks.
+     *
+     * <p>Le geste dure 1,4286 s à vitesse 1, soit <b>28,6 ticks</b> : le minuteur, fixé à 28, le
+     * coupait un tick avant sa dernière image — en plein élan de fin, là où la pose est la plus
+     * éloignée du repos. D'où les saccades résiduelles.</p>
+     *
+     * <p>La marge est calée sur celle du crocodile, dont l'enchaînement sert de référence : son
+     * animation de 1,8857 s lue à 1,35 dure 27,9 ticks pour un minuteur de 37, soit un tiers de
+     * rabiot pendant lequel elle tient sa pose finale et se mélange au coup suivant. Même
+     * proportion ici : 28,6 × 1,32 ≈ 38.</p>
+     */
+    private static final int COMBO_ANIM_TICKS = 38;
+
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, 28);
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, 28);
-        setupComboAnimation(3, attack3Combo, attack3ComboTimer, 28);
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, COMBO_ANIM_TICKS);
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, COMBO_ANIM_TICKS);
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, COMBO_ANIM_TICKS);
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
-        if (this.isCombo(comboNumber)) {
-            if (timer <= 0) {
-                timer = maxTimer;
-                animationState.start(this.tickCount);
-            } else {
-                --timer;
-            }
-        } else {
-            if (comboNumber != 3 && timer > 0) {
-                --timer;
-            } else {
-                timer = 0;
-                animationState.stop();
-            }
-        }
+        timer = tickComboAnimation(comboNumber, animationState, timer, maxTimer, this.isCombo(comboNumber));
 
         switch (comboNumber) {
             case 1: attack1ComboTimer = timer; break;
@@ -832,6 +873,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     public float getRiderControlPitch() { return this.entityData.get(RIDER_CONTROL_PITCH); }
 
+    public float getBodyYRot() { return bodyYRot; }
+    public float getBodyYRot_passenger() { return bodyYRot_passenger; }
     public float getBodyZRot_passenger() { return bodyZRot_passenger; }
     public float getBodyXRot_passenger() { return bodyXRot_passenger; }
 

@@ -178,7 +178,7 @@
   "indication.ow.tuto_archetype": "Der Archetyp deines Wesens, mit bestimmten Funktionen",
   "indication.ow.tuto_stats": "Steigere die Werte deines Reittiers mit den erhaltenen Stufenpunkten",
   "tooltip.skinUnlockQuest": "Aufgabe: %s",
-  "tooltip.skinQuestProgress": "%s / %s (%s %%)",
+  "tooltip.skinQuestProgress": "%s %%",
   "tooltip.tigerSkin1.desc": "Lass deinen Tiger wie Gold glänzen!",
   "tooltip.tigerSkin2.desc": "Mach deinen Tiger so edel wie der Pate!",
   "tooltip.tigerSkin3.desc": "Mach deinen Tiger so gefährlich wie ein Computervirus!",

@@ -178,7 +178,7 @@
   "indication.ow.tuto_archetype": "实体的原型，具有特定功能",
   "indication.ow.tuto_stats": "用获得的等级点提升坐骑的属性",
   "tooltip.skinUnlockQuest": "任务：%s",
-  "tooltip.skinQuestProgress": "%s / %s（%s%%）",
+  "tooltip.skinQuestProgress": "%s%%",
   "tooltip.tigerSkin1.desc": "让你的老虎像黄金一样闪耀！",
   "tooltip.tigerSkin2.desc": "让你的老虎像教父一样有派头！",
   "tooltip.tigerSkin3.desc": "让你的老虎像电脑病毒一样危险！",

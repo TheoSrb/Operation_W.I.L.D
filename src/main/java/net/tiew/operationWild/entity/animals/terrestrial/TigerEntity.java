@@ -1452,28 +1452,22 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         scratchesCooldown = (int) OWUtils.generateRandomInterval(400, 800);
     }
 
+    /**
+     * Duree de vie des animations de combo, en ticks. Chacune doit couvrir le geste ENTIER, plus
+     * environ un tiers de rabiot pendant lequel il tient sa pose finale et se melange au coup
+     * suivant — c'est la marge du crocodile, qui sert de reference. En dessous, l'animation est
+     * tranchee avant sa derniere image et l'enchainement saccade.
+     *
+     * <p>Gestes de 1,1294 s lus a 0,925 / 1,05 / 1,15 : 24,4 / 21,5 / 19,6 ticks. Les deux premiers minuteurs, a 20, les coupaient.</p>
+     */
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (20 / comboSpeedMultiplier));
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (20 / comboSpeedMultiplier));
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (33 / comboSpeedMultiplier));
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (29 / comboSpeedMultiplier));
         setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (30 / comboSpeedMultiplier));
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
-        if (this.isCombo(comboNumber)) {
-            if (timer <= 0) {
-                timer = maxTimer;
-                animationState.start(this.tickCount);
-            } else {
-                --timer;
-            }
-        } else {
-            if (comboNumber != 3 && timer > 0) {
-                --timer;
-            } else {
-                timer = 0;
-                animationState.stop();
-            }
-        }
+        timer = tickComboAnimation(comboNumber, animationState, timer, maxTimer, this.isCombo(comboNumber));
 
         switch (comboNumber) {
             case 1: attack1ComboTimer = timer; break;

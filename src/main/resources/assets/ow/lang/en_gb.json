@@ -178,7 +178,7 @@
   "indication.ow.tuto_archetype": "Your entity's archetype, with specific functions",
   "indication.ow.tuto_stats": "Increase your mount's stats with the level points you've earned",
   "tooltip.skinUnlockQuest": "Quest: %s",
-  "tooltip.skinQuestProgress": "%s / %s (%s%%)",
+  "tooltip.skinQuestProgress": "%s%%",
   "tooltip.tigerSkin1.desc": "Make your Tiger shine like gold!",
   "tooltip.tigerSkin2.desc": "Make your Tiger as classy as the Godfather!",
   "tooltip.tigerSkin3.desc": "Make your Tiger as dangerous as a computer virus!",

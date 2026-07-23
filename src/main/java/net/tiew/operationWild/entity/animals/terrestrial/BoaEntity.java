@@ -667,6 +667,9 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     @Override
+    protected int getDefaultSkinIndex() { return 7; }   // « Boa Par Défaut »
+
+    @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof BoaTailPart) {
             return true;
@@ -1305,21 +1308,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
-        if (this.isCombo(comboNumber)) {
-            if (timer <= 0) {
-                timer = maxTimer;
-                animationState.start(this.tickCount);
-            } else {
-                --timer;
-            }
-        } else {
-            if (comboNumber != 3 && timer > 0) {
-                --timer;
-            } else {
-                timer = 0;
-                animationState.stop();
-            }
-        }
+        timer = tickComboAnimation(comboNumber, animationState, timer, maxTimer, this.isCombo(comboNumber));
 
         switch (comboNumber) {
             case 1:

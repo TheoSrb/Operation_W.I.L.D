@@ -129,6 +129,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public DamageSource damageSource = this.damageSources().mobAttack(this);
     public int numberFeedsGiven = 0;
     // 3 slots : 0 = selle, 1 = nourriture, 2 = gants de boxe (kangourou uniquement).
+    public static final int FOOD_SLOT = 1;
     private final ItemStackHandler itemStackHandler = new ItemStackHandler(3) {
         @Override
         public void deserializeNBT(net.minecraft.core.HolderLookup.Provider provider, net.minecraft.nbt.CompoundTag nbt) {
@@ -154,6 +155,22 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     /** Intervalle entre deux bouchées, une fois le combat quitté. */
     public static final int FEED_INTERVAL_TICKS = 60;
+
+    /**
+     * Multiplicateur de soin du ravitaillement <b>automatique</b>, bien plus sobre que celui de la
+     * main du joueur (1,5) : nourrir soi-même est un geste, se servir tout seul toutes les trois
+     * secondes n'en est pas un. Un aliment de prédilection rend ainsi 1,6 PV là où la main en rend
+     * six — de quoi tenir sur la durée sans jamais remplacer les soins du maître.
+     */
+    public static final float AUTO_FEED_HEAL_MULTIPLIER = 0.4f;
+
+    /**
+     * Régénération passive au repos : de quoi ne pas rester éternellement blessé faute de vivres,
+     * sans jamais se substituer au ravitaillement. Une demi-vie toutes les vingt secondes, contre un
+     * point toutes les dix auparavant — quatre fois moins de récupération à l'heure.
+     */
+    public static final int PASSIVE_REGEN_INTERVAL_TICKS = 400;
+    public static final float PASSIVE_REGEN_AMOUNT = 0.5f;
 
     private int fightingTime = 200;
     private int feedCooldown = 0;
@@ -665,7 +682,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         // Récompense selon le palier de la quête (pré-tirée au reroll) : soit des orbes d'XP versées
         // dans le pipeline de leveling, soit des Pièces Sauvages pour le propriétaire.
         grantQuestReward(id);
-        this.playSound(OWSounds.TAME_SUCCESS.get(), 1.0f, (float) pitch);
+
+        // La petite fanfare de quête s'adresse au maître <b>en selle</b>, à lui seul. Diffusée dans
+        // le monde, elle partait à la cantonade — n'importe quel passant à portée l'entendait, le
+        // propriétaire resté trop loin la manquait, et une créature qui bouclait une quête dans son
+        // coin sonnait pour personne. Envoyée directement au cavalier, elle arrive à coup sûr, et
+        // seulement quand il est aux commandes.
+        if (this.getControllingPassenger() instanceof ServerPlayer rider
+                && rider.getUUID().equals(this.getOwnerUUID())) {
+            rider.playNotifySound(OWSounds.TAME_SUCCESS.get(), SoundSource.PLAYERS, 1.0f, (float) pitch);
+        }
     }
 
     public boolean isQuestInProgress(DailyQuest quest) {
@@ -758,6 +784,21 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void changeSkinSilent(int skinIndex) {
         this.entityData.set(SKIN_INDEX, skinIndex);
+    }
+
+    /**
+     * Pose le skin « Par Défaut » de l'espèce sur une créature qui n'en porte aucun.
+     *
+     * <p>L'indice 0 ne désigne pas une apparence, mais son absence : la bête s'affiche alors dans
+     * son habit sauvage, alors que chaque espèce a un cosmétique de base fait pour elle. Le geste
+     * n'avait lieu qu'à l'apprivoisement, si bien qu'une créature apprivoisée avant que son espèce
+     * ne déclare son indice restait nue pour toujours. On le rejoue donc tant que le compte n'y est
+     * pas — une seule fois en pratique, puisque le skin s'installe aussitôt.</p>
+     */
+    private void equipDefaultSkinIfNeeded() {
+        if (!this.isTame() || this.getSkinIndex() != 0) return;
+        int defaultSkin = this.getDefaultSkinIndex();
+        if (defaultSkin > 0) this.changeSkinSilent(defaultSkin);
     }
 
     // --- Skins débloqués (achetés) : appartiennent au pet, serveur-autoritaire + synchronisés ---
@@ -1187,53 +1228,91 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.lastRealHealDelta = Math.max(0, Math.round(this.getHealth() - before));
     }
 
-    public void healWithFavoriteFood(float healMultiplier, boolean preferRawMeat, boolean preferCookedMeat) {
-        ItemStack food = this.getItemFood();
-        if (this.isCarnivorous() || this.isOmnivorous()) {
-            if (food.is(ItemTags.MEAT) || food.is(ItemTags.FISHES)) {
-                if (preferRawMeat) {
-                    if (food.is(Tags.Items.FOODS_RAW_MEAT) || food.is(Tags.Items.FOODS_RAW_FISH)) {
-                        this.heal(4 * healMultiplier);
-                        healAmount = (int) (4 * healMultiplier);
-                        if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
-                            this.executeQuestProgression((byte) 2);
-                        }
-                    } else {
-                        this.heal(2 * healMultiplier);
-                        healAmount = (int) (2 * healMultiplier);
-                        if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
-                            this.executeQuestProgression((byte) 2);
-                        }
-                    }
-                    this.playSound(SoundEvents.CAMEL_EAT);
-                } else if (preferCookedMeat) {
-                    if (food.is(Tags.Items.FOODS_COOKED_MEAT) || food.is(Tags.Items.FOODS_COOKED_FISH)) {
-                        this.playSound(SoundEvents.CAMEL_EAT);
-                        this.heal(4 * healMultiplier);
-                        healAmount = (int) (4 * healMultiplier);
-                        if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
-                            this.executeQuestProgression((byte) 2);
-                        }
-                    } else {
-                        this.heal(2 * healMultiplier);
-                        healAmount = (int) (2 * healMultiplier);
-                        if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
-                            this.executeQuestProgression((byte) 2);
-                        }
-                    }
-                    this.playSound(SoundEvents.CAMEL_EAT);
-                }
-            }
+    /**
+     * Vrai si ce régime accepte cet aliment. Un carnivore ne touche pas aux légumes, un herbivore
+     * pas à la viande : rien ne sert de laisser une créature grignoter ce qui ne la nourrira pas.
+     */
+    public boolean canEatFood(ItemStack stack) {
+        return foodHealAmount(stack, preferRawMeat(), preferCookedMeat()) > 0f;
+    }
+
+    /**
+     * Se ravitaille sur la nourriture rangée dans son inventaire, hors combat uniquement.
+     *
+     * <p>Une bouchée toutes les trois secondes, et seulement si la créature est blessée : elle ne
+     * gaspille pas les réserves de son maître à pleine vie. Le compteur de bouchées ne court pas
+     * pendant le combat — c'est le fait d'en sortir qui ouvre le repas, pas le simple fait
+     * d'attendre. Ce que rend chaque aliment dépend du régime et de la cuisson, comme lorsqu'on la
+     * nourrit à la main (cf. {@link #healWithFavoriteFood}).</p>
+     */
+    private void tickFeeding() {
+        if (this.isInFight() || this.getFightCooldown() > 0) {
+            feedCooldown = FEED_INTERVAL_TICKS;   // sortie de combat = plein délai avant la 1re bouchée
+            return;
         }
-        if (this.isVegetarian() || this.isOmnivorous()) {
-            if (food.is(Tags.Items.FOODS_VEGETABLE) || food.is(Tags.Items.FOODS_FRUIT)) {
-                this.playSound(SoundEvents.CAMEL_EAT);
-                this.heal(3 * healMultiplier);
-                healAmount = (int) (3 * healMultiplier);
-                if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
-                    this.executeQuestProgression((byte) 2);
-                }
-            }
+        if (this.getHealth() >= this.getMaxHealth() || this.isDeadOrDying()) return;
+        if (feedCooldown > 0) { feedCooldown--; return; }
+
+        ItemStackHandler inventory = this.getInventory();
+        if (inventory == null) return;
+        ItemStack food = inventory.getStackInSlot(FOOD_SLOT);
+        if (!canEatFood(food)) return;
+
+        this.setItemFood(food.copy());
+        healWithFavoriteFood(AUTO_FEED_HEAL_MULTIPLIER, preferRawMeat(), preferCookedMeat());
+        this.playSound(SoundEvents.CAMEL_EAT, 1.0f, 1.0f);
+        food.shrink(1);
+        this.setFoodCount(food.getCount());
+        if (food.isEmpty()) {
+            this.setFed(false);
+            this.setItemFood(ItemStack.EMPTY);
+        }
+        feedCooldown = FEED_INTERVAL_TICKS;
+    }
+
+    /**
+     * PV rendus par un aliment, <b>avant</b> multiplicateur. {@code 0} si le régime le refuse.
+     *
+     * <p>Une seule décision, un seul chiffre. Le calcul tenait auparavant dans deux blocs
+     * indépendants — l'un pour la viande, l'autre pour le végétal — chacun avec ses branches et son
+     * propre appel à {@code heal} : un aliment portant les deux étiquettes se voyait soigné deux
+     * fois, et il était impossible de dire d'un coup d'œil combien un repas rendait.</p>
+     */
+    public float foodHealAmount(ItemStack food, boolean preferRawMeat, boolean preferCookedMeat) {
+        if (food == null || food.isEmpty()) return 0f;
+
+        boolean raw = food.is(Tags.Items.FOODS_RAW_MEAT) || food.is(Tags.Items.FOODS_RAW_FISH);
+        boolean cooked = food.is(Tags.Items.FOODS_COOKED_MEAT) || food.is(Tags.Items.FOODS_COOKED_FISH);
+        boolean meat = raw || cooked || food.is(ItemTags.MEAT) || food.is(ItemTags.FISHES);
+        boolean plant = food.is(Tags.Items.FOODS_VEGETABLE) || food.is(Tags.Items.FOODS_FRUIT);
+
+        // La viande prime pour qui la mange : un omnivore devant un aliment doublement étiqueté
+        // n'en tire qu'un seul repas.
+        if (meat && (this.isCarnivorous() || this.isOmnivorous())) {
+            if (preferRawMeat) return raw ? 4f : 2f;
+            if (preferCookedMeat) return cooked ? 4f : 2f;
+            return 3f;   // espèce sans penchant déclaré : la viande la nourrit tout de même
+        }
+        if (plant && (this.isVegetarian() || this.isOmnivorous())) return 3f;
+        return 0f;
+    }
+
+    /**
+     * Applique le soin d'un aliment selon le régime et la cuisson — <b>un seul</b> {@code heal},
+     * quel que soit l'aliment.
+     *
+     * <p>Ne joue aucun son : la bouchée appartient à l'appelant. Les branches de ce calcul en
+     * émettaient chacune un, parfois deux, et l'appelant en ajoutait un troisième — un seul repas
+     * déclenchait donc une rafale de mastications.</p>
+     */
+    public void healWithFavoriteFood(float healMultiplier, boolean preferRawMeat, boolean preferCookedMeat) {
+        float base = foodHealAmount(this.getItemFood(), preferRawMeat, preferCookedMeat);
+        if (base <= 0f) return;
+
+        this.heal(base * healMultiplier);
+        healAmount = (int) (base * healMultiplier);
+        if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
+            this.executeQuestProgression((byte) 2);
         }
     }
 
@@ -1775,6 +1854,29 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return currentSpeed;
     }
 
+    /**
+     * Dérive verticale par tick d'une monture en nage, cavalier regardant l'horizon. Négative, la
+     * bête s'enfonce ; nulle, elle tient sa profondeur.
+     *
+     * <p>Ce léger poids convient aux semi-aquatiques, qu'on veut voir redescendre d'elles-mêmes vers
+     * le fond quand on cesse de les diriger vers la surface. Les nageuses à part entière l'annulent
+     * (cf. {@code OWWaterEntity}) : couler sous son cavalier n'est pas un comportement d'orque.</p>
+     */
+    protected double riddenBuoyancy() {
+        return -0.01D;
+    }
+
+    /**
+     * Poussée verticale, par tick, quand le cavalier tient la touche de saut en nage.
+     *
+     * <p>{@code 0} par défaut : sauter n'a rien à dire à une monture terrestre plongée dans l'eau,
+     * et le saut sert déjà d'autre chose à certaines espèces. Les nageuses la relèvent pour offrir
+     * une remontée à la demande, à la manière du submersible (cf. {@code OWWaterEntity}).</p>
+     */
+    protected double riddenAscendSpeed() {
+        return 0.0D;
+    }
+
     private void travelRidden(Player player, Vec3 travelVector) {
         Vec3 vec3 = this.getRiddenInput(player, travelVector);
         this.tickRidden(player, vec3);
@@ -1788,7 +1890,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     Vec3 currentMovement = this.getDeltaMovement();
                     double yMovement;
                     if (inWater) {
-                        yMovement = lookDirection.y * speedPerTick - 0.01;
+                        yMovement = lookDirection.y * speedPerTick + riddenBuoyancy();
+                        // Touche de saut : remontée à la demande, sans avoir à piquer du nez vers le
+                        // haut. S'ajoute au pilotage au regard, comme sur le submersible. On lit la
+                        // touche et non l'état de saut du cavalier, protégé et hors de portée d'ici ;
+                        // cette branche ne tourne de toute façon que sur le client qui pilote.
+                        if (riddenAscendSpeed() != 0.0D && this.level().isClientSide()
+                                && net.tiew.operationWild.client.OWClientHooks.isJumpKeyDown()) {
+                            yMovement += riddenAscendSpeed();
+                        }
                     } else if (this.wasInWaterWhileRidden && currentMovement.y > 0.1) {
                         // On vient de sortir de l'eau : on coupe l'elan de nage vers le
                         // haut pour eviter une propulsion violente une fois hors de l'eau.
@@ -2527,6 +2637,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (!this.level().isClientSide) {
             // Résout la tribu depuis le propriétaire (registre serveur) une fois après le chargement.
             resolveTeamFromOwnerIfNeeded();
+            equipDefaultSkinIfNeeded();
             if (this.level().getGameRules().getBoolean(OWGameRules.ANIMALS_NO_EFFORT)) {
                 this.setVitalEnergy(0);
             }
@@ -2835,14 +2946,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (this.isTame() && ownerIsRiding()) {
             if (this.isInFight()) {
-                if (fightingTime > 0) fightingTime--;
-                else {
+                if (fightingTime > 0) {
+                    fightingTime--;
+                    if (!this.level().isClientSide()) this.entityData.set(FIGHT_COOLDOWN, fightingTime);
+                } else {
                     this.setFighting(false);
-                    fightingTime = 200;
                     this.setTarget(null);
                 }
             }
         }
+
+        if (!this.level().isClientSide() && this.isTame()) tickFeeding();
 
         if (this.isNapping()) {
             getNavigation().stop();
@@ -2859,8 +2973,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
-        if (!this.isInFight() && this.isTame()) if (tickCount % 200 == 0) {
-            this.heal(1);
+        // Régénération passive : un fond de récupération au repos, rien de plus. Elle ne doit
+        // jamais rivaliser avec le ravitaillement — c'est la nourriture rangée dans l'inventaire qui
+        // doit remettre une bête sur pied, pas le simple fait d'attendre. Coupée dès qu'un combo est
+        // engagé, au même titre qu'en combat : une créature en train de frapper ne se soigne pas.
+        if (this.isTame() && !this.isInFight() && !this.isCombo()
+                && tickCount % PASSIVE_REGEN_INTERVAL_TICKS == 0) {
+            this.heal(PASSIVE_REGEN_AMOUNT);
             healAmount = 1;
             if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
                 this.executeQuestProgression((byte) 2);
@@ -2977,6 +3096,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         setCombo(false, numberOfAttacks);
         attackTimer = 0;
         playerContinueCombo = false;
+        // Le kangourou lève ce drapeau au quatrième coup pour taire l'animation du troisième. Il
+        // n'était jamais rabaissé : une fois le geste joué, la condition restait fausse à vie et
+        // l'animation ne revenait plus jamais. La fin d'un enchaînement le remet à zéro.
+        if (this instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo) {
+            kangaroo.fourthHitFired = false;
+        }
     }
 
     public void createCombo(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
@@ -3373,6 +3498,62 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.getFirstPassenger() instanceof Player ? 1.0f : super.maxUpStep();
     }
 
+    /** Coup de combo actif au tick précédent, par emplacement (1..3). Sert à repérer un redémarrage. */
+    private final boolean[] comboWasActive = new boolean[4];
+
+    /**
+     * Fait vivre l'animation d'un coup de combo et renvoie son minuteur mis à jour.
+     *
+     * <p>Le redémarrage se décide sur le <b>front montant</b> de {@code active}, et non sur un
+     * minuteur épuisé. C'est la correction d'un défaut de conception : l'animation ne repartait que
+     * si son minuteur était retombé à zéro, si bien qu'un coup relancé alors que sa queue courait
+     * encore — ce qui arrive dès qu'on enchaîne vite, la chaîne revenant sur un emplacement déjà
+     * joué — voyait son {@code start()} purement sauté. Le geste ne se rejouait pas. Le défaut
+     * dormait tant que les queues étaient courtes ; les allonger l'a réveillé.</p>
+     *
+     * <p>Mutualisé ici plutôt que recopié dans chaque espèce : la logique était identique aux six
+     * exemplaires, et un correctif appliqué à cinq d'entre eux n'aurait servi à rien.</p>
+     *
+     * @param active vrai si ce coup doit jouer ce tick (l'espèce décide : état de combo, garde propre…)
+     */
+    protected int tickComboAnimation(int comboNumber, AnimationState state, int timer, int maxTimer, boolean active) {
+        if (comboNumber < 1 || comboNumber >= comboWasActive.length) return timer;
+        boolean was = comboWasActive[comboNumber];
+        comboWasActive[comboNumber] = active;
+
+        if (active) {
+            if (!was) {
+                state.start(this.tickCount);   // front montant : le geste repart de sa première image
+                return maxTimer;
+            }
+            return Math.max(0, timer - 1);
+        }
+        // Queue : le geste finit de se jouer et se mélange au coup suivant, puis s'éteint.
+        if (timer > 0) return timer - 1;
+        state.stop();
+        return 0;
+    }
+
+    /**
+     * Où se trouve la place de ce cavalier <b>à cet instant</b>, sans l'y déplacer.
+     *
+     * <p>Rejoue le calcul de siège de l'espèce en lui passant une fonction qui se contente de noter
+     * la position au lieu de l'appliquer. Aucune formule n'est donc recopiée ailleurs : le rattrapage
+     * visuel du cavalier (cf. {@code OWRiderSmoothing}) s'appuie sur la même arithmétique que le
+     * placement réel, et suit automatiquement toute espèce ajoutée par la suite.</p>
+     *
+     * <p>{@code null} si l'espèce refuse de placer ce passager — chunk non chargé, passager qui n'est
+     * plus à bord : il n'y a alors rien à corriger.</p>
+     */
+    public Vec3 captureSeatPosition(Entity passenger) {
+        final double[] pos = new double[3];
+        final boolean[] placed = { false };
+        this.positionRider(passenger, (e, x, y, z) -> {
+            pos[0] = x; pos[1] = y; pos[2] = z; placed[0] = true;
+        });
+        return placed[0] ? new Vec3(pos[0], pos[1], pos[2]) : null;
+    }
+
     @Override
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
@@ -3550,6 +3731,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (this.getHealth() < this.getMaxHealth() && itemstack.is(Tags.Items.FOODS) && this.isTame()) {
             itemstack.shrink(1);
             healWithFavoriteFood(1.5f, preferRawMeat(), preferCookedMeat());
+            this.playSound(SoundEvents.CAMEL_EAT, 1.0f, 1.0f);
             return InteractionResult.SUCCESS;
         }
 

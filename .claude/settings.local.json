@@ -171,7 +171,10 @@
       "Bash(python -c \"import json;print\\(len\\(json.load\\(open\\('src/main/resources/assets/ow/lang/fr_fr.json',encoding='utf-8'\\)\\)\\)\\)\")",
       "Bash(git checkout *)",
       "Bash(rm -f src/main/resources/assets/ow/textures/entity/*/*_flag_saddle.png)",
-      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" *)"
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" *)",
+      "Bash(awk 'f&&/^    }/{print NR\": \"$0; exit} /void finishQuest/{f=1} f' src/main/java/net/tiew/operationWild/entity/OWEntity.java)",
+      "Bash(awk 'NR>=1198 && NR<=1360' src/main/java/net/tiew/operationWild/event/ClientEvents.java)",
+      "Bash(grep -n \"pushPose\\\\|^        if\\\\|^        } else\\\\|^        }$\")"
     ]
   }
 }

@@ -49,15 +49,46 @@ public abstract class OWWaterEntity extends OWEntity {
     public void setTargetPitch(float pitch) { this.entityData.set(TARGET_PITCH, pitch); }
 
 
+    /**
+     * Nage sans gravité tant que la créature est dans l'eau et que son déplacement est calculé ici.
+     *
+     * <p>La condition portait sur le seul {@code isEffectiveAi()}, qui vaut <b>faux côté client</b>.
+     * Or c'est précisément le client du cavalier qui calcule le déplacement d'une monture. Une bête
+     * chevauchée retombait donc sur la physique vanilla, gravité de l'eau comprise, et s'enfonçait
+     * doucement sous son cavalier. {@code isControlledByLocalInstance()} couvre ce cas et se confond
+     * avec {@code isEffectiveAi()} lorsque personne ne la monte : le comportement libre est
+     * inchangé.</p>
+     */
     @Override
     public void travel(Vec3 travelVector) {
-        if (this.isEffectiveAi() && this.isInWater()) {
+        if (this.isInWater() && (this.isEffectiveAi() || this.isControlledByLocalInstance())) {
             this.moveRelative(this.getSpeed(), travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
+            // Le cycle de nage se lit sur walkAnimation, que seul calculateEntityAnimation fait
+            // avancer — et il vit tout au bout de LivingEntity#travel, qu'on ne traverse pas ici.
+            // Tant que cette branche ne servait qu'au serveur, le client passait par la voie vanilla
+            // et l'animation suivait ; maintenant qu'elle sert aussi au cavalier, il faut la tenir
+            // à jour nous-mêmes, sans quoi la bête glisse dans l'eau parfaitement immobile.
+            this.calculateEntityAnimation(false);
         } else {
             super.travel(travelVector);
         }
+    }
+
+    /** Une créature entièrement aquatique tient sa profondeur : regard à l'horizontale, elle ne coule pas. */
+    @Override
+    protected double riddenBuoyancy() {
+        return 0.0D;
+    }
+
+    /**
+     * Remontée à la touche de saut, comme sur le submersible : de quoi regagner la surface sans
+     * avoir à piquer du nez vers le haut, ce qui fait perdre le cap et la vitesse d'avance.
+     */
+    @Override
+    protected double riddenAscendSpeed() {
+        return 0.12D;
     }
 
     @Override
