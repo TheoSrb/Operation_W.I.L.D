@@ -144,14 +144,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     private static final int TONG_DURATION = 14;
 
-    public final AnimationState attack1Combo = new AnimationState();
-    public final AnimationState attack2Combo = new AnimationState();
-    public final AnimationState attack3Combo = new AnimationState();
     public final AnimationState tongAnimationState = new AnimationState();
 
-    public int attack1ComboTimer = 0;
-    public int attack2ComboTimer = 0;
-    public int attack3ComboTimer = 0;
     public int tongAnimationStartTime = 0;
 
     private int tongCooldown = (int) OWUtils.generateRandomInterval(100, 200);

@@ -3,6 +3,7 @@ package net.tiew.operationWild.entity.client.model;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.animation.KeyframeAnimations;
+import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -16,7 +17,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.client.animation.KangarooAnimations;
 
-public class KangarooModel<T extends KangarooEntity> extends HierarchicalModel<T> {
+public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kangaroo"), "main");
 
     // Tornade de Poings : on boucle sur la portion « stable » de l'anim ATTACK_SECONDARY
@@ -127,6 +128,26 @@ public class KangarooModel<T extends KangarooEntity> extends HierarchicalModel<T
         return LayerDefinition.create(meshdefinition, 128, 128);
     }
 
+        @Override
+    protected AnimationDefinition comboAnimation(int index) {
+        return switch (index) {
+            case 1 -> KangarooAnimations.ATTACK_STRIKE;
+            case 2 -> KangarooAnimations.ATTACK_STRIKE_2;
+            case 3 -> KangarooAnimations.ATTACK_STRIKE_3;
+            default -> null;
+        };
+    }
+
+    @Override
+    protected float comboSpeed(int index) {
+        return switch (index) {
+            case 1 -> 1.0f;
+            case 2 -> 1.1f;
+            case 3 -> 1.25f;
+            default -> 1.0f;
+        };
+    }
+
     @Override
     public void setupAnim(T kangaroo, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
@@ -135,15 +156,7 @@ public class KangarooModel<T extends KangarooEntity> extends HierarchicalModel<T
 
         // Combos 1-2 : rendu actif aussi pendant la phase de fin (isStarted mais !isCombo),
         // ce qui laisse le bras revenir au repos naturellement au lieu de snapper.
-        if (kangaroo.isCombo(1) || kangaroo.attack1Combo.isStarted()) {
-            this.animate(kangaroo.attack1Combo, KangarooAnimations.ATTACK_STRIKE, ageInTicks, 1.0f * OWEntity.comboSpeedMultiplier);
-        }
-        if (kangaroo.isCombo(2) || kangaroo.attack2Combo.isStarted()) {
-            this.animate(kangaroo.attack2Combo, KangarooAnimations.ATTACK_STRIKE_2, ageInTicks, 1.1f * OWEntity.comboSpeedMultiplier);
-        }
-        if (kangaroo.isCombo(3) || kangaroo.attack3Combo.isStarted()) {
-            this.animate(kangaroo.attack3Combo, KangarooAnimations.ATTACK_STRIKE_3, ageInTicks, 1.25f * OWEntity.comboSpeedMultiplier);
-        }
+        animateCombos(kangaroo, ageInTicks);
 
         if (kangaroo.isTelluricStomping() || kangaroo.telluricStompAnim.isStarted()) {
             this.animate(kangaroo.telluricStompAnim, KangarooAnimations.TELLURIC_STOMP, ageInTicks, 1.0f);

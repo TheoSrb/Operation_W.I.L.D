@@ -1804,25 +1804,22 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.targetSpeed = 0f;
     }
 
+    /**
+     * Réactivité du lissage de vitesse, par tick. Assez haut pour que la monture réponde tout de
+     * suite au doigt, assez bas pour qu'elle ne change pas d'allure d'un seul coup.
+     */
+    private static final float RIDDEN_SPEED_RESPONSE = 0.3f;
+
     public float getRiddenSpeedVehicle(Player player) {
         if (this.isSitting() || this.jumping) return 0.0f;
 
-        if (player.zza < 0 && !isRunning()) {
-            return -this.getSpeed() * 0.2f;
-        }
+        final boolean reversing = player.zza < 0 && !isRunning();
+        final boolean idle = player.zza == 0 && !this.isCombo();
 
-        if (player.zza == 0 && !this.isCombo()) {
-            if (!canIncreasesSpeedDuringSprint()) {
-                currentSpeed *= 0.75f;
-            } else {
-                currentSpeed = 0;
-            }
-            return currentSpeed;
-        }
+        // En l'air, on garde l'élan tel quel : il n'y a rien à lisser tant qu'on ne touche pas le sol.
+        if (!reversing && !idle && !this.onGround() && !this.isInWater()) return this.getSpeed();
 
-        if (!this.onGround() && !this.isInWater()) return this.getSpeed();
-
-        if (isCombo()) {
+        if (!reversing && !idle && isCombo()) {
             if ((this instanceof BoaEntity || this instanceof KangarooEntity) && this.isTame() && player.zza == 0) return 0.0f;
             if (this instanceof KodiakEntity kodiak) {
                 if (kodiak.getComboAttack() == 3) {
@@ -1837,20 +1834,34 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
-        if (isRunning()) {
+        // Une seule cible, un seul lissage, quel que soit le cas.
+        //
+        // Le recul et l'arrêt court-circuitaient l'interpolation : le premier renvoyait sa vitesse
+        // sans jamais toucher à {@code currentSpeed}, qui restait donc figé à l'allure de course.
+        // Quand on relâchait la marche arrière, l'arrêt faisait décroître cette valeur périmée — et
+        // la monture repartait en avant à presque pleine vitesse. Les faire passer par la même cible
+        // règle le défaut et rend au passage tous les changements d'allure progressifs.
+        float target;
+        if (reversing) {
+            target = -this.getSpeed() * 0.2f;
+        } else if (idle) {
+            target = 0f;
+        } else if (isRunning()) {
             if (canIncreasesSpeedDuringSprint()) {
                 return ((this.getSpeed() / 3) * ((this.vehicleRunSpeedMultiplier() * (0.5f + ((float) (Math.min(100, getAcceleration())) / 100))) / 2) * 1.75f);
             }
-            targetSpeed = this.getSpeed() * (vehicleRunSpeedMultiplier() / 1.75f);
+            target = this.getSpeed() * (vehicleRunSpeedMultiplier() / 1.75f);
         } else {
-            targetSpeed = (this.getSpeed() / 3) * (vehicleWalkSpeedMultiplier() / 2);
+            target = (this.getSpeed() / 3) * (vehicleWalkSpeedMultiplier() / 2);
         }
 
+        targetSpeed = target;
         if (canIncreasesSpeedDuringSprint()) {
-            currentSpeed = targetSpeed;
-        } else {
-            currentSpeed += (targetSpeed - currentSpeed) * 0.15f;
+            currentSpeed = target;
+            return currentSpeed;
         }
+        currentSpeed += (target - currentSpeed) * RIDDEN_SPEED_RESPONSE;
+        if (Math.abs(currentSpeed) < 1.0e-4f) currentSpeed = 0f;   // évite une dérive résiduelle
         return currentSpeed;
     }
 
@@ -3040,6 +3051,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
             }
         }
+        // Tigre : une gerbe de terre sous la patte a CHACUN des trois coups, la ou le kodiak ne
+        // secoue le sol qu'au dernier.
+        if (this instanceof TigerEntity tigerCombo) {
+            if (attackTimer == timeToHit) tigerCombo.createPawImpact();
+        }
         if (this instanceof CrocodileEntity crocodile) {
             if (attackTimer == 1) {
                 float pitch = (float) (OWUtils.generateRandomInterval(1.1, 1.25));
@@ -3497,6 +3513,21 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public float maxUpStep() {
         return this.getFirstPassenger() instanceof Player ? 1.0f : super.maxUpStep();
     }
+
+    /**
+     * États d'animation des trois coups de combo, et leurs minuteurs de vie.
+     *
+     * <p>Déclarés ici plutôt que recopiés dans chaque espèce : ils étaient identiques aux six
+     * exemplaires, et {@code OWComboModel} s'appuie dessus pour rendre l'enchaînement une bonne fois
+     * pour toutes.</p>
+     */
+    public final AnimationState attack1Combo = new AnimationState();
+    public final AnimationState attack2Combo = new AnimationState();
+    public final AnimationState attack3Combo = new AnimationState();
+
+    public int attack1ComboTimer = 0;
+    public int attack2ComboTimer = 0;
+    public int attack3ComboTimer = 0;
 
     /** Coup de combo actif au tick précédent, par emplacement (1..3). Sert à repérer un redémarrage. */
     private final boolean[] comboWasActive = new boolean[4];

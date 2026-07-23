@@ -128,9 +128,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public final AnimationState growlsAnimationState = new AnimationState();
     public final AnimationState gruntAnimationState = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
-    public final AnimationState attack1Combo = new AnimationState();
-    public final AnimationState attack2Combo = new AnimationState();
-    public final AnimationState attack3Combo = new AnimationState();
     public final AnimationState deathRollAnimationState = new AnimationState();
     public final AnimationState wildStalkAnimState = new AnimationState();
     public final AnimationState mouthSlamAnimState = new AnimationState();
@@ -139,9 +136,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private int growlsAnimationStartTime = 0;
     private int gruntAnimationStartTime = 0;
     private int napAnimationStartTime = 0;
-    public int attack1ComboTimer = 0;
-    public int attack2ComboTimer = 0;
-    public int attack3ComboTimer = 0;
     public int deathRollAnimationTimeout = 0;
     public int wildStalkAnimTimer = 0;
     public int mouthSlamAnimTimer = 0;

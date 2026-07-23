@@ -94,13 +94,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public int clientOutroTicks = 0;
     private boolean clientWasSpinning = false;
 
-    public final AnimationState attack1Combo = new AnimationState();
-    public final AnimationState attack2Combo = new AnimationState();
-    public final AnimationState attack3Combo = new AnimationState();
 
-    public int attack1ComboTimer = 0;
-    public int attack2ComboTimer = 0;
-    public int attack3ComboTimer = 0;
 
     public boolean fourthHitFired = false;
 

@@ -113,9 +113,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public final AnimationState transitionIdleStandingUp = new AnimationState();
     public final AnimationState transitionStandingUpIdle = new AnimationState();
-    public final AnimationState attack1Combo = new AnimationState();
-    public final AnimationState attack2Combo = new AnimationState();
-    public final AnimationState attack3Combo = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
     public final AnimationState rollingAnimationState = new AnimationState();
     public final AnimationState sniffingAnimationState = new AnimationState();
@@ -125,9 +122,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public final AnimationState pawSlamChargeFullAnimState = new AnimationState();
     public final AnimationState pawSlamStrikeAnimState = new AnimationState();
 
-    public int attack1ComboTimer = 0;
-    public int attack2ComboTimer = 0;
-    public int attack3ComboTimer = 0;
     public int napAnimationTimeout = 0;
     public int sniffingAnimationTimeout = 0;
     public int rejectingAnimationTimeout = 0;

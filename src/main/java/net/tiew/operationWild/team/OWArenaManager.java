@@ -1069,6 +1069,21 @@ public final class OWArenaManager {
         // doit pouvoir rester, et les objets posés au sol aussi.
         if (builderPresent) return;
 
+        // Intrus : tout ce qui n'est ni un combattant, ni un chef, ni un morceau de combattant est
+        // retiré, y compris PENDANT un duel. Le filtre d'entrée (cf. OWArenaProtection) empêche les
+        // nouveaux venus, mais pas ceux qui traînaient déjà là — et le décompte des survivants n'a
+        // de sens que si rien d'autre ne bouge sur le terrain.
+        List<Entity> intruders = new ArrayList<>();
+        arena.getAllEntities().forEach(e -> {
+            if (e instanceof ServerPlayer) return;
+            if (e instanceof OWEntity) return;                     // combattants : traités plus bas
+            if (e instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart) return;
+            if (e instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileTailPart) return;
+            if (e instanceof net.minecraft.world.entity.projectile.Projectile) return;   // une attaque en vol
+            intruders.add(e);
+        });
+        for (Entity e : intruders) e.discard();
+
         // Même invariant pour les créatures. On ne s'arrête surtout pas à « plus aucun joueur dans
         // l'arène » : c'est précisément le cas où des animaux oubliés y tourneraient en rond sans
         // que personne ne le voie.

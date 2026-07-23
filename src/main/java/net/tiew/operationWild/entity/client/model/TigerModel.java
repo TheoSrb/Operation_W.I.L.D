@@ -30,7 +30,7 @@ import net.tiew.operationWild.entity.client.model.skin.TigerModelSkins;
 import net.tiew.operationWild.entity.client.render.TigerRenderer;
 import net.tiew.operationWild.entity.variants.TigerVariant;
 
-public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> implements OWFlagModel {
+public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implements OWFlagModel {
 
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "tiger_default"), "main");
 
@@ -208,7 +208,27 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> impl
 		return FLAG_ANCHOR;
 	}
 
-	@Override
+	    @Override
+    protected AnimationDefinition comboAnimation(int index) {
+        return switch (index) {
+            case 1 -> TigerAnimations.ATTACK_STRIKE;
+            case 2 -> TigerAnimations.ATTACK_STRIKE_2;
+            case 3 -> TigerAnimations.ATTACK_STRIKE_3;
+            default -> null;
+        };
+    }
+
+    @Override
+    protected float comboSpeed(int index) {
+        return switch (index) {
+            case 1 -> 0.925f;
+            case 2 -> 1.05f;
+            case 3 -> 1.15f;
+            default -> 1.0f;
+        };
+    }
+
+    @Override
 	public void setupAnim(TigerEntity tiger, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 
@@ -223,35 +243,8 @@ public class TigerModel<T extends TigerEntity> extends HierarchicalModel<T> impl
 		this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (!tiger.isGrabbing()) {
-			// Un coup a la fois PENDANT la chaine : chez le tigre, empiler les trois attaques et la
-			// course par-dessus donne un resultat brouillon.
-			if (tiger.isCombo(1)) {
-				this.animate(tiger.attack1Combo, TigerAnimations.ATTACK_STRIKE, ageInTicks, 0.925f * OWEntity.comboSpeedMultiplier);
-				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
-				return;
-			}
-			if (tiger.isCombo(2)) {
-				this.animate(tiger.attack2Combo, TigerAnimations.ATTACK_STRIKE_2, ageInTicks, 1.05f * OWEntity.comboSpeedMultiplier);
-				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
-				return;
-			}
-			if (tiger.isCombo(3)) {
-				this.animate(tiger.attack3Combo, TigerAnimations.ATTACK_STRIKE_3, ageInTicks, 1.15f * OWEntity.comboSpeedMultiplier);
-				captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
-				return;
-			}
-
-			// Chaine finie : le dernier geste s'acheve, mais SANS bloquer la suite — la course doit
-			// reprendre par-dessous. Avec un {@code return} ici, elle restait figee tout le temps de la
-			// queue, d'autant plus longtemps que les minuteurs couvrent maintenant l'animation entiere.
-			// On ne joue que la plus recente : les queues des trois coups se chevauchent.
-			if (tiger.attack3Combo.isStarted()) {
-				this.animate(tiger.attack3Combo, TigerAnimations.ATTACK_STRIKE_3, ageInTicks, 1.15f * OWEntity.comboSpeedMultiplier);
-			} else if (tiger.attack2Combo.isStarted()) {
-				this.animate(tiger.attack2Combo, TigerAnimations.ATTACK_STRIKE_2, ageInTicks, 1.05f * OWEntity.comboSpeedMultiplier);
-			} else if (tiger.attack1Combo.isStarted()) {
-				this.animate(tiger.attack1Combo, TigerAnimations.ATTACK_STRIKE, ageInTicks, 0.925f * OWEntity.comboSpeedMultiplier);
-			}
+			animateCombos(tiger, ageInTicks);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 		}
 
 

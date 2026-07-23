@@ -176,7 +176,8 @@
       "Bash(awk 'NR>=1198 && NR<=1360' src/main/java/net/tiew/operationWild/event/ClientEvents.java)",
       "Bash(grep -n \"pushPose\\\\|^        if\\\\|^        } else\\\\|^        }$\")",
       "Read(//c/Users/Tiew_37/AppData/Local/Temp/tmp6bxvs6m7/**)",
-      "Bash(\"/c/Program Files/Java/jdk-25/bin/javap\" -p -classpath . net.minecraft.client.Camera)"
+      "Bash(\"/c/Program Files/Java/jdk-25/bin/javap\" -p -classpath . net.minecraft.client.Camera)",
+      "Bash(xargs -n1 basename)"
     ]
   }
 }

@@ -2,6 +2,7 @@ package net.tiew.operationWild.entity.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -14,7 +15,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.client.animation.BoaAnimations;
 import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
-public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> implements OWFlagModel {
+public class BoaModel<T extends BoaEntity> extends OWComboModel<T> implements OWFlagModel {
 
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "boa_default"), "main");
@@ -243,6 +244,26 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> implemen
         return FLAG_ANCHOR;
     }
 
+        @Override
+    protected AnimationDefinition comboAnimation(int index) {
+        return switch (index) {
+            case 1 -> BoaAnimations.ATTACK_STRIKE;
+            case 2 -> BoaAnimations.ATTACK_STRIKE_2;
+            case 3 -> BoaAnimations.ATTACK_STRIKE_3;
+            default -> null;
+        };
+    }
+
+    @Override
+    protected float comboSpeed(int index) {
+        return switch (index) {
+            case 1 -> 1.0f;
+            case 2 -> 1.0f;
+            case 3 -> 1.0f;
+            default -> 1.0f;
+        };
+    }
+
     @Override
     public void setupAnim(T boa, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
@@ -255,15 +276,7 @@ public class BoaModel<T extends BoaEntity> extends HierarchicalModel<T> implemen
         // n'en laissait jouer qu'un a la fois : le precedent restait fige sur sa derniere image,
         // puis la pose sautait. La clause {@code !isCombo()} annulait par ailleurs le repli qui
         // laisse une animation finir son geste.
-        if (boa.isCombo(1) || boa.attack1Combo.isStarted()) {
-            this.animate(boa.attack1Combo, BoaAnimations.ATTACK_STRIKE, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
-        }
-        if (boa.isCombo(2) || boa.attack2Combo.isStarted()) {
-            this.animate(boa.attack2Combo, BoaAnimations.ATTACK_STRIKE_2, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
-        }
-        if (boa.isCombo(3) || boa.attack3Combo.isStarted()) {
-            this.animate(boa.attack3Combo, BoaAnimations.ATTACK_STRIKE_3, ageInTicks, 1 * OWEntity.comboSpeedMultiplier);
-        }
+        animateCombos(boa, ageInTicks);
 
         if (boa.tongAnimationState.isStarted()) {
             this.animate(boa.tongAnimationState, BoaAnimations.TONG, ageInTicks, 1.0f);

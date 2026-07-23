@@ -80,13 +80,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     /** Transient reference to the pack leader (server-only, never serialized). */
     private OrcaEntity packLeader = null;
 
-    public final AnimationState attack1Combo = new AnimationState();
-    public final AnimationState attack2Combo = new AnimationState();
-    public final AnimationState attack3Combo = new AnimationState();
 
-    public int attack1ComboTimer = 0;
-    public int attack2ComboTimer = 0;
-    public int attack3ComboTimer = 0;
 
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimXRot = 0f;

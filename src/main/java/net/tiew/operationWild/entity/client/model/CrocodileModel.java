@@ -21,7 +21,7 @@ import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.client.animation.CrocodileAnimations;
 
-public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel<T> implements OWFlagModel {
+public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> implements OWFlagModel {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "crocodile_default"), "main");
 
 	/** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
@@ -230,7 +230,27 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 		return FLAG_ANCHOR;
 	}
 
-	@Override
+	    @Override
+    protected AnimationDefinition comboAnimation(int index) {
+        return switch (index) {
+            case 1 -> CrocodileAnimations.ATTACK_STRIKE;
+            case 2 -> CrocodileAnimations.ATTACK_STRIKE_2;
+            case 3 -> CrocodileAnimations.ATTACK_STRIKE_3;
+            default -> null;
+        };
+    }
+
+    @Override
+    protected float comboSpeed(int index) {
+        return switch (index) {
+            case 1 -> 1.35f;
+            case 2 -> 1.35f;
+            case 3 -> 1.35f;
+            default -> 1.0f;
+        };
+    }
+
+    @Override
 	public void setupAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 
@@ -275,15 +295,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends HierarchicalModel
 			this.animate(crocodile.mouthSlamAnimState, CrocodileAnimations.MOUTH_SLAM_HIT, ageInTicks, 1.0f);
 		}
 
-		if (crocodile.isCombo(1) || crocodile.attack1Combo.isStarted()) {
-			this.animate(crocodile.attack1Combo, CrocodileAnimations.ATTACK_STRIKE, ageInTicks, 1.35f);
-		}
-		if (crocodile.isCombo(2) || crocodile.attack2Combo.isStarted()) {
-			this.animate(crocodile.attack2Combo, CrocodileAnimations.ATTACK_STRIKE_2, ageInTicks, 1.35f);
-		}
-		if (crocodile.isCombo(3) || crocodile.attack3Combo.isStarted()) {
-			this.animate(crocodile.attack3Combo, CrocodileAnimations.ATTACK_STRIKE_3, ageInTicks, 1.35f);
-		}
+		animateCombos(crocodile, ageInTicks);
 
 		if (crocodile.isDeathRolling()) {
 			if (limbSwingAmount > 0.01f) {

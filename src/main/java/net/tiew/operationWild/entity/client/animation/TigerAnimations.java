@@ -1098,18 +1098,6 @@ public class TigerAnimations {
                         new Keyframe(0.4706F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(1.1294F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
                 ))
-                .addAnimation("front_tail", new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                        new Keyframe(0.0F, KeyframeAnimations.degreeVec(-70.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.2824F, KeyframeAnimations.degreeVec(-45.6515F, 39.0604F, 3.3154F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.5176F, KeyframeAnimations.degreeVec(34.6456F, -14.4776F, -25.1793F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.8941F, KeyframeAnimations.degreeVec(-70.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
-                ))
-                .addAnimation("back_tail", new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                        new Keyframe(0.1412F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.4235F, KeyframeAnimations.degreeVec(35.7195F, 37.1248F, 9.422F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.7059F, KeyframeAnimations.degreeVec(-20.5762F, -33.6732F, -6.2024F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(1.1294F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
-                ))
                 .addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.ROTATION,
                         new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(0.1882F, KeyframeAnimations.degreeVec(-26.1311F, 25.3147F, 5.4018F), AnimationChannel.Interpolations.CATMULLROM),
@@ -1240,18 +1228,6 @@ public class TigerAnimations {
                         new Keyframe(0.4706F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(1.1294F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
                 ))
-                .addAnimation("front_tail", new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                        new Keyframe(0.0F, KeyframeAnimations.degreeVec(-70.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.2824F, KeyframeAnimations.degreeVec(-45.6515F, -39.0604F, -3.3154F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.5176F, KeyframeAnimations.degreeVec(34.6456F, 14.4776F, 25.1793F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.8941F, KeyframeAnimations.degreeVec(-70.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
-                ))
-                .addAnimation("back_tail", new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                        new Keyframe(0.1412F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.4235F, KeyframeAnimations.degreeVec(35.7195F, -37.1248F, -9.422F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.7059F, KeyframeAnimations.degreeVec(-20.5762F, 33.6732F, 6.2024F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(1.1294F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
-                ))
                 .addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.ROTATION,
                         new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(0.1882F, KeyframeAnimations.degreeVec(-26.1311F, -25.3147F, -5.4018F), AnimationChannel.Interpolations.CATMULLROM),
@@ -1381,18 +1357,6 @@ public class TigerAnimations {
                         new Keyframe(0.2353F, KeyframeAnimations.posVec(0.0F, 4.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(0.4706F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                         new Keyframe(1.1294F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
-                ))
-                .addAnimation("front_tail", new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                        new Keyframe(0.0F, KeyframeAnimations.degreeVec(-70.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.2824F, KeyframeAnimations.degreeVec(-45.6515F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.5176F, KeyframeAnimations.degreeVec(34.6456F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.8941F, KeyframeAnimations.degreeVec(-70.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
-                ))
-                .addAnimation("back_tail", new AnimationChannel(AnimationChannel.Targets.ROTATION,
-                        new Keyframe(0.1412F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.4235F, KeyframeAnimations.degreeVec(35.7195F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(0.7059F, KeyframeAnimations.degreeVec(-20.5762F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                        new Keyframe(1.1294F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
                 ))
                 .addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.ROTATION,
                         new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),

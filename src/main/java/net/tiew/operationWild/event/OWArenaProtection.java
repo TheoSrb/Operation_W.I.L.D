@@ -3,13 +3,19 @@ package net.tiew.operationWild.event;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileTailPart;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
 import net.tiew.operationWild.worldgen.dimension.OWDimensions;
 
 /**
@@ -42,6 +48,39 @@ public class OWArenaProtection {
             sp.sendSystemMessage(Component.translatable("owteams.arena.protected")
                     .setStyle(Style.EMPTY.withColor(0xE8956A)));
         }
+    }
+
+    /**
+     * Seuls les combattants et les chefs ont droit de cité dans l'arène.
+     *
+     * <p>La dimension est un monde plat de plaine : sans cela, la faune y apparaissait comme
+     * partout ailleurs et venait se mêler aux duels. Un vache égarée qui encaisse un coup d'ultime,
+     * c'est un match faussé — et le décompte des survivants n'a de sens que si rien d'autre ne
+     * bouge sur le terrain.</p>
+     *
+     * <p>Le refus porte sur l'<b>arrivée</b> dans le niveau, ce qui couvre d'un seul geste
+     * l'apparition naturelle, la ponte, l'invocation et la téléportation.</p>
+     */
+    @SubscribeEvent
+    public static void onEntityJoinArena(EntityJoinLevelEvent event) {
+        if (!inArena(event.getLevel())) return;
+        if (allowedInArena(event.getEntity())) return;
+        event.setCanceled(true);
+    }
+
+    /**
+     * Ce qui a le droit d'exister dans l'aire de combat.
+     *
+     * <p>Les segments de queue du boa et du crocodile sont des entités à part entière : les refuser
+     * ferait combattre ces deux espèces amputées. Les projectiles restent admis — une attaque ne
+     * doit pas s'évanouir en vol.</p>
+     */
+    private static boolean allowedInArena(Entity entity) {
+        return entity instanceof Player
+                || entity instanceof OWEntity
+                || entity instanceof BoaTailPart
+                || entity instanceof CrocodileTailPart
+                || entity instanceof Projectile;
     }
 
     @SubscribeEvent

@@ -25,7 +25,7 @@ import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
-public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> implements OWFlagModel {
+public class KodiakModel<T extends KodiakEntity> extends OWComboModel<T> implements OWFlagModel {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kodiak_default"), "main");
 
     /** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
@@ -226,6 +226,26 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> im
         return LayerDefinition.create(meshdefinition, 256, 256);
     }
 
+        @Override
+    protected AnimationDefinition comboAnimation(int index) {
+        return switch (index) {
+            case 1 -> KodiakAnimations.ATTACK_STRIKE;
+            case 2 -> KodiakAnimations.ATTACK_STRIKE2;
+            case 3 -> KodiakAnimations.ATTACK_STRIKE3;
+            default -> null;
+        };
+    }
+
+    @Override
+    protected float comboSpeed(int index) {
+        return switch (index) {
+            case 1 -> 1.0f;
+            case 2 -> 1.1f;
+            case 3 -> 1.25f;
+            default -> 1.0f;
+        };
+    }
+
     @Override
     public void setupAnim(KodiakEntity kodiak, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
@@ -242,15 +262,7 @@ public class KodiakModel<T extends KodiakEntity> extends HierarchicalModel<T> im
         }
         this.applyHeadRotation(netHeadYaw, headPitch);
 
-        if (kodiak.isCombo(1) || kodiak.attack1Combo.isStarted()) {
-            this.animate(kodiak.attack1Combo, KodiakAnimations.ATTACK_STRIKE, ageInTicks, 1.0f * OWEntity.comboSpeedMultiplier);
-        }
-        if (kodiak.isCombo(2) || kodiak.attack2Combo.isStarted()) {
-            this.animate(kodiak.attack2Combo, KodiakAnimations.ATTACK_STRIKE2, ageInTicks, 1.1f * OWEntity.comboSpeedMultiplier);
-        }
-        if (kodiak.isCombo(3) || kodiak.attack3Combo.isStarted()) {
-            this.animate(kodiak.attack3Combo, KodiakAnimations.ATTACK_STRIKE3, ageInTicks, 1.25f * OWEntity.comboSpeedMultiplier);
-        }
+        animateCombos(kodiak, ageInTicks);
 
         if (kodiak.isMad()) {
             this.left_eyeBall.xScale = 0;

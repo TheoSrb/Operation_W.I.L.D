@@ -1,6 +1,7 @@
 package net.tiew.operationWild.entity.animals.terrestrial;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
@@ -50,6 +51,7 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -119,9 +121,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     //             COMPTEURS ET ANIMATIONS
     // ==================================================
 
-    public final AnimationState attack1Combo = new AnimationState();
-    public final AnimationState attack2Combo = new AnimationState();
-    public final AnimationState attack3Combo = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
     public final AnimationState preparingLeapAnimationState = new AnimationState();
     public final AnimationState leapAnimationState = new AnimationState();
@@ -129,9 +128,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public final AnimationState roaringAnimationState = new AnimationState();
     public final AnimationState scarifyAnimationState = new AnimationState();
 
-    public int attack1ComboTimer = 0;
-    public int attack2ComboTimer = 0;
-    public int attack3ComboTimer = 0;
     public int napAnimationTimeout = 0;
     public int preparingLeapAnimationTimeout = 0;
     public int leapAnimationTimeout = 0;
@@ -436,6 +432,32 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
      */
     public void onRightFootDown() {
         playStepSoundFromAnimation(1.1f);
+    }
+
+    /**
+     * Petite gerbe de terre sous la patte, à chaque coup de combo.
+     *
+     * <p>Même effet que la secousse du kodiak, en beaucoup plus discret : le tigre frappe vite et
+     * trois fois de suite, une gerbe aussi large que la sienne noierait l'écran. Un tiers de la
+     * portée, un cinquième des particules, et posée moins loin devant — c'est un appui de patte,
+     * pas un ébranlement du sol.</p>
+     *
+     * <p>Le bloc réellement foulé sert de matière : la poussière d'un chemin de terre et les éclats
+     * d'une dalle de pierre ne se ressemblent pas.</p>
+     */
+    public void createPawImpact() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+        Vec3 look = this.getLookAngle();
+        double x = this.getX() + look.x * 1.0;
+        double z = this.getZ() + look.z * 1.0;
+
+        BlockPos below = BlockPos.containing(x, this.getY() - 0.2, z);
+        BlockState ground = this.level().getBlockState(below);
+        if (ground.isAir()) ground = Blocks.DIRT.defaultBlockState();
+
+        serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
+                x, this.getY(), z, 12, 0.5, 0.05, 0.5, 0.06);
     }
 
 

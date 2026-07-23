@@ -28,7 +28,7 @@ import net.tiew.operationWild.entity.client.animation.OrcaAnimations;
 
 import javax.swing.text.html.parser.Entity;
 
-public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> implements OWFlagModel {
+public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements OWFlagModel {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "orca_default"), "main");
 
 	/** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
@@ -185,7 +185,27 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> implem
 		return LayerDefinition.create(meshdefinition, 512, 512);
 	}
 
-	@Override
+	    @Override
+    protected AnimationDefinition comboAnimation(int index) {
+        return switch (index) {
+            case 1 -> OrcaAnimations.ATTACK_STRIKE;
+            case 2 -> OrcaAnimations.ATTACK_STRIKE_2;
+            case 3 -> OrcaAnimations.ATTACK_STRIKE_3;
+            default -> null;
+        };
+    }
+
+    @Override
+    protected float comboSpeed(int index) {
+        return switch (index) {
+            case 1 -> 1.0f;
+            case 2 -> 1.0f;
+            case 3 -> 1.0f;
+            default -> 1.0f;
+        };
+    }
+
+    @Override
 	public void setupAnim(OrcaEntity orca, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 
@@ -226,15 +246,7 @@ public class OrcaModel<T extends OrcaEntity> extends HierarchicalModel<T> implem
 		// pouvait donc s'appliquer à la fois. Le coup précédent restait figé sur sa dernière image
 		// jusqu'à son arrêt, puis la pose sautait d'un bloc à l'attaque suivante. La nage était par
 		// la même occasion suspendue pendant toute la durée du combo.
-		if (orca.isCombo(1) || orca.attack1Combo.isStarted()) {
-			this.animate(orca.attack1Combo, OrcaAnimations.ATTACK_STRIKE, ageInTicks, 1.0f);
-		}
-		if (orca.isCombo(2) || orca.attack2Combo.isStarted()) {
-			this.animate(orca.attack2Combo, OrcaAnimations.ATTACK_STRIKE_2, ageInTicks, 1.0f);
-		}
-		if (orca.isCombo(3) || orca.attack3Combo.isStarted()) {
-			this.animate(orca.attack3Combo, OrcaAnimations.ATTACK_STRIKE_3, ageInTicks, 1.0f);
-		}
+		animateCombos(orca, ageInTicks);
 
 		if ((orca.isRunning() || orca.getState() == 2)) {
 			float speed = orca.getControllingPassenger() != null ? 1.2f : 1.0f;
