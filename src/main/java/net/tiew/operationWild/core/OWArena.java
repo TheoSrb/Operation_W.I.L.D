@@ -149,6 +149,27 @@ public final class OWArena {
     /** Recul du chef derrière sa ligne, pour qu'il observe sans être au contact. */
     public static final int ARENA_CHIEF_BACK = 10;
 
+    /**
+     * Lacet à donner à qui se tient en {@code x} pour regarder l'autre camp.
+     *
+     * <p>Les deux camps s'alignent sur l'axe X de part et d'autre de l'origine. Le lacet vaut 0 vers
+     * le sud (+Z), 90° vers l'ouest (−X) et −90° vers l'est (+X) : celui qui campe à l'ouest doit
+     * donc regarder à −90°, et l'inverse pour l'est. Calculé plutôt qu'écrit en dur des deux côtés,
+     * pour qu'un camp ne puisse pas se retrouver à tourner le dos à l'autre.</p>
+     */
+    public static float facingOpponent(double x, int arenaCenterX) {
+        return x < arenaCenterX ? -90f : 90f;
+    }
+
+    /**
+     * Durée pendant laquelle le duel reste suspendu au coup d'envoi, le temps de l'animation
+     * d'ouverture (cf. {@code OWArenaClashOverlay}, même durée totale).
+     *
+     * <p>Combattants et chefs y sont figés face à l'adversaire : un camp ne doit pas pouvoir prendre
+     * l'autre de vitesse pendant que celui-ci regarde encore les bannières s'entrechoquer.</p>
+     */
+    public static final long OPENING_FREEZE_MS = 6_400L;
+
     // ── Zone de combat rétrécissante ────────────────────────────────────────────
     /** Côté de la zone au début du combat (world border : la taille est le diamètre). */
     public static final int BORDER_START = 100;

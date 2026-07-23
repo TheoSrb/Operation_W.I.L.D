@@ -36,9 +36,29 @@ public final class OWTutorialData {
         }
     }
 
+    /**
+     * Le joueur a-t-il renoncé à tous les didacticiels ?
+     *
+     * <p>Un seul drapeau, consulté par chacune des questions ci-dessous. C'est ce qui rend le renoncement
+     * durable <b>et complet</b> : il couvre aussi les didacticiels d'espèces jamais rencontrées, qu'on ne
+     * pourrait pas marquer une à une puisqu'on ne les connaît pas encore. Qui passe le didacticiel ne veut
+     * pas le revoir sur la prochaine bête.</p>
+     */
+    public static boolean hasSkippedAll() {
+        ensureLoaded();
+        return "true".equals(DATA.getProperty("all_skipped"));
+    }
+
+    /** Renonce définitivement aux didacticiels. Un seul appel suffit à tous les taire. */
+    public static void skipAll() {
+        ensureLoaded();
+        DATA.setProperty("all_skipped", "true");
+        save();
+    }
+
     public static boolean hasSeenAttacksTutorial(String speciesId) {
         ensureLoaded();
-        return "true".equals(DATA.getProperty("attacks_" + speciesId));
+        return hasSkippedAll() || "true".equals(DATA.getProperty("attacks_" + speciesId));
     }
 
     public static void markAttacksTutorialSeen(String speciesId) {
@@ -49,7 +69,7 @@ public final class OWTutorialData {
 
     public static boolean hasSeenMountTutorial() {
         ensureLoaded();
-        return "true".equals(DATA.getProperty("mount_tutorial"));
+        return hasSkippedAll() || "true".equals(DATA.getProperty("mount_tutorial"));
     }
 
     public static void markMountTutorialSeen() {
@@ -60,7 +80,7 @@ public final class OWTutorialData {
 
     public static boolean hasSeenLevelTutorial() {
         ensureLoaded();
-        return "true".equals(DATA.getProperty("level_tutorial"));
+        return hasSkippedAll() || "true".equals(DATA.getProperty("level_tutorial"));
     }
 
     public static void markLevelTutorialSeen() {
@@ -72,7 +92,7 @@ public final class OWTutorialData {
     /** Didacticiel d'ouverture d'inventaire (onglets + archétype) déjà vu ? (une fois, global) */
     public static boolean hasSeenInventoryTutorial() {
         ensureLoaded();
-        return "true".equals(DATA.getProperty("inventory_tutorial"));
+        return hasSkippedAll() || "true".equals(DATA.getProperty("inventory_tutorial"));
     }
 
     public static void markInventoryTutorialSeen() {
@@ -84,7 +104,7 @@ public final class OWTutorialData {
     /** Didacticiel d'amélioration de statistiques (boutons +) déjà vu ? (une fois, global) */
     public static boolean hasSeenStatsTutorial() {
         ensureLoaded();
-        return "true".equals(DATA.getProperty("stats_tutorial"));
+        return hasSkippedAll() || "true".equals(DATA.getProperty("stats_tutorial"));
     }
 
     public static void markStatsTutorialSeen() {

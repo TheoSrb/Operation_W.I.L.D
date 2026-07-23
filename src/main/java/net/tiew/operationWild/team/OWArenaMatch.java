@@ -84,6 +84,12 @@ public class OWArenaMatch {
     /** Le rétrécissement de la zone de combat a-t-il déjà été lancé ? */
     private boolean borderShrinking = false;
 
+    /**
+     * Instant où le duel cesse d'être suspendu, le temps de l'animation d'ouverture. {@code 0} tant
+     * qu'aucun coup d'envoi n'a été donné.
+     */
+    private long openingEndsAtMs = 0L;
+
     public OWArenaMatch(int matchId, int teamAId, String teamAName, UUID chiefA, int reputationA,
                         int teamBId, String teamBName, UUID chiefB, int reputationB,
                         OWArena.Terrain terrain) {
@@ -195,6 +201,26 @@ public class OWArenaMatch {
 
     public boolean isBorderShrinking() { return borderShrinking; }
     public void setBorderShrinking(boolean v) { this.borderShrinking = v; }
+
+    /** Ouvre la phase suspendue du coup d'envoi, pour {@code durationMs}. */
+    public void startOpening(long durationMs) {
+        this.openingEndsAtMs = System.currentTimeMillis() + durationMs;
+    }
+
+    /** Vrai tant que l'animation d'ouverture joue : personne ne bouge, rien n'est tranché. */
+    public boolean isOpening() {
+        return openingEndsAtMs > 0L && System.currentTimeMillis() < openingEndsAtMs;
+    }
+
+    /** Vrai si l'animation vient de se terminer sans que les combattants aient été relâchés. */
+    public boolean hasPendingOpening() {
+        return openingEndsAtMs > 0L && System.currentTimeMillis() >= openingEndsAtMs;
+    }
+
+    /** Clôt la suspension (fin d'animation, ou match interrompu avant qu'elle ne se termine). */
+    public void endOpening() {
+        this.openingEndsAtMs = 0L;
+    }
 
     /**
      * Décalage en X de l'aire de combat. <b>Toujours 0</b> : l'arène n'accueille qu'un combat à la

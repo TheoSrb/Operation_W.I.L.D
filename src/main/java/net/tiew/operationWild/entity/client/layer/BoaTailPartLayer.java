@@ -9,7 +9,9 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
+import net.tiew.operationWild.entity.client.model.OWFlagModel;
 import net.tiew.operationWild.entity.client.render.BoaTailPartRenderer;
 
 public class BoaTailPartLayer extends RenderLayer<BoaTailPart, EntityModel<BoaTailPart>> {
@@ -18,6 +20,7 @@ public class BoaTailPartLayer extends RenderLayer<BoaTailPart, EntityModel<BoaTa
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_bloody_stage_1.png");
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_bloody_stage_2.png");
     private static final ResourceLocation SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_saddle.png");
+    private static final ResourceLocation FLAG_SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/boa/boa_flag_saddle.png");
 
     public BoaTailPartLayer(BoaTailPartRenderer boaRenderer) {
         super(boaRenderer);
@@ -37,6 +40,14 @@ public class BoaTailPartLayer extends RenderLayer<BoaTailPart, EntityModel<BoaTa
         // pour que la selle suive tout le serpent (tete via BoaLayer + tous les segments ici).
         if (boaTailPart.isBoaSaddled()) {
             renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+        }
+
+        // Ferrures du porte-drapeau : le harnais qui s'ajoute a la selle sous la hampe. Il ne
+        // concerne que le segment porteur — seul son modele declare les os du drapeau, les six
+        // autres repondent false — et n'a de sens que si le boa arbore reellement son etendard.
+        if (this.getParentModel() instanceof OWFlagModel model && model.hasTribeFlag()
+                && boaTailPart.getParentForRender() instanceof OWEntity boa && boa.carriesTribeFlag()) {
+            renderOverlay(poseStack, multiBufferSource, FLAG_SADDLE_TEXTURE, false, packedLight);
         }
     }
 

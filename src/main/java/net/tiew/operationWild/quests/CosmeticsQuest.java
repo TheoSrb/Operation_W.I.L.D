@@ -3,6 +3,7 @@ package net.tiew.operationWild.quests;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.tiew.operationWild.entity.OWEntity;
 
 import java.util.*;
 
@@ -33,10 +34,12 @@ public abstract class CosmeticsQuest {
     // =========================================================================
 
     /**
-     * Vérifie et met à jour la progression pour une entité spécifique.
-     * Appelée chaque frame depuis {@code updateLockStates()}.
+     * Vérifie et met à jour la progression d'une créature.
+     *
+     * <p>Prend la créature et non son seul identifiant : l'avancement se lit désormais sur elle,
+     * où il est répliqué jusqu'au client, et non plus dans une table que seul le serveur remplit.</p>
      */
-    public abstract void update(UUID entityId);
+    public abstract void update(OWEntity entity);
 
     // =========================================================================
     // Logique de progression par entité

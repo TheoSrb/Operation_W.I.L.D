@@ -149,6 +149,15 @@ public class ServerEvents {
 
         double tamingXp = net.tiew.operationWild.core.OWTamingXp.getTamingXp(event.getOriginal());
         net.tiew.operationWild.core.OWTamingXp.setTamingXp(event.getEntity(), tamingXp);
+
+        // Journée de quêtes déjà consultée : sans ce report, mourir rallumait la pastille sur toute
+        // l'écurie, chaque créature reprenant son maître pour quelqu'un qui n'a encore rien lu.
+        long seenQuestPeriod = net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests
+                .getSeenPeriod(event.getOriginal());
+        if (seenQuestPeriod != Long.MIN_VALUE) {
+            net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests
+                    .setSeenPeriod(event.getEntity(), seenQuestPeriod);
+        }
     }
 
     private static int slingshotDecayCounter = 0;
@@ -162,6 +171,10 @@ public class ServerEvents {
             slingshotDecayCounter = 0;
             net.tiew.operationWild.entity.misc.SlingshotProjectile.decayTick(event.getServer());
         }
+
+        // Arène : phase d'ouverture (tout le monde figé face à l'adversaire) — à chaque tick, elle
+        // dure quelques secondes et se relâche à l'instant près.
+        net.tiew.operationWild.team.OWArenaManager.tickOpenings(event.getServer());
 
         // Arène : avancement des matchs (survivants, ciblage, verdict) une fois par seconde.
         if (++arenaTickCounter >= 20) {

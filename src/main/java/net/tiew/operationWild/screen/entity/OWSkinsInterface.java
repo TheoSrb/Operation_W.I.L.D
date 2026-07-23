@@ -625,19 +625,27 @@ public class OWSkinsInterface extends Screen {
             if (quest != null) {
                 curY += 8;
                 boolean completed = quest.isCompleted(entity.getUUID());
-                float frac = quest.getProgressFraction(entity.getUUID());
+                float frac = Math.max(0f, Math.min(quest.getProgressFraction(entity.getUUID()), 1f));
                 int barX = px + 6;
                 int barW = pw - 12;
                 int barH = 4;
                 g.fill(barX - 1, curY - 1, barX + barW + 1, curY + barH + 1, 0xFF2A2A2A);
                 g.fill(barX, curY, barX + barW, curY + barH, 0xFF111111);
-                int fillW = (int) (barW * Math.min(frac, 1f));
+                // Une progression entamée doit se voir : sans ce plancher, tout ce qui n'atteint pas
+                // un pixel plein s'arrondissait à zéro et la barre restait obstinément vide.
+                int fillW = frac > 0f ? Math.max(1, Math.round(barW * frac)) : 0;
                 if (fillW > 0)
                     g.fill(barX, curY, barX + fillW, curY + barH, completed ? 0xFF44CC66 : 0xFFE8901A);
-                Component pctText = Component.literal(Math.round(frac * 100f) + "%")
-                        .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0xDDDDDD)));
+
+                // Le décompte se lit SOUS la barre. Il était dessiné à sa hauteur, où huit pixels de
+                // texte recouvraient quatre pixels de jauge : ni l'un ni l'autre n'était lisible.
+                curY += barH + 3;
+                Component pctText = Component.translatable("tooltip.skinQuestProgress",
+                                quest.getProgress(entity.getUUID()), quest.getMaxProgress(),
+                                Math.round(frac * 100f))
+                        .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(completed ? 0x8BE45A : 0xDDDDDD)));
                 g.drawString(this.font, pctText,
-                        px + pw / 2 - this.font.width(pctText) / 2, curY - 1, 0xFFFFFF, false);
+                        px + pw / 2 - this.font.width(pctText) / 2, curY, 0xFFFFFF, false);
             }
         }
     }

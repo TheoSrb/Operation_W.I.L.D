@@ -12,6 +12,7 @@ import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.core.OWKeysBinding;
+import net.tiew.operationWild.core.OWTutorialData;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 
@@ -82,6 +83,36 @@ public class OWIndicationOverlay {
         QUEUE.clear();
         current = null;
         startTime = -1L;
+        keyHoldStart = -1L;
+        holdSatisfiedAt = -1L;
+    }
+
+    /**
+     * Renonce aux didacticiels : l'encart affiché et tous ceux en file d'attente disparaissent, et
+     * plus aucun ne reviendra — y compris ceux des espèces jamais rencontrées.
+     *
+     * <p>Sans effet si rien n'est affiché : la touche ne doit rien décider tant que le joueur n'a pas
+     * un didacticiel sous les yeux, sinon on la presserait par mégarde et on perdrait des explications
+     * qu'on n'a jamais vues.</p>
+     */
+    public static boolean skipAll() {
+        if (!isActive()) return false;
+        clear();
+        OWTutorialData.skipAll();
+        Minecraft mc = Minecraft.getInstance();
+        mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 0.9f));
+        return true;
+    }
+
+    /**
+     * Vrai si {@code keyCode}/{@code scanCode} est la touche de renoncement.
+     * <p>
+     * Comparaison faite sur le {@link net.minecraft.client.KeyMapping} plutôt que sur
+     * {@code isDown()} : la touche doit répondre aussi bien en jeu que derrière un écran ouvert, où
+     * l'état « enfoncé » des raccourcis n'est plus tenu à jour.
+     */
+    public static boolean isSkipKey(int keyCode, int scanCode) {
+        return OWKeysBinding.OW_SKIP_TUTORIAL.matches(keyCode, scanCode);
     }
 
     public static void render(GuiGraphics g, int screenW, int screenH) {
@@ -147,6 +178,8 @@ public class OWIndicationOverlay {
             ty += lineH;
         }
 
+        drawSkipHint(g, font, boxCenterX, boxY + boxH + 4, screenW, screenH, alpha);
+
         int[] elem;
         float glowStrength;
         if (current.hasGlow) { elem = new int[]{current.glowX, current.glowY, current.glowW, current.glowH}; glowStrength = 0.65f; }
@@ -158,6 +191,27 @@ public class OWIndicationOverlay {
         g.flush();
         RenderSystem.enableDepthTest();
         RenderSystem.disableBlend();
+    }
+
+    /**
+     * Rappel discret de la touche qui fait taire les didacticiels, juste sous l'encart.
+     *
+     * <p>Collé à l'encart plutôt que posé à un endroit fixe de l'écran : les indications se placent
+     * un peu partout — barre de vie, onglets d'inventaire, bas de l'écran — et une invite immobile
+     * finirait par se retrouver loin de ce qu'elle concerne, voire par-dessus. Gris, en retrait de la
+     * consigne, et à la même opacité qu'elle : c'est une porte de sortie, pas une invitation.</p>
+     */
+    private static void drawSkipHint(GuiGraphics g, Font font, int centerX, int y,
+                                     int screenW, int screenH, float alpha) {
+        Component hint = Component.translatable("indication.ow.skip_hint",
+                OWKeysBinding.OW_SKIP_TUTORIAL.getTranslatedKeyMessage().copy()
+                        .withStyle(net.minecraft.network.chat.Style.EMPTY.withBold(true)));
+        int w = font.width(hint);
+        int x = Mth.clamp(centerX - w / 2, 4, Math.max(4, screenW - w - 4));
+        // L'encart peut déjà toucher le bas de l'écran : l'invite passe alors au-dessus de lui.
+        int hintY = y + font.lineHeight > screenH - 2 ? y - font.lineHeight - 8 - PAD_Y * 2 : y;
+        int color = ((int) (alpha * 0xCC) & 0xFF) << 24 | 0xB9B9B9;
+        g.drawString(font, hint, x, hintY, color, true);
     }
 
     private static float computeAlphaAndAdvance(long now, long el) {

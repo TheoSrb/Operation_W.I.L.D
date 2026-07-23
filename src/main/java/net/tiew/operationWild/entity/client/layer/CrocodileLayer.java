@@ -26,6 +26,7 @@ public class CrocodileLayer extends RenderLayer<CrocodileEntity, CrocodileModel<
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/crocodile_bloody_stage_1.png");
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/crocodile_bloody_stage_2.png");
     private static final ResourceLocation SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/crocodile_saddle.png");
+    private static final ResourceLocation FLAG_SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/crocodile_flag_saddle.png");
 
     private static final ResourceLocation NECKLACE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/crocodile_necklace.png");
     private static final ResourceLocation NECKLACE_SPIKES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/crocodile/crocodile_necklace_spikes.png");
@@ -56,6 +57,15 @@ public class CrocodileLayer extends RenderLayer<CrocodileEntity, CrocodileModel<
 
         if (crocodile.isSaddled() && crocodile.isTame()) {
             renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+        }
+
+        // Ferrures du porte-drapeau : quelques pixels qui s'ajoutent à la selle et n'ont de sens que
+        // lorsque la hampe est plantée dessus. Ils vivent dans une texture à part et non dans celle de
+        // la hampe : celle-ci n'est appliquée qu'au sous-arbre du drapeau, et son empreinte UV recouvre
+        // celle du corps — les y laisser revenait à ne jamais les dessiner. Passe calquée sur la selle,
+        // dont ils sont le prolongement.
+        if (crocodile.carriesTribeFlag()) {
+            renderOverlay(poseStack, multiBufferSource, FLAG_SADDLE_TEXTURE, false, packedLight);
         }
 
         if (crocodile.getHealth() < kodiakHealthTier) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);

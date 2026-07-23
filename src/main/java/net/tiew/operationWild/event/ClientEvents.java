@@ -246,6 +246,15 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         Minecraft minecraft = Minecraft.getInstance();
+
+        // Renoncement aux didacticiels : traité avant tout le reste, et sans autre condition que
+        // d'en avoir un sous les yeux — la touche ne fait rien le reste du temps.
+        if (event.getAction() == GLFW.GLFW_PRESS
+                && OWIndicationOverlay.isSkipKey(event.getKey(), event.getScanCode())
+                && OWIndicationOverlay.skipAll()) {
+            return;
+        }
+
         if (minecraft.player != null && minecraft.player.getRootVehicle() instanceof OWEntity owEntity) {
 
             // Inventaire bloqué tant qu'un didacticiel (vie / énergie / niveau / attaques) est affiché.
@@ -393,6 +402,18 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onMovementInputUpdate(MovementInputUpdateEvent event) {
         Player player = Minecraft.getInstance().player;
+
+        // Ouverture et verdict d'un duel : les commandes sont rendues à la fin de l'animation.
+        if (OWArenaClashOverlay.isPlaying() || OWArenaVictoryOverlay.isPlaying()) {
+            var input = event.getInput();
+            input.forwardImpulse = 0f;
+            input.leftImpulse = 0f;
+            input.up = input.down = input.left = input.right = false;
+            input.jumping = false;
+            input.shiftKeyDown = false;
+            return;
+        }
+
         if (player != null && !player.isCreative()) {
             boolean holdingSeaBug = player.getMainHandItem().is(OWItems.SEABUG.get()) || player.getOffhandItem().is(OWItems.SEABUG.get());
             if (holdingSeaBug) {
@@ -760,7 +781,7 @@ public class ClientEvents {
             player.level().getEntitiesOfClass(TigerEntity.class,
                     player.getBoundingBox().inflate(64),
                     e -> e.isTame() && e.isOwnedBy(player)
-            ).forEach(tiger -> CosmeticsQuestsRegistry.getAllQuests().forEach(q -> q.update(tiger.getUUID())));
+            ).forEach(tiger -> CosmeticsQuestsRegistry.getAllQuests().forEach(q -> q.update(tiger)));
         }
 
         if (player.level().isClientSide()) {
@@ -2260,6 +2281,12 @@ public class ClientEvents {
     public static void onClientTick(ClientTickEvent.Pre event) {
         hasProcessedThisFrame = false;
         if (shaderLoadCooldown > 0) shaderLoadCooldown--;
+
+        // Ouverture et verdict d'un duel : le chef reste planté face au champ de bataille le temps
+        // de l'animation. Le blocage des commandes s'occupe des déplacements, ceci du regard — sans
+        // quoi la souris ferait pivoter un spectateur censé être figé.
+        OWArenaClashOverlay.holdPlayerStill();
+        OWArenaVictoryOverlay.holdPlayerStill();
 
         if (blinkSubmarineShader) {
             if (blinkTimer <= 0) {

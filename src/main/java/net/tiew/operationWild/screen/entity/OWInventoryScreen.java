@@ -160,6 +160,13 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        // Renoncement aux didacticiels : c'est ici, et pas dans les événements de touche, que la
+        // touche doit être vue — ceux-ci ne se déclenchent plus dès qu'un écran est ouvert, et les
+        // didacticiels d'onglets et d'archétype s'affichent précisément par-dessus celui-ci.
+        if (net.tiew.operationWild.gui.OWIndicationOverlay.isSkipKey(keyCode, scanCode)
+                && net.tiew.operationWild.gui.OWIndicationOverlay.skipAll()) {
+            return true;
+        }
         // La touche d'inventaire ferme aussi l'écran : on la bloque pendant le didacticiel.
         if (net.tiew.operationWild.gui.OWIndicationOverlay.isActive()
                 && this.minecraft != null

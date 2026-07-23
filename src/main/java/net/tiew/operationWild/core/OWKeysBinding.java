@@ -37,4 +37,15 @@ public class OWKeysBinding {
     // Menu de tribu (refonte player-centric) — ouvre l'écran de gestion / création / découverte de tribu.
     public static final String OW_TRIBE_MENU_KEY = "key.ow.tribe_menu";
     public static final KeyMapping OW_TRIBE_MENU = new KeyMapping(OW_TRIBE_MENU_KEY, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_T, OW_CATEGORY);
+
+    /**
+     * Renoncement aux didacticiels.
+     *
+     * <p>Contexte {@link KeyConflictContext#UNIVERSAL} volontaire : certains didacticiels s'affichent
+     * par-dessus l'écran d'inventaire de la monture, où le contexte « en jeu » ne s'applique plus. La
+     * touche doit répondre dans les deux situations, sans quoi le seul didacticiel qu'on ne pourrait
+     * pas passer serait celui qui bloque déjà l'écran.</p>
+     */
+    public static final String OW_SKIP_TUTORIAL_KEY = "key.ow.skip_tutorial";
+    public static final KeyMapping OW_SKIP_TUTORIAL = new KeyMapping(OW_SKIP_TUTORIAL_KEY, KeyConflictContext.UNIVERSAL, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, OW_CATEGORY);
 }

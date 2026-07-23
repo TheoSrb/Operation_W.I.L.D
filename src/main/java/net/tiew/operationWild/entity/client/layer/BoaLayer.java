@@ -52,6 +52,10 @@ public class BoaLayer extends RenderLayer<BoaEntity, BoaModel<BoaEntity>> {
             renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
         }
 
+        // Les ferrures du porte-drapeau ne sont pas ici : la hampe du boa est plantée sur un segment
+        // de queue (body_2), pas sur son modèle de tête, dont les os body_* sont de toute façon
+        // masqués en jeu. Cf. BoaTailPartLayer.
+
         if (boa.isCombo()) {
             ResourceLocation teeths = boa.getVariant() == BoaVariant.Cosmetics.LEVIATHAN.variant ? LEVIATHAN_SKIN_TEETHS_TEXTURE : TEETHS_TEXTURE;
             renderOverlay(poseStack, multiBufferSource, teeths, false, packedLight);

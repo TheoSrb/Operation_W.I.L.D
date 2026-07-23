@@ -115,8 +115,8 @@ public class TigerSkinsScreen extends OWSkinsInterface {
     @Override
     protected void updateLockStates() {
         if (this.entity != null) {
-            CosmeticsQuestsRegistry.getById(0).update(entity.getUUID());
-            CosmeticsQuestsRegistry.getById(1).update(entity.getUUID());
+            CosmeticsQuestsRegistry.getById(0).update(entity);
+            CosmeticsQuestsRegistry.getById(1).update(entity);
 
             setLockState(1, entity.getLevel() < 50);
             setLockState(2, !entity.isSkinUnlocked(2));

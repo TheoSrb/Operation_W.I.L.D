@@ -26,6 +26,7 @@ public class TigerLayer extends RenderLayer<TigerEntity, TigerModel<TigerEntity>
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/tiger/tiger_bloody_stage_1.png");
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/tiger/tiger_bloody_stage_2.png");
     private static final ResourceLocation SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/tiger/tiger_saddle.png");
+    private static final ResourceLocation FLAG_SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/tiger/tiger_flag_saddle.png");
 
     private static final ResourceLocation NECKLACE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/tiger/tiger_necklace.png");
     private static final ResourceLocation NECKLACE_SPIKES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/tiger/tiger_necklace_spikes.png");
@@ -53,6 +54,13 @@ public class TigerLayer extends RenderLayer<TigerEntity, TigerModel<TigerEntity>
         }
 
         if (tiger.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+
+        // Ferrures du porte-drapeau : quelques pixels qui s'ajoutent à la selle et n'ont de sens que
+        // lorsque la hampe est plantée dessus. Ils vivent dans une texture à part et non dans celle de
+        // la hampe : celle-ci n'est appliquée qu'au sous-arbre du drapeau, et son empreinte UV recouvre
+        // celle du corps — les y laisser revenait à ne jamais les dessiner. Passe calquée sur la selle,
+        // dont ils sont le prolongement.
+        if (tiger.carriesTribeFlag()) renderOverlay(poseStack, multiBufferSource, FLAG_SADDLE_TEXTURE, false, packedLight);
 
         if (tiger.getHealth() < kodiakHealthTier) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);
         else if (tiger.getHealth() < (kodiakHealthTier * 2)) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_1_TEXTURE, false, packedLight);

@@ -147,7 +147,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int runTime;
     private double prevTickX, prevTickZ;
     public int chance = random.nextInt(100);
+    /** Maintien à plein après un coup (5 s), puis fonte de la jauge (5 s) : 10 s en tout. */
+    public static final int FIGHT_HOLD_TICKS = 100;
+    public static final int FIGHT_DECAY_TICKS = 100;
+    public static final int FIGHT_COOLDOWN_TICKS = FIGHT_HOLD_TICKS + FIGHT_DECAY_TICKS;
+
+    /** Intervalle entre deux bouchées, une fois le combat quitté. */
+    public static final int FEED_INTERVAL_TICKS = 60;
+
     private int fightingTime = 200;
+    private int feedCooldown = 0;
     public boolean canAttack = true;
     private BlockPos lastPosition;
     // Quête « parcourir X blocs » : accumulation de la distance HORIZONTALE réelle (ignore Y, sinon un
@@ -720,6 +729,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     // CSV des indices de skins débloqués (achetés avec des Pièces Sauvages). Appartient au pet, donc
     // stocké et synchronisé sur l'entité (serveur-autoritaire), sauvegardé en NBT et restauré à la résurrection.
     public static final EntityDataAccessor<String> SKINS_UNLOCKED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
+    public static final EntityDataAccessor<Integer> COSMETIC_QUEST_KILLS = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> FIGHT_COOLDOWN = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public boolean nbtRestoring = false;
 
     // --- Piste Sauvage (labyrinthe de progression par individu) ---
@@ -762,6 +773,26 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     /** Le skin d'index 0 (défaut) est toujours débloqué. */
     public boolean isSkinUnlocked(int skinIndex) {
         return skinIndex == 0 || getUnlockedSkins().contains(skinIndex);
+    }
+
+    /**
+     * Proies abattues par cette créature, décomptées pour les quêtes de skins.
+     *
+     * <p>Le compte vit <b>sur la créature</b> et voyage jusqu'au client, comme les skins débloqués.
+     * Il tenait auparavant dans une table statique alimentée par le seul serveur : en solo les deux
+     * moitiés du jeu partagent la même mémoire et l'illusion tenait, mais en partie multijoueur le
+     * client n'y lisait jamais rien — la barre d'avancement restait plantée à 0 % et le skin ne se
+     * débloquait pas.</p>
+     */
+    public int getCosmeticQuestKills() { return this.entityData.get(COSMETIC_QUEST_KILLS); }
+
+    public void setCosmeticQuestKills(int kills) {
+        this.entityData.set(COSMETIC_QUEST_KILLS, Math.max(0, kills));
+    }
+
+    /** Ajoute une proie au compte. À n'appeler que côté serveur. */
+    public void addCosmeticQuestKill() {
+        setCosmeticQuestKills(getCosmeticQuestKills() + 1);
     }
 
     /** Débloque un skin (idempotent). À n'appeler que côté serveur. */
@@ -959,8 +990,28 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void setFighting(boolean isInFight) {
         if (isBaby()) isInFight = false;
-        if (isInFight) this.fightingTime = 200;   // chaque déclenchement de combat rafraîchit le timer
+        if (isInFight) this.fightingTime = FIGHT_COOLDOWN_TICKS;   // chaque déclenchement rafraîchit le timer
+        else this.fightingTime = 0;
+        if (!this.level().isClientSide()) this.entityData.set(FIGHT_COOLDOWN, this.fightingTime);
         this.entityData.set(IS_IN_FIGHT, isInFight);
+    }
+
+    /**
+     * Décompte avant la sortie de combat, en ticks, répliqué jusqu'au client.
+     *
+     * <p>Deux temps de cinq secondes : le premier fige le compteur à plein — un coup vient d'être
+     * porté, rien ne redescend encore —, le second le fait fondre jusqu'à zéro. Toucher ou être
+     * touché relance le tout depuis le début. Tant qu'il n'est pas épuisé, la créature ne mange
+     * pas : on ne se ravitaille pas au milieu d'un échange.</p>
+     */
+    public int getFightCooldown() { return this.entityData.get(FIGHT_COOLDOWN); }
+
+    /** Part de la jauge à afficher [0..1] : pleine pendant le maintien, décroissante ensuite. */
+    public float getFightCooldownFraction() {
+        int t = getFightCooldown();
+        if (t <= 0) return 0f;
+        if (t >= FIGHT_DECAY_TICKS) return 1f;
+        return t / (float) FIGHT_DECAY_TICKS;
     }
 
     public float getDamageToClient() { return this.entityData.get(DAMAGE_TO_CLIENT);}
@@ -970,6 +1021,21 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean questsAreUpdated() { return this.entityData.get(QUESTS_ARE_UPDATED);}
 
     public void setUpdatingQuests(boolean questsAreUpdated) { this.entityData.set(QUESTS_ARE_UPDATED, questsAreUpdated);}
+
+    /**
+     * Le maître de cette créature a-t-il déjà consulté les quêtes de la période {@code period} ?
+     *
+     * <p>Maître hors ligne : on répond non, et la pastille se lève. Il la verra en revenant, et elle
+     * s'effacera partout dès qu'il aura ouvert l'onglet une fois — mieux vaut une pastille de trop
+     * qu'une journée entière passée sous silence.</p>
+     */
+    private boolean ownerHasSeenQuestPeriod(long period) {
+        net.minecraft.server.MinecraftServer server = this.getServer();
+        UUID owner = this.getOwnerUUID();
+        if (server == null || owner == null) return false;
+        ServerPlayer master = server.getPlayerList().getPlayer(owner);
+        return master != null && OWDailyQuests.hasSeenPeriod(master, period);
+    }
 
     public ItemStackHandler getInventory() {
         return this.itemStackHandler;
@@ -2685,13 +2751,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     this.resetDailyQuestProgress();
                     this.lastQuestResetDay = period;
                     this.dailyRerollAvailable = true;   // le reroll manuel se recharge chaque jour
-                    this.setUpdatingQuests(true);
+                    this.setUpdatingQuests(!ownerHasSeenQuestPeriod(period));
                 } else if (this.questReward0 == 0) {
                     // Migration : quêtes déjà en cours mais récompenses pas encore tirées (sauvegarde
                     // antérieure à ce champ) → on tire seulement les récompenses, sans toucher aux quêtes.
                     this.questReward0 = rollQuestReward(this.activeQuest0);
                     this.questReward1 = rollQuestReward(this.activeQuest1);
                     this.questReward2 = rollQuestReward(this.activeQuest2);
+                }
+
+                // Journée déjà lue ailleurs : on éteint la pastille. Le cas se présente pour une
+                // créature qui tire ses quêtes après coup — déchargée au changement de jour, ou
+                // revenue en jeu plus tard : elle n'annoncerait rien que son maître n'ait déjà vu.
+                if (this.questsAreUpdated() && ownerHasSeenQuestPeriod(period)) {
+                    this.setUpdatingQuests(false);
                 }
             }
 
@@ -4179,6 +4252,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(NAME, "");
         builder.define(SKIN_INDEX, 0);
         builder.define(SKINS_UNLOCKED, "");
+        builder.define(COSMETIC_QUEST_KILLS, 0);
+        builder.define(FIGHT_COOLDOWN, 0);
         builder.define(CACHED_OWNER_NAME, "");
     }
 
@@ -4304,6 +4379,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putBoolean("quest10isLocked", this.quest10isLocked);
         tag.putInt("skinIndex", this.getSkinIndex());
         tag.putString("SkinsUnlocked", this.entityData.get(SKINS_UNLOCKED));
+        tag.putInt("CosmeticQuestKills", this.entityData.get(COSMETIC_QUEST_KILLS));
 
         tag.putString("cachedOwnerName", this.getCachedOwnerName());
 
@@ -4441,6 +4517,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.quest10isLocked = tag.getBoolean("quest10isLocked");
         this.entityData.set(SKIN_INDEX, tag.getInt("skinIndex"));
         this.entityData.set(SKINS_UNLOCKED, tag.contains("SkinsUnlocked") ? tag.getString("SkinsUnlocked") : "");
+        this.entityData.set(COSMETIC_QUEST_KILLS, tag.getInt("CosmeticQuestKills"));
 
         this.setCachedOwnerName(tag.getString("cachedOwnerName"));
 

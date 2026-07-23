@@ -57,8 +57,16 @@ public final class OWArenaManager {
     /** Clé du point de retour de secours dans les données persistantes du joueur. */
     private static final String RETURN_KEY = "ow_arena_return";
 
-    /** Mode de la créature avant le duel, mémorisé le temps du match pour lui être rendu au retour. */
+    /**
+     * Tenue de la créature avant le duel — mode passif/agressif et position assise —, mémorisée le
+     * temps du match pour lui être rendue une fois rentrée chez elle.
+     *
+     * <p>L'arène impose sa discipline : debout, réveillée et agressive. Rien de tout cela ne doit
+     * lui rester une fois le duel fini. Une créature qu'on avait laissée assise en garde d'un coffre
+     * revenait sinon debout, et se remettait à courir après tout ce qui passe.</p>
+     */
     private static final String MODE_KEY = "ow_arena_prev_passive";
+    private static final String SITTING_KEY = "ow_arena_prev_sitting";
 
     /** Copie de l'inventaire du chef, prise à son départ pour l'arène et rendue à son retour. */
     private static final String INVENTORY_KEY = "ow_arena_inventory";
@@ -284,14 +292,20 @@ public final class OWArenaManager {
         // Décor livré avec le mod : posé à la première ouverture de duel, ignoré ensuite.
         net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.ensureBuilt(arena);
 
-        placeSide(server, arena, match, match.getTeamAId(), ox - OWArena.ARENA_HALF_SPAN, 90f);
-        placeSide(server, arena, match, match.getTeamBId(), ox + OWArena.ARENA_HALF_SPAN, -90f);
+        // Le duel reste suspendu le temps de l'animation d'ouverture : tout le monde arrive figé,
+        // face à l'adversaire.
+        match.startOpening(OWArena.OPENING_FREEZE_MS);
+
+        int westFighters = ox - OWArena.ARENA_HALF_SPAN;
+        int eastFighters = ox + OWArena.ARENA_HALF_SPAN;
+        placeSide(server, arena, match, match.getTeamAId(), westFighters, OWArena.facingOpponent(westFighters, ox));
+        placeSide(server, arena, match, match.getTeamBId(), eastFighters, OWArena.facingOpponent(eastFighters, ox));
 
         // Les chefs assistent au combat, en retrait derrière leur ligne.
-        placeChief(server, arena, match, match.getChiefA(),
-                ox - OWArena.ARENA_HALF_SPAN - OWArena.ARENA_CHIEF_BACK, 90f);
-        placeChief(server, arena, match, match.getChiefB(),
-                ox + OWArena.ARENA_HALF_SPAN + OWArena.ARENA_CHIEF_BACK, -90f);
+        int westChief = westFighters - OWArena.ARENA_CHIEF_BACK;
+        int eastChief = eastFighters + OWArena.ARENA_CHIEF_BACK;
+        placeChief(server, arena, match, match.getChiefA(), westChief, OWArena.facingOpponent(westChief, ox));
+        placeChief(server, arena, match, match.getChiefB(), eastChief, OWArena.facingOpponent(eastChief, ox));
 
         // Un camp sans aucun combattant posé traduit un échec de téléportation, jamais une victoire
         // adverse légitime. On annule plutôt que de décerner un verdict absurde.
@@ -427,6 +441,8 @@ public final class OWArenaManager {
      */
     private static void readyForBattle(OWEntity entity, OWArenaMatch match, int teamId) {
         entity.currentTeam = OWTribesSavedData.get(entity.getServer()).findTeamById(teamId);
+        // Tenue d'avant-duel mise de côté avant qu'on ne la remplace par celle du combat.
+        entity.getPersistentData().putBoolean(SITTING_KEY, entity.isSitting());
         // Une créature laissée assise à la base arriverait assise et ne se battrait jamais.
         entity.setSitting(false);
         entity.setNap(false);
@@ -438,19 +454,74 @@ public final class OWArenaManager {
         entity.getPersistentData().putBoolean(MODE_KEY, entity.isPassive());
         entity.setCurrentMode(OWEntity.Mode.Aggressive);
         entity.setPassive(false);
+        // Figée le temps de l'animation d'ouverture : elle tient sa place et son cap, face à
+        // l'adversaire. L'intelligence lui est rendue par unfreezeFighters au coup de gong.
+        freeze(entity, true);
     }
 
     /**
-     * Rend à une créature le mode (passif / agressif) qu'elle avait avant d'entrer dans l'arène.
-     * Sans marque mémorisée, on ne touche à rien : mieux vaut ne rien changer que deviner.
+     * Immobilise (ou relâche) un combattant pendant la phase d'ouverture.
+     *
+     * <p>Couper l'intelligence suffit à le clouer sur place — plus de navigation, plus de goals, donc
+     * plus de pas ni de coups — tout en laissant la gravité et le rendu faire leur travail : la
+     * créature reste posée au sol et continue de respirer à l'écran.</p>
      */
-    private static void restorePreFightMode(OWEntity entity) {
+    private static void freeze(OWEntity entity, boolean frozen) {
+        entity.setNoAi(frozen);
+        if (frozen) {
+            entity.setTarget(null);
+            entity.getNavigation().stop();
+            entity.setDeltaMovement(Vec3.ZERO);
+        }
+    }
+
+    /** Rend l'initiative aux deux camps : l'animation d'ouverture est finie, le duel commence. */
+    private static void unfreezeFighters(ServerLevel arena, OWArenaMatch match) {
+        match.endOpening();
+        for (UUID uuid : allCombatants(match)) {
+            if (arena.getEntity(uuid) instanceof OWEntity fighter) freeze(fighter, false);
+        }
+    }
+
+    /**
+     * Fige les combattants encore debout, en les rendant au besoin intouchables.
+     *
+     * <p>Sert aux deux bouts du duel : avant qu'il ne commence, et une fois qu'il est joué. Dans les
+     * deux cas la règle est la même — ce qui se passe à l'écran n'est pas du combat, donc rien ne
+     * doit s'y jouer.</p>
+     */
+    private static void holdCombatants(MinecraftServer server, OWArenaMatch match, boolean invulnerable) {
+        ServerLevel arena = server.getLevel(OWDimensions.ARENA);
+        if (arena == null) return;
+        for (UUID uuid : allCombatants(match)) {
+            if (!(arena.getEntity(uuid) instanceof OWEntity fighter) || !fighter.isAlive()) continue;
+            freeze(fighter, true);
+            if (invulnerable) fighter.setInvulnerable(true);
+        }
+    }
+
+    /**
+     * Rend à une créature la tenue qu'elle avait avant d'entrer dans l'arène : son mode
+     * passif/agressif et sa position assise. Sans marque mémorisée, on ne touche à rien : mieux vaut
+     * ne rien changer que deviner.
+     *
+     * <p>{@code consume} distingue les deux moments où l'on passe ici. Avant la téléportation, on
+     * applique sans effacer : {@code changeDimension} <b>recrée</b> l'entité, et il faut pouvoir
+     * rejouer la restauration sur la nouvelle instance — c'est elle qui rentre à la maison. Le
+     * souvenir n'est effacé qu'une fois arrivée.</p>
+     */
+    private static void restorePreFightMode(OWEntity entity, boolean consume) {
         CompoundTag data = entity.getPersistentData();
-        if (!data.contains(MODE_KEY)) return;
-        boolean wasPassive = data.getBoolean(MODE_KEY);
-        data.remove(MODE_KEY);
-        entity.setPassive(wasPassive);
-        entity.setCurrentMode(wasPassive ? OWEntity.Mode.Passive : OWEntity.Mode.Aggressive);
+        if (data.contains(MODE_KEY)) {
+            boolean wasPassive = data.getBoolean(MODE_KEY);
+            entity.setPassive(wasPassive);
+            entity.setCurrentMode(wasPassive ? OWEntity.Mode.Passive : OWEntity.Mode.Aggressive);
+            if (consume) data.remove(MODE_KEY);
+        }
+        if (data.contains(SITTING_KEY)) {
+            entity.setSitting(data.getBoolean(SITTING_KEY));
+            if (consume) data.remove(SITTING_KEY);
+        }
     }
 
     private static void placeChief(MinecraftServer server, ServerLevel arena, OWArenaMatch match,
@@ -644,6 +715,13 @@ public final class OWArenaManager {
         ServerLevel arena = server.getLevel(OWDimensions.ARENA);
         if (arena == null) { endMatch(server, match, 0, true); return; }
 
+        // Animation d'ouverture : le duel est suspendu. Rien ne se cible, rien ne se tranche, la
+        // zone ne bouge pas — sans quoi un camp encaisserait des coups pendant que son chef regarde
+        // encore les bannières s'entrechoquer.
+        if (match.isOpening()) return;
+        // Premier passage après l'animation : chacun retrouve son initiative.
+        if (match.hasPendingOpening()) unfreezeFighters(arena, match);
+
         // La zone se referme après un répit, puis met neuf minutes à atteindre sa taille finale.
         if (!match.isBorderShrinking() && match.elapsedInStateMs() >= OWArena.BORDER_HOLD_MS) {
             match.setBorderShrinking(true);
@@ -728,6 +806,11 @@ public final class OWArenaManager {
     private static void endMatch(MinecraftServer server, OWArenaMatch match, int winnerTeamId, boolean cancelled) {
         match.setWinnerTeamId(winnerTeamId);
         match.setState(OWArenaMatch.State.ENDED);
+        // Le verdict est tombé : plus personne ne se bat. Les survivants sont figés et rendus
+        // intouchables jusqu'à leur renvoi, comme au coup d'envoi — un vainqueur n'a plus rien à
+        // gagner en achevant ce qui reste debout, et il serait absurde d'y laisser une bête après
+        // avoir gagné. L'invulnérabilité est levée au retour par restoreFighter.
+        holdCombatants(server, match, true);
 
         if (!cancelled && winnerTeamId != 0) awardVictory(server, match, winnerTeamId);
         else if (!cancelled) broadcastToMatch(server, match, Component.translatable("owteams.arena.result.draw")
@@ -848,7 +931,7 @@ public final class OWArenaManager {
                 continue;
             }
 
-            if (entity instanceof OWEntity fighter) restoreFighter(match, fighter);
+            if (entity instanceof OWEntity fighter) restoreFighter(match, fighter, false);
             Entity back = entity.changeDimension(new DimensionTransition(dest, new Vec3(rp.x(), y, rp.z()),
                     Vec3.ZERO, entity.getYRot(), entity.getXRot(), DimensionTransition.DO_NOTHING));
             // Nouvelle instance, donc currentTeam de nouveau vide : on le rétablit, sinon les
@@ -858,7 +941,7 @@ public final class OWArenaManager {
                 // Rejoué sur la nouvelle instance : la santé se recopie bien au changement de
                 // dimension, mais c'est la promesse centrale du duel — on ne la laisse pas
                 // dépendre d'un détail d'implémentation du moteur.
-                restoreFighter(match, owE);
+                restoreFighter(match, owE, true);   // arrivee chez elle : la tenue d'avant-duel est rendue pour de bon
                 OWTribeManager.refreshEntityTeam(server, owE);
             }
         }
@@ -885,6 +968,52 @@ public final class OWArenaManager {
     }
 
     // ── Boucle serveur ───────────────────────────────────────────────────────────
+    /**
+     * À appeler à <b>chaque</b> tick serveur : la phase d'ouverture se compte en fractions de
+     * seconde, et la cadence d'une fois par seconde de {@link #tick} rendrait aussi bien le
+     * relâchement tardif que le maintien approximatif.
+     */
+    public static void tickOpenings(MinecraftServer server) {
+        if (MATCHES.isEmpty()) return;
+        ServerLevel arena = server.getLevel(OWDimensions.ARENA);
+        if (arena == null) return;
+        for (OWArenaMatch match : new java.util.LinkedHashSet<>(MATCHES.values())) {
+            switch (match.getState()) {
+                case FIGHTING -> {
+                    if (match.isOpening()) holdStill(server, arena, match);
+                    else if (match.hasPendingOpening()) unfreezeFighters(arena, match);
+                }
+                // Verdict rendu : tout le monde reste en place jusqu'au renvoi, comme au coup d'envoi.
+                case ENDED -> holdStill(server, arena, match);
+                default -> { }
+            }
+        }
+    }
+
+    /**
+     * Cloue tout le monde sur place pendant l'animation d'ouverture.
+     *
+     * <p>Les créatures sont déjà privées d'intelligence ; on leur reprend tout de même leur élan
+     * horizontal, au cas où elles arriveraient lancées. Les chefs, eux, sont retenus ici <b>en plus</b>
+     * du verrouillage des commandes côté client : celui-ci suffit en temps normal, mais il vit sur une
+     * machine qu'on ne contrôle pas — le serveur reste le seul juge de qui bouge et de quand.</p>
+     */
+    private static void holdStill(MinecraftServer server, ServerLevel arena, OWArenaMatch match) {
+        for (UUID uuid : allCombatants(match)) {
+            if (arena.getEntity(uuid) instanceof OWEntity fighter) {
+                Vec3 m = fighter.getDeltaMovement();
+                fighter.setDeltaMovement(0, Math.min(m.y, 0), 0);   // la gravité seule est laissée passer
+            }
+        }
+        for (int teamId : new int[]{ match.getTeamAId(), match.getTeamBId() }) {
+            ServerPlayer chief = server.getPlayerList().getPlayer(match.chiefOf(teamId));
+            if (chief == null || !chief.level().dimension().equals(OWDimensions.ARENA)) continue;
+            Vec3 m = chief.getDeltaMovement();
+            chief.setDeltaMovement(0, Math.min(m.y, 0), 0);
+            chief.hurtMarked = true;   // sans quoi le client garderait sa propre vitesse
+        }
+    }
+
     /** À appeler ~1 fois par seconde depuis le tick serveur. */
     public static void tick(MinecraftServer server) {
         rescueStragglers(server);
@@ -1050,7 +1179,7 @@ public final class OWArenaManager {
 
         owE.setCanDropSoul(true);
         owE.setDeltaMovement(Vec3.ZERO);
-        restoreFighter(match, owE);
+        restoreFighter(match, owE, true);   // recreee directement chez elle : rien de plus a voyager
         dest.addFreshEntity(owE);
         OWTribeManager.refreshEntityTeam(server, owE);
     }
@@ -1059,13 +1188,16 @@ public final class OWArenaManager {
      * Rend à un combattant son état d'avant-duel : santé initiale, invulnérabilité levée, plus
      * aucune cible. Le combat n'aura donc laissé aucune trace sur la créature.
      */
-    private static void restoreFighter(OWArenaMatch match, OWEntity entity) {
+    private static void restoreFighter(OWArenaMatch match, OWEntity entity, boolean home) {
         Float before = match.getPreFightHealth().get(entity.getUUID());
+        // Une créature ne rentre jamais chez elle privée d'intelligence : un duel interrompu pendant
+        // l'animation d'ouverture la laisserait sinon inerte pour toujours.
+        freeze(entity, false);
         entity.setInvulnerable(false);
         entity.setCanDropSoul(true); // coupée à l'entrée dans l'arène, rendue à la sortie
         entity.setTarget(null);
         entity.setLastHurtByMob(null);
-        restorePreFightMode(entity);
+        restorePreFightMode(entity, home);
         if (before != null) entity.setHealth(Math.min(before, entity.getMaxHealth()));
         else entity.setHealth(entity.getMaxHealth());
     }
@@ -1100,7 +1232,10 @@ public final class OWArenaManager {
         }
         entity.getPersistentData().remove(RETURN_KEY);
         entity.setTarget(null);
-        restorePreFightMode(entity);
+        // Rapatriement de secours : la créature a pu être sauvegardée figée, l'arrêt du serveur ayant
+        // coupé le duel en pleine animation d'ouverture. On lui rend son intelligence quoi qu'il arrive.
+        freeze(entity, false);
+        restorePreFightMode(entity, false);
         y = safeY(dest, x, z, y);
         Entity back = entity.changeDimension(new DimensionTransition(dest, new Vec3(x, y, z),
                 Vec3.ZERO, entity.getYRot(), entity.getXRot(), DimensionTransition.DO_NOTHING));
@@ -1110,6 +1245,8 @@ public final class OWArenaManager {
             // disparaître avec un redémarrage), on rend donc la créature intacte.
             owE.setInvulnerable(false);
             owE.setHealth(owE.getMaxHealth());
+            freeze(owE, false);
+            restorePreFightMode(owE, true);   // rentrée : la tenue d'avant-duel est rendue pour de bon
             OWTribeManager.refreshEntityTeam(server, owE);
         }
     }

@@ -21,6 +21,7 @@ public class OrcaLayer extends RenderLayer<OrcaEntity, OrcaModel<OrcaEntity>> {
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/orca/orca_bloody_stage_1.png");
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/orca/orca_bloody_stage_2.png");
     private static final ResourceLocation SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/orca/orca_saddle.png");
+    private static final ResourceLocation FLAG_SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/orca/orca_flag_saddle.png");
 
 
 
@@ -49,6 +50,15 @@ public class OrcaLayer extends RenderLayer<OrcaEntity, OrcaModel<OrcaEntity>> {
 
         if (orca.isSaddled() && orca.isTame()) {
             renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+        }
+
+        // Ferrures du porte-drapeau : quelques pixels qui s'ajoutent à la selle et n'ont de sens que
+        // lorsque la hampe est plantée dessus. Ils vivent dans une texture à part et non dans celle de
+        // la hampe : celle-ci n'est appliquée qu'au sous-arbre du drapeau, et son empreinte UV recouvre
+        // celle du corps — les y laisser revenait à ne jamais les dessiner. Passe calquée sur la selle,
+        // dont ils sont le prolongement.
+        if (orca.carriesTribeFlag()) {
+            renderOverlay(poseStack, multiBufferSource, FLAG_SADDLE_TEXTURE, false, packedLight);
         }
 
         if (orca.getHealth() < orcaHealthTier) renderOverlay(poseStack, multiBufferSource, BLOODY_STAGE_2_TEXTURE, false, packedLight);

@@ -3,10 +3,9 @@ package net.tiew.operationWild.quests;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.core.OWDatasSave;
-import net.tiew.operationWild.core.OWServerData;
+import net.tiew.operationWild.entity.OWEntity;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Registre central de toutes les quêtes cosmétiques.
@@ -24,10 +23,9 @@ public class CosmeticsQuestsRegistry {
     public static final CosmeticsQuest SCRATCHES_AND_PENCIL_MARKS = register(
         new CosmeticsQuest(0, "quest.scratches_and_pencil_marks.title", "quest.scratches_and_pencil_marks.desc", 10) {
             @Override
-            public void update(UUID entityId) {
-                if (isCompleted(entityId)) return;
-                AtomicInteger counter = OWServerData.tigerKillCounts.get(entityId);
-                setProgress(entityId, counter != null ? counter.get() : 0);
+            public void update(OWEntity entity) {
+                if (entity == null || isCompleted(entity.getUUID())) return;
+                setProgress(entity.getUUID(), entity.getCosmeticQuestKills());
             }
         }
     );
@@ -35,10 +33,9 @@ public class CosmeticsQuestsRegistry {
     public static final CosmeticsQuest THE_TREASURE_HUNT = register(
             new CosmeticsQuest(1, "quest.the_treasure_hunt.title", "quest.the_treasure_hunt.desc", 20) {
                 @Override
-                public void update(UUID entityId) {
-                    if (isCompleted(entityId)) return;
-                    AtomicInteger counter = OWServerData.tigerKillCounts.get(entityId);
-                    setProgress(entityId, counter != null ? counter.get() : 0);
+                public void update(OWEntity entity) {
+                    if (entity == null || isCompleted(entity.getUUID())) return;
+                    setProgress(entity.getUUID(), entity.getCosmeticQuestKills());
                 }
             }
     );
@@ -75,7 +72,6 @@ public class CosmeticsQuestsRegistry {
         CosmeticsQuest quest = REGISTRY.get(questId);
         if (quest == null) return;
         quest.reset(entityId);
-        OWServerData.tigerKillCounts.remove(entityId);
     }
 
     // =========================================================================
@@ -106,13 +102,8 @@ public class CosmeticsQuestsRegistry {
             } catch (Exception ignored) {}
         }
 
-        // Synchronise tigerKillCounts depuis la progression sauvegardée (max des deux quêtes de kills)
-        Map<UUID, Integer> combined = new HashMap<>();
-        for (int id : new int[]{0, 1}) {
-            CosmeticsQuest q = REGISTRY.get(id);
-            if (q != null) q.getAllProgress().forEach((uuid, val) -> combined.merge(uuid, val, Math::max));
-        }
-        combined.forEach((uuid, val) -> OWServerData.tigerKillCounts.put(uuid, new AtomicInteger(val)));
+        // Plus rien à recopier ailleurs : le compte de proies vit sur la créature, sauvegardé avec
+        // elle. Ce fichier ne conserve que l'avancement affiché et l'état d'achèvement.
     }
 
     /**

@@ -46,6 +46,17 @@ public final class OWArenaClashOverlay {
     private static ArenaClashPacket data = null;
     private static boolean impactSoundPlayed = false;
 
+    /**
+     * Cap du joueur au coup d'envoi, réimposé tant que l'animation joue.
+     *
+     * <p>Le serveur l'a posé face au camp adverse en le téléportant. On s'en souvient ici plutôt que
+     * de le renvoyer à chaque tick depuis le serveur : le duel n'a pas encore commencé, la vue est
+     * de toute façon couverte par les bannières, et une correction de rotation imposée à distance se
+     * verrait comme un à-coup au moment où l'animation se termine.</p>
+     */
+    private static float pinnedYaw = 0f;
+    private static float pinnedPitch = 0f;
+
     /** Éclats de l'impact : {angle, vitesse px/s, taille, teinte 0 = gauche / 1 = droite}. */
     private static final List<float[]> sparks = new ArrayList<>();
     /** Rayons de lumière de l'impact : {angle, longueur, épaisseur}. */
@@ -79,9 +90,27 @@ public final class OWArenaClashOverlay {
         // ne serait jamais visible par celui qui a lancé le combat.
         if (mc.screen != null) mc.setScreen(null);
         if (mc.player != null) {
+            pinnedYaw = mc.player.getYRot();
+            pinnedPitch = mc.player.getXRot();
             // Grondement de montée en tension pendant la charge.
             mc.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_TOAST_IN, 0.55f));
         }
+    }
+
+    /**
+     * Retient le joueur sur place et face à l'adversaire tant que l'animation joue : déplacements,
+     * saut, accroupissement et regard sont neutralisés. Le duel n'a pas encore commencé — personne
+     * ne doit pouvoir prendre position pendant que l'autre regarde les bannières.
+     */
+    public static void holdPlayerStill() {
+        if (!isPlaying()) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        mc.player.setYRot(pinnedYaw);
+        mc.player.setXRot(pinnedPitch);
+        mc.player.yHeadRot = pinnedYaw;
+        mc.player.yBodyRot = pinnedYaw;
+        mc.player.setDeltaMovement(mc.player.getDeltaMovement().multiply(0, 1, 0));
     }
 
     /** Coupe l'animation (changement de dimension raté, déconnexion…). */

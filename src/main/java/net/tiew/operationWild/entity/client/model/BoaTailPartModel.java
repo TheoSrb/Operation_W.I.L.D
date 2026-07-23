@@ -202,6 +202,13 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> implements 
                 CubeListBuilder.create()
                         .texOffs(0, 0)
                         .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(-0.001F))
+                        // Coquille legerement gonflee, reprise a l'identique de BoaModel.body_2 : c'est
+                        // elle qui porte le harnais du porte-drapeau. Elle manquait ici, si bien que la
+                        // bande UV x125..172 n'etait echantillonnee par aucune geometrie du segment et
+                        // que tout ce qu'on y peignait restait invisible. Transparente dans les peaux du
+                        // boa comme dans sa selle : elle ne montre que ce que le drapeau y ajoute.
+                        .texOffs(125, 0)
+                        .addBox(-4.0F, -4.0F, 0.0F, 8.0F, 7.0F, 16.0F, new CubeDeformation(0.5F))
                         .texOffs(135, 138)
                         .addBox(0.0F, -10.0F, 0.0F, 0.0F, 6.0F, 15.0F, new CubeDeformation(0.0F)),
                 PartPose.offset(0f, TAIL_Y, 0f));

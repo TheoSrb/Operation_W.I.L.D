@@ -28,6 +28,7 @@ public class ModClientEventBusEvents {
         event.register(OWKeysBinding.OW_ATTACKS_INFO);
         event.register(OWKeysBinding.OW_ENTITY_JOURNAL);
         event.register(OWKeysBinding.OW_TRIBE_MENU);
+        event.register(OWKeysBinding.OW_SKIP_TUTORIAL);
     }
 
     @SubscribeEvent

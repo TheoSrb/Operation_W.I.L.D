@@ -46,6 +46,10 @@ public final class OWArenaVictoryOverlay {
     private static ArenaVictoryPacket data = null;
     private static boolean strikeSoundPlayed = false;
 
+    /** Cap du joueur au verdict, réimposé tant que l'animation joue (cf. OWArenaClashOverlay). */
+    private static float pinnedYaw = 0f;
+    private static float pinnedPitch = 0f;
+
     /** Vecteurs de dispersion par morceau : {vx, vy, retard}. */
     private static final float[][] shards = new float[COLS * ROWS][3];
     private static final List<float[]> sparks = new ArrayList<>();
@@ -85,6 +89,25 @@ public final class OWArenaVictoryOverlay {
         Minecraft mc = Minecraft.getInstance();
         // Le HUD n'est pas rendu tant qu'un écran est ouvert (cf. OWArenaClashOverlay).
         if (mc.screen != null) mc.setScreen(null);
+        if (mc.player != null) {
+            pinnedYaw = mc.player.getYRot();
+            pinnedPitch = mc.player.getXRot();
+        }
+    }
+
+    /**
+     * Retient le chef sur place et face au champ de bataille tant que le verdict s'affiche. Le duel
+     * est joué : plus rien ne se gagne à courir, et le renvoi chez soi arrive tout seul.
+     */
+    public static void holdPlayerStill() {
+        if (!isPlaying()) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        mc.player.setYRot(pinnedYaw);
+        mc.player.setXRot(pinnedPitch);
+        mc.player.yHeadRot = pinnedYaw;
+        mc.player.yBodyRot = pinnedYaw;
+        mc.player.setDeltaMovement(mc.player.getDeltaMovement().multiply(0, 1, 0));
     }
 
     public static void clear() {

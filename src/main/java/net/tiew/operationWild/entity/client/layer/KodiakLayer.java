@@ -30,6 +30,7 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_bloody_stage_1.png");
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_bloody_stage_2.png");
     private static final ResourceLocation SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_saddle.png");
+    private static final ResourceLocation FLAG_SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_flag_saddle.png");
 
     private static final ResourceLocation NECKLACE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_necklace.png");
     private static final ResourceLocation NECKLACE_SPIKES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kodiak/kodiak_necklace_spikes.png");
@@ -60,6 +61,13 @@ public class KodiakLayer extends RenderLayer<KodiakEntity, KodiakModel<KodiakEnt
         }
 
         if (kodiak.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, false, packedLight);
+
+        // Ferrures du porte-drapeau : quelques pixels qui s'ajoutent à la selle et n'ont de sens que
+        // lorsque la hampe est plantée dessus. Ils vivent dans une texture à part et non dans celle de
+        // la hampe : celle-ci n'est appliquée qu'au sous-arbre du drapeau, et son empreinte UV recouvre
+        // celle du corps — les y laisser revenait à ne jamais les dessiner. Passe calquée sur la selle,
+        // dont ils sont le prolongement.
+        if (kodiak.carriesTribeFlag()) renderOverlay(poseStack, multiBufferSource, FLAG_SADDLE_TEXTURE, false, packedLight);
 
         if (kodiak.isDirty()) {
             renderOverlayWithOpacity(poseStack, multiBufferSource, DIRTY, false, packedLight, 0.75f);

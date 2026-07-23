@@ -1,5 +1,7 @@
 package net.tiew.operationWild.entity.quests.daily_quests;
 
+import net.minecraft.world.entity.player.Player;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -38,6 +40,38 @@ public class OWDailyQuests {
                 ? now.toLocalDate().minusDays(1)
                 : now.toLocalDate();
         return day.toEpochDay();
+    }
+
+    // ── Consultation par le joueur ──────────────────────────────────────────────
+    /** Dernière période de quêtes que le joueur a effectivement consultée. */
+    public static final String SEEN_PERIOD_KEY = "ow_quests_seen_period";
+
+    /**
+     * Le joueur a-t-il déjà pris connaissance des quêtes de la période {@code period} ?
+     *
+     * <p>La pastille de l'onglet dit « il y a du nouveau à lire », pas « cette bête-ci a de
+     * nouvelles quêtes ». La journée se lit donc <b>une fois</b>, et la nouvelle vaut pour toute
+     * l'écurie : la reposer devant chaque compagnon revenait à faire relire le même journal à
+     * chacun. Ce que les quêtes contiennent reste évidemment propre à chaque individu.</p>
+     */
+    public static boolean hasSeenPeriod(Player player, long period) {
+        return player != null && player.getPersistentData().contains(SEEN_PERIOD_KEY)
+                && player.getPersistentData().getLong(SEEN_PERIOD_KEY) >= period;
+    }
+
+    /** Période consultée par le joueur, ou {@link Long#MIN_VALUE} s'il n'a jamais ouvert l'onglet. */
+    public static long getSeenPeriod(Player player) {
+        if (player == null || !player.getPersistentData().contains(SEEN_PERIOD_KEY)) return Long.MIN_VALUE;
+        return player.getPersistentData().getLong(SEEN_PERIOD_KEY);
+    }
+
+    public static void setSeenPeriod(Player player, long period) {
+        if (player != null) player.getPersistentData().putLong(SEEN_PERIOD_KEY, period);
+    }
+
+    /** Acte la consultation de la journée en cours. */
+    public static void markCurrentPeriodSeen(Player player) {
+        setSeenPeriod(player, computePeriodDay());
     }
 
     /** Tire 3 ids de quêtes distincts parmi le registre (complète avec -1 s'il y en a moins de 3). */
