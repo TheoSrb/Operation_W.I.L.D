@@ -452,15 +452,13 @@ public class OWCommands {
             net.minecraft.server.level.ServerLevel arena = source.getServer()
                     .getLevel(net.tiew.operationWild.worldgen.dimension.OWDimensions.ARENA);
             if (arena == null) {
-                source.sendFailure(Component.literal("Dimension d'arène introuvable."));
+                source.sendFailure(Component.translatable("owteams.arena.rebuild.missing_dimension"));
                 return 0;
             }
-            int placed = net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.rebuild(arena);
-            int total = net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.GRID
-                    * net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.GRID;
-            source.sendSuccess(() -> Component.literal(placed + " / " + total + " pièce(s) d'arène posée(s).")
-                    .setStyle(Style.EMPTY.withColor(placed > 0 ? 0x7ddd73 : 0xE8956A)), true);
-            return placed;
+            net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.rebuild(arena);
+            source.sendSuccess(() -> Component.translatable("owteams.arena.rebuild.done")
+                    .setStyle(Style.EMPTY.withColor(0x7ddd73)), true);
+            return 1;
         }
     }
 

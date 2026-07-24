@@ -1,6 +1,7 @@
 package net.tiew.operationWild.worldgen.biome;
 
 import net.minecraft.client.sounds.MusicManager;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BiomeDefaultFeatures;
 import net.minecraft.data.worldgen.BootstrapContext;
@@ -24,6 +25,7 @@ import net.tiew.operationWild.worldgen.OWPlacedFeatures;
 public class OWBiomes {
     public static final ResourceKey<Biome> REDWOOD_FOREST_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "redwood_forest"));
     public static final ResourceKey<Biome> MINE_FIELD_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "mine_field"));
+    public static final ResourceKey<Biome> ARENA_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "arena"));
 
 
 
@@ -37,6 +39,30 @@ public class OWBiomes {
     public static void bootstrap(BootstrapContext<Biome> context) {
         context.register(REDWOOD_FOREST_BIOME, redwoodBiome(context));
         context.register(MINE_FIELD_BIOME, mineFieldBiome(context));
+        context.register(ARENA_BIOME, arenaBiome(context));
+    }
+
+    public static Biome arenaBiome(BootstrapContext<Biome> context) {
+        BiomeGenerationSettings.Builder biomeBuilder =
+                new BiomeGenerationSettings.Builder(context.lookup(Registries.PLACED_FEATURE), context.lookup(Registries.CONFIGURED_CARVER));
+
+        return new Biome.BiomeBuilder()
+                .hasPrecipitation(false)
+                .downfall(0.95f)
+                .temperature(0.95f)
+                .generationSettings(biomeBuilder.build())
+                .mobSpawnSettings(new MobSpawnSettings.Builder().build())
+                .specialEffects(new BiomeSpecialEffects.Builder()
+                        .waterColor(0x2C7A55)
+                        .waterFogColor(0x0B2A1B)
+                        .skyColor(0x5E7C52)
+                        .grassColorOverride(0x30A23A)
+                        .foliageColorOverride(0x1E8B23)
+                        .fogColor(0x3E6B36)
+                        .ambientParticle(new AmbientParticleSettings(ParticleTypes.SPORE_BLOSSOM_AIR, 0.0055f))
+                        .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS)
+                        .build())
+                .build();
     }
 
     public static void globalOverworldGeneration(BiomeGenerationSettings.Builder builder) {

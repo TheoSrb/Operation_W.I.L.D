@@ -2,8 +2,15 @@ package net.tiew.operationWild.worldgen.dimension;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeResolver;
+import net.minecraft.world.level.biome.Climate;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.tiew.operationWild.worldgen.biome.OWBiomes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Rotation;
@@ -49,7 +56,7 @@ public final class OWArenaBuilder {
      * Version du décor. L'incrémenter refait poser l'arène sur les mondes existants — c'est le seul
      * moyen de livrer une correction du décor à des sauvegardes déjà créées.
      */
-    public static final int VERSION = 5;
+    public static final int VERSION = 18;
 
     private static ResourceLocation partId(int col, int row) {
         return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "arena_" + col + "_" + row);
@@ -92,10 +99,39 @@ public final class OWArenaBuilder {
      * @return le nombre de pièces de structure posées ; 0 si le tracé procédural a servi
      */
     private static int build(ServerLevel arena) {
+        applyBiome(arena);
         int placed = placeTemplates(arena);
         if (placed == 0) OWArenaLayout.generate(arena);
         return placed;
     }
+
+    /**
+     * Réécrit le biome des chunks de l'arène.
+     *
+     * <p>Indispensable sur un monde existant : le biome est <b>gravé dans le chunk à sa génération</b>.
+     * Changer celui du générateur de la dimension ne touche que les chunks encore à naître ; ceux qui
+     * portent déjà l'arène garderaient leur biome d'origine, donc son ciel, son brouillard et ses
+     * teintes de végétation. On les repeint donc explicitement, comme le fait {@code /fillbiome}.</p>
+     */
+    private static void applyBiome(ServerLevel arena) {
+        Holder<Biome> biome = arena.registryAccess()
+                .registryOrThrow(Registries.BIOME)
+                .getHolderOrThrow(OWBiomes.ARENA_BIOME);
+        Climate.Sampler sampler = arena.getChunkSource().randomState().sampler();
+        BiomeResolver resolver = (x, y, z, ignored) -> biome;
+
+        int chunks = BIOME_RADIUS >> 4;
+        for (int cx = -chunks; cx <= chunks; cx++) {
+            for (int cz = -chunks; cz <= chunks; cz++) {
+                ChunkAccess chunk = arena.getChunk(cx, cz);
+                chunk.fillBiomesFromNoise(resolver, sampler);
+                chunk.setUnsaved(true);
+            }
+        }
+    }
+
+    /** Rayon, en blocs, sur lequel le biome de l'arène est imposé. */
+    private static final int BIOME_RADIUS = 128;
 
     private static int placeTemplates(ServerLevel arena) {
         var manager = arena.getStructureManager();

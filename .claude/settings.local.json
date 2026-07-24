@@ -180,7 +180,14 @@
       "Bash(xargs -n1 basename)",
       "Bash(find 'C:\\\\Users\\\\Tiew_37/.gradle/caches' -type d -name net -path *minecraft*world*)",
       "Bash(find 'C:\\\\Users\\\\Tiew_37/.gradle/caches' -maxdepth 6 -type d '\\(' -name *neoform* -o -name *neoforge* '\\)')",
-      "Bash(find 'C:\\\\Users\\\\Tiew_37/.gradle/caches/neoformruntime' -iname *sources*.jar -o -iname *.jar)"
+      "Bash(find 'C:\\\\Users\\\\Tiew_37/.gradle/caches/neoformruntime' -iname *sources*.jar -o -iname *.jar)",
+      "Bash(java Shape.java)",
+      "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain 2>&1)",
+      "Bash(java Section.java)",
+      "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain --rerun-tasks 2>&1)",
+      "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" runData --console=plain 2>&1)",
+      "Bash(./gradlew.bat runData --console=plain)",
+      "Bash(echo \"exit=$?\")"
     ]
   }
 }

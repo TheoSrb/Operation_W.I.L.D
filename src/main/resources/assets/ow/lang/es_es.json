@@ -1029,6 +1029,8 @@
   "owteams.champions.full": "Tu tribu ya tiene %s campeones.",
   "owteams.arena.locked.chat": "Tu tribu debe alcanzar %s antes de entrar en la arena.",
   "owteams.arena.protected": "El escenario de la arena no se puede modificar.",
+  "owteams.arena.rebuild.done": "Arena reconstruida: se ha levantado el coliseo en ruinas.",
+  "owteams.arena.rebuild.missing_dimension": "No se encuentra la dimensión de arena.",
   "owteams.arena.soul_returned": "El alma de tu compañero te ha sido devuelta.",
   "owteams.arena.tribe_chest.locked": "Requiere %s",
   "owteams.arena.tribe_chest.progress": "%s / %s cofres abiertos",

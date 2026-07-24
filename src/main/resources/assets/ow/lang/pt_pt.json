@@ -1029,6 +1029,8 @@
   "owteams.champions.full": "A tua tribo já tem %s campeões.",
   "owteams.arena.locked.chat": "A tua tribo tem de alcançar %s antes de entrar na arena.",
   "owteams.arena.protected": "O cenário da arena não pode ser modificado.",
+  "owteams.arena.rebuild.done": "Arena reconstruída: o coliseu em ruínas foi montado.",
+  "owteams.arena.rebuild.missing_dimension": "Dimensão da arena não encontrada.",
   "owteams.arena.soul_returned": "A alma do seu companheiro foi devolvida a você.",
   "owteams.arena.tribe_chest.locked": "Requer %s",
   "owteams.arena.tribe_chest.progress": "%s / %s baús abertos",

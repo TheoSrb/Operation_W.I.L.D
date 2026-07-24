@@ -1029,6 +1029,8 @@
   "owteams.champions.full": "Votre tribu compte déjà %s champions.",
   "owteams.arena.locked.chat": "Votre tribu doit atteindre %s avant d'entrer dans l'arène.",
   "owteams.arena.protected": "Le décor de l'arène ne peut pas être modifié.",
+  "owteams.arena.rebuild.done": "Arène reconstruite : le colisée en ruine a été posé.",
+  "owteams.arena.rebuild.missing_dimension": "Dimension d'arène introuvable.",
   "owteams.arena.soul_returned": "L'âme de votre compagnon vous a été rendue.",
   "owteams.arena.tribe_chest.locked": "Requiert %s",
   "owteams.arena.tribe_chest.progress": "%s / %s coffres ouverts",

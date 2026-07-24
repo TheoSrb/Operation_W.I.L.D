@@ -1029,6 +1029,8 @@
   "owteams.champions.full": "Dein Stamm hat bereits %s Champions.",
   "owteams.arena.locked.chat": "Dein Stamm muss %s erreichen, bevor er die Arena betreten kann.",
   "owteams.arena.protected": "Die Arena-Kulisse kann nicht verändert werden.",
+  "owteams.arena.rebuild.done": "Arena neu aufgebaut: das Ruinen-Kolosseum wurde gesetzt.",
+  "owteams.arena.rebuild.missing_dimension": "Arena-Dimension nicht gefunden.",
   "owteams.arena.soul_returned": "Die Seele deines Gefährten wurde dir zurückgegeben.",
   "owteams.arena.tribe_chest.locked": "Erfordert %s",
   "owteams.arena.tribe_chest.progress": "%s / %s Truhen geöffnet",

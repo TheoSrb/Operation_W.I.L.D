@@ -1029,6 +1029,8 @@
   "owteams.champions.full": "Your tribe already has %s champions.",
   "owteams.arena.locked.chat": "Your tribe must reach %s before entering the arena.",
   "owteams.arena.protected": "The arena scenery cannot be modified.",
+  "owteams.arena.rebuild.done": "Arena rebuilt: the ruined colosseum has been laid out.",
+  "owteams.arena.rebuild.missing_dimension": "Arena dimension not found.",
   "owteams.arena.soul_returned": "Your companion's soul has been returned to you.",
   "owteams.arena.tribe_chest.locked": "Requires %s",
   "owteams.arena.tribe_chest.progress": "%s / %s chests opened",

@@ -1029,6 +1029,8 @@
   "owteams.champions.full": "你的部族已有 %s 名冠军。",
   "owteams.arena.locked.chat": "你的部族需达到%s才能进入竞技场。",
   "owteams.arena.protected": "竞技场场景无法修改。",
+  "owteams.arena.rebuild.done": "竞技场已重建：废墟斗兽场已生成。",
+  "owteams.arena.rebuild.missing_dimension": "找不到竞技场维度。",
   "owteams.arena.soul_returned": "你的伙伴之魂已归还给你。",
   "owteams.arena.tribe_chest.locked": "需要%s",
   "owteams.arena.tribe_chest.progress": "已开启 %s / %s 个宝箱",

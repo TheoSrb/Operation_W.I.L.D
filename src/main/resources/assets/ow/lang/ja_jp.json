@@ -1029,6 +1029,8 @@
   "owteams.champions.full": "部族にはすでに%s体のチャンピオンがいます。",
   "owteams.arena.locked.chat": "アリーナに入るには、部族が%sに到達する必要があります。",
   "owteams.arena.protected": "アリーナの地形は変更できません。",
+  "owteams.arena.rebuild.done": "アリーナを再構築しました：廃墟のコロッセオを設置しました。",
+  "owteams.arena.rebuild.missing_dimension": "アリーナディメンションが見つかりません。",
   "owteams.arena.soul_returned": "仲間の魂があなたに返されました。",
   "owteams.arena.tribe_chest.locked": "%s が必要",
   "owteams.arena.tribe_chest.progress": "チェスト %s / %s 개封",
