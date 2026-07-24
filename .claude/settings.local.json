@@ -177,7 +177,10 @@
       "Bash(grep -n \"pushPose\\\\|^        if\\\\|^        } else\\\\|^        }$\")",
       "Read(//c/Users/Tiew_37/AppData/Local/Temp/tmp6bxvs6m7/**)",
       "Bash(\"/c/Program Files/Java/jdk-25/bin/javap\" -p -classpath . net.minecraft.client.Camera)",
-      "Bash(xargs -n1 basename)"
+      "Bash(xargs -n1 basename)",
+      "Bash(find 'C:\\\\Users\\\\Tiew_37/.gradle/caches' -type d -name net -path *minecraft*world*)",
+      "Bash(find 'C:\\\\Users\\\\Tiew_37/.gradle/caches' -maxdepth 6 -type d '\\(' -name *neoform* -o -name *neoforge* '\\)')",
+      "Bash(find 'C:\\\\Users\\\\Tiew_37/.gradle/caches/neoformruntime' -iname *sources*.jar -o -iname *.jar)"
     ]
   }
 }

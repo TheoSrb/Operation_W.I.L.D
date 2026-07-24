@@ -1202,6 +1202,9 @@ public class ClientEvents {
 
         if (player == null || !(player.getVehicle() instanceof OWEntity owVehicle)) {
             shadowStrikeHiddenRiders.remove(player == null ? null : player.getId());
+            if (player != null) {
+                net.tiew.operationWild.client.OWRiderSmoothing.forget(player.getUUID());
+            }
             return;
         }
 
@@ -1222,8 +1225,19 @@ public class ClientEvents {
                 player.yHeadRot, player.yHeadRotO
         ));
 
-        float vehicleYaw = owVehicle.getYRot();
-        float vehicleYawO = owVehicle.yRotO;
+        PoseStack poseStack = event.getPoseStack();
+        Vec3 pivotPoint = new Vec3(0, 0, 0);
+
+        // Rattrapage du retard du cavalier sur l'os qui le porte : sa place est calculée une fois par
+        // tick sur une animation qui, elle, avance à chaque image. Appliqué AVANT les rotations qui
+        // suivent, pour que leurs points de pivot suivent le modèle. Cf. OWRiderSmoothing.
+        //
+        // Calculé AVANT de fixer les rotations ci-dessous, et non après : il rejoue positionRider,
+        // qui écrit lui-même dans yBodyRot du cavalier. Fait ensuite, il écrasait ce qu'on vient de
+        // poser et rendait l'interpolation incohérente.
+        Vec3 seatFix = net.tiew.operationWild.client.OWRiderSmoothing.seatCorrection(
+                player, owVehicle, event.getPartialTick());
+        if (seatFix != null) poseStack.translate(seatFix.x, seatFix.y, seatFix.z);
 
         boolean isKodiakPassenger = owVehicle instanceof KodiakEntity k
                 && k.getPassengers().indexOf(player) != 0;
@@ -1231,12 +1245,27 @@ public class ClientEvents {
         boolean isOrcaPassenger = owVehicle instanceof OrcaEntity o
                 && o.getPassengers().indexOf(player) != 0;
 
+        // ATTENTION au choix du lacet source, c'est ici que se jouait la rotation en escalier.
+        //
+        // Le rendu ne lit pas ces champs tels quels : il interpole le couple (précédent, courant) sur
+        // la fraction de tick écoulée. Or yRotO de la monture est délibérément écrasé à chaque tick
+        // par OWEntity.smoothRotation (`this.yRotO = this.yBodyRot = this.yHeadRot = newYRot`), pour
+        // que la bête ne balaie pas l'écart quand le regard du cavalier lui est appliqué d'un coup.
+        // Le couple (yRotO, yRot) est donc PLAT dès que la monture avance : l'interpolation rend une
+        // constante, et le cavalier tournait d'un cran par tick.
+        //
+        // Le lacet du CORPS, lui, garde l'instantané pris en début de tick par LivingEntity.baseTick,
+        // que rien ne réécrit ensuite. C'est un vrai couple, et c'est en prime celui avec lequel le
+        // modèle de la monture est dessiné : le cavalier est ainsi exactement en phase avec la selle.
+        float vehicleYaw = owVehicle.yBodyRot;
+        float vehicleYawO = owVehicle.yBodyRotO;
+
         if (isKodiakPassenger) {
             player.yBodyRot = ((KodiakEntity) owVehicle).yBodyRot;
-            player.yBodyRotO = ((KodiakEntity) owVehicle).yBodyRot;
+            player.yBodyRotO = ((KodiakEntity) owVehicle).yBodyRotO;
         } else if (isOrcaPassenger) {
             player.yBodyRot = ((OrcaEntity) owVehicle).yBodyRot;
-            player.yBodyRotO = ((OrcaEntity) owVehicle).yBodyRot;
+            player.yBodyRotO = ((OrcaEntity) owVehicle).yBodyRotO;
         } else {
             player.yBodyRot = vehicleYaw;
             player.yBodyRotO = vehicleYawO;
@@ -1248,16 +1277,6 @@ public class ClientEvents {
             player.setXRot(0f);
             player.xRotO = 0f;
         }
-
-        PoseStack poseStack = event.getPoseStack();
-        Vec3 pivotPoint = new Vec3(0, 0, 0);
-
-        // Rattrapage du retard du cavalier sur l'os qui le porte : sa place est calculée une fois par
-        // tick sur une animation qui, elle, avance à chaque image. Appliqué AVANT les rotations qui
-        // suivent, pour que leurs points de pivot suivent le modèle. Cf. OWRiderSmoothing.
-        Vec3 seatFix = net.tiew.operationWild.client.OWRiderSmoothing.seatCorrection(
-                player, owVehicle, event.getPartialTick());
-        if (seatFix != null) poseStack.translate(seatFix.x, seatFix.y, seatFix.z);
 
         if (owVehicle instanceof SeaBugEntity seaBug) {
             poseStack.pushPose();
