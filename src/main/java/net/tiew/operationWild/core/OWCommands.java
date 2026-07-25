@@ -474,10 +474,12 @@ public class OWCommands {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
             dispatcher.register(Commands.literal("owarenaexport")
                     .requires(s -> s.hasPermission(2))
-                    .executes(ExportArenaCommand::execute));
+                    .executes(ctx -> execute(ctx, false))
+                    .then(Commands.literal("terrestrial").executes(ctx -> execute(ctx, false)))
+                    .then(Commands.literal("aquatic").executes(ctx -> execute(ctx, true))));
         }
 
-        private static int execute(CommandContext<CommandSourceStack> context) {
+        private static int execute(CommandContext<CommandSourceStack> context, boolean aquatic) {
             CommandSourceStack source = context.getSource();
             net.minecraft.server.level.ServerLevel arena = source.getServer()
                     .getLevel(net.tiew.operationWild.worldgen.dimension.OWDimensions.ARENA);
@@ -485,8 +487,12 @@ public class OWCommands {
                 source.sendFailure(Component.translatable("owteams.arena.rebuild.missing_dimension"));
                 return 0;
             }
-            int written = net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.export(arena);
-            int total = net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.PART_COUNT;
+            int written = aquatic
+                    ? net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.exportAquatic(arena)
+                    : net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.export(arena);
+            int total = aquatic
+                    ? net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.PART_COUNT_AQ
+                    : net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.PART_COUNT;
             if (written == 0) {
                 source.sendFailure(Component.translatable("owteams.arena.export.failed"));
                 return 0;

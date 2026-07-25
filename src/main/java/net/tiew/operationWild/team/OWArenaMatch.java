@@ -223,9 +223,9 @@ public class OWArenaMatch {
     }
 
     /**
-     * Décalage en X de l'aire de combat. <b>Toujours 0</b> : l'arène n'accueille qu'un combat à la
-     * fois (une seule zone par dimension), et une aire fixe permet d'y bâtir un décor permanent
-     * plutôt que de se battre sur du plat régénéré ailleurs à chaque match.
+     * Décalage en X de l'aire de combat, selon le terrain. L'arène n'accueille qu'un combat à la
+     * fois (une seule zone par dimension) ; chaque terrain a sa propre aire permanente dans la
+     * dimension : le colisée terrestre à l'origine, le colisée englouti décalé en X.
      */
-    public int arenaOffsetX() { return 0; }
+    public int arenaOffsetX() { return OWArena.offsetXFor(terrain); }
 }

@@ -26,10 +26,17 @@ public class OWFogEvents {
     private static final float ARENA_NEAR  = 24f;
     private static final float ARENA_FAR   = 168f;
 
+    private static final float AQUA_RED   = 12f / 255f;
+    private static final float AQUA_GREEN = 40f / 255f;
+    private static final float AQUA_BLUE  = 56f / 255f;
+    private static final float AQUA_NEAR  = -6f;
+    private static final float AQUA_FAR   = 62f;
+
     private static final float BLEND_DURATION = 2.0f; // secondes pour transition complète
 
     private static float blendFactor = 0f;
     private static float arenaBlend  = 0f;
+    private static float aquaBlend   = 0f;
     private static long  lastNanos   = 0L;
 
     private static float deltaSeconds() {
@@ -57,15 +64,23 @@ public class OWFogEvents {
         boolean underwater = event.getCamera().getFluidInCamera() == FogType.WATER;
         Entity entity = event.getCamera().getEntity();
         boolean inBiome = entity != null && entity.level().getBiome(entity.blockPosition()).is(OWBiomes.MINE_FIELD_BIOME);
+        boolean inAqua = entity != null && entity.level().getBiome(entity.blockPosition()).is(OWBiomes.ARENA_AQUATIC_BIOME);
 
         float dt = deltaSeconds();
         blendFactor = advance(blendFactor, underwater && inBiome, dt);
         arenaBlend = advance(arenaBlend, !underwater && inArena(entity), dt);
+        aquaBlend = advance(aquaBlend, underwater && inAqua, dt);
 
         if (arenaBlend > 0f && !underwater) {
             event.setRed(lerp(event.getRed(), ARENA_RED, arenaBlend));
             event.setGreen(lerp(event.getGreen(), ARENA_GREEN, arenaBlend));
             event.setBlue(lerp(event.getBlue(), ARENA_BLUE, arenaBlend));
+        }
+
+        if (aquaBlend > 0f && underwater) {
+            event.setRed(lerp(event.getRed(), AQUA_RED, aquaBlend));
+            event.setGreen(lerp(event.getGreen(), AQUA_GREEN, aquaBlend));
+            event.setBlue(lerp(event.getBlue(), AQUA_BLUE, aquaBlend));
         }
 
         if (blendFactor <= 0f || !underwater) return;
@@ -78,6 +93,13 @@ public class OWFogEvents {
     @SubscribeEvent
     public static void onRenderFog(ViewportEvent.RenderFog event) {
         FogType fluid = event.getCamera().getFluidInCamera();
+
+        if (aquaBlend > 0f && fluid == FogType.WATER) {
+            event.setNearPlaneDistance(lerp(event.getNearPlaneDistance(), AQUA_NEAR, aquaBlend));
+            event.setFarPlaneDistance(lerp(event.getFarPlaneDistance(), AQUA_FAR, aquaBlend));
+            event.setCanceled(true);
+            return;
+        }
 
         if (blendFactor > 0f && fluid == FogType.WATER) {
             event.setNearPlaneDistance(lerp(event.getNearPlaneDistance(), FOG_NEAR, blendFactor));

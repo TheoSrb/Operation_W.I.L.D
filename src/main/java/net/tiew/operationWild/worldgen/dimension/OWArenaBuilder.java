@@ -6,6 +6,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
@@ -72,9 +73,24 @@ public final class OWArenaBuilder {
      */
     public static final int VERSION = 21;
 
+    public static final int AQUATIC_VERSION = 9;
+
+    /** Grille du colisée aquatique : 5×40 = 200 couvrent le carré d'eau 200×200 sans marge d'air. */
+    public static final int PART_SIZE_AQ = 40;
+    public static final int GRID_AQ = 5;
+    public static final int LAYERS_AQ = 2;
+    public static final int ORIGIN_AQ_X = OWArena.ARENA_AQUATIC_OFFSET_X - (PART_SIZE_AQ * GRID_AQ) / 2;
+    public static final int ORIGIN_AQ_Z = -(PART_SIZE_AQ * GRID_AQ) / 2;
+    public static final int PART_COUNT_AQ = GRID_AQ * GRID_AQ * LAYERS_AQ;
+
     private static ResourceLocation partId(int col, int row, int layer) {
         return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID,
                 "arena_" + col + "_" + row + "_" + layer);
+    }
+
+    private static ResourceLocation partIdAq(int col, int row, int layer) {
+        return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID,
+                "arena_aq_" + col + "_" + row + "_" + layer);
     }
 
     private static BlockPos partOrigin(int col, int row, int layer) {
@@ -84,6 +100,13 @@ public final class OWArenaBuilder {
                 ORIGIN_Z + row * PART_SIZE);
     }
 
+    private static BlockPos partOriginAq(int col, int row, int layer) {
+        return new BlockPos(
+                ORIGIN_AQ_X + col * PART_SIZE_AQ,
+                OWArena.ARENA_FLOOR_Y + layer * PART_HEIGHT,
+                ORIGIN_AQ_Z + row * PART_SIZE_AQ);
+    }
+
     /**
      * Pose l'arène si elle ne l'est pas déjà (ou si sa version a changé). Sans effet ensuite.
      *
@@ -91,23 +114,32 @@ public final class OWArenaBuilder {
      * de toute façon forcés à ce moment-là, et un monde où personne ne se bat jamais n'a aucune
      * raison de porter le décor.</p>
      */
-    public static void ensureBuilt(ServerLevel arena) {
+    public static void ensureBuilt(ServerLevel arena, OWArena.Terrain terrain) {
         if (arena == null || !arena.dimension().equals(OWDimensions.ARENA)) return;
         BuildState state = BuildState.get(arena.getServer());
-        if (state.version >= VERSION) return;
-
-        int placed = build(arena);
-        state.version = VERSION;
-        state.setDirty();
-        LOGGER.info("[Arène] Décor posé ({}).", placed > 0 ? placed + " pièce(s) de structure" : "tracé procédural");
+        if (terrain == OWArena.Terrain.AQUATIC) {
+            if (state.aquaticVersion >= AQUATIC_VERSION) return;
+            buildAquatic(arena);
+            state.aquaticVersion = AQUATIC_VERSION;
+            state.setDirty();
+            LOGGER.info("[Arène] Colisée englouti posé (tracé procédural).");
+        } else {
+            if (state.terrestrialVersion >= VERSION) return;
+            int placed = buildTerrestrial(arena);
+            state.terrestrialVersion = VERSION;
+            state.setDirty();
+            LOGGER.info("[Arène] Décor posé ({}).", placed > 0 ? placed + " pièce(s) de structure" : "tracé procédural");
+        }
     }
 
-    /** Repose le décor immédiatement, quelle que soit la version enregistrée (commande d'admin). */
+    /** Repose les deux décors immédiatement, quelle que soit la version enregistrée (commande d'admin). */
     public static int rebuild(ServerLevel arena) {
         if (arena == null || !arena.dimension().equals(OWDimensions.ARENA)) return 0;
-        int placed = build(arena);
+        int placed = buildTerrestrial(arena);
+        buildAquatic(arena);
         BuildState state = BuildState.get(arena.getServer());
-        state.version = VERSION;
+        state.terrestrialVersion = VERSION;
+        state.aquaticVersion = AQUATIC_VERSION;
         state.setDirty();
         return placed;
     }
@@ -120,8 +152,8 @@ public final class OWArenaBuilder {
      *
      * @return le nombre de pièces de structure posées ; 0 si le tracé procédural a servi
      */
-    private static int build(ServerLevel arena) {
-        applyBiome(arena);
+    private static int buildTerrestrial(ServerLevel arena) {
+        applyBiome(arena, OWBiomes.ARENA_BIOME, 0);
         if (countTemplates(arena) == 0) {
             OWArenaLayout.generate(arena);
             return 0;
@@ -130,6 +162,18 @@ public final class OWArenaBuilder {
         // et les arches resteraient bouchés par ce qui occupait déjà le terrain.
         OWArenaLayout.wipe(arena);
         return placeTemplates(arena);
+    }
+
+    private static void buildAquatic(ServerLevel arena) {
+        applyBiome(arena, OWBiomes.ARENA_AQUATIC_BIOME, OWArena.ARENA_AQUATIC_OFFSET_X);
+        if (countTemplatesAq(arena) == 0) {
+            OWAquaticArenaLayout.generate(arena, OWArena.ARENA_AQUATIC_OFFSET_X);
+            return;
+        }
+        // Les pièces aquatiques sont exportées sans l'eau (exclue à la capture) : on rétablit d'abord
+        // le socle inondé, puis on pose les solides gelés par-dessus.
+        OWAquaticArenaLayout.base(arena, OWArena.ARENA_AQUATIC_OFFSET_X);
+        placeTemplatesAq(arena);
     }
 
     /**
@@ -153,6 +197,20 @@ public final class OWArenaBuilder {
             for (int row = 0; row < GRID; row++) {
                 for (int layer = 0; layer < LAYERS; layer++) {
                     if (manager.get(partId(col, row, layer)).isPresent()) found++;
+                }
+            }
+        }
+        return found;
+    }
+
+    /** Nombre de pièces du colisée aquatique présentes. */
+    public static int countTemplatesAq(ServerLevel arena) {
+        var manager = arena.getStructureManager();
+        int found = 0;
+        for (int col = 0; col < GRID_AQ; col++) {
+            for (int row = 0; row < GRID_AQ; row++) {
+                for (int layer = 0; layer < LAYERS_AQ; layer++) {
+                    if (manager.get(partIdAq(col, row, layer)).isPresent()) found++;
                 }
             }
         }
@@ -195,6 +253,45 @@ public final class OWArenaBuilder {
     }
 
     /**
+     * Enregistre le colisée aquatique en pièces {@code .nbt}, comme l'arène terrestre.
+     *
+     * <p><b>L'eau est exclue</b> (et non l'air) : le décor englouti est entièrement immergé, donc
+     * capturer l'eau gonflerait les fichiers de millions de blocs. Le socle inondé est rétabli à la
+     * pose ({@link OWAquaticArenaLayout#base}) avant que les solides gelés ne soient posés par-dessus.
+     * La boîte 200×200 est intégralement sous l'eau : rien d'air à y capturer.</p>
+     */
+    public static int exportAquatic(ServerLevel arena) {
+        if (arena == null || !arena.dimension().equals(OWDimensions.ARENA)) return 0;
+        loadAquaticBox(arena);
+        var manager = arena.getStructureManager();
+        Vec3i size = new Vec3i(PART_SIZE_AQ, PART_HEIGHT, PART_SIZE_AQ);
+
+        int written = 0;
+        for (int col = 0; col < GRID_AQ; col++) {
+            for (int row = 0; row < GRID_AQ; row++) {
+                for (int layer = 0; layer < LAYERS_AQ; layer++) {
+                    ResourceLocation id = partIdAq(col, row, layer);
+                    StructureTemplate template = manager.getOrCreate(id);
+                    template.fillFromWorld(arena, partOriginAq(col, row, layer), size, false, Blocks.WATER);
+                    template.setAuthor(OperationWild.MOD_ID);
+                    if (manager.save(id)) written++;
+                }
+            }
+        }
+        LOGGER.info("[Arène] Export aquatique : {} / {} pièce(s) écrite(s).", written, PART_COUNT_AQ);
+        return written;
+    }
+
+    /** Charge les chunks de la boîte aquatique avant l'export : sans terrain chargé, on ne capture rien. */
+    private static void loadAquaticBox(ServerLevel arena) {
+        int minCx = ORIGIN_AQ_X >> 4, maxCx = (ORIGIN_AQ_X + PART_SIZE_AQ * GRID_AQ) >> 4;
+        int minCz = ORIGIN_AQ_Z >> 4, maxCz = (ORIGIN_AQ_Z + PART_SIZE_AQ * GRID_AQ) >> 4;
+        for (int c = minCx; c <= maxCx; c++) {
+            for (int z = minCz; z <= maxCz; z++) arena.getChunk(c, z);
+        }
+    }
+
+    /**
      * Réécrit le biome des chunks de l'arène.
      *
      * <p>Indispensable sur un monde existant : le biome est <b>gravé dans le chunk à sa génération</b>.
@@ -202,15 +299,16 @@ public final class OWArenaBuilder {
      * portent déjà l'arène garderaient leur biome d'origine, donc son ciel, son brouillard et ses
      * teintes de végétation. On les repeint donc explicitement, comme le fait {@code /fillbiome}.</p>
      */
-    private static void applyBiome(ServerLevel arena) {
+    private static void applyBiome(ServerLevel arena, ResourceKey<Biome> key, int centerX) {
         Holder<Biome> biome = arena.registryAccess()
                 .registryOrThrow(Registries.BIOME)
-                .getHolderOrThrow(OWBiomes.ARENA_BIOME);
+                .getHolderOrThrow(key);
         Climate.Sampler sampler = arena.getChunkSource().randomState().sampler();
         BiomeResolver resolver = (x, y, z, ignored) -> biome;
 
         int chunks = BIOME_RADIUS >> 4;
-        for (int cx = -chunks; cx <= chunks; cx++) {
+        int centerChunk = centerX >> 4;
+        for (int cx = centerChunk - chunks; cx <= centerChunk + chunks; cx++) {
             for (int cz = -chunks; cz <= chunks; cz++) {
                 ChunkAccess chunk = arena.getChunk(cx, cz);
                 chunk.fillBiomesFromNoise(resolver, sampler);
@@ -243,6 +341,27 @@ public final class OWArenaBuilder {
         return placed;
     }
 
+    private static int placeTemplatesAq(ServerLevel arena) {
+        var manager = arena.getStructureManager();
+        StructurePlaceSettings settings = new StructurePlaceSettings()
+                .setRotation(Rotation.NONE)
+                .setIgnoreEntities(false);
+
+        int placed = 0;
+        for (int col = 0; col < GRID_AQ; col++) {
+            for (int row = 0; row < GRID_AQ; row++) {
+                for (int layer = 0; layer < LAYERS_AQ; layer++) {
+                    Optional<StructureTemplate> template = manager.get(partIdAq(col, row, layer));
+                    if (template.isEmpty()) continue;
+
+                    BlockPos at = partOriginAq(col, row, layer);
+                    if (template.get().placeInWorld(arena, at, at, settings, arena.getRandom(), 2)) placed++;
+                }
+            }
+        }
+        return placed;
+    }
+
     /**
      * Retient quelle version du décor est posée sur ce monde.
      *
@@ -253,7 +372,8 @@ public final class OWArenaBuilder {
 
         public static final String DATA_NAME = "ow_arena_build";
 
-        private int version = 0;
+        private int terrestrialVersion = 0;
+        private int aquaticVersion = 0;
 
         public static BuildState get(MinecraftServer server) {
             return server.overworld().getDataStorage().computeIfAbsent(
@@ -262,13 +382,15 @@ public final class OWArenaBuilder {
 
         private static BuildState load(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
             BuildState state = new BuildState();
-            state.version = tag.getInt("version");
+            state.terrestrialVersion = tag.contains("terrestrialVersion") ? tag.getInt("terrestrialVersion") : tag.getInt("version");
+            state.aquaticVersion = tag.getInt("aquaticVersion");
             return state;
         }
 
         @Override
         public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
-            tag.putInt("version", version);
+            tag.putInt("terrestrialVersion", terrestrialVersion);
+            tag.putInt("aquaticVersion", aquaticVersion);
             return tag;
         }
     }

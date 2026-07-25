@@ -290,21 +290,24 @@ public final class OWArenaManager {
         // de tourner même si un chef se déconnecte.
         forceArenaChunks(arena, match, ox, true);
         // Décor livré avec le mod : posé à la première ouverture de duel, ignoré ensuite.
-        net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.ensureBuilt(arena);
+        net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.ensureBuilt(arena, match.getTerrain());
 
         // Le duel reste suspendu le temps de l'animation d'ouverture : tout le monde arrive figé,
         // face à l'adversaire.
         match.startOpening(OWArena.OPENING_FREEZE_MS);
 
-        // Les camps se font face selon l'axe Z : A côté −Z, B côté +Z.
-        int fightersA = -OWArena.ARENA_FIGHTER_Z;
-        int fightersB = OWArena.ARENA_FIGHTER_Z;
+        // Les camps se font face selon l'axe Z : A côté −Z, B côté +Z. Lignes selon le terrain
+        // (le colisée aquatique est plus petit, donc plus resserré).
+        int fighterZ = OWArena.fighterZ(match.getTerrain());
+        int fightersA = -fighterZ;
+        int fightersB = fighterZ;
         placeSide(server, arena, match, match.getTeamAId(), fightersA, OWArena.facingOpponent(fightersA));
         placeSide(server, arena, match, match.getTeamBId(), fightersB, OWArena.facingOpponent(fightersB));
 
         // Les chefs assistent au combat, en retrait derrière leur ligne.
-        int chiefA = -OWArena.ARENA_CHIEF_Z;
-        int chiefB = OWArena.ARENA_CHIEF_Z;
+        int chiefZ = OWArena.chiefZ(match.getTerrain());
+        int chiefA = -chiefZ;
+        int chiefB = chiefZ;
         placeChief(server, arena, match, match.getChiefA(), chiefA, OWArena.facingOpponent(chiefA));
         placeChief(server, arena, match, match.getChiefB(), chiefB, OWArena.facingOpponent(chiefB));
 
@@ -412,10 +415,10 @@ public final class OWArenaManager {
             // ramener même si le renvoi de fin de match n'a pas abouti.
             saveEntityRescuePoint(owE);
 
-            // Étalés sur l'axe X, centrés sur 0 : une équipe pleine (5) occupe −10, −5, 0, 5, 10.
+            // Étalés sur l'axe X, centrés sur l'aire du terrain : une équipe pleine (5) occupe −10..+10.
             int n = fighters.size();
             double spacing = n > 1 ? (2.0 * OWArena.ARENA_FIGHTER_SPREAD) / (n - 1) : 0.0;
-            int x = (int) Math.round((i - (n - 1) / 2.0) * spacing);
+            int x = match.arenaOffsetX() + (int) Math.round((i - (n - 1) / 2.0) * spacing);
             Entity moved = owE.changeDimension(new DimensionTransition(
                     arena, new Vec3(x + 0.5, arenaY(arena, x, lineZ), lineZ + 0.5), Vec3.ZERO, yRot, 0f,
                     DimensionTransition.DO_NOTHING));
@@ -541,9 +544,14 @@ public final class OWArenaManager {
         p.stopRiding();
         // Plain-pied imposé (y=64) : les camps sont sur l'axe Z au niveau du sol de l'aire, et non
         // sur les gradins. Laisser la recherche de hauteur libre grimperait sur la première marche.
+        int ox = match.arenaOffsetX();
         p.changeDimension(new DimensionTransition(
-                arena, new Vec3(0.5, OWArena.ARENA_Y, z + 0.5), Vec3.ZERO, yRot, 0f,
+                arena, new Vec3(ox + 0.5, OWArena.ARENA_Y, z + 0.5), Vec3.ZERO, yRot, 0f,
                 DimensionTransition.DO_NOTHING));
+        if (match.getTerrain() == OWArena.Terrain.AQUATIC) {
+            p.addEffect(new net.minecraft.world.effect.MobEffectInstance(
+                    net.minecraft.world.effect.MobEffects.WATER_BREATHING, 30 * 60 * 20, 0, false, false, false));
+        }
     }
 
     /**
@@ -598,7 +606,7 @@ public final class OWArenaManager {
                                        OWArenaMatch match, int centerX) {
         net.minecraft.world.level.border.WorldBorder border = arena.getWorldBorder();
         border.setCenter(centerX + 0.5, 0.5);
-        border.setSize(OWArena.BORDER_START);
+        border.setSize(OWArena.borderStart(match.getTerrain()));
         border.setDamagePerBlock(0.6);
         border.setDamageSafeZone(0.5);
         border.setWarningBlocks(6);
@@ -732,7 +740,7 @@ public final class OWArenaManager {
         if (!match.isBorderShrinking() && match.elapsedInStateMs() >= OWArena.BORDER_HOLD_MS) {
             match.setBorderShrinking(true);
             arena.getWorldBorder().lerpSizeBetween(
-                    OWArena.BORDER_START, OWArena.BORDER_END, OWArena.BORDER_SHRINK_MS);
+                    OWArena.borderStart(match.getTerrain()), OWArena.BORDER_END, OWArena.BORDER_SHRINK_MS);
             // Le lerp doit être renvoyé aux clients, sinon leur bordure resterait figée.
             pushZoneToChiefs(server, match, arena.getWorldBorder());
             broadcastToMatch(server, match, Component.translatable("owteams.arena.zone.shrinking")

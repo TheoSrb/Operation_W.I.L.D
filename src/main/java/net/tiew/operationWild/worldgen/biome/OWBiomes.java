@@ -26,6 +26,7 @@ public class OWBiomes {
     public static final ResourceKey<Biome> REDWOOD_FOREST_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "redwood_forest"));
     public static final ResourceKey<Biome> MINE_FIELD_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "mine_field"));
     public static final ResourceKey<Biome> ARENA_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "arena"));
+    public static final ResourceKey<Biome> ARENA_AQUATIC_BIOME = ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "arena_aquatic"));
 
 
 
@@ -40,6 +41,29 @@ public class OWBiomes {
         context.register(REDWOOD_FOREST_BIOME, redwoodBiome(context));
         context.register(MINE_FIELD_BIOME, mineFieldBiome(context));
         context.register(ARENA_BIOME, arenaBiome(context));
+        context.register(ARENA_AQUATIC_BIOME, arenaAquaticBiome(context));
+    }
+
+    public static Biome arenaAquaticBiome(BootstrapContext<Biome> context) {
+        BiomeGenerationSettings.Builder biomeBuilder =
+                new BiomeGenerationSettings.Builder(context.lookup(Registries.PLACED_FEATURE), context.lookup(Registries.CONFIGURED_CARVER));
+
+        return new Biome.BiomeBuilder()
+                .hasPrecipitation(false)
+                .downfall(0.5f)
+                .temperature(0.6f)
+                .generationSettings(biomeBuilder.build())
+                .mobSpawnSettings(new MobSpawnSettings.Builder().build())
+                .specialEffects(new BiomeSpecialEffects.Builder()
+                        .waterColor(0x1E4D6B)
+                        .waterFogColor(0x081C2C)
+                        .skyColor(0x243F58)
+                        .grassColorOverride(0x2E7A6F)
+                        .foliageColorOverride(0x2E7A6F)
+                        .fogColor(0x0C2436)
+                        .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS)
+                        .build())
+                .build();
     }
 
     public static Biome arenaBiome(BootstrapContext<Biome> context) {

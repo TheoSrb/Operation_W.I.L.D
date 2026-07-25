@@ -140,6 +140,12 @@ public final class OWArena {
     // ── Dimension d'arène ───────────────────────────────────────────────────────
     /** Rayon de l'aire de combat autour de l'origine : chunks maintenus chargés et protégés. */
     public static final int ARENA_RADIUS = 64;
+
+    public static final int ARENA_AQUATIC_OFFSET_X = 1024;
+
+    public static int offsetXFor(Terrain terrain) {
+        return terrain == Terrain.AQUATIC ? ARENA_AQUATIC_OFFSET_X : 0;
+    }
     /** Altitude de plain-pied de la dimension d'arène (surface du monde plat + 1). */
     public static final int ARENA_Y = 64;
     /** Niveau du sol : on se tient sur le bloc juste au-dessus. Base de pose du décor livré. */
@@ -155,6 +161,18 @@ public final class OWArena {
     public static final int ARENA_CHIEF_Z = 46;
     /** Demi-étalement des combattants sur l'axe X : une équipe pleine s'étale de −10 à +10. */
     public static final int ARENA_FIGHTER_SPREAD = 10;
+
+    /** Lignes rapprochées pour le colisée aquatique, plus petit que l'arène terrestre. */
+    public static final int ARENA_AQUATIC_FIGHTER_Z = 24;
+    public static final int ARENA_AQUATIC_CHIEF_Z = 35;
+
+    public static int fighterZ(Terrain terrain) {
+        return terrain == Terrain.AQUATIC ? ARENA_AQUATIC_FIGHTER_Z : ARENA_FIGHTER_Z;
+    }
+
+    public static int chiefZ(Terrain terrain) {
+        return terrain == Terrain.AQUATIC ? ARENA_AQUATIC_CHIEF_Z : ARENA_CHIEF_Z;
+    }
 
     /**
      * Lacet à donner à qui se tient en {@code z} pour regarder l'autre camp.
@@ -180,6 +198,13 @@ public final class OWArena {
     // ── Zone de combat rétrécissante ────────────────────────────────────────────
     /** Côté de la zone au début du combat (world border : la taille est le diamètre). */
     public static final int BORDER_START = 150;
+
+    /** Zone de départ plus large pour le colisée aquatique et son grand fond marin. */
+    public static final int ARENA_AQUATIC_BORDER_START = 200;
+
+    public static int borderStart(Terrain terrain) {
+        return terrain == Terrain.AQUATIC ? ARENA_AQUATIC_BORDER_START : BORDER_START;
+    }
     /** Côté final de la zone, une fois le rétrécissement terminé. */
     public static final int BORDER_END = 20;
     /** Répit avant que la zone ne commence à se refermer. */
