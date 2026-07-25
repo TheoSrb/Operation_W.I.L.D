@@ -3790,8 +3790,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                 return InteractionResult.SUCCESS;
             } else {
-                if (!this.isSitting() && !this.isInResurrection() && !itemstack.is(Tags.Items.FOODS)) {
-                    if (!this.isBaby()) player.startRiding(this);
+                if (!this.isSitting() && !this.isInResurrection() && !itemstack.is(Tags.Items.FOODS) && !this.isBaby()) {
+                    // Monter exige d'être le propriétaire ou un membre de tribu autorisé : on ne
+                    // chevauche pas la bête d'un autre dresseur.
+                    if (!this.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) {
+                        return InteractionResult.PASS;
+                    }
+                    player.startRiding(this);
                 }
             }
         }

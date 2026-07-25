@@ -256,6 +256,7 @@ public class OperationWild {
         OWCommands.ArenaSparringCommand.register(event.getDispatcher());
         OWCommands.WipeTribesCommand.register(event.getDispatcher());
         OWCommands.RebuildArenaCommand.register(event.getDispatcher());
+        OWCommands.ExportArenaCommand.register(event.getDispatcher());
     }
 
     @EventBusSubscriber(modid = MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)

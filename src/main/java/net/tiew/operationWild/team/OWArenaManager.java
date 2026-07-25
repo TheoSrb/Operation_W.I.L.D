@@ -296,16 +296,17 @@ public final class OWArenaManager {
         // face à l'adversaire.
         match.startOpening(OWArena.OPENING_FREEZE_MS);
 
-        int westFighters = ox - OWArena.ARENA_HALF_SPAN;
-        int eastFighters = ox + OWArena.ARENA_HALF_SPAN;
-        placeSide(server, arena, match, match.getTeamAId(), westFighters, OWArena.facingOpponent(westFighters, ox));
-        placeSide(server, arena, match, match.getTeamBId(), eastFighters, OWArena.facingOpponent(eastFighters, ox));
+        // Les camps se font face selon l'axe Z : A côté −Z, B côté +Z.
+        int fightersA = -OWArena.ARENA_FIGHTER_Z;
+        int fightersB = OWArena.ARENA_FIGHTER_Z;
+        placeSide(server, arena, match, match.getTeamAId(), fightersA, OWArena.facingOpponent(fightersA));
+        placeSide(server, arena, match, match.getTeamBId(), fightersB, OWArena.facingOpponent(fightersB));
 
         // Les chefs assistent au combat, en retrait derrière leur ligne.
-        int westChief = westFighters - OWArena.ARENA_CHIEF_BACK;
-        int eastChief = eastFighters + OWArena.ARENA_CHIEF_BACK;
-        placeChief(server, arena, match, match.getChiefA(), westChief, OWArena.facingOpponent(westChief, ox));
-        placeChief(server, arena, match, match.getChiefB(), eastChief, OWArena.facingOpponent(eastChief, ox));
+        int chiefA = -OWArena.ARENA_CHIEF_Z;
+        int chiefB = OWArena.ARENA_CHIEF_Z;
+        placeChief(server, arena, match, match.getChiefA(), chiefA, OWArena.facingOpponent(chiefA));
+        placeChief(server, arena, match, match.getChiefB(), chiefB, OWArena.facingOpponent(chiefB));
 
         // Un camp sans aucun combattant posé traduit un échec de téléportation, jamais une victoire
         // adverse légitime. On annule plutôt que de décerner un verdict absurde.
@@ -334,7 +335,7 @@ public final class OWArenaManager {
      * pendant tout le combat même sans joueur à proximité.
      */
     private static void forceArenaChunks(ServerLevel arena, OWArenaMatch match, int ox, boolean forced) {
-        int radius = (OWArena.ARENA_HALF_SPAN + OWArena.ARENA_CHIEF_BACK) / 16 + 1;
+        int radius = OWArena.ARENA_CHIEF_Z / 16 + 1;
         int centerX = ox >> 4;
         for (int cx = centerX - radius; cx <= centerX + radius; cx++) {
             for (int cz = -radius; cz <= radius; cz++) {
@@ -390,7 +391,7 @@ public final class OWArenaManager {
     }
 
     private static void placeSide(MinecraftServer server, ServerLevel arena, OWArenaMatch match,
-                                  int teamId, int x, float yRot) {
+                                  int teamId, int lineZ, float yRot) {
         List<OWArenaFighter> fighters = match.fightersOf(teamId);
         for (int i = 0; i < fighters.size(); i++) {
             OWArenaFighter f = fighters.get(i);
@@ -411,9 +412,12 @@ public final class OWArenaManager {
             // ramener même si le renvoi de fin de match n'a pas abouti.
             saveEntityRescuePoint(owE);
 
-            int z = (int) Math.round((i - (fighters.size() - 1) / 2.0) * 4.0);
+            // Étalés sur l'axe X, centrés sur 0 : une équipe pleine (5) occupe −10, −5, 0, 5, 10.
+            int n = fighters.size();
+            double spacing = n > 1 ? (2.0 * OWArena.ARENA_FIGHTER_SPREAD) / (n - 1) : 0.0;
+            int x = (int) Math.round((i - (n - 1) / 2.0) * spacing);
             Entity moved = owE.changeDimension(new DimensionTransition(
-                    arena, new Vec3(x + 0.5, arenaY(arena, x, z), z + 0.5), Vec3.ZERO, yRot, 0f,
+                    arena, new Vec3(x + 0.5, arenaY(arena, x, lineZ), lineZ + 0.5), Vec3.ZERO, yRot, 0f,
                     DimensionTransition.DO_NOTHING));
             if (moved instanceof OWEntity arrived) {
                 readyForBattle(arrived, match, teamId);
@@ -525,7 +529,7 @@ public final class OWArenaManager {
     }
 
     private static void placeChief(MinecraftServer server, ServerLevel arena, OWArenaMatch match,
-                                   UUID chief, int x, float yRot) {
+                                   UUID chief, int z, float yRot) {
         ServerPlayer p = server.getPlayerList().getPlayer(chief);
         if (p == null) return;
         match.getReturnPoints().put(chief, new OWArenaMatch.ReturnPoint(
@@ -535,8 +539,10 @@ public final class OWArenaManager {
         // Descendre de monture avant le voyage : un joueur téléporté à cheval sur une créature
         // qui part ailleurs se retrouve dans un état incohérent.
         p.stopRiding();
+        // Plain-pied imposé (y=64) : les camps sont sur l'axe Z au niveau du sol de l'aire, et non
+        // sur les gradins. Laisser la recherche de hauteur libre grimperait sur la première marche.
         p.changeDimension(new DimensionTransition(
-                arena, new Vec3(x + 0.5, arenaY(arena, x, 0), 0.5), Vec3.ZERO, yRot, 0f,
+                arena, new Vec3(0.5, OWArena.ARENA_Y, z + 0.5), Vec3.ZERO, yRot, 0f,
                 DimensionTransition.DO_NOTHING));
     }
 
@@ -785,16 +791,33 @@ public final class OWArenaManager {
         assignTargets(arena, match.getAliveB(), match.getAliveA());
     }
 
+    /**
+     * Redonne une cible aux combattants qui n'en ont plus — mais seulement à l'<b>ennemi le plus
+     * proche encore à portée de détection</b>, la même {@code FOLLOW_RANGE} qui régit le repérage
+     * dans le monde normal.
+     *
+     * <p>Auparavant chaque bête se voyait attribuer un adversaire quelle que soit la distance : au
+     * coup de gong, tout le monde fonçait en ligne droite d'un bout à l'autre de l'aire, ce qu'aucune
+     * créature ne fait dehors. En bornant l'attribution à la portée de suivi, l'arène repère comme
+     * l'overworld : les camps se rapprochent (poussés par la zone qui se referme) avant de
+     * s'engager, et une bête n'attaque que ce qu'elle pourrait voir n'importe où ailleurs.</p>
+     */
     private static void assignTargets(ServerLevel arena, java.util.Set<UUID> side, java.util.Set<UUID> enemies) {
         if (enemies.isEmpty()) return;
-        List<UUID> enemyList = new ArrayList<>(enemies);
-        int i = 0;
         for (UUID uuid : side) {
             if (!(arena.getEntity(uuid) instanceof OWEntity owE)) continue;
             LivingEntity current = owE.getTarget();
             if (current != null && current.isAlive() && enemies.contains(current.getUUID())) continue;
-            Entity enemy = arena.getEntity(enemyList.get(i++ % enemyList.size()));
-            if (enemy instanceof LivingEntity le) owE.setTarget(le);
+
+            double range = owE.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.FOLLOW_RANGE);
+            double bestSq = range * range;
+            LivingEntity best = null;
+            for (UUID enemyId : enemies) {
+                if (!(arena.getEntity(enemyId) instanceof LivingEntity le) || !le.isAlive()) continue;
+                double d = owE.distanceToSqr(le);
+                if (d <= bestSq) { bestSq = d; best = le; }
+            }
+            if (best != null) owE.setTarget(best);
         }
     }
 
@@ -1410,6 +1433,34 @@ public final class OWArenaManager {
             if (playerUuid.equals(m.getChiefA()) || playerUuid.equals(m.getChiefB())) return true;
         }
         return false;
+    }
+
+    /** Match en cours (combat ou verdict) où {@code playerUuid} est un chef, ou {@code null}. */
+    public static OWArenaMatch matchOfChief(UUID playerUuid) {
+        for (OWArenaMatch m : MATCHES.values()) {
+            OWArenaMatch.State state = m.getState();
+            if (state != OWArenaMatch.State.FIGHTING && state != OWArenaMatch.State.ENDED) continue;
+            if (playerUuid.equals(m.getChiefA()) || playerUuid.equals(m.getChiefB())) return m;
+        }
+        return null;
+    }
+
+    /**
+     * L'owner d'un camp est tombé : son camp perd sur-le-champ, quelles que soient les créatures qu'il
+     * lui reste sur le terrain.
+     *
+     * <p>Appelé à la place de la mort réelle du chef : celle-ci le ferait réapparaître au spawn du
+     * monde, hors de portée du renvoi de fin de match. On tranche donc le duel proprement, et le
+     * renvoi habituel le ramène chez lui avec son inventaire.</p>
+     */
+    public static void chiefDefeated(MinecraftServer server, OWArenaMatch match, UUID chiefUuid) {
+        if (match.getState() != OWArenaMatch.State.FIGHTING) return;
+        int loserTeam = chiefUuid.equals(match.getChiefA()) ? match.getTeamAId()
+                : chiefUuid.equals(match.getChiefB()) ? match.getTeamBId() : 0;
+        if (loserTeam == 0) return;
+        broadcastToMatch(server, match, Component.translatable("owteams.arena.chief_fell")
+                .setStyle(Style.EMPTY.withColor(0xE04444)));
+        endMatch(server, match, match.opponentOf(loserTeam), false);
     }
 
     /** Vrai si {@code level} est la dimension d'arène (utilisé pour désactiver certaines règles). */

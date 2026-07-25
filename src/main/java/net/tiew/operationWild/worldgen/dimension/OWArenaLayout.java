@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.SlabType;
+import net.minecraft.world.level.block.state.properties.StairsShape;
 import net.tiew.operationWild.core.OWArena;
 
 public final class OWArenaLayout {
@@ -106,11 +107,17 @@ public final class OWArenaLayout {
         seatDetails(level);
         gates(level);
         statues(level);
+        blendStairs(level);
         rubbleField(level);
         interiorDressing(level);
         greenery(level);
         floorFlora(level);
         overgrowth(level);
+    }
+
+    /** Table rase seule, sans reconstruire : utilisée avant de poser des pièces exportées. */
+    public static void wipe(ServerLevel level) {
+        clear(level);
     }
 
     private static void clear(ServerLevel level) {
@@ -351,7 +358,7 @@ public final class OWArenaLayout {
                 set(level, x, top, z, stairs(Blocks.TUFF_BRICK_STAIRS.defaultBlockState(),
                         inward(x, z).getOpposite()));
             } else {
-                set(level, x, top, z, noise(Math.abs(x) * 3, z + 11, 5) == 0 ? MOSSY_COBBLE : TUFF_BRICKS);
+                set(level, x, top, z, seatSurface(x, z));
             }
         });
     }
@@ -425,6 +432,84 @@ public final class OWArenaLayout {
         }
     }
 
+
+    private static void blendStairs(ServerLevel level) {
+        forEachColumn(THIRD_SEAT_R1, (x, z) -> {
+            int r = ringOf(x, z);
+            if (r < INNER_AMB_R0) return;
+            for (int y = GROUND_FLOOR; y <= THIRD_SEAT_Y0 + 6; y++) {
+                BlockPos pos = new BlockPos(x, y, z);
+                BlockState state = level.getBlockState(pos);
+                if (!(state.getBlock() instanceof StairBlock)) continue;
+
+                Direction facing = state.getValue(StairBlock.FACING);
+                boolean onSeatRow = isSeatRing(r) && y == profileTop(x, z, r);
+                boolean flushRight = onSeatRow && flushSurface(level, pos.relative(facing.getClockWise()));
+                boolean flushLeft = onSeatRow && flushSurface(level, pos.relative(facing.getCounterClockWise()));
+
+                if (flushRight && flushLeft) {
+                    set(level, x, y, z, seatSurface(x, z));
+                    continue;
+                }
+                StairsShape shape = flushRight ? StairsShape.INNER_RIGHT
+                        : flushLeft ? StairsShape.INNER_LEFT
+                        : stairShape(level, pos, state);
+                if (state.getValue(StairBlock.SHAPE) != shape) {
+                    set(level, x, y, z, state.setValue(StairBlock.SHAPE, shape));
+                }
+            }
+        });
+    }
+
+    private static boolean isSeatRing(int r) {
+        return (r >= INNER_AMB_R0 && r <= CROSS_R1)
+                || (r >= UPPER_AMB_R0 && r <= UPPER_AMB_R1)
+                || (r >= THIRD_SEAT_R0 && r <= THIRD_SEAT_R1);
+    }
+
+    private static boolean flushSurface(ServerLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        return !state.isAir()
+                && state.isCollisionShapeFullBlock(level, pos)
+                && level.getBlockState(pos.above()).isAir();
+    }
+
+    private static BlockState seatSurface(int x, int z) {
+        return noise(Math.abs(x) * 3, z + 11, 5) == 0 ? MOSSY_COBBLE : TUFF_BRICKS;
+    }
+
+    private static StairsShape stairShape(ServerLevel level, BlockPos pos, BlockState state) {
+        Direction facing = state.getValue(StairBlock.FACING);
+
+        BlockState front = level.getBlockState(pos.relative(facing));
+        if (sameStairHalf(front, state)) {
+            Direction other = front.getValue(StairBlock.FACING);
+            if (other.getAxis() != facing.getAxis() && freeSide(level, pos, state, other.getOpposite())) {
+                return other == facing.getCounterClockWise() ? StairsShape.OUTER_LEFT : StairsShape.OUTER_RIGHT;
+            }
+        }
+
+        BlockState back = level.getBlockState(pos.relative(facing.getOpposite()));
+        if (sameStairHalf(back, state)) {
+            Direction other = back.getValue(StairBlock.FACING);
+            if (other.getAxis() != facing.getAxis() && freeSide(level, pos, state, other)) {
+                return other == facing.getCounterClockWise() ? StairsShape.INNER_LEFT : StairsShape.INNER_RIGHT;
+            }
+        }
+        return StairsShape.STRAIGHT;
+    }
+
+    private static boolean sameStairHalf(BlockState neighbour, BlockState state) {
+        return neighbour.getBlock() instanceof StairBlock
+                && neighbour.getValue(StairBlock.HALF) == state.getValue(StairBlock.HALF);
+    }
+
+    private static boolean freeSide(ServerLevel level, BlockPos pos, BlockState state, Direction side) {
+        BlockState neighbour = level.getBlockState(pos.relative(side));
+        return !(neighbour.getBlock() instanceof StairBlock)
+                || neighbour.getValue(StairBlock.FACING) != state.getValue(StairBlock.FACING)
+                || neighbour.getValue(StairBlock.HALF) != state.getValue(StairBlock.HALF);
+    }
 
     private static void rubbleField(ServerLevel level) {
         int[][] piles = {

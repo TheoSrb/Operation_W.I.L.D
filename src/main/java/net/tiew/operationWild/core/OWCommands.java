@@ -462,6 +462,47 @@ public class OWCommands {
         }
     }
 
+    // ── Admin : exporter l'arène en pièces de structure ────────────────────────
+    /**
+     * Enregistre l'arène du monde en cours sous forme de pièces {@code .nbt}.
+     *
+     * <p>Ce que permet l'export : retoucher le bâtiment à la main en créatif, puis figer le
+     * résultat. Les pièces reprennent la main sur le tracé du code, donc la reconstruction
+     * suivante repose la version retouchée à l'identique.</p>
+     */
+    public static class ExportArenaCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(Commands.literal("owarenaexport")
+                    .requires(s -> s.hasPermission(2))
+                    .executes(ExportArenaCommand::execute));
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            CommandSourceStack source = context.getSource();
+            net.minecraft.server.level.ServerLevel arena = source.getServer()
+                    .getLevel(net.tiew.operationWild.worldgen.dimension.OWDimensions.ARENA);
+            if (arena == null) {
+                source.sendFailure(Component.translatable("owteams.arena.rebuild.missing_dimension"));
+                return 0;
+            }
+            int written = net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.export(arena);
+            int total = net.tiew.operationWild.worldgen.dimension.OWArenaBuilder.PART_COUNT;
+            if (written == 0) {
+                source.sendFailure(Component.translatable("owteams.arena.export.failed"));
+                return 0;
+            }
+            source.sendSuccess(() -> Component.translatable("owteams.arena.export.done", written, total)
+                    .setStyle(Style.EMPTY.withColor(0x7ddd73)), true);
+            // Chemin absolu envoyé tel quel : un chemin de fichier ne se traduit pas, et le donner
+            // évite de chercher le dossier à tâtons.
+            String folder = net.tiew.operationWild.worldgen.dimension.OWArenaBuilder
+                    .exportFolder(arena).toAbsolutePath().toString();
+            source.sendSuccess(() -> Component.literal(folder)
+                    .setStyle(Style.EMPTY.withColor(0x9AA0A6)), false);
+            return written;
+        }
+    }
+
     // ── Debug : supprimer TOUTES les tribus du serveur ─────────────────────────
     public static class WipeTribesCommand {
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {

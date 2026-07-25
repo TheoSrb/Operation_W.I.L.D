@@ -187,7 +187,15 @@
       "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" compileJava --console=plain --rerun-tasks 2>&1)",
       "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" runData --console=plain 2>&1)",
       "Bash(./gradlew.bat runData --console=plain)",
-      "Bash(echo \"exit=$?\")"
+      "Bash(echo \"exit=$?\")",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && find ~/.gradle/caches build -iname \"*sources*.jar\" 2>/dev/null | grep -i -E \"neoforge|minecraft|client\" | head -5; echo \"--- decomp ---\"; find ~/.gradle/caches -path \"*neoform*\" -name \"*.jar\" 2>/dev/null | head -8)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && cat \"run/../src/main/templates/META-INF/neoforge.mods.toml\" 2>/dev/null | grep -n \"versionRange\\\\|modId\\\\|loaderVersion\" || find . -name \"neoforge.mods.toml\" -not -path \"./build/*\" | head)",
+      "Bash(B=\"/c/Users/Tiew_37/Desktop/Serveurs/OW Arena Builds\"; echo \"=== dimensions/ow ===\"; ls -R \"$B/world/dimensions\" 2>/dev/null | head -12; echo; echo \"=== generated ? ===\"; ls -d \"$B/world/generated\" 2>/dev/null || echo \"\\(pas encore de dossier generated\\)\"; echo; echo \"=== chargement du mod dans les logs ===\"; grep -i -E \"operation|ow\\\\b.*mod|Incompatible|requires Minecraft|Missing or unsupported\" \"$B/logs/latest.log\" 2>/dev/null | head -12)",
+      "Bash(B=\"/c/Users/Tiew_37/Desktop/Serveurs/OW Arena Builds\"; grep -i -E \"Minecraft version|Loading Minecraft|Done \\\\\\(|Starting minecraft server version\" \"$B/logs/latest.log\" 2>/dev/null | head -6; echo \"=== erreurs de dependance ===\"; grep -i -E \"dependenc|incompatib|rejected|failed to load\" \"$B/logs/latest.log\" 2>/dev/null | head -5 || echo \"\\(aucune\\)\")",
+      "Read(//c/Users/Tiew_37/Desktop/Serveurs/OW Arena Builds/mods/**)",
+      "Bash(unzip -l '/c/Users/Tiew_37/Desktop/Serveurs/OW Arena Builds/mods/Operation W.I.L.D - [BETA] - V0.1.jar')",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && cp \"run/client/saves/Nouveau monde \\(1\\)/generated/ow/structures/\"arena_*.nbt \"src/main/resources/data/ow/structure/\" && echo \"=== copie faite ===\" && ls src/main/resources/data/ow/structure/ | grep -c arena && echo \"pieces arena dans le mod\" && du -ch src/main/resources/data/ow/structure/arena_*.nbt | tail -1)"
     ]
   }
 }

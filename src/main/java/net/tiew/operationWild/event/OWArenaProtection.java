@@ -1,8 +1,5 @@
 package net.tiew.operationWild.event;
 
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -43,13 +40,6 @@ public class OWArenaProtection {
         return player != null && player.isCreative();
     }
 
-    private static void refuse(Player player) {
-        if (player instanceof ServerPlayer sp) {
-            sp.sendSystemMessage(Component.translatable("owteams.arena.protected")
-                    .setStyle(Style.EMPTY.withColor(0xE8956A)));
-        }
-    }
-
     /**
      * Seuls les combattants et les chefs ont droit de cité dans l'arène.
      *
@@ -86,20 +76,14 @@ public class OWArenaProtection {
     @SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         if (!inArena(event.getLevel()) || mayEdit(event.getPlayer())) return;
+        // Refus muet : la casse est bloquée, mais sans avertir au tchat à chaque coup de pioche.
         event.setCanceled(true);
-        refuse(event.getPlayer());
     }
 
     @SubscribeEvent
     public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
         if (!inArena(event.getLevel())) return;
-        // Entité non-joueur qui pose un bloc (endermite, etc.) : refus sec, sans message.
-        if (event.getEntity() instanceof Player player) {
-            if (mayEdit(player)) return;
-            event.setCanceled(true);
-            refuse(player);
-            return;
-        }
+        if (event.getEntity() instanceof Player player && mayEdit(player)) return;
         event.setCanceled(true);
     }
 

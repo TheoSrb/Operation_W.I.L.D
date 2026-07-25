@@ -47,23 +47,64 @@ public class OWArenaCombat {
         OWArenaMatch match = OWArenaManager.matchOfCombatant(fighter.getUUID());
         if (match == null) return;
 
+        // Prime à l'élimination : la bête qui abat un adversaire regagne 20 % de sa vie maximale.
+        // Récompenser le tombeur pousse à conclure plutôt qu'à temporiser, et évite qu'un duel
+        // s'enlise entre deux combattants à moitié morts.
+        OWEntity killer = resolveKiller(event.getSource().getEntity());
+        if (killer != null && killer != fighter && killer.isAlive()
+                && OWArenaManager.matchOfCombatant(killer.getUUID()) == match) {
+            killer.heal(killer.getMaxHealth() * 0.20f);
+        }
+
         OWArenaManager.knockOut(match, fighter);
     }
 
     /**
-     * Rend les chefs intouchables dans l'arène pendant leur match, verdict rendu compris — la
-     * protection ne les quitte qu'une fois rentrés chez eux.
+     * Remonte du responsable d'un dégât jusqu'au combattant à créditer.
      *
-     * <p>Un chef y vient en témoin, pas en combattant. S'il mourait, il réapparaîtrait au point de
-     * réapparition du monde et le renvoi de fin de match le ramènerait chez lui depuis un endroit
-     * qui n'est plus le sien — c'est précisément ce qui faisait « disparaître » le perdant.</p>
+     * <p>Les segments de queue du boa et du crocodile frappent en leur nom : sans cette résolution,
+     * une mise à mort par la queue ne récompenserait personne.</p>
+     */
+    private static OWEntity resolveKiller(net.minecraft.world.entity.Entity source) {
+        if (source instanceof OWEntity owE) return owE;
+        if (source instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart part
+                && part.getParent() instanceof OWEntity parent) return parent;
+        if (source instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileTailPart part
+                && part.getParent() instanceof OWEntity parent) return parent;
+        return null;
+    }
+
+    /**
+     * L'owner d'un camp est <b>mortel pendant le combat</b> : s'il tombe, son camp perd aussitôt,
+     * même s'il lui reste des créatures debout.
      *
-     * <p>Passer par l'événement plutôt que par {@code setInvulnerable} évite de laisser un joueur
-     * invulnérable pour de bon si un match se termine mal : l'immunité s'évapore avec le match.</p>
+     * <p>Le coup fatal ne le tue pas vraiment — il déclenche la défaite, puis le renvoi de fin de
+     * match le ramène chez lui. Le laisser mourir pour de bon le ferait réapparaître au spawn du
+     * monde, hors de portée du renvoi, ce qui le ferait « disparaître » du duel.</p>
+     *
+     * <p>Il reste <b>intouchable</b> aux deux moments où rien ne doit se jouer : l'animation
+     * d'ouverture (tout le monde est figé) et le temps de contemplation du verdict (le vaincu
+     * attend son rapatriement au milieu des créatures adverses).</p>
      */
     @SubscribeEvent
     public static void onIncomingDamage(LivingIncomingDamageEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer chief) || !inArena(chief)) return;
-        if (OWArenaManager.isSpectatingChief(chief.getUUID())) event.setCanceled(true);
+
+        OWArenaMatch match = OWArenaManager.matchOfChief(chief.getUUID());
+        if (match == null) return;
+
+        // Ouverture ou verdict rendu : intouchable.
+        if (match.isOpening() || match.getState() == OWArenaMatch.State.ENDED) {
+            event.setCanceled(true);
+            return;
+        }
+
+        // Combat engagé : le chef encaisse normalement, mais le coup qui l'achèverait est intercepté
+        // et transformé en défaite de son camp.
+        if (match.getState() == OWArenaMatch.State.FIGHTING
+                && event.getAmount() >= chief.getHealth() + chief.getAbsorptionAmount()) {
+            event.setCanceled(true);
+            OWArenaManager.chiefDefeated(chief.getServer(), match, chief.getUUID());
+        }
     }
 }

@@ -23,8 +23,8 @@ public class OWFogEvents {
     private static final float ARENA_RED   = 52f / 255f;
     private static final float ARENA_GREEN = 92f / 255f;
     private static final float ARENA_BLUE  = 48f / 255f;
-    private static final float ARENA_NEAR  = 9f;
-    private static final float ARENA_FAR   = 88f;
+    private static final float ARENA_NEAR  = 24f;
+    private static final float ARENA_FAR   = 168f;
 
     private static final float BLEND_DURATION = 2.0f; // secondes pour transition complète
 

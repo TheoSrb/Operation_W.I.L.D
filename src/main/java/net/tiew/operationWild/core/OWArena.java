@@ -144,21 +144,28 @@ public final class OWArena {
     public static final int ARENA_Y = 64;
     /** Niveau du sol : on se tient sur le bloc juste au-dessus. Base de pose du décor livré. */
     public static final int ARENA_FLOOR_Y = ARENA_Y - 1;
-    /** Demi-écart entre les deux camps de départ. */
-    public static final int ARENA_HALF_SPAN = 16;
-    /** Recul du chef derrière sa ligne, pour qu'il observe sans être au contact. */
-    public static final int ARENA_CHIEF_BACK = 10;
 
     /**
-     * Lacet à donner à qui se tient en {@code x} pour regarder l'autre camp.
-     *
-     * <p>Les deux camps s'alignent sur l'axe X de part et d'autre de l'origine. Le lacet vaut 0 vers
-     * le sud (+Z), 90° vers l'ouest (−X) et −90° vers l'est (+X) : celui qui campe à l'ouest doit
-     * donc regarder à −90°, et l'inverse pour l'est. Calculé plutôt qu'écrit en dur des deux côtés,
-     * pour qu'un camp ne puisse pas se retrouver à tourner le dos à l'autre.</p>
+     * Distances de placement sur l'axe Z, de part et d'autre de l'origine. Les deux camps se font
+     * face selon Z : le camp A occupe les Z négatifs, le camp B les Z positifs.
      */
-    public static float facingOpponent(double x, int arenaCenterX) {
-        return x < arenaCenterX ? -90f : 90f;
+    /** Ligne d'apparition des combattants : z = ±33. */
+    public static final int ARENA_FIGHTER_Z = 33;
+    /** Position du chef, en retrait derrière sa ligne : z = ±46. */
+    public static final int ARENA_CHIEF_Z = 46;
+    /** Demi-étalement des combattants sur l'axe X : une équipe pleine s'étale de −10 à +10. */
+    public static final int ARENA_FIGHTER_SPREAD = 10;
+
+    /**
+     * Lacet à donner à qui se tient en {@code z} pour regarder l'autre camp.
+     *
+     * <p>Les deux camps s'alignent sur l'axe Z de part et d'autre de l'origine. Le lacet vaut 0 vers
+     * le sud (+Z) et 180° vers le nord (−Z) : le camp posté côté −Z regarde donc vers 0 (le sud), et
+     * celui côté +Z vers 180 (le nord). Calculé plutôt qu'écrit en dur des deux côtés, pour qu'un
+     * camp ne puisse pas se retrouver à tourner le dos à l'autre.</p>
+     */
+    public static float facingOpponent(double z) {
+        return z < 0 ? 0f : 180f;
     }
 
     /**
@@ -172,7 +179,7 @@ public final class OWArena {
 
     // ── Zone de combat rétrécissante ────────────────────────────────────────────
     /** Côté de la zone au début du combat (world border : la taille est le diamètre). */
-    public static final int BORDER_START = 100;
+    public static final int BORDER_START = 150;
     /** Côté final de la zone, une fois le rétrécissement terminé. */
     public static final int BORDER_END = 20;
     /** Répit avant que la zone ne commence à se refermer. */
