@@ -57,10 +57,25 @@ public final class OWRiderSmoothing {
     public static final boolean ENABLED = true;
 
     /**
-     * Constante de temps du second étage de lissage, en secondes. Ne traite que le résidu : le
-     * battement d'alternance, lui, est annulé en amont par la moyenne à deux prises. Assez court pour
-     * que la correction colle encore aux gestes rapides d'un combo.
+     * Lissage de la correction. {@code true} rétablit les deux étages d'origine — moyenne à deux
+     * prises puis passe-bas.
+     *
+     * <p><b>Pourquoi ils sont coupés.</b> La correction vaut, par construction, {@code siège exact −
+     * position interpolée par le moteur}. Ajoutée telle quelle, elle pose le modèle <i>exactement</i>
+     * sur l'os : il n'y a rien de plus lisse. Filtrée, la position rendue devient {@code siège −
+     * passe-haut(correction)} — et le contenu haute fréquence de la correction, c'est précisément la
+     * cassure de pente que le moteur produit à chaque frontière de tick. Les deux étages
+     * <b>laissaient donc repasser la secousse qu'ils devaient masquer</b>, d'autant plus fort que
+     * l'assise bouge vite.</p>
+     *
+     * <p>Ils avaient leur raison d'être : la prise brute alternait entre deux états selon que la
+     * monture était dessinée avant ou après son cavalier. Cette alternance est désormais supprimée à
+     * la source — la correction est arrêtée une fois par image au montage de la caméra, avant tout
+     * rendu d'entité, donc à phase constante. Le remède n'a plus de mal à soigner.</p>
      */
+    private static final boolean SMOOTHING = false;
+
+    /** Constante de temps du passe-bas, en secondes. Sans effet tant que {@link #SMOOTHING} est faux. */
     private static final double SMOOTHING_TAU_SECONDS = 0.045D;
 
     /**
@@ -71,11 +86,40 @@ public final class OWRiderSmoothing {
     private static final Map<UUID, double[]> PREVIOUS_RAW = new HashMap<>();
     private static final Map<UUID, Long> SMOOTHED_AT = new HashMap<>();
 
+    /**
+     * Correction déjà calculée dans l'image courante, par cavalier, et le numéro d'image qui l'a
+     * produite.
+     *
+     * <p>La caméra et le modèle réclament tous deux la correction du même cavalier dans la même
+     * image. Sans mémoire, le second appel ferait avancer le filtre une seconde fois et rendrait une
+     * valeur <b>différente</b> de la première : la vue et le corps se poseraient à deux endroits qui
+     * ne coïncident pas, exactement le défaut que la correction est censée supprimer. Le résultat est
+     * donc calculé une fois, puis relu.</p>
+     */
+    private static final Map<UUID, Vec3> FRAME_RESULT = new HashMap<>();
+    private static final Map<UUID, Long> FRAME_RESULT_AT = new HashMap<>();
+    private static long frame = 0L;
+
+    /**
+     * Ouvre une nouvelle image. Appelé par le montage de la caméra, seul point du rendu par lequel
+     * toute image passe, et avant que quoi que ce soit ne soit dessiné.
+     */
+    public static void beginFrame() {
+        frame++;
+    }
+
+    /** Numéro de l'image en cours. {@code 0} tant que le montage de la caméra n'a jamais tourné. */
+    public static long frame() {
+        return frame;
+    }
+
     /** Oublie l'historique d'un cavalier : à appeler quand il descend ou change de monture. */
     public static void forget(UUID rider) {
         SMOOTHED.remove(rider);
         PREVIOUS_RAW.remove(rider);
         SMOOTHED_AT.remove(rider);
+        FRAME_RESULT.remove(rider);
+        FRAME_RESULT_AT.remove(rider);
     }
 
     /**
@@ -84,6 +128,20 @@ public final class OWRiderSmoothing {
      */
     public static Vec3 seatCorrection(Entity rider, OWEntity mount, float partialTick) {
         if (!ENABLED) return null;
+
+        UUID cached = rider.getUUID();
+        Long computedAt = FRAME_RESULT_AT.get(cached);
+        // frame == 0 : le montage de la caméra n'a jamais tourné (mixin absent). On recalcule alors
+        // à chaque appel plutôt que de figer la correction sur sa toute première valeur.
+        if (frame != 0L && computedAt != null && computedAt == frame) return FRAME_RESULT.get(cached);
+
+        Vec3 computed = computeSeatCorrection(rider, mount, partialTick);
+        FRAME_RESULT.put(cached, computed);
+        FRAME_RESULT_AT.put(cached, frame);
+        return computed;
+    }
+
+    private static Vec3 computeSeatCorrection(Entity rider, OWEntity mount, float partialTick) {
 
         // Le calcul de siège fait tourner son décalage par le lacet de la monture. Celui-ci vaut, au
         // moment où on l'interroge, la valeur du dernier TICK — alors que la bête est dessinée à un
@@ -131,6 +189,7 @@ public final class OWRiderSmoothing {
             forget(rider.getUUID());
             return null;
         }
+        if (!SMOOTHING) return new Vec3(dx, dy, dz);
         return smooth(rider.getUUID(), dx, dy, dz);
     }
 

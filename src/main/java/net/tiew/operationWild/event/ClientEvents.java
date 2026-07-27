@@ -1204,6 +1204,8 @@ public class ClientEvents {
             shadowStrikeHiddenRiders.remove(player == null ? null : player.getId());
             if (player != null) {
                 net.tiew.operationWild.client.OWRiderSmoothing.forget(player.getUUID());
+                RIDER_ROTATION.remove(player.getUUID());
+                RIDER_ROTATION_AT.remove(player.getUUID());
             }
             return;
         }
@@ -1300,13 +1302,7 @@ public class ClientEvents {
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationY, (float) ((float) pivotPoint.x - (look.x * 0.75f)), (float) pivotPoint.y, (float) ((float) pivotPoint.z - (look.z * 0.75f)));
             } else {
-                poseStack.mulPose(Axis.YP.rotationDegrees(-crocodile.yBodyRot));
-                Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.getBodyZRot());
-                Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot() + crocodile.getRiderControlPitch());
-
-                poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-                poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-                poseStack.mulPose(Axis.YP.rotationDegrees(crocodile.yBodyRot));
+                poseStack.mulPose(riderBodyRotation(player, owVehicle, event.getPartialTick()));
             }
         } else if (owVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boaPose
                 && boaPose.getGrabbedTargetId() != player.getId()
@@ -1332,63 +1328,13 @@ public class ClientEvents {
         } else if (owVehicle instanceof KodiakEntity kodiak) {
             poseStack.pushPose();
 
-            boolean isPassenger = kodiak.getPassengers().indexOf(player) != 0;
-
-            float pivotYaw = kodiak.yBodyRot;
-
-            poseStack.mulPose(Axis.YP.rotationDegrees(-pivotYaw));
-
-            Quaternionf rotationZ = isPassenger
-                    ? Axis.ZP.rotationDegrees(-kodiak.getBodyZRot_passenger())
-                    : Axis.ZP.rotationDegrees(-kodiak.getBodyZRot());
-
-            Quaternionf rotationX = isPassenger
-                    ? Axis.XP.rotationDegrees(-kodiak.getBodyXRot_passenger())
-                    : Axis.XP.rotationDegrees(-kodiak.getBodyXRot());
-
-            poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-            poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-
-            poseStack.mulPose(Axis.YP.rotationDegrees(pivotYaw));
+            poseStack.mulPose(riderBodyRotation(player, owVehicle, event.getPartialTick()));
         } else if (owVehicle instanceof OrcaEntity orca) {
             poseStack.pushPose();
-
-            boolean isPassenger = orca.getPassengers().indexOf(player) != 0;
-            float pivotYaw = orca.yBodyRot;
-
-            poseStack.mulPose(Axis.YP.rotationDegrees(-pivotYaw));
-
-            Quaternionf rotationZ = isPassenger
-                    ? Axis.ZP.rotationDegrees(-orca.getBodyZRot_passenger())
-                    : Axis.ZP.rotationDegrees(-orca.getBodyZRot());
-
-            Quaternionf rotationX = isPassenger
-                    ? Axis.XP.rotationDegrees(-orca.getBodyXRot_passenger())
-                    : Axis.XP.rotationDegrees(-orca.getBodyXRot());
-
-            // Lacet : le cavalier suit desormais les trois axes du corps, et non plus le seul couple
-            // roulis/tangage. Applique en premier, il reste l'axe le plus exterieur des trois.
-            Quaternionf rotationY = isPassenger
-                    ? Axis.YP.rotationDegrees(-orca.getBodyYRot_passenger())
-                    : Axis.YP.rotationDegrees(-orca.getBodyYRot());
-
-            poseStack.rotateAround(rotationY, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-            poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-            poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-
-            poseStack.mulPose(Axis.YP.rotationDegrees(pivotYaw));
+            poseStack.mulPose(riderBodyRotation(player, owVehicle, event.getPartialTick()));
         } else {
             poseStack.pushPose();
-
-            poseStack.mulPose(Axis.YP.rotationDegrees(-player.getYRot()));
-
-            Quaternionf rotationZ = Axis.ZP.rotationDegrees(-owVehicle.getBodyZRot());
-            Quaternionf rotationX = Axis.XP.rotationDegrees(-owVehicle.getBodyXRot());
-
-            poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-            poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-
-            poseStack.mulPose(Axis.YP.rotationDegrees(player.getYRot()));
+            poseStack.mulPose(riderBodyRotation(player, owVehicle, event.getPartialTick()));
         }
     }
 
@@ -1418,6 +1364,140 @@ public class ClientEvents {
         }
     }
 
+    /**
+     * Orientation appliquée au modèle du cavalier, autour de ses pieds.
+     *
+     * <p>Rendue ici plutôt que composée sur la pile de matrices au fil des branches, parce qu'un
+     * second lecteur en a besoin : la caméra à la première personne. Le modèle pivotant autour de
+     * ses PIEDS, sa tête décrit un arc — près d'un bloc de côté au roulis maximal de l'orque — que la
+     * vue, assise sur {@code position + hauteur d'œil}, ne suivait pas du tout. Il fallait donc que
+     * les deux lisent la même rotation, et non deux copies vouées à diverger.
+     *
+     * <p>{@code null} pour les montures dont le cavalier tourne autrement : le scarabée et le boa
+     * ont leur propre pivot, et le crocodile qui vous tient dans sa gueule aussi.
+     */
+    public static Quaternionf riderBodyRotation(Player player, OWEntity vehicle, float partialTick) {
+        UUID id = player.getUUID();
+        long frame = net.tiew.operationWild.client.OWRiderSmoothing.frame();
+        Long computedAt = RIDER_ROTATION_AT.get(id);
+        if (frame != 0L && computedAt != null && computedAt == frame) return RIDER_ROTATION.get(id);
+
+        Quaternionf computed = computeRiderBodyRotation(player, vehicle, partialTick);
+        RIDER_ROTATION.put(id, computed);
+        RIDER_ROTATION_AT.put(id, frame);
+        return computed;
+    }
+
+    /**
+     * Orientation du cavalier déjà calculée dans l'image courante, et le numéro d'image qui l'a
+     * produite.
+     *
+     * <p>Elle se lit sur {@code getBodyZRot()} et consorts, relevés pendant le rendu de la MONTURE.
+     * Or {@code entitiesForRendering()} parcourt une table de hachage que la moindre entité apparue
+     * ou disparue réorganise : la monture passe donc tantôt avant son cavalier, tantôt après, et la
+     * rotation lue sautait d'une génération une image sur deux. La position d'assise se protégeait
+     * déjà de ce battement par une moyenne à deux prises ; la rotation, elle, n'avait rien, et les
+     * amplitudes de l'orque l'ont rendu visible.</p>
+     *
+     * <p>La valeur est donc arrêtée une fois par image, au montage de la caméra — seul instant du
+     * rendu qui précède toute entité, donc de phase garantie. Corps et vue lisent ensuite la même.</p>
+     */
+    private static final Map<UUID, Quaternionf> RIDER_ROTATION = new HashMap<>();
+    private static final Map<UUID, Long> RIDER_ROTATION_AT = new HashMap<>();
+
+    private static Quaternionf computeRiderBodyRotation(Player player, OWEntity vehicle, float partialTick) {
+        boolean isPassenger = vehicle.getPassengers().indexOf(player) != 0;
+
+        // Lacet du CORPS de la monture, interpolé — et non sa valeur de tick.
+        //
+        // C'est lui qui oriente le plan dans lequel roulis et tangage penchent le cavalier. La
+        // monture, elle, est DESSINÉE à un lacet interpolé : prendre ici la valeur de tick faisait
+        // dériver l'axe d'inclinaison d'un tick entier de virage par rapport au corps visible, et
+        // l'écart se refermait d'un coup à chaque frontière de tick. Une dent de scie à 20 Hz, dont
+        // l'amplitude croît avec la vitesse de virage — exactement là où les saccades se voyaient.
+        //
+        // C'est la précaution que prend déjà OWRiderSmoothing pour l'assise, et pour la même raison.
+        // On lit le couple du CORPS : yRotO est réécrit chaque tick par OWEntity.smoothRotation, donc
+        // inutilisable, alors que yBodyRotO garde l'instantané pris en début de tick.
+        float bodyYaw = vehicle.getPreciseBodyRotation(partialTick);
+
+        // Voie exacte, quand la monture publie la matrice des os qui portent le cavalier.
+        //
+        // On ne rejoue pas les angles un par un : on RELÈVE l'orientation réellement composée par le
+        // renderer, et on la ramène du repère du modèle vers celui du monde. Le modèle est dessiné
+        // sous {@code Ry(180 − lacet) · Rz(180)} — le second facteur étant le {@code scale(-1,-1,1)}
+        // de LivingEntityRenderer, qui est bien une rotation. Conjuguer la rotation des os par ce
+        // même changement de repère donne, au degré près, ce qu'il faut appliquer au cavalier.
+        //
+        // Sur de petits angles le résultat rejoint exactement la somme d'Euler d'en dessous ; il s'en
+        // écarte — et c'est tout l'intérêt — dès que la bête penche franchement, là où additionner
+        // des rotations qui ne commutent pas cesse d'avoir un sens.
+        // La gueule du crocodile garde sa pose à elle : on ne passe pas par les os du dos.
+        boolean grabbed = vehicle instanceof CrocodileEntity croc && player == croc.getGrabbedTarget();
+
+        org.joml.Matrix4f bones = vehicle.riderBoneMatrix();
+        if (bones != null && !grabbed) {
+            Quaternionf boneRotation = bones.getNormalizedRotation(new Quaternionf());
+
+            Quaternionf frame = Axis.YP.rotationDegrees(180f - bodyYaw);
+            frame.mul(Axis.ZP.rotationDegrees(180f));
+
+            Quaternionf inverse = new Quaternionf(frame).invert();
+            return new Quaternionf(frame).mul(boneRotation).mul(inverse);
+        }
+
+        float outerYaw;
+        float zRot;
+        float xRot;
+        float innerYaw = 0f;
+
+        if (vehicle instanceof SeaBugEntity) {
+            return null;
+        } else if (vehicle instanceof CrocodileEntity crocodile) {
+            if (player == crocodile.getGrabbedTarget()) return null;
+            outerYaw = bodyYaw;
+            zRot = -crocodile.getBodyZRot();
+            xRot = -crocodile.getBodyXRot() + crocodile.getRiderControlPitch();
+        } else if (vehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa
+                && boa.getGrabbedTargetId() != player.getId()
+                && boa.getFirstTailPart() != null) {
+            return null;
+        } else if (vehicle instanceof KodiakEntity kodiak) {
+            outerYaw = bodyYaw;
+            zRot = isPassenger ? -kodiak.getBodyZRot_passenger() : -kodiak.getBodyZRot();
+            xRot = isPassenger ? -kodiak.getBodyXRot_passenger() : -kodiak.getBodyXRot();
+        } else if (vehicle instanceof OrcaEntity orca) {
+            outerYaw = bodyYaw;
+            zRot = isPassenger ? -orca.getBodyZRot_passenger() : -orca.getBodyZRot();
+            xRot = isPassenger ? -orca.getBodyXRot_passenger() : -orca.getBodyXRot();
+            innerYaw = isPassenger ? -orca.getBodyYRot_passenger() : -orca.getBodyYRot();
+        } else {
+            outerYaw = player.getYRot();
+            zRot = -vehicle.getBodyZRot();
+            xRot = -vehicle.getBodyXRot();
+        }
+
+        Quaternionf rotation = Axis.YP.rotationDegrees(-outerYaw);
+        if (innerYaw != 0f) rotation.mul(Axis.YP.rotationDegrees(innerYaw));
+        rotation.mul(Axis.ZP.rotationDegrees(zRot));
+        rotation.mul(Axis.XP.rotationDegrees(xRot));
+        rotation.mul(Axis.YP.rotationDegrees(outerYaw));
+        return rotation;
+    }
+
+    /**
+     * Déplacement de l'œil du cavalier dû à l'inclinaison de son corps, à ajouter à la position de
+     * la caméra. Nul quand la monture ne penche pas.
+     */
+    public static Vec3 riderEyeOffset(Player player, OWEntity vehicle, float eyeHeight, float partialTick) {
+        Quaternionf rotation = riderBodyRotation(player, vehicle, partialTick);
+        if (rotation == null) return Vec3.ZERO;
+
+        org.joml.Vector3f eye = new org.joml.Vector3f(0f, eyeHeight, 0f);
+        eye.rotate(rotation);
+        return new Vec3(eye.x, eye.y - eyeHeight, eye.z);
+    }
+
     @SubscribeEvent
     public static void onCameraSetup(ViewportEvent.ComputeCameraAngles event) {
         Entity cameraEntity = event.getCamera().getEntity();
@@ -1434,6 +1514,9 @@ public class ClientEvents {
                 event.setPitch((float) (event.getPitch() + (tiger.getBodyXRot() / 6) * intensity));
             } else if (rootVehicle instanceof CrocodileEntity crocodile) {
                 if (crocodile.isDeathRolling()) return;
+                // Pas d'ajout du roulis de virage ici, contrairement à l'orque : getBodyZRot() somme
+                // ALL2 + ALL + body, donc il le contient déjà. Chez l'orque, camZRot exclut ALL2 —
+                // d'où l'apport explicite là-bas et son absence ici.
                 event.setRoll((float) (event.getRoll() + (crocodile.getBodyZRot() / 4) * intensity));
                 event.setPitch((float) (event.getPitch() + (crocodile.getBodyXRot() / 4) * intensity));
             } else if (rootVehicle instanceof OrcaEntity orca) {

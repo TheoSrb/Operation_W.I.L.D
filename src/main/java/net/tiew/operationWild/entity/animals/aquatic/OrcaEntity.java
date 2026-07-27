@@ -215,6 +215,79 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         this.entityData.set(IS_DASHING, dashing);
     }
 
+    public boolean isDashing() {
+        return this.entityData.get(IS_DASHING);
+    }
+
+    /**
+     * Durée du tonneau, en ticks — un peu plus courte que la ruée, qui en dure 30.
+     *
+     * <p>Deux raisons. La figure se referme pendant que la bête file encore, ce qui la rend plus
+     * lisible qu'un tour qui s'achèverait à l'arrêt. Et surtout elle survit à l'annulation : le
+     * cavalier peut couper la ruée dès le quinzième tick en poussant en avant, or un tonneau
+     * interrompu à mi-course laisserait l'orque sur le flanc.</p>
+     *
+     * <p>C'est une borne, pas un rythme : la courbe de {@link #getBarrelRoll} place l'essentiel du
+     * tour dans les premiers ticks. Rallonger cette durée n'étale pas la figure, ça allonge le palier
+     * à plat qui la suit.</p>
+     */
+    private static final int BARREL_DURATION = 24;
+
+    /** Un tour complet, vers la droite de la bête. */
+    private static final float BARREL_TURN = -360f;
+
+    private float barrelProgress = 1f;
+    private float barrelProgressPrev = 1f;
+    private boolean barrelRunning = false;
+    private boolean wasDashing = false;
+
+    /**
+     * Angle du tonneau, en degrés, interpolé sur la fraction de tick.
+     *
+     * <p>La progression passe par une décélération cubique : la vitesse angulaire part à <b>trois
+     * fois</b> la moyenne puis retombe à zéro. Le tour s'enclenche donc d'un coup de rein, sans la
+     * montée en régime d'une courbe symétrique où les premiers ticks ne bougeaient presque pas et
+     * donnaient l'impression d'un départ en retard.</p>
+     *
+     * <p>L'exposant est le réglage de violence. En puissance quatrième, le départ tapait à quatre
+     * fois la moyenne et la moitié du tour passait en quatre ticks — trop sec ; en cube, il reste
+     * franc sans arracher. Le monter le durcit, le descendre vers 2 l'adoucit encore.</p>
+     */
+    public float getBarrelRoll(float partialTick) {
+        if (this.barrelProgressPrev >= 1f) return 0f;
+        float t = Mth.clamp(Mth.lerp(partialTick, this.barrelProgressPrev, this.barrelProgress), 0f, 1f);
+        float remaining = 1f - t;
+        float eased = 1f - remaining * remaining * remaining;
+        return BARREL_TURN * eased;
+    }
+
+    @Override
+    public boolean isRollingFigure() {
+        return this.barrelProgressPrev < 1f;
+    }
+
+    private void tickBarrelRoll() {
+        this.barrelProgressPrev = this.barrelProgress;
+
+        // Front montant du drapeau de ruée, déjà synchronisé : tous les clients enclenchent la figure
+        // au même tick et déroulent la même courbe. Rien à transmettre.
+        boolean dashing = this.isDashing();
+        if (dashing && !this.wasDashing) {
+            this.barrelProgress = 0f;
+            this.barrelProgressPrev = 0f;
+            this.barrelRunning = true;
+        }
+        this.wasDashing = dashing;
+
+        if (this.barrelRunning) {
+            this.barrelProgress += 1f / BARREL_DURATION;
+            if (this.barrelProgress >= 1f) {
+                this.barrelProgress = 1f;
+                this.barrelRunning = false;
+            }
+        }
+    }
+
     public boolean isBeached() { return this.entityData.get(IS_BEACHED); }
     public void setBeached(boolean beached) { this.entityData.set(IS_BEACHED, beached); }
 
@@ -333,6 +406,12 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return false;
     }
 
+    /** Vrai : l'orque se couche franchement en virage, la vue gagne à rester solidaire du corps. */
+    @Override
+    public boolean riderCameraFollowsBodyTilt() {
+        return true;
+    }
+
     @Override
     public float getRotationSpeed() {
         return 0.075f;
@@ -355,7 +434,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public int getMaxDepth() {
-        return 60;
+        return 65;
     }
 
     @Override
@@ -468,7 +547,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         createCombo((int) (28 / comboSpeedMultiplier), (int) (18 / comboSpeedMultiplier), OWSounds.CROCODILE_MOUTH_CRUSH.get(), 4.5, 4, 3, false, 0.5f);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
-        if (this.level().isClientSide()) setupAnimationState();
+        if (this.level().isClientSide()) {
+            setupAnimationState();
+            tickBarrelRoll();
+        }
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (!this.level().isClientSide() && false) {
@@ -501,21 +583,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 float t = this.dashTicksLeft / 30f;
                 float speed = 3.8f * (t * t * t);
 
-                if (this.dashTicksLeft > 20) {
-                    Vec3 look = this.getLookAngle();
-                    Vec3 front = this.position().add(look.scale(2.5));
-                    AABB hitBox = new AABB(
-                            front.x - 2.2, front.y - 1.5, front.z - 2.2,
-                            front.x + 2.2, front.y + 1.5, front.z + 2.2
-                    );
-                    this.level().getEntitiesOfClass(LivingEntity.class, hitBox).forEach(target -> {
-                        if (target != this && target != this.getFirstPassenger()) {
-                            target.hurt(this.damageSources().mobAttack(this), this.getRushDamage());
-                            Vec3 knockback = look.scale(1.2);
-                            target.setDeltaMovement(target.getDeltaMovement().add(knockback.x, 0.25, knockback.z));
-                        }
-                    });
-                }
+                applyDashContactDamage();
 
                 Entity rider = this.getFirstPassenger();
                 if (rider instanceof Player player && player.zza > 0 && this.dashTicksLeft <= 15) {
@@ -618,6 +686,43 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 : this.getDamage() * OWAttacksConstants.Orca.TIDAL_RUSH_WILD_DAMAGE_MULTIPLIER;
     }
 
+    /**
+     * Cibles déjà touchées par la ruée en cours. Vidée à chaque nouveau départ.
+     *
+     * <p>La ruée frappe désormais sur toute sa course et non plus pendant ses dix premiers ticks, ce
+     * qui suppose de retenir qui a déjà encaissé : sans cela une cible restée devant l'orque prendrait
+     * le coup à chaque tick de contact.</p>
+     */
+    private final java.util.Set<java.util.UUID> dashHits = new java.util.HashSet<>();
+
+    /**
+     * Dégâts de la ruée, appliqués au CONTACT, à chaque tick de la course.
+     *
+     * <p>La boîte de test balaie le trajet du tick au lieu de se poser sur la position courante :
+     * lancée, l'orque franchit près de quatre blocs entre deux ticks, et une boîte figée laisserait
+     * simplement passer tout ce qui se trouve entre les deux.</p>
+     */
+    private void applyDashContactDamage() {
+        double travelX = this.getX() - this.xOld;
+        double travelY = this.getY() - this.yOld;
+        double travelZ = this.getZ() - this.zOld;
+
+        AABB sweep = this.getBoundingBox()
+                .expandTowards(-travelX, -travelY, -travelZ)
+                .inflate(0.6);
+
+        Vec3 push = this.dashDirection.lengthSqr() > 1.0E-6 ? this.dashDirection : this.getLookAngle();
+
+        for (LivingEntity target : this.level().getEntitiesOfClass(LivingEntity.class, sweep)) {
+            if (target == this || this.hasPassenger(target) || this.isAlliedTo(target)) continue;
+            if (!this.dashHits.add(target.getUUID())) continue;
+
+            target.hurt(this.damageSources().mobAttack(this), this.getRushDamage());
+            target.setDeltaMovement(target.getDeltaMovement()
+                    .add(push.x * 1.2, 0.25, push.z * 1.2));
+        }
+    }
+
     public void performOrcaDash() {
         float cost = OWAttacksConstants.Orca.TIDAL_RUSH_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
@@ -636,19 +741,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         this.entityData.set(IS_DASHING, true);
         this.dashTicksLeft = 30; // 1.5s au lieu de 1s
 
-        // Dégâts
-        Vec3 front = this.position().add(look.scale(2.5));
-        AABB hitBox = new AABB(
-                front.x - 2.2, front.y - 1.5, front.z - 2.2,
-                front.x + 2.2, front.y + 1.5, front.z + 2.2
-        );
-        this.level().getEntitiesOfClass(LivingEntity.class, hitBox).forEach(target -> {
-            if (target != this && target != this.getFirstPassenger()) {
-                target.hurt(this.damageSources().mobAttack(this), this.getRushDamage());
-                Vec3 knockback = look.scale(1.2);
-                target.setDeltaMovement(target.getDeltaMovement().add(knockback.x, 0.25, knockback.z));
-            }
-        });
+        // Plus de gerbe de dégâts au déclenchement : elle frappait à 2,5 blocs devant, que l'orque
+        // atteigne sa cible ou non. Le balayage par contact du tick handler s'en charge dès la
+        // première image de course, et seulement si la bête touche vraiment quelque chose.
+        this.dashHits.clear();
 
         // Particules & sons (inchangés)
         if (this.level() instanceof ServerLevel serverLevel) {

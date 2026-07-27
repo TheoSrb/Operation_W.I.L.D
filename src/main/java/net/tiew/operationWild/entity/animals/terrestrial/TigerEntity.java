@@ -356,6 +356,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     @Override
+    public boolean riderCameraFollowsBodyTilt() {
+        return false;
+    }
+
+    @Override
     public float getRotationSpeed() {
         return isPreparing ? 1 : 0.35f;
     }

@@ -234,6 +234,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public boolean riderCameraFollowsBodyTilt() {
+        return false;
+    }
+
+    @Override
     public float getRotationSpeed() {
         return 0.225f;
     }

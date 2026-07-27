@@ -388,6 +388,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public boolean riderCameraFollowsBodyTilt() {
+        return false;
+    }
+
+    @Override
     public float getRotationSpeed() {
         return isUltimateNapping() ? 0 : isPawSlamCharging() ? 1f : 0.115f;
     }
@@ -535,7 +540,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
         }
 
-        if (this.isVehicle() && this.isTame() && !this.isSitting()) setMad(this.isCombo());
+        if (this.isVehicle() && this.isTame() && !this.isSitting()) setMadByRider(this.isCombo());
 
         if (hasSomethingInHisMouth) {
             if (getFoodPick() == Items.HONEYCOMB.getDefaultInstance()) {
@@ -1367,6 +1372,18 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     public void setMad(boolean isMad) {
         if (isMad) if (this.getCurrentMode() == Mode.Passive) return;
+        this.entityData.set(IS_MAD, isMad);
+    }
+
+    /**
+     * Colère déclenchée par le <b>cavalier</b>, qui ignore le mode passif.
+     *
+     * <p>Le mode ne règle que l'initiative de l'IA : une monture passive ne part pas d'elle-même à
+     * l'attaque. Il n'a rien à dire quand c'est son cavalier qui frappe — or {@link #setMad(boolean)}
+     * refusait tout net en passif, et comme une bête apprivoisée l'est par défaut, ses yeux ne
+     * s'allumaient jamais en combat monté.</p>
+     */
+    public void setMadByRider(boolean isMad) {
         this.entityData.set(IS_MAD, isMad);
     }
 

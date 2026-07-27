@@ -252,6 +252,11 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     @Override
+    public boolean riderCameraFollowsBodyTilt() {
+        return false;
+    }
+
+    @Override
     public float getRotationSpeed() {
         return this.isVehicle() ? 0.1f : 0.05f;
     }

@@ -148,6 +148,29 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimX = 0f;
 
+    /**
+     * Matrice de la chaine d'os {@code ALL2 -> ALL -> body}, relevee a chaque image par le modele.
+     *
+     * <p>Elle porte le pivot REEL des inclinaisons, que {@code bodyAnimX} et {@code bodyAnimY} — de
+     * simples sommes de translations — ne peuvent pas donner. Sans elle, faire suivre l'assise a un
+     * tangage revenait a deviner la hauteur du pivot, et le cavalier s'enfoncait ou flottait des que
+     * le crocodile montait ou descendait dans l'eau.</p>
+     */
+    public volatile org.joml.Matrix4f boneMatrix = null;
+
+    /**
+     * Pose de repos de la chaine, en pixels modele — somme des {@code PartPose.offset} de
+     * {@code ALL2} (0,9 / 14 / 3), {@code ALL} (-0,9 / 0 / -3) et {@code body} (0,0617 / -1,4547 / 6).
+     *
+     * <p>Reference et non valeur absolue : on ne place pas le siege d'apres la matrice, on le DECALE
+     * de l'ecart entre la pose courante et celle-ci. A plat l'ecart est nul, et le calcul redonne
+     * exactement le placement d'avant — celui qui etait juste.</p>
+     */
+    private static final float REST_X = 0.0617f, REST_Y = 12.5453f, REST_Z = 6.0f;
+
+    /** Hauteur du repere modele au-dessus de l'origine de l'entite, en blocs (cf. LivingEntityRenderer). */
+    private static final float MODEL_ORIGIN_Y = 1.501f;
+
     private int attackingGrabTimer = 0;
     public int attackingGrabCooldown = 0;
     private int grabUnderwaterCooldown = 0;
@@ -340,6 +363,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public boolean preferVegetables() {
         return false;
+    }
+
+    @Override
+    public boolean riderCameraFollowsBodyTilt() {
+        return false;
+    }
+
+    @Override
+    public org.joml.Matrix4f riderBoneMatrix() {
+        return this.boneMatrix;
     }
 
     @Override
@@ -538,7 +571,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
-        if (this.isVehicle() && this.isTame() && !this.isSitting() && !this.isBaby()) setMad(this.isCombo());
+        if (this.isVehicle() && this.isTame() && !this.isSitting() && !this.isBaby()) setMadByRider(this.isCombo());
 
         if (!this.level().isClientSide()) {
             if (this.mouthSlamServerTimer > 0) {
@@ -1006,16 +1039,48 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
-        double seatX = bodyAnimX / 16.0f * this.getScale();
-        double seatY = getBaseRiderYOffset() + getRiderAnimYOffset();
-        double seatZ = 0.0;
+        final float s = this.getScale();
+        final double baseY = getBaseRiderYOffset();
+
+        // Position VOULUE du siege dans le repere du MODELE, au repos : centre en X et en Z, et a la
+        // hauteur d'assise. Y descend dans ce repere, d'ou la soustraction.
+        float mx = 0f;
+        float my = (float) (MODEL_ORIGIN_Y - baseY / s);
+        float mz = 0f;
+
+        // Le MEME point, exprime cette fois dans le repere LOCAL du dernier os — c'est ce que
+        // transformPosition attend, et non une coordonnee du modele.
+        //
+        // Le confondre avec la precedente etait le defaut : au repos la chaine ne fait que translater
+        // de REST, donc le point reellement pivote se trouvait 0,78 bloc SOUS le siege. A plat l'ecart
+        // etait nul et rien ne se voyait, mais des qu'une rotation entrait en jeu le bras de levier
+        // etait faux — le tangage enfoncait le cavalier et le roulis le decalait du mauvais montant.
+        float lx = mx - REST_X / 16f;
+        float ly = my - REST_Y / 16f;
+        float lz = mz - REST_Z / 16f;
+
+        // Ecart entre la pose animee et la pose de repos, mesure sur la matrice elle-meme. Elle porte
+        // les rotations autant que les translations : le tangage de montee ou de descente y est, avec
+        // son vrai pivot, la ou bodyAnimX/bodyAnimY ne rendaient que le glissement des os.
+        double dx = 0, dy = 0, dz = 0;
+        org.joml.Matrix4f bones = this.boneMatrix;
+        if (bones != null) {
+            org.joml.Vector3f now = bones.transformPosition(new org.joml.Vector3f(lx, ly, lz));
+            dx = now.x - mx;
+            dy = now.y - my;
+            dz = now.z - mz;
+        }
+
+        double seatX = dx * s;
+        double seatY = -dy * s;
+        double seatZ = -dz * s;
 
         double yRad = Math.toRadians(-this.yBodyRot);
         double worldX = seatX * Math.cos(yRad) + seatZ * Math.sin(yRad);
         double worldZ = -seatX * Math.sin(yRad) + seatZ * Math.cos(yRad);
 
         passenger.fallDistance = 0f;
-        function.accept(passenger, this.getX() + worldX, this.getY() + seatY, this.getZ() + worldZ);
+        function.accept(passenger, this.getX() + worldX, this.getY() + baseY + seatY, this.getZ() + worldZ);
     }
 
     @Override
@@ -1411,6 +1476,18 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public void setMad(boolean isMad) {
         if (isMad) if (this.getCurrentMode() == Mode.Passive) return;
+        this.entityData.set(IS_MAD, isMad);
+    }
+
+    /**
+     * Colère déclenchée par le <b>cavalier</b>, qui ignore le mode passif.
+     *
+     * <p>Le mode ne règle que l'initiative de l'IA : une monture passive ne part pas d'elle-même à
+     * l'attaque. Il n'a rien à dire quand c'est son cavalier qui frappe — or {@link #setMad(boolean)}
+     * refusait tout net en passif, et comme une bête apprivoisée l'est par défaut, ses yeux ne
+     * s'allumaient jamais en combat monté.</p>
+     */
+    public void setMadByRider(boolean isMad) {
         this.entityData.set(IS_MAD, isMad);
     }
 

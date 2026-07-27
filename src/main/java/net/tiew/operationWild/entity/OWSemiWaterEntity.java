@@ -22,7 +22,7 @@ import net.tiew.operationWild.core.OWDamageSources;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.event.ClientEvents;
 
-public abstract class OWSemiWaterEntity extends OWEntity {
+public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.operationWild.entity.config.IOWDiver {
 
     /** Amphibie : à l'aise sur les deux terrains de duel. */
     @Override
@@ -94,11 +94,59 @@ public abstract class OWSemiWaterEntity extends OWEntity {
         this.entityData.set(TARGET_PITCH, pitch);
     }
 
+    /**
+     * Amphibie : le roulis de virage ne vaut que dans l'eau. Sur la terre ferme, une bête qui marche
+     * ne se couche pas dans ses virages.
+     */
+    @Override
+    protected boolean canLean() {
+        return this.isInWater() && !this.isSitting() && !this.isSleeping();
+    }
+
+    @Override
+    protected float bankMaxAngle() {
+        return 45.0f;
+    }
+
+    /**
+     * Seuil de saturation abaissé, et c'est lui qui compte le plus ici.
+     *
+     * <p>Un semi-aquatique tourne bien plus lentement qu'une nageuse : en vadrouille, le lacet se
+     * rapproche de sa cible à {@code 0,015 × vitesse de nage} par tick, soit une fraction de degré.
+     * Contre les 5,5°/tick réglés pour l'orque, la courbe restait écrasée dans son bas et le roulis
+     * ne se voyait pratiquement jamais hors virage serré. À 2,5°/tick, un virage ordinaire donne déjà
+     * une inclinaison franche.</p>
+     *
+     * <p>Descendre plus bas ferait saturer la courbe en permanence et rendrait toutes les
+     * inclinaisons identiques : on perdrait la lecture entre une correction de cap et un vrai
+     * virage.</p>
+     */
+    @Override
+    protected float bankReferenceYawRate(boolean ridden) {
+        // Monté, le crocodile rattrape le regard à un dixième de l'écart par tick, soit jusqu'à
+        // 18°/tick sur un demi-tour. Contre les 2,5 réglés pour la vadrouille, le moindre coup de
+        // souris saturait la courbe et collait le roulis maximal d'un bloc. À 9, une petite correction
+        // de cap ne donne que quelques degrés, et il faut un vrai virage pour coucher la bête.
+        return ridden ? 9.0f : 2.5f;
+    }
+
+    /**
+     * Nage libre laissée à {@code TARGET_PITCH}, qui la pilote déjà bien mieux : il suit la proie en
+     * 3D, la profondeur visée et la remontée pour respirer. Le tangage MONTÉ, lui, passe désormais
+     * par le canal commun — c'est ce qui donne à l'orque son assiette si lisible quand le cavalier
+     * lève ou baisse les yeux, et il n'y a pas de raison d'en priver le crocodile.
+     */
+    @Override
+    protected boolean leanPitchWhenFree() {
+        return false;
+    }
+
     @Override
     protected void registerGoals() {
         super.registerGoals();
     }
 
+    @Override
     public abstract int getMaxDepth();
     public abstract float getSwimSpeed();
 

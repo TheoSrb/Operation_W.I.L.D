@@ -9,10 +9,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
+import net.tiew.operationWild.entity.config.IOWDiver;
 import net.tiew.operationWild.entity.taming.TamingCrocodile;
 
 public class OWEntityHud {
@@ -36,16 +36,15 @@ public class OWEntityHud {
 
                     createHUD(guiGraphics, owEntity, screenWidth, screenHeight);
 
-                    if (entity instanceof OWSemiWaterEntity waterEntity) {
+                    // Lu sur le contrat de plongée et non sur une famille : l'orque n'hérite pas de
+                    // OWSemiWaterEntity, et c'est ce qui la privait de la jauge jusqu'ici.
+                    if (owEntity instanceof IOWDiver diver && owEntity.isInWater()) {
+                        int actualDepth = (int) (owEntity.level().getSeaLevel() - owEntity.getY());
+                        boolean isTooDeep = actualDepth >= diver.getMaxDepth();
 
-                        if (waterEntity.isInWater()) {
-                            int actualDepth = (int) (waterEntity.level().getSeaLevel() - waterEntity.getY());
-                            boolean isTooDeep = actualDepth >= waterEntity.getMaxDepth();
-
-                            guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(actualDepth) + "m", (screenWidth / 2) - 23, 9, isTooDeep ? 0xf3c83b : 0xFFFFFF);
-                            guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(waterEntity.getMaxDepth()), (screenWidth / 2) + 12, 9, 0xf3c83b);
-                            guiGraphics.blit(TEXTURE, (screenWidth / 2) - 23, 20, 40, 52, 46, 7);
-                        }
+                        guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(actualDepth) + "m", (screenWidth / 2) - 23, 9, isTooDeep ? 0xf3c83b : 0xFFFFFF);
+                        guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(diver.getMaxDepth()), (screenWidth / 2) + 12, 9, 0xf3c83b);
+                        guiGraphics.blit(TEXTURE, (screenWidth / 2) - 23, 20, 40, 52, 46, 7);
                     }
                 }
             }

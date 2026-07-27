@@ -5,7 +5,6 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer;
 import net.tiew.operationWild.entity.client.layer.OrcaLayer;
@@ -21,8 +20,6 @@ public class OrcaRenderer extends OWEntityRenderer<OrcaEntity, OrcaModel<OrcaEnt
 
     private final EntityRendererProvider.Context context;
     private final Map<ModelLayerLocation, OrcaModel<OrcaEntity>> modelCache = new HashMap<>();
-
-    private float smoothedRiderPitch = 0f;
 
     public OrcaRenderer(EntityRendererProvider.Context context) {
         super(context, new OrcaModel<>(context.bakeLayer(OrcaModel.LAYER_LOCATION)), 1.2f);
@@ -46,26 +43,22 @@ public class OrcaRenderer extends OWEntityRenderer<OrcaEntity, OrcaModel<OrcaEnt
     public void render(OrcaEntity orca, float entityYaw, float partialTicks,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 
-        float pitchTarget;
-        if (orca.isTame() && orca.isVehicle() && !orca.isSitting() && orca.isInWater()) {
-            pitchTarget = Mth.clamp(orca.getRiderControlPitch(), -45f, 45f);
-        } else if (!orca.isTame()) {
-            // Pas de vérification isInWater() ici : elle peut clignoter côté client à la surface
-            // Le serveur gère le retour à 0 du pitch quand le croco sort de l'eau
-            pitchTarget = Mth.clamp(orca.getTargetPitch(), -40f, 40f);
-        } else {
-            pitchTarget = 0f;
-        }
-
-        // Lerp fixe par frame, sans dépendre de partialTicks comme exposant (évite le saut à chaque tick)
-        smoothedRiderPitch = Mth.lerp(0.18f, smoothedRiderPitch, pitchTarget);
+        // Une seule source, montée ou libre : le tangage est calculé par OWWaterEntity, lissé au tick
+        // et interpolé à l'image. La branche sauvage lisait TARGET_PITCH, que seule la phase verticale
+        // de la vadrouille alimentait — l'orque restait donc à plat en poursuite, en fuite ou sur un
+        // chemin montant. Elle passait en prime par un champ de lissage PARTAGÉ par toutes les orques
+        // à l'écran, qui se contaminaient mutuellement.
+        float pitchTarget = orca.getRidePitch(partialTicks);
 
         OrcaSkin skin = SkinRegistry.OrcaSkins.get(orca.getVariant());
         this.model = skin.getMode() == OrcaSkin.Mode.REPLACEMENT
                 ? skin.getModelLayer().map(this::getOrBakeModel).orElse(getOrBakeModel(OrcaModel.LAYER_LOCATION))
                 : getOrBakeModel(OrcaModel.LAYER_LOCATION);
-        this.model.externalRiderPitch = smoothedRiderPitch;
-        this.model.externalBankRoll = orca.getBankRoll(partialTicks);
+        this.model.externalRiderPitch = pitchTarget;
+        // Le tonneau s'ajoute à l'assiette de virage sur le même os : posé sur ALL2, il emporte donc
+        // aussi le cavalier et son assise, que captureBodyState en déduit. Le siège tombant sur l'axe
+        // même du roulis, le joueur pivote sur place, collé au dos, au lieu d'être promené en cercle.
+        this.model.externalBankRoll = orca.getBankRoll(partialTicks) + orca.getBarrelRoll(partialTicks);
 
         super.render(orca, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }

@@ -37,6 +37,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 	private float prevLimbSwing = 0f;
 
 	public float externalRiderPitch = 0f;
+	public float externalBankRoll = 0f;
 
 	private final ModelPart ALL2;
 	private final ModelPart ALL;
@@ -276,6 +277,10 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 
 		if (Math.abs(externalRiderPitch) > 0.01f) {
 			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
+		}
+
+		if (Math.abs(externalBankRoll) > 0.01f) {
+			this.ALL2.zRot = (float) Math.toRadians(externalBankRoll);
 		}
 
 		spawnFootstepParticles(crocodile, limbSwing);
@@ -525,6 +530,15 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 		if (!crocodile.level().isClientSide()) return;
 		crocodile.setBodyZRot((float) Math.toDegrees((this.ALL2.zRot + this.ALL.zRot + this.body.zRot) * riderRotIntensity));
 		crocodile.setBodyXRot((float) -Math.toDegrees((this.ALL2.xRot + this.ALL.xRot + this.body.xRot) * riderRotIntensity));
+
+		// Matrice REELLE de la chaine ALL2 -> ALL -> body, telle que le renderer la compose. Pivots,
+		// ordre des rotations et translations d'animation y sont deja : le siege s'en deduit au lieu
+		// d'etre reconstruit en trigonometrie, ou la hauteur du pivot est impossible a deviner juste.
+		PoseStack bones = new PoseStack();
+		this.ALL2.translateAndRotate(bones);
+		this.ALL.translateAndRotate(bones);
+		this.body.translateAndRotate(bones);
+		crocodile.boneMatrix = new org.joml.Matrix4f(bones.last().pose());
 		float ySum = 0f;
 		float xSum = 0f;
 		for (ModelPart bone : boneChain) { ySum += bone.y; xSum += bone.x; }

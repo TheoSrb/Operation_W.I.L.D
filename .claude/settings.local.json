@@ -216,7 +216,15 @@
       "Bash(unzip -o -q build/moddev/artifacts/neoforge-21.0.167-sources.jar \"net/minecraft/world/entity/LivingEntity.java\" -d \"/c/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d4e48a-a3d3-4168-a286-a6e32da20e4a/scratchpad/mcsrc\")",
       "Read(//c/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d4e48a-a3d3-4168-a286-a6e32da20e4a/scratchpad/mcsrc/net/minecraft/world/entity/**)",
       "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/world/entity/Entity.java\")",
-      "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/client/event/ViewportEvent.java\")"
+      "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/client/event/ViewportEvent.java\")",
+      "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/server/network/ServerGamePacketListenerImpl.java\")",
+      "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/client/Camera.java\")",
+      "Bash(./gradlew compileJava --offline)",
+      "Bash(grep -Ev \"^WARNING|^$\")",
+      "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/client/DeltaTracker.java\")",
+      "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/client/renderer/GameRenderer.java\" \"net/minecraft/client/renderer/LevelRenderer.java\")",
+      "Bash(sed -i 's/riderBodyRotation\\(player, owVehicle\\)/riderBodyRotation\\(player, owVehicle, event.getPartialTick\\(\\)\\)/g' src/main/java/net/tiew/operationWild/event/ClientEvents.java)",
+      "Bash(sed -i 's/riderEyeOffset\\(player, mount, eye\\)/riderEyeOffset\\(player, mount, eye, partialTick\\)/' src/main/java/net/tiew/operationWild/mixin/CameraMixin.java)"
     ]
   }
 }

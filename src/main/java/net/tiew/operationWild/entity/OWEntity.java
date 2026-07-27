@@ -2643,9 +2643,161 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         super.remove(reason);
     }
 
+    private static final float BANK_MAX_ANGLE = 34.0f;
+    private static final float BANK_REFERENCE_YAW_RATE = 5.5f;
+    private static final float BANK_SHARPNESS = 1.15f;
+    private static final float BANK_RATE_SMOOTHING = 0.55f;
+    private static final float BANK_RISE = 0.3f;
+    private static final float BANK_FALL = 0.12f;
+    private static final float BANK_CAMERA_SHARE = 0.4f;
+
+    private static final float PITCH_MAX_ANGLE = 45.0f;
+    private static final float PITCH_RISE = 0.22f;
+    private static final float PITCH_FALL = 0.12f;
+    private static final float FREE_PITCH_GAIN = 1.25f;
+
+    private static final float LEAN_CRUISE_STEP = 0.1f;
+    private static final float LEAN_IDLE_DRIVE = 0.3f;
+
+    private float bankRoll = 0f;
+    private float bankRollPrev = 0f;
+    private float bankYawRate = 0f;
+    private float leanPitch = 0f;
+    private float leanPitchPrev = 0f;
+
+    public float getBankRoll(float partialTick) {
+        return Mth.lerp(partialTick, this.bankRollPrev, this.bankRoll);
+    }
+
+    public float getBankCameraRoll(float partialTick) {
+        return this.getBankRoll(partialTick) * BANK_CAMERA_SHARE;
+    }
+
+    public float getRidePitch(float partialTick) {
+        return Mth.lerp(partialTick, this.leanPitchPrev, this.leanPitch);
+    }
+
+    /**
+     * Ouvre l'inclinaison de nage. Fausse par défaut : une bête terrestre qui traverse une rivière
+     * n'a pas à s'incliner dans ses virages. Les familles aquatiques la relèvent.
+     */
+    protected boolean canLean() { return false; }
+
+    /**
+     * Vrai pendant une FIGURE en roulis — un tonneau, par opposition à l'assiette d'un virage.
+     *
+     * <p>Sert à la vue à la première personne : elle suit l'arc que décrit l'œil du cavalier quand
+     * son corps s'incline, ce qui n'a de sens que pour une inclinaison bornée. Sur un tour complet,
+     * le même calcul promènerait la caméra sur un cercle d'un mètre et demi.</p>
+     */
+    public boolean isRollingFigure() { return false; }
+
+    /**
+     * La vue à la première personne suit-elle l'inclinaison du corps du cavalier ?
+     *
+     * <p>Le modèle du cavalier pivote autour de ses PIEDS : dès que la monture penche, son œil décrit
+     * un arc. À {@code true}, la caméra se pose sur cet œil et accompagne le mouvement ; à
+     * {@code false}, elle reste à l'aplomb de la position d'entité, comme avant l'ajout de ce
+     * rattrapage.</p>
+     *
+     * <p>Ce n'est pas un défaut à corriger partout : sur une monture qui se couche franchement, suivre
+     * l'arc rend la vue solidaire du corps ; sur une monture au roulis discret, ça n'apporte qu'un
+     * ballant. Chaque espèce tranche donc pour elle-même, et la réponse est {@code false} par
+     * défaut.</p>
+     */
+    public boolean riderCameraFollowsBodyTilt() { return false; }
+
+    /**
+     * Matrice des os qui portent le cavalier, ou {@code null} si l'espèce n'en publie pas.
+     *
+     * <p>Quand elle existe, l'orientation du cavalier s'en déduit EXACTEMENT au lieu d'être
+     * reconstruite en additionnant les angles d'Euler de chaque os. Cette somme n'est juste qu'aux
+     * petits angles et ignore l'ordre de composition : le cavalier était posé au bon endroit — la
+     * position, elle, vient déjà de la matrice — mais orienté de travers dès que la bête penchait
+     * franchement.</p>
+     */
+    public org.joml.Matrix4f riderBoneMatrix() { return null; }
+
+    protected float bankMaxAngle() { return BANK_MAX_ANGLE; }
+
+    /**
+     * Vitesse de lacet, en degrés par tick, à laquelle le roulis atteint son amplitude maximale.
+     *
+     * <p>Le régime n'a rien de commun entre les deux cas, d'où le paramètre. Livrée à son IA, une
+     * bête tourne d'une fraction de degré par tick ; sous les mains d'un cavalier, elle rattrape le
+     * regard à {@code getRotationSpeed()} de l'écart et peut monter à plusieurs degrés. Un seuil
+     * réglé sur la vadrouille sature donc au moindre geste de souris.</p>
+     */
+    protected float bankReferenceYawRate(boolean ridden) { return BANK_REFERENCE_YAW_RATE; }
+
+    /** {@code 0} désactive le canal de tangage, pour une espèce qui gère le sien autrement. */
+    protected float pitchMaxAngle() { return PITCH_MAX_ANGLE; }
+
+    /**
+     * En nage LIBRE, le tangage se déduit-il de la pente réellement parcourue ?
+     *
+     * <p>{@code false} laisse ce cas à l'espèce, qui a son propre pilotage — le tangage monté, lui,
+     * reste pris en charge dans les deux cas.</p>
+     */
+    protected boolean leanPitchWhenFree() { return true; }
+
+    protected LivingEntity leaningRider() {
+        if (!this.canLean()) return null;
+        return this.getControllingPassenger();
+    }
+
+    private void tickLean() {
+        this.bankRollPrev = this.bankRoll;
+        this.leanPitchPrev = this.leanPitch;
+
+        float rollTarget = 0f;
+        float pitchTarget = 0f;
+
+        if (this.canLean()) {
+            double dx = this.getX() - this.xOld;
+            double dy = this.getY() - this.yOld;
+            double dz = this.getZ() - this.zOld;
+            float step = (float) java.lang.Math.sqrt(dx * dx + dy * dy + dz * dz);
+            float drive = Mth.clamp(step / LEAN_CRUISE_STEP, LEAN_IDLE_DRIVE, 1f);
+
+            LivingEntity rider = this.leaningRider();
+
+            float yawRate = Mth.wrapDegrees(this.yBodyRot - this.yBodyRotO);
+            this.bankYawRate += (yawRate - this.bankYawRate) * BANK_RATE_SMOOTHING;
+
+            float reference = this.bankReferenceYawRate(rider != null);
+            float normalized = Mth.clamp(java.lang.Math.abs(this.bankYawRate) / reference, 0f, 1f);
+            float shaped = (float) java.lang.Math.pow(normalized, BANK_SHARPNESS);
+            rollTarget = -java.lang.Math.signum(this.bankYawRate) * shaped * this.bankMaxAngle() * drive;
+
+            float maxPitch = this.pitchMaxAngle();
+            if (maxPitch > 0f) {
+                if (rider != null) {
+                    pitchTarget = Mth.clamp(this.getRiddenRotation(rider).x, -maxPitch, maxPitch) * drive;
+                } else if (this.leanPitchWhenFree() && step > 1.0E-5f) {
+                    double horizontal = java.lang.Math.sqrt(dx * dx + dz * dz);
+                    float slope = (float) java.lang.Math.toDegrees(java.lang.Math.atan2(-dy, horizontal));
+                    pitchTarget = Mth.clamp(slope * FREE_PITCH_GAIN, -maxPitch, maxPitch) * drive;
+                }
+            }
+        } else {
+            this.bankYawRate *= 0.5f;
+        }
+
+        float rollResponse = java.lang.Math.abs(rollTarget) > 0.5f ? BANK_RISE : BANK_FALL;
+        this.bankRoll += (rollTarget - this.bankRoll) * rollResponse;
+        if (java.lang.Math.abs(this.bankRoll) < 0.01f) this.bankRoll = 0f;
+
+        float pitchResponse = java.lang.Math.abs(pitchTarget) > 0.5f ? PITCH_RISE : PITCH_FALL;
+        this.leanPitch += (pitchTarget - this.leanPitch) * pitchResponse;
+        if (java.lang.Math.abs(this.leanPitch) < 0.01f) this.leanPitch = 0f;
+    }
+
     @Override
     public void tick() {
         super.tick();
+
+        if (this.level().isClientSide()) this.tickLean();
 
         if (!this.level().isClientSide) {
             // Résout la tribu depuis le propriétaire (registre serveur) une fois après le chargement.
