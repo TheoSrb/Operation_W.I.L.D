@@ -45,6 +45,7 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 	private int groundRotationTimer = 0;
 
 	public float externalRiderPitch = 0f;
+	public float externalBankRoll = 0f;
 
 	private final ModelPart ALL2;
 	private final ModelPart ALL;
@@ -224,6 +225,10 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 
 		if (Math.abs(externalRiderPitch) > 0.01f) {
 			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
+		}
+
+		if (groundRotationTimer <= 0 && Math.abs(externalBankRoll) > 0.01f) {
+			this.ALL2.zRot = (float) Math.toRadians(externalBankRoll);
 		}
 
 		if (orca.isBaby()) {

@@ -34,6 +34,20 @@ public abstract class OWWaterEntity extends OWEntity {
     private static final EntityDataAccessor<Float> TARGET_PITCH =
             SynchedEntityData.defineId(OWWaterEntity.class, EntityDataSerializers.FLOAT);
 
+    private static final float BANK_MAX_ANGLE = 34.0f;
+    private static final float BANK_REFERENCE_YAW_RATE = 5.5f;
+    private static final float BANK_SHARPNESS = 1.15f;
+    private static final float BANK_RATE_SMOOTHING = 0.55f;
+    private static final float BANK_RISE = 0.3f;
+    private static final float BANK_FALL = 0.12f;
+    private static final float BANK_CRUISE_STEP = 0.1f;
+    private static final float BANK_IDLE_DRIVE = 0.3f;
+    private static final float BANK_CAMERA_SHARE = 0.4f;
+
+    private float bankRoll = 0f;
+    private float bankRollPrev = 0f;
+    private float bankYawRate = 0f;
+
     public float damageTimer = 0;
     public boolean firstTimeToDeep = true;
 
@@ -53,6 +67,48 @@ public abstract class OWWaterEntity extends OWEntity {
 
     public float getTargetPitch() { return this.entityData.get(TARGET_PITCH); }
     public void setTargetPitch(float pitch) { this.entityData.set(TARGET_PITCH, pitch); }
+
+    public float getBankRoll(float partialTick) {
+        return Mth.lerp(partialTick, this.bankRollPrev, this.bankRoll);
+    }
+
+    public float getBankCameraRoll(float partialTick) {
+        return this.getBankRoll(partialTick) * BANK_CAMERA_SHARE;
+    }
+
+    protected boolean canBankWhileRidden() {
+        return this.isInWater() && !this.isSitting() && this.getControllingPassenger() != null;
+    }
+
+    protected float bankMaxAngle() {
+        return BANK_MAX_ANGLE;
+    }
+
+    private void tickBankRoll() {
+        this.bankRollPrev = this.bankRoll;
+
+        float target = 0f;
+        if (this.canBankWhileRidden()) {
+            float yawRate = Mth.wrapDegrees(this.yBodyRot - this.yBodyRotO);
+            this.bankYawRate += (yawRate - this.bankYawRate) * BANK_RATE_SMOOTHING;
+
+            double dx = this.getX() - this.xOld;
+            double dz = this.getZ() - this.zOld;
+            float step = (float) Math.sqrt(dx * dx + dz * dz);
+            float drive = Mth.clamp(step / BANK_CRUISE_STEP, BANK_IDLE_DRIVE, 1f);
+
+            float normalized = Mth.clamp(Math.abs(this.bankYawRate) / BANK_REFERENCE_YAW_RATE, 0f, 1f);
+            float shaped = (float) Math.pow(normalized, BANK_SHARPNESS);
+
+            target = -Math.signum(this.bankYawRate) * shaped * this.bankMaxAngle() * drive;
+        } else {
+            this.bankYawRate *= 0.5f;
+        }
+
+        float response = Math.abs(target) > 0.5f ? BANK_RISE : BANK_FALL;
+        this.bankRoll += (target - this.bankRoll) * response;
+        if (Math.abs(this.bankRoll) < 0.01f) this.bankRoll = 0f;
+    }
 
 
     /**
@@ -111,6 +167,8 @@ public abstract class OWWaterEntity extends OWEntity {
     @Override
     public void tick() {
         super.tick();
+
+        if (this.level().isClientSide()) this.tickBankRoll();
 
         if (!this.isInWater()) {
             Vec3 mv = this.getDeltaMovement();

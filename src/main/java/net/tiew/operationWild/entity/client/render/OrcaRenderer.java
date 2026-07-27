@@ -65,6 +65,7 @@ public class OrcaRenderer extends OWEntityRenderer<OrcaEntity, OrcaModel<OrcaEnt
                 ? skin.getModelLayer().map(this::getOrBakeModel).orElse(getOrBakeModel(OrcaModel.LAYER_LOCATION))
                 : getOrBakeModel(OrcaModel.LAYER_LOCATION);
         this.model.externalRiderPitch = smoothedRiderPitch;
+        this.model.externalBankRoll = orca.getBankRoll(partialTicks);
 
         super.render(orca, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }

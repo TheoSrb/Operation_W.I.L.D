@@ -210,7 +210,13 @@
       "Bash(git check-ignore *)",
       "Bash(./gradlew.bat -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" build -x test)",
       "Bash(unzip -l build/libs/ow-0.0.1.jar)",
-      "Bash(ls ~/.claude/skills/ 2>/dev/null; ls .claude/skills/ 2>/dev/null)"
+      "Bash(ls ~/.claude/skills/ 2>/dev/null; ls .claude/skills/ 2>/dev/null)",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && find ~/.gradle/caches -name \"*LivingEntity.java\" 2>/dev/null | head -3; ls build 2>/dev/null | head; find . -maxdepth 4 -name \"*sources*.jar\" 2>/dev/null | head)",
+      "Bash(mkdir -p \"/c/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d4e48a-a3d3-4168-a286-a6e32da20e4a/scratchpad/mcsrc\")",
+      "Bash(unzip -o -q build/moddev/artifacts/neoforge-21.0.167-sources.jar \"net/minecraft/world/entity/LivingEntity.java\" -d \"/c/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d4e48a-a3d3-4168-a286-a6e32da20e4a/scratchpad/mcsrc\")",
+      "Read(//c/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d4e48a-a3d3-4168-a286-a6e32da20e4a/scratchpad/mcsrc/net/minecraft/world/entity/**)",
+      "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/world/entity/Entity.java\")",
+      "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/neoforged/neoforge/client/event/ViewportEvent.java\")"
     ]
   }
 }

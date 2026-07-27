@@ -1440,7 +1440,8 @@ public class ClientEvents {
                 // La camera epouse le corps sur les trois axes, au quart : elle n'attenuait
                 // le mouvement qu'au sixieme, et ignorait le lacet. Ce sont ALL + body — le pique
                 // commande au regard, porte par ALL2, est deja dans l'orientation du joueur.
-                event.setRoll((float)  (event.getRoll()  + (orca.camZRot / 4) * intensity));
+                float bankRoll = orca.getBankCameraRoll((float) event.getPartialTick());
+                event.setRoll((float)  (event.getRoll()  + (orca.camZRot / 4 + bankRoll) * intensity));
                 event.setPitch((float) (event.getPitch() + (orca.camXRot / 4) * intensity));
                 event.setYaw((float)   (event.getYaw()   + (orca.camYRot / 4) * intensity));
             } else if (rootVehicle instanceof KangarooEntity kangaroo) {
