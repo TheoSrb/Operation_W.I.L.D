@@ -80,15 +80,20 @@ public class RightClickAlertOverlay {
         int centerX = screenWidth / 2;
         int centerY = screenHeight / 2;
 
-        renderTitle(guiGraphics, font, captor, centerX, centerY - 52, danger, critical, now);
+        // Battement commun à tout l'écran, de plus en plus pressant : c'est lui qui dit « vite »
+        // sans le moindre mot. À l'aise il respire lentement, à l'agonie il tambourine.
+        float period = Mth.lerp(danger, 560f, 150f);
+        float beat = (float) Math.abs(Math.sin(now / (double) period));
+
+        renderTitle(guiGraphics, font, captor, centerX, centerY - 52, danger, critical, beat);
         renderGauge(guiGraphics, centerX, centerY + 26, danger, critical, now);
-        renderHint(guiGraphics, font, centerX, centerY + 46, danger, now);
+        renderHint(guiGraphics, font, centerX, centerY + 46, danger, now, beat);
     }
 
     // ── Éléments ─────────────────────────────────────────────────────────────
 
     private static void renderTitle(GuiGraphics guiGraphics, Font font, OWEntity captor,
-                                    int centerX, int y, float danger, boolean critical, long now) {
+                                    int centerX, int y, float danger, boolean critical, float beat) {
         String captorKey = "entity.ow." + captor.getClass().getSimpleName().split("Entity")[0].toLowerCase();
         Component name = Component.literal(Component.translatable(captorKey).getString().toUpperCase());
         Component title = Component.translatable("tooltip.grabBy", name);
@@ -96,12 +101,15 @@ public class RightClickAlertOverlay {
         // Le titre prend la couleur du danger : il n'y a pas à comparer un texte fixe et une jauge,
         // les deux disent la même chose au même instant.
         int color = dangerColor(danger);
-        if (critical && (now / 110L) % 2 == 0) color = 0xFFFFFF;
+        if (critical && beat > 0.75f) color = 0xFFFFFF;
 
+        // Il enfle au rythme du battement, d'autant plus fort que la fin approche.
+        float scale = TITLE_SCALE * (1f + 0.10f * danger * beat);
         int width = font.width(title);
+
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(centerX - (width * TITLE_SCALE) / 2f, y, 0);
-        guiGraphics.pose().scale(TITLE_SCALE, TITLE_SCALE, 1.0f);
+        guiGraphics.pose().translate(centerX - (width * scale) / 2f, y, 0);
+        guiGraphics.pose().scale(scale, scale, 1.0f);
         guiGraphics.drawString(font, title, 0, 0, color, true);
         guiGraphics.pose().popPose();
     }
@@ -162,20 +170,28 @@ public class RightClickAlertOverlay {
     }
 
     private static void renderHint(GuiGraphics guiGraphics, Font font, int centerX, int y,
-                                   float danger, long now) {
+                                   float danger, long now, float beat) {
         Component hint = Component.translatable("tooltip.rightClickAlert");
 
         // Souris dessinée + texte, alignés en un seul bloc centré. Le pictogramme porte à lui seul
         // la consigne : le joueur pris à la gorge n'a ni le temps ni le calme de lire une phrase,
         // et rien dans l'ancien écran ne montrait QUEL bouton presser.
         int textWidth = font.width(hint);
-        int blockWidth = MOUSE_WIDTH + 6 + textWidth;
+        int blockWidth = MOUSE_WIDTH + 8 + textWidth;
         int left = centerX - blockWidth / 2;
 
-        drawMouseIcon(guiGraphics, left, y - 4, now);
+        // Tout le bloc tressaute au rythme du battement quand ça devient chaud.
+        float jitter = danger > 0.6f ? (danger - 0.6f) / 0.4f * 1.8f * beat : 0f;
+
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0, -jitter, 0);
+
+        drawMouseIcon(guiGraphics, left, y - 4, now, beat, danger);
 
         int alpha = (int) (150 + 105 * danger) << 24;
-        guiGraphics.drawString(font, hint, left + MOUSE_WIDTH + 6, y, alpha | 0xE8E8E8, true);
+        guiGraphics.drawString(font, hint, left + MOUSE_WIDTH + 8, y, alpha | 0xE8E8E8, true);
+
+        guiGraphics.pose().popPose();
     }
 
     private static final int MOUSE_WIDTH = 11;
@@ -188,12 +204,19 @@ public class RightClickAlertOverlay {
      * clic réussi — c'est ce retour-là qui manquait le plus : sans lui, rien à l'écran ne confirmait
      * que le geste avait porté, et le joueur croyait le bouton inopérant.</p>
      */
-    private static void drawMouseIcon(GuiGraphics guiGraphics, int x, int y, long now) {
+    private static void drawMouseIcon(GuiGraphics guiGraphics, int x, int y, long now,
+                                      float beat, float danger) {
         boolean pressed = clickAnimationTimer > 0;
         if (pressed) y += 1;
 
         int w = MOUSE_WIDTH;
         int h = MOUSE_HEIGHT;
+        int cx = x + w / 2;
+        int cy = y + h / 2;
+
+        // Halos concentriques qui s'écartent de la souris, à la cadence du battement : le regard
+        // est attiré vers le pictogramme même quand il est fixé sur la jauge.
+        drawUrgencyRings(guiGraphics, cx, cy, w, h, beat, danger);
 
         // Corps : contour clair aux angles adoucis, intérieur sombre.
         int outline = 0xFFE8E8E8;
@@ -202,9 +225,8 @@ public class RightClickAlertOverlay {
         guiGraphics.fill(x + 2, y + 1, x + w - 2, y + h - 1, 0xFF1A1A1A);
         guiGraphics.fill(x + 1, y + 3, x + w - 1, y + h - 3, 0xFF1A1A1A);
 
-        // Bouton droit : pulsation continue, éclat blanc au clic.
-        float pulse = 0.55f + 0.45f * (float) Math.abs(Math.sin(now / 380.0));
-        int accent = pressed ? 0xFFFFFFFF : (0xFF000000 | scaleRgb(0x37C8FF, pulse));
+        // Bouton droit : il bat au même rythme que le reste, éclat blanc au clic.
+        int accent = pressed ? 0xFFFFFFFF : (0xFF000000 | scaleRgb(0x37C8FF, 0.45f + 0.55f * beat));
         guiGraphics.fill(x + w / 2 + 1, y + 1, x + w - 2, y + 6, accent);
         guiGraphics.fill(x + w / 2 + 1, y + 2, x + w - 1, y + 6, accent);
 
@@ -217,6 +239,34 @@ public class RightClickAlertOverlay {
             int ripple = 0xFFFFFFFF;
             guiGraphics.fill(x + w + 1, y + 1, x + w + 3, y + 2, ripple);
             guiGraphics.fill(x + w + 2, y + 4, x + w + 4, y + 5, ripple);
+        }
+    }
+
+    /**
+     * Deux couronnes carrées qui enflent et s'effacent autour du pictogramme.
+     *
+     * <p>Décalées d'une demi-période l'une de l'autre : il y en a donc toujours une en train de
+     * grandir, ce qui donne un appel continu plutôt qu'un clignotement. Leur cadence est celle du
+     * battement général — plus la mort approche, plus elles se bousculent.</p>
+     */
+    private static void drawUrgencyRings(GuiGraphics guiGraphics, int cx, int cy, int w, int h,
+                                         float beat, float danger) {
+        for (int ring = 0; ring < 2; ring++) {
+            float phase = (beat + ring * 0.5f) % 1f;
+            int alpha = (int) (150 * (1f - phase) * (0.45f + 0.55f * danger));
+            if (alpha <= 4) continue;
+
+            int grow = Math.round(phase * 9f);
+            int left = cx - w / 2 - 3 - grow;
+            int right = cx + w / 2 + 3 + grow;
+            int top = cy - h / 2 - 3 - grow;
+            int bottom = cy + h / 2 + 3 + grow;
+            int color = (alpha << 24) | 0x37C8FF;
+
+            guiGraphics.fill(left, top, right, top + 1, color);
+            guiGraphics.fill(left, bottom - 1, right, bottom, color);
+            guiGraphics.fill(left, top, left + 1, bottom, color);
+            guiGraphics.fill(right - 1, top, right, bottom, color);
         }
     }
 

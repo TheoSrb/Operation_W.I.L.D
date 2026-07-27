@@ -333,9 +333,18 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         return 1.5f;
     }
 
+    /**
+     * Souffle du boa : trente secondes d'apnée.
+     *
+     * <p>Il tenait deux minutes et demie, ce qui rendait sa jauge d'oxygène muette : elle ne perdait
+     * une bulle qu'au bout de vingt secondes, si bien qu'un plongeon ordinaire ne la faisait pas
+     * bouger d'un pixel — pendant que la pression des profondeurs, elle, entamait la bête au bout de
+     * quelques secondes. Le joueur voyait des dégâts sans cause lisible. Une réserve à l'échelle du
+     * serpent rend la jauge parlante : une bulle toutes les quatre secondes.</p>
+     */
     @Override
     public int getMaxAirSupply() {
-        return 300 * 10;
+        return 600;
     }
 
     @Override
@@ -351,6 +360,12 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     @Override
     public void tick() {
         super.tick();
+
+        // Serpents nés avant la réduction de la réserve : leur souffle sauvegardé dépasse le
+        // nouveau plafond, et la jauge resterait pleine deux minutes durant avant de daigner bouger.
+        if (!this.level().isClientSide() && this.getAirSupply() > this.getMaxAirSupply()) {
+            this.setAirSupply(this.getMaxAirSupply());
+        }
 
         if (!constricting) createCombo(16, 10, OWSounds.BOA_HITTING.get(), 2.0, 2.5, 1.25, false, 0.25f);
         setTamingPercentage(this.foodGiven, this.foodWanted);

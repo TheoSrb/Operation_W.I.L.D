@@ -11,7 +11,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
-import net.tiew.operationWild.sound.OWSounds;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 
 public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements CustomPacketPayload {
 
@@ -33,6 +34,20 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
         return TYPE;
     }
 
+    /**
+     * Retour sonore d'un coup de débattement réussi.
+     *
+     * <p>Un cri de douleur de la bête laissait croire qu'on la blessait, alors qu'on ne fait que
+     * desserrer sa prise. Un impact mat convient mieux, et sa hauteur monte à mesure que l'étreinte
+     * cède : l'oreille suit la progression sans quitter la jauge des yeux.</p>
+     */
+    private static void playStruggleSound(LivingEntity captor, int timeout, int maxTimeout) {
+        float freedom = maxTimeout <= 0 ? 0f : 1f - Math.min(1f, (float) timeout / maxTimeout);
+        captor.level().playSound(null, captor.getX(), captor.getY(), captor.getZ(),
+                SoundEvents.PLAYER_ATTACK_WEAK, SoundSource.HOSTILE,
+                0.75f, 0.85f + freedom * 0.7f);
+    }
+
     public static void handle(OWEntityGrabManagerPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             ServerPlayer player = (ServerPlayer) context.player();
@@ -45,9 +60,7 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
                     .findFirst()
                     .ifPresent(croc -> {
                         croc.setGrabTimeout(Math.max(0, croc.getGrabTimeout() - 15));
-                        croc.level().playSound(null, croc.getX(), croc.getY(), croc.getZ(),
-                                OWSounds.CROCODILE_HURT.get(), net.minecraft.sounds.SoundSource.HOSTILE,
-                                0.6f, 1.4f);
+                        playStruggleSound(croc, croc.getGrabTimeout(), croc.getGrabMaxTimeout());
                     });
 
             // Boa : le joueur enroulé ne monte pas le boa → recherche de proximité comme le crocodile.
@@ -55,12 +68,16 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
                     .stream()
                     .filter(b -> b.isGrabbing() && b.getGrabbedTarget() == player)
                     .findFirst()
-                    .ifPresent(boa -> boa.setGrabTimeout(
-                            boa.getGrabTimeout() - net.tiew.operationWild.entity.attacks.OWAttacksConstants.Boa.CONSTRICT_STRUGGLE_REDUCTION));
+                    .ifPresent(boa -> {
+                        boa.setGrabTimeout(Math.max(0, boa.getGrabTimeout()
+                                - net.tiew.operationWild.entity.attacks.OWAttacksConstants.Boa.CONSTRICT_STRUGGLE_REDUCTION));
+                        playStruggleSound(boa, boa.getGrabTimeout(), boa.getGrabMaxTimeout());
+                    });
 
             LivingEntity vehicle = (LivingEntity) player.getVehicle();
             if (vehicle instanceof TigerEntity tiger && tiger.getGrabbedTarget() != null && tiger.getGrabbedTarget() == player) {
-                tiger.setGrabTimeout(tiger.getGrabTimeout() - 15);
+                tiger.setGrabTimeout(Math.max(0, tiger.getGrabTimeout() - 15));
+                playStruggleSound(tiger, tiger.getGrabTimeout(), tiger.getGrabMaxTimeout());
             }
         });
     }

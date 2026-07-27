@@ -252,11 +252,19 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     /**
      * Idem sur un joueur, nettement plus bas.
      *
-     * <p>Une victime cumule deja la noyade, la Fracture et la mort au bout du compte a rebours si
-     * elle ne se debat pas : la roulade n'a pas a l'achever en plus. Elle doit faire mal a lire,
-     * pas vider la barre de vie pendant que le joueur martele le clic droit.</p>
+     * <p>Une victime cumule deja la noyade et la mort au bout du compte a rebours si elle ne se
+     * debat pas : la roulade n'a pas a l'achever en plus. Elle doit faire mal a lire, pas vider la
+     * barre de vie pendant que le joueur martele le clic droit.</p>
      */
-    public static final float DEATH_ROLL_PLAYER_BITE_RATIO = 0.045f;
+    public static final float DEATH_ROLL_PLAYER_BITE_RATIO = 0.035f;
+    /**
+     * Attenuation supplementaire quand le crocodile est sauvage.
+     *
+     * <p>Une prise sauvage tombe sans prevenir, souvent loin d'un point de reapparition et sur un
+     * joueur qui n'a rien choisi. Elle doit rester une frayeur dont on se sort, pas une sentence :
+     * la meme roulade pilotee par un cavalier, elle, se merite et garde donc tout son mordant.</p>
+     */
+    public static final float DEATH_ROLL_WILD_MULTIPLIER = 0.65f;
 
     /** Vitesse d'approche du bond de l'ultime, en blocs par tick, avant lissage. */
     private static final double PRIMAL_DIVE_LUNGE_SPEED = 1.05;
@@ -1357,10 +1365,19 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             grabbed.startRiding(this, true);
         }
 
-        // Sous l'eau, la proie tenue en gueule ne respire plus.
-        if (this.isInWater() && grabbed.isInWater()
-                && !grabbed.getType().is(net.minecraft.tags.EntityTypeTags.CAN_BREATHE_UNDER_WATER)) {
-            grabbed.setAirSupply(Math.max(-20, grabbed.getAirSupply() - 4));
+        // Sous l'eau, la proie tenue en gueule ne respire plus — sauf pendant une roulade.
+        //
+        // Le manque d'air fait perdre deux points de vie par seconde, ce qui doublait les dégâts
+        // d'une rotation sans que rien ne le dise : la victime se voyait fondre en encaissant des
+        // coups qu'elle ne pouvait rattacher ni aux morsures ni à rien d'autre. On maintient donc
+        // son souffle juste au-dessus du seuil pendant toute la figure ; l'asphyxie reprend son
+        // cours dès que la bête se calme.
+        boolean canDrown = !grabbed.getType().is(net.minecraft.tags.EntityTypeTags.CAN_BREATHE_UNDER_WATER);
+
+        if (this.isDeathRolling()) {
+            if (canDrown && grabbed.getAirSupply() < 1) grabbed.setAirSupply(1);
+        } else if (this.isInWater() && grabbed.isInWater() && canDrown) {
+            grabbed.setAirSupply(Math.max(-19, grabbed.getAirSupply() - 4));
         }
 
         if (this.tickCount % 40 == 0) {
@@ -1453,9 +1470,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         // la description de l'ultime annonce au joueur.
         if (spinTick > 0 && spinTick % 6 == 0 && spinTick <= 30) {
             grabbed.invulnerableTime = 0;
-            float damage = this.getDamage() * (grabbed instanceof Player
-                    ? DEATH_ROLL_PLAYER_BITE_RATIO : DEATH_ROLL_BITE_RATIO);
-            grabbed.hurt(this.damageSources().mobAttack(this), damage);
+            float ratio = grabbed instanceof Player ? DEATH_ROLL_PLAYER_BITE_RATIO : DEATH_ROLL_BITE_RATIO;
+            if (!this.isTame()) ratio *= DEATH_ROLL_WILD_MULTIPLIER;
+            grabbed.hurt(this.damageSources().mobAttack(this), this.getDamage() * ratio);
 
             if (this.level() instanceof ServerLevel serverLevel) {
                 serverLevel.sendParticles(ParticleTypes.SPLASH,
@@ -1468,11 +1485,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                     SoundSource.HOSTILE, 1.1f, (float) OWUtils.generateRandomInterval(0.85, 1.05));
         }
 
+        // Plus de Fracture en fin de rotation : elle durait dix secondes alors qu'une roulade
+        // revient toutes les cinq, donc la proie ne quittait jamais l'effet — et le subissait
+        // encore dix secondes après avoir réussi à se libérer. La roulade fait des dégâts et
+        // noie, cela suffit.
         if (progress >= DEATH_ROLL_TOTAL_TICKS) {
-            if (grabbed.isAlive()) {
-                grabbed.addEffect(new net.minecraft.world.effect.MobEffectInstance(
-                        OWEffects.FRACTURE.getDelegate(), 200, 0));
-            }
             stopDeathRoll();
         }
     }
@@ -1499,6 +1516,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (candidate instanceof OWEntity owEntity && owEntity.getTheoreticalScale() >= 10) return false;
         if (candidate instanceof Player player && (player.isCreative() || player.isSpectator())) return false;
         if (this.isAlliedTo(candidate) || this.isTameGrabAlly(candidate)) return false;
+        // L'ultime se solde par une prise : mêmes interdits qu'elle.
+        if (!canBeGrabbedWhileMounted(candidate)) return false;
         return true;
     }
 
@@ -1583,20 +1602,29 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             else return null;
         }
 
-        if (entity instanceof TamableAnimal tamableAnimal && tamableAnimal.getControllingPassenger() instanceof LivingEntity rider) {
-            entity = rider;
-        }
-
         if (entity == this) return null;
         if (entity instanceof CrocodileEntity || entity instanceof BoaEntity || entity instanceof BoaTailPart) return null;
         if (entity instanceof OWEntity owEntity && owEntity.getTheoreticalScale() >= 10) return null;
         if (entity instanceof Player player && (player.isCreative() || player.isSpectator())) return null;
         if (!entity.isAlive() || entity.isRemoved()) return null;
         if (this.isTameGrabAlly(entity)) return null;
-        // Déjà dans la gueule d'un autre : deux crocodiles ne se disputent pas la même proie.
-        if (entity.getVehicle() instanceof CrocodileEntity holder && holder.getGrabbedTarget() == entity) return null;
+        if (!canBeGrabbedWhileMounted(entity)) return null;
 
         return entity;
+    }
+
+    /**
+     * Une monture ni son cavalier ne peuvent être saisis.
+     *
+     * <p>Arracher quelqu'un de sa selle, ou emporter la bête en laissant le cavalier suspendu, revient
+     * à démonter de force un attelage dont chaque moitié a sa propre position asservie à l'autre : la
+     * proie se retrouvait passagère de deux entités à la fois, et l'une des deux gardait
+     * {@code noPhysics}. Cela couvre au passage la proie déjà tenue par un autre crocodile — deux
+     * bêtes ne se disputent pas la même prise.</p>
+     */
+    private boolean canBeGrabbedWhileMounted(LivingEntity entity) {
+        if (entity.isPassenger()) return false;
+        return entity.getPassengers().isEmpty();
     }
 
     private boolean canStartGrab() {

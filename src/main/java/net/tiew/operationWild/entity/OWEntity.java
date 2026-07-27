@@ -3210,10 +3210,30 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return items.get(this.random.nextInt(items.size()));
     }
 
+    /**
+     * Vitesse maximale, en degrés par tick, à laquelle la bête peut se retourner vers sa cible
+     * pendant un enchaînement.
+     *
+     * <p>{@code 360} — la valeur par défaut — signifie « instantané », c'est-à-dire le comportement
+     * historique : la bête se recale sur sa proie à chaque tick, quoi que celle-ci fasse. C'est
+     * imparable, et ça se voit. Une espèce peut brider ce recalage pour laisser une chance à
+     * l'esquive latérale, sans pour autant renoncer à toucher.</p>
+     */
+    protected float comboTrackingDegreesPerTick() {
+        return 360f;
+    }
+
     public void createComboAttackSystem(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
         if (this.isCombo()) {
             boolean isRided = this.getControllingPassenger() != null;
-            if (this.getTarget() != null) this.setLookAt(this.getTarget().getX(), this.getTarget().getY(),this.getTarget().getZ());
+            if (this.getTarget() != null) {
+                float turnCap = comboTrackingDegreesPerTick();
+                if (turnCap >= 360f) {
+                    this.setLookAt(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ());
+                } else {
+                    this.lookAt(this.getTarget(), turnCap, turnCap);
+                }
+            }
             if (attackTimer < timeMax) attackTimer++;
             else {
                 attackTimer = 0;

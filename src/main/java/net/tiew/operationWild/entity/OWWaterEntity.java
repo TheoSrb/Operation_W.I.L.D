@@ -98,6 +98,20 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
     @Override
     public float getWaterSlowDown() { return 0.98F; }
 
+    /**
+     * Envol volontaire en cours : la bride de sortie d'eau doit alors se taire.
+     * Faux par défaut — seule une espèce qui sait sauter la relève.
+     */
+    protected boolean isBreaching() {
+        return false;
+    }
+
+    /**
+     * Immergée, une créature entièrement aquatique ne perd pas son souffle : c'est son élément.
+     *
+     * <p>La réserve ne baisse qu'à l'air libre, et c'est {@link #tick()} qui s'en charge — pas cette
+     * méthode, que le moteur n'appelle justement que sous l'eau.</p>
+     */
     @Override
     protected int decreaseAirSupply(int currentAir) {
         return currentAir;
@@ -107,7 +121,10 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
     public void tick() {
         super.tick();
 
-        if (!this.isInWater()) {
+        // Bride de sortie d'eau : sans elle, la moindre poussée de nage catapultait la bête en
+        // l'air. Elle est levée pendant un envol volontaire, sinon un saut hors de l'eau serait
+        // écrêté à trois dixièmes de bloc par tick et l'animal ne décollerait jamais vraiment.
+        if (!this.isInWater() && !this.isBreaching()) {
             Vec3 mv = this.getDeltaMovement();
             if (mv.y > 0.3) {
                 this.setDeltaMovement(mv.x * 0.5, 0.3, mv.z * 0.5);

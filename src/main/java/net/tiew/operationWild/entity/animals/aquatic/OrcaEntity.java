@@ -427,9 +427,18 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return 300;
     }
 
+    /**
+     * Hors de l'eau, une orque ne récupère rien.
+     *
+     * <p>Le moteur n'appelle cette méthode <b>que</b> lorsque la bête n'est pas immergée — c'est sa
+     * branche « je respire ». En lui rendant quatre points par tick, elle regagnait à l'air libre
+     * plus vite que {@code aiStep} ne lui en retirait : le solde était positif, et l'orque échouée
+     * gardait une réserve pleine indéfiniment. La reprise du souffle appartient à la branche
+     * aquatique d'{@code aiStep}, pas à celle-ci.</p>
+     */
     @Override
     protected int increaseAirSupply(int currentAir) {
-        return currentAir + 4;
+        return currentAir;
     }
 
     @Override
@@ -594,11 +603,20 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
                 Vec3 current = this.getDeltaMovement();
                 if (speed > 0.08f) {
-                    this.setDeltaMovement(
-                            this.dashDirection.x * speed,
-                            current.y,
-                            this.dashDirection.z * speed
-                    );
+                    if (this.isInWater()) {
+                        // Dans l'eau, la poussée porte sur les trois axes : le regard commande.
+                        this.setDeltaMovement(this.dashDirection.scale(speed));
+                    } else {
+                        // En l'air, la bête n'a plus rien sur quoi prendre appui : il ne lui reste
+                        // que son erre. On ne conserve donc qu'une fraction de la poussée
+                        // horizontale, et la verticale revient à la gravité — la trajectoire retombe
+                        // en parabole au lieu de planer.
+                        this.setDeltaMovement(
+                                this.dashDirection.x * speed * AIR_DASH_DRIVE,
+                                current.y,
+                                this.dashDirection.z * speed * AIR_DASH_DRIVE
+                        );
+                    }
                 }
 
                 this.dashTicksLeft--;
@@ -616,34 +634,124 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public void aiStep() {
         super.aiStep();
 
+        // Franchissement de la surface : l'eau porte une masse pareille, l'air non. Sans cette
+        // coupure l'élan de nage passait intact dans le vide et l'orque s'envolait comme un projectile.
+        // Appliquée des deux côtés du réseau : c'est le client du cavalier qui fait autorité sur la
+        // position d'une monture, la calculer côté serveur seul n'aurait rien changé à ce qu'il voit.
+        boolean inWater = this.isInWater();
+        if (this.wasInWaterLastTick && !inWater && this.isBreaching()) {
+            this.setDeltaMovement(this.getDeltaMovement().scale(BREACH_EXIT_DAMPING));
+        }
+        this.wasInWaterLastTick = inWater;
+
         if (!this.isInWater()) {
-            if (this.onGround()) {
-                this.setDeltaMovement(
-                        this.getDeltaMovement().x + (this.random.nextFloat() * 2.0f - 1.0f) * 0.2f,
-                        0.5,
-                        this.getDeltaMovement().z + (this.random.nextFloat() * 2.0f - 1.0f) * 0.2f
-                );
-                this.setYRot(this.random.nextFloat() * 360.0f);
-                this.setOnGround(false);
-                this.hasImpulse = true;
+            // La ruée dure trente ticks, une belle parabole une bonne quarantaine : sans ce sursis,
+            // l'orque se remettait à se débattre en plein vol, juste avant l'apogée. Le sursis court
+            // tant qu'elle n'a pas touché quelque chose.
+            if (this.isDashing()) breachTicks = BREACH_GRACE_TICKS;
+            else if (breachTicks > 0 && !this.onGround()) breachTicks--;
+            else breachTicks = 0;
+
+            // Échouage : la bête se débat et pointe le nez au sol. Rien de tout cela pendant un
+            // saut voulu — s'y débattre en plein vol casserait net la parabole, et le museau
+            // braqué à la verticale ferait d'un bond spectaculaire une chute molle.
+            if (!isBreaching()) {
+                if (this.onGround()) {
+                    this.setDeltaMovement(
+                            this.getDeltaMovement().x + (this.random.nextFloat() * 2.0f - 1.0f) * 0.2f,
+                            0.5,
+                            this.getDeltaMovement().z + (this.random.nextFloat() * 2.0f - 1.0f) * 0.2f
+                    );
+                    this.setYRot(this.random.nextFloat() * 360.0f);
+                    this.setOnGround(false);
+                    this.hasImpulse = true;
+                }
+
+                this.setXRot(90.0f);
+                this.xRotO = 90.0f;
             }
 
-            int air = this.getAirSupply();
-            this.setAirSupply(air - 1);
-            if (this.getAirSupply() <= -20) {
+            // L'asphyxie, elle, court dans tous les cas : un saut se paie, même bien exécuté.
+            int air = this.getAirSupply() - AIR_LOSS_OUT_OF_WATER;
+            this.setAirSupply(air);
+            if (air <= -20) {
                 this.setAirSupply(0);
                 this.hurt(this.damageSources().dryOut(), 2.0f);
             }
-
-            this.setXRot(90.0f);
-            this.xRotO = 90.0f;
         } else {
+            breachTicks = 0;
             if (this.getAirSupply() < this.getMaxAirSupply()) {
-                this.setAirSupply(Math.min(this.getAirSupply() + 4, this.getMaxAirSupply()));
+                this.setAirSupply(Math.min(this.getAirSupply() + AIR_GAIN_IN_WATER, this.getMaxAirSupply()));
             }
             this.setXRot(0.0f);
             this.xRotO = 0.0f;
         }
+    }
+
+    /** Sursis d'envol après la fin de la ruée, le temps de retomber. */
+    private static final int BREACH_GRACE_TICKS = 45;
+    private int breachTicks = 0;
+
+    /** Part de l'élan conservée en crevant la surface : le reste est perdu contre l'air. */
+    private static final double BREACH_EXIT_DAMPING = 0.55;
+    /** Part de la poussée de ruée encore appliquée hors de l'eau — l'orque n'a plus d'appui. */
+    private static final double AIR_DASH_DRIVE = 0.45;
+
+    private boolean wasInWaterLastTick = false;
+
+    /**
+     * Souffle perdu par tick hors de l'eau — la réserve de 300 tient donc une dizaine de secondes.
+     *
+     * <p>Assez rapide pour que la jauge bouge à vue d'œil et qu'un séjour à l'air libre se sente,
+     * assez lent pour qu'un saut de deux secondes ne coûte qu'une bulle ou deux.</p>
+     */
+    private static final int AIR_LOSS_OUT_OF_WATER = 2;
+    /** Reprise du souffle une fois replongée : quatre fois plus vite qu'elle ne l'a perdu. */
+    private static final int AIR_GAIN_IN_WATER = 8;
+
+    /** Un envol volontaire : la bride de sortie d'eau de {@code OWWaterEntity} doit se lever. */
+    @Override
+    protected boolean isBreaching() {
+        return this.isDashing() || breachTicks > 0;
+    }
+
+    /**
+     * Direction de la Ruée, en trois dimensions — <b>sans passer par {@code getLookAngle()}</b>.
+     *
+     * <p>C'est le piège de cette bête : dans l'eau, {@code aiStep} remet son tangage à zéro à chaque
+     * tick, le relief visuel étant porté ailleurs (l'inclinaison de rendu). Toute direction déduite
+     * de {@code getXRot()} sortait donc désespérément plate, et la ruée restait horizontale quel que
+     * soit l'angle du regard. On lit la visée à sa source : le tangage du cavalier lorsqu'il y en a
+     * un, l'assiette de nage sinon.</p>
+     *
+     * <p>Le tangage est celui de la BÊTE, pas celui du cavalier : l'orque n'adopte que la moitié de
+     * l'angle du regard de son pilote ({@link #getRiddenRotation}), et c'est cette assiette-là qu'on
+     * voit à l'écran. Prendre le regard brut faisait bondir à la verticale un animal manifestement
+     * incliné à quarante-cinq degrés — la ruée partait ailleurs que là où pointait le museau. On lit
+     * donc la même source que l'inclinaison de rendu.</p>
+     */
+    public Vec3 getDashAimDirection() {
+        LivingEntity rider = this.getControllingPassenger();
+        float pitch = rider != null ? this.getRiddenRotation(rider).x : this.getTargetPitch();
+        pitch = Mth.clamp(pitch, -75f, 75f);
+
+        Vec3 aim = Vec3.directionFromRotation(pitch, this.getYRot());
+        return aim.lengthSqr() < 1.0E-6 ? new Vec3(0, 0, 1) : aim.normalize();
+    }
+
+    /**
+     * L'orque sauvage ne se recale plus instantanément sur sa proie au milieu d'un enchaînement.
+     *
+     * <p>Le recalage par défaut est immédiat : quoi que fasse la cible, le museau la suivait au tick
+     * près pendant toute la morsure. Sur une bête de cette taille et de cette vitesse, cela se lisait
+     * comme une visée automatique — esquiver ne servait à rien. Bridée à quatorze degrés par tick,
+     * elle boucle encore un demi-tour en moins d'une seconde et demie : une cible qui fuit tout droit
+     * n'y échappe pas, seule une esquive franche sur le côté paie. Montée, la bride tombe : c'est le
+     * cavalier qui vise, et son propre regard n'a pas à être filtré.</p>
+     */
+    @Override
+    protected float comboTrackingDegreesPerTick() {
+        return this.isVehicle() ? 360f : 14f;
     }
 
     @Override
@@ -731,9 +839,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         }
         setVitalEnergy(getVitalEnergy() + cost);
 
-        // Sauvegarde la direction horizontale pour le tick handler
-        Vec3 look = this.getLookAngle();
-        this.dashDirection = new Vec3(look.x, 0, look.z).normalize();
+        this.dashDirection = getDashAimDirection();
 
         // Kick initial — vitesse max dès le premier frame
         this.setDeltaMovement(this.dashDirection.scale(3.8));

@@ -334,10 +334,17 @@ public class OWAttacksHandler {
                 entity -> { },
                 (entity, factor) -> ((OrcaEntity) entity).performOrcaDash(),
                 (entity, factor, dir) -> {
-                    Vec3 forward = Vec3.directionFromRotation(0, entity.getYRot());
-                    entity.setDeltaMovement(forward.x * OWAttacksConstants.Orca.TIDAL_RUSH_SPEED, 0, forward.z * OWAttacksConstants.Orca.TIDAL_RUSH_SPEED);
-                    entity.hasImpulse = true;
-                    if (entity instanceof OrcaEntity orca) orca.setDashing(true);
+                    // Élan en trois dimensions, et non plus aplati sur l'horizontale. C'est la
+                    // poussée que ressent réellement le joueur : sur une monture, c'est son client
+                    // qui fait autorité sur la position, donc une impulsion à plat ici annulait le
+                    // relief calculé côté serveur. La visée est lue via getDashAimDirection(), le
+                    // tangage propre de l'orque étant remis à zéro à chaque tick sous l'eau.
+                    if (entity instanceof OrcaEntity orca) {
+                        entity.setDeltaMovement(orca.getDashAimDirection()
+                                .scale(OWAttacksConstants.Orca.TIDAL_RUSH_SPEED));
+                        entity.hasImpulse = true;
+                        orca.setDashing(true);
+                    }
                 },
                 false,
                 false
