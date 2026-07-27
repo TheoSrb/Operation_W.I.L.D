@@ -643,7 +643,11 @@ public class OWAttackLogic {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
-            if (elapsed < 1000L) {
+            // Simple garde anti-rebond : il ne s'agit que d'éviter qu'un seul appui physique ne
+            // vaille à la fois l'armement et le déclenchement. La seconde pleine d'avant obligeait
+            // à marteler la touche — tous les appuis de la première seconde étaient rejetés en
+            // silence, et le verrouillage semblait ne marcher qu'un coup sur trois.
+            if (elapsed < 220L) {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
@@ -750,6 +754,7 @@ public class OWAttackLogic {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.screen != null) return;
         if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+        if (isLocalPlayerGrabbed(owEntity, mc.player)) return;
         if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
         boolean isCrocodile = owEntity instanceof CrocodileEntity;
         if (!mc.player.getUUID().equals(owEntity.getOwnerUUID()) && !isCrocodile) return;
@@ -776,7 +781,13 @@ public class OWAttackLogic {
             return;
         }
 
-        if (isCharging || owEntity.isCombo()) {
+        // Le SECOND appui d'un ultime déjà armé valide une cible, il ne lance pas d'attaque : un
+        // combo encore en cours n'a pas à le refuser. Le combo dure près de deux secondes, et le
+        // joueur qui frappait juste avant d'armer se voyait rejeter son verrouillage sans le
+        // moindre signe — d'où l'impression qu'il fallait insister plusieurs fois.
+        boolean isCrocLockIn = isCrocTargeting && attack.getId() == OWAttacksHandler.PRIMAL_DIVE_ID;
+
+        if ((isCharging || owEntity.isCombo()) && !isCrocLockIn) {
             recordAttackClick(attack.getId(), true);
             return;
         }
@@ -828,11 +839,28 @@ public class OWAttackLogic {
         }
     }
 
+    /**
+     * Le joueur local est-il la <b>proie</b> de cette bête, et non son pilote ?
+     *
+     * <p>Une victime tenue en gueule est bel et bien un passager, et elle en est même le premier
+     * quand la bête est sauvage : rien ici ne la distinguait d'un cavalier. Ses clics étaient donc
+     * traités comme des commandes d'attaque puis annulés, et le gestionnaire de débattement
+     * ({@code ClientEvents.onDebate}), qui ne reçoit pas les événements annulés, n'en voyait jamais
+     * un seul. Se débattre était purement et simplement impossible.</p>
+     */
+    private static boolean isLocalPlayerGrabbed(OWEntity owEntity, Player player) {
+        if (owEntity instanceof CrocodileEntity croc) return croc.isGrabbing() && croc.getGrabbedTarget() == player;
+        if (owEntity instanceof TigerEntity tiger) return tiger.isGrabbing() && tiger.getGrabbedTarget() == player;
+        return false;
+    }
+
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton.Pre event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.screen != null) return;
         if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+        // Avant toute chose : la proie ne pilote pas. On laisse passer ses clics.
+        if (isLocalPlayerGrabbed(owEntity, mc.player)) return;
         if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
         boolean isCrocodile = owEntity instanceof CrocodileEntity;
         if (!mc.player.getUUID().equals(owEntity.getOwnerUUID()) && !isCrocodile) return;

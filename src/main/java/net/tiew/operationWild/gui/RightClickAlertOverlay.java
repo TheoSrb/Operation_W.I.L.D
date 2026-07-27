@@ -1,38 +1,41 @@
 package net.tiew.operationWild.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.InputEvent;
-import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
-import org.joml.Matrix4f;
 
+/**
+ * Écran de la victime saisie : qui la tient, comment se dégager, et surtout à quel point elle est
+ * près d'y rester.
+ *
+ * <p>La mécanique ne change pas — clic droit pour se débattre, une jauge qui monte vers la mort —
+ * mais l'affichage est entièrement redessiné, sans aucune texture : plus de carré tramé ni de
+ * remplissage teinté au nuanceur, tout est tracé au rectangle plein. La jauge devient une échelle
+ * de <b>segments</b> qui court du vert au rouge : la couleur du dernier segment allumé dit d'un
+ * coup d'œil s'il reste de la marge ou s'il faut cliquer pour sa vie, ce qu'un remplissage d'une
+ * seule teinte ne pouvait pas dire.</p>
+ */
 public class RightClickAlertOverlay {
 
-    private static final float ALERT_SCALE = 1.15f;
-    private static final int PADDING = 8;
-    private static final int LINE_SPACING = 6;
-    private static final float GRAB_BY_SCALE = 1.65f;
+    /** Largeur de la jauge, calée sur la barre d'expérience vanilla pour rester dans le ton. */
+    private static final int SEGMENTS = 20;
+    private static final int SEGMENT_WIDTH = 8;
+    private static final int SEGMENT_GAP = 1;
+    private static final int GAUGE_HEIGHT = 11;
+    private static final int GAUGE_WIDTH = SEGMENTS * SEGMENT_WIDTH + (SEGMENTS - 1) * SEGMENT_GAP;
 
-    private static final ResourceLocation GAUGE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/grab_alert.png");
-    private static int maxProgress;
-    private static final int GAUGE_SIZE = 50;
-    private static final int FILL_WIDTH = 43;
-    private static final int FILL_HEIGHT = 23;
+    /** Seuil à partir duquel la mort est proche : clignotement et vignette rouge. */
+    private static final float CRITICAL = 0.82f;
+
+    private static final float TITLE_SCALE = 1.45f;
 
     public static boolean hasClicked = false;
     public static int clickAnimationTimer = 0;
@@ -40,194 +43,244 @@ public class RightClickAlertOverlay {
 
     public static void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight) {
         Player player = Minecraft.getInstance().player;
+        if (player == null) return;
+
         // Le ravisseur est le véhicule (crocodile/tigre) OU, pour le boa qui enroule sans monture,
         // le boa trouvé par proximité.
-        Entity vehicle = player != null ? player.getVehicle() : null;
-        if ((vehicle == null || !(vehicle instanceof OWEntity)) && player != null) {
+        Entity vehicle = player.getVehicle();
+        if (!(vehicle instanceof OWEntity)) {
             vehicle = player.level()
                     .getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
                     .stream()
                     .filter(b -> b.isGrabbing() && b.getGrabbedTargetId() == player.getId())
                     .findFirst().orElse(null);
         }
-
-        if (vehicle == null) return;
+        if (!(vehicle instanceof OWEntity captor)) return;
 
         int currentTick = player.tickCount;
         if (currentTick != lastTickCount) {
             lastTickCount = currentTick;
-
-            if (clickAnimationTimer > 0) {
-                clickAnimationTimer--;
-
-                if (clickAnimationTimer <= 0) {
-                    clickAnimationTimer = 0;
-                    hasClicked = false;
-                }
+            if (clickAnimationTimer > 0 && --clickAnimationTimer <= 0) {
+                clickAnimationTimer = 0;
+                hasClicked = false;
             }
         }
 
+        int timeout = grabTimeout(captor);
+        int maxTimeout = grabMaxTimeout(captor);
+        if (maxTimeout <= 0) return;
+
+        float danger = Mth.clamp(timeout / (float) maxTimeout, 0f, 1f);
+        boolean critical = danger >= CRITICAL;
+        long now = System.currentTimeMillis();
+
+        renderDangerVignette(guiGraphics, screenWidth, screenHeight, danger, now);
+
         Font font = Minecraft.getInstance().font;
-        int color = getBlinkingColor(player.tickCount);
+        int centerX = screenWidth / 2;
+        int centerY = screenHeight / 2;
 
-        Component grabBy = createGrabByText(vehicle);
-        Component[] alertLines = createAlertLines(color);
-
-        int centerY = screenHeight / 2 - 10;
-        renderScaledText(guiGraphics, font, grabBy, screenWidth, centerY - 50, GRAB_BY_SCALE, 0xFF0000);
-
-        int alertY = centerY - 45 + (int)(font.lineHeight * GRAB_BY_SCALE) + 20;
-        renderAlertWithBackground(guiGraphics, font, alertLines, screenWidth, alertY, color);
-
-        int gaugeY = alertY + (int)(font.lineHeight * ALERT_SCALE * 2) + LINE_SPACING + (PADDING * 2) + 20;
-        renderGauge(guiGraphics, screenWidth, gaugeY, vehicle.tickCount, (OWEntity) vehicle);
+        renderTitle(guiGraphics, font, captor, centerX, centerY - 52, danger, critical, now);
+        renderGauge(guiGraphics, centerX, centerY + 26, danger, critical, now);
+        renderHint(guiGraphics, font, centerX, centerY + 46, danger, now);
     }
 
-    private static int getBlinkingColor(int tickCount) {
-        return (tickCount / 5) % 2 == 0 ? 0xFFFFFF : 0x888888;
-    }
+    // ── Éléments ─────────────────────────────────────────────────────────────
 
-    private static Component createGrabByText(Entity vehicle) {
-        String entityName = vehicle.getClass().getSimpleName().split("Entity")[0].toLowerCase();
-        Component grabber = Component.translatable("entity.ow." + entityName);
-        String grabberUpperCase = grabber.getString().toUpperCase();
+    private static void renderTitle(GuiGraphics guiGraphics, Font font, OWEntity captor,
+                                    int centerX, int y, float danger, boolean critical, long now) {
+        String captorKey = "entity.ow." + captor.getClass().getSimpleName().split("Entity")[0].toLowerCase();
+        Component name = Component.literal(Component.translatable(captorKey).getString().toUpperCase());
+        Component title = Component.translatable("tooltip.grabBy", name);
 
-        return Component.translatable("tooltip.grabBy", Component.literal(grabberUpperCase))
-                .setStyle(Style.EMPTY.withBold(false).withColor(0xFF0000));
-    }
+        // Le titre prend la couleur du danger : il n'y a pas à comparer un texte fixe et une jauge,
+        // les deux disent la même chose au même instant.
+        int color = dangerColor(danger);
+        if (critical && (now / 110L) % 2 == 0) color = 0xFFFFFF;
 
-    private static Component[] createAlertLines(int color) {
-        String alertText = Component.translatable("tooltip.rightClickAlert").getString();
-        String[] words = alertText.split(" ");
-
-        String line1 = String.join(" ", java.util.Arrays.copyOfRange(words, 0, Math.min(3, words.length)));
-        String line2 = words.length > 3 ? String.join(" ", java.util.Arrays.copyOfRange(words, 3, words.length)) : "";
-
-        Style style = Style.EMPTY.withBold(false).withColor(color);
-        return new Component[]{
-                Component.literal(line1).setStyle(style),
-                Component.literal(line2).setStyle(style)
-        };
-    }
-
-    private static void renderScaledText(GuiGraphics guiGraphics, Font font, Component text,
-                                         int screenWidth, int y, float scale, int color) {
-        int width = font.width(text);
-        int x = (int)((screenWidth - width * scale) / 2);
-
+        int width = font.width(title);
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x, y, 0);
-        guiGraphics.pose().scale(scale, scale, 1.0f);
-        guiGraphics.drawString(font, text, 0, 0, color);
+        guiGraphics.pose().translate(centerX - (width * TITLE_SCALE) / 2f, y, 0);
+        guiGraphics.pose().scale(TITLE_SCALE, TITLE_SCALE, 1.0f);
+        guiGraphics.drawString(font, title, 0, 0, color, true);
         guiGraphics.pose().popPose();
     }
 
-    private static void renderAlertWithBackground(GuiGraphics guiGraphics, Font font, Component[] lines,
-                                                  int screenWidth, int y, int color) {
-        int maxWidth = Math.max(font.width(lines[0]), font.width(lines[1]));
-        int height = font.lineHeight;
+    private static void renderGauge(GuiGraphics guiGraphics, int centerX, int y,
+                                    float danger, boolean critical, long now) {
+        int left = centerX - GAUGE_WIDTH / 2;
 
-        renderBackground(guiGraphics, screenWidth, y, maxWidth, height);
-        renderScaledText(guiGraphics, font, lines[0], screenWidth, y, ALERT_SCALE, color);
-        renderScaledText(guiGraphics, font, lines[1], screenWidth, y + (int)(height * ALERT_SCALE) + LINE_SPACING, ALERT_SCALE, color);
-    }
-
-    private static void renderBackground(GuiGraphics guiGraphics, int screenWidth, int y, int textWidth, int lineHeight) {
-        int bgX = (int)((screenWidth - textWidth * ALERT_SCALE) / 2f - PADDING);
-        int bgY = (int)(y - PADDING);
-        int bgWidth = (int)(textWidth * ALERT_SCALE + (PADDING * 2));
-        int bgHeight = (int)(lineHeight * ALERT_SCALE * 2 + LINE_SPACING + (PADDING * 2));
-
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(770, 771);
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 0.1f);
-
-        Matrix4f matrix = guiGraphics.pose().last().pose();
-        Tesselator tesselator = Tesselator.getInstance();
-        BufferBuilder buffer = tesselator.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
-        buffer.addVertex(matrix, bgX, bgY + bgHeight, 0).setColor(0.125f, 0.125f, 0.125f, 0.2f);
-        buffer.addVertex(matrix, bgX + bgWidth, bgY + bgHeight, 0).setColor(0.125f, 0.125f, 0.125f, 0.2f);
-        buffer.addVertex(matrix, bgX + bgWidth, bgY, 0).setColor(0.125f, 0.125f, 0.125f, 0.2f);
-        buffer.addVertex(matrix, bgX, bgY, 0).setColor(0.125f, 0.125f, 0.125f, 0.2f);
-
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
-        RenderSystem.disableBlend();
-
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-    }
-
-    private static void renderGauge(GuiGraphics guiGraphics, int screenWidth, int y, int tickCount, OWEntity entity) {
-        int grabTimeout;
-        int grabMaxTimeout;
-
-        if (entity instanceof CrocodileEntity crocodile) {
-            grabTimeout = crocodile.getGrabTimeout();
-            grabMaxTimeout = crocodile.getGrabMaxTimeout();
-        } else if (entity instanceof TigerEntity tiger) {
-            grabTimeout = tiger.getGrabTimeout();
-            grabMaxTimeout = tiger.getGrabMaxTimeout();
-        } else if (entity instanceof BoaEntity boa) {
-            grabTimeout = boa.getGrabTimeout();
-            grabMaxTimeout = boa.getGrabMaxTimeout();
-        } else {
-            return;
-        }
-
-        maxProgress = grabMaxTimeout;
-
-        int x = (screenWidth - GAUGE_SIZE) / 2;
-
-        float speed = 0.02f * ((float) grabTimeout / 30);
-        float oscillation = Mth.sin(tickCount * speed) * (2.0f * ((float) grabTimeout / ((float) grabMaxTimeout / 5.0f)));
-
-        float scale = 1.0f;
-        if (clickAnimationTimer > 0) {
-            if (clickAnimationTimer == 3) scale = 1.15f;
-            else if (clickAnimationTimer == 2) scale = 1.3f;
-            else if (clickAnimationTimer == 1) scale = 1.15f;
-        }
+        // Sursaut au clic réussi, et tremblement quand la mort approche : deux retours distincts,
+        // l'un provoqué par le joueur, l'autre subi.
+        float punch = clickAnimationTimer > 0 ? 1.0f + 0.06f * clickAnimationTimer : 1.0f;
+        float shake = critical ? 1.6f * (float) Math.sin(now / 45.0) : 0f;
 
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(x + (GAUGE_SIZE / 2f), (y - 15) + oscillation + (GAUGE_SIZE / 2f), 0);
-        guiGraphics.pose().scale(scale, scale, 1.0f);
-        guiGraphics.pose().translate(-(GAUGE_SIZE / 2f), -(GAUGE_SIZE / 2f), 0);
+        guiGraphics.pose().translate(centerX, y + GAUGE_HEIGHT / 2f + shake, 0);
+        guiGraphics.pose().scale(punch, punch, 1.0f);
+        guiGraphics.pose().translate(-centerX, -(y + GAUGE_HEIGHT / 2f), 0);
 
-        guiGraphics.blit(GAUGE_TEXTURE, 0, 0, 0, 50, GAUGE_SIZE, GAUGE_SIZE, GAUGE_SIZE, 100);
+        // Fond sombre et liseré, pour que la jauge tienne sur n'importe quel décor.
+        guiGraphics.fill(left - 3, y - 3, left + GAUGE_WIDTH + 3, y + GAUGE_HEIGHT + 3, 0xB0080808);
+        guiGraphics.fill(left - 3, y - 3, left + GAUGE_WIDTH + 3, y - 2, 0x40FFFFFF);
 
-        if (grabTimeout > 0) {
-            float progress = Mth.clamp(grabTimeout / (float) grabMaxTimeout, 0.0f, 1.0f);
-            int fillWidth = (int) (FILL_WIDTH * progress);
+        int litSegments = Mth.ceil(danger * SEGMENTS);
 
-            applyGaugeColor(progress);
-            guiGraphics.blit(GAUGE_TEXTURE, 4, 4, 0, 0, fillWidth, FILL_HEIGHT, GAUGE_SIZE, 100);
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+        for (int i = 0; i < SEGMENTS; i++) {
+            int sx = left + i * (SEGMENT_WIDTH + SEGMENT_GAP);
+            // Chaque cran porte la couleur de SA position dans l'échelle : le dégradé vert → rouge
+            // existe donc en permanence, allumé ou non. On lit la marge restante avant le rouge
+            // sans attendre d'y être.
+            float stop = (i + 0.5f) / SEGMENTS;
+            int hue = dangerColor(stop);
+
+            boolean lit = i < litSegments;
+            boolean head = lit && i == litSegments - 1;
+
+            int color;
+            if (!lit) {
+                color = 0xFF000000 | scaleRgb(hue, 0.16f);
+            } else if (head && clickAnimationTimer > 0) {
+                color = 0xFFFFFFFF;
+            } else if (head) {
+                color = 0xFF000000 | hue;
+            } else {
+                color = 0xFF000000 | scaleRgb(hue, 0.82f);
+            }
+
+            guiGraphics.fill(sx, y, sx + SEGMENT_WIDTH, y + GAUGE_HEIGHT, color);
+
+            // Reflet haut : donne du relief sans avoir à texturer.
+            if (lit) guiGraphics.fill(sx, y, sx + SEGMENT_WIDTH, y + 2, 0xFF000000 | scaleRgb(hue, 1.25f));
         }
+
+        // Repère du point de non-retour, à l'entrée de la zone critique.
+        int markX = left + Mth.floor(CRITICAL * GAUGE_WIDTH);
+        guiGraphics.fill(markX, y - 3, markX + 1, y + GAUGE_HEIGHT + 3, 0xC0FFFFFF);
 
         guiGraphics.pose().popPose();
     }
 
-    private static void applyGaugeColor(float progress) {
-        float r, g, b;
+    private static void renderHint(GuiGraphics guiGraphics, Font font, int centerX, int y,
+                                   float danger, long now) {
+        Component hint = Component.translatable("tooltip.rightClickAlert");
 
-        if (progress <= 0.33f) {
-            float t = progress / 0.33f;
-            r = 0.0f;
-            g = 0.4f + (0.6f * t);
-            b = 0.0f;
-        } else if (progress <= 0.66f) {
-            float t = (progress - 0.33f) / 0.33f;
-            r = t;
-            g = 1.0f;
-            b = 0.0f;
-        } else {
-            float t = (progress - 0.66f) / 0.34f;
-            r = 1.0f - (0.5f * t);
-            g = 1.0f - t;
-            b = 0.0f + (0.3f * t);
+        // Souris dessinée + texte, alignés en un seul bloc centré. Le pictogramme porte à lui seul
+        // la consigne : le joueur pris à la gorge n'a ni le temps ni le calme de lire une phrase,
+        // et rien dans l'ancien écran ne montrait QUEL bouton presser.
+        int textWidth = font.width(hint);
+        int blockWidth = MOUSE_WIDTH + 6 + textWidth;
+        int left = centerX - blockWidth / 2;
+
+        drawMouseIcon(guiGraphics, left, y - 4, now);
+
+        int alpha = (int) (150 + 105 * danger) << 24;
+        guiGraphics.drawString(font, hint, left + MOUSE_WIDTH + 6, y, alpha | 0xE8E8E8, true);
+    }
+
+    private static final int MOUSE_WIDTH = 11;
+    private static final int MOUSE_HEIGHT = 16;
+
+    /**
+     * Pictogramme de souris avec le bouton DROIT mis en avant.
+     *
+     * <p>Il bat en permanence pour appeler le clic, et s'enfonce d'un pixel en s'éclairant à chaque
+     * clic réussi — c'est ce retour-là qui manquait le plus : sans lui, rien à l'écran ne confirmait
+     * que le geste avait porté, et le joueur croyait le bouton inopérant.</p>
+     */
+    private static void drawMouseIcon(GuiGraphics guiGraphics, int x, int y, long now) {
+        boolean pressed = clickAnimationTimer > 0;
+        if (pressed) y += 1;
+
+        int w = MOUSE_WIDTH;
+        int h = MOUSE_HEIGHT;
+
+        // Corps : contour clair aux angles adoucis, intérieur sombre.
+        int outline = 0xFFE8E8E8;
+        guiGraphics.fill(x + 1, y, x + w - 1, y + h, outline);
+        guiGraphics.fill(x, y + 2, x + w, y + h - 2, outline);
+        guiGraphics.fill(x + 2, y + 1, x + w - 2, y + h - 1, 0xFF1A1A1A);
+        guiGraphics.fill(x + 1, y + 3, x + w - 1, y + h - 3, 0xFF1A1A1A);
+
+        // Bouton droit : pulsation continue, éclat blanc au clic.
+        float pulse = 0.55f + 0.45f * (float) Math.abs(Math.sin(now / 380.0));
+        int accent = pressed ? 0xFFFFFFFF : (0xFF000000 | scaleRgb(0x37C8FF, pulse));
+        guiGraphics.fill(x + w / 2 + 1, y + 1, x + w - 2, y + 6, accent);
+        guiGraphics.fill(x + w / 2 + 1, y + 2, x + w - 1, y + 6, accent);
+
+        // Séparation des deux boutons et bas de la coque.
+        guiGraphics.fill(x + w / 2, y + 1, x + w / 2 + 1, y + 7, outline);
+        guiGraphics.fill(x + 2, y + 6, x + w - 2, y + 7, outline);
+
+        // Onde de clic : deux traits qui s'écartent du bouton, lisibles même en vision périphérique.
+        if (pressed) {
+            int ripple = 0xFFFFFFFF;
+            guiGraphics.fill(x + w + 1, y + 1, x + w + 3, y + 2, ripple);
+            guiGraphics.fill(x + w + 2, y + 4, x + w + 4, y + 5, ripple);
         }
+    }
 
-        RenderSystem.setShaderColor(r, g, b, 1.0f);
+    /**
+     * Bandes rouges haut et bas, qui ne se déclarent qu'en zone critique. Elles battent au rythme
+     * d'un pouls : le joueur sait qu'il est en train de mourir même les yeux rivés sur le décor.
+     */
+    private static void renderDangerVignette(GuiGraphics guiGraphics, int screenWidth, int screenHeight,
+                                             float danger, long now) {
+        // Seuil haut volontairement : le crocodile démarre sa prise à mi-jauge, une vignette qui
+        // partirait plus tôt serait allumée dès la morsure et ne dirait plus rien.
+        if (danger < 0.68f) return;
+
+        float intensity = (danger - 0.68f) / 0.32f;
+        float pulse = 0.65f + 0.35f * (float) Math.abs(Math.sin(now / 480.0));
+        int alpha = (int) (110 * intensity * pulse);
+        if (alpha <= 2) return;
+
+        int band = Math.max(28, screenHeight / 7);
+        int edge = (alpha << 24) | 0x8C1010;
+
+        guiGraphics.fillGradient(0, 0, screenWidth, band, edge, 0x00000000);
+        guiGraphics.fillGradient(0, screenHeight - band, screenWidth, screenHeight, 0x00000000, edge);
+    }
+
+    // ── Outils ───────────────────────────────────────────────────────────────
+
+    /**
+     * Échelle de danger, du vert au rouge. Les paliers ne sont pas répartis régulièrement : le
+     * passage à l'orange arrive tôt, pour que la moitié haute de la jauge soit déjà une alerte.
+     */
+    private static int dangerColor(float t) {
+        t = Mth.clamp(t, 0f, 1f);
+        if (t < 0.40f) return lerpRgb(0x3FD44D, 0xC8E03A, t / 0.40f);
+        if (t < 0.70f) return lerpRgb(0xC8E03A, 0xF0902A, (t - 0.40f) / 0.30f);
+        return lerpRgb(0xF0902A, 0xE01F1F, (t - 0.70f) / 0.30f);
+    }
+
+    private static int lerpRgb(int from, int to, float t) {
+        t = Mth.clamp(t, 0f, 1f);
+        int r = Mth.lerpInt(t, (from >> 16) & 0xFF, (to >> 16) & 0xFF);
+        int g = Mth.lerpInt(t, (from >> 8) & 0xFF, (to >> 8) & 0xFF);
+        int b = Mth.lerpInt(t, from & 0xFF, to & 0xFF);
+        return (r << 16) | (g << 8) | b;
+    }
+
+    private static int scaleRgb(int rgb, float factor) {
+        int r = Mth.clamp((int) (((rgb >> 16) & 0xFF) * factor), 0, 255);
+        int g = Mth.clamp((int) (((rgb >> 8) & 0xFF) * factor), 0, 255);
+        int b = Mth.clamp((int) ((rgb & 0xFF) * factor), 0, 255);
+        return (r << 16) | (g << 8) | b;
+    }
+
+    private static int grabTimeout(OWEntity captor) {
+        if (captor instanceof CrocodileEntity crocodile) return crocodile.getGrabTimeout();
+        if (captor instanceof TigerEntity tiger) return tiger.getGrabTimeout();
+        if (captor instanceof BoaEntity boa) return boa.getGrabTimeout();
+        return 0;
+    }
+
+    private static int grabMaxTimeout(OWEntity captor) {
+        if (captor instanceof CrocodileEntity crocodile) return crocodile.getGrabMaxTimeout();
+        if (captor instanceof TigerEntity tiger) return tiger.getGrabMaxTimeout();
+        if (captor instanceof BoaEntity boa) return boa.getGrabMaxTimeout();
+        return 0;
     }
 }

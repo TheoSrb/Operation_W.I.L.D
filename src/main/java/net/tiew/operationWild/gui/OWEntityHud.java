@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
@@ -38,7 +39,10 @@ public class OWEntityHud {
 
                     // Lu sur le contrat de plongée et non sur une famille : l'orque n'hérite pas de
                     // OWSemiWaterEntity, et c'est ce qui la privait de la jauge jusqu'ici.
-                    if (owEntity instanceof IOWDiver diver && owEntity.isInWater()) {
+                    boolean depthShown = owEntity instanceof IOWDiver && owEntity.isInWater();
+
+                    if (depthShown) {
+                        IOWDiver diver = (IOWDiver) owEntity;
                         int actualDepth = (int) (owEntity.level().getSeaLevel() - owEntity.getY());
                         boolean isTooDeep = actualDepth >= diver.getMaxDepth();
 
@@ -46,6 +50,8 @@ public class OWEntityHud {
                         guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(diver.getMaxDepth()), (screenWidth / 2) + 12, 9, 0xf3c83b);
                         guiGraphics.blit(TEXTURE, (screenWidth / 2) - 23, 20, 40, 52, 46, 7);
                     }
+
+                    createEntityAirBubbles(guiGraphics, owEntity, screenWidth, depthShown);
                 }
             }
         }
@@ -53,7 +59,6 @@ public class OWEntityHud {
 
     public static void createHUD(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
         createHealthBar(guiGraphics, entity, x, y);
-        createAirBar(guiGraphics, entity, x, y);
         createVitalEnergyBar(guiGraphics, entity, x, y);
         createBar(guiGraphics, entity, x, y);
     }
@@ -208,46 +213,73 @@ public class OWEntityHud {
         guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 7, 244, 6, (int) (12 * (((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())))));
     }
 
-    public static void createAirBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
-        int barSize = 15;
+    private static final ResourceLocation AIR_SPRITE = ResourceLocation.withDefaultNamespace("hud/air");
+    private static final ResourceLocation AIR_BURSTING_SPRITE = ResourceLocation.withDefaultNamespace("hud/air_bursting");
 
-        int xPlacement = x / 2 - (barSize / 2);
-        int yPlacement = y - 51;
+    /** Rangee de bulles, juste sous l'indicateur de profondeur quand il est affiche. */
+    private static final int ENTITY_AIR_ROW_Y_UNDER_DEPTH = 30;
+    /** Et a sa place des qu'il disparait : la rangee ne reste pas suspendue dans le vide. */
+    private static final int ENTITY_AIR_ROW_Y_ALONE = 10;
+    private static final int ENTITY_AIR_BUBBLES = 7;
 
+    private static float airRowY = ENTITY_AIR_ROW_Y_ALONE;
+    private static boolean airRowWasVisible = false;
+    private static long airRowLastMs = 0L;
+
+    /**
+     * Souffle de la monture, en bulles vanilla.
+     *
+     * <p>L'ancienne jauge etait un carre de 15 px pose juste a gauche du centre, sur la meme bande
+     * que la rangee d'armure et les bulles du joueur : elle mordait sur le HUD vanilla des que la
+     * barre d'armure etait pleine, et sur n'importe quel HUD moddé occupant cette bande. Le bas de
+     * l'ecran est de toute facon sature — coeurs, barre d'experience, vie de monture et bulles du
+     * joueur se partagent deja chaque ligne, il n'y restait aucune place franche.</p>
+     *
+     * <p>Les bulles rejoignent donc le bloc de plongee, en haut, ou vivent deja la profondeur et sa
+     * limite : meme sprite et meme regle d'eclatement que vanilla, donc rien a apprendre, et une
+     * rangee qui se retracte vers le centre a mesure que l'air manque. Elle ne s'affiche que
+     * lorsqu'elle a quelque chose a dire — sous l'eau, ou tant que le souffle n'est pas revenu.</p>
+     */
+    public static void createEntityAirBubbles(GuiGraphics guiGraphics, OWEntity entity, int screenWidth,
+                                              boolean depthShown) {
         int air = entity.getAirSupply();
         int maxAir = entity.getMaxAirSupply();
+        if (maxAir <= 0 || (air >= maxAir && !entity.isInWater())) {
+            airRowWasVisible = false;
+            return;
+        }
 
-        if (air < maxAir || entity.isInWater()) {
-            ResourceLocation EMPTY_AIR = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/empty_air.png");
-            ResourceLocation MAX_AIR = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/sprites/hud/max_air.png");
+        int full = Mth.clamp(Mth.ceil((double) (air - 2) * ENTITY_AIR_BUBBLES / maxAir), 0, ENTITY_AIR_BUBBLES);
+        int bursting = Mth.clamp(Mth.ceil((double) air * ENTITY_AIR_BUBBLES / maxAir) - full, 0, ENTITY_AIR_BUBBLES - full);
+        int shown = full + bursting;
+        if (shown <= 0) {
+            airRowWasVisible = false;
+            return;
+        }
 
-            guiGraphics.blit(EMPTY_AIR, xPlacement, yPlacement, 0, 0, barSize, barSize, barSize, barSize);
+        // Le bloc de profondeur ne s'affiche que sous l'eau : à la remontée il disparaît alors que
+        // le souffle se refait encore, et la rangée resterait plantée à sa hauteur, seule et trop
+        // basse. Elle remonte donc à sa place — en glissant, car un saut sec de vingt pixels au
+        // moment précis où l'on crève la surface se remarquerait plus que le décalage lui-même.
+        float target = depthShown ? ENTITY_AIR_ROW_Y_UNDER_DEPTH : ENTITY_AIR_ROW_Y_ALONE;
+        long now = System.currentTimeMillis();
 
-            int offset = 180;
-            int visualAir = Math.max(0, air + offset);
-            int visualMaxAir = maxAir + offset;
+        if (!airRowWasVisible) {
+            airRowY = target;
+            airRowWasVisible = true;
+        } else {
+            float elapsed = Math.min((now - airRowLastMs) / 1000f, 0.1f);
+            airRowY = Mth.lerp(Math.min(1f, elapsed * 9f), airRowY, target);
+        }
+        airRowLastMs = now;
 
-            visualAir = Math.min(visualAir, visualMaxAir);
+        int rowY = Math.round(airRowY);
+        int rowWidth = (shown - 1) * 8 + 9;
+        int startX = screenWidth / 2 - rowWidth / 2;
 
-            double fillRatio = (double) visualAir / (double) visualMaxAir;
-            int fillHeight = (int) Math.ceil(barSize * fillRatio);
-
-            if (visualAir > 0 && fillHeight == 0) {
-                fillHeight = 1;
-            }
-
-            if (fillHeight > 0 && visualAir > 0) {
-                int startY = yPlacement + (barSize - fillHeight);
-                int textureY = barSize - fillHeight;
-
-                if ((entity.tickCount / 5) % 2 == 0 && fillRatio < 0.25) {
-                    RenderSystem.setShaderColor(1.0f, 0.0f, 0.0f, 0.75f);
-                    guiGraphics.blit(MAX_AIR, xPlacement, startY, 0, textureY, barSize, fillHeight, barSize, barSize);
-                    RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-                } else {
-                    guiGraphics.blit(MAX_AIR, xPlacement, startY, 0, textureY, barSize, fillHeight, barSize, barSize);
-                }
-            }
+        for (int i = 0; i < shown; i++) {
+            guiGraphics.blitSprite(i < full ? AIR_SPRITE : AIR_BURSTING_SPRITE,
+                    startX + i * 8, rowY, 9, 9);
         }
     }
 

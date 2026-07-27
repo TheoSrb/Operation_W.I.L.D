@@ -2522,7 +2522,9 @@ public class ClientEvents {
             }
         }
 
-        if (best != null && bestDot > 0.3) {
+        // Cône élargi (0,2 ≈ 78° au lieu de 72°) : il ne s'agit pas de viser au pixel près mais de
+        // désigner une proie dans l'eau, et un verrouillage qui refuse fait perdre l'ultime entier.
+        if (best != null && bestDot > 0.2) {
             OWAttackLogic.crocTargetEntityId = best.getId();
         }
 

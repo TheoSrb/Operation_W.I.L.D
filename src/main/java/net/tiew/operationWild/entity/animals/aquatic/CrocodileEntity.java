@@ -239,6 +239,25 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     /** Avancee de base du point d'accroche DANS l'os de la gueule, en blocs, hors carrure de la proie. */
     private static final float MOUTH_HOLD_LOCAL_Z = 0.12f;
 
+    /** Nombre de morsures reparties sur une rotation. */
+    public static final int DEATH_ROLL_BITES = 5;
+    /**
+     * Part des degats de base par morsure de roulade.
+     *
+     * <p>Exposees et non ecrites en dur : la carte d'information annonce au joueur les degats d'une
+     * rotation entiere, et ce total doit se deduire d'ici plutot que d'un chiffre recopie a cote,
+     * qui aurait vieilli au premier reequilibrage.</p>
+     */
+    public static final float DEATH_ROLL_BITE_RATIO = 0.22f;
+    /**
+     * Idem sur un joueur, nettement plus bas.
+     *
+     * <p>Une victime cumule deja la noyade, la Fracture et la mort au bout du compte a rebours si
+     * elle ne se debat pas : la roulade n'a pas a l'achever en plus. Elle doit faire mal a lire,
+     * pas vider la barre de vie pendant que le joueur martele le clic droit.</p>
+     */
+    public static final float DEATH_ROLL_PLAYER_BITE_RATIO = 0.045f;
+
     /** Vitesse d'approche du bond de l'ultime, en blocs par tick, avant lissage. */
     private static final double PRIMAL_DIVE_LUNGE_SPEED = 1.05;
     /** Derive horizontale conservee pendant la roulade : lente, mais jamais nulle. */
@@ -1434,9 +1453,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         // la description de l'ultime annonce au joueur.
         if (spinTick > 0 && spinTick % 6 == 0 && spinTick <= 30) {
             grabbed.invulnerableTime = 0;
-            // Cinq morsures par roulade. La part est plus basse sur un joueur : il encaisse en plus
-            // la noyade et doit garder de quoi se débattre, là où une bête n'a que ses points de vie.
-            float damage = this.getDamage() * (grabbed instanceof Player ? 0.15f : 0.35f);
+            float damage = this.getDamage() * (grabbed instanceof Player
+                    ? DEATH_ROLL_PLAYER_BITE_RATIO : DEATH_ROLL_BITE_RATIO);
             grabbed.hurt(this.damageSources().mobAttack(this), damage);
 
             if (this.level() instanceof ServerLevel serverLevel) {

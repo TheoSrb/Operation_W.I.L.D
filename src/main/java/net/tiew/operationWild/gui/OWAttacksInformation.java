@@ -175,10 +175,13 @@ public class OWAttacksInformation {
 
                 new AttackSlot(40, 0, "X",
                         title("ow.attacks.crocodile.primal_dive.title"),
-                        // 5 morsures par roulade, à 35 % des dégâts de base chacune (cf. tickDeathRoll).
+                        // Total d'une rotation, déduit des constantes de l'entité : recopier le
+                        // chiffre ici l'aurait laissé vieillir au premier rééquilibrage.
                         e -> desc("ow.attacks.crocodile.primal_dive.desc",
                                 val(CrocodileEntity.PRIMAL_DIVE_GRAB_TICKS / 20),
-                                val(e.getDamageToClient() * 1.75f),
+                                val(e.getDamageToClient()
+                                        * CrocodileEntity.DEATH_ROLL_BITE_RATIO
+                                        * CrocodileEntity.DEATH_ROLL_BITES),
                                 val(OWAttacksConstants.Crocodile.PRIMAL_DIVE_KILLS_REQUIRED),
                                 val(OWAttacksConstants.Crocodile.PRIMAL_DIVE_COOLDOWN_TICKS / 20))
                 ),
