@@ -226,7 +226,9 @@
       "Bash(sed -i 's/riderBodyRotation\\(player, owVehicle\\)/riderBodyRotation\\(player, owVehicle, event.getPartialTick\\(\\)\\)/g' src/main/java/net/tiew/operationWild/event/ClientEvents.java)",
       "Bash(sed -i 's/riderEyeOffset\\(player, mount, eye\\)/riderEyeOffset\\(player, mount, eye, partialTick\\)/' src/main/java/net/tiew/operationWild/mixin/CameraMixin.java)",
       "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && sed -n '1272,1350p' src/main/java/net/tiew/operationWild/entity/client/animation/CrocodileAnimations.java > /tmp/old_dr.txt && head -3 /tmp/old_dr.txt && tail -3 /tmp/old_dr.txt)",
-      "Bash(grep -iA6 \"error\\\\|FAILED\")"
+      "Bash(grep -iA6 \"error\\\\|FAILED\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d3b9ed-8269-45e3-85f1-ea29d11afff3/scratchpad/orca_lang.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d3b9ed-8269-45e3-85f1-ea29d11afff3/scratchpad/rename_bigmouth.py\")"
     ]
   }
 }

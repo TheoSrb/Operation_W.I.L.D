@@ -105,7 +105,7 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         }
                         case 8 -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)
-                                orca.activateOrcaCall();
+                                orca.activateBigMouth();
                         }
                         case 10 -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)

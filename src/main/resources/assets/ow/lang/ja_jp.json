@@ -1037,5 +1037,11 @@
   "owteams.arena.soul_returned": "仲間の魂があなたに返されました。",
   "owteams.arena.tribe_chest.locked": "%s が必要",
   "owteams.arena.tribe_chest.progress": "チェスト %s / %s 개封",
-  "owteams.arena.error.start_failed": "戦闘を開始できません：戦士が見つかりません。"
+  "owteams.arena.error.start_failed": "戦闘を開始できません：戦士が見つかりません。",
+  "ow.attacks.orca.big_mouth.desc": "シャチが目の前のエンティティを飲み込み、%s 秒間顎に抱えます。敵は砍かれ息もできませんが、味方は自由に呼吸できます。もう一度押すと吐き出します。%s 体の撃破で、%s 秒ごとにチャージ。",
+  "ow.attacks.orca.big_mouth.title": "ビッグマウス",
+  "ow.attacks.orca.combo.desc": "シャチに %s 秒ごとに噛みつかせ、一回 %s のダメージを与えます。",
+  "ow.attacks.orca.combo.title": "深淵の食いちぎり",
+  "ow.attacks.orca.tidal_rush.desc": "シャチを鼻先の方向へ、深くも浅くも突進させます。上を狙えば水面から飛び出します。%s 秒ごと。",
+  "ow.attacks.orca.tidal_rush.title": "潮流の突進"
 }

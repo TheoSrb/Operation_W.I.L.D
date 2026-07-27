@@ -1037,5 +1037,11 @@
   "owteams.arena.soul_returned": "A alma do seu companheiro foi devolvida a você.",
   "owteams.arena.tribe_chest.locked": "Requer %s",
   "owteams.arena.tribe_chest.progress": "%s / %s baús abertos",
-  "owteams.arena.error.start_failed": "O combate não pôde começar: faltam combatentes."
+  "owteams.arena.error.start_failed": "O combate não pôde começar: faltam combatentes.",
+  "ow.attacks.orca.big_mouth.desc": "Sua Orca abocanha a entidade à frente e a carrega por %s segundos nas fauces: um inimigo é esmagado e fica sem ar, um aliado respira livremente. Pressione de novo para cuspí-la. Recarregue com %s abates, a cada %s segundos.",
+  "ow.attacks.orca.big_mouth.title": "Bocarra",
+  "ow.attacks.orca.combo.desc": "Faça sua Orca morder a cada %s segundos, causando %s de dano por mordida.",
+  "ow.attacks.orca.combo.title": "Esmagamento Abissal",
+  "ow.attacks.orca.tidal_rush.desc": "Impulsione sua Orca na direção do focinho, tanto para o fundo quanto para a superfície: mire para cima e ela salta para fora da água. A cada %s segundos.",
+  "ow.attacks.orca.tidal_rush.title": "Investida das Marés"
 }

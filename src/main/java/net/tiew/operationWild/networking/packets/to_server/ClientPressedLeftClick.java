@@ -74,6 +74,13 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
                         return;
                     }
 
+                    // Orque : gueule pleine, on ne mord pas. Le refus vit aussi dans setCombo, mais
+                    // on sort d'ici avant de facturer les 5 points d'énergie vitale du coup.
+                    if (owEntity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca
+                            && orca.hasSwallowed()) {
+                        return;
+                    }
+
                     if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5) && !packet.isScreenOpen()) {
                         owEntity.setCombo(true, 1);
                         owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 5);

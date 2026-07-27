@@ -1037,5 +1037,11 @@
   "owteams.arena.soul_returned": "你的夥伴之魂已歸還給你。",
   "owteams.arena.tribe_chest.locked": "需要%s",
   "owteams.arena.tribe_chest.progress": "已開啟 %s / %s 個寶箱",
-  "owteams.arena.error.start_failed": "對戰無法開始：部分戰士未找到。"
+  "owteams.arena.error.start_failed": "對戰無法開始：部分戰士未找到。",
+  "ow.attacks.orca.big_mouth.desc": "虐鯨吞住身前的實體，將其含在口中 %s 秒：敵人會被碾壓且無法呼吸，盟友則呼吸自如。再次按下可將其吐出。透過 %s 次擊殺充能，每 %s 秒一次。",
+  "ow.attacks.orca.big_mouth.title": "大嘴巴",
+  "ow.attacks.orca.combo.desc": "讓你的虐鯨每 %s 秒咬一次，每次造成 %s 點傷害。",
+  "ow.attacks.orca.combo.title": "深淵咀嘶",
+  "ow.attacks.orca.tidal_rush.desc": "讓虐鯨沿著吻部所指的方向衝刺，向下或向上皆可：瞄準上方就能躍出水面。每 %s 秒一次。",
+  "ow.attacks.orca.tidal_rush.title": "潮涌衝鐰"
 }

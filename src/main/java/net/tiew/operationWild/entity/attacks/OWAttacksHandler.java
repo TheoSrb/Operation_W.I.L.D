@@ -47,7 +47,7 @@ public class OWAttacksHandler {
     public static final int PAW_SLAM_ID = 5;
     public static final int NAP_ULTIMATE_ID = 6;
     public static final int TIDAL_RUSH_ID = 7;
-    public static final int ORCA_CALL_ID = 8;
+    public static final int BIG_MOUTH_ID = 8;
     public static final int VENOM_FANGS_ID = 9;
     public static final int CONSTRICT_ULTIMATE_ID = 10;
     public static final int WHIRLWIND_FISTS_ID = 11;
@@ -111,7 +111,7 @@ public class OWAttacksHandler {
         registerEntityRow(OrcaEntity.class, 4);
         registerComboMaxTimer(OrcaEntity.class, 24);
         register(OrcaEntity.class, OrcaAttacks.TIDAL_RUSH);
-        register(OrcaEntity.class, OrcaAttacks.ORCA_CALL);
+        register(OrcaEntity.class, OrcaAttacks.BIG_MOUTH);
 
         // Boa : cartes dessinées en colonnes 60/80/100 de la ligne Y=120 → offset de 3 cartes.
         // Combo identique au Tigre (createCombo(16, 10, …)) → même comboMaxTimer d'affichage : 12.
@@ -350,20 +350,26 @@ public class OWAttacksHandler {
                 false
         ).withCanUsePredicate(entity -> entity.isInWater());
 
-        public static final OWAttack ORCA_CALL = new OWAttack(
-                ORCA_CALL_ID,
+        /**
+         * Grande Gueule — ultime (touche X). Cinq victimes pour l'armer. L'orque happe
+         * l'entite qui se presente devant son museau et l'emporte dans sa gueule : une proie y est
+         * broyee et privee d'air pendant la descente, un allie y voyage sans une egratignure ni le
+         * moindre souci de respiration. Un second appui la recrache avant terme.
+         */
+        public static final OWAttack BIG_MOUTH = new OWAttack(
+                BIG_MOUTH_ID,
                 OW_ATTACK_1,
-                100f,
-                entity -> ((OrcaEntity) entity).activateOrcaCall(),
-                OWAttacksConstants.Orca.ORCA_CALL_COOLDOWN_TICKS
+                OWAttacksConstants.Orca.BIG_MOUTH_ENERGY,
+                entity -> ((OrcaEntity) entity).activateBigMouth(),
+                OWAttacksConstants.Orca.BIG_MOUTH_COOLDOWN_TICKS
         ).withUnlockCondition(
                 entity -> entity instanceof OrcaEntity orca
-                        && orca.getOrcaUltimateKillCount() >= OWAttacksConstants.Orca.ORCA_CALL_KILLS_REQUIRED
+                        && orca.getOrcaUltimateKillCount() >= OWAttacksConstants.Orca.BIG_MOUTH_KILLS_REQUIRED
         ).withUnlockProgress(
                 entity -> entity instanceof OrcaEntity orca
-                        ? (float) orca.getOrcaUltimateKillCount() / OWAttacksConstants.Orca.ORCA_CALL_KILLS_REQUIRED
+                        ? (float) orca.getOrcaUltimateKillCount() / OWAttacksConstants.Orca.BIG_MOUTH_KILLS_REQUIRED
                         : 0f
-        ).withUltimateDuration(OWAttacksConstants.Orca.ORCA_CALL_DURATION_MS);
+        ).withUltimateDuration(OWAttacksConstants.Orca.BIG_MOUTH_DURATION_MS);
     }
 
     public static class BoaAttacks {

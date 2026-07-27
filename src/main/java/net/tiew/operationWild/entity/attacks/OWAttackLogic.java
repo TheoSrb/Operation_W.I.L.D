@@ -18,6 +18,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
@@ -768,6 +769,18 @@ public class OWAttackLogic {
             return;
         }
 
+        // Orque — Grande Gueule : gueule pleine, le second appui recrache. Il passe AVANT le
+        // délai de récupération, sinon celui-ci, armé dès la happe, condamnerait la proie à rester
+        // dedans jusqu'au bout du transport sans qu'on puisse la libérer.
+        if (attack.getId() == OWAttacksHandler.BIG_MOUTH_ID
+                && owEntity instanceof OrcaEntity orcaMouthFull && orcaMouthFull.hasSwallowed()) {
+            PacketDistributor.sendToServer(
+                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+            removeUltimateStart(owEntity.getId(), attack.getId());
+            recordAttackClick(attack.getId(), false);
+            return;
+        }
+
         boolean isGrabBlocked = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
         // Bloquer toute autre attaque instantanée pendant la sieste ultime du Kodiak
         if (isKodiakNapping) {
@@ -815,6 +828,14 @@ public class OWAttackLogic {
 
         if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
             owEntity.canShowVitalEnergyLack = true;
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        // Rien devant le museau : la Grande Gueule claquerait dans le vide et l'ultime serait
+        // perdu pour rien. Refus net, avec le retour « clic invalide » habituel.
+        if (attack.getId() == OWAttacksHandler.BIG_MOUTH_ID
+                && owEntity instanceof OrcaEntity orcaMouthAim && !orcaMouthAim.hasMouthTarget()) {
             recordAttackClick(attack.getId(), true);
             return;
         }
@@ -895,7 +916,11 @@ public class OWAttackLogic {
                 event.setCanceled(true);
                 return;
             }
-            if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping || isBoaTargeting) {
+            // Orque : gueule pleine, le combo est refusé. Le serveur le refuse déjà (setCombo),
+            // mais sans ce retour le clic passerait pour valide et lancerait le délai d'affichage.
+            boolean isOrcaMouthFull = owEntity instanceof OrcaEntity orcaBite && orcaBite.hasSwallowed();
+
+            if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping || isBoaTargeting || isOrcaMouthFull) {
                 recordComboClick(true);
                 event.setCanceled(true);
                 return;

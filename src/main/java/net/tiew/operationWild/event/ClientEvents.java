@@ -505,6 +505,26 @@ public class ClientEvents {
      * <p>Nos propres animations ne passent pas par une couche mais par {@code RenderGuiEvent.Post},
      * qui est émis après cette phase : elles restent donc affichées.</p>
      */
+    /**
+     * Une proie dans la gueule d'une orque n'existe plus à l'écran.
+     *
+     * <p>Le rendu est coupé <b>à la racine</b>, avant que le renderer de la créature ne s'exécute :
+     * son modèle disparaît, mais aussi tout ce qu'il dessine par-dessus — plaque de nom, et pour les
+     * créatures du mod la ribambelle d'informations d'{@code OWRendererUtils} (niveau, propriétaire,
+     * bannière de tribu, jauges). Les rendre invisibles ne suffisait pas : l'invisibilité n'agit que
+     * sur le corps, et ces surcouches continuaient de flotter au-dessus de la tête de l'orque comme
+     * si de rien n'était.</p>
+     *
+     * <p>Le joueur avalé est couvert par la même passe, {@code RenderPlayerEvent} dérivant de
+     * celle-ci.</p>
+     */
+    @SubscribeEvent
+    public static void onRenderSwallowedEntity(net.neoforged.neoforge.client.event.RenderLivingEvent.Pre<?, ?> event) {
+        if (net.tiew.operationWild.entity.animals.aquatic.OrcaEntity.isSwallowed(event.getEntity())) {
+            event.setCanceled(true);
+        }
+    }
+
     @SubscribeEvent
     public static void onRenderGuiLayer(net.neoforged.neoforge.client.event.RenderGuiLayerEvent.Pre event) {
         if (net.tiew.operationWild.gui.OWCinematicState.anyPlaying()) { event.setCanceled(true); return; }

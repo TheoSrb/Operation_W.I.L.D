@@ -1037,5 +1037,11 @@
   "owteams.arena.soul_returned": "L'âme de votre compagnon vous a été rendue.",
   "owteams.arena.tribe_chest.locked": "Requiert %s",
   "owteams.arena.tribe_chest.progress": "%s / %s coffres ouverts",
-  "owteams.arena.error.start_failed": "Le combat n'a pas pu démarrer : des combattants sont introuvables."
+  "owteams.arena.error.start_failed": "Le combat n'a pas pu démarrer : des combattants sont introuvables.",
+  "ow.attacks.orca.big_mouth.desc": "Votre Orque happe l’entité devant elle et l’emporte %s secondes dans sa gueule : un ennemi y est broyé et privé d’air, un allié y respire librement. Appuyez de nouveau pour la recracher. À recharger avec %s kills, toutes les %s secondes.",
+  "ow.attacks.orca.big_mouth.title": "Grande Gueule",
+  "ow.attacks.orca.combo.desc": "Faites mordre votre Orque toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
+  "ow.attacks.orca.combo.title": "Broyage Abyssal",
+  "ow.attacks.orca.tidal_rush.desc": "Propulsez votre Orque dans la direction de son museau, en profondeur comme vers la surface : visée vers le haut, elle jaillit hors de l’eau. Toutes les %s secondes.",
+  "ow.attacks.orca.tidal_rush.title": "Ruée des Marées"
 }

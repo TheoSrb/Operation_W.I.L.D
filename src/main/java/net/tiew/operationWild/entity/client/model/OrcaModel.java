@@ -273,9 +273,195 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 
 		this.animate(orca.idleAnimationState, OrcaAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
+		applyBigMouth(orca, ageInTicks);
+
 		this.prevLimbSwing = limbSwing;
 
 		captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
+	}
+
+	/**
+	 * Grande Gueule — happe puis gorge pleine.
+	 *
+	 * <p>Deux temps distincts. La happe ouvre les mâchoires en grand puis les referme d'un coup sec,
+	 * en une douzaine de ticks, le cou fouettant vers l'avant. Ensuite, tant qu'une proie est dedans,
+	 * la gorge reste <b>gonflée</b> : c'est le seul indice visible, la victime étant masquée à
+	 * l'intérieur.</p>
+	 *
+	 * <p>Le renflement passe par une mise à l'échelle des mâchoires plutôt que par un cube ajouté au
+	 * modèle : un nouveau volume aurait exigé sa propre plage de texture, et faute de savoir quelle
+	 * zone de la peau lui attribuer il serait sorti bariolé. Étirer l'os existant réutilise ses
+	 * coordonnées, donc sa peau — sur le noir lisse d'une orque, la déformation ne se lit que comme
+	 * un volume.</p>
+	 */
+	private void applyBigMouth(OrcaEntity orca, float ageInTicks) {
+		// Progression continue, et non par paliers d'un tick.
+		//
+		// Le décompte de la happe est un entier décrémenté une fois par tick : lu tel quel, il
+		// donnait dix-huit positions figées, chacune tenue trois ou quatre images d'affilée — le
+		// geste avançait par à-coups quel que soit le soin mis dans les courbes. On lui retire la
+		// fraction d'image écoulée, que porte déjà {@code ageInTicks}, et la course redevient lisse.
+		float partial = ageInTicks - (float) Math.floor(ageInTicks);
+		float lunge = Math.max(0f, (orca.getMouthLungeTicks() - partial)
+				/ (float) OrcaEntity.getMouthLungeDuration());
+
+		if (lunge > 0f) {
+			// Temps écoulé depuis l'armement, en ticks fractionnaires.
+			float elapsed = OrcaEntity.getMouthLungeDuration() - (orca.getMouthLungeTicks() - partial);
+
+			final float wEnd = OrcaEntity.MOUTH_ANIM_WINDUP;
+			final float tEnd = wEnd + OrcaEntity.MOUTH_ANIM_TENSE;
+			final float sEnd = tEnd + OrcaEntity.MOUTH_ANIM_STRIKE;
+			final float rEnd = sEnd + OrcaEntity.MOUTH_ANIM_RECOVER;
+
+			// ── Armement : monte de 0 à 1, se TIENT pendant le temps d'arrêt, puis retombe d'un
+			// coup sur la frappe. C'est ce palier immobile qui fait exister le « BAM » d'après.
+			float charge;
+			if (elapsed < wEnd)      charge = smooth(elapsed / wEnd);
+			else if (elapsed < tEnd) charge = 1f;
+			else if (elapsed < sEnd) charge = 1f - smooth((elapsed - tEnd) / (sEnd - tEnd));
+			else                     charge = 0f;
+
+			// Frappe : 0 → 1 sur les quatre ticks du coup, puis relâchement en roue libre.
+			float strike = elapsed <= tEnd ? 0f
+					: (elapsed >= sEnd ? 1f : smooth((elapsed - tEnd) / (sEnd - tEnd)));
+			float release = elapsed <= sEnd ? 0f : smooth((elapsed - sEnd) / (rEnd - sEnd));
+			// Élan porté par la frappe, qui s'éteint pendant la récupération.
+			float thrust = strike * (1f - release);
+			// Pic bref au contact : la sur-fermeture des mâchoires.
+			float impact = bell(elapsed, sEnd, OrcaEntity.MOUTH_ANIM_STRIKE * 0.8f);
+			// Frémissement du palier : la bête n'est pas une statue pendant qu'elle vise.
+			float tremble = (elapsed >= wEnd && elapsed < tEnd)
+					? (float) Math.sin(elapsed * 3.4) * 0.5f : 0f;
+
+			// ── Mâchoires : béantes tant que l'armement tient, claquées sur la frappe.
+			this.mouth_down.xRot += (float) Math.toRadians(48f * charge + 1.5f * tremble - 10f * impact);
+			this.mouth_up.xRot   -= (float) Math.toRadians(38f * charge + 1.5f * tremble - 8f * impact);
+			this.mouth_down.yScale *= 1f + 0.10f * charge;
+			this.mouth_up.yScale   *= 1f + 0.08f * charge;
+
+			// ── Tête et tronc : le geste part du corps entier. La bête se ramasse en s'armant,
+			// puis se détend vers l'avant. Sans cette participation, une bête de six mètres
+			// semblait happer du bout des lèvres.
+			this.head.xRot -= (float) Math.toRadians(16f * charge - 9f * thrust - 5f * impact);
+			this.body.xRot -= (float) Math.toRadians(7f * charge - 4f * thrust);
+			this.body.z    -= 3.6f * thrust;
+			this.body.y    -= 1.3f * charge;
+			this.body.zRot += (float) Math.toRadians(3f * tremble);
+
+			// ── Pectorales : repliées le long du corps pendant l'armement, ouvertes en frein
+			// une fois le coup porté.
+			float fin = charge - 0.5f * thrust;
+			this.left_fan.zRot  -= (float) Math.toRadians(26f * fin);
+			this.right_fan.zRot += (float) Math.toRadians(26f * fin);
+			this.left_fan.yRot  += (float) Math.toRadians(12f * charge);
+			this.right_fan.yRot -= (float) Math.toRadians(12f * charge);
+
+			// ── Queue : elle s'arme du côté opposé, puis fouette. La vague court du tronc à la
+			// caudale avec un tick de retard sur chaque segment.
+			float coil = charge - 1.6f * thrust;
+			this.tail.yRot       += (float) Math.toRadians(20f * coil);
+			this.front_tail.yRot += (float) Math.toRadians(15f * (charge - 1.6f * lag(thrust, release, 0.15f)));
+			this.back_tail.yRot  += (float) Math.toRadians(10f * (charge - 1.6f * lag(thrust, release, 0.30f)));
+			this.back_tail.xRot  += (float) Math.toRadians(9f * thrust);
+		}
+
+		// ── Recrachage : même grammaire que la happe, à l'envers. La bête se contracte sur sa
+		// prise, puis ouvre d'un coup. Ce bloc tourne AVANT la sortie ci-dessous, car il continue
+		// de jouer une fois la proie partie — la gueule doit finir de s'ouvrir et de se refermer.
+		float spitTicks = orca.getMouthSpitTicks();
+		if (spitTicks > 0f) {
+			float elapsed = OrcaEntity.getMouthSpitDuration() - (spitTicks - partial);
+
+			final float hEnd = OrcaEntity.MOUTH_SPIT_HEAVE;
+			final float bEnd = hEnd + OrcaEntity.MOUTH_SPIT_BURST;
+			final float rEnd = bEnd + OrcaEntity.MOUTH_SPIT_RECOVER;
+
+			// Compression : monte pendant la contraction, se relâche à mesure que la gueule ouvre.
+			float heave = elapsed < hEnd ? smooth(elapsed / hEnd)
+					: (elapsed < bEnd ? 1f - smooth((elapsed - hEnd) / (bEnd - hEnd)) : 0f);
+			float burst = elapsed <= hEnd ? 0f
+					: (elapsed >= bEnd ? 1f : smooth((elapsed - hEnd) / (bEnd - hEnd)));
+			float fade = elapsed <= bEnd ? 0f : smooth((elapsed - bEnd) / (rEnd - bEnd));
+			float open = burst * (1f - fade);
+
+			// La bête se ramasse sur sa prise, mâchoires serrées.
+			this.mouth_down.xRot -= (float) Math.toRadians(7f * heave);
+			this.mouth_up.xRot   += (float) Math.toRadians(5f * heave);
+			this.body.xRot       += (float) Math.toRadians(7f * heave);
+			this.body.z          += 1.8f * heave;
+
+			// Puis tout s'ouvre : la proie part avec.
+			this.mouth_down.xRot += (float) Math.toRadians(54f * open);
+			this.mouth_up.xRot   -= (float) Math.toRadians(42f * open);
+			this.head.xRot       -= (float) Math.toRadians(13f * open);
+			this.body.xRot       -= (float) Math.toRadians(6f * open);
+			this.body.z          -= 2.6f * open;
+
+			// Secousse de tête : on ne recrache pas proprement.
+			this.head.yRot += (float) Math.toRadians(8f * open * (float) Math.sin(elapsed * 2.2));
+
+			// Pectorales en frein, queue en contre-appui : la bête freine ce qu'elle expulse.
+			this.left_fan.zRot  += (float) Math.toRadians(20f * open);
+			this.right_fan.zRot -= (float) Math.toRadians(20f * open);
+			this.tail.yRot      -= (float) Math.toRadians(15f * open);
+			this.front_tail.yRot -= (float) Math.toRadians(10f * open);
+		}
+
+		if (!orca.hasSwallowed()) return;
+
+		// Respiration lente du renflement : une gorge pleine qui travaille, pas un volume figé.
+		float swell = 1.0f + 0.06f * (float) Math.sin(ageInTicks * 0.18f);
+		// Déglutition : toutes les deux secondes et demie, la bête fait descendre sa prise.
+		float gulp = bell((ageInTicks % 50f) / 50f, 0.15f, 0.14f);
+
+		// Élargie : le renflement doit déborder sur les côtés du crâne pour se lire de profil
+		// comme de face, et pas seulement s'affaisser vers le bas.
+		this.mouth_down.xScale *= 1.48f * swell;
+		this.mouth_down.yScale *= (1.55f + 0.22f * gulp) * swell;
+		this.mouth_down.zScale *= 1.10f;
+
+		this.mouth_up.xScale *= 1.30f * swell;
+		this.mouth_up.yScale *= 1.14f + 0.08f * gulp;
+
+		// La mâchoire pleine ne ferme plus tout à fait. Elle est portée un peu haut : posée trop
+		// bas, la poche pendait sous la tête au lieu de la remplir. Y descend dans ce repère.
+		this.mouth_down.xRot += (float) Math.toRadians(7f + 4f * gulp);
+		this.mouth_down.y += -0.6f + 0.8f * gulp;
+
+		// Le cou se tend vers le haut à chaque déglutition, comme un oiseau qui avale.
+		this.head.xRot -= (float) Math.toRadians(8f * gulp);
+		this.body.xRot += (float) Math.toRadians(3f * gulp);
+	}
+
+	/**
+	 * Trapèze lissé : 0 avant {@code riseStart}, 1 entre {@code riseEnd} et {@code fallStart},
+	 * 0 après {@code fallEnd}. Les deux flancs sont adoucis pour éviter les cassures.
+	 */
+	private static float trapezoid(float t, float riseStart, float riseEnd, float fallStart, float fallEnd) {
+		if (t <= riseStart || t >= fallEnd) return 0f;
+		if (t < riseEnd)   return smooth((t - riseStart) / (riseEnd - riseStart));
+		if (t <= fallStart) return 1f;
+		return smooth(1f - (t - fallStart) / (fallEnd - fallStart));
+	}
+
+	/**
+	 * Retarde un élan d'une fraction de sa course : le segment suivant de la queue démarre après le
+	 * précédent, ce qui donne la vague plutôt qu'un balai rigide.
+	 */
+	private static float lag(float thrust, float release, float amount) {
+		return Mth.clamp((thrust - amount) / (1f - amount), 0f, 1f) * (1f - release);
+	}
+
+	/** Cloche centrée sur {@code center}, de demi-largeur {@code halfWidth}. */
+	private static float bell(float t, float center, float halfWidth) {
+		float d = Math.abs(t - center) / halfWidth;
+		return d >= 1f ? 0f : smooth(1f - d);
+	}
+
+	private static float smooth(float x) {
+		x = Mth.clamp(x, 0f, 1f);
+		return x * x * (3f - 2f * x);
 	}
 
 	@Override

@@ -1037,5 +1037,11 @@
   "owteams.arena.soul_returned": "El alma de tu compañero te ha sido devuelta.",
   "owteams.arena.tribe_chest.locked": "Requiere %s",
   "owteams.arena.tribe_chest.progress": "%s / %s cofres abiertos",
-  "owteams.arena.error.start_failed": "El combate no pudo empezar: faltan combatientes."
+  "owteams.arena.error.start_failed": "El combate no pudo empezar: faltan combatientes.",
+  "ow.attacks.orca.big_mouth.desc": "Tu Orca atrapa a la entidad que tiene delante y la lleva %s segundos en sus fauces: un enemigo es triturado y privado de aire, un aliado respira sin problemas. Pulsa de nuevo para escupirla. Recárgalo con %s muertes, cada %s segundos.",
+  "ow.attacks.orca.big_mouth.title": "Bocaza",
+  "ow.attacks.orca.combo.desc": "Haz que tu Orca muerda cada %s segundos, infligiendo %s puntos de daño por mordisco.",
+  "ow.attacks.orca.combo.title": "Trituración Abisal",
+  "ow.attacks.orca.tidal_rush.desc": "Impulsa a tu Orca en la dirección de su hocico, tanto hacia el fondo como hacia la superficie: apunta arriba y saltará fuera del agua. Cada %s segundos.",
+  "ow.attacks.orca.tidal_rush.title": "Embestida de Marea"
 }

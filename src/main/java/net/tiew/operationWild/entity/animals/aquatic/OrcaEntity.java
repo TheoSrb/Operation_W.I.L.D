@@ -71,6 +71,21 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private static final EntityDataAccessor<Boolean> IS_DASHING           = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_BEACHED           = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> PACK_ROLE            = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
+    /** Proie ou passager avalé par la Grande Gueule. -1 = gueule vide. */
+    private static final EntityDataAccessor<Integer> SWALLOWED_TARGET_ID  = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
+    /** Décompte de la happe : mâchoires grandes ouvertes puis claquement. 0 = gueule au repos. */
+    private static final EntityDataAccessor<Integer> MOUTH_LUNGE_TICKS      = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
+    /** Décompte du recrachage : compression puis ouverture. 0 = pas de recrachage en cours. */
+    private static final EntityDataAccessor<Integer> MOUTH_SPIT_TICKS       = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
+    /**
+     * Victimes accumulées pour armer la Grande Gueule.
+     *
+     * <p>Synchronisé, et c'est indispensable : la condition de déverrouillage et la jauge de la
+     * carte sont évaluées <b>sur le client</b>. Tant que ce compteur n'était qu'un champ serveur,
+     * le client lisait toujours zéro — la carte ne se remplissait jamais et la touche était refusée
+     * en silence, quel que soit le nombre de proies tuées. L'ultime était donc injouable.</p>
+     */
+    private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT    = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
 
     private int dashTicksLeft = 0;
     private Vec3 dashDirection = Vec3.ZERO;
@@ -144,8 +159,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public volatile float camXRot = 0f, camYRot = 0f, camZRot = 0f;
 
 
-    private int orcaUltimateKillCount = 0;
-
     private Vec3 lastPitchCheckPos = null;
 
     public OrcaEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
@@ -204,6 +217,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         builder.define(IS_DASHING, false);
         builder.define(IS_BEACHED, false);
         builder.define(PACK_ROLE, OrcaBehaviorHandler.PACK_ROLE_NONE);
+        builder.define(SWALLOWED_TARGET_ID, -1);
+        builder.define(MOUTH_LUNGE_TICKS, 0);
+        builder.define(MOUTH_SPIT_TICKS, 0);
+        builder.define(ULTIMATE_KILL_COUNT, 0);
     }
 
     @Override
@@ -556,6 +573,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         createCombo((int) (28 / comboSpeedMultiplier), (int) (18 / comboSpeedMultiplier), OWSounds.CROCODILE_MOUTH_CRUSH.get(), 4.5, 4, 3, false, 0.5f);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
+        if (!this.level().isClientSide()) tickBigMouth();
+
         if (this.level().isClientSide()) {
             setupAnimationState();
             tickBarrelRoll();
@@ -756,6 +775,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public void die(DamageSource damageSource) {
+        // La proie survit à son ravisseur : sans ce relâchement elle resterait invisible à vie.
+        if (!this.level().isClientSide() && hasSwallowed()) releaseSwallowed(true);
+
         super.die(damageSource); // le drop générique de l'Âme est géré par OWEntity.die()
 
         if (this.isSaddled()) {
@@ -867,22 +889,394 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     }
 
 
-    public void activateOrcaCall() {
-        float damage = 15f + 10f * (this.getLevel() / 50f);
-        AABB hitBox = this.getBoundingBox().inflate(12.0);
-        this.level().getEntitiesOfClass(LivingEntity.class, hitBox).forEach(target -> {
-            if (target != this && target != this.getFirstPassenger() && !this.isAlliedTo(target)) {
-                target.hurt(this.damageSources().mobAttack(this), damage);
-            }
-        });
+    // ==================================================
+    //           GRANDE GUEULE (ultime)
+    // ==================================================
 
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.AMBIENT, 3.0f, 0.5f);
-        orcaUltimateKillCount = 0;
+    /** Portée de la happe, en blocs, devant le museau. */
+    private static final double MOUTH_REACH = 6.0;
+    /** Ouverture du cône de happe : produit scalaire minimal avec l'axe du corps. */
+    private static final double MOUTH_CONE = 0.35;
+    /**
+     * Découpage de la happe, en ticks. Quatre temps, et non plus une seule courbe continue.
+     *
+     * <p>Le geste se lisait comme une bouillie parce que tout arrivait en même temps : la gueule
+     * s'ouvrait pendant que le corps s'élançait, et la fermeture rattrapait l'ouverture avant
+     * qu'on ait vu quoi que ce soit. Une frappe ne se lit que si elle est <b>annoncée</b> : la bête
+     * s'arme, marque un temps — c'est ce silence qui fait peur —, puis frappe.</p>
+     */
+    public static final int MOUTH_ANIM_WINDUP  = 6;
+    /** Le temps d'arrêt, gueule béante et corps armé. C'est lui qui donne son poids à la suite. */
+    public static final int MOUTH_ANIM_TENSE   = 4;
+    /** La frappe : tout se referme d'un coup. */
+    public static final int MOUTH_ANIM_STRIKE  = 4;
+    /** Le retour au calme, en roue libre. */
+    public static final int MOUTH_ANIM_RECOVER = 8;
+
+    private static final int MOUTH_LUNGE_DURATION =
+            MOUTH_ANIM_WINDUP + MOUTH_ANIM_TENSE + MOUTH_ANIM_STRIKE + MOUTH_ANIM_RECOVER;
+
+    /**
+     * Découpage du recrachage, sur le même principe que la happe : on annonce avant de faire.
+     *
+     * <p>La bête se contracte d'abord sur sa prise — gorge serrée, mâchoires closes —, puis ouvre
+     * d'un coup. Sans ce temps de compression, la proie apparaissait de nulle part devant une gueule
+     * déjà ouverte.</p>
+     */
+    public static final int MOUTH_SPIT_HEAVE   = 5;
+    /** L'expulsion : la gueule s'ouvre en grand et la proie repart. */
+    public static final int MOUTH_SPIT_BURST   = 4;
+    public static final int MOUTH_SPIT_RECOVER = 8;
+
+    private static final int MOUTH_SPIT_DURATION =
+            MOUTH_SPIT_HEAVE + MOUTH_SPIT_BURST + MOUTH_SPIT_RECOVER;
+    /** Durée maximale d'un transport dans la gueule. */
+    public static final int MOUTH_HOLD_TICKS = 500;
+    /** Intervalle entre deux morsures pour une proie hostile. */
+    private static final int MOUTH_DAMAGE_INTERVAL = 20;
+    /** Part des dégâts de base infligée à chaque morsure interne. */
+    private static final float MOUTH_BITE_RATIO = 0.20f;
+
+    /** Position de la prise dans la gueule, en blocs devant l'origine et au-dessus d'elle. */
+    private static final double MOUTH_HOLD_FORWARD = 2.1;
+    private static final double MOUTH_HOLD_HEIGHT = 0.25;
+
+    private int mouthHoldTicks = 0;
+    private boolean mouthTargetWasInvisible = false;
+    /** Proie réservée pendant l'armement, avalée seulement au moment de la frappe. */
+    private int pendingPreyId = -1;
+
+    /**
+     * La proie avalée est un passager, mais elle ne pilote rien.
+     *
+     * <p>Sans cette exception, {@code getFirstPassenger()} rendrait la victime dès qu'aucun cavalier
+     * n'est en selle : la classe mère la prendrait pour un pilote et cesserait d'appeler
+     * {@code travel} — l'orque resterait figée sur place, la gueule pleine. C'est exactement le
+     * piège qui immobilisait le crocodile.</p>
+     */
+    @Override
+    public LivingEntity getControllingPassenger() {
+        LivingEntity swallowed = getSwallowedTarget();
+        if (swallowed != null && this.getFirstPassenger() == swallowed) return null;
+        return super.getControllingPassenger();
+    }
+
+    /** Déchargement de chunk compris : une proie oubliée resterait invisible pour de bon. */
+    @Override
+    public void remove(Entity.RemovalReason reason) {
+        if (!this.level().isClientSide() && hasSwallowed()) releaseSwallowed(false);
+        super.remove(reason);
+    }
+
+    /**
+     * Grande Gueule — happe l'entité qui se présente devant le museau et l'emporte.
+     *
+     * <p>Deux issues selon le camp. Une proie hostile est broyée lentement et ne respire pas : la
+     * descente vers le fond devient l'arme, plus encore que les morsures. Un allié, lui, voyage
+     * simplement — souffle préservé, sans une égratignure : c'est un moyen de transport vers des
+     * profondeurs qu'il ne pourrait pas atteindre seul.</p>
+     *
+     * <p>Un second appui recrache avant terme, comme la sieste du Kodiak.</p>
+     */
+    public void activateBigMouth() {
+        if (this.level().isClientSide()) return;
+
+        if (hasSwallowed()) {
+            beginSpit();
+            return;
+        }
+
+        LivingEntity prey = findMouthTarget();
+        if (prey == null) {
+            // Rien à happer : la gueule claque dans le vide, l'ultime n'est pas consommé.
+            this.entityData.set(MOUTH_LUNGE_TICKS, MOUTH_LUNGE_DURATION);
+            this.level().playSound(null, getX(), getY(), getZ(),
+                    OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 1.1f, 1.35f);
+            return;
+        }
+
+        // La proie n'est que RÉSERVÉE ici : elle ne disparaîtra qu'au moment de la frappe.
+        // L'avaler tout de suite la faisait s'évanouir alors que la gueule commençait à peine à
+        // s'ouvrir — la victime était happée avant que les dents ne bougent.
+        this.pendingPreyId = prey.getId();
+        this.entityData.set(MOUTH_LUNGE_TICKS, MOUTH_LUNGE_DURATION);
+
+        setOrcaUltimateKillCount(0);
+
+        // Armement muet : c'est la gueule qui s'ouvre et le nuage de bulles qui annoncent le coup.
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.BUBBLE,
+                    getX(), getY() + 0.6, getZ(), 18, 1.0, 0.5, 1.0, 0.06);
+        }
+    }
+
+    /**
+     * La frappe, jouée quelques ticks après l'armement : c'est ici que la gueule se referme
+     * vraiment sur la proie, au même instant que le claquement à l'écran et à l'oreille.
+     */
+    private void closeMouthOnPrey() {
+        int reserved = this.pendingPreyId;
+        this.pendingPreyId = -1;
+        if (reserved == -1) return;
+
+        // La proie a eu le temps de fuir, de mourir ou de monter sur autre chose pendant l'armement.
+        if (!(this.level().getEntity(reserved) instanceof LivingEntity prey)
+                || !canSwallow(prey)
+                || prey.distanceToSqr(this) > (MOUTH_REACH + 3.0) * (MOUTH_REACH + 3.0)) {
+            this.level().playSound(null, getX(), getY(), getZ(),
+                    OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 1.1f, 1.35f);
+            return;
+        }
+
+        this.entityData.set(SWALLOWED_TARGET_ID, prey.getId());
+        this.mouthHoldTicks = MOUTH_HOLD_TICKS;
+
+        // Avalée, la victime disparaît à la vue : ce sont les joues gonflées de l'orque qui la
+        // trahissent. La laisser affichée l'aurait montrée à travers la peau du crâne.
+        this.mouthTargetWasInvisible = prey.isInvisible();
+        prey.setInvisible(true);
+        prey.startRiding(this, true);
+
+        this.level().playSound(null, getX(), getY(), getZ(),
+                OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 3.0f, 0.55f);
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.BUBBLE,
+                    getX(), getY() + 0.6, getZ(), 45, 1.4, 0.6, 1.4, 0.15);
+        }
+    }
+
+    /**
+     * Gueule pleine, on ne mord plus.
+     *
+     * <p>Verrou posé ici plutôt qu'aux points d'appel : le combo se déclenche depuis le paquet de
+     * clic du cavalier, depuis le goal d'attaque, depuis la chasse en meute et depuis l'échouage —
+     * quatre chemins qu'il aurait fallu garder d'accord entre eux. Une bête qui a déjà quelqu'un
+     * entre les dents ne peut de toute façon pas refermer la mâchoire sur autre chose.</p>
+     */
+    @Override
+    public void setCombo(boolean isCombo, int numberOfAttacks) {
+        if (isCombo && hasSwallowed()) return;
+        super.setCombo(isCombo, numberOfAttacks);
+    }
+
+    /** Y a-t-il seulement quelque chose à happer ? Consulté par le client avant de brûler l'ultime. */
+    public boolean hasMouthTarget() {
+        return findMouthTarget() != null;
+    }
+
+    /** Entité la mieux placée devant le museau, alliée ou non. */
+    private LivingEntity findMouthTarget() {
+        Vec3 forward = Vec3.directionFromRotation(0, this.getYRot());
+        AABB box = this.getBoundingBox().inflate(MOUTH_REACH);
+
+        LivingEntity best = null;
+        double bestDot = MOUTH_CONE;
+
+        for (LivingEntity candidate : this.level().getEntitiesOfClass(LivingEntity.class, box, this::canSwallow)) {
+            Vec3 toward = candidate.getBoundingBox().getCenter().subtract(this.getEyePosition());
+            if (toward.lengthSqr() > MOUTH_REACH * MOUTH_REACH) continue;
+            if (toward.lengthSqr() < 1.0E-6) continue;
+
+            double dot = forward.dot(toward.normalize());
+            if (dot > bestDot) {
+                bestDot = dot;
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * Échelle théorique maximale d'une créature du mod tenant dans la gueule.
+     *
+     * <p>Calée sur le Kodiak (10), la plus imposante qui doive y entrer. Le seuil précédent, à 8
+     * exclu, laissait dehors le Crocodile (9) et le Boa (8) alors même qu'ils sont plus petits :
+     * l'ultime ne fonctionnait en pratique que sur le Tigre et le Kangourou. L'Orque (18) reste
+     * naturellement au-delà — une orque n'en avale pas une autre.</p>
+     */
+    private static final float MOUTH_MAX_OW_SCALE = 10f;
+    /** Gabarit maximal d'une créature vanilla, en blocs — le cheval et le ravageur passent, pas le golem. */
+    private static final float MOUTH_MAX_WIDTH = 2.0f;
+    private static final float MOUTH_MAX_HEIGHT = 2.4f;
+
+    /**
+     * Gabarit compatible avec la gueule.
+     *
+     * <p>Deux mesures selon l'origine. Les créatures du mod déclarent une échelle théorique, qui
+     * dit leur corpulence bien mieux que leur boîte de collision — celle du Boa, tout en longueur,
+     * ne fait qu'un bloc de large. Les créatures vanilla n'ont pas cette échelle : on retombe alors
+     * sur leurs dimensions réelles.</p>
+     */
+    public static boolean fitsInMouth(LivingEntity candidate) {
+        if (candidate instanceof net.tiew.operationWild.entity.OWEntity owEntity) {
+            return owEntity.getTheoreticalScale() <= MOUTH_MAX_OW_SCALE;
+        }
+        return candidate.getBbWidth() <= MOUTH_MAX_WIDTH
+                && candidate.getBbHeight() <= MOUTH_MAX_HEIGHT;
+    }
+
+    /**
+     * Gabarit et état compatibles avec la gueule. Le camp, lui, ne décide que du sort réservé —
+     * apprivoisée ou sauvage, assise ou debout, une bête à portée est avalable.
+     */
+    public boolean canSwallow(LivingEntity candidate) {
+        if (candidate == null || candidate == this) return false;
+        if (!candidate.isAlive() || candidate.isRemoved()) return false;
+        if (candidate instanceof Player player && (player.isCreative() || player.isSpectator())) return false;
+        // Ni une monture ni son cavalier : on ne démembre pas un attelage.
+        if (candidate.isPassenger() || !candidate.getPassengers().isEmpty()) return false;
+        return fitsInMouth(candidate);
+    }
+
+    public boolean hasSwallowed() {
+        return this.entityData.get(SWALLOWED_TARGET_ID) != -1;
+    }
+
+    /**
+     * Cette entité est-elle, à cet instant, dans la gueule d'une orque ?
+     *
+     * <p>Test volontairement direct — la proie est un passager, et l'identifiant est synchronisé :
+     * pas de recherche dans le monde, juste deux déréférencements. Il est consulté à chaque image
+     * pour chaque créature affichée, il n'a pas le droit de coûter quoi que ce soit.</p>
+     */
+    public static boolean isSwallowed(Entity entity) {
+        return entity != null
+                && entity.getVehicle() instanceof OrcaEntity orca
+                && orca.getSwallowedTarget() == entity;
+    }
+
+    public LivingEntity getSwallowedTarget() {
+        int id = this.entityData.get(SWALLOWED_TARGET_ID);
+        if (id == -1) return null;
+        return this.level().getEntity(id) instanceof LivingEntity living ? living : null;
+    }
+
+    /** Ticks restants sur le claquement de mâchoires. Le modèle y ajoute la fraction d'image. */
+    public int getMouthLungeTicks() {
+        return this.entityData.get(MOUTH_LUNGE_TICKS);
+    }
+
+    /** Ticks restants sur le recrachage. Le modèle y ajoute la fraction d'image. */
+    public int getMouthSpitTicks() {
+        return this.entityData.get(MOUTH_SPIT_TICKS);
+    }
+
+    public static int getMouthSpitDuration() {
+        return MOUTH_SPIT_DURATION;
+    }
+
+    public static int getMouthLungeDuration() {
+        return MOUTH_LUNGE_DURATION;
+    }
+
+    /** Progression [1..0] du claquement, à la précision du tick. */
+    public float getMouthLungeProgress() {
+        int left = getMouthLungeTicks();
+        return left <= 0 ? 0f : left / (float) MOUTH_LUNGE_DURATION;
+    }
+
+    /**
+     * Amorce le recrachage. La proie reste dedans le temps de la compression : elle ne réapparaît
+     * qu'à l'ouverture, comme elle n'était avalée qu'au claquement.
+     */
+    public void beginSpit() {
+        if (this.level().isClientSide() || !hasSwallowed()) return;
+        if (this.entityData.get(MOUTH_SPIT_TICKS) > 0) return;
+
+        this.entityData.set(MOUTH_SPIT_TICKS, MOUTH_SPIT_DURATION);
+        this.level().playSound(null, getX(), getY(), getZ(),
+                OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 1.0f, 0.4f);
+    }
+
+    public void releaseSwallowed(boolean spit) {
+        LivingEntity prey = getSwallowedTarget();
+        if (prey != null) {
+            if (prey.getVehicle() == this) prey.stopRiding();
+            // On ne rend la visibilité que si c'est nous qui l'avions ôtée.
+            if (!mouthTargetWasInvisible) prey.setInvisible(false);
+
+            if (spit) {
+                Vec3 push = Vec3.directionFromRotation(0, this.getYRot()).scale(0.9);
+                prey.setDeltaMovement(push.x, 0.35, push.z);
+                prey.hurtMarked = true;
+                this.level().playSound(null, getX(), getY(), getZ(),
+                        OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 1.5f, 1.25f);
+            }
+        }
+        mouthTargetWasInvisible = false;
+        mouthHoldTicks = 0;
+        this.entityData.set(SWALLOWED_TARGET_ID, -1);
+        this.entityData.set(MOUTH_SPIT_TICKS, 0);
+    }
+
+    /** Machine d'état de la gueule, côté serveur. */
+    private void tickBigMouth() {
+        int lunge = this.entityData.get(MOUTH_LUNGE_TICKS);
+        if (lunge > 0) {
+            this.entityData.set(MOUTH_LUNGE_TICKS, lunge - 1);
+
+            // Le compte à rebours décroît : le temps écoulé depuis l'armement en est le miroir.
+            int elapsed = MOUTH_LUNGE_DURATION - (lunge - 1);
+            if (elapsed == MOUTH_ANIM_WINDUP + MOUTH_ANIM_TENSE) closeMouthOnPrey();
+        } else if (this.pendingPreyId != -1) {
+            this.pendingPreyId = -1;
+        }
+
+        // Recrachage : la proie ne ressort qu'au moment où la gueule s'ouvre pour de bon.
+        int spit = this.entityData.get(MOUTH_SPIT_TICKS);
+        if (spit > 0) {
+            this.entityData.set(MOUTH_SPIT_TICKS, spit - 1);
+            int spitElapsed = MOUTH_SPIT_DURATION - (spit - 1);
+            if (spitElapsed == MOUTH_SPIT_HEAVE && hasSwallowed()) {
+                releaseSwallowed(true);
+                // releaseSwallowed remet le compteur à zéro : on le relance pour laisser la
+                // gueule finir de s'ouvrir puis se refermer, à vide.
+                this.entityData.set(MOUTH_SPIT_TICKS, MOUTH_SPIT_BURST + MOUTH_SPIT_RECOVER);
+            }
+        }
+
+        if (!hasSwallowed()) return;
+
+        LivingEntity prey = getSwallowedTarget();
+        if (prey == null || !prey.isAlive() || prey.isRemoved() || prey.level() != this.level()
+                || (prey instanceof Player player && (player.isCreative() || player.isSpectator()))) {
+            releaseSwallowed(false);
+            return;
+        }
+
+        if (--mouthHoldTicks <= 0) {
+            beginSpit();
+            return;
+        }
+
+        prey.fallDistance = 0f;
+        if (!prey.isPassenger()) prey.startRiding(this, true);
+        if (prey instanceof Mob mob) mob.setTarget(null);
+
+        boolean friendly = this.isAlliedTo(prey) || this.isTameGrabAlly(prey);
+
+        if (friendly) {
+            // Passager : la gueule est un scaphandre. C'est tout l'intérêt du voyage.
+            prey.setAirSupply(prey.getMaxAirSupply());
+        } else if (this.tickCount % MOUTH_DAMAGE_INTERVAL == 0) {
+            prey.invulnerableTime = 0;
+            prey.hurt(this.damageSources().mobAttack(this), this.getDamage() * MOUTH_BITE_RATIO);
+            this.level().playSound(null, getX(), getY(), getZ(),
+                    OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 0.8f, 0.5f);
+        }
+
+        if (this.tickCount % 10 == 0 && this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.BUBBLE,
+                    getX(), getY() + 0.8, getZ(), 4, 0.5, 0.3, 0.5, 0.02);
+        }
     }
 
     public int getOrcaUltimateKillCount() {
-        return orcaUltimateKillCount;
+        return this.entityData.get(ULTIMATE_KILL_COUNT);
+    }
+
+    public void setOrcaUltimateKillCount(int count) {
+        this.entityData.set(ULTIMATE_KILL_COUNT, count);
     }
 
     @Override
@@ -892,7 +1286,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {
-        orcaUltimateKillCount++;
+        int kills = getOrcaUltimateKillCount();
+        if (kills < OWAttacksConstants.Orca.BIG_MOUTH_KILLS_REQUIRED) {
+            setOrcaUltimateKillCount(kills + 1);
+        }
         return super.killedEntity(serverLevel, entity);
     }
 
@@ -921,6 +1318,21 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     protected void positionRider(Entity passenger, MoveFunction function) {
+        // Avalé : la place n'est pas sur le dos mais DANS la gueule. Traité avant tout le reste,
+        // car cette entité ne compte pas dans la numérotation des selles.
+        if (passenger == this.getSwallowedTarget()) {
+            double s = this.getScale();
+            double yawRad = Math.toRadians(this.yBodyRot);
+            double forward = MOUTH_HOLD_FORWARD * s;
+
+            passenger.fallDistance = 0f;
+            function.accept(passenger,
+                    this.getX() - Math.sin(yawRad) * forward,
+                    this.getY() + MOUTH_HOLD_HEIGHT * s,
+                    this.getZ() + Math.cos(yawRad) * forward);
+            return;
+        }
+
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
         int idx = this.getPassengers().indexOf(passenger);
@@ -1141,7 +1553,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         tag.putInt("Variant", this.getTypeVariant());
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
-        tag.putInt("orcaUltimateKillCount", this.orcaUltimateKillCount);
+        tag.putInt("orcaUltimateKillCount", getOrcaUltimateKillCount());
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -1150,7 +1562,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
-        this.orcaUltimateKillCount = tag.getInt("orcaUltimateKillCount");
+        this.entityData.set(ULTIMATE_KILL_COUNT, tag.getInt("orcaUltimateKillCount"));
 
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }

@@ -51,10 +51,11 @@ public class OWAttacksConstants {
          *  The tamed version keeps full damage (multiplier 1.0). */
         public static final float TIDAL_RUSH_WILD_DAMAGE_MULTIPLIER = 0.3f;
 
-        public static final int ORCA_CALL_KILLS_REQUIRED = 5;
-        public static final int ORCA_CALL_COOLDOWN_TICKS = 1200;
-        public static final long ORCA_CALL_DURATION_MS = 3_000L;
-        public static final float ORCA_CALL_ENERGY = 100f;
+        public static final int BIG_MOUTH_KILLS_REQUIRED = 5;
+        public static final int BIG_MOUTH_COOLDOWN_TICKS = 1200;
+        /** Duree du transport dans la gueule : c'est elle que la carte du HUD fait descendre. */
+        public static final long BIG_MOUTH_DURATION_MS = 25_000L;
+        public static final float BIG_MOUTH_ENERGY = 100f;
     }
 
     public static class Kangaroo {

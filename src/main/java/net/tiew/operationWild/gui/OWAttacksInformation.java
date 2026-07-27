@@ -13,6 +13,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
@@ -271,6 +272,35 @@ public class OWAttacksInformation {
         // ──────────────────────────────────────────────────────────────────────
         //  KANGOUROU  (entityRow = 5)  ── combo + secondaire, pas d'ultime/passif
         // ──────────────────────────────────────────────────────────────────────
+        // L'orque n'avait aucune fiche : ses trois cartes s'affichaient muettes, sans nom ni
+        // description, alors que toutes les autres espèces documentent les leurs.
+        PROFILES.put(OrcaEntity.class, new EntityProfile(
+
+                new AttackSlot(0, 160, "LMB",
+                        title("ow.attacks.orca.combo.title"),
+                        e -> desc("ow.attacks.orca.combo.desc",
+                                val("1.4"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(20, 160, "RMB",
+                        title("ow.attacks.orca.tidal_rush.title"),
+                        e -> desc("ow.attacks.orca.tidal_rush.desc",
+                                val(OWAttacksConstants.Orca.TIDAL_RUSH_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(40, 160, "X",
+                        title("ow.attacks.orca.big_mouth.title"),
+                        e -> desc("ow.attacks.orca.big_mouth.desc",
+                                val((int) (OWAttacksConstants.Orca.BIG_MOUTH_DURATION_MS / 1000L)),
+                                val(OWAttacksConstants.Orca.BIG_MOUTH_KILLS_REQUIRED),
+                                val(OWAttacksConstants.Orca.BIG_MOUTH_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "", null, null)
+
+        ));
+
+
         PROFILES.put(KangarooEntity.class, new EntityProfile(
 
                 new AttackSlot(0, 200, "LMB",

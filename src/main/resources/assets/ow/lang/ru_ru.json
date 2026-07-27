@@ -1037,5 +1037,11 @@
   "owteams.arena.soul_returned": "Душа вашего спутника возвращена вам.",
   "owteams.arena.tribe_chest.locked": "Требуется %s",
   "owteams.arena.tribe_chest.progress": "Открыто сундуков: %s / %s",
-  "owteams.arena.error.start_failed": "Бой не удалось начать: часть бойцов не найдена."
+  "owteams.arena.error.start_failed": "Бой не удалось начать: часть бойцов не найдена.",
+  "ow.attacks.orca.big_mouth.desc": "Касатка хватает существо перед собой и несёт его %s секунд в пасти: врага давит и лишает воздуха, союзник дышит свободно. Нажмите снова, чтобы выплюнуть. Перезаряжается за %s убийств, каждые %s секунд.",
+  "ow.attacks.orca.big_mouth.title": "Большая Пасть",
+  "ow.attacks.orca.combo.desc": "Заставьте касатку кусать каждые %s секунд, нанося %s урона за укус.",
+  "ow.attacks.orca.combo.title": "Бездненный укус",
+  "ow.attacks.orca.tidal_rush.desc": "Рывок касатки в направлении её морды — вглубь или вверх: прицельтесь вверх, и она выпрыгнет из воды. Каждые %s секунд.",
+  "ow.attacks.orca.tidal_rush.title": "Приливный рывок"
 }
