@@ -166,6 +166,17 @@ public final class OWArena {
     public static final int ARENA_AQUATIC_FIGHTER_Z = 24;
     public static final int ARENA_AQUATIC_CHIEF_Z = 35;
 
+    /**
+     * Hauteur d'arrivée au-dessus du plain-pied dans l'aire engloutie : on se bat en pleine eau,
+     * pas posé sur le sable. Sans effet sur le colisée terrestre, où l'on tomberait du ciel.
+     */
+    public static final int ARENA_AQUATIC_SPAWN_UP = 20;
+
+    /** Ordonnée d'arrivée visée pour un terrain donné. */
+    public static int spawnY(Terrain terrain) {
+        return terrain == Terrain.AQUATIC ? ARENA_Y + ARENA_AQUATIC_SPAWN_UP : ARENA_Y;
+    }
+
     public static int fighterZ(Terrain terrain) {
         return terrain == Terrain.AQUATIC ? ARENA_AQUATIC_FIGHTER_Z : ARENA_FIGHTER_Z;
     }

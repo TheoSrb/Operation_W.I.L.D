@@ -25,6 +25,12 @@ import net.tiew.operationWild.event.ClientEvents;
 
 public abstract class OWWaterEntity extends OWEntity {
 
+    /** Créature d'eau : elle n'a rien à faire sur la terre ferme. */
+    @Override
+    public int arenaTerrainMask() {
+        return net.tiew.operationWild.core.OWArena.Terrain.AQUATIC.bit();
+    }
+
     private static final EntityDataAccessor<Float> TARGET_PITCH =
             SynchedEntityData.defineId(OWWaterEntity.class, EntityDataSerializers.FLOAT);
 

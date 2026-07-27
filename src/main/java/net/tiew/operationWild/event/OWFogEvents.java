@@ -32,6 +32,9 @@ public class OWFogEvents {
     private static final float AQUA_NEAR  = -6f;
     private static final float AQUA_FAR   = 62f;
 
+    private static final float AQUA_AIR_NEAR = 12f;
+    private static final float AQUA_AIR_FAR  = 96f;
+
     private static final float BLEND_DURATION = 2.0f; // secondes pour transition complète
 
     private static float blendFactor = 0f;
@@ -59,17 +62,24 @@ public class OWFogEvents {
         return entity != null && entity.level().dimension().equals(OWDimensions.ARENA);
     }
 
+    /** Aire engloutie de la dimension d'arène : reconnue au biome, pas à la position. */
+    private static boolean inAquaticArena(Entity entity) {
+        return inArena(entity)
+                && entity.level().getBiome(entity.blockPosition()).is(OWBiomes.ARENA_AQUATIC_BIOME);
+    }
+
     @SubscribeEvent
     public static void onComputeFogColor(ViewportEvent.ComputeFogColor event) {
         boolean underwater = event.getCamera().getFluidInCamera() == FogType.WATER;
         Entity entity = event.getCamera().getEntity();
         boolean inBiome = entity != null && entity.level().getBiome(entity.blockPosition()).is(OWBiomes.MINE_FIELD_BIOME);
-        boolean inAqua = entity != null && entity.level().getBiome(entity.blockPosition()).is(OWBiomes.ARENA_AQUATIC_BIOME);
+        boolean inAqua = inAquaticArena(entity);
 
         float dt = deltaSeconds();
         blendFactor = advance(blendFactor, underwater && inBiome, dt);
-        arenaBlend = advance(arenaBlend, !underwater && inArena(entity), dt);
-        aquaBlend = advance(aquaBlend, underwater && inAqua, dt);
+        // La teinte verte est celle du colisée terrestre : l'aire engloutie a la sienne, en bleu.
+        arenaBlend = advance(arenaBlend, !underwater && inArena(entity) && !inAqua, dt);
+        aquaBlend = advance(aquaBlend, inAqua, dt);
 
         if (arenaBlend > 0f && !underwater) {
             event.setRed(lerp(event.getRed(), ARENA_RED, arenaBlend));
@@ -77,7 +87,7 @@ public class OWFogEvents {
             event.setBlue(lerp(event.getBlue(), ARENA_BLUE, arenaBlend));
         }
 
-        if (aquaBlend > 0f && underwater) {
+        if (aquaBlend > 0f) {
             event.setRed(lerp(event.getRed(), AQUA_RED, aquaBlend));
             event.setGreen(lerp(event.getGreen(), AQUA_GREEN, aquaBlend));
             event.setBlue(lerp(event.getBlue(), AQUA_BLUE, aquaBlend));
@@ -94,10 +104,16 @@ public class OWFogEvents {
     public static void onRenderFog(ViewportEvent.RenderFog event) {
         FogType fluid = event.getCamera().getFluidInCamera();
 
-        if (aquaBlend > 0f && fluid == FogType.WATER) {
-            event.setNearPlaneDistance(lerp(event.getNearPlaneDistance(), AQUA_NEAR, aquaBlend));
-            event.setFarPlaneDistance(lerp(event.getFarPlaneDistance(), AQUA_FAR, aquaBlend));
-            event.setCanceled(true);
+        if (aquaBlend > 0f) {
+            if (fluid == FogType.WATER) {
+                event.setNearPlaneDistance(lerp(event.getNearPlaneDistance(), AQUA_NEAR, aquaBlend));
+                event.setFarPlaneDistance(lerp(event.getFarPlaneDistance(), AQUA_FAR, aquaBlend));
+                event.setCanceled(true);
+            } else if (event.getMode() == FogRenderer.FogMode.FOG_TERRAIN) {
+                event.setNearPlaneDistance(lerp(event.getNearPlaneDistance(), AQUA_AIR_NEAR, aquaBlend));
+                event.setFarPlaneDistance(lerp(event.getFarPlaneDistance(), AQUA_AIR_FAR, aquaBlend));
+                event.setCanceled(true);
+            }
             return;
         }
 

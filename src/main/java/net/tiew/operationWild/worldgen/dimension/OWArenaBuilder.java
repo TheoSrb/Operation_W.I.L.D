@@ -73,7 +73,7 @@ public final class OWArenaBuilder {
      */
     public static final int VERSION = 21;
 
-    public static final int AQUATIC_VERSION = 9;
+    public static final int AQUATIC_VERSION = 10;
 
     /** Grille du colisée aquatique : 5×40 = 200 couvrent le carré d'eau 200×200 sans marge d'air. */
     public static final int PART_SIZE_AQ = 40;

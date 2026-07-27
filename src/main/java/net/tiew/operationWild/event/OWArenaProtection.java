@@ -73,12 +73,12 @@ public class OWArenaProtection {
                 || entity instanceof Projectile;
     }
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public static void onBlockBreak(BlockEvent.BreakEvent event) {
         if (!inArena(event.getLevel()) || mayEdit(event.getPlayer())) return;
         // Refus muet : la casse est bloquée, mais sans avertir au tchat à chaque coup de pioche.
         event.setCanceled(true);
-    }
+    }*/
 
     @SubscribeEvent
     public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {

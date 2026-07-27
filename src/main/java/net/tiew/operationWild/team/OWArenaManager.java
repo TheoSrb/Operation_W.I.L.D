@@ -388,9 +388,18 @@ public final class OWArenaManager {
                 && level.getBlockState(above).getCollisionShape(level, above).isEmpty();
     }
 
-    /** Ordonnée d'arrivée dans l'arène : on vise le plain-pied de la dimension. */
-    private static double arenaY(ServerLevel arena, int x, int z) {
-        return safeY(arena, x, z, OWArena.ARENA_Y);
+    /**
+     * Ordonnée d'arrivée dans l'arène : le plain-pied de la dimension sur terre ferme, en pleine
+     * eau dans l'aire engloutie.
+     *
+     * <p>Sous l'eau, la recherche de hauteur libre est court-circuitée : l'eau n'oppose aucune
+     * collision, donc la hauteur visée est toujours bonne, alors que le repli sur le heightmap
+     * remonterait à la surface — hors du combat.</p>
+     */
+    private static double arenaY(ServerLevel arena, int x, int z, OWArena.Terrain terrain) {
+        int wanted = OWArena.spawnY(terrain);
+        if (terrain == OWArena.Terrain.AQUATIC) return wanted;
+        return safeY(arena, x, z, wanted);
     }
 
     private static void placeSide(MinecraftServer server, ServerLevel arena, OWArenaMatch match,
@@ -420,7 +429,7 @@ public final class OWArenaManager {
             double spacing = n > 1 ? (2.0 * OWArena.ARENA_FIGHTER_SPREAD) / (n - 1) : 0.0;
             int x = match.arenaOffsetX() + (int) Math.round((i - (n - 1) / 2.0) * spacing);
             Entity moved = owE.changeDimension(new DimensionTransition(
-                    arena, new Vec3(x + 0.5, arenaY(arena, x, lineZ), lineZ + 0.5), Vec3.ZERO, yRot, 0f,
+                    arena, new Vec3(x + 0.5, arenaY(arena, x, lineZ, match.getTerrain()), lineZ + 0.5), Vec3.ZERO, yRot, 0f,
                     DimensionTransition.DO_NOTHING));
             if (moved instanceof OWEntity arrived) {
                 readyForBattle(arrived, match, teamId);
@@ -542,11 +551,12 @@ public final class OWArenaManager {
         // Descendre de monture avant le voyage : un joueur téléporté à cheval sur une créature
         // qui part ailleurs se retrouve dans un état incohérent.
         p.stopRiding();
-        // Plain-pied imposé (y=64) : les camps sont sur l'axe Z au niveau du sol de l'aire, et non
-        // sur les gradins. Laisser la recherche de hauteur libre grimperait sur la première marche.
+        // Hauteur imposée : plain-pied (y=64) sur terre ferme — les camps sont au niveau du sol et
+        // non sur les gradins, et laisser la recherche de hauteur libre grimperait sur la première
+        // marche —, en pleine eau dans l'aire engloutie.
         int ox = match.arenaOffsetX();
         p.changeDimension(new DimensionTransition(
-                arena, new Vec3(ox + 0.5, OWArena.ARENA_Y, z + 0.5), Vec3.ZERO, yRot, 0f,
+                arena, new Vec3(ox + 0.5, OWArena.spawnY(match.getTerrain()), z + 0.5), Vec3.ZERO, yRot, 0f,
                 DimensionTransition.DO_NOTHING));
         if (match.getTerrain() == OWArena.Terrain.AQUATIC) {
             p.addEffect(new net.minecraft.world.effect.MobEffectInstance(

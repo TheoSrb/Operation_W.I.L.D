@@ -58,9 +58,10 @@ public class OWBiomes {
                         .waterColor(0x1E4D6B)
                         .waterFogColor(0x081C2C)
                         .skyColor(0x243F58)
-                        .grassColorOverride(0x2E7A6F)
-                        .foliageColorOverride(0x2E7A6F)
+                        .grassColorOverride(0x2A6E96)
+                        .foliageColorOverride(0x2A6E96)
                         .fogColor(0x0C2436)
+                        .ambientParticle(new AmbientParticleSettings(ParticleTypes.WARPED_SPORE, 0.0085f))
                         .ambientMoodSound(AmbientMoodSettings.LEGACY_CAVE_SETTINGS)
                         .build())
                 .build();

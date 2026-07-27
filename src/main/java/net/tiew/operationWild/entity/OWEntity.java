@@ -2561,12 +2561,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
      * Terrains d'arène sur lesquels cette espèce sait se battre, en masque de bits
      * ({@link net.tiew.operationWild.core.OWArena.Terrain#bit()}).
      *
-     * <p>Par défaut une créature est à l'aise partout : seules celles que leur anatomie enferme dans
-     * un élément — l'orque dans l'eau, le tigre et le kodiak sur la terre ferme — restreignent ce
-     * masque. C'est ce qui décide de sa présence sur l'écran de sélection d'un duel.</p>
+     * <p>Le défaut est la <b>terre ferme seule</b>, et il est porté par la hiérarchie plutôt que
+     * redéclaré espèce par espèce : {@link OWSemiWaterEntity} l'ouvre aux deux éléments,
+     * {@link OWWaterEntity} le restreint à l'eau. Une créature qui hérite directement de cette
+     * classe est un animal terrestre — le supposer à l'aise partout laissait un kangourou descendre
+     * combattre au fond de l'eau, et aurait laissé passer chaque nouvelle espèce terrestre.</p>
      */
     public int arenaTerrainMask() {
-        return net.tiew.operationWild.core.OWArena.TERRAIN_BOTH;
+        return net.tiew.operationWild.core.OWArena.Terrain.TERRESTRIAL.bit();
     }
 
     /**

@@ -1,4 +1,4 @@
-// 1.21	2026-07-25T13:08:34.7258381	Registries
+// 1.21	2026-07-26T09:39:16.7932523	Registries
 50ceb8e49f7e83c2dd6bfecce80a0a9483d14b93 data/ow/enchantment/fawns_protection.json
 e156689f884404354ca67120bdc7f8d470c68d2e data/ow/enchantment/lightness.json
 2e18fdc85cbc2b05f000ae62dc5d3d17ab741fae data/ow/enchantment/plant_providence.json
@@ -16,7 +16,7 @@ acc2cca14463403e69dc5867590547b83b07dd4c data/ow/neoforge/biome_modifier/spawn_c
 4d2d507c1dc873de11c666304374cd311ea5bb20 data/ow/neoforge/biome_modifier/spawn_kodiak.json
 a2267063fc1c45a7b32f6126a96105b18970be27 data/ow/neoforge/biome_modifier/spawn_tiger.json
 62cda710c6e4fadeb94242cc5192c0d6c68ef6eb data/ow/worldgen/biome/arena.json
-0fe20d1fe94554dab579982251905c66f38130ce data/ow/worldgen/biome/arena_aquatic.json
+8fa483b90301bd0fc755d570284909cefbb43b92 data/ow/worldgen/biome/arena_aquatic.json
 e53d6fca504dd154199e0bda2c815d8c4ebf9ce5 data/ow/worldgen/biome/mine_field.json
 37f45876c3cfa95ab2e30070e70d8d3a29f59a3d data/ow/worldgen/biome/redwood_forest.json
 2327217a2acce528537f6d19286ccaecf74378ee data/ow/worldgen/configured_feature/deep_trench.json

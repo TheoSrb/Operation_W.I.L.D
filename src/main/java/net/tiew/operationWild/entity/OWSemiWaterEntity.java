@@ -24,6 +24,12 @@ import net.tiew.operationWild.event.ClientEvents;
 
 public abstract class OWSemiWaterEntity extends OWEntity {
 
+    /** Amphibie : à l'aise sur les deux terrains de duel. */
+    @Override
+    public int arenaTerrainMask() {
+        return net.tiew.operationWild.core.OWArena.TERRAIN_BOTH;
+    }
+
     private static final EntityDataAccessor<Float> TARGET_PITCH = SynchedEntityData.defineId(OWSemiWaterEntity.class, EntityDataSerializers.FLOAT);
 
     private float swimYaw = 0;

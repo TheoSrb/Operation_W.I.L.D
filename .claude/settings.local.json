@@ -205,7 +205,12 @@
       "Bash(rm -f \"C:\\\\Users\\\\Tiew_37\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D\\\\315c24b7-b977-4ba3-b543-993beecea61b\\\\scratchpad\\\\Prev5.\"* 2>/dev/null; echo done)",
       "Bash(rm -f \"C:\\\\Users\\\\Tiew_37\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D\\\\315c24b7-b977-4ba3-b543-993beecea61b\\\\scratchpad\\\\Prev6.\"* 2>/dev/null; echo done)",
       "Bash(rm -f \"C:\\\\Users\\\\Tiew_37\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D\\\\315c24b7-b977-4ba3-b543-993beecea61b\\\\scratchpad\\\\Prev7.\"* 2>/dev/null; echo done)",
-      "Bash(rm -f \"C:\\\\Users\\\\Tiew_37\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D\\\\315c24b7-b977-4ba3-b543-993beecea61b\\\\scratchpad\\\\Prev8.\"* 2>/dev/null; echo done)"
+      "Bash(rm -f \"C:\\\\Users\\\\Tiew_37\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D\\\\315c24b7-b977-4ba3-b543-993beecea61b\\\\scratchpad\\\\Prev8.\"* 2>/dev/null; echo done)",
+      "Bash(cp \"C:/Users/Tiew_37/Desktop/Serveurs/OW Arena Builds/world/generated/ow/structures/\"arena_aq_*.nbt \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/src/main/resources/data/ow/structure/\" && echo \"copie OK\" && echo \"=== compte arena_aq dans le mod ===\" && ls \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/src/main/resources/data/ow/structure/\"arena_aq_*.nbt | wc -l && echo \"=== taille totale ===\" && du -ch \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/src/main/resources/data/ow/structure/\"arena_aq_*.nbt | tail -1)",
+      "Bash(git check-ignore *)",
+      "Bash(./gradlew.bat -p \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\" build -x test)",
+      "Bash(unzip -l build/libs/ow-0.0.1.jar)",
+      "Bash(ls ~/.claude/skills/ 2>/dev/null; ls .claude/skills/ 2>/dev/null)"
     ]
   }
 }
