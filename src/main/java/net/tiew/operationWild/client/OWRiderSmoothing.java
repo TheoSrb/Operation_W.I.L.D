@@ -129,6 +129,10 @@ public final class OWRiderSmoothing {
     public static Vec3 seatCorrection(Entity rider, OWEntity mount, float partialTick) {
         if (!ENABLED) return null;
 
+        // Rien à rattraper là où l'assise n'est calculée qu'au tick : la soustraction annulerait
+        // l'interpolation du moteur au lieu de la corriger. Cf. OWEntity#riderSeatIsFrameAccurate.
+        if (!mount.riderSeatIsFrameAccurate()) return null;
+
         UUID cached = rider.getUUID();
         Long computedAt = FRAME_RESULT_AT.get(cached);
         // frame == 0 : le montage de la caméra n'a jamais tourné (mixin absent). On recalcule alors

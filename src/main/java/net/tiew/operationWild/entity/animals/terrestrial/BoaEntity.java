@@ -256,6 +256,16 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         return false;
     }
 
+    /**
+     * Assise figée sur le tick : {@code positionRider} la prend au milieu des deux positions du
+     * segment de queue porteur, puis la lisse lui-même via {@code smoothSeatClient}. Le rattrapage
+     * générique n'a donc rien à corriger ici — il ne ferait qu'annuler l'interpolation du moteur.
+     */
+    @Override
+    public boolean riderSeatIsFrameAccurate() {
+        return false;
+    }
+
     @Override
     public float getRotationSpeed() {
         return this.isVehicle() ? 0.1f : 0.05f;

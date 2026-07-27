@@ -133,6 +133,9 @@ public class OWOrcaBeachingGoal extends Goal {
         this.orca.setAggressive(false);
         this.orca.setRunning(false);
         this.orca.setBeached(false);
+        // Le tonneau ne se déclenche que sur le front montant : le drapeau doit retomber pour qu'un
+        // prochain bond puisse le relever.
+        this.orca.setDashing(false);
         this.target = null;
         this.phase = Phase.SEARCHING;
         this.leapTicks = 0;
@@ -234,6 +237,11 @@ public class OWOrcaBeachingGoal extends Goal {
         );
         orca.hasImpulse = true;
         orca.getNavigation().stop();
+
+        // Même drapeau que la ruée du cavalier : c'est lui qui enclenche le tonneau côté client, et
+        // il est déjà synchronisé. Le bond sauvage tourne donc sur lui-même comme la ruée montée,
+        // sans un paquet de plus.
+        orca.setDashing(true);
 
         // Particules d'éclaboussure
         OWUtils.spawnServerParticles(orca, ParticleTypes.SPLASH, 0, 0.5, 0, 30, 1.5);

@@ -217,7 +217,10 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 			}
 			if (groundRotationTimer > 0) {
 				groundRotationTimer--;
-				this.ALL2.zRot = (float) Math.toRadians(90);
+				// La bascule sur le flanc du saut hors de l'eau cède le pas à une figure en cours :
+				// le bond d'échouage enclenche désormais le tonneau, et les deux se disputaient le
+				// même os. Le compteur continue de courir, la pose reprend la main à la sortie.
+				if (!orca.isRollingFigure()) this.ALL2.zRot = (float) Math.toRadians(90);
 			}
 		} else {
 			groundRotationTimer = 0;
@@ -227,7 +230,7 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
 		}
 
-		if (groundRotationTimer <= 0 && Math.abs(externalBankRoll) > 0.01f) {
+		if (Math.abs(externalBankRoll) > 0.01f) {
 			this.ALL2.zRot = (float) Math.toRadians(externalBankRoll);
 		}
 

@@ -2659,11 +2659,30 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final float LEAN_CRUISE_STEP = 0.1f;
     private static final float LEAN_IDLE_DRIVE = 0.3f;
 
+    /**
+     * Réglages propres à la nage LIBRE, plus doux que ceux du pilotage.
+     *
+     * <p>Le signal de lacet d'une bête livrée à son IA est bien plus bruité que celui d'une monture.
+     * Vanilla ne réoriente son corps sur sa direction de marche qu'au-delà de 0,05 bloc parcouru par
+     * tick ({@code LivingEntity#tick}) : une nageuse en vadrouille flotte autour de ce seuil, et la
+     * réorientation s'allume et s'éteint d'un tick à l'autre. Ses positions arrivent en prime par
+     * paquets, interpolées sur trois ticks, ce qui hache encore le déplacement mesuré.</p>
+     *
+     * <p>Filtrer plus fort et monter plus lentement n'y coûte rien — une orque sauvage ne vire pas
+     * dans l'urgence — et supprime les à-coups que ce bruit provoquait.</p>
+     */
+    private static final float BANK_RATE_SMOOTHING_FREE = 0.25f;
+    private static final float BANK_RISE_FREE = 0.15f;
+
+    /** Lissage de l'allure, pour que le facteur d'entraînement ne saute pas d'un tick à l'autre. */
+    private static final float LEAN_STEP_SMOOTHING = 0.25f;
+
     private float bankRoll = 0f;
     private float bankRollPrev = 0f;
     private float bankYawRate = 0f;
     private float leanPitch = 0f;
     private float leanPitchPrev = 0f;
+    private float leanStep = 0f;
 
     public float getBankRoll(float partialTick) {
         return Mth.lerp(partialTick, this.bankRollPrev, this.bankRoll);
@@ -2718,6 +2737,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
      */
     public org.joml.Matrix4f riderBoneMatrix() { return null; }
 
+    /**
+     * {@code positionRider} rend-il une assise juste à l'IMAGE, ou seulement au tick ?
+     *
+     * <p>Le rattrapage d'assise de {@code OWRiderSmoothing} vaut {@code siège exact − position
+     * interpolée par le moteur}. Il ne redresse quelque chose que si le premier terme est réellement
+     * recalculé à chaque image — c'est le cas des espèces dont le siège se déduit d'une matrice d'os,
+     * relevée au rendu.</p>
+     *
+     * <p>{@code false} pour une espèce dont le siège est figé sur le tick : la soustraction y annule
+     * purement l'interpolation du moteur et cloue le cavalier sur sa position de tick, soit vingt
+     * pas par seconde. Mieux vaut alors ne rien corriger du tout et laisser le moteur interpoler.</p>
+     */
+    public boolean riderSeatIsFrameAccurate() { return true; }
+
     protected float bankMaxAngle() { return BANK_MAX_ANGLE; }
 
     /**
@@ -2758,21 +2791,28 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             double dy = this.getY() - this.yOld;
             double dz = this.getZ() - this.zOld;
             float step = (float) java.lang.Math.sqrt(dx * dx + dy * dy + dz * dz);
-            float drive = Mth.clamp(step / LEAN_CRUISE_STEP, LEAN_IDLE_DRIVE, 1f);
+
+            // Allure lissee, et non le pas du tick : une nageuse en vadrouille croise justement le
+            // seuil de LEAN_CRUISE_STEP, si bien que le facteur d'entrainement sautait entre 0,3 et 1
+            // d'un tick a l'autre — et le roulis avec lui.
+            this.leanStep += (step - this.leanStep) * LEAN_STEP_SMOOTHING;
+            float drive = Mth.clamp(this.leanStep / LEAN_CRUISE_STEP, LEAN_IDLE_DRIVE, 1f);
 
             LivingEntity rider = this.leaningRider();
+            boolean ridden = rider != null;
 
             float yawRate = Mth.wrapDegrees(this.yBodyRot - this.yBodyRotO);
-            this.bankYawRate += (yawRate - this.bankYawRate) * BANK_RATE_SMOOTHING;
+            this.bankYawRate += (yawRate - this.bankYawRate)
+                    * (ridden ? BANK_RATE_SMOOTHING : BANK_RATE_SMOOTHING_FREE);
 
-            float reference = this.bankReferenceYawRate(rider != null);
+            float reference = this.bankReferenceYawRate(ridden);
             float normalized = Mth.clamp(java.lang.Math.abs(this.bankYawRate) / reference, 0f, 1f);
             float shaped = (float) java.lang.Math.pow(normalized, BANK_SHARPNESS);
             rollTarget = -java.lang.Math.signum(this.bankYawRate) * shaped * this.bankMaxAngle() * drive;
 
             float maxPitch = this.pitchMaxAngle();
             if (maxPitch > 0f) {
-                if (rider != null) {
+                if (ridden) {
                     pitchTarget = Mth.clamp(this.getRiddenRotation(rider).x, -maxPitch, maxPitch) * drive;
                 } else if (this.leanPitchWhenFree() && step > 1.0E-5f) {
                     double horizontal = java.lang.Math.sqrt(dx * dx + dz * dz);
@@ -2782,9 +2822,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         } else {
             this.bankYawRate *= 0.5f;
+            this.leanStep *= 0.5f;
         }
 
-        float rollResponse = java.lang.Math.abs(rollTarget) > 0.5f ? BANK_RISE : BANK_FALL;
+        float rise = this.getControllingPassenger() != null ? BANK_RISE : BANK_RISE_FREE;
+        float rollResponse = java.lang.Math.abs(rollTarget) > 0.5f ? rise : BANK_FALL;
         this.bankRoll += (rollTarget - this.bankRoll) * rollResponse;
         if (java.lang.Math.abs(this.bankRoll) < 0.01f) this.bankRoll = 0f;
 
