@@ -1293,10 +1293,13 @@ public class ClientEvents {
             poseStack.pushPose();
 
             if (player == crocodile.getGrabbedTarget()) {
+                // Orientation prise sur la chaîne des MÂCHOIRES et non sur le corps : la victime
+                // est tenue par la gueule, elle doit donc basculer avec elle — cou qui se cabre,
+                // secousse de tête, tonneau de la roulade.
                 Vec3 look = crocodile.getLookAngle();
-                Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.getBodyZRot());
-                Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.getBodyXRot());
-                Quaternionf rotationY = Axis.YP.rotationDegrees(-crocodile.getBodyYRot());
+                Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.mouthZRotDeg);
+                Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.mouthXRotDeg);
+                Quaternionf rotationY = Axis.YP.rotationDegrees(-crocodile.mouthYRotDeg);
 
                 poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
                 poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
@@ -2500,22 +2503,17 @@ public class ClientEvents {
 
         Vec3 crocPos = croc.position();
         Vec3 lookVec = player.getLookAngle();
-        double radius = 10.0;
+        double radius = OWAttacksConstants.Crocodile.PRIMAL_DIVE_TARGET_RANGE;
 
-        AABB box = new AABB(crocPos.x - radius, crocPos.y - radius, crocPos.z - radius,
-                crocPos.x + radius, crocPos.y + radius, crocPos.z + radius);
+        AABB box = croc.getBoundingBox().inflate(radius);
 
         LivingEntity best = null;
         double bestDot = Double.NEGATIVE_INFINITY;
 
-        for (LivingEntity candidate : level.getEntitiesOfClass(LivingEntity.class, box, e -> {
-            if (e == croc || e == player) return false;
-            if (!e.isAlive() || !e.isInWater()) return false;
-            if (croc.isAlliedTo(e)) return false;
-            if (e instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity) return false;
-            if (e instanceof net.tiew.operationWild.entity.OWEntity ow && ow.getTheoreticalScale() >= 10) return false;
-            return true;
-        })) {
+        // Filtre commun avec le réticule (canPrimalDiveTarget) : les deux listes divergeaient, et
+        // des créatures marquées à l'écran n'étaient pas prises par la touche.
+        for (LivingEntity candidate : level.getEntitiesOfClass(LivingEntity.class, box,
+                e -> e != player && croc.canPrimalDiveTarget(e) && croc.distanceToSqr(e) <= radius * radius)) {
             Vec3 dir = candidate.getBoundingBox().getCenter().subtract(crocPos).normalize();
             double dot = lookVec.dot(dir);
             if (dot > bestDot) {
@@ -2530,7 +2528,7 @@ public class ClientEvents {
 
         if (OWAttackLogic.crocTargetEntityId != -1) {
             Entity cur = level.getEntity(OWAttackLogic.crocTargetEntityId);
-            if (!(cur instanceof LivingEntity le) || !le.isAlive() || !le.isInWater())
+            if (!(cur instanceof LivingEntity le) || !croc.canPrimalDiveTarget(le))
                 OWAttackLogic.crocTargetEntityId = -1;
         }
     }
@@ -2598,7 +2596,12 @@ public class ClientEvents {
             Vec3 center = le.getBoundingBox().getCenter();
             if (owEntity instanceof CrocodileEntity
                     || owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity) {
-                addEspGreenDot(buf, matrix, center, jRight, jUp);
+                // Verrouillé = la cible que la touche va réellement saisir. Le Boa marque tous les
+                // candidats à portée : sans cette distinction, une poignée de points identiques
+                // laissait le joueur deviner lequel serait pris.
+                boolean locked = id == OWAttackLogic.crocTargetEntityId
+                        || id == OWAttackLogic.boaTargetEntityId;
+                addEspTargetMarker(buf, matrix, le, center, jRight, jUp, locked);
             } else {
                 addEspGlowGradient(buf, matrix, center, jRight, jUp);
             }
@@ -2764,9 +2767,97 @@ public class ClientEvents {
         }
     }
 
-    private static void addEspGreenDot(BufferBuilder buf, Matrix4f matrix,
-                                       Vec3 center, Vector3f right, Vector3f up) {
-        addQuad(buf, matrix, center, right, up, 0.12f, 0.0f, 1.0f, 0.2f, 0.70f);
+    /**
+     * Réticule de verrouillage des ultimes de saisie (Crocodile, Boa), en remplacement du point vert.
+     *
+     * <p>Le point unique ne disait ni <b>où</b> commence et finit la cible, ni — sur le Boa, qui
+     * marque tous les candidats à portée — <b>laquelle</b> la touche allait réellement prendre. Le
+     * réticule répond aux deux : ses quatre équerres épousent la boîte de la créature, donc son
+     * gabarit se lit d'un coup d'œil, et seule la cible verrouillée reçoit le cadre complet avec son
+     * chevron. Les autres candidats gardent des marques d'angle discrètes, deux fois plus petites et
+     * ternes : présentes, mais impossibles à confondre avec la sélection.</p>
+     */
+    private static void addEspTargetMarker(BufferBuilder buf, Matrix4f matrix, LivingEntity target,
+                                           Vec3 center, Vector3f right, Vector3f up, boolean locked) {
+        float halfW = Math.max(target.getBbWidth(), 0.45f) * 0.62f;
+        float halfH = Math.max(target.getBbHeight(), 0.55f) * 0.56f;
+
+        long t = System.currentTimeMillis();
+
+        if (!locked) {
+            // Simple candidat : équerres courtes et sourdes, aucun mouvement pour ne pas attirer l'œil.
+            addTargetBrackets(buf, matrix, center, right, up,
+                    halfW, halfH, Math.min(halfW, halfH) * 0.30f, 0.020f,
+                    0.10f, 0.55f, 0.22f, 0.32f);
+            return;
+        }
+
+        // Verrouillé : le cadre respire vers l'intérieur, comme une prise qui se referme.
+        float breath = 1.0f + 0.10f * (float) Math.sin(t / 260.0);
+        float glow = 0.78f + 0.22f * (float) Math.abs(Math.sin(t / 340.0));
+
+        addTargetBrackets(buf, matrix, center, right, up,
+                halfW * breath, halfH * breath, Math.min(halfW, halfH) * 0.55f, 0.035f,
+                0.15f, 1.0f, 0.35f, glow);
+
+        // Chevron au-dessus de la tête : repère lisible même quand le cadre sort de l'écran.
+        float hover = 0.09f * (float) Math.sin(t / 300.0);
+        Vec3 above = center.add(up.x * (halfH + 0.34f + hover),
+                up.y * (halfH + 0.34f + hover),
+                up.z * (halfH + 0.34f + hover));
+        addDiamond(buf, matrix, above, right, up, 0.11f, 0.15f, 1.0f, 0.35f, glow);
+    }
+
+    /** Quatre équerres d'angle épousant la boîte de la cible, dessinées en barres fines. */
+    private static void addTargetBrackets(BufferBuilder buf, Matrix4f matrix,
+                                          Vec3 center, Vector3f right, Vector3f up,
+                                          float halfW, float halfH, float len, float thickness,
+                                          float r, float g, float b, float a) {
+        for (int sx = -1; sx <= 1; sx += 2) {
+            for (int sy = -1; sy <= 1; sy += 2) {
+                float cornerX = sx * halfW;
+                float cornerY = sy * halfH;
+
+                addFlatQuad(buf, matrix, center, right, up,
+                        cornerX, cornerY - sy * thickness,
+                        cornerX - sx * len, cornerY + sy * thickness,
+                        r, g, b, a);
+
+                addFlatQuad(buf, matrix, center, right, up,
+                        cornerX - sx * thickness, cornerY,
+                        cornerX + sx * thickness, cornerY - sy * len,
+                        r, g, b, a);
+            }
+        }
+    }
+
+    /** Rectangle plein défini par deux coins, exprimé dans le repère écran (right, up). */
+    private static void addFlatQuad(BufferBuilder buf, Matrix4f matrix,
+                                    Vec3 center, Vector3f right, Vector3f up,
+                                    float x0, float y0, float x1, float y1,
+                                    float r, float g, float b, float a) {
+        float[][] pts = {{x0, y0}, {x1, y0}, {x1, y1}, {x0, y1}};
+        for (float[] p : pts) {
+            buf.addVertex(matrix,
+                            (float) center.x + right.x * p[0] + up.x * p[1],
+                            (float) center.y + right.y * p[0] + up.y * p[1],
+                            (float) center.z + right.z * p[0] + up.z * p[1])
+                    .setColor(r, g, b, a);
+        }
+    }
+
+    /** Losange face caméra — le chevron de la cible verrouillée. */
+    private static void addDiamond(BufferBuilder buf, Matrix4f matrix,
+                                   Vec3 center, Vector3f right, Vector3f up,
+                                   float size, float r, float g, float b, float a) {
+        float[][] pts = {{0f, size}, {size, 0f}, {0f, -size}, {-size, 0f}};
+        for (float[] p : pts) {
+            buf.addVertex(matrix,
+                            (float) center.x + right.x * p[0] + up.x * p[1],
+                            (float) center.y + right.y * p[0] + up.y * p[1],
+                            (float) center.z + right.z * p[0] + up.z * p[1])
+                    .setColor(r, g, b, a);
+        }
     }
 
     private static void addQuad(BufferBuilder buf, Matrix4f matrix,

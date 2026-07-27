@@ -251,45 +251,4 @@ public class CrocodileBehaviorHandler {
                 hitSound, SoundSource.HOSTILE, 1.2f, pitch);
     }
 
-    public void makeBigHurt(float attackDamage, SoundEvent sound, double width, double height, double reach) {
-        double yaw = Math.toRadians(this.crocodile.getYRot());
-        double centerX = this.crocodile.getX() - Math.sin(yaw) * reach;
-        double centerZ = this.crocodile.getZ() + Math.cos(yaw) * reach;
-        double centerY = this.crocodile.getY() + 0.5;
-
-        AABB attackBox = new AABB(
-                centerX - width / 2, centerY - height, centerZ - width / 2,
-                centerX + width / 2, centerY + height, centerZ + width / 2
-        );
-
-        Entity passenger = this.crocodile.getControllingPassenger();
-
-        List<LivingEntity> targets = this.crocodile.level().getEntitiesOfClass(
-                LivingEntity.class,
-                attackBox,
-                entity -> entity != crocodile && !this.crocodile.isAlliedTo(entity) && entity != passenger
-        );
-
-        for (LivingEntity target : targets) {
-            if (target.getHealth() < target.getMaxHealth() * 0.3f) {
-                this.crocodile.killedEntity((ServerLevel) this.crocodile.level(), target);
-            } else target.hurt(this.crocodile.damageSources().mobAttack(this.crocodile), attackDamage);
-
-            Vec3 knockbackDirection = target.position().subtract(this.crocodile.position()).normalize();
-            Vec3 knockback = knockbackDirection.scale(2.5);
-            target.setDeltaMovement(target.getDeltaMovement().add(knockback.x, knockback.y * 0.5, knockback.z));
-
-            target.addEffect(new MobEffectInstance(OWEffects.FRACTURE.getDelegate(), OWUtils.generateExponentialExp(150, 300), 0));
-
-            this.crocodile.hurtAfterCombo(target, crocodile.getComboAttack());
-        }
-
-        this.crocodile.setChargingMouthTimer(0);
-        this.crocodile.setChargingMouth(false);
-        this.crocodile.level().playSound(null, this.crocodile.getX(), this.crocodile.getY(), this.crocodile.getZ(), sound, SoundSource.NEUTRAL, 1.0F, 0.75f);
-
-        float pitch = (float) (OWUtils.generateRandomInterval(1.1, 1.25));
-        SoundEvent sound2 = RANDOM(2) ? OWSounds.CROCODILE_HIT_1.get() : OWSounds.CROCODILE_HIT_2.get();
-        crocodile.level().playSound(null, crocodile.getX(), crocodile.getY(), crocodile.getZ(), sound2, SoundSource.HOSTILE, 1.0f, pitch);
-    }
 }

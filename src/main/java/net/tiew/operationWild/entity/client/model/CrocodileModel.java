@@ -302,21 +302,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 
 		animateCombos(crocodile, ageInTicks);
 
-		if (crocodile.isDeathRolling()) {
-			if (limbSwingAmount > 0.01f) {
-				crocodile.idleDeathRollAnimState.stop();
-				this.animate(crocodile.deathRollAnimationState, CrocodileAnimations.ATTACK_DEATH_ROLL, ageInTicks, 1.0f);
-			} else {
-				crocodile.idleDeathRollAnimState.startIfStopped((int) ageInTicks);
-				this.animate(crocodile.idleDeathRollAnimState, CrocodileAnimations.IDLE_DEATH_ROLL, ageInTicks, 1.0f);
-			}
-		}
-
-		if (crocodile.isGrabbing()) {
-			this.mouth_down.xRot = (float) Math.toRadians(20);
-			this.mouth_up.xRot = (float) Math.toRadians(-20);
-		}
-
 		if (crocodile.isMad()) {
 			this.left_eyeball.xScale = 0;
 			this.left_eyeball.yScale = 0;
@@ -325,6 +310,36 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 			this.right_eyeball.xScale = 0;
 			this.right_eyeball.yScale = 0;
 			this.right_eyeball.zScale = 0;
+		}
+
+		// Prise et roulade. L'ancienne version conditionnait la rotation à limbSwingAmount > 0.01,
+		// c'est-à-dire à un crocodile EN MOUVEMENT — or il fait justement du surplace pendant qu'il
+		// noie sa proie. La vraie roulade ne se jouait donc quasiment jamais, remplacée par le
+		// frémissement de l'animation d'attente. C'est l'état serveur qui décide maintenant.
+		boolean rolling = crocodile.isDeathRolling();
+		boolean holding = crocodile.hasGrabSomething();
+
+		if (holding && !rolling) {
+			// Gueule refermée sur la victime : ni béante ni fermée, juste serrée.
+			this.mouth_down.xRot = (float) Math.toRadians(9);
+			this.mouth_up.xRot = (float) Math.toRadians(-9);
+			this.animate(crocodile.grabHoldAnimState, CrocodileAnimations.GRAB_HOLD, ageInTicks, 1.0f);
+			this.animate(crocodile.grabThrashAnimState, CrocodileAnimations.GRAB_THRASH, ageInTicks, 1.0f);
+		}
+
+		if (rolling) {
+			this.mouth_down.xRot = (float) Math.toRadians(6);
+			this.mouth_up.xRot = (float) Math.toRadians(-6);
+			this.animate(crocodile.deathRollWindupAnimState, CrocodileAnimations.DEATH_ROLL_WINDUP, ageInTicks,
+					phaseSpeed(CrocodileAnimations.DEATH_ROLL_WINDUP, CrocodileEntity.DEATH_ROLL_WINDUP_TICKS));
+			this.animate(crocodile.deathRollAnimationState, CrocodileAnimations.ATTACK_DEATH_ROLL, ageInTicks,
+					phaseSpeed(CrocodileAnimations.ATTACK_DEATH_ROLL, CrocodileEntity.DEATH_ROLL_SPIN_TICKS));
+
+			// La nage par-dessus la roulade brouillait la lecture du tonneau : on garde le tonneau seul.
+			crocodile.idleWaterMountedAnimState.stop();
+			this.prevLimbSwing = limbSwing;
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
+			return;
 		}
 
 		if (crocodile.transitionIdleSit.isStarted()) {
@@ -374,7 +389,11 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 		if (!crocodile.isInWater()) {
 			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
-			if ((crocodile.isRunning() || crocodile.getState() == 2) && !crocodile.isChargingMouth() && !crocodile.hasGrabSomething()) {
+			// Une proie en gueule n'empêche PAS la course : le crocodile qui traîne sa prise vers
+			// l'eau file au contraire à toute allure. Le garde-fou sur hasGrabSomething() ne se
+			// voyait pas tant que cette méthode renvoyait toujours faux côté client ; maintenant
+			// qu'elle dit vrai, il collait l'animation de marche sur toute la traînée.
+			if ((crocodile.isRunning() || crocodile.getState() == 2) && !crocodile.isChargingMouth()) {
 				float speed = crocodile.getControllingPassenger() != null ? 1.2f : 1.5f;
 
 				this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, speed, 1.25f);
@@ -526,8 +545,48 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 		this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
 	}
 
+	/**
+	 * Repère des mâchoires, relevé <b>avant</b> toute neutralisation : la proie doit suivre la
+	 * gueule en tout, roulade comprise — c'est précisément elle qu'on fait tournoyer.
+	 */
+	private void captureMouthState(CrocodileEntity crocodile) {
+		PoseStack jaws = new PoseStack();
+		this.ALL2.translateAndRotate(jaws);
+		this.ALL.translateAndRotate(jaws);
+		this.body.translateAndRotate(jaws);
+		this.neck.translateAndRotate(jaws);
+		this.head.translateAndRotate(jaws);
+		this.mouth.translateAndRotate(jaws);
+		crocodile.mouthMatrix = new org.joml.Matrix4f(jaws.last().pose());
+
+		// Mêmes conventions de signe que bodyXRot / bodyZRot, pour que le rendu de la victime
+		// puisse les consommer sans traitement particulier.
+		crocodile.mouthXRotDeg = (float) -Math.toDegrees(
+				this.ALL2.xRot + this.ALL.xRot + this.body.xRot + this.neck.xRot + this.head.xRot + this.mouth.xRot);
+		crocodile.mouthYRotDeg = (float) Math.toDegrees(
+				this.ALL2.yRot + this.ALL.yRot + this.body.yRot + this.neck.yRot + this.head.yRot + this.mouth.yRot);
+		crocodile.mouthZRotDeg = (float) Math.toDegrees(
+				this.ALL2.zRot + this.ALL.zRot + this.body.zRot + this.neck.zRot + this.head.zRot + this.mouth.zRot);
+	}
+
 	private void captureBodyState(CrocodileEntity crocodile, float restPoseYSum, float riderRotIntensity, ModelPart... boneChain) {
 		if (!crocodile.level().isClientSide()) return;
+
+		captureMouthState(crocodile);
+
+		// Le tonneau de la roulade (jusqu'a trois tours sur l'os ALL) ne doit PAS entrer dans le
+		// repere du cavalier : le siege se deduit d'un point situe sous le pivot, qu'une rotation
+		// pareille ferait tourner en cercle — le joueur serait projete autour de la bete et la
+		// camera partirait a la renverse. La bete tournoie a l'ecran, le cavalier reste d'aplomb ;
+		// la secousse ressentie est ajoutee separement cote camera.
+		float savedAllZ = this.ALL.zRot;
+		float savedAll2Z = this.ALL2.zRot;
+		boolean neutralizeRoll = crocodile.isDeathRolling();
+		if (neutralizeRoll) {
+			this.ALL.zRot = 0f;
+			this.ALL2.zRot = 0f;
+		}
+
 		crocodile.setBodyZRot((float) Math.toDegrees((this.ALL2.zRot + this.ALL.zRot + this.body.zRot) * riderRotIntensity));
 		crocodile.setBodyXRot((float) -Math.toDegrees((this.ALL2.xRot + this.ALL.xRot + this.body.xRot) * riderRotIntensity));
 
@@ -539,6 +598,12 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 		this.ALL.translateAndRotate(bones);
 		this.body.translateAndRotate(bones);
 		crocodile.boneMatrix = new org.joml.Matrix4f(bones.last().pose());
+
+		if (neutralizeRoll) {
+			this.ALL.zRot = savedAllZ;
+			this.ALL2.zRot = savedAll2Z;
+		}
+
 		float ySum = 0f;
 		float xSum = 0f;
 		for (ModelPart bone : boneChain) { ySum += bone.y; xSum += bone.x; }
@@ -557,6 +622,19 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 	@Override
 	public ModelPart root() {
 		return this.ALL2;
+	}
+
+	/**
+	 * Cadence à donner à une animation pour qu'elle tienne exactement dans sa phase serveur.
+	 *
+	 * <p>L'armement et la rotation de la roulade durent ce que les constantes de l'entité disent,
+	 * pas ce que dure le fichier d'animation. Les recaler à la main invitait la dérive : raccourcir
+	 * la phase sans toucher aux images laissait la pose inachevée, l'allonger la figeait sur sa
+	 * dernière image en attendant la suite. Le rapport est donc calculé, une bonne fois.</p>
+	 */
+	private static float phaseSpeed(AnimationDefinition animation, int phaseTicks) {
+		if (phaseTicks <= 0) return 1.0f;
+		return (animation.lengthInSeconds() * 20f) / phaseTicks;
 	}
 
 	/**

@@ -150,12 +150,27 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
     public abstract int getMaxDepth();
     public abstract float getSwimSpeed();
 
+    /**
+     * Nage propre à l'amphibie, désormais empruntée <b>aussi par le client qui pilote</b>.
+     *
+     * <p>{@code isEffectiveAi()} vaut faux sur le client : monté, l'amphibie retombait donc dans
+     * {@code super.travel}, c'est-à-dire la nage vanilla — avec sa gravité aquatique. Et comme
+     * c'est le client du cavalier qui fait autorité sur la position d'une monture, c'est cette
+     * simulation-là qui gagnait : la bête s'enfonçait sous son pilote alors que le serveur, lui,
+     * la tenait à flot. L'orque n'avait pas le défaut parce que {@code OWWaterEntity} teste
+     * justement {@code isControlledByLocalInstance()} en plus — on s'aligne dessus.</p>
+     */
     @Override
     public void travel(Vec3 vec3) {
-        if (this.isEffectiveAi() && this.isInWater()) {
+        if (this.isInWater() && (this.isEffectiveAi() || this.isControlledByLocalInstance())) {
             this.moveRelative(0.1F, vec3);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.75D));
+
+            // Le cycle de nage se lit sur walkAnimation, que seul calculateEntityAnimation fait
+            // avancer — et il vit au bout de LivingEntity#travel, qu'on ne traverse plus ici. Sans
+            // cet appel, la bête glisserait dans l'eau parfaitement immobile sous son cavalier.
+            this.calculateEntityAnimation(false);
 
             int currentAir = this.getAirSupply();
             int maxAir = this.getMaxAirSupply();
@@ -189,7 +204,10 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
     @Override
     public void tick() {
         super.tick();
-        if (this instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() != null && !crocodile.isTame()) return;
+        // La nage lisse est déjà écartée quand une prise est en cours : elle exige
+        // !isVehicle(), et la proie compte comme passager. Le retour anticipé qui existait ici
+        // faisait en plus sauter les dégâts de pression — un crocodile qui noyait sa victime au
+        // fond ne les subissait jamais.
 
         LivingEntity rider = this.getControllingPassenger();
         int depth = (int) (this.level().getSeaLevel() - this.getY());

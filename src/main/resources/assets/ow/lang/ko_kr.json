@@ -609,7 +609,7 @@
   "ow.attacks.crocodile.reptilian.title": "파충류의 결박",
   "ow.attacks.crocodile.combo.desc": "당신의 악어에게 %s 초마다 물도록 명령하여, 물 때마다 %s 의 피해를 입힙니다.",
   "ow.attacks.crocodile.mouth.desc": "공격을 충전하여 %s 초마다 당신의 악어의 아가리를 %s 초 동안 천천히 벌렸다가, 놓으면 거세게 닫아 최대 %s 의 피해를 입힙니다.",
-  "ow.attacks.crocodile.primal_dive.desc": "엔티티를 지정하고 당신의 악어를 그 위로 돌진시켜 죽음의 회전을 시작합니다. 회전마다 %s 의 피해를 입힙니다. %s 처치마다, %s 초마다 충전됩니다.",
+  "ow.attacks.crocodile.primal_dive.desc": "엔티티를 지정하고 당신의 악어를 그 위로 돌진시켜 %s 초 동안 악다구로 물어 고정합니다. 죽음의 회전 1회당 %s 의 피해를 입힙니다. %s 처치로, %s 초마다 충전됩니다.",
   "ow.attacks.crocodile.reptilian.desc": "물 근처에서는 으스러뜨리기 공격에 맞은 중간 크기의 엔티티를 당신의 악어가 %s 초 동안 붙잡았다가 놓아줍니다.",
   "ow.attacks.kodiak.combo.title": "강타",
   "ow.attacks.kodiak.paw_slam.title": "앞발 내려치기",

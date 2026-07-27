@@ -609,7 +609,7 @@
   "ow.attacks.crocodile.reptilian.title": "Reptilian Grip",
   "ow.attacks.crocodile.combo.desc": "Command your Crocodile to bite every %s seconds, dealing %s damage with each bite.",
   "ow.attacks.crocodile.mouth.desc": "Charge the attack to slowly open your Crocodile's jaws for %s seconds every %s seconds, then release to snap them shut violently, dealing up to %s damage.",
-  "ow.attacks.crocodile.primal_dive.desc": "Mark an entity and lunge your Crocodile onto it to begin a Death Roll, dealing %s damage per rotation. Recharge by getting %s kills every %s seconds.",
+  "ow.attacks.crocodile.primal_dive.desc": "Mark an entity and lunge your Crocodile onto it to clamp it in its jaws for %s seconds: each Death Roll deals %s damage. Recharge with %s kills, every %s seconds.",
   "ow.attacks.crocodile.reptilian.desc": "Near water, medium-sized entities hit by a Crunch attack can be seized by your Crocodile for %s seconds before being released.",
   "ow.attacks.kodiak.combo.title": "Strike",
   "ow.attacks.kodiak.paw_slam.title": "Paw Slam",

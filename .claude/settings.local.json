@@ -224,7 +224,9 @@
       "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/client/DeltaTracker.java\")",
       "Bash(unzip -o -q \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/build/moddev/artifacts/neoforge-21.0.167-sources.jar\" \"net/minecraft/client/renderer/GameRenderer.java\" \"net/minecraft/client/renderer/LevelRenderer.java\")",
       "Bash(sed -i 's/riderBodyRotation\\(player, owVehicle\\)/riderBodyRotation\\(player, owVehicle, event.getPartialTick\\(\\)\\)/g' src/main/java/net/tiew/operationWild/event/ClientEvents.java)",
-      "Bash(sed -i 's/riderEyeOffset\\(player, mount, eye\\)/riderEyeOffset\\(player, mount, eye, partialTick\\)/' src/main/java/net/tiew/operationWild/mixin/CameraMixin.java)"
+      "Bash(sed -i 's/riderEyeOffset\\(player, mount, eye\\)/riderEyeOffset\\(player, mount, eye, partialTick\\)/' src/main/java/net/tiew/operationWild/mixin/CameraMixin.java)",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && sed -n '1272,1350p' src/main/java/net/tiew/operationWild/entity/client/animation/CrocodileAnimations.java > /tmp/old_dr.txt && head -3 /tmp/old_dr.txt && tail -3 /tmp/old_dr.txt)",
+      "Bash(grep -iA6 \"error\\\\|FAILED\")"
     ]
   }
 }

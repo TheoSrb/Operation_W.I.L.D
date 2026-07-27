@@ -31,14 +31,22 @@ public record StopGrabPacket() implements CustomPacketPayload {
                 Entity entity = player.getRootVehicle();
 
                 if (entity != null) {
+                    // Le crocodile passe par releaseGrab() : rendre la physique, démonter la victime
+                    // et rallumer l'IA que l'ultime avait coupée. La sortie manuelle contournait tout
+                    // cela — le joueur libéré gardait noPhysics et traversait le décor indéfiniment.
+                    // La vérification de cible évite en prime qu'un simple passager déclenche la
+                    // libération d'une prise qui ne le concerne pas.
                     if (entity instanceof CrocodileEntity crocodile) {
-                        crocodile.getGrabbedTarget().stopRiding();
-                        crocodile.setGrabbing(false, null);
-                        crocodile.setTarget(null);
+                        if (crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player
+                                && crocodile.getGrabTimeout() <= 0) {
+                            crocodile.releaseGrab();
+                        }
                     } else if (entity instanceof TigerEntity tiger) {
-                        tiger.getGrabbedTarget().stopRiding();
-                        tiger.setGrabbing(false, null);
-                        tiger.setTarget(null);
+                        if (tiger.isGrabbing() && tiger.getGrabbedTarget() == player) {
+                            tiger.getGrabbedTarget().stopRiding();
+                            tiger.setGrabbing(false, null);
+                            tiger.setTarget(null);
+                        }
                     }
                 }
 

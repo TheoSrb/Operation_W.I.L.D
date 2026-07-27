@@ -1,6 +1,7 @@
 package net.tiew.operationWild.entity.attacks;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
@@ -360,8 +361,39 @@ public class OWAttackLogic {
         event.setNewFovModifier(event.getNewFovModifier() * (1.0f - reduction));
     }
 
+    /**
+     * Secousse de caméra de la Roulade de la Mort, pour le cavalier <b>comme</b> pour la proie.
+     *
+     * <p>Elle est pilotée par l'état synchronisé du crocodile et non par un horodatage local : tout
+     * client concerné la ressent, y compris celui de la victime, et elle reste calée sur la rotation
+     * réelle même si le paquet de déclenchement a mis du temps à revenir. Le siège du cavalier, lui,
+     * reste d'aplomb — sans quoi trois tours complets renverraient la caméra dans tous les sens.</p>
+     */
+    private static void applyDeathRollShake(ViewportEvent.ComputeCameraAngles event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        if (!(mc.player.getRootVehicle() instanceof CrocodileEntity croc)) return;
+        if (!croc.isDeathRolling()) return;
+
+        int progress = croc.getDeathRollProgress();
+        if (progress <= CrocodileEntity.DEATH_ROLL_WINDUP_TICKS) return;
+
+        float spin = (float) (progress - CrocodileEntity.DEATH_ROLL_WINDUP_TICKS)
+                / CrocodileEntity.DEATH_ROLL_SPIN_TICKS;
+        // Cloche : montée franche au départ du tonneau, extinction douce à la sortie.
+        float envelope = (float) Math.sin(Mth.clamp(spin, 0f, 1f) * Math.PI);
+        float amplitude = envelope * (croc.getGrabbedTarget() == mc.player ? 9.0f : 5.0f);
+
+        long t = System.currentTimeMillis();
+        event.setRoll(event.getRoll()   + amplitude * 1.6f * (float) Math.sin(t / 45.0));
+        event.setPitch(event.getPitch() + amplitude * 0.5f * (float) Math.sin(t / 33.0));
+        event.setYaw(event.getYaw()     + amplitude * 0.5f * (float) Math.cos(t / 39.0));
+    }
+
     @SubscribeEvent
     public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
+        applyDeathRollShake(event);
+
         // Orca Tidal Rush — secousse frontale + légère bascule au déclenchement
         if (orcaDashEffectStartMs >= 0) {
             long elapsed = System.currentTimeMillis() - orcaDashEffectStartMs;
@@ -810,14 +842,27 @@ public class OWAttackLogic {
 
         if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT && event.getAction() == GLFW.GLFW_PRESS) {
             if (owEntity.isPlayerControlledDeathRoll()) {
-                if (!owEntity.isInWater()) {
-                    event.setCanceled(true);
-                    return;
+                // Test tolérant : isInWater() clignote à la surface, et le clic était alors avalé
+                // sans même partir au serveur. C'est lui qui arbitre pour de bon (startDeathRoll).
+                if (owEntity instanceof CrocodileEntity crocRoll) {
+                    if (!crocRoll.isInWaterForDeathRoll() || crocRoll.isDeathRolling()) {
+                        event.setCanceled(true);
+                        return;
+                    }
                 }
+                // Simple anti-flood, PAS une reproduction du délai serveur.
+                //
+                // Le verrou de 5,5 s d'avant partait à chaque envoi, y compris quand le serveur
+                // refusait la demande — une roulade encore en récupération, ou une prise vieille de
+                // moins d'une demi-seconde. Le joueur se retrouvait alors muselé par son propre
+                // client pendant cinq secondes SANS que rien ne se soit passé : il martelait le clic
+                // dans le vide, et seul le rare clic tombant après l'expiration du verrou aboutissait.
+                // Le serveur tient déjà son propre délai et met la demande en attente ; ici on ne
+                // fait plus que borner le débit de paquets.
                 if (System.currentTimeMillis() >= deathRollCooldownEndMs) {
                     PacketDistributor.sendToServer(
                             new OWAttackPacket(-1, OWAttackPacket.ACTION_TRIGGER_DEATH_ROLL, 0f));
-                    deathRollCooldownEndMs = System.currentTimeMillis() + 2100L;
+                    deathRollCooldownEndMs = System.currentTimeMillis() + 200L;
                 }
                 event.setCanceled(true);
                 return;

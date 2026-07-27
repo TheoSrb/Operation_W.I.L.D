@@ -63,6 +63,12 @@ public class JumpOutOfTheWaterGoal extends Goal {
     @Override
     public void stop() {
         super.stop();
+        // Le bond autorise UNE tentative de prise à terre. Sans cette remise à zéro, le drapeau
+        // restait levé à vie après le premier saut : toutes les morsures suivantes agrippaient,
+        // n'importe où sur la carte et même loin de toute eau.
+        if (entity instanceof CrocodileEntity crocodile && !crocodile.hasGrabSomething()) {
+            crocodile.canGrabOnLand = false;
+        }
     }
 
     @Override
@@ -77,6 +83,9 @@ public class JumpOutOfTheWaterGoal extends Goal {
         if (cooldownTimer > 0) {
             return false;
         }
+        // Proie déjà en gueule : le bond n'a plus d'objet, et start() ne ferait de toute façon
+        // rien. Autant ne pas occuper le goal pour rien pendant toute la durée de la prise.
+        if (entity instanceof CrocodileEntity crocodile && crocodile.hasGrabSomething()) return false;
 
         return entity.getVehicle() == null && entity.getControllingPassenger() == null && entity.getTarget() != null && entity.isInWater() &&
                 (entity.getTarget().onGround() && !entity.getTarget().isInWater()) && entity.distanceTo(entity.getTarget()) <= 6 && !entity.isTame();

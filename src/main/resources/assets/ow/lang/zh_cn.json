@@ -609,7 +609,7 @@
   "ow.attacks.crocodile.reptilian.title": "爬行类擒抱",
   "ow.attacks.crocodile.combo.desc": "命令你的鳄鱼每 %s 秒撕咬一次，每次撕咬造成 %s 点伤害。",
   "ow.attacks.crocodile.mouth.desc": "蓄力以让你的鳄鱼在每 %s 秒内缓缓张开大口 %s 秒，然后松开使其猛然合拢，造成最多 %s 点伤害。",
-  "ow.attacks.crocodile.primal_dive.desc": "指定一个实体并让你的鳄鱼扑向它，开始一次死亡翻滚，每次旋转造成 %s 点伤害。通过每 %s 次击杀、每 %s 秒充能。",
+  "ow.attacks.crocodile.primal_dive.desc": "指定一个实体并让你的鱷鱼扑向它，将其咬住 %s 秒：每次死亡翻滚造成 %s 点伤害。通过 %s 次击杀充能，每 %s 秒一次。",
   "ow.attacks.crocodile.reptilian.desc": "在靠近水域时，被碾压攻击击中的中型实体可被你的鳄鱼擒住 %s 秒，然后才被放开。",
   "ow.attacks.kodiak.combo.title": "重击",
   "ow.attacks.kodiak.paw_slam.title": "掌击",

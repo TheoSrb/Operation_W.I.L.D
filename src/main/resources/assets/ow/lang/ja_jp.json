@@ -609,7 +609,7 @@
   "ow.attacks.crocodile.reptilian.title": "爬虫類の捕縛",
   "ow.attacks.crocodile.combo.desc": "あなたのワニに %s 秒ごとに噛みつくよう命じ、噛みつきごとに %s のダメージを与えます。",
   "ow.attacks.crocodile.mouth.desc": "攻撃をチャージして、%s 秒ごとにあなたのワニの顎を %s 秒かけてゆっくり開き、放すと激しく噛み合わせて最大 %s のダメージを与えます。",
-  "ow.attacks.crocodile.primal_dive.desc": "エンティティを指定し、あなたのワニをその上に突進させてデスロールを始め、回転ごとに %s のダメージを与えます。%s 体の撃破ごと、%s 秒ごとにチャージ。",
+  "ow.attacks.crocodile.primal_dive.desc": "エンティティを指定し、あなたのワニをその上に突進させて %s 秒間顔で拘束します。デスロール 1 回につき %s のダメージ。%s 体の撃破で、%s 秒ごとにチャージ。",
   "ow.attacks.crocodile.reptilian.desc": "水の近くでは、粉砕攻撃で命中した中型のエンティティを、あなたのワニが %s 秒間捕らえてから放します。",
   "ow.attacks.kodiak.combo.title": "強打",
   "ow.attacks.kodiak.paw_slam.title": "パンチダウン",

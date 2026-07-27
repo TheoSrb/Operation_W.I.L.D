@@ -609,7 +609,7 @@
   "ow.attacks.crocodile.reptilian.title": "Agarre Reptiliano",
   "ow.attacks.crocodile.combo.desc": "Ordena a tu Cocodrilo morder cada %s segundos, infligiendo %s puntos de daño con cada mordisco.",
   "ow.attacks.crocodile.mouth.desc": "Carga el ataque para abrir lentamente las fauces de tu Cocodrilo durante %s segundos cada %s segundos, luego suelta para cerrarlas violentamente, infligiendo hasta %s puntos de daño.",
-  "ow.attacks.crocodile.primal_dive.desc": "Señala una entidad y lanza a tu Cocodrilo sobre ella para iniciar un Giro de la Muerte, infligiendo %s puntos de daño por rotación. Recárgalo consiguiendo %s muertes cada %s segundos.",
+  "ow.attacks.crocodile.primal_dive.desc": "Señala una entidad y lanza a tu Cocodrilo sobre ella para atraparla en sus fauces durante %s segundos: cada Giro de la Muerte inflige %s puntos de daño. Recárgalo con %s muertes, cada %s segundos.",
   "ow.attacks.crocodile.reptilian.desc": "Cerca del agua, las entidades de tamaño medio golpeadas por un ataque de Trituración pueden ser atrapadas por tu Cocodrilo durante %s segundos antes de ser soltadas.",
   "ow.attacks.kodiak.combo.title": "Golpe",
   "ow.attacks.kodiak.paw_slam.title": "Zarpazo Aplastante",

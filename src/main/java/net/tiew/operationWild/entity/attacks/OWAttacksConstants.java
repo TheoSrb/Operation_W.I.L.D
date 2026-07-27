@@ -38,6 +38,8 @@ public class OWAttacksConstants {
         public static final int PRIMAL_DIVE_COOLDOWN_TICKS = 1200;
         public static final long PRIMAL_DIVE_TARGETING_MS = 10_000L;
         public static final float PRIMAL_DIVE_ENERGY = 100f;
+        /** Rayon de recherche des cibles pendant la phase de désignation de l'ultime. */
+        public static final double PRIMAL_DIVE_TARGET_RANGE = 10.0;
     }
 
     public static class Orca {

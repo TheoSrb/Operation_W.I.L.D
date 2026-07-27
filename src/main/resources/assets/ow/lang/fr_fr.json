@@ -609,7 +609,7 @@
   "ow.attacks.crocodile.reptilian.title": "Accrochage Reptilien",
   "ow.attacks.crocodile.combo.desc": "Faites mordre votre Crocodile toutes les %s secondes, infligeant %s points de dégâts à chaque morsure.",
   "ow.attacks.crocodile.mouth.desc": "Chargez l'attaque pour ouvrir lentement la gueule de votre Crocodile pendant %s secondes toutes les %s secondes, puis relâchez pour la refermer violemment, infligeant jusqu'à %s points de dégâts.",
-  "ow.attacks.crocodile.primal_dive.desc": "Désignez une entité et faites bondir votre Crocodile dessus pour entamer une Roulade de la Mort, infligeant %s points de dégâts par rotation. À recharger avec %s kills toutes les %s secondes.",
+  "ow.attacks.crocodile.primal_dive.desc": "Désignez une entité et faites bondir votre Crocodile dessus pour la maintenir %s secondes dans sa gueule : chaque Roulade de la Mort inflige %s points de dégâts. À recharger avec %s kills, toutes les %s secondes.",
   "ow.attacks.crocodile.reptilian.desc": "À proximité de l'eau, les entités de taille moyenne touchées par une attaque Broyage peuvent être saisies par votre Crocodile pendant %s secondes avant d'être relâchées.",
   "ow.attacks.kodiak.combo.title": "Frappage",
   "ow.attacks.kodiak.paw_slam.title": "Écrasement",

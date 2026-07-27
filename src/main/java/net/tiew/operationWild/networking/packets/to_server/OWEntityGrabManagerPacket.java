@@ -41,9 +41,14 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
             // Recherche de proximité — fiable même si le sync passenger n'est pas encore arrivé
             player.level().getEntitiesOfClass(CrocodileEntity.class, player.getBoundingBox().inflate(5.0))
                     .stream()
-                    .filter(c -> c.getGrabbedTarget() == player)
+                    .filter(c -> c.isGrabbing() && c.getGrabbedTarget() == player)
                     .findFirst()
-                    .ifPresent(croc -> croc.setGrabTimeout(croc.getGrabTimeout() - 15));
+                    .ifPresent(croc -> {
+                        croc.setGrabTimeout(Math.max(0, croc.getGrabTimeout() - 15));
+                        croc.level().playSound(null, croc.getX(), croc.getY(), croc.getZ(),
+                                OWSounds.CROCODILE_HURT.get(), net.minecraft.sounds.SoundSource.HOSTILE,
+                                0.6f, 1.4f);
+                    });
 
             // Boa : le joueur enroulé ne monte pas le boa → recherche de proximité comme le crocodile.
             player.level().getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))

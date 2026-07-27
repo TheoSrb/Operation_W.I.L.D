@@ -609,7 +609,7 @@
   "ow.attacks.crocodile.reptilian.title": "Agarre Reptiliano",
   "ow.attacks.crocodile.combo.desc": "Ordene que seu Crocodilo morda a cada %s segundos, causando %s de dano a cada mordida.",
   "ow.attacks.crocodile.mouth.desc": "Carregue o ataque para abrir lentamente a bocarra do seu Crocodilo por %s segundos a cada %s segundos, depois solte para fechá-la violentamente, causando até %s de dano.",
-  "ow.attacks.crocodile.primal_dive.desc": "Marque uma entidade e lance seu Crocodilo sobre ela para iniciar um Rodopio da Morte, causando %s de dano por rotação. Recarregue conseguindo %s abates a cada %s segundos.",
+  "ow.attacks.crocodile.primal_dive.desc": "Marque uma entidade e lance o seu Crocodilo sobre ela para a prender nas mandíbulas durante %s segundos: cada Rodopio da Morte causa %s de dano. Recarregue com %s abates, a cada %s segundos.",
   "ow.attacks.crocodile.reptilian.desc": "Perto da água, as entidades de tamanho médio atingidas por um ataque de Esmagamento podem ser agarradas pelo seu Crocodilo por %s segundos antes de serem soltas.",
   "ow.attacks.kodiak.combo.title": "Golpe",
   "ow.attacks.kodiak.paw_slam.title": "Patada Esmagadora",

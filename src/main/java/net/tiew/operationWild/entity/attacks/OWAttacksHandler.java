@@ -418,15 +418,22 @@ public class OWAttacksHandler {
     }
 
     public static class CrocodilePassives {
+        /**
+         * Marque TOUTES les proies recevables pendant la désignation, et non la seule cible déjà
+         * verrouillée. Sans elles, l'écran restait vide tant qu'aucune n'était acquise : le joueur
+         * n'avait aucun moyen de savoir vers quoi tourner le regard. Le réticule distingue ensuite
+         * les candidates (marques d'angle ternes) de la sélection (cadre complet et chevron).
+         */
         public static final OWPassive PRIMAL_DIVE_SENSE = new OWPassive() {
             @Override
             public Set<Integer> getHighlightEntityIds(OWEntity entity, Level level) {
                 if (!OWAttackLogic.isCrocTargeting) return Set.of();
-                int id = OWAttackLogic.crocTargetEntityId;
-                if (id == -1) return Set.of();
-                Entity e = level.getEntity(id);
-                if (!(e instanceof LivingEntity le) || !le.isAlive()) return Set.of();
-                return Set.of(id);
+                if (!(entity instanceof CrocodileEntity croc)) return Set.of();
+                double r = OWAttacksConstants.Crocodile.PRIMAL_DIVE_TARGET_RANGE;
+                AABB box = croc.getBoundingBox().inflate(r);
+                return level.getEntitiesOfClass(LivingEntity.class, box,
+                                e -> croc.canPrimalDiveTarget(e) && croc.distanceToSqr(e) <= r * r)
+                        .stream().map(Entity::getId).collect(Collectors.toSet());
             }
 
             @Override

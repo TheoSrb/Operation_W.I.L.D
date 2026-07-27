@@ -609,7 +609,7 @@
   "ow.attacks.crocodile.reptilian.title": "Reptiliengriff",
   "ow.attacks.crocodile.combo.desc": "Befiehl deinem Krokodil, alle %s Sekunden zu beißen und dabei %s Schaden pro Biss zuzufügen.",
   "ow.attacks.crocodile.mouth.desc": "Lade den Angriff auf, um das Maul deines Krokodils für %s Sekunden alle %s Sekunden langsam zu öffnen, lass dann los, um es heftig zuzuschnappen und dabei bis zu %s Schaden zuzufügen.",
-  "ow.attacks.crocodile.primal_dive.desc": "Markiere ein Wesen und lass dein Krokodil darauf stürzen, um eine Todesrolle zu beginnen, die %s Schaden pro Drehung zufügt. Lade sie auf, indem du %s Tötungen alle %s Sekunden erzielst.",
+  "ow.attacks.crocodile.primal_dive.desc": "Markiere ein Wesen und lass dein Krokodil darauf stürzen, um es %s Sekunden lang in seinem Rachen festzuhalten: Jede Todesrolle fügt %s Schaden zu. Lade sie mit %s Tötungen auf, alle %s Sekunden.",
   "ow.attacks.crocodile.reptilian.desc": "In der Nähe von Wasser können mittelgroße Wesen, die von einem Zermalmen-Angriff getroffen werden, von deinem Krokodil für %s Sekunden gepackt werden, bevor sie losgelassen werden.",
   "ow.attacks.kodiak.combo.title": "Schlag",
   "ow.attacks.kodiak.paw_slam.title": "Prankenschlag",

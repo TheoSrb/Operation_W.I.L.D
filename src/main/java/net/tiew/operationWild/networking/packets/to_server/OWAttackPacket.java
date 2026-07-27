@@ -65,17 +65,19 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             if (!(context.player() instanceof ServerPlayer player)) return;
             if (!(player.getRootVehicle() instanceof OWEntity entity)) return;
             if (entity.getPassengers().indexOf(player) != 0) return;
-            boolean isCrocodile = entity instanceof CrocodileEntity;
             // Le propriétaire OU tout membre de sa tribu peut piloter les attaques de l'entité.
-            if (!entity.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL) && !isCrocodile) return;
+            // Le crocodile ENCORE SAUVAGE fait exception : le dresseur le chevauche justement
+            // avant qu'il ne lui appartienne, aucune permission ne peut donc exister. Une fois
+            // apprivoisé il rentre dans le rang — sans quoi n'importe quel joueur monté sur le
+            // crocodile d'autrui commandait ses attaques.
+            boolean isWildCrocodileRide = entity instanceof CrocodileEntity croc && !croc.isTame();
+            if (!isWildCrocodileRide
+                    && !entity.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) return;
 
             if (packet.action() == ACTION_TRIGGER_DEATH_ROLL) {
-                if (entity instanceof CrocodileEntity croc) {
-                    if (croc.isTame() && croc.isGrabbing() && !croc.isDeathRolling() && croc.isInWater()) {
-                        croc.setDeathRolling(true);
-                        croc.setDeathRollProgress(0);
-                    }
-                }
+                // Le délai est vérifié côté serveur : le client en applique un de son côté, mais
+                // lui seul ne protège de rien face à un envoi répété.
+                if (entity instanceof CrocodileEntity croc) croc.startDeathRoll();
                 return;
             }
 

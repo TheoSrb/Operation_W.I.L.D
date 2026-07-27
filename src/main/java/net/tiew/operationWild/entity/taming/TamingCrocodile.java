@@ -50,31 +50,17 @@ public class TamingCrocodile {
     }
 
     private void handleTamingSystem() {
+        if (this.crocodile.level().isClientSide() || this.crocodile.isTame()) return;
 
-        if (!this.crocodile.isTame()) {
-            if (crocodile.getSacrificesUnity() > 0 && !this.crocodile.isStartingTaming()) {
-                this.crocodile.setSacrificesUnity(this.crocodile.getSacrificesUnity() - 0.025f);
-            }
+        if (crocodile.getSacrificesUnity() > 0 && !this.crocodile.isStartingTaming()) {
+            this.crocodile.setSacrificesUnity(Math.max(0f, this.crocodile.getSacrificesUnity() - 0.025f));
+        }
 
+        if (this.crocodile.getTamingTime() > 0) {
+            this.crocodile.setTamingTime(this.crocodile.getTamingTime() - 1);
 
-            if (this.crocodile.tickCount % 20 == 0) {
-                if (this.crocodile.crocodileBehaviorHandler.isReadyForTaming()) {
-                    System.out.println("Ready");
-                } else {
-                    System.out.println(this.crocodile.getSacrificesUnity() + " %");
-                }
-
-                System.out.println("Entitées tuées: " + this.crocodile.getEntitiesKilledDuringTaming());
-            }
-
-            if (this.crocodile.getTamingTime() > 0) {
-                this.crocodile.setTamingTime(this.crocodile.getTamingTime() - 1);
-
-                if (this.crocodile.getTamingTime() <= 0) {
-                    stopTaming(this.crocodile.getEntitiesKilledDuringTaming());
-                }
-
-                System.out.println(this.crocodile.getTamingTime());
+            if (this.crocodile.getTamingTime() <= 0) {
+                stopTaming(this.crocodile.getEntitiesKilledDuringTaming());
             }
         }
     }
@@ -82,56 +68,71 @@ public class TamingCrocodile {
     private void stopTaming(int entitiesKilled) {
         final int minValue = ENTITIES_REQUIRED;
         boolean isSuccessful = entitiesKilled >= minValue;
-        int levelPoints = Math.min((entitiesKilled - minValue) / 4, 5);
+        int levelPoints = Math.max(0, Math.min((entitiesKilled - minValue) / 4, 5));
 
-        if (futurOwner != null) {
+        Entity owner = futurOwner;
+        if (owner == null) return;
 
-            this.crocodile.setTamingTime(0);
-            this.crocodile.setSaddle(false);
-            this.crocodile.setStartingTaming(false);
-            this.crocodile.setEntitiesKilledDuringTaming(0);
-            this.crocodile.setSacrificesUnity(0);
-            this.crocodile.setPassive(false);
+        this.crocodile.setTamingTime(0);
+        this.crocodile.setSaddle(false);
+        this.crocodile.setStartingTaming(false);
+        this.crocodile.setEntitiesKilledDuringTaming(0);
+        this.crocodile.setSacrificesUnity(0);
+        this.crocodile.setPassive(false);
 
-            if (isSuccessful) {
-                Player tamer = (Player) futurOwner;
-                this.crocodile.setTame(true, tamer);
-
-                this.crocodile.setLevelPoints(levelPoints);
-            } else {
-                this.crocodile.setTarget(this.crocodile.getControllingPassenger());
-            }
-
-            futurOwner.stopRiding();
+        if (isSuccessful && owner instanceof Player tamer) {
+            this.crocodile.setTame(true, tamer);
+            this.crocodile.setLevelPoints(levelPoints);
+        } else if (owner instanceof LivingEntity failedTamer) {
+            // Échec : le dressage se retourne contre celui qui l'a tenté. On vise le joueur
+            // lui-même et non getControllingPassenger(), qui vaut null dès qu'il est descendu.
+            this.crocodile.setTarget(failedTamer);
         }
+
+        owner.stopRiding();
+        futurOwner = null;
+    }
+
+    /**
+     * Comptabilise une mise à mort, quelle qu'en soit la manière.
+     *
+     * <p>Appelé depuis {@code CrocodileEntity.killedEntity}, donc <b>après</b> toutes les façons de
+     * tuer : morsure de combo, mais aussi noyade d'une proie agrippée et roulade de la mort. Or près
+     * d'une source d'eau le crocodile agrippe au lieu de mordre — les sacrifices offerts au bord de
+     * l'eau, comme les proies achevées pendant le dressage, ne passaient jamais par l'ancien point
+     * d'entrée lié au seul combo, et n'étaient donc jamais comptés.</p>
+     */
+    public void onKilledEntity(LivingEntity entity) {
+        if (entity == null || this.crocodile.level().isClientSide()) return;
+
+        if (this.crocodile.isStartingTaming()) {
+            crocodile.setEntitiesKilledDuringTaming(crocodile.getEntitiesKilledDuringTaming() + 1);
+            return;
+        }
+
+        if (!this.canBeTamable()) return;
+        if (!(entity instanceof TamableAnimal tamableAnimal) || !tamableAnimal.isTame()) return;
+
+        LivingEntity owner = tamableAnimal.getOwner();
+        if (!(owner instanceof Player player) || owner == entity) return;
+        if (!this.ownerIsNear(player, tamableAnimal)) return;
+
+        crocodile.setSacrificesUnity(Math.min(100f, crocodile.getSacrificesUnity() + entity.getMaxHealth()));
     }
 
     public void hurtAfterCombo(LivingEntity entity, int comboAttack) {
-        if (!entity.isAlive()) {
-            if (this.crocodile.isStartingTaming()) {
-                crocodile.setEntitiesKilledDuringTaming(crocodile.getEntitiesKilledDuringTaming() + 1);
-            } else if (this.canBeTamable()) {
-                if (entity instanceof TamableAnimal tamableAnimal) {
-                    if (tamableAnimal.isTame()) {
-                        LivingEntity owner = tamableAnimal.getOwner();
-
-                        if (owner != null && owner != entity && owner instanceof Player player) {
-                            if (this.ownerIsNear(player, tamableAnimal)) {
-                                float entityHealth = entity.getMaxHealth();
-
-                                crocodile.setSacrificesUnity(crocodile.getSacrificesUnity() + entityHealth);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        // Le décompte des sacrifices vit désormais dans onKilledEntity : il couvre aussi les
+        // proies noyées ou déchiquetées, que ce point d'entrée ne voyait pas.
     }
 
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
 
         if (hand == InteractionHand.MAIN_HAND) {
             if (!this.crocodile.isTame() && !this.crocodile.isInLava() && this.crocodile.crocodileBehaviorHandler.isReadyForTaming()) {
+                // La place du dresseur est occupée par une proie : on la relâche, sinon le joueur
+                // monterait en deuxième position et ne piloterait rien.
+                if (this.crocodile.isGrabbing()) this.crocodile.releaseGrab();
+
                 this.crocodile.setStartingTaming(true);
 
                 this.crocodile.setSaddle(true);
@@ -165,11 +166,8 @@ public class TamingCrocodile {
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
-        if (tag.hasUUID("futurOwnerUUID")) {
-            UUID ownerUUID = tag.getUUID("futurOwnerUUID");
-            if (crocodile.level() != null) {
-                this.futurOwner = ((ServerLevel) crocodile.level()).getEntity(ownerUUID);
-            }
+        if (tag.hasUUID("futurOwnerUUID") && crocodile.level() instanceof ServerLevel serverLevel) {
+            this.futurOwner = serverLevel.getEntity(tag.getUUID("futurOwnerUUID"));
         }
     }
 }
