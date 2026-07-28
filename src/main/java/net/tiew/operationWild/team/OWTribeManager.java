@@ -106,9 +106,19 @@ public final class OWTribeManager {
         for (ServerPlayer p : server.getPlayerList().getPlayers()) syncTribeList(server, p);
     }
 
-    /** Pousse SA tribu à chaque membre en ligne de {@code team} (liste des membres modifiée). */
+    /**
+     * Pousse SA tribu à chaque membre en ligne de {@code team} (effectif, rôles ou permissions modifiés),
+     * <b>et</b> réaligne le miroir de tribu porté par les créatures de la tribu.
+     *
+     * <p>Les deux vont toujours de pair : les clients lisent les permissions d'une bête sur la tribu
+     * répliquée <i>avec elle</i>, pas sur l'écran de tribu. Sans ce second envoi, accorder le Contrôle
+     * à un membre ne changeait rien tant qu'il n'avait pas rechargé la créature — le serveur acceptait
+     * ses ordres, mais son client refusait de les émettre. Le rafraîchissement vit ici plutôt qu'aux
+     * quinze points d'appel, dont plusieurs l'oubliaient.</p>
+     */
     public static void syncTribeToOnlineMembers(MinecraftServer server, OWTeam team) {
         if (server == null || team == null) return;
+        refreshEntitiesOfTribe(server, team);
         for (UUID member : team.getPlayerUUIDs()) {
             ServerPlayer p = server.getPlayerList().getPlayer(member);
             if (p != null) syncPlayerTribe(server, p);

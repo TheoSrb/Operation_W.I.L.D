@@ -1038,10 +1038,12 @@
   "owteams.arena.tribe_chest.locked": "Erfordert %s",
   "owteams.arena.tribe_chest.progress": "%s / %s Truhen geöffnet",
   "owteams.arena.error.start_failed": "Der Kampf konnte nicht starten: Kämpfer fehlen.",
-  "ow.attacks.orca.big_mouth.desc": "Dein Orca schnappt sich das Wesen vor ihm und trägt es %s Sekunden im Maul: ein Feind wird zermalmt und bekommt keine Luft, ein Verbündeter atmet frei. Erneut drücken, um es auszuspucken. Lade sie mit %s Tötungen auf, alle %s Sekunden.",
+  "ow.attacks.orca.big_mouth.desc": "Dein Orca verschlingt das Wesen vor ihm: ein Verbündeter atmet darin %s Sekunden lang frei, ein Feind wird %s Sekunden lang zermalmt und bekommt keine Luft. Erneut drücken, um es auszuspucken. Lade sie mit %s Tötungen alle %s Sekunden auf.",
   "ow.attacks.orca.big_mouth.title": "Großmaul",
   "ow.attacks.orca.combo.desc": "Lass deinen Orca alle %s Sekunden zubeißen und dabei %s Schaden pro Biss zufügen.",
-  "ow.attacks.orca.combo.title": "Abgrundbiss",
-  "ow.attacks.orca.tidal_rush.desc": "Schleudere deinen Orca in Richtung seiner Schnauze, in die Tiefe wie zur Oberfläche: nach oben gezielt bricht er aus dem Wasser. Alle %s Sekunden.",
-  "ow.attacks.orca.tidal_rush.title": "Gezeitensturm"
+  "ow.attacks.orca.combo.title": "Schnappen",
+  "ow.attacks.orca.tidal_rush.desc": "Schleudere deinen Orca in Richtung seiner Schnauze und füge allem, was er trifft, %s Schaden zu. Ziele auf die Oberfläche, um aus dem Wasser zu brechen. Alle %s Sekunden.",
+  "ow.attacks.orca.tidal_rush.title": "Meeresschub",
+  "ow.attacks.orca.slipstream.desc": "Im Umkreis von %s Blöcken schwimmen deine gezähmten Kreaturen und Stammesmitglieder %s%% schneller und halten die Luft %s%% länger an.",
+  "ow.attacks.orca.slipstream.title": "Sogwelle"
 }

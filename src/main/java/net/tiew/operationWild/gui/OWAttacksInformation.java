@@ -285,18 +285,30 @@ public class OWAttacksInformation {
                 new AttackSlot(20, 160, "RMB",
                         title("ow.attacks.orca.tidal_rush.title"),
                         e -> desc("ow.attacks.orca.tidal_rush.desc",
+                                val(e.getDamageToClient()),
                                 val(OWAttacksConstants.Orca.TIDAL_RUSH_COOLDOWN_TICKS / 20))
                 ),
 
                 new AttackSlot(40, 160, "X",
                         title("ow.attacks.orca.big_mouth.title"),
+                        // Durées lues sur les constantes de l'entité, pas sur celle du HUD : cette
+                        // dernière ne connaît que le plus long des deux transports.
                         e -> desc("ow.attacks.orca.big_mouth.desc",
-                                val((int) (OWAttacksConstants.Orca.BIG_MOUTH_DURATION_MS / 1000L)),
+                                val(OrcaEntity.MOUTH_HOLD_ALLY_TICKS / 20),
+                                val(OrcaEntity.MOUTH_HOLD_ENEMY_TICKS / 20),
                                 val(OWAttacksConstants.Orca.BIG_MOUTH_KILLS_REQUIRED),
                                 val(OWAttacksConstants.Orca.BIG_MOUTH_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(-1, -1, "", null, null)
+                // Passif documenté et non enregistré comme OWPassive : il n'y a rien à surligner à
+                // l'écran, seulement un trait de l'espèce à faire connaître au joueur.
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.orca.slipstream.title"),
+                        e -> desc("ow.attacks.orca.slipstream.desc",
+                                val((int) OrcaEntity.SLIPSTREAM_RADIUS),
+                                val((int) (OrcaEntity.SLIPSTREAM_SPEED_BONUS * 100)),
+                                val(OrcaEntity.slipstreamBreathPercent()))
+                )
 
         ));
 

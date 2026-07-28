@@ -22,6 +22,7 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.vehicle.Boat;
+import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWUtils;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -283,6 +284,49 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return this.barrelProgressPrev < 1f;
     }
 
+    /** Rayon de la spirale de bulles, en blocs, autour de l'axe du corps. */
+    private static final double BARREL_BUBBLE_RADIUS = 2.2;
+    /** Bulles émises par tick pendant la figure. */
+    private static final int BARREL_BUBBLES_PER_TICK = 5;
+
+    /**
+     * Sillage hélicoïdal du tonneau : les bulles s'accrochent à la rotation du corps.
+     *
+     * <p>Elles ne sont pas semées au hasard autour de la bête mais posées <b>sur l'angle courant de
+     * la figure</b>, réparties le long du corps de la tête à la caudale. Le chapelet dessine donc
+     * une vraie hélice dans l'eau, et il tourne à la vitesse réelle du tour — d'autant plus serré au
+     * départ, là où la rotation est la plus vive.</p>
+     */
+    private void spawnBarrelBubbles() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        if (!this.isInWater()) return;
+
+        double angle = Math.toRadians(getBarrelRoll(1f));
+        double yawRad = Math.toRadians(this.yBodyRot);
+        // Axe longitudinal du corps, et les deux axes qui lui sont perpendiculaires.
+        double axisX = -Math.sin(yawRad), axisZ = Math.cos(yawRad);
+        double sideX = Math.cos(yawRad), sideZ = Math.sin(yawRad);
+
+        double scale = this.getScale();
+
+        for (int i = 0; i < BARREL_BUBBLES_PER_TICK; i++) {
+            // Position le long du corps, de l'avant vers l'arrière, plus un peu de désordre.
+            double along = (-1.6 + 3.6 * (i / (double) (BARREL_BUBBLES_PER_TICK - 1))) * scale;
+            // Chaque bulle est décalée sur l'hélice : la spirale se creuse vers la queue.
+            double phase = angle - along * 0.45;
+            double radius = BARREL_BUBBLE_RADIUS * scale * (0.75 + this.random.nextDouble() * 0.35);
+
+            double px = this.getX() + axisX * along + sideX * Math.cos(phase) * radius;
+            double pz = this.getZ() + axisZ * along + sideZ * Math.cos(phase) * radius;
+            double py = this.getY() + this.getBbHeight() * 0.5 + Math.sin(phase) * radius;
+
+            serverLevel.sendParticles(ParticleTypes.BUBBLE, px, py, pz, 1, 0.05, 0.05, 0.05, 0.01);
+            if (i % 2 == 0) {
+                serverLevel.sendParticles(ParticleTypes.BUBBLE_COLUMN_UP, px, py, pz, 1, 0.02, 0.02, 0.02, 0.0);
+            }
+        }
+    }
+
     private void tickBarrelRoll() {
         this.barrelProgressPrev = this.barrelProgress;
 
@@ -302,6 +346,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 this.barrelProgress = 1f;
                 this.barrelRunning = false;
             }
+            spawnBarrelBubbles();
         }
     }
 
@@ -573,7 +618,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         createCombo((int) (28 / comboSpeedMultiplier), (int) (18 / comboSpeedMultiplier), OWSounds.CROCODILE_MOUTH_CRUSH.get(), 4.5, 4, 3, false, 0.5f);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
-        if (!this.level().isClientSide()) tickBigMouth();
+        if (!this.level().isClientSide()) {
+            tickBigMouth();
+            tickSlipstream();
+        }
 
         if (this.level().isClientSide()) {
             setupAnimationState();
@@ -724,7 +772,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
      * <p>Assez rapide pour que la jauge bouge à vue d'œil et qu'un séjour à l'air libre se sente,
      * assez lent pour qu'un saut de deux secondes ne coûte qu'une bulle ou deux.</p>
      */
-    private static final int AIR_LOSS_OUT_OF_WATER = 2;
+    public static final int AIR_LOSS_OUT_OF_WATER = 2;
     /** Reprise du souffle une fois replongée : quatre fois plus vite qu'elle ne l'a perdu. */
     private static final int AIR_GAIN_IN_WATER = 8;
 
@@ -776,7 +824,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     @Override
     public void die(DamageSource damageSource) {
         // La proie survit à son ravisseur : sans ce relâchement elle resterait invisible à vie.
-        if (!this.level().isClientSide() && hasSwallowed()) releaseSwallowed(true);
+        if (!this.level().isClientSide()) {
+            if (hasSwallowed()) releaseSwallowed(true);
+            clearSlipstream();
+        }
 
         super.die(damageSource); // le drop générique de l'Âme est géré par OWEntity.die()
 
@@ -930,8 +981,20 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     private static final int MOUTH_SPIT_DURATION =
             MOUTH_SPIT_HEAVE + MOUTH_SPIT_BURST + MOUTH_SPIT_RECOVER;
-    /** Durée maximale d'un transport dans la gueule. */
-    public static final int MOUTH_HOLD_TICKS = 500;
+    /**
+     * Durée du transport pour un ALLIÉ : 50 s, de quoi traverser une fosse entière.
+     *
+     * <p>C'est un moyen de locomotion, il doit valoir le trajet.</p>
+     */
+    public static final int MOUTH_HOLD_ALLY_TICKS = 1000;
+    /**
+     * Durée pour une PROIE : 10 s, cinq fois moins.
+     *
+     * <p>Emprisonner un adversaire pendant près d'une minute reviendrait à le retirer du combat
+     * sans qu'il puisse rien y faire. Dix secondes suffisent à l'emmener au fond ; ce qu'il advient
+     * de lui ensuite dépend de la profondeur où on le lâche, pas de la durée de la prise.</p>
+     */
+    public static final int MOUTH_HOLD_ENEMY_TICKS = 200;
     /** Intervalle entre deux morsures pour une proie hostile. */
     private static final int MOUTH_DAMAGE_INTERVAL = 20;
     /** Part des dégâts de base infligée à chaque morsure interne. */
@@ -945,6 +1008,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private boolean mouthTargetWasInvisible = false;
     /** Proie réservée pendant l'armement, avalée seulement au moment de la frappe. */
     private int pendingPreyId = -1;
+    /** État d'IA de la proie avant d'être avalée, à lui rendre en la recrachant. */
+    private boolean mouthTargetHadNoAi = false;
 
     /**
      * La proie avalée est un passager, mais elle ne pilote rien.
@@ -964,7 +1029,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     /** Déchargement de chunk compris : une proie oubliée resterait invisible pour de bon. */
     @Override
     public void remove(Entity.RemovalReason reason) {
-        if (!this.level().isClientSide() && hasSwallowed()) releaseSwallowed(false);
+        if (!this.level().isClientSide()) {
+            if (hasSwallowed()) releaseSwallowed(false);
+            clearSlipstream();
+        }
         super.remove(reason);
     }
 
@@ -1029,12 +1097,22 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         }
 
         this.entityData.set(SWALLOWED_TARGET_ID, prey.getId());
-        this.mouthHoldTicks = MOUTH_HOLD_TICKS;
+        // Le camp est figé à la morsure, pas réévalué à chaque tick : une prise dont la durée
+        // changerait en cours de route selon l'humeur des alliances serait illisible.
+        this.mouthHoldTicks = (this.isAlliedTo(prey) || this.isTameGrabAlly(prey))
+                ? MOUTH_HOLD_ALLY_TICKS : MOUTH_HOLD_ENEMY_TICKS;
 
         // Avalée, la victime disparaît à la vue : ce sont les joues gonflées de l'orque qui la
         // trahissent. La laisser affichée l'aurait montrée à travers la peau du crâne.
         this.mouthTargetWasInvisible = prey.isInvisible();
         prey.setInvisible(true);
+        // IA coupée : une bête avalée ne se débat pas, ne vise pas et surtout ne mord pas depuis
+        // l'intérieur. Effacer sa cible à chaque tick ne suffisait pas — ses goals continuaient de
+        // tourner et le moindre adversaire à portée de la gueule restait frappable.
+        if (prey instanceof Mob preyMob) {
+            this.mouthTargetHadNoAi = preyMob.isNoAi();
+            preyMob.setNoAi(true);
+        }
         prey.startRiding(this, true);
 
         this.level().playSound(null, getX(), getY(), getZ(),
@@ -1192,8 +1270,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         LivingEntity prey = getSwallowedTarget();
         if (prey != null) {
             if (prey.getVehicle() == this) prey.stopRiding();
-            // On ne rend la visibilité que si c'est nous qui l'avions ôtée.
+            // On ne rend la visibilité ni l'IA que si c'est nous qui les avions ôtées.
             if (!mouthTargetWasInvisible) prey.setInvisible(false);
+            if (!mouthTargetHadNoAi && prey instanceof Mob preyMob) preyMob.setNoAi(false);
 
             if (spit) {
                 Vec3 push = Vec3.directionFromRotation(0, this.getYRot()).scale(0.9);
@@ -1204,6 +1283,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             }
         }
         mouthTargetWasInvisible = false;
+        mouthTargetHadNoAi = false;
         mouthHoldTicks = 0;
         this.entityData.set(SWALLOWED_TARGET_ID, -1);
         this.entityData.set(MOUTH_SPIT_TICKS, 0);
@@ -1269,6 +1349,125 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             serverLevel.sendParticles(ParticleTypes.BUBBLE,
                     getX(), getY() + 0.8, getZ(), 4, 0.5, 0.3, 0.5, 0.02);
         }
+    }
+
+    // ==================================================
+    //           COURANT PORTEUR (passif)
+    // ==================================================
+
+    /** Portée du sillage, en blocs. */
+    public static final double SLIPSTREAM_RADIUS = 32.0;
+    /** Gain de vitesse de nage accordé aux alliés. */
+    public static final double SLIPSTREAM_SPEED_BONUS = 0.15;
+    /**
+     * Autonomie d'apnée gagnée, exprimée en fraction — et rendue exacte par la répartition
+     * ci-dessous plutôt que par un arrondi commode.
+     *
+     * <p>Le souffle d'une créature descend d'un point par tick. Pour le faire durer 35 % de plus il
+     * faut lui en restituer {@code 7} tous les {@code 27} ticks : la consommation nette tombe alors
+     * à 20/27 de point par tick, soit très exactement une autonomie multipliée par 1,35. Les deux
+     * nombres ne sont donc pas arbitraires, ils SONT le bonus annoncé.</p>
+     */
+    public static final int SLIPSTREAM_BREATH_NUM = 7;
+    public static final int SLIPSTREAM_BREATH_DEN = 27;
+
+    /** Intervalle entre deux recensements des alliés à portée. */
+    private static final int SLIPSTREAM_SCAN_INTERVAL = 10;
+
+    private static final ResourceLocation SLIPSTREAM_SPEED_MODIFIER =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "orca_slipstream_speed");
+
+    /** Bénéficiaires du tick précédent, pour savoir à qui retirer le bonus quand ils sortent. */
+    private final java.util.Set<Integer> slipstreamTargets = new java.util.HashSet<>();
+
+    /** Pourcentage d'autonomie d'apnée réellement accordé, déduit de la répartition. */
+    public static int slipstreamBreathPercent() {
+        return Math.round(100f * (SLIPSTREAM_BREATH_DEN / (float) (SLIPSTREAM_BREATH_DEN - SLIPSTREAM_BREATH_NUM) - 1f));
+    }
+
+    /**
+     * Courant porteur — les alliés qui nagent dans le sillage d'une orque apprivoisée vont plus vite
+     * et tiennent plus longtemps sans respirer.
+     *
+     * <p>Le recensement ne tourne qu'un tick sur dix : parcourir un cube de soixante-quatre blocs de
+     * côté à chaque tick coûterait cher pour une liste qui ne change pratiquement pas. Le souffle,
+     * lui, est rendu à chaque tick sur la liste retenue — il se consomme à ce rythme-là.</p>
+     */
+    private void tickSlipstream() {
+        if (!this.isTame() || this.isBaby()) {
+            if (!slipstreamTargets.isEmpty()) clearSlipstream();
+            return;
+        }
+
+        if (this.tickCount % SLIPSTREAM_SCAN_INTERVAL == 0) refreshSlipstreamTargets();
+        if (slipstreamTargets.isEmpty()) return;
+
+        // Restitution de souffle, répartie régulièrement dans le temps.
+        for (int id : slipstreamTargets) {
+            if (!(this.level().getEntity(id) instanceof LivingEntity ally)) continue;
+            if (!ally.isInWater() || !ally.isAlive()) continue;
+            if ((ally.tickCount * SLIPSTREAM_BREATH_NUM) % SLIPSTREAM_BREATH_DEN >= SLIPSTREAM_BREATH_NUM) continue;
+            if (ally.getAirSupply() < ally.getMaxAirSupply()) {
+                ally.setAirSupply(Math.min(ally.getMaxAirSupply(), ally.getAirSupply() + 1));
+            }
+        }
+    }
+
+    private void refreshSlipstreamTargets() {
+        java.util.Set<Integer> previous = new java.util.HashSet<>(slipstreamTargets);
+        slipstreamTargets.clear();
+
+        AABB box = this.getBoundingBox().inflate(SLIPSTREAM_RADIUS);
+        for (LivingEntity ally : this.level().getEntitiesOfClass(LivingEntity.class, box, this::isSlipstreamAlly)) {
+            if (this.distanceToSqr(ally) > SLIPSTREAM_RADIUS * SLIPSTREAM_RADIUS) continue;
+            if (!ally.isInWater()) continue;
+            slipstreamTargets.add(ally.getId());
+            applySlipstreamSpeed(ally, true);
+        }
+
+        // Ceux qui viennent de quitter le sillage — ou l'eau — récupèrent leur allure normale.
+        for (int id : previous) {
+            if (slipstreamTargets.contains(id)) continue;
+            if (this.level().getEntity(id) instanceof LivingEntity gone) applySlipstreamSpeed(gone, false);
+        }
+    }
+
+    private void applySlipstreamSpeed(LivingEntity ally, boolean active) {
+        var speed = ally.getAttribute(Attributes.MOVEMENT_SPEED);
+        if (speed == null) return;
+        if (active) {
+            speed.addOrUpdateTransientModifier(new net.minecraft.world.entity.ai.attributes.AttributeModifier(
+                    SLIPSTREAM_SPEED_MODIFIER, SLIPSTREAM_SPEED_BONUS,
+                    net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        } else {
+            speed.removeModifier(SLIPSTREAM_SPEED_MODIFIER);
+        }
+    }
+
+    /**
+     * Le sillage profite aux créatures apprivoisées et aux membres de la tribu.
+     *
+     * <p>{@code isTameGrabAlly} couvre le propriétaire, les joueurs de la tribu et les créatures du
+     * mod ; on y ajoute les animaux vanilla apprivoisés, qu'il ne connaît pas.</p>
+     */
+    private boolean isSlipstreamAlly(LivingEntity candidate) {
+        if (candidate == this || !candidate.isAlive()) return false;
+        if (this.isTameGrabAlly(candidate)) return true;
+
+        if (candidate instanceof TamableAnimal pet && pet.isTame()) {
+            UUID petOwner = pet.getOwnerUUID();
+            if (petOwner == null) return false;
+            return petOwner.equals(this.getOwnerUUID()) || this.isInMyTribe(petOwner);
+        }
+        return false;
+    }
+
+    /** Le sillage meurt avec l'orque : personne ne doit garder son bonus de vitesse. */
+    private void clearSlipstream() {
+        for (int id : slipstreamTargets) {
+            if (this.level().getEntity(id) instanceof LivingEntity ally) applySlipstreamSpeed(ally, false);
+        }
+        slipstreamTargets.clear();
     }
 
     public int getOrcaUltimateKillCount() {

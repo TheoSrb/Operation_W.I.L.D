@@ -47,6 +47,24 @@ import java.util.List;
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class ServerEvents {
 
+    /**
+     * Un joueur dans la gueule d'une orque ne frappe rien.
+     *
+     * <p>Couper l'IA suffit pour une créature, mais un joueur n'en a pas : sans ce refus, il
+     * continuait de porter des coups depuis l'intérieur — sur l'orque elle-même, ou sur ce qui
+     * passait à portée de la gueule.</p>
+     *
+     * <p>Posé sur le bus commun et non dans {@code ClientEvents} : là-bas le refus n'aurait valu que
+     * pour la prédiction locale, le serveur aurait continué d'appliquer les dégâts.</p>
+     */
+    @SubscribeEvent
+    public static void onSwallowedPlayerAttack(net.neoforged.neoforge.event.entity.player.AttackEntityEvent event) {
+        if (net.tiew.operationWild.entity.animals.aquatic.OrcaEntity.isSwallowed(event.getEntity())) {
+            event.setCanceled(true);
+        }
+    }
+
+
     @SubscribeEvent
     public static void onEntityDeath(LivingDeathEvent event) {
         if (event.getEntity().level().isClientSide) {

@@ -257,6 +257,17 @@ public class OWAttackLogic {
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 
+        // Grande Gueule : la carte cesse de se vider dès que la gueule est vide. Sa durée
+        // théorique vaut pour le plus long des deux transports (50 s, un allié) ; sur une proie,
+        // relâchée au bout de 10 s, la jauge aurait continué de descendre quarante secondes dans
+        // le vide. On la coupe sur l'état réel de la bête plutôt que sur une durée figée.
+        if (mc.player != null && mc.player.getRootVehicle() instanceof OrcaEntity orcaMouthCard) {
+            boolean busy = orcaMouthCard.hasSwallowed()
+                    || orcaMouthCard.getMouthLungeTicks() > 0
+                    || orcaMouthCard.getMouthSpitTicks() > 0;
+            if (!busy) removeUltimateStart(orcaMouthCard.getId(), OWAttacksHandler.BIG_MOUTH_ID);
+        }
+
         // Pilon Tellurique : la fin du plongeon (stomping → non-stomping) déclenche la secousse d'impact.
         if (mc.player != null && mc.player.getRootVehicle() instanceof KangarooEntity kStomp) {
             boolean stomping = kStomp.isTelluricStomping();
@@ -757,8 +768,7 @@ public class OWAttackLogic {
         if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
         if (isLocalPlayerGrabbed(owEntity, mc.player)) return;
         if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
-        boolean isCrocodile = owEntity instanceof CrocodileEntity;
-        if (!mc.player.getUUID().equals(owEntity.getOwnerUUID()) && !isCrocodile) return;
+        if (!owEntity.canPilotAttacks(mc.player)) return;
 
         OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getKey());
         if (attack == null) return;
@@ -883,8 +893,7 @@ public class OWAttackLogic {
         // Avant toute chose : la proie ne pilote pas. On laisse passer ses clics.
         if (isLocalPlayerGrabbed(owEntity, mc.player)) return;
         if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
-        boolean isCrocodile = owEntity instanceof CrocodileEntity;
-        if (!mc.player.getUUID().equals(owEntity.getOwnerUUID()) && !isCrocodile) return;
+        if (!owEntity.canPilotAttacks(mc.player)) return;
 
         boolean isCrocGrabbing = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
         boolean isKodiakUltNapping = isKodiakNapping && owEntity instanceof KodiakEntity;

@@ -66,7 +66,8 @@ public class OWAttacksOverlay {
 
         boolean isCrocodileReadyForTaming = entity instanceof CrocodileEntity croc
                 && croc.crocodileBehaviorHandler.isReadyForTaming() && !croc.isTame();
-        if (!player.getUUID().equals(entity.getOwnerUUID()) && !isCrocodileReadyForTaming) return;
+        if (!player.getUUID().equals(entity.getOwnerUUID()) && !isCrocodileReadyForTaming
+                && !entity.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) return;
 
         Class<?> entityClass = entity.getClass();
         List<OWAttack> attacks = OWAttacksHandler.getAttacks(entityClass);

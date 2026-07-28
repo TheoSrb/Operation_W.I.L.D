@@ -1038,10 +1038,12 @@
   "owteams.arena.tribe_chest.locked": "需要%s",
   "owteams.arena.tribe_chest.progress": "已开启 %s / %s 个宝箱",
   "owteams.arena.error.start_failed": "对战无法开始：部分战士未找到。",
-  "ow.attacks.orca.big_mouth.desc": "虐鲸吞住身前的实体，将其含在口中 %s 秒：敌人会被碾压且无法呼吸，盟友则呼吸自如。再次按下可将其吐出。通过 %s 次击杀充能，每 %s 秒一次。",
+  "ow.attacks.orca.big_mouth.desc": "虎鲸吞下身前的实体：盟友可在口中自由呼吸 %s 秒，敌人则被碾压且无法呼吸 %s 秒。再次按下可将其吐出。通过 %s 次击杀充能，每 %s 秒一次。",
   "ow.attacks.orca.big_mouth.title": "大嘴巴",
-  "ow.attacks.orca.combo.desc": "让你的虐鲸每 %s 秒咬一次，每次造成 %s 点伤害。",
-  "ow.attacks.orca.combo.title": "深渊咀嘶",
-  "ow.attacks.orca.tidal_rush.desc": "让虐鲸沿着吻部所指的方向冲刺，向下或向上皆可：瞄准上方就能跃出水面。每 %s 秒一次。",
-  "ow.attacks.orca.tidal_rush.title": "潮涌冲锋"
+  "ow.attacks.orca.combo.desc": "让你的虎鲸每 %s 秒咬一次，每次造成 %s 点伤害。",
+  "ow.attacks.orca.combo.title": "钳咬",
+  "ow.attacks.orca.tidal_rush.desc": "让虎鲸沿吻部方向冲刺，对撞到的目标造成 %s 点伤害。瞄准水面即可跃出水中。每 %s 秒一次。",
+  "ow.attacks.orca.tidal_rush.title": "海流推进",
+  "ow.attacks.orca.slipstream.desc": "在 %s 格范围内，你驯服的生物和部落成员游速提升 %s%%，屏息时长增加 %s%%。",
+  "ow.attacks.orca.slipstream.title": "随流"
 }

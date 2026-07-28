@@ -330,40 +330,77 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 			float thrust = strike * (1f - release);
 			// Pic bref au contact : la sur-fermeture des mâchoires.
 			float impact = bell(elapsed, sEnd, OrcaEntity.MOUTH_ANIM_STRIKE * 0.8f);
-			// Frémissement du palier : la bête n'est pas une statue pendant qu'elle vise.
+			// Frémissement du palier : la bête n'est pas une statue pendant qu'elle vise. Amplitude
+			// volontairement basse — au-delà, la tension du temps d'arrêt tourne à la vibration et
+			// l'orque paraît grelotter au lieu de retenir son coup.
 			float tremble = (elapsed >= wEnd && elapsed < tEnd)
-					? (float) Math.sin(elapsed * 3.4) * 0.5f : 0f;
+					? (float) Math.sin(elapsed * 2.6) * 0.22f : 0f;
 
-			// ── Mâchoires : béantes tant que l'armement tient, claquées sur la frappe.
-			this.mouth_down.xRot += (float) Math.toRadians(48f * charge + 1.5f * tremble - 10f * impact);
-			this.mouth_up.xRot   -= (float) Math.toRadians(38f * charge + 1.5f * tremble - 8f * impact);
+			// Contre-mouvement d'amorce : la bête recule d'un rien avant de se cabrer. C'est le
+			// vieux principe de l'anticipation — sans lui, le geste démarre sans avoir été annoncé.
+			float anticip = bell(elapsed, wEnd * 0.30f, wEnd * 0.55f);
+
+			// ── CORPS ENTIER (ALL / ALL2) ────────────────────────────────────────────────
+			// Le tronc n'est pas seul à bouger : la bête se cabre en bloc, se tord légèrement,
+			// puis se détend d'une pièce vers l'avant. C'est ce que le geste avait de plus
+			// manquant — la carcasse restait droite pendant que la tête faisait tout le travail.
+			this.ALL.xRot  -= (float) Math.toRadians(10f * charge - 7f * thrust - 2.5f * anticip);
+			this.ALL.zRot  += (float) Math.toRadians(5f * charge + 0.8f * tremble - 4f * thrust);
+			this.ALL.yRot  += (float) Math.toRadians(3f * charge - 2.5f * thrust);
+			this.ALL.y     -= 1.8f * charge - 0.7f * anticip;
+			this.ALL.z     -= 4.5f * thrust - 1.2f * anticip;
+			// Secousse sèche à l'instant du contact, sur la racine : tout le corps encaisse.
+			this.ALL2.xRot += (float) Math.toRadians(2.0f * impact);
+			this.ALL2.zRot += (float) Math.toRadians(1.0f * impact * (float) Math.sin(elapsed * 3.1));
+
+			// ── TRONC ───────────────────────────────────────────────────────────────────
+			this.body.xRot -= (float) Math.toRadians(7f * charge - 4f * thrust);
+			this.body.zRot += (float) Math.toRadians(1.2f * tremble - 3f * thrust);
+			this.body.z    -= 3.6f * thrust - 0.8f * anticip;
+			this.body.y    -= 1.3f * charge;
+
+			// ── TÊTE ────────────────────────────────────────────────────────────────────
+			this.head.xRot -= (float) Math.toRadians(16f * charge - 9f * thrust - 5f * impact);
+			this.head.yRot += (float) Math.toRadians(1.5f * tremble - 2.2f * impact * (float) Math.sin(elapsed * 3.0));
+			this.head.zRot += (float) Math.toRadians(3f * charge - 3f * thrust);
+			this.head.z    -= 1.5f * thrust;
+
+			// ── BLOC MÂCHOIRE ───────────────────────────────────────────────────────────
+			// L'ensemble des deux mâchoires avance d'une pièce au moment de mordre : c'est ce qui
+			// distingue un coup de dents porté d'une simple ouverture sur place.
+			this.mouth.z    -= 2.4f * thrust;
+			this.mouth.xRot += (float) Math.toRadians(4f * charge - 3f * impact);
+			this.mouth.y    -= 0.8f * charge;
+
+			// ── MÂCHOIRES : béantes tant que l'armement tient, claquées sur la frappe.
+			this.mouth_down.xRot += (float) Math.toRadians(48f * charge + 0.7f * tremble - 10f * impact);
+			this.mouth_up.xRot   -= (float) Math.toRadians(38f * charge + 0.7f * tremble - 8f * impact);
 			this.mouth_down.yScale *= 1f + 0.10f * charge;
 			this.mouth_up.yScale   *= 1f + 0.08f * charge;
+			this.mouth_down.zScale *= 1f + 0.06f * charge;
+			this.mouth_down.y      += 0.9f * charge;
+			this.mouth_up.y        -= 0.7f * charge;
 
-			// ── Tête et tronc : le geste part du corps entier. La bête se ramasse en s'armant,
-			// puis se détend vers l'avant. Sans cette participation, une bête de six mètres
-			// semblait happer du bout des lèvres.
-			this.head.xRot -= (float) Math.toRadians(16f * charge - 9f * thrust - 5f * impact);
-			this.body.xRot -= (float) Math.toRadians(7f * charge - 4f * thrust);
-			this.body.z    -= 3.6f * thrust;
-			this.body.y    -= 1.3f * charge;
-			this.body.zRot += (float) Math.toRadians(3f * tremble);
-
-			// ── Pectorales : repliées le long du corps pendant l'armement, ouvertes en frein
-			// une fois le coup porté.
+			// ── PECTORALES : repliées le long du corps pendant l'armement, ouvertes en frein
+			// une fois le coup porté. Elles battent aussi une fois à l'impact.
 			float fin = charge - 0.5f * thrust;
-			this.left_fan.zRot  -= (float) Math.toRadians(26f * fin);
-			this.right_fan.zRot += (float) Math.toRadians(26f * fin);
-			this.left_fan.yRot  += (float) Math.toRadians(12f * charge);
-			this.right_fan.yRot -= (float) Math.toRadians(12f * charge);
+			this.left_fan.zRot  -= (float) Math.toRadians(26f * fin + 8f * impact);
+			this.right_fan.zRot += (float) Math.toRadians(26f * fin + 8f * impact);
+			this.left_fan.yRot  += (float) Math.toRadians(12f * charge - 6f * thrust);
+			this.right_fan.yRot -= (float) Math.toRadians(12f * charge - 6f * thrust);
+			this.left_fan.xRot  += (float) Math.toRadians(7f * thrust);
+			this.right_fan.xRot += (float) Math.toRadians(7f * thrust);
 
-			// ── Queue : elle s'arme du côté opposé, puis fouette. La vague court du tronc à la
+			// ── QUEUE : elle s'arme du côté opposé, puis fouette. La vague court du tronc à la
 			// caudale avec un tick de retard sur chaque segment.
 			float coil = charge - 1.6f * thrust;
 			this.tail.yRot       += (float) Math.toRadians(20f * coil);
+			this.tail.xRot       += (float) Math.toRadians(6f * charge - 5f * thrust);
+			this.tail.z          += 1.4f * charge;
 			this.front_tail.yRot += (float) Math.toRadians(15f * (charge - 1.6f * lag(thrust, release, 0.15f)));
+			this.front_tail.xRot += (float) Math.toRadians(5f * charge - 4f * thrust);
 			this.back_tail.yRot  += (float) Math.toRadians(10f * (charge - 1.6f * lag(thrust, release, 0.30f)));
-			this.back_tail.xRot  += (float) Math.toRadians(9f * thrust);
+			this.back_tail.xRot  += (float) Math.toRadians(9f * thrust - 4f * charge);
 		}
 
 		// ── Recrachage : même grammaire que la happe, à l'envers. La bête se contracte sur sa

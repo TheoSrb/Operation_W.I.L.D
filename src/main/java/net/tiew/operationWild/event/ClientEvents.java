@@ -1136,7 +1136,8 @@ public class ClientEvents {
             boolean isCrocodileReadyForTaming = vehicle instanceof CrocodileEntity croc
                     && croc.crocodileBehaviorHandler.isReadyForTaming() && !croc.isTame();
 
-            if (vehicle.getOwner() == mc.player || isCrocodileReadyForTaming) {
+            if (vehicle.getOwner() == mc.player || isCrocodileReadyForTaming
+                    || vehicle.hasTribePermission(mc.player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) {
                 boolean isLowHealth = ((float) (vehicle.getHealth() / vehicle.getMaxHealth())) <= 0.25f;
                 boolean showVitalEnergyLack = vehicle.canShowVitalEnergyLack;
 

@@ -17,7 +17,6 @@ public class OWFollowOwnerGoal extends Goal {
     @Nullable
     private LivingEntity owner;
     private final double speedModifier;
-    private final PathNavigation navigation;
     private int timeToRecalcPath;
     private final float stopDistance;
     private final float startDistance;
@@ -26,10 +25,23 @@ public class OWFollowOwnerGoal extends Goal {
     public OWFollowOwnerGoal(OWEntity entity, double speed, float distanceMin, float distanceMax) {
         this.tamable = entity;
         this.speedModifier = speed;
-        this.navigation = entity.getNavigation();
         this.startDistance = distanceMin;
         this.stopDistance = distanceMax;
         this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+    }
+
+    /**
+     * Navigation <b>courante</b> de la bête, relue à chaque usage plutôt que retenue à la construction.
+     *
+     * <p>Un amphibie change de navigateur en cours de route ({@code OWSemiWaterEntity#switchNavigation}
+     * bascule entre sol et eau selon le milieu), et ces deux instances-là naissent <i>après</i>
+     * l'enregistrement des goals. La référence figée pointait donc sur le navigateur d'origine, celui
+     * que plus personne ne fait avancer : le chemin vers le maître était bien calculé, mais dans le
+     * vide. Le crocodile fixait son propriétaire sans jamais faire un pas vers lui, et ne le
+     * rejoignait que par téléportation, une fois passée la distance de rappel.</p>
+     */
+    private PathNavigation navigation() {
+        return this.tamable.getNavigation();
     }
 
     public boolean canUse() {
@@ -47,7 +59,9 @@ public class OWFollowOwnerGoal extends Goal {
     }
 
     public boolean canContinueToUse() {
-        if (this.navigation.isDone()) {
+        if (this.owner == null) {
+            return false;
+        } else if (this.navigation().isDone()) {
             return false;
         } else if (this.tamable.unableToMoveToOwner()) {
             return false;
@@ -64,12 +78,13 @@ public class OWFollowOwnerGoal extends Goal {
 
     public void stop() {
         this.owner = null;
-        this.navigation.stop();
+        this.navigation().stop();
         this.tamable.setPathfindingMalus(PathType.WATER, this.oldWaterCost);
         this.tamable.resetState();
     }
 
     public void tick() {
+        if (this.owner == null) return;
         if (this.tamable.isInResurrection() || this.tamable.isBaby()) return;
 
         boolean $$0 = this.tamable.shouldTryTeleportToOwner();
@@ -82,7 +97,7 @@ public class OWFollowOwnerGoal extends Goal {
             if ($$0) {
                 this.tamable.tryToTeleportToOwner();
             } else {
-                this.navigation.moveTo(this.owner, this.speedModifier);
+                this.navigation().moveTo(this.owner, this.speedModifier);
                 this.tamable.setState(2);
             }
 

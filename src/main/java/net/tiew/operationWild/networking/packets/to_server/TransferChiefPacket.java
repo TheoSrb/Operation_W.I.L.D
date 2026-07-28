@@ -49,7 +49,6 @@ public record TransferChiefPacket(String targetUuid) implements CustomPacketPayl
             team.getMemberPermissions().remove(target); // ni soumis aux permissions
             data.putTribe(team); // dirty
 
-            OWTribeManager.refreshEntitiesOfTribe(server, team);
             OWTribeManager.syncTribeToOnlineMembers(server, team);
             OWTribeManager.broadcastTribeList(server);
         });

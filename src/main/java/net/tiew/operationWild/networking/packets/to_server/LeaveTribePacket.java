@@ -68,7 +68,6 @@ public record LeaveTribePacket() implements CustomPacketPayload {
             OWTribeManager.refreshEntitiesOfPlayer(server, sp.getUUID());
             OWTribeManager.syncPlayerTribe(server, sp);
             // Les membres restants voient la liste des membres (et éventuellement le nouveau chef) changer.
-            OWTribeManager.refreshEntitiesOfTribe(server, team);
             OWTribeManager.syncTribeToOnlineMembers(server, team);
             OWTribeManager.broadcastTribeList(server);
         });

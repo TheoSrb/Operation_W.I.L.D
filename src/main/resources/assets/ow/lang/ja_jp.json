@@ -1038,10 +1038,12 @@
   "owteams.arena.tribe_chest.locked": "%s が必要",
   "owteams.arena.tribe_chest.progress": "チェスト %s / %s 개封",
   "owteams.arena.error.start_failed": "戦闘を開始できません：戦士が見つかりません。",
-  "ow.attacks.orca.big_mouth.desc": "シャチが目の前のエンティティを飲み込み、%s 秒間顎に抱えます。敵は砍かれ息もできませんが、味方は自由に呼吸できます。もう一度押すと吐き出します。%s 体の撃破で、%s 秒ごとにチャージ。",
+  "ow.attacks.orca.big_mouth.desc": "シャチが目の前のエンティティを丸呑みします。味方は %s 秒間自由に呼吸でき、敵は %s 秒間砕かれ息もできません。もう一度押すと吐き出します。%s 体の撃破で %s 秒ごとにチャージ。",
   "ow.attacks.orca.big_mouth.title": "ビッグマウス",
   "ow.attacks.orca.combo.desc": "シャチに %s 秒ごとに噛みつかせ、一回 %s のダメージを与えます。",
-  "ow.attacks.orca.combo.title": "深淵の食いちぎり",
-  "ow.attacks.orca.tidal_rush.desc": "シャチを鼻先の方向へ、深くも浅くも突進させます。上を狙えば水面から飛び出します。%s 秒ごと。",
-  "ow.attacks.orca.tidal_rush.title": "潮流の突進"
+  "ow.attacks.orca.combo.title": "食いつき",
+  "ow.attacks.orca.tidal_rush.desc": "シャチを鼻先の方向へ突進させ、ぶつかったものに %s のダメージを与えます。水面を狙えば水中から飛び出します。%s 秒ごと。",
+  "ow.attacks.orca.tidal_rush.title": "海流の推進",
+  "ow.attacks.orca.slipstream.desc": "半径 %s ブロック以内で、あなたの心を開いた生き物と部族の仲間は %s%% 速く泳ぎ、%s%% 長く息を止められます。",
+  "ow.attacks.orca.slipstream.title": "伴流"
 }

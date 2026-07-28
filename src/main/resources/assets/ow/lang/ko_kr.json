@@ -1038,10 +1038,12 @@
   "owteams.arena.tribe_chest.locked": "%s 필요",
   "owteams.arena.tribe_chest.progress": "상자 %s / %s 개봉",
   "owteams.arena.error.start_failed": "전투를 시작할 수 없습니다: 전투원을 찾을 수 없습니다.",
-  "ow.attacks.orca.big_mouth.desc": "범고래가 앞의 엔티티를 삼켜 %s 초 동안 아가리에 품습니다. 적은 짓이겨지고 숨을 쉬지 못하며, 아군은 자유롭게 숨쉰니다. 다시 누르면 뤄냅니다. %s 처치로, %s 초마다 충전됩니다.",
+  "ow.attacks.orca.big_mouth.desc": "범고래가 앞의 엔티티를 통째로 삼킵니다. 아군은 %s 초 동안 자유롭게 숨쉬고, 적은 %s 초 동안 짓이겨지며 숨을 쉬지 못합니다. 다시 누르면 뱉어냅니다. %s 처치로 %s 초마다 충전됩니다.",
   "ow.attacks.orca.big_mouth.title": "빅 마우스",
   "ow.attacks.orca.combo.desc": "범고래가 %s 초마다 물어 %s 의 피해를 입힙니다.",
-  "ow.attacks.orca.combo.title": "심연의 씨물기",
-  "ow.attacks.orca.tidal_rush.desc": "범고래를 주둥이 방향으로 돌진시킵니다. 깊은 곳으로도, 수면으로도 — 위를 겨냥하면 물 밖으로 튀어오릅니다. %s 초마다.",
-  "ow.attacks.orca.tidal_rush.title": "조류 돌진"
+  "ow.attacks.orca.combo.title": "냚아채기",
+  "ow.attacks.orca.tidal_rush.desc": "범고래를 주둥이 방향으로 돌진시켜 부딪히는 것에 %s 의 피해를 입힙니다. 수면을 겨냥하면 물 밖으로 튀어오릅니다. %s 초마다.",
+  "ow.attacks.orca.tidal_rush.title": "바다 추진",
+  "ow.attacks.orca.slipstream.desc": "반경 %s 블록 이내에서 길들인 생물과 부족원은 %s%% 더 빠르게 헤엄치고 숫을 %s%% 더 오래 참습니다.",
+  "ow.attacks.orca.slipstream.title": "반류"
 }

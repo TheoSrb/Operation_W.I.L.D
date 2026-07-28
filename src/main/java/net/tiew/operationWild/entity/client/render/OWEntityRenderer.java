@@ -47,6 +47,14 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
 
     @Override
     public void render(T entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        // Avalée par une orque : la bête n'existe plus à l'écran, informations comprises.
+        //
+        // Le contrôle est ici et pas seulement sur l'événement de rendu : celui-ci est émis au
+        // cœur de super.render, alors que renderEntityInfo est appelé APRÈS, depuis cette méthode.
+        // L'annuler masquait donc le corps mais laissait le niveau, le propriétaire, la bannière de
+        // tribu et les jauges flotter au-dessus de la tête de l'orque.
+        if (net.tiew.operationWild.entity.animals.aquatic.OrcaEntity.isSwallowed(entity)) return;
+
         float scale = entity.getScale();
         float babyScale = scale / 2.25f;
         Player player = entity.level().getNearestPlayer(entity, 64.0D);

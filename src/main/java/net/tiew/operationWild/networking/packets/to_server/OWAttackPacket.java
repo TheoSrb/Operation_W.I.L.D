@@ -65,14 +65,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             if (!(context.player() instanceof ServerPlayer player)) return;
             if (!(player.getRootVehicle() instanceof OWEntity entity)) return;
             if (entity.getPassengers().indexOf(player) != 0) return;
-            // Le propriétaire OU tout membre de sa tribu peut piloter les attaques de l'entité.
-            // Le crocodile ENCORE SAUVAGE fait exception : le dresseur le chevauche justement
-            // avant qu'il ne lui appartienne, aucune permission ne peut donc exister. Une fois
-            // apprivoisé il rentre dans le rang — sans quoi n'importe quel joueur monté sur le
-            // crocodile d'autrui commandait ses attaques.
-            boolean isWildCrocodileRide = entity instanceof CrocodileEntity croc && !croc.isTame();
-            if (!isWildCrocodileRide
-                    && !entity.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) return;
+            // Le propriétaire OU tout membre de sa tribu doté du Contrôle peut piloter les attaques
+            // de l'entité (cf. OWEntity#canPilotAttacks, garde commune client/serveur).
+            if (!entity.canPilotAttacks(player)) return;
 
             if (packet.action() == ACTION_TRIGGER_DEATH_ROLL) {
                 // Le délai est vérifié côté serveur : le client en applique un de son côté, mais

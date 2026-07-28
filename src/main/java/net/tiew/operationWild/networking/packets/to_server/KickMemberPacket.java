@@ -55,7 +55,6 @@ public record KickMemberPacket(String targetUuid) implements CustomPacketPayload
             OWTribeManager.refreshEntitiesOfPlayer(server, target);
             ServerPlayer kicked = server.getPlayerList().getPlayer(target);
             if (kicked != null) OWTribeManager.syncPlayerTribe(server, kicked);
-            OWTribeManager.refreshEntitiesOfTribe(server, team);
             OWTribeManager.syncTribeToOnlineMembers(server, team);
             OWTribeManager.broadcastTribeList(server);
         });

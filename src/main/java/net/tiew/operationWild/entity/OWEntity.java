@@ -1810,6 +1810,26 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
      */
     private static final float RIDDEN_SPEED_RESPONSE = 0.3f;
 
+    /** Prise d'élan d'une nageuse montée : environ 1,7 s pour atteindre son allure. */
+    protected static final float RIDDEN_SWIM_ACCEL_RESPONSE = 0.09f;
+    /** Et près de 3 s pour s'arrêter : une masse pareille ne se plante pas dans l'eau. */
+    protected static final float RIDDEN_SWIM_BRAKE_RESPONSE = 0.055f;
+
+    /**
+     * Réactivité du lissage de vitesse pour ce tick, selon qu'on prend de l'élan ou qu'on freine.
+     *
+     * <p>Une seule valeur servait aux deux, et elle convient à une bête qui pose des pattes au sol.
+     * Dans l'eau, rien ne mord : une nageuse de plusieurs tonnes ne passe pas de l'arrêt à sa vitesse
+     * de croisière en une demi-seconde, et surtout elle ne s'immobilise pas net — elle glisse sur son
+     * erre. Les familles aquatiques rallongent donc les deux rampes, et le freinage plus encore que
+     * la mise en route.</p>
+     *
+     * @param accelerating vrai si l'allure visée dépasse l'allure courante
+     */
+    protected float riddenSpeedResponse(boolean accelerating) {
+        return RIDDEN_SPEED_RESPONSE;
+    }
+
     public float getRiddenSpeedVehicle(Player player) {
         if (this.isSitting() || this.jumping) return 0.0f;
 
@@ -1860,7 +1880,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             currentSpeed = target;
             return currentSpeed;
         }
-        currentSpeed += (target - currentSpeed) * RIDDEN_SPEED_RESPONSE;
+        currentSpeed += (target - currentSpeed)
+                * riddenSpeedResponse(Math.abs(target) > Math.abs(currentSpeed));
         if (Math.abs(currentSpeed) < 1.0e-4f) currentSpeed = 0f;   // évite une dérive résiduelle
         return currentSpeed;
     }
@@ -2519,8 +2540,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     /** Vrai si le joueur (UUID) fait partie de la tribu de cette entité (chef inclus). */
     public boolean isInMyTribe(UUID playerUuid) {
-        if (playerUuid == null || this.currentTeam == null) return false;
-        return this.currentTeam.isMember(playerUuid);
+        if (playerUuid == null) return false;
+        OWTeam t = this.resolvedTeam();
+        return t != null && t.isMember(playerUuid);
     }
 
     /**
@@ -2545,10 +2567,35 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (player == null) return false;
         UUID id = player.getUUID();
         if (id.equals(this.getOwnerUUID())) return true;
-        net.tiew.operationWild.team.OWTeam t = this.currentTeam;
+        net.tiew.operationWild.team.OWTeam t = this.resolvedTeam();
         if (t == null || !t.isMember(id)) return false;
         if (t.isChief(id)) return true;              // le chef seul a l'accès total
         return t.hasPermissionBit(id, perm.bit());   // adjoint ET membre : selon leur bitmask
+    }
+
+    /**
+     * Vrai si {@code player} a le droit de <b>piloter les attaques</b> de cette créature depuis son dos :
+     * son propriétaire, ou un membre de sa tribu doté de la permission
+     * {@link net.tiew.operationWild.team.OWTribePermission#CONTROL}.
+     *
+     * <p>Sert de garde <b>unique</b> aux deux bouts du fil — entrées client (combo, attaques annexes,
+     * surcouche HUD) et paquets serveur. Les deux côtés testaient jusqu'ici la seule propriété, et le
+     * serveur avait beau accepter la tribu, le client n'envoyait jamais rien : un membre autorisé
+     * montait la bête d'un camarade sans pouvoir en tirer un seul coup.</p>
+     */
+    public boolean canPilotAttacks(Player player) {
+        if (player == null) return false;
+        if (this.allowsUnownedPiloting()) return true;
+        return this.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL);
+    }
+
+    /**
+     * Cette créature se laisse-t-elle piloter par n'importe quel cavalier, sans propriétaire ni tribu ?
+     * Faux partout, sauf pour une bête qu'on chevauche <b>avant</b> de la posséder (cf. le crocodile
+     * en cours d'apprivoisement), où aucune permission ne peut encore exister.
+     */
+    protected boolean allowsUnownedPiloting() {
+        return false;
     }
 
     /** Permissions par défaut selon le rôle (utilisé à l'entrée / promotion). */

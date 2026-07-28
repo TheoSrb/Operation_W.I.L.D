@@ -1038,10 +1038,12 @@
   "owteams.arena.tribe_chest.locked": "Requires %s",
   "owteams.arena.tribe_chest.progress": "%s / %s chests opened",
   "owteams.arena.error.start_failed": "The battle could not start: some fighters are missing.",
-  "ow.attacks.orca.big_mouth.desc": "Your Orca snaps up the entity ahead and carries it in its maw for %s seconds: a foe is crushed and starved of air, an ally breathes freely. Press again to spit it out. Recharge with %s kills, every %s seconds.",
+  "ow.attacks.orca.big_mouth.desc": "Your Orca gulps down the entity ahead: an ally breathes freely inside for %s seconds, a foe is crushed and starved of air for %s seconds. Press again to spit it out. Recharge with %s kills every %s seconds.",
   "ow.attacks.orca.big_mouth.title": "Big Mouth",
   "ow.attacks.orca.combo.desc": "Make your Orca bite every %s seconds, dealing %s damage per bite.",
-  "ow.attacks.orca.combo.title": "Abyssal Crush",
-  "ow.attacks.orca.tidal_rush.desc": "Launch your Orca along its snout, downward or upward alike: aim high and it bursts clear of the water. Every %s seconds.",
-  "ow.attacks.orca.tidal_rush.title": "Tidal Rush"
+  "ow.attacks.orca.combo.title": "Snap",
+  "ow.attacks.orca.tidal_rush.desc": "Launch your Orca along its snout, dealing %s damage to whatever it strikes. Aim at the surface to burst clear of the water. Every %s seconds.",
+  "ow.attacks.orca.tidal_rush.title": "Ocean Surge",
+  "ow.attacks.orca.slipstream.desc": "Within %s blocks, your tamed creatures and tribe members swim %s%% faster and hold their breath %s%% longer.",
+  "ow.attacks.orca.slipstream.title": "Slipstream"
 }

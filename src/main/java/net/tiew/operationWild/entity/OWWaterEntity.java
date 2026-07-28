@@ -92,6 +92,16 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
         return 0.12D;
     }
 
+    /**
+     * Inertie de nage : la bete met du temps a lancer, et bien plus a s'arreter.
+     * Hors de l'eau, elle retrouve la reponse vive d'une monture terrestre.
+     */
+    @Override
+    protected float riddenSpeedResponse(boolean accelerating) {
+        if (!this.isInWater()) return super.riddenSpeedResponse(accelerating);
+        return accelerating ? RIDDEN_SWIM_ACCEL_RESPONSE : RIDDEN_SWIM_BRAKE_RESPONSE;
+    }
+
     @Override
     public boolean isPushedByFluid() { return false; }
 

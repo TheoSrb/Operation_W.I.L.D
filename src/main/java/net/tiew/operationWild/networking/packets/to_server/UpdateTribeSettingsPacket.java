@@ -56,7 +56,6 @@ public record UpdateTribeSettingsPacket(boolean isPublic, List<OWTribeJoinRequir
             team.setDirectJoin(packet.directJoin());
             data.putTribe(team); // dirty
 
-            OWTribeManager.refreshEntitiesOfTribe(server, team);
             OWTribeManager.syncTribeToOnlineMembers(server, team);
             OWTribeManager.broadcastTribeList(server);
         });

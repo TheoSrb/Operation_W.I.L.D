@@ -48,7 +48,7 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
                     float vitalEnergyPercent = (float) (owEntity.getVitalEnergy() / owEntity.getMaxVitalEnergy());
 
                     if (entity.getPassengers().indexOf(player) != 0 && !(entity instanceof CrocodileEntity)) return;
-                    if (!player.getUUID().equals(owEntity.getOwnerUUID()) && !(entity instanceof CrocodileEntity)) return;
+                    if (!owEntity.canPilotAttacks(player)) return;
 
                     if (owEntity.hasReachedAttackEnergyLimit() && vitalEnergyPercent <= 0.8f) {
                         owEntity.setHasReachedAttackEnergyLimit(false);

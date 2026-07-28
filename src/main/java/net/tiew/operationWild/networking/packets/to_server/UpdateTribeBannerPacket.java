@@ -76,7 +76,6 @@ public record UpdateTribeBannerPacket(
                     : null);
             data.putTribe(team); // dirty
 
-            OWTribeManager.refreshEntitiesOfTribe(server, team);
             OWTribeManager.syncTribeToOnlineMembers(server, team);
             OWTribeManager.broadcastTribeList(server);
         });

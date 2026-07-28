@@ -191,6 +191,16 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         }
     }
 
+    /**
+     * Inertie de nage : la bete met du temps a lancer, et bien plus a s'arreter.
+     * Hors de l'eau, elle retrouve la reponse vive d'une monture terrestre.
+     */
+    @Override
+    protected float riddenSpeedResponse(boolean accelerating) {
+        if (!this.isInWater()) return super.riddenSpeedResponse(accelerating);
+        return accelerating ? RIDDEN_SWIM_ACCEL_RESPONSE : RIDDEN_SWIM_BRAKE_RESPONSE;
+    }
+
     @Override
     public boolean isPushedByFluid() {
         return false;
@@ -244,6 +254,7 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
     protected void handleSmoothSwimming() {
         LivingEntity target = this.getTarget();
         boolean hasTarget = target != null;
+        Vec3 pathPoint = hasTarget ? null : currentPathPoint();
 
         if (hasTarget) {
             targetModeBlend = Math.min(1.0f, targetModeBlend + TARGET_TRANSITION_SPEED);
@@ -255,6 +266,13 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
             double deltaX = target.getX() - this.getX();
             double deltaZ = target.getZ() - this.getZ();
             targetYaw = (float)(Math.toDegrees(Math.atan2(deltaZ, deltaX))) - 90f;
+        } else if (pathPoint != null) {
+            double deltaX = pathPoint.x - this.getX();
+            double deltaZ = pathPoint.z - this.getZ();
+            if (deltaX * deltaX + deltaZ * deltaZ > 1.0E-4) {
+                targetYaw = (float)(Math.toDegrees(Math.atan2(deltaZ, deltaX))) - 90f;
+            }
+            yawChangeTimer = 0;
         } else {
             yawChangeTimer++;
             if (yawChangeTimer >= YAW_CHANGE_INTERVAL) {
@@ -275,7 +293,7 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         while (yawDiff > 180f) yawDiff -= 360f;
         while (yawDiff < -180f) yawDiff += 360f;
 
-        float yawSpeed = hasTarget ? 0.18f : YAW_SMOOTH_SPEED;
+        float yawSpeed = hasTarget ? 0.18f : (pathPoint != null ? 0.14f : YAW_SMOOTH_SPEED);
         swimYaw += yawDiff * yawSpeed;
 
         while (swimYaw > 360f) swimYaw -= 360f;
@@ -285,10 +303,13 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         this.setYHeadRot(swimYaw);
         this.setYBodyRot(swimYaw);
 
-        if (hasTarget) {
-            double deltaY = target.getY() - this.getY();
-            double deltaX = target.getX() - this.getX();
-            double deltaZ = target.getZ() - this.getZ();
+        if (hasTarget || pathPoint != null) {
+            double aimX = hasTarget ? target.getX() : pathPoint.x;
+            double aimY = hasTarget ? target.getY() : pathPoint.y;
+            double aimZ = hasTarget ? target.getZ() : pathPoint.z;
+            double deltaY = aimY - this.getY();
+            double deltaX = aimX - this.getX();
+            double deltaZ = aimZ - this.getZ();
             double distance3D = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ);
 
             if (distance3D > 0.1) {
@@ -301,7 +322,7 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
             }
         }
 
-        if (!hasTarget) {
+        if (!hasTarget && pathPoint == null) {
             depthChangeTimer++;
             if (depthChangeTimer >= DEPTH_CHANGE_INTERVAL) {
                 int maxDepthLimit = Math.max((int)(this.level().getSeaLevel() - getMaxDepth()), -64);
@@ -333,12 +354,29 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
             return;
         }
 
-        if (this.getNavigation().getPath() != null) {
-            handlePathSwimming();
+        if (pathPoint != null) {
+            handlePathSwimming(pathPoint);
             return;
         }
 
         handleFreeSwimming();
+    }
+
+    /**
+     * Prochain point du chemin en cours, ou {@code null} si la bête n'en suit aucun.
+     *
+     * <p>C'est le <b>nœud suivant</b> qu'on vise, et non la destination finale : c'est lui qui porte
+     * le contournement des obstacles calculé par la navigation. La nage lisse impose son propre cap
+     * ({@code setYRot(swimYaw)}) et écrase donc la direction du {@code MoveControl} ; sans ce point de
+     * mire, un amphibie en train de rejoindre son maître nageait au hasard de son cap de vadrouille,
+     * en corrigeant seulement sa profondeur.</p>
+     */
+    @javax.annotation.Nullable
+    protected Vec3 currentPathPoint() {
+        net.minecraft.world.entity.ai.navigation.PathNavigation nav = this.getNavigation();
+        net.minecraft.world.level.pathfinder.Path path = nav.getPath();
+        if (path == null || path.isDone()) return null;
+        return path.getNextEntityPos(this);
     }
 
     protected void handleFreeSwimming() {
@@ -447,11 +485,10 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         }
     }
 
-    protected void handlePathSwimming() {
-        BlockPos targetPos = this.getNavigation().getTargetPos();
-        if (targetPos == null) return;
+    protected void handlePathSwimming(Vec3 pathPoint) {
+        if (pathPoint == null) return;
 
-        double yDiff = targetPos.getY() - this.getY();
+        double yDiff = pathPoint.y - this.getY();
         double yawRadians = Math.toRadians(swimYaw);
         double depth = this.level().getSeaLevel() - this.getY();
         double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 1.5;
@@ -464,7 +501,11 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
             verticalMove = -0.03D;
         }
 
-        this.setDeltaMovement(this.getDeltaMovement().add(moveX, depth > 1 ? verticalMove + 0.001 : 0, moveZ));
+        // Remonter reste conditionné à la profondeur (pas de bond hors de l'eau), mais descendre
+        // vers un nœud plus bas doit toujours passer : c'est ce qui permet de plonger vers un maître
+        // qui nage sous la surface.
+        double yMove = verticalMove < 0 ? verticalMove : (depth > 1 ? verticalMove + 0.001 : 0);
+        this.setDeltaMovement(this.getDeltaMovement().add(moveX, yMove, moveZ));
     }
 
     protected boolean isAtSurface() {

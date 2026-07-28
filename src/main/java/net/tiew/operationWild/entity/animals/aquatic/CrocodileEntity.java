@@ -307,6 +307,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 .add(Attributes.ARMOR, 0.2D);
     }
 
+    /**
+     * Le crocodile ENCORE SAUVAGE est l'exception : le dresseur le chevauche justement avant qu'il ne
+     * lui appartienne, aucune permission ne peut donc exister. Une fois apprivoisé il rentre dans le
+     * rang — sans quoi n'importe quel joueur monté sur le crocodile d'autrui commanderait ses attaques.
+     */
+    @Override
+    protected boolean allowsUnownedPiloting() {
+        return !this.isTame();
+    }
+
     @Override
     protected void registerGoals() {
         super.registerGoals();
