@@ -231,7 +231,10 @@
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d3b9ed-8269-45e3-85f1-ea29d11afff3/scratchpad/rename_bigmouth.py\")",
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d3b9ed-8269-45e3-85f1-ea29d11afff3/scratchpad/bigmouth_desc.py\")",
       "PowerShell(& \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\gradlew.bat\" compileJava --offline --console=plain -q)",
-      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d3b9ed-8269-45e3-85f1-ea29d11afff3/scratchpad/orca_texts.py\")"
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d3b9ed-8269-45e3-85f1-ea29d11afff3/scratchpad/orca_texts.py\")",
+      "Bash(awk 'NR>=1137 && NR<=1160' src/main/java/net/tiew/operationWild/entity/client/animation/KangarooAnimations.java)",
+      "Bash(awk 'NR>=1137 && NR<=1916' src/main/java/net/tiew/operationWild/entity/client/animation/KangarooAnimations.java)",
+      "PowerShell(python \"C:\\\\Users\\\\Tiew_37\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D\\\\d83752d0-418b-40ff-9c0f-627055c70336\\\\scratchpad\\\\gen_stomp_anim.py\")"
     ]
   }
 }

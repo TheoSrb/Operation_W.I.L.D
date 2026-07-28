@@ -135,7 +135,34 @@ public class BoaTailPart extends LivingEntity implements IHurtableMultipart {
 
     @Override
     public boolean isInvulnerableTo(DamageSource source) {
-        return source.is(DamageTypes.IN_WALL) || super.isInvulnerableTo(source);
+        return source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.DROWN) || super.isInvulnerableTo(source);
+    }
+
+    /**
+     * Un segment de queue ne respire pas : c'est le Boa qui respire pour lui.
+     *
+     * <p>Cette classe hérite de {@code LivingEntity}, elle recevait donc le traitement complet de la
+     * noyade : réserve d'air propre, plafonnée aux 300 ticks vanilla faute d'être redéfinie, puis
+     * deux points de dégâts par seconde une fois vide. Et comme {@link #hurt} renvoie <b>tout</b> au
+     * Boa parent, ces dégâts lui étaient facturés — multipliés par le nombre de segments, chacun
+     * avec son propre décompte.</p>
+     *
+     * <p>D'où le symptôme : après seize secondes sous l'eau le serpent se mettait à fondre, alors
+     * que sa propre jauge d'oxygène, taillée pour trente secondes, affichait encore la moitié de ses
+     * bulles. Aucun indicateur ne pouvait expliquer ces dégâts, puisqu'ils ne venaient pas de lui.</p>
+     *
+     * <p>Le même piège avait déjà été désamorcé pour l'étouffement dans les blocs, juste au-dessus :
+     * une queue traverse les murs en permanence. La noyade avait simplement été oubliée.</p>
+     *
+     * <p>On neutralise la consommation d'air plutôt que de déclarer le segment « respire sous
+     * l'eau » : ce drapeau-là est final dans {@code LivingEntity} et se règle par un tag d'entité,
+     * qu'il faudrait générer et maintenir pour une pièce anatomique qui n'a jamais eu à respirer.
+     * Sa réserve reste donc pleine, et le refus de {@code isInvulnerableTo} ferme la porte au cas où
+     * les dégâts viendraient d'ailleurs.</p>
+     */
+    @Override
+    protected int decreaseAirSupply(int currentAir) {
+        return currentAir;
     }
 
     /** Empeche toute detection de suffocation (les segments traversent les blocs). */

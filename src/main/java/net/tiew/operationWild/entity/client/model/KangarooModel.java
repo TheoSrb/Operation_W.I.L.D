@@ -15,6 +15,7 @@ import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.client.animation.KangarooAnimations;
 
 public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
@@ -26,6 +27,7 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
     private static final float SPIN_LOOP_LENGTH_MS = 14000f;  // jusqu'à 14,5 s
     private static final float SPIN_ANIM_END_MS    = 15000f;  // fin de l'anim (pose de repos)
     private static final Vector3f SPIN_ANIM_VEC = new Vector3f();
+    private static final Vector3f STOMP_ANIM_VEC = new Vector3f();
 
     private final ModelPart ALL2;
     private final ModelPart ALL;
@@ -158,8 +160,8 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         // ce qui laisse le bras revenir au repos naturellement au lieu de snapper.
         animateCombos(kangaroo, ageInTicks);
 
-        if (kangaroo.isTelluricStomping() || kangaroo.telluricStompAnim.isStarted()) {
-            this.animate(kangaroo.telluricStompAnim, KangarooAnimations.TELLURIC_STOMP, ageInTicks, 1.0f);
+        if (kangaroo.isTelluricStomping() || kangaroo.telluricStompOutroTicks > 0) {
+            animateTelluricStomp(kangaroo, ageInTicks);
             captureBodyState(kangaroo);
             return;
         }
@@ -206,6 +208,39 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         if (!kangaroo.isCombo(3)) this.animateWalk(KangarooAnimations.MOVE_WALK, limbSwing, limbSwingAmount, s, s * 1.25f);
 
         captureBodyState(kangaroo);
+    }
+
+    /**
+     * Pilon Tellurique : une animation par phase, lue sur le compteur de trames de cette phase.
+     *
+     * <p>Les deux phases de durée variable — suspension et plongeon, qui s'arrêtent sur un événement
+     * et non sur un compte de trames — sont en boucle. La réception se joue sur son propre décompte,
+     * après que le serveur a refermé l'ultime.</p>
+     *
+     * <p>Le tourbillon vient par-dessus, en procédural : la carcasse entière tourne autour de son axe
+     * vertical à une vitesse que l'animation par images-clés ne saurait porter, puisqu'elle dépend de
+     * la durée de la chute. Le cavalier n'en est pas affecté ({@code captureBodyState} ne relaie que
+     * le tangage et le roulis) — il tient sa monture, il ne tourne pas avec elle.</p>
+     */
+    private void animateTelluricStomp(T kangaroo, float ageInTicks) {
+        float partial = Mth.clamp(ageInTicks - kangaroo.tickCount, 0f, 1f);
+        int phase = kangaroo.getTelluricStompPhase();
+
+        float elapsedTicks = phase == KangarooEntity.STOMP_PHASE_NONE
+                ? (OWAttacksConstants.Kangaroo.TELLURIC_STOMP_OUTRO_TICKS - kangaroo.telluricStompOutroTicks) + partial
+                : kangaroo.telluricStompPhaseTicks + partial;
+        long ms = (long) (elapsedTicks * 50f);
+
+        AnimationDefinition definition = switch (phase) {
+            case KangarooEntity.STOMP_PHASE_WINDUP -> KangarooAnimations.TELLURIC_STOMP_WINDUP;
+            case KangarooEntity.STOMP_PHASE_LEAP   -> KangarooAnimations.TELLURIC_STOMP_LEAP;
+            case KangarooEntity.STOMP_PHASE_HOVER  -> KangarooAnimations.TELLURIC_STOMP_HOVER;
+            case KangarooEntity.STOMP_PHASE_DIVE   -> KangarooAnimations.TELLURIC_STOMP_DIVE;
+            default -> KangarooAnimations.TELLURIC_STOMP_LAND;
+        };
+        KeyframeAnimations.animate(this, definition, ms, 1f, STOMP_ANIM_VEC);
+
+        this.ALL2.yRot += (kangaroo.telluricSpinAngle + kangaroo.telluricSpinSpeed * partial) * Mth.DEG_TO_RAD;
     }
 
     /**

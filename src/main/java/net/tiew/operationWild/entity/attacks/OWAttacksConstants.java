@@ -77,6 +77,10 @@ public class OWAttacksConstants {
 
         // ── Pilon Tellurique (ultime) ──────────────────────────────────────────
         public static final int    TELLURIC_STOMP_KILLS_REQUIRED   = 5;
+        /** Ancrage au sol avant le bond : le kangourou s'écrase sur ses pattes et frappe le sol. */
+        public static final int    TELLURIC_STOMP_WINDUP_TICKS     = 7;
+        /** Réception après l'impact (client) : amorti des pattes puis retour au repos. */
+        public static final int    TELLURIC_STOMP_OUTRO_TICKS      = 10;
         public static final int    TELLURIC_STOMP_COOLDOWN_TICKS   = 500;   // 25 s
         public static final float  TELLURIC_STOMP_ENERGY           = 100f;
         /** Vitesse verticale initiale du bond (blocs/tick) : gros BOOM au départ, amorti vers l'apogée. */

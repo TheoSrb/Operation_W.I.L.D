@@ -320,6 +320,8 @@ public class OWAttackLogic {
 
     @SubscribeEvent
     public static void onComputeFov(ComputeFovModifierEvent event) {
+        applyTelluricStompFov(event);
+
         // Orca Tidal Rush — FOV increase (sensation de vitesse)
         if (orcaDashEffectStartMs >= 0) {
             long elapsed = System.currentTimeMillis() - orcaDashEffectStartMs;
@@ -402,9 +404,97 @@ public class OWAttackLogic {
         event.setYaw(event.getYaw()     + amplitude * 0.5f * (float) Math.cos(t / 39.0));
     }
 
+    /**
+     * Kangourou monté : le Pilon Tellurique à la première personne.
+     *
+     * <p>Comme la Roulade de la Mort, l'effet est piloté par l'état synchronisé de la bête et non par
+     * un horodatage local — il reste donc calé sur le geste réel, quelle que soit la durée de la
+     * chute, et vaut pour tout client concerné. On ne touche qu'aux angles de <b>vue</b> : le regard
+     * du joueur, lui, oriente le plongeon et doit rester intact.</p>
+     */
+    private static KangarooEntity riddenTelluricKangaroo() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return null;
+        if (!(mc.player.getRootVehicle() instanceof KangarooEntity kangaroo)) return null;
+        if (!kangaroo.isTelluricStomping() && kangaroo.telluricStompOutroTicks <= 0) return null;
+        return kangaroo;
+    }
+
+    private static void applyTelluricStompShake(ViewportEvent.ComputeCameraAngles event) {
+        KangarooEntity kangaroo = riddenTelluricKangaroo();
+        if (kangaroo == null) return;
+
+        long t = System.currentTimeMillis();
+        int phase = kangaroo.getTelluricStompPhase();
+
+        switch (phase) {
+            case KangarooEntity.STOMP_PHASE_WINDUP -> {
+                // Grondement sourd qui monte pendant que la bête se ramasse.
+                float build = Mth.clamp((float) kangaroo.telluricStompPhaseTicks
+                        / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_WINDUP_TICKS, 0f, 1f);
+                float amplitude = build * build * 1.6f;
+                event.setRoll(event.getRoll() + amplitude * (float) Math.sin(t / 26.0));
+                event.setPitch(event.getPitch() + amplitude * 0.6f * (float) Math.cos(t / 31.0));
+            }
+            case KangarooEntity.STOMP_PHASE_LEAP -> {
+                float fade = 1f - Mth.clamp((float) kangaroo.telluricStompPhaseTicks
+                        / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_TICKS, 0f, 1f);
+                float amplitude = fade * fade * 5.0f;
+                event.setPitch(event.getPitch() - amplitude * 0.8f);
+                event.setRoll(event.getRoll() + amplitude * (float) Math.sin(t / 24.0));
+            }
+            case KangarooEntity.STOMP_PHASE_HOVER -> {
+                // Le calme avant la chute : un simple roulis, la caméra reprend son souffle.
+                event.setRoll(event.getRoll() + 0.9f * (float) Math.sin(t / 220.0));
+            }
+            case KangarooEntity.STOMP_PHASE_DIVE -> {
+                // Vibration qui s'intensifie à mesure que la semelle prend de la vitesse.
+                float ramp = Mth.clamp(kangaroo.telluricStompPhaseTicks / 10f, 0f, 1f);
+                float amplitude = 0.7f + 2.3f * ramp;
+                event.setPitch(event.getPitch() + amplitude * 0.7f * (float) Math.sin(t / 18.0));
+                event.setRoll(event.getRoll() + amplitude * (float) Math.sin(t / 21.0));
+            }
+            default -> {
+                // Impact : secousse violente qui s'éteint sur la réception.
+                float remaining = (float) kangaroo.telluricStompOutroTicks
+                        / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_OUTRO_TICKS;
+                float amplitude = remaining * remaining * 17f;
+                event.setYaw(event.getYaw() + amplitude * (float) Math.sin(t / 27.0));
+                event.setPitch(event.getPitch() + amplitude * 0.9f * (float) Math.cos(t / 34.0));
+                event.setRoll(event.getRoll() + amplitude * 0.7f * (float) Math.sin(t / 41.0));
+            }
+        }
+    }
+
+    private static void applyTelluricStompFov(ComputeFovModifierEvent event) {
+        KangarooEntity kangaroo = riddenTelluricKangaroo();
+        if (kangaroo == null) return;
+
+        int phase = kangaroo.getTelluricStompPhase();
+        if (phase == KangarooEntity.STOMP_PHASE_WINDUP) {
+            // Resserrement : la vue se ferme sur la bête qui se comprime. Volontairement discret —
+            // le zoom d'activation d'ultime (ultimateWowEffectStartMs) tape déjà au même instant.
+            float build = Mth.clamp((float) kangaroo.telluricStompPhaseTicks
+                    / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_WINDUP_TICKS, 0f, 1f);
+            event.setNewFovModifier(event.getNewFovModifier() * (1.0f - 0.10f * build));
+        } else if (phase == KangarooEntity.STOMP_PHASE_LEAP) {
+            float fade = 1f - Mth.clamp((float) kangaroo.telluricStompPhaseTicks
+                    / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_TICKS, 0f, 1f);
+            event.setNewFovModifier(event.getNewFovModifier() * (1.0f + 0.26f * fade));
+        } else if (phase == KangarooEntity.STOMP_PHASE_DIVE) {
+            float ramp = Mth.clamp(kangaroo.telluricStompPhaseTicks / 12f, 0f, 1f);
+            event.setNewFovModifier(event.getNewFovModifier() * (1.0f + 0.30f * ramp));
+        } else if (kangaroo.telluricStompOutroTicks > 0) {
+            float remaining = (float) kangaroo.telluricStompOutroTicks
+                    / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_OUTRO_TICKS;
+            event.setNewFovModifier(event.getNewFovModifier() * (1.0f - 0.22f * remaining * remaining));
+        }
+    }
+
     @SubscribeEvent
     public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
         applyDeathRollShake(event);
+        applyTelluricStompShake(event);
 
         // Orca Tidal Rush — secousse frontale + légère bascule au déclenchement
         if (orcaDashEffectStartMs >= 0) {

@@ -46,9 +46,18 @@ public class OWEntityHud {
                         int actualDepth = (int) (owEntity.level().getSeaLevel() - owEntity.getY());
                         boolean isTooDeep = actualDepth >= diver.getMaxDepth();
 
-                        guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(actualDepth) + "m", (screenWidth / 2) - 23, 9, isTooDeep ? 0xf3c83b : 0xFFFFFF);
+                        // Passé la limite, la profondeur clignote en rouge : c'est la seule chose
+                        // à l'écran qui explique les dégâts encaissés, et le jaune fixe d'avant ne
+                        // se distinguait pas assez du chiffre de limite, écrit dans la même teinte.
+                        int depthColor = isTooDeep
+                                ? ((owEntity.tickCount / 5) % 2 == 0 ? 0xFF4040 : 0xF3C83B)
+                                : 0xFFFFFF;
+
+                        guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(actualDepth) + "m", (screenWidth / 2) - 23, 9, depthColor);
                         guiGraphics.drawString(Minecraft.getInstance().font, String.valueOf(diver.getMaxDepth()), (screenWidth / 2) + 12, 9, 0xf3c83b);
                         guiGraphics.blit(TEXTURE, (screenWidth / 2) - 23, 20, 40, 52, 46, 7);
+
+                        if (isTooDeep) renderPressureWarning(guiGraphics, screenWidth, owEntity.tickCount);
                     }
 
                     createEntityAirBubbles(guiGraphics, owEntity, screenWidth, depthShown);
@@ -211,6 +220,25 @@ public class OWEntityHud {
         } else guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, ((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())) >= 0.75 && (entity.tickCount / 5) % 2 == 0 ? 13 : 1, 244, 6, 12);
 
         guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 7, 244, 6, (int) (12 * (((float) (entity.getVitalEnergy() / entity.getMaxVitalEnergy())))));
+    }
+
+    /**
+     * Alerte de pression, affichée sous le bloc de profondeur.
+     *
+     * <p>Le message existait, était traduit dans les quatorze langues, et n'a jamais été montré : il
+     * était construit côté SERVEUR dans {@code OWSemiWaterEntity}, {@code OWWaterEntity} et le
+     * submersible, puis abandonné là — l'appel d'affichage y est commenté avec la mention « ne
+     * marche pas côté serveur ». Résultat, la monture encaissait des dégâts de pression sans que
+     * rien à l'écran ne les explique, et le joueur les attribuait naturellement à sa jauge
+     * d'oxygène, encore pleine. Le HUD tourne sur le client et connaît déjà la profondeur : il n'y
+     * avait aucune raison de faire voyager quoi que ce soit.</p>
+     */
+    private static void renderPressureWarning(GuiGraphics guiGraphics, int screenWidth, int tickCount) {
+        Component warning = Component.translatable("tooHighPressure");
+        int color = (tickCount / 5) % 2 == 0 ? 0xFF4040 : 0xFFD24A;
+        int width = Minecraft.getInstance().font.width(warning);
+        guiGraphics.drawString(Minecraft.getInstance().font, warning,
+                (screenWidth / 2) - width / 2, 41, color, true);
     }
 
     private static final ResourceLocation AIR_SPRITE = ResourceLocation.withDefaultNamespace("hud/air");

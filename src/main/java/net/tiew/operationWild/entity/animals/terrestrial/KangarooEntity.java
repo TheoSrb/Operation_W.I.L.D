@@ -66,9 +66,17 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     // ── Pilon Tellurique (ultime) ─────────────────────────────────────────────
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
-    /** Phase du Pilon Tellurique : 0 = inactif, 1 = bond initial, 2 = suspension en l'air, 3 = plongeon. */
+    /** Phase du Pilon Tellurique, cf. les constantes {@code STOMP_PHASE_*}. */
     private static final EntityDataAccessor<Integer> TELLURIC_STOMP_PHASE = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
 
+    public static final int STOMP_PHASE_NONE   = 0;
+    /** Ancrage au sol : la bête se ramasse sur ses pattes avant de défoncer le sol. */
+    public static final int STOMP_PHASE_WINDUP = 1;
+    public static final int STOMP_PHASE_LEAP   = 2;
+    public static final int STOMP_PHASE_HOVER  = 3;
+    public static final int STOMP_PHASE_DIVE   = 4;
+
+    private int telluricStompWindupTimer = 0;
     private int telluricStompLeapTimer = 0;
     private int telluricStompLeapElapsed = 0;
     private int telluricStompHoverTimer = 0;
@@ -76,8 +84,14 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private int telluricStompDiveElapsed = 0;
     private boolean telluricLeapImpulseApplied = false;
 
-    public final AnimationState telluricStompAnim = new AnimationState();
-    public int telluricStompAnimTimer = 0;
+    /** Ticks écoulés dans la phase courante — base de temps des animations (client). */
+    public int telluricStompPhaseTicks = 0;
+    private int telluricStompLastPhase = STOMP_PHASE_NONE;
+    /** Réception après l'impact : décompte client, l'ultime est déjà terminé côté serveur. */
+    public int telluricStompOutroTicks = 0;
+    /** Tourbillon : angle et vitesse de rotation du corps sur lui-même (degrés, client). */
+    public float telluricSpinAngle = 0f;
+    public float telluricSpinSpeed = 0f;
 
     private int spinTicks = 0;
     private int sinceLastDamage = 0;
@@ -339,7 +353,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         // Pilon Tellurique : le bond est piloté ici (instance contrôlée), juste avant travel() — seul
         // endroit fiable pour poser la vélocité d'une monture montée. Courbe ease-out : gros BOOM au
         // départ puis montée de plus en plus douce jusqu'à l'apogée.
-        if (this.isControlledByLocalInstance() && getTelluricStompPhase() == 1) {
+        if (this.isControlledByLocalInstance() && getTelluricStompPhase() == STOMP_PHASE_LEAP) {
             float progress = Mth.clamp(
                     (float) telluricStompLeapElapsed / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_TICKS, 0f, 1f);
             float ease = (1f - progress) * (1f - progress);
@@ -572,10 +586,9 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public int getUltimateKillCount() { return this.entityData.get(ULTIMATE_KILL_COUNT); }
     private void setUltimateKillCount(int count) { this.entityData.set(ULTIMATE_KILL_COUNT, Math.max(0, count)); }
 
-    /** Phase courante : 0 = inactif, 1 = suspension en l'air, 2 = plongeon. */
     public int getTelluricStompPhase() { return this.entityData.get(TELLURIC_STOMP_PHASE); }
     private void setTelluricStompPhase(int phase) { this.entityData.set(TELLURIC_STOMP_PHASE, phase); }
-    public boolean isTelluricStomping() { return getTelluricStompPhase() != 0; }
+    public boolean isTelluricStomping() { return getTelluricStompPhase() != STOMP_PHASE_NONE; }
 
     @Override
     public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {
@@ -616,12 +629,12 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.hasImpulse = true;
 
         if (isGroundedForStomp()) {
-            // Au sol (ou tout près) : bond préalable pour prendre de la hauteur.
-            setTelluricStompPhase(1);
-            telluricStompLeapTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_TICKS;
+            // Au sol (ou tout près) : ancrage sur les pattes, puis bond.
+            setTelluricStompPhase(STOMP_PHASE_WINDUP);
+            telluricStompWindupTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_WINDUP_TICKS;
         } else {
             // Déjà en l'air : suspension directe.
-            setTelluricStompPhase(2);
+            setTelluricStompPhase(STOMP_PHASE_HOVER);
             telluricStompHoverTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_HOVER_TICKS;
         }
 
@@ -630,7 +643,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     private void cancelTelluricStomp() {
-        setTelluricStompPhase(0);
+        setTelluricStompPhase(STOMP_PHASE_NONE);
+        telluricStompWindupTimer = 0;
         telluricStompLeapTimer = 0;
         telluricStompLeapElapsed = 0;
         telluricStompHoverTimer = 0;
@@ -641,6 +655,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     private void tickTelluricStomp() {
+        if (this.level().isClientSide()) tickTelluricStompVisuals();
+
         if (!isTelluricStomping()) {
             // Réarme les compteurs pour le prochain usage (le client n'exécute pas activate/cancel).
             telluricLeapImpulseApplied = false;
@@ -652,10 +668,30 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.fallDistance = 0f;
         int phase = getTelluricStompPhase();
 
-        // ── Phase 1 : bond initial (depuis le sol) ───────────────────────────
+        // ── Phase 1 : ancrage au sol ─────────────────────────────────────────
+        // Les pattes se plient sous la masse : la bête freine sur place, le temps que le geste se
+        // lise, puis détend tout d'un coup. Sans ce temps mort, le bond partait sur une pose de
+        // repos et le « coup de pied au sol » n'existait tout simplement pas à l'écran.
+        if (phase == STOMP_PHASE_WINDUP) {
+            this.setDeltaMovement(this.getDeltaMovement().multiply(0.55, 1.0, 0.55));
+
+            if (this.level().isClientSide()) return;
+
+            if (telluricStompWindupTimer > 0) {
+                telluricStompWindupTimer--;
+            } else {
+                setTelluricStompPhase(STOMP_PHASE_LEAP);
+                telluricStompLeapTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_TICKS;
+                telluricLeapImpulseApplied = false;
+                spawnTelluricLaunchBurst();
+            }
+            return;
+        }
+
+        // ── Phase 2 : bond initial (depuis le sol) ───────────────────────────
         // La vitesse verticale (courbe ease-out) est pilotée dans tickRidden ; ici on coupe la gravité
         // (on contrôle entièrement la montée) et on avance le compteur des deux côtés.
-        if (phase == 1) {
+        if (phase == STOMP_PHASE_LEAP) {
             this.setNoGravity(true);
             telluricStompLeapElapsed++;
 
@@ -664,14 +700,14 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             if (telluricStompLeapTimer > 0) {
                 telluricStompLeapTimer--;
             } else {
-                setTelluricStompPhase(2);
+                setTelluricStompPhase(STOMP_PHASE_HOVER);
                 telluricStompHoverTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_HOVER_TICKS;
             }
             return;
         }
 
-        // ── Phase 2 : suspension en l'air ────────────────────────────────────
-        if (phase == 2) {
+        // ── Phase 3 : suspension en l'air ────────────────────────────────────
+        if (phase == STOMP_PHASE_HOVER) {
             this.setNoGravity(true);
             // Décélération douce vers l'immobilité (pas d'arrêt sec) : la vélocité du bond
             // s'amortit progressivement jusqu'à la suspension.
@@ -683,13 +719,13 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             if (telluricStompHoverTimer > 0) {
                 telluricStompHoverTimer--;
             } else {
-                setTelluricStompPhase(3);
+                setTelluricStompPhase(STOMP_PHASE_DIVE);
                 telluricStompDiveTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MAX_DIVE_TICKS;
             }
             return;
         }
 
-        // ── Phase 3 : plongeon dans la direction du regard du rider ──────────
+        // ── Phase 4 : plongeon dans la direction du regard du rider ──────────
         this.setNoGravity(true);
         telluricStompDiveElapsed++;
         LivingEntity rider = this.getControllingPassenger();
@@ -707,12 +743,197 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         if (this.level().isClientSide()) return;
 
+        // Sifflement de chute, de plus en plus aigu : la frappe s'entend venir avant qu'on la voie.
+        if (telluricStompDiveElapsed % 3 == 1) {
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.NEUTRAL,
+                    0.75f, 0.55f + 0.09f * Math.min(telluricStompDiveElapsed, 12));
+        }
+
         if (telluricStompDiveTimer > 0) telluricStompDiveTimer--;
 
         if (this.onGround() || this.verticalCollision || this.horizontalCollision || telluricStompDiveTimer <= 0) {
             executeTelluricStompImpact();
             cancelTelluricStomp();
         }
+    }
+
+    /**
+     * Base de temps et effets du Pilon Tellurique, côté client uniquement.
+     *
+     * <p>Le serveur ne réplique que la phase : le compteur de trames est reconstruit ici, et remis à
+     * zéro à chaque changement de phase — c'est lui qui donne son point de départ à l'animation
+     * correspondante. La réception, elle, n'a pas de phase du tout (l'ultime est déjà clos côté
+     * serveur au moment de l'impact) et vit sur son propre décompte.</p>
+     */
+    private void tickTelluricStompVisuals() {
+        int phase = getTelluricStompPhase();
+
+        // Décompte AVANT l'armement : sinon la trame d'impact consommait aussitôt le premier tick de
+        // la réception, et l'encaissement — l'image la plus courte du geste — passait à la trappe.
+        if (telluricStompOutroTicks > 0) telluricStompOutroTicks--;
+
+        if (phase != telluricStompLastPhase) {
+            if (phase == STOMP_PHASE_NONE && telluricStompLastPhase == STOMP_PHASE_DIVE) {
+                telluricStompOutroTicks = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_OUTRO_TICKS;
+            }
+            telluricStompLastPhase = phase;
+            telluricStompPhaseTicks = 0;
+        } else if (phase != STOMP_PHASE_NONE) {
+            telluricStompPhaseTicks++;
+        }
+
+        tickTelluricSpin(phase);
+        spawnTelluricStompParticles(phase);
+    }
+
+    /**
+     * Tourbillon : la bête se met à tourner sur elle-même dès qu'elle quitte le sol, de plus en plus
+     * vite jusqu'au plongeon. À la réception, la rotation retombe en se recalant sur le tour complet
+     * le plus proche — sans quoi le corps resterait figé de travers à un angle arbitraire.
+     */
+    private void tickTelluricSpin(int phase) {
+        switch (phase) {
+            case STOMP_PHASE_LEAP  -> telluricSpinSpeed = Math.min(telluricSpinSpeed + 2.0f, 14f);
+            case STOMP_PHASE_HOVER -> telluricSpinSpeed = Math.min(telluricSpinSpeed + 5.0f, 34f);
+            case STOMP_PHASE_DIVE  -> telluricSpinSpeed = Math.min(telluricSpinSpeed + 6.0f, 52f);
+            case STOMP_PHASE_WINDUP -> telluricSpinSpeed = 0f;
+            default -> telluricSpinSpeed *= 0.7f;
+        }
+
+        telluricSpinAngle += telluricSpinSpeed;
+
+        if (phase == STOMP_PHASE_NONE) {
+            if (telluricSpinSpeed < 0.5f) telluricSpinSpeed = 0f;
+            float snap = Math.round(telluricSpinAngle / 360f) * 360f;
+            telluricSpinAngle = Mth.lerp(0.3f, telluricSpinAngle, snap);
+            if (telluricSpinSpeed == 0f && Math.abs(telluricSpinAngle - snap) < 0.5f) telluricSpinAngle = 0f;
+        }
+    }
+
+    /** Poussière au sol pendant l'ancrage, puis spirale d'air autour du corps une fois en l'air. */
+    private void spawnTelluricStompParticles(int phase) {
+        if (phase == STOMP_PHASE_WINDUP) {
+            BlockState ground = this.level().getBlockState(this.blockPosition().below());
+            if (ground.isAir()) return;
+            BlockParticleOption dust = new BlockParticleOption(ParticleTypes.BLOCK, ground);
+            for (int i = 0; i < 4; i++) {
+                double a = this.random.nextDouble() * Math.PI * 2.0;
+                double r = 0.9 + this.random.nextDouble() * 0.8;
+                this.level().addParticle(dust,
+                        this.getX() + Math.cos(a) * r, this.getY() + 0.1, this.getZ() + Math.sin(a) * r,
+                        Math.cos(a) * 0.12, 0.14, Math.sin(a) * 0.12);
+            }
+            return;
+        }
+
+        if (phase != STOMP_PHASE_HOVER && phase != STOMP_PHASE_DIVE) return;
+
+        boolean diving = phase == STOMP_PHASE_DIVE;
+        int arms = diving ? 4 : 3;
+        double height = this.getBbHeight();
+        for (int i = 0; i < arms; i++) {
+            double a = Math.toRadians(telluricSpinAngle) + i * (Math.PI * 2.0 / arms);
+            double r = (diving ? 1.1 : 1.5) + this.random.nextDouble() * 0.5;
+            double px = this.getX() + Math.cos(a) * r;
+            double pz = this.getZ() + Math.sin(a) * r;
+            double py = this.getY() + this.random.nextDouble() * height;
+            // Vitesse tangentielle : les traînées s'enroulent autour du corps au lieu de gicler.
+            double vx = -Math.sin(a) * (diving ? 0.55 : 0.35);
+            double vz = Math.cos(a) * (diving ? 0.55 : 0.35);
+            this.level().addParticle(ParticleTypes.CLOUD, px, py, pz, vx, diving ? 0.18 : 0.04, vz);
+            if (diving && this.random.nextInt(2) == 0) {
+                this.level().addParticle(ParticleTypes.CRIT, px, py, pz, vx * 0.5, 0.1, vz * 0.5);
+            }
+        }
+
+        if (diving) {
+            spawnTelluricSoleTrail();
+            spawnTelluricImpactTelegraph();
+        }
+    }
+
+    /**
+     * Sillage sous les semelles : c'est le pied qui fend l'air, pas le corps. Les traînées naissent
+     * juste sous les pattes et filent vers le bas, pour que l'œil suive la semelle et non la bête.
+     */
+    private void spawnTelluricSoleTrail() {
+        double spread = this.getBbWidth() * 0.35;
+        for (int i = 0; i < 5; i++) {
+            double px = this.getX() + (this.random.nextDouble() - 0.5) * spread;
+            double pz = this.getZ() + (this.random.nextDouble() - 0.5) * spread;
+            double py = this.getY() - 0.15 - this.random.nextDouble() * 0.5;
+            this.level().addParticle(ParticleTypes.CLOUD, px, py, pz, 0.0, -0.55, 0.0);
+            if (this.random.nextInt(2) == 0) {
+                this.level().addParticle(ParticleTypes.CRIT, px, py, pz,
+                        (this.random.nextDouble() - 0.5) * 0.2, -0.35, (this.random.nextDouble() - 0.5) * 0.2);
+            }
+        }
+    }
+
+    /**
+     * Zone d'impact projetée au sol pendant la chute : anneau tourbillonnant sur le rayon de l'onde,
+     * d'autant plus dense que la semelle approche.
+     *
+     * <p>Sans elle, le plongeon se lisait dans le vide — ni le cavalier ni ceux qui sont dessous ne
+     * savaient où la frappe allait tomber, alors même que c'est la seule information qui compte
+     * pendant cette seconde-là. Le rayon dessiné est exactement celui des dégâts.</p>
+     */
+    private void spawnTelluricImpactTelegraph() {
+        Vec3 from = this.position();
+        net.minecraft.world.phys.BlockHitResult hit = this.level().clip(new net.minecraft.world.level.ClipContext(
+                from, from.add(0.0, -32.0, 0.0),
+                net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                net.minecraft.world.level.ClipContext.Fluid.NONE, this));
+        if (hit.getType() != net.minecraft.world.phys.HitResult.Type.BLOCK) return;
+
+        double groundY = hit.getLocation().y + 0.08;
+        double fall = Math.max(0.0, this.getY() - groundY);
+        // Proximité : de 0 (loin) à 1 (semelle sur le point de toucher).
+        float closeness = (float) Mth.clamp(1.0 - fall / 12.0, 0.15, 1.0);
+        double radius = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_RADIUS;
+
+        int points = 6 + (int) (10 * closeness);
+        double baseAngle = Math.toRadians(telluricSpinAngle * 0.5);
+        for (int i = 0; i < points; i++) {
+            double a = baseAngle + (Math.PI * 2.0 * i) / points;
+            double px = this.getX() + Math.cos(a) * radius;
+            double pz = this.getZ() + Math.sin(a) * radius;
+            this.level().addParticle(ParticleTypes.CRIT, px, groundY, pz,
+                    -Math.sin(a) * 0.18, 0.04 + 0.1 * closeness, Math.cos(a) * 0.18);
+        }
+
+        BlockState ground = this.level().getBlockState(net.minecraft.core.BlockPos.containing(
+                hit.getLocation().x, hit.getLocation().y - 0.1, hit.getLocation().z));
+        if (ground.isAir()) return;
+        BlockParticleOption dust = new BlockParticleOption(ParticleTypes.BLOCK, ground);
+        int inner = 1 + (int) (3 * closeness);
+        for (int i = 0; i < inner; i++) {
+            double a = this.random.nextDouble() * Math.PI * 2.0;
+            double r = radius * (0.15 + this.random.nextDouble() * 0.5);
+            this.level().addParticle(dust,
+                    this.getX() + Math.cos(a) * r, groundY, this.getZ() + Math.sin(a) * r,
+                    0.0, 0.08 + 0.22 * closeness, 0.0);
+        }
+    }
+
+    /** Décollage : la terre part en gerbe sous les pattes au moment de la détente. */
+    private void spawnTelluricLaunchBurst() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        BlockState ground = this.level().getBlockState(this.blockPosition().below());
+        if (!ground.isAir()) {
+            serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
+                    this.getX(), this.getY() + 0.1, this.getZ(), 120, 1.2, 0.1, 1.2, 0.45);
+        }
+        serverLevel.sendParticles(ParticleTypes.CLOUD,
+                this.getX(), this.getY() + 0.1, this.getZ(), 40, 1.4, 0.05, 1.4, 0.2);
+        serverLevel.sendParticles(ParticleTypes.SWEEP_ATTACK,
+                this.getX(), this.getY() + 0.4, this.getZ(), 8, 1.2, 0.1, 1.2, 0.0);
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.GENERIC_EXPLODE.value(), SoundSource.NEUTRAL, 0.7f, 1.5f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.ROOTED_DIRT_BREAK, SoundSource.NEUTRAL, 1.3f, 0.6f);
     }
 
     /** Onde de choc à l'atterrissage : dégâts dégressifs, Lenteur I et léger pop vertical. */
@@ -768,6 +989,19 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             BlockParticleOption dirtParticle = new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState());
             serverLevel.sendParticles(dirtParticle, this.getX(), this.getY() + 0.1, this.getZ(),
                     240, radius * 0.6, 0.3, radius * 0.6, 0.5);
+
+            // Couronne de poussière posée sur le rayon exact de l'onde : le joueur voit d'un coup
+            // d'œil jusqu'où l'ultime a porté, plutôt que d'avoir à le deviner d'un nuage informe.
+            int ringPoints = 48;
+            for (int i = 0; i < ringPoints; i++) {
+                double angle = (Math.PI * 2.0 * i) / ringPoints;
+                double rx = this.getX() + Math.cos(angle) * radius;
+                double rz = this.getZ() + Math.sin(angle) * radius;
+                serverLevel.sendParticles(ParticleTypes.CLOUD, rx, this.getY() + 0.25, rz,
+                        2, 0.1, 0.1, 0.1, 0.03);
+                serverLevel.sendParticles(dirtParticle, rx, this.getY() + 0.1, rz,
+                        3, 0.15, 0.1, 0.15, 0.12);
+            }
         }
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -860,19 +1094,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         createSitAnimation(80, true);
 
         setupComboAnimations();
-        setupTelluricStompAnimation();
-    }
-
-    private void setupTelluricStompAnimation() {
-        if (isTelluricStomping()) {
-            if (telluricStompAnimTimer <= 0) {
-                telluricStompAnimTimer = 1;
-                this.telluricStompAnim.start(this.tickCount);
-            }
-        } else {
-            telluricStompAnimTimer = 0;
-            this.telluricStompAnim.stop();
-        }
     }
 
     /**

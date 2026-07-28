@@ -476,13 +476,9 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
             damageTimer = 0.0f;
         }
 
-        if (this.tickCount % 100 == 0 || firstTimeToDeep) {
-            Component message = Component.translatable("tooHighPressure")
-                    .setStyle(Style.EMPTY
-                            .withColor(ChatFormatting.YELLOW));
-            //Minecraft.getInstance().gui.setOverlayMessage(message, true); /!\ SERVER DON'T WORK
-            firstTimeToDeep = false;
-        }
+        // L'alerte est desormais dessinee par le HUD, cote client (cf. OWEntityHud) : construire
+        // ici un message qu'on ne peut pas afficher depuis le serveur ne servait a rien.
+        firstTimeToDeep = false;
     }
 
     protected void handlePathSwimming(Vec3 pathPoint) {
