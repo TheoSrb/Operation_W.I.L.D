@@ -1,6 +1,7 @@
 package net.tiew.operationWild.team;
 
 import net.tiew.operationWild.core.OWArena;
+import net.tiew.operationWild.core.OWArenaVenue;
 
 import java.util.Map;
 import java.util.UUID;
@@ -25,7 +26,8 @@ public final class OWArenaChallenges {
      * avant d'accepter, et il conditionne ensuite la composition des deux camps.</p>
      */
     public record Challenge(int challengerTeamId, String challengerTeamName,
-                            UUID challengerChief, OWArena.Terrain terrain, long expiresAt) {}
+                            UUID challengerChief, OWArena.Terrain terrain,
+                            OWArenaVenue venue, long expiresAt) {}
 
     /** teamId cible → défi en attente. */
     private static final Map<Integer, Challenge> PENDING = new ConcurrentHashMap<>();
@@ -33,9 +35,10 @@ public final class OWArenaChallenges {
     private OWArenaChallenges() {}
 
     public static void put(int targetTeamId, int challengerTeamId, String challengerTeamName,
-                           UUID challengerChief, OWArena.Terrain terrain) {
+                           UUID challengerChief, OWArena.Terrain terrain, OWArenaVenue venue) {
         PENDING.put(targetTeamId, new Challenge(challengerTeamId, challengerTeamName, challengerChief,
                 terrain != null ? terrain : OWArena.Terrain.TERRESTRIAL,
+                venue != null ? venue : OWArenaVenue.defaultFor(terrain),
                 System.currentTimeMillis() + TTL_MS));
     }
 

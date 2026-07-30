@@ -42,7 +42,9 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 	private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
 
 	private float prevLimbSwing = 0f;
-	private int groundRotationTimer = 0;
+
+	private static final float FLOP_TAIL_SWING = 0.675f;
+	private static final float FLOP_TAIL_SPEED = 0.6f;
 
 	public float externalRiderPitch = 0f;
 	public float externalBankRoll = 0f;
@@ -210,22 +212,6 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 	public void setupAnim(OrcaEntity orca, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 
-		if (!orca.isInWater()) {
-			float yVel = (float) orca.getDeltaMovement().y;
-			if (yVel > 0.3f && yVel < 0.7f) {
-				groundRotationTimer = 25;
-			}
-			if (groundRotationTimer > 0) {
-				groundRotationTimer--;
-				// La bascule sur le flanc du saut hors de l'eau cède le pas à une figure en cours :
-				// le bond d'échouage enclenche désormais le tonneau, et les deux se disputaient le
-				// même os. Le compteur continue de courir, la pose reprend la main à la sortie.
-				if (!orca.isRollingFigure()) this.ALL2.zRot = (float) Math.toRadians(90);
-			}
-		} else {
-			groundRotationTimer = 0;
-		}
-
 		if (Math.abs(externalRiderPitch) > 0.01f) {
 			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
 		}
@@ -273,11 +259,22 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 
 		this.animate(orca.idleAnimationState, OrcaAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
+		applyFlop(orca, ageInTicks);
+
 		applyBigMouth(orca, ageInTicks);
 
 		this.prevLimbSwing = limbSwing;
 
 		captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
+	}
+
+	private void applyFlop(OrcaEntity orca, float ageInTicks) {
+		if (!orca.isFlopping()) return;
+
+		float wave = FLOP_TAIL_SPEED * ageInTicks;
+		this.tail.yRot -= FLOP_TAIL_SWING * Mth.sin(wave);
+		this.front_tail.yRot -= FLOP_TAIL_SWING * 0.6f * Mth.sin(wave - 0.4f);
+		this.back_tail.yRot -= FLOP_TAIL_SWING * 0.4f * Mth.sin(wave - 0.8f);
 	}
 
 	/**

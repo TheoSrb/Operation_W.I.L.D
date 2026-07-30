@@ -172,7 +172,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
      */
     private OWArena.Terrain pendingTerrain = OWArena.Terrain.TERRESTRIAL;
 
-    private Button chalAcceptBtn, chalDeclineBtn, cancelArenaBtn, readyBtn, challengeYesBtn, challengeNoBtn;
+    private Button chalAcceptBtn, chalDeclineBtn, cancelArenaBtn, readyBtn, challengeYesBtn;
     private Button terrainLandBtn, terrainWaterBtn;
 
     public OWTribeArenaScreen() {
@@ -228,16 +228,17 @@ public class OWTribeArenaScreen extends OWTribeScreen {
                                 new ConfirmArenaFightersPacket(!OWClientArenaState.get().myReady())))
                 .bounds(leftPos + IMG_W / 2 - 50, by, 100, 16).build());
 
-        challengeYesBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.confirm.yes"), b -> {
-            if (pendingChallengeId != 0) {
-                OWNetworkHandler.sendToServer(
-                        new ChallengeTribePacket(pendingChallengeId, pendingTerrain.ordinal()));
-                playUi(SoundEvents.UI_TOAST_OUT, 1.2f);
-            }
-            pendingChallengeId = 0;
-        }).bounds(0, 0, 60, 16).build());
-        challengeNoBtn = addRenderableWidget(Button.builder(Component.translatable("owteams.confirm.no"),
-                b -> pendingChallengeId = 0).bounds(0, 0, 60, 16).build());
+        // Le défi n'est plus envoyé d'ici : le terrain arrêté, on passe au choix du décor, qui se
+        // charge de l'expédier. Un seul bouton, donc — c'est l'écran suivant qui porte l'abandon,
+        // et Échap referme la boîte.
+        challengeYesBtn = addRenderableWidget(Button.builder(
+                        Component.translatable("owteams.arena.selection.start"), b -> {
+                            if (pendingChallengeId == 0) return;
+                            playUi(SoundEvents.UI_BUTTON_CLICK.value(), 1.1f);
+                            Minecraft.getInstance().setScreen(new OWArenaVenueSelectScreen(
+                                    pendingChallengeId, pendingChallengeName, pendingTerrain));
+                        })
+                .bounds(0, 0, 100, 16).build());
 
         // Choix du terrain, dans la boîte de défi : c'est le dernier moment où il se décide, et il
         // conditionne toute la composition qui suivra.
@@ -302,7 +303,7 @@ public class OWTribeArenaScreen extends OWTribeScreen {
             }
             return true;
         }
-        // La confirmation de défi capte tout sauf ses deux boutons.
+        // La confirmation de défi capte tout sauf ses propres boutons.
         if (pendingChallengeId != 0) return super.mouseClicked(mx, my, button);
 
         if (button == 0 && tribeTabClicked(mx, my, Tab.ARENA)) return true;
@@ -1629,9 +1630,21 @@ public class OWTribeArenaScreen extends OWTribeScreen {
 
         boolean confirming = pendingChallengeId != 0;
         challengeYesBtn.visible = confirming;
-        challengeNoBtn.visible = confirming;
         terrainLandBtn.visible = confirming;
         terrainWaterBtn.visible = confirming;
+    }
+
+    /**
+     * Échap referme la boîte de défi au lieu de quitter l'écran : c'est le seul moyen d'en sortir
+     * depuis qu'elle ne porte plus qu'un bouton.
+     */
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (pendingChallengeId != 0 && keyCode == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
+            pendingChallengeId = 0;
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     /**
@@ -1658,10 +1671,8 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         terrainLandBtn.render(g, mouseX, mouseY, partial);
         terrainWaterBtn.render(g, mouseX, mouseY, partial);
 
-        challengeYesBtn.setPosition(cx - 64, oy + oh - 20);
-        challengeNoBtn.setPosition(cx + 4, oy + oh - 20);
+        challengeYesBtn.setPosition(cx - challengeYesBtn.getWidth() / 2, oy + oh - 20);
         challengeYesBtn.render(g, mouseX, mouseY, partial);
-        challengeNoBtn.render(g, mouseX, mouseY, partial);
     }
 
     /** Marque le bouton du terrain retenu : couleur pleine pour le choix actif, gris pour l'autre. */

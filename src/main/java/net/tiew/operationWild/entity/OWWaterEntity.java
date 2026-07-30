@@ -117,6 +117,14 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
     }
 
     /**
+     * Vrai quand la bête vient de se donner elle-même une impulsion verticale hors de l'eau, à
+     * laisser passer telle quelle : la bride ci-dessous ne doit brider que l'élan de nage.
+     */
+    protected boolean keepsVerticalImpulseOutOfWater() {
+        return false;
+    }
+
+    /**
      * Immergée, une créature entièrement aquatique ne perd pas son souffle : c'est son élément.
      *
      * <p>La réserve ne baisse qu'à l'air libre, et c'est {@link #tick()} qui s'en charge — pas cette
@@ -134,7 +142,7 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
         // Bride de sortie d'eau : sans elle, la moindre poussée de nage catapultait la bête en
         // l'air. Elle est levée pendant un envol volontaire, sinon un saut hors de l'eau serait
         // écrêté à trois dixièmes de bloc par tick et l'animal ne décollerait jamais vraiment.
-        if (!this.isInWater() && !this.isBreaching()) {
+        if (!this.isInWater() && !this.isBreaching() && !this.keepsVerticalImpulseOutOfWater()) {
             Vec3 mv = this.getDeltaMovement();
             if (mv.y > 0.3) {
                 this.setDeltaMovement(mv.x * 0.5, 0.3, mv.z * 0.5);

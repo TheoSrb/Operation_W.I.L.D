@@ -92,7 +92,7 @@ public final class OWArenaManager {
      * défiant, et l'information que le défié pèse avant d'accepter.</p>
      */
     public static void challenge(MinecraftServer server, ServerPlayer player, int targetTeamId,
-                                 OWArena.Terrain terrain) {
+                                 OWArena.Terrain terrain, net.tiew.operationWild.core.OWArenaVenue venue) {
         OWTribesSavedData data = OWTribesSavedData.get(server);
         OWTeam mine = data.findTeamByMember(player.getUUID());
         OWTeam target = data.findTeamById(targetTeamId);
@@ -102,7 +102,18 @@ public final class OWArenaManager {
         if (MATCHES.containsKey(mine.getTeamId()) || MATCHES.containsKey(targetTeamId)) return; // déjà en combat
 
         OWArena.Terrain chosen = terrain != null ? terrain : OWArena.Terrain.TERRESTRIAL;
-        OWArenaChallenges.put(targetTeamId, mine.getTeamId(), mine.getTeamName(), player.getUUID(), chosen);
+
+        // Le décor est revalidé ici : le client peut demander n'importe quel identifiant, seul
+        // celui qu'il a réellement payé — et qui existe sur ce terrain — est retenu.
+        net.tiew.operationWild.core.OWArenaVenue chosenVenue =
+                venue != null ? venue : net.tiew.operationWild.core.OWArenaVenue.defaultFor(chosen);
+        if (!chosenVenue.fits(chosen)
+                || !net.tiew.operationWild.core.OWArenaVenueUnlocks.isUnlocked(player, chosenVenue)) {
+            chosenVenue = net.tiew.operationWild.core.OWArenaVenue.defaultFor(chosen);
+        }
+
+        OWArenaChallenges.put(targetTeamId, mine.getTeamId(), mine.getTeamName(), player.getUUID(),
+                chosen, chosenVenue);
 
         Component terrainName = Component.translatable(chosen.translationKey());
         ServerPlayer targetChief = server.getPlayerList().getPlayer(target.getTeamOwnerUUID());

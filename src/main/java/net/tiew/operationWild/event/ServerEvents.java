@@ -156,6 +156,7 @@ public class ServerEvents {
                 net.tiew.operationWild.team.OWArenaManager.syncTo(server, player);
             }
             net.tiew.operationWild.core.OWBannerUnlocks.sync(player);
+            net.tiew.operationWild.core.OWArenaVenueUnlocks.sync(player);
         }
     }
 

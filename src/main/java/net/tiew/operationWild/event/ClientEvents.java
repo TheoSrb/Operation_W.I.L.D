@@ -1356,6 +1356,17 @@ public class ClientEvents {
         } else if (owVehicle instanceof OrcaEntity orca) {
             poseStack.pushPose();
             poseStack.mulPose(riderBodyRotation(player, owVehicle, event.getPartialTick()));
+
+            // Échouée, l'orque se couche sur le flanc : son cavalier bascule avec elle. Le roulis est
+            // posé ici et non dans riderBodyRotation, que lit aussi la vue à la première personne —
+            // un quart de tour y déplacerait la caméra d'un bloc et demi sur le côté.
+            if (orca.isFlopping()) {
+                float bodyYaw = orca.getPreciseBodyRotation(event.getPartialTick());
+                Quaternionf flop = Axis.YP.rotationDegrees(-bodyYaw);
+                flop.mul(Axis.ZP.rotationDegrees(-OrcaEntity.FLOP_BODY_ROLL));
+                flop.mul(Axis.YP.rotationDegrees(bodyYaw));
+                poseStack.mulPose(flop);
+            }
         } else {
             poseStack.pushPose();
             poseStack.mulPose(riderBodyRotation(player, owVehicle, event.getPartialTick()));

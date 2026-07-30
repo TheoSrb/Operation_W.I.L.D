@@ -180,6 +180,7 @@ public class OWOrcaBeachingGoal extends Goal {
         if (leapTicks > 8 && !orca.isInWater()) {
             phase = Phase.BEACHED;
             orca.setBeached(true);
+            orca.setDashing(false);
         }
         // On oriente visuellement vers la target pendant le vol (cosmétique)
         orca.getLookControl().setLookAt(target, 30f, 30f);

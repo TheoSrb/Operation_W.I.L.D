@@ -1,10 +1,12 @@
 package net.tiew.operationWild.entity.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer;
 import net.tiew.operationWild.entity.client.layer.OrcaLayer;
@@ -17,6 +19,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class OrcaRenderer extends OWEntityRenderer<OrcaEntity, OrcaModel<OrcaEntity>> {
+
+    private static final float FLOP_BODY_SWING = 4.3F;
+    private static final float FLOP_BODY_SPEED = 0.6F;
 
     private final EntityRendererProvider.Context context;
     private final Map<ModelLayerLocation, OrcaModel<OrcaEntity>> modelCache = new HashMap<>();
@@ -61,6 +66,18 @@ public class OrcaRenderer extends OWEntityRenderer<OrcaEntity, OrcaModel<OrcaEnt
         this.model.externalBankRoll = orca.getBankRoll(partialTicks) + orca.getBarrelRoll(partialTicks);
 
         super.render(orca, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
+    }
+
+    @Override
+    protected void setupRotations(OrcaEntity orca, PoseStack poseStack, float ageInTicks,
+                                  float rotationYaw, float partialTicks, float scale) {
+        super.setupRotations(orca, poseStack, ageInTicks, rotationYaw, partialTicks, scale);
+
+        if (!orca.isFlopping()) return;
+
+        poseStack.mulPose(Axis.YP.rotationDegrees(FLOP_BODY_SWING * Mth.sin(FLOP_BODY_SPEED * ageInTicks)));
+        poseStack.translate(OrcaEntity.FLOP_SIDE_OFFSET, OrcaEntity.FLOP_GROUND_LIFT, 0.0F);
+        poseStack.mulPose(Axis.ZP.rotationDegrees(OrcaEntity.FLOP_BODY_ROLL));
     }
 
     private OrcaModel<OrcaEntity> getOrBakeModel(ModelLayerLocation layer) {

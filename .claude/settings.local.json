@@ -234,7 +234,12 @@
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/83d3b9ed-8269-45e3-85f1-ea29d11afff3/scratchpad/orca_texts.py\")",
       "Bash(awk 'NR>=1137 && NR<=1160' src/main/java/net/tiew/operationWild/entity/client/animation/KangarooAnimations.java)",
       "Bash(awk 'NR>=1137 && NR<=1916' src/main/java/net/tiew/operationWild/entity/client/animation/KangarooAnimations.java)",
-      "PowerShell(python \"C:\\\\Users\\\\Tiew_37\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D\\\\d83752d0-418b-40ff-9c0f-627055c70336\\\\scratchpad\\\\gen_stomp_anim.py\")"
+      "PowerShell(python \"C:\\\\Users\\\\Tiew_37\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D\\\\d83752d0-418b-40ff-9c0f-627055c70336\\\\scratchpad\\\\gen_stomp_anim.py\")",
+      "Bash(ls \"C:/Users/Tiew_37/.claude/skills\" 2>/dev/null; ls \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/.claude/skills\" 2>/dev/null)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/2f463b3e-5c36-4206-98fe-fc46001f1af7/scratchpad/add_venue_lang.py\")",
+      "Bash(grep -i \"\\\\.png$\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/2f463b3e-5c36-4206-98fe-fc46001f1af7/scratchpad/fix_venue_lang.py\")",
+      "Bash(PYTHONIOENCODING=utf-8 python -c ' *)"
     ]
   }
 }

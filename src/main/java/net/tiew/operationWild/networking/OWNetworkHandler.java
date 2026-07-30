@@ -70,6 +70,7 @@ public class OWNetworkHandler {
         registrar.playToServer(SetDeputyPacket.TYPE, SetDeputyPacket.STREAM_CODEC, SetDeputyPacket::handle);
         registrar.playToServer(SetMemberPermissionPacket.TYPE, SetMemberPermissionPacket.STREAM_CODEC, SetMemberPermissionPacket::handle);
         registrar.playToServer(BuyBannerShapePacket.TYPE, BuyBannerShapePacket.STREAM_CODEC, BuyBannerShapePacket::handle);
+        registrar.playToServer(BuyArenaVenuePacket.TYPE, BuyArenaVenuePacket.STREAM_CODEC, BuyArenaVenuePacket::handle);
         registrar.playToServer(EnableTribeReputationPacket.TYPE, EnableTribeReputationPacket.STREAM_CODEC, EnableTribeReputationPacket::handle);
         registrar.playToServer(AcceptArenaPacket.TYPE, AcceptArenaPacket.STREAM_CODEC, AcceptArenaPacket::handle);
         registrar.playToServer(SelectChampionPacket.TYPE, SelectChampionPacket.STREAM_CODEC, SelectChampionPacket::handle);
@@ -106,6 +107,7 @@ public class OWNetworkHandler {
         registrar.playToClient(SyncPlayerTribePacket.TYPE, SyncPlayerTribePacket.STREAM_CODEC, SyncPlayerTribePacket::handle);
         registrar.playToClient(SyncTribeListPacket.TYPE, SyncTribeListPacket.STREAM_CODEC, SyncTribeListPacket::handle);
         registrar.playToClient(SyncBannerUnlocksPacket.TYPE, SyncBannerUnlocksPacket.STREAM_CODEC, SyncBannerUnlocksPacket::handle);
+        registrar.playToClient(SyncArenaVenueUnlocksPacket.TYPE, SyncArenaVenueUnlocksPacket.STREAM_CODEC, SyncArenaVenueUnlocksPacket::handle);
         registrar.playToClient(ArenaChestRewardPacket.TYPE, ArenaChestRewardPacket.STREAM_CODEC, ArenaChestRewardPacket::handle);
         registrar.playToClient(SyncArenaStatePacket.TYPE, SyncArenaStatePacket.STREAM_CODEC, SyncArenaStatePacket::handle);
         registrar.playToClient(SyncChampionsPacket.TYPE, SyncChampionsPacket.STREAM_CODEC, SyncChampionsPacket::handle);
