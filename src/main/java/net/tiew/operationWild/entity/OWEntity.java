@@ -510,10 +510,70 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.lastPosition = this.blockPosition();
         this.sleepBarDownSpeed = sleepBarDownSpeed;
         this.maxSleepBar = maxSleepBar;
+        // Posé ici pour valoir par défaut à toute l'écurie. Les espèces qui ont besoin d'un pilotage
+        // à elles — la nage, par exemple — le remplacent dans leur propre constructeur, qui s'exécute
+        // après celui-ci.
+        this.moveControl = new OWMoveControl(this);
 
         babyQuests.put(0, "quest.babyQuest0");
         babyQuests.put(1, "quest.babyQuest1");
         babyQuests.put(2, "quest.babyQuest2");
+    }
+
+    /**
+     * Pilotage de déplacement commun, qui rend le virage à l'espèce.
+     *
+     * <p>Le regard avait beau être lissé, il ne servait à rien dès que la bête MARCHAIT : c'est le
+     * pilotage qui pose le cap quand un chemin existe, et il s'exécute après les goals. Celui de
+     * vanilla vire jusqu'à quatre-vingt-dix degrés par tick, autant dire d'un bloc — c'est lui qu'on
+     * voyait, et non le regard.</p>
+     *
+     * <p>Plutôt que de réécrire {@code tick()} — qui gère aussi les sauts, les pas de côté et les
+     * obstacles —, seul {@code rotlerp} est repris. Vanilla l'appelle pour toute rotation : en
+     * changer le contenu suffit, et rien du reste de la logique de déplacement n'est touché.</p>
+     */
+    public static class OWMoveControl extends net.minecraft.world.entity.ai.control.MoveControl {
+
+        private final OWEntity owner;
+
+        public OWMoveControl(OWEntity mob) {
+            super(mob);
+            this.owner = mob;
+        }
+
+        /**
+         * Virage minimal garanti, en degrés par tick.
+         *
+         * <p>Sans plancher, le lissage devient une infirmité. {@code getRotationSpeed()} a été écrit
+         * pour le <b>pilotage par un cavalier</b> — la vitesse à laquelle une monture rattrape le
+         * regard de son pilote — et ses valeurs sont très basses, jusqu'à quelques centièmes. Or une
+         * bête en navigation continue d'avancer pendant qu'elle vire : trop lente à tourner, elle
+         * dépasse sa destination, décrit un grand arc pour y revenir, et ne va jamais droit sur sa
+         * cible. C'est ce qu'on observait sur toute l'écurie.</p>
+         *
+         * <p>Six degrés par tick bornent le pire cas à une demi-seconde pour un quart de tour : assez
+         * pour que le chemin reste tenable, assez peu pour que le lissage de l'espèce se voie encore
+         * sur les corrections courantes, qui sont l'essentiel du trajet.</p>
+         */
+
+        @Override
+        protected float rotlerp(float from, float to, float maxDelta) {
+            // Apprivoisée ou montée : on garde la réactivité de vanilla, un cavalier ne veut pas
+            // sentir sa monture traîner à suivre son cap.
+            if (this.owner.isTame() || this.owner.getControllingPassenger() != null) {
+                return super.rotlerp(from, to, maxDelta);
+            }
+
+            float delta = Mth.wrapDegrees(to - from);
+            float step = delta * Mth.clamp(this.owner.getRotationSpeed(), 0f, 1f);
+
+            // Le pas ne descend jamais sous le plancher, sans jamais dépasser l'écart restant : la
+            // bête ne peut ni s'enliser dans son virage, ni osciller autour de son cap.
+            float floor = Math.min(OWEntity.MIN_TURN_STEP, Math.abs(delta));
+            if (Math.abs(step) < floor) step = Math.signum(delta) * floor;
+
+            return from + Mth.clamp(step, -maxDelta, maxDelta);
+        }
     }
 
     protected void registerGoals() {
@@ -1700,6 +1760,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
      * ordres d'un cavalier et celui d'une bete livree a elle-meme, au lieu de deux allures separees
      * dont une seule etait reglable.</p>
      */
+    /** Virage minimal garanti, en degres par tick — voir OWMoveControl. */
+    public static final float MIN_TURN_STEP = 6.0f;
+
     public void turnTowards(Vec3 direction) {
         turnTowards(direction, this.getRotationSpeed());
     }
@@ -1713,14 +1776,41 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (direction.horizontalDistanceSqr() < 1.0E-6) return;
         float wanted = (float) (Mth.atan2(direction.z, direction.x) * Mth.RAD_TO_DEG) - 90.0F;
         float delta = Mth.wrapDegrees(wanted - this.getYRot());
-        float yaw = this.getYRot() + delta * Mth.clamp(factor, 0f, 1f);
+        float step = delta * Mth.clamp(factor, 0f, 1f);
+
+        // Meme plancher que le pilotage terrestre : une bete qui vire moins vite qu'elle n'avance
+        // depasse sa destination et y revient par un grand arc, au lieu d'aller droit dessus.
+        float floor = Math.min(MIN_TURN_STEP, Math.abs(delta));
+        if (Math.abs(step) < floor) step = Math.signum(delta) * floor;
+
+        float yaw = this.getYRot() + step;
         this.setYRot(yaw);
         this.yBodyRot = yaw;
         this.yHeadRot = yaw;
     }
 
+    /**
+     * Oriente la bête vers un point — progressivement quand elle est livrée à elle-même.
+     *
+     * <p>{@code lookAt} pose le cap d'une seule affectation <b>et recopie la valeur dans
+     * {@code yRotO}</b>. La bête se retourne donc d'une image à l'autre, et l'écrasement du cap
+     * précédent prive le client de toute interpolation : il n'a plus rien à lisser. Or les goals de
+     * poursuite appellent cette méthode à chaque tick tant qu'une cible est en vue — d'où une
+     * orientation qui claque en permanence, sur toutes les espèces du mod.</p>
+     *
+     * <p>Une bête sauvage vire donc désormais à l'allure de son espèce, {@link #getRotationSpeed()},
+     * qui gouvernait jusqu'ici le seul pilotage par un cavalier. Un même réglage, un seul
+     * comportement.</p>
+     *
+     * <p>Apprivoisée ou montée, la visée reste sèche : un cavalier attend que sa monture regarde où
+     * il pointe, sans délai, et un compagnon qui vise pour frapper n'a pas à hésiter.</p>
+     */
     public void setLookAt(double targetX, double targetY, double targetZ) {
-        this.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(targetX, targetY, targetZ));
+        if (this.isTame() || this.getControllingPassenger() != null) {
+            this.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(targetX, targetY, targetZ));
+            return;
+        }
+        this.turnTowards(new Vec3(targetX - this.getX(), 0.0, targetZ - this.getZ()));
     }
 
     public void lookAtPosition(Vec3 targetPos) {

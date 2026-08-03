@@ -147,42 +147,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public volatile float bodyAnimY = 0f;
     public volatile float bodyAnimX = 0f;
 
-    /**
-     * Matrice de la chaine d'os {@code ALL2 -> ALL -> body}, relevee a chaque image par le modele.
-     *
-     * <p>Elle porte le pivot REEL des inclinaisons, que {@code bodyAnimX} et {@code bodyAnimY} — de
-     * simples sommes de translations — ne peuvent pas donner. Sans elle, faire suivre l'assise a un
-     * tangage revenait a deviner la hauteur du pivot, et le cavalier s'enfoncait ou flottait des que
-     * le crocodile montait ou descendait dans l'eau.</p>
-     */
     public volatile org.joml.Matrix4f boneMatrix = null;
 
-    /**
-     * Matrice de la chaine complete jusqu'a la gueule : {@code ALL2 -> ALL -> body -> neck -> head
-     * -> mouth}, relevee a chaque image comme {@link #boneMatrix}.
-     *
-     * <p>C'est elle qui porte la proie. Un decalage fixe pris sur le corps ne pouvait pas suivre le
-     * cou qui se cabre, la tete qui secoue sa victime ni le tonneau de la roulade : la prise restait
-     * clouee devant le poitrail pendant que les machoires, elles, partaient ailleurs. Nulle cote
-     * serveur — la position y retombe sur la pose de repos, exactement comme pour le siege du
-     * cavalier.</p>
-     */
     public volatile org.joml.Matrix4f mouthMatrix = null;
 
-    /** Orientation de la gueule, en degres, meme convention de signe que {@code bodyXRot}/{@code bodyZRot}. */
     public volatile float mouthXRotDeg = 0f, mouthYRotDeg = 0f, mouthZRotDeg = 0f;
 
-    /**
-     * Pose de repos de la chaine, en pixels modele — somme des {@code PartPose.offset} de
-     * {@code ALL2} (0,9 / 14 / 3), {@code ALL} (-0,9 / 0 / -3) et {@code body} (0,0617 / -1,4547 / 6).
-     *
-     * <p>Reference et non valeur absolue : on ne place pas le siege d'apres la matrice, on le DECALE
-     * de l'ecart entre la pose courante et celle-ci. A plat l'ecart est nul, et le calcul redonne
-     * exactement le placement d'avant — celui qui etait juste.</p>
-     */
     private static final float REST_X = 0.0617f, REST_Y = 12.5453f, REST_Z = 6.0f;
 
-    /** Hauteur du repere modele au-dessus de l'origine de l'entite, en blocs (cf. LivingEntityRenderer). */
     private static final float MODEL_ORIGIN_Y = 1.501f;
 
     public boolean canGrabOnLand = false;
@@ -191,88 +163,36 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     private int primalDiveTimer = 0;
     private int primalDiveLungeTimer = 0;
 
-    /**
-     * Delai avant qu'une NOUVELLE prise soit possible, en ticks, <b>propre a ce crocodile</b>.
-     *
-     * <p>C'etait auparavant un horodatage {@code static} : un seul crocodile qui mordait imposait
-     * son delai de trente secondes a tous les autres de la partie — sur un serveur, la moitie des
-     * crocodiles ne saisissait jamais rien. Le compteur appartient donc a la bete, et il est
-     * sauvegarde avec elle.</p>
-     */
     private int grabCooldown = 0;
 
-    /** Duree restante d'une prise a duree fixe (passif apprivoise, ultime). 0 = pas de minuterie. */
     private int grabHoldTimer = 0;
 
-    /** Delai avant la prochaine roulade, qu'elle vienne de l'IA sauvage ou du clic du cavalier. */
     private int deathRollCooldown = 0;
 
     private static final int MAX_GRAB_COOLDOWN = 600;
 
-    /** Usure initiale d'une prise : à mi-chemin de {@link #getGrabMaxTimeout()}, jauge à moitié pleine. */
     public static final int GRAB_START_TIMEOUT = 300;
 
-    /**
-     * Armement de la roulade : le crocodile se ramasse avant de partir en rotation.
-     *
-     * <p>Volontairement tres court. Une demi-seconde d'anticipation se justifie sur une attaque
-     * qu'on regarde ; sur une commande qu'on declenche soi-meme, elle se ressent comme un temps
-     * mort entre le clic et la rotation. L'animation d'armement est jouee acceleree d'autant, elle
-     * garde donc sa pose complete — c'est un claquement, plus une respiration.</p>
-     */
     public static final int DEATH_ROLL_WINDUP_TICKS = 3;
-    /** Rotation proprement dite. L'animation est recalee dessus, quelle que soit sa duree propre. */
     public static final int DEATH_ROLL_SPIN_TICKS = 34;
     public static final int DEATH_ROLL_TOTAL_TICKS = DEATH_ROLL_WINDUP_TICKS + DEATH_ROLL_SPIN_TICKS;
-    /** Delai entre deux roulades : laisse la bete se replacer et borne les degats au fil du temps. */
     private static final int DEATH_ROLL_COOLDOWN_TICKS = 60;
 
-    /** Prise passive d'un crocodile apprivoise : 10 s de maintien (cf. « Accrochage Reptilien »). */
     private static final int PASSIVE_GRAB_TICKS = 200;
-    /** Prise de l'ultime : 10 s, exactement la duree que la carte du HUD fait descendre. */
     public static final int PRIMAL_DIVE_GRAB_TICKS = 200;
 
-    /** Distance de la prise devant l'origine au repos, en blocs (secours quand la chaine d'os manque). */
     private static final double MOUTH_HOLD_FORWARD = 1.62;
-    /** Hauteur des machoires au-dessus de l'origine, en blocs (chaine body/neck/head/mouth). */
     private static final double MOUTH_HOLD_HEIGHT = 0.53;
-    /** Avancee de base du point d'accroche DANS l'os de la gueule, en blocs, hors carrure de la proie. */
     private static final float MOUTH_HOLD_LOCAL_Z = 0.12f;
 
-    /** Nombre de morsures reparties sur une rotation. */
     public static final int DEATH_ROLL_BITES = 5;
-    /**
-     * Part des degats de base par morsure de roulade.
-     *
-     * <p>Exposees et non ecrites en dur : la carte d'information annonce au joueur les degats d'une
-     * rotation entiere, et ce total doit se deduire d'ici plutot que d'un chiffre recopie a cote,
-     * qui aurait vieilli au premier reequilibrage.</p>
-     */
     public static final float DEATH_ROLL_BITE_RATIO = 0.22f;
-    /**
-     * Idem sur un joueur, nettement plus bas.
-     *
-     * <p>Une victime cumule deja la noyade et la mort au bout du compte a rebours si elle ne se
-     * debat pas : la roulade n'a pas a l'achever en plus. Elle doit faire mal a lire, pas vider la
-     * barre de vie pendant que le joueur martele le clic droit.</p>
-     */
     public static final float DEATH_ROLL_PLAYER_BITE_RATIO = 0.035f;
-    /**
-     * Attenuation supplementaire quand le crocodile est sauvage.
-     *
-     * <p>Une prise sauvage tombe sans prevenir, souvent loin d'un point de reapparition et sur un
-     * joueur qui n'a rien choisi. Elle doit rester une frayeur dont on se sort, pas une sentence :
-     * la meme roulade pilotee par un cavalier, elle, se merite et garde donc tout son mordant.</p>
-     */
     public static final float DEATH_ROLL_WILD_MULTIPLIER = 0.65f;
 
-    /** Vitesse d'approche du bond de l'ultime, en blocs par tick, avant lissage. */
     private static final double PRIMAL_DIVE_LUNGE_SPEED = 1.05;
-    /** Derive horizontale conservee pendant la roulade : lente, mais jamais nulle. */
     private static final double DEATH_ROLL_DRIFT = 0.06;
-    /** Tolerance de sortie d'eau pendant une roulade, en ticks (la surface fait clignoter isInWater). */
     private static final int DEATH_ROLL_DRY_GRACE = 12;
-    /** Duree de vie d'une demande de roulade arrivee trop tot : couvre toute la recuperation. */
     private static final int DEATH_ROLL_INPUT_BUFFER_TICKS = 60;
 
     private int deathRollDryTicks = 0;
@@ -307,11 +227,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 .add(Attributes.ARMOR, 0.2D);
     }
 
-    /**
-     * Le crocodile ENCORE SAUVAGE est l'exception : le dresseur le chevauche justement avant qu'il ne
-     * lui appartienne, aucune permission ne peut donc exister. Une fois apprivoisé il rentre dans le
-     * rang — sans quoi n'importe quel joueur monté sur le crocodile d'autrui commanderait ses attaques.
-     */
     @Override
     protected boolean allowsUnownedPiloting() {
         return !this.isTame();
@@ -320,7 +235,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        initCrocodileBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
+        initCrocodileBehaviorAndTaming();
 
         this.goalSelector.addGoal(0, new CrocodileGoToWaterWithFoodGoal(this));
         this.goalSelector.addGoal(0, new JumpOutOfTheWaterGoal(this));
@@ -332,9 +247,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.goalSelector.addGoal(5, new RandomStrollGoal(this, 0.7D));
         this.goalSelector.addGoal(6, new OWRandomLookAroundGoal(this));
 
-        // Le sommeil fige le regard, pas la prise : c'est justement en tenant sa proie que le
-        // crocodile doit pouvoir se tourner vers l'eau. L'ancienne condition coupait le contrôle du
-        // regard dès qu'une victime était en gueule, et le goal de traînée orientait donc dans le vide.
         this.lookControl = new LookControl(this) {
             @Override
             public void tick() {
@@ -368,7 +280,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(IS_PLAYER_MOUTH_CHARGING, false);
     }
 
-    // Entity Methods
     @Override
     public int getEntityColor() {
         return 0x727957;
@@ -501,7 +412,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public int getMaxDepth() {
-        return this.isTame() ? 30 : 5;
+        return this.isTame() ? 30 : 10;
     }
 
     @Override
@@ -509,21 +420,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return this.getSpeed() * 5;
     }
 
-    /**
-     * Monté, le crocodile tient sa profondeur — comme l'orque, et pour la même raison.
-     *
-     * <p>Le léger poids par défaut de {@code OWEntity} fait redescendre les montures qu'on cesse de
-     * diriger vers le haut. Sur un crocodile, dont tout le pilotage aquatique passe déjà par le
-     * tangage du regard ({@code RIDER_CONTROL_PITCH}), ce poids se lisait comme un défaut : la bête
-     * s'enfonçait toute seule sous son cavalier. Regard à l'horizontale, elle reste maintenant à la
-     * profondeur choisie ; c'est le pilote qui décide de monter ou de plonger.</p>
-     */
     @Override
     protected double riddenBuoyancy() {
         return 0.0D;
     }
 
-    /** Remontée à la touche de saut, à l'identique de l'orque : regagner la surface sans piquer du nez. */
     @Override
     protected double riddenAscendSpeed() {
         return 0.10D;
@@ -559,20 +460,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return OWSounds.CROCODILE_HURT.get();
     }
 
-    // ==================================================
-    //             SONS DE PAS (animation-driven)
-    // ==================================================
-
     private long lastStepSoundMs = 0L;
 
-    /**
-     * Suppresses the vanilla automatic step sound (fired by Entity.move() every block traversed).
-     * Footstep sounds are handled exclusively by animation events in CrocodileModel
-     * via onFrontLeftFootDown() / onFrontRightFootDown().
-     */
     @Override
     public void playStepSound(BlockPos blockPos, BlockState blockState) {
-        // Intentionally empty — replaced by animation callbacks below
     }
 
     private void playStepSoundFromAnimation(float pitchMod) {
@@ -606,18 +497,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
     }
 
-    /**
-     * Called by CrocodileModel (render thread) when the left foot touches the ground.
-     * Plays the step sound of the block under the crocodile with a slightly lower pitch.
-     */
     public void onLeftFootDown() {
         playStepSoundFromAnimation(0.85f);
     }
 
-    /**
-     * Called by CrocodileModel (render thread) when the right foot touches the ground.
-     * Plays the step sound of the block under the crocodile with a slightly higher pitch.
-     */
     public void onRightFootDown() {
         playStepSoundFromAnimation(1.05f);
     }
@@ -671,8 +554,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         if (!this.level().isClientSide() && isPlayerMouthCharging()) {
-            // Une charge n'appartient qu'à un pilote : sans lui, elle n'a plus de raison d'être et
-            // laisserait la gueule ouverte aux yeux de tous les autres joueurs.
             if (this.getControllingPassenger() == null) {
                 cancelMouthSlamCharge();
             } else {
@@ -743,9 +624,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
 
         if (this.isInWater() && !this.isBaby()) {
-            // La Gueule Béante est une attaque terrestre : dans l'eau on coupe la charge de l'IA
-            // ET celle du pilote, faute de quoi la minuterie partagée oscillait entre 0 et 1 et
-            // la gueule restait bloquée entrouverte aux yeux des autres joueurs.
             if (!this.level().isClientSide() && isPlayerMouthCharging()) cancelMouthSlamCharge();
             this.setChargingMouth(false);
             this.setChargingMouthTimer(0);
@@ -767,9 +645,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             } else {
                 double distSq = this.distanceToSqr(lungeTarget);
 
-                // Le bond expire sans avoir rejoint la proie : elle a distancé le crocodile, on
-                // abandonne. L'ancienne version saisissait quand même, ce qui téléportait dans la
-                // gueule une cible restée à trente blocs de là.
                 if (primalDiveLungeTimer <= 0 && distSq > 9.0) {
                     cancelPrimalDive();
                 } else if (distSq <= 6.0 || primalDiveLungeTimer <= 0) {
@@ -796,18 +671,15 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public void die(DamageSource damageSource) {
-        // La proie survit à son ravisseur : sans ce relâchement elle héritait de la mort du
-        // crocodile avec noPhysics actif — traversée du décor et chute hors du monde.
         if (!this.level().isClientSide() && this.isGrabbing()) releaseGrab();
 
-        super.die(damageSource); // le drop générique de l'Âme est géré par OWEntity.die()
+        super.die(damageSource);
 
         if (this.isSaddled()) {
             this.spawnAtLocation(acceptSaddle());
         }
     }
 
-    /** L'apprivoisement change de camp : une prise en cours n'a plus lieu d'être. */
     @Override
     public void setTame(boolean tame, Player player) {
         if (tame && !this.level().isClientSide() && this.isGrabbing()) {
@@ -842,8 +714,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public void remove(Entity.RemovalReason reason) {
-        // Déchargement de chunk compris : une bête figée par setNoAi resterait inerte à vie si
-        // son ravisseur disparaissait sans la relâcher.
         if (!this.level().isClientSide() && this.isGrabbing()) releaseGrab(false);
 
         super.remove(reason);
@@ -868,7 +738,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         if (!tailPosInit) {
             seg1Yaw = seg2Yaw = seg3Yaw = yBodyRot;
-            // Initialise les segments à la bonne position de départ
             if (tailParts[0] != null) tailParts[0].setPos(
                     attachX + Math.sin((float) Math.toRadians(yBodyRot)) * segLen,
                     attachY,
@@ -888,17 +757,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         seg2Yaw += Mth.wrapDegrees(seg1Yaw - seg2Yaw) * 0.65f;
         seg3Yaw += Mth.wrapDegrees(seg2Yaw - seg3Yaw) * 0.50f;
 
-        // Ancre seg0 = point d'attache du body (Y réel du body)
         seg1[0] = attachX;
         seg1[1] = attachY;
         seg1[2] = attachZ;
 
-        // Ancre seg1 = position réelle de seg0 après physique
         seg2[0] = (tailParts[0] != null && !tailParts[0].isRemoved()) ? tailParts[0].getX() : seg1[0];
         seg2[1] = (tailParts[0] != null && !tailParts[0].isRemoved()) ? tailParts[0].getY() : attachY;
         seg2[2] = (tailParts[0] != null && !tailParts[0].isRemoved()) ? tailParts[0].getZ() : seg1[2];
 
-        // Ancre seg2 = position réelle de seg1 après physique
         seg3[0] = (tailParts[1] != null && !tailParts[1].isRemoved()) ? tailParts[1].getX() : seg2[0];
         seg3[1] = (tailParts[1] != null && !tailParts[1].isRemoved()) ? tailParts[1].getY() : seg2[1];
         seg3[2] = (tailParts[1] != null && !tailParts[1].isRemoved()) ? tailParts[1].getZ() : seg2[2];
@@ -918,7 +784,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             tailParts[index] = part;
         }
         part.setPos(pos[0], pos[1], pos[2]);
-        part.refreshDimensions(); // Met à jour la bbox à la nouvelle position
+        part.refreshDimensions();
         part.yRotO = part.getYRot();
         part.setYRot(yaw);
     }
@@ -941,29 +807,19 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return super.doHurtTarget(entity);
     }
 
-    /**
-     * Suite d'une morsure de combo : c'est ici que naissent toutes les prises.
-     *
-     * <p>Les garde-fous communs (gabarit, alliés, cooldown, état) vivent désormais dans
-     * {@code resolveGrabTarget} et {@code canStartGrab} : on ne décide plus ici que du
-     * <b>contexte</b> — sauvage ou apprivoisé, sur terre ou dans l'eau.</p>
-     */
     @Override
     public void hurtAfterCombo(LivingEntity entity, int comboAttack) {
         this.crocodileTaming.hurtAfterCombo(entity, comboAttack);
 
         if (this.level().isClientSide() || entity == null) return;
-        // Le crocodile prêt à être apprivoisé ne mord plus pour saisir : il attend son dresseur.
         if (crocodileBehaviorHandler.isReadyForTaming()) return;
         if (!canStartGrab()) return;
 
         if (!this.isTame()) {
-            // Sortie de l'eau réussie : la prochaine morsure agrippe, où qu'elle tombe.
             if (canGrabOnLand) {
                 this.grabEntity(entity);
                 return;
             }
-            // Sinon il faut de l'eau à proximité — la proie n'est saisie que pour y être noyée.
             if (crocodileBehaviorHandler.findNearestWaterSource(10) == null) return;
 
             if (this.isInWater() || comboAttack == 3) {
@@ -972,7 +828,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             return;
         }
 
-        // Passif « Accrochage Reptilien » : une morsure sur cinq près de l'eau.
         if (crocodileBehaviorHandler.findNearestWaterSource(10) != null
                 && this.getRandom().nextInt(100) < 20) {
             grabEntityPassive(entity);
@@ -989,9 +844,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             }
         }
 
-        // Un tiers qui frappe le crocodile desserre sa mâchoire : on peut porter secours à une
-        // victime qui ne s'en sortirait pas seule. Les coups de la proie elle-même ne comptent pas,
-        // ils feraient double emploi avec le débattement au clic droit.
         if (!this.level().isClientSide() && this.isGrabbing() && this.getGrabTimeout() > 0) {
             Entity attacker = damageSource.getEntity();
             if (attacker != null && attacker != this.getGrabbedTarget()) {
@@ -1016,15 +868,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return super.hurt(damageSource, v);
     }
 
-    /**
-     * Point de passage unique de <b>toutes</b> les mises à mort du crocodile.
-     *
-     * <p>L'apprivoisement se comptait auparavant dans {@code hurtAfterCombo}, c'est-à-dire au seul
-     * moment de la morsure. Or près d'une source d'eau le crocodile ne tue justement pas par
-     * morsure : il agrippe, traîne et noie — trois façons de tuer qui ne passaient jamais par là.
-     * Les sacrifices offerts au bord de l'eau, comme les proies achevées par une roulade pendant le
-     * dressage, n'étaient donc jamais comptés. Tout converge ici désormais.</p>
-     */
     @Override
     public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {
         int kills = getUltimateKillCount();
@@ -1056,10 +899,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (passenger == this.getGrabbedTarget()) {
             final double s = this.getScale();
-            // Suspendue par le milieu du corps, pas posée par les pieds sur la mâchoire.
             final double hang = Math.min(0.9f, passenger.getBbHeight() * 0.5f) * s;
-            // Recul dans l'axe des mâchoires : les carrures larges doivent avancer d'autant, sans
-            // quoi leur volume rentrait dans le museau.
             final float localZ = -(MOUTH_HOLD_LOCAL_Z + passenger.getBbWidth() * 0.35f);
 
             double px, py, pz;
@@ -1067,13 +907,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             org.joml.Matrix4f jaws = this.mouthMatrix;
 
             if (jaws != null) {
-                // Point d'accroche exprimé DANS l'os de la gueule, puis ramené au monde par la
-                // chaîne animée : la proie suit alors tout ce que fait la tête — le fouet du cou,
-                // la secousse, le tonneau de la roulade — au lieu de flotter devant le poitrail.
                 org.joml.Vector3f hold = jaws.transformPosition(new org.joml.Vector3f(0f, 0f, localZ));
 
-                // Repère modèle → monde : Y descend, l'origine est MODEL_ORIGIN_Y au-dessus de
-                // l'entité, et le rendu applique une rotation de (180° − lacet du corps).
                 double ax = -hold.x;
                 double ay = MODEL_ORIGIN_Y - hold.y;
                 double az = hold.z;
@@ -1087,8 +922,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 jawYaw = this.yBodyRot + this.mouthYRotDeg;
 
             } else {
-                // Côté serveur, la chaîne d'os n'existe pas : on retombe sur la pose de repos, qui
-                // redonne exactement les mêmes distances (1,5 bloc de chaîne + le recul local).
                 double yawRad = Math.toRadians(this.yBodyRot);
                 double forward = (MOUTH_HOLD_FORWARD - MOUTH_HOLD_LOCAL_Z - localZ) * s;
                 px = this.getX() - Math.sin(yawRad) * forward;
@@ -1097,8 +930,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             }
 
             passenger.fallDistance = 0f;
-            // On oriente la proie dans l'axe des mâchoires, sauf s'il s'agit d'un joueur : lui
-            // pivoter la caméra à chaque tick l'empêcherait de voir ce qui lui arrive.
             if (passenger instanceof LivingEntity prey && !(passenger instanceof Player)) {
                 prey.setYRot(jawYaw);
                 prey.setYBodyRot(jawYaw);
@@ -1113,26 +944,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         final float s = this.getScale();
         final double baseY = getBaseRiderYOffset();
 
-        // Position VOULUE du siege dans le repere du MODELE, au repos : centre en X et en Z, et a la
-        // hauteur d'assise. Y descend dans ce repere, d'ou la soustraction.
         float mx = 0f;
         float my = (float) (MODEL_ORIGIN_Y - baseY / s);
         float mz = 0f;
 
-        // Le MEME point, exprime cette fois dans le repere LOCAL du dernier os — c'est ce que
-        // transformPosition attend, et non une coordonnee du modele.
-        //
-        // Le confondre avec la precedente etait le defaut : au repos la chaine ne fait que translater
-        // de REST, donc le point reellement pivote se trouvait 0,78 bloc SOUS le siege. A plat l'ecart
-        // etait nul et rien ne se voyait, mais des qu'une rotation entrait en jeu le bras de levier
-        // etait faux — le tangage enfoncait le cavalier et le roulis le decalait du mauvais montant.
         float lx = mx - REST_X / 16f;
         float ly = my - REST_Y / 16f;
         float lz = mz - REST_Z / 16f;
 
-        // Ecart entre la pose animee et la pose de repos, mesure sur la matrice elle-meme. Elle porte
-        // les rotations autant que les translations : le tangage de montee ou de descente y est, avec
-        // son vrai pivot, la ou bodyAnimX/bodyAnimY ne rendaient que le glissement des os.
         double dx = 0, dy = 0, dz = 0;
         org.joml.Matrix4f bones = this.boneMatrix;
         if (bones != null) {
@@ -1232,28 +1051,13 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     protected int getDefaultSkinIndex() {
-        return 7; // index 1 = GOLD, … 7 réservés, 8 = reset (no skin)
+        return 7;
     }
 
-    // ==================================================
-    //             GRAB & MOBILITÉ
-    // ==================================================
-
-    /**
-     * Libère proprement une cible attrapée : rend la physique, la démonte, stoppe la roulade et
-     * réveille l'IA que l'ultime avait mise en sommeil. <b>Tout</b> relâchement doit passer par ici :
-     * une sortie qui oubliait {@code noPhysics} laissait la victime traverser les blocs jusqu'à sa
-     * déconnexion, et une qui oubliait {@code setNoAi} laissait une bête inerte à vie.
-     */
     public void releaseGrab() {
         releaseGrab(true);
     }
 
-    /**
-     * @param notifyNeighbours balaye les congénères pour effacer leur rancune. À laisser à
-     *                         {@code false} lors d'un déchargement de chunk : parcourir les entités
-     *                         alentour au moment où le monde se range n'apporte rien et coûte cher.
-     */
     public void releaseGrab(boolean notifyNeighbours) {
         LivingEntity grabbed = this.getGrabbedTarget();
         if (grabbed != null) {
@@ -1275,11 +1079,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (notifyNeighbours) clearNearbyCrocodileTargets();
     }
 
-    /**
-     * Les congénères qui avaient pris ce crocodile pour cible pendant qu'il tenait sa proie
-     * oublient leur rancune une fois la prise finie — sans quoi une meute entière se déchirait
-     * autour de la carcasse.
-     */
     private void clearNearbyCrocodileTargets() {
         if (this.level().isClientSide()) return;
         this.level().getEntitiesOfClass(CrocodileEntity.class, this.getBoundingBox().inflate(30))
@@ -1288,14 +1087,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 });
     }
 
-    /**
-     * La proie n'est un passager que pour être portée : elle ne pilote rien.
-     *
-     * <p>Sans cette exception, {@code getFirstPassenger()} rendait la victime, que la classe mère
-     * prenait pour un cavalier. Le crocodile passait alors dans la branche « monture » : plus aucun
-     * appel à {@code travel}, donc plus le moindre déplacement. Il restait planté à l'endroit exact
-     * de la morsure, incapable de rejoindre l'eau — le défaut central du grab.</p>
-     */
     @Override
     public LivingEntity getControllingPassenger() {
         LivingEntity grabbed = this.getGrabbedTarget();
@@ -1303,14 +1094,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return super.getControllingPassenger();
     }
 
-    /**
-     * Machine d'état de la prise, côté serveur uniquement.
-     *
-     * <p>Ordre volontaire : on valide d'abord que la cible existe encore, ensuite seulement on
-     * applique l'usure. L'ancienne version faisait l'inverse dans un {@code try/catch} qui avalait
-     * les {@code NullPointerException} — les prises fantômes (cible morte ou déchargée) survivaient
-     * indéfiniment, gueule ouverte et IA bloquée.</p>
-     */
     private void tickGrab() {
         if (!this.isGrabbing()) {
             if (grabHoldTimer != 0) grabHoldTimer = 0;
@@ -1325,7 +1108,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             return;
         }
 
-        // Prise à durée fixe (passif apprivoisé, ultime) : elle prime sur l'usure du timeout.
         if (grabHoldTimer > 0) {
             grabHoldTimer--;
             if (grabHoldTimer <= 0) {
@@ -1346,24 +1128,17 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.setLookAt(grabbed.getX(), grabbed.getY(), grabbed.getZ());
         }
 
-        // Jauge vidée : la victime s'est libérée. Le relâchement est fait ici et pas seulement à
-        // la réception du paquet client, pour que le secours d'un tiers fonctionne aussi sur une
-        // proie qui n'est pas un joueur — et qui n'a donc personne pour envoyer ce paquet.
         if (grabHoldTimer <= 0 && this.getGrabTimeout() <= 0) {
             playGrabReleaseFeedback();
             releaseGrab();
             return;
         }
 
-        // Seule une prise SANS minuterie fixe s'use : le joueur la fait reculer au clic droit
-        // (voir OWEntityGrabManagerPacket) et la subit s'il ne se débat pas.
         if (grabHoldTimer <= 0 && grabbed instanceof Player) {
             this.setGrabTimeout(this.getGrabTimeout() + 1);
 
             if (this.getGrabTimeout() >= getGrabMaxTimeout()) {
                 this.setGrabTimeout(0);
-                // Dégâts attribués au crocodile plutôt qu'un kill() anonyme : l'apprivoisement, la
-                // charge de l'ultime, les avancements et les statistiques de mort en dépendent tous.
                 grabbed.invulnerableTime = 0;
                 grabbed.hurt(this.damageSources().mobAttack(this), Float.MAX_VALUE);
                 clearNearbyCrocodileTargets();
@@ -1375,13 +1150,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             grabbed.startRiding(this, true);
         }
 
-        // Sous l'eau, la proie tenue en gueule ne respire plus — sauf pendant une roulade.
-        //
-        // Le manque d'air fait perdre deux points de vie par seconde, ce qui doublait les dégâts
-        // d'une rotation sans que rien ne le dise : la victime se voyait fondre en encaissant des
-        // coups qu'elle ne pouvait rattacher ni aux morsures ni à rien d'autre. On maintient donc
-        // son souffle juste au-dessus du seuil pendant toute la figure ; l'asphyxie reprend son
-        // cours dès que la bête se calme.
         boolean canDrown = !grabbed.getType().is(net.minecraft.tags.EntityTypeTags.CAN_BREATHE_UNDER_WATER);
 
         if (this.isDeathRolling()) {
@@ -1396,23 +1164,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
     }
 
-    /**
-     * Séquence complète de la roulade : armement, rotation, dégâts, sortie.
-     *
-     * <p>La progression est une donnée synchronisée : c'est elle qui pilote les animations sur
-     * TOUS les clients, pas seulement celui du cavalier — indispensable en multijoueur.</p>
-     */
     private void tickDeathRoll() {
         if (this.isBaby()) return;
         if (!this.isDeathRolling() && !this.isGrabbing()) return;
 
         LivingEntity grabbed = this.getGrabbedTarget();
 
-        // Une roulade n'a de sens que sur une proie tenue, dans l'eau — mais en surface,
-        // isInWater() clignote d'un tick à l'autre au gré des vagues et de la remontée. Le tester
-        // sèchement avortait la rotation presque à chaque essai : il fallait un crocodile
-        // parfaitement immobile et bien immergé pour qu'elle aille au bout. On tolère donc quelques
-        // ticks hors de l'eau avant d'abandonner.
         if (this.isDeathRolling()) {
             if (grabbed == null || !this.isGrabbing()) {
                 stopDeathRoll();
@@ -1428,7 +1185,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             deathRollDryTicks = 0;
         }
 
-        // Demande de roulade reçue pendant la récupération : elle repart dès que possible.
         if (deathRollQueued > 0 && !this.isDeathRolling()) {
             deathRollQueued--;
             if (deathRollCooldown <= 0) {
@@ -1438,7 +1194,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             }
         }
 
-        // Crocodile sauvage : il noie sa proie de lui-même, à intervalle régulier.
         if (!this.isDeathRolling() && grabbed != null && !this.isTame()
                 && this.isInWaterForDeathRoll() && deathRollCooldown <= 0) {
             startDeathRoll();
@@ -1450,10 +1205,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         int progress = this.getDeathRollProgress() + 1;
         this.setDeathRollProgress(progress);
 
-        // On maintient le duo juste sous la surface : la rotation se voit, et la proie ne peut
-        // pas s'échapper vers le fond. Le freinage garde un plancher de dérive : l'amortissement
-        // sec d'avant clouait la bête à vitesse nulle en trois ticks, ce qui donnait une roulade
-        // sur place, raide. Elle continue maintenant d'avancer lentement en tournoyant.
         Vec3 velocity = this.getDeltaMovement();
         double driftX = velocity.x * 0.9;
         double driftZ = velocity.z * 0.9;
@@ -1470,14 +1221,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         int spinTick = progress - DEATH_ROLL_WINDUP_TICKS;
 
-        // Craquements d'ossements : trois par rotation, espacés, pas à chaque morsure — c'est ce
-        // qui les garde saisissants plutôt que bruyants.
         if (spinTick == 7 || spinTick == 19 || spinTick == DEATH_ROLL_SPIN_TICKS - 4) {
             playBoneCrack();
         }
 
-        // Cinq morsures, réparties sur la rotation quelle que soit sa durée : c'est ce total que
-        // la description de l'ultime annonce au joueur.
         if (spinTick > 0 && spinTick % 6 == 0 && spinTick <= 30) {
             grabbed.invulnerableTime = 0;
             float ratio = grabbed instanceof Player ? DEATH_ROLL_PLAYER_BITE_RATIO : DEATH_ROLL_BITE_RATIO;
@@ -1495,29 +1242,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                     SoundSource.HOSTILE, 1.1f, (float) OWUtils.generateRandomInterval(0.85, 1.05));
         }
 
-        // Plus de Fracture en fin de rotation : elle durait dix secondes alors qu'une roulade
-        // revient toutes les cinq, donc la proie ne quittait jamais l'effet — et le subissait
-        // encore dix secondes après avoir réussi à se libérer. La roulade fait des dégâts et
-        // noie, cela suffit.
         if (progress >= DEATH_ROLL_TOTAL_TICKS) {
             stopDeathRoll();
         }
     }
 
-    /**
-     * Test d'eau tolérant, réservé à la roulade.
-     *
-     * <p>{@code isInWater()} ne vaut vrai que si le volume de la bête chevauche réellement du
-     * fluide, et un crocodile qui flotte en surface en ressort d'un tick sur l'autre au gré des
-     * vagues. Le tester sèchement rendait la roulade capricieuse : le clic était avalé sans même
-     * partir au serveur, et il fallait un crocodile parfaitement immobile et bien enfoncé pour
-     * qu'elle se déclenche. On accepte donc aussi le bloc sous les pattes.</p>
-     */
-    /**
-     * Cible recevable par le Plongeon Primal, filtre unique partagé par la désignation et par
-     * l'affichage du réticule — les deux divergeaient, et le joueur voyait marquées des créatures
-     * que la touche ne prenait pas.
-     */
     public boolean canPrimalDiveTarget(LivingEntity candidate) {
         if (candidate == null || candidate == this) return false;
         if (!candidate.isAlive() || candidate.isRemoved() || !candidate.isInWater()) return false;
@@ -1526,7 +1255,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (candidate instanceof OWEntity owEntity && owEntity.getTheoreticalScale() >= 10) return false;
         if (candidate instanceof Player player && (player.isCreative() || player.isSpectator())) return false;
         if (this.isAlliedTo(candidate) || this.isTameGrabAlly(candidate)) return false;
-        // L'ultime se solde par une prise : mêmes interdits qu'elle.
         if (!canBeGrabbedWhileMounted(candidate)) return false;
         return true;
     }
@@ -1537,17 +1265,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 || this.level().getFluidState(this.blockPosition().below()).is(net.minecraft.tags.FluidTags.WATER);
     }
 
-    /**
-     * Amorce une roulade si l'état le permet.
-     *
-     * <p>Une demande arrivée pendant la seule récupération n'est pas jetée : elle est <b>mise en
-     * attente</b> et repart d'elle-même dès la fin du délai. Sans cette mémoire, le cavalier devait
-     * tomber pile dans la fenêtre où la roulade redevient possible ; à côté, son clic disparaissait
-     * sans le moindre signe, ce qui donnait l'impression qu'il fallait marteler le bouton vingt fois
-     * pour obtenir une rotation.</p>
-     *
-     * @return {@code true} si la rotation démarre à l'instant.
-     */
     public boolean startDeathRoll() {
         if (this.level().isClientSide() || this.isBaby()) return false;
         if (this.isDeathRolling()) return false;
@@ -1577,14 +1294,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.setDeathRollProgress(0);
     }
 
-    /**
-     * Craquement d'ossements de la roulade.
-     *
-     * <p>Le râle de mort du squelette, gardé <b>discret</b> : à volume plein il s'entendrait comme
-     * un squelette qui meurt à côté, pas comme une carcasse qui cède sous les mâchoires. Transposé
-     * légèrement grave, à faible volume, il passe pour ce qu'on veut lui faire dire. La hauteur est
-     * tirée au hasard pour que deux roulades de suite ne sonnent pas identiques.</p>
-     */
     private void playBoneCrack() {
         this.level().playSound(null, getX(), getY(), getZ(),
                 net.minecraft.sounds.SoundEvents.SKELETON_DEATH, SoundSource.HOSTILE,
@@ -1600,10 +1309,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
     }
 
-    /**
-     * Filtre commun à toutes les prises : gabarit, alliés, cible déjà saisie, état du crocodile.
-     * Renvoie la cible réellement saisissable (le cavalier plutôt que sa monture) ou {@code null}.
-     */
     private LivingEntity resolveGrabTarget(LivingEntity entity) {
         if (entity == null || this.isBaby()) return null;
 
@@ -1623,15 +1328,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return entity;
     }
 
-    /**
-     * Une monture ni son cavalier ne peuvent être saisis.
-     *
-     * <p>Arracher quelqu'un de sa selle, ou emporter la bête en laissant le cavalier suspendu, revient
-     * à démonter de force un attelage dont chaque moitié a sa propre position asservie à l'autre : la
-     * proie se retrouvait passagère de deux entités à la fois, et l'une des deux gardait
-     * {@code noPhysics}. Cela couvre au passage la proie déjà tenue par un autre crocodile — deux
-     * bêtes ne se disputent pas la même prise.</p>
-     */
     private boolean canBeGrabbedWhileMounted(LivingEntity entity) {
         if (entity.isPassenger()) return false;
         return entity.getPassengers().isEmpty();
@@ -1679,9 +1375,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.setGrabbing(true, entity);
         if (!this.isGrabbing()) return;
 
-        // Prise passive : durée fixe, jauge de débattement pleine dès la morsure. Sans ce
-        // timeout de départ, la jauge démarrait à zéro et le premier clic droit libérait
-        // aussitôt la victime — le passif ne servait à rien.
         this.setGrabTimeout(GRAB_START_TIMEOUT);
         grabHoldTimer = PASSIVE_GRAB_TICKS;
         grabCooldown = MAX_GRAB_COOLDOWN;
@@ -1825,12 +1518,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         setupComboAnimations();
     }
 
-    /**
-     * Aiguillage des trois animations de prise, piloté par la <b>progression synchronisée</b> de la
-     * roulade et non par une horloge locale : armement (0 → 10 ticks), rotation (10 → 50), maintien
-     * le reste du temps. Tous les clients qui voient le crocodile jouent donc la même chose au même
-     * instant, y compris ceux qui ne le montent pas.
-     */
     private void setupGrabAnimationStates() {
         boolean rolling = this.isDeathRolling();
         int progress = this.getDeathRollProgress();
@@ -1853,7 +1540,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.grabHoldAnimState.stop();
         }
 
-        // Secousse : une fois à la morsure, puis à intervalle irrégulier tant que la proie tient.
         if (hasGrabSomething() && !rolling) {
             if (this.grabThrashAnimStartTime <= 0) {
                 this.grabThrashAnimStartTime = this.tickCount;
@@ -1928,7 +1614,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         changeSkin(skinIndex, false);
     }
 
-    /** Variante naturelle exposée sous forme générique (cf. {@code OWEntity}). */
     @Override
     public int getInitialTypeVariant() { return this.getInitialVariant().getId(); }
 
@@ -1964,14 +1649,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.entityData.set(IS_MAD, isMad);
     }
 
-    /**
-     * Colère déclenchée par le <b>cavalier</b>, qui ignore le mode passif.
-     *
-     * <p>Le mode ne règle que l'initiative de l'IA : une monture passive ne part pas d'elle-même à
-     * l'attaque. Il n'a rien à dire quand c'est son cavalier qui frappe — or {@link #setMad(boolean)}
-     * refusait tout net en passif, et comme une bête apprivoisée l'est par défaut, ses yeux ne
-     * s'allumaient jamais en combat monté.</p>
-     */
     public void setMadByRider(boolean isMad) {
         this.entityData.set(IS_MAD, isMad);
     }
@@ -2005,7 +1682,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public void setGrabbing(boolean isGrabbing, LivingEntity entity) {
-        // Apprivoisé : ne jamais saisir un allié de la tribu (joueur membre ou entité de la tribu).
         if (isGrabbing && this.isTameGrabAlly(entity)) return;
         this.entityData.set(IS_GRABBING, isGrabbing);
         this.setGrabbedTarget(entity);
@@ -2051,11 +1727,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return this.entityData.get(IS_DEATH_ROLLING);
     }
 
-    /**
-     * Vraie des DEUX côtés : l'identifiant de la proie et le drapeau de prise sont tous deux
-     * synchronisés. La version d'avant renvoyait toujours {@code false} sur le client, si bien
-     * que le modèle jouait la course au lieu de la posture de maintien.
-     */
     public boolean hasGrabSomething() {
         return this.isGrabbing() && this.getGrabbedTarget() != null;
     }
@@ -2113,8 +1784,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.grabCooldown = tag.getInt("grabCooldown");
         this.deathRollCooldown = tag.getInt("deathRollCooldown");
 
-        // Une prise ne survit pas à une sauvegarde : la victime n'est pas rechargée avec son
-        // ravisseur, et un identifiant d'entité repris tel quel désignerait n'importe quoi.
         this.entityData.set(IS_GRABBING, false);
         this.entityData.set(GRABBED_TARGET_ID, -1);
         this.entityData.set(IS_DEATH_ROLLING, false);
@@ -2135,12 +1804,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return 600;
     }
 
-    // ==================================================
-    //           MOUTH SLAM (attaque chargée RMB)
-    // ==================================================
-
     public void startMouthSlamCharge() {
-        // Attaque terrestre : dans l'eau ou proie en gueule, il n'y a rien à claquer.
         if (this.isInWater() || this.isGrabbing()) return;
         setPlayerMouthCharging(true);
         setChargingMouthTimer(0);
@@ -2150,10 +1814,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         setPlayerMouthCharging(false);
         setChargingMouthTimer(0);
     }
-
-    // ==================================================
-    //           PRIMAL DIVE (ultime)
-    // ==================================================
 
     public void activatePrimalDive() {
         if (getUltimateKillCount() < OWAttacksConstants.Crocodile.PRIMAL_DIVE_KILLS_REQUIRED) return;
@@ -2178,9 +1838,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public void executePrimalDive(int targetEntityId) {
         if (primalDivePhase != 1) return;
         Entity raw = this.level().getEntity(targetEntityId);
-        // Validation serveur : l'identifiant vient du client, il ne fait donc pas foi. On repasse
-        // par le MÊME filtre que la désignation et le réticule, plus une borne de distance
-        // (anti-ciblage arbitraire).
         if (!(raw instanceof LivingEntity target) || !canPrimalDiveTarget(target)
                 || this.distanceToSqr(target) > 32.0 * 32.0) {
             cancelPrimalDive();
@@ -2189,8 +1846,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         this.entityData.set(LUNGE_TARGET_ID, targetEntityId);
         this.entityData.set(IS_LUNGING, true);
-        // Allongé depuis que l'approche freine près de la cible : à 40 ticks, un bond parti du
-        // bout de la portée (32 blocs) expirait avant d'avoir touché.
         primalDiveLungeTimer = 60;
         primalDivePhase = 2;
         primalDiveTimer = 0;
@@ -2204,18 +1859,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 (float) OWUtils.generateRandomInterval(0.7, 0.9));
     }
 
-    /**
-     * Trajectoire du bond de l'ultime, rejouée à l'identique sur le serveur et sur le client qui
-     * pilote — c'est ce dernier qui fait autorité sur la position d'une monture.
-     *
-     * <p>Trois défauts se cumulaient dans la version d'un seul appel à {@code setDeltaMovement} :
-     * la vitesse était <b>plaquée</b> d'un coup à sa valeur maximale, ce qui donnait un départ et
-     * des changements de cap en escalier ; l'axe vertical était ignoré, donc le crocodile n'allait
-     * jamais chercher une proie plus haute ou plus basse que lui et tournait autour ; et le cap de
-     * la bête n'était jamais corrigé, si bien qu'elle fonçait <b>de travers</b>, museau pointé
-     * ailleurs. On vise désormais le centre de la cible, la vitesse est amenée progressivement,
-     * freinée à l'approche, et le corps s'aligne sur la trajectoire.</p>
-     */
     private void tickPrimalDiveLunge() {
         Entity raw = this.level().getEntity(this.entityData.get(LUNGE_TARGET_ID));
         if (raw == null) return;
@@ -2226,13 +1869,9 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
         Vec3 direction = aim.scale(1.0 / distance);
 
-        // Freinage à l'approche : sans lui, le crocodile arrivait à pleine vitesse et traversait
-        // sa proie avant que la portée de prise ne soit testée.
         double brake = Mth.clamp(distance / 5.0, 0.30, 1.0);
         Vec3 desired = direction.scale(PRIMAL_DIVE_LUNGE_SPEED * brake);
 
-        // Montée en vitesse lissée plutôt que plaquée : même courbe des deux côtés du réseau,
-        // sans dépendre d'un compteur que seul le serveur tient.
         Vec3 current = this.getDeltaMovement();
         this.setDeltaMovement(current.add(desired.subtract(current).scale(0.30)));
 
@@ -2242,21 +1881,12 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.yBodyRot = smoothedYaw;
         this.yHeadRot = smoothedYaw;
 
-        // Assiette visuelle : le corps pique vers la proie au lieu de rester à plat en montant.
         if (!this.level().isClientSide()) {
             float targetPitch = (float) (-Math.toDegrees(Math.asin(Mth.clamp(direction.y, -1.0, 1.0))));
             this.setTargetPitch(Mth.lerp(0.25f, this.getTargetPitch(), Mth.clamp(targetPitch, -45f, 45f)));
         }
     }
 
-    /**
-     * Referme la gueule au bout du bond de l'ultime.
-     *
-     * <p>{@code setGrabbing} peut refuser la prise (allié de tribu, par exemple) : on vérifie donc
-     * qu'elle a bien pris avant d'endormir l'IA de la cible et d'armer les minuteries. Sans cette
-     * vérification, une cible refusée se retrouvait figée par {@code setNoAi(true)} <b>à vie</b>,
-     * sans être tenue par quoi que ce soit.</p>
-     */
     private void closePrimalDiveGrab(LivingEntity target) {
         setGrabbing(true, target);
 
@@ -2307,14 +1937,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return this.entityData.get(IS_LUNGING);
     }
 
-    /**
-     * Pendant le bond de l'ultime, le cap appartient à l'attaque, pas au cavalier.
-     *
-     * <p>{@code smoothRotation} tirait le museau vers le regard du pilote à chaque tick, juste
-     * après que {@code tickPrimalDiveLunge} l'ait aligné sur la proie : les deux se disputaient
-     * l'orientation et la bête partait en zigzag, de travers, sans jamais viser franchement. Le
-     * cavalier reprend la main dès que la gueule s'est refermée.</p>
-     */
     @Override
     public void tickRidden(Player player, Vec3 vec3) {
         if (this.isLeapingVehicle()) {
@@ -2329,7 +1951,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return this.isTame() && this.isGrabbing() && this.getGrabbedTarget() != null;
     }
 
-    /** Vrai tant que la roulade est encore en délai de récupération (affichage et anti-spam client). */
     public boolean isDeathRollOnCooldown() {
         return deathRollCooldown > 0;
     }
@@ -2342,17 +1963,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.entityData.set(ULTIMATE_KILL_COUNT, count);
     }
 
-    /**
-     * Exécute le Mouth Slam après une charge valide (≥ 1 s).
-     *
-     * @param factor 0.0 = 1 s de charge, 1.0 = 3 s de charge
-     */
     public void performMouthSlam(float factor) {
         boolean wasCharging = isPlayerMouthCharging();
         setPlayerMouthCharging(false);
         setChargingMouthTimer(0);
-        // Charge interrompue par une entrée dans l'eau ou par une prise : le relâchement du clic
-        // arrivait quand même et déclenchait un claquement fantôme, énergie comprise.
         if (!wasCharging || this.isInWater() || this.isGrabbing()) return;
         float energyRequired = OWAttacksConstants.Crocodile.MOUTH_SLAM_ENERGY;
         if (getVitalEnergy() > getMaxVitalEnergy() - energyRequired) {
