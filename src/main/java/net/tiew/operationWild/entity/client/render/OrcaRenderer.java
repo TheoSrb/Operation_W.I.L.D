@@ -64,6 +64,8 @@ public class OrcaRenderer extends OWEntityRenderer<OrcaEntity, OrcaModel<OrcaEnt
         // aussi le cavalier et son assise, que captureBodyState en déduit. Le siège tombant sur l'axe
         // même du roulis, le joueur pivote sur place, collé au dos, au lieu d'être promené en cercle.
         this.model.externalBankRoll = orca.getBankRoll(partialTicks) + orca.getBarrelRoll(partialTicks);
+        // La vrille du bond passe par son propre canal : c'est un pivot à plat, pas un roulis.
+        this.model.externalSpinYaw = orca.getWaveSpinYaw(partialTicks);
 
         super.render(orca, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }

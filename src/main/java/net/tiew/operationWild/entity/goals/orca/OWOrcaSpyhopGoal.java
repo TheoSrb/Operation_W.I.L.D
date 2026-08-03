@@ -41,8 +41,26 @@ public class OWOrcaSpyhopGoal extends Goal {
 
     private static final int HOLD_MIN = 50;
     private static final int HOLD_MAX = 95;
-    private static final int COOLDOWN_MIN = 260;
-    private static final int COOLDOWN_MAX = 620;
+
+    /**
+     * Temps de repos entre deux observations : de une à trois minutes.
+     *
+     * <p>Le spyhop est un moment, pas une habitude. À l'ancien rythme — treize à trente et une
+     * secondes — une orque qui croisait la route du joueur passait le plus clair de son temps
+     * dressée, et le geste perdait tout ce qui en faisait le prix.</p>
+     */
+    private static final int COOLDOWN_MIN = 1200;
+    private static final int COOLDOWN_MAX = 3600;
+
+    /**
+     * Une chance sur autant, par tick où tout est réuni.
+     *
+     * <p>Le repos seul ne suffit pas : une fois écoulé, l'orque se dressait à la première seconde
+     * où le joueur repassait à portée, donc toujours au même moment — à son approche. Ce tirage
+     * étale le déclenchement sur quelques secondes d'éligibilité et lui rend son caractère
+     * fortuit.</p>
+     */
+    private static final int TRIGGER_ODDS = 80;
 
     private final OrcaEntity orca;
     private Entity watched;
@@ -63,6 +81,7 @@ public class OWOrcaSpyhopGoal extends Goal {
         if (!isUsable()) return false;
         // Une orque qu'on vient de frapper ne s'arrête pas pour regarder.
         if (this.orca.getLastHurtByMob() != null) return false;
+        if (this.orca.getRandom().nextInt(TRIGGER_ODDS) != 0) return false;
 
         this.watched = findWatchable();
         if (this.watched == null) return false;
@@ -119,6 +138,11 @@ public class OWOrcaSpyhopGoal extends Goal {
                 && !this.orca.isBeached()
                 && !this.orca.isSleeping()
                 && !this.orca.isVehicle()
+                // Une orque prise dans une vague de chasse ne s'arrête pas pour regarder : la ligne
+                // se défaisait à l'instant même où elle arrivait sur la proie. Le rang de priorité
+                // suffirait, mais l'écrire ici évite que l'ordre d'enregistrement ne redevienne, un
+                // jour, le seul rempart.
+                && !this.orca.isWaveEngaged()
                 && this.orca.isInWater();
     }
 

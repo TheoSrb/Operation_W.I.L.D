@@ -243,7 +243,9 @@
       "PowerShell($p = \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\\\\src\\\\main\\\\java\\\\net\\\\tiew\\\\operationWild\\\\event\\\\ClientEvents.java\"; $lines = [System.IO.File]::ReadAllLines\\($p\\); $new = $lines[0..1976] + $lines[2158..\\($lines.Length-1\\)]; [System.IO.File]::WriteAllLines\\($p, $new\\); \"lignes: $\\($lines.Length\\) -> $\\($new.Length\\)\")",
       "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error|erreur|warning: \\\\[\" | Select-Object -First 30; \"EXIT=$LASTEXITCODE\")",
       "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:\" -Context 0,3 | Select-Object -First 20; \"EXIT=$LASTEXITCODE\")",
-      "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:\" -Context 0,3 | Select-Object -First 25; \"EXIT=$LASTEXITCODE\")"
+      "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:\" -Context 0,3 | Select-Object -First 25; \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:|warning: \\\\[\" -Context 0,3 | Select-Object -First 25; \"EXIT=$LASTEXITCODE\")",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/src/main/java/net/tiew/operationWild/entity/goals/global\" && grep -n \"isInterruptable\\\\|setFlags\\\\|requiresUpdateEveryTick\\\\|class OWAttackGoal\" OWAttackGoal.java; echo \"=== pack hunt ===\"; grep -n \"isInterruptable\\\\|setFlags\" ../orca/OWOrcaPackHuntGoal.java)"
     ]
   }
 }

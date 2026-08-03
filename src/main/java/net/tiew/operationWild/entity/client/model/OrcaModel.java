@@ -49,6 +49,14 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 	public float externalRiderPitch = 0f;
 	public float externalBankRoll = 0f;
 
+	/**
+	 * Vrille à plat du bond de vague, autour de l'axe vertical.
+	 *
+	 * <p>Canal séparé du roulis : additionnée à celui-ci, la figure tournait autour de l'axe du
+	 * corps — un tonneau — au lieu de pivoter à plat comme une toupie.</p>
+	 */
+	public float externalSpinYaw = 0f;
+
 	private final ModelPart ALL2;
 	private final ModelPart ALL;
 	private final ModelPart body;
@@ -220,6 +228,10 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 			this.ALL2.zRot = (float) Math.toRadians(externalBankRoll);
 		}
 
+		if (Math.abs(externalSpinYaw) > 0.01f) {
+			this.ALL2.yRot = (float) Math.toRadians(externalSpinYaw);
+		}
+
 		if (orca.isBaby()) {
 			float maturationPercent = (float) orca.getMaturationPercentage() / 100f;
 			float headScale = 1.5f - (1.6f - 1.0f) * maturationPercent;
@@ -261,11 +273,172 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 
 		applyFlop(orca, ageInTicks);
 
+		applyWaveCharge(orca, ageInTicks);
+
+		applyWaveBreach(orca, ageInTicks);
+
+		applyTailFlick(orca, ageInTicks);
+
 		applyBigMouth(orca, ageInTicks);
 
 		this.prevLimbSwing = limbSwing;
 
 		captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
+	}
+
+	/** Cadence du battement de nageoire caudale pendant la charge, en radians par tick. */
+	private static final float CHARGE_BEAT_SPEED = 0.65f;
+
+	/** Retard de phase d'un segment sur le précédent : c'est lui qui fait courir l'onde. */
+	private static final float CHARGE_WAVE_LAG = 0.85f;
+
+	/**
+	 * Charge de la vague de chasse — l'orque se jette de loin, à pleine propulsion.
+	 *
+	 * <p>Tout est empilé sur la pose courante, sans sortie anticipée, comme les combos plus haut :
+	 * la nage continue de tourner en dessous et les deux se mélangent d'eux-mêmes à l'entrée comme
+	 * à la sortie, au lieu de sauter d'un bloc.</p>
+	 *
+	 * <p><b>Le battement est vertical.</b> Un cétacé propulse par le haut et le bas — c'est ce qui
+	 * sépare une orque d'un requin, et c'est visible à l'œil nu. Le fouettement à plat de
+	 * {@link #applyFlop} n'a rien à voir : celui-là est un animal en détresse, hors de son élément.</p>
+	 */
+	private void applyWaveCharge(OrcaEntity orca, float ageInTicks) {
+		// Fraction d'image écoulée, reprise de la happe : sans elle, l'intensité avancerait par
+		// paliers d'un tick et le démarrage de la charge se verrait sauter.
+		// Le bond prend toute la place dès qu'il commence.
+		//
+		// L'intensité de charge met une bonne seconde à retomber, si bien que le battement de queue
+		// de la propulsion se superposait à la cambrure du bond ET au coup de caudale : trois gestes
+		// sur les mêmes os en même temps, dont deux qui font battre la queue en sens contraire. Ce
+		// n'était plus une animation, c'était une bouillie.
+		if (orca.isWaveBreaching()) return;
+
+		float partial = ageInTicks - (float) Math.floor(ageInTicks);
+		float amount = orca.getWaveChargeAmount(partial);
+		if (amount <= 0.001f) return;
+
+		float t = ageInTicks * CHARGE_BEAT_SPEED;
+		float beat0 = Mth.sin(t);
+		float beat1 = Mth.sin(t - CHARGE_WAVE_LAG);
+		float beat2 = Mth.sin(t - CHARGE_WAVE_LAG * 2f);
+		float beat3 = Mth.sin(t - CHARGE_WAVE_LAG * 3f);
+
+		// ── ONDE PROPULSIVE ─────────────────────────────────────────────────────────
+		// L'amplitude croît vers l'arrière et chaque segment reprend le mouvement du précédent
+		// avec un temps de retard. C'est ce décalage qui donne l'impression que l'élan PARCOURT
+		// l'animal, au lieu de le plier d'un seul bloc autour d'un pivot.
+		this.body.xRot       += (float) Math.toRadians(4.0f * beat0 * amount);
+		this.tail.xRot       += (float) Math.toRadians(12.0f * beat1 * amount);
+		this.front_tail.xRot += (float) Math.toRadians(16.0f * beat2 * amount);
+		this.back_tail.xRot  += (float) Math.toRadians(24.0f * beat3 * amount);
+
+		// ── POUSSÉE PAR À-COUPS ─────────────────────────────────────────────────────
+		// Le tronc gagne et perd du terrain au rythme du battement. Une avance parfaitement
+		// régulière donnerait un objet tracté ; l'animal, lui, se propulse coup par coup.
+		float surge = Mth.cos(t - CHARGE_WAVE_LAG * 2f);
+		this.ALL.z -= 2.0f * surge * amount;
+		this.ALL.y -= 0.9f * beat1 * amount;
+
+		// ── ASSIETTE D'ASSAUT ───────────────────────────────────────────────────────
+		// Nez plongeant : l'orque vise SOUS la ligne de flottaison de ce qu'elle va soulever,
+		// et la tête rentre dans les épaules comme un bélier.
+		this.ALL.xRot  += (float) Math.toRadians(7.0f * amount);
+		this.body.xRot -= (float) Math.toRadians(3.0f * amount);
+		this.head.xRot -= (float) Math.toRadians(5.0f * amount);
+
+		// ── PECTORALES PLAQUÉES ─────────────────────────────────────────────────────
+		// À pleine vitesse elles cessent de servir de gouvernail et se rangent le long du corps.
+		// Une orque qui charge les nageoires déployées aurait l'air de planer.
+		this.left_fan.yRot  -= (float) Math.toRadians(34.0f * amount);
+		this.right_fan.yRot += (float) Math.toRadians(34.0f * amount);
+
+		// ── ROULIS D'APPUI ──────────────────────────────────────────────────────────
+		// Le corps vrille d'un rien à chaque coup de queue, décalé d'un quart de battement.
+		// Amplitude volontairement basse : au-delà, l'orque tangue au lieu de foncer.
+		this.ALL2.zRot += (float) Math.toRadians(3.0f * Mth.sin(t - 1.6f) * amount);
+	}
+
+	/**
+	 * Bond de la vague — le corps se cabre en quittant l'eau, puis se détend au claquement.
+	 *
+	 * <p>La vrille du tour complet ne passe pas par ici : elle emprunte l'os de racine, via
+	 * {@code externalBankRoll}, comme le tonneau de la Ruée. Ne reste donc que ce que la rotation ne
+	 * peut pas dire — la cambrure. Sans elle, l'orque tournerait sur elle-même toute droite, comme
+	 * une bûche, au lieu de se détendre en l'air.</p>
+	 *
+	 * <p>Le coup de queue proprement dit est monté par {@link #applyTailFlick} : le bond l'arme au
+	 * milieu de sa course, et les deux se recouvrent d'eux-mêmes puisque rien ici n'écrase la pose.</p>
+	 */
+	private void applyWaveBreach(OrcaEntity orca, float ageInTicks) {
+		float partial = ageInTicks - (float) Math.floor(ageInTicks);
+		float left = orca.getWaveBreachTicks() - partial;
+		if (left <= 0f) return;
+
+		float elapsed = OrcaEntity.WAVE_BREACH_DURATION - left;
+		final float slam = OrcaEntity.WAVE_BREACH_SLAM;
+		final float end = OrcaEntity.WAVE_BREACH_DURATION;
+
+		// Cambrure : maximale à la sortie de l'eau, elle se vide au claquement.
+		float arch = elapsed < slam
+				? smooth(elapsed / slam)
+				: 1f - smooth(Math.min(1f, (elapsed - slam) / (end - slam)));
+		// Détente : le corps se déplie d'un coup au moment où la queue part.
+		float unfurl = elapsed <= slam ? 0f : smooth(Math.min(1f, (elapsed - slam) / (end - slam)));
+		float impact = bell(elapsed, slam, 3.0f);
+
+		this.ALL.xRot  -= (float) Math.toRadians(22f * arch - 14f * unfurl);
+		this.body.xRot -= (float) Math.toRadians(9f * arch);
+		this.ALL.y     -= 2.2f * arch;
+		this.ALL2.xRot += (float) Math.toRadians(3.5f * impact);
+
+		// Pectorales écartées : hors de l'eau elles ne gouvernent plus rien, elles s'ouvrent.
+		this.left_fan.yRot  += (float) Math.toRadians(26f * arch);
+		this.right_fan.yRot -= (float) Math.toRadians(26f * arch);
+	}
+
+	/**
+	 * Coup de queue du jeu de la proie — la nageoire s'enroule, puis claque vers le haut.
+	 *
+	 * <p>Tout le geste tient dans le déséquilibre entre les deux temps : sept ticks pour s'armer,
+	 * quatre pour se détendre. Une queue qui s'enroule aussi vite qu'elle se détend ne fouette pas,
+	 * elle balaie — et la proie aurait l'air poussée plutôt que projetée.</p>
+	 *
+	 * <p>L'amplitude croît vers l'extrémité et le corps encaisse le contrecoup : quand la nageoire
+	 * part vers le haut, l'avant pique. Sans cette réaction, la queue semble bouger toute seule,
+	 * vissée sur une carcasse inerte.</p>
+	 */
+	private void applyTailFlick(OrcaEntity orca, float ageInTicks) {
+		float partial = ageInTicks - (float) Math.floor(ageInTicks);
+		float left = orca.getTailFlickTicks() - partial;
+		if (left <= 0f) return;
+
+		float elapsed = OrcaEntity.getTailFlickDuration() - left;
+		final float wEnd = OrcaEntity.FLICK_ANIM_WINDUP;
+		final float sEnd = wEnd + OrcaEntity.FLICK_ANIM_SNAP;
+		final float rEnd = sEnd + OrcaEntity.FLICK_ANIM_RECOVER;
+
+		// Armement : la nageoire s'enroule vers le bas, puis se vide d'un coup pendant le claquement.
+		float coil = elapsed < wEnd
+				? smooth(elapsed / wEnd)
+				: 1f - smooth(Math.min(1f, (elapsed - wEnd) / (sEnd - wEnd)));
+		// Claquement : détente sèche vers le haut, qui s'éteint pendant la récupération.
+		float snap = elapsed <= wEnd ? 0f
+				: (elapsed >= sEnd ? 1f : smooth((elapsed - wEnd) / (sEnd - wEnd)));
+		float release = elapsed <= sEnd ? 0f : smooth((elapsed - sEnd) / (rEnd - sEnd));
+		float whip = snap * (1f - release);
+		float impact = bell(elapsed, sEnd, OrcaEntity.FLICK_ANIM_SNAP * 0.7f);
+
+		// ── QUEUE ───────────────────────────────────────────────────────────────────
+		this.tail.xRot       += (float) Math.toRadians(-14f * coil + 26f * whip);
+		this.front_tail.xRot += (float) Math.toRadians(-20f * coil + 40f * whip);
+		this.back_tail.xRot  += (float) Math.toRadians(-28f * coil + 62f * whip);
+
+		// ── CONTRECOUP ──────────────────────────────────────────────────────────────
+		this.ALL.xRot  += (float) Math.toRadians(5f * whip - 2f * coil);
+		this.body.xRot += (float) Math.toRadians(3f * whip);
+		this.ALL.y     -= 1.2f * impact;
+		this.ALL2.xRot += (float) Math.toRadians(2.5f * impact);
 	}
 
 	private void applyFlop(OrcaEntity orca, float ageInTicks) {

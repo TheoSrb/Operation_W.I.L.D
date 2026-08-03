@@ -140,16 +140,31 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new TryFindWaterGoal(this));
-        // Devant le suivi de bateau, qui monopolisait le déplacement dès qu'une coque passait — soit
-        // précisément ce que l'orque est censée s'arrêter pour observer. Le goal se borne de lui-même
-        // aux instants sans cible, et se retire dès qu'une cible apparaît : il ne prend donc jamais
-        // le pas sur la chasse malgré sa priorité.
-        // Devant tout le reste : respirer prime, et sous la banquise rien d'autre n'est possible.
-        // Aucun risque d'accaparement, la condition d'entrée exige une calotte de glace au-dessus.
+
+        // ── Rang 1 : tout ce qui doit pouvoir interrompre la chasse (rang 2) ────────────────
+        //
+        // À rang égal, aucun goal n'en préempte un autre : c'est l'ORDRE D'ENREGISTREMENT qui
+        // départage, et il se lit donc comme un ordre de préséance.
+        //
+        // La vague passe en tête. Elle était derrière le trou de respiration, or sous une banquise
+        // celui-ci trouve toujours une calotte au-dessus de lui : il partait systématiquement
+        // percer la glace et la vague ne se déclenchait jamais. Une orque ne suffoque de toute
+        // façon pas sous l'eau — sa réserve ne baisse qu'à l'air libre —, si bien que le trou de
+        // respiration relève de la mise en scène quand la chasse, elle, n'attend pas.
+        this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.orca.OWOrcaWaveWashGoal(this));
+        // Une fois la proie en gueule, plus rien ne doit défaire la descente : le goal se déclare
+        // lui-même non interruptible.
+        this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.orca.OWOrcaAbyssalDiveGoal(this));
+        // C'est précisément au moment où l'orque a gagné qu'elle cesse de tuer pour s'amuser.
+        this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.orca.OWOrcaPreyToyGoal(this));
         this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.orca.OWOrcaBreathingHoleGoal(this));
+        // La curiosité en dernier. En rang inférieur, le spyhop préemptait la charge à l'instant
+        // précis où la ligne arrivait sur la proie : les orques se dressaient pour regarder au lieu
+        // de déferler. Une manœuvre qui met dix secondes à se monter ne peut pas céder le pas à une
+        // envie de lever la tête.
         this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.orca.OWOrcaSpyhopGoal(this));
-        // Le suivi de bateau devient réservé aux orques apprivoisées. Une orque sauvage qui escorte
-        // les coques comme un dauphin contredit frontalement la percussion ajoutée plus bas — et,
+        // Le suivi de bateau est réservé aux orques apprivoisées. Une orque sauvage qui escorte les
+        // coques comme un dauphin contredit frontalement la percussion ajoutée plus bas — et,
         // prioritaire, elle lui aurait pris le déplacement en permanence.
         this.goalSelector.addGoal(1, new FollowBoatGoal(this) {
             @Override
@@ -163,11 +178,51 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             }
         });
         this.goalSelector.addGoal(2, new net.tiew.operationWild.entity.goals.orca.OWOrcaBoatStrikeGoal(this));
+        // La meute AVANT la passe solitaire : enregistrée après, elle n'aurait plus jamais eu la
+        // main, la passe se déclenchant dans exactement les mêmes conditions. Une orque isolée
+        // échoue à former sa meute et retombe naturellement sur la passe.
+        this.goalSelector.addGoal(2, new OWOrcaPackHuntGoal(this));
         this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 20f, 28, 4, false) {
+            private int dashCooldown = WILD_DASH_COOLDOWN_MIN;
+
             private boolean isBlockedForWild() {
                 if (OrcaEntity.this.isTame()) return false;
                 LivingEntity t = OrcaEntity.this.getTarget();
                 return t != null && !isReachableFromWater(t);
+            }
+
+            /**
+             * Ponctue la poursuite d'une Ruée, au lieu de n'enchaîner que des morsures.
+             *
+             * <p>Le goal parent ne connaît que le corps à corps : il approche, mord, recommence. La
+             * Ruée est ce qui manquait à une chasse en pleine eau — une charge qui traverse, bouscule
+             * et repart, là où la morsure suppose d'être déjà au contact.</p>
+             *
+             * <p>Elle ne part qu'à distance moyenne : trop près elle n'aurait pas d'élan, trop loin
+             * la proie a le temps de s'écarter. Les dégâts sont ceux prévus de longue date pour une
+             * charge sauvage — trois dixièmes de la morsure —, l'intérêt étant la bousculade et le
+             * terrain gagné, pas la blessure.</p>
+             */
+            @Override
+            public void tick() {
+                super.tick();
+                if (OrcaEntity.this.isTame()) return;
+                if (this.dashCooldown > 0) {
+                    this.dashCooldown--;
+                    return;
+                }
+                if (OrcaEntity.this.isDashing() || OrcaEntity.this.isCombo()) return;
+                if (!OrcaEntity.this.isInWater()) return;
+
+                LivingEntity t = OrcaEntity.this.getTarget();
+                if (t == null || !t.isAlive() || !t.isInWater()) return;
+                double distance = OrcaEntity.this.distanceTo(t);
+                if (distance < WILD_DASH_MIN_RANGE || distance > WILD_DASH_MAX_RANGE) return;
+                if (!OrcaEntity.this.getSensing().hasLineOfSight(t)) return;
+
+                OrcaEntity.this.performWildDashAt(t);
+                this.dashCooldown = WILD_DASH_COOLDOWN_MIN
+                        + OrcaEntity.this.getRandom().nextInt(WILD_DASH_COOLDOWN_SPREAD);
             }
 
             @Override
@@ -182,7 +237,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 return super.canContinueToUse();
             }
         });
-        this.goalSelector.addGoal(2, new OWOrcaPackHuntGoal(this));
         this.goalSelector.addGoal(3, new OWOrcaBeachingGoal(this));
         this.goalSelector.addGoal(4, new OrcaWanderGoal(this));
     }
@@ -199,6 +253,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         builder.define(MOUTH_SPIT_TICKS, 0);
         builder.define(ULTIMATE_KILL_COUNT, 0);
         builder.define(IS_SPYHOPPING, false);
+        builder.define(IS_WAVE_CHARGING, false);
+        builder.define(TAIL_FLICK_TICKS, 0);
+        builder.define(WAVE_BREACH_TICKS, 0);
     }
 
     @Override
@@ -438,6 +495,213 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             return isThinIce(this.level().getBlockState(cursor)) ? cursor.immutable() : null;
         }
         return null;
+    }
+
+    // ── Charge de la vague de chasse ──────────────────────────────────────────
+
+    private static final EntityDataAccessor<Boolean> IS_WAVE_CHARGING =
+            SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private static final float WAVE_CHARGE_RISE = 0.16f;
+    private static final float WAVE_CHARGE_FALL = 0.09f;
+
+    private float waveChargeBlend = 0f;
+    private float waveChargeBlendPrev = 0f;
+
+    /**
+     * Assaut de vague en cours, mise en place comprise — état serveur, jamais synchronisé.
+     *
+     * <p>Distinct de {@link #isWaveCharging()}, qui ne couvre que la course elle-même et pilote
+     * l'animation. Celui-ci vaut du premier repli jusqu'au déferlement, et sert à ce qu'aucune autre
+     * envie ne vienne défaire une ligne qui met dix secondes à se former. Il n'a pas à voyager :
+     * seuls les goals le consultent, et ils ne tournent que côté serveur.</p>
+     */
+    private boolean waveEngaged = false;
+
+    public boolean isWaveEngaged() {
+        return this.waveEngaged;
+    }
+
+    public void setWaveEngaged(boolean engaged) {
+        this.waveEngaged = engaged;
+    }
+
+    public boolean isWaveCharging() {
+        return this.entityData.get(IS_WAVE_CHARGING);
+    }
+
+    public void setWaveCharging(boolean charging) {
+        if (this.level().isClientSide()) return;
+        this.entityData.set(IS_WAVE_CHARGING, charging);
+    }
+
+    /**
+     * Intensité de la charge [0 – 1], interpolée pour le rendu.
+     *
+     * <p>Elle monte vite et retombe lentement : l'animal se jette d'un coup, mais son élan met du
+     * temps à se dissiper. L'inverse donnerait une charge qui s'arme mollement et se coupe net.</p>
+     */
+    public float getWaveChargeAmount(float partialTick) {
+        return Mth.lerp(partialTick, this.waveChargeBlendPrev, this.waveChargeBlend);
+    }
+
+    /**
+     * Pendant la charge, l'orque reste à plat : aucune assiette de nage ne s'applique.
+     *
+     * <p>La proie d'une vague se tient sur la glace, donc <b>au-dessus</b> de l'eau. Le tangage
+     * libre se déduisant de la pente réellement parcourue, la remontée vers elle faisait pointer le
+     * nez vers le ciel : au lieu d'un bélier arrivant à l'horizontale, on voyait trois orques
+     * grimper vers la surface le museau levé.</p>
+     *
+     * <p>Couper la source vaut mieux que la compenser : {@code tickLean} laisse alors son tangage
+     * retomber tout seul, sans à-coup, et la seule inclinaison qui subsiste est le nez plongeant
+     * que l'animation d'assaut pose volontairement.</p>
+     */
+    @Override
+    protected float pitchMaxAngle() {
+        // Le bond y est joint : en l'air, l'assiette se déduirait de la pente balistique et
+        // viendrait s'ajouter à la cambrure, qui est déjà chargée de dire la même chose.
+        return this.isWaveCharging() || this.isWaveBreaching() ? 0f : super.pitchMaxAngle();
+    }
+
+    // ── Bond de la vague : sortie d'eau, vrille complète, coup de queue ────────
+
+    /**
+     * Découpage du bond qui clôt la charge.
+     *
+     * <p>Le déferlement ne tombe pas à la fin du geste mais à {@link #WAVE_BREACH_SLAM}, quand la
+     * caudale claque : c'est le coup de queue qui lève la vague, pas la retombée.</p>
+     */
+    public static final int WAVE_BREACH_DURATION = 26;
+    public static final int WAVE_BREACH_SLAM = 18;
+
+    /** Tour complet à plat, autour de l'axe vertical. */
+    private static final float WAVE_SPIN_TURN = 360f;
+
+    private static final EntityDataAccessor<Integer> WAVE_BREACH_TICKS =
+            SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
+
+    public int getWaveBreachTicks() {
+        return this.entityData.get(WAVE_BREACH_TICKS);
+    }
+
+    public boolean isWaveBreaching() {
+        return this.getWaveBreachTicks() > 0;
+    }
+
+    public void startWaveBreach() {
+        if (this.level().isClientSide()) return;
+        this.entityData.set(WAVE_BREACH_TICKS, WAVE_BREACH_DURATION);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                net.minecraft.sounds.SoundEvents.DOLPHIN_JUMP, SoundSource.HOSTILE, 2.0f, 0.5f);
+    }
+
+    /** Image exacte du claquement — pour ce qui ne doit se déclencher qu'une fois, ici même. */
+    public boolean isWaveBreachSlam() {
+        return this.getWaveBreachTicks() == WAVE_BREACH_DURATION - WAVE_BREACH_SLAM;
+    }
+
+    /**
+     * Le claquement est-il atteint ou passé ?
+     *
+     * <p>Pour qui l'observe de l'extérieur. Une égalité stricte suppose de tomber pile sur la bonne
+     * image ; un tick perdu — et il en suffit d'un — et la vague ne partirait jamais.</p>
+     */
+    public boolean hasWaveBreachSlammed() {
+        int left = this.getWaveBreachTicks();
+        return left > 0 && left <= WAVE_BREACH_DURATION - WAVE_BREACH_SLAM;
+    }
+
+    /**
+     * Vrille du bond [0 – 360°] autour de l'axe vertical, interpolée pour le rendu.
+     *
+     * <p>Un pivot à plat, et non un tonneau : le corps reste horizontal et fait le tour sur
+     * lui-même, la queue balayant tout ce qui est autour — ce qui donne au coup qui suit la
+     * trajectoire d'un revers.</p>
+     *
+     * <p>Amortie en fin de course : le tour part sec, porté par l'élan de la charge, et s'achève en
+     * douceur au moment où la queue prend le relais. Une rotation linéaire aurait tourné comme une
+     * pièce mécanique.</p>
+     */
+    public float getWaveSpinYaw(float partialTick) {
+        int left = this.getWaveBreachTicks();
+        if (left <= 0) return 0f;
+        float elapsed = WAVE_BREACH_DURATION - (left - partialTick);
+        float t = Mth.clamp(elapsed / WAVE_BREACH_DURATION, 0f, 1f);
+        float remaining = 1f - t;
+        float eased = 1f - remaining * remaining * remaining;
+        return WAVE_SPIN_TURN * eased;
+    }
+
+    private void tickWaveBreach() {
+        if (this.level().isClientSide()) return;
+        int left = this.getWaveBreachTicks();
+        if (left <= 0) return;
+        // Le coup de queue est armé ici et non par le goal : le geste appartient au bond, il doit
+        // partir à la même image quelle que soit la raison qui a déclenché celui-ci.
+        if (isWaveBreachSlam()) startTailFlick();
+        this.entityData.set(WAVE_BREACH_TICKS, left - 1);
+    }
+
+    private void tickWaveCharge() {
+        this.waveChargeBlendPrev = this.waveChargeBlend;
+        float target = this.isWaveCharging() ? 1f : 0f;
+        this.waveChargeBlend += (target - this.waveChargeBlend)
+                * (target > this.waveChargeBlend ? WAVE_CHARGE_RISE : WAVE_CHARGE_FALL);
+        if (this.waveChargeBlend < 0.001f) this.waveChargeBlend = 0f;
+    }
+
+    // ── Jeu de la proie : coup de queue ───────────────────────────────────────
+
+    /**
+     * Découpage du coup de queue, sur le même modèle que la happe.
+     *
+     * <p>L'armement est plus long que la détente : c'est le rapport entre les deux qui fait le
+     * claquement. Une queue qui s'enroule aussi vite qu'elle se détend ne fouette pas, elle
+     * balaie.</p>
+     */
+    public static final int FLICK_ANIM_WINDUP = 7;
+    public static final int FLICK_ANIM_SNAP = 4;
+    public static final int FLICK_ANIM_RECOVER = 9;
+    public static final int FLICK_ANIM_DURATION =
+            FLICK_ANIM_WINDUP + FLICK_ANIM_SNAP + FLICK_ANIM_RECOVER;
+
+    private static final EntityDataAccessor<Integer> TAIL_FLICK_TICKS =
+            SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
+
+    public int getTailFlickTicks() {
+        return this.entityData.get(TAIL_FLICK_TICKS);
+    }
+
+    public static int getTailFlickDuration() {
+        return FLICK_ANIM_DURATION;
+    }
+
+    public boolean isTailFlicking() {
+        return this.getTailFlickTicks() > 0;
+    }
+
+    public void startTailFlick() {
+        if (this.level().isClientSide()) return;
+        this.entityData.set(TAIL_FLICK_TICKS, FLICK_ANIM_DURATION);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                net.minecraft.sounds.SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.NEUTRAL, 1.4f, 0.7f);
+    }
+
+    /**
+     * Instant exact où la nageoire touche la proie : à mi-claquement, pas à son terme.
+     *
+     * <p>Attendre la fin du geste ferait décoller la proie une fois la queue déjà redescendue.</p>
+     */
+    public boolean isTailFlickImpact() {
+        return this.getTailFlickTicks()
+                == FLICK_ANIM_DURATION - (FLICK_ANIM_WINDUP + FLICK_ANIM_SNAP / 2);
+    }
+
+    private void tickTailFlick() {
+        if (this.level().isClientSide()) return;
+        int left = this.getTailFlickTicks();
+        if (left > 0) this.entityData.set(TAIL_FLICK_TICKS, left - 1);
     }
 
     public static boolean isThinIce(BlockState state) {
@@ -721,7 +985,18 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public void tick() {
         super.tick();
 
-        createCombo((int) (28 / comboSpeedMultiplier), (int) (18 / comboSpeedMultiplier), OWSounds.CROCODILE_MOUTH_CRUSH.get(), 6.5, 5, 4, false, 0.5f);
+        // Le gabarit dépend de qui frappe. Une orque montée garde la portée large qui rend le combat
+        // au dos agréable ; une orque sauvage mord à la taille de sa gueule. L'ancienne boîte —
+        // six blocs et demi de large sur dix de haut, portée à quatre — englobait tout ce qui se
+        // trouvait devant : aucun déplacement du joueur ne pouvait l'en faire sortir, et c'est de là
+        // que venait la série qui ne rate jamais.
+        boolean wild = !this.isTame();
+        createCombo((int) (28 / comboSpeedMultiplier), (int) (18 / comboSpeedMultiplier),
+                OWSounds.CROCODILE_MOUTH_CRUSH.get(),
+                wild ? WILD_BITE_WIDTH : 6.5,
+                wild ? WILD_BITE_HEIGHT : 5,
+                wild ? WILD_BITE_REACH : 4,
+                false, 0.5f);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (!this.level().isClientSide()) {
@@ -734,6 +1009,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             tickBarrelRoll();
         }
         tickSpyhop();
+        tickWaveCharge();
+        tickWaveBreach();
+        tickTailFlick();
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (!this.level().isClientSide() && false) {
@@ -902,7 +1180,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     protected boolean isBreaching() {
-        return this.isDashing() || breachTicks > 0;
+        // Le bond de la vague compte comme un envol volontaire : sans cela, la bride de sortie d'eau
+        // écrêterait son impulsion à trois dixièmes de bloc par tick et l'orque ne décollerait pas.
+        return this.isDashing() || breachTicks > 0 || this.isWaveBreaching();
     }
 
     /**
@@ -1007,10 +1287,48 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return aim.lengthSqr() < 1.0E-6 ? new Vec3(0, 0, 1) : aim.normalize();
     }
 
+    /**
+     * Recalage du combo sur la cible.
+     *
+     * <p>L'orque sauvage revient au comportement commun du mod : elle <b>fixe sa cible</b> pendant
+     * toute la morsure, sans bride, comme n'importe quelle autre bête. Les brides essayées ici —
+     * quatorze degrés, puis quatre, puis zéro — la faisaient mordre de biais, ce qui se lisait comme
+     * une maladresse plutôt que comme une esquive du joueur.</p>
+     *
+     * <p>L'échec de la morsure ne tient donc plus à l'orientation mais au <b>gabarit</b> : la gueule
+     * d'une orque sauvage ne couvre que 2,4 blocs de large sur 2,8 de portée, contre la boîte de
+     * 6,5 sur 4 d'autrefois. S'écarter latéralement ne suffit plus — il faut sortir de sa portée,
+     * en profondeur ou en hauteur. C'est le prix assumé d'une bête qui vise droit.</p>
+     */
     @Override
     protected float comboTrackingDegreesPerTick() {
-        return this.isVehicle() ? 360f : 14f;
+        if (this.isVehicle()) return 360f;
+        return this.isTame() ? 14f : 360f;
     }
+
+    /**
+     * Gabarit de morsure d'une orque sauvage : une gueule, pas un mur.
+     *
+     * <p>Seul levier restant de l'esquive, l'orientation étant désormais libre. Il se règle donc à
+     * la portée et non à l'angle : la boîte couvre en gros de un et demi à cinq blocs devant la
+     * bête, soit tout juste de quoi atteindre une cible restée là où l'attaque s'est déclenchée.
+     * S'éloigner, plonger ou remonter la fait manquer ; ne pas bouger, non.</p>
+     *
+     * <p>Trop resserré, l'échec cesse d'être une esquive et devient une infirmité — l'orque
+     * traversait sa proie sans jamais l'atteindre. L'ancienne boîte, elle, faisait 6,5 de large
+     * sur 4 de portée : elle englobait tout ce qui se trouvait devant.</p>
+     */
+    private static final double WILD_BITE_WIDTH = 3.5;
+    private static final double WILD_BITE_HEIGHT = 2.5;
+    private static final double WILD_BITE_REACH = 3.2;
+
+    /** Fenêtre de distance dans laquelle une orque sauvage juge la Ruée intéressante. */
+    private static final double WILD_DASH_MIN_RANGE = 5.0;
+    private static final double WILD_DASH_MAX_RANGE = 16.0;
+
+    /** Cadence de la Ruée sauvage : environ toutes les cinq à onze secondes de poursuite. */
+    private static final int WILD_DASH_COOLDOWN_MIN = 100;
+    private static final int WILD_DASH_COOLDOWN_SPREAD = 120;
 
     @Override
     public void die(DamageSource damageSource) {
@@ -1035,9 +1353,64 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         super.setTarget(target);
     }
 
+    /**
+     * Jeu de la proie en cours : l'orque ne porte plus aucun coup ordinaire.
+     *
+     * <p>État serveur, jamais synchronisé — seul le goal le pose et le lit.</p>
+     */
+    private boolean playingWithPrey = false;
+
+    public boolean isPlayingWithPrey() {
+        return this.playingWithPrey;
+    }
+
+    public void setPlayingWithPrey(boolean value) {
+        this.playingWithPrey = value;
+    }
+
+    /**
+     * Cas où une orque sauvage ne porte aucun coup.
+     *
+     * <p><b>Hors de l'eau.</b> Privée de son élément, elle ne peut ni se tourner, ni se caler, ni
+     * prendre appui : la voir continuer à frapper pendant qu'elle bat de la queue sur la berge la
+     * faisait passer pour un monstre terrestre. L'échouage volontaire ({@code isBeached()}) fait
+     * exception — c'est une chasse à part entière, et la brider là reviendrait à supprimer
+     * {@code OWOrcaBeachingGoal}, qui n'existe que pour ça.</p>
+     *
+     * <p><b>Pendant le jeu de la proie.</b> Toute la feature tient sur une promesse : la victime
+     * ressort vivante. Or l'orque frappe pour un tiers de sa vie d'un seul coup, si bien que le
+     * palier de « proie vaincue » se franchit en un coup et que le suivant l'achevait avant même que
+     * le jeu n'ait commencé — ou pendant, un combo déjà lancé continuant de porter tout seul. Le
+     * plafond posé sur les dégâts de projection ne suffisait pas : il ne bornait que SES propres
+     * coups. Ici, la mâchoire se tait entièrement, et seule la projection blesse.</p>
+     *
+     * <p>Les orques apprivoisées ne sont concernées par aucun des deux : leur cavalier attend
+     * d'elles qu'elles frappent où il les mène.</p>
+     */
+    private boolean strikesAreSuppressed() {
+        if (this.isTame()) return false;
+        if (this.playingWithPrey) return true;
+        return !this.isInWater() && !this.isBeached();
+    }
+
     @Override
     public boolean doHurtTarget(Entity entity) {
+        if (strikesAreSuppressed()) return false;
         return super.doHurtTarget(entity);
+    }
+
+    @Override
+    public void attackEntitiesInFront(float attackDamage, SoundEvent sound, double width,
+                                      double height, double reach, float knockbackMultiplier) {
+        if (strikesAreSuppressed()) return;
+        super.attackEntitiesInFront(attackDamage, sound, width, height, reach, knockbackMultiplier);
+    }
+
+    @Override
+    public void attackEntitiesInFrontSimple(float attackDamage, SoundEvent sound, double width,
+                                            double height, double reach, float knockbackMultiplier) {
+        if (strikesAreSuppressed()) return;
+        super.attackEntitiesInFrontSimple(attackDamage, sound, width, height, reach, knockbackMultiplier);
     }
 
     @Override
@@ -1054,6 +1427,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private final java.util.Set<java.util.UUID> dashHits = new java.util.HashSet<>();
 
     private void applyDashContactDamage() {
+        // La Ruée traverse volontiers la surface : sans ce refus, une orque sauvage encaissait
+        // toujours ses dégâts de contact en plein vol, soit la manière la plus courante de frapper
+        // hors de l'eau.
+        if (strikesAreSuppressed()) return;
+
         double travelX = this.getX() - this.xOld;
         double travelY = this.getY() - this.yOld;
         double travelZ = this.getZ() - this.zOld;
@@ -1081,8 +1459,30 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             return;
         }
         setVitalEnergy(getVitalEnergy() + cost);
+        launchDash(getDashAimDirection());
+    }
 
-        this.dashDirection = getDashAimDirection();
+    /**
+     * Ruée déclenchée par l'IA, vers une cible et non vers le regard d'un cavalier.
+     *
+     * <p>La visée est prise en trois dimensions, du regard de l'orque vers le centre de la proie :
+     * {@link #getDashAimDirection()} lit le tangage du pilotage, remis à zéro sous l'eau chez une
+     * bête libre, et n'aurait donc produit qu'une ruée rigoureusement horizontale — inoffensive dès
+     * que la proie nage un peu plus haut ou plus bas.</p>
+     *
+     * <p>Elle ne consulte pas non plus la jauge d'énergie vitale. Celle-ci est un instrument de
+     * pilotage, que le cavalier voit se remplir ; sur une bête sauvage elle ne serait qu'un refus
+     * silencieux et imprévisible. La cadence est tenue par le goal, qui sait pourquoi il attend.</p>
+     */
+    public void performWildDashAt(LivingEntity target) {
+        if (this.level().isClientSide() || target == null) return;
+        Vec3 aim = target.getBoundingBox().getCenter().subtract(this.getEyePosition());
+        if (aim.lengthSqr() < 1.0E-6) return;
+        launchDash(aim.normalize());
+    }
+
+    private void launchDash(Vec3 direction) {
+        this.dashDirection = direction;
 
         this.setDeltaMovement(this.dashDirection.scale(3.8));
 
@@ -1307,6 +1707,62 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 1.0f, 0.4f);
     }
 
+    // ── Descente aux abysses (Grande Gueule sauvage) ──────────────────────────
+
+    /**
+     * Prise destinée à la descente : la mâchoire cesse de mordre, seule la profondeur menace.
+     *
+     * <p>État serveur, jamais synchronisé — il ne change rien de visible, seulement la conduite de
+     * la prise, et les goals qui le posent ne tournent que là.</p>
+     */
+    private boolean abyssalHold = false;
+
+    public boolean isAbyssalHold() {
+        return this.abyssalHold;
+    }
+
+    public void setAbyssalHold(boolean value) {
+        this.abyssalHold = value;
+    }
+
+    /**
+     * Prolonge la prise en cours.
+     *
+     * <p>La durée de morsure ordinaire — dix secondes — ne laisse pas le temps d'atteindre le fond.
+     * La descente réclame donc de tenir bien plus longtemps, sans quoi l'orque recracherait sa proie
+     * à mi-eau, ce qui n'aurait aucun intérêt.</p>
+     */
+    public void holdSwallowedFor(int ticks) {
+        if (this.level().isClientSide() || !hasSwallowed()) return;
+        this.mouthHoldTicks = Math.max(this.mouthHoldTicks, ticks);
+    }
+
+    /** Profondeur d'eau sondée sous l'orque à la recherche du fond. */
+    private static final int SEABED_SCAN_DEPTH = 128;
+
+    /**
+     * Altitude du fond sous l'orque, ou {@code NaN} si elle n'a pas d'eau sous elle.
+     *
+     * <p>Renvoie le premier niveau encore liquide au-dessus du sol, et non le sol lui-même : c'est
+     * là que la descente doit s'arrêter.</p>
+     */
+    public double seabedYBelow() {
+        BlockPos.MutableBlockPos cursor = this.blockPosition().mutable();
+        if (!this.level().getFluidState(cursor).is(net.minecraft.tags.FluidTags.WATER)) return Double.NaN;
+        for (int i = 0; i < SEABED_SCAN_DEPTH; i++) {
+            cursor.move(Direction.DOWN);
+            if (this.level().getFluidState(cursor).is(net.minecraft.tags.FluidTags.WATER)) continue;
+            return cursor.getY() + 1;
+        }
+        return Double.NaN;
+    }
+
+    /** Hauteur d'eau libre sous l'orque, ou 0 si le fond n'a pas été trouvé. */
+    public double waterColumnBelow() {
+        double seabed = seabedYBelow();
+        return Double.isNaN(seabed) ? 0.0 : Math.max(0.0, this.getY() - seabed);
+    }
+
     public void releaseSwallowed(boolean spit) {
         LivingEntity prey = getSwallowedTarget();
         if (prey != null) {
@@ -1370,9 +1826,15 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         boolean friendly = this.isAlliedTo(prey) || this.isTameGrabAlly(prey);
 
-        if (friendly) {
-            prey.setAirSupply(prey.getMaxAirSupply());
-        } else if (this.tickCount % MOUTH_DAMAGE_INTERVAL == 0) {
+        // Prise en gueule, la proie ne se noie pas : elle est TENUE, pas maintenue sous l'eau. La
+        // réserve d'air ne servait qu'aux prises amicales, ce qui suffisait tant que la morsure
+        // durait dix secondes ; une descente vers le fond, elle, tuerait par asphyxie avant même
+        // d'avoir touché le sable, et tout l'enjeu de la remontée disparaîtrait avec la victime.
+        prey.setAirSupply(prey.getMaxAirSupply());
+
+        // La descente aux abysses ne mord pas : sa menace est la profondeur, pas la mâchoire. Les
+        // deux cumulées ne laisseraient rien à relâcher au fond.
+        if (!friendly && !this.abyssalHold && this.tickCount % MOUTH_DAMAGE_INTERVAL == 0) {
             prey.invulnerableTime = 0;
             prey.hurt(this.damageSources().mobAttack(this), this.getDamage() * MOUTH_BITE_RATIO);
             this.level().playSound(null, getX(), getY(), getZ(),
