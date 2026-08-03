@@ -55,6 +55,7 @@ public class OWNetworkHandler {
         registrar.playToServer(CreateOWTeamWithParamsPacket.TYPE, CreateOWTeamWithParamsPacket.STREAM_CODEC, CreateOWTeamWithParamsPacket::handle);
         registrar.playToServer(StartRitualPacket.TYPE, StartRitualPacket.STREAM_CODEC, StartRitualPacket::handle);
         registrar.playToServer(OWPisteAdvancePacket.TYPE, OWPisteAdvancePacket.STREAM_CODEC, OWPisteAdvancePacket::handle);
+        registrar.playToServer(ToggleWaypointPacket.TYPE, ToggleWaypointPacket.STREAM_CODEC, ToggleWaypointPacket::handle);
 
         // Tribu player-centric (refonte)
         registrar.playToServer(OpenTribeMenuPacket.TYPE, OpenTribeMenuPacket.STREAM_CODEC, OpenTribeMenuPacket::handle);
@@ -102,6 +103,7 @@ public class OWNetworkHandler {
         registrar.playToClient(OWTamingXpSyncPacket.TYPE, OWTamingXpSyncPacket.STREAM_CODEC, OWTamingXpSyncPacket::handle);
         registrar.playToClient(OWXpGainPacket.TYPE, OWXpGainPacket.STREAM_CODEC, OWXpGainPacket::handle);
         registrar.playToClient(OWIndicationPacket.TYPE, OWIndicationPacket.STREAM_CODEC, OWIndicationPacket::handle);
+        registrar.playToClient(SyncWaypointsPacket.TYPE, SyncWaypointsPacket.STREAM_CODEC, SyncWaypointsPacket::handle);
 
         // Tribu player-centric (refonte)
         registrar.playToClient(SyncPlayerTribePacket.TYPE, SyncPlayerTribePacket.STREAM_CODEC, SyncPlayerTribePacket::handle);

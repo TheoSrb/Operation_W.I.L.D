@@ -2685,7 +2685,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 && (reason == net.minecraft.world.entity.Entity.RemovalReason.KILLED
                 || reason == net.minecraft.world.entity.Entity.RemovalReason.DISCARDED)) {
             net.minecraft.server.MinecraftServer srv = this.level().getServer();
-            if (srv != null) net.tiew.operationWild.team.OWReputationData.get(srv).removeEntity(this.getUUID());
+            if (srv != null) {
+                net.tiew.operationWild.team.OWReputationData.get(srv).removeEntity(this.getUUID());
+                // Waypoint : même règle. Un chunk qui se décharge doit au contraire laisser la trace
+                // intacte — c'est précisément le cas où le repère sert.
+                net.tiew.operationWild.waypoint.OWWaypointData.get(srv).remove(this.getUUID());
+            }
         }
         super.remove(reason);
     }
@@ -2911,6 +2916,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     if (this.isTame() && this.getOwnerUUID() != null) rep.upsertEntity(this);
                     else rep.removeEntity(this.getUUID());
                 }
+            }
+            // Waypoint : la position connue du monde est rafraîchie environ une fois par seconde.
+            // C'est cette trace-là qui survit au déchargement du chunk et à la déconnexion — quand le
+            // client a la créature sous les yeux, il lit sa position réelle et ignore celle-ci.
+            if ((this.tickCount + this.getId()) % 20 == 0) {
+                net.minecraft.server.MinecraftServer srv = this.level().getServer();
+                if (srv != null) net.tiew.operationWild.waypoint.OWWaypointData.get(srv).upsert(this);
             }
         }
 

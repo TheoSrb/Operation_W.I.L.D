@@ -16,10 +16,11 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.IOWWaypointEntity;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.event.ClientEvents;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_server.OWEntityTogglePacket;
 import net.tiew.operationWild.networking.packets.to_server.OpenOWInventoryPacket;
+import net.tiew.operationWild.networking.packets.to_server.ToggleWaypointPacket;
+import net.tiew.operationWild.waypoint.OWClientWaypoints;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,11 +112,16 @@ public class OWOptionsScreen extends Screen {
         }
 
         if (entity instanceof IOWWaypointEntity) {
+            // L'état vit dans la sauvegarde du monde : la case répond au clic tout de suite, mais
+            // c'est la réponse du serveur qui fait foi.
             scrollPanel.add(toggle(
                     Component.translatable("option.waypoint"),
                     Component.translatable("option.waypoint.desc"),
-                    () -> ClientEvents.isWaypointEnabled(entity.getUUID()),
-                    () -> ClientEvents.toggleWaypoint(entity.getUUID())
+                    () -> OWClientWaypoints.isEnabled(entity.getUUID()),
+                    () -> {
+                        OWClientWaypoints.toggleLocally(entity.getUUID());
+                        OWNetworkHandler.sendToServer(new ToggleWaypointPacket(entity.getUUID()));
+                    }
             ));
         }
 

@@ -185,18 +185,15 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onPlayerLogout(ClientPlayerNetworkEvent.LoggingOut event) {
-        Minecraft mc = Minecraft.getInstance();
-        if (mc.player != null) saveWaypointStates(mc.player);
+        // Waypoints : rien à sauvegarder ici, la sauvegarde du monde s'en est déjà chargée. On se
+        // contente de tout oublier, pour que la partie suivante ne puisse hériter de rien.
+        net.tiew.operationWild.waypoint.OWClientWaypoints.clear();
         computedClusters.clear();
         clusterPopSmoothed.clear();
         waypointStates.clear();
         computedWaypoints.clear();
         currentEntityIds.clear();
-        lastWaypointLevel = new java.lang.ref.WeakReference<>(null);
         cachedWorldName = null;
-        // Plus aucun monde d'attache : la partie suivante repartira d'une mémoire vierge, et rien
-        // ne pourra être écrit d'ici là.
-        loadedWaypointKey = null;
         pendingWarning = false;
         warningTick = 0;
         currentVenomBlur = null;
@@ -300,18 +297,14 @@ public class ClientEvents {
         String worldName = getWorldName(event.getPlayer());
         ClientKillData.createEmptyFile(worldName);
 
-        // Les waypoints ne sont volontairement PAS chargés ici. À la connexion, le monde n'est pas
-        // encore identifiable de façon sûre — le serveur intégré démarre, celui qu'on quitte n'a pas
-        // fini de s'éteindre — et c'est en lisant le monde à cet instant qu'on finissait par ouvrir
-        // le fichier de la partie précédente. La mémoire repart vide ; le premier rendu, où le monde
-        // courant est établi sans ambiguïté, s'en chargera (cf. lastWaypointLevel).
+        // Waypoints : rien n'est deviné ni relu sur le disque du client. On repart d'une mémoire
+        // vierge, que le serveur du monde où l'on vient d'entrer remplira lui-même.
+        net.tiew.operationWild.waypoint.OWClientWaypoints.clear();
         waypointStates.clear();
         computedWaypoints.clear();
         computedClusters.clear();
         clusterPopSmoothed.clear();
         currentEntityIds.clear();
-        loadedWaypointKey = null;
-        lastWaypointLevel = new java.lang.ref.WeakReference<>(null);
     }
 
     private static String cachedWorldName = null;
@@ -1577,19 +1570,6 @@ public class ClientEvents {
     private static final Map<UUID, WaypointState> waypointStates = new LinkedHashMap<>();
     private static final Map<UUID, Integer> currentEntityIds = new HashMap<>();
 
-    /**
-     * Dernier {@link ClientLevel} pour lequel les waypoints ont été synchronisés.
-     * <p>
-     * Sert à détecter au rendu un changement de monde/dimension (le ClientLevel change
-     * d'instance) et à resynchroniser la persistance sur le BON monde. Corrige le bug où les
-     * waypoints d'un monde A apparaissaient dans un monde B : la clé de monde pouvait être
-     * résolue trop tôt (au {@code LoggingIn}, avant que le serveur intégré du nouveau monde ne
-     * soit prêt), faisant charger le fichier du mauvais monde. Au rendu, le serveur du monde
-     * courant est garanti prêt, donc la clé se résout correctement.
-     */
-    private static java.lang.ref.WeakReference<ClientLevel> lastWaypointLevel =
-            new java.lang.ref.WeakReference<>(null);
-
     private static class WaypointState {
         UUID ownerUUID;
         Vec3 lastPos = null;
@@ -1625,31 +1605,46 @@ public class ClientEvents {
 
     private static final Map<UUID, ComputedWaypoint> computedWaypoints = new LinkedHashMap<>();
 
-    public static boolean isWaypointEnabled(UUID uuid) {
-        WaypointState state = waypointStates.get(uuid);
-        return state == null || state.isEnabled;
-    }
+    /**
+     * Reconstruit la liste des repères à afficher à partir des deux seules sources légitimes.
+     *
+     * <ol>
+     *   <li>Les entrées que le serveur a tirées de la sauvegarde du <b>monde courant</b> : ce sont
+     *       elles qui survivent à la déconnexion, et elles seules. Celles d'une autre dimension sont
+     *       écartées — un compagnon resté dans l'Overworld n'a rien à signaler depuis le Nether.</li>
+     *   <li>Les créatures effectivement chargées chez le client, qui écrasent la position figée par
+     *       une position interpolée image par image et rafraîchissent l'apparence.</li>
+     * </ol>
+     *
+     * <p>Tout ce qui ne relève d'aucune des deux disparaît de la mémoire d'affichage : c'est ce qui
+     * empêche un repère de survivre à ce qu'il désigne.</p>
+     */
+    private static void refreshWaypointStates(Player player, Minecraft mc, float pt) {
+        String currentDimension = mc.level.dimension().location().toString();
+        Set<UUID> present = new HashSet<>();
 
-    public static void toggleWaypoint(UUID uuid) {
-        waypointStates.computeIfAbsent(uuid, k -> new WaypointState()).isEnabled ^= true;
-    }
+        for (net.tiew.operationWild.waypoint.OWWaypointEntry entry
+                : net.tiew.operationWild.waypoint.OWClientWaypoints.all()) {
+            if (!currentDimension.equals(entry.dimension())) continue;
 
-    private static void computeWaypointScreenPositions(RenderLevelStageEvent event) {
-        Minecraft mc = Minecraft.getInstance();
-        Player player = mc.player;
-        computedWaypoints.clear();
-        if (player == null || mc.level == null) return;
-
-        // Changement de monde/dimension détecté au rendu : on resynchronise la persistance des
-        // waypoints sur le monde courant (voir lastWaypointLevel). Fait ici car, contrairement au
-        // LoggingIn, le serveur intégré du bon monde est garanti prêt à cet instant.
-        if (lastWaypointLevel.get() != mc.level) {
-            handleWaypointWorldChange(player, mc.level);
+            UUID uuid = entry.entityUuid();
+            WaypointState state = waypointStates.computeIfAbsent(uuid, k -> new WaypointState());
+            state.ownerUUID = player.getUUID();
+            state.hasBeenSeen = true;
+            state.lastPos = new Vec3(entry.x(), entry.y(), entry.z());
+            state.name = net.tiew.operationWild.waypoint.OWClientWaypoints.displayName(entry);
+            state.fillColor = entry.fillColor();
+            state.entityColor = entry.entityColor();
+            state.borderColor = entry.borderColor();
+            state.textColor = entry.textColor();
+            state.iconSize = entry.iconSize();
+            state.maxDist = entry.maxDist();
+            state.minDist = entry.minDist();
+            state.minOpacity = entry.minOpacity();
+            state.fontScale = entry.fontScale();
+            state.isEnabled = entry.enabled();
+            present.add(uuid);
         }
-
-        if (mc.options.hideGui) return;
-
-        float pt = event.getPartialTick().getGameTimeDeltaPartialTick(true);
 
         currentEntityIds.clear();
         for (OWEntity candidate : mc.level.getEntitiesOfClass(
@@ -1661,10 +1656,9 @@ public class ClientEvents {
 
             UUID uuid = candidate.getUUID();
 
-            boolean isCurrentMount = candidate == player.getVehicle();
-
             if (!candidate.isAlive()) {
                 waypointStates.remove(uuid);
+                present.remove(uuid);
                 continue;
             }
 
@@ -1688,11 +1682,32 @@ public class ClientEvents {
             state.minDist = w.getWaypointMinDistance();
             state.minOpacity = w.getWaypointMinOpacity();
             state.fontScale = w.getWaypointDistanceFontScale();
-
-            if (isCurrentMount) continue;
+            // Une créature apprivoisée à l'instant n'est pas encore inscrite dans la sauvegarde :
+            // elle s'affiche tout de suite, son tick serveur l'y inscrira dans la seconde.
+            state.isEnabled = net.tiew.operationWild.waypoint.OWClientWaypoints.isEnabled(uuid);
+            present.add(uuid);
         }
 
-        if (waypointStates.isEmpty()) return;
+        waypointStates.keySet().retainAll(present);
+    }
+
+    private static void computeWaypointScreenPositions(RenderLevelStageEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+        computedWaypoints.clear();
+        if (player == null || mc.level == null) return;
+
+        if (mc.options.hideGui) return;
+
+        float pt = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+
+        refreshWaypointStates(player, mc, pt);
+
+        if (waypointStates.isEmpty()) {
+            computedClusters.clear();
+            clusterPopSmoothed.clear();
+            return;
+        }
 
         int sw = mc.getWindow().getGuiScaledWidth();
         int sh = mc.getWindow().getGuiScaledHeight();
@@ -1958,187 +1973,6 @@ public class ClientEvents {
             String base = k.startsWith("v_") ? k.substring(2) : k;
             return !activeClusterKeys.contains(base);
         });
-    }
-
-    /**
-     * Monde auquel appartiennent les waypoints actuellement en mémoire, ou {@code null} si aucun.
-     *
-     * <p>C'est la pièce qui manquait. La clé de monde était auparavant <b>mise en cache</b> et
-     * consultée à la volée : dès qu'elle était résolue à un instant où le jeu était entre deux
-     * mondes — déconnexion, serveur intégré en cours d'arrêt ou de démarrage — la valeur périmée
-     * restait collée et le monde suivant lisait, puis réécrivait, le fichier du précédent.</p>
-     *
-     * <p>On ne devine donc plus : la mémoire sait de quel monde elle vient, et une sauvegarde part
-     * toujours vers <b>ce</b> monde-là, jamais vers celui qu'on croit habiter à l'instant T.</p>
-     */
-    private static String loadedWaypointKey = null;
-
-    /** En-tête du fichier de waypoints : reconnaissance du format et numéro de version. */
-    private static final int WAYPOINT_MAGIC = 0x4F57_5750;   // "OWWP"
-    private static final int WAYPOINT_VERSION = 2;
-
-    /**
-     * Clé STRICTEMENT unique du monde courant, ou {@code null} si elle ne peut pas être résolue
-     * de façon fiable.
-     * <ul>
-     *   <li>Solo : nom du <b>dossier</b> de sauvegarde (garanti unique par Minecraft).</li>
-     *   <li>Multi : IP du serveur.</li>
-     * </ul>
-     *
-     * <p>On retombait autrefois sur le nom d'affichage du monde (non unique → deux mondes du même
-     * nom partageaient un fichier) ou sur un panier commun {@code "unknown_world"}. On préfère
-     * désormais ne RIEN charger ni sauvegarder plutôt que d'écrire dans un fichier partagé.</p>
-     *
-     * <p>Résolu <b>à chaque appel</b> depuis l'état vivant du jeu, sans mise en cache : cela ne
-     * coûte qu'un accès au chemin du monde, et n'a lieu qu'aux quelques instants où l'on touche au
-     * fichier. Le cache d'autrefois ne faisait rien gagner et survivait au changement de monde —
-     * c'était la source du mélange.</p>
-     */
-    private static String resolveUniqueWorldKey() {
-        Minecraft mc = Minecraft.getInstance();
-
-        if (mc.hasSingleplayerServer() && mc.getSingleplayerServer() != null) {
-            try {
-                java.nio.file.Path root = mc.getSingleplayerServer().getWorldPath(LevelResource.ROOT);
-                return "sp_" + root.toAbsolutePath().normalize().getFileName().toString();
-            } catch (Exception ignored) {
-                return null; // monde non résolu de façon fiable → pas de fichier partagé
-            }
-        }
-
-        if (mc.getCurrentServer() != null) {
-            return "mp_" + mc.getCurrentServer().ip.replace(":", "_").replace(".", "_");
-        }
-
-        return null;
-    }
-
-    private static File waypointFileFor(String key) {
-        if (key == null) return null;
-        return new File("config/ow_waypoints_" + key.replace(":", "_") + ".dat");
-    }
-
-    /**
-     * Resynchronise la persistance des waypoints quand le {@link ClientLevel} courant change
-     * (changement de monde ou de dimension).
-     * <p>
-     * L'état courant part d'abord dans le fichier du monde <b>dont il provient</b> — connu, et non
-     * plus déduit —, puis la mémoire est vidée et rechargée depuis le monde où l'on vient d'entrer.
-     * Un changement de dimension au sein d'une même partie retombe naturellement sur le même
-     * fichier, et le passage d'un monde à l'autre ne peut plus les confondre.
-     */
-    private static void handleWaypointWorldChange(Player player, ClientLevel newLevel) {
-        saveWaypointStates(player);
-        cachedWorldName = null;
-        computedClusters.clear();
-        clusterPopSmoothed.clear();
-        currentEntityIds.clear();
-        loadWaypointStates(player);   // vide la mémoire et rattache au monde courant
-        lastWaypointLevel = new java.lang.ref.WeakReference<>(newLevel);
-    }
-
-    public static void saveAndClearWaypoints(Player player) {
-        saveWaypointStates(player);
-        waypointStates.clear();
-        computedWaypoints.clear();
-        computedClusters.clear();
-        clusterPopSmoothed.clear();
-        cachedWorldName = null;
-        loadedWaypointKey = null;
-    }
-
-    /**
-     * Écrit les waypoints en mémoire dans le fichier du monde <b>dont ils proviennent</b>.
-     *
-     * <p>Sans monde d'origine connu, on n'écrit rien : refuser d'écrire est toujours préférable à
-     * déverser les repères d'une partie dans le fichier d'une autre. La clé est réinscrite dans le
-     * fichier, de sorte qu'une lecture puisse à son tour vérifier à qui il appartient.</p>
-     */
-    private static void saveWaypointStates(Player player) {
-        String key = loadedWaypointKey;
-        File file = waypointFileFor(key);
-        if (file == null) return; // monde d'origine inconnu : on ne touche à aucun fichier
-        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(file))) {
-            List<Map.Entry<UUID, WaypointState>> toSave = waypointStates.entrySet().stream()
-                    .filter(e -> e.getValue().hasBeenSeen && e.getValue().lastPos != null)
-                    .toList();
-            out.writeInt(WAYPOINT_MAGIC);
-            out.writeInt(WAYPOINT_VERSION);
-            out.writeUTF(key);
-            out.writeInt(toSave.size());
-            for (Map.Entry<UUID, WaypointState> entry : toSave) {
-                WaypointState s = entry.getValue();
-                out.writeUTF(entry.getKey().toString());
-                out.writeUTF(s.ownerUUID != null ? s.ownerUUID.toString() : "");
-                out.writeDouble(s.lastPos.x);
-                out.writeDouble(s.lastPos.y);
-                out.writeDouble(s.lastPos.z);
-                out.writeUTF(s.name);
-                out.writeInt(s.fillColor);
-                out.writeInt(s.borderColor);
-                out.writeInt(s.textColor);
-                out.writeInt(s.iconSize);
-                out.writeInt(s.maxDist);
-                out.writeFloat(s.minDist);
-                out.writeFloat(s.minOpacity);
-                out.writeFloat(s.fontScale);
-                out.writeBoolean(s.isEnabled);
-                out.writeInt(s.entityColor);
-            }
-        } catch (Exception e) {
-        }
-    }
-
-    /**
-     * Charge les waypoints du monde courant, et rien d'autre.
-     *
-     * <p>Le fichier porte le nom du monde <i>et</i> le rappelle dans son en-tête : les deux doivent
-     * concorder avec le monde où l'on vient d'entrer, sinon son contenu est rejeté. Cette seconde
-     * vérification est ce qui rattrape une clé mal résolue — et elle écarte du même coup les
-     * fichiers de l'ancien format, sans en-tête, dont on ne peut pas prouver l'origine.</p>
-     */
-    private static void loadWaypointStates(Player player) {
-        waypointStates.clear();
-        computedWaypoints.clear();
-        loadedWaypointKey = null;
-
-        String key = resolveUniqueWorldKey();
-        if (key == null) return;   // monde non résolu : ni lecture ni écriture, la mémoire reste vierge
-        // Le monde est identifié : même sans fichier (partie neuve), on saura où sauvegarder.
-        loadedWaypointKey = key;
-
-        File file = waypointFileFor(key);
-        if (file == null || !file.exists()) return;
-        try (DataInputStream in = new DataInputStream(new FileInputStream(file))) {
-            if (in.readInt() != WAYPOINT_MAGIC || in.readInt() != WAYPOINT_VERSION) return;
-            if (!key.equals(in.readUTF())) return;   // fichier d'un autre monde : on n'en prend rien
-            int count = in.readInt();
-            for (int i = 0; i < count; i++) {
-                UUID uuid = UUID.fromString(in.readUTF());
-                String ownerStr = in.readUTF();
-                double x = in.readDouble(), y = in.readDouble(), z = in.readDouble();
-                String name = in.readUTF();
-
-                WaypointState s = new WaypointState();
-                s.ownerUUID = ownerStr.isEmpty() ? null : UUID.fromString(ownerStr);
-                s.lastPos = new Vec3(x, y, z);
-                s.name = name;
-                s.hasBeenSeen = true;
-                s.fillColor = in.readInt();
-                s.borderColor = in.readInt();
-                s.textColor = in.readInt();
-                s.iconSize = in.readInt();
-                s.maxDist = in.readInt();
-                s.minDist = in.readFloat();
-                s.minOpacity = in.readFloat();
-                s.fontScale = in.readFloat();
-                s.isEnabled = in.readBoolean();
-                s.entityColor = in.readInt();
-                waypointStates.put(uuid, s);
-            }
-        } catch (Exception e) {
-            waypointStates.clear();
-        }
     }
 
     @SubscribeEvent

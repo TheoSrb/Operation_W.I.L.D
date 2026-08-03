@@ -157,7 +157,42 @@ public class ServerEvents {
             }
             net.tiew.operationWild.core.OWBannerUnlocks.sync(player);
             net.tiew.operationWild.core.OWArenaVenueUnlocks.sync(player);
+            // Waypoints : le client arrive la mémoire vide et n'a plus aucun fichier local à consulter.
+            // Ses repères ne peuvent venir que de la sauvegarde du monde où il vient d'entrer.
+            net.tiew.operationWild.waypoint.OWWaypointManager.syncTo(server, player);
         }
+    }
+
+    /**
+     * Le client reconstruit son monde à chaque changement de dimension et à chaque réapparition :
+     * on lui repousse ses repères sans attendre le prochain battement de synchronisation.
+     */
+    @SubscribeEvent
+    public static void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
+            net.tiew.operationWild.waypoint.OWWaypointManager.syncTo(player.getServer(), player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
+            net.tiew.operationWild.waypoint.OWWaypointManager.syncTo(player.getServer(), player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+        net.tiew.operationWild.waypoint.OWWaypointManager.forget(event.getEntity().getUUID());
+    }
+
+    /**
+     * En solo, la JVM survit au changement de monde : sans cet oubli, les versions retenues de la
+     * partie précédente feraient sauter la première synchronisation de la suivante.
+     */
+    @SubscribeEvent
+    public static void onServerStopped(net.neoforged.neoforge.event.server.ServerStoppedEvent event) {
+        net.tiew.operationWild.waypoint.OWWaypointManager.clear();
     }
 
     /** Conserve les cagnottes par joueur (Pièces + Expérience d'Apprivoisement) à travers la mort / le changement de dimension. */
@@ -182,6 +217,7 @@ public class ServerEvents {
     private static int slingshotDecayCounter = 0;
     private static int reputationSyncCounter = 0;
     private static int arenaTickCounter = 0;
+    private static int waypointSyncCounter = 0;
 
     /** Décai périodique (~10 s) des fissures de la fronde, exécuté sur le thread principal (remplace l'ancien Timer). */
     @SubscribeEvent
@@ -194,6 +230,13 @@ public class ServerEvents {
         // Arène : phase d'ouverture (tout le monde figé face à l'adversaire) — à chaque tick, elle
         // dure quelques secondes et se relâche à l'instant près.
         net.tiew.operationWild.team.OWArenaManager.tickOpenings(event.getServer());
+
+        // Waypoints : une passe par seconde, qui n'envoie qu'aux joueurs dont un repère a réellement
+        // bougé ou changé. Une écurie immobile ne coûte donc aucun paquet.
+        if (++waypointSyncCounter >= 20) {
+            waypointSyncCounter = 0;
+            net.tiew.operationWild.waypoint.OWWaypointManager.tick(event.getServer());
+        }
 
         // Arène : avancement des matchs (survivants, ciblage, verdict) une fois par seconde.
         if (++arenaTickCounter >= 20) {
