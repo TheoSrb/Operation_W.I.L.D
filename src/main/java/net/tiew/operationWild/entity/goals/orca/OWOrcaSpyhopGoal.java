@@ -127,11 +127,15 @@ public class OWOrcaSpyhopGoal extends Goal {
      *
      * <p>Les orques ibériques s'intéressent aux coques vides autant qu'à leurs occupants ; garder
      * les deux évite en prime qu'un joueur immobile dans son bateau ne soit jamais remarqué.</p>
+     *
+     * <p>Un joueur en créatif ou en spectateur n'existe pas pour la faune, comme partout ailleurs
+     * dans le jeu : le sélecteur de cibles l'ignore déjà, la curiosité doit l'ignorer aussi.</p>
      */
     private Entity findWatchable() {
         AABB box = this.orca.getBoundingBox().inflate(WATCH_RANGE);
         List<Entity> candidates = this.orca.level().getEntities(this.orca, box,
-                e -> (e instanceof Player player && !player.isSpectator()) || e instanceof Boat);
+                e -> (e instanceof Player player && !player.isSpectator() && !player.isCreative())
+                        || e instanceof Boat);
 
         Entity best = null;
         double bestDist = Double.MAX_VALUE;

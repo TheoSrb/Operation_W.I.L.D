@@ -144,6 +144,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         // précisément ce que l'orque est censée s'arrêter pour observer. Le goal se borne de lui-même
         // aux instants sans cible, et se retire dès qu'une cible apparaît : il ne prend donc jamais
         // le pas sur la chasse malgré sa priorité.
+        // Devant tout le reste : respirer prime, et sous la banquise rien d'autre n'est possible.
+        // Aucun risque d'accaparement, la condition d'entrée exige une calotte de glace au-dessus.
+        this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.orca.OWOrcaBreathingHoleGoal(this));
         this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.orca.OWOrcaSpyhopGoal(this));
         // Le suivi de bateau devient réservé aux orques apprivoisées. Une orque sauvage qui escorte
         // les coques comme un dauphin contredit frontalement la percussion ajoutée plus bas — et,
@@ -413,6 +416,33 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     /** Vrai si l'orque peut se dresser ici : de l'eau sous elle, du ciel au-dessus. */
     public boolean canSpyhopHere() {
         return this.isInWater() && !Double.isNaN(surfaceYAbove());
+    }
+
+    /** Hauteur d'eau sondée à la recherche d'une calotte : une orque peut chasser loin sous la banquise. */
+    private static final int ICE_SCAN_HEIGHT = 16;
+
+    /**
+     * Position de la calotte de glace qui ferme la colonne d'eau au-dessus de l'orque, ou
+     * {@code null} si la colonne débouche à l'air libre — ou sur autre chose que de la glace fine.
+     *
+     * <p>Seules la glace et la glace fondante sont retenues. La glace compactée et la glace bleue
+     * sont de la matière de construction : les percer transformerait la feature en démolition
+     * d'igloo, alors qu'il ne s'agit que de crever une banquise.</p>
+     */
+    public @Nullable BlockPos iceCapAbove() {
+        BlockPos.MutableBlockPos cursor = this.blockPosition().mutable();
+        if (!this.level().getFluidState(cursor).is(net.minecraft.tags.FluidTags.WATER)) return null;
+        for (int i = 0; i < ICE_SCAN_HEIGHT; i++) {
+            cursor.move(Direction.UP);
+            if (this.level().getFluidState(cursor).is(net.minecraft.tags.FluidTags.WATER)) continue;
+            return isThinIce(this.level().getBlockState(cursor)) ? cursor.immutable() : null;
+        }
+        return null;
+    }
+
+    public static boolean isThinIce(BlockState state) {
+        return state.is(net.minecraft.world.level.block.Blocks.ICE)
+                || state.is(net.minecraft.world.level.block.Blocks.FROSTED_ICE);
     }
 
     private void spawnSpyhopSpray(double surfaceY) {
