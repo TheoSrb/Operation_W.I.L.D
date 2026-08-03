@@ -76,6 +76,14 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private static final EntityDataAccessor<Integer> MOUTH_LUNGE_TICKS = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> MOUTH_SPIT_TICKS = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
+    /**
+     * Seul le fait d'observer voyage — jamais le décompte.
+     *
+     * <p>Un compteur synchronisé changerait de valeur à chaque tick, donc émettrait un paquet par
+     * tick et par orque pendant toute la dressée. Le client n'a besoin que du booléen : il en déduit
+     * son propre fondu.</p>
+     */
+    private static final EntityDataAccessor<Boolean> IS_SPYHOPPING = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
 
     private int dashTicksLeft = 0;
     private Vec3 dashDirection = Vec3.ZERO;
@@ -132,6 +140,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new TryFindWaterGoal(this));
+        // Devant le suivi de bateau, qui monopolisait le déplacement dès qu'une coque passait — soit
+        // précisément ce que l'orque est censée s'arrêter pour observer. Le goal se borne de lui-même
+        // aux instants sans cible, et se retire dès qu'une cible apparaît : il ne prend donc jamais
+        // le pas sur la chasse malgré sa priorité.
+        this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.orca.OWOrcaSpyhopGoal(this));
         this.goalSelector.addGoal(1, new FollowBoatGoal(this));
         this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 20f, 28, 4, false) {
             private boolean isBlockedForWild() {
@@ -168,6 +181,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         builder.define(MOUTH_LUNGE_TICKS, 0);
         builder.define(MOUTH_SPIT_TICKS, 0);
         builder.define(ULTIMATE_KILL_COUNT, 0);
+        builder.define(IS_SPYHOPPING, false);
     }
 
     @Override
@@ -254,6 +268,146 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             }
             spawnBarrelBubbles();
         }
+    }
+
+    /**
+     * Tangage, nez vers le ciel, d'une orque dressée à la verticale.
+     *
+     * <p>Négatif car l'assiette de nage compte la montée en négatif : {@code tickLean} déduit sa
+     * pente d'un {@code atan2(-dy, …)}. Le spyhop se branche donc sur la même convention que le
+     * reste du tangage, et non sur une seconde qui lui serait propre.</p>
+     */
+    private static final float SPYHOP_PITCH = -78.0f;
+    private static final float SPYHOP_RISE = 0.09f;
+    private static final float SPYHOP_FALL = 0.13f;
+
+    /** Épaisseur d'eau maximale au-dessus de l'orque pour qu'elle puisse encore percer la surface. */
+    private static final int SPYHOP_MAX_RISE = 6;
+
+    /**
+     * Part du gabarit maintenue sous la ligne d'eau pendant l'observation.
+     *
+     * <p>L'orque reste volontairement immergée : le modèle est bien plus long que sa boîte de
+     * collision, et le basculement du corps suffit à sortir la tête. La faire réellement émerger
+     * lui coûterait son souffle et la ferait battre de la queue comme un poisson échoué.</p>
+     */
+    private static final double SPYHOP_SUBMERSION = 0.85;
+
+    private float spyhopBlend = 0f;
+    private float spyhopBlendPrev = 0f;
+    private int spyhopTicksLeft = 0;
+
+    public boolean isSpyhopping() {
+        return this.entityData.get(IS_SPYHOPPING);
+    }
+
+    public void startSpyhop(int ticks) {
+        if (this.level().isClientSide()) return;
+        this.spyhopTicksLeft = Math.max(0, ticks);
+        this.entityData.set(IS_SPYHOPPING, this.spyhopTicksLeft > 0);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                net.minecraft.sounds.SoundEvents.DOLPHIN_JUMP, SoundSource.NEUTRAL, 0.9f, 0.55f);
+    }
+
+    public void stopSpyhop() {
+        if (this.level().isClientSide()) return;
+        this.spyhopTicksLeft = 0;
+        this.entityData.set(IS_SPYHOPPING, false);
+    }
+
+    /** Avancement de la dressée [0 – 1], interpolé pour le rendu. */
+    public float getSpyhopAmount(float partialTick) {
+        return Mth.lerp(partialTick, this.spyhopBlendPrev, this.spyhopBlend);
+    }
+
+    /**
+     * Le tangage du spyhop se substitue progressivement à l'assiette de nage, au lieu de s'y ajouter.
+     *
+     * <p>Une orque qui se dresse a cessé de nager : additionner les deux la ferait basculer au-delà
+     * de la verticale à la moindre pente résiduelle.</p>
+     */
+    @Override
+    public float getRidePitch(float partialTick) {
+        float base = super.getRidePitch(partialTick);
+        float amount = this.getSpyhopAmount(partialTick);
+        return amount <= 0.001f ? base : Mth.lerp(amount, base, SPYHOP_PITCH);
+    }
+
+    private void tickSpyhop() {
+        this.spyhopBlendPrev = this.spyhopBlend;
+        float target = this.isSpyhopping() ? 1f : 0f;
+        this.spyhopBlend += (target - this.spyhopBlend)
+                * (target > this.spyhopBlend ? SPYHOP_RISE : SPYHOP_FALL);
+        if (this.spyhopBlend < 0.001f) this.spyhopBlend = 0f;
+
+        if (this.level().isClientSide()) return;
+
+        if (this.spyhopTicksLeft <= 0) {
+            if (this.isSpyhopping()) stopSpyhop();
+            return;
+        }
+        if (--this.spyhopTicksLeft <= 0) {
+            stopSpyhop();
+            return;
+        }
+
+        double surface = surfaceYAbove();
+        if (Double.isNaN(surface)) {
+            stopSpyhop();
+            return;
+        }
+        holdAtSurface(surface);
+        if (this.spyhopTicksLeft % 5 == 0) spawnSpyhopSpray(surface);
+    }
+
+    /**
+     * Maintient l'orque juste sous la ligne d'eau, immobile.
+     *
+     * <p>Les entrées de nage sont remises à zéro en plus de la vélocité : le contrôle de mouvement
+     * les réalimente chaque tick tant qu'un chemin subsiste, et l'orque dérivait pendant qu'elle
+     * était censée observer.</p>
+     */
+    private void holdAtSurface(double surfaceY) {
+        double wanted = surfaceY - this.getBbHeight() * SPYHOP_SUBMERSION;
+        double climb = Mth.clamp((wanted - this.getY()) * 0.25, -0.08, 0.08);
+        Vec3 mv = this.getDeltaMovement();
+        this.setDeltaMovement(mv.x * 0.6, climb, mv.z * 0.6);
+        this.setXxa(0f);
+        this.setYya(0f);
+        this.setZza(0f);
+        this.setXRot(0f);
+        this.xRotO = 0f;
+    }
+
+    /**
+     * Altitude de la surface libre au-dessus de l'orque, ou {@code NaN} si elle ne peut pas percer.
+     *
+     * <p>Il ne suffit pas de trouver la fin de l'eau : sous une banquise, un ponton ou un bateau,
+     * la tête ne sortirait de rien. Le bloc qui coiffe la colonne doit être du vide.</p>
+     */
+    private double surfaceYAbove() {
+        BlockPos.MutableBlockPos cursor = this.blockPosition().mutable();
+        if (!this.level().getFluidState(cursor).is(net.minecraft.tags.FluidTags.WATER)) return Double.NaN;
+        for (int i = 0; i < SPYHOP_MAX_RISE; i++) {
+            cursor.move(Direction.UP);
+            if (this.level().getFluidState(cursor).is(net.minecraft.tags.FluidTags.WATER)) continue;
+            return this.level().getBlockState(cursor).isAir() ? cursor.getY() : Double.NaN;
+        }
+        return Double.NaN;
+    }
+
+    /** Vrai si l'orque peut se dresser ici : de l'eau sous elle, du ciel au-dessus. */
+    public boolean canSpyhopHere() {
+        return this.isInWater() && !Double.isNaN(surfaceYAbove());
+    }
+
+    private void spawnSpyhopSpray(double surfaceY) {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        double radius = this.getBbWidth() * 0.45;
+        serverLevel.sendParticles(ParticleTypes.SPLASH,
+                this.getX(), surfaceY, this.getZ(), 6, radius, 0.05, radius, 0.02);
+        serverLevel.sendParticles(ParticleTypes.BUBBLE,
+                this.getX(), surfaceY - 0.4, this.getZ(), 3, radius, 0.2, radius, 0.01);
     }
 
     public boolean isBeached() {
@@ -520,6 +674,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             setupAnimationState();
             tickBarrelRoll();
         }
+        tickSpyhop();
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (!this.level().isClientSide() && false) {
