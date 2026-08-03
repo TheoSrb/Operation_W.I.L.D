@@ -95,7 +95,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
      * peut plus produire une traversee d'ocean.</p>
      */
     private static final double RIDDEN_DASH_RANGE = 34.0;
-    private static final double WILD_DASH_RANGE = 7.0;
 
     private static final float RIDDEN_DASH_PEAK = 3.8f;
     private static final int RIDDEN_DASH_TICKS = 30;
@@ -142,7 +141,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return Animal.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 70.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.18D)
-                .add(Attributes.FOLLOW_RANGE, 22.0D)
+                // Portée de détection portée de 22 à 34 blocs. C'est elle qui borne l'acquisition de
+                // cible : à 22, l'orque ne remarquait un nageur qu'une fois presque au contact, ce
+                // qui donnait l'impression d'une bête indifférente.
+                .add(Attributes.FOLLOW_RANGE, 34.0D)
                 .add(Attributes.ATTACK_DAMAGE, 15.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
     }
@@ -172,7 +174,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         this.goalSelector.addGoal(2, new net.tiew.operationWild.entity.goals.orca.OWOrcaBoatStrikeGoal(this));
         this.goalSelector.addGoal(2, new OWOrcaPackHuntGoal(this));
         this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 11f, 28, 4, false) {
-            private int dashCooldown = WILD_DASH_COOLDOWN_MIN;
             private int retreatTicks = 0;
             private boolean wasCombo = false;
 
@@ -205,7 +206,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 else super.tick();
 
                 tickDisengageDecision();
-                tickDash();
             }
 
             private void tickAtStandoff(LivingEntity target) {
@@ -261,35 +261,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 OrcaEntity.this.getNavigation().moveTo(to.x, to.y, to.z, 1.15);
             }
 
-            private void tickDash() {
-                if (this.dashCooldown > 0) {
-                    this.dashCooldown--;
-                    return;
-                }
-                if (OrcaEntity.this.isDashing() || OrcaEntity.this.isCombo()) return;
-                if (!OrcaEntity.this.isInWater()) return;
-
-                LivingEntity t = OrcaEntity.this.getTarget();
-                if (t == null || !t.isAlive() || !t.isInWater()) return;
-                double distance = OrcaEntity.this.distanceTo(t);
-                if (distance > WILD_DASH_MAX_RANGE) return;
-                if (!OrcaEntity.this.getSensing().hasLineOfSight(t)) return;
-
-                Vec3 forward = Vec3.directionFromRotation(0f, OrcaEntity.this.getYRot());
-                Vec3 toTarget = new Vec3(
-                        t.getX() - OrcaEntity.this.getX(), 0.0, t.getZ() - OrcaEntity.this.getZ());
-                if (toTarget.lengthSqr() < 1.0E-6) return;
-                if (forward.dot(toTarget.normalize()) < WILD_DASH_CONE) return;
-
-                if (distance < WILD_DASH_MIN_RANGE
-                        && OrcaEntity.this.getRandom().nextInt(WILD_CLOSE_DASH_ODDS) != 0) {
-                    return;
-                }
-
-                OrcaEntity.this.performWildDashAt(t);
-                this.dashCooldown = WILD_DASH_COOLDOWN_MIN
-                        + OrcaEntity.this.getRandom().nextInt(WILD_DASH_COOLDOWN_SPREAD);
-            }
 
             @Override
             public boolean canUse() {
@@ -1070,6 +1041,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         tickSpyhop();
         tickWaveCharge();
         tickWaveBreach();
+        tickSpeedGuard();
         tickDepthCeiling();
         if (!this.level().isClientSide() && this.isCombo() && strikesAreSuppressed()) {
             this.setCombo(false, 0);
@@ -1402,23 +1374,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private static final double WILD_BITE_HEIGHT = 2.6;
     private static final double WILD_BITE_REACH = 2.4;
 
-    private static final double WILD_DASH_MIN_RANGE = 5.0;
-    private static final double WILD_DASH_MAX_RANGE = 16.0;
-
-    private static final int WILD_DASH_COOLDOWN_MIN = 300;
-    private static final int WILD_DASH_COOLDOWN_SPREAD = 300;
-
-    private static final int WILD_CLOSE_DASH_ODDS = 140;
-
-    /**
-     * Ouverture du cône dans lequel la cible doit se trouver pour qu'une Ruée parte.
-     *
-     * <p>Resserré de 0,6 à 0,8, soit environ trente-cinq degrés de part et d'autre. La charge fige
-     * son axe au départ et le tient : lancée du bord du cône, elle passait déjà nettement à côté
-     * d'une cible qui bougeait à peine — c'est le tir « dans le vent ». Mieux vaut renoncer souvent
-     * et toucher quand ça part.</p>
-     */
-    private static final double WILD_DASH_CONE = 0.8;
 
     private static final double BITE_DEPTH_TOLERANCE = 1.6;
 
@@ -1443,6 +1398,30 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         if (this.isSaddled()) {
             this.spawnAtLocation(acceptSaddle());
         }
+    }
+
+    /**
+     * Une orque sauvage frappée riposte immédiatement, et sur celui qui l'a frappée.
+     *
+     * <p>La riposte passait par le goal de ciblage ordinaire, qui n'examine ses candidats que par
+     * intervalles et peut se voir refuser par un désintérêt en cours. On pouvait donc la harceler
+     * sans qu'elle daigne se retourner. La cible est désormais imposée à l'instant du coup, et le
+     * désintérêt — celui qui suit une descente aux abysses — est levé du même geste : lui rendre la
+     * liberté n'a jamais voulu dire tolérer qu'on l'attaque.</p>
+     */
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        boolean hurt = super.hurt(source, amount);
+        if (!hurt || this.level().isClientSide() || this.isTame() || this.isBaby()) return hurt;
+
+        // Écrit directement : le setter ne fait que prolonger un désintérêt, il ne peut pas l'abréger.
+        this.disinterestTicks = 0;
+        if (source.getEntity() instanceof LivingEntity attacker
+                && attacker != this
+                && !this.isAlliedTo(attacker)) {
+            this.forceSetTarget(attacker);
+        }
+        return hurt;
     }
 
     @Override
@@ -1539,27 +1518,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         setVitalEnergy(getVitalEnergy() + cost);
         launchDash(getDashAimDirection());
     }
-
-    public void performWildDashAt(LivingEntity target) {
-        if (this.level().isClientSide() || target == null) return;
-        // Garde posée au plus près du geste : une Ruée sauvage n'a de sens que lancée SUR quelqu'un.
-        // Vérifier la cible chez l'appelant laissait la porte ouverte au prochain qui appellerait
-        // cette méthode sans y penser — et une orque qui charge dans le vide n'a l'air de rien.
-        if (this.getTarget() != target || !target.isAlive()) return;
-        Vec3 aim = target.getBoundingBox().getCenter().subtract(this.getEyePosition());
-        if (aim.lengthSqr() < 1.0E-6) return;
-        aim = aim.normalize();
-
-        aim = new Vec3(aim.x, Mth.clamp(aim.y, -WILD_DASH_MAX_SLOPE, WILD_DASH_MAX_SLOPE), aim.z)
-                .normalize();
-
-        launchDash(aim, WILD_DASH_PEAK, WILD_DASH_TICKS, WILD_DASH_RANGE);
-    }
-
-    private static final float WILD_DASH_PEAK = 1.05f;
-    private static final int WILD_DASH_TICKS = 18;
-
-    private static final double WILD_DASH_MAX_SLOPE = 0.45;
 
     private void launchDash(Vec3 direction) {
         launchDash(direction, RIDDEN_DASH_PEAK, RIDDEN_DASH_TICKS, RIDDEN_DASH_RANGE);
@@ -1825,6 +1783,45 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return this.disinterestTicks > 0;
     }
 
+    /**
+     * Vitesse maximale d'une orque sauvage hors elan autorise, en blocs par tick.
+     *
+     * <p>Sa nage ordinaire ne depasse pas quelques dixiemes ; un bloc par tick laisse donc une marge
+     * confortable. Ce plafond n'est pas un reglage de jeu mais un <b>filet</b>.</p>
+     */
+    private static final double WILD_SPEED_CAP = 1.0;
+
+    /**
+     * Rattrape toute vitesse anormale d'une orque sauvage.
+     *
+     * <p>Des charges de plusieurs dizaines de blocs subsistaient apres avoir borne la Ruee en duree
+     * puis en distance — la poussee ne venait donc pas d'elle, et je n'ai pas su dire d'ou. Plutot
+     * que de continuer a chercher a l'aveugle en retouchant un comportement apres l'autre, la
+     * vitesse est bornee a la source : quelle que soit la cause, connue ou non, une orque sauvage ne
+     * peut plus traverser l'ocean.</p>
+     *
+     * <p>Les elans legitimes en sont exclus nommement — Ruee en cours, charge et bond de vague,
+     * descente avec proie en gueule, sautillement a terre —, et le pilotage par un cavalier n'est
+     * pas concerne du tout. Ne restent brides que les etats ou l'orque n'a aucune raison d'aller
+     * vite, c'est-a-dire precisement ceux ou on l'a vue partir.</p>
+     *
+     * <p>Seule la composante horizontale est touchee : la verticale porte la flottabilite, les
+     * remontees et les chutes, qui ont leurs propres regles.</p>
+     */
+    private void tickSpeedGuard() {
+        if (this.level().isClientSide() || this.isTame()) return;
+        if (this.getControllingPassenger() != null) return;
+        if (this.dashTicksLeft > 0 || this.isWaveCharging() || this.isWaveBreaching()) return;
+        if (this.hasSwallowed() || this.isFlopping()) return;
+
+        Vec3 mv = this.getDeltaMovement();
+        double horizontalSq = mv.x * mv.x + mv.z * mv.z;
+        if (horizontalSq <= WILD_SPEED_CAP * WILD_SPEED_CAP) return;
+
+        double scale = WILD_SPEED_CAP / Math.sqrt(horizontalSq);
+        this.setDeltaMovement(mv.x * scale, mv.y, mv.z * scale);
+    }
+
     private static final double DEPTH_RECOVERY_LIFT = 0.06;
 
     private void tickDepthCeiling() {
@@ -2047,10 +2044,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         this.entityData.set(ULTIMATE_KILL_COUNT, count);
     }
 
-    @Override
-    public boolean hurt(DamageSource damageSource, float v) {
-        return super.hurt(damageSource, v);
-    }
 
     @Override
     public boolean killedEntity(ServerLevel serverLevel, LivingEntity entity) {

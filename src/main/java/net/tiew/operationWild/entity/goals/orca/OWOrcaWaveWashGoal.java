@@ -66,8 +66,16 @@ public class OWOrcaWaveWashGoal extends Goal {
      */
     private static final double PACK_RADIUS = 48.0;
 
-    /** En dessous, il n'y a pas de vague — une orque seule ne soulève rien. */
-    private static final int MIN_WAVE_ORCAS = 2;
+    /**
+     * Nombre d'orques nécessaires à une vague.
+     *
+     * <p>Ramené à une seule. La contrainte de groupe était fidèle au comportement réel, mais elle
+     * rendait la manœuvre invisible en jeu : il fallait que deux bêtes se trouvent au même moment
+     * près de la même proie, libres de tout le reste et hors temps de repos. Seule, l'orque décrit
+     * simplement un couloir unique et charge droit — toute la machinerie de couloirs et de départ
+     * simultané continue de fonctionner, elle n'a qu'une place à distribuer.</p>
+     */
+    private static final int MIN_WAVE_ORCAS = 1;
 
     /** Recul pris derrière la cible avant de s'élancer. La charge doit se voir venir de loin. */
     private static final double STAGING_DISTANCE = 30.0;
@@ -90,6 +98,22 @@ public class OWOrcaWaveWashGoal extends Goal {
      */
     private static final double CHARGE_SPEED = 0.78;
     private static final int MAX_CHARGE_TICKS = 150;
+
+    /**
+     * Allure de virage propre à la charge, indépendante de celle de l'espèce.
+     *
+     * <p>La charge partait du poste de repli, donc dos à la proie : il y a un demi-tour complet à
+     * rattraper. À l'allure de nage — quelques centièmes de l'écart par tick — il n'était pas
+     * terminé que la vague avait déjà déferlé, et les orques arrivaient sans jamais regarder leur
+     * cible. Pire, le rendu retourne la carcasse tant que le cap s'écarte de plus d'un quart de
+     * tour du déplacement : on les voyait charger à reculons.</p>
+     *
+     * <p>La moitié de l'écart par tick aligne le corps en quatre ou cinq ticks, sans être la
+     * volte-face instantanée qu'on avait retirée parce qu'elle sautait à l'image. Trois dixièmes
+     * laissaient encore un décalage visible : la proie bouge pendant la course, et l'orque restait
+     * en permanence quelques degrés derrière son cap réel.</p>
+     */
+    private static final float WAVE_TURN_FACTOR = 0.5f;
 
     /**
      * Distance à la cible à laquelle l'orque quitte l'eau.
@@ -325,7 +349,8 @@ public class OWOrcaWaveWashGoal extends Goal {
      * — le cap et la trajectoire convergent donc ensemble au lieu de se contredire.</p>
      */
     private void faceHorizontally(double x, double z) {
-        this.orca.turnTowards(new Vec3(x - this.orca.getX(), 0.0, z - this.orca.getZ()));
+        this.orca.turnTowards(new Vec3(x - this.orca.getX(), 0.0, z - this.orca.getZ()),
+                WAVE_TURN_FACTOR);
         // Assiette tenue à plat : la proie est perchée plus haut, et laisser le tangage la viser
         // ferait à nouveau lever le nez à la ligne au moment de percuter.
         this.orca.setXRot(0f);
