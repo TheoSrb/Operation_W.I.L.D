@@ -254,7 +254,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         builder.define(ULTIMATE_KILL_COUNT, 0);
         builder.define(IS_SPYHOPPING, false);
         builder.define(IS_WAVE_CHARGING, false);
-        builder.define(TAIL_FLICK_TICKS, 0);
+        builder.define(TAIL_FLICK_ID, 0);
         builder.define(WAVE_BREACH_TICKS, 0);
     }
 
@@ -666,24 +666,41 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public static final int FLICK_ANIM_DURATION =
             FLICK_ANIM_WINDUP + FLICK_ANIM_SNAP + FLICK_ANIM_RECOVER;
 
-    private static final EntityDataAccessor<Integer> TAIL_FLICK_TICKS =
+    /**
+     * Ce qui voyage n'est plus le décompte du geste, mais un simple numéro de coup.
+     *
+     * <p>Le décompte, relu à chaque image, rendait l'animation saccadée : il change à chaque tick,
+     * donc il partait en paquet à chaque tick, et l'animation avançait au rythme d'arrivée de ces
+     * paquets plutôt qu'à celui des images. Le moindre irrégularité du réseau — ou un simple
+     * décalage entre l'horloge du serveur et celle du client — se voyait comme un à-coup.</p>
+     *
+     * <p>Le client tient désormais sa propre horloge et ne reçoit qu'un signal de départ : un
+     * numéro qui s'incrémente. Le geste se déroule alors chez lui, image par image, sans plus rien
+     * attendre du réseau — et ne coûte plus qu'un paquet par coup au lieu de vingt.</p>
+     */
+    private static final EntityDataAccessor<Integer> TAIL_FLICK_ID =
             SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
 
-    public int getTailFlickTicks() {
-        return this.entityData.get(TAIL_FLICK_TICKS);
-    }
+    /** Décompte serveur : c'est lui qui décide de l'instant du contact. */
+    private int tailFlickTicksLeft = 0;
+
+    /** Âge du geste en cours, en ticks, ou négatif si aucun. Tenu des deux côtés. */
+    private float tailFlickAge = -1f;
+    private float tailFlickAgePrev = -1f;
+    private int lastSeenFlickId = Integer.MIN_VALUE;
 
     public static int getTailFlickDuration() {
         return FLICK_ANIM_DURATION;
     }
 
     public boolean isTailFlicking() {
-        return this.getTailFlickTicks() > 0;
+        return this.level().isClientSide() ? this.tailFlickAge >= 0f : this.tailFlickTicksLeft > 0;
     }
 
     public void startTailFlick() {
         if (this.level().isClientSide()) return;
-        this.entityData.set(TAIL_FLICK_TICKS, FLICK_ANIM_DURATION);
+        this.tailFlickTicksLeft = FLICK_ANIM_DURATION;
+        this.entityData.set(TAIL_FLICK_ID, this.entityData.get(TAIL_FLICK_ID) + 1);
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 net.minecraft.sounds.SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.NEUTRAL, 1.4f, 0.7f);
     }
@@ -694,14 +711,34 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
      * <p>Attendre la fin du geste ferait décoller la proie une fois la queue déjà redescendue.</p>
      */
     public boolean isTailFlickImpact() {
-        return this.getTailFlickTicks()
+        return this.tailFlickTicksLeft
                 == FLICK_ANIM_DURATION - (FLICK_ANIM_WINDUP + FLICK_ANIM_SNAP / 2);
     }
 
+    /** Âge du geste en ticks fractionnaires pour le rendu, ou négatif si aucun n'est en cours. */
+    public float getTailFlickAge(float partialTick) {
+        if (this.tailFlickAge < 0f || this.tailFlickAgePrev < 0f) return -1f;
+        return Mth.lerp(partialTick, this.tailFlickAgePrev, this.tailFlickAge);
+    }
+
     private void tickTailFlick() {
-        if (this.level().isClientSide()) return;
-        int left = this.getTailFlickTicks();
-        if (left > 0) this.entityData.set(TAIL_FLICK_TICKS, left - 1);
+        this.tailFlickAgePrev = this.tailFlickAge;
+
+        int id = this.entityData.get(TAIL_FLICK_ID);
+        if (this.lastSeenFlickId == Integer.MIN_VALUE) {
+            // Première lecture : on adopte le numéro courant sans rien jouer. Sans cela, une orque
+            // qui entre dans le champ du joueur rejouerait tous les coups qu'elle a déjà donnés.
+            this.lastSeenFlickId = id;
+        } else if (id != this.lastSeenFlickId) {
+            this.lastSeenFlickId = id;
+            this.tailFlickAge = 0f;
+            this.tailFlickAgePrev = 0f;
+        } else if (this.tailFlickAge >= 0f) {
+            this.tailFlickAge += 1f;
+            if (this.tailFlickAge >= FLICK_ANIM_DURATION) this.tailFlickAge = -1f;
+        }
+
+        if (!this.level().isClientSide() && this.tailFlickTicksLeft > 0) this.tailFlickTicksLeft--;
     }
 
     public static boolean isThinIce(BlockState state) {

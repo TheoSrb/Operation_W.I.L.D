@@ -410,10 +410,11 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 	 */
 	private void applyTailFlick(OrcaEntity orca, float ageInTicks) {
 		float partial = ageInTicks - (float) Math.floor(ageInTicks);
-		float left = orca.getTailFlickTicks() - partial;
-		if (left <= 0f) return;
+		// Âge lu sur l'horloge locale de l'entité, et non déduit d'un décompte reçu du serveur :
+		// celui-ci n'avançait qu'au rythme des paquets, et le geste sautait d'une pose à l'autre.
+		float elapsed = orca.getTailFlickAge(partial);
+		if (elapsed < 0f) return;
 
-		float elapsed = OrcaEntity.getTailFlickDuration() - left;
 		final float wEnd = OrcaEntity.FLICK_ANIM_WINDUP;
 		final float sEnd = wEnd + OrcaEntity.FLICK_ANIM_SNAP;
 		final float rEnd = sEnd + OrcaEntity.FLICK_ANIM_RECOVER;
