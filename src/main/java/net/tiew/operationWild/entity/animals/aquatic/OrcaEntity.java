@@ -1018,7 +1018,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         boolean wild = !this.isTame();
         createCombo((int) (28 / comboSpeedMultiplier), (int) (18 / comboSpeedMultiplier),
-                net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK,
+                OWSounds.CROCODILE_MOUTH_CRUSH.get(),
                 wild ? WILD_BITE_WIDTH : 6.5,
                 wild ? WILD_BITE_HEIGHT : 5,
                 wild ? WILD_BITE_REACH : 4,
@@ -1037,6 +1037,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         tickSpyhop();
         tickWaveCharge();
         tickWaveBreach();
+        tickWaterFx();
         tickSpeedGuard();
         tickDepthCeiling();
         if (!this.level().isClientSide() && this.isCombo() && strikesAreSuppressed()) {
@@ -1445,6 +1446,30 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                                       double height, double reach, float knockbackMultiplier) {
         if (strikesAreSuppressed()) return;
         super.attackEntitiesInFront(attackDamage, sound, width, height, reach, knockbackMultiplier);
+        reinforceBiteImpact(sound, reach);
+    }
+
+    private void reinforceBiteImpact(SoundEvent sound, double reach) {
+        if (this.level().isClientSide() || sound == null) return;
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                sound, SoundSource.HOSTILE, 1.6f, 0.5f);
+
+        if (this.lastAttackHitEntities.isEmpty()) return;
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+        Vec3 forward = Vec3.directionFromRotation(0f, this.getYRot());
+        serverLevel.sendParticles(ParticleTypes.SPLASH,
+                this.getX() + forward.x * reach,
+                this.getY() + this.getBbHeight() * 0.6,
+                this.getZ() + forward.z * reach,
+                18, 0.5, 0.35, 0.5, 0.25);
+
+        for (LivingEntity victim : this.lastAttackHitEntities) {
+            serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE,
+                    victim.getX(), victim.getY() + victim.getBbHeight() * 0.5, victim.getZ(),
+                    6, 0.25, 0.25, 0.25, 0.02);
+        }
     }
 
     @Override
@@ -1779,6 +1804,55 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         double scale = WILD_SPEED_CAP / Math.sqrt(horizontalSq);
         this.setDeltaMovement(mv.x * scale, mv.y, mv.z * scale);
+    }
+
+    private static final double FX_MIN_SPEED = 0.06;
+
+    private double fxLastX = Double.NaN;
+    private double fxLastZ = Double.NaN;
+
+    private static final double FX_SURFACE_BAND = 0.9;
+
+    private void tickWaterFx() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+        double dx = Double.isNaN(this.fxLastX) ? 0.0 : this.getX() - this.fxLastX;
+        double dz = Double.isNaN(this.fxLastX) ? 0.0 : this.getZ() - this.fxLastZ;
+        this.fxLastX = this.getX();
+        this.fxLastZ = this.getZ();
+
+        if (this.isSleeping() || this.isFlopping()) return;
+
+        double speed = Math.sqrt(dx * dx + dz * dz);
+        if (speed < FX_MIN_SPEED) return;
+
+        double surface = surfaceYAbove();
+        double back = this.getBbWidth() * 1.35;
+        Vec3 forward = Vec3.directionFromRotation(0f, this.getYRot());
+        double tailX = this.getX() - forward.x * back;
+        double tailZ = this.getZ() - forward.z * back;
+        double backTop = this.getY() + this.getBbHeight();
+
+        if (!Double.isNaN(surface) && surface - backTop < FX_SURFACE_BAND) {
+            int count = 2 + (int) Math.min(6, speed * 8);
+            double spread = this.getBbWidth() * 0.4;
+            serverLevel.sendParticles(ParticleTypes.SPLASH,
+                    this.getX(), surface, this.getZ(), count, spread, 0.02, spread, 0.02);
+            serverLevel.sendParticles(ParticleTypes.BUBBLE,
+                    tailX, surface - 0.25, tailZ, count, spread * 1.3, 0.1, spread * 1.3, 0.01);
+        }
+
+        if (!Double.isNaN(surface) && backTop > surface && this.tickCount % 2 == 0) {
+            serverLevel.sendParticles(ParticleTypes.SPLASH,
+                    tailX, surface, tailZ, 8, 0.35, 0.15, 0.35, 0.22);
+        }
+
+        if (this.isUnderWater() && speed > 0.22 && this.tickCount % 2 == 0) {
+            int count = 1 + (int) Math.min(4, speed * 4);
+            serverLevel.sendParticles(ParticleTypes.BUBBLE,
+                    tailX, this.getY() + this.getBbHeight() * 0.6, tailZ,
+                    count, 0.28, 0.18, 0.28, 0.015);
+        }
     }
 
     private static final double DEPTH_RECOVERY_LIFT = 0.06;

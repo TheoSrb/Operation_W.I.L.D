@@ -390,6 +390,25 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         return this.boneMatrix;
     }
 
+    /**
+     * Assiette maximale sous les ordres d'un cavalier, en degrés.
+     *
+     * <p>Portée à la verticale franche. Le plafond commun de quarante-cinq degrés convient à une
+     * bête qui nage à plat et pique un peu ; il empêchait ici de plonger ou de remonter droit, alors
+     * que c'est exactement ce qu'on demande à une monture aquatique quand on vise le fond ou la
+     * surface. Deux bornes le fixaient — celle du tangage transmis par le cavalier et celle de
+     * l'assiette de nage —, d'où une seule constante pour les deux.</p>
+     *
+     * <p>Livré à lui-même, le crocodile garde le plafond commun : rien ne justifie qu'il se dresse
+     * à la verticale de son propre chef.</p>
+     */
+    private static final float RIDDEN_MAX_PITCH = 90f;
+
+    @Override
+    protected float pitchMaxAngle() {
+        return this.getControllingPassenger() != null ? RIDDEN_MAX_PITCH : super.pitchMaxAngle();
+    }
+
     @Override
     public float getRotationSpeed() {
         return 0.1f;
@@ -600,8 +619,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             if (this.isTame() && this.isVehicle() && !this.isSitting() && !this.isBaby() && this.isInWater()) {
                 LivingEntity rider = this.getControllingPassenger();
                 if (rider != null && isMovingHorizontally) {
-                    float target = Mth.clamp(rider.getXRot(), -45f, 45f);
-                    float smoothed = Mth.clamp(Mth.lerp(0.15f, this.entityData.get(RIDER_CONTROL_PITCH), target), -45f, 45f);
+                    float target = Mth.clamp(rider.getXRot(), -RIDDEN_MAX_PITCH, RIDDEN_MAX_PITCH);
+                    float smoothed = Mth.clamp(
+                            Mth.lerp(0.15f, this.entityData.get(RIDER_CONTROL_PITCH), target),
+                            -RIDDEN_MAX_PITCH, RIDDEN_MAX_PITCH);
                     this.entityData.set(RIDER_CONTROL_PITCH, smoothed);
                 }
             } else {
