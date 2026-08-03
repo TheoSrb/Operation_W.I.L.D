@@ -85,15 +85,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private Vec3 dashStart = Vec3.ZERO;
     private double dashMaxRange = RIDDEN_DASH_RANGE;
 
-    /**
-     * Portee maximale d'une charge, en blocs parcourus depuis son point de depart.
-     *
-     * <p>Garantie de derniere ligne, independante de la courbe de vitesse et de la duree. Celles-ci
-     * devraient deja borner la course a quelques blocs, mais on a observe des charges sauvages de
-     * plusieurs dizaines de blocs : plutot que de traquer indefiniment ce qui prolonge l'elan, la
-     * charge se coupe d'elle-meme des qu'elle a couvert sa distance. Aucune combinaison d'etats ne
-     * peut plus produire une traversee d'ocean.</p>
-     */
     private static final double RIDDEN_DASH_RANGE = 34.0;
 
     private static final float RIDDEN_DASH_PEAK = 3.8f;
@@ -141,9 +132,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return Animal.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 70.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.18D)
-                // Portée de détection portée de 22 à 34 blocs. C'est elle qui borne l'acquisition de
-                // cible : à 22, l'orque ne remarquait un nageur qu'une fois presque au contact, ce
-                // qui donnait l'impression d'une bête indifférente.
                 .add(Attributes.FOLLOW_RANGE, 34.0D)
                 .add(Attributes.ATTACK_DAMAGE, 15.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.8D);
@@ -364,8 +352,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private void tickBarrelRoll() {
         this.barrelProgressPrev = this.barrelProgress;
 
-        // Le tonneau se lit sur le seul drapeau synchronisé : le décompte de Ruée, lui, n'existe que
-        // sur le serveur, et s'en servir ici aurait éteint la figure pour tout le monde.
         boolean dashing = this.isDashing();
         if (dashing && !this.wasDashing) {
             this.barrelProgress = 0f;
@@ -945,19 +931,29 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return itemStack.is(OWTags.Items.CROCODILE_FOOD);
     }
 
+    private static final float ORCA_VOICE_PITCH = 0.55f;
+
+    @Override
+    public float getVoicePitch() {
+        return super.getVoicePitch() * ORCA_VOICE_PITCH;
+    }
+
     protected @Nullable SoundEvent getAmbientSound() {
         if (isNapping()) return null;
-        return RANDOM(3) ? RANDOM(2) ? OWSounds.CROCODILE_IDLE_2.get() : OWSounds.CROCODILE_IDLE_4.get() : null;
+        if (!RANDOM(3)) return null;
+        return this.isInWater()
+                ? net.minecraft.sounds.SoundEvents.DOLPHIN_AMBIENT_WATER
+                : net.minecraft.sounds.SoundEvents.DOLPHIN_AMBIENT;
     }
 
     @Override
     protected @Nullable SoundEvent getDeathSound() {
-        return OWSounds.CROCODILE_DEATH.get();
+        return net.minecraft.sounds.SoundEvents.DOLPHIN_DEATH;
     }
 
     @Override
     protected @Nullable SoundEvent getHurtSound(DamageSource damageSource) {
-        return OWSounds.CROCODILE_HURT.get();
+        return net.minecraft.sounds.SoundEvents.DOLPHIN_HURT;
     }
 
     private long lastStepSoundMs = 0L;
@@ -1022,7 +1018,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         boolean wild = !this.isTame();
         createCombo((int) (28 / comboSpeedMultiplier), (int) (18 / comboSpeedMultiplier),
-                OWSounds.CROCODILE_MOUTH_CRUSH.get(),
+                net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK,
                 wild ? WILD_BITE_WIDTH : 6.5,
                 wild ? WILD_BITE_HEIGHT : 5,
                 wild ? WILD_BITE_REACH : 4,
@@ -1078,7 +1074,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         if (!this.level().isClientSide()) {
             if (this.dashTicksLeft > 0) {
-                // Coupure en distance, avant toute autre consideration.
                 if (this.position().distanceToSqr(this.dashStart)
                         > this.dashMaxRange * this.dashMaxRange) {
                     this.dashTicksLeft = 0;
@@ -1400,21 +1395,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         }
     }
 
-    /**
-     * Une orque sauvage frappée riposte immédiatement, et sur celui qui l'a frappée.
-     *
-     * <p>La riposte passait par le goal de ciblage ordinaire, qui n'examine ses candidats que par
-     * intervalles et peut se voir refuser par un désintérêt en cours. On pouvait donc la harceler
-     * sans qu'elle daigne se retourner. La cible est désormais imposée à l'instant du coup, et le
-     * désintérêt — celui qui suit une descente aux abysses — est levé du même geste : lui rendre la
-     * liberté n'a jamais voulu dire tolérer qu'on l'attaque.</p>
-     */
     @Override
     public boolean hurt(DamageSource source, float amount) {
         boolean hurt = super.hurt(source, amount);
         if (!hurt || this.level().isClientSide() || this.isTame() || this.isBaby()) return hurt;
 
-        // Écrit directement : le setter ne fait que prolonger un désintérêt, il ne peut pas l'abréger.
         this.disinterestTicks = 0;
         if (source.getEntity() instanceof LivingEntity attacker
                 && attacker != this
@@ -1500,9 +1485,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             if (!this.dashHits.add(target.getUUID())) continue;
 
             target.hurt(this.damageSources().mobAttack(this), this.getRushDamage());
-            // Bousculade deux fois plus douce à l'état sauvage : la Ruée d'un cavalier doit balayer
-            // ce qu'elle traverse, celle d'une bête libre n'a pas à expédier sa proie au loin —
-            // elle la percute pour la déséquilibrer, puis passe.
             double shove = this.isTame() ? 1.2 : 0.55;
             target.setDeltaMovement(target.getDeltaMovement()
                     .add(push.x * shove, this.isTame() ? 0.25 : 0.14, push.z * shove));
@@ -1612,7 +1594,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         if (prey == null) {
             this.entityData.set(MOUTH_LUNGE_TICKS, MOUTH_LUNGE_DURATION);
             this.level().playSound(null, getX(), getY(), getZ(),
-                    OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 1.1f, 1.35f);
+                    net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK, SoundSource.HOSTILE, 1.1f, 0.74f);
             return;
         }
 
@@ -1636,7 +1618,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 || !canSwallow(prey)
                 || prey.distanceToSqr(this) > (MOUTH_REACH + 3.0) * (MOUTH_REACH + 3.0)) {
             this.level().playSound(null, getX(), getY(), getZ(),
-                    OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 1.1f, 1.35f);
+                    net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK, SoundSource.HOSTILE, 1.1f, 0.74f);
             return;
         }
 
@@ -1653,7 +1635,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         prey.startRiding(this, true);
 
         this.level().playSound(null, getX(), getY(), getZ(),
-                OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 3.0f, 0.55f);
+                net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK, SoundSource.HOSTILE, 3.0f, 0.5f);
         if (this.level() instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.BUBBLE,
                     getX(), getY() + 0.6, getZ(), 45, 1.4, 0.6, 1.4, 0.15);
@@ -1764,7 +1746,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         this.entityData.set(MOUTH_SPIT_TICKS, MOUTH_SPIT_DURATION);
         this.level().playSound(null, getX(), getY(), getZ(),
-                OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 1.0f, 0.4f);
+                net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK, SoundSource.HOSTILE, 1.0f, 0.5f);
     }
 
     private boolean abyssalHold = false;
@@ -1783,31 +1765,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return this.disinterestTicks > 0;
     }
 
-    /**
-     * Vitesse maximale d'une orque sauvage hors elan autorise, en blocs par tick.
-     *
-     * <p>Sa nage ordinaire ne depasse pas quelques dixiemes ; un bloc par tick laisse donc une marge
-     * confortable. Ce plafond n'est pas un reglage de jeu mais un <b>filet</b>.</p>
-     */
     private static final double WILD_SPEED_CAP = 1.0;
 
-    /**
-     * Rattrape toute vitesse anormale d'une orque sauvage.
-     *
-     * <p>Des charges de plusieurs dizaines de blocs subsistaient apres avoir borne la Ruee en duree
-     * puis en distance — la poussee ne venait donc pas d'elle, et je n'ai pas su dire d'ou. Plutot
-     * que de continuer a chercher a l'aveugle en retouchant un comportement apres l'autre, la
-     * vitesse est bornee a la source : quelle que soit la cause, connue ou non, une orque sauvage ne
-     * peut plus traverser l'ocean.</p>
-     *
-     * <p>Les elans legitimes en sont exclus nommement — Ruee en cours, charge et bond de vague,
-     * descente avec proie en gueule, sautillement a terre —, et le pilotage par un cavalier n'est
-     * pas concerne du tout. Ne restent brides que les etats ou l'orque n'a aucune raison d'aller
-     * vite, c'est-a-dire precisement ceux ou on l'a vue partir.</p>
-     *
-     * <p>Seule la composante horizontale est touchee : la verticale porte la flottabilite, les
-     * remontees et les chutes, qui ont leurs propres regles.</p>
-     */
     private void tickSpeedGuard() {
         if (this.level().isClientSide() || this.isTame()) return;
         if (this.getControllingPassenger() != null) return;
@@ -1886,7 +1845,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 prey.setDeltaMovement(push.x, 0.35, push.z);
                 prey.hurtMarked = true;
                 this.level().playSound(null, getX(), getY(), getZ(),
-                        OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 1.5f, 1.25f);
+                        net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK, SoundSource.HOSTILE, 1.5f, 0.69f);
             }
         }
         mouthTargetWasInvisible = false;
@@ -1943,7 +1902,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             prey.invulnerableTime = 0;
             prey.hurt(this.damageSources().mobAttack(this), this.getDamage() * MOUTH_BITE_RATIO);
             this.level().playSound(null, getX(), getY(), getZ(),
-                    OWSounds.CROCODILE_MOUTH_CRUSH.get(), SoundSource.HOSTILE, 0.8f, 0.5f);
+                    net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK, SoundSource.HOSTILE, 0.8f, 0.5f);
         }
 
         if (this.tickCount % 10 == 0 && this.level() instanceof ServerLevel serverLevel) {
