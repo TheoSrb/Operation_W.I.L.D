@@ -273,6 +273,8 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 
 		applyFlop(orca, ageInTicks);
 
+		applyFlopSlam(orca, ageInTicks);
+
 		applyWaveCharge(orca, ageInTicks);
 
 		applyWaveBreach(orca, ageInTicks);
@@ -372,10 +374,9 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 	 */
 	private void applyWaveBreach(OrcaEntity orca, float ageInTicks) {
 		float partial = ageInTicks - (float) Math.floor(ageInTicks);
-		float left = orca.getWaveBreachTicks() - partial;
-		if (left <= 0f) return;
+		float elapsed = orca.getWaveBreachAge(partial);
+		if (elapsed < 0f) return;
 
-		float elapsed = OrcaEntity.WAVE_BREACH_DURATION - left;
 		final float slam = OrcaEntity.WAVE_BREACH_SLAM;
 		final float end = OrcaEntity.WAVE_BREACH_DURATION;
 
@@ -440,6 +441,33 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 		this.body.xRot += (float) Math.toRadians(3f * whip);
 		this.ALL.y     -= 1.2f * impact;
 		this.ALL2.xRot += (float) Math.toRadians(2.5f * impact);
+	}
+
+	/**
+	 * Sursaut de masse — l'orque échouée retombe de tout son poids.
+	 *
+	 * <p>Court et sec, à l'opposé des gestes tenus du reste du modèle : c'est un choc, pas une
+	 * intention. Le corps s'écrase à l'atterrissage, s'aplatit sur sa hauteur, puis se redresse en
+	 * rebondissant un peu — ce qui donne à voir la masse là où le sautillement seul ne montrait
+	 * qu'un déplacement.</p>
+	 */
+	private void applyFlopSlam(OrcaEntity orca, float ageInTicks) {
+		float partial = ageInTicks - (float) Math.floor(ageInTicks);
+		float elapsed = orca.getFlopSlamAge(partial);
+		if (elapsed < 0f) return;
+
+		float t = Mth.clamp(elapsed / OrcaEntity.FLOP_SLAM_DURATION, 0f, 1f);
+		// Impact franc au début, résorption lente : la carcasse encaisse puis se remet.
+		float shock = (1f - t) * (1f - t);
+		float rebound = bell(t, 0.45f, 0.28f);
+
+		this.ALL.y     += 2.6f * shock;
+		this.ALL.xRot  += (float) Math.toRadians(7f * shock - 4f * rebound);
+		this.body.yScale *= 1f - 0.14f * shock;
+		this.body.xScale *= 1f + 0.09f * shock;
+		this.body.zScale *= 1f + 0.05f * shock;
+		this.head.xRot += (float) Math.toRadians(9f * shock);
+		this.tail.xRot -= (float) Math.toRadians(11f * shock - 6f * rebound);
 	}
 
 	private void applyFlop(OrcaEntity orca, float ageInTicks) {

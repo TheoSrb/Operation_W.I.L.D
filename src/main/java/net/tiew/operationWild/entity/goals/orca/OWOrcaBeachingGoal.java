@@ -109,6 +109,9 @@ public class OWOrcaBeachingGoal extends Goal {
     public boolean canContinueToUse() {
         if (this.orca.getOwner() != null) return false;
         if (target == null || !target.isAlive()) return false;
+        // Le souffle passe avant la proie : sans ce renoncement, l'orque tenait sa position sur le
+        // sable jusqu'à en mourir. C'est le goal qui la retenait, rien d'autre.
+        if (this.orca.isDryingOut()) return false;
 
         return switch (phase) {
             // Si la target quitte la côte pendant l'approche → abandon immédiat

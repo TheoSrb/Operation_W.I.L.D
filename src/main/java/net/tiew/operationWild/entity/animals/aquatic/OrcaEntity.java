@@ -184,6 +184,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         this.goalSelector.addGoal(2, new OWOrcaPackHuntGoal(this));
         this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 20f, 28, 4, false) {
             private int dashCooldown = WILD_DASH_COOLDOWN_MIN;
+            private int retreatTicks = 0;
+            private boolean wasCombo = false;
 
             private boolean isBlockedForWild() {
                 if (OrcaEntity.this.isTame()) return false;
@@ -205,8 +207,77 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
              */
             @Override
             public void tick() {
+                if (OrcaEntity.this.isTame()) {
+                    super.tick();
+                    return;
+                }
+
+                // Décrochage en cours : le parent ne tourne pas, sinon il recollerait à la cible
+                // dès le tick suivant — c'est lui qui rend l'orque impossible à décoller.
+                if (this.retreatTicks > 0) {
+                    this.retreatTicks--;
+                    tickRetreat();
+                    return;
+                }
+
                 super.tick();
-                if (OrcaEntity.this.isTame()) return;
+                tickDisengageDecision();
+                tickDash();
+            }
+
+            /**
+             * Après chaque morsure, l'orque lâche parfois prise et repart tourner au large.
+             *
+             * <p>Le goal parent ne sait que resserrer : il repathe vers sa cible toutes les quelques
+             * ticks et remord dès qu'il est à portée. Une fois au contact, il n'existait plus aucune
+             * raison pour qu'il s'en détache, et l'orque restait scotchée jusqu'à la mort de l'un des
+             * deux. Un prédateur marin tourne, s'écarte, revient — et cette respiration est ce qui
+             * rend l'affrontement lisible.</p>
+             *
+             * <p>Le décrochage est tiré au sort à la fin d'un combo, jamais pendant : couper un
+             * enchaînement en cours ferait disparaître la bête au milieu de son geste.</p>
+             */
+            private void tickDisengageDecision() {
+                boolean combo = OrcaEntity.this.isCombo();
+                boolean comboJustEnded = this.wasCombo && !combo;
+                this.wasCombo = combo;
+
+                if (!comboJustEnded) return;
+                if (OrcaEntity.this.getRandom().nextInt(100) >= WILD_DISENGAGE_CHANCE) return;
+
+                this.retreatTicks = WILD_DISENGAGE_TICKS_MIN
+                        + OrcaEntity.this.getRandom().nextInt(WILD_DISENGAGE_SPREAD);
+            }
+
+            /** S'éloigne sans quitter sa proie du regard : elle prend du champ, elle ne fuit pas. */
+            private void tickRetreat() {
+                LivingEntity t = OrcaEntity.this.getTarget();
+                if (t == null || !t.isAlive()) {
+                    this.retreatTicks = 0;
+                    return;
+                }
+                OrcaEntity.this.getLookControl().setLookAt(t.getX(), t.getEyeY(), t.getZ());
+
+                if (this.retreatTicks % 10 != 0) return;
+                Vec3 away = OrcaEntity.this.position().subtract(t.position());
+                away = away.lengthSqr() > 1.0E-4 ? away.normalize() : OrcaEntity.this.getLookAngle();
+                Vec3 to = OrcaEntity.this.position().add(away.scale(WILD_DISENGAGE_DISTANCE));
+                OrcaEntity.this.getNavigation().moveTo(to.x, to.y, to.z, 1.15);
+            }
+
+            /**
+             * Ponctue la poursuite d'une Ruée, au lieu de n'enchaîner que des morsures.
+             *
+             * <p>Le goal parent ne connaît que le corps à corps : il approche, mord, recommence. La
+             * Ruée est ce qui manquait à une chasse en pleine eau — une charge qui traverse, bouscule
+             * et repart, là où la morsure suppose d'être déjà au contact.</p>
+             *
+             * <p>Elle ne part qu'à distance moyenne : trop près elle n'aurait pas d'élan, trop loin
+             * la proie a le temps de s'écarter. Les dégâts sont ceux prévus de longue date pour une
+             * charge sauvage — trois dixièmes de la morsure —, l'intérêt étant la bousculade et le
+             * terrain gagné, pas la blessure.</p>
+             */
+            private void tickDash() {
                 if (this.dashCooldown > 0) {
                     this.dashCooldown--;
                     return;
@@ -255,7 +326,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         builder.define(IS_SPYHOPPING, false);
         builder.define(IS_WAVE_CHARGING, false);
         builder.define(TAIL_FLICK_ID, 0);
-        builder.define(WAVE_BREACH_TICKS, 0);
+        builder.define(WAVE_BREACH_ID, 0);
+        builder.define(FLOP_SLAM_ID, 0);
     }
 
     @Override
@@ -573,32 +645,61 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
      * caudale claque : c'est le coup de queue qui lève la vague, pas la retombée.</p>
      */
     public static final int WAVE_BREACH_DURATION = 26;
-    public static final int WAVE_BREACH_SLAM = 18;
+
+    /**
+     * Instant du déferlement, ramené à la septième image du bond — il en occupait la dix-huitième.
+     *
+     * <p>La vague part désormais dans l'élan de la sortie d'eau, pendant que la vrille s'amorce, et
+     * non une fois le tour bien engagé. Le coup de queue est en conséquence armé dès la première
+     * image : son propre temps d'enroulement dépasse maintenant l'avance disponible, et il est donc
+     * lancé aussi tôt que possible.</p>
+     */
+    public static final int WAVE_BREACH_SLAM = 7;
 
     /** Tour complet à plat, autour de l'axe vertical. */
     private static final float WAVE_SPIN_TURN = 360f;
 
-    private static final EntityDataAccessor<Integer> WAVE_BREACH_TICKS =
+    /**
+     * Comme le coup de queue : ce qui voyage est un numéro de bond, pas son décompte.
+     *
+     * <p>Un décompte relu à chaque image avance au rythme des paquets et non des images — c'est ce
+     * qui hachait la vrille. Le client tient sa propre horloge à partir d'un simple signal de
+     * départ.</p>
+     */
+    private static final EntityDataAccessor<Integer> WAVE_BREACH_ID =
             SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
 
-    public int getWaveBreachTicks() {
-        return this.entityData.get(WAVE_BREACH_TICKS);
-    }
+    private int waveBreachTicksLeft = 0;
+    private float waveBreachAge = -1f;
+    private float waveBreachAgePrev = -1f;
+    private int lastSeenBreachId = Integer.MIN_VALUE;
 
     public boolean isWaveBreaching() {
-        return this.getWaveBreachTicks() > 0;
+        return this.level().isClientSide() ? this.waveBreachAge >= 0f : this.waveBreachTicksLeft > 0;
     }
 
     public void startWaveBreach() {
         if (this.level().isClientSide()) return;
-        this.entityData.set(WAVE_BREACH_TICKS, WAVE_BREACH_DURATION);
+        this.waveBreachTicksLeft = WAVE_BREACH_DURATION;
+        this.entityData.set(WAVE_BREACH_ID, this.entityData.get(WAVE_BREACH_ID) + 1);
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 net.minecraft.sounds.SoundEvents.DOLPHIN_JUMP, SoundSource.HOSTILE, 2.0f, 0.5f);
     }
 
     /** Image exacte du claquement — pour ce qui ne doit se déclencher qu'une fois, ici même. */
     public boolean isWaveBreachSlam() {
-        return this.getWaveBreachTicks() == WAVE_BREACH_DURATION - WAVE_BREACH_SLAM;
+        return this.waveBreachTicksLeft == WAVE_BREACH_DURATION - WAVE_BREACH_SLAM;
+    }
+
+    /**
+     * Image où le coup de queue doit être armé pour que SON impact tombe sur le déferlement.
+     *
+     * <p>Le décalage est celui de l'armement de la nageoire, repris tel quel de son propre
+     * découpage : les deux gestes restent calés même si l'un des deux est retouché.</p>
+     */
+    private boolean isWaveBreachFlickTick() {
+        int lead = FLICK_ANIM_WINDUP + FLICK_ANIM_SNAP / 2;
+        return this.waveBreachTicksLeft == WAVE_BREACH_DURATION - Math.max(0, WAVE_BREACH_SLAM - lead);
     }
 
     /**
@@ -608,8 +709,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
      * image ; un tick perdu — et il en suffit d'un — et la vague ne partirait jamais.</p>
      */
     public boolean hasWaveBreachSlammed() {
-        int left = this.getWaveBreachTicks();
-        return left > 0 && left <= WAVE_BREACH_DURATION - WAVE_BREACH_SLAM;
+        return this.waveBreachTicksLeft > 0
+                && this.waveBreachTicksLeft <= WAVE_BREACH_DURATION - WAVE_BREACH_SLAM;
     }
 
     /**
@@ -623,10 +724,15 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
      * douceur au moment où la queue prend le relais. Une rotation linéaire aurait tourné comme une
      * pièce mécanique.</p>
      */
+    /** Âge du bond en ticks fractionnaires pour le rendu, ou négatif si aucun n'est en cours. */
+    public float getWaveBreachAge(float partialTick) {
+        if (this.waveBreachAge < 0f || this.waveBreachAgePrev < 0f) return -1f;
+        return Mth.lerp(partialTick, this.waveBreachAgePrev, this.waveBreachAge);
+    }
+
     public float getWaveSpinYaw(float partialTick) {
-        int left = this.getWaveBreachTicks();
-        if (left <= 0) return 0f;
-        float elapsed = WAVE_BREACH_DURATION - (left - partialTick);
+        if (this.waveBreachAge < 0f || this.waveBreachAgePrev < 0f) return 0f;
+        float elapsed = Mth.lerp(partialTick, this.waveBreachAgePrev, this.waveBreachAge);
         float t = Mth.clamp(elapsed / WAVE_BREACH_DURATION, 0f, 1f);
         float remaining = 1f - t;
         float eased = 1f - remaining * remaining * remaining;
@@ -634,13 +740,29 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     }
 
     private void tickWaveBreach() {
-        if (this.level().isClientSide()) return;
-        int left = this.getWaveBreachTicks();
-        if (left <= 0) return;
+        this.waveBreachAgePrev = this.waveBreachAge;
+
+        int id = this.entityData.get(WAVE_BREACH_ID);
+        if (this.lastSeenBreachId == Integer.MIN_VALUE) {
+            this.lastSeenBreachId = id;
+        } else if (id != this.lastSeenBreachId) {
+            this.lastSeenBreachId = id;
+            this.waveBreachAge = 0f;
+            this.waveBreachAgePrev = 0f;
+        } else if (this.waveBreachAge >= 0f) {
+            this.waveBreachAge += 1f;
+            if (this.waveBreachAge >= WAVE_BREACH_DURATION) this.waveBreachAge = -1f;
+        }
+
+        if (this.level().isClientSide() || this.waveBreachTicksLeft <= 0) return;
         // Le coup de queue est armé ici et non par le goal : le geste appartient au bond, il doit
         // partir à la même image quelle que soit la raison qui a déclenché celui-ci.
-        if (isWaveBreachSlam()) startTailFlick();
-        this.entityData.set(WAVE_BREACH_TICKS, left - 1);
+        //
+        // Il est armé EN AVANCE du déferlement, du temps que met sa propre nageoire à s'enrouler
+        // puis à claquer. Déclenché à l'instant de la vague, il ne frappait que neuf ticks plus
+        // tard : on voyait l'eau partir, puis la queue la suivre — deux gestes au lieu d'un.
+        if (isWaveBreachFlickTick()) startTailFlick();
+        this.waveBreachTicksLeft--;
     }
 
     private void tickWaveCharge() {
@@ -689,10 +811,6 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private float tailFlickAgePrev = -1f;
     private int lastSeenFlickId = Integer.MIN_VALUE;
 
-    public static int getTailFlickDuration() {
-        return FLICK_ANIM_DURATION;
-    }
-
     public boolean isTailFlicking() {
         return this.level().isClientSide() ? this.tailFlickAge >= 0f : this.tailFlickTicksLeft > 0;
     }
@@ -739,6 +857,91 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         }
 
         if (!this.level().isClientSide() && this.tailFlickTicksLeft > 0) this.tailFlickTicksLeft--;
+    }
+
+    // ── Écrasement au sautillement ────────────────────────────────────────────
+
+    /** Durée du sursaut de masse, en ticks. Bref : c'est un choc, pas un geste. */
+    public static final int FLOP_SLAM_DURATION = 12;
+
+    private static final EntityDataAccessor<Integer> FLOP_SLAM_ID =
+            SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
+
+    private float flopSlamAge = -1f;
+    private float flopSlamAgePrev = -1f;
+    private int lastSeenSlamId = Integer.MIN_VALUE;
+
+    /** Portée de l'écrasement, comptée depuis la boîte de l'orque. */
+    private static final double FLOP_CRUSH_RADIUS = 1.1;
+
+    /** Part de la morsure infligée par le poids. Une masse qui retombe, pas une mâchoire. */
+    private static final float FLOP_CRUSH_RATIO = 0.45f;
+
+    public float getFlopSlamAge(float partialTick) {
+        if (this.flopSlamAge < 0f || this.flopSlamAgePrev < 0f) return -1f;
+        return Mth.lerp(partialTick, this.flopSlamAgePrev, this.flopSlamAge);
+    }
+
+    private void tickFlopSlam() {
+        this.flopSlamAgePrev = this.flopSlamAge;
+
+        int id = this.entityData.get(FLOP_SLAM_ID);
+        if (this.lastSeenSlamId == Integer.MIN_VALUE) {
+            this.lastSeenSlamId = id;
+        } else if (id != this.lastSeenSlamId) {
+            this.lastSeenSlamId = id;
+            this.flopSlamAge = 0f;
+            this.flopSlamAgePrev = 0f;
+        } else if (this.flopSlamAge >= 0f) {
+            this.flopSlamAge += 1f;
+            if (this.flopSlamAge >= FLOP_SLAM_DURATION) this.flopSlamAge = -1f;
+        }
+    }
+
+    /**
+     * Le sautillement d'une orque échouée écrase ce qui traîne dessous.
+     *
+     * <p>C'est ce qui remplace la morsure à terre. Rester collé à une bête de plusieurs tonnes qui
+     * se jette en l'air et retombe n'a aucune raison d'être sans danger, et cela redonne un enjeu à
+     * l'échouage sans lui rendre une mâchoire qu'il n'a plus.</p>
+     *
+     * <p>Le cavalier et ses alliés sont épargnés : une monture qui broie son propre pilote à chaque
+     * bond serait injouable sur la plage.</p>
+     */
+    private void crushOnFlopSlam() {
+        if (this.level().isClientSide()) return;
+
+        this.entityData.set(FLOP_SLAM_ID, this.entityData.get(FLOP_SLAM_ID) + 1);
+
+        AABB crushBox = this.getBoundingBox().inflate(FLOP_CRUSH_RADIUS, 0.6, FLOP_CRUSH_RADIUS);
+        float damage = this.getDamage() * FLOP_CRUSH_RATIO;
+
+        for (LivingEntity victim : this.level().getEntitiesOfClass(LivingEntity.class, crushBox)) {
+            if (victim == this || this.hasPassenger(victim) || this.isAlliedTo(victim)) continue;
+            if (victim instanceof Player player && (player.isCreative() || player.isSpectator())) continue;
+
+            victim.invulnerableTime = 0;
+            victim.hurt(this.damageSources().mobAttack(this), damage);
+
+            Vec3 push = victim.position().subtract(this.position());
+            push = push.lengthSqr() > 1.0E-4 ? push.normalize() : this.getLookAngle();
+            victim.setDeltaMovement(victim.getDeltaMovement().add(push.x * 0.45, 0.32, push.z * 0.45));
+            victim.hurtMarked = true;
+        }
+
+        if (this.level() instanceof ServerLevel serverLevel) {
+            // Débris du sol lui-même, et non un nuage de fumée : ce qui gicle sous une masse qui
+            // retombe, c'est du sable ou du gravier, pas de la vapeur. La bouffée générique donnait
+            // l'impression d'une explosion là où il n'y a qu'un impact.
+            BlockPos under = this.blockPosition().below();
+            BlockState ground = this.level().getBlockState(under);
+            if (!ground.isAir()) {
+                serverLevel.sendParticles(
+                        new net.minecraft.core.particles.BlockParticleOption(ParticleTypes.BLOCK, ground),
+                        this.getX(), this.getBoundingBox().minY + 0.1, this.getZ(),
+                        26, this.getBbWidth() * 0.5, 0.08, this.getBbWidth() * 0.5, 0.18);
+            }
+        }
     }
 
     public static boolean isThinIce(BlockState state) {
@@ -1048,6 +1251,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         tickSpyhop();
         tickWaveCharge();
         tickWaveBreach();
+        tickFlopSlam();
         tickTailFlick();
         if (this.isInResurrection()) this.setSleeping(true);
 
@@ -1145,12 +1349,29 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
             if (this.isFlopping()) {
                 if (grounded && flopHopCooldown == 0) {
+                    // Une orque échouée qui a repéré de l'eau ne « sautille » plus : elle se jette
+                    // vers elle. Le bond ordinaire vaut cinq centièmes de bloc d'élan — de quoi
+                    // frétiller sur place, certainement pas franchir une plage avant de manquer
+                    // d'air. Celui-ci porte dix fois plus loin, monte plus haut pour passer les
+                    // ressauts de la grève, et revient deux fois plus vite.
+                    Vec3 escape = this.getControllingPassenger() == null ? cachedWaterDirection() : null;
+                    boolean seeking = escape != null;
+
                     this.flopHopTicks = FLOP_HOP_AIR_TICKS;
-                    this.flopHopCooldown = FLOP_HOP_INTERVAL;
+                    this.flopHopCooldown = seeking ? FLOP_SEEK_INTERVAL : FLOP_HOP_INTERVAL;
 
                     if (this.isControlledByLocalInstance()) {
-                        Vec3 hop = flopHopDrive();
-                        this.setDeltaMovement(hop.x, FLOP_VERTICAL_IMPULSE, hop.z);
+                        Vec3 hop = seeking ? escape.scale(FLOP_SEEK_DRIVE) : flopHopDrive();
+                        // Le corps se met dans l'axe du bond : sinon l'orque glissait de travers sur
+                        // le sable, sans avoir l'air de chercher quoi que ce soit.
+                        if (this.getControllingPassenger() == null && hop.lengthSqr() > 1.0E-6) {
+                            float yaw = (float) (Mth.atan2(hop.z, hop.x) * Mth.RAD_TO_DEG) - 90.0F;
+                            this.setYRot(yaw);
+                            this.yBodyRot = yaw;
+                            this.yHeadRot = yaw;
+                        }
+                        this.setDeltaMovement(hop.x,
+                                seeking ? FLOP_SEEK_VERTICAL : FLOP_VERTICAL_IMPULSE, hop.z);
                         this.hasImpulse = true;
                     }
 
@@ -1158,6 +1379,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                         this.playSound(net.minecraft.sounds.SoundEvents.COD_FLOP,
                                 this.getSoundVolume() * FLOP_SOUND_VOLUME,
                                 this.getVoicePitch() * FLOP_SOUND_PITCH);
+                        crushOnFlopSlam();
                     }
                 }
 
@@ -1246,7 +1468,17 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private static final float FLOP_SOUND_PITCH = 0.5f;
     private static final float FLOP_SOUND_VOLUME = 0.55f;
 
-    private static final int FLOP_GROUND_GRACE_TICKS = 20;
+    /**
+     * Combien de temps l'orque reste « échouée » après avoir quitté le sol.
+     *
+     * <p>Portée de vingt à quarante-cinq ticks. Ce délai doit couvrir toute la durée d'un bond,
+     * faute de quoi l'état d'échouage expire en plein vol : le rendu cesse alors de la coucher sur
+     * le flanc et elle s'affiche debout, en pleine nage, au-dessus du sable. Pire, c'est ce même
+     * état qui autorise le bond suivant — elle retombait donc à plat ventre et n'en repartait plus.
+     * Vingt ticks suffisaient au frétillement d'origine ; le saut de survie, plus haut, les
+     * dépassait.</p>
+     */
+    private static final int FLOP_GROUND_GRACE_TICKS = 45;
     private static final int FLOP_HOP_AIR_TICKS = 14;
     private static final int FLOP_HOP_INTERVAL = 18;
     private static final double FLOP_GROUND_PROBE = 0.1;
@@ -1301,9 +1533,90 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             return new Vec3(input.x * cos - input.z * sin, 0, input.z * cos + input.x * sin);
         }
 
+        // Rien d'eau en vue : frétillement sur place, faute de mieux.
         return new Vec3(
                 (this.random.nextFloat() * 2.0F - 1.0F) * FLOP_HORIZONTAL_IMPULSE, 0,
                 (this.random.nextFloat() * 2.0F - 1.0F) * FLOP_HORIZONTAL_IMPULSE);
+    }
+
+    /** Rayon de recherche d'eau autour d'une orque échouée. */
+    private static final int FLOP_WATER_SEEK_RADIUS = 14;
+
+    /**
+     * Élan d'un bond dirigé vers l'eau, et hauteur de nature à passer un ressaut de grève.
+     *
+     * <p>Adouci de moitié : à pleine puissance l'orque traversait la plage en quelques bonds, ce qui
+     * réglait bien le problème mais donnait à voir un poisson propulsé plutôt qu'une bête de
+     * plusieurs tonnes qui se traîne. Elle y arrive toujours, simplement en peinant — ce qui est
+     * précisément l'intérêt de la scène.</p>
+     */
+    private static final double FLOP_SEEK_DRIVE = 0.26;
+    private static final float FLOP_SEEK_VERTICAL = 0.5f;
+
+    /** Cadence des bonds de survie, un peu plus serrée que le frétillement ordinaire. */
+    private static final int FLOP_SEEK_INTERVAL = 14;
+
+    private Vec3 waterDirCache = null;
+    private int waterDirCacheAge = 0;
+
+    /**
+     * Direction de l'eau, retenue quelques secondes entre deux relevés.
+     *
+     * <p>Le balayage coûte plusieurs milliers de vérifications de blocs : le refaire à chaque bond
+     * serait gâché, et le résultat sauterait d'un point d'eau à l'autre à mesure que l'orque avance.
+     * Une direction tenue vaut mieux qu'une direction juste — c'est ce qui l'empêche d'hésiter à
+     * mi-chemin et de mourir entre deux flaques.</p>
+     */
+    private @Nullable Vec3 cachedWaterDirection() {
+        if (this.waterDirCache != null && --this.waterDirCacheAge > 0) return this.waterDirCache;
+        this.waterDirCache = nearestWaterDirection();
+        this.waterDirCacheAge = WATER_DIR_CACHE_TICKS;
+        return this.waterDirCache;
+    }
+
+    private static final int WATER_DIR_CACHE_TICKS = 40;
+
+    /** Part du souffle en dessous de laquelle regagner l'eau prime sur tout le reste. */
+    private static final float DRYING_OUT_FRACTION = 0.55f;
+
+    /**
+     * L'orque est-elle en train de s'assécher ?
+     *
+     * <p>Sa réserve ne baisse qu'à l'air libre, et deux fois plus vite que la noyade d'un joueur :
+     * le seuil laisse de quoi refaire quelques dizaines de blocs en sautillant, pas davantage. Ce
+     * qui la retenait à terre doit lâcher prise ici, sans quoi une chasse sur la grève se termine
+     * par sa mort — elle ne « choisit » rien, elle attend simplement de manquer d'air.</p>
+     */
+    public boolean isDryingOut() {
+        return !this.isInWater() && this.getAirSupply() < this.getMaxAirSupply() * DRYING_OUT_FRACTION;
+    }
+
+    /** Direction horizontale, normalisée, du bloc d'eau le plus proche — ou {@code null}. */
+    private @Nullable Vec3 nearestWaterDirection() {
+        BlockPos origin = this.blockPosition();
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        BlockPos best = null;
+        double bestDist = Double.MAX_VALUE;
+
+        // Balayage large en hauteur : une orque poussée sur une berge surplombe souvent la mer de
+        // plusieurs blocs, et une fenêtre étroite ne trouvait alors rien du tout.
+        for (int dx = -FLOP_WATER_SEEK_RADIUS; dx <= FLOP_WATER_SEEK_RADIUS; dx++) {
+            for (int dz = -FLOP_WATER_SEEK_RADIUS; dz <= FLOP_WATER_SEEK_RADIUS; dz++) {
+                for (int dy = -8; dy <= 3; dy++) {
+                    cursor.set(origin.getX() + dx, origin.getY() + dy, origin.getZ() + dz);
+                    if (!this.level().getFluidState(cursor).is(net.minecraft.tags.FluidTags.WATER)) continue;
+                    double dist = cursor.distSqr(origin);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        best = cursor.immutable();
+                    }
+                }
+            }
+        }
+        if (best == null) return null;
+
+        Vec3 toward = new Vec3(best.getX() + 0.5 - this.getX(), 0.0, best.getZ() + 0.5 - this.getZ());
+        return toward.lengthSqr() < 1.0E-4 ? null : toward.normalize();
     }
 
     @Override
@@ -1354,10 +1667,15 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
      * <p>Trop resserré, l'échec cesse d'être une esquive et devient une infirmité — l'orque
      * traversait sa proie sans jamais l'atteindre. L'ancienne boîte, elle, faisait 6,5 de large
      * sur 4 de portée : elle englobait tout ce qui se trouvait devant.</p>
+     *
+     * <p>La portée est comptée depuis le CENTRE de la boîte, pas depuis son bord : posée trop loin
+     * devant, elle laissait un angle mort juste devant la gueule, et une orque venue se coller à sa
+     * proie mordait par-dessus elle sans rien lui faire. Elle couvre maintenant depuis un demi-bloc
+     * devant la bête, donc le contact aussi.</p>
      */
-    private static final double WILD_BITE_WIDTH = 3.5;
-    private static final double WILD_BITE_HEIGHT = 2.5;
-    private static final double WILD_BITE_REACH = 3.2;
+    private static final double WILD_BITE_WIDTH = 3.6;
+    private static final double WILD_BITE_HEIGHT = 2.6;
+    private static final double WILD_BITE_REACH = 2.4;
 
     /** Fenêtre de distance dans laquelle une orque sauvage juge la Ruée intéressante. */
     private static final double WILD_DASH_MIN_RANGE = 5.0;
@@ -1366,6 +1684,16 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     /** Cadence de la Ruée sauvage : environ toutes les cinq à onze secondes de poursuite. */
     private static final int WILD_DASH_COOLDOWN_MIN = 100;
     private static final int WILD_DASH_COOLDOWN_SPREAD = 120;
+
+    /** Chances sur cent qu'une morsure achevée soit suivie d'un décrochage. */
+    private static final int WILD_DISENGAGE_CHANCE = 55;
+
+    /** Durée du tour au large : deux à quatre secondes, de quoi souffler sans perdre le fil. */
+    private static final int WILD_DISENGAGE_TICKS_MIN = 45;
+    private static final int WILD_DISENGAGE_SPREAD = 40;
+
+    /** Distance visée en s'écartant — assez pour rompre le contact, pas pour abandonner la chasse. */
+    private static final double WILD_DISENGAGE_DISTANCE = 13.0;
 
     @Override
     public void die(DamageSource damageSource) {
@@ -1408,11 +1736,12 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     /**
      * Cas où une orque sauvage ne porte aucun coup.
      *
-     * <p><b>Hors de l'eau.</b> Privée de son élément, elle ne peut ni se tourner, ni se caler, ni
-     * prendre appui : la voir continuer à frapper pendant qu'elle bat de la queue sur la berge la
-     * faisait passer pour un monstre terrestre. L'échouage volontaire ({@code isBeached()}) fait
-     * exception — c'est une chasse à part entière, et la brider là reviendrait à supprimer
-     * {@code OWOrcaBeachingGoal}, qui n'existe que pour ça.</p>
+     * <p><b>Hors de l'eau, sans aucune exception.</b> Privée de son élément, elle ne peut ni se
+     * tourner, ni se caler, ni prendre appui : la voir mordre pendant qu'elle bat de la queue sur la
+     * berge la faisait passer pour un monstre terrestre. L'échouage volontaire n'y échappe plus non
+     * plus — mais il ne devient pas pour autant inoffensif : c'est le <b>poids</b> de la bête qui
+     * frappe désormais, à chaque retombée de son sautillement (cf. {@code crushOnFlopSlam}). Une
+     * orque de plusieurs tonnes qui s'abat sur une grève n'a pas besoin de sa gueule.</p>
      *
      * <p><b>Pendant le jeu de la proie.</b> Toute la feature tient sur une promesse : la victime
      * ressort vivante. Or l'orque frappe pour un tiers de sa vie d'un seul coup, si bien que le
@@ -1427,7 +1756,16 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     private boolean strikesAreSuppressed() {
         if (this.isTame()) return false;
         if (this.playingWithPrey) return true;
-        return !this.isInWater() && !this.isBeached();
+        // « Dans l'eau » ne veut pas dire « en train de nager ».
+        //
+        // {@code isInWater()} n'exige qu'un contact : une orque de deux mètres de large couchée sur
+        // la grève touche toujours un bloc d'eau par un bout, et se voyait donc rendre sa morsure
+        // alors qu'elle gisait sur le sable. Il faut y ajouter le cas de la bête POSÉE — au sol et
+        // les yeux à l'air libre —, qui est exactement ce qu'on appelle une orque échouée. Une orque
+        // qui rase le fond, elle, a bien les yeux sous l'eau et garde sa gueule.
+        if (this.isBeached()) return true;
+        if (!this.isInWater()) return true;
+        return this.onGround() && !this.isUnderWater();
     }
 
     @Override
@@ -1515,7 +1853,18 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         if (this.level().isClientSide() || target == null) return;
         Vec3 aim = target.getBoundingBox().getCenter().subtract(this.getEyePosition());
         if (aim.lengthSqr() < 1.0E-6) return;
-        launchDash(aim.normalize());
+        aim = aim.normalize();
+
+        // Le corps se met dans l'axe de la charge avant qu'elle ne parte. La ruée était bien dirigée
+        // — elle montait et descendait déjà vers la cible — mais l'orque gardait le cap qu'elle avait
+        // : elle partait de biais, et la charge se lisait comme une glissade. Le tangage, lui, se
+        // déduit tout seul de la pente réellement parcourue.
+        float yaw = (float) (Mth.atan2(aim.z, aim.x) * Mth.RAD_TO_DEG) - 90.0F;
+        this.setYRot(yaw);
+        this.yBodyRot = yaw;
+        this.yHeadRot = yaw;
+
+        launchDash(aim);
     }
 
     private void launchDash(Vec3 direction) {
@@ -1647,9 +1996,22 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         }
     }
 
+    /**
+     * Le combo est refusé d'entrée quand la morsure ne peut pas porter.
+     *
+     * <p>Bloquer les seuls dégâts ne suffisait pas : l'enchaînement se déclenchait quand même, et
+     * l'orque échouée mimait la morsure sans effet — un geste à vide, plus déroutant qu'une bête
+     * qui ne fait rien. C'est le geste entier qui est écarté ici, animation comprise.</p>
+     *
+     * <p>Le refus est posé sur le déclencheur commun plutôt que chez chaque appelant : le goal
+     * d'échouage, la chasse et la meute passent tous par là, et un futur comportement en héritera
+     * sans qu'on ait à y penser. Sur la grève, il ne reste que le poids (cf. {@code
+     * crushOnFlopSlam}).</p>
+     */
     @Override
     public void setCombo(boolean isCombo, int numberOfAttacks) {
         if (isCombo && hasSwallowed()) return;
+        if (isCombo && strikesAreSuppressed()) return;
         super.setCombo(isCombo, numberOfAttacks);
     }
 
@@ -2289,6 +2651,10 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         private int verticalTimer = 0;
         private boolean goingUp = false;
 
+        /** Détection d'enlisement : sans elle, une destination inatteignable retient l'orque à vie. */
+        private int stallTicks = 0;
+        private double lastX, lastZ;
+
         OrcaWanderGoal(OrcaEntity orca) {
             this.orca = orca;
             this.setFlags(EnumSet.of(Flag.MOVE));
@@ -2353,8 +2719,36 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 else orca.setTargetPitch(0f);
             }
 
+            tickStallCheck();
             orca.getMoveControl().setWantedPosition(targetX, targetY, targetZ, 1.0);
         }
+
+        /**
+         * Renonce à une destination qu'on n'atteint pas.
+         *
+         * <p>La vadrouille tirait un point au hasard sans jamais vérifier qu'il soit dans l'eau ni
+         * accessible. Visant un bloc de terrain, l'orque poussait dessus indéfiniment pendant que le
+         * contrôle de nage continuait de l'orienter vers lui : elle pivotait sur place sans plus
+         * jamais rien faire d'autre, et rien ne l'en sortait puisque le goal se déclare toujours
+         * valable. Ne plus avancer pendant trois secondes suffit maintenant à changer d'idée.</p>
+         */
+        private void tickStallCheck() {
+            double dx = orca.getX() - this.lastX;
+            double dz = orca.getZ() - this.lastZ;
+            this.lastX = orca.getX();
+            this.lastZ = orca.getZ();
+
+            if (dx * dx + dz * dz > 0.0016) {
+                this.stallTicks = 0;
+                return;
+            }
+            if (++this.stallTicks < STALL_LIMIT) return;
+
+            this.stallTicks = 0;
+            pickHorizontalTarget();
+        }
+
+        private static final int STALL_LIMIT = 60;
 
         private void startVerticalPhase() {
             isVerticalPhase = true;
@@ -2368,18 +2762,51 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             targetY = orca.getY();
         }
 
+        /**
+         * Choisit une destination, en s'assurant qu'il y ait de l'eau à l'arrivée.
+         *
+         * <p>Plusieurs tirages sont tentés et le premier qui tombe dans l'eau l'emporte. Le point
+         * était auparavant pris à l'aveugle : une orque longeant une côte ou un fond visait
+         * régulièrement de la roche, poussait dessus et n'en repartait plus.</p>
+         */
         private void pickHorizontalTarget() {
             isVerticalPhase = false;
-
-            double angle = orca.getRandom().nextDouble() * Math.PI * 2;
-            double dist = 8 + orca.getRandom().nextDouble() * 12;
-            targetX = orca.getX() + Math.sin(angle) * dist;
-            targetZ = orca.getZ() + Math.cos(angle) * dist;
 
             double seaLevel = orca.level().getSeaLevel();
             double minY = seaLevel - orca.getMaxDepth() + 5;
             double maxY = seaLevel - 2;
-            targetY = Mth.clamp(orca.getY() + (orca.getRandom().nextDouble() - 0.5) * 4, minY, maxY);
+
+            // Cap tiré DEVANT elle, à un peu plus de cent degrés près, au lieu de n'importe où sur
+            // le tour complet.
+            //
+            // C'est ce qui la faisait tourner en rond : le contrôle de nage ne pivote que de dix
+            // degrés par tick tout en continuant d'avancer, si bien qu'une destination tirée
+            // derrière elle se parcourait en un large arc. Elle arrivait dessus de travers, en
+            // retirait aussitôt une autre, et recommençait — un cercle, indéfiniment.
+            double heading = -orca.getYRot() * Mth.DEG_TO_RAD;
+
+            for (int attempt = 0; attempt < WATER_PICK_ATTEMPTS; attempt++) {
+                double angle = heading + (orca.getRandom().nextDouble() - 0.5) * WANDER_ARC;
+                double dist = 8 + orca.getRandom().nextDouble() * 12;
+                double x = orca.getX() + Math.sin(angle) * dist;
+                double z = orca.getZ() + Math.cos(angle) * dist;
+                double y = Mth.clamp(orca.getY() + (orca.getRandom().nextDouble() - 0.5) * 4, minY, maxY);
+
+                boolean last = attempt == WATER_PICK_ATTEMPTS - 1;
+                if (!last && !orca.level().getFluidState(BlockPos.containing(x, y, z))
+                        .is(net.minecraft.tags.FluidTags.WATER)) {
+                    continue;
+                }
+                targetX = x;
+                targetZ = z;
+                targetY = y;
+                return;
+            }
         }
+
+        private static final int WATER_PICK_ATTEMPTS = 8;
+
+        /** Ouverture du cône de vadrouille : environ cent dix degrés de part et d'autre du cap. */
+        private static final double WANDER_ARC = Math.toRadians(220);
     }
 }

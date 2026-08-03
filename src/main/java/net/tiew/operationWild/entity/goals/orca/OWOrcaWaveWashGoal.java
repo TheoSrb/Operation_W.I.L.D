@@ -81,7 +81,14 @@ public class OWOrcaWaveWashGoal extends Goal {
     /** Le recul est plus long qu'avant : la mise en place a besoin de plus de temps avant son filet. */
     private static final int MAX_LINEUP_TICKS = 320;
 
-    private static final double CHARGE_SPEED = 1.05;
+    /**
+     * Vitesse de charge.
+     *
+     * <p>Redescendue de 1,05. Le client n'interpole la position d'une créature que sur trois ticks ;
+     * au-delà d'environ quinze blocs par seconde, chaque paquet arrive avant que le lissage du
+     * précédent ne soit fini et la course se voit par à-coups. C'est vif sans être hachué.</p>
+     */
+    private static final double CHARGE_SPEED = 0.78;
     private static final int MAX_CHARGE_TICKS = 150;
 
     /** Vitesse de virage du corps pendant la charge, en degrés par tick. */
@@ -99,10 +106,16 @@ public class OWOrcaWaveWashGoal extends Goal {
     private static final double LEAP_UP = 0.92;
     private static final double LEAP_FORWARD = 0.52;
 
-    /** Rayon balayé, et force du déferlement. */
+    /**
+     * Rayon balayé, et force du déferlement.
+     *
+     * <p>Nettement adoucie : la vague doit décoller la proie de son radeau et la mettre à l'eau, pas
+     * l'expédier à l'autre bout de l'océan. Une bousculade franche de quelques blocs suffit à faire
+     * comprendre ce qui vient d'arriver, et laisse la suite du combat jouable.</p>
+     */
     private static final double WAVE_RADIUS = 4.5;
-    private static final double WAVE_PUSH = 1.15;
-    private static final double WAVE_LIFT = 0.45;
+    private static final double WAVE_PUSH = 0.7;
+    private static final double WAVE_LIFT = 0.36;
 
     private static final int COOLDOWN_MIN = 400;
     private static final int COOLDOWN_MAX = 900;
@@ -195,15 +208,14 @@ public class OWOrcaWaveWashGoal extends Goal {
             return;
         }
 
-        // Une fois lancée, l'orque regarde OÙ ELLE VA, droit devant et à plat.
+        // Cap imposé à la main sur la colonne de la proie, sans passer par le contrôle du regard.
         //
-        // Elle visait la proie, ce qui semblait évident et ne l'était pas : le repli l'avait laissée
-        // tournée dos à la cible, la navigation qui l'aurait fait pivoter est coupée pendant la
-        // charge, et le contrôle du regard ne fait tourner que la tête. Le corps gardait donc son
-        // cap de fuite et la ligne arrivait à reculons.
-        alignWithRunDirection();
-        Vec3 ahead = this.orca.position().add(this.runDirection.scale(20.0));
-        this.orca.getLookControl().setLookAt(ahead.x, this.orca.getEyeY(), ahead.z);
+        // Celui-ci s'exécute APRÈS les goals et relisse ce qu'on vient d'imposer : les deux se
+        // disputaient l'orientation d'un tick à l'autre, ce qui se voyait comme des saccades. Et
+        // viser l'axe de course figé plutôt que la proie faisait qu'elles ne la regardaient jamais.
+        // Le déplacement, lui, reste engagé sur l'axe : c'est le corps qui suit la cible, pas la
+        // trajectoire.
+        faceHorizontally(this.prey.getX(), this.prey.getZ(), TURN_RATE);
 
         if (this.phase == Phase.CHARGING) {
             tickCharge();
@@ -235,6 +247,7 @@ public class OWOrcaWaveWashGoal extends Goal {
             this.phaseTicks = 0;
             this.orca.getNavigation().stop();
             this.orca.setWaveCharging(true);
+            snapTowardPrey();
             return;
         }
 
@@ -307,19 +320,50 @@ public class OWOrcaWaveWashGoal extends Goal {
      * dos. Un quart de tour par seconde environ — de quoi voir la ligne pivoter d'un bloc avant de
      * s'élancer, sans qu'elle paraisse téléportée dans le bon sens.</p>
      */
-    private void alignWithRunDirection() {
-        float wanted = (float) (Mth.atan2(this.runDirection.z, this.runDirection.x) * Mth.RAD_TO_DEG) - 90.0F;
-        float step = Mth.clamp(Mth.wrapDegrees(wanted - this.orca.getYRot()), -TURN_RATE, TURN_RATE);
+    private void faceHorizontally(double x, double z, float maxStep) {
+        float wanted = (float) (Mth.atan2(z - this.orca.getZ(), x - this.orca.getX()) * Mth.RAD_TO_DEG) - 90.0F;
+        float step = Mth.clamp(Mth.wrapDegrees(wanted - this.orca.getYRot()), -maxStep, maxStep);
         float yaw = this.orca.getYRot() + step;
 
         this.orca.setYRot(yaw);
         this.orca.yBodyRot = yaw;
         this.orca.yHeadRot = yaw;
+        // Assiette tenue à plat : la proie est perchée plus haut, et laisser le tangage la viser
+        // ferait à nouveau lever le nez à la ligne au moment de percuter.
+        this.orca.setXRot(0f);
+    }
+
+    /**
+     * Volte-face immédiate au moment de s'élancer.
+     *
+     * <p>Sans elle, la charge partait avec un cap encore tourné vers le poste de repli, que la
+     * rotation progressive mettait une douzaine de ticks à rattraper. Or le rendu compare le cap de
+     * l'entité à sa direction de déplacement : au-delà de quatre-vingt-quinze degrés d'écart, il
+     * considère la bête en marche arrière et retourne la carcasse. Les orques s'affichaient donc
+     * <b>dos à leur trajectoire</b> pendant tout le début de la course — d'où l'impression qu'elles
+     * ne regardaient rien.</p>
+     */
+    private void snapTowardPrey() {
+        faceHorizontally(this.prey.getX(), this.prey.getZ(), 180f);
+        this.orca.yRotO = this.orca.getYRot();
+        this.orca.yBodyRotO = this.orca.yBodyRot;
+        this.orca.yHeadRotO = this.orca.yHeadRot;
     }
 
     private void tickCharge() {
+        // Cap réajusté sur la proie à chaque tick, au lieu de courir sur un axe figé au départ.
+        //
+        // C'est ce qui manquait pour qu'elles la REGARDENT vraiment. Le corps affiché par le rendu
+        // ne vient pas de {@code yBodyRot}, qui n'est pas synchronisé : le client le reconstitue
+        // depuis la direction de déplacement observée. Imposer une orientation côté serveur ne
+        // pouvait donc rien changer tant que la trajectoire, elle, ne visait pas la proie.
+        Vec3 toPrey = new Vec3(
+                this.prey.getX() - this.orca.getX(), 0.0, this.prey.getZ() - this.orca.getZ());
+        if (toPrey.lengthSqr() > 1.0E-4) this.runDirection = toPrey.normalize();
+
         // Nage juste sous la surface : une vague levée depuis le fond ne se verrait pas, et
-        // l'orque manquerait la plaque en passant dessous.
+        // l'orque manquerait la plaque en passant dessous. La composante verticale reste calée sur
+        // la ligne d'eau, jamais sur la proie — c'est ce qui garde le nez à l'horizontale.
         double wantedY = this.prey.getY() - 1.0;
         double climb = Math.max(-0.15, Math.min(0.15, (wantedY - this.orca.getY()) * 0.2));
 
@@ -327,7 +371,6 @@ public class OWOrcaWaveWashGoal extends Goal {
                 this.runDirection.x * CHARGE_SPEED,
                 climb,
                 this.runDirection.z * CHARGE_SPEED);
-        this.orca.hasImpulse = true;
 
         spawnBowWave();
 

@@ -245,7 +245,11 @@
       "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:\" -Context 0,3 | Select-Object -First 20; \"EXIT=$LASTEXITCODE\")",
       "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:\" -Context 0,3 | Select-Object -First 25; \"EXIT=$LASTEXITCODE\")",
       "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:|warning: \\\\[\" -Context 0,3 | Select-Object -First 25; \"EXIT=$LASTEXITCODE\")",
-      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/src/main/java/net/tiew/operationWild/entity/goals/global\" && grep -n \"isInterruptable\\\\|setFlags\\\\|requiresUpdateEveryTick\\\\|class OWAttackGoal\" OWAttackGoal.java; echo \"=== pack hunt ===\"; grep -n \"isInterruptable\\\\|setFlags\" ../orca/OWOrcaPackHuntGoal.java)"
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/src/main/java/net/tiew/operationWild/entity/goals/global\" && grep -n \"isInterruptable\\\\|setFlags\\\\|requiresUpdateEveryTick\\\\|class OWAttackGoal\" OWAttackGoal.java; echo \"=== pack hunt ===\"; grep -n \"isInterruptable\\\\|setFlags\" ../orca/OWOrcaPackHuntGoal.java)",
+      "Bash(sed -n '/private boolean isFlopGrounded/,/^    }/p' OrcaEntity.java)",
+      "Bash(sed -n '/public boolean isFlopping/,/^    }/p' OrcaEntity.java)",
+      "Bash(sed -n '/private Vec3 flopHopDrive/,/^    }/p' OrcaEntity.java)",
+      "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:\" -Context 0,4 | Select-Object -First 30; \"EXIT=$LASTEXITCODE\")"
     ]
   }
 }

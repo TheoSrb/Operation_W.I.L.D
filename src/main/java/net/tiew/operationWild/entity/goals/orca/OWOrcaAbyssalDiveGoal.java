@@ -43,8 +43,13 @@ public class OWOrcaAbyssalDiveGoal extends Goal {
      *
      * <p>Sans elle, la manœuvre se déclencherait dans un lagon de six blocs de fond et n'aurait
      * aucun sens : la proie serait relâchée là où elle a pied.</p>
+     *
+     * <p>Ramenée de vingt-quatre à seize blocs. C'était en pratique le vrai verrou : un océan
+     * vanilla creuse rarement plus d'une vingtaine de blocs sous la surface, si bien que la
+     * condition n'était presque jamais remplie et que le reste des réglages ne servait à rien.
+     * Seize blocs suffisent amplement à ce que la remontée coûte quelque chose.</p>
      */
-    private static final double MIN_WATER_COLUMN = 24.0;
+    private static final double MIN_WATER_COLUMN = 16.0;
 
     /** Marge au-dessus du fond à laquelle la proie est rendue. */
     private static final double FLOOR_MARGIN = 2.5;
@@ -55,11 +60,17 @@ public class OWOrcaAbyssalDiveGoal extends Goal {
     private static final int BITE_TIMEOUT = 45;
     private static final int DIVE_TIMEOUT = 400;
 
-    /** Une chance sur autant, par tick où tout est réuni. */
-    private static final int TRIGGER_ODDS = 900;
+    /**
+     * Une chance sur autant, par tick où tout est réuni.
+     *
+     * <p>Resserré : la conjonction exigée — eau profonde, proie happable à portée, orque libre de
+     * tout le reste — est déjà rare en elle-même, et un tirage trop sec par-dessus faisait de la
+     * descente une curiosité qu'on pouvait ne jamais voir.</p>
+     */
+    private static final int TRIGGER_ODDS = 60;
 
-    private static final int COOLDOWN_MIN = 4800;
-    private static final int COOLDOWN_MAX = 12000;
+    private static final int COOLDOWN_MIN = 700;
+    private static final int COOLDOWN_MAX = 1800;
 
     private enum Phase { STALK, BITE, DIVE }
 
