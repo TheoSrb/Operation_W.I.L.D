@@ -240,10 +240,18 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
                 if (this.entity.isInWater()) {
                     this.entity.setSpeed(speed * 0.02F);
 
-                    float cosX = Mth.cos(this.entity.getXRot() * Mth.DEG_TO_RAD);
-                    float sinX = Mth.sin(this.entity.getXRot() * Mth.DEG_TO_RAD);
-                    this.entity.zza = cosX * speed;
-                    this.entity.yya = -sinX * speed;
+                    // Pente réellement demandée par le chemin, et non l'assiette de la bête.
+                    //
+                    // Le terme vertical se déduisait du tangage de l'entité — or celui-ci est remis à
+                    // zéro à chaque tick tant qu'elle est dans l'eau : le tangage VISIBLE est
+                    // procédural (cf. leanPitch) et ne passe jamais par l'entité elle-même. La
+                    // poussée verticale valait donc sin(0), c'est-à-dire rien du tout. La bête ne
+                    // pouvait remonter que par la flottabilité de trois millièmes ajoutée plus haut,
+                    // et n'atteignait jamais une cible restée en surface.
+                    double horizontal = Math.sqrt(dx * dx + dz * dz);
+                    float pitch = (float) Mth.atan2(dy, Math.max(horizontal, 1.0E-4));
+                    this.entity.zza = Mth.cos(pitch) * speed;
+                    this.entity.yya = Mth.sin(pitch) * speed;
                 } else {
                     this.entity.setSpeed(speed * 0.1F);
                 }

@@ -145,12 +145,26 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         // aux instants sans cible, et se retire dès qu'une cible apparaît : il ne prend donc jamais
         // le pas sur la chasse malgré sa priorité.
         this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.orca.OWOrcaSpyhopGoal(this));
-        this.goalSelector.addGoal(1, new FollowBoatGoal(this));
+        // Le suivi de bateau devient réservé aux orques apprivoisées. Une orque sauvage qui escorte
+        // les coques comme un dauphin contredit frontalement la percussion ajoutée plus bas — et,
+        // prioritaire, elle lui aurait pris le déplacement en permanence.
+        this.goalSelector.addGoal(1, new FollowBoatGoal(this) {
+            @Override
+            public boolean canUse() {
+                return OrcaEntity.this.isTame() && super.canUse();
+            }
+
+            @Override
+            public boolean canContinueToUse() {
+                return OrcaEntity.this.isTame() && super.canContinueToUse();
+            }
+        });
+        this.goalSelector.addGoal(2, new net.tiew.operationWild.entity.goals.orca.OWOrcaBoatStrikeGoal(this));
         this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 20f, 28, 4, false) {
             private boolean isBlockedForWild() {
                 if (OrcaEntity.this.isTame()) return false;
                 LivingEntity t = OrcaEntity.this.getTarget();
-                return t != null && !t.isInWater();
+                return t != null && !isReachableFromWater(t);
             }
 
             @Override
@@ -440,6 +454,21 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     protected PathNavigation createNavigation(Level worldIn) {
         return new SwimmerJumpPathNavigator(this, worldIn);
+    }
+
+    /**
+     * Cible qu'une orque sauvage peut atteindre sans quitter son élément.
+     *
+     * <p>La règle voulue est « on ne poursuit pas une proie hors de l'eau ». Elle se lisait sur la
+     * seule immersion de la cible, ce qui rangeait un joueur en bateau avec un joueur réfugié sur
+     * une falaise : la chasse se fermait, et l'orque tournait sous la coque sans jamais rien
+     * tenter. Ce qui est porté par la surface reste frappable d'en dessous.</p>
+     */
+    private static boolean isReachableFromWater(LivingEntity target) {
+        if (target.isInWater()) return true;
+        if (target.getVehicle() instanceof Boat) return true;
+        BlockPos underfoot = BlockPos.containing(target.getX(), target.getY() - 0.1, target.getZ());
+        return target.level().getFluidState(underfoot).is(net.minecraft.tags.FluidTags.WATER);
     }
 
     @Override
