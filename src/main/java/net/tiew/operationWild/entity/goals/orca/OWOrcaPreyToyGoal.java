@@ -270,8 +270,21 @@ public class OWOrcaPreyToyGoal extends Goal {
         return true;
     }
 
+    /**
+     * Part de vie en dessous de laquelle l'orque cesse de jouer.
+     *
+     * <p>Le jeu suppose d'avoir gagné confortablement. Une orque à demi entamée qui s'amuserait
+     * encore de sa proie ne serait pas cruelle mais absurde — et le joueur qui vient de lui coûter
+     * la moitié de sa vie mérite qu'elle le prenne au sérieux.</p>
+     *
+     * <p>Le seuil vaut aussi en cours de partie : blessée pendant qu'elle s'amuse, elle lâche
+     * l'affaire et redevient une chasseuse.</p>
+     */
+    private static final float MIN_HEALTH_FRACTION = 0.5F;
+
     private boolean isUsable() {
-        return !this.orca.isTame()
+        return this.orca.getHealth() > this.orca.getMaxHealth() * MIN_HEALTH_FRACTION
+                && !this.orca.isTame()
                 && !this.orca.isBaby()
                 && !this.orca.isBeached()
                 && !this.orca.isSleeping()

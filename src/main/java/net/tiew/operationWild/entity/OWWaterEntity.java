@@ -205,6 +205,13 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
 
 
     public static class OWSwimMoveControl extends MoveControl {
+
+        /**
+         * Écart horizontal en dessous duquel la destination est jugée à l'aplomb, et son cap
+         * inexploitable. Un tiers de bloc : en deçà, l'angle n'est plus que du bruit.
+         */
+        private static final double YAW_DEAD_ZONE = 0.1;
+
         private final OWWaterEntity entity;
 
         public OWSwimMoveControl(OWWaterEntity entity) {
@@ -229,10 +236,27 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
                     return;
                 }
 
-                float yaw = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
-                this.entity.setYRot(this.rotlerp(this.entity.getYRot(), yaw, 10.0F));
-                this.entity.yBodyRot = this.entity.getYRot();
-                this.entity.yHeadRot = this.entity.getYRot();
+                // Le cap n'est recalculé que si la destination a une direction horizontale DIGNE DE
+                // CE NOM.
+                //
+                // C'est l'origine de la bête qui tourne sur elle-même sans fin. Le garde ci-dessus
+                // ne teste que la distance totale, verticale comprise : une destination située à
+                // l'aplomb — même dix blocs plus haut — le franchit sans peine alors que {@code dx}
+                // et {@code dz} n'y valent plus que du bruit d'arrondi. L'{@code atan2} en tirait un
+                // cap différent à chaque tick, et l'orque pivotait indéfiniment sur place au lieu
+                // de monter. Sans direction horizontale exploitable, on garde simplement le cap
+                // courant : la poussée verticale plus bas fait tout le travail.
+                double horizontalSq = dx * dx + dz * dz;
+                if (horizontalSq > YAW_DEAD_ZONE) {
+                    // Virage confié à la bête, et non plus plafonné ici à dix degrés par tick.
+                    //
+                    // C'est ce contrôle qui conduit dès qu'un chemin existe, et il s'exécute APRÈS
+                    // les goals : le cap qu'ils venaient de poser était réécrit dans la foulée avec
+                    // cette allure fixe. Régler {@code getRotationSpeed()} sur l'espèce ne changeait
+                    // donc rigoureusement rien tant qu'elle nageait vers quelque chose — le seul
+                    // réglage qui comptait était celui-ci, en dur, et invisible depuis l'entité.
+                    this.entity.turnTowards(new Vec3(dx, 0.0, dz));
+                }
 
                 float speed = (float) (this.speedModifier *
                         this.entity.getAttributeValue(Attributes.MOVEMENT_SPEED));

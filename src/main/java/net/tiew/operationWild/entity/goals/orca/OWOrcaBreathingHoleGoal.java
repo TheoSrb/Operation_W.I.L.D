@@ -95,7 +95,9 @@ public class OWOrcaBreathingHoleGoal extends Goal {
 
         double targetX = this.ice.getX() + 0.5;
         double targetZ = this.ice.getZ() + 0.5;
-        this.orca.getLookControl().setLookAt(targetX, this.ice.getY(), targetZ);
+        // La brèche visée finit juste au-dessus de la tête à mesure que l'orque se recentre : lui
+        // demander de la regarder revient alors à lui demander un cap sans direction.
+        this.orca.lookAtUnlessOverhead(targetX, this.ice.getY(), targetZ);
 
         if (this.orca.getY() + this.orca.getBbHeight() >= this.ice.getY() - RAM_REACH) {
             breakHole();

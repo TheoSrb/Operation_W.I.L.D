@@ -38,6 +38,14 @@ public class OWQuestNotifier {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) { trackedEntity = -1; return; }
 
+        // Avalé par une orque, le joueur est techniquement SON passager : le suivi prenait donc la
+        // bête qui le dévore pour sa monture et lui annonçait l'avancement de ses quêtes
+        // quotidiennes. On n'a rien à lui lire pendant qu'il est dans une gueule.
+        if (net.tiew.operationWild.entity.animals.aquatic.OrcaEntity.isSwallowed(mc.player)) {
+            trackedEntity = -1;
+            return;
+        }
+
         Entity vehicle = mc.player.getVehicle();
         if (!(vehicle instanceof OWEntity ent) || ent instanceof Submarine) { trackedEntity = -1; return; }
 

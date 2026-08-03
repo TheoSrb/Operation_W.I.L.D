@@ -1692,6 +1692,33 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return OWUtils.generateRandomInterval(min * multiplicator, max * multiplicator);
     }
 
+    /**
+     * Fait virer la bete vers une direction horizontale, a l'allure que dicte son espece.
+     *
+     * <p>Point de passage unique de toute orientation imposee. La part de l'ecart rattrapee a chaque
+     * appel vient de {@link #getRotationSpeed()} : le meme reglage gouverne donc le virage sous les
+     * ordres d'un cavalier et celui d'une bete livree a elle-meme, au lieu de deux allures separees
+     * dont une seule etait reglable.</p>
+     */
+    public void turnTowards(Vec3 direction) {
+        turnTowards(direction, this.getRotationSpeed());
+    }
+
+    /**
+     * Variante a facteur impose, pour les rares cas ou l'allure de l'espece ne convient pas.
+     *
+     * @param factor part de l'ecart restant rattrapee a chaque appel, entre 0 et 1.
+     */
+    public void turnTowards(Vec3 direction, float factor) {
+        if (direction.horizontalDistanceSqr() < 1.0E-6) return;
+        float wanted = (float) (Mth.atan2(direction.z, direction.x) * Mth.RAD_TO_DEG) - 90.0F;
+        float delta = Mth.wrapDegrees(wanted - this.getYRot());
+        float yaw = this.getYRot() + delta * Mth.clamp(factor, 0f, 1f);
+        this.setYRot(yaw);
+        this.yBodyRot = yaw;
+        this.yHeadRot = yaw;
+    }
+
     public void setLookAt(double targetX, double targetY, double targetZ) {
         this.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(targetX, targetY, targetZ));
     }

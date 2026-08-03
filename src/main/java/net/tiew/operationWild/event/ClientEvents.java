@@ -244,6 +244,14 @@ public class ClientEvents {
     public static void onKeyInput(InputEvent.Key event) {
         Minecraft minecraft = Minecraft.getInstance();
 
+        // Dans une gueule d'orque, aucun écran du mod ne s'ouvre. Le joueur y est passager de la
+        // bête : sans ce refus, l'inventaire de sa « monture » lui restait accessible — c'est-à-dire
+        // celui de ce qui est en train de le dévorer — au même titre que le manuscrit ou la tribu.
+        if (minecraft.player != null
+                && net.tiew.operationWild.entity.animals.aquatic.OrcaEntity.isSwallowed(minecraft.player)) {
+            return;
+        }
+
         // Renoncement aux didacticiels : traité avant tout le reste, et sans autre condition que
         // d'en avoir un sous les yeux — la touche ne fait rien le reste du temps.
         if (event.getAction() == GLFW.GLFW_PRESS
@@ -986,6 +994,10 @@ public class ClientEvents {
                 if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player)
                     return;
                 if (player.getVehicle() instanceof BoaEntity boa && boa.getGrabbedTarget() == player) return;
+                // Avalé par une orque : même cas que les prises du tigre, du crocodile et du boa
+                // juste au-dessus. Le joueur est passager de la bête, donc toute l'interface de
+                // monture se dressait — vie, énergie, attaques, indications — sur ce qui le dévore.
+                if (OrcaEntity.isSwallowed(player)) return;
                 OWEntityHud.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
                 OWAttacksOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
                 // Rendu de l'indication ICI, juste après le HUD de l'entité, pour passer au-dessus de

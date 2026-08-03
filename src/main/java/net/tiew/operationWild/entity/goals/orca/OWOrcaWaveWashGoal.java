@@ -91,9 +91,6 @@ public class OWOrcaWaveWashGoal extends Goal {
     private static final double CHARGE_SPEED = 0.78;
     private static final int MAX_CHARGE_TICKS = 150;
 
-    /** Vitesse de virage du corps pendant la charge, en degrés par tick. */
-    private static final float TURN_RATE = 14.0f;
-
     /**
      * Distance à la cible à laquelle l'orque quitte l'eau.
      *
@@ -215,7 +212,7 @@ public class OWOrcaWaveWashGoal extends Goal {
         // viser l'axe de course figé plutôt que la proie faisait qu'elles ne la regardaient jamais.
         // Le déplacement, lui, reste engagé sur l'axe : c'est le corps qui suit la cible, pas la
         // trajectoire.
-        faceHorizontally(this.prey.getX(), this.prey.getZ(), TURN_RATE);
+        faceHorizontally(this.prey.getX(), this.prey.getZ());
 
         if (this.phase == Phase.CHARGING) {
             tickCharge();
@@ -247,7 +244,6 @@ public class OWOrcaWaveWashGoal extends Goal {
             this.phaseTicks = 0;
             this.orca.getNavigation().stop();
             this.orca.setWaveCharging(true);
-            snapTowardPrey();
             return;
         }
 
@@ -320,34 +316,19 @@ public class OWOrcaWaveWashGoal extends Goal {
      * dos. Un quart de tour par seconde environ — de quoi voir la ligne pivoter d'un bloc avant de
      * s'élancer, sans qu'elle paraisse téléportée dans le bon sens.</p>
      */
-    private void faceHorizontally(double x, double z, float maxStep) {
-        float wanted = (float) (Mth.atan2(z - this.orca.getZ(), x - this.orca.getX()) * Mth.RAD_TO_DEG) - 90.0F;
-        float step = Mth.clamp(Mth.wrapDegrees(wanted - this.orca.getYRot()), -maxStep, maxStep);
-        float yaw = this.orca.getYRot() + step;
-
-        this.orca.setYRot(yaw);
-        this.orca.yBodyRot = yaw;
-        this.orca.yHeadRot = yaw;
+    /**
+     * Oriente le corps vers la colonne de la proie, par petits pas.
+     *
+     * <p>La volte-face immédiate qui figurait ici a été retirée : elle réglait bien le problème de
+     * la ligne arrivant à reculons, mais au prix d'un pivot d'une image à l'autre, qui se voyait.
+     * Le virage progressif suffit, parce que la charge, elle, vise désormais la proie à chaque tick
+     * — le cap et la trajectoire convergent donc ensemble au lieu de se contredire.</p>
+     */
+    private void faceHorizontally(double x, double z) {
+        this.orca.turnTowards(new Vec3(x - this.orca.getX(), 0.0, z - this.orca.getZ()));
         // Assiette tenue à plat : la proie est perchée plus haut, et laisser le tangage la viser
         // ferait à nouveau lever le nez à la ligne au moment de percuter.
         this.orca.setXRot(0f);
-    }
-
-    /**
-     * Volte-face immédiate au moment de s'élancer.
-     *
-     * <p>Sans elle, la charge partait avec un cap encore tourné vers le poste de repli, que la
-     * rotation progressive mettait une douzaine de ticks à rattraper. Or le rendu compare le cap de
-     * l'entité à sa direction de déplacement : au-delà de quatre-vingt-quinze degrés d'écart, il
-     * considère la bête en marche arrière et retourne la carcasse. Les orques s'affichaient donc
-     * <b>dos à leur trajectoire</b> pendant tout le début de la course — d'où l'impression qu'elles
-     * ne regardaient rien.</p>
-     */
-    private void snapTowardPrey() {
-        faceHorizontally(this.prey.getX(), this.prey.getZ(), 180f);
-        this.orca.yRotO = this.orca.getYRot();
-        this.orca.yBodyRotO = this.orca.yBodyRot;
-        this.orca.yHeadRotO = this.orca.yHeadRot;
     }
 
     private void tickCharge() {

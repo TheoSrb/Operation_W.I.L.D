@@ -74,6 +74,10 @@ public class OWOrcaBeachingGoal extends Goal {
     private Phase phase = Phase.SEARCHING;
     private int attackCooldownTicks = 0;
     private int leapTicks = 0;
+    private int approachTicks = 0;
+
+    /** Au-delà, l'approche est déclarée sans issue : douze secondes suffisent largement. */
+    private static final int APPROACH_MAX_TICKS = 240;
     private int cooldown = 0;
 
     // ── Constructeur ─────────────────────────────────────────────────────────
@@ -102,6 +106,7 @@ public class OWOrcaBeachingGoal extends Goal {
         this.phase = Phase.APPROACHING;
         this.attackCooldownTicks = 0;
         this.leapTicks = 0;
+        this.approachTicks = 0;
         return true;
     }
 
@@ -115,7 +120,14 @@ public class OWOrcaBeachingGoal extends Goal {
 
         return switch (phase) {
             // Si la target quitte la côte pendant l'approche → abandon immédiat
-            case APPROACHING -> isNearRealCoast(target);
+            // L'approche renonce au bout d'un temps.
+            //
+            // Elle n'avait aucune limite : tant que la cible restait près d'une côte, l'orque
+            // continuait de nager vers un point que son évaluateur de nage ne peut pas atteindre —
+            // une position à terre. Elle se pressait contre le rivage pendant que le contrôle de
+            // nage la réorientait sans fin vers ce point : elle tournait sur elle-même,
+            // indéfiniment, et rien dans le goal ne pouvait l'en sortir.
+            case APPROACHING -> isNearRealCoast(target) && approachTicks < APPROACH_MAX_TICKS;
             // Pendant le bond la physique gère, on attend juste LEAP_MAX_TICKS
             case LEAPING     -> leapTicks < LEAP_MAX_TICKS;
             // Sur la plage, on continue tant que la target est accessible
@@ -128,6 +140,7 @@ public class OWOrcaBeachingGoal extends Goal {
     public void start() {
         this.attackCooldownTicks = 0;
         this.leapTicks = 0;
+        this.approachTicks = 0;
     }
 
     @Override
@@ -142,6 +155,7 @@ public class OWOrcaBeachingGoal extends Goal {
         this.target = null;
         this.phase = Phase.SEARCHING;
         this.leapTicks = 0;
+        this.approachTicks = 0;
         this.attackCooldownTicks = 0;
         this.cooldown = TRIGGER_COOLDOWN;
         this.orca.getNavigation().stop();
@@ -161,11 +175,15 @@ public class OWOrcaBeachingGoal extends Goal {
     // ── Phase APPROACHING ────────────────────────────────────────────────────
 
     private void tickApproaching() {
+        approachTicks++;
         orca.getLookControl().setLookAt(target, 30f, 30f);
 
-        // Nage en surface vers la target
-        double seaY = orca.level().getSeaLevel() - 1.5;
-        orca.getNavigation().moveTo(target.getX(), seaY, target.getZ(), orca.getSwimSpeed());
+        // Nage en surface vers la target. Le chemin n'est refait que par intervalles : recalculé à
+        // chaque tick, il coûtait un calcul complet par tick pour une cible qui bouge à peine.
+        if (approachTicks % 8 == 0) {
+            double seaY = orca.level().getSeaLevel() - 1.5;
+            orca.getNavigation().moveTo(target.getX(), seaY, target.getZ(), orca.getSwimSpeed());
+        }
 
         // Déclenchement du bond à 13 blocs horizontaux
         if (horizontalDist(orca, target) <= LEAP_TRIGGER_DIST_H) {

@@ -249,7 +249,10 @@
       "Bash(sed -n '/private boolean isFlopGrounded/,/^    }/p' OrcaEntity.java)",
       "Bash(sed -n '/public boolean isFlopping/,/^    }/p' OrcaEntity.java)",
       "Bash(sed -n '/private Vec3 flopHopDrive/,/^    }/p' OrcaEntity.java)",
-      "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:\" -Context 0,4 | Select-Object -First 30; \"EXIT=$LASTEXITCODE\")"
+      "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:\" -Context 0,4 | Select-Object -First 30; \"EXIT=$LASTEXITCODE\")",
+      "PowerShell($t = \"C:\\\\Users\\\\Tiew_37\\\\.gradle\\\\caches\\\\8.10\\\\transforms\"; if \\(Test-Path $t\\) { $d = Get-ChildItem $t -Directory; \"dossiers de transformation : $\\($d.Count\\)\"; $bad = Join-Path $t \"4cdfb811c7c9e8705485a9512fdb6517\"; \"cible existe : $\\(Test-Path $bad\\)\"; if \\(Test-Path $bad\\) { Get-ChildItem $bad -Recurse | Select-Object -First 10 FullName, Length } } else { \"pas de dossier transforms\" })",
+      "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat --stop 2>&1 | Select-Object -Last 3; $bad = \"C:\\\\Users\\\\Tiew_37\\\\.gradle\\\\caches\\\\8.10\\\\transforms\\\\4cdfb811c7c9e8705485a9512fdb6517\"; Remove-Item -Recurse -Force $bad -ErrorAction SilentlyContinue; \"supprimé : $\\(-not \\(Test-Path $bad\\)\\)\")",
+      "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:|metadata.bin|FAILURE|Exception\" | Select-Object -First 15; \"EXIT=$LASTEXITCODE\")"
     ]
   }
 }
