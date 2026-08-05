@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 
 /**
@@ -324,6 +325,7 @@ public class RightClickAlertOverlay {
         if (captor instanceof CrocodileEntity crocodile) return crocodile.getGrabTimeout();
         if (captor instanceof TigerEntity tiger) return tiger.getGrabTimeout();
         if (captor instanceof BoaEntity boa) return boa.getGrabTimeout();
+        if (captor instanceof KangarooEntity kangaroo) return kangaroo.getGrabTimeout();
         return 0;
     }
 
@@ -331,6 +333,7 @@ public class RightClickAlertOverlay {
         if (captor instanceof CrocodileEntity crocodile) return crocodile.getGrabMaxTimeout();
         if (captor instanceof TigerEntity tiger) return tiger.getGrabMaxTimeout();
         if (captor instanceof BoaEntity boa) return boa.getGrabMaxTimeout();
+        if (captor instanceof KangarooEntity kangaroo) return kangaroo.getGrabMaxTimeout();
         return 0;
     }
 }

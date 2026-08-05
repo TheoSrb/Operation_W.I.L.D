@@ -254,7 +254,8 @@
       "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat --stop 2>&1 | Select-Object -Last 3; $bad = \"C:\\\\Users\\\\Tiew_37\\\\.gradle\\\\caches\\\\8.10\\\\transforms\\\\4cdfb811c7c9e8705485a9512fdb6517\"; Remove-Item -Recurse -Force $bad -ErrorAction SilentlyContinue; \"supprimé : $\\(-not \\(Test-Path $bad\\)\\)\")",
       "PowerShell(cd \"C:\\\\Users\\\\Tiew_37\\\\IdeaProjects\\\\Operation-W.I.L.D\"; .\\\\gradlew.bat compileJava --console=plain -q 2>&1 | Select-String -Pattern \"error:|erreur:|metadata.bin|FAILURE|Exception\" | Select-Object -First 15; \"EXIT=$LASTEXITCODE\")",
       "Bash(sed -n '/private void launchDash/,/^    }/p' OrcaEntity.java)",
-      "Bash(sed -n '/if \\(this.dashTicksLeft > 0\\) {/,/^            }/p' OrcaEntity.java)"
+      "Bash(sed -n '/if \\(this.dashTicksLeft > 0\\) {/,/^            }/p' OrcaEntity.java)",
+      "PowerShell(./gradlew compileJava --console=plain -q 2>&1)"
     ]
   }
 }

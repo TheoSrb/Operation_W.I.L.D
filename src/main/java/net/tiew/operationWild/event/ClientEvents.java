@@ -130,6 +130,16 @@ public class ClientEvents {
                         RightClickAlertOverlay.clickAnimationTimer = 3;
                     }
                 }
+            } else if (player.getVehicle() instanceof KangarooEntity kangaroo && kangaroo.getDrownVictim() == player) {
+                if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
+                    if (kangaroo.getGrabTimeout() <= 0) {
+                        OWNetworkHandler.sendToServer(new StopGrabPacket());
+                    } else {
+                        OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
+                        RightClickAlertOverlay.hasClicked = true;
+                        RightClickAlertOverlay.clickAnimationTimer = 3;
+                    }
+                }
             } else {
                 BoaEntity grabbingBoa = player.level()
                         .getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
@@ -951,7 +961,8 @@ public class ClientEvents {
         boolean screenOpen = minecraft.screen != null;
         boolean hasVenom = player.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()) || (vehicle != null && vehicle instanceof LivingEntity livingEntity && livingEntity.hasEffect(OWEffects.VENOM_EFFECT.getDelegate()));
         boolean canShowAttacksInformation = OWAttacksInformation.shouldRender();
-        boolean questsAreUpdated = targetedEntity instanceof OWEntity owEntity && owEntity.questsAreUpdated();
+        boolean questsAreUpdated = targetedEntity instanceof OWEntity owEntity && owEntity.questsAreUpdated()
+                && !(targetedEntity instanceof KangarooEntity questKangaroo && questKangaroo.getDrownVictim() == player);
         boolean renderSeabug = targetedEntity instanceof SeaBugEntity;
         boolean renderKodiak = targetedEntity instanceof KodiakEntity;
         boolean renderCrocodile = targetedEntity instanceof CrocodileEntity;
@@ -971,7 +982,10 @@ public class ClientEvents {
                 boa -> boa.isGrabbing() && boa.getGrabbedTargetId() == player.getId()
         );
 
-        boolean isGrabBySomething = isGrabByCrocodile || isGrabByTiger || isGrabByBoa;
+        boolean isGrabByKangaroo = player.getVehicle() instanceof KangarooEntity drowner
+                && drowner.getDrownVictim() == player;
+
+        boolean isGrabBySomething = isGrabByCrocodile || isGrabByTiger || isGrabByBoa || isGrabByKangaroo;
 
         // Jauge de sortie de combat, à l'emplacement de la barre écartée juste avant.
         if (event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.HOTBAR)) {
@@ -994,6 +1008,8 @@ public class ClientEvents {
                 if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player)
                     return;
                 if (player.getVehicle() instanceof BoaEntity boa && boa.getGrabbedTarget() == player) return;
+                if (player.getVehicle() instanceof KangarooEntity drowningKangaroo
+                        && drowningKangaroo.getDrownVictim() == player) return;
                 // Avalé par une orque : même cas que les prises du tigre, du crocodile et du boa
                 // juste au-dessus. Le joueur est passager de la bête, donc toute l'interface de
                 // monture se dressait — vie, énergie, attaques, indications — sur ce qui le dévore.

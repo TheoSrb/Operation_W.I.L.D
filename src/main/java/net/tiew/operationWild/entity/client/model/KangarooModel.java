@@ -21,12 +21,12 @@ import net.tiew.operationWild.entity.client.animation.KangarooAnimations;
 public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kangaroo"), "main");
 
-    // Tornade de Poings : on boucle sur la portion « stable » de l'anim ATTACK_SECONDARY
-    // (entre l'intro où les bras se lèvent et l'outro où ils se baissent).
-    private static final float SPIN_LOOP_START_MS  = 500f;    // 0,5 s
-    private static final float SPIN_LOOP_LENGTH_MS = 14000f;  // jusqu'à 14,5 s
-    private static final float SPIN_ANIM_END_MS    = 15000f;  // fin de l'anim (pose de repos)
+    private static final float SPIN_LOOP_START_MS = 500f;
+    private static final float SPIN_LOOP_LENGTH_MS = 14000f;
+    private static final float SPIN_ANIM_END_MS = 15000f;
     private static final Vector3f SPIN_ANIM_VEC = new Vector3f();
+
+    private static final float FREE_WALK_SPEED_FACTOR = 1.25f;
     private static final Vector3f STOMP_ANIM_VEC = new Vector3f();
 
     private final ModelPart ALL2;
@@ -84,30 +84,30 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
         PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-6.0F, -5.0F, -7.0F, 12.0F, 12.0F, 15.0F, new CubeDeformation(0.0F))
-        .texOffs(82, 113).addBox(-5.0F, -7.0F, -6.0F, 10.0F, 2.0F, 13.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+                .texOffs(82, 113).addBox(-5.0F, -7.0F, -6.0F, 10.0F, 2.0F, 13.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
         PartDefinition body2 = body.addOrReplaceChild("body2", CubeListBuilder.create().texOffs(48, 49).addBox(-5.0F, -5.0F, -10.0F, 10.0F, 11.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, -7.0F));
 
         PartDefinition neck = body2.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(30, 85).addBox(-2.6F, -14.0F, -2.0F, 5.0F, 16.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 2.0F, -10.0F));
 
         PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(50, 85).addBox(-2.0F, -4.0F, -10.0F, 4.0F, 4.0F, 6.0F, new CubeDeformation(0.0F))
-        .texOffs(0, 74).addBox(-3.5F, -6.0F, -4.0F, 7.0F, 6.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -14.0F, 0.0F));
+                .texOffs(0, 74).addBox(-3.5F, -6.0F, -4.0F, 7.0F, 6.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -14.0F, 0.0F));
 
         PartDefinition left_Ear = head.addOrReplaceChild("left_Ear", CubeListBuilder.create().texOffs(88, 8).mirror().addBox(-1.5F, -7.0F, -0.5F, 3.0F, 7.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(3.0F, -5.0F, 2.5F));
 
         PartDefinition right_Ear = head.addOrReplaceChild("right_Ear", CubeListBuilder.create().texOffs(88, 8).addBox(-1.5F, -7.0F, -0.5F, 3.0F, 7.0F, 1.0F, new CubeDeformation(0.0F)), PartPose.offset(-3.0F, -5.0F, 2.5F));
 
         PartDefinition left_eyeBall = head.addOrReplaceChild("left_eyeBall", CubeListBuilder.create().texOffs(38, 33).addBox(0.1F, -0.5F, -2.0F, 0.0F, 1.0F, 4.0F, new CubeDeformation(0.025F))
-        .texOffs(41, 37).addBox(-0.9F, -0.5F, -2.0F, 1.0F, 1.0F, 0.0F, new CubeDeformation(0.025F)), PartPose.offset(3.4F, -4.5F, -2.0F));
+                .texOffs(41, 37).addBox(-0.9F, -0.5F, -2.0F, 1.0F, 1.0F, 0.0F, new CubeDeformation(0.025F)), PartPose.offset(3.4F, -4.5F, -2.0F));
 
         PartDefinition right_eyeBall = head.addOrReplaceChild("right_eyeBall", CubeListBuilder.create().texOffs(38, 33).mirror().addBox(-0.1F, -0.5F, -2.0F, 0.0F, 1.0F, 4.0F, new CubeDeformation(0.025F)).mirror(false)
-        .texOffs(41, 37).mirror().addBox(-0.1F, -0.5F, -2.0F, 1.0F, 1.0F, 0.0F, new CubeDeformation(0.025F)).mirror(false), PartPose.offset(-3.4F, -4.5F, -2.0F));
+                .texOffs(41, 37).mirror().addBox(-0.1F, -0.5F, -2.0F, 1.0F, 1.0F, 0.0F, new CubeDeformation(0.025F)).mirror(false), PartPose.offset(-3.4F, -4.5F, -2.0F));
 
         PartDefinition left_arm = body2.addOrReplaceChild("left_arm", CubeListBuilder.create().texOffs(84, 85).addBox(-1.5F, -1.0F, -1.5F, 3.0F, 13.0F, 3.0F, new CubeDeformation(0.0F))
-        .texOffs(112, 0).addBox(-2.0F, 6.0F, -2.0F, 4.0F, 7.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(5.5F, 1.0F, -5.5F));
+                .texOffs(112, 0).addBox(-2.0F, 6.0F, -2.0F, 4.0F, 7.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(5.5F, 1.0F, -5.5F));
 
         PartDefinition right_arm = body2.addOrReplaceChild("right_arm", CubeListBuilder.create().texOffs(84, 85).mirror().addBox(-1.5F, -1.0F, -1.5F, 3.0F, 13.0F, 3.0F, new CubeDeformation(0.0F)).mirror(false)
-        .texOffs(112, 0).mirror().addBox(-2.0F, 6.0F, -2.0F, 4.0F, 7.0F, 4.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-5.5F, 1.0F, -5.5F));
+                .texOffs(112, 0).mirror().addBox(-2.0F, 6.0F, -2.0F, 4.0F, 7.0F, 4.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(-5.5F, 1.0F, -5.5F));
 
         PartDefinition tail = body.addOrReplaceChild("tail", CubeListBuilder.create(), PartPose.offset(0.0F, -1.0F, 8.0F));
 
@@ -130,7 +130,7 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         return LayerDefinition.create(meshdefinition, 128, 128);
     }
 
-        @Override
+    @Override
     protected AnimationDefinition comboAnimation(int index) {
         return switch (index) {
             case 1 -> KangarooAnimations.ATTACK_STRIKE;
@@ -156,12 +156,27 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
 
         this.applyHeadRotation(netHeadYaw, headPitch);
 
-        // Combos 1-2 : rendu actif aussi pendant la phase de fin (isStarted mais !isCombo),
-        // ce qui laisse le bras revenir au repos naturellement au lieu de snapper.
         animateCombos(kangaroo, ageInTicks);
 
         if (kangaroo.isTelluricStomping() || kangaroo.telluricStompOutroTicks > 0) {
             animateTelluricStomp(kangaroo, ageInTicks);
+            captureBodyState(kangaroo);
+            return;
+        }
+
+        if (kangaroo.transitionIdleSleep.isStarted()) {
+            this.animate(kangaroo.transitionIdleSleep, KangarooAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
+            captureBodyState(kangaroo);
+            return;
+        }
+        if (kangaroo.transitionSleepIdle.isStarted()) {
+            this.animate(kangaroo.transitionSleepIdle, KangarooAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
+            captureBodyState(kangaroo);
+            return;
+        }
+
+        if (kangaroo.isNapping() || kangaroo.isSleeping()) {
+            this.animate(kangaroo.napAnimationState, KangarooAnimations.NAP, ageInTicks, 1.0f);
             captureBodyState(kangaroo);
             return;
         }
@@ -184,44 +199,128 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         }
 
         if (kangaroo.isSpinning()) {
-            float partial   = ageInTicks - kangaroo.tickCount;
-            float timeMs    = kangaroo.clientAnimTimeMs + 50f * kangaroo.clientSpinSpeed * partial;
-            long  loopedMs  = (long) (SPIN_LOOP_START_MS + (timeMs % SPIN_LOOP_LENGTH_MS));
+            float partial = ageInTicks - kangaroo.tickCount;
+            float timeMs = kangaroo.clientAnimTimeMs + 50f * kangaroo.clientSpinSpeed * partial;
+            long loopedMs = (long) (SPIN_LOOP_START_MS + (timeMs % SPIN_LOOP_LENGTH_MS));
             KeyframeAnimations.animate(this, KangarooAnimations.ATTACK_SECONDARY, loopedMs, 1f, SPIN_ANIM_VEC);
             captureBodyState(kangaroo);
             return;
         }
 
         if (kangaroo.clientOutroTicks > 0) {
-            float partial   = ageInTicks - kangaroo.tickCount;
+            float partial = ageInTicks - kangaroo.tickCount;
             float remaining = kangaroo.clientOutroTicks - partial;
-            float progress  = Mth.clamp(1f - remaining / KangarooEntity.WHIRLWIND_OUTRO_TICKS, 0f, 1f);
-            float loopEnd   = SPIN_LOOP_START_MS + SPIN_LOOP_LENGTH_MS;        
-            long  outroMs   = (long) (loopEnd + progress * (SPIN_ANIM_END_MS - loopEnd));
+            float progress = Mth.clamp(1f - remaining / KangarooEntity.WHIRLWIND_OUTRO_TICKS, 0f, 1f);
+            float loopEnd = SPIN_LOOP_START_MS + SPIN_LOOP_LENGTH_MS;
+            long outroMs = (long) (loopEnd + progress * (SPIN_ANIM_END_MS - loopEnd));
             KeyframeAnimations.animate(this, KangarooAnimations.ATTACK_SECONDARY, outroMs, 1f, SPIN_ANIM_VEC);
             captureBodyState(kangaroo);
             return;
         }
 
-        float s = kangaroo.isRunning() ? 1.25f : 2.0f;
-        if (!kangaroo.isRunning()) this.animate(kangaroo.idleAnimationState, KangarooAnimations.MISC_IDLE, ageInTicks, 1.0f);
-        if (!kangaroo.isCombo(3)) this.animateWalk(KangarooAnimations.MOVE_WALK, limbSwing, limbSwingAmount, s, s * 1.25f);
+        if (kangaroo.drownWindupAnimationState.isStarted()) {
+            this.animate(kangaroo.drownWindupAnimationState, KangarooAnimations.DROWN_WINDUP, ageInTicks, 1.0f);
+            captureBodyState(kangaroo);
+            return;
+        }
+
+        if (kangaroo.drownAnimationState.isStarted()) {
+            this.animate(kangaroo.drownAnimationState, KangarooAnimations.DROWN_HOLD, ageInTicks, 1.0f);
+            captureBodyState(kangaroo);
+            return;
+        }
+
+        if (kangaroo.thumpAnimationState.isStarted()) {
+            this.animate(kangaroo.thumpAnimationState, KangarooAnimations.ALERT_THUMP, ageInTicks, 1.0f);
+            captureBodyState(kangaroo);
+            return;
+        }
+
+        if (kangaroo.isGrazing()) {
+            this.head.xRot = 0f;
+            this.head.yRot = 0f;
+            this.animate(kangaroo.idleAnimationState, KangarooAnimations.MISC_IDLE, ageInTicks, 1.0f);
+            animateGrazing(ageInTicks);
+            captureBodyState(kangaroo);
+            return;
+        }
+
+        float s = kangaroo.isTame() ? kangaroo.isRunning() ? 1.25f : 2.0f : kangaroo.isRunning() ? 0.85f : 1.5f;
+        if (kangaroo.getControllingPassenger() == null) s *= FREE_WALK_SPEED_FACTOR;
+        if (!kangaroo.isRunning())
+            this.animate(kangaroo.idleAnimationState, KangarooAnimations.MISC_IDLE, ageInTicks, 1.0f);
+        if (!kangaroo.isCombo(3))
+            this.animateWalk(KangarooAnimations.MOVE_WALK, limbSwing, limbSwingAmount, s, s * 1.25f);
+
+        if (kangaroo.isPivoting()) animatePivot(ageInTicks);
 
         captureBodyState(kangaroo);
     }
 
-    /**
-     * Pilon Tellurique : une animation par phase, lue sur le compteur de trames de cette phase.
-     *
-     * <p>Les deux phases de durée variable — suspension et plongeon, qui s'arrêtent sur un événement
-     * et non sur un compte de trames — sont en boucle. La réception se joue sur son propre décompte,
-     * après que le serveur a refermé l'ultime.</p>
-     *
-     * <p>Le tourbillon vient par-dessus, en procédural : la carcasse entière tourne autour de son axe
-     * vertical à une vitesse que l'animation par images-clés ne saurait porter, puisqu'elle dépend de
-     * la durée de la chute. Le cavalier n'en est pas affecté ({@code captureBodyState} ne relaie que
-     * le tangage et le roulis) — il tient sa monture, il ne tourne pas avec elle.</p>
-     */
+    private void animateGrazing(float ageInTicks) {
+        float slow = ageInTicks * 0.10f;
+        float nibble = Mth.sin(ageInTicks * 0.85f);
+        float chew = Mth.sin(ageInTicks * 1.6f);
+        float dip = 0.72f + 0.28f * Mth.sin(slow);
+        float sway = Mth.sin(slow * 0.55f);
+        float earTwitch = Mth.sin(ageInTicks * 0.37f);
+
+        this.ALL.xRot += 0.07f * dip;
+        this.ALL.y += 0.9f * dip;
+        this.ALL.zRot += 0.035f * sway;
+
+        this.body.xRot += 0.10f * dip;
+        this.body2.xRot += 0.34f * dip;
+        this.body2.yRot += 0.06f * sway;
+
+        this.neck.xRot += 0.95f * dip + 0.06f * nibble;
+        this.neck.yRot += 0.10f * sway;
+
+        this.head.xRot += 0.30f * dip + 0.07f * chew;
+        this.head.yRot += 0.16f * sway;
+
+        this.left_arm.xRot += -0.42f - 0.05f * nibble;
+        this.left_arm.zRot += -0.12f;
+        this.right_arm.xRot += -0.42f - 0.05f * nibble;
+        this.right_arm.zRot += 0.12f;
+
+        this.tail.xRot += 0.26f * dip;
+        this.tail.yRot += -0.08f * sway;
+        this.front_tail.xRot += 0.12f * dip;
+        this.back_tail.xRot += 0.16f * dip;
+        this.back_tail.yRot += -0.12f * sway;
+
+        this.left_Ear.xRot += 0.28f + 0.14f * earTwitch;
+        this.left_Ear.zRot += -0.16f;
+        this.right_Ear.xRot += 0.28f - 0.14f * earTwitch;
+        this.right_Ear.zRot += 0.16f;
+
+        this.left_leg.xRot += -0.14f * dip;
+        this.left_leg2.xRot += 0.20f * dip;
+        this.left_leg3.xRot += -0.07f * dip;
+        this.right_leg.xRot += -0.14f * dip;
+        this.right_leg2.xRot += 0.20f * dip;
+        this.right_leg3.xRot += -0.07f * dip;
+    }
+
+    private void animatePivot(float ageInTicks) {
+        float cycle = ageInTicks * 0.9f;
+        float hop = Math.abs(Mth.sin(cycle)) * 1.4f;
+        float sway = Mth.cos(cycle * 2f) * 0.07f;
+
+        this.ALL.y -= hop;
+        this.ALL.zRot += sway;
+        this.body2.xRot += -0.10f - hop * 0.05f;
+        this.tail.xRot += 0.18f + hop * 0.06f;
+        this.back_tail.xRot += 0.10f;
+        this.left_arm.xRot += -0.30f;
+        this.right_arm.xRot += -0.30f;
+        this.left_leg.xRot += -hop * 0.20f;
+        this.right_leg.xRot += hop * 0.20f;
+        this.left_Ear.xRot += -0.18f;
+        this.right_Ear.xRot += -0.18f;
+    }
+
     private void animateTelluricStomp(T kangaroo, float ageInTicks) {
         float partial = Mth.clamp(ageInTicks - kangaroo.tickCount, 0f, 1f);
         int phase = kangaroo.getTelluricStompPhase();
@@ -233,9 +332,9 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
 
         AnimationDefinition definition = switch (phase) {
             case KangarooEntity.STOMP_PHASE_WINDUP -> KangarooAnimations.TELLURIC_STOMP_WINDUP;
-            case KangarooEntity.STOMP_PHASE_LEAP   -> KangarooAnimations.TELLURIC_STOMP_LEAP;
-            case KangarooEntity.STOMP_PHASE_HOVER  -> KangarooAnimations.TELLURIC_STOMP_HOVER;
-            case KangarooEntity.STOMP_PHASE_DIVE   -> KangarooAnimations.TELLURIC_STOMP_DIVE;
+            case KangarooEntity.STOMP_PHASE_LEAP -> KangarooAnimations.TELLURIC_STOMP_LEAP;
+            case KangarooEntity.STOMP_PHASE_HOVER -> KangarooAnimations.TELLURIC_STOMP_HOVER;
+            case KangarooEntity.STOMP_PHASE_DIVE -> KangarooAnimations.TELLURIC_STOMP_DIVE;
             default -> KangarooAnimations.TELLURIC_STOMP_LAND;
         };
         KeyframeAnimations.animate(this, definition, ms, 1f, STOMP_ANIM_VEC);
@@ -243,17 +342,6 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         this.ALL2.yRot += (kangaroo.telluricSpinAngle + kangaroo.telluricSpinSpeed * partial) * Mth.DEG_TO_RAD;
     }
 
-    /**
-     * Capte l'état animé du corps (chaîne complète ALL2 → ALL → body → body2) et le stocke dans
-     * l'entité (client only) pour que le rider et la caméra suivent <em>tout</em> le mouvement du corps :
-     * <ul>
-     *   <li>{@code bodyAnimY} : déplacement vertical → le rider le suit ({@code getRiderAnimYOffset}).
-     *       Inclut le bond porté par le bone {@code ALL} et le mouvement du torse {@code body2}.</li>
-     *   <li>{@code bodyZRot}/{@code bodyXRot} : tilt du corps → le rider s'incline (branche générique de
-     *       {@code ClientEvents.onPlayerRenderPre}) et la caméra tremble ({@code onCameraSetup}).</li>
-     * </ul>
-     * restPoseYSum = somme des offsets Y au repos (ALL2=3, ALL=0, body=0, body2=0).
-     */
     private void captureBodyState(T kangaroo) {
         if (!kangaroo.level().isClientSide()) return;
         float restPoseYSum = 3.0f;
@@ -264,7 +352,6 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         kangaroo.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot));
     }
 
-    /** Renders only the model geometry. Used by all skin/effect layers. */
     public void renderGeometryOnly(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
         this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
@@ -287,10 +374,6 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         return this.ALL2;
     }
 
-    /**
-     * Copie la pose résolue de chaque os depuis un autre KangarooModel déjà animé (le modèle de base).
-     * Utilisé par le skin OVERLAY (gants de boxe) pour suivre parfaitement la base sans désync ni z-fighting.
-     */
     public void copyPoseFrom(KangarooModel<?> src) {
         this.ALL2.copyFrom(src.ALL2);
         this.ALL.copyFrom(src.ALL);

@@ -96,6 +96,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     // ==================================================
 
     public static final double TAMING_EXPERIENCE = 185.0;
+    public static final float AI_STEP_JUMP_FACTOR = 0.45f;
     public static final int MAX_HIDING_TIMER = 1000;
     public static final int MAX_NO_HIDING_TIMER = 400;
     public static final int DROWSY_FLEE_THRESHOLD = 80;
@@ -1074,6 +1075,12 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             }
             this.playerJumpPendingScale = 0.0F;
         }
+    }
+
+    @Override
+    protected float getJumpPower() {
+        if (this.getControllingPassenger() != null) return super.getJumpPower();
+        return super.getJumpPower() * AI_STEP_JUMP_FACTOR;
     }
 
     private void executeRidersJump(float scale) {

@@ -10,6 +10,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -78,6 +79,14 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
             if (vehicle instanceof TigerEntity tiger && tiger.getGrabbedTarget() != null && tiger.getGrabbedTarget() == player) {
                 tiger.setGrabTimeout(Math.max(0, tiger.getGrabTimeout() - 15));
                 playStruggleSound(tiger, tiger.getGrabTimeout(), tiger.getGrabMaxTimeout());
+            }
+
+            if (vehicle instanceof KangarooEntity kangaroo && kangaroo.getDrownVictim() == player) {
+                int next = kangaroo.getGrabTimeout() - KangarooEntity.DROWN_STRUGGLE_REDUCTION;
+                playStruggleSound(kangaroo, Math.max(0, next), kangaroo.getGrabMaxTimeout());
+
+                if (next <= 0) kangaroo.breakFreeFromDrown();
+                else kangaroo.setGrabTimeout(next);
             }
         });
     }

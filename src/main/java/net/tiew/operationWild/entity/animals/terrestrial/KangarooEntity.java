@@ -12,7 +12,10 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.TimeUtil;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -39,12 +42,23 @@ import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.config.IOWEntity;
+import net.tiew.operationWild.entity.config.IOWGrabberEntity;
 import net.minecraft.world.entity.PlayerRideableJumping;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
+import net.tiew.operationWild.entity.goals.kangaroo.KangarooAlertedFleeGoal;
+import net.tiew.operationWild.entity.goals.kangaroo.KangarooAngerTargetGoal;
+import net.tiew.operationWild.entity.goals.kangaroo.KangarooAngryAttackGoal;
+import net.tiew.operationWild.entity.goals.kangaroo.KangarooDrownPursuerGoal;
+import net.tiew.operationWild.entity.goals.kangaroo.KangarooFleeToWaterGoal;
+import net.tiew.operationWild.entity.goals.kangaroo.KangarooGrazeGoal;
+import net.tiew.operationWild.entity.goals.kangaroo.KangarooSeekShadeGoal;
+import net.tiew.operationWild.entity.goals.kangaroo.KangarooShadeNapGoal;
+import net.tiew.operationWild.entity.goals.kangaroo.KangarooThumpAlertGoal;
+import net.tiew.operationWild.entity.navigation.KangarooMoveControl;
 import net.tiew.operationWild.entity.variants.KangarooVariant;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.item.OWItems;
@@ -54,23 +68,78 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.UUID;
 
-public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, PlayerRideableJumping {
+public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity, PlayerRideableJumping, NeutralMob {
 
     public static final double TAMING_EXPERIENCE = 65.0;
 
+    private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(25, 40);
+    public static final double HERD_ANGER_RADIUS = 20.0;
+
+    private int remainingPersistentAngerTime;
+    private UUID persistentAngerTarget;
+
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
+
+    private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_GRAZING = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_THUMPING = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_PIVOTING = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> DROWN_TARGET_ID = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
+
+    public static final int DROWN_MAX_TIMEOUT = 160;
+    public static final int DROWN_COOLDOWN_TICKS = 220;
+    public static final int DROWN_STRUGGLE_REDUCTION = 14;
+    public static final float DROWN_DAMAGE = 1.0f;
+    public static final int DROWN_DAMAGE_INTERVAL = 25;
+    public static final double DROWN_HOLD_FORWARD = 1.0;
+    public static final double DROWN_HOLD_RISE = 1.05;
+    public static final double DROWN_SUBMERGE_MARGIN = 0.28;
+    public static final float DROWN_MIN_HEALTH_RATIO = 0.12f;
+
+    public static final int DROWN_WINDUP_TICKS = 22;
+    public static final double DROWN_WINDUP_MAX_RANGE = 4.0;
+
+    private static final EntityDataAccessor<Integer> DROWN_TIMEOUT = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DROWN_WINDUP = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
+
+    public final AnimationState drownWindupAnimationState = new AnimationState();
+
+    private int drownCooldown = 0;
+    private LivingEntity pendingDrownVictim;
+
+    public static final float PIVOT_DAMAGE_MULTIPLIER = 1.25f;
+    public static final float AI_STEP_JUMP_FACTOR = 0.45f;
+    private static final EntityDataAccessor<Integer> ALERT_TICKS = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
+
+    public static final int ALERT_DURATION_TICKS = 600;
+
+    public final AnimationState thumpAnimationState = new AnimationState();
+    private int thumpAnimationTimeout = 0;
+
+    public final AnimationState napAnimationState = new AnimationState();
+    private int napAnimationTimeout = 0;
+
+    public final AnimationState drownAnimationState = new AnimationState();
+
+    public static final float HOT_BIOME_TEMPERATURE = 0.95f;
+    public static final long HOT_HOURS_START = 4000L;
+    public static final long HOT_HOURS_END = 9000L;
+    public static final int OVERHEAT_THRESHOLD_TICKS = 300;
+    public static final int OVERHEAT_MAX_TICKS = 900;
+
+    private int overheatTicks = 0;
+
+    private LivingEntity alertSource;
+    private int herdThumpCooldown = 0;
 
     private static final EntityDataAccessor<Boolean> IS_SPINNING = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_WEARING_BOXING_GLOVES = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> WHIRLWIND_COOLDOWN = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
 
-    // ── Pilon Tellurique (ultime) ─────────────────────────────────────────────
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
-    /** Phase du Pilon Tellurique, cf. les constantes {@code STOMP_PHASE_*}. */
     private static final EntityDataAccessor<Integer> TELLURIC_STOMP_PHASE = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
 
     public static final int STOMP_PHASE_NONE   = 0;
-    /** Ancrage au sol : la bête se ramasse sur ses pattes avant de défoncer le sol. */
     public static final int STOMP_PHASE_WINDUP = 1;
     public static final int STOMP_PHASE_LEAP   = 2;
     public static final int STOMP_PHASE_HOVER  = 3;
@@ -84,12 +153,9 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private int telluricStompDiveElapsed = 0;
     private boolean telluricLeapImpulseApplied = false;
 
-    /** Ticks écoulés dans la phase courante — base de temps des animations (client). */
     public int telluricStompPhaseTicks = 0;
     private int telluricStompLastPhase = STOMP_PHASE_NONE;
-    /** Réception après l'impact : décompte client, l'ultime est déjà terminé côté serveur. */
     public int telluricStompOutroTicks = 0;
-    /** Tourbillon : angle et vitesse de rotation du corps sur lui-même (degrés, client). */
     public float telluricSpinAngle = 0f;
     public float telluricSpinSpeed = 0f;
 
@@ -120,6 +186,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     public KangarooEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+        this.moveControl = new KangarooMoveControl(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -137,14 +204,32 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(9, new WaterAvoidingRandomStrollGoal(this, 0.9D));
+        this.goalSelector.addGoal(1, new KangarooDrownPursuerGoal(this));
+        this.goalSelector.addGoal(2, new KangarooFleeToWaterGoal(this, 2.3D));
+        this.goalSelector.addGoal(3, new KangarooAngryAttackGoal(this, 3.0D, 20, 3.0D));
+        this.goalSelector.addGoal(4, new KangarooThumpAlertGoal(this));
+        this.goalSelector.addGoal(5, new KangarooAlertedFleeGoal(this, 2.7D));
+        this.goalSelector.addGoal(5, new KangarooShadeNapGoal(this, 1.4f, 700));
+        this.goalSelector.addGoal(7, new KangarooSeekShadeGoal(this, 1.5D));
+        this.goalSelector.addGoal(8, new KangarooGrazeGoal(this, 1.25D, 300));
+        this.goalSelector.addGoal(9, new WaterAvoidingRandomStrollGoal(this, 1.15D));
         this.goalSelector.addGoal(10, new OWRandomLookAroundGoal(this));
+
+        this.targetSelector.addGoal(3, new KangarooAngerTargetGoal(this));
     }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
+        builder.define(IS_MAD, false);
+        builder.define(IS_GRAZING, false);
+        builder.define(IS_THUMPING, false);
+        builder.define(IS_PIVOTING, false);
+        builder.define(DROWN_TARGET_ID, -1);
+        builder.define(DROWN_TIMEOUT, 0);
+        builder.define(DROWN_WINDUP, 0);
+        builder.define(ALERT_TICKS, 0);
         builder.define(IS_SPINNING, false);
         builder.define(WHIRLWIND_COOLDOWN, 0);
         builder.define(IS_WEARING_BOXING_GLOVES, false);
@@ -292,11 +377,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return isSpinning() || isTelluricStomping() || super.isImmobile();
     }
 
-    /**
-     * Pendant le Pilon Tellurique, on traite le kangourou comme un véhicule en bond : {@code travelRidden}
-     * cesse alors de réécrire la vélocité horizontale depuis le regard aplati et laisse la {@code deltaMovement}
-     * balistique (le plongeon piqué dans la direction du regard) s'appliquer telle quelle.
-     */
     @Override
     protected boolean isLeapingVehicle() {
         return isTelluricStomping() || super.isLeapingVehicle();
@@ -330,6 +410,12 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    protected float getJumpPower() {
+        if (this.getControllingPassenger() != null) return super.getJumpPower();
+        return super.getJumpPower() * AI_STEP_JUMP_FACTOR;
+    }
+
+    @Override
     public void tickRidden(Player player, Vec3 travelVector) {
         super.tickRidden(player, travelVector);
 
@@ -350,14 +436,10 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             playerJumpPendingScale = 0f;
         }
 
-        // Pilon Tellurique : le bond est piloté ici (instance contrôlée), juste avant travel() — seul
-        // endroit fiable pour poser la vélocité d'une monture montée. Courbe ease-out : gros BOOM au
-        // départ puis montée de plus en plus douce jusqu'à l'apogée.
         if (this.isControlledByLocalInstance() && getTelluricStompPhase() == STOMP_PHASE_LEAP) {
             float progress = Mth.clamp(
                     (float) telluricStompLeapElapsed / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_TICKS, 0f, 1f);
             float ease = (1f - progress) * (1f - progress);
-            // Élan horizontal vers le yaw du rider → trajectoire en arc (parabole) plutôt qu'un saut vertical.
             Vec3 flat = Vec3.directionFromRotation(0f, player.getYRot());
             double fwd = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_LEAP_FORWARD;
             this.setDeltaMovement(
@@ -429,11 +511,425 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         tickWhirlwind();
         tickTelluricStomp();
+        tickAlert();
+        tickOverheat();
+        tickDrownWindup();
+        tickDrowning();
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
+    }
+
+    public boolean isMad() { return this.entityData.get(IS_MAD); }
+    public void setMad(boolean value) { this.entityData.set(IS_MAD, value); }
+
+    @Override
+    public void startPersistentAngerTimer() {
+        this.setRemainingPersistentAngerTime(PERSISTENT_ANGER_TIME.sample(this.random));
+    }
+
+    @Override
+    public void setRemainingPersistentAngerTime(int time) {
+        this.remainingPersistentAngerTime = time;
+    }
+
+    @Override
+    public int getRemainingPersistentAngerTime() {
+        return this.remainingPersistentAngerTime;
+    }
+
+    @Override
+    public void setPersistentAngerTarget(@Nullable UUID target) {
+        this.persistentAngerTarget = target;
+    }
+
+    @Nullable
+    @Override
+    public UUID getPersistentAngerTarget() {
+        return this.persistentAngerTarget;
+    }
+
+    @Override
+    protected void customServerAiStep() {
+        if (this.level() instanceof ServerLevel serverLevel) this.updatePersistentAnger(serverLevel, false);
+        super.customServerAiStep();
+    }
+
+    public void angerAt(LivingEntity attacker) {
+        if (this.level().isClientSide() || attacker == null) return;
+        if (this.isTame() || this.isBaby()) return;
+        if (attacker instanceof Player player && (player.isCreative() || player.isSpectator())) return;
+        if (this.isAlliedTo(attacker)) return;
+
+        this.startPersistentAngerTimer();
+        this.setPersistentAngerTarget(attacker.getUUID());
+
+        this.setSitting(false);
+        this.setNap(false);
+        this.setGrazing(false);
+        this.setTarget(attacker);
+    }
+
+    private void propagateAngerToHerd(LivingEntity attacker) {
+        if (this.level().isClientSide() || attacker == null) return;
+
+        List<KangarooEntity> herd = this.level().getEntitiesOfClass(KangarooEntity.class,
+                this.getBoundingBox().inflate(HERD_ANGER_RADIUS),
+                other -> other != this && other.isAlive() && !other.isTame() && !other.isBaby() && !other.isVehicle());
+
+        for (KangarooEntity other : herd) {
+            other.angerAt(attacker);
+        }
+    }
+
+    public boolean isGrazing() { return this.entityData.get(IS_GRAZING); }
+    public void setGrazing(boolean value) { this.entityData.set(IS_GRAZING, value); }
+
+    public boolean isThumping() { return this.entityData.get(IS_THUMPING); }
+    public void setThumping(boolean value) { this.entityData.set(IS_THUMPING, value); }
+
+    public boolean isPivoting() { return this.entityData.get(IS_PIVOTING); }
+    public void setPivoting(boolean value) {
+        if (this.entityData.get(IS_PIVOTING) != value) this.entityData.set(IS_PIVOTING, value);
+    }
+
+    public int getHerdThumpCooldown() { return this.herdThumpCooldown; }
+    public void setHerdThumpCooldown(int ticks) { this.herdThumpCooldown = Math.max(this.herdThumpCooldown, ticks); }
+
+    public int getAlertTicks() { return this.entityData.get(ALERT_TICKS); }
+    private void setAlertTicks(int value) { this.entityData.set(ALERT_TICKS, Math.max(0, value)); }
+    public boolean isAlerted() { return getAlertTicks() > 0; }
+
+    public LivingEntity getAlertSource() { return this.alertSource; }
+
+    public void raiseAlert(LivingEntity source) {
+        if (this.level().isClientSide()) return;
+        this.alertSource = source;
+        setAlertTicks(ALERT_DURATION_TICKS);
+    }
+
+    public boolean isDrowningSomeone() { return this.entityData.get(DROWN_TARGET_ID) != -1; }
+
+    public LivingEntity getDrownVictim() {
+        int id = this.entityData.get(DROWN_TARGET_ID);
+        if (id == -1) return null;
+        return this.level().getEntity(id) instanceof LivingEntity living ? living : null;
+    }
+
+    public boolean canStartDrowning() {
+        return !this.level().isClientSide()
+                && !this.isTame()
+                && !this.isBaby()
+                && !this.isVehicle()
+                && !this.isDrowningSomeone()
+                && !isDrownWindingUp()
+                && drownCooldown <= 0
+                && this.isInWater()
+                && isOverDeepWater();
+    }
+
+    public int getDrownWindupTicks() { return this.entityData.get(DROWN_WINDUP); }
+    public boolean isDrownWindingUp() { return getDrownWindupTicks() > 0; }
+
+    public void startDrownWindup(LivingEntity victim) {
+        if (this.level().isClientSide() || victim == null) return;
+
+        this.pendingDrownVictim = victim;
+        this.entityData.set(DROWN_WINDUP, DROWN_WINDUP_TICKS);
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.NEUTRAL, 0.9f, 1.45f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL, 0.8f, 1.7f);
+    }
+
+    public void cancelDrownWindup() {
+        if (this.level().isClientSide()) return;
+        this.pendingDrownVictim = null;
+        this.entityData.set(DROWN_WINDUP, 0);
+    }
+
+    private void tickDrownWindup() {
+        if (this.level().isClientSide()) return;
+        if (!isDrownWindingUp()) return;
+
+        if (isDrowningSomeone()) {
+            cancelDrownWindup();
+            return;
+        }
+
+        LivingEntity victim = pendingDrownVictim;
+        boolean stillValid = victim != null
+                && victim.isAlive()
+                && !victim.isRemoved()
+                && victim.level() == this.level()
+                && this.isInWater()
+                && !(victim instanceof Player player && (player.isCreative() || player.isSpectator()));
+
+        if (!stillValid) {
+            cancelDrownWindup();
+            drownCooldown = DROWN_COOLDOWN_TICKS / 3;
+            return;
+        }
+
+        this.getLookControl().setLookAt(victim, 40.0f, 40.0f);
+
+        double gap = this.distanceToSqr(victim);
+        if (gap > 2.0 * 2.0) {
+            Vec3 toVictim = victim.position().subtract(this.position()).multiply(1, 0, 1);
+            if (toVictim.lengthSqr() > 1.0e-4) {
+                Vec3 pull = toVictim.normalize().scale(0.09);
+                this.setDeltaMovement(this.getDeltaMovement().add(pull.x, 0.0, pull.z));
+            }
+        } else {
+            this.getNavigation().stop();
+        }
+
+        int left = getDrownWindupTicks();
+        int elapsed = DROWN_WINDUP_TICKS - left;
+
+        if (elapsed % 4 == 0 && this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.SPLASH,
+                    this.getX(), this.getY() + 0.1, this.getZ(),
+                    8, 0.6, 0.05, 0.6, 0.12);
+            serverLevel.sendParticles(ParticleTypes.BUBBLE,
+                    victim.getX(), victim.getY() + victim.getBbHeight() * 0.5, victim.getZ(),
+                    4, 0.3, 0.3, 0.3, 0.02);
+        }
+        if (elapsed % 6 == 3) {
+            float rise = (float) elapsed / DROWN_WINDUP_TICKS;
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.GENERIC_SWIM, SoundSource.NEUTRAL, 0.8f, 0.9f + rise * 0.6f);
+        }
+
+        this.entityData.set(DROWN_WINDUP, left - 1);
+
+        if (left - 1 > 0) return;
+
+        boolean inReach = victim.isInWater()
+                && this.distanceToSqr(victim) <= DROWN_WINDUP_MAX_RANGE * DROWN_WINDUP_MAX_RANGE;
+
+        this.pendingDrownVictim = null;
+
+        if (inReach) {
+            startDrowning(victim);
+        } else {
+            drownCooldown = DROWN_COOLDOWN_TICKS / 2;
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.PLAYER_SPLASH, SoundSource.NEUTRAL, 1.0f, 1.3f);
+        }
+    }
+
+    private double drownSurfaceY() {
+        BlockPos pos = this.blockPosition();
+        for (int i = 0; i <= 5; i++) {
+            BlockPos probe = pos.above(i);
+            if (!this.level().getFluidState(probe).is(FluidTags.WATER)) return probe.getY();
+        }
+        return pos.getY() + 6;
+    }
+
+    private boolean isOverDeepWater() {
+        BlockPos pos = this.blockPosition();
+        return this.level().getFluidState(pos).is(FluidTags.WATER)
+                && this.level().getFluidState(pos.below()).is(FluidTags.WATER);
+    }
+
+    public int getGrabTimeout() { return this.entityData.get(DROWN_TIMEOUT); }
+    public void setGrabTimeout(int value) { this.entityData.set(DROWN_TIMEOUT, Mth.clamp(value, 0, DROWN_MAX_TIMEOUT)); }
+    public int getGrabMaxTimeout() { return DROWN_MAX_TIMEOUT; }
+
+    public void startDrowning(LivingEntity victim) {
+        if (this.level().isClientSide() || victim == null) return;
+        if (!victim.startRiding(this, true)) return;
+
+        this.entityData.set(DROWN_TARGET_ID, victim.getId());
+        setGrabTimeout(0);
+        victim.noPhysics = true;
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.NEUTRAL, 1.2f, 0.75f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL, 1.0f, 1.35f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.PLAYER_ATTACK_STRONG, SoundSource.NEUTRAL, 0.9f, 0.7f);
+    }
+
+    public void releaseDrownVictim() {
+        if (this.level().isClientSide()) return;
+
+        LivingEntity victim = getDrownVictim();
+        if (victim != null) {
+            victim.noPhysics = false;
+            if (victim.getVehicle() == this) victim.stopRiding();
+
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.AMBIENT_UNDERWATER_EXIT, SoundSource.NEUTRAL, 1.0f, 1.0f);
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.PLAYER_SPLASH, SoundSource.NEUTRAL, 1.0f, 0.9f);
+        }
+
+        this.entityData.set(DROWN_TARGET_ID, -1);
+        setGrabTimeout(0);
+        drownCooldown = DROWN_COOLDOWN_TICKS;
+    }
+
+    public void breakFreeFromDrown() {
+        if (this.level().isClientSide()) return;
+
+        LivingEntity victim = getDrownVictim();
+        releaseDrownVictim();
+        if (victim == null) return;
+
+        Vec3 push = victim.position().subtract(this.position());
+        push = push.lengthSqr() > 1.0e-4 ? push.multiply(1, 0, 1).normalize() : this.getLookAngle().multiply(1, 0, 1);
+        victim.setDeltaMovement(push.x * 0.35, 0.55, push.z * 0.35);
+        victim.hasImpulse = true;
+        victim.hurtMarked = true;
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.NEUTRAL, 1.3f, 1.1f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL, 1.0f, 1.6f);
+
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.SPLASH,
+                    victim.getX(), victim.getY() + victim.getBbHeight() * 0.5, victim.getZ(),
+                    40, 0.5, 0.4, 0.5, 0.25);
+        }
+    }
+
+    private void tickDrowning() {
+        if (this.level().isClientSide()) return;
+
+        if (drownCooldown > 0) drownCooldown--;
+        if (!isDrowningSomeone()) return;
+
+        LivingEntity victim = getDrownVictim();
+        if (victim == null || !victim.isAlive() || victim.isRemoved()
+                || victim.level() != this.level()
+                || victim.getVehicle() != this
+                || (victim instanceof Player player && (player.isCreative() || player.isSpectator()))) {
+            releaseDrownVictim();
+            return;
+        }
+
+        if (!this.isInWater() || this.getHealth() <= this.getMaxHealth() * DROWN_MIN_HEALTH_RATIO) {
+            releaseDrownVictim();
+            return;
+        }
+
+        victim.noPhysics = true;
+        victim.fallDistance = 0f;
+        victim.setDeltaMovement(Vec3.ZERO);
+        if (victim instanceof Mob mob) mob.setTarget(null);
+
+        int timeout = getGrabTimeout();
+
+        if (victim.isInWater()) {
+            victim.setAirSupply(Math.max(-19, victim.getAirSupply() - 4));
+        }
+
+        if (timeout > 0 && timeout % DROWN_DAMAGE_INTERVAL == 0) {
+            victim.invulnerableTime = 0;
+            victim.hurt(this.damageSources().mobAttack(this), DROWN_DAMAGE);
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.PLAYER_HURT_DROWN, SoundSource.NEUTRAL, 0.55f, 1.1f);
+        }
+
+        if (this.level() instanceof ServerLevel serverLevel && timeout % 3 == 0) {
+            serverLevel.sendParticles(ParticleTypes.BUBBLE,
+                    victim.getX(), victim.getY() + victim.getBbHeight() * 0.7, victim.getZ(),
+                    6, 0.3, 0.35, 0.3, 0.02);
+            serverLevel.sendParticles(ParticleTypes.SPLASH,
+                    this.getX(), this.getY() + 0.1, this.getZ(),
+                    4, 0.5, 0.05, 0.5, 0.06);
+        }
+
+        float pressure = (float) timeout / DROWN_MAX_TIMEOUT;
+
+        if (timeout % 18 == 0) {
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.PLAYER_SPLASH, SoundSource.NEUTRAL, 0.85f, 1.0f + pressure * 0.4f);
+        }
+        if (timeout % 11 == 5) {
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.GENERIC_SWIM, SoundSource.NEUTRAL, 0.7f, 0.7f + pressure * 0.5f);
+        }
+        if (timeout % 30 == 12) {
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.BUBBLE_COLUMN_UPWARDS_INSIDE, SoundSource.NEUTRAL, 0.9f, 0.8f + pressure * 0.5f);
+        }
+        if (timeout % 40 == 20) {
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL, 0.8f, 1.25f + pressure * 0.2f);
+        }
+
+        setGrabTimeout(timeout + 1);
+        if (getGrabTimeout() >= DROWN_MAX_TIMEOUT) releaseDrownVictim();
+    }
+
+    public boolean isHotHours() {
+        long time = this.level().getDayTime() % 24000L;
+        return time >= HOT_HOURS_START && time < HOT_HOURS_END;
+    }
+
+    public boolean isInHotBiome() {
+        return this.level().getBiome(this.blockPosition()).value().getBaseTemperature() >= HOT_BIOME_TEMPERATURE;
+    }
+
+    public boolean isInShade() {
+        return !this.level().canSeeSky(this.blockPosition());
+    }
+
+    public int getOverheatTicks() { return this.overheatTicks; }
+
+    private void tickOverheat() {
+        if (this.level().isClientSide()) return;
+
+        boolean exposed = !this.isTame() && isHotHours() && isInHotBiome() && !isInShade()
+                && !this.isInWater() && !this.isNapping() && !this.isSleeping();
+
+        if (!exposed) {
+            if (overheatTicks > 0) overheatTicks -= 2;
+            if (overheatTicks < 0) overheatTicks = 0;
+            return;
+        }
+
+        if (overheatTicks < OVERHEAT_MAX_TICKS) overheatTicks++;
+
+        if (overheatTicks < OVERHEAT_THRESHOLD_TICKS) return;
+
+        if (this.tickCount % 40 == 0) {
+            this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 0, false, false, true));
+            this.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 0, false, false, true));
+        }
+
+        if (this.level() instanceof ServerLevel serverLevel && this.tickCount % 15 == 0) {
+            serverLevel.sendParticles(ParticleTypes.SPLASH,
+                    this.getX(), this.getY() + this.getBbHeight() * 0.85, this.getZ(),
+                    2, 0.25, 0.15, 0.25, 0.01);
+        }
+    }
+
+    private void tickAlert() {
+        if (this.level().isClientSide()) return;
+
+        if (herdThumpCooldown > 0) herdThumpCooldown--;
+
+        if (getAlertTicks() <= 0) {
+            alertSource = null;
+            return;
+        }
+
+        setAlertTicks(getAlertTicks() - 1);
+
+        if (alertSource != null && (!alertSource.isAlive() || alertSource.level() != this.level())) {
+            alertSource = null;
+            setAlertTicks(0);
+        }
     }
 
     public boolean isSpinning() { return this.entityData.get(IS_SPINNING); }
@@ -579,10 +1075,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return 1f + 4f * f;
     }
 
-    // ==================================================
-    //          PILON TELLURIQUE (ultime)
-    // ==================================================
-
     public int getUltimateKillCount() { return this.entityData.get(ULTIMATE_KILL_COUNT); }
     private void setUltimateKillCount(int count) { this.entityData.set(ULTIMATE_KILL_COUNT, Math.max(0, count)); }
 
@@ -599,11 +1091,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return super.killedEntity(serverLevel, entity);
     }
 
-    /**
-     * Détection « au sol » robuste pour décider du bond initial. {@code onGround()} est peu fiable côté
-     * serveur pour une monture chevauchée ; on teste donc une collision de bloc juste sous les pieds
-     * (tolérance 0,5 bloc), ce qui est déterministe quelle que soit la position synchronisée.
-     */
     private boolean isGroundedForStomp() {
         if (this.onGround()) return true;
         AABB box = this.getBoundingBox();
@@ -611,7 +1098,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return !this.level().noCollision(this, probe);
     }
 
-    /** Déclenche le Pilon Tellurique (serveur). Au sol : bond initial → suspension → plongeon. En l'air : suspension → plongeon. */
     public void activateTelluricStomp() {
         if (this.level().isClientSide()) return;
         if (isTelluricStomping()) return;
@@ -629,11 +1115,9 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.hasImpulse = true;
 
         if (isGroundedForStomp()) {
-            // Au sol (ou tout près) : ancrage sur les pattes, puis bond.
             setTelluricStompPhase(STOMP_PHASE_WINDUP);
             telluricStompWindupTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_WINDUP_TICKS;
         } else {
-            // Déjà en l'air : suspension directe.
             setTelluricStompPhase(STOMP_PHASE_HOVER);
             telluricStompHoverTimer = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_HOVER_TICKS;
         }
@@ -658,7 +1142,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (this.level().isClientSide()) tickTelluricStompVisuals();
 
         if (!isTelluricStomping()) {
-            // Réarme les compteurs pour le prochain usage (le client n'exécute pas activate/cancel).
             telluricLeapImpulseApplied = false;
             telluricStompLeapElapsed = 0;
             telluricStompDiveElapsed = 0;
@@ -668,10 +1151,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.fallDistance = 0f;
         int phase = getTelluricStompPhase();
 
-        // ── Phase 1 : ancrage au sol ─────────────────────────────────────────
-        // Les pattes se plient sous la masse : la bête freine sur place, le temps que le geste se
-        // lise, puis détend tout d'un coup. Sans ce temps mort, le bond partait sur une pose de
-        // repos et le « coup de pied au sol » n'existait tout simplement pas à l'écran.
         if (phase == STOMP_PHASE_WINDUP) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(0.55, 1.0, 0.55));
 
@@ -688,9 +1167,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             return;
         }
 
-        // ── Phase 2 : bond initial (depuis le sol) ───────────────────────────
-        // La vitesse verticale (courbe ease-out) est pilotée dans tickRidden ; ici on coupe la gravité
-        // (on contrôle entièrement la montée) et on avance le compteur des deux côtés.
         if (phase == STOMP_PHASE_LEAP) {
             this.setNoGravity(true);
             telluricStompLeapElapsed++;
@@ -706,11 +1182,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             return;
         }
 
-        // ── Phase 3 : suspension en l'air ────────────────────────────────────
         if (phase == STOMP_PHASE_HOVER) {
             this.setNoGravity(true);
-            // Décélération douce vers l'immobilité (pas d'arrêt sec) : la vélocité du bond
-            // s'amortit progressivement jusqu'à la suspension.
             this.setDeltaMovement(this.getDeltaMovement().scale(OWAttacksConstants.Kangaroo.TELLURIC_STOMP_HOVER_DAMPING));
             this.hasImpulse = true;
 
@@ -725,17 +1198,13 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             return;
         }
 
-        // ── Phase 4 : plongeon dans la direction du regard du rider ──────────
         this.setNoGravity(true);
         telluricStompDiveElapsed++;
         LivingEntity rider = this.getControllingPassenger();
-        // On suit le yaw du regard, mais on borne le pitch vers le bas (jamais en l'air) :
-        // entre MIN_DIVE_PITCH (45° sous l'horizontale) et 90° (verticale).
         float lookPitch = rider != null ? rider.getXRot() : this.getXRot();
         float lookYaw = rider != null ? rider.getYRot() : this.getYRot();
         float divePitch = Mth.clamp(lookPitch, OWAttacksConstants.Kangaroo.TELLURIC_STOMP_MIN_DIVE_PITCH, 90f);
         Vec3 dir = Vec3.directionFromRotation(divePitch, lookYaw);
-        // Montée en puissance douce : départ progressif (ease-in) puis pleine vitesse de plongeon.
         float ramp = Mth.clamp((float) telluricStompDiveElapsed / OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DIVE_RAMP_TICKS, 0f, 1f);
         double speed = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DIVE_SPEED * (0.3 + 0.7 * (ramp * ramp));
         this.setDeltaMovement(dir.scale(speed));
@@ -743,7 +1212,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         if (this.level().isClientSide()) return;
 
-        // Sifflement de chute, de plus en plus aigu : la frappe s'entend venir avant qu'on la voie.
         if (telluricStompDiveElapsed % 3 == 1) {
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                     SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.NEUTRAL,
@@ -758,19 +1226,9 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
-    /**
-     * Base de temps et effets du Pilon Tellurique, côté client uniquement.
-     *
-     * <p>Le serveur ne réplique que la phase : le compteur de trames est reconstruit ici, et remis à
-     * zéro à chaque changement de phase — c'est lui qui donne son point de départ à l'animation
-     * correspondante. La réception, elle, n'a pas de phase du tout (l'ultime est déjà clos côté
-     * serveur au moment de l'impact) et vit sur son propre décompte.</p>
-     */
     private void tickTelluricStompVisuals() {
         int phase = getTelluricStompPhase();
 
-        // Décompte AVANT l'armement : sinon la trame d'impact consommait aussitôt le premier tick de
-        // la réception, et l'encaissement — l'image la plus courte du geste — passait à la trappe.
         if (telluricStompOutroTicks > 0) telluricStompOutroTicks--;
 
         if (phase != telluricStompLastPhase) {
@@ -787,11 +1245,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         spawnTelluricStompParticles(phase);
     }
 
-    /**
-     * Tourbillon : la bête se met à tourner sur elle-même dès qu'elle quitte le sol, de plus en plus
-     * vite jusqu'au plongeon. À la réception, la rotation retombe en se recalant sur le tour complet
-     * le plus proche — sans quoi le corps resterait figé de travers à un angle arbitraire.
-     */
     private void tickTelluricSpin(int phase) {
         switch (phase) {
             case STOMP_PHASE_LEAP  -> telluricSpinSpeed = Math.min(telluricSpinSpeed + 2.0f, 14f);
@@ -811,7 +1264,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
-    /** Poussière au sol pendant l'ancrage, puis spirale d'air autour du corps une fois en l'air. */
     private void spawnTelluricStompParticles(int phase) {
         if (phase == STOMP_PHASE_WINDUP) {
             BlockState ground = this.level().getBlockState(this.blockPosition().below());
@@ -838,7 +1290,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             double px = this.getX() + Math.cos(a) * r;
             double pz = this.getZ() + Math.sin(a) * r;
             double py = this.getY() + this.random.nextDouble() * height;
-            // Vitesse tangentielle : les traînées s'enroulent autour du corps au lieu de gicler.
             double vx = -Math.sin(a) * (diving ? 0.55 : 0.35);
             double vz = Math.cos(a) * (diving ? 0.55 : 0.35);
             this.level().addParticle(ParticleTypes.CLOUD, px, py, pz, vx, diving ? 0.18 : 0.04, vz);
@@ -853,10 +1304,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
-    /**
-     * Sillage sous les semelles : c'est le pied qui fend l'air, pas le corps. Les traînées naissent
-     * juste sous les pattes et filent vers le bas, pour que l'œil suive la semelle et non la bête.
-     */
     private void spawnTelluricSoleTrail() {
         double spread = this.getBbWidth() * 0.35;
         for (int i = 0; i < 5; i++) {
@@ -871,14 +1318,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
-    /**
-     * Zone d'impact projetée au sol pendant la chute : anneau tourbillonnant sur le rayon de l'onde,
-     * d'autant plus dense que la semelle approche.
-     *
-     * <p>Sans elle, le plongeon se lisait dans le vide — ni le cavalier ni ceux qui sont dessous ne
-     * savaient où la frappe allait tomber, alors même que c'est la seule information qui compte
-     * pendant cette seconde-là. Le rayon dessiné est exactement celui des dégâts.</p>
-     */
     private void spawnTelluricImpactTelegraph() {
         Vec3 from = this.position();
         net.minecraft.world.phys.BlockHitResult hit = this.level().clip(new net.minecraft.world.level.ClipContext(
@@ -889,7 +1328,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         double groundY = hit.getLocation().y + 0.08;
         double fall = Math.max(0.0, this.getY() - groundY);
-        // Proximité : de 0 (loin) à 1 (semelle sur le point de toucher).
         float closeness = (float) Mth.clamp(1.0 - fall / 12.0, 0.15, 1.0);
         double radius = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_RADIUS;
 
@@ -917,7 +1355,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
-    /** Décollage : la terre part en gerbe sous les pattes au moment de la détente. */
     private void spawnTelluricLaunchBurst() {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
         BlockState ground = this.level().getBlockState(this.blockPosition().below());
@@ -936,7 +1373,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 SoundEvents.ROOTED_DIRT_BREAK, SoundSource.NEUTRAL, 1.3f, 0.6f);
     }
 
-    /** Onde de choc à l'atterrissage : dégâts dégressifs, Lenteur I et léger pop vertical. */
     private void executeTelluricStompImpact() {
         double radius = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_RADIUS;
         AABB area = this.getBoundingBox().inflate(radius, 2.0, radius);
@@ -965,7 +1401,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
                     OWAttacksConstants.Kangaroo.TELLURIC_STOMP_SLOWNESS_TICKS, 0));
 
-            // Léger envol, dans l'esprit de l'uppercut du combo 3.
             Vec3 outward = target.position().subtract(this.position());
             outward = outward.lengthSqr() > 1.0e-4 ? outward.multiply(1, 0, 1).normalize() : Vec3.ZERO;
             Vec3 motion = target.getDeltaMovement();
@@ -977,7 +1412,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         createMiniShockwave();
 
         if (this.level() instanceof ServerLevel serverLevel) {
-            // Gros boom au sol : grosse déflagration centrale + nuées d'explosion, terre et poussière.
             serverLevel.sendParticles(ParticleTypes.EXPLOSION_EMITTER, this.getX(), this.getY() + 0.2, this.getZ(),
                     1, 0.0, 0.0, 0.0, 0.0);
             serverLevel.sendParticles(ParticleTypes.EXPLOSION, this.getX(), this.getY() + 0.3, this.getZ(),
@@ -990,8 +1424,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             serverLevel.sendParticles(dirtParticle, this.getX(), this.getY() + 0.1, this.getZ(),
                     240, radius * 0.6, 0.3, radius * 0.6, 0.5);
 
-            // Couronne de poussière posée sur le rayon exact de l'onde : le joueur voit d'un coup
-            // d'œil jusqu'où l'ultime a porté, plutôt que d'avoir à le deviner d'un nuage informe.
             int ringPoints = 48;
             for (int i = 0; i < ringPoints; i++) {
                 double angle = (Math.PI * 2.0 * i) / ringPoints;
@@ -1043,7 +1475,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
-    protected int getDefaultSkinIndex() { return 2; }   // « Kangourou par défaut »
+    protected int getDefaultSkinIndex() { return 2; }
 
     @Override
     public boolean isAlliedTo(Entity entity) {
@@ -1089,21 +1521,110 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return KangarooVariant.DEFAULT;
     }
 
+    @Override
+    public boolean hurt(DamageSource damageSource, float amount) {
+        float dealt = (!this.level().isClientSide() && !this.isTame() && isPivoting())
+                ? amount * PIVOT_DAMAGE_MULTIPLIER
+                : amount;
+
+        boolean hurt = super.hurt(damageSource, dealt);
+
+        if (hurt && !this.level().isClientSide() && !this.isTame()
+                && damageSource.getEntity() instanceof LivingEntity attacker) {
+
+            if (isDrowningSomeone() && attacker == getDrownVictim()) {
+                setGrabTimeout(getGrabTimeout() - DROWN_STRUGGLE_REDUCTION);
+            }
+
+            angerAt(attacker);
+            propagateAngerToHerd(attacker);
+        }
+        return hurt;
+    }
+
+    @Override
+    protected void positionRider(Entity passenger, MoveFunction function) {
+        if (passenger == getDrownVictim()) {
+            if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
+
+            double yawRad = Math.toRadians(this.yBodyRot);
+            double forward = DROWN_HOLD_FORWARD * this.getScale();
+            double px = this.getX() - Math.sin(yawRad) * forward;
+            double pz = this.getZ() + Math.cos(yawRad) * forward;
+            double eyeY = Math.min(this.getY() + DROWN_HOLD_RISE, drownSurfaceY() - DROWN_SUBMERGE_MARGIN);
+            double py = eyeY - passenger.getEyeHeight();
+
+            passenger.fallDistance = 0f;
+            function.accept(passenger, px, py, pz);
+            return;
+        }
+        super.positionRider(passenger, function);
+    }
+
+    @Override
+    public LivingEntity getControllingPassenger() {
+        LivingEntity victim = getDrownVictim();
+        if (victim != null && this.getFirstPassenger() == victim) return null;
+        return super.getControllingPassenger();
+    }
+
+    @Override
+    public void die(DamageSource damageSource) {
+        if (!this.level().isClientSide()) {
+            cancelDrownWindup();
+            if (isDrowningSomeone()) releaseDrownVictim();
+        }
+        super.die(damageSource);
+    }
+
     private void setupAnimationState() {
         createIdleAnimation(80, true);
         createSitAnimation(80, true);
+        setupThumpAnimation();
+        setupNapAnimation();
+        setupDrownAnimation();
 
         setupComboAnimations();
     }
 
-    /**
-     * Duree de vie des animations de combo, en ticks. Chacune doit couvrir le geste ENTIER, plus
-     * environ un tiers de rabiot pendant lequel il tient sa pose finale et se melange au coup
-     * suivant — c'est la marge du crocodile, qui sert de reference. En dessous, l'animation est
-     * tranchee avant sa derniere image et l'enchainement saccade.
-     *
-     * <p>Gestes de 1,2917 / 1,2917 / 1,75 s lus a 1,0 / 1,1 / 1,25 : 25,8 / 23,5 / 28,0 ticks. Le premier, a 24, etait coupe ; le troisieme ignorait le multiplicateur de vitesse.</p>
-     */
+    private void setupDrownAnimation() {
+        if (isDrowningSomeone()) {
+            if (!drownAnimationState.isStarted()) drownAnimationState.start(this.tickCount);
+        } else {
+            drownAnimationState.stop();
+        }
+
+        if (isDrownWindingUp()) {
+            if (!drownWindupAnimationState.isStarted()) drownWindupAnimationState.start(this.tickCount);
+        } else {
+            drownWindupAnimationState.stop();
+        }
+    }
+
+    private void setupNapAnimation() {
+        if (this.isNapping() || this.isSleeping()) {
+            if (this.napAnimationTimeout <= 0) {
+                this.napAnimationTimeout = 64;
+                this.napAnimationState.start(this.tickCount);
+            } else --this.napAnimationTimeout;
+        } else {
+            this.napAnimationTimeout = 0;
+            this.napAnimationState.stop();
+        }
+    }
+
+    private void setupThumpAnimation() {
+        if (isThumping()) {
+            if (thumpAnimationTimeout <= 0) {
+                thumpAnimationTimeout = KangarooThumpAlertGoal.THUMP_DURATION;
+                thumpAnimationState.start(this.tickCount);
+            } else thumpAnimationTimeout--;
+        } else {
+            thumpAnimationTimeout = 0;
+            thumpAnimationState.stop();
+        }
+    }
+
     private void setupComboAnimations() {
         setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (35 / comboSpeedMultiplier));
         setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (32 / comboSpeedMultiplier));
@@ -1111,7 +1632,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
-        // Le kangourou tait son troisieme coup une fois le quatrieme parti.
         boolean shouldPlay = this.isCombo(comboNumber) && !(comboNumber == 3 && fourthHitFired);
         timer = tickComboAnimation(comboNumber, animationState, timer, maxTimer, shouldPlay);
 
@@ -1158,7 +1678,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
-    /** Variante naturelle exposée sous forme générique (cf. {@code OWEntity}). */
     @Override
     public int getInitialTypeVariant() { return this.getInitialVariant().getId(); }
 
@@ -1187,6 +1706,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         tag.putInt("foodWanted", this.foodWanted);
         tag.putBoolean("isWearingBoxingGloves", this.isWearingBoxingGloves());
         tag.putInt("ultimateKillCount", this.getUltimateKillCount());
+        this.addPersistentAngerSaveData(tag);
     }
 
     @Override
@@ -1196,6 +1716,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.entityData.set(IS_WEARING_BOXING_GLOVES, tag.getBoolean("isWearingBoxingGloves"));
         this.entityData.set(ULTIMATE_KILL_COUNT, tag.getInt("ultimateKillCount"));
+        this.readPersistentAngerSaveData(this.level(), tag);
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
 

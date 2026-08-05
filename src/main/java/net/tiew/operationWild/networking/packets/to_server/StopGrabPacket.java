@@ -10,6 +10,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 
 public record StopGrabPacket() implements CustomPacketPayload {
@@ -46,6 +47,10 @@ public record StopGrabPacket() implements CustomPacketPayload {
                             tiger.getGrabbedTarget().stopRiding();
                             tiger.setGrabbing(false, null);
                             tiger.setTarget(null);
+                        }
+                    } else if (entity instanceof KangarooEntity kangaroo) {
+                        if (kangaroo.getDrownVictim() == player && kangaroo.getGrabTimeout() <= 0) {
+                            kangaroo.releaseDrownVictim();
                         }
                     }
                 }
