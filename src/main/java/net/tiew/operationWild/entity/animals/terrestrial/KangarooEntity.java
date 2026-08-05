@@ -645,6 +645,15 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private void tickHopLanding() {
         if (this.level().isClientSide()) return;
 
+        // Monté, travelRidden ne rappelle jamais travel() côté serveur : le drapeau de bond restait
+        // figé sur sa dernière valeur sauvage, et le modèle jouait indéfiniment la fin de l'animation
+        // de bond au lieu de la marche. On le referme ici, où le tick passe toujours.
+        if (this.getControllingPassenger() != null || !useHopLocomotion()) {
+            setHopping(false);
+            hopWasAirborne = false;
+            return;
+        }
+
         boolean airborne = !this.onGround();
         if (hopWasAirborne && !airborne && isHopping() && !isTelluricStomping()) {
             createLandingShockwave();
