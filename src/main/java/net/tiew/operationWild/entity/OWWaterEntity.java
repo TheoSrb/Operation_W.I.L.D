@@ -212,7 +212,26 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
          */
         private static final double YAW_DEAD_ZONE = 0.1;
 
+        /**
+         * Hystérésis du cap : on ne se remet à virer qu'au-delà du seuil haut, et on ne s'arrête
+         * qu'en deçà du seuil bas.
+         *
+         * <p>Avec un seuil unique, une destination proche de l'aplomb faisait osciller {@code
+         * horizontalSq} d'un tick à l'autre autour de la valeur de garde : le cap était recalculé
+         * une trame sur deux et la bête tressautait. Deux seuils distincts suppriment ce
+         * battement — c'est la même raison qui fait qu'un thermostat n'a pas un seul point de
+         * consigne.</p>
+         */
+        private static final double YAW_ENGAGE = 0.16;
+        private static final double YAW_RELEASE = 0.04;
+
+        /** Lissage du terme vertical : le tangage demandé par le chemin peut sauter d'un tick à l'autre. */
+        private static final float PITCH_SMOOTHING = 0.25f;
+
         private final OWWaterEntity entity;
+
+        private boolean yawEngaged = false;
+        private float smoothedPitch = 0f;
 
         public OWSwimMoveControl(OWWaterEntity entity) {
             super(entity);
@@ -221,6 +240,21 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
 
         @Override
         public void tick() {
+            // Sortie de l'eau en plein bond : le pilotage se tait.
+            //
+            // La navigation ne trace ses chemins que dans l'eau, si bien que la destination retenue
+            // reste un point immergé pendant tout le vol. Hors de l'eau, la branche MOVE_TO
+            // continuait pourtant d'orienter la bête vers ce point et de la pousser en avant : le
+            // dash était constamment ramené vers la surface au lieu de décrire son arc. On laisse
+            // donc la balistique faire son travail tant que le bond dure.
+            if (this.entity.isBreaching() && !this.entity.isInWater()) {
+                this.entity.setXxa(0.0F);
+                this.entity.setYya(0.0F);
+                this.entity.setZza(0.0F);
+                this.yawEngaged = false;
+                return;
+            }
+
             if (this.entity.isInWater()) {
                 this.entity.setDeltaMovement(this.entity.getDeltaMovement().add(0.0D, 0.003D, 0.0D));
             }
@@ -247,7 +281,10 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
                 // de monter. Sans direction horizontale exploitable, on garde simplement le cap
                 // courant : la poussée verticale plus bas fait tout le travail.
                 double horizontalSq = dx * dx + dz * dz;
-                if (horizontalSq > YAW_DEAD_ZONE) {
+                if (horizontalSq > YAW_ENGAGE) yawEngaged = true;
+                else if (horizontalSq < YAW_RELEASE) yawEngaged = false;
+
+                if (yawEngaged) {
                     // Virage confié à la bête, et non plus plafonné ici à dix degrés par tick.
                     //
                     // C'est ce contrôle qui conduit dès qu'un chemin existe, et il s'exécute APRÈS
@@ -274,8 +311,9 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
                     // et n'atteignait jamais une cible restée en surface.
                     double horizontal = Math.sqrt(dx * dx + dz * dz);
                     float pitch = (float) Mth.atan2(dy, Math.max(horizontal, 1.0E-4));
-                    this.entity.zza = Mth.cos(pitch) * speed;
-                    this.entity.yya = Mth.sin(pitch) * speed;
+                    smoothedPitch += (pitch - smoothedPitch) * PITCH_SMOOTHING;
+                    this.entity.zza = Mth.cos(smoothedPitch) * speed;
+                    this.entity.yya = Mth.sin(smoothedPitch) * speed;
                 } else {
                     this.entity.setSpeed(speed * 0.1F);
                 }
@@ -284,6 +322,8 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
                 this.entity.setXxa(0.0F);
                 this.entity.setYya(0.0F);
                 this.entity.setZza(0.0F);
+                this.yawEngaged = false;
+                this.smoothedPitch = 0f;
 
                 if (!this.entity.level().isClientSide()) {
                     float p = this.entity.getTargetPitch();

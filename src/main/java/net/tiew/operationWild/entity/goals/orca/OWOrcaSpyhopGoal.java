@@ -5,6 +5,7 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 
 import java.util.EnumSet;
@@ -38,6 +39,9 @@ public class OWOrcaSpyhopGoal extends Goal {
 
     /** Marge de rupture : l'observation ne s'arrête pas au premier pas de recul. */
     private static final double BREAK_RANGE = 30.0;
+
+    /** Écart horizontal au carré en deçà duquel le cap vers l'observé n'est plus exploitable. */
+    private static final double FLAT_LOOK_DEAD_ZONE = 4.0;
 
     private static final int HOLD_MIN = 50;
     private static final int HOLD_MAX = 95;
@@ -117,6 +121,29 @@ public class OWOrcaSpyhopGoal extends Goal {
     @Override
     public void tick() {
         if (this.watched == null) return;
+
+        // La dressée ne se déplace pas : on referme toute route qu'un autre goal aurait rouverte,
+        // sans quoi le pilotage de nage réoriente la bête pendant l'observation.
+        if (!this.orca.getNavigation().isDone()) this.orca.getNavigation().stop();
+
+        double dx = this.watched.getX() - this.orca.getX();
+        double dz = this.watched.getZ() - this.orca.getZ();
+
+        // Cible quasiment à l'aplomb — le cas d'un joueur posté sur la berge juste au-dessus.
+        //
+        // L'écart horizontal n'est alors plus que du bruit d'arrondi, et le cap qu'on en tire change
+        // à chaque tick. Le contrôle de nage fait suivre le corps à la tête : l'orque tournait donc
+        // sur elle-même sans fin au lieu de se dresser. On fige le cap et on ne règle plus que la
+        // hauteur du regard, ce qui est exactement ce que le spyhop demande.
+        if (dx * dx + dz * dz < FLAT_LOOK_DEAD_ZONE) {
+            Vec3 ahead = Vec3.directionFromRotation(0f, this.orca.getYRot());
+            this.orca.getLookControl().setLookAt(
+                    this.orca.getX() + ahead.x * 4.0,
+                    this.watched.getEyeY(),
+                    this.orca.getZ() + ahead.z * 4.0);
+            return;
+        }
+
         this.orca.getLookControl().setLookAt(
                 this.watched.getX(), this.watched.getEyeY(), this.watched.getZ());
     }
