@@ -4022,6 +4022,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
+
+        // Le repère et l'entrée de réputation se retirent ici, à l'instant de la mort, et non dans
+        // remove() : celui-ci n'est appelé qu'au bout des vingt ticks de l'animation de mort, et si
+        // le chunk se décharge entre-temps — le cas dès qu'on est loin — la créature part en
+        // UNLOADED_TO_CHUNK, qui préserve volontairement la trace. Le repère survivait alors à la
+        // bête. Un retrait de trop est sans danger : upsert() le recrée à la seconde suivante.
+        if (!this.level().isClientSide()) {
+            net.minecraft.server.MinecraftServer srv = this.level().getServer();
+            if (srv != null) {
+                net.tiew.operationWild.waypoint.OWWaypointData.get(srv).remove(this.getUUID());
+                net.tiew.operationWild.team.OWReputationData.get(srv).removeEntity(this.getUUID());
+            }
+        }
+
         ItemStack stack = this.itemStackHandler.getStackInSlot(1);
 
         if (!stack.isEmpty() && !this.level().isClientSide()) {

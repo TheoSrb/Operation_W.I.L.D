@@ -27,6 +27,10 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
     private static final Vector3f SPIN_ANIM_VEC = new Vector3f();
 
     private static final float FREE_WALK_SPEED_FACTOR = 1.25f;
+
+    private static final float HOP_ANIM_LENGTH_MS = 1000f;
+    private static final float HOP_ANIM_SPEED = 0.64f;
+    private static final Vector3f HOP_ANIM_VEC = new Vector3f();
     private static final Vector3f STOMP_ANIM_VEC = new Vector3f();
 
     private final ModelPart ALL2;
@@ -245,16 +249,31 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
             return;
         }
 
-        float s = kangaroo.isTame() ? kangaroo.isRunning() ? 1.25f : 2.0f : kangaroo.isRunning() ? 0.85f : 1.5f;
+        float s = kangaroo.isTame() ? kangaroo.isRunning() ? 1.25f : 2.0f : kangaroo.isRunning() ? 1f : 1.75f;
         if (kangaroo.getControllingPassenger() == null) s *= FREE_WALK_SPEED_FACTOR;
         if (!kangaroo.isRunning())
             this.animate(kangaroo.idleAnimationState, KangarooAnimations.MISC_IDLE, ageInTicks, 1.0f);
-        if (!kangaroo.isCombo(3))
+
+        if (kangaroo.isHopping()) {
+            animateHop(kangaroo, ageInTicks, limbSwingAmount);
+        } else if (!kangaroo.isCombo(3)) {
             this.animateWalk(KangarooAnimations.MOVE_WALK, limbSwing, limbSwingAmount, s, s * 1.25f);
+        }
 
         if (kangaroo.isPivoting()) animatePivot(ageInTicks);
 
         captureBodyState(kangaroo);
+    }
+
+    private void animateHop(T kangaroo, float ageInTicks, float limbSwingAmount) {
+        float partial = Mth.clamp(ageInTicks - kangaroo.tickCount, 0f, 1f);
+        float elapsed = kangaroo.hopAnimTicks + partial;
+        float period = Math.max(4f, kangaroo.hopAnimPeriod);
+        float cycle = Mth.clamp(elapsed / period, 0f, 1f);
+
+        long ms = (long) (cycle * HOP_ANIM_LENGTH_MS * HOP_ANIM_SPEED);
+        float amount = Math.max(0.55f, Math.min(1.0f, limbSwingAmount * 2.2f));
+        KeyframeAnimations.animate(this, KangarooAnimations.MOVE_WALK, ms, amount, HOP_ANIM_VEC);
     }
 
     private void animateGrazing(float ageInTicks) {

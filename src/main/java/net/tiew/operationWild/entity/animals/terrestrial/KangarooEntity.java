@@ -109,6 +109,44 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     public static final float PIVOT_DAMAGE_MULTIPLIER = 1.25f;
     public static final float AI_STEP_JUMP_FACTOR = 0.45f;
+
+    private static final EntityDataAccessor<Boolean> IS_HOPPING = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> HOP_ID = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
+
+    public static final double HOP_POWER_RIDDEN = 0.30;
+    public static final int HOP_GROUND_DELAY = 8;
+    public static final int HOP_GROUND_DELAY_FAST = 2;
+    public static final double HOP_HURRY_SPEED = 0.30;
+
+    public static final double HOP_WALK_HEIGHT = 3.0;
+    public static final double HOP_WALK_DISTANCE = 2.0;
+    public static final double HOP_RUN_HEIGHT = 1.0;
+    public static final double HOP_RUN_DISTANCE = 6.0;
+    public static final double HOP_REFERENCE_SPEED = 0.21;
+    public static final double HOP_DISTANCE_FACTOR_MIN = 0.6;
+    public static final double HOP_DISTANCE_FACTOR_MAX = 3.0;
+    public static final double HOP_HEIGHT_CALIBRATION = 0.94;
+    public static final double HOP_TICK_GRAVITY = 0.08;
+    public static final double HOP_TARGET_MARGIN = 1.2;
+    public static final double HOP_TARGET_MIN_REACH = 1.5;
+    public static final float HOP_CHASE_TURN = 0.35f;
+    public static final double HOP_AIR_FRICTION = 0.91;
+    public static final double HOP_GROUND_BRAKE = 0.55;
+    public static final float HOP_STEER = 0.10f;
+    public static final float HOP_STEER_CHASE = 0.45f;
+    public static final float HOP_STEER_RIDDEN = 0.65f;
+    public static final double AI_SPEED_TO_BLOCKS = 1.0;
+    public static final double HOP_MIN_SPEED = 0.012;
+
+    private Vec3 hopDir = Vec3.ZERO;
+    private double hopSpeed = 0.0;
+    private int hopGroundTicks = 0;
+    private boolean hopWasAirborne = false;
+
+    public int hopAnimTicks = 0;
+    public int hopAnimPeriod = 14;
+    private int hopAnimLastId = -1;
+    private boolean hopAnimLocalTrigger = false;
     private static final EntityDataAccessor<Integer> ALERT_TICKS = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
 
     public static final int ALERT_DURATION_TICKS = 600;
@@ -205,10 +243,10 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new KangarooDrownPursuerGoal(this));
-        this.goalSelector.addGoal(2, new KangarooFleeToWaterGoal(this, 2.3D));
-        this.goalSelector.addGoal(3, new KangarooAngryAttackGoal(this, 3.0D, 20, 3.0D));
+        this.goalSelector.addGoal(2, new KangarooFleeToWaterGoal(this, 4.7D));
+        this.goalSelector.addGoal(3, new KangarooAngryAttackGoal(this, 4.5D, 20, 3.0D));
         this.goalSelector.addGoal(4, new KangarooThumpAlertGoal(this));
-        this.goalSelector.addGoal(5, new KangarooAlertedFleeGoal(this, 2.7D));
+        this.goalSelector.addGoal(5, new KangarooAlertedFleeGoal(this, 5.1D));
         this.goalSelector.addGoal(5, new KangarooShadeNapGoal(this, 1.4f, 700));
         this.goalSelector.addGoal(7, new KangarooSeekShadeGoal(this, 1.5D));
         this.goalSelector.addGoal(8, new KangarooGrazeGoal(this, 1.25D, 300));
@@ -216,6 +254,17 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.goalSelector.addGoal(10, new OWRandomLookAroundGoal(this));
 
         this.targetSelector.addGoal(3, new KangarooAngerTargetGoal(this));
+
+        this.lookControl = new net.minecraft.world.entity.ai.control.LookControl(this) {
+            @Override
+            public void tick() {
+                LivingEntity target = KangarooEntity.this.getTarget();
+                if (target != null && KangarooEntity.this.getControllingPassenger() == null) {
+                    KangarooEntity.this.getLookControl().setLookAt(target, 45.0f, 45.0f);
+                }
+                super.tick();
+            }
+        };
     }
 
     @Override
@@ -223,6 +272,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         super.defineSynchedData(builder);
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(IS_MAD, false);
+        builder.define(IS_HOPPING, false);
+        builder.define(HOP_ID, 0);
         builder.define(IS_GRAZING, false);
         builder.define(IS_THUMPING, false);
         builder.define(IS_PIVOTING, false);
@@ -415,6 +466,232 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return super.getJumpPower() * AI_STEP_JUMP_FACTOR;
     }
 
+    public boolean isHopping() { return this.entityData.get(IS_HOPPING); }
+    private void setHopping(boolean value) {
+        if (this.level().isClientSide()) return;
+        if (this.entityData.get(IS_HOPPING) != value) this.entityData.set(IS_HOPPING, value);
+    }
+
+    private boolean useHopLocomotion() {
+        return this.getControllingPassenger() == null
+                && !this.isInWater()
+                && !this.isPassenger()
+                && !this.isSpinning()
+                && !this.isTelluricStomping()
+                && !this.isDrowningSomeone()
+                && !this.isDrownWindingUp()
+                && !this.isNapping()
+                && !this.isSleeping()
+                && !this.isSitting()
+                && !this.isGrazing()
+                && !this.isThumping()
+                && !this.isImmobile();
+    }
+
+    private void faceChasedTarget() {
+        LivingEntity chased = this.getTarget();
+        if (chased == null || !chased.isAlive()) return;
+        if (this.getControllingPassenger() != null) return;
+        if (this.isSitting() || this.isNapping() || this.isSleeping()) return;
+
+        double dx = chased.getX() - this.getX();
+        double dz = chased.getZ() - this.getZ();
+        if (dx * dx + dz * dz < 1.0e-4) return;
+
+        float wanted = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0f;
+        this.setYRot(Mth.rotLerp(HOP_CHASE_TURN, this.getYRot(), wanted));
+        this.yBodyRot = this.getYRot();
+        this.setYHeadRot(Mth.rotLerp(HOP_CHASE_TURN, this.yHeadRot, wanted));
+        this.getLookControl().setLookAt(chased, 60.0f, 60.0f);
+    }
+
+    private double clampHopToTarget(double speed, double power) {
+        LivingEntity chased = this.getTarget();
+        if (chased == null || !chased.isAlive()) return speed;
+
+        double distance = Math.sqrt(this.distanceToSqr(chased));
+        double reach = Math.max(HOP_TARGET_MIN_REACH, distance - HOP_TARGET_MARGIN);
+
+        return Math.max(HOP_MIN_SPEED * 2.0, Math.min(speed, reach / hopAirTicks(power)));
+    }
+
+    private double hopPower(boolean running) {
+        double height = running ? HOP_RUN_HEIGHT : HOP_WALK_HEIGHT;
+        return Math.sqrt(2.0 * HOP_TICK_GRAVITY * height) * HOP_HEIGHT_CALIBRATION;
+    }
+
+    private double hopAirTicks(double power) {
+        return Math.max(1.0, 2.0 * power / HOP_TICK_GRAVITY);
+    }
+
+    private double hopSpeedReference() {
+        if (this.getControllingPassenger() != null) {
+            Vec3 motion = this.getDeltaMovement();
+            return Math.sqrt(motion.x * motion.x + motion.z * motion.z);
+        }
+        return this.getSpeed();
+    }
+
+    private double hopForwardSpeed(boolean running, double power) {
+        double air = hopAirTicks(power);
+
+        // Monté, la vitesse voulue est déjà celle que le cavalier demande : la remultiplier par un
+        // facteur la ferait exploser. On se contente de la concentrer sur la phase aérienne, de
+        // sorte que la moyenne sur un cycle complet reste exactement la vitesse de la monture.
+        if (this.getControllingPassenger() != null) {
+            return hopSpeedReference() * (air + HOP_GROUND_DELAY_FAST) / air;
+        }
+
+        double base = running ? HOP_RUN_DISTANCE : HOP_WALK_DISTANCE;
+        double speedFactor = Mth.clamp(hopSpeedReference() / HOP_REFERENCE_SPEED,
+                HOP_DISTANCE_FACTOR_MIN, HOP_DISTANCE_FACTOR_MAX);
+        return (base * speedFactor) / air;
+    }
+
+    private Vec3 hopIntent() {
+        if (this.getControllingPassenger() != null) {
+            Vec3 motion = this.getDeltaMovement();
+            return new Vec3(motion.x, 0.0, motion.z);
+        }
+
+        float forward = this.zza;
+        float strafe = this.xxa;
+        if (Math.abs(forward) < 1.0e-3f && Math.abs(strafe) < 1.0e-3f) return Vec3.ZERO;
+
+        LivingEntity chased = this.getTarget();
+        if (chased != null && chased.isAlive() && this.getSensing().hasLineOfSight(chased)) {
+            Vec3 straight = chased.position().subtract(this.position()).multiply(1, 0, 1);
+            if (straight.lengthSqr() > 1.0e-4) {
+                return straight.normalize().scale(this.getSpeed() * AI_SPEED_TO_BLOCKS);
+            }
+        }
+
+        Vec3 ahead = Vec3.directionFromRotation(0f, this.getYRot());
+        Vec3 side = new Vec3(-ahead.z, 0.0, ahead.x);
+        Vec3 wanted = ahead.scale(forward).add(side.scale(strafe));
+        if (wanted.lengthSqr() < 1.0e-6) return Vec3.ZERO;
+
+        return wanted.normalize().scale(this.getSpeed() * AI_SPEED_TO_BLOCKS);
+    }
+
+    @Override
+    public void travel(Vec3 travelVector) {
+        if (!this.isControlledByLocalInstance() || !useHopLocomotion()) {
+            setHopping(false);
+            super.travel(travelVector);
+            return;
+        }
+
+        Vec3 intent = hopIntent();
+        boolean wantsMove = intent.lengthSqr() > HOP_MIN_SPEED * HOP_MIN_SPEED;
+
+        boolean ridden = this.getControllingPassenger() != null;
+
+        if (this.onGround()) {
+            hopGroundTicks++;
+
+            boolean hurry = intent.length() >= HOP_HURRY_SPEED;
+            int delay = (ridden || hurry) ? HOP_GROUND_DELAY_FAST : HOP_GROUND_DELAY;
+
+            if (wantsMove && hopGroundTicks >= delay) {
+                hopDir = intent.normalize();
+
+                boolean running = this.isRunning() || (!ridden && hurry);
+                double power = hopPower(running);
+                hopSpeed = hopForwardSpeed(running, power);
+                hopSpeed = clampHopToTarget(hopSpeed, power);
+
+                this.setDeltaMovement(hopDir.x * hopSpeed / HOP_AIR_FRICTION, power, hopDir.z * hopSpeed / HOP_AIR_FRICTION);
+                this.hasImpulse = true;
+                hopGroundTicks = 0;
+                setHopping(true);
+                if (this.level().isClientSide()) {
+                    hopAnimLocalTrigger = true;
+                } else {
+                    this.entityData.set(HOP_ID, (this.entityData.get(HOP_ID) + 1) & 0xFFFF);
+                }
+                CommonHooks.onLivingJump(this);
+            } else {
+                Vec3 motion = this.getDeltaMovement();
+                this.setDeltaMovement(motion.x * HOP_GROUND_BRAKE, motion.y, motion.z * HOP_GROUND_BRAKE);
+                if (!wantsMove) {
+                    setHopping(false);
+                    hopSpeed = 0.0;
+                }
+            }
+        } else {
+            hopGroundTicks = 0;
+
+            if (hopSpeed > HOP_MIN_SPEED) {
+                if (wantsMove) {
+                    float steer = ridden ? HOP_STEER_RIDDEN
+                            : (this.getTarget() != null ? HOP_STEER_CHASE : HOP_STEER);
+                    Vec3 target = intent.normalize();
+                    hopDir = hopDir.lerp(target, steer);
+                    if (hopDir.lengthSqr() > 1.0e-6) hopDir = hopDir.normalize();
+                }
+
+                Vec3 motion = this.getDeltaMovement();
+                this.setDeltaMovement(hopDir.x * hopSpeed / HOP_AIR_FRICTION,
+                        motion.y,
+                        hopDir.z * hopSpeed / HOP_AIR_FRICTION);
+                setHopping(true);
+            }
+        }
+
+        super.travel(travelVector);
+    }
+
+    private void tickHopLanding() {
+        if (this.level().isClientSide()) return;
+
+        boolean airborne = !this.onGround();
+        if (hopWasAirborne && !airborne && isHopping() && !isTelluricStomping()) {
+            createLandingShockwave();
+        }
+        hopWasAirborne = airborne;
+    }
+
+    private void createLandingShockwave() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+        BlockState ground = this.level().getBlockState(this.blockPosition().below());
+        BlockParticleOption particleOption = ground.isAir()
+                ? new BlockParticleOption(ParticleTypes.BLOCK, Blocks.DIRT.defaultBlockState())
+                : new BlockParticleOption(ParticleTypes.BLOCK, ground);
+
+        serverLevel.sendParticles(particleOption,
+                this.getX(), this.getY() + 0.05, this.getZ(),
+                26, 0.45, 0.05, 0.45, 0.14);
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.ROOTED_DIRT_HIT, SoundSource.AMBIENT, 0.85f, 1.0f);
+    }
+
+    private void tickHopAnimation() {
+        boolean localAuthority = this.isControlledByLocalInstance() && this.getControllingPassenger() != null;
+        boolean newHop;
+
+        if (localAuthority) {
+            newHop = hopAnimLocalTrigger;
+            hopAnimLocalTrigger = false;
+            hopAnimLastId = this.entityData.get(HOP_ID);
+        } else {
+            int id = this.entityData.get(HOP_ID);
+            newHop = id != hopAnimLastId;
+            hopAnimLastId = id;
+        }
+
+        if (newHop) {
+            if (hopAnimTicks > 3 && hopAnimTicks < 40) {
+                hopAnimPeriod = Mth.lerpInt(0.5f, hopAnimPeriod, hopAnimTicks);
+            }
+            hopAnimTicks = 0;
+        } else {
+            hopAnimTicks++;
+        }
+    }
+
     @Override
     public void tickRidden(Player player, Vec3 travelVector) {
         super.tickRidden(player, travelVector);
@@ -515,10 +792,15 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         tickOverheat();
         tickDrownWindup();
         tickDrowning();
+        tickHopLanding();
+        if (!this.level().isClientSide()) faceChasedTarget();
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
-        if (this.level().isClientSide()) setupAnimationState();
+        if (this.level().isClientSide()) {
+            tickHopAnimation();
+            setupAnimationState();
+        }
         if (this.isInResurrection()) this.setSleeping(true);
     }
 

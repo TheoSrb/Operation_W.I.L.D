@@ -56,6 +56,7 @@ public class KangarooMoveControl extends OWEntity.OWMoveControl {
 
     private boolean shouldConstrain() {
         return this.operation == Operation.MOVE_TO
+                && kangaroo.getTarget() == null
                 && kangaroo.getControllingPassenger() == null
                 && !kangaroo.isSpinning()
                 && !kangaroo.isTelluricStomping()

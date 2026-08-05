@@ -95,6 +95,7 @@ public class OWWaypointData extends SavedData {
         // ferait apparaître dès qu'ils sortent du champ du client, ce qui serait un ajout, pas une
         // correction.
         boolean eligible = entity.isTame() && owner != null
+                && entity.isAlive() && !entity.isDeadOrDying() && !entity.isRemoved()
                 && !(entity instanceof net.tiew.operationWild.entity.misc.Submarine);
         if (!eligible || !(entity instanceof IOWWaypointEntity w)) {
             remove(id);
