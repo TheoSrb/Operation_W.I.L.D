@@ -312,7 +312,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public List<Class<?>> getFavoriteTargets() {
-        return List.of(Boat.class, Player.class, Animal.class, Monster.class);
+        return net.tiew.operationWild.entity.config.OWTargetLists.CROCODILE;
     }
 
     @Override

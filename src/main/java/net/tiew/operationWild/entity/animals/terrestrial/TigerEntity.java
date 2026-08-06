@@ -214,9 +214,12 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, true));
-        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, true));
+        int tigerTargetPriority = 3;
+        for (Class<?> prey : net.tiew.operationWild.entity.config.OWTargetLists.TIGER) {
+            if (!LivingEntity.class.isAssignableFrom(prey)) continue;
+            this.targetSelector.addGoal(tigerTargetPriority++,
+                    new NearestAttackableTargetGoal<>(this, (Class<? extends LivingEntity>) prey, true));
+        }
 
         this.lookControl = new LookControl(this) {
             @Override
@@ -283,7 +286,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     public List<Class<?>> getFavoriteTargets() {
-        return List.of(Animal.class, Player.class);
+        return net.tiew.operationWild.entity.config.OWTargetLists.TIGER;
     }
 
     @Override

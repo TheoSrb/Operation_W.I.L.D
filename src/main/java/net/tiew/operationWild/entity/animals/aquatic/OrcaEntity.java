@@ -818,7 +818,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public List<Class<?>> getFavoriteTargets() {
-        return List.of(Boat.class, Player.class, Animal.class, Monster.class);
+        return net.tiew.operationWild.entity.config.OWTargetLists.ORCA;
     }
 
     @Override

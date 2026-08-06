@@ -250,9 +250,14 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(3, new KodiakNearestAttackableTargetGoal(this, Player.class, true));
-        this.targetSelector.addGoal(4, new KodiakNearestAttackableTargetGoal(this, Animal.class, true));
-        this.targetSelector.addGoal(5, new KodiakNearestAttackableTargetGoal(this, Monster.class, true));
+        int kodiakTargetPriority = 3;
+        this.targetSelector.addGoal(kodiakTargetPriority++,
+                new KodiakNearestAttackableTargetGoal(this, Player.class, true));
+        for (Class<?> prey : net.tiew.operationWild.entity.config.OWTargetLists.KODIAK) {
+            if (!LivingEntity.class.isAssignableFrom(prey)) continue;
+            this.targetSelector.addGoal(kodiakTargetPriority++,
+                    new KodiakNearestAttackableTargetGoal(this, prey, true));
+        }
 
         this.lookControl = new LookControl(this) {
             @Override
@@ -319,6 +324,13 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public List<Class<?>> getFavoriteTargetsByBeingNonTame() {
+        // Volontairement réduit au cochon, et surtout PAS la table de proies complète.
+        //
+        // Les goals bâtis à partir d'ici (registerBehaviorGoals, branche NEUTRAL) ne passent pas par
+        // KodiakNearestAttackableTargetGoal : ils ne connaissent donc pas la barre de faim. Y verser
+        // la table complète aurait fait chasser l'ours en permanence, ventre plein, et vidé de son
+        // sens toute la mécanique de faim. La table complète n'est branchée que sur les goals
+        // conditionnés à isHungry(), dans registerGoals.
         return List.of(Pig.class);
     }
 

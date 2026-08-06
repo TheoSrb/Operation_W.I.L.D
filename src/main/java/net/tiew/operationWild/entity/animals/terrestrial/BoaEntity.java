@@ -174,10 +174,13 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, t -> !this.isDigesting()));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, 10, true, false, t -> !this.isDigesting()));
-        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Horse.class, 10, true, false, t -> !this.isDigesting()));
-        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, TigerEntity.class, 10, true, false, t -> !this.isDigesting()));
+        int boaTargetPriority = 3;
+        for (Class<?> prey : net.tiew.operationWild.entity.config.OWTargetLists.BOA) {
+            if (!LivingEntity.class.isAssignableFrom(prey)) continue;
+            this.targetSelector.addGoal(boaTargetPriority++,
+                    new NearestAttackableTargetGoal<>(this, (Class<? extends LivingEntity>) prey,
+                            10, true, false, t -> !this.isDigesting()));
+        }
 
         this.lookControl = new LookControl(this) {
             @Override
@@ -233,7 +236,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     @Override
     public List<Class<?>> getFavoriteTargets() {
-        return List.of(Animal.class, Player.class, TigerEntity.class, Horse.class);
+        return net.tiew.operationWild.entity.config.OWTargetLists.BOA;
     }
 
     @Override
