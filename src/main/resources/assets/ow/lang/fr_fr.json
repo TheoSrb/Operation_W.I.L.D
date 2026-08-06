@@ -1057,5 +1057,18 @@
   "ow.attacks.orca.tidal_rush.desc": "Propulsez votre Orque dans l'axe de son museau, infligeant %s points de dégâts à ce qu'elle percute. Visez la surface pour la faire jaillir hors de l'eau. Toutes les %s secondes.",
   "ow.attacks.orca.tidal_rush.title": "Élan Marin",
   "ow.attacks.orca.slipstream.desc": "Dans un rayon de %s blocs, vos créatures apprivoisées et les membres de votre tribu nagent %s%% plus vite et tiennent %s%% plus longtemps sans respirer.",
-  "ow.attacks.orca.slipstream.title": "Courant Porteur"
+  "ow.attacks.orca.slipstream.title": "Courant Porteur",
+
+  "tooltip.elephantSkin1.desc": "Une carapace d'or massif posée sur quatre tonnes de muscle. Se débloque au niveau 50.",
+  "tooltip.elephantSkin2.desc": "Deux ailes membraneuses et des défenses noircies : quelque chose est remonté avec lui.",
+  "tooltip.elephantSkin3.desc": "La chair a lâché depuis longtemps. La marche, elle, continue.",
+  "tooltip.elephantSkin7.desc": "La livrée d'origine, sans fard.",
+  "ow.attacks.elephant.combo.title": "Piétinement",
+  "ow.attacks.elephant.combo.desc": "Faites frapper votre Éléphant toutes les %s secondes, infligeant %s points de dégâts à chaque coup.",
+  "ow.attacks.elephant.shoulder_bash.title": "Coup d'Épaule",
+  "ow.attacks.elephant.shoulder_bash.desc": "Clic droit : l'Éléphant se jette du côté vers lequel vous regardez, infligeant %s points de dégâts et projetant tout sur son passage. %s secondes de recharge.",
+  "ow.attacks.elephant.earthquake.title": "Tremblement de Terre",
+  "ow.attacks.elephant.earthquake.desc": "Se charge avec %s kills. L'Éléphant se cabre puis retombe de tout son poids : onde de choc sur %s blocs, jusqu'à %s points de dégâts au centre, sol disloqué et caméras ébranlées. %s secondes de recharge.",
+  "ow.attacks.elephant.unshakeable.title": "Inébranlable",
+  "ow.attacks.elephant.unshakeable.desc": "Rien ne pousse un Éléphant : il ignore presque tout recul et encaisse davantage que n'importe quelle autre créature."
 }

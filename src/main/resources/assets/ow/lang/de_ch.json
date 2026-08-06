@@ -1057,5 +1057,18 @@
   "ow.attacks.orca.tidal_rush.desc": "Schleudere deinen Orca in Richtung seiner Schnauze und füge allem, was er trifft, %s Schaden zu. Ziele auf die Oberfläche, um aus dem Wasser zu brechen. Alle %s Sekunden.",
   "ow.attacks.orca.tidal_rush.title": "Meeresschub",
   "ow.attacks.orca.slipstream.desc": "Im Umkreis von %s Blöcken schwimmen deine gezähmten Kreaturen und Stammesmitglieder %s%% schneller und halten die Luft %s%% länger an.",
-  "ow.attacks.orca.slipstream.title": "Sogwelle"
+  "ow.attacks.orca.slipstream.title": "Sogwelle",
+
+  "tooltip.elephantSkin1.desc": "Massives Goldgeflecht über vier Tonnen Muskeln. Wird auf Stufe 50 freigeschaltet.",
+  "tooltip.elephantSkin2.desc": "Häutige Flügel und geschwärzte Stoßzähne: Etwas ist mit ihm zurückgekommen.",
+  "tooltip.elephantSkin3.desc": "Das Fleisch gab längst nach. Der Marsch nicht.",
+  "tooltip.elephantSkin7.desc": "Das ursprüngliche Fell, ganz schlicht.",
+  "ow.attacks.elephant.combo.title": "Zertrampeln",
+  "ow.attacks.elephant.combo.desc": "Lass deinen Elefanten alle %s Sekunden zuschlagen und dabei %s Schadenspunkte pro Hieb verursachen.",
+  "ow.attacks.elephant.shoulder_bash.title": "Schulterstoß",
+  "ow.attacks.elephant.shoulder_bash.desc": "Rechtsklick: Der Elefant wirft sich zu der Seite, in die du blickst, verursacht %s Schadenspunkte und schleudert alles beiseite. %s Sekunden Abklingzeit.",
+  "ow.attacks.elephant.earthquake.title": "Erdbeben",
+  "ow.attacks.elephant.earthquake.desc": "Lädt sich mit %s Abschüssen auf. Der Elefant bäumt sich auf und lässt sein volles Gewicht fallen: Druckwelle über %s Blöcke, bis zu %s Schadenspunkte im Zentrum, aufgerissener Boden und wackelnde Kameras. %s Sekunden Abklingzeit.",
+  "ow.attacks.elephant.unshakeable.title": "Unerschütterlich",
+  "ow.attacks.elephant.unshakeable.desc": "Nichts stößt einen Elefanten um: Er ignoriert fast jeden Rückstoß und steckt mehr ein als jede andere Kreatur."
 }

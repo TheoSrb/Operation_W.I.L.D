@@ -18,6 +18,49 @@ public class OWAttacksConstants {
         public static final float PREDATOR_RADIUS = 32f;
     }
 
+    public static class Elephant {
+        // ── Coup d'Épaule (attaque secondaire instantanée) ──────────────────────
+        public static final int SHOULDER_BASH_COOLDOWN_TICKS = 100;
+        public static final float SHOULDER_BASH_ENERGY = 60f;
+        /** Poussée latérale imprimée à l'éléphant, appliquée dans le localEffect du cavalier. */
+        public static final double SHOULDER_BASH_SIDE_POWER = 1.35;
+        /** Petit sursaut vertical : sans lui la masse colle au sol et l'écart ne se voit pas. */
+        public static final double SHOULDER_BASH_LIFT = 0.22;
+        /** Demi-largeur de la boîte de frappe, prise du côté vers lequel l'éléphant se déporte. */
+        public static final double SHOULDER_BASH_RADIUS = 4.0;
+        public static final float SHOULDER_BASH_DAMAGE = 11f;
+        public static final float SHOULDER_BASH_KNOCKBACK = 2.6f;
+        /** Le geste dure ce que dure le déport ; passé ce délai l'éléphant reprend la main. */
+        public static final int SHOULDER_BASH_DURATION_TICKS = 12;
+
+        // ── Tremblement de Terre (ultime) ───────────────────────────────────────
+        public static final int EARTHQUAKE_KILLS_REQUIRED = 5;
+        public static final float EARTHQUAKE_ENERGY = 100f;
+        public static final int EARTHQUAKE_COOLDOWN_TICKS = 1200;
+        /**
+         * Levée des pattes avant l'impact. L'animation {@code super_attack} dure 4,16 s et frappe
+         * le sol à 3,0 s : le tick d'impact est donc calé là, pas à la fin du geste.
+         */
+        public static final int EARTHQUAKE_WINDUP_TICKS = 62;
+        /** Durée totale du geste (4,16 s), au-delà de laquelle l'éléphant redevient mobile. */
+        public static final int EARTHQUAKE_TOTAL_TICKS = 84;
+        public static final long EARTHQUAKE_DURATION_MS = EARTHQUAKE_TOTAL_TICKS * 50L;
+        /** Secousse résiduelle après l'impact : c'est elle qui fait trembler les caméras. */
+        public static final int EARTHQUAKE_AFTERSHOCK_TICKS = 60;
+        public static final double EARTHQUAKE_RADIUS = 12.0;
+        public static final float EARTHQUAKE_DAMAGE_CENTER = 22f;
+        public static final float EARTHQUAKE_DAMAGE_EDGE = 6f;
+        public static final float EARTHQUAKE_LAUNCH = 0.9f;
+        /** Rayon dans lequel le sol se disloque. Volontairement plus court que les dégâts. */
+        public static final double EARTHQUAKE_BREAK_RADIUS = 7.0;
+        /** Une fraction seulement des blocs du rayon cède : un cratère troué, pas un disque rasé. */
+        public static final float EARTHQUAKE_BREAK_CHANCE = 0.35f;
+        /** Portée de la secousse de caméra, plus large que le cratère : on la sent avant de la voir. */
+        public static final double EARTHQUAKE_SHAKE_RADIUS = 40.0;
+        public static final float EARTHQUAKE_SHAKE_INTENSITY = 1.35f;
+        public static final int EARTHQUAKE_SLOWNESS_TICKS = 200;
+    }
+
     public static class Kodiak {
         public static final int PAW_SLAM_COOLDOWN_TICKS = 800;
         public static final float PAW_SLAM_ENERGY = 100f;

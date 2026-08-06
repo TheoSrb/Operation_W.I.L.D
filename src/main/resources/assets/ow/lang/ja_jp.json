@@ -1057,5 +1057,18 @@
   "ow.attacks.orca.tidal_rush.desc": "シャチを鼻先の方向へ突進させ、ぶつかったものに %s のダメージを与えます。水面を狙えば水中から飛び出します。%s 秒ごと。",
   "ow.attacks.orca.tidal_rush.title": "海流の推進",
   "ow.attacks.orca.slipstream.desc": "半径 %s ブロック以内で、あなたの心を開いた生き物と部族の仲間は %s%% 速く泳ぎ、%s%% 長く息を止められます。",
-  "ow.attacks.orca.slipstream.title": "伴流"
+  "ow.attacks.orca.slipstream.title": "伴流",
+
+  "tooltip.elephantSkin1.desc": "4トンの筋肉を包む純金の装甲。レベル50で解放されます。",
+  "tooltip.elephantSkin2.desc": "膜状の翼と黒ずんだ牙 ― 何かが一緒に戻ってきた。",
+  "tooltip.elephantSkin3.desc": "肉はとうに朽ちた。歩みは止まらない。",
+  "tooltip.elephantSkin7.desc": "飾り気のない、元の体色。",
+  "ow.attacks.elephant.combo.title": "踏みつけ",
+  "ow.attacks.elephant.combo.desc": "ゾウが%s秒ごとに攻撃し、一撃につき%sのダメージを与えます。",
+  "ow.attacks.elephant.shoulder_bash.title": "ショルダーバッシュ",
+  "ow.attacks.elephant.shoulder_bash.desc": "右クリック：ゾウが視線の向いた側へ身を投げ出し、%sのダメージを与えて進路上のすべてを弾き飛ばします。クールダウン%s秒。",
+  "ow.attacks.elephant.earthquake.title": "大地震",
+  "ow.attacks.elephant.earthquake.desc": "%s体の撃破で充填。ゾウが身を起こし、全体重を叩きつけます：%sブロックに衝撃波、中心で最大%sのダメージ、地面は砕け、カメラが揺れます。クールダウン%s秒。",
+  "ow.attacks.elephant.unshakeable.title": "不動",
+  "ow.attacks.elephant.unshakeable.desc": "ゾウを押し退けられるものはありません。ノックバックをほぼ受けず、どの生物よりも打たれ強いのです。"
 }

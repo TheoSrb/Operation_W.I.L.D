@@ -1057,5 +1057,18 @@
   "ow.attacks.orca.tidal_rush.desc": "让虎鲸沿吻部方向冲刺，对撞到的目标造成 %s 点伤害。瞄准水面即可跃出水中。每 %s 秒一次。",
   "ow.attacks.orca.tidal_rush.title": "海流推进",
   "ow.attacks.orca.slipstream.desc": "在 %s 格范围内，你驯服的生物和部落成员游速提升 %s%%，屏息时长增加 %s%%。",
-  "ow.attacks.orca.slipstream.title": "随流"
+  "ow.attacks.orca.slipstream.title": "随流",
+
+  "tooltip.elephantSkin1.desc": "四吨肌肉之上覆着的纯金甲胄。50 级解锁。",
+  "tooltip.elephantSkin2.desc": "膜质的双翼与焦黑的长牙——有什么东西跟着它一起回来了。",
+  "tooltip.elephantSkin3.desc": "血肉早已崩坏，脚步却不曾停下。",
+  "tooltip.elephantSkin7.desc": "最初的皮色，未加修饰。",
+  "ow.attacks.elephant.combo.title": "践踏",
+  "ow.attacks.elephant.combo.desc": "让你的大象每 %s 秒攻击一次，每击造成 %s 点伤害。",
+  "ow.attacks.elephant.shoulder_bash.title": "撞肩",
+  "ow.attacks.elephant.shoulder_bash.desc": "右键：大象朝你注视的方向猛地侧撞，造成 %s 点伤害并将沿途一切抛开。冷却 %s 秒。",
+  "ow.attacks.elephant.earthquake.title": "地震",
+  "ow.attacks.elephant.earthquake.desc": "击杀 %s 个目标后充能。大象昂身而起，再以全身重量砸下：%s 格范围的冲击波，中心最高 %s 点伤害，地面碎裂，镜头震颤。冷却 %s 秒。",
+  "ow.attacks.elephant.unshakeable.title": "岿然不动",
+  "ow.attacks.elephant.unshakeable.desc": "没有什么推得动大象：它几乎无视一切击退，比任何生物都更能挨打。"
 }

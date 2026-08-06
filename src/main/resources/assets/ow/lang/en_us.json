@@ -1057,5 +1057,18 @@
   "ow.attacks.orca.tidal_rush.desc": "Launch your Orca along its snout, dealing %s damage to whatever it strikes. Aim at the surface to burst clear of the water. Every %s seconds.",
   "ow.attacks.orca.tidal_rush.title": "Ocean Surge",
   "ow.attacks.orca.slipstream.desc": "Within %s blocks, your tamed creatures and tribe members swim %s%% faster and hold their breath %s%% longer.",
-  "ow.attacks.orca.slipstream.title": "Slipstream"
+  "ow.attacks.orca.slipstream.title": "Slipstream",
+
+  "tooltip.elephantSkin1.desc": "Solid gold plating over four tonnes of muscle. Unlocks at level 50.",
+  "tooltip.elephantSkin2.desc": "Membranous wings and blackened tusks: something came back up with him.",
+  "tooltip.elephantSkin3.desc": "The flesh gave out long ago. The march did not.",
+  "tooltip.elephantSkin7.desc": "The original coat, unadorned.",
+  "ow.attacks.elephant.combo.title": "Trample",
+  "ow.attacks.elephant.combo.desc": "Make your Elephant strike every %s seconds, dealing %s damage per blow.",
+  "ow.attacks.elephant.shoulder_bash.title": "Shoulder Bash",
+  "ow.attacks.elephant.shoulder_bash.desc": "Right-click: the Elephant hurls itself toward the side you are looking at, dealing %s damage and flinging aside everything in its path. %s second cooldown.",
+  "ow.attacks.elephant.earthquake.title": "Earthquake",
+  "ow.attacks.elephant.earthquake.desc": "Charges with %s kills. The Elephant rears up, then drops its full weight: a shockwave across %s blocks, up to %s damage at the centre, shattered ground and shaking cameras. %s second cooldown.",
+  "ow.attacks.elephant.unshakeable.title": "Unshakeable",
+  "ow.attacks.elephant.unshakeable.desc": "Nothing pushes an Elephant: it shrugs off almost all knockback and takes more punishment than any other creature."
 }

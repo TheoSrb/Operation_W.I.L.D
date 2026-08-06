@@ -1138,6 +1138,39 @@ public class ClientEvents {
         return (1 + 0.1f * waterDepth + 0.005f * waterDepth * waterDepth + Math.max(0, waterDepth - 70) * 0.75f) / 2.125f;
     }
 
+    /**
+     * Secousse de caméra du Tremblement de Terre de l'éléphant.
+     *
+     * <p>Elle vit ici plutôt que sur l'entité : l'ébranlement touche <b>tous</b> les joueurs à
+     * portée, pas seulement le cavalier, et une entité commune n'a pas le droit de toucher au
+     * client. La fenêtre et l'intensité sont lues sur des données synchronisées, donc aucun paquet
+     * n'est nécessaire.</p>
+     *
+     * <p>L'atténuation est quadratique : la secousse doit être brutale au pied de la bête et à peine
+     * perceptible au bord du rayon, là où une décroissance linéaire la rendrait encore gênante.</p>
+     */
+    private static void tickEarthquakeShake() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) return;
+
+        double radius = OWAttacksConstants.Elephant.EARTHQUAKE_SHAKE_RADIUS;
+        float strongest = 0f;
+
+        for (ElephantEntity elephant : mc.level.getEntitiesOfClass(ElephantEntity.class,
+                mc.player.getBoundingBox().inflate(radius))) {
+            float intensity = elephant.getEarthquakeShakeIntensity();
+            if (intensity <= 0f) continue;
+
+            double distance = elephant.distanceTo(mc.player);
+            if (distance > radius) continue;
+
+            float falloff = (float) (1.0 - distance / radius);
+            strongest = Math.max(strongest, intensity * falloff * falloff);
+        }
+
+        if (strongest > 0f) shakeCamera(strongest, mc.player);
+    }
+
     public static void shakeCamera(float frequency, Player player) {
         if (player != null) {
             double pitchOffset = (Math.random() - 0.5) * frequency;
@@ -2330,6 +2363,8 @@ public class ClientEvents {
             blinkShaderOn = false;
         }
         OWAttacksInformation.tick();
+
+        tickEarthquakeShake();
 
         if (OWAttackLogic.isCrocTargeting) {
             Minecraft mcT = Minecraft.getInstance();

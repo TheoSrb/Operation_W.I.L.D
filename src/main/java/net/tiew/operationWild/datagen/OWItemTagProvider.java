@@ -166,6 +166,29 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.BEEF);
 
 
+        // L'éléphant broute tout ce qui pousse. Les fruits et les légumes restent ses préférés, mais
+        // rien de végétal ne le rebute — d'où un tag large plutôt qu'une courte liste de friandises.
+        tag(OWTags.Items.ELEPHANT_FOOD)
+                .add(Items.APPLE)
+                .add(Items.MELON_SLICE)
+                .add(Items.SWEET_BERRIES)
+                .add(Items.GLOW_BERRIES)
+                .add(Items.CHORUS_FRUIT)
+                .add(Items.CARROT)
+                .add(Items.POTATO)
+                .add(Items.BAKED_POTATO)
+                .add(Items.BEETROOT)
+                .add(Items.PUMPKIN)
+                .add(Items.SUGAR_CANE)
+                .add(Items.BAMBOO)
+                .add(Items.HAY_BLOCK)
+                .add(Items.WHEAT)
+                .add(Items.KELP)
+                .add(Items.DRIED_KELP)
+                .add(Items.BROWN_MUSHROOM)
+                .add(Items.RED_MUSHROOM);
+
+
         tag(OWTags.Items.OW_EGGS)
                 .add(OWBlocks.PEACOCK_EGG.asItem());
     }

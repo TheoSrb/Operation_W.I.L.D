@@ -1057,5 +1057,18 @@
   "ow.attacks.orca.tidal_rush.desc": "Impulsa a tu Orca en el eje de su hocico, infligiendo %s puntos de daño a lo que embista. Apunta a la superficie para hacerla saltar fuera del agua. Cada %s segundos.",
   "ow.attacks.orca.tidal_rush.title": "Impulso Marino",
   "ow.attacks.orca.slipstream.desc": "En un radio de %s bloques, tus criaturas domesticadas y los miembros de tu tribu nadan un %s%% más rápido y aguantan la respiración un %s%% más.",
-  "ow.attacks.orca.slipstream.title": "Corriente de Arrastre"
+  "ow.attacks.orca.slipstream.title": "Corriente de Arrastre",
+
+  "tooltip.elephantSkin1.desc": "Una coraza de oro macizo sobre cuatro toneladas de músculo. Se desbloquea al nivel 50.",
+  "tooltip.elephantSkin2.desc": "Alas membranosas y colmillos ennegrecidos: algo subió con él.",
+  "tooltip.elephantSkin3.desc": "La carne cedió hace mucho. La marcha, no.",
+  "tooltip.elephantSkin7.desc": "El pelaje original, sin adornos.",
+  "ow.attacks.elephant.combo.title": "Pisotón",
+  "ow.attacks.elephant.combo.desc": "Haz que tu Elefante golpee cada %s segundos, infligiendo %s puntos de daño por golpe.",
+  "ow.attacks.elephant.shoulder_bash.title": "Embestida de Hombro",
+  "ow.attacks.elephant.shoulder_bash.desc": "Clic derecho: el Elefante se lanza hacia el lado al que miras, infligiendo %s puntos de daño y apartando todo a su paso. %s segundos de recarga.",
+  "ow.attacks.elephant.earthquake.title": "Terremoto",
+  "ow.attacks.elephant.earthquake.desc": "Se carga con %s muertes. El Elefante se encabrita y deja caer todo su peso: onda expansiva de %s bloques, hasta %s puntos de daño en el centro, suelo destrozado y cámaras temblando. %s segundos de recarga.",
+  "ow.attacks.elephant.unshakeable.title": "Inquebrantable",
+  "ow.attacks.elephant.unshakeable.desc": "Nada empuja a un Elefante: ignora casi todo retroceso y aguanta más que cualquier otra criatura."
 }

@@ -60,7 +60,6 @@
   "elephant_idle_2": { "subtitle": "sounds.ow.elephant_idle_2", "sounds": [ "ow:elephant/elephant_idle_2" ], "volume": 2 },
   "elephant_idle_3": { "subtitle": "sounds.ow.elephant_idle_3", "sounds": [ "ow:elephant/elephant_idle_3" ], "volume": 2 },
   "elephant_idle_4": { "subtitle": "sounds.ow.elephant_idle_4", "sounds": [ "ow:elephant/elephant_idle_4" ], "volume": 2 },
-  "elephant_idle_5": { "subtitle": "sounds.ow.elephant_idle_5", "sounds": [ "ow:elephant/elephant_idle_5" ], "volume": 2 },
   "elephant_hurt": { "subtitle": "sounds.ow.elephant_hurt", "sounds": [ "ow:elephant/elephant_hurt" ], "volume": 2 },
   "elephant_hurting": { "subtitle": "sounds.ow.elephant_hurting", "sounds": [ "ow:elephant/elephant_hurting" ], "volume": 2 },
   "elephant_hurting_2": { "subtitle": "sounds.ow.elephant_hurting_2", "sounds": [ "ow:elephant/elephant_hurting_2" ], "volume": 2 },

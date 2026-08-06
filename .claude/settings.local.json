@@ -257,7 +257,15 @@
       "Bash(sed -n '/if \\(this.dashTicksLeft > 0\\) {/,/^            }/p' OrcaEntity.java)",
       "PowerShell(./gradlew compileJava --console=plain -q 2>&1)",
       "Bash(ls -la \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/.claude/\" 2>/dev/null; echo \"---SKILLS---\"; ls -la \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/.claude/skills/\" 2>/dev/null; echo \"---USER SKILLS---\"; ls \"C:/Users/Tiew_37/.claude/skills/\" 2>/dev/null)",
-      "Bash(grep -n \"^\\\\s*//\\\\s*=\\\\{5,\\\\}\\\\|^\\\\s*//\\\\s\\\\{5,\\\\}[A-ZÉÈÀÎÔÛ]\" entity/OWEntity.java)"
+      "Bash(grep -n \"^\\\\s*//\\\\s*=\\\\{5,\\\\}\\\\|^\\\\s*//\\\\s\\\\{5,\\\\}[A-ZÉÈÀÎÔÛ]\" entity/OWEntity.java)",
+      "Bash(ls \"C:/Users/Tiew_37/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/612a35bd-599e-4dca-b23c-b73848b7e727/f50d3dd8-8abe-4d40-9649-52fbdb0ca65c/skills/operation-wild-manager-create-entity/references/\")",
+      "Bash(grep -nE '^\\\\s{4}\\(public|protected|private\\)\\\\s+[A-Za-z<>\\\\[\\\\]., ]+\\\\s+[a-zA-Z0-9_]+\\\\\\(' C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/84b0bab3-71e9-42e3-9ca9-e2f27d45fb8a/scratchpad/elephant_old/ElephantEntity.java)",
+      "Bash(ls \"C:/Users/Tiew_37/Desktop/\" 2>&1 | head -40; echo \"---ONEDRIVE---\"; ls \"C:/Users/Tiew_37/OneDrive/Bureau/\" 2>&1 | head -40)",
+      "Bash(find \"C:/Users/Tiew_37/Desktop\" \"C:/Users/Tiew_37/Downloads\" \"C:/Users/Tiew_37/Documents\" -iname \"*elephant*\" -maxdepth 4 2>/dev/null | head -20)",
+      "Bash(python gen_elephant_anims.py)",
+      "Bash(awk '/EARTHQUAKE = /,0' ElephantAnimations.java)",
+      "Bash(python add_elephant_lang.py)",
+      "Bash(./gradlew runData --console=plain)"
     ]
   }
 }

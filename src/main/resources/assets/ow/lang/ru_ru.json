@@ -1057,5 +1057,18 @@
   "ow.attacks.orca.tidal_rush.desc": "Бросьте касатку по оси её морды, нанося %s урона всему, во что она врежется. Прицельтесь в поверхность, чтобы она вылетела из воды. Каждые %s секунд.",
   "ow.attacks.orca.tidal_rush.title": "Морской рывок",
   "ow.attacks.orca.slipstream.desc": "В радиусе %s блоков ваши приручённые существа и члены племени плывут на %s%% быстрее и задерживают дыхание на %s%% дольше.",
-  "ow.attacks.orca.slipstream.title": "Попутный поток"
+  "ow.attacks.orca.slipstream.title": "Попутный поток",
+
+  "tooltip.elephantSkin1.desc": "Броня из чистого золота поверх четырёх тонн мускулов. Открывается на 50-м уровне.",
+  "tooltip.elephantSkin2.desc": "Перепончатые крылья и почерневшие бивни: что-то поднялось вместе с ним.",
+  "tooltip.elephantSkin3.desc": "Плоть сдалась давно. Поступь — нет.",
+  "tooltip.elephantSkin7.desc": "Исходная окраска, без прикрас.",
+  "ow.attacks.elephant.combo.title": "Топот",
+  "ow.attacks.elephant.combo.desc": "Ваш слон бьёт каждые %s сек., нанося %s ед. урона за удар.",
+  "ow.attacks.elephant.shoulder_bash.title": "Удар плечом",
+  "ow.attacks.elephant.shoulder_bash.desc": "ПКМ: слон бросается в ту сторону, куда вы смотрите, нанося %s ед. урона и расшвыривая всё на пути. Перезарядка %s сек.",
+  "ow.attacks.elephant.earthquake.title": "Землетрясение",
+  "ow.attacks.elephant.earthquake.desc": "Заряжается за %s убийств. Слон встаёт на дыбы и обрушивает весь свой вес: ударная волна на %s блоков, до %s ед. урона в центре, разрушенная земля и тряска камеры. Перезарядка %s сек.",
+  "ow.attacks.elephant.unshakeable.title": "Несокрушимый",
+  "ow.attacks.elephant.unshakeable.desc": "Слона не сдвинуть: он почти не отбрасывается и выдерживает больше, чем любое другое существо."
 }

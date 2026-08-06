@@ -6,6 +6,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.skin.skins.*;
 import net.tiew.operationWild.entity.variants.BoaVariant;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
+import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.entity.variants.KangarooVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.entity.variants.OrcaVariant;
@@ -286,6 +287,53 @@ public final class SkinRegistry {
 
         public static OrcaSkin get(OrcaVariant variant) {
             return REGISTRY.getOrDefault(variant, REGISTRY.get(OrcaVariant.DEFAULT));
+        }
+
+        /**
+         * Called from ModClientEventBusEvents to register model layers declared by skins.
+         * No need to touch that file when adding new skins with model layers.
+         */
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    //  ELEPHANT SKINS
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public static class ElephantSkins {
+
+        private static final Map<ElephantVariant, ElephantSkin> REGISTRY = new EnumMap<>(ElephantVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/" + path);
+        }
+
+        static {
+            // --- Base skins: texture swap only ---
+            register(ElephantVariant.DEFAULT, ElephantSkin.base(tex("elephant_default.png")));
+            register(ElephantVariant.GREY,    ElephantSkin.base(tex("elephant_grey.png")));
+            register(ElephantVariant.PINK,    ElephantSkin.base(tex("elephant_pink.png")));
+
+            // --- Cosmétiques : texture + calque émissif ---
+            register(ElephantVariant.Cosmetics.GOLD.variant,   new GoldElephantSkin());
+            register(ElephantVariant.Cosmetics.DEMON.variant,  new DemonElephantSkin());
+            register(ElephantVariant.Cosmetics.ZOMBIE.variant, new ZombieElephantSkin());
+        }
+
+        public static void register(ElephantVariant variant, ElephantSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static ElephantSkin get(ElephantVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(ElephantVariant.DEFAULT));
         }
 
         /**

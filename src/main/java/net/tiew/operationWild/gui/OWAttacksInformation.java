@@ -15,6 +15,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
@@ -265,6 +266,41 @@ public class OWAttacksInformation {
                         title("ow.attacks.boa.thermal_vision.title"),
                         e -> desc("ow.attacks.boa.thermal_vision.desc",
                                 val((int) OWAttacksConstants.Boa.THERMAL_MAX_HP))
+                )
+
+        ));
+
+        // ──────────────────────────────────────────────────────────────────────
+        //  ÉLÉPHANT  (entityRow = 4 → cardTexY = 160 ; cartes en colonnes 60 / 80 / 100)
+        // ──────────────────────────────────────────────────────────────────────
+        // Même rangée que l'orque, qui occupe les colonnes 0 à 2 : l'éléphant prend les suivantes.
+        PROFILES.put(ElephantEntity.class, new EntityProfile(
+
+                new AttackSlot(60, 160, "LMB",
+                        title("ow.attacks.elephant.combo.title"),
+                        e -> desc("ow.attacks.elephant.combo.desc",
+                                val("1.2"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(80, 160, "RMB",
+                        title("ow.attacks.elephant.shoulder_bash.title"),
+                        e -> desc("ow.attacks.elephant.shoulder_bash.desc",
+                                val((int) OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE),
+                                val(OWAttacksConstants.Elephant.SHOULDER_BASH_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(100, 160, "X",
+                        title("ow.attacks.elephant.earthquake.title"),
+                        e -> desc("ow.attacks.elephant.earthquake.desc",
+                                val(OWAttacksConstants.Elephant.EARTHQUAKE_KILLS_REQUIRED),
+                                val((int) OWAttacksConstants.Elephant.EARTHQUAKE_RADIUS),
+                                val((int) OWAttacksConstants.Elephant.EARTHQUAKE_DAMAGE_CENTER),
+                                val(OWAttacksConstants.Elephant.EARTHQUAKE_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.elephant.unshakeable.title"),
+                        e -> desc("ow.attacks.elephant.unshakeable.desc")
                 )
 
         ));

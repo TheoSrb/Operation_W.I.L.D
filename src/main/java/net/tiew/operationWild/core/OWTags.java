@@ -61,6 +61,8 @@ public class OWTags {
 
         public static final TagKey<Item> CROCODILE_FOOD = tag("crocodile_food");
 
+        public static final TagKey<Item> ELEPHANT_FOOD = tag("elephant_food");
+
 
         private static TagKey<Item> tag(String name) {
             return ItemTags.create(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, name));

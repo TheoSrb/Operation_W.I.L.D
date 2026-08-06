@@ -270,6 +270,7 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.TIGER.get(), TigerRenderer::new);
             EntityRenderers.register(OWEntityRegistry.BOA.get(), BoaRenderer::new);
             EntityRenderers.register(OWEntityRegistry.ORCA.get(), OrcaRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.ELEPHANT.get(), ElephantRenderer::new);
             EntityRenderers.register(OWEntityRegistry.SEABUG.get(), SeaBugRenderer::new);
             EntityRenderers.register(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressRenderer::new);
             EntityRenderers.register(OWEntityRegistry.PRIMITIVE_SPEAR_PROJECTILE.get(), PrimitiveSpearProjectileRenderer::new);

@@ -1527,6 +1527,7 @@ public final class OWArenaManager {
                     () -> net.tiew.operationWild.entity.OWEntityRegistry.CROCODILE.get(),  // MARAUDER
                     () -> net.tiew.operationWild.entity.OWEntityRegistry.ORCA.get(),       // BERSERKER, eau
                     () -> net.tiew.operationWild.entity.OWEntityRegistry.BOA.get(),        // MARAUDER
+                    () -> net.tiew.operationWild.entity.OWEntityRegistry.ELEPHANT.get(),   // TANK, terre
             };
 
     /**

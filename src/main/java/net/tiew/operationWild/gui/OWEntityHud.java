@@ -199,6 +199,10 @@ public class OWEntityHud {
             return new EntityIconData(242, 38, 14, 11, -(14 / 2), -2);
         } else if (entity instanceof KangarooEntity) {
             return new EntityIconData(239, 203, 17, 23, -(17 / 2), -14);
+        } else if (entity instanceof ElephantEntity) {
+            // Vignette la plus large du lot (31 px) : elle déborde des deux côtés de l'ancrage, d'où
+            // un décalage horizontal deux fois plus grand que celui du kodiak.
+            return new EntityIconData(225, 0, 31, 21, -(31 / 2), -12);
         }
         return null;
     }

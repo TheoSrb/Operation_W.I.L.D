@@ -13,6 +13,7 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
@@ -52,6 +53,8 @@ public class OWAttacksHandler {
     public static final int CONSTRICT_ULTIMATE_ID = 10;
     public static final int WHIRLWIND_FISTS_ID = 11;
     public static final int TELLURIC_STOMP_ID = 12;
+    public static final int SHOULDER_BASH_ID = 13;
+    public static final int EARTHQUAKE_ID = 14;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -121,6 +124,14 @@ public class OWAttacksHandler {
         register(BoaEntity.class, BoaAttacks.VENOM_FANGS);
         register(BoaEntity.class, BoaAttacks.CONSTRICT_ULTIMATE);
         registerPassive(BoaEntity.class, BoaPassives.ULTIMATE_TARGET_SENSE);
+
+        // Éléphant : cartes dessinées en colonnes 60/80/100 de la ligne Y=160 → même rangée que
+        // l'orque, dont les trois cartes occupent les colonnes 0 à 2, avec un décalage de 3 cartes.
+        registerEntityRow(ElephantEntity.class, 4);
+        registerEntityColumn(ElephantEntity.class, 3);
+        registerComboMaxTimer(ElephantEntity.class, 24);
+        register(ElephantEntity.class, ElephantAttacks.SHOULDER_BASH);
+        register(ElephantEntity.class, ElephantAttacks.EARTHQUAKE);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -407,6 +418,70 @@ public class OWAttacksHandler {
                         ? (float) boa.getUltimateKillCount() / OWAttacksConstants.Boa.CONSTRICT_ULT_KILLS_REQUIRED
                         : 0f
         ).withUltimateDuration(OWAttacksConstants.Boa.CONSTRICT_ULT_TARGETING_MS);
+    }
+
+    public static class ElephantAttacks {
+
+        /**
+         * Coup d'Épaule — attaque secondaire instantanée (clic droit / OW_ATTACK_0).
+         *
+         * <p>Déclarée en {@link OWChargedAttack} avec une fenêtre de charge de 0 à 50 ms, comme la
+         * Ruée Tidale de l'orque : un clic suffit et l'attaque part aussitôt, mais on récupère le
+         * {@code localEffect}, seul endroit d'où l'on ait le droit de pousser une monture pilotée.
+         * Un {@link OWAttack} simple n'a pas ce point d'entrée, et la poussée serait alors appliquée
+         * deux fois.</p>
+         *
+         * <p>Le côté du déport se recalcule des deux côtés du réseau au lieu d'être synchronisé :
+         * client et serveur lisent les mêmes angles au même instant, là où une donnée synchronisée
+         * arriverait un tick trop tard et enverrait l'éléphant du mauvais côté.</p>
+         */
+        public static final OWChargedAttack SHOULDER_BASH = new OWChargedAttack(
+                SHOULDER_BASH_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Elephant.SHOULDER_BASH_ENERGY,
+                OWAttacksConstants.Elephant.SHOULDER_BASH_COOLDOWN_TICKS,
+                0L,
+                50L,
+                entity -> { },
+                entity -> ((ElephantEntity) entity).cancelShoulderBash(),
+                (entity, factor) -> ((ElephantEntity) entity).performShoulderBash(),
+                (entity, factor, dir) -> {
+                    if (!(entity instanceof ElephantEntity elephant)) return;
+
+                    LivingEntity rider = elephant.getControllingPassenger();
+                    int side = ElephantEntity.computeBashSide(
+                            rider != null ? rider.getYRot() : elephant.getYRot(), elephant.yBodyRot);
+
+                    Vec3 push = elephant.getBashDirection(side)
+                            .scale(OWAttacksConstants.Elephant.SHOULDER_BASH_SIDE_POWER);
+
+                    elephant.setDeltaMovement(push.x, OWAttacksConstants.Elephant.SHOULDER_BASH_LIFT, push.z);
+                    elephant.hasImpulse = true;
+                },
+                false,
+                false
+        );
+
+        /**
+         * Tremblement de Terre — ultime (touche X). Cinq victimes pour l'armer. L'éléphant se cabre
+         * pendant trois secondes, retombe de tout son poids, et le sol se disloque : dégâts
+         * dégressifs sur douze blocs, envol, Lenteur, cratère et caméras qui tremblent une seconde
+         * de plus. Le tick d'impact est calé sur l'image de contact de l'animation, pas sur sa fin.
+         */
+        public static final OWAttack EARTHQUAKE = new OWAttack(
+                EARTHQUAKE_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Elephant.EARTHQUAKE_ENERGY,
+                entity -> ((ElephantEntity) entity).activateEarthquake(),
+                OWAttacksConstants.Elephant.EARTHQUAKE_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof ElephantEntity elephant
+                        && elephant.getUltimateKillCount() >= OWAttacksConstants.Elephant.EARTHQUAKE_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof ElephantEntity elephant
+                        ? (float) elephant.getUltimateKillCount() / OWAttacksConstants.Elephant.EARTHQUAKE_KILLS_REQUIRED
+                        : 0f
+        ).withUltimateDuration(OWAttacksConstants.Elephant.EARTHQUAKE_DURATION_MS);
     }
 
     public static class BoaPassives {

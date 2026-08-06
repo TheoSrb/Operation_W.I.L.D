@@ -13,6 +13,10 @@ IDs d'attaque déjà pris :
   8 → Orca   ORCA_CALL      (ultime — touche X, 5 kills requis)
   9 → Boa    VENOM_FANGS    (toggle clic droit — Crochets Venimeux)
  10 → Boa    CONSTRICT_ULTIMATE (ultime — touche X, 5 kills, ciblage double-X point vert)
+ 11 → Kangourou WHIRLWIND_FISTS (clic droit MAINTENU — Tornade de Poings)
+ 12 → Kangourou TELLURIC_STOMP  (ultime — touche X, 5 kills requis)
+ 13 → Éléphant SHOULDER_BASH   (Coup d'Épaule — clic droit instantané, déport latéral)
+ 14 → Éléphant EARTHQUAKE      (ultime — touche X, 5 kills requis, Tremblement de Terre)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR
