@@ -166,6 +166,16 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     /** Au-delà de cette vitesse au sol, en blocs par tick, la bête est considérée lancée. */
     private static final double CHARGE_SPEED = 0.32;
 
+    private static final int FOOTSTEP_SOUND_REPEATS = 5;
+
+    private static final float FULL_CHARGE = 100f;
+
+    private static final float ROTATION_SPEED_STILL = 0.05f;
+    private static final float ROTATION_SPEED_CHARGED = 0.025f;
+
+    private static final float CHARGE_HEAD_MAX_PITCH = 40f;
+    private static final float CHARGE_HEAD_RESPONSE = 0.12f;
+
     /**
      * La charge : ce que coûte de se trouver devant quatre tonnes lancées. Le délai borne les coups
      * à un par seconde et par victime — sans lui, une entité coincée devant la trompe encaisserait
@@ -259,6 +269,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      * La phase appartient à l'individu, elle vit donc ici.</p>
      */
     public float clientPreviousLimbSwing = -1f;
+
+    private float chargeHeadPitch = 0f;
+    private float chargeHeadPitchPrev = 0f;
 
     private int groundStrikeCooldown = 0;
 
@@ -444,7 +457,26 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float getRotationSpeed() {
-        return 0.05f;
+        return Mth.lerp(getChargeRamp(), ROTATION_SPEED_STILL, ROTATION_SPEED_CHARGED);
+    }
+
+    @Override
+    public boolean keepsAccelerationDuringCombo() {
+        return getChargeRamp() >= 1f;
+    }
+
+    public float getChargeRamp() {
+        if (!this.isVehicle()) return 0f;
+        return Mth.clamp(this.getAcceleration() / FULL_CHARGE, 0f, 1f);
+    }
+
+    private void tickChargeHeadPitch() {
+        chargeHeadPitchPrev = chargeHeadPitch;
+        chargeHeadPitch += (getChargeRamp() * CHARGE_HEAD_MAX_PITCH - chargeHeadPitch) * CHARGE_HEAD_RESPONSE;
+    }
+
+    public float getChargeHeadPitch(float partialTick) {
+        return Mth.lerp(partialTick, chargeHeadPitchPrev, chargeHeadPitch);
     }
 
     @Override
@@ -469,8 +501,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     /**
      * Un pas d'éléphant, c'est deux sons superposés : le bruit du bloc foulé, joué grave et fort, et
-     * le coup sourd de la patte elle-même. Le tigre empile sept répétitions à faible volume pour
-     * épaissir un pas léger ; ici l'inverse — un seul appel, mais lourd.
+     * le coup sourd de la patte elle-même, empilé cinq fois pour lui donner sa masse — le tigre en
+     * empile sept, mais à faible volume, pour épaissir un pas léger.
      */
     private void playStepSoundFromAnimation(float pitchMod) {
         if (!this.level().isClientSide()) return;
@@ -503,16 +535,18 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 false
         );
 
-        this.level().playLocalSound(
-                this.getX(),
-                this.getY(),
-                this.getZ(),
-                OWSounds.ELEPHANT_FOOTSTEP.get(),
-                this.getSoundSource(),
-                0.9F,
-                pitchMod,
-                false
-        );
+        for (int i = 0; i < FOOTSTEP_SOUND_REPEATS; i++) {
+            this.level().playLocalSound(
+                    this.getX(),
+                    this.getY(),
+                    this.getZ(),
+                    OWSounds.ELEPHANT_FOOTSTEP.get(),
+                    this.getSoundSource(),
+                    0.9F,
+                    pitchMod,
+                    false
+            );
+        }
     }
 
     /**
@@ -645,13 +679,16 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         if (shoulderBashCooldown > 0) shoulderBashCooldown--;
 
-        // 27 ticks par frappe, dégâts au 17e : calé sur la durée des animations, sinon la machine
-        // d'état enchaîne la frappe suivante pendant que la précédente s'achève encore.
+        // 24 ticks par frappe, dégâts au 15e : le délai entre le clic et le coup, puis la fenêtre de
+        // relance, se lisent sur ces deux nombres — les monter rend l'enchaînement poussif.
         // Toute retouche ici se reporte sur registerComboMaxTimer(ElephantEntity.class, …).
-        createCombo(27, 20, OWSounds.ELEPHANT_HURTING.get(), 4.0, 4.0, 2.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 3 : 1);
+        createCombo(24, 15, OWSounds.ELEPHANT_HURTING.get(), 4.0, 4.0, 2.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 3 : 1);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
-        if (this.level().isClientSide()) setupAnimationState();
+        if (this.level().isClientSide()) {
+            setupAnimationState();
+            tickChargeHeadPitch();
+        }
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (this.isVehicle() && this.isTame() && !this.isSitting()) {
@@ -1472,14 +1509,14 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     /**
-     * Les trois frappes durent 1,68 s, soit 33,6 ticks à vitesse 1. Lues à 0,85 / 0,95 / 1,05 elles
-     * occupent 39,5 / 35,4 / 32,0 ticks ; les minuteurs ajoutent le tiers de marge pendant lequel
+     * Les trois frappes durent 1,68 s, soit 33,6 ticks à vitesse 1. Lues à 0,925 / 1,05 / 1,30 elles
+     * occupent 36,3 / 32,0 / 25,8 ticks ; les minuteurs ajoutent le tiers de marge pendant lequel
      * l'éléphant tient sa pose finale, sans quoi le geste est tranché avant sa dernière image.
      */
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (53 / comboSpeedMultiplier));
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (47 / comboSpeedMultiplier));
-        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (43 / comboSpeedMultiplier));
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (48 / comboSpeedMultiplier));
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (42 / comboSpeedMultiplier));
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (34 / comboSpeedMultiplier));
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {

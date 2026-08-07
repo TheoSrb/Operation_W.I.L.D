@@ -82,9 +82,10 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
                     }
 
                     if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5) && !packet.isScreenOpen()) {
+                        boolean keepCharge = owEntity.keepsAccelerationDuringCombo();
                         owEntity.setCombo(true, 1);
                         owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 5);
-                        owEntity.setAcceleration(0);
+                        if (!keepCharge) owEntity.setAcceleration(0);
                     } else if (owEntity.isPauseCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5)) {
                         owEntity.playerContinueCombo = true;
                         owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 5);

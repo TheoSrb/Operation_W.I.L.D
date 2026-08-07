@@ -129,7 +129,7 @@ public class OWAttacksHandler {
         // l'orque, dont les trois cartes occupent les colonnes 0 à 2, avec un décalage de 3 cartes.
         registerEntityRow(ElephantEntity.class, 4);
         registerEntityColumn(ElephantEntity.class, 3);
-        registerComboMaxTimer(ElephantEntity.class, 27);
+        registerComboMaxTimer(ElephantEntity.class, 24);
         register(ElephantEntity.class, ElephantAttacks.SHOULDER_BASH);
         register(ElephantEntity.class, ElephantAttacks.EARTHQUAKE);
     }

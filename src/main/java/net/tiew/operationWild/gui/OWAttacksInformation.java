@@ -279,7 +279,7 @@ public class OWAttacksInformation {
                 new AttackSlot(60, 160, "LMB",
                         title("ow.attacks.elephant.combo.title"),
                         e -> desc("ow.attacks.elephant.combo.desc",
-                                val("1.35"), val(e.getDamageToClient() / 3))
+                                val("1.2"), val(e.getDamageToClient() / 3))
                 ),
 
                 new AttackSlot(80, 160, "RMB",

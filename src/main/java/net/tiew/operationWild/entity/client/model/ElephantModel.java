@@ -22,35 +22,15 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
 
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "elephant_default"), "main");
 
-    /** Texture ne contenant que la hampe du drapeau de tribu (tout le reste est transparent). */
     private static final ResourceLocation FLAG_POLE_TEXTURE =
             ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/elephant/elephant_flag.png");
 
-    /** Rectangle de la toile dans l'espace local de l'os {@code flag}, en pixels modèle. */
     private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
 
-    /**
-     * Somme des {@code y} de repos de la chaîne {@code ALL2 → ALL → body}, relevée dans
-     * {@link #createBodyLayer()} : -7 + 0 + -2. C'est l'origine à partir de laquelle
-     * {@code captureBodyState} mesure le déplacement animé de l'assise.
-     */
     private static final float REST_POSE_Y_SUM = -9f;
 
-    /** Piqué ajouté à la nuque pendant la charge — 17°, assez pour se lire sans casser la silhouette. */
-    private static final float CHARGE_HEAD_PITCH = 0.3f;
+    public float externalChargeHeadPitch = 0f;
 
-    /**
-     * Roulis de virage, en degrés, posé par le renderer depuis {@code OWEntity.getBankRoll}.
-     *
-     * <p>Il s'applique sur {@code body} seul, et non sur {@code ALL2} comme chez l'orque. L'orque
-     * n'a pas de pattes : chez elle, incliner la racine incline la bête entière, ce qui est
-     * exactement le geste voulu. Ici {@code ALL} porte aussi les quatre membres, et les faire
-     * basculer avec le torse décollerait les pieds du sol. Seul le tronc penche dans le virage ;
-     * les pattes restent plantées.</p>
-     *
-     * <p>{@code captureBodyState} relève déjà la rotation de {@code body}, donc le cavalier — assis
-     * sur la nacelle, elle-même portée par le tronc — s'incline avec lui sans rien à changer.</p>
-     */
     public float externalBankRoll = 0f;
 
 
@@ -203,14 +183,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         return LayerDefinition.create(meshdefinition, 256, 256);
     }
 
-    /**
-     * Hampe et toile de la bannière de tribu, plantées sur la nacelle plutôt que sur l'échine :
-     * c'est la seule surface plate du dos, et l'étendard y tient debout sans traverser le cuir.
-     *
-     * <p>Ces pièces restent invisibles hors de la passe de
-     * {@link net.tiew.operationWild.entity.client.layer.OWTribeFlagLayer}, qui les affiche avec sa
-     * texture de hampe dédiée. Leur empreinte UV recouvre celle du corps.</p>
-     */
     public static void addFlagParts(PartDefinition body) {
         PartDefinition mainFlag = body.addOrReplaceChild("mainFlag", CubeListBuilder.create().texOffs(15, 1).addBox(-0.5F, -18.75F, -0.5F, 1.0F, 20.0F, 1.0F, new CubeDeformation(0.0F))
                 .texOffs(20, 0).addBox(-0.5F, -18.75F, 0.5F, 1.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
@@ -222,8 +194,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
 
         mainFlag.addOrReplaceChild("flag", CubeListBuilder.create().texOffs(0, 98).addBox(0.0F, -5.75F, 0.5F, 0.0F, 11.0F, 19.0F, new CubeDeformation(0.01F)), PartPose.offset(0.0F, -12.0F, 0.0F));
     }
-
-    // ── Drapeau de tribu (OWFlagModel) ───────────────────────────────────────────
 
     @Override
     public boolean hasTribeFlag() {
@@ -237,7 +207,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         this.ALL2.translateAndRotate(poseStack);
         this.ALL.translateAndRotate(poseStack);
         this.body.translateAndRotate(poseStack);
-        // Visible le temps de ce seul appel : le reste du pipeline doit continuer à l'ignorer.
         this.mainFlag.visible = true;
         this.mainFlag.render(poseStack, buffer, packedLight, packedOverlay, 0xFFFFFFFF);
         this.mainFlag.visible = false;
@@ -274,17 +243,12 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         };
     }
 
-    /**
-     * Les trois frappes se lisent sous la vitesse nominale, et non au-dessus comme au départ. Un
-     * éléphant ne fouette pas : il arme, il abat, il laisse retomber. Le gain de lisibilité vient
-     * de la lenteur — l'accélération de la troisième frappe reste, mais sous 1,0.
-     */
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
-            case 1 -> 0.85f;
-            case 2 -> 0.95f;
-            case 3 -> 1.05f;
+            case 1 -> 0.925f;
+            case 2 -> 1.05f;
+            case 3 -> 1.30f;
             default -> 1.0f;
         };
     }
@@ -293,8 +257,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
     public void setupAnim(ElephantEntity elephant, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-        // Les ailes n'appartiennent qu'au skin Démoniaque : elles vivent dans le maillage de base
-        // pour éviter un second modèle, mais restent effacées partout ailleurs.
         boolean demon = elephant.getVariant() == ElephantVariant.Cosmetics.DEMON.variant;
         this.demon_left_wing.visible = demon;
         this.demon_right_wing.visible = demon;
@@ -309,8 +271,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         }
         this.applyHeadRotation(netHeadYaw, headPitch);
 
-        // Posé avant les sorties anticipées : toutes les captures d'assise qui suivent doivent le
-        // voir, sinon le cavalier resterait droit sur une bête inclinée.
         if (Math.abs(externalBankRoll) > 0.01f) {
             this.body.zRot += (float) Math.toRadians(externalBankRoll);
         }
@@ -318,12 +278,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         animateCombos(elephant, ageInTicks);
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
 
-        // Relevé une fois pour toutes, avant les sorties anticipées : ne le mettre à jour que dans la
-        // branche de marche laisserait une valeur périmée au retour d'un séisme ou d'une assise, et
-        // le premier pas repris déclencherait un bruit fantôme.
-        //
-        // La valeur est portée par la BÊTE : ce modèle est unique et sert à tous les éléphants de
-        // l'écran (cf. ElephantEntity.clientPreviousLimbSwing).
         float previousLimbSwing = elephant.clientPreviousLimbSwing;
         elephant.clientPreviousLimbSwing = limbSwing;
 
@@ -355,8 +309,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
             return;
         }
 
-        // La sieste et le sommeil n'ont pas d'animation propre : l'éléphant dort debout, sur la
-        // pose assise, qui est la seule posture de repos exportée.
         if (elephant.isNapping() || elephant.isSleeping() || elephant.isSitting()) {
             this.animate(elephant.sittingAnimationState, ElephantAnimations.SIT, ageInTicks, 1.0f);
             captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
@@ -367,23 +319,14 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
 
         applyShoulderBashLean(elephant);
 
-        // Il n'existe qu'un cycle de déplacement : la course le rejoue plus vite plutôt que
-        // d'emprunter un galop qui n'a pas été animé. La cadence de course était plus LENTE que
-        // celle du pas (3,0 contre 5,0) : l'éléphant lancé glissait, ses pattes battant à peine
-        // plus vite qu'à l'arrêt. Elle passe maintenant nettement au-dessus.
         float speed = elephant.walkAnimationSpeed();
 
         this.animateWalk(ElephantAnimations.MOVE_WALK, limbSwing, limbSwingAmount, speed, 7.5f);
 
-        // Tête baissée pendant la charge : c'est le geste qui dit que la bête ne regarde plus où
-        // elle va mais ce qu'elle va emboutir. Appliqué après l'animation de marche, qui pilote
-        // aussi la nuque, sinon la pose serait écrasée.
-        if (elephant.isChargingForward()) {
-            this.head.xRot += CHARGE_HEAD_PITCH;
+        if (externalChargeHeadPitch > 0.01f) {
+            this.head.xRot += (float) Math.toRadians(externalChargeHeadPitch);
         }
 
-        // Première image relevée pour cette bête : aucune phase précédente à comparer, donc aucun
-        // appui à déclencher. Sans cela, un éléphant qui entre dans le champ pose un pas d'emblée.
         if (previousLimbSwing >= 0f) {
             if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.RIGHT_FOOT_CONTACT_MS)) footDown(elephant, true);
             if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.LEFT_FOOT_CONTACT_MS)) footDown(elephant, false);
@@ -392,25 +335,10 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
     }
 
-    /**
-     * Un pied touche le sol : bruit de pas, rien de plus.
-     *
-     * <p>La caméra du cavalier ne bronche pas. Une secousse à chaque appui, à quatre pas par
-     * seconde, revenait à ne jamais lui laisser d'image stable, et {@code shakeCamera} déplace la
-     * visée pour de bon — c'était injouable. Le roulis du corps, lui, passe par
-     * {@code ClientEvents.onCameraSetup}, qui berce la vue sans toucher à la visée.</p>
-     */
     private void footDown(ElephantEntity elephant, boolean right) {
         if (right) elephant.onRightFootDown(); else elephant.onLeftFootDown();
     }
 
-    /**
-     * Repli procédural du Coup d'Épaule, faute d'animation exportée : l'éléphant s'incline
-     * brutalement du côté du déport puis se redresse. Le pic est atteint au premier tiers du geste,
-     * ce qui fait coïncider l'inclinaison maximale avec le tick où partent les dégâts.
-     *
-     * <p>À remplacer par un {@code AnimationState} dès que le geste existe dans Blockbench.</p>
-     */
     private void applyShoulderBashLean(ElephantEntity elephant) {
         int timer = elephant.getShoulderBashTimer();
         if (timer <= 0) return;
@@ -426,20 +354,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         this.head.zRot -= lean * 0.5f;
     }
 
-    /**
-     * Relève le déplacement vertical animé de la chaîne d'os dans {@code elephant.bodyAnimY}, pour
-     * que {@code positionRider()} (thread de jeu) le lise sans rejouer {@code setupAnim}.
-     *
-     * <p>À appeler à <b>chaque</b> sortie de {@code setupAnim}, retours anticipés compris : un seul
-     * oubli fige l'assise du cavalier sur la dernière pose calculée.</p>
-     *
-     * <p>La valeur relevée est un <b>écart en unités de modèle</b>, non mis à l'échelle : les {@code
-     * y} des os ignorent l'agrandissement, que le renderer applique par la pile de matrices. La pose
-     * de repos doit donc être retranchée telle quelle. La multiplier par l'échelle — ce que faisait
-     * cette méthode — laissait un écart résiduel de {@code 9 × (échelle − 1)} au repos : nul à
-     * l'échelle 1, mais un bloc entier à l'échelle 2, et le cavalier s'enfonçait dans la bête à
-     * mesure qu'elle grossissait. {@code getRiderAnimYOffset()} applique l'échelle, une seule fois.</p>
-     */
     private void captureBodyState(ElephantEntity elephant, float restPoseYSum, ModelPart... boneChain) {
         if (!elephant.level().isClientSide()) return;
         elephant.setBodyZRot((float) Math.toDegrees(this.ALL.zRot + this.body.zRot));
@@ -454,10 +368,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
     }
 
-    /**
-     * Nuque épaisse : ±22° seulement, contre ±30° pour le tigre. Un éléphant qui regarde derrière
-     * lui tourne tout le corps, il ne dévisse pas la tête.
-     */
     private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
         pNetHeadYaw = Mth.clamp(pNetHeadYaw, -22.0F, 22.0F);
         pHeadPitch = Mth.clamp(pHeadPitch, -22.0F, 22.0F);
@@ -471,7 +381,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         return this.ALL2;
     }
 
-    /** Copie la pose résolue depuis un modèle déjà animé (skins en mode OVERLAY). */
     public void copyPoseFrom(ElephantModel<?> src) {
         this.ALL2.copyFrom(src.ALL2);
         this.ALL.copyFrom(src.ALL);

@@ -2655,6 +2655,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.getAcceleration() >= 100;
     }
 
+    public boolean keepsAccelerationDuringCombo() {
+        return false;
+    }
+
     /** Vrai si le joueur (UUID) fait partie de la tribu de cette entité (chef inclus). */
     public boolean isInMyTribe(UUID playerUuid) {
         if (playerUuid == null) return false;
@@ -3051,7 +3055,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             handleClientAnimationSync();
         }
 
-        if (this.isCombo()) {
+        if (this.isCombo() && !keepsAccelerationDuringCombo()) {
             this.setAcceleration(0);
         }
 
