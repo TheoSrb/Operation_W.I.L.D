@@ -144,6 +144,13 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         };
     }
 
+    /**
+     * Allure d'ensemble du combo pour cette espèce, appliquée aux trois frappes à la fois.
+     * C'est la molette à tourner quand l'enchaînement paraît trop lent ou trop vif ; le
+     * rapport entre les frappes, lui, se règle dans comboSpeed(int) juste en dessous.
+     */
+    private static final float COMBO_ANIMATION_SPEED = 1.0f;
+
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
@@ -160,7 +167,7 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
 
         this.applyHeadRotation(netHeadYaw, headPitch);
 
-        animateCombos(kangaroo, ageInTicks);
+        animateCombos(kangaroo, ageInTicks, COMBO_ANIMATION_SPEED);
 
         if (kangaroo.isTelluricStomping() || kangaroo.telluricStompOutroTicks > 0) {
             animateTelluricStomp(kangaroo, ageInTicks);

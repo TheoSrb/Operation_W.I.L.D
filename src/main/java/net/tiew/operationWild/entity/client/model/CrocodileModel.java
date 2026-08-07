@@ -241,6 +241,13 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
         };
     }
 
+    /**
+     * Allure d'ensemble du combo pour cette espèce, appliquée aux trois frappes à la fois.
+     * C'est la molette à tourner quand l'enchaînement paraît trop lent ou trop vif ; le
+     * rapport entre les frappes, lui, se règle dans comboSpeed(int) juste en dessous.
+     */
+    private static final float COMBO_ANIMATION_SPEED = 1.0f;
+
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
@@ -300,7 +307,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 			this.animate(crocodile.mouthSlamAnimState, CrocodileAnimations.MOUTH_SLAM_HIT, ageInTicks, 1.0f);
 		}
 
-		animateCombos(crocodile, ageInTicks);
+		animateCombos(crocodile, ageInTicks, COMBO_ANIMATION_SPEED);
 
 		if (crocodile.isMad()) {
 			this.left_eyeball.xScale = 0;

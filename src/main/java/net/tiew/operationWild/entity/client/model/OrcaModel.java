@@ -206,6 +206,13 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
         };
     }
 
+    /**
+     * Allure d'ensemble du combo pour cette espèce, appliquée aux trois frappes à la fois.
+     * C'est la molette à tourner quand l'enchaînement paraît trop lent ou trop vif ; le
+     * rapport entre les frappes, lui, se règle dans comboSpeed(int) juste en dessous.
+     */
+    private static final float COMBO_ANIMATION_SPEED = 1.0f;
+
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
@@ -252,7 +259,7 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 		// pouvait donc s'appliquer à la fois. Le coup précédent restait figé sur sa dernière image
 		// jusqu'à son arrêt, puis la pose sautait d'un bloc à l'attaque suivante. La nage était par
 		// la même occasion suspendue pendant toute la durée du combo.
-		animateCombos(orca, ageInTicks);
+		animateCombos(orca, ageInTicks, COMBO_ANIMATION_SPEED);
 
 		if ((orca.isRunning() || orca.getState() == 2)) {
 			float speed = orca.getControllingPassenger() != null ? 1.2f : 1.0f;

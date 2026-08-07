@@ -243,6 +243,13 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         };
     }
 
+    /**
+     * Allure d'ensemble du combo pour cette espèce, appliquée aux trois frappes à la fois.
+     * C'est la molette à tourner quand l'enchaînement paraît trop lent ou trop vif ; le
+     * rapport entre les frappes, lui, se règle dans comboSpeed(int) juste en dessous.
+     */
+    private static final float COMBO_ANIMATION_SPEED = 1.0f;
+
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
@@ -275,7 +282,7 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
             this.body.zRot += (float) Math.toRadians(externalBankRoll);
         }
 
-        animateCombos(elephant, ageInTicks);
+        animateCombos(elephant, ageInTicks, COMBO_ANIMATION_SPEED);
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
 
         float previousLimbSwing = elephant.clientPreviousLimbSwing;

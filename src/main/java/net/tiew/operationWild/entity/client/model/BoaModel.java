@@ -254,6 +254,13 @@ public class BoaModel<T extends BoaEntity> extends OWComboModel<T> implements OW
         };
     }
 
+    /**
+     * Allure d'ensemble du combo pour cette espèce, appliquée aux trois frappes à la fois.
+     * C'est la molette à tourner quand l'enchaînement paraît trop lent ou trop vif ; le
+     * rapport entre les frappes, lui, se règle dans comboSpeed(int) juste en dessous.
+     */
+    private static final float COMBO_ANIMATION_SPEED = 1.0f;
+
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
@@ -276,7 +283,7 @@ public class BoaModel<T extends BoaEntity> extends OWComboModel<T> implements OW
         // n'en laissait jouer qu'un a la fois : le precedent restait fige sur sa derniere image,
         // puis la pose sautait. La clause {@code !isCombo()} annulait par ailleurs le repli qui
         // laisse une animation finir son geste.
-        animateCombos(boa, ageInTicks);
+        animateCombos(boa, ageInTicks, COMBO_ANIMATION_SPEED);
 
         if (boa.tongAnimationState.isStarted()) {
             this.animate(boa.tongAnimationState, BoaAnimations.TONG, ageInTicks, 1.0f);

@@ -218,6 +218,13 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
         };
     }
 
+    /**
+     * Allure d'ensemble du combo pour cette espèce, appliquée aux trois frappes à la fois.
+     * C'est la molette à tourner quand l'enchaînement paraît trop lent ou trop vif ; le
+     * rapport entre les frappes, lui, se règle dans comboSpeed(int) juste en dessous.
+     */
+    private static final float COMBO_ANIMATION_SPEED = 1.0f;
+
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
@@ -243,7 +250,7 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 		this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (!tiger.isGrabbing()) {
-			animateCombos(tiger, ageInTicks);
+			animateCombos(tiger, ageInTicks, COMBO_ANIMATION_SPEED);
 			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 		}
 
