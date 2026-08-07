@@ -265,7 +265,26 @@
       "Bash(python gen_elephant_anims.py)",
       "Bash(awk '/EARTHQUAKE = /,0' ElephantAnimations.java)",
       "Bash(python add_elephant_lang.py)",
-      "Bash(./gradlew runData --console=plain)"
+      "Bash(./gradlew runData --console=plain)",
+      "Bash(ls \"C:/Users/Théo/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/612a35bd-599e-4dca-b23c-b73848b7e727/f50d3dd8-8abe-4d40-9649-52fbdb0ca65c/skills/operation-wild-manager-create-entity/references/\")",
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $files = @\\(\"src\\\\main\\\\resources\\\\assets\\\\ow\\\\textures\\\\gui\\\\hud\\\\owentity_hud.png\",\"src\\\\main\\\\resources\\\\assets\\\\ow\\\\textures\\\\overlay\\\\ow_tamed_attacks.png\",\"src\\\\main\\\\resources\\\\assets\\\\ow\\\\textures\\\\gui\\\\ow_inventory_gui.png\"\\); foreach \\($f in $files\\) { $p = Join-Path \\(Get-Location\\) $f; if \\(Test-Path $p\\) { $img = [System.Drawing.Image]::FromFile\\($p\\); \"$f : $\\($img.Width\\) x $\\($img.Height\\)\"; $img.Dispose\\(\\) } else { \"$f : NOT FOUND\" } })",
+      "PowerShell($base = \"C:\\\\Users\\\\Théo\\\\IdeaProjects\\\\Operation_W.I.L.D\\\\src\\\\main\\\\resources\\\\assets\\\\ow\\\\textures\"; Add-Type -AssemblyName System.Drawing; @\\(\"gui\\\\hud\\\\owentity_hud.png\",\"overlay\\\\ow_tamed_attacks.png\",\"gui\\\\ow_inventory_gui.png\",\"entity\\\\elephant\\\\elephant_default.png\"\\) | ForEach-Object { $p = Join-Path $base $_; if \\(Test-Path -LiteralPath $p\\) { $img = [System.Drawing.Image]::FromFile\\($p\\); \"$_ : $\\($img.Width\\) x $\\($img.Height\\)\"; $img.Dispose\\(\\) } else { \"$_ : NOT FOUND\" } })",
+      "Bash(./gradlew compileJava --console=plain -q)",
+      "Bash(git --no-pager diff --stat)",
+      "Bash(git --no-pager diff src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java)",
+      "Bash(git --no-pager diff src/main/java/net/tiew/operationWild/entity/client/model/ElephantModel.java)",
+      "Bash(java -version)",
+      "Read(//c/Users/Théo/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/**)",
+      "Bash(find \"C:/Users/Théo/.gradle/caches/modules-2/files-2.1\" -ipath \"*terrablender*\" -name \"*.jar\" 2>/dev/null | grep -v sources | grep -v javadoc | head; echo \"--- libs dir ---\"; ls \"C:/Users/Théo/IdeaProjects/Operation_W.I.L.D/libs\" 2>/dev/null)",
+      "Bash(git --no-pager diff src/main/java/net/tiew/operationWild/core/OWKeysBinding.java)",
+      "Bash(git --no-pager diff --stat -- src/)",
+      "Bash(git --no-pager status --short -- src/)",
+      "Bash(git --no-pager diff src/main/java/net/tiew/operationWild/entity/OWEntityRegistry.java)",
+      "Bash(awk '/AnimationDefinition MOVE_WALK/,/^    public static final AnimationDefinition SIT/' entity/client/animation/ElephantAnimations.java)",
+      "Bash(sed -i 's/registerComboMaxTimer\\(ElephantEntity.class, 32\\);/registerComboMaxTimer\\(ElephantEntity.class, 27\\);/' entity/attacks/OWAttacksHandler.java)",
+      "Bash(sed -i 's/val\\(\"1.6\"\\), val\\(e.getDamageToClient\\(\\) \\\\/ 3\\)\\)/val\\(\"1.35\"\\), val\\(e.getDamageToClient\\(\\) \\\\/ 3\\)\\)/' gui/OWAttacksInformation.java)",
+      "Bash(sed -n '/private void tickGroundStrikes/,/^    }$/p' entity/animals/terrestrial/ElephantEntity.java)",
+      "Bash(sed -n '/EARTHQUAKE_KILLS_REQUIRED/,/SHOCKWAVE_LAUNCH/p' entity/attacks/OWAttacksConstants.java)"
     ]
   }
 }

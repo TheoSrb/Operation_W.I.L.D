@@ -2,6 +2,7 @@ package net.tiew.operationWild.entity.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.animation.AnimationDefinition;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -9,11 +10,13 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.client.animation.ElephantAnimations;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
+import net.tiew.operationWild.event.ClientEvents;
 
 public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> implements OWFlagModel {
 
@@ -33,7 +36,10 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
      */
     private static final float REST_POSE_Y_SUM = -9f;
 
-    // Tracks the limbSwing value from the previous frame to detect animation crossings.
+    /** Piqué ajouté à la nuque pendant la charge — 17°, assez pour se lire sans casser la silhouette. */
+    private static final float CHARGE_HEAD_PITCH = 0.3f;
+
+    /** {@code limbSwing} de l'image précédente, seul moyen de détecter le franchissement d'une clé. */
     private float prevLimbSwing = 0f;
 
     private final ModelPart ALL2;
@@ -256,12 +262,17 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         };
     }
 
+    /**
+     * Les trois frappes se lisent sous la vitesse nominale, et non au-dessus comme au départ. Un
+     * éléphant ne fouette pas : il arme, il abat, il laisse retomber. Le gain de lisibilité vient
+     * de la lenteur — l'accélération de la troisième frappe reste, mais sous 1,0.
+     */
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
-            case 1 -> 0.925f;
-            case 2 -> 1.05f;
-            case 3 -> 1.15f;
+            case 1 -> 0.85f;
+            case 2 -> 0.95f;
+            case 3 -> 1.05f;
             default -> 1.0f;
         };
     }
@@ -289,6 +300,12 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         animateCombos(elephant, ageInTicks);
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
 
+        // Relevé une fois pour toutes, avant les sorties anticipées : ne le mettre à jour que dans la
+        // branche de marche laisserait une valeur périmée au retour d'un séisme ou d'une assise, et
+        // le premier pas repris déclencherait un bruit fantôme.
+        float previousLimbSwing = this.prevLimbSwing;
+        this.prevLimbSwing = limbSwing;
+
         if (elephant.isMad()) {
             this.left_eyeBall.xScale = 0;
             this.left_eyeBall.yScale = 0;
@@ -299,7 +316,7 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
             this.right_eyeBall.zScale = 0;
         }
 
-        if (elephant.isEarthquaking()) {
+        if (elephant.isEarthquakeGesture()) {
             this.animate(elephant.earthquakeAnimationState, ElephantAnimations.EARTHQUAKE, ageInTicks, 1.0f);
             captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
             return;
@@ -329,25 +346,37 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
 
         applyShoulderBashLean(elephant);
 
-        // Il n'existe qu'un cycle de déplacement : la course le rejoue plus vite et plus ample
-        // plutôt que d'emprunter un galop qui n'a pas été animé.
-        if (elephant.isRunning() || elephant.getState() == 2) {
-            this.animateWalk(ElephantAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 3.0f, 3.5f);
+        // Il n'existe qu'un cycle de déplacement : la course le rejoue plus vite plutôt que
+        // d'emprunter un galop qui n'a pas été animé. La cadence de course était plus LENTE que
+        // celle du pas (3,0 contre 5,0) : l'éléphant lancé glissait, ses pattes battant à peine
+        // plus vite qu'à l'arrêt. Elle passe maintenant nettement au-dessus.
+        float speed = elephant.walkAnimationSpeed();
 
-            if (walkAnimCrossed(ElephantAnimations.MOVE_WALK, limbSwing, 3.0f, 1200L)) elephant.onRightFootDown();
-            if (walkAnimCrossed(ElephantAnimations.MOVE_WALK, limbSwing, 3.0f, 2900L)) elephant.onLeftFootDown();
+        this.animateWalk(ElephantAnimations.MOVE_WALK, limbSwing, limbSwingAmount, speed, 7.5f);
 
-        } else {
-            this.animateWalk(ElephantAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 5.0f, 2.5f);
-
-            if (walkAnimCrossed(ElephantAnimations.MOVE_WALK, limbSwing, 5.0f, 1200L)) elephant.onRightFootDown();
-            if (walkAnimCrossed(ElephantAnimations.MOVE_WALK, limbSwing, 5.0f, 2900L)) elephant.onLeftFootDown();
+        // Tête baissée pendant la charge : c'est le geste qui dit que la bête ne regarde plus où
+        // elle va mais ce qu'elle va emboutir. Appliqué après l'animation de marche, qui pilote
+        // aussi la nuque, sinon la pose serait écrasée.
+        if (elephant.isChargingForward()) {
+            this.head.xRot += CHARGE_HEAD_PITCH;
         }
 
-        // Must be updated AFTER the event checks above, so they see the previous frame's value.
-        this.prevLimbSwing = limbSwing;
+        if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.RIGHT_FOOT_CONTACT_MS)) footDown(elephant, true);
+        if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.LEFT_FOOT_CONTACT_MS)) footDown(elephant, false);
 
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
+    }
+
+    /**
+     * Un pied touche le sol : bruit de pas, rien de plus.
+     *
+     * <p>La caméra du cavalier ne bronche pas. Une secousse à chaque appui, à quatre pas par
+     * seconde, revenait à ne jamais lui laisser d'image stable, et {@code shakeCamera} déplace la
+     * visée pour de bon — c'était injouable. Le roulis du corps, lui, passe par
+     * {@code ClientEvents.onCameraSetup}, qui berce la vue sans toucher à la visée.</p>
+     */
+    private void footDown(ElephantEntity elephant, boolean right) {
+        if (right) elephant.onRightFootDown(); else elephant.onLeftFootDown();
     }
 
     /**
@@ -373,9 +402,11 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
     }
 
     /**
-     * Captures the animated bone-chain Y delta into {@code elephant.bodyAnimY} so that
-     * {@code positionRider()} (game thread) can read it without re-running setupAnim.
-     * Must be called at every exit point of setupAnim, including early returns.
+     * Relève le déplacement vertical animé de la chaîne d'os dans {@code elephant.bodyAnimY}, pour
+     * que {@code positionRider()} (thread de jeu) le lise sans rejouer {@code setupAnim}.
+     *
+     * <p>À appeler à <b>chaque</b> sortie de {@code setupAnim}, retours anticipés compris : un seul
+     * oubli fige l'assise du cavalier sur la dernière pose calculée.</p>
      */
     private void captureBodyState(ElephantEntity elephant, float restPoseYSum, ModelPart... boneChain) {
         if (!elephant.level().isClientSide()) return;
@@ -384,23 +415,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         float ySum = 0f;
         for (ModelPart bone : boneChain) ySum += bone.y;
         elephant.bodyAnimY = ySum - (restPoseYSum * elephant.getScale());
-    }
-
-    /**
-     * Returns {@code true} on the <em>exact frame</em> a looping walk animation crosses a keyframe time.
-     *
-     * <p>Les deux contacts au sol de {@code move.walk} sont relevés sur les canaux de position des
-     * membres : les pattes avant-droite et arrière-gauche touchent à 1,2 s, les deux autres à 2,9 s.</p>
-     */
-    private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
-        long durationMs = (long) (animation.lengthInSeconds() * 1000f);
-        if (durationMs <= 0) return false;
-
-        long cur = ((long) (limbSwing * 50f * speedScale)) % durationMs;
-        long prev = ((long) (prevLimbSwing * 50f * speedScale)) % durationMs;
-
-        if (prev <= cur) return prev < triggerTimeMs && cur >= triggerTimeMs;
-        return triggerTimeMs <= cur || triggerTimeMs > prev;
     }
 
     @Override

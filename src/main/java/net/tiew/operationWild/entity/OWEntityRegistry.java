@@ -24,7 +24,7 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<BoaEntity>> BOA = ENTITY_TYPES.register("boa", () -> EntityType.Builder.<BoaEntity>of((type, world) -> new BoaEntity(type, world, 1.0f, 3000, 1), MobCategory.CREATURE).sized(1.0f, 1.0f).build("boa"));
     public static final DeferredHolder<EntityType<?>, EntityType<CrocodileEntity>> CROCODILE = ENTITY_TYPES.register("crocodile", () -> EntityType.Builder.<CrocodileEntity>of((type, world) -> new CrocodileEntity(type, world, 1.0f, 5000, 2), MobCategory.CREATURE).sized(1.9f, 1.1f).build("crocodile"));
     public static final DeferredHolder<EntityType<?>, EntityType<OrcaEntity>> ORCA = ENTITY_TYPES.register("orca", () -> EntityType.Builder.<OrcaEntity>of((type, world) -> new OrcaEntity(type, world, 1.1f, 7500, 2), MobCategory.CREATURE).sized(2.2f, 2.0f).build("orca"));
-    public static final DeferredHolder<EntityType<?>, EntityType<ElephantEntity>> ELEPHANT = ENTITY_TYPES.register("elephant", () -> EntityType.Builder.<ElephantEntity>of((type, world) -> new ElephantEntity(type, world, 1.2f, 8000, 4), MobCategory.CREATURE).sized(2.6f, 3.2f).build("elephant"));
+    public static final DeferredHolder<EntityType<?>, EntityType<ElephantEntity>> ELEPHANT = ENTITY_TYPES.register("elephant", () -> EntityType.Builder.<ElephantEntity>of((type, world) -> new ElephantEntity(type, world, 1.05f, 8000, 4), MobCategory.CREATURE).sized(2.6f, 3.2f).build("elephant"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<CrocodileTailPart>> CROCODILE_TAIL_PART =
             ENTITY_TYPES.register("crocodile_tail_part", () -> EntityType.Builder

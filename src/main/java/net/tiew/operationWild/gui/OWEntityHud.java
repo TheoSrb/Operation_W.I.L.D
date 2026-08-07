@@ -148,7 +148,13 @@ public class OWEntityHud {
         if (entity instanceof OWEntity owEntity && owEntity.canIncreasesSpeedDuringSprint()) {
             guiGraphics.blit(HUD, xPlacement, yPlacement, 173, 0, 10, 103);
 
-            int barHeight = (int) (103 * (owEntity.getAcceleration() / 100.0f));
+            // L'accélération n'a pas de plafond : le paquet de sprint l'incrémente d'un par tick
+            // sans jamais s'arrêter, et seul le calcul de vitesse la borne à cent. Sans le même
+            // plafond ici, la jauge dépassait sa hauteur au bout de cinq secondes de course et se
+            // redessinait une seconde fois AU-DESSUS du cadre, avec un décalage de texture négatif.
+            float filled = Math.min(100f, owEntity.getAcceleration()) / 100f;
+
+            int barHeight = (int) (103 * filled);
             int startY = yPlacement + (103 - barHeight);
             int textureY = 103 - barHeight;
 

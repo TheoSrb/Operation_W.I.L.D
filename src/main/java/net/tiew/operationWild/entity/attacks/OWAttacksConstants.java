@@ -45,20 +45,60 @@ public class OWAttacksConstants {
         /** Durée totale du geste (4,16 s), au-delà de laquelle l'éléphant redevient mobile. */
         public static final int EARTHQUAKE_TOTAL_TICKS = 84;
         public static final long EARTHQUAKE_DURATION_MS = EARTHQUAKE_TOTAL_TICKS * 50L;
-        /** Secousse résiduelle après l'impact : c'est elle qui fait trembler les caméras. */
-        public static final int EARTHQUAKE_AFTERSHOCK_TICKS = 60;
-        public static final double EARTHQUAKE_RADIUS = 12.0;
-        public static final float EARTHQUAKE_DAMAGE_CENTER = 22f;
-        public static final float EARTHQUAKE_DAMAGE_EDGE = 6f;
-        public static final float EARTHQUAKE_LAUNCH = 0.9f;
-        /** Rayon dans lequel le sol se disloque. Volontairement plus court que les dégâts. */
-        public static final double EARTHQUAKE_BREAK_RADIUS = 7.0;
-        /** Une fraction seulement des blocs du rayon cède : un cratère troué, pas un disque rasé. */
-        public static final float EARTHQUAKE_BREAK_CHANCE = 0.35f;
+        /**
+         * Le séisme n'est pas une onde qui s'éloigne, c'est une zone qui tremble.
+         *
+         * <p>Il a d'abord été un front de fracture partant du centre — spectaculaire une fois, mais
+         * qui laissait une couronne nette et ne se passait plus rien après. Il bat maintenant : une
+         * pulsation par seconde pendant quinze secondes, chacune disloquant seize blocs pris au
+         * hasard dans le rayon et faisant sursauter tout ce qui s'y trouve. Le sol se ruine par
+         * plaques et la menace dure, au lieu de balayer une fois et de s'éteindre.</p>
+         */
+        public static final int EARTHQUAKE_DURATION_TICKS = 300;
+        public static final int EARTHQUAKE_PULSE_INTERVAL = 20;
+        public static final double EARTHQUAKE_RADIUS = 24.0;
+        public static final int EARTHQUAKE_BLOCKS_PER_PULSE = 16;
+        public static final float EARTHQUAKE_PULSE_DAMAGE = 2f;
+        /** Sursaut imprimé à chaque pulsation : on trébuche, on n'est pas projeté. */
+        public static final double EARTHQUAKE_PULSE_HOP = 0.25;
         /** Portée de la secousse de caméra, plus large que le cratère : on la sent avant de la voir. */
         public static final double EARTHQUAKE_SHAKE_RADIUS = 40.0;
-        public static final float EARTHQUAKE_SHAKE_INTENSITY = 1.35f;
-        public static final int EARTHQUAKE_SLOWNESS_TICKS = 200;
+        /**
+         * Amplitude de la secousse de caméra, et part qui subsiste entre deux pulsations.
+         *
+         * <p>Elle court sur toute la durée du séisme et n'épargne personne, cavalier compris : le
+         * sol tremble sous tout le monde. Mais elle <b>bat</b> au lieu de vibrer à plat — pleine à
+         * chaque effondrement, retombée au tiers juste avant le suivant. Une secousse constante
+         * pendant quinze secondes se lit comme un bug d'affichage ; une secousse qui pulse se lit
+         * comme un sol qui cède par à-coups.</p>
+         */
+        public static final float EARTHQUAKE_SHAKE_INTENSITY = 1.6f;
+        public static final float EARTHQUAKE_SHAKE_FLOOR = 0.33f;
+
+        // ── Onde de Choc (troisième frappe du combo) ────────────────────────────
+        /** Avancée par tick, en blocs. Trente blocs parcourus en huit secondes et demie. */
+        public static final double SHOCKWAVE_SPEED = 0.18;
+        public static final double SHOCKWAVE_LENGTH = 30.0;
+        /** Demi-largeur du couloir : quatre blocs de large en tout. */
+        public static final double SHOCKWAVE_HALF_WIDTH = 2.0;
+        /**
+         * L'onde bouscule, elle ne tue pas : deux points, comme une pulsation de séisme. Sa valeur
+         * est de désorganiser un groupe, pas de nettoyer un couloir de trente blocs d'un coup de
+         * clic gauche.
+         */
+        public static final float SHOCKWAVE_DAMAGE = 2f;
+        /**
+         * L'envol : bas mais long. Environ un bloc de hauteur pour cinq et demi de recul, à
+         * contresens de l'onde — la victime est balayée hors du couloir plus qu'elle n'est soulevée,
+         * et le front poursuit sa route sans elle.
+         *
+         * <p>La hauteur se lit au carré de cette valeur : 0,62 donnait encore près de trois blocs,
+         * ce qui expliquait qu'un premier abaissement ne se voie pas. À 0,34 on retombe sous le
+         * saut du joueur. Le recul, lui, est linéaire une fois divisé par la friction de l'air —
+         * d'où une portée qui suit proprement la valeur.</p>
+         */
+        public static final double SHOCKWAVE_LAUNCH = 0.34;
+        public static final double SHOCKWAVE_PUSHBACK = 0.50;
     }
 
     public static class Kodiak {

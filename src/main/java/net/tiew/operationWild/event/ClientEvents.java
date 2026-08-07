@@ -1168,8 +1168,19 @@ public class ClientEvents {
             strongest = Math.max(strongest, intensity * falloff * falloff);
         }
 
-        if (strongest > 0f) shakeCamera(strongest, mc.player);
+        earthquakeShake = strongest;
     }
+
+    /**
+     * Intensité courante de la secousse du Tremblement de Terre, relevée une fois par tick et
+     * appliquée à chaque image par {@link #onCameraSetup}.
+     *
+     * <p>Elle ne passe <b>pas</b> par {@code shakeCamera}, qui fait pivoter le joueur pour de bon :
+     * sur les quinze secondes du séisme, cette marche aléatoire aurait fait dériver la visée de
+     * plusieurs degrés sans qu'on puisse la rattraper. Les offsets d'angle de caméra, eux, secouent
+     * la vue et rendent la visée intacte.</p>
+     */
+    private static float earthquakeShake = 0f;
 
     public static void shakeCamera(float frequency, Player player) {
         if (player != null) {
@@ -1560,6 +1571,10 @@ public class ClientEvents {
             zRot = isPassenger ? -orca.getBodyZRot_passenger() : -orca.getBodyZRot();
             xRot = isPassenger ? -orca.getBodyXRot_passenger() : -orca.getBodyXRot();
             innerYaw = isPassenger ? -orca.getBodyYRot_passenger() : -orca.getBodyYRot();
+        } else if (vehicle instanceof ElephantEntity elephant) {
+            outerYaw = bodyYaw;
+            zRot = -elephant.getBodyZRot();
+            xRot = -elephant.getBodyXRot();
         } else {
             outerYaw = player.getYRot();
             zRot = -vehicle.getBodyZRot();
@@ -1595,6 +1610,14 @@ public class ClientEvents {
 
             double intensity = ClientConfig.CAMERA_SHAKE_INTENSITY.get();
 
+            // Le sol qui tremble sous tout le monde, cavalier de l'éléphant compris.
+            if (earthquakeShake > 0f) {
+                double quake = earthquakeShake * intensity;
+                event.setRoll((float) (event.getRoll() + (Math.random() - 0.5) * quake));
+                event.setPitch((float) (event.getPitch() + (Math.random() - 0.5) * quake));
+                event.setYaw((float) (event.getYaw() + (Math.random() - 0.5) * quake));
+            }
+
             if (rootVehicle instanceof KodiakEntity kodiak) {
                 event.setRoll((float) (event.getRoll() + (kodiak.bodyZRotCamera / (kodiak.isRunning() ? 3 : 2)) * intensity));
                 event.setPitch((float) (event.getPitch() + (kodiak.bodyXRotCamera / (kodiak.isRunning() ? 3 : 2)) * intensity));
@@ -1619,6 +1642,11 @@ public class ClientEvents {
             } else if (rootVehicle instanceof KangarooEntity kangaroo) {
                 event.setRoll((float) (event.getRoll() + (kangaroo.getBodyZRot() / 6) * intensity));
                 event.setPitch((float) (event.getPitch() + (kangaroo.getBodyXRot() / 6) * intensity));
+            } else if (rootVehicle instanceof ElephantEntity elephant) {
+                // Atténuation au tiers seulement, contre un sixième chez le tigre : le roulis d'un
+                // éléphant au pas est ample et lent, le diviser par six l'effaçait complètement.
+                event.setRoll((float) (event.getRoll() + (elephant.getBodyZRot() / 3) * intensity));
+                event.setPitch((float) (event.getPitch() + (elephant.getBodyXRot() / 3) * intensity));
             }
         }
     }

@@ -25,6 +25,18 @@ ARCHITECTURE — CLIENT vs SERVEUR
 Le système repose sur un seul packet universel (OWAttackPacket).
 Aucun nouveau packet n'est jamais nécessaire.
 
+/!\ MAIS son handler serveur, lui, DOIT être étendu. OWAttackPacket.handle()
+    aiguille sur un switch(packet.attackId()) écrit à la main, un bloc par
+    action (ACTION_EXECUTE, ACTION_CHARGE_START / CANCEL / RELEASE). Un id
+    absent de ce switch = le client envoie, le serveur jette en silence, et
+    l'attaque « ne fait rien » sans la moindre erreur. C'est la panne la plus
+    coûteuse du système : tout le reste peut être branché correctement.
+    L'éléphant (13 et 14) a vécu exactement ça.
+
+    Enregistrer une attaque, c'est donc DEUX endroits :
+      1. OWAttacksHandler.registerAll()  → côté client, quelle touche, quelle carte
+      2. OWAttackPacket.handle()         → côté serveur, quelle méthode appeler
+
 Flux d'une attaque chargée :
 
   [CLIENT] Appui touche

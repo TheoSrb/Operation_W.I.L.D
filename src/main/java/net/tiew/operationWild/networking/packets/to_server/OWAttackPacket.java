@@ -110,6 +110,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo)
                                 kangaroo.activateTelluricStomp();
                         }
+                        case 14 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
+                                elephant.activateEarthquake();
+                        }
                     }
                 }
 
@@ -179,6 +183,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                                 croc.cancelMouthSlamCharge();
                             }
                         }
+                        case 13 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
+                                elephant.cancelShoulderBash();
+                        }
                     }
                 }
 
@@ -202,6 +210,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case 7 -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)
                                 orca.performOrcaDash();
+                        }
+                        case 13 -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
+                                elephant.performShoulderBash();
                         }
                     }
                 }
