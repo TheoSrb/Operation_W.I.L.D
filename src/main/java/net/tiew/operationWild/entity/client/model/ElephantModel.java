@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.animation.AnimationDefinition;
+import net.minecraft.client.animation.KeyframeAnimations;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -29,7 +30,11 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
 
     private static final float REST_POSE_Y_SUM = -9f;
 
+    private static final org.joml.Vector3f WALK_ANIM_VECTOR = new org.joml.Vector3f();
+
     public float externalChargeHeadPitch = 0f;
+
+    public double externalWalkTimeMs = 0;
 
     public float externalBankRoll = 0f;
 
@@ -253,7 +258,7 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
-            case 1 -> 0.925f;
+            case 1 -> 1.0f;
             case 2 -> 1.05f;
             case 3 -> 1.30f;
             default -> 1.0f;
@@ -285,8 +290,7 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         animateCombos(elephant, ageInTicks, COMBO_ANIMATION_SPEED);
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
 
-        float previousLimbSwing = elephant.clientPreviousLimbSwing;
-        elephant.clientPreviousLimbSwing = limbSwing;
+        double walkTimeMs = externalWalkTimeMs;
 
         if (elephant.isMad()) {
             this.left_eyeBall.xScale = 0;
@@ -326,24 +330,14 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
 
         applyShoulderBashLean(elephant);
 
-        float speed = elephant.walkAnimationSpeed();
-
-        this.animateWalk(ElephantAnimations.MOVE_WALK, limbSwing, limbSwingAmount, speed, 7.5f);
+        KeyframeAnimations.animate(this, ElephantAnimations.MOVE_WALK, (long) walkTimeMs,
+                Math.min(limbSwingAmount * 7.5f, 1.0f), WALK_ANIM_VECTOR);
 
         if (externalChargeHeadPitch > 0.01f) {
             this.head.xRot += (float) Math.toRadians(externalChargeHeadPitch);
         }
 
-        if (previousLimbSwing >= 0f) {
-            if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.RIGHT_FOOT_CONTACT_MS)) footDown(elephant, true);
-            if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.LEFT_FOOT_CONTACT_MS)) footDown(elephant, false);
-        }
-
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
-    }
-
-    private void footDown(ElephantEntity elephant, boolean right) {
-        if (right) elephant.onRightFootDown(); else elephant.onLeftFootDown();
     }
 
     private void applyShoulderBashLean(ElephantEntity elephant) {

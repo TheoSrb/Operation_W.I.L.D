@@ -81,6 +81,8 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
                         return;
                     }
 
+                    if (!owEntity.canStartCombo()) return;
+
                     if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5) && !packet.isScreenOpen()) {
                         boolean keepCharge = owEntity.keepsAccelerationDuringCombo();
                         owEntity.setCombo(true, 1);

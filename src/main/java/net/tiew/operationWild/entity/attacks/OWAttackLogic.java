@@ -1019,7 +1019,8 @@ public class OWAttackLogic {
             // mais sans ce retour le clic passerait pour valide et lancerait le délai d'affichage.
             boolean isOrcaMouthFull = owEntity instanceof OrcaEntity orcaBite && orcaBite.hasSwallowed();
 
-            if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping || isBoaTargeting || isOrcaMouthFull) {
+            if (isCrocGrabbing || isCrocTargeting || isKodiakUltNapping || isBoaTargeting || isOrcaMouthFull
+                    || !owEntity.canStartCombo()) {
                 recordComboClick(true);
                 event.setCanceled(true);
                 return;

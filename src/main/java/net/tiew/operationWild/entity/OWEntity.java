@@ -2659,6 +2659,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
+    public boolean canStartCombo() {
+        return true;
+    }
+
     /** Vrai si le joueur (UUID) fait partie de la tribu de cette entité (chef inclus). */
     public boolean isInMyTribe(UUID playerUuid) {
         if (playerUuid == null) return false;

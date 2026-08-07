@@ -52,6 +52,7 @@ public class ElephantRenderer extends OWEntityRenderer<ElephantEntity, ElephantM
         // Après l'échange de modèle : c'est celui qui va être dessiné qui doit porter le roulis.
         this.model.externalBankRoll = elephant.getBankRoll(partialTicks);
         this.model.externalChargeHeadPitch = elephant.getChargeHeadPitch(partialTicks);
+        this.model.externalWalkTimeMs = elephant.getWalkAnimTimeMs(partialTicks);
 
         super.render(elephant, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
