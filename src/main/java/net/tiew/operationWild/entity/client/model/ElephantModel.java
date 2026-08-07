@@ -39,8 +39,20 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
     /** Piqué ajouté à la nuque pendant la charge — 17°, assez pour se lire sans casser la silhouette. */
     private static final float CHARGE_HEAD_PITCH = 0.3f;
 
-    /** {@code limbSwing} de l'image précédente, seul moyen de détecter le franchissement d'une clé. */
-    private float prevLimbSwing = 0f;
+    /**
+     * Roulis de virage, en degrés, posé par le renderer depuis {@code OWEntity.getBankRoll}.
+     *
+     * <p>Il s'applique sur {@code body} seul, et non sur {@code ALL2} comme chez l'orque. L'orque
+     * n'a pas de pattes : chez elle, incliner la racine incline la bête entière, ce qui est
+     * exactement le geste voulu. Ici {@code ALL} porte aussi les quatre membres, et les faire
+     * basculer avec le torse décollerait les pieds du sol. Seul le tronc penche dans le virage ;
+     * les pattes restent plantées.</p>
+     *
+     * <p>{@code captureBodyState} relève déjà la rotation de {@code body}, donc le cavalier — assis
+     * sur la nacelle, elle-même portée par le tronc — s'incline avec lui sans rien à changer.</p>
+     */
+    public float externalBankRoll = 0f;
+
 
     private final ModelPart ALL2;
     private final ModelPart ALL;
@@ -297,14 +309,23 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         }
         this.applyHeadRotation(netHeadYaw, headPitch);
 
+        // Posé avant les sorties anticipées : toutes les captures d'assise qui suivent doivent le
+        // voir, sinon le cavalier resterait droit sur une bête inclinée.
+        if (Math.abs(externalBankRoll) > 0.01f) {
+            this.body.zRot += (float) Math.toRadians(externalBankRoll);
+        }
+
         animateCombos(elephant, ageInTicks);
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
 
         // Relevé une fois pour toutes, avant les sorties anticipées : ne le mettre à jour que dans la
         // branche de marche laisserait une valeur périmée au retour d'un séisme ou d'une assise, et
         // le premier pas repris déclencherait un bruit fantôme.
-        float previousLimbSwing = this.prevLimbSwing;
-        this.prevLimbSwing = limbSwing;
+        //
+        // La valeur est portée par la BÊTE : ce modèle est unique et sert à tous les éléphants de
+        // l'écran (cf. ElephantEntity.clientPreviousLimbSwing).
+        float previousLimbSwing = elephant.clientPreviousLimbSwing;
+        elephant.clientPreviousLimbSwing = limbSwing;
 
         if (elephant.isMad()) {
             this.left_eyeBall.xScale = 0;
@@ -361,8 +382,12 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
             this.head.xRot += CHARGE_HEAD_PITCH;
         }
 
-        if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.RIGHT_FOOT_CONTACT_MS)) footDown(elephant, true);
-        if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.LEFT_FOOT_CONTACT_MS)) footDown(elephant, false);
+        // Première image relevée pour cette bête : aucune phase précédente à comparer, donc aucun
+        // appui à déclencher. Sans cela, un éléphant qui entre dans le champ pose un pas d'emblée.
+        if (previousLimbSwing >= 0f) {
+            if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.RIGHT_FOOT_CONTACT_MS)) footDown(elephant, true);
+            if (ElephantEntity.walkCycleCrossed(previousLimbSwing, limbSwing, speed, ElephantEntity.LEFT_FOOT_CONTACT_MS)) footDown(elephant, false);
+        }
 
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
     }
@@ -407,6 +432,13 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
      *
      * <p>À appeler à <b>chaque</b> sortie de {@code setupAnim}, retours anticipés compris : un seul
      * oubli fige l'assise du cavalier sur la dernière pose calculée.</p>
+     *
+     * <p>La valeur relevée est un <b>écart en unités de modèle</b>, non mis à l'échelle : les {@code
+     * y} des os ignorent l'agrandissement, que le renderer applique par la pile de matrices. La pose
+     * de repos doit donc être retranchée telle quelle. La multiplier par l'échelle — ce que faisait
+     * cette méthode — laissait un écart résiduel de {@code 9 × (échelle − 1)} au repos : nul à
+     * l'échelle 1, mais un bloc entier à l'échelle 2, et le cavalier s'enfonçait dans la bête à
+     * mesure qu'elle grossissait. {@code getRiderAnimYOffset()} applique l'échelle, une seule fois.</p>
      */
     private void captureBodyState(ElephantEntity elephant, float restPoseYSum, ModelPart... boneChain) {
         if (!elephant.level().isClientSide()) return;
@@ -414,7 +446,7 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         elephant.setBodyXRot((float) -Math.toDegrees(this.ALL.xRot + this.body.xRot));
         float ySum = 0f;
         for (ModelPart bone : boneChain) ySum += bone.y;
-        elephant.bodyAnimY = ySum - (restPoseYSum * elephant.getScale());
+        elephant.bodyAnimY = ySum - restPoseYSum;
     }
 
     @Override

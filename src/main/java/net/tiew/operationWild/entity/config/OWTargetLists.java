@@ -35,6 +35,7 @@ import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 
 import java.util.List;
@@ -109,6 +110,7 @@ public final class OWTargetLists {
      */
     public static final List<Class<?>> ORCA = List.of(
             Player.class,
+            TigerEntity.class, KodiakEntity.class, BoaEntity.class,
             Squid.class, Cod.class, Salmon.class, TropicalFish.class, Pufferfish.class,
             Dolphin.class, Turtle.class, PolarBear.class,
             Drowned.class, Guardian.class, ElderGuardian.class

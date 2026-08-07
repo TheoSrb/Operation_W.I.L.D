@@ -88,17 +88,21 @@ public class OWAttacksConstants {
          */
         public static final float SHOCKWAVE_DAMAGE = 2f;
         /**
-         * L'envol : bas mais long. Environ un bloc de hauteur pour cinq et demi de recul, à
-         * contresens de l'onde — la victime est balayée hors du couloir plus qu'elle n'est soulevée,
-         * et le front poursuit sa route sans elle.
+         * L'onde ne frappe pas, elle <b>charrie</b> : chaque impact projette la victime vers l'avant,
+         * dans le sens de la marche du front. Elle retombe devant lui, il la rattrape, la relance —
+         * et la promène ainsi sur toute la longueur du couloir en la punissant à chaque bond.
          *
-         * <p>La hauteur se lit au carré de cette valeur : 0,62 donnait encore près de trois blocs,
-         * ce qui expliquait qu'un premier abaissement ne se voie pas. À 0,34 on retombe sous le
-         * saut du joueur. Le recul, lui, est linéaire une fois divisé par la friction de l'air —
-         * d'où une portée qui suit proprement la valeur.</p>
+         * <p>Le dosage se règle tout seul, et c'est ce qui rend le charriage lisible. Un bond porte
+         * à cinq blocs et demi pour une vingtaine de ticks de vol, pendant que le front n'avance que
+         * de trois et demi : la victime atterrit donc <b>devant</b> lui et doit attendre qu'il la
+         * rejoigne. Sur trente blocs de couloir, cela fait cinq ou six reprises — pas trente.</p>
+         *
+         * <p>La hauteur se lit au carré de sa valeur : 0,62 donnait encore près de trois blocs, ce
+         * qui expliquait qu'un premier abaissement ne se voie pas. À 0,34 on retombe sous le saut du
+         * joueur. La portée, elle, est linéaire une fois divisée par la friction de l'air.</p>
          */
         public static final double SHOCKWAVE_LAUNCH = 0.34;
-        public static final double SHOCKWAVE_PUSHBACK = 0.50;
+        public static final double SHOCKWAVE_CARRY = 0.50;
     }
 
     public static class Kodiak {

@@ -49,6 +49,9 @@ public class ElephantRenderer extends OWEntityRenderer<ElephantEntity, ElephantM
                 ? skin.getModelLayer().map(this::getOrBakeModel).orElse(getOrBakeModel(ElephantModel.LAYER_LOCATION))
                 : getOrBakeModel(ElephantModel.LAYER_LOCATION);
 
+        // Après l'échange de modèle : c'est celui qui va être dessiné qui doit porter le roulis.
+        this.model.externalBankRoll = elephant.getBankRoll(partialTicks);
+
         super.render(elephant, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
 

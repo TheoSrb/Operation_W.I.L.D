@@ -32,6 +32,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -55,7 +56,9 @@ import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.sound.OWSounds;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
@@ -87,6 +90,13 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
 
     /**
+     * L'assise du cavalier sur la nacelle, en fraction de la hauteur de boîte et en blocs devant le
+     * centre. Les deux suivent l'échelle de l'individu.
+     */
+    private static final double SEAT_HEIGHT = 0.78;
+    private static final double SEAT_FORWARD = 0.10;
+
+    /**
      * Teintes des deux bandes de laine de la selle quand la bête n'appartient à aucune tribu :
      * blanc et gris clair, aux valeurs de {@code DyeColor.WHITE} et {@code DyeColor.LIGHT_GRAY}.
      */
@@ -112,7 +122,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     /** Cycles d'animation par unité de {@code walkAnimation}, au pas puis à la course. */
     public static final float WALK_ANIM_SPEED = 6.0f;
-    public static final float RUN_ANIM_SPEED = 9.0f;
+    public static final float RUN_ANIM_SPEED = 7.8f;
 
     /**
      * Position des quatre pattes dans le repère local de la bête, en blocs à l'échelle 1 :
@@ -141,7 +151,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      * Gerbe d'un seul pied. Serrée à un quart de bloc : elle partait du centre du corps avec un
      * étalement d'un bloc et demi, ce qui donnait un nuage sous le ventre et non des pas.
      */
-    private static final int FOOTFALL_PARTICLES = 30;
+    private static final int FOOTFALL_PARTICLES = 22;
     private static final double FOOTFALL_SPREAD = 0.22;
 
     /**
@@ -164,6 +174,16 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final float CHARGE_DAMAGE = 3.5f;
     private static final float CHARGE_KNOCKBACK = 1.4f;
     private static final int CHARGE_HIT_INTERVAL = 20;
+
+    /** Chances qu'un rondin abattu à la charge tombe en double. */
+    private static final float CHARGE_LOG_BONUS_CHANCE = 0.33f;
+
+    /**
+     * Délai minimal entre deux coups de l'Onde de Choc sur une même victime, en ticks. Il ne borne
+     * pas le nombre de reprises — c'est la portée du bond qui s'en charge — mais empêche qu'un seul
+     * envol soit compté plusieurs fois pendant que la victime décolle encore.
+     */
+    private static final int SHOCKWAVE_HIT_INTERVAL = 8;
 
     /**
      * Propagation de la fissure du séisme : chances qu'un bloc voisin cède à son tour, et nombre
@@ -212,12 +232,33 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private Vec3 shockwaveDirection = Vec3.ZERO;
     /** Altitude courante de l'onde : elle seule bouge en chemin, pour épouser le relief. */
     private double shockwaveY = 0;
-    private final Set<Integer> shockwaveStruck = new HashSet<>();
+
+    /**
+     * Victime → tick de l'onde où elle a encaissé son dernier coup.
+     *
+     * <p>C'était un simple registre « déjà touchée », qui interdisait tout second coup. L'onde
+     * <b>charrie</b> maintenant sa victime : chaque impact la propulse vers l'avant, elle retombe
+     * devant le front, et le front la rattrape pour la relancer. Le délai n'empêche plus que de
+     * compter plusieurs fois un même envol.</p>
+     */
+    private final Map<Integer, Integer> shockwaveStruck = new HashMap<>();
 
     private long lastStepSoundMs = 0L;
 
     /** Phase de marche au tick serveur précédent ; {@code -1} tant qu'aucune n'a été relevée. */
     private float previousWalkPhase = -1f;
+
+    /**
+     * Phase de marche à l'image précédente, côté client — <b>portée par la bête et non par son
+     * modèle</b>.
+     *
+     * <p>{@code ElephantRenderer} ne bake qu'un seul {@code ElephantModel} et le réutilise pour tous
+     * les éléphants à l'écran. Un champ de phase posé sur le modèle était donc partagé par toute la
+     * harde : à deux bêtes, chaque image comparait la phase de l'une à celle de l'autre, et la
+     * détection de contact se déclenchait sans arrêt — bruits de pas et gerbes de terre en rafale.
+     * La phase appartient à l'individu, elle vit donc ici.</p>
+     */
+    public float clientPreviousLimbSwing = -1f;
 
     private int groundStrikeCooldown = 0;
 
@@ -288,7 +329,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float getTheoreticalScale() {
-        return 20f;
+        return 17f;
     }
 
     @Override
@@ -337,6 +378,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public float sprintAccelerationMultiplier() {
+        return 0.65f;
+    }
+
+    @Override
     public boolean isChangeSpeedDuringCombo() {
         return false;
     }
@@ -378,14 +424,24 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public boolean riderCameraFollowsBodyTilt() {
-        return false;
+        return true;
+    }
+    
+    @Override
+    protected boolean canLean() {
+        return !this.isSitting() && !this.isSleeping() && !this.isNapping() && !this.isEarthquakeGesture();
     }
 
-    /**
-     * Le cap se rattrape à 5 % de l'écart par tick — la valeur la plus basse du mod avec le boa
-     * libre. Un éléphant ne pivote pas, il décrit une courbe ; c'est ce réglage, bien plus que la
-     * vitesse, qui fait sentir les quatre tonnes sous la selle.
-     */
+    @Override
+    protected float bankMaxAngle() {
+        return 30f;
+    }
+
+    @Override
+    protected float pitchMaxAngle() {
+        return 0f;
+    }
+
     @Override
     public float getRotationSpeed() {
         return 0.05f;
@@ -615,6 +671,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             tickShoulderBash();
             tickEarthquake();
             tickShockwave();
+            tickCharge();
             tickGroundStrikes();
             handleCall();
         }
@@ -649,8 +706,6 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         // monture pilotée appartient au client du cavalier, et la vélocité que voit le serveur y est
         // quasi nulle — le martèlement s'éteignait précisément quand on chevauchait.
         if (this.walkAnimation.speed() < 0.05f) return;
-
-        if (isChargingForward()) plough(serverLevel);
 
         if (groundStrikeCooldown > 0) return;
 
@@ -724,6 +779,21 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      * comme sous la hache, ce qui fait de la charge une façon d'abattre une forêt. L'ouvrage de la
      * tribu tient bon, ici comme sous le séisme.</p>
      */
+    /**
+     * Le labour tourne à part, et non dans {@link #tickGroundStrikes}.
+     *
+     * <p>Il y était imbriqué et héritait de quatre gardes qui ne le regardent pas : l'appui au sol,
+     * l'âge, l'eau et la cadence du cycle de marche, toutes posées pour les bruits de pas. Une seule
+     * d'entre elles qui retombe, et la charge cessait d'abattre quoi que ce soit sans que rien ne
+     * l'explique. Elle ne dépend plus que d'une chose : la bête est-elle lancée.</p>
+     */
+    private void tickCharge() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        if (!isChargingForward()) return;
+
+        plough(serverLevel);
+    }
+
     private void plough(ServerLevel serverLevel) {
         if (this.tickCount % CHARGE_HIT_INTERVAL == 0) ploughStruck.clear();
 
@@ -738,8 +808,17 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 if (!state.is(BlockTags.LEAVES) && !state.is(BlockTags.LOGS) && !state.is(BlockTags.SAPLINGS)) return;
                 if (OWPlacedBlocks.isProtectedFrom(serverLevel, pos, this.getOwnerUUID())) return;
 
+                boolean log = state.is(BlockTags.LOGS);
+
                 serverLevel.destroyBlock(pos.immutable(), true, this);
                 OWPlacedBlocks.get(serverLevel).forget(pos);
+
+                // La charge fend le tronc au lieu de le scier : un rondin sur trois se dédouble. Le
+                // bonus ne vaut que pour le bois — doubler le feuillage ne rapporterait que des
+                // pousses, et l'abattage à la trompe n'est pas censé être une ferme à saplings.
+                if (log && this.random.nextFloat() < CHARGE_LOG_BONUS_CHANCE) {
+                    Block.popResource(serverLevel, pos, new ItemStack(state.getBlock()));
+                }
             });
         }
 
@@ -897,7 +976,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     protected double getBaseRiderYOffset() {
-        return this.getBbHeight() * 0.72 * this.getScale();
+        return this.getBbHeight() * SEAT_HEIGHT * this.getScale();
     }
 
     @Override
@@ -909,7 +988,10 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
-        Vec3 seatOffset = new Vec3(0, 0, 0.35).yRot((float) Math.toRadians(-this.yBodyRot));
+        // Le décalage suit l'échelle de l'individu, comme la hauteur d'assise : sur une grosse bête
+        // la nacelle est d'autant plus reculée, et une valeur fixe l'aurait laissée trop en avant.
+        Vec3 seatOffset = new Vec3(0, 0, SEAT_FORWARD * this.getScale())
+                .yRot((float) Math.toRadians(-this.yBodyRot));
         double baseY = getBaseRiderYOffset();
         float animY = getRiderAnimYOffset();
 
@@ -1164,12 +1246,18 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             if (Math.abs(relative.dot(side)) > half) continue;
             if (Math.abs(relative.y) > 3.0) continue;
 
-            if (!shockwaveStruck.add(target.getId())) continue;
+            Integer lastHit = shockwaveStruck.get(target.getId());
+            if (lastHit != null && shockwaveTick - lastHit < SHOCKWAVE_HIT_INTERVAL) continue;
+            shockwaveStruck.put(target.getId(), shockwaveTick);
 
+            // Les images d'invulnérabilité sont levées : sans cela le socle en avalerait une sur
+            // deux, et le charriage ne ferait mal qu'une fois sur son parcours.
+            target.invulnerableTime = 0;
             target.hurt(this.damageSources().mobAttack(this), OWAttacksConstants.Elephant.SHOCKWAVE_DAMAGE);
-            target.push(-shockwaveDirection.x * OWAttacksConstants.Elephant.SHOCKWAVE_PUSHBACK,
+
+            target.push(shockwaveDirection.x * OWAttacksConstants.Elephant.SHOCKWAVE_CARRY,
                     OWAttacksConstants.Elephant.SHOCKWAVE_LAUNCH,
-                    -shockwaveDirection.z * OWAttacksConstants.Elephant.SHOCKWAVE_PUSHBACK);
+                    shockwaveDirection.z * OWAttacksConstants.Elephant.SHOCKWAVE_CARRY);
             target.hurtMarked = true;
         }
     }

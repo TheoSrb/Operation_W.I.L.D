@@ -284,7 +284,9 @@
       "Bash(sed -i 's/registerComboMaxTimer\\(ElephantEntity.class, 32\\);/registerComboMaxTimer\\(ElephantEntity.class, 27\\);/' entity/attacks/OWAttacksHandler.java)",
       "Bash(sed -i 's/val\\(\"1.6\"\\), val\\(e.getDamageToClient\\(\\) \\\\/ 3\\)\\)/val\\(\"1.35\"\\), val\\(e.getDamageToClient\\(\\) \\\\/ 3\\)\\)/' gui/OWAttacksInformation.java)",
       "Bash(sed -n '/private void tickGroundStrikes/,/^    }$/p' entity/animals/terrestrial/ElephantEntity.java)",
-      "Bash(sed -n '/EARTHQUAKE_KILLS_REQUIRED/,/SHOCKWAVE_LAUNCH/p' entity/attacks/OWAttacksConstants.java)"
+      "Bash(sed -n '/EARTHQUAKE_KILLS_REQUIRED/,/SHOCKWAVE_LAUNCH/p' entity/attacks/OWAttacksConstants.java)",
+      "Bash(sed -n '/private void tickGroundStrikes/,/^    }$/p' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java)",
+      "Bash(sed -n '/private void plough/,/^    }$/p' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java)"
     ]
   }
 }
