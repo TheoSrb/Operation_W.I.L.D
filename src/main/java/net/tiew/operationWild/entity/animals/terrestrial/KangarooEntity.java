@@ -360,7 +360,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float getMaxVitalEnergy() {
-        return 150 * (1 + ((float) this.getLevel() / 50));
+        return 150f;
     }
 
     @Override

@@ -336,7 +336,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public float getMaxVitalEnergy() {
         int max = this.level().isNight() ? 400 : 300;
-        return max * (1 + ((float) this.getLevel() / 50));
+        return max;
     }
 
     @Override

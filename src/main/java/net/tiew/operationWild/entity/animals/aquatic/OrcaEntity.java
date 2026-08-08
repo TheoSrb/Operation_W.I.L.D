@@ -863,7 +863,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public float getMaxVitalEnergy() {
-        return 315 * (1 + ((float) this.getLevel() / 50));
+        return 315f;
     }
 
     @Override

@@ -357,7 +357,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public float getMaxVitalEnergy() {
-        return 290 * (1 + ((float) this.getLevel() / 50));
+        return 290f;
     }
 
     @Override

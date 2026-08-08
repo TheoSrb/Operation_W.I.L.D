@@ -199,6 +199,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static float comboSpeedMultiplier = 1.0f;
 
     public static final float VITAL_ENERGY_UPGRADE_STEP = 6f;
+    public static final float VITAL_ENERGY_LEVEL_GAIN = 0.5f;
 
     public static final float SAVAGE_ENTITY_DAMAGE_MULTIPLIER = 1.4f;
 
@@ -1425,7 +1426,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void setVitalEnergyBonus(float bonus) { this.entityData.set(VITAL_ENERGY_BONUS, Math.max(0f, bonus));}
 
-    public final float getVitalEnergyCapacity() { return getMaxVitalEnergy() + getVitalEnergyBonus();}
+    public final float getVitalEnergyCapacity() {
+        float levelled = getMaxVitalEnergy()
+                * (1f + VITAL_ENERGY_LEVEL_GAIN * (Math.min(getLevel(), 50) / 50f));
+        return levelled + getVitalEnergyBonus();
+    }
 
     public void setItemFood(ItemStack food) {
         this.entityData.set(ITEM_FOOD, food);

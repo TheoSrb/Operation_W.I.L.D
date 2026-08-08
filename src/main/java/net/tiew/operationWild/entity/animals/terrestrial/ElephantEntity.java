@@ -175,7 +175,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final double CHARGE_HIT_HALF_WIDTH = 0.4;
 
     private static final float CHARGE_LOG_BONUS_CHANCE = 0.5f;
-    private static final int TREE_FELL_MAX_LOGS = 256;
+    private static final int TREE_FELL_MAX_LOGS = 40;
     private static final int TREE_FELL_RADIUS = 8;
     private static final int TREE_FELL_HEIGHT = 30;
 
@@ -377,7 +377,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float getMaxVitalEnergy() {
-        return 280 * (1 + ((float) this.getLevel() / 50));
+        return 280f;
     }
 
     @Override
@@ -684,6 +684,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         walkPhaseCorrectionMs = delta;
 
         if (right) onRightFootDown(); else onLeftFootDown();
+
+        net.tiew.operationWild.event.ClientEvents.addGroundShake(this, true);
     }
 
     private void tickGroundStrikes() {

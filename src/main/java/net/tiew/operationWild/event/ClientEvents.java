@@ -1182,6 +1182,24 @@ public class ClientEvents {
      */
     private static float earthquakeShake = 0f;
 
+    private static final double FOOTSTEP_SHAKE_RADIUS = 15.0;
+    private static final float FOOTSTEP_SHAKE_PEAK = 0.75f;
+    private static final float FOOTSTEP_SHAKE_DECAY = 0.55f;
+
+    private static float footstepShake = 0f;
+
+    public static void addGroundShake(Entity source, boolean skipPassengers) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || source == null) return;
+        if (skipPassengers && mc.player.getRootVehicle() == source) return;
+
+        double distance = source.distanceTo(mc.player);
+        if (distance > FOOTSTEP_SHAKE_RADIUS) return;
+
+        float falloff = (float) (1.0 - distance / FOOTSTEP_SHAKE_RADIUS);
+        footstepShake = Math.max(footstepShake, FOOTSTEP_SHAKE_PEAK * falloff * falloff);
+    }
+
     public static void shakeCamera(float frequency, Player player) {
         if (player != null) {
             double pitchOffset = (Math.random() - 0.5) * frequency;
@@ -1621,6 +1639,13 @@ public class ClientEvents {
                 event.setRoll((float) (event.getRoll() + (Math.random() - 0.5) * quake));
                 event.setPitch((float) (event.getPitch() + (Math.random() - 0.5) * quake));
                 event.setYaw((float) (event.getYaw() + (Math.random() - 0.5) * quake));
+            }
+
+            if (footstepShake > 0f) {
+                double step = footstepShake * intensity;
+                event.setRoll((float) (event.getRoll() + (Math.random() - 0.5) * step));
+                event.setPitch((float) (event.getPitch() + (Math.random() - 0.5) * step));
+                event.setYaw((float) (event.getYaw() + (Math.random() - 0.5) * step));
             }
 
             if (rootVehicle instanceof KodiakEntity kodiak) {
@@ -2398,6 +2423,8 @@ public class ClientEvents {
         OWAttacksInformation.tick();
 
         tickEarthquakeShake();
+        footstepShake *= FOOTSTEP_SHAKE_DECAY;
+        if (footstepShake < 0.01f) footstepShake = 0f;
 
         if (OWAttackLogic.isCrocTargeting) {
             Minecraft mcT = Minecraft.getInstance();

@@ -376,7 +376,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public float getMaxVitalEnergy() {
-        return 350 * (1 + ((float) this.getLevel() / 50));
+        return 350f;
     }
 
     @Override
