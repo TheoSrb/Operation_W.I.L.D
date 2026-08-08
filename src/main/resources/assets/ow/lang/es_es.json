@@ -1069,6 +1069,6 @@
   "ow.attacks.elephant.shoulder_bash.desc": "Clic derecho: el Elefante se lanza hacia el lado al que miras, infligiendo %s puntos de daño y apartando todo a su paso. %s segundos de recarga.",
   "ow.attacks.elephant.earthquake.title": "Terremoto",
   "ow.attacks.elephant.earthquake.desc": "Se carga con %s muertes. El Elefante se encabrita y deja caer todo su peso: onda expansiva de %s bloques, hasta %s puntos de daño en el centro, suelo destrozado y cámaras temblando. %s segundos de recarga.",
-  "ow.attacks.elephant.unshakeable.title": "Inquebrantable",
-  "ow.attacks.elephant.unshakeable.desc": "Nada empuja a un Elefante: ignora casi todo retroceso y aguanta más que cualquier otra criatura."
+  "ow.attacks.elephant.lumberjack.title": "Leñador",
+  "ow.attacks.elephant.lumberjack.desc": "Al galope, el Elefante derriba de un golpe el árbol entero que embiste y obtiene un %s%% más de madera."
 }

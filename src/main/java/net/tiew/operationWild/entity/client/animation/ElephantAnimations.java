@@ -748,7 +748,7 @@ public class ElephantAnimations {
             ))
             .addAnimation("right_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
                 new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                new Keyframe(0.7731F, KeyframeAnimations.posVec(5.0F, 10.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                new Keyframe(0.7731F, KeyframeAnimations.posVec(-5.0F, 10.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                 new Keyframe(1.0084F, KeyframeAnimations.posVec(0.0F, 12.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                 new Keyframe(1.1765F, KeyframeAnimations.posVec(0.0F, -3.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                 new Keyframe(1.6807F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
@@ -776,7 +776,7 @@ public class ElephantAnimations {
             ))
             .addAnimation("left_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
                 new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-                new Keyframe(0.7731F, KeyframeAnimations.posVec(-5.0F, 10.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+                new Keyframe(0.7731F, KeyframeAnimations.posVec(5.0F, 10.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                 new Keyframe(1.0084F, KeyframeAnimations.posVec(0.0F, 12.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                 new Keyframe(1.1765F, KeyframeAnimations.posVec(0.0F, -3.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
                 new Keyframe(1.6807F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)

@@ -1069,6 +1069,6 @@
   "ow.attacks.elephant.shoulder_bash.desc": "Right-click: the Elephant hurls itself toward the side you are looking at, dealing %s damage and flinging aside everything in its path. %s second cooldown.",
   "ow.attacks.elephant.earthquake.title": "Earthquake",
   "ow.attacks.elephant.earthquake.desc": "Charges with %s kills. The Elephant rears up, then drops its full weight: a shockwave across %s blocks, up to %s damage at the centre, shattered ground and shaking cameras. %s second cooldown.",
-  "ow.attacks.elephant.unshakeable.title": "Unshakeable",
-  "ow.attacks.elephant.unshakeable.desc": "Nothing pushes an Elephant: it shrugs off almost all knockback and takes more punishment than any other creature."
+  "ow.attacks.elephant.lumberjack.title": "Lumberjack",
+  "ow.attacks.elephant.lumberjack.desc": "At full charge, the Elephant fells the whole tree it rams in one go and pulls %s%% more wood from it."
 }

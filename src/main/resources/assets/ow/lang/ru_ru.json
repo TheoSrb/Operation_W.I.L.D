@@ -1069,6 +1069,6 @@
   "ow.attacks.elephant.shoulder_bash.desc": "ПКМ: слон бросается в ту сторону, куда вы смотрите, нанося %s ед. урона и расшвыривая всё на пути. Перезарядка %s сек.",
   "ow.attacks.elephant.earthquake.title": "Землетрясение",
   "ow.attacks.elephant.earthquake.desc": "Заряжается за %s убийств. Слон встаёт на дыбы и обрушивает весь свой вес: ударная волна на %s блоков, до %s ед. урона в центре, разрушенная земля и тряска камеры. Перезарядка %s сек.",
-  "ow.attacks.elephant.unshakeable.title": "Несокрушимый",
-  "ow.attacks.elephant.unshakeable.desc": "Слона не сдвинуть: он почти не отбрасывается и выдерживает больше, чем любое другое существо."
+  "ow.attacks.elephant.lumberjack.title": "Лесоруб",
+  "ow.attacks.elephant.lumberjack.desc": "На полном ходу слон одним ударом валит всё дерево, в которое врезался, и получает на %s%% больше древесины."
 }

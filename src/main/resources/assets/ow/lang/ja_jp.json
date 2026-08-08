@@ -1069,6 +1069,6 @@
   "ow.attacks.elephant.shoulder_bash.desc": "右クリック：ゾウが視線の向いた側へ身を投げ出し、%sのダメージを与えて進路上のすべてを弾き飛ばします。クールダウン%s秒。",
   "ow.attacks.elephant.earthquake.title": "大地震",
   "ow.attacks.elephant.earthquake.desc": "%s体の撃破で充填。ゾウが身を起こし、全体重を叩きつけます：%sブロックに衝撃波、中心で最大%sのダメージ、地面は砕け、カメラが揺れます。クールダウン%s秒。",
-  "ow.attacks.elephant.unshakeable.title": "不動",
-  "ow.attacks.elephant.unshakeable.desc": "ゾウを押し退けられるものはありません。ノックバックをほぼ受けず、どの生物よりも打たれ強いのです。"
+  "ow.attacks.elephant.lumberjack.title": "木こり",
+  "ow.attacks.elephant.lumberjack.desc": "全速力のゾウは、ぶつかった木を一撃で丸ごと切り倒し、木材を%s%%多く手に入れます。"
 }

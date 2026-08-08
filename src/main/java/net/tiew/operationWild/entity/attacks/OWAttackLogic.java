@@ -321,6 +321,7 @@ public class OWAttackLogic {
     @SubscribeEvent
     public static void onComputeFov(ComputeFovModifierEvent event) {
         applyTelluricStompFov(event);
+        applySprintRushFov(event);
 
         // Orca Tidal Rush — FOV increase (sensation de vitesse)
         if (orcaDashEffectStartMs >= 0) {
@@ -464,6 +465,15 @@ public class OWAttackLogic {
                 event.setRoll(event.getRoll() + amplitude * 0.7f * (float) Math.sin(t / 41.0));
             }
         }
+    }
+
+    private static final float SPRINT_RUSH_FOV_GAIN = 0.14f;
+
+    private static void applySprintRushFov(ComputeFovModifierEvent event) {
+        float rush = net.tiew.operationWild.gui.OWWindRushOverlay.rushIntensity();
+        if (rush <= 0.01f) return;
+
+        event.setNewFovModifier(event.getNewFovModifier() * (1.0f + SPRINT_RUSH_FOV_GAIN * rush));
     }
 
     private static void applyTelluricStompFov(ComputeFovModifierEvent event) {

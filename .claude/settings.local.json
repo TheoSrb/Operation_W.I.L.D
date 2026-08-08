@@ -289,7 +289,9 @@
       "Bash(sed -n '/private void plough/,/^    }$/p' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java)",
       "Bash(awk 'NR>=380 && NR<=560' src/main/java/net/tiew/operationWild/entity/client/animation/ElephantAnimations.java)",
       "Bash(awk '/ATTACK_STRIKE = /,/ATTACK_STRIKE_2 = /' src/main/java/net/tiew/operationWild/entity/client/animation/ElephantAnimations.java)",
-      "Bash(awk '/ATTACK_STRIKE_2 = /,/ATTACK_STRIKE_3 = /' src/main/java/net/tiew/operationWild/entity/client/animation/ElephantAnimations.java)"
+      "Bash(awk '/ATTACK_STRIKE_2 = /,/ATTACK_STRIKE_3 = /' src/main/java/net/tiew/operationWild/entity/client/animation/ElephantAnimations.java)",
+      "Bash(awk '/ATTACK_STRIKE_3 = /,/^    public static final AnimationDefinition EARTHQUAKE/' src/main/java/net/tiew/operationWild/entity/client/animation/ElephantAnimations.java)",
+      "Bash(ls -la \"/c/Users/Tiew_37/Desktop/\" 2>/dev/null | grep -i elephant; echo \"---\"; ls \"/c/Users/Tiew_37/OneDrive/Bureau/\" 2>/dev/null | grep -i elephant; echo \"---\"; find /c/Users/Tiew_37 -maxdepth 3 -iname \"elephant.java\" 2>/dev/null | head)"
     ]
   }
 }

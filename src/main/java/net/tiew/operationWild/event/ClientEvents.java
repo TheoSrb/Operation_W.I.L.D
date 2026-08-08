@@ -1193,6 +1193,11 @@ public class ClientEvents {
     }
 
     @SubscribeEvent
+    public static void onRenderWindRush(RenderGuiEvent.Post event) {
+        net.tiew.operationWild.gui.OWWindRushOverlay.render(event.getGuiGraphics());
+    }
+
+    @SubscribeEvent
     public static void renderBorders(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 

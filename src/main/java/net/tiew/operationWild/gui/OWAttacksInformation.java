@@ -299,8 +299,8 @@ public class OWAttacksInformation {
                 ),
 
                 new AttackSlot(-1, -1, "",
-                        title("ow.attacks.elephant.unshakeable.title"),
-                        e -> desc("ow.attacks.elephant.unshakeable.desc")
+                        title("ow.attacks.elephant.lumberjack.title"),
+                        e -> desc("ow.attacks.elephant.lumberjack.desc", val("50"))
                 )
 
         ));

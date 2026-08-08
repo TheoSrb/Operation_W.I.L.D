@@ -152,7 +152,7 @@ public class OWEntityHud {
             // sans jamais s'arrêter, et seul le calcul de vitesse la borne à cent. Sans le même
             // plafond ici, la jauge dépassait sa hauteur au bout de cinq secondes de course et se
             // redessinait une seconde fois AU-DESSUS du cadre, avec un décalage de texture négatif.
-            float filled = Math.min(100f, owEntity.getAcceleration()) / 100f;
+            float filled = Math.min(100f, owEntity.getChargeDisplay()) / 100f;
 
             int barHeight = (int) (103 * filled);
             int startY = yPlacement + (103 - barHeight);

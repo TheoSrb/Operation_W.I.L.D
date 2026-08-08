@@ -10,6 +10,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 
@@ -29,6 +30,7 @@ import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -55,7 +57,10 @@ import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.item.OWItems;
+import net.tiew.operationWild.networking.OWNetworkHandler;
+import net.tiew.operationWild.networking.packets.to_client.ElephantFootstepPacket;
 import net.tiew.operationWild.sound.OWSounds;
+import net.tiew.operationWild.team.OWArenaManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -97,7 +102,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public static final long RIGHT_FOOT_CONTACT_MS = 1200L;
     public static final long LEFT_FOOT_CONTACT_MS = 2900L;
 
-    public static final float WALK_ANIM_SPEED = 6.0f * 1.2f;
+    public static final float WALK_ANIM_SPEED = 6.0f * 0.75f;
     public static final float RUN_ANIM_SPEED = 7.8f * 0.85f;
 
     private static final Vec3 FRONT_LEFT_FOOT  = new Vec3( 6 / 16.0, 0, 12 / 16.0);
@@ -107,6 +112,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     private static final double FOOTFALL_RADIUS = 15.0;
     private static final double FOOTFALL_HOP = 0.8;
+    private static final double FOOTFALL_NEAR_PLATEAU = 6.0;
 
     private static final int FOOTFALL_PARTICLES = 22;
     private static final double FOOTFALL_SPREAD = 0.22;
@@ -114,9 +120,19 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final int FOOTFALL_MIN_INTERVAL = 3;
 
 
+    private static final float FALL_SAFE_DISTANCE = 2.0f;
+    private static final float FALL_DAMAGE_MULTIPLIER = 2.0f;
+
     private static final double CHARGE_SPEED = 0.32;
 
     private static final int FOOTSTEP_SOUND_REPEATS = 5;
+
+    private static final double FOOTSTEP_BROADCAST_RANGE = 48.0;
+
+    private static final double FOOTFALL_MIN_SPEED = 0.03;
+    private static final int TRAVEL_WINDOW = 5;
+    private static final double WALK_PHASE_CORRECTION_RATE = 0.25;
+    private static final double WALK_PHASE_CORRECTION_LIMIT = 0.4;
 
     private static final float FULL_CHARGE = 100f;
 
@@ -125,6 +141,17 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     private static final float CHARGE_HEAD_MAX_PITCH = 40f;
     private static final float CHARGE_HEAD_RESPONSE = 0.12f;
+
+    private static final double COMBO_BREAK_REACH = 2.0;
+    private static final double COMBO_BREAK_SIDE_OFFSET = 1.1;
+    private static final double COMBO_BREAK_SWEEP_HALF = 1.2;
+    private static final double COMBO_BREAK_SWEEP_HEIGHT = 0.7;
+    private static final double COMBO_BREAK_COLUMN_HALF = 1.0;
+    private static final double COMBO_BREAK_COLUMN_HEIGHT = 2.2;
+    private static final double COMBO_BREAK_COLUMN_LIFT = 1.0;
+    private static final float COMBO_BREAK_HARDNESS_PER_DAMAGE = 0.3f;
+    private static final float COMBO_BREAK_MAX_HARDNESS = 25f;
+    private static final ItemStack COMBO_BREAK_TOOL = new ItemStack(Items.NETHERITE_PICKAXE);
 
     private static final double COMBO_SWEEP_KNOCKBACK = 1.15;
     private static final double COMBO_SWEEP_LIFT = 0.32;
@@ -138,12 +165,27 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final float CHARGE_DAMAGE = 3.5f;
     private static final float CHARGE_KNOCKBACK = 1.4f;
     private static final int CHARGE_HIT_INTERVAL = 20;
+    private static final double PLOUGH_EXTRA_HEIGHT = 1.0;
+    private static final double STALL_RATIO = 0.35;
+    private static final double STALL_MIN_PEAK = 0.10;
+    private static final double STALL_PEAK_DECAY = 0.98;
+    private static final float STALL_CHARGE_LOSS = 34.0f;
+    private static final int STALL_GRACE_TICKS = 2;
+    private static final double CHARGE_HIT_FORWARD = 0.5;
+    private static final double CHARGE_HIT_HALF_WIDTH = 0.4;
 
-    private static final float CHARGE_LOG_BONUS_CHANCE = 0.33f;
+    private static final float CHARGE_LOG_BONUS_CHANCE = 0.5f;
+    private static final int TREE_FELL_MAX_LOGS = 256;
+    private static final int TREE_FELL_RADIUS = 8;
+    private static final int TREE_FELL_HEIGHT = 30;
+
+    private static final net.minecraft.core.particles.DustParticleOptions GOLD_DUST =
+            new net.minecraft.core.particles.DustParticleOptions(new org.joml.Vector3f(1.0f, 0.80f, 0.15f), 1.4f);
 
     private static final int SHOCKWAVE_HIT_INTERVAL = 8;
 
     private static final int MAX_ACTIVE_SHOCKWAVES = 8;
+    private static final int EARTHQUAKE_RING_POINTS = 26;
 
     private static final float EARTHQUAKE_SPREAD_CHANCE = 0.45f;
     private static final int EARTHQUAKE_MAX_SPREAD = 2;
@@ -151,8 +193,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final Direction[] HORIZONTAL_SPREAD = {
             Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST
     };
-
-
+    
     public final AnimationState callAnimationState = new AnimationState();
     public final AnimationState earthquakeAnimationState = new AnimationState();
 
@@ -186,12 +227,22 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private double walkAnimTimeMs = 0;
     private double walkAnimTimeMsPrev = 0;
 
+    private double walkPhaseCorrectionMs = 0;
+
+    private final double[] travelRingX = new double[TRAVEL_WINDOW];
+    private final double[] travelRingZ = new double[TRAVEL_WINDOW];
+    private int travelRingIndex = 0;
+    private int travelRingTicks = 0;
+    private double netSpeed = 0;
+    private double rawSpeed = 0;
     private double lastTickX = Double.NaN;
     private double lastTickZ = Double.NaN;
-    private double travelledPerTick = 0;
+    private int stallTicks = 0;
+    private double runPeakSpeed = 0;
 
     private float riddenSpeed = 0f;
     private float chargeMemory = 0f;
+    private float chargeDisplay = 0f;
 
     private float chargeHeadPitch = 0f;
     private float chargeHeadPitchPrev = 0f;
@@ -505,7 +556,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     public double movementAmount() {
-        return Math.max(travelledPerTick, this.walkAnimation.speed() / 4.0);
+        return netSpeed;
     }
 
     private void tickTravelled() {
@@ -513,20 +564,40 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         double z = this.getZ();
 
         if (!Double.isNaN(lastTickX)) {
-            double dx = x - lastTickX;
-            double dz = z - lastTickZ;
-            travelledPerTick = Math.min(Math.sqrt(dx * dx + dz * dz), 1.0);
+            double sx = x - lastTickX;
+            double sz = z - lastTickZ;
+            rawSpeed = Math.min(Math.sqrt(sx * sx + sz * sz), 1.0);
         }
-
         lastTickX = x;
         lastTickZ = z;
+
+        double oldX = travelRingX[travelRingIndex];
+        double oldZ = travelRingZ[travelRingIndex];
+        travelRingX[travelRingIndex] = x;
+        travelRingZ[travelRingIndex] = z;
+        travelRingIndex = (travelRingIndex + 1) % TRAVEL_WINDOW;
+
+        if (travelRingTicks < TRAVEL_WINDOW) {
+            travelRingTicks++;
+            return;
+        }
+
+        double ndx = x - oldX;
+        double ndz = z - oldZ;
+        netSpeed = Math.min(Math.sqrt(ndx * ndx + ndz * ndz) / TRAVEL_WINDOW, 1.0);
     }
 
     private void tickWalkAnimTime() {
         walkAnimTimeMsPrev = walkAnimTimeMs;
 
         double stride = Math.min(movementAmount() * 4.0, 1.0);
-        walkAnimTimeMs = (walkAnimTimeMs + stride * 50.0 * walkAnimationSpeed()) % WALK_CYCLE_MS;
+        double advance = stride * 50.0 * walkAnimationSpeed();
+
+        double limit = advance * WALK_PHASE_CORRECTION_LIMIT;
+        double correction = Mth.clamp(walkPhaseCorrectionMs * WALK_PHASE_CORRECTION_RATE, -limit, limit);
+        walkPhaseCorrectionMs -= correction;
+
+        walkAnimTimeMs = (walkAnimTimeMs + advance + correction + WALK_CYCLE_MS) % WALK_CYCLE_MS;
     }
 
     public double getWalkAnimTimeMs(float partialTick) {
@@ -568,12 +639,12 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         createCombo(28, 20, OWSounds.ELEPHANT_HURTING.get(), 4.0, 4.0, 2.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 3 : 1);
         setTamingPercentage(this.foodGiven, this.foodWanted);
         tickTravelled();
+        tickStall();
         tickWalkAnimTime();
 
         if (this.level().isClientSide()) {
             setupAnimationState();
             tickChargeHeadPitch();
-            tickFootstepEffects();
         }
         if (this.isInResurrection()) this.setSleeping(true);
 
@@ -589,20 +660,30 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             tickShoulderBash();
             tickEarthquake();
             tickShockwave();
+            tickChargeStall();
             tickCharge();
             tickGroundStrikes();
             handleCall();
         }
     }
 
-    private void tickFootstepEffects() {
-        if (this.isBaby()) return;
-        if (!isFooted() || this.isInWater()) return;
-        if (this.isSleeping() || this.isNapping() || this.isSitting() || this.isEarthquakeGesture()) return;
-        if (movementAmount() < 0.0125) return;
+    private void broadcastFootstep(ServerLevel serverLevel, boolean right) {
+        ElephantFootstepPacket packet = new ElephantFootstepPacket(this.getId(), right);
+        for (ServerPlayer player : serverLevel.players()) {
+            if (player.distanceToSqr(this) > FOOTSTEP_BROADCAST_RANGE * FOOTSTEP_BROADCAST_RANGE) continue;
+            OWNetworkHandler.sendToClient(packet, player);
+        }
+    }
 
-        if (walkCycleCrossed(walkAnimTimeMsPrev, walkAnimTimeMs, RIGHT_FOOT_CONTACT_MS)) onRightFootDown();
-        if (walkCycleCrossed(walkAnimTimeMsPrev, walkAnimTimeMs, LEFT_FOOT_CONTACT_MS)) onLeftFootDown();
+    public void onFootstepFromServer(boolean right) {
+        if (!this.level().isClientSide()) return;
+
+        double contact = right ? RIGHT_FOOT_CONTACT_MS : LEFT_FOOT_CONTACT_MS;
+        double delta = (((contact - walkAnimTimeMs) % WALK_CYCLE_MS) + WALK_CYCLE_MS) % WALK_CYCLE_MS;
+        if (delta > WALK_CYCLE_MS * 0.5) delta -= WALK_CYCLE_MS;
+        walkPhaseCorrectionMs = delta;
+
+        if (right) onRightFootDown(); else onLeftFootDown();
     }
 
     private void tickGroundStrikes() {
@@ -614,15 +695,17 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (!isFooted() || this.isInWater()) return;
         if (this.isSleeping() || this.isNapping() || this.isSitting() || this.isEarthquakeGesture()) return;
 
-        if (movementAmount() < 0.0125) return;
+        if (netSpeed < FOOTFALL_MIN_SPEED) return;
 
         if (groundStrikeCooldown > 0) return;
 
-        if (walkCycleCrossed(walkAnimTimeMsPrev, walkAnimTimeMs, RIGHT_FOOT_CONTACT_MS)
-                || walkCycleCrossed(walkAnimTimeMsPrev, walkAnimTimeMs, LEFT_FOOT_CONTACT_MS)) {
-            groundStrikeCooldown = FOOTFALL_MIN_INTERVAL;
-            strikeGround(serverLevel);
-        }
+        boolean right = walkCycleCrossed(walkAnimTimeMsPrev, walkAnimTimeMs, RIGHT_FOOT_CONTACT_MS);
+        boolean left = walkCycleCrossed(walkAnimTimeMsPrev, walkAnimTimeMs, LEFT_FOOT_CONTACT_MS);
+        if (!right && !left) return;
+
+        groundStrikeCooldown = FOOTFALL_MIN_INTERVAL;
+        strikeGround(serverLevel);
+        broadcastFootstep(serverLevel, right);
     }
 
     private boolean isFooted() {
@@ -643,7 +726,35 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     public double measuredSpeed() {
-        return travelledPerTick;
+        return netSpeed;
+    }
+
+    public boolean isStalled() {
+        return stallTicks >= STALL_GRACE_TICKS;
+    }
+
+    private void tickStall() {
+        if (!this.isVehicle() || !this.isRunning()) {
+            stallTicks = 0;
+            runPeakSpeed = 0;
+            return;
+        }
+
+        runPeakSpeed = Math.max(runPeakSpeed * STALL_PEAK_DECAY, rawSpeed);
+
+        if (runPeakSpeed < STALL_MIN_PEAK || rawSpeed >= runPeakSpeed * STALL_RATIO) {
+            stallTicks = 0;
+            return;
+        }
+
+        stallTicks++;
+    }
+
+    private void tickChargeStall() {
+        if (!isStalled()) return;
+        if (this.getAcceleration() <= 0f) return;
+
+        setAcceleration(Math.max(0f, this.getAcceleration() - STALL_CHARGE_LOSS));
     }
 
     private void tickCharge() {
@@ -653,32 +764,96 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         plough(serverLevel);
     }
 
+    public net.minecraft.core.particles.ParticleOptions skinParticle() {
+        ElephantVariant variant = this.getVariant();
+        if (variant == ElephantVariant.Cosmetics.GOLD.variant) return GOLD_DUST;
+        if (variant == ElephantVariant.Cosmetics.DEMON.variant) return ParticleTypes.FLAME;
+        if (variant == ElephantVariant.Cosmetics.ZOMBIE.variant) return ParticleTypes.SOUL;
+        return null;
+    }
+
+    private void spawnSkinParticles(ServerLevel serverLevel, double x, double y, double z,
+                                    int count, double spread, double speed) {
+        net.minecraft.core.particles.ParticleOptions particle = skinParticle();
+        if (particle == null) return;
+
+        serverLevel.sendParticles(particle, x, y, z, count, spread, spread * 0.6, spread, speed);
+    }
+
+    private void fellTree(ServerLevel serverLevel, BlockPos origin) {
+        Set<BlockPos> visited = new HashSet<>();
+        java.util.ArrayDeque<BlockPos> queue = new java.util.ArrayDeque<>();
+
+        visited.add(origin);
+        queue.add(origin);
+
+        int felled = 0;
+        while (!queue.isEmpty() && felled < TREE_FELL_MAX_LOGS) {
+            BlockPos pos = queue.poll();
+            BlockState state = serverLevel.getBlockState(pos);
+
+            if (!state.is(BlockTags.LOGS)) continue;
+            if (OWPlacedBlocks.isProtectedFrom(serverLevel, pos, this.getOwnerUUID())) continue;
+
+            serverLevel.destroyBlock(pos, true, this);
+            OWPlacedBlocks.get(serverLevel).forget(pos);
+            felled++;
+
+            if (this.random.nextFloat() < CHARGE_LOG_BONUS_CHANCE) {
+                Block.popResource(serverLevel, pos, new ItemStack(state.getBlock()));
+            }
+
+            for (int dx = -1; dx <= 1; dx++) {
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dz = -1; dz <= 1; dz++) {
+                        BlockPos next = pos.offset(dx, dy, dz);
+                        if (Math.abs(next.getX() - origin.getX()) > TREE_FELL_RADIUS) continue;
+                        if (Math.abs(next.getZ() - origin.getZ()) > TREE_FELL_RADIUS) continue;
+                        if (next.getY() - origin.getY() > TREE_FELL_HEIGHT || next.getY() < origin.getY() - 1) continue;
+                        if (!visited.add(next.immutable())) continue;
+
+                        queue.add(next.immutable());
+                    }
+                }
+            }
+        }
+    }
+
     private void plough(ServerLevel serverLevel) {
         if (this.tickCount % CHARGE_HIT_INTERVAL == 0) ploughStruck.clear();
 
         Vec3 ahead = this.position().add(
                 Vec3.directionFromRotation(0f, this.yBodyRot).scale(this.getBbWidth() * 0.7));
         AABB front = new AABB(ahead, ahead).inflate(this.getBbWidth() * 0.6, this.getBbHeight() * 0.5, this.getBbWidth() * 0.6)
-                .move(0, this.getBbHeight() * 0.5, 0);
+                .move(0, this.getBbHeight() * 0.5, 0)
+                .expandTowards(0, PLOUGH_EXTRA_HEIGHT, 0);
 
-        if (serverLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
+        if (canBreakTerrain(serverLevel)) {
             BlockPos.betweenClosedStream(front).forEach(pos -> {
                 BlockState state = serverLevel.getBlockState(pos);
-                if (!state.is(BlockTags.LEAVES) && !state.is(BlockTags.LOGS) && !state.is(BlockTags.SAPLINGS)) return;
-                if (OWPlacedBlocks.isProtectedFrom(serverLevel, pos, this.getOwnerUUID())) return;
 
-                boolean log = state.is(BlockTags.LOGS);
+                if (state.is(BlockTags.LOGS)) {
+                    fellTree(serverLevel, pos.immutable());
+                    return;
+                }
+
+                if (!state.is(BlockTags.LEAVES) && !state.is(BlockTags.SAPLINGS)) return;
+                if (OWPlacedBlocks.isProtectedFrom(serverLevel, pos, this.getOwnerUUID())) return;
 
                 serverLevel.destroyBlock(pos.immutable(), true, this);
                 OWPlacedBlocks.get(serverLevel).forget(pos);
-
-                if (log && this.random.nextFloat() < CHARGE_LOG_BONUS_CHANCE) {
-                    Block.popResource(serverLevel, pos, new ItemStack(state.getBlock()));
-                }
             });
         }
 
-        for (LivingEntity target : serverLevel.getEntitiesOfClass(LivingEntity.class, front)) {
+        Vec3 contact = this.position().add(
+                Vec3.directionFromRotation(0f, this.yBodyRot).scale(this.getBbWidth() * CHARGE_HIT_FORWARD));
+        AABB hitBox = new AABB(contact, contact)
+                .inflate(this.getBbWidth() * CHARGE_HIT_HALF_WIDTH,
+                        this.getBbHeight() * 0.5,
+                        this.getBbWidth() * CHARGE_HIT_HALF_WIDTH)
+                .move(0, this.getBbHeight() * 0.5, 0);
+
+        for (LivingEntity target : serverLevel.getEntitiesOfClass(LivingEntity.class, hitBox)) {
             if (target == this || target.getRootVehicle() == this) continue;
             if (this.isAlliedTo(target)) continue;
             if (!ploughStruck.add(target.getId())) continue;
@@ -698,7 +873,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             if (distance > FOOTFALL_RADIUS) continue;
 
             double footing = 1.0 - Mth.clamp(target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE), 0.0, 1.0);
-            double nearness = 1.0 - distance / FOOTFALL_RADIUS;
+            double nearness = 1.0 - Math.max(distance, FOOTFALL_NEAR_PLATEAU) / FOOTFALL_RADIUS;
             double hop = FOOTFALL_HOP * nearness * footing;
             if (hop < 0.01) continue;
 
@@ -794,6 +969,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    protected int calculateFallDamage(float fallDistance, float multiplier) {
+        return Mth.ceil((fallDistance - FALL_SAFE_DISTANCE) * multiplier * FALL_DAMAGE_MULTIPLIER);
+    }
+
+    @Override
     protected boolean isImmobile() {
         return this.isEarthquakeGesture() || isSlammingCombo();
     }
@@ -832,15 +1012,19 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float getRiddenSpeedVehicle(Player player) {
-        if (this.isImmobile() || (this.isCombo() && player.zza == 0)) {
+        if (this.isImmobile()) {
             riddenSpeed = 0f;
             chargeMemory = 0f;
+            chargeDisplay = 0f;
             return 0f;
         }
 
-        float target = super.getRiddenSpeedVehicle(player);
+        float target = (this.isCombo() && player.zza == 0) ? 0f : super.getRiddenSpeedVehicle(player);
 
-        if (this.isRunning()) chargeMemory = getChargeRamp();
+        boolean stalled = isStalled();
+
+        if (stalled) chargeMemory = 0f;
+        else if (this.isRunning()) chargeMemory = getChargeRamp();
         else chargeMemory *= CHARGE_MEMORY_DECAY;
 
         float response = Math.abs(target) >= Math.abs(riddenSpeed)
@@ -849,7 +1033,18 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         riddenSpeed += (target - riddenSpeed) * response;
         if (Math.abs(riddenSpeed) < 1.0e-4f) riddenSpeed = 0f;
+
+        float charge = Math.min(FULL_CHARGE, this.getAcceleration());
+        chargeDisplay = (stalled || charge >= chargeDisplay)
+                ? charge
+                : chargeDisplay + (charge - chargeDisplay) * response;
+
         return riddenSpeed;
+    }
+
+    @Override
+    public float getChargeDisplay() {
+        return chargeDisplay;
     }
 
     @Override
@@ -877,8 +1072,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         passenger.fallDistance = 0f;
         function.accept(passenger, this.getX() + seatOffset.x, this.getY() + baseY + animY, this.getZ() + seatOffset.z);
 
-        if (backSeat && passenger instanceof LivingEntity living) {
-            float facing = Mth.wrapDegrees(this.yBodyRot + 180f);
+        if (passenger instanceof LivingEntity living) {
+            float facing = Mth.wrapDegrees(this.yBodyRot + (backSeat ? 180f : 0f));
             living.yBodyRot = facing;
             living.yBodyRotO = facing;
         }
@@ -994,6 +1189,12 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
 
         OWUtils.spawnServerParticles(this, ParticleTypes.CLOUD, dir.x * 2, 0.4, dir.z * 2, 14, 0.4);
+
+        if (this.level() instanceof ServerLevel serverLevel) {
+            spawnSkinParticles(serverLevel,
+                    this.getX() + dir.x * 2, this.getY() + this.getBbHeight() * 0.5, this.getZ() + dir.z * 2,
+                    18, 0.8, 0.08);
+        }
     }
 
     @Override
@@ -1002,9 +1203,68 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         if (this.level().isClientSide()) return;
         if (this.attackTimer != timeToHit) return;
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+        breakBlocksWithCombo(serverLevel, this.getComboAttack());
+
         if (this.getComboAttack() != 3) return;
 
         startShockwave();
+    }
+
+    private boolean canBreakTerrain(ServerLevel serverLevel) {
+        if (OWArenaManager.isArena(serverLevel)) return false;
+        return serverLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING);
+    }
+
+    public float maxBreakableHardness() {
+        return Math.min(COMBO_BREAK_MAX_HARDNESS, this.getDamage() * COMBO_BREAK_HARDNESS_PER_DAMAGE);
+    }
+
+    private void breakBlocksWithCombo(ServerLevel serverLevel, int comboAttack) {
+        if (!this.isTame()) return;
+        if (!canBreakTerrain(serverLevel)) return;
+
+        double scale = this.getScale();
+        Vec3 forward = Vec3.directionFromRotation(0f, this.yBodyRot);
+        Vec3 centre = this.position()
+                .add(forward.scale(this.getBbWidth() * 0.5 + COMBO_BREAK_REACH * scale));
+
+        AABB zone;
+        if (comboAttack == 3) {
+            zone = new AABB(centre, centre)
+                    .inflate(COMBO_BREAK_COLUMN_HALF * scale,
+                            COMBO_BREAK_COLUMN_HEIGHT * scale,
+                            COMBO_BREAK_COLUMN_HALF * scale)
+                    .move(0, COMBO_BREAK_COLUMN_HEIGHT * scale * 0.55 + COMBO_BREAK_COLUMN_LIFT, 0);
+        } else {
+            Vec3 side = getBashDirection(comboAttack == 1 ? -1 : 1);
+            zone = new AABB(centre, centre)
+                    .inflate(COMBO_BREAK_SWEEP_HALF * scale)
+                    .move(side.x * COMBO_BREAK_SIDE_OFFSET * scale,
+                            this.getBbHeight() * COMBO_BREAK_SWEEP_HEIGHT,
+                            side.z * COMBO_BREAK_SIDE_OFFSET * scale);
+        }
+
+        float maxHardness = maxBreakableHardness();
+        BlockPos.betweenClosedStream(zone).forEach(pos -> breakComboBlock(serverLevel, pos, maxHardness));
+    }
+
+    private void breakComboBlock(ServerLevel serverLevel, BlockPos pos, float maxHardness) {
+        BlockState state = serverLevel.getBlockState(pos);
+
+        if (state.isAir()) return;
+        if (state.hasBlockEntity()) return;
+        if (!state.getFluidState().isEmpty()) return;
+
+        float hardness = state.getDestroySpeed(serverLevel, pos);
+        if (hardness < 0 || hardness > maxHardness) return;
+        if (OWPlacedBlocks.isProtectedFrom(serverLevel, pos, this.getOwnerUUID())) return;
+
+        BlockPos immutable = pos.immutable();
+        serverLevel.destroyBlock(immutable, false, this);
+        Block.dropResources(state, serverLevel, immutable, null, this, COMBO_BREAK_TOOL);
+        OWPlacedBlocks.get(serverLevel).forget(immutable);
     }
 
     private void startShockwave() {
@@ -1076,6 +1336,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
             serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
                     point.x, laneY + 0.3, point.z, 14, 0.3, 0.2, 0.3, 0.15);
+            spawnSkinParticles(serverLevel, point.x, laneY + 0.6, point.z, 6, 0.35, 0.03);
         }
 
         Vec3 a = new Vec3(wave.origin.x, wave.y, wave.origin.z)
@@ -1147,7 +1408,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
                 SoundEvents.ZOMBIE_BREAK_WOODEN_DOOR, SoundSource.NEUTRAL, 4.0f, 0.4f);
         serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
-                OWSounds.MINI_EARTHQUAKE.get(), SoundSource.NEUTRAL, 4.0f, 0.6f);
+                OWSounds.MINI_EARTHQUAKE.get(), SoundSource.NEUTRAL, 4.0f, 1.0f);
+
+        spawnSkinParticles(serverLevel, this.getX(), this.getY() + 0.4, this.getZ(), 90, 2.2, 0.28);
     }
 
     private void pulseEarthquake(ServerLevel serverLevel) {
@@ -1157,12 +1420,28 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 OWSounds.MINI_EARTHQUAKE.get(), SoundSource.NEUTRAL, 2.5f,
                 (float) OWUtils.generateRandomInterval(0.55, 0.75));
 
+        spawnEarthquakeRing(serverLevel, radius);
         collapseScatteredBlocks(serverLevel, radius);
         shakeEntitiesAround(serverLevel, radius);
     }
 
+    private void spawnEarthquakeRing(ServerLevel serverLevel, double radius) {
+        if (skinParticle() == null) return;
+
+        for (int i = 0; i < EARTHQUAKE_RING_POINTS; i++) {
+            double angle = (Math.PI * 2 * i) / EARTHQUAKE_RING_POINTS;
+            double distance = Math.sqrt(this.random.nextDouble()) * radius;
+
+            double x = earthquakeEpicentre.x + Math.cos(angle) * distance;
+            double z = earthquakeEpicentre.z + Math.sin(angle) * distance;
+            double y = surfaceYNear(serverLevel, x, z, earthquakeEpicentre.y);
+
+            spawnSkinParticles(serverLevel, x, y + 0.3, z, 2, 0.25, 0.05);
+        }
+    }
+
     private void collapseScatteredBlocks(ServerLevel serverLevel, double radius) {
-        if (!serverLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) return;
+        if (!canBreakTerrain(serverLevel)) return;
 
         BlockPos origin = BlockPos.containing(earthquakeEpicentre);
 

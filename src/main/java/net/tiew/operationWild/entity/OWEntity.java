@@ -2663,6 +2663,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return true;
     }
 
+    public boolean canFightInArena() {
+        return true;
+    }
+
+    public float getChargeDisplay() {
+        return Math.min(100f, this.getAcceleration());
+    }
+
     /** Vrai si le joueur (UUID) fait partie de la tribu de cette entité (chef inclus). */
     public boolean isInMyTribe(UUID playerUuid) {
         if (playerUuid == null) return false;

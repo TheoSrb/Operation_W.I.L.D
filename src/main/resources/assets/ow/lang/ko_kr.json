@@ -1069,6 +1069,6 @@
   "ow.attacks.elephant.shoulder_bash.desc": "우클릭: 코끼리가 바라보는 쪽으로 몸을 던져 %s의 피해를 입히고 앞을 가로막는 모든 것을 날려버립니다. 재사용 대기시간 %s초.",
   "ow.attacks.elephant.earthquake.title": "대지진",
   "ow.attacks.elephant.earthquake.desc": "%s회 처치로 충전됩니다. 코끼리가 몸을 일으켰다가 온 체중을 내리찍습니다: %s블록 범위의 충격파, 중심에서 최대 %s의 피해, 부서지는 지면과 흔들리는 화면. 재사용 대기시간 %s초.",
-  "ow.attacks.elephant.unshakeable.title": "흔들리지 않음",
-  "ow.attacks.elephant.unshakeable.desc": "코끼리를 밀어낼 수 있는 것은 없습니다. 넉백을 거의 받지 않으며 어떤 생물보다 잘 버팁니다."
+  "ow.attacks.elephant.lumberjack.title": "나무꾼",
+  "ow.attacks.elephant.lumberjack.desc": "전속력으로 달리는 코끼리는 들이받은 나무를 통째로 쓰러뜨리고 목재를 %s%% 더 얻습니다."
 }

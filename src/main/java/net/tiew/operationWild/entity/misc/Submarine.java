@@ -242,6 +242,11 @@ public class Submarine extends OWEntity implements IOWWaypointEntity {
         return 0.2;
     }
 
+    @Override
+    public boolean canFightInArena() {
+        return false;
+    }
+
     protected float getRotationLag() {
         return 1.0f;
     }

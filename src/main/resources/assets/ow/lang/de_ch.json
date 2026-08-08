@@ -1069,6 +1069,6 @@
   "ow.attacks.elephant.shoulder_bash.desc": "Rechtsklick: Der Elefant wirft sich zu der Seite, in die du blickst, verursacht %s Schadenspunkte und schleudert alles beiseite. %s Sekunden Abklingzeit.",
   "ow.attacks.elephant.earthquake.title": "Erdbeben",
   "ow.attacks.elephant.earthquake.desc": "Lädt sich mit %s Abschüssen auf. Der Elefant bäumt sich auf und lässt sein volles Gewicht fallen: Druckwelle über %s Blöcke, bis zu %s Schadenspunkte im Zentrum, aufgerissener Boden und wackelnde Kameras. %s Sekunden Abklingzeit.",
-  "ow.attacks.elephant.unshakeable.title": "Unerschütterlich",
-  "ow.attacks.elephant.unshakeable.desc": "Nichts stößt einen Elefanten um: Er ignoriert fast jeden Rückstoß und steckt mehr ein als jede andere Kreatur."
+  "ow.attacks.elephant.lumberjack.title": "Holzfäller",
+  "ow.attacks.elephant.lumberjack.desc": "Im vollen Lauf fällt der Elefant den gerammten Baum mit einem Schlag und gewinnt %s%% mehr Holz daraus."
 }

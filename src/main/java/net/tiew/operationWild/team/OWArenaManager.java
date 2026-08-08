@@ -195,6 +195,7 @@ public final class OWArenaManager {
             if (level.dimension().equals(OWDimensions.ARENA)) continue; // pas de recrutement dans l'arène
             for (Entity e : level.getAllEntities()) {
                 if (!(e instanceof OWEntity owE) || !owE.isTame()) continue;
+                if (!owE.canFightInArena()) continue;
                 UUID owner = owE.getOwnerUUID();
                 if (owner == null || !team.isMember(owner)) continue;
                 if (owE.isDeadOrDying()) continue;

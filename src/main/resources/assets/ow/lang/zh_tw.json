@@ -1069,6 +1069,6 @@
   "ow.attacks.elephant.shoulder_bash.desc": "右鍵：大象朝你注視的方向猛地側撞，造成 %s 點傷害並將沿途一切拋開。冷卻 %s 秒。",
   "ow.attacks.elephant.earthquake.title": "地震",
   "ow.attacks.elephant.earthquake.desc": "擊殺 %s 個目標後充能。大象昂身而起，再以全身重量砸下：%s 格範圍的衝擊波，中心最高 %s 點傷害，地面碎裂，鏡頭震顫。冷卻 %s 秒。",
-  "ow.attacks.elephant.unshakeable.title": "巋然不動",
-  "ow.attacks.elephant.unshakeable.desc": "沒有什麼推得動大象：牠幾乎無視一切擊退，比任何生物都更能挨打。"
+  "ow.attacks.elephant.lumberjack.title": "伐木者",
+  "ow.attacks.elephant.lumberjack.desc": "全速衝鋒時，大象一擊撞倒整棵樹，並額外獲得 %s%% 的木材。"
 }
