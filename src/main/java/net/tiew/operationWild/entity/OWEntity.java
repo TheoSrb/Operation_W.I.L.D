@@ -198,6 +198,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public static float comboSpeedMultiplier = 1.0f;
 
+    public static final float VITAL_ENERGY_UPGRADE_STEP = 6f;
+
     public static final float SAVAGE_ENTITY_DAMAGE_MULTIPLIER = 1.4f;
 
     private static int killCounter = 0;
@@ -272,6 +274,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static final EntityDataAccessor<Integer> LEVEL_POINTS = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Float> SCALE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Float> VITAL_ENERGY = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> VITAL_ENERGY_BONUS = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> PREPARE_NAP = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> NAPPING = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Boolean> IS_COMBO = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
@@ -1418,6 +1421,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void setVitalEnergy(float getVitalEnergy) { this.entityData.set(VITAL_ENERGY, getVitalEnergy);}
 
+    public float getVitalEnergyBonus() { return this.entityData.get(VITAL_ENERGY_BONUS);}
+
+    public void setVitalEnergyBonus(float bonus) { this.entityData.set(VITAL_ENERGY_BONUS, Math.max(0f, bonus));}
+
+    public final float getVitalEnergyCapacity() { return getMaxVitalEnergy() + getVitalEnergyBonus();}
+
     public void setItemFood(ItemStack food) {
         this.entityData.set(ITEM_FOOD, food);
         this.setFoodCount(food.isEmpty() ? 0 : food.getCount());
@@ -1742,6 +1751,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             entity.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(entity.getAttribute(attribute).getBaseValue() + (0.002 * getArchetype().getDamageMultiplier()));
         }
 
+        this.setLevelPoints(this.getLevelPoints() - 1);
+    }
+
+    public void upgradeVitalEnergy() {
+        if (this.getLevelPoints() <= 0) return;
+
+        setVitalEnergyBonus(getVitalEnergyBonus()
+                + VITAL_ENERGY_UPGRADE_STEP * getArchetype().getEnergyMultiplier());
         this.setLevelPoints(this.getLevelPoints() - 1);
     }
 
@@ -4848,6 +4865,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(NECKLACE_COLOR, 0);
         builder.define(SCALE, 1.0f);
         builder.define(VITAL_ENERGY, 0.0f);
+        builder.define(VITAL_ENERGY_BONUS, 0.0f);
         builder.define(BASE_HEALTH, 0.0f);
         builder.define(BASE_DAMAGE, 0.0f);
         builder.define(BASE_SPEED, 0.0f);
@@ -4922,6 +4940,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putInt("Level", this.getLevel());
         tag.putInt("getNecklaceColor", this.getNecklaceColor());
         tag.putInt("LevelPoints", this.getLevelPoints());
+        tag.putFloat("VitalEnergyBonus", this.getVitalEnergyBonus());
         tag.putInt("PisteNode", this.getPisteCurrentNode());
         tag.putString("PisteUnlocked", this.entityData.get(PISTE_UNLOCKED));
         tag.putString("PisteLocked", this.entityData.get(PISTE_LOCKED));
@@ -5054,6 +5073,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(LEVEL, tag.getInt("Level"));
         this.entityData.set(NECKLACE_COLOR, tag.getInt("getNecklaceColor"));
         this.entityData.set(LEVEL_POINTS, tag.getInt("LevelPoints"));
+        this.setVitalEnergyBonus(tag.getFloat("VitalEnergyBonus"));
         if (DEBUG_RESET_PISTE) {
             // Debug/test : remet à zéro la progression de la Piste de chaque entité au chargement.
             this.entityData.set(PISTE_NODE, 0);

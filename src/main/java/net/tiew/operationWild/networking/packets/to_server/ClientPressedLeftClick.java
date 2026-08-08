@@ -45,7 +45,7 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
                 Entity entity = player.getRootVehicle();
 
                 if (entity instanceof OWEntity owEntity && !owEntity.hasEffect(OWEffects.FEAR_EFFECT.getDelegate()) && !owEntity.hasEffect(OWEffects.FRACTURE.getDelegate())) {
-                    float vitalEnergyPercent = (float) (owEntity.getVitalEnergy() / owEntity.getMaxVitalEnergy());
+                    float vitalEnergyPercent = (float) (owEntity.getVitalEnergy() / owEntity.getVitalEnergyCapacity());
 
                     if (entity.getPassengers().indexOf(player) != 0 && !(entity instanceof CrocodileEntity)) return;
                     if (!owEntity.canPilotAttacks(player)) return;
@@ -83,12 +83,12 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
 
                     if (!owEntity.canStartCombo()) return;
 
-                    if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5) && !packet.isScreenOpen()) {
+                    if (!owEntity.isCombo() && owEntity.getVitalEnergy() <= (owEntity.getVitalEnergyCapacity() - 5) && !packet.isScreenOpen()) {
                         boolean keepCharge = owEntity.keepsAccelerationDuringCombo();
                         owEntity.setCombo(true, 1);
                         owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 5);
                         if (!keepCharge) owEntity.setAcceleration(0);
-                    } else if (owEntity.isPauseCombo() && owEntity.getVitalEnergy() <= (owEntity.getMaxVitalEnergy() - 5)) {
+                    } else if (owEntity.isPauseCombo() && owEntity.getVitalEnergy() <= (owEntity.getVitalEnergyCapacity() - 5)) {
                         owEntity.playerContinueCombo = true;
                         owEntity.setVitalEnergy(owEntity.getVitalEnergy() + 5);
                     }

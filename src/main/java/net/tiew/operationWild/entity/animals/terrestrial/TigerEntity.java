@@ -1153,7 +1153,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         if (getShadowStrikeKillCount() < OWAttacksConstants.Tiger.SHADOW_STRIKE_KILLS_REQUIRED) return;
 
         float cost = OWAttacksConstants.Tiger.SHADOW_STRIKE_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             return;
         }
@@ -1221,7 +1221,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         isJumpCharging = false;
 
         float energyRequired = OWAttacksConstants.Tiger.JUMP_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - energyRequired) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - energyRequired) {
             canShowVitalEnergyLack = true;
             cancelJumpCharge();
             return;

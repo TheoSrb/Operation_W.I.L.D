@@ -761,7 +761,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         if (getUltimateKillCount() < OWAttacksConstants.Boa.CONSTRICT_ULT_KILLS_REQUIRED) return;
         if (this.isConstricting()) return;
         float cost = OWAttacksConstants.Boa.CONSTRICT_ULT_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             return;
         }

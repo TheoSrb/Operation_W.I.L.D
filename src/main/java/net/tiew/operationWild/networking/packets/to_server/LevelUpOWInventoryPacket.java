@@ -47,6 +47,8 @@ public record LevelUpOWInventoryPacket(String attributeName) implements CustomPa
                         owEntity.upgradeAttributes(owEntity, Attributes.ATTACK_DAMAGE);
                     } else if (packet.attributeName().equals("MovementSpeed")) {
                         owEntity.upgradeAttributes(owEntity, Attributes.MOVEMENT_SPEED);
+                    } else if (packet.attributeName().equals("VitalEnergy")) {
+                        owEntity.upgradeVitalEnergy();
                     }
                     owEntity.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0f, pitch);
                 }

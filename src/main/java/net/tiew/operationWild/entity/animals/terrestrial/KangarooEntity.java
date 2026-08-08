@@ -1234,7 +1234,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (isSpinning()) return;
         if (this.isInWater() || !this.onGround()) return;
         if (getWhirlwindCooldownTicks() > 0) return;
-        if (getVitalEnergy() > getMaxVitalEnergy() - OWAttacksConstants.Kangaroo.WHIRLWIND_ENERGY) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - OWAttacksConstants.Kangaroo.WHIRLWIND_ENERGY) {
             canShowVitalEnergyLack = true;
             return;
         }
@@ -1393,7 +1393,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (this.level().isClientSide()) return;
         if (isTelluricStomping()) return;
         if (getUltimateKillCount() < OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED) return;
-        if (getVitalEnergy() > getMaxVitalEnergy() - OWAttacksConstants.Kangaroo.TELLURIC_STOMP_ENERGY) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - OWAttacksConstants.Kangaroo.TELLURIC_STOMP_ENERGY) {
             canShowVitalEnergyLack = true;
             return;
         }

@@ -1144,7 +1144,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (shoulderBashCooldown > 0) return;
 
         float cost = OWAttacksConstants.Elephant.SHOULDER_BASH_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             cancelShoulderBash();
             return;
@@ -1376,7 +1376,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (getUltimateKillCount() < OWAttacksConstants.Elephant.EARTHQUAKE_KILLS_REQUIRED) return;
 
         float cost = OWAttacksConstants.Elephant.EARTHQUAKE_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             return;
         }

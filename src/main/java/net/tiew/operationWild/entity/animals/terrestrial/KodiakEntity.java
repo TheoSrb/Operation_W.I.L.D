@@ -1459,7 +1459,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         }
         if (getNapKillCount() < OWAttacksConstants.Kodiak.NAP_KILLS_REQUIRED) return;
         float cost = OWAttacksConstants.Kodiak.NAP_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             setUltimateNapping(false);
             setNap(false);
@@ -1499,7 +1499,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     // ── Paw Slam ──────────────────────────────────────────────────────────────
 
     public void startPawSlamCharge() {
-        if (getVitalEnergy() > getMaxVitalEnergy() - OWAttacksConstants.Kodiak.PAW_SLAM_ENERGY) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - OWAttacksConstants.Kodiak.PAW_SLAM_ENERGY) {
             canShowVitalEnergyLack = true;
             return;
         }
@@ -1514,7 +1514,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.level().isClientSide()) return;
 
         float energyRequired = OWAttacksConstants.Kodiak.PAW_SLAM_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - energyRequired) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - energyRequired) {
             canShowVitalEnergyLack = true;
             return;
         }

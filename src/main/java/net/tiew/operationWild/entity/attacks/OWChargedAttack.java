@@ -66,7 +66,7 @@ public class OWChargedAttack extends OWAttack {
     }
 
     public void applyLocalEffect(OWEntity entity, float chargeFactor, Vec3 chargeDirection) {
-        if (entity.getVitalEnergy() > entity.getMaxVitalEnergy() - getEnergyRequired()) return;
+        if (entity.getVitalEnergy() > entity.getVitalEnergyCapacity() - getEnergyRequired()) return;
         if (localEffect != null) localEffect.apply(entity, chargeFactor, chargeDirection);
     }
 

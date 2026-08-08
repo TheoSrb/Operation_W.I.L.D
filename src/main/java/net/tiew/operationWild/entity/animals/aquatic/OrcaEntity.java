@@ -1518,7 +1518,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     public void performOrcaDash() {
         float cost = OWAttacksConstants.Orca.TIDAL_RUSH_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             return;
         }

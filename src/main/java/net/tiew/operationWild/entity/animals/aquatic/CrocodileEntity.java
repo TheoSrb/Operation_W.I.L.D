@@ -1820,7 +1820,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         if (!this.isInWater()) return;
         if (this.isGrabbing() || primalDivePhase != 0) return;
         float cost = OWAttacksConstants.Crocodile.PRIMAL_DIVE_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - cost) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             return;
         }
@@ -1969,7 +1969,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         setChargingMouthTimer(0);
         if (!wasCharging || this.isInWater() || this.isGrabbing()) return;
         float energyRequired = OWAttacksConstants.Crocodile.MOUTH_SLAM_ENERGY;
-        if (getVitalEnergy() > getMaxVitalEnergy() - energyRequired) {
+        if (getVitalEnergy() > getVitalEnergyCapacity() - energyRequired) {
             canShowVitalEnergyLack = true;
             return;
         }

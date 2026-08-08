@@ -46,6 +46,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     private Button upgradeHealthButton;
     private Button upgradeDamageButton;
     private Button upgradeSpeedButton;
+    private Button upgradeEnergyButton;
 
     private final OWTabsRenderer tabsRenderer = new OWTabsRenderer();
 
@@ -58,6 +59,19 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         super(menu, inventory, component);
         if (Minecraft.getInstance().player.getRootVehicle() instanceof OWEntity entity) this.entity = entity;
         else this.entity = null;
+    }
+
+    private static final int STAT_ROW_TOP = 18;
+    private static final int STAT_ROW_STEP = 13;
+    private static final int STAT_ICON_CELL = 10;
+    private static final int STAT_ICON_U = 205;
+    private static final int STAT_ICON_V = 0;
+    private static final int STAT_ICON_X = 82;
+    private static final int STAT_TEXT_X = 94;
+    private static final float STAT_TEXT_SCALE = 0.75f;
+
+    private static int statRowY(int row) {
+        return STAT_ROW_TOP + row * STAT_ROW_STEP + 1;
     }
 
     public Button createButton(String textOnButton, int color, int positionX, int positionY, int width, int height, Runnable onClick) {
@@ -74,21 +88,22 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     @Override
     protected void init() {
         super.init();
-        upgradeHealthButton = createButton("+", 0xb8e45a, 175, -21, 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("MaxHealth")));
-        upgradeDamageButton = createButton("+", 0xb8e45a, 175, -39, 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("AttackDamage")));
-        upgradeSpeedButton = createButton("+", 0xb8e45a, 175, -57, 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("MovementSpeed")));
+        upgradeHealthButton = createButton("+", 0xb8e45a, 175, -statRowY(0), 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("MaxHealth")));
+        upgradeDamageButton = createButton("+", 0xb8e45a, 175, -statRowY(1), 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("AttackDamage")));
+        upgradeSpeedButton = createButton("+", 0xb8e45a, 175, -statRowY(2), 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("MovementSpeed")));
+        upgradeEnergyButton = createButton("+", 0xb8e45a, 175, -statRowY(3), 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("VitalEnergy")));
 
-        stopHealthButton = createButton("X", 0x9c0d0d, 175, -21, 10, 10, () -> {
+        stopHealthButton = createButton("X", 0x9c0d0d, 175, -statRowY(0), 10, 10, () -> {
         });
         stopHealthButton.setTooltip(Tooltip.create(Component.translatable("tooltip.stop_health")
                 .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x9c0d0d)))));
 
-        stopDamageButton = createButton("X", 0x9c0d0d, 175, -39, 10, 10, () -> {
+        stopDamageButton = createButton("X", 0x9c0d0d, 175, -statRowY(1), 10, 10, () -> {
         });
         stopDamageButton.setTooltip(Tooltip.create(Component.translatable("tooltip.stop_damage")
                 .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x9c0d0d)))));
 
-        stopSpeedButton = createButton("X", 0x9c0d0d, 175, -57, 10, 10, () -> {
+        stopSpeedButton = createButton("X", 0x9c0d0d, 175, -statRowY(2), 10, 10, () -> {
         });
         stopSpeedButton.setTooltip(Tooltip.create(Component.translatable("tooltip.stop_speed")
                 .setStyle(Style.EMPTY.withColor(TextColor.fromRgb(0x9c0d0d)))));
@@ -96,6 +111,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         this.addRenderableWidget(upgradeHealthButton);
         this.addRenderableWidget(upgradeDamageButton);
         this.addRenderableWidget(upgradeSpeedButton);
+        this.addRenderableWidget(upgradeEnergyButton);
 
         this.addRenderableWidget(stopHealthButton);
         this.addRenderableWidget(stopDamageButton);
@@ -215,6 +231,11 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
 
         guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + 18, 240, entitySaddleCoords(), 16, 16);
 
+        for (int row = 0; row < 4; row++) {
+            guiGraphics.blit(OW_INVENTORY_LOCATION, i + STAT_ICON_X, j + STAT_ROW_TOP + row * STAT_ROW_STEP + 1,
+                    STAT_ICON_U, STAT_ICON_V + row * STAT_ICON_CELL, STAT_ICON_CELL, STAT_ICON_CELL);
+        }
+
         // Affiche le boa ENTIER (tete + corps) : la queue est faite d'entites separees
         // qui n'existent pas dans le GUI, donc on demande au BoaModel d'afficher le corps.
         // Le boa entier est long : on le retrecit un peu et on le remonte un peu pour
@@ -276,10 +297,12 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         upgradeHealthButton.visible = hasLevelPoints && this.entity.getMaxHealth() < (this.entity.getBaseHealth() * upgradeHealthLimit);
         upgradeDamageButton.visible = hasLevelPoints && this.entity.getDamageToClient() < (this.entity.getBaseDamage() * upgradeDamageLimit);
         upgradeSpeedButton.visible = hasLevelPoints && this.entity.getSpeed() < (this.entity.getBaseSpeed() * upgradeSpeedLimit);
+        upgradeEnergyButton.visible = hasLevelPoints;
 
         upgradeHealthButton.setMessage(Component.literal("+").withStyle(style -> style.withColor(color)));
         upgradeDamageButton.setMessage(Component.literal("+").withStyle(style -> style.withColor(color)));
         upgradeSpeedButton.setMessage(Component.literal("+").withStyle(style -> style.withColor(color)));
+        upgradeEnergyButton.setMessage(Component.literal("+").withStyle(style -> style.withColor(color)));
 
         stopHealthButton.visible = hasLevelPoints && !upgradeHealthButton.visible;
         stopDamageButton.visible = hasLevelPoints && !upgradeDamageButton.visible;
@@ -380,11 +403,25 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
 
         graphics.drawString(this.font, levelPoints, this.entity.getLevelPoints() > 9 ? centerX + 67 : centerX + 70, centerY - 76, this.entity.getLevelPoints() > 0 ? 0xb8e45a : 0x8b8b8b);
 
-        graphics.drawString(this.font, entityHealth, centerX + 12, centerY - 60, 0x8b8b8b);
-        graphics.drawString(this.font, entityDamage, centerX + 12, centerY - 42, 0x8b8b8b);
-        graphics.drawString(this.font, entitySpeed, centerX + 12, centerY - 25, 0x8b8b8b);
+        float energyLeft = Math.max(0f, entity.getVitalEnergyCapacity() - entity.getVitalEnergy());
+        String entityEnergy = Math.round(energyLeft) + " / " + Math.round(entity.getVitalEnergyCapacity());
+
+        graphics.pose().pushPose();
+        graphics.pose().scale(STAT_TEXT_SCALE, STAT_TEXT_SCALE, 1f);
+        int textX = Math.round((offsetX + STAT_TEXT_X) / STAT_TEXT_SCALE);
+        drawStatLine(graphics, entityHealth, textX, offsetY, 0);
+        drawStatLine(graphics, entityDamage, textX, offsetY, 1);
+        drawStatLine(graphics, entitySpeed, textX, offsetY, 2);
+        drawStatLine(graphics, entityEnergy, textX, offsetY, 3);
+        graphics.pose().popPose();
 
         graphics.drawString(this.font, fullLevelText, centerX - (this.font.width(fullLevelText) / 2), centerY + 100, 0xFFFFFF);
+    }
+
+    private void drawStatLine(GuiGraphics graphics, Object text, int textX, int offsetY, int row) {
+        int y = Math.round((offsetY + STAT_ROW_TOP + row * STAT_ROW_STEP + 3) / STAT_TEXT_SCALE);
+        if (text instanceof Component component) graphics.drawString(this.font, component, textX, y, 0x8b8b8b);
+        else graphics.drawString(this.font, String.valueOf(text), textX, y, 0x8b8b8b);
     }
 
     private void renderBackgrounds(GuiGraphics guiGraphics, int renderX, int yOffset, Iterable<MobEffectInstance> effects, boolean isSmall) {

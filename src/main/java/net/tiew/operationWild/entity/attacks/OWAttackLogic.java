@@ -644,7 +644,7 @@ public class OWAttackLogic {
             recordAttackClick(attack.getId(), true);
             return;
         }
-        if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+        if (owEntity.getVitalEnergy() > owEntity.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
             owEntity.canShowVitalEnergyLack = true;
             recordAttackClick(attack.getId(), true);
             return;
@@ -676,7 +676,7 @@ public class OWAttackLogic {
             long endMs = getCooldownEnd(eid, attack.getId());
             if (endMs != -1L && System.currentTimeMillis() < endMs) { recordAttackClick(attack.getId(), true); return; }
             if (!attack.isUnlocked(owEntity)) { recordAttackClick(attack.getId(), true); return; }
-            if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+            if (owEntity.getVitalEnergy() > owEntity.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
                 owEntity.canShowVitalEnergyLack = true;
                 recordAttackClick(attack.getId(), true);
                 return;
@@ -726,7 +726,7 @@ public class OWAttackLogic {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
-            if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+            if (owEntity.getVitalEnergy() > owEntity.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
                 owEntity.canShowVitalEnergyLack = true;
                 recordAttackClick(attack.getId(), true);
                 return;
@@ -811,7 +811,7 @@ public class OWAttackLogic {
             recordAttackClick(attack.getId(), true);
             return;
         }
-        if (boa.getVitalEnergy() > boa.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+        if (boa.getVitalEnergy() > boa.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
             boa.canShowVitalEnergyLack = true;
             recordAttackClick(attack.getId(), true);
             return;
@@ -833,7 +833,7 @@ public class OWAttackLogic {
             if (kangaroo.getWhirlwindCooldownTicks() > 0) { recordAttackClick(attack.getId(), true); return; }
             if (kangaroo.isCombo()) { recordAttackClick(attack.getId(), true); return; }
             if (playerHoldsUsableItem(player)) { recordAttackClick(attack.getId(), true); return; }
-            if (kangaroo.getVitalEnergy() > kangaroo.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+            if (kangaroo.getVitalEnergy() > kangaroo.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
                 kangaroo.canShowVitalEnergyLack = true;
                 recordAttackClick(attack.getId(), true);
                 return;
@@ -936,7 +936,7 @@ public class OWAttackLogic {
             return;
         }
 
-        if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+        if (owEntity.getVitalEnergy() > owEntity.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
             owEntity.canShowVitalEnergyLack = true;
             recordAttackClick(attack.getId(), true);
             return;
@@ -1106,7 +1106,7 @@ public class OWAttackLogic {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
-            if (owEntity.getVitalEnergy() > owEntity.getMaxVitalEnergy() - attack.getEnergyRequired()) {
+            if (owEntity.getVitalEnergy() > owEntity.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
                 owEntity.canShowVitalEnergyLack = true;
                 recordAttackClick(attack.getId(), true);
                 return;
@@ -1141,7 +1141,7 @@ public class OWAttackLogic {
                         new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_RELEASE, chargeFactor));
 
                 if (mc.player.getRootVehicle() instanceof OWEntity entity) {
-                    boolean hasEnergy = entity.getVitalEnergy() <= entity.getMaxVitalEnergy() - attack.getEnergyRequired();
+                    boolean hasEnergy = entity.getVitalEnergy() <= entity.getVitalEnergyCapacity() - attack.getEnergyRequired();
 
                     recordAttackClick(attack.getId(), !hasEnergy);
 

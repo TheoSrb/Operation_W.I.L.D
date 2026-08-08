@@ -42,7 +42,7 @@ public record OWRunningPacket(boolean isSprintKeyDown) implements CustomPacketPa
                 if (entity instanceof OWEntity owEntity) {
                     if (owEntity.getPassengers().indexOf(player) != 0) return;
 
-                    float vitalEnergyRestant = (float) (owEntity.getVitalEnergy() / owEntity.getMaxVitalEnergy());
+                    float vitalEnergyRestant = (float) (owEntity.getVitalEnergy() / owEntity.getVitalEnergyCapacity());
 
                     if (owEntity.hasReachedEnergyLimit() && vitalEnergyRestant <= 0.8f) {
                         owEntity.setHasReachedEnergyLimit(false);
@@ -69,7 +69,7 @@ public record OWRunningPacket(boolean isSprintKeyDown) implements CustomPacketPa
 
                     if (owEntity.isChargingAttack) canSprint = false;
 
-                    if (canSprint && packet.isSprintKeyDown() && owEntity.getVitalEnergy() < owEntity.getMaxVitalEnergy() && owEntity.isSaddled()
+                    if (canSprint && packet.isSprintKeyDown() && owEntity.getVitalEnergy() < owEntity.getVitalEnergyCapacity() && owEntity.isSaddled()
                             && owEntity.getControllingPassenger() != null && owEntity.getControllingPassenger().zza > 0) {
                         owEntity.setRunning(true);
                         owEntity.setAcceleration(owEntity.getAcceleration() + owEntity.sprintAccelerationMultiplier());
