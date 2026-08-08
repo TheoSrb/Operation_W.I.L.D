@@ -232,7 +232,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 .add(Attributes.MAX_HEALTH, 22.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.21D)
                 .add(Attributes.FOLLOW_RANGE, 30.0D)
-                .add(Attributes.ATTACK_DAMAGE, 5.0D)
+                .add(Attributes.ATTACK_DAMAGE, 7.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.3D)
                 .add(Attributes.JUMP_STRENGTH, 1.0D);
     }
