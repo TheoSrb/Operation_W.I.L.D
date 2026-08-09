@@ -20,6 +20,12 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
@@ -70,8 +76,42 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     private static final int STAT_TEXT_X = 94;
     private static final float STAT_TEXT_SCALE = 0.75f;
 
+    private static final int STAT_ARROW_X = 159;
+    private static final int STAT_ARROW_V = 183;
+    private static final int STAT_ARROW_UP_U = 123;
+    private static final int STAT_ARROW_DOWN_U = 130;
+    private static final int STAT_ARROW_W = 7;
+    private static final int STAT_ARROW_H = 8;
+
     private static int statRowY(int row) {
         return STAT_ROW_TOP + row * STAT_ROW_STEP + 1;
+    }
+
+    private double speciesAverage(Holder<Attribute> attribute) {
+        AttributeSupplier supplier = DefaultAttributes.getSupplier(
+                (EntityType<? extends LivingEntity>) this.entity.getType());
+        return supplier.hasAttribute(attribute) ? supplier.getBaseValue(attribute) : 0.0;
+    }
+
+    private double levelledEnergyAverage() {
+        return this.entity.getMaxVitalEnergy()
+                * (1f + OWEntity.VITAL_ENERGY_LEVEL_GAIN * (Math.min(this.entity.getLevel(), 50) / 50f));
+    }
+
+    private Boolean statAboveAverage(int row) {
+        if (this.entity == null) return null;
+
+        return switch (row) {
+            case 0 -> compareToAverage(this.entity.getMaxHealth(), speciesAverage(Attributes.MAX_HEALTH));
+            case 1 -> compareToAverage(this.entity.getDamageToClient(), speciesAverage(Attributes.ATTACK_DAMAGE));
+            case 2 -> compareToAverage(this.entity.getSpeed(), speciesAverage(Attributes.MOVEMENT_SPEED));
+            case 3 -> compareToAverage(this.entity.getVitalEnergyCapacity(), levelledEnergyAverage());
+            default -> null;
+        };
+    }
+
+    private static Boolean compareToAverage(double actual, double average) {
+        return average <= 0.0 ? null : actual >= average;
     }
 
     public Button createButton(String textOnButton, int color, int positionX, int positionY, int width, int height, Runnable onClick) {
@@ -232,8 +272,15 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + 18, 240, entitySaddleCoords(), 16, 16);
 
         for (int row = 0; row < 4; row++) {
-            guiGraphics.blit(OW_INVENTORY_LOCATION, i + STAT_ICON_X, j + STAT_ROW_TOP + row * STAT_ROW_STEP + 1,
+            guiGraphics.blit(OW_INVENTORY_LOCATION, i + STAT_ICON_X, j + statRowY(row),
                     STAT_ICON_U, STAT_ICON_V + row * STAT_ICON_CELL, STAT_ICON_CELL, STAT_ICON_CELL);
+
+            Boolean aboveAverage = statAboveAverage(row);
+            if (aboveAverage == null) continue;
+
+            guiGraphics.blit(OW_INVENTORY_LOCATION, i + STAT_ARROW_X, j + statRowY(row) + 1,
+                    aboveAverage ? STAT_ARROW_UP_U : STAT_ARROW_DOWN_U, STAT_ARROW_V,
+                    STAT_ARROW_W, STAT_ARROW_H);
         }
 
         // Affiche le boa ENTIER (tete + corps) : la queue est faite d'entites separees

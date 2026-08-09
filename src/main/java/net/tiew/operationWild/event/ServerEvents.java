@@ -175,6 +175,11 @@ public class ServerEvents {
 
         net.tiew.operationWild.core.OWSaddlerUnlocks.copy(event.getOriginal(), event.getEntity());
 
+        net.tiew.operationWild.core.OWBannerUnlocks.setMask(event.getEntity(),
+                net.tiew.operationWild.core.OWBannerUnlocks.getMask(event.getOriginal()));
+        net.tiew.operationWild.core.OWArenaVenueUnlocks.setMask(event.getEntity(),
+                net.tiew.operationWild.core.OWArenaVenueUnlocks.getMask(event.getOriginal()));
+
         long seenQuestPeriod = net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests
                 .getSeenPeriod(event.getOriginal());
         if (seenQuestPeriod != Long.MIN_VALUE) {

@@ -72,8 +72,8 @@ public class SaddlerScreen extends AbstractContainerScreen<SaddlerMenu> {
     private int scroll = 0;
     private boolean draggingThumb = false;
 
-    private DyeColor primaryColor = DyeColor.WHITE;
-    private DyeColor secondaryColor = DyeColor.LIGHT_GRAY;
+    private static DyeColor primaryColor = DyeColor.WHITE;
+    private static DyeColor secondaryColor = DyeColor.LIGHT_GRAY;
     private int pickerSlot = -1;
 
     private static final int SWATCH_W = 16, SWATCH_H = 11, SWATCH_GAP = 1, SWATCH_COLS = 4;

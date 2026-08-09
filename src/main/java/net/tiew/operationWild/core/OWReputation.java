@@ -1,7 +1,9 @@
 package net.tiew.operationWild.core;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.EntityType;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.team.OWReputationData;
 import net.tiew.operationWild.team.OWTeam;
@@ -35,6 +37,8 @@ public final class OWReputation {
     private static final double LEVEL_WEIGHT = 1.4;
     /** Bonus (multiplié par la dangerosité) accordé aux créatures niveau max. */
     private static final double MAX_LEVEL_BONUS = 175.0;
+    /** Multiplicateur appliqué au score hors serveur dédié (partie solo). */
+    private static final double SOLO_MULTIPLIER = 5.0;
     /** Poids de l'Expérience d'Apprivoisement d'un membre dans sa contribution. */
     private static final double TAMING_WEIGHT = 0.10;
     /** Gain de synergie par membre actif supplémentaire (2 membres actifs → ×1.35, 5 → ×2.4…). */
@@ -90,7 +94,13 @@ public final class OWReputation {
         double synergy = 1.0 + SYNERGY_STEP * Math.max(0, activeMembers - 1);
         // La réputation gagnée en arène s'ajoute au score des créatures sans passer par la synergie :
         // elle a déjà été méritée collectivement sur le terrain.
-        return (int) Math.round(raw * synergy) + team.getArenaReputationBonus();
+        double total = raw * synergy + team.getArenaReputationBonus();
+        return (int) Math.round(total * soloMultiplier());
+    }
+
+    private static double soloMultiplier() {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        return server != null && server.isSingleplayer() ? SOLO_MULTIPLIER : 1.0;
     }
 
     // ── Paliers de badge ────────────────────────────────────────────────────────

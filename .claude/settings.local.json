@@ -299,7 +299,8 @@
       "Bash(python -c \"import cairosvg; print\\('cairosvg ok'\\)\")",
       "Bash(python mockup_png.py)",
       "Bash(echo \"EXIT=$?\")",
-      "Bash(python saddler_mockup.py)"
+      "Bash(python saddler_mockup.py)",
+      "Bash(sort -t: -k2 -rn)"
     ]
   }
 }
