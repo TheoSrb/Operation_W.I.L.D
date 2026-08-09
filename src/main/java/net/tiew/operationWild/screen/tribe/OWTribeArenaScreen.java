@@ -22,6 +22,8 @@ import net.tiew.operationWild.client.OWClientTribeData;
 import net.tiew.operationWild.client.OWClientTribeList;
 import net.tiew.operationWild.core.OWArena;
 import net.tiew.operationWild.core.OWReputation;
+import net.tiew.operationWild.client.OWClientChampions;
+import net.minecraft.util.Mth;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.gui.OWCinematicFx;
 import net.tiew.operationWild.gui.OWCinematicState;
@@ -163,6 +165,9 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     private OWClientTribeList.Entry hoverTribe = null;
     /** Créatures locales jetables servant d'aperçu 3D, indexées « type:skin ». */
     private final Map<String, LivingEntity> previewCache = new HashMap<>();
+
+    private static final int CROWN_U = 8, CROWN_V = 0, CROWN_W = 8, CROWN_H = 5;
+    private static final int HOVER_PREVIEW_BOX = 54;
     /** Tribu en attente de confirmation de défi ({@code 0} = aucune). */
     private int pendingChallengeId = 0;
     private String pendingChallengeName = "";
@@ -648,7 +653,11 @@ public class OWTribeArenaScreen extends OWTribeScreen {
         if (hoverTribe != null) { renderTribeTooltip(g, hoverTribe, mouseX, mouseY); return; }
 
         OWArenaFighter tip = hoverFighter != null ? hoverFighter : hoverCandidate;
-        if (tip != null) { renderFighterTooltip(g, tip, mouseX, mouseY); return; }
+        if (tip != null) {
+            if (hoverCandidate != null) renderCandidateHoverPreview(g, hoverCandidate, mouseX, mouseY);
+            renderFighterTooltip(g, tip, mouseX, mouseY);
+            return;
+        }
 
         int sx = switchX(), sy = switchY();
         if (switchButtonVisible() && mouseX >= sx && mouseX < sx + SWITCH_W
@@ -1372,16 +1381,20 @@ public class OWTribeArenaScreen extends OWTribeScreen {
             g.fill(x + 2, ry + 3, x + 2 + chipW, ry + rowH - 4, 0xFF000000 | (blocked ? dim(chip) : chip));
 
             int nameCol = blocked ? 0x666666 : (selected ? 0xB8F0C8 : 0xE8E8E8);
-            String lvl = "L" + f.level();
+            boolean champion = OWClientChampions.isChampion(f.entityUuid());
+            int rightReserve = champion ? CROWN_W + 4 : 0;
             int nameX = x + 8 + Math.round(hoverAmt * 2f);
-            g.drawString(this.font, trimTo(f.name(), contentW - 14 - this.font.width(lvl)),
+            g.drawString(this.font, trimTo(f.name(), contentW - 14 - rightReserve),
                     nameX, ry + 3, nameCol, false);
-            g.drawString(this.font, lvl, x + contentW - this.font.width(lvl) - 3, ry + 3,
-                    blocked ? 0x555555 : 0x9A9A9A, false);
+
+            if (champion) {
+                g.blit(OW_SPRITES, x + contentW - CROWN_W - 3, ry + (rowH - 1 - CROWN_H) / 2,
+                        CROWN_U, CROWN_V, CROWN_W, CROWN_H);
+            }
 
             // Une croix discrète dit pourquoi la ligne est refusée : l'archétype est déjà pris.
             if (blocked && hov) {
-                g.drawString(this.font, "✕", x + contentW - this.font.width(lvl) - 13, ry + 3, 0xC05555, false);
+                g.drawString(this.font, "✕", x + contentW - rightReserve - 12, ry + 3, 0xC05555, false);
             }
             if (hov) hoverCandidate = f;
         }
@@ -1707,6 +1720,27 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     }
 
     /** Tooltip d'un combattant : nom, propriétaire, niveau et archétype. */
+    /**
+     * Aperçu 3D de la créature survolée dans la liste des candidats, posé au-dessus de l'infobulle.
+     * Même rendu que les emplacements de combattants et que l'écran des champions : variante, skin
+     * et niveau appliqués, silhouette tournée vers le curseur.
+     */
+    private void renderCandidateHoverPreview(GuiGraphics g, OWArenaFighter f, int mouseX, int mouseY) {
+        int box = HOVER_PREVIEW_BOX;
+        int px = Mth.clamp(mouseX + 12, 2, this.width - box - 2);
+        int py = Mth.clamp(mouseY - box - 6, 2, this.height - box - 2);
+        int accent = 0xFF000000 | entityColorOf(f);
+
+        g.fill(px - 1, py - 1, px + box + 1, py + box + 1, 0xFF000000);
+        g.fill(px, py, px + box, py + box, 0xF0141418);
+        g.fill(px, py, px + box, py + 1, accent);
+        g.fill(px, py + box - 1, px + box, py + box, accent);
+        g.fill(px, py, px + 1, py + box, accent);
+        g.fill(px + box - 1, py, px + box, py + box, accent);
+
+        renderFighterPreview(g, f, px, py, box, mouseX, mouseY);
+    }
+
     private void renderFighterTooltip(GuiGraphics g, OWArenaFighter f, int mouseX, int mouseY) {
         List<FormattedCharSequence> tip = new ArrayList<>();
         tip.add(Component.literal(f.name()).withStyle(Style.EMPTY.withBold(true)

@@ -16,6 +16,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -376,6 +377,14 @@ public class OWRendererUtils {
         font.drawInBatch(healthComponent, lefttextX, textY, 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         font.drawInBatch(damagesComponent, lefttextX, textY + (leftPadding * 1), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         font.drawInBatch(speedComponent, lefttextX, textY + (leftPadding * 2), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+
+        Matrix4f statMatrix = poseStack.last().pose();
+        drawStatArrow(OWUtils.aboveSpeciesAverage(entity, Attributes.MAX_HEALTH, entity.getMaxHealth()),
+                bufferSource, statMatrix, lefttextX + font.width(healthComponent) + 3, textY, opacity);
+        drawStatArrow(OWUtils.aboveSpeciesAverage(entity, Attributes.ATTACK_DAMAGE, entity.getDamageToClient()),
+                bufferSource, statMatrix, lefttextX + font.width(damagesComponent) + 3, textY + (leftPadding * 1), opacity);
+        drawStatArrow(OWUtils.aboveSpeciesAverage(entity, Attributes.MOVEMENT_SPEED, entity.getSpeed()),
+                bufferSource, statMatrix, lefttextX + font.width(speedComponent) + 3, textY + (leftPadding * 2), opacity);
 
         if (entity.isTame()) {
             font.drawInBatch(stateComponent, lefttextX, textY + (leftPadding * 3), entity.isPassive() ? 0x55FF55 : 0xFF5555, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
@@ -909,6 +918,37 @@ public class OWRendererUtils {
 
     private static int languageSignature() {
         return Minecraft.getInstance().getLanguageManager().getSelected().hashCode();
+    }
+
+    private static final ResourceLocation OW_INVENTORY_GUI =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_inventory_gui.png");
+
+    private static final float ARROW_UP_U = 123f, ARROW_DOWN_U = 130f, ARROW_V = 183f;
+    private static final float ARROW_W = 7f, ARROW_H = 8f;
+
+    /**
+     * Flèche de comparaison à la moyenne de l'espèce, posée à droite d'une ligne de statistique du
+     * panneau d'information. Verte vers le haut si la bête dépasse sa moyenne, rouge vers le bas
+     * sinon ; rien du tout si l'espèce ne déclare pas l'attribut.
+     *
+     * <p>Le repère est celui du texte — l'axe Y descend, l'échelle vaut celle de la police — donc la
+     * flèche mesure ses 7×8 pixels d'origine et s'aligne sur le haut des glyphes.</p>
+     */
+    private static void drawStatArrow(Boolean aboveAverage, MultiBufferSource bufferSource, Matrix4f mat,
+                                      float x, float y, int opacity) {
+        if (aboveAverage == null) return;
+
+        VertexConsumer vc = bufferSource.getBuffer(RenderType.entityTranslucent(OW_INVENTORY_GUI));
+        float u0 = (aboveAverage ? ARROW_UP_U : ARROW_DOWN_U) / 256f;
+        float u1 = u0 + ARROW_W / 256f;
+        float v0 = ARROW_V / 256f;
+        float v1 = (ARROW_V + ARROW_H) / 256f;
+        int lightU = 0xF000F0 & 0xFFFF, lightV = (0xF000F0 >> 16) & 0xFFFF;
+
+        vc.addVertex(mat, x, y, 0).setColor(255, 255, 255, opacity).setUv(u0, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, x, y + ARROW_H, 0).setColor(255, 255, 255, opacity).setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, x + ARROW_W, y + ARROW_H, 0).setColor(255, 255, 255, opacity).setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, x + ARROW_W, y, 0).setColor(255, 255, 255, opacity).setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
     }
 
     private static final int PAINT_W = 55, PAINT_H = 93;

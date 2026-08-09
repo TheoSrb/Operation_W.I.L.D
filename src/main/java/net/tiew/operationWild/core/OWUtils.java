@@ -13,6 +13,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.core.Holder;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -64,6 +69,32 @@ public class OWUtils {
                 .withStyle(style -> style.withColor(TextColor.fromRgb(isAggressive ? 0xFF5555 : 0x55FF55)).withBold(true));
 
         player.displayClientMessage(label.copy().append(translatedMode), true);
+    }
+
+    /**
+     * La statistique dépasse-t-elle la moyenne de son espèce ? {@code null} si l'espèce ne déclare
+     * pas l'attribut, auquel cas il n'y a rien à comparer.
+     *
+     * <p>La référence est la valeur déclarée dans {@code createAttributes()}, autour de laquelle
+     * {@code setRandomAttributes} tire chaque individu à l'apparition.</p>
+     */
+    public static Boolean aboveSpeciesAverage(LivingEntity entity, Holder<Attribute> attribute, double actual) {
+        AttributeSupplier supplier = DefaultAttributes.getSupplier(
+                (EntityType<? extends LivingEntity>) entity.getType());
+        if (!supplier.hasAttribute(attribute)) return null;
+
+        double average = supplier.getBaseValue(attribute);
+        return average <= 0.0 ? null : actual >= average;
+    }
+
+    /**
+     * Énergie vitale comparée à celle d'un animal de la même espèce <b>au même niveau</b> : cette
+     * statistique n'a aucun tirage aléatoire à l'apparition, seul le bonus acquis la différencie.
+     */
+    public static Boolean aboveEnergyAverage(OWEntity entity) {
+        double average = entity.getMaxVitalEnergy()
+                * (1f + OWEntity.VITAL_ENERGY_LEVEL_GAIN * (java.lang.Math.min(entity.getLevel(), 50) / 50f));
+        return average <= 0.0 ? null : entity.getVitalEnergyCapacity() >= average;
     }
 
     public static float getSpeedBlocksPerSecond(OWEntity entity) {

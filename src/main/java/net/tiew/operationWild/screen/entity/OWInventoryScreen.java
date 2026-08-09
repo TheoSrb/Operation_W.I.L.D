@@ -20,12 +20,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.ScreenEvent;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.networking.OWNetworkHandler;
@@ -87,31 +83,16 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         return STAT_ROW_TOP + row * STAT_ROW_STEP + 1;
     }
 
-    private double speciesAverage(Holder<Attribute> attribute) {
-        AttributeSupplier supplier = DefaultAttributes.getSupplier(
-                (EntityType<? extends LivingEntity>) this.entity.getType());
-        return supplier.hasAttribute(attribute) ? supplier.getBaseValue(attribute) : 0.0;
-    }
-
-    private double levelledEnergyAverage() {
-        return this.entity.getMaxVitalEnergy()
-                * (1f + OWEntity.VITAL_ENERGY_LEVEL_GAIN * (Math.min(this.entity.getLevel(), 50) / 50f));
-    }
-
     private Boolean statAboveAverage(int row) {
         if (this.entity == null) return null;
 
         return switch (row) {
-            case 0 -> compareToAverage(this.entity.getMaxHealth(), speciesAverage(Attributes.MAX_HEALTH));
-            case 1 -> compareToAverage(this.entity.getDamageToClient(), speciesAverage(Attributes.ATTACK_DAMAGE));
-            case 2 -> compareToAverage(this.entity.getSpeed(), speciesAverage(Attributes.MOVEMENT_SPEED));
-            case 3 -> compareToAverage(this.entity.getVitalEnergyCapacity(), levelledEnergyAverage());
+            case 0 -> OWUtils.aboveSpeciesAverage(this.entity, Attributes.MAX_HEALTH, this.entity.getMaxHealth());
+            case 1 -> OWUtils.aboveSpeciesAverage(this.entity, Attributes.ATTACK_DAMAGE, this.entity.getDamageToClient());
+            case 2 -> OWUtils.aboveSpeciesAverage(this.entity, Attributes.MOVEMENT_SPEED, this.entity.getSpeed());
+            case 3 -> OWUtils.aboveEnergyAverage(this.entity);
             default -> null;
         };
-    }
-
-    private static Boolean compareToAverage(double actual, double average) {
-        return average <= 0.0 ? null : actual >= average;
     }
 
     public Button createButton(String textOnButton, int color, int positionX, int positionY, int width, int height, Runnable onClick) {
