@@ -166,6 +166,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     private int playerGrabPunchCooldown = 0;
     private int playerGrabDuration = 0;
 
+    public static final int GRAB_START_TIMEOUT = 120;
+    public static final int GRAB_STRUGGLE_REDUCTION = 18;
+    public static final int GRAB_ESCAPE_COOLDOWN = 80;
+    private int grabCooldown = 0;
+
     private int roarTimer = 0;
     private int grabDamageTimer = 0;
 
@@ -254,9 +259,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     //             MÉTHODES PRINCIPALES
     // ==================================================
 
+    public static final int ENTITY_COLOR = 14251827;
+
     @Override
     public int getEntityColor() {
-        return 14251827;
+        return ENTITY_COLOR;
     }
 
     @Override
@@ -481,6 +488,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         // ------------ FONCTIONNEMENT GLOBAL ------------
 
         if (jumpAttackCooldown > 0) jumpAttackCooldown--;
+        if (grabCooldown > 0) grabCooldown--;
         if (isJumpCharging && !this.isVehicle()) cancelJumpCharge();
         if (!this.level().isClientSide() && this.entityData.get(GRAB_PUNCH_TIMER) > 0)
             this.entityData.set(GRAB_PUNCH_TIMER, this.entityData.get(GRAB_PUNCH_TIMER) - 1);
@@ -589,8 +597,34 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.setTarget(null);
     }
 
+    public void breakFreeFromGrab() {
+        LivingEntity grabbed = this.getGrabbedTarget();
+        releaseGrab();
+        this.grabCooldown = GRAB_ESCAPE_COOLDOWN;
+        if (grabbed == null) return;
+
+        Vec3 push = grabbed.position().subtract(this.position()).multiply(1, 0, 1);
+        push = push.lengthSqr() > 1.0e-4 ? push.normalize() : this.getLookAngle().multiply(1, 0, 1);
+        grabbed.setDeltaMovement(push.x * 0.45, 0.42, push.z * 0.45);
+        grabbed.hasImpulse = true;
+        grabbed.hurtMarked = true;
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.PLAYER_ATTACK_SWEEP, SoundSource.NEUTRAL, 1.1f, 1.4f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                getVariant() != TigerVariant.Cosmetics.VIRUS.variant
+                        ? OWSounds.TIGER_HURTING.get() : OWSounds.TIGER_HURTING_VIRUS.get(),
+                SoundSource.HOSTILE, 1.0f, 1.35f);
+
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.CRIT,
+                    grabbed.getX(), grabbed.getY() + grabbed.getBbHeight() * 0.5, grabbed.getZ(),
+                    25, 0.4, 0.5, 0.4, 0.2);
+        }
+    }
+
     private void tryPlayerGrab() {
-        if (isGrabbing()) return;
+        if (isGrabbing() || grabCooldown > 0) return;
         float radius = this.getBbWidth() + 1.5f;
         List<LivingEntity> candidates = this.level().getEntitiesOfClass(
                 LivingEntity.class, this.getBoundingBox().inflate(radius));
@@ -874,11 +908,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         }
 
         grabbed.noPhysics = true;
+        grabbed.fallDistance = 0f;
+        this.fallDistance = 0f;
 
-        // Freeze tiger movement during player-initiated grab + auto-release after 5 s (100 ticks)
-        if (isPlayerGrab && !this.level().isClientSide()) {
-            Vec3 cur = this.getDeltaMovement();
-            this.setDeltaMovement(0, cur.y, 0);
+        Vec3 cur = this.getDeltaMovement();
+        this.setDeltaMovement(0, cur.y, 0);
+
+        if (isPlayerGrab) {
             if (playerGrabPunchCooldown > 0) playerGrabPunchCooldown--;
 
             playerGrabDuration++;
@@ -890,6 +926,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         if (grabbed instanceof Player) {
             if (!this.level().isClientSide()) {
+                if (this.getGrabTimeout() <= 0) {
+                    breakFreeFromGrab();
+                    return;
+                }
+
                 this.setGrabTimeout(this.getGrabTimeout() + 2);
                 if (this.getGrabTimeout() >= getGrabMaxTimeout()) {
                     grabbed.kill();
@@ -1310,7 +1351,12 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     @Nullable
     public LivingEntity getControllingPassenger() {
-        if (isPlayerGrab && isGrabbing()) return null;
+        if (this.entityData.get(IS_GRABBING)) {
+            if (this.entityData.get(IS_PLAYER_GRAB)) return null;
+            int grabbedId = this.entityData.get(GRABBED_TARGET_ID);
+            Entity first = this.getFirstPassenger();
+            if (first != null && first.getId() == grabbedId) return null;
+        }
         return super.getControllingPassenger();
     }
 
@@ -1651,8 +1697,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             }
         }
 
+        boolean wasGrabbing = this.entityData.get(IS_GRABBING);
         this.entityData.set(IS_GRABBING, isGrabbing);
         this.entityData.set(GRABBED_TARGET_ID, entity == null ? -1 : entity.getId());
+
+        if (isGrabbing && !wasGrabbing) {
+            this.setGrabTimeout(entity instanceof Player ? GRAB_START_TIMEOUT : 0);
+        }
     }
 
     public boolean isGrabbing() {

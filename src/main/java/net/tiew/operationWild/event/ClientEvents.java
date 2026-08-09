@@ -103,61 +103,13 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
 
-        if (player != null && event.getButton() == 1 && event.getAction() == 1) {
-            CrocodileEntity grabbingCroc = player.level()
-                    .getEntitiesOfClass(CrocodileEntity.class, player.getBoundingBox().inflate(5.0))
-                    .stream()
-                    .filter(c -> c.isGrabbing() && c.getGrabbedTarget() == player)
-                    .findFirst().orElse(null);
+        if (player == null || event.getButton() != 1 || event.getAction() != 1) return;
+        if (RightClickAlertOverlay.clickAnimationTimer > 0) return;
+        if (RightClickAlertOverlay.captorOf(player) == null) return;
 
-            if (grabbingCroc != null) {
-                if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
-                    if (grabbingCroc.getGrabTimeout() <= 0) {
-                        OWNetworkHandler.sendToServer(new StopGrabPacket());
-                    } else {
-                        OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
-                        RightClickAlertOverlay.hasClicked = true;
-                        RightClickAlertOverlay.clickAnimationTimer = 3;
-                    }
-                }
-            } else if (player.getVehicle() instanceof TigerEntity tiger && tiger.isGrabbing() && tiger.getGrabbedTarget() == player) {
-                if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
-                    if (tiger.getGrabTimeout() <= 0) {
-                        OWNetworkHandler.sendToServer(new StopGrabPacket());
-                    } else {
-                        OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
-                        RightClickAlertOverlay.hasClicked = true;
-                        RightClickAlertOverlay.clickAnimationTimer = 3;
-                    }
-                }
-            } else if (player.getVehicle() instanceof KangarooEntity kangaroo && kangaroo.getDrownVictim() == player) {
-                if (RightClickAlertOverlay.clickAnimationTimer <= 0) {
-                    if (kangaroo.getGrabTimeout() <= 0) {
-                        OWNetworkHandler.sendToServer(new StopGrabPacket());
-                    } else {
-                        OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
-                        RightClickAlertOverlay.hasClicked = true;
-                        RightClickAlertOverlay.clickAnimationTimer = 3;
-                    }
-                }
-            } else {
-                BoaEntity grabbingBoa = player.level()
-                        .getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
-                        .stream()
-                        .filter(b -> b.isGrabbing() && b.getGrabbedTarget() == player)
-                        .findFirst().orElse(null);
-
-                if (grabbingBoa != null && RightClickAlertOverlay.clickAnimationTimer <= 0) {
-                    if (grabbingBoa.getGrabTimeout() <= 0) {
-                        OWNetworkHandler.sendToServer(new StopGrabPacket());
-                    } else {
-                        OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
-                        RightClickAlertOverlay.hasClicked = true;
-                        RightClickAlertOverlay.clickAnimationTimer = 3;
-                    }
-                }
-            }
-        }
+        OWNetworkHandler.sendToServer(new OWEntityGrabManagerPacket(true));
+        RightClickAlertOverlay.hasClicked = true;
+        RightClickAlertOverlay.clickAnimationTimer = 3;
     }
 
     @SubscribeEvent

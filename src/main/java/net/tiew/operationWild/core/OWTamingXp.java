@@ -42,6 +42,7 @@ public final class OWTamingXp {
     public static void grantTamingXp(ServerPlayer player, double amount) {
         if (amount <= 0) return;
         addTamingXp(player, amount);
+        OWSaddlerUnlocks.refresh(player);
         syncTamingXp(player);
     }
 

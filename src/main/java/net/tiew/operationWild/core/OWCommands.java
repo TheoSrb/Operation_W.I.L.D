@@ -2,6 +2,7 @@ package net.tiew.operationWild.core;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -747,6 +748,35 @@ public class OWCommands {
                 player.sendSystemMessage(Component.translatable(String.valueOf(OWTamingXp.getTamingXp(player))));
             } catch (Exception ignored) {
             }
+            return 1;
+        }
+    }
+
+    public static class SetTamingExperienceCommand {
+        public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+            dispatcher.register(
+                    Commands.literal("owtamingexperience")
+                            .requires(s -> s.hasPermission(2))
+                            .then(Commands.argument("player", EntityArgument.player())
+                                    .then(Commands.argument("amount", DoubleArgumentType.doubleArg(0))
+                                            .executes(SetTamingExperienceCommand::execute)))
+            );
+        }
+
+        private static int execute(CommandContext<CommandSourceStack> context) {
+            CommandSourceStack source = context.getSource();
+            try {
+                ServerPlayer player = EntityArgument.getPlayer(context, "player");
+                double amount = DoubleArgumentType.getDouble(context, "amount");
+
+                OWTamingXp.setTamingXp(player, amount);
+                OWSaddlerUnlocks.rebuild(player);
+                OWTamingXp.syncTamingXp(player);
+
+                source.sendSuccess(() -> Component.translatable("owtamingexperience.command.set",
+                                player.getName().getString(), Math.round(amount))
+                        .setStyle(Style.EMPTY.withColor(0x7ddd73)), true);
+            } catch (Exception ignored) {}
             return 1;
         }
     }

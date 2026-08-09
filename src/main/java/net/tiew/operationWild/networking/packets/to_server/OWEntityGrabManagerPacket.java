@@ -5,6 +5,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
@@ -12,8 +14,10 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
+import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
+
+import java.util.function.IntConsumer;
+import java.util.function.Predicate;
 
 public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements CustomPacketPayload {
 
@@ -30,64 +34,76 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
                     OWEntityGrabManagerPacket::new
             );
 
+    private static final double SEARCH_RADIUS = 6.0;
+    private static final int CROCODILE_STRUGGLE_REDUCTION = 15;
+
     @Override
     public Type<OWEntityGrabManagerPacket> type() {
         return TYPE;
     }
 
-    /**
-     * Retour sonore d'un coup de débattement réussi.
-     *
-     * <p>Un cri de douleur de la bête laissait croire qu'on la blessait, alors qu'on ne fait que
-     * desserrer sa prise. Un impact mat convient mieux, et sa hauteur monte à mesure que l'étreinte
-     * cède : l'oreille suit la progression sans quitter la jauge des yeux.</p>
-     */
+    public static void handle(OWEntityGrabManagerPacket packet, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!(context.player() instanceof ServerPlayer player) || !packet.isRightClickDown()) return;
+
+            CrocodileEntity crocodile = captor(player, CrocodileEntity.class,
+                    c -> c.isGrabbing() && c.getGrabbedTarget() == player);
+            if (crocodile != null) {
+                struggle(crocodile, crocodile.getGrabTimeout(), crocodile.getGrabMaxTimeout(),
+                        CROCODILE_STRUGGLE_REDUCTION, crocodile::setGrabTimeout,
+                        !crocodile.isGrabHoldLocked(), crocodile::breakFreeFromGrab);
+                return;
+            }
+
+            TigerEntity tiger = captor(player, TigerEntity.class,
+                    t -> t.isGrabbing() && t.getGrabbedTarget() == player);
+            if (tiger != null) {
+                struggle(tiger, tiger.getGrabTimeout(), tiger.getGrabMaxTimeout(),
+                        TigerEntity.GRAB_STRUGGLE_REDUCTION, tiger::setGrabTimeout,
+                        true, tiger::breakFreeFromGrab);
+                return;
+            }
+
+            BoaEntity boa = captor(player, BoaEntity.class,
+                    b -> b.isGrabbing() && b.getGrabbedTarget() == player);
+            if (boa != null) {
+                struggle(boa, boa.getGrabTimeout(), boa.getGrabMaxTimeout(),
+                        OWAttacksConstants.Boa.CONSTRICT_STRUGGLE_REDUCTION, boa::setGrabTimeout,
+                        true, boa::breakFreeFromConstrict);
+                return;
+            }
+
+            KangarooEntity kangaroo = captor(player, KangarooEntity.class,
+                    k -> k.getDrownVictim() == player);
+            if (kangaroo != null) {
+                struggle(kangaroo, kangaroo.getGrabTimeout(), kangaroo.getGrabMaxTimeout(),
+                        KangarooEntity.DROWN_STRUGGLE_REDUCTION, kangaroo::setGrabTimeout,
+                        true, kangaroo::breakFreeFromDrown);
+            }
+        });
+    }
+
+    private static <T extends LivingEntity> T captor(ServerPlayer player, Class<T> type, Predicate<T> holdsPlayer) {
+        return player.level()
+                .getEntitiesOfClass(type, player.getBoundingBox().inflate(SEARCH_RADIUS), holdsPlayer)
+                .stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static void struggle(LivingEntity captor, int timeout, int maxTimeout, int reduction,
+                                 IntConsumer applyTimeout, boolean mayBreakFree, Runnable breakFree) {
+        int next = timeout - reduction;
+        playStruggleSound(captor, Math.max(0, next), maxTimeout);
+
+        if (next <= 0 && mayBreakFree) breakFree.run();
+        else applyTimeout.accept(Math.max(0, next));
+    }
+
     private static void playStruggleSound(LivingEntity captor, int timeout, int maxTimeout) {
         float freedom = maxTimeout <= 0 ? 0f : 1f - Math.min(1f, (float) timeout / maxTimeout);
         captor.level().playSound(null, captor.getX(), captor.getY(), captor.getZ(),
                 SoundEvents.PLAYER_ATTACK_WEAK, SoundSource.HOSTILE,
                 0.75f, 0.85f + freedom * 0.7f);
-    }
-
-    public static void handle(OWEntityGrabManagerPacket packet, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            ServerPlayer player = (ServerPlayer) context.player();
-            if (player == null || !packet.isRightClickDown()) return;
-
-            // Recherche de proximité — fiable même si le sync passenger n'est pas encore arrivé
-            player.level().getEntitiesOfClass(CrocodileEntity.class, player.getBoundingBox().inflate(5.0))
-                    .stream()
-                    .filter(c -> c.isGrabbing() && c.getGrabbedTarget() == player)
-                    .findFirst()
-                    .ifPresent(croc -> {
-                        croc.setGrabTimeout(Math.max(0, croc.getGrabTimeout() - 15));
-                        playStruggleSound(croc, croc.getGrabTimeout(), croc.getGrabMaxTimeout());
-                    });
-
-            // Boa : le joueur enroulé ne monte pas le boa → recherche de proximité comme le crocodile.
-            player.level().getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
-                    .stream()
-                    .filter(b -> b.isGrabbing() && b.getGrabbedTarget() == player)
-                    .findFirst()
-                    .ifPresent(boa -> {
-                        boa.setGrabTimeout(Math.max(0, boa.getGrabTimeout()
-                                - net.tiew.operationWild.entity.attacks.OWAttacksConstants.Boa.CONSTRICT_STRUGGLE_REDUCTION));
-                        playStruggleSound(boa, boa.getGrabTimeout(), boa.getGrabMaxTimeout());
-                    });
-
-            LivingEntity vehicle = (LivingEntity) player.getVehicle();
-            if (vehicle instanceof TigerEntity tiger && tiger.getGrabbedTarget() != null && tiger.getGrabbedTarget() == player) {
-                tiger.setGrabTimeout(Math.max(0, tiger.getGrabTimeout() - 15));
-                playStruggleSound(tiger, tiger.getGrabTimeout(), tiger.getGrabMaxTimeout());
-            }
-
-            if (vehicle instanceof KangarooEntity kangaroo && kangaroo.getDrownVictim() == player) {
-                int next = kangaroo.getGrabTimeout() - KangarooEntity.DROWN_STRUGGLE_REDUCTION;
-                playStruggleSound(kangaroo, Math.max(0, next), kangaroo.getGrabMaxTimeout());
-
-                if (next <= 0) kangaroo.breakFreeFromDrown();
-                else kangaroo.setGrabTimeout(next);
-            }
-        });
     }
 }

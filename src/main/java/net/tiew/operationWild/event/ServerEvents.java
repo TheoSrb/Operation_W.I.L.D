@@ -134,6 +134,7 @@ public class ServerEvents {
                 net.tiew.operationWild.team.OWPendingSouls.get(server).deliver(player);
                 net.tiew.operationWild.team.OWArenaManager.syncTo(server, player);
             }
+            net.tiew.operationWild.core.OWSaddlerUnlocks.refresh(player);
             net.tiew.operationWild.core.OWBannerUnlocks.sync(player);
             net.tiew.operationWild.core.OWArenaVenueUnlocks.sync(player);
             net.tiew.operationWild.waypoint.OWWaypointManager.syncTo(server, player);
@@ -171,6 +172,8 @@ public class ServerEvents {
 
         double tamingXp = net.tiew.operationWild.core.OWTamingXp.getTamingXp(event.getOriginal());
         net.tiew.operationWild.core.OWTamingXp.setTamingXp(event.getEntity(), tamingXp);
+
+        net.tiew.operationWild.core.OWSaddlerUnlocks.copy(event.getOriginal(), event.getEntity());
 
         long seenQuestPeriod = net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests
                 .getSeenPeriod(event.getOriginal());

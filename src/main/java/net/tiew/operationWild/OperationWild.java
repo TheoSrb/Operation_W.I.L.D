@@ -243,6 +243,7 @@ public class OperationWild {
         OWCommands.SetPrestigeCommand.register(event.getDispatcher());
         OWCommands.ForceTameCommand.register(event.getDispatcher());
         OWCommands.GetTamingExperienceCommand.register(event.getDispatcher());
+        OWCommands.SetTamingExperienceCommand.register(event.getDispatcher());
         OWCommands.TeamInviteAcceptCommand.register(event.getDispatcher());
         OWCommands.TeamInviteDeclineCommand.register(event.getDispatcher());
         OWCommands.TribeInviteAcceptCommand.register(event.getDispatcher());
@@ -314,6 +315,12 @@ public class OperationWild {
             event.register(OWMenuRegister.SEABUG_INVENTORY_MENU.get(), SeaBugInventoryScreen::new);
             event.register(OWMenuRegister.SADDLER_MENU.get(), SaddlerScreen::new);
             event.register(OWMenuRegister.DNA_ANALYSER_MENU.get(), DNAAnalyserScreen::new);
+        }
+
+        @SubscribeEvent
+        public static void registerTooltipComponents(net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent event) {
+            event.register(net.tiew.operationWild.item.custom.SaddleWoolsTooltip.class,
+                    net.tiew.operationWild.client.SaddleWoolsClientTooltip::new);
         }
 
         @SubscribeEvent

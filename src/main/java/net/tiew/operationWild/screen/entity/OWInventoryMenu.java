@@ -49,13 +49,10 @@ public class OWInventoryMenu extends AbstractContainerMenu {
 
             public void setChanged() {
                 super.setChanged();
-                if (this.getItem().is(chooseSaddleWithEntity(entity))) {
-                    entity.setSaddle(true);
-                    entity.playSound(SoundEvents.HORSE_ARMOR, 0.5F, 1.0F);
-                } else {
-                    entity.setSaddle(false);
-                    entity.playSound(SoundEvents.HORSE_ARMOR, 0.5F, 1.0F);
-                }
+                boolean saddled = this.getItem().is(chooseSaddleWithEntity(entity));
+                entity.setSaddle(saddled);
+                entity.onSaddleEquipped(saddled ? this.getItem() : ItemStack.EMPTY);
+                entity.playSound(SoundEvents.HORSE_ARMOR, 0.5F, 1.0F);
             }
         });
 

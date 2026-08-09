@@ -786,9 +786,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         return target.level().getFluidState(underfoot).is(net.minecraft.tags.FluidTags.WATER);
     }
 
+    public static final int ENTITY_COLOR = 0x28313e;
+
     @Override
     public int getEntityColor() {
-        return 0x28313e;
+        return ENTITY_COLOR;
     }
 
     @Override

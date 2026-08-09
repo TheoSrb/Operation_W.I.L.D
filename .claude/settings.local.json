@@ -293,7 +293,13 @@
       "Bash(awk '/ATTACK_STRIKE_3 = /,/^    public static final AnimationDefinition EARTHQUAKE/' src/main/java/net/tiew/operationWild/entity/client/animation/ElephantAnimations.java)",
       "Bash(ls -la \"/c/Users/Tiew_37/Desktop/\" 2>/dev/null | grep -i elephant; echo \"---\"; ls \"/c/Users/Tiew_37/OneDrive/Bureau/\" 2>/dev/null | grep -i elephant; echo \"---\"; find /c/Users/Tiew_37 -maxdepth 3 -iname \"elephant.java\" 2>/dev/null | head)",
       "Bash(python -c \"import PIL; print\\('PIL', PIL.__version__\\)\")",
-      "Bash(python -c \"from PIL import Image; im=Image.open\\('src/main/resources/assets/ow/textures/gui/ow_inventory_gui.png'\\); print\\(im.size, im.mode\\)\")"
+      "Bash(python -c \"from PIL import Image; im=Image.open\\('src/main/resources/assets/ow/textures/gui/ow_inventory_gui.png'\\); print\\(im.size, im.mode\\)\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/b02239a9-5cb3-4209-9619-443876349a56/scratchpad/add_saddler_lang.py\")",
+      "Bash(python mockup.py)",
+      "Bash(python -c \"import cairosvg; print\\('cairosvg ok'\\)\")",
+      "Bash(python mockup_png.py)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(python saddler_mockup.py)"
     ]
   }
 }

@@ -30,10 +30,7 @@ public class OWMenuRegister {
             ));
 
     public static final DeferredHolder<MenuType<?>, MenuType<SaddlerMenu>> SADDLER_MENU =
-            MENUS.register("saddler_menu", () -> new MenuType<>(
-                    (containerId, playerInventory) -> new SaddlerMenu(containerId, playerInventory, new ItemStackHandler(5)),
-                    FeatureFlags.VANILLA_SET
-            ));
+            MENUS.register("saddler_menu", () -> new MenuType<>(SaddlerMenu::new, FeatureFlags.VANILLA_SET));
 
     public static final DeferredHolder<MenuType<?>, MenuType<DNAAnalyserMenu>> DNA_ANALYSER_MENU =
             MENUS.register("dna_analyser_menu", () -> new MenuType<>(

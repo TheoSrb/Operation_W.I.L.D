@@ -280,9 +280,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         builder.define(IS_PLAYER_MOUTH_CHARGING, false);
     }
 
+    public static final int ENTITY_COLOR = 0x727957;
+
     @Override
     public int getEntityColor() {
-        return 0x727957;
+        return ENTITY_COLOR;
     }
 
     @Override
@@ -1077,6 +1079,23 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         deathRollQueued = 0;
         deathRollDryTicks = 0;
         if (notifyNeighbours) clearNearbyCrocodileTargets();
+    }
+
+    public boolean isGrabHoldLocked() {
+        return grabHoldTimer > 0;
+    }
+
+    public void breakFreeFromGrab() {
+        LivingEntity grabbed = this.getGrabbedTarget();
+        playGrabReleaseFeedback();
+        releaseGrab();
+        if (grabbed == null) return;
+
+        Vec3 push = grabbed.position().subtract(this.position()).multiply(1, 0, 1);
+        push = push.lengthSqr() > 1.0e-4 ? push.normalize() : this.getLookAngle().multiply(1, 0, 1);
+        grabbed.setDeltaMovement(push.x * 0.4, 0.4, push.z * 0.4);
+        grabbed.hasImpulse = true;
+        grabbed.hurtMarked = true;
     }
 
     private void clearNearbyCrocodileTargets() {

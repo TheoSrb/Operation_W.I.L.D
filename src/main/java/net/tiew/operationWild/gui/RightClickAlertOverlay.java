@@ -5,7 +5,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
@@ -42,21 +41,30 @@ public class RightClickAlertOverlay {
     public static int clickAnimationTimer = 0;
     private static int lastTickCount = -1;
 
+    public static OWEntity captorOf(Player player) {
+        if (player.getVehicle() instanceof OWEntity mount && holds(mount, player)) return mount;
+
+        return player.level()
+                .getEntitiesOfClass(OWEntity.class, player.getBoundingBox().inflate(6.0))
+                .stream()
+                .filter(entity -> holds(entity, player))
+                .findFirst().orElse(null);
+    }
+
+    private static boolean holds(OWEntity entity, Player player) {
+        if (entity instanceof CrocodileEntity crocodile) return crocodile.isGrabbing() && crocodile.getGrabbedTarget() == player;
+        if (entity instanceof TigerEntity tiger) return tiger.isGrabbing() && tiger.getGrabbedTarget() == player;
+        if (entity instanceof BoaEntity boa) return boa.isGrabbing() && boa.getGrabbedTarget() == player;
+        if (entity instanceof KangarooEntity kangaroo) return kangaroo.getDrownVictim() == player;
+        return false;
+    }
+
     public static void render(GuiGraphics guiGraphics, int screenWidth, int screenHeight) {
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
 
-        // Le ravisseur est le véhicule (crocodile/tigre) OU, pour le boa qui enroule sans monture,
-        // le boa trouvé par proximité.
-        Entity vehicle = player.getVehicle();
-        if (!(vehicle instanceof OWEntity)) {
-            vehicle = player.level()
-                    .getEntitiesOfClass(BoaEntity.class, player.getBoundingBox().inflate(5.0))
-                    .stream()
-                    .filter(b -> b.isGrabbing() && b.getGrabbedTargetId() == player.getId())
-                    .findFirst().orElse(null);
-        }
-        if (!(vehicle instanceof OWEntity captor)) return;
+        OWEntity captor = captorOf(player);
+        if (captor == null) return;
 
         int currentTick = player.tickCount;
         if (currentTick != lastTickCount) {

@@ -292,9 +292,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     //             MÉTHODES PRINCIPALES
     // ==================================================
 
+    public static final int ENTITY_COLOR = 8215109;
+
     @Override
     public int getEntityColor() {
-        return 8215109;
+        return ENTITY_COLOR;
     }
 
     @Override

@@ -28,6 +28,7 @@ import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.WaterAnimal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -43,7 +44,9 @@ import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWPlacedBlocks;
 import net.tiew.operationWild.core.OWTags;
+import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.core.OWUtils;
+import net.tiew.operationWild.core.OWWoolColors;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
@@ -89,14 +92,16 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final EntityDataAccessor<Integer> SHOULDER_BASH_SIDE = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
 
     private static final EntityDataAccessor<Integer> EARTHQUAKE_TICK = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> SADDLE_WOOL_0 = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> SADDLE_WOOL_1 = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
 
     private static final double SEAT_HEIGHT = 0.78;
     private static final double SEAT_FORWARD = 0.10;
     private static final double SECOND_SEAT_BACK = 0.70;
 
-    private static final int NO_TRIBE_WOOL_0 = 0xF9FFFE;
-    private static final int NO_TRIBE_WOOL_1 = 0x9D9D97;
+    private static final int NO_TRIBE_WOOL_0 = 0xE9ECEC;
+    private static final int NO_TRIBE_WOOL_1 = 0x8E8E86;
 
     private static final double WALK_CYCLE_MS = 3411.5;
     public static final long RIGHT_FOOT_CONTACT_MS = 1200L;
@@ -298,11 +303,15 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         builder.define(SHOULDER_BASH_SIDE, 1);
         builder.define(EARTHQUAKE_TICK, 0);
         builder.define(ULTIMATE_KILL_COUNT, 0);
+        builder.define(SADDLE_WOOL_0, NO_TRIBE_WOOL_0);
+        builder.define(SADDLE_WOOL_1, NO_TRIBE_WOOL_1);
     }
+
+    public static final int ENTITY_COLOR = 0x776a5e;
 
     @Override
     public int getEntityColor() {
-        return 0x776a5e;
+        return ENTITY_COLOR;
     }
 
     @Override
@@ -1119,8 +1128,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private ElephantVariant chooseElephantVariant() {
         int roll = this.random.nextInt(100);
 
-        if (roll < 2) return ElephantVariant.PINK;
-        if (roll < 30) return ElephantVariant.GREY;
+        if (roll < 20) return ElephantVariant.PINK;
+        if (roll < 50) return ElephantVariant.GREY;
         return ElephantVariant.DEFAULT;
     }
 
@@ -1659,8 +1668,26 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     public int getSaddleWoolColor(int layer) {
-        if (this.currentTeam == null) return layer == 0 ? NO_TRIBE_WOOL_0 : NO_TRIBE_WOOL_1;
-        return layer == 0 ? this.currentTeam.getTeamColor() : this.currentTeam.getTeamSecondaryColor();
+        return this.entityData.get(layer == 0 ? SADDLE_WOOL_0 : SADDLE_WOOL_1);
+    }
+
+    @Override
+    public void onSaddleEquipped(ItemStack saddle) {
+        if (this.level().isClientSide()) return;
+
+        List<Item> wools = saddle.isEmpty() ? null : saddle.get(OWDataComponentTypes.SADDLE_WOOLS.get());
+        int primary = NO_TRIBE_WOOL_0;
+        int secondary = NO_TRIBE_WOOL_1;
+
+        if (wools != null && wools.size() >= 2) {
+            DyeColor first = OWWoolColors.colorOf(wools.get(0));
+            DyeColor second = OWWoolColors.colorOf(wools.get(1));
+            if (first != null) primary = OWWoolColors.rgb(first);
+            if (second != null) secondary = OWWoolColors.rgb(second);
+        }
+
+        this.entityData.set(SADDLE_WOOL_0, primary);
+        this.entityData.set(SADDLE_WOOL_1, secondary);
     }
 
     public int getUltimateKillCount() { return this.entityData.get(ULTIMATE_KILL_COUNT); }
@@ -1675,6 +1702,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
         tag.putInt("ultimateKillCount", this.getUltimateKillCount());
+        tag.putInt("saddleWool0", this.getSaddleWoolColor(0));
+        tag.putInt("saddleWool1", this.getSaddleWoolColor(1));
     }
 
     @Override
@@ -1687,6 +1716,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (tag.contains("ultimateKillCount")) {
             setUltimateKillCount(tag.getInt("ultimateKillCount"));
         }
+        if (tag.contains("saddleWool0")) this.entityData.set(SADDLE_WOOL_0, tag.getInt("saddleWool0"));
+        if (tag.contains("saddleWool1")) this.entityData.set(SADDLE_WOOL_1, tag.getInt("saddleWool1"));
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
 

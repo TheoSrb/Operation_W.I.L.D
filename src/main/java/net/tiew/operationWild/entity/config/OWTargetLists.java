@@ -84,6 +84,7 @@ public final class OWTargetLists {
      */
     public static final List<Class<?>> BOA = List.of(
             Player.class,
+            Pig.class, Sheep.class, Cow.class, Horse.class,
             Chicken.class, Rabbit.class, Parrot.class, Bat.class,
             Ocelot.class, Cat.class, Fox.class,
             Frog.class, Turtle.class

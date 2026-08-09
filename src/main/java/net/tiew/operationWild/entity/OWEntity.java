@@ -2121,7 +2121,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     @Override
     public boolean isControlledByLocalInstance() {
-        if (this.getFirstPassenger() instanceof Player && !this.level().isClientSide()) {
+        if (this.getControllingPassenger() instanceof Player && !this.level().isClientSide()) {
             return false;
         }
         return super.isControlledByLocalInstance();
@@ -4281,6 +4281,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean canBeLeashed() { return super.canBeLeashed();}
 
     public void setSaddle(boolean isSaddled) { this.entityData.set(SADDLED, isSaddled);}
+
+    public void onSaddleEquipped(ItemStack saddle) {}
 
     public boolean isSaddled() { return this.entityData.get(SADDLED); }
 

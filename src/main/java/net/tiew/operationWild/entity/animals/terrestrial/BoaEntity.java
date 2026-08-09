@@ -214,9 +214,11 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         builder.define(GRAB_HOLD_Z, 0f);
     }
 
+    public static final int ENTITY_COLOR = 0x566022;
+
     @Override
     public int getEntityColor() {
-        return 0x566022;
+        return ENTITY_COLOR;
     }
 
     @Override
@@ -846,6 +848,22 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.setNoGravity(false);
         this.setDeltaMovement(Vec3.ZERO);
         this.constrictBreath = 0f;
+    }
+
+    public void breakFreeFromConstrict() {
+        LivingEntity grabbed = this.constrictTarget != null ? this.constrictTarget : this.getGrabbedTarget();
+        stopConstrict();
+        this.setTarget(null);
+        if (grabbed == null) return;
+
+        Vec3 away = grabbed.position().subtract(this.position());
+        away = (away.lengthSqr() > 1.0E-4 ? away.normalize() : new Vec3(0, 0, 1)).scale(0.45).add(0, 0.3, 0);
+        grabbed.setDeltaMovement(away);
+        grabbed.hasImpulse = true;
+        grabbed.hurtMarked = true;
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.0f, 1.4f);
     }
 
     private void tickConstriction() {

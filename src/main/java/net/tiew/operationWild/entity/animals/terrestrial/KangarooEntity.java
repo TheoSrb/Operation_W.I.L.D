@@ -87,6 +87,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final EntityDataAccessor<Integer> DROWN_TARGET_ID = SynchedEntityData.defineId(KangarooEntity.class, EntityDataSerializers.INT);
 
     public static final int DROWN_MAX_TIMEOUT = 160;
+    public static final int DROWN_START_TIMEOUT = 70;
     public static final int DROWN_COOLDOWN_TICKS = 220;
     public static final int DROWN_STRUGGLE_REDUCTION = 14;
     public static final float DROWN_DAMAGE = 1.0f;
@@ -1037,7 +1038,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (!victim.startRiding(this, true)) return;
 
         this.entityData.set(DROWN_TARGET_ID, victim.getId());
-        setGrabTimeout(0);
+        setGrabTimeout(victim instanceof Player ? DROWN_START_TIMEOUT : 0);
         victim.noPhysics = true;
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -1118,6 +1119,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (victim instanceof Mob mob) mob.setTarget(null);
 
         int timeout = getGrabTimeout();
+
+        if (timeout <= 0 && victim instanceof Player) {
+            breakFreeFromDrown();
+            return;
+        }
 
         if (victim.isInWater()) {
             victim.setAirSupply(Math.max(-19, victim.getAirSupply() - 4));
@@ -1824,7 +1830,9 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 && damageSource.getEntity() instanceof LivingEntity attacker) {
 
             if (isDrowningSomeone() && attacker == getDrownVictim()) {
-                setGrabTimeout(getGrabTimeout() - DROWN_STRUGGLE_REDUCTION);
+                int next = getGrabTimeout() - DROWN_STRUGGLE_REDUCTION;
+                if (next <= 0 && attacker instanceof Player) breakFreeFromDrown();
+                else setGrabTimeout(next);
             }
 
             angerAt(attacker);
