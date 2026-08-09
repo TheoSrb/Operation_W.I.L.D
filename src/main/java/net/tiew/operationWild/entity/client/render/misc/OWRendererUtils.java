@@ -15,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -36,15 +37,22 @@ public class OWRendererUtils {
     private static final ResourceLocation ICONS       = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/mob_types.png");
     private static final ResourceLocation OW_TEAMS_GUI = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/gui/ow_teams_interface.png");
     private static final ResourceLocation WHITE        = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/misc/white.png");
+    private static final ResourceLocation INFO_OVERLAY = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information.png");
+    private static final ResourceLocation INFO_OVERLAY_TAMED = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information_tamed.png");
+    private static final ResourceLocation INFO_BARS = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information_bars.png");
+    private static final ResourceLocation FOOD_EMPTY_HUNGER = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_empty_hunger.png");
+    private static final ResourceLocation FOOD_FULL = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_full.png");
+    private static final ResourceLocation FOOD_HALF = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_half.png");
+    private static final ResourceLocation FOOD_EMPTY = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_empty.png");
 
     // Origine UV (dans ow_teams_banners_styles.png) de la silhouette en cours de rendu, positionnée
     // par renderBannerPattern selon la forme de la bannière. Le rendu 3D est mono-thread (render thread).
     private static int bnUBase = 0, bnVBase = 0;
 
     public static void displayOverlayOnEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int opacity, double offsetX, double offsetY, double offsetZ) {
-        ResourceLocation overlayTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information.png");
-        ResourceLocation overlayTextureTamed = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information_tamed.png");
-        ResourceLocation barTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information_bars.png");
+        ResourceLocation overlayTexture = INFO_OVERLAY;
+        ResourceLocation overlayTextureTamed = INFO_OVERLAY_TAMED;
+        ResourceLocation barTexture = INFO_BARS;
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
 
@@ -215,7 +223,7 @@ public class OWRendererUtils {
                     bTeam.getBannerShape(), bTeam.getTeamMosaicPattern(),
                     bpr, bpg, bpb, bsr, bsg, bsb,
                     btr, btg, btb, bTeam.isUseTertiary(),
-                    bTeam.getPaintPixels(), lightU, lightV, true);
+                    bTeam.getPaintPixels(), lightU, lightV, true, true);
             poseStack.popPose();
         }
 
@@ -240,16 +248,16 @@ public class OWRendererUtils {
                 ResourceLocation spriteLocation;
 
                 if (kodiak.isHungry()) {
-                    spriteLocation = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_empty_hunger.png");
+                    spriteLocation = FOOD_EMPTY_HUNGER;
                 } else {
                     int reverseIndex = 4 - i;
 
                     if (reverseIndex < fullDrumsticks) {
-                        spriteLocation = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_full.png");
+                        spriteLocation = FOOD_FULL;
                     } else if (reverseIndex == fullDrumsticks && hasHalfDrumstick) {
-                        spriteLocation = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_half.png");
+                        spriteLocation = FOOD_HALF;
                     } else {
-                        spriteLocation = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_empty.png");
+                        spriteLocation = FOOD_EMPTY;
                     }
                 }
 
@@ -448,41 +456,48 @@ public class OWRendererUtils {
         int textColor = 0xdfdfdf;
         int levelColor = entity.getLevel() >= 50 ? 0xdd9847 : entity.getLevelPoints() > 0 ? 0xb8e45a : 0xFFFFFF;
 
-        Component t0 = Component.literal(entity.getNickname())
-                .withStyle(Style.EMPTY.withBold(true))
-                .withColor(TextColor.fromRgb(entity.getEntityColor()).getValue());
-        Component t1 = Component.translatable("tooltip.lvl",
-                Component.literal(String.valueOf(entity.getLevel()))
-                        .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(levelColor).getValue()).withBold(true)));
+        Font font = Minecraft.getInstance().font;
+        EntityTexts texts = textsOf(entity);
+
+        if (texts.nickname.refresh(java.util.Objects.hash(
+                entity.getNickname(), entity.getEntityColor(), languageSignature()))) {
+            texts.nickname.set(font, Component.literal(entity.getNickname())
+                    .withStyle(Style.EMPTY.withBold(true))
+                    .withColor(TextColor.fromRgb(entity.getEntityColor()).getValue()));
+            texts.spaceWidth = font.width(" ");
+        }
+
+        if (texts.level.refresh(java.util.Objects.hash(entity.getLevel(), levelColor, languageSignature()))) {
+            texts.level.set(font, Component.translatable("tooltip.lvl",
+                    Component.literal(String.valueOf(entity.getLevel()))
+                            .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(levelColor).getValue()).withBold(true))));
+        }
 
         poseStack.pushPose();
         poseStack.translate(0, entity.getBbHeight() + 0.75f + upOffset, 0);
         poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
         poseStack.scale(0.025F, -0.025F, 0.025F);
-        Font font = Minecraft.getInstance().font;
 
         float scale = 0.65F;
-        float t0Width   = font.width(t0);
-        float spaceWidth = font.width(" ");
-        float t1Width   = font.width(t1);
+        float t0Width = texts.nickname.width;
 
-        float totalWidth = t0Width + spaceWidth + t1Width * scale;
+        float totalWidth = t0Width + texts.spaceWidth + texts.level.width * scale;
         float startX = -totalWidth / 2f;
 
-        font.drawInBatch(t0, startX, 0, -1, true, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+        font.drawInBatch(texts.nickname.text, startX, 0, -1, true, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
 
-        float t1StartX = startX + t0Width + spaceWidth;
+        float t1StartX = startX + t0Width + texts.spaceWidth;
         poseStack.pushPose();
         poseStack.translate(t1StartX, 2f, 0f);
         poseStack.scale(scale, scale, scale);
-        font.drawInBatch(t1, 0, 0, -1, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+        font.drawInBatch(texts.level.text, 0, 0, -1, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         poseStack.popPose();
 
         poseStack.popPose();
     }
 
     public static void displayResurrectionTimeEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher, int opacity, float yOffsetMultiplier) {
-        ResourceLocation barTexture = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/image_information_bars.png");
+        ResourceLocation barTexture = INFO_BARS;
         Minecraft minecraft = Minecraft.getInstance();
         Font font = minecraft.font;
 
@@ -628,8 +643,6 @@ public class OWRendererUtils {
         }
         poseStack.scale(0.25F, 0.25F, 0.25F);
         poseStack.translate(offsetX - 1.25f + rightOffset, 0.1D + upOffset, 0.0D);
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, image);
         VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityCutout(image));
         Matrix4f matrix = poseStack.last().pose();
         float width = 1.0F;
@@ -663,8 +676,6 @@ public class OWRendererUtils {
         }
         poseStack.scale(0.25F * scale, 0.25F * scale, 0.25F * scale);
         poseStack.translate(offsetX - 1.25f + rightOffset, 0.1D + upOffset, zOffset);
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, image);
         VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.entityCutout(image));
         Matrix4f matrix = poseStack.last().pose();
         float width = 1.0F;
@@ -696,19 +707,22 @@ public class OWRendererUtils {
         int textColor = 0xdfdfdf;
         int ownerColor = 0xFFFFFF;
 
-        Component owner = Component.literal(ownerName)
-                .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(ownerColor).getValue()).withBold(true));
-        Component text = Component.translatable("tooltip.owner", owner)
-                .withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue());
+        Font font = Minecraft.getInstance().font;
+        InfoText cached = textsOf(entity).owner;
+
+        if (cached.refresh(java.util.Objects.hash(ownerName, languageSignature()))) {
+            Component owner = Component.literal(ownerName)
+                    .withStyle(Style.EMPTY.withColor(TextColor.fromRgb(ownerColor).getValue()).withBold(true));
+            cached.set(font, Component.translatable("tooltip.owner", owner)
+                    .withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue()));
+        }
 
         poseStack.pushPose();
         poseStack.translate(0, entity.getBbHeight() + 0.5F + upOffset, 0);
         poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
         poseStack.scale(0.0175F, -0.0175F, 0.0175F);
         Matrix4f matrix4f = poseStack.last().pose();
-        Font font = Minecraft.getInstance().font;
-        float textWidth = (float)(-font.width(text) / 2);
-        font.drawInBatch(text, textWidth, 0, -1, false, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+        font.drawInBatch(cached.text, (float) (-cached.width / 2), 0, -1, false, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         poseStack.popPose();
     }
 
@@ -819,16 +833,21 @@ public class OWRendererUtils {
         final float y0 = -BH / 2f, y1 = BH / 2f;
 
         VertexConsumer vc = bufferSource.getBuffer(RenderType.entityTranslucent(OWTeamBannerShape.TEXTURE));
-        renderTeamBanner(vc, poseStack.last().pose(), team, x0, y0, x1, y1, packedLight, true);
+        renderTeamBanner(vc, poseStack.last().pose(), team, x0, y0, x1, y1, packedLight, true, true);
 
         // ── Team name below the banner ─────────────────────────────────────────
         Font font = Minecraft.getInstance().font;
-        Component nameComp = Component.literal(team.getTeamName())
-                .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(primary)));
+        InfoText cached = textsOf(entity).teamName;
+
+        if (cached.refresh(java.util.Objects.hash(team.getTeamName(), primary, languageSignature()))) {
+            cached.set(font, Component.literal(team.getTeamName())
+                    .withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(primary))));
+        }
+
         poseStack.pushPose();
         poseStack.translate(0, y0 - 0.04f, 0);
         poseStack.scale(0.012f, -0.012f, 0.012f);
-        font.drawInBatch(nameComp, -font.width(nameComp) / 2f, 0, -1, true,
+        font.drawInBatch(cached.text, -cached.width / 2f, 0, -1, true,
                 poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         poseStack.popPose();
 
@@ -848,8 +867,123 @@ public class OWRendererUtils {
      *                   de face, à désactiver sur une toile portée : ce calque est peint pour une
      *                   bannière droite et immobile, il contredit l'ondulation et l'éclairage réel.
      */
+    /**
+     * Textes affichés au-dessus de chaque bête, mémorisés sous leur forme finale.
+     *
+     * <p>Un {@code Component} traduit est redécomposé à chaque mesure et à chaque tracé : pour trois
+     * lignes par créature, à soixante images par seconde et vingt créatures à l'écran, cela fait
+     * sept mille décompositions par seconde. On conserve donc la séquence déjà décomposée et sa
+     * largeur, réévaluées seulement quand la donnée affichée change — la langue sélectionnée fait
+     * partie de la signature, un changement de langue régénère tout.</p>
+     */
+    private static final class InfoText {
+        int signature = Integer.MIN_VALUE;
+        FormattedCharSequence text;
+        float width;
+
+        boolean refresh(int newSignature) {
+            if (newSignature == signature) return false;
+            signature = newSignature;
+            return true;
+        }
+
+        void set(Font font, Component component) {
+            text = component.getVisualOrderText();
+            width = font.width(text);
+        }
+    }
+
+    private static final class EntityTexts {
+        final InfoText owner = new InfoText();
+        final InfoText nickname = new InfoText();
+        final InfoText level = new InfoText();
+        final InfoText teamName = new InfoText();
+        float spaceWidth;
+    }
+
+    private static final java.util.Map<OWEntity, EntityTexts> ENTITY_TEXTS = new java.util.WeakHashMap<>();
+
+    private static EntityTexts textsOf(OWEntity entity) {
+        return ENTITY_TEXTS.computeIfAbsent(entity, e -> new EntityTexts());
+    }
+
+    private static int languageSignature() {
+        return Minecraft.getInstance().getLanguageManager().getSelected().hashCode();
+    }
+
+    private static final int PAINT_W = 55, PAINT_H = 93;
+    private static final java.util.Map<byte[], int[]> PAINT_RECTS = new java.util.WeakHashMap<>();
+
+    /**
+     * Découpe une peinture libre en rectangles maximaux de teinte uniforme. Le tableau retourné
+     * enchaîne des quintuplets {@code (col0, row0, col1, row1, teinte)}, bornes hautes exclues.
+     *
+     * <p>Mémorisé sur l'instance du tableau de pixels : {@code setPaintPixels} remplace la
+     * référence à chaque repeinte, une bannière modifiée est donc recalculée d'elle-même.</p>
+     */
+    private static int[] paintRectangles(byte[] pixels) {
+        int[] cached = PAINT_RECTS.get(pixels);
+        if (cached != null) return cached;
+
+        boolean[] used = new boolean[PAINT_W * PAINT_H];
+        int[] rects = new int[PAINT_W * PAINT_H * 5];
+        int count = 0;
+
+        for (int row = 0; row < PAINT_H; row++) {
+            for (int col = 0; col < PAINT_W; col++) {
+                int index = row * PAINT_W + col;
+                if (used[index]) continue;
+
+                int tint = pixels[index] & 3;
+
+                int col1 = col + 1;
+                while (col1 < PAINT_W && !used[row * PAINT_W + col1]
+                        && (pixels[row * PAINT_W + col1] & 3) == tint) col1++;
+
+                int row1 = row + 1;
+                while (row1 < PAINT_H && rowMatches(pixels, used, row1, col, col1, tint)) row1++;
+
+                for (int r = row; r < row1; r++) {
+                    for (int c = col; c < col1; c++) used[r * PAINT_W + c] = true;
+                }
+
+                rects[count++] = col;
+                rects[count++] = row;
+                rects[count++] = col1;
+                rects[count++] = row1;
+                rects[count++] = tint;
+            }
+        }
+
+        int[] trimmed = java.util.Arrays.copyOf(rects, count);
+        PAINT_RECTS.put(pixels, trimmed);
+        return trimmed;
+    }
+
+    private static boolean rowMatches(byte[] pixels, boolean[] used, int row, int col0, int col1, int tint) {
+        for (int col = col0; col < col1; col++) {
+            int index = row * PAINT_W + col;
+            if (used[index] || (pixels[index] & 3) != tint) return false;
+        }
+        return true;
+    }
+
     public static void renderTeamBanner(VertexConsumer vc, Matrix4f mat, OWTeam team,
             float x0, float y0, float x1, float y1, int packedLight, boolean highlights) {
+        renderTeamBanner(vc, mat, team, x0, y0, x1, y1, packedLight, highlights, false);
+    }
+
+    /**
+     * @param mergePaint fusionne les pixels contigus de même teinte d'une peinture libre en
+     *                   rectangles. Le résultat à l'écran est identique — même couverture, même
+     *                   couleur, même échantillonnage linéaire de la silhouette — mais une bannière
+     *                   passe de 5115 quads à quelques dizaines. À laisser à {@code false} sur une
+     *                   toile ondulante : sa tesselation dépend de la taille des quads reçus, et
+     *                   fusionner changerait la finesse de l'ondulation.
+     */
+    public static void renderTeamBanner(VertexConsumer vc, Matrix4f mat, OWTeam team,
+            float x0, float y0, float x1, float y1, int packedLight, boolean highlights,
+            boolean mergePaint) {
         int primary   = team.getTeamColor();
         int secondary = team.getTeamSecondaryColor();
         int tertiary  = team.getTertiaryColor();
@@ -860,7 +994,8 @@ public class OWRendererUtils {
         renderBannerPattern(vc, mat, x0, y0, x1, y1, x0, y0, x1 - x0, y1 - y0,
                 team.getBannerShape(), team.getTeamMosaicPattern(),
                 pr, pg, pb, sr, sg, sb, tr, tg, tb, team.isUseTertiary(),
-                team.getPaintPixels(), packedLight & 0xFFFF, (packedLight >> 16) & 0xFFFF, highlights);
+                team.getPaintPixels(), packedLight & 0xFFFF, (packedLight >> 16) & 0xFFFF,
+                highlights, mergePaint);
     }
 
     /**
@@ -874,7 +1009,7 @@ public class OWRendererUtils {
             OWTeamBannerShape shape, OWTeamMosaicPattern pattern,
             int pr, int pg, int pb, int sr, int sg, int sb,
             int tr, int tg, int tb, boolean useTertiary,
-            byte[] paintPixels, int lightU, int lightV, boolean highlights) {
+            byte[] paintPixels, int lightU, int lightV, boolean highlights, boolean mergePaint) {
 
         if (shape == null) shape = OWTeamBannerShape.CLASSIC;
         // La silhouette de la forme (dans ow_teams_banners_styles.png) découpe le motif : flagRect
@@ -889,17 +1024,33 @@ public class OWRendererUtils {
 
         if (pattern == OWTeamMosaicPattern.CUSTOM_PAINT) {
             if (paintPixels != null && paintPixels.length >= 55 * 93) {
-                for (int row = 0; row < 93; row++) {
-                    for (int col = 0; col < 55; col++) {
-                        int v = paintPixels[row * 55 + col] & 3;
+                int[] rects = mergePaint ? paintRectangles(paintPixels) : null;
+
+                if (rects != null) {
+                    for (int i = 0; i < rects.length; i += 5) {
+                        int v = rects[i + 4];
                         int cr = v == 2 ? tr : (v == 1 ? sr : pr);
                         int cg = v == 2 ? tg : (v == 1 ? sg : pg);
                         int cb = v == 2 ? tb : (v == 1 ? sb : pb);
-                        float wx0 = bx0 + (float) col / 55 * BW;
-                        float wx1 = bx0 + (float)(col + 1) / 55 * BW;
-                        float wy1 = by1 - (float) row / 93 * BH;
-                        float wy0 = by1 - (float)(row + 1) / 93 * BH;
+                        float wx0 = bx0 + (float) rects[i] / 55 * BW;
+                        float wx1 = bx0 + (float) rects[i + 2] / 55 * BW;
+                        float wy1 = by1 - (float) rects[i + 1] / 93 * BH;
+                        float wy0 = by1 - (float) rects[i + 3] / 93 * BH;
                         flagRect(vc, mat, wx0, wy0, wx1, wy1, bbx0, bby0, bbw, bbh, lightU, lightV, cr, cg, cb);
+                    }
+                } else {
+                    for (int row = 0; row < 93; row++) {
+                        for (int col = 0; col < 55; col++) {
+                            int v = paintPixels[row * 55 + col] & 3;
+                            int cr = v == 2 ? tr : (v == 1 ? sr : pr);
+                            int cg = v == 2 ? tg : (v == 1 ? sg : pg);
+                            int cb = v == 2 ? tb : (v == 1 ? sb : pb);
+                            float wx0 = bx0 + (float) col / 55 * BW;
+                            float wx1 = bx0 + (float)(col + 1) / 55 * BW;
+                            float wy1 = by1 - (float) row / 93 * BH;
+                            float wy0 = by1 - (float)(row + 1) / 93 * BH;
+                            flagRect(vc, mat, wx0, wy0, wx1, wy1, bbx0, bby0, bbw, bbh, lightU, lightV, cr, cg, cb);
+                        }
                     }
                 }
             } else {

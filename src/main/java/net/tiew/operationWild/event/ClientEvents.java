@@ -764,6 +764,15 @@ public class ClientEvents {
         }
     }
 
+    private static boolean hasGoldCosmetic(OWEntity entity) {
+        if (entity instanceof TigerEntity tiger) return tiger.getVariant() == TigerVariant.Cosmetics.GOLD.variant;
+        if (entity instanceof KodiakEntity kodiak) return kodiak.getVariant() == KodiakVariant.Cosmetics.GOLD.variant;
+        if (entity instanceof CrocodileEntity crocodile) return crocodile.getVariant() == CrocodileVariant.Cosmetics.GOLD.variant;
+        if (entity instanceof KangarooEntity kangaroo) return kangaroo.getVariant() == KangarooVariant.Cosmetics.GOLD.variant;
+        if (entity instanceof BoaEntity boa) return boa.getVariant() == BoaVariant.Cosmetics.GOLD.variant;
+        return false;
+    }
+
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
@@ -777,29 +786,9 @@ public class ClientEvents {
         }
 
         if (player.level().isClientSide()) {
-            player.level().getEntitiesOfClass(TigerEntity.class,
+            player.level().getEntitiesOfClass(OWEntity.class,
                     player.getBoundingBox().inflate(32),
-                    e -> e.isTame() && e.getVariant() == TigerVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
-            ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
-
-            player.level().getEntitiesOfClass(KodiakEntity.class,
-                    player.getBoundingBox().inflate(32),
-                    e -> e.isTame() && e.getVariant() == KodiakVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
-            ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
-
-            player.level().getEntitiesOfClass(CrocodileEntity.class,
-                    player.getBoundingBox().inflate(32),
-                    e -> e.isTame() && e.getVariant() == CrocodileVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
-            ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
-
-            player.level().getEntitiesOfClass(KangarooEntity.class,
-                    player.getBoundingBox().inflate(32),
-                    e -> e.isTame() && e.getVariant() == KangarooVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
-            ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
-
-            player.level().getEntitiesOfClass(BoaEntity.class,
-                    player.getBoundingBox().inflate(32),
-                    e -> e.isTame() && e.getVariant() == BoaVariant.Cosmetics.GOLD.variant && !e.isDeadOrDying()
+                    e -> e.isTame() && !e.isDeadOrDying() && hasGoldCosmetic(e)
             ).forEach(entity -> spawnGoldTrailParticles(player, entity, entity.getYRot()));
         }
 
@@ -1718,9 +1707,8 @@ public class ClientEvents {
         }
 
         currentEntityIds.clear();
-        for (OWEntity candidate : mc.level.getEntitiesOfClass(
-                OWEntity.class, player.getBoundingBox().inflate(2048))) {
-
+        for (Entity loaded : mc.level.entitiesForRendering()) {
+            if (!(loaded instanceof OWEntity candidate)) continue;
             if (!(candidate instanceof IOWWaypointEntity w)) continue;
             if (candidate instanceof net.tiew.operationWild.entity.misc.Submarine) continue;
             if (!player.getUUID().equals(candidate.getOwnerUUID())) continue;

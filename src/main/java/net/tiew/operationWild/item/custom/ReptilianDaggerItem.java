@@ -31,7 +31,6 @@ public class ReptilianDaggerItem extends SwordItem {
         if (attributeModifiers != null) {
             attributeModifiers.modifiers().forEach(modifier -> {
                 if (modifier.attribute().equals(Attributes.ATTACK_SPEED)) {
-                    System.out.println("Attack Speed: " + modifier.modifier().amount());
                 }
             });
         }*/

@@ -37,7 +37,6 @@ public class AscentMission {
         if (this.missionIsFinished) return;
 
         this.actualValue = actualValue;
-        System.out.println("Nouvelle valeur: " + this.actualValue + " / " + this.maxValue);
 
         if (actualValue >= maxValue) {
             finishAscentMission();
@@ -45,7 +44,6 @@ public class AscentMission {
     }
 
     public void finishAscentMission() {
-        System.out.println("Quête terminée");
         this.actualValue = 0;
         this.missionIsFinished = true;
     }

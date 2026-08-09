@@ -1728,7 +1728,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         entity.setHealth(entity.getMaxHealth());
         entity.setDamageToClient((float) newDamage);
 
-        System.out.println("Health: " + entity.getAttributeBaseValue(Attributes.MAX_HEALTH) + " Damage: " + entity.getAttributeBaseValue(Attributes.ATTACK_DAMAGE) + " Speed: " + entity.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
     }
 
     public void setTamedAttributes(OWEntity entity, double actualHealth) {
@@ -1739,7 +1738,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         else healthMultiplicator = entity.isBaby() ? 1.0f : 1.3f;
 
         entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(entity.getAttributeBaseValue(Attributes.MAX_HEALTH) * healthMultiplicator);
-        System.out.println("New Health: " + entity.getAttributeBaseValue(Attributes.MAX_HEALTH) + " New Damage: " + entity.getAttributeBaseValue(Attributes.ATTACK_DAMAGE) + " New Speed: " + entity.getAttributeBaseValue(Attributes.MOVEMENT_SPEED));
     }
 
     public void upgradeAttributes(OWEntity entity, Holder<Attribute> attribute) {
@@ -3225,7 +3223,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                                 ? (this.random.nextBoolean() ? Tags.Items.FOODS_COOKED_MEAT : Tags.Items.FOODS_RAW_MEAT)
                                 : (this.random.nextBoolean() ? Tags.Items.FOODS_COOKED_FISH : Tags.Items.FOODS_RAW_FISH));
 
-                        System.out.println(choosenFood);
                     }
                     babyQuestIsInProgress = true;
                 }

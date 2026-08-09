@@ -103,7 +103,6 @@ public class OWEgg extends HorizontalDirectionalBlock {
         }
 
 
-        System.out.println(itemId);
     }
 
     @Override

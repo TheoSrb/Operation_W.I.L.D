@@ -69,12 +69,10 @@ public class TigerDistractedByFoodGoal extends Goal {
         this.tiger.setEating(true);
         this.tiger.setTarget(null);
         this.tiger.getNavigation().stop();
-        System.out.println("start");
     }
 
     @Override
     public void tick() {
-        System.out.println("tick");
         if (targetItem != null && targetItem.isAlive()) {
             this.tiger.getLookControl().setLookAt(targetItem, 30.0F, 30.0F);
 
@@ -124,6 +122,5 @@ public class TigerDistractedByFoodGoal extends Goal {
     public void stop() {
         this.tiger.setEating(false);
         this.targetItem = null;
-        System.out.println("stop");
     }
 }

@@ -99,7 +99,6 @@ public class OWOrcaBeachingGoal extends Goal {
         if (!this.orca.isInWater()) return false;
 
         LivingEntity found = findCoastalTarget();
-        System.out.println(found);
         if (found == null) return false;
 
         this.target = found;
