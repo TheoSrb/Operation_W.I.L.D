@@ -536,9 +536,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private double hopForwardSpeed(boolean running, double power) {
         double air = hopAirTicks(power);
 
-        // Monté, la vitesse voulue est déjà celle que le cavalier demande : la remultiplier par un
-        // facteur la ferait exploser. On se contente de la concentrer sur la phase aérienne, de
-        // sorte que la moyenne sur un cycle complet reste exactement la vitesse de la monture.
         if (this.getControllingPassenger() != null) {
             return hopSpeedReference() * (air + HOP_GROUND_DELAY_FAST) / air;
         }
@@ -646,9 +643,6 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private void tickHopLanding() {
         if (this.level().isClientSide()) return;
 
-        // Monté, travelRidden ne rappelle jamais travel() côté serveur : le drapeau de bond restait
-        // figé sur sa dernière valeur sauvage, et le modèle jouait indéfiniment la fin de l'animation
-        // de bond au lieu de la marche. On le referme ici, où le tick passe toujours.
         if (this.getControllingPassenger() != null || !useHopLocomotion()) {
             setHopping(false);
             hopWasAirborne = false;

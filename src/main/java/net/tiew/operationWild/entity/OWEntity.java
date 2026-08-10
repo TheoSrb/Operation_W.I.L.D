@@ -3122,7 +3122,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                 if (this instanceof KangarooEntity) return;
 
-                setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 0.75f : 0.5f));
+                setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 0.5f : 0.25f));
             }
 
             if (!isRunning() && getVitalEnergy() > 0 && !isCombo()) {

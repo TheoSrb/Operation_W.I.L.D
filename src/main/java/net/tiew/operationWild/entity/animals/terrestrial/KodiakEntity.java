@@ -78,9 +78,6 @@ import java.util.*;
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, NeutralMob {
-    // ==================================================
-    //              CONSTANTES PRINCIPALES
-    // ==================================================
 
     public static final double TAMING_EXPERIENCE = 180.0;
     private static final int MAX_EATING_TIMER = 400;
@@ -107,10 +104,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public KodiakBehaviorHandler kodiakBehaviorHandler;
     public TamingKodiak kodiakTaming;
 
-    // ==================================================
-    //             COMPTEURS ET ANIMATIONS
-    // ==================================================
-
     public final AnimationState transitionIdleStandingUp = new AnimationState();
     public final AnimationState transitionStandingUpIdle = new AnimationState();
     public final AnimationState napAnimationState = new AnimationState();
@@ -134,10 +127,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     private float pawSlamPendingFactor = 0f;
     private int ultimateNapDurationTimer = 0;
 
-    // ==================================================
-    //                VARIABLES PROPRES
-    // ==================================================
-
     private float rubYaw = 0f;
 
     public volatile float bodyAnimY = 0f;
@@ -160,10 +149,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public int eatingTimer = 0;
     public boolean startHoneyTimer = false;
     private int honeyTimer = 0;
-    // On stocke l'UUID (et non une référence Player, qui deviendrait obsolète à la déconnexion / au changement de dimension).
     private UUID lastFeederUUID = null;
 
-    /** Dernier joueur ayant nourri ce Kodiak, résolu à la volée (ou {@code null} s'il est hors ligne / hors portée). */
     public Player getLastFeeder() {
         return lastFeederUUID == null ? null : this.level().getPlayerByUUID(lastFeederUUID);
     }
@@ -194,10 +181,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @javax.annotation.Nullable
     private UUID persistentAngerTarget;
 
-    // ==================================================
-    //            INTÉLLIGENCE ARTIFICIELLE
-    // ==================================================
-
     public KodiakEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
         initKodiakBehaviorAndTaming();
@@ -220,7 +203,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     protected void registerGoals() {
         super.registerGoals();
-        initKodiakBehaviorAndTaming(); // Create the AI before the goals, otherwise, null error
+        initKodiakBehaviorAndTaming();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(0, new KodiakCatchFishGoal(this, 1.0f, () -> kodiakBehaviorHandler.catchSalmon()));
@@ -288,10 +271,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         builder.define(IS_ULTIMATE_NAPPING, false);
     }
 
-    // ==================================================
-    //             MÉTHODES PRINCIPALES
-    // ==================================================
-
     public static final int ENTITY_COLOR = 8215109;
 
     @Override
@@ -326,13 +305,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public List<Class<?>> getFavoriteTargetsByBeingNonTame() {
-        // Volontairement réduit au cochon, et surtout PAS la table de proies complète.
-        //
-        // Les goals bâtis à partir d'ici (registerBehaviorGoals, branche NEUTRAL) ne passent pas par
-        // KodiakNearestAttackableTargetGoal : ils ne connaissent donc pas la barre de faim. Y verser
-        // la table complète aurait fait chasser l'ours en permanence, ventre plein, et vidé de son
-        // sens toute la mécanique de faim. La table complète n'est branchée que sur les goals
-        // conditionnés à isHungry(), dans registerGoals.
         return List.of(Pig.class);
     }
 
@@ -456,7 +428,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public void playStepSound(BlockPos blockPos, BlockState blockState) {
-        // Intentionally empty — replaced by animation callbacks below
     }
 
     private void playStepSoundFromAnimation(float pitchMod) {
@@ -498,10 +469,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public void onRightFootDown() {
         playStepSoundFromAnimation(1.0f);
     }
-
-    // ==================================================
-    //             CORPS DU FONCTIONNEMENT
-    // ==================================================
 
     public void tick() {
         super.tick();
@@ -913,7 +880,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public void die(DamageSource damageSource) {
-        super.die(damageSource); // le drop générique de l'Âme est géré par OWEntity.die()
+        super.die(damageSource);
 
         if (this.isSaddled()) {
             this.spawnAtLocation(acceptSaddle());
@@ -1028,7 +995,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         return super.killedEntity(serverLevel, entity);
     }
 
-    /** Une masse pareille ne manœuvre pas sous l'eau : duels terrestres uniquement. */
     @Override
     public int arenaTerrainMask() {
         return net.tiew.operationWild.core.OWArena.Terrain.TERRESTRIAL.bit();
@@ -1135,7 +1101,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             case 1 -> this.setVariant(KodiakVariant.Cosmetics.GOLD.variant);
             case 2 -> this.setVariant(KodiakVariant.Cosmetics.SKELETON.variant);
             case 3 -> this.setSkinShade(true);
-            // Réserver les indices 4-7 pour de futurs skins cosmétiques
             default -> this.setVariant(getInitialVariant());
         }
 
@@ -1275,14 +1240,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         setupComboAnimations();
     }
 
-    /**
-     * Duree de vie des animations de combo, en ticks. Chacune doit couvrir le geste ENTIER, plus
-     * environ un tiers de rabiot pendant lequel il tient sa pose finale et se melange au coup
-     * suivant — c'est la marge du crocodile, qui sert de reference. En dessous, l'animation est
-     * tranchee avant sa derniere image et l'enchainement saccade.
-     *
-     * <p>Gestes de 1,04 / 1,04 / 1,48 s lus a 1,0 / 1,1 / 1,25 : 20,8 / 18,9 / 23,7 ticks. Le premier, a 20, etait coupe.</p>
-     */
     private void setupComboAnimations() {
         setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (28 / comboSpeedMultiplier));
         setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (25 / comboSpeedMultiplier));
@@ -1307,7 +1264,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.entityData.set(VARIANT, variant.getId() & 255);
     }
 
-    /** Variante naturelle exposée sous forme générique (cf. {@code OWEntity}). */
     @Override
     public int getInitialTypeVariant() { return this.getInitialVariant().getId(); }
 
@@ -1389,14 +1345,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.entityData.set(IS_MAD, isMad);
     }
 
-    /**
-     * Colère déclenchée par le <b>cavalier</b>, qui ignore le mode passif.
-     *
-     * <p>Le mode ne règle que l'initiative de l'IA : une monture passive ne part pas d'elle-même à
-     * l'attaque. Il n'a rien à dire quand c'est son cavalier qui frappe — or {@link #setMad(boolean)}
-     * refusait tout net en passif, et comme une bête apprivoisée l'est par défaut, ses yeux ne
-     * s'allumaient jamais en combat monté.</p>
-     */
     public void setMadByRider(boolean isMad) {
         this.entityData.set(IS_MAD, isMad);
     }
@@ -1452,8 +1400,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
 
-    // ── Bear Nap (ultime) ─────────────────────────────────────────────────────
-
     public void activateUltimateNap() {
         if (isUltimateNapping()) {
             cancelUltimateNap();
@@ -1498,8 +1444,6 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         super.customServerAiStep();
     }
 
-    // ── Paw Slam ──────────────────────────────────────────────────────────────
-
     public void startPawSlamCharge() {
         if (getVitalEnergy() > getVitalEnergyCapacity() - OWAttacksConstants.Kodiak.PAW_SLAM_ENERGY) {
             canShowVitalEnergyLack = true;
@@ -1533,8 +1477,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     private void executePawSlamHit(float factor) {
         double yaw     = Math.toRadians(this.getYRot());
-        double reach   = 2.0 + 1.5 * factor;   // distance du centre devant l'ours
-        double width   = 1.5 + 1.0 * factor;   // demi-largeur de la boîte
+        double reach   = 2.0 + 1.5 * factor;
+        double width   = 1.5 + 1.0 * factor;
         double centerX = this.getX() - Math.sin(yaw) * reach;
         double centerZ = this.getZ() + Math.cos(yaw) * reach;
         double centerY = this.getY() + 0.5;
@@ -1555,12 +1499,10 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             return true;
         });
 
-        // 1 cible → 50 %, 2 → 40 %, 3 → 30 %, 4 → 20 %, 5+ → 10 %
         float percent = Math.max(0.50f - (targets.size() - 1) * 0.10f, 0.10f);
 
         for (LivingEntity target : targets) {
             float damage = target.getHealth() * percent;
-            // Cibles avec plus de 100 pv max : dégâts plafonnés entre 5 (factor=0) et 20 (factor=1)
             if (target.getMaxHealth() > 100f) {
                 float cap = 5f + factor * 15f;
                 damage = Math.min(damage, cap);
@@ -1580,7 +1522,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public boolean isPawSlamStriking() { return this.entityData.get(IS_PAW_SLAM_STRIKING); }
 
     @Override
-    protected int getDefaultSkinIndex() { return 7; }   // « Kodiak Par Défaut »
+    protected int getDefaultSkinIndex() { return 7; }
 
     class KodiakMeleeAttackGoal extends MeleeAttackGoal {
 

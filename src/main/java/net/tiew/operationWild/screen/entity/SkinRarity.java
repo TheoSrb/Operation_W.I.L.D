@@ -5,10 +5,10 @@ package net.tiew.operationWild.screen.entity;
  * Source unique de vérité du prix : un skin achetable référence une rareté, jamais un nombre brut.
  */
 public enum SkinRarity {
-    COMMON(5),
-    RARE(8),
-    EPIC(14),
-    LEGENDARY(20);
+    COMMON(20),
+    RARE(32),
+    EPIC(56),
+    LEGENDARY(80);
 
     /** Coût d'achat en Pièces Sauvages. */
     public final int cost;
