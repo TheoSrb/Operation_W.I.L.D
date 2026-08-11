@@ -107,6 +107,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_HIDDEN = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_ROARING = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_ROAR_CHARGING = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_SCARIFYING = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_EATING = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.BOOLEAN);
 
@@ -127,6 +128,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public final AnimationState leapAnimationState = new AnimationState();
     public final AnimationState scratchesAnimationState = new AnimationState();
     public final AnimationState roaringAnimationState = new AnimationState();
+    public final AnimationState roarChargeAnimationState = new AnimationState();
     public final AnimationState scarifyAnimationState = new AnimationState();
 
     public int napAnimationTimeout = 0;
@@ -172,6 +174,9 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     private int grabCooldown = 0;
 
     private int roarTimer = 0;
+    private boolean roarFromRider = false;
+    private boolean isRoarChargePending = false;
+    private int roarChargeTicks = 0;
     private int grabDamageTimer = 0;
 
     private int suspicionLevel = 0;
@@ -242,6 +247,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         builder.define(IS_MAD, false);
         builder.define(IS_HIDDEN, false);
         builder.define(IS_ROARING, false);
+        builder.define(IS_ROAR_CHARGING, false);
         builder.define(IS_SCARIFYING, false);
         builder.define(IS_EATING, false);
 
@@ -373,7 +379,10 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     public float getRotationSpeed() {
-        return isPreparing ? 1 : 0.35f;
+        // Pendant le cri la bete est figee sur ses appuis : ni deplacement ni orientation. Pendant la
+        // charge elle suit encore le regard, comme au Bond Bestial.
+        if (isRoaring()) return 0f;
+        return isPreparing || isRoarCharging() ? 1 : 0.35f;
     }
 
     @Override
@@ -545,7 +554,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         // Yeux furieux tant que le cavalier attaque : pendant un combo, pendant la charge du bond,
         // et pendant le bond lui-même.
         if (this.isVehicle() && this.isTame() && !this.isSitting()) {
-            setMadByRider(this.isCombo() || this.isPreparing || (this.isLeaping && !isRidingJump));
+            setMadByRider(this.isCombo() || this.isPreparing || this.isRoaring() || (this.isLeaping && !isRidingJump));
         }
 
         // ------------ FONCTIONNEMENT PROPRE ------------
@@ -553,6 +562,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         if (!this.level().isClientSide()) {
             handleCamouflage();
             handleRoar();
+            handleRoarCharge();
         }
 
         handleGrab();
@@ -723,7 +733,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     public float getRiddenSpeedVehicle(Player player) {
-        return this.isImmobile() || this.isPreparing ? 0 : super.getRiddenSpeedVehicle(player);
+        return this.isImmobile() || this.isPreparing || this.isRoarCharging() ? 0 : super.getRiddenSpeedVehicle(player);
     }
 
     @Override
@@ -1035,22 +1045,23 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             if (this.roarTimer == 15) {
                 this.level().playSound(null, this.getX(), this.getY(), this.getZ(), getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_ROAR.get() : OWSounds.TIGER_ROAR_VIRUS.get(), SoundSource.AMBIENT, 3.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
 
-                double radius = 15.0D;
                 List<LivingEntity> nearbyEntities = this.level().getEntitiesOfClass(
                         LivingEntity.class,
-                        this.getBoundingBox().inflate(radius)
+                        this.getBoundingBox().inflate(OWAttacksConstants.Tiger.PRIMAL_ROAR_RADIUS)
                 );
 
                 for (LivingEntity entity : nearbyEntities) {
-                    if (entity.isAlive() && entity != this && !this.isAlliedTo(entity)) {
-                        entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 200, 0));
+                    if (!entity.isAlive() || entity == this || this.isAlliedTo(entity)) continue;
+                    if (entity == this.getOwner() || entity == this.getControllingPassenger()) continue;
 
-                        if (entity == this.getTarget()) {
-                            if (this.getTarget() != null) {
-                                this.getTarget().addEffect(new MobEffectInstance(OWEffects.FEAR_EFFECT.getDelegate(), 100, 0));
-                            }
-                        }
+                    entity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
+                            OWAttacksConstants.Tiger.PRIMAL_ROAR_SLOW_TICKS, 0));
 
+                    // Le cri lancé par un cavalier n'a pas de cible désignée : il terrorise tout ce
+                    // qu'il atteint. Le tigre sauvage, lui, ne brise que celui qu'il a dans les yeux.
+                    if (this.roarFromRider || entity == this.getTarget()) {
+                        entity.addEffect(new MobEffectInstance(OWEffects.FEAR_EFFECT.getDelegate(),
+                                OWAttacksConstants.Tiger.PRIMAL_ROAR_FEAR_TICKS, 0));
                     }
                 }
             }
@@ -1061,6 +1072,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
             if (this.roarTimer >= 60) {
                 this.roarTimer = 0;
+                this.roarFromRider = false;
                 this.setRoar(false);
             }
         }
@@ -1088,6 +1100,102 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         isJumpCharging = false;
         this.isPreparing = false;
         syncLeapState(false, false);
+    }
+
+    /**
+     * Amorce du Rugissement Primal : deux secondes de mise en tension.
+     *
+     * <p>Le tigre est cloué au sol mais suit encore le regard de son cavalier — même contrat que le
+     * Bond Bestial, dont il reprend le levier ({@code getRiddenSpeedVehicle}). Le cri, lui, figera
+     * aussi l'orientation.</p>
+     */
+    public void startRoarCharge() {
+        if (this.isRoaring()) return;
+        this.isRoarChargePending = true;
+        this.setRoarCharging(true);
+        this.setDeltaMovement(0, 0, 0);
+        this.getNavigation().stop();
+    }
+
+    public void cancelRoarCharge() {
+        this.isRoarChargePending = false;
+        this.roarChargeTicks = 0;
+        // Le cri partant tout seul, le serveur ne recevra ni relachement ni annulation : c'est ici,
+        // et nulle part ailleurs, que le drapeau de charge est rendu. Oublie, il interdisait le
+        // sprint pour le restant de la partie.
+        this.isChargingAttack = false;
+        this.setRoarCharging(false);
+    }
+
+    /**
+     * Décompte de l'amorce, et déclenchement du cri à son terme.
+     *
+     * <p>Le rugissement <b>part tout seul</b> une fois les deux secondes tenues : le joueur ne relâche
+     * rien, il attend. C'est le serveur qui compte, et lui seul — faire dépendre le tir du relâchement
+     * du clic laissait la bête clouée au sol quand ce relâchement se perdait en route.</p>
+     *
+     * <p>Le cavalier qui saute à terre ou se déconnecte en pleine amorce rend la main immédiatement,
+     * sans quoi le tigre resterait planté là, immobilisé par une charge que plus personne ne tient.</p>
+     */
+    private void handleRoarCharge() {
+        if (!this.isRoarCharging()) {
+            this.roarChargeTicks = 0;
+            return;
+        }
+
+        if (this.getControllingPassenger() == null) {
+            cancelRoarCharge();
+            return;
+        }
+
+        this.roarChargeTicks++;
+        if (this.roarChargeTicks >= OWAttacksConstants.Tiger.PRIMAL_ROAR_CHARGE_TICKS) {
+            performPrimalRoar();
+        }
+    }
+
+    /**
+     * Declenchement du cri, apres la charge complete.
+     *
+     * <p>Le compteur ne repart pas de zero mais du nombre d'images sautees : l'animation reprend la
+     * ou la charge l'avait laissee, et le son comme l'onde de terreur restent cales sur l'instant ou
+     * la gueule s'ouvre vraiment.</p>
+     */
+    public void performPrimalRoar() {
+        if (!this.isRoarChargePending || this.isRoaring()) {
+            cancelRoarCharge();
+            return;
+        }
+        this.isRoarChargePending = false;
+        this.roarChargeTicks = 0;
+        this.isChargingAttack = false;
+        this.setRoarCharging(false);
+        this.roarFromRider = true;
+        this.roarTimer = OWAttacksConstants.Tiger.PRIMAL_ROAR_ANIM_SKIP_TICKS;
+        this.setRoar(true);
+        this.setDeltaMovement(0, 0, 0);
+        this.getNavigation().stop();
+    }
+
+    /**
+     * Le cri ne souffre rien d'autre : ni enchainement, ni ultime, ni seconde carte. Le tigre est
+     * fige sur ses appuis pendant toute sa duree, laisser partir un coup par-dessus melerait deux
+     * gestes sur les memes os.
+     */
+    @Override
+    public boolean isAttackLocked() {
+        return super.isAttackLocked() || isRoaring();
+    }
+
+    /** Le tigre porte deux cartes secondaires : le Bond Bestial et le Rugissement Primal. */
+    @Override
+    public int getSecondaryAttackCount() {
+        return 2;
+    }
+
+    @Override
+    protected void onSecondaryAttackChanged() {
+        cancelRoarCharge();
     }
 
     @Override
@@ -1462,12 +1570,25 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             if (this.roaringAnimationTimeout <= 0) {
                 this.roaringAnimationTimeout = 90;
                 this.roaringAnimationState.start(this.tickCount);
+                // Le cri enchaine sur la pose ou la charge s'est arretee. Repartir du debut remettrait
+                // la bete debout le temps d'un battement avant de la recroqueviller a nouveau.
+                if (this.roarChargeAnimationState.isStarted()) {
+                    this.roaringAnimationState.fastForward(
+                            OWAttacksConstants.Tiger.PRIMAL_ROAR_ANIM_SKIP_TICKS, 1.0f);
+                }
             } else --this.roaringAnimationTimeout;
         }
 
         if (!this.isRoaring()) {
             this.roaringAnimationTimeout = 0;
             this.roaringAnimationState.stop();
+        }
+
+        // Lu APRES le bloc du cri, qui a besoin de savoir si la charge etait encore en cours.
+        if (this.isRoarCharging() && !this.isRoaring()) {
+            this.roarChargeAnimationState.startIfStopped(this.tickCount);
+        } else {
+            this.roarChargeAnimationState.stop();
         }
 
         boolean shouldPreparePose = this.isPreparing || this.isGrabbing();
@@ -1653,6 +1774,12 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     public boolean isRoaring() { return this.entityData.get(IS_ROARING);}
+
+    public void setRoarCharging(boolean charging) {
+        this.entityData.set(IS_ROAR_CHARGING, charging);
+    }
+
+    public boolean isRoarCharging() { return this.entityData.get(IS_ROAR_CHARGING);}
 
     public void setEating(boolean eating) {
         this.entityData.set(IS_EATING, eating);

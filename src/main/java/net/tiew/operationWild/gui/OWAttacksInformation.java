@@ -154,6 +154,15 @@ public class OWAttacksInformation {
                     val(OWAttacksConstants.Tiger.JUMP_ATTACK_COOLDOWN_TICKS / 20))
             ),
 
+            new AttackSlot(216, 216, "RMB",
+                title("ow.attacks.tiger.primal_roar.title"),
+                e -> desc("ow.attacks.tiger.primal_roar.desc",
+                    val(OWAttacksConstants.Tiger.PRIMAL_ROAR_CHARGE_MS / 1000),
+                    val((int) OWAttacksConstants.Tiger.PRIMAL_ROAR_RADIUS),
+                    val(OWAttacksConstants.Tiger.PRIMAL_ROAR_FEAR_TICKS / 20),
+                    val(OWAttacksConstants.Tiger.PRIMAL_ROAR_COOLDOWN_TICKS / 20))
+            ),
+
             new AttackSlot(40, 0, "X",
                 title("ow.attacks.tiger.shadow_strike.title"),
                 e -> desc("ow.attacks.tiger.shadow_strike.desc",

@@ -196,6 +196,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public int actualAttackNumber = 0;
     public final int MAX_ATTACKS_IN_COMBO = 3;
 
+    public final net.tiew.operationWild.entity.behavior.OWFearHandler fearHandler =
+            new net.tiew.operationWild.entity.behavior.OWFearHandler(this);
+
     public static float comboSpeedMultiplier = 1.0f;
 
     public static final float VITAL_ENERGY_UPGRADE_STEP = 6f;
@@ -314,6 +317,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final EntityDataAccessor<Boolean> IS_BABY = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> ATTACK_ANIMATION_ID = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ATTACK_ANIMATION_TICK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> PANIC_LEVEL = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Integer> PANIC_BUCK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> CACHED_OWNER_NAME = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
 
@@ -1704,6 +1709,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void setBodyYOffset(float getBodyXRot) { this.entityData.set(BODY_Y_OFFSET, getBodyXRot);}
     public float getBodyYOffset() { return this.entityData.get(BODY_Y_OFFSET);}
 
+    public void setPanicLevel(float panicLevel) { this.entityData.set(PANIC_LEVEL, panicLevel);}
+    public float getPanicLevel() { return this.entityData.get(PANIC_LEVEL);}
+
+    public void setPanicBuck(int signedTicks) { this.entityData.set(PANIC_BUCK, signedTicks);}
+    public int getPanicBuck() { return this.entityData.get(PANIC_BUCK);}
+
+    public int getBuckTicks() { return java.lang.Math.abs(this.entityData.get(PANIC_BUCK));}
+    public int getBuckSide() { return Integer.signum(this.entityData.get(PANIC_BUCK));}
+
+    public boolean isPanicking() { return this.getPanicLevel() > 0f;}
+
+    public void playPanicVoice(float pitch) {
+        net.minecraft.sounds.SoundEvent voice = this.getAmbientSound();
+        if (voice == null) voice = this.getHurtSound(this.damageSources().generic());
+        if (voice != null) this.playSound(voice, 1.3f, pitch);
+    }
+
     public boolean ownerIsRiding() {
         if (this.getOwner() != null) {
             LivingEntity rider = this.getControllingPassenger();
@@ -2758,8 +2780,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
+    /**
+     * La bete est-elle prise dans un geste qui n'admet aucune autre attaque ?
+     *
+     * <p>Verrou unique interroge par tous les chemins : combo, ultime, cartes secondaires. Une espece
+     * qui immobilise sa monture le temps d'une action le declare ici plutot que de rejouer la meme
+     * condition dans chaque garde — c'est ce qui evite qu'un chemin oublie laisse passer un coup au
+     * milieu d'un geste cense etre exclusif.</p>
+     */
+    public boolean isAttackLocked() {
+        return isPanicking();
+    }
+
     public boolean canStartCombo() {
-        return true;
+        return !isAttackLocked();
     }
 
     /**
@@ -2770,7 +2804,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
      * la même règle — c'est lui qui tranche.</p>
      */
     public boolean canUseUltimate() {
-        return true;
+        return !isAttackLocked();
     }
 
     public boolean canFightInArena() {
@@ -3167,6 +3201,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 net.minecraft.server.MinecraftServer srv = this.level().getServer();
                 if (srv != null) net.tiew.operationWild.waypoint.OWWaypointData.get(srv).upsert(this);
             }
+            this.fearHandler.tick();
         }
 
         if (this.isTame()) {
@@ -3212,7 +3247,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                 if (this instanceof KangarooEntity) return;
 
-                setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 0.5f : 0.25f));
+                setVitalEnergy(getVitalEnergy() + ((!isCrocodileInWater) ? 0.65f : 0.35f));
             }
 
             if (!isRunning() && getVitalEnergy() > 0 && !isCombo()) {
@@ -5010,6 +5045,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(COSMETIC_QUEST_KILLS, 0);
         builder.define(FIGHT_COOLDOWN, 0);
         builder.define(CACHED_OWNER_NAME, "");
+        builder.define(PANIC_LEVEL, 0.0f);
+        builder.define(PANIC_BUCK, 0);
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {

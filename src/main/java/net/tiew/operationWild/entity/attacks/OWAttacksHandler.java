@@ -56,6 +56,7 @@ public class OWAttacksHandler {
     public static final int SHOULDER_BASH_ID = OWAttackIds.SHOULDER_BASH;
     public static final int EARTHQUAKE_ID = OWAttackIds.EARTHQUAKE;
     public static final int WATER_SPRAY_ID = OWAttackIds.WATER_SPRAY;
+    public static final int PRIMAL_ROAR_ID = OWAttackIds.PRIMAL_ROAR;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -91,6 +92,7 @@ public class OWAttacksHandler {
         registerEntityRow(TigerEntity.class, 0);
         registerComboMaxTimer(TigerEntity.class, 12);
         register(TigerEntity.class, TigerAttacks.JUMP_ATTACK);
+        register(TigerEntity.class, TigerAttacks.PRIMAL_ROAR);
         register(TigerEntity.class, TigerAttacks.SHADOW_STRIKE);
         registerPassive(TigerEntity.class, TigerPassives.PREDATOR_SENSE);
 
@@ -264,6 +266,32 @@ public class OWAttacksHandler {
                 true,
                 true
         );
+
+        /**
+         * Rugissement Primal — seconde carte secondaire, CHARGÉE (clic droit / OW_ATTACK_0).
+         *
+         * <p>Deux secondes à se ramasser, puis le cri. Pendant la charge la bête est clouée sur place
+         * mais suit encore le regard de son cavalier, comme au Bond Bestial ; pendant le cri elle ne
+         * bouge ni ne tourne plus — c'est ce contraste qui donne son poids au moment.</p>
+         *
+         * <p>Fenêtre de charge sans amplitude ({@code min == max}) : le rugissement ne se dose pas,
+         * il part ou il ne part pas. L'anneau de charge se remplit donc exactement à l'instant où le
+         * coup devient disponible, et le facteur transmis n'est lu par personne.</p>
+         */
+        public static final OWChargedAttack PRIMAL_ROAR = new OWChargedAttack(
+                PRIMAL_ROAR_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Tiger.PRIMAL_ROAR_ENERGY,
+                OWAttacksConstants.Tiger.PRIMAL_ROAR_COOLDOWN_TICKS,
+                OWAttacksConstants.Tiger.PRIMAL_ROAR_CHARGE_MS,
+                OWAttacksConstants.Tiger.PRIMAL_ROAR_CHARGE_MS,
+                entity -> ((TigerEntity) entity).startRoarCharge(),
+                entity -> ((TigerEntity) entity).cancelRoarCharge(),
+                (entity, factor) -> ((TigerEntity) entity).performPrimalRoar(),
+                (entity, factor, dir) -> { },
+                false,
+                false
+        ).withCardTexture(216, 216);
     }
 
     public static class KodiakAttacks {

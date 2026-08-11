@@ -70,6 +70,18 @@ public class OWChargedAttack extends OWAttack {
         if (localEffect != null) localEffect.apply(entity, chargeFactor, chargeDirection);
     }
 
+    /**
+     * Redéclaré ici pour rendre le type exact : une carte chargée qui impose ses coordonnées d'atlas
+     * doit rester une {@code OWChargedAttack} aux yeux du compilateur, sinon la déclarer oblige à un
+     * transtypage ou à perdre le type — et {@code findChargedAttack} ne la retrouverait plus qu'au
+     * hasard de l'{@code instanceof}.
+     */
+    @Override
+    public OWChargedAttack withCardTexture(int texX, int texY) {
+        super.withCardTexture(texX, texY);
+        return this;
+    }
+
     public OWChargedAttack withCanUsePredicate(Predicate<OWEntity> predicate) {
         this.canUsePredicate = predicate;
         return this;

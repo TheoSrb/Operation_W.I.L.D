@@ -61,6 +61,8 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
 
         poseStack.pushPose();
 
+        applyPanicBuck(entity, partialTicks, poseStack);
+
         if (entity.isBaby()) {
             float maturationPercent = (float) entity.getMaturationPercentage() / 100f;
             float currentScale = babyScale + (scale - babyScale) * maturationPercent;
@@ -79,6 +81,31 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
         renderEntityInfo(entity, poseStack, bufferSource, packedLight, player);
     }
 
+
+    /**
+     * Cabrage de panique, appliqué au corps entier avant que le modèle ne soit dessiné.
+     *
+     * <p>La pile est ici en repère MONDE : une rotation brute autour de X ferait piquer la bête vers
+     * l'est quel que soit son cap. On conjugue donc par le lacet du corps ({@code Ry(-θ)·R·Ry(θ)})
+     * pour que le coup de reins parte bien vers l'avant de l'animal — c'est exactement la recette
+     * qu'emploie déjà l'assise du cavalier, d'où le fait que les deux restent solidaires.</p>
+     *
+     * <p>Le pivot est aux pieds : la bête se dresse sur son train arrière, comme un cheval qui rue.</p>
+     */
+    private void applyPanicBuck(T entity, float partialTicks, PoseStack poseStack) {
+        float buck = net.tiew.operationWild.entity.behavior.OWFearHandler.buckCurve(entity, partialTicks);
+        if (buck <= 0f) return;
+
+        float yaw = entity.getPreciseBodyRotation(partialTicks);
+        float pitch = -buck * net.tiew.operationWild.entity.behavior.OWFearHandler.BUCK_PITCH_DEGREES;
+        float roll = buck * entity.getBuckSide()
+                * net.tiew.operationWild.entity.behavior.OWFearHandler.BUCK_ROLL_DEGREES;
+
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-yaw));
+        poseStack.mulPose(com.mojang.math.Axis.ZP.rotationDegrees(roll));
+        poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(pitch));
+        poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(yaw));
+    }
 
     protected void renderEntityInfo(T entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, Player player) {
         if (SUPPRESS_INFO_IN_GUI) return;

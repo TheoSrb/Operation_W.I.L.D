@@ -9,6 +9,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.tiew.operationWild.ClientConfig;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
+import net.tiew.operationWild.entity.behavior.OWFearHandler;
 import net.tiew.operationWild.entity.IOWWaypointEntity;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.client.MousePositionSaver;
@@ -131,6 +132,12 @@ public class ClientEvents {
             if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player ||
                     player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player ||
                     player.getVehicle() instanceof BoaEntity boa && boa.getGrabbedTarget() == player) {
+                event.getInput().shiftKeyDown = false;
+            }
+
+            // Peur primitive : on est cramponné à une bête qui rue, on ne choisit pas de descendre.
+            // La crise se subit jusqu'au bout, sauter en marche n'en fait pas partie.
+            if (OWFearOverlay.panickingMount(player) != null) {
                 event.getInput().shiftKeyDown = false;
             }
         }
@@ -1157,6 +1164,13 @@ public class ClientEvents {
     }
 
     @SubscribeEvent
+    public static void onRenderFear(RenderGuiEvent.Post event) {
+        OWFearOverlay.render(event.getGuiGraphics(),
+                event.getGuiGraphics().guiWidth(),
+                event.getGuiGraphics().guiHeight());
+    }
+
+    @SubscribeEvent
     public static void renderBorders(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 
@@ -1446,10 +1460,35 @@ public class ClientEvents {
         Long computedAt = RIDER_ROTATION_AT.get(id);
         if (frame != 0L && computedAt != null && computedAt == frame) return RIDER_ROTATION.get(id);
 
-        Quaternionf computed = computeRiderBodyRotation(player, vehicle, partialTick);
+        Quaternionf computed = applyBuckTilt(computeRiderBodyRotation(player, vehicle, partialTick), vehicle, partialTick);
         RIDER_ROTATION.put(id, computed);
         RIDER_ROTATION_AT.put(id, frame);
         return computed;
+    }
+
+    /**
+     * Ajoute la ruade de panique à l'orientation du cavalier, dans le repère de la monture — même
+     * conjugaison par le lacet du corps que le reste de la méthode, et mêmes angles que le modèle
+     * (cf. {@code OWEntityRenderer}) : la bête se cabre et l'homme part avec, sans décalage.
+     *
+     * <p>Rien n'est ajouté quand la base est {@code null} : ces espèces-là (scarabée, boa, proie tenue
+     * dans une gueule) refusent délibérément qu'on touche à l'assise de leur passager.</p>
+     */
+    private static Quaternionf applyBuckTilt(Quaternionf base, OWEntity vehicle, float partialTick) {
+        if (base == null) return null;
+
+        float buck = OWFearHandler.buckCurve(vehicle, partialTick);
+        if (buck <= 0f) return base;
+
+        float yaw = vehicle.getPreciseBodyRotation(partialTick);
+        float pitch = -buck * OWFearHandler.BUCK_PITCH_DEGREES * 0.7f;
+        float roll = buck * vehicle.getBuckSide() * OWFearHandler.BUCK_ROLL_DEGREES * 0.7f;
+
+        base.mul(Axis.YP.rotationDegrees(-yaw));
+        base.mul(Axis.ZP.rotationDegrees(roll));
+        base.mul(Axis.XP.rotationDegrees(pitch));
+        base.mul(Axis.YP.rotationDegrees(yaw));
+        return base;
     }
 
     /**
@@ -1587,6 +1626,24 @@ public class ClientEvents {
                 event.setRoll((float) (event.getRoll() + (Math.random() - 0.5) * step));
                 event.setPitch((float) (event.getPitch() + (Math.random() - 0.5) * step));
                 event.setYaw((float) (event.getYaw() + (Math.random() - 0.5) * step));
+            }
+
+            // Peur primitive : le tremblement de fond dit la panique, la ruade donne le coup de reins.
+            // Les deux passent par les angles de caméra et non par shakeCamera, qui ferait dériver la
+            // visée pour de bon (même raison que le séisme de l'éléphant).
+            if (rootVehicle instanceof OWEntity panicking && panicking.isPanicking()) {
+                float panic = panicking.getPanicLevel();
+                double tremor = 1.6 * panic * intensity;
+                event.setRoll((float) (event.getRoll() + (Math.random() - 0.5) * tremor));
+                event.setPitch((float) (event.getPitch() + (Math.random() - 0.5) * tremor));
+                event.setYaw((float) (event.getYaw() + (Math.random() - 0.5) * tremor));
+
+                float buck = OWFearHandler.buckCurve(panicking, (float) event.getPartialTick());
+                if (buck != 0f) {
+                    event.setPitch((float) (event.getPitch() - buck * OWFearHandler.BUCK_PITCH_DEGREES * 0.55 * intensity));
+                    event.setRoll((float) (event.getRoll() + buck * panicking.getBuckSide()
+                            * OWFearHandler.BUCK_ROLL_DEGREES * 0.8 * intensity));
+                }
             }
 
             if (rootVehicle instanceof KodiakEntity kodiak) {
@@ -2365,6 +2422,8 @@ public class ClientEvents {
         tickEarthquakeShake();
         footstepShake *= FOOTSTEP_SHAKE_DECAY;
         if (footstepShake < 0.01f) footstepShake = 0f;
+
+        OWFearOverlay.tick();
 
         if (OWAttackLogic.isCrocTargeting) {
             Minecraft mcT = Minecraft.getInstance();

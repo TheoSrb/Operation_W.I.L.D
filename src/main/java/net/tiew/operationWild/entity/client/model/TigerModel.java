@@ -319,6 +319,12 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 			return;
 		}
 
+		if (tiger.isRoarCharging()) {
+			this.animate(tiger.roarChargeAnimationState, TigerAnimations.TRANSITION_IDLE_ROAR, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
 		if (tiger.isPreparing && !tiger.isGrabbing()) {
 			this.animate(tiger.preparingLeapAnimationState, TigerAnimations.PREPARING_LEAP, ageInTicks, 1.0f);
 			this.animate(tiger.idleAnimationState, TigerAnimations.MISC_IDLE, ageInTicks, 1.0f);

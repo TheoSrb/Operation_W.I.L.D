@@ -72,6 +72,17 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             // de l'entité (cf. OWEntity#canPilotAttacks, garde commune client/serveur).
             if (!entity.canPilotAttacks(player)) return;
 
+            // Geste exclusif en cours — panique, rugissement… : la bête n'accepte plus rien. Le refus
+            // est net pour les ultimes — le client a déjà armé sa prédiction (recharge, son, jauge
+            // grisée), il faut la lui faire défaire, sans quoi la capacité reste consommée pour rien.
+            if (entity.isAttackLocked()) {
+                if (OWAttackIds.isUltimate(packet.attackId())) {
+                    PacketDistributor.sendToPlayer(player,
+                            new OWAttackRejectedPacket(entity.getId(), packet.attackId()));
+                }
+                return;
+            }
+
             if (packet.action() == ACTION_TRIGGER_DEATH_ROLL) {
                 // Le délai est vérifié côté serveur : le client en applique un de son côté, mais
                 // lui seul ne protège de rien face à un envoi répété.
@@ -175,6 +186,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                     if (entity.isCombo()) return;
                     entity.isChargingAttack = true;
                     switch (packet.attackId()) {
+                        case OWAttackIds.PRIMAL_ROAR -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
+                                tiger.startRoarCharge();
+                        }
                         case OWAttackIds.ATTACK_JUMP -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
                                 tiger.startJumpCharge();
@@ -206,6 +221,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                     }
                     entity.isChargingAttack = false;
                     switch (packet.attackId()) {
+                        case OWAttackIds.PRIMAL_ROAR -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
+                                tiger.cancelRoarCharge();
+                        }
                         case OWAttackIds.ATTACK_JUMP -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
                                 tiger.cancelJumpCharge();
@@ -229,6 +248,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 case ACTION_CHARGE_RELEASE -> {
                     entity.isChargingAttack = false;
                     switch (packet.attackId()) {
+                        case OWAttackIds.PRIMAL_ROAR -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
+                                tiger.performPrimalRoar();
+                        }
                         case OWAttackIds.ATTACK_JUMP -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
                                 tiger.performJumpAttack(packet.value());

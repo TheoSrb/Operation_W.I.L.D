@@ -19,6 +19,7 @@ public final class OWAttackIds {
     public static final int SHOULDER_BASH = 13;
     public static final int EARTHQUAKE = 14;
     public static final int WATER_SPRAY = 15;
+    public static final int PRIMAL_ROAR = 16;
 
     private static final Set<Integer> ULTIMATES = Set.of(
             SHADOW_STRIKE,

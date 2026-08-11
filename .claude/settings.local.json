@@ -305,7 +305,23 @@
       "Bash(cd \"C:/Users/Tiew_37\" && echo \"=== NEW \\(Desktop\\) ===\" && grep -n \"public static final AnimationDefinition\" Desktop/elephant_animations.java && echo \"\" && echo \"=== OLD \\(repo\\) ===\" && grep -n \"public static final AnimationDefinition\" IdeaProjects/Operation-W.I.L.D/src/main/java/net/tiew/operationWild/entity/client/animation/ElephantAnimations.java)",
       "Bash(awk 'NR>=2965 && /\\\\.build\\\\\\(\\\\\\);/{print NR\": \"$0; exit}' src/main/java/net/tiew/operationWild/entity/client/animation/KangarooAnimations.java)",
       "Bash('/c/Program Files/Java/jdk-25/bin/javap.exe' -p -c C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/e3cb1237-06ff-4dd1-a19c-dafc3d5b973a/scratchpad/cls/net/minecraft/client/particle/WakeParticle.class)",
-      "Bash('/c/Program Files/Java/jdk-25/bin/javap.exe' -p C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/e3cb1237-06ff-4dd1-a19c-dafc3d5b973a/scratchpad/cls/net/minecraft/world/entity/Mob.class)"
+      "Bash('/c/Program Files/Java/jdk-25/bin/javap.exe' -p C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/e3cb1237-06ff-4dd1-a19c-dafc3d5b973a/scratchpad/cls/net/minecraft/world/entity/Mob.class)",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && find ~/.gradle/caches -name \"*MobEffectInstance*\" 2>/dev/null | head -5; find . -name \"*.jar\" -path \"*neoforge*\" 2>/dev/null | head -5)",
+      "Bash(unzip -p neoforge-21.0.167-sources.jar net/minecraft/world/effect/MobEffectInstance.java)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/fear_lang.py\")",
+      "Bash(unzip -p neoforge-21.0.167-sources.jar net/minecraft/client/player/LocalPlayer.java)",
+      "Bash(unzip -p neoforge-21.0.167-sources.jar net/minecraft/client/gui/GuiGraphics.java)",
+      "Bash(unzip -p neoforge-21.0.167-sources.jar net/minecraft/util/Mth.java)",
+      "Bash(unzip -p neoforge-21.0.167-sources.jar net/minecraft/client/DeltaTracker.java)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/fear_lang2.py\")",
+      "Bash(unzip -p neoforge-21.0.167-sources.jar net/minecraft/world/entity/AnimationState.java)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/tiger_roar.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/roar_wiring.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/roar_anim.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/fear_lang3.py\")",
+      "Bash(awk 'NR>=493 && NR<=570 { n=match\\($0,/[^ ]/\\); if \\(n<=8 && length\\($0\\)>0\\) printf \"%d\\(%d\\): %s\\\\n\", NR, n, $0 }' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java)",
+      "Bash(awk 'NR>=494 && NR<=566 { n=match\\($0,/[^ ]/\\); if \\(length\\($0\\)>0 && n<=12\\) printf \"%3d [%2d] %s\\\\n\", NR, n, $0 }' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/roar_lock.py\")"
     ]
   }
 }

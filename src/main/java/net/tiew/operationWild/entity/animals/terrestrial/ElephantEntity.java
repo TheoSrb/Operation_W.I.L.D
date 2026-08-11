@@ -1088,7 +1088,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      */
     @Override
     public boolean canStartCombo() {
-        return !isEarthquakeGesture() && !isSprayingWater() && !isFillingTrunk();
+        return !isEarthquakeGesture() && !isSprayingWater() && !isFillingTrunk() && super.canStartCombo();
     }
 
     @Override

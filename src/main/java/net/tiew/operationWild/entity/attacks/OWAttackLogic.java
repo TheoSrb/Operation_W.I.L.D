@@ -418,6 +418,24 @@ public class OWAttackLogic {
             PacketDistributor.sendToServer(
                     new OWAttackPacket(currentAttack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
             currentAttack = null;
+            return;
+        }
+
+        // Rugissement Primal : le cri part de lui-même au bout de l'amorce, bouton toujours enfoncé.
+        // C'est le serveur qui le déclenche ; on ne lui envoie donc rien, on se contente de refermer
+        // la charge locale au même instant. Sans cela le client resterait « en charge » tant que le
+        // joueur tient le clic, l'anneau bloqué à plein et toute autre attaque refusée — et le
+        // relâchement, quand il viendrait, partirait en annulation d'une charge déjà consommée.
+        if (currentAttack.getId() == OWAttacksHandler.PRIMAL_ROAR_ID
+                && System.currentTimeMillis() - chargeStartMs >= currentAttack.getMinChargeMs()) {
+            OWChargedAttack fired = currentAttack;
+            isCharging = false;
+            currentAttack = null;
+            recordAttackClick(fired.getId(), false);
+            if (mc.player.getRootVehicle() instanceof OWEntity mount) {
+                setCooldownEnd(mount.getId(), fired.getId(),
+                        System.currentTimeMillis() + (long) fired.getCooldownTicks() * 50L);
+            }
         }
     }
 
@@ -1360,6 +1378,10 @@ public class OWAttackLogic {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
+            if (owEntity.isAttackLocked()) {
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
             if (owEntity.getVitalEnergy() > owEntity.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
                 owEntity.canShowVitalEnergyLack = true;
                 recordAttackClick(attack.getId(), true);
@@ -1374,9 +1396,12 @@ public class OWAttackLogic {
             PacketDistributor.sendToServer(
                     new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_START, 0f));
 
-            // Prédiction côté client : démarre l'animation isPreparing immédiatement sans attendre le serveur
+            // Prédiction côté client : la pose de charge part sans attendre le serveur. Elle dépend
+            // de la carte en main — le tigre en porte deux, et poser la pose de bond pendant une
+            // amorce de rugissement montrerait un geste que la bête n'est pas en train de faire.
             if (owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger) {
-                tiger.isPreparing = true;
+                if (attack.getId() == OWAttacksHandler.ATTACK_JUMP_ID) tiger.isPreparing = true;
+                else if (attack.getId() == OWAttacksHandler.PRIMAL_ROAR_ID) tiger.setRoarCharging(true);
             }
 
         } else if (event.getAction() == GLFW.GLFW_RELEASE) {
@@ -1415,7 +1440,8 @@ public class OWAttackLogic {
                 PacketDistributor.sendToServer(
                         new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
                 if (owEntity instanceof TigerEntity tiger) {
-                    tiger.isPreparing = false;
+                    if (attack.getId() == OWAttacksHandler.ATTACK_JUMP_ID) tiger.isPreparing = false;
+                    else if (attack.getId() == OWAttacksHandler.PRIMAL_ROAR_ID) tiger.setRoarCharging(false);
                 }
             }
 

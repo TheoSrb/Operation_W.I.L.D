@@ -16,6 +16,23 @@ public class OWAttacksConstants {
         public static final float SHADOW_STRIKE_ENERGY = 100f;
         public static final float PREDATOR_THRESHOLD = 0.30f;
         public static final float PREDATOR_RADIUS = 32f;
+
+        public static final long PRIMAL_ROAR_CHARGE_MS = 2000L;
+        public static final int PRIMAL_ROAR_CHARGE_TICKS = (int) (PRIMAL_ROAR_CHARGE_MS / 50L);
+        public static final int PRIMAL_ROAR_COOLDOWN_TICKS = 1200;
+        public static final float PRIMAL_ROAR_ENERGY = 70f;
+        public static final double PRIMAL_ROAR_RADIUS = 15.0;
+        public static final int PRIMAL_ROAR_FEAR_TICKS = 100;
+        public static final int PRIMAL_ROAR_SLOW_TICKS = 200;
+
+        /**
+         * Images sautées de l'animation de rugissement au moment du déclenchement.
+         *
+         * <p>La charge laisse le tigre ramassé, dans la pose que ROAR atteint au bout de 0,4 s. Faire
+         * repartir le rugissement de zéro le remettrait debout le temps d'un battement avant de le
+         * recroqueviller à nouveau ; on entre donc dans l'animation là où la charge s'est arrêtée.</p>
+         */
+        public static final int PRIMAL_ROAR_ANIM_SKIP_TICKS = 8;
     }
 
     public static class Elephant {
