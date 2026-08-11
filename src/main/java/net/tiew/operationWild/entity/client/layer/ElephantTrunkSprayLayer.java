@@ -37,8 +37,8 @@ public class ElephantTrunkSprayLayer extends RenderLayer<ElephantEntity, Elephan
     // la fréquence d'affichage.
     // Un faisceau élargi doit être rempli à proportion, sinon il se lit comme un jet qui MAIGRIT :
     // la même eau étalée sur une section trois fois plus large paraît trois fois plus rare.
-    private static final int JET_PER_TICK  = 62;  // les gouttes lancées, qui parcourent l'arc
-    private static final int DRIP_PER_TICK = 5;   // ce qui coule le long de la trompe
+    private static final int JET_PER_TICK  = 88;  // les gouttes lancées, qui parcourent l'arc
+    private static final int DRIP_PER_TICK = 7;   // ce qui coule le long de la trompe
 
     /**
      * Largeur du jet à la sortie de trompe.
@@ -77,9 +77,6 @@ public class ElephantTrunkSprayLayer extends RenderLayer<ElephantEntity, Elephan
         Level level = elephant.level();
         if (!level.isClientSide()) return;
 
-        if (elephant.lastSprayParticleTick == elephant.tickCount) return;
-        elephant.lastSprayParticleTick = elephant.tickCount;
-
         Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         ElephantModel<ElephantEntity> model = this.getParentModel();
         if (model == null) return;
@@ -98,6 +95,14 @@ public class ElephantTrunkSprayLayer extends RenderLayer<ElephantEntity, Elephan
         Vec3 tip = new Vec3(camera.x + tipLocal.x(), camera.y + tipLocal.y(), camera.z + tipLocal.z());
         Vec3 axis = new Vec3(tipLocal.x() - base.x(), tipLocal.y() - base.y(), tipLocal.z() - base.z());
         if (axis.lengthSqr() < 1.0E-6) return;
+
+        // Relevé AVANT le cadencement des particules, et à chaque image : c'est cette mesure qui
+        // permet à l'aspiration de corriger sa visée sur la position RÉELLE de la pointe, plutôt
+        // que sur une estimation qui ignore l'échelle du modèle et la courbure de la trompe.
+        elephant.clientTrunkTip = tip;
+
+        if (elephant.lastSprayParticleTick == elephant.tickCount) return;
+        elephant.lastSprayParticleTick = elephant.tickCount;
         axis = axis.normalize();
 
         if (filling) {

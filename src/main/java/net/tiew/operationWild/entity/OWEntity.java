@@ -817,7 +817,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     /** Délai entre deux changements de carte secondaire, en ticks (une demi-seconde). */
     public static final int SECONDARY_SWITCH_COOLDOWN_TICKS = 10;
 
-    private long lastSecondarySwitchGameTime = Long.MIN_VALUE;
+    /** Sentinelle : aucun changement n'a encore eu lieu sur cette bête. */
+    private static final long NO_SECONDARY_SWITCH_YET = Long.MIN_VALUE;
+
+    private long lastSecondarySwitchGameTime = NO_SECONDARY_SWITCH_YET;
 
     /**
      * Change de carte secondaire si le délai est écoulé, et dit si le changement a eu lieu.
@@ -828,7 +831,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
      */
     public boolean trySwitchSecondaryAttack(int index) {
         long now = this.level().getGameTime();
-        if (now - lastSecondarySwitchGameTime < SECONDARY_SWITCH_COOLDOWN_TICKS) return false;
+
+        // La sentinelle doit être écartée AVANT la soustraction : retrancher Long.MIN_VALUE d'un
+        // temps de jeu positif déborde et retombe sur un nombre négatif, toujours inférieur au
+        // délai. Le tout premier changement était donc refusé — et comme le refus intervenait avant
+        // l'enregistrement de la date, la bête n'en acceptait plus jamais aucun. Le client, lui,
+        // appliquait sa prédiction : les deux copies divergeaient sans retour.
+        if (lastSecondarySwitchGameTime != NO_SECONDARY_SWITCH_YET
+                && now - lastSecondarySwitchGameTime < SECONDARY_SWITCH_COOLDOWN_TICKS) {
+            return false;
+        }
 
         int before = getSecondaryAttackIndex();
         setSecondaryAttackIndex(index);
@@ -2747,6 +2759,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public boolean canStartCombo() {
+        return true;
+    }
+
+    /**
+     * L'ultime est-il déclenchable en ce moment ?
+     *
+     * <p>Pendant du {@link #canStartCombo()}, interrogé des deux côtés : le client refuse tout de
+     * suite pour ne pas jouer un déclenchement qui n'aura pas lieu, et le serveur retranche par
+     * la même règle — c'est lui qui tranche.</p>
+     */
+    public boolean canUseUltimate() {
         return true;
     }
 

@@ -1079,14 +1079,28 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return this.isCombo() && this.getComboAttack() == 3;
     }
 
+    /**
+     * Ni enchaînement pendant le séisme, ni pendant que la trompe travaille.
+     *
+     * <p>Le jet occupe la trompe et la tête, qui portent aussi bien le combo que le séisme : les
+     * laisser partir ensemble mêlait deux gestes sur les mêmes os, et permettait surtout d'arroser
+     * en frappant sans jamais rien y perdre.</p>
+     */
     @Override
     public boolean canStartCombo() {
-        return !isEarthquakeGesture();
+        return !isEarthquakeGesture() && !isSprayingWater() && !isFillingTrunk();
+    }
+
+    @Override
+    public boolean canUseUltimate() {
+        return !isSprayingWater() && !isFillingTrunk() && super.canUseUltimate();
     }
 
     @Override
     public void setCombo(boolean isCombo, int numberOfAttacks) {
-        if (isCombo && isEarthquakeGesture()) return;
+        // Dernier verrou côté données : même si un chemin oubliait d'interroger canStartCombo,
+        // l'enchaînement ne peut pas s'armer pendant que la bête est occupée.
+        if (isCombo && !canStartCombo()) return;
         super.setCombo(isCombo, numberOfAttacks);
     }
 
@@ -1320,6 +1334,55 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      */
     /** Profondeur de la nappe sous la base de la trompe, mise à jour par intermittence. */
     private double fillDrop = 0.0;
+    /** Pointe de la trompe réellement dessinée, relevée par le rendu à chaque image. */
+    public Vec3 clientTrunkTip = null;
+    /** Consignes du régulateur d'aspiration : plongée de la trompe et abaissement de l'encolure. */
+    private float fillPitch = 45f;
+    private float fillHeadDip = 0f;
+    private boolean wasFillingTrunk = false;
+
+    /** Gain du régulateur : degrés de correction par bloc d'écart, borné par tick. */
+    private static final float FILL_GAIN = 22f;
+    private static final float FILL_MAX_STEP = 9f;
+    /** On vise légèrement SOUS la surface : une pointe posée pile dessus semble l'effleurer. */
+    private static final double FILL_TARGET_DEPTH = 0.25;
+
+    /**
+     * Ajuste la plongée jusqu'à ce que la pointe touche vraiment l'eau.
+     *
+     * <p>La trigonométrie seule ne pouvait pas y arriver : elle partait d'une base de trompe
+     * estimée, ignorait l'échelle du modèle et la courbure que lui donne la répartition sur deux
+     * segments. On mesure donc l'écart réel entre la pointe dessinée et la surface, et on le
+     * referme — le rendu renseigne la position, le tick corrige la consigne, et la boucle converge
+     * en quelques dixièmes de seconde quelle que soit la géométrie.</p>
+     *
+     * <p>Le tangage travaille en premier ; l'encolure ne reprend que ce qu'il ne peut plus absorber
+     * une fois à bout de course. C'est bien la tête qui va chercher les derniers centimètres.</p>
+     */
+    private void tickFillReach() {
+        if (this.tickCount % 5 == 0 || !wasFillingTrunk) {
+            Double surface = findFillSurfaceY();
+            fillDrop = surface == null ? Double.NaN : surface;
+        }
+        if (Double.isNaN(fillDrop)) return;
+
+        double tipY;
+        if (clientTrunkTip != null) {
+            tipY = clientTrunkTip.y;
+        } else {
+            // Première image : on part de l'estimation géométrique, la mesure prendra la suite.
+            tipY = getTrunkBase().y - TRUNK_LENGTH * Math.sin(Math.toRadians(fillPitch));
+        }
+
+        double error = tipY - (fillDrop - FILL_TARGET_DEPTH);
+        float step = (float) Mth.clamp(error * FILL_GAIN, -FILL_MAX_STEP, FILL_MAX_STEP);
+
+        float before = fillPitch;
+        fillPitch = Mth.clamp(fillPitch + step, -30f, 90f);
+        float leftover = step - (fillPitch - before);
+
+        fillHeadDip = Mth.clamp(fillHeadDip + leftover * 0.7f, -18f, 28f);
+    }
 
     /**
      * Angle de plongée nécessaire pour que le bout de la trompe touche l'eau.
@@ -1331,14 +1394,6 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      * <p>La nappe n'est ré-échantillonnée que toutes les cinq images : une bête qui boit ne se
      * déplace guère, et la recherche balaie une cinquantaine de colonnes.</p>
      */
-    private float computeFillPitch() {
-        if (this.tickCount % 5 == 0) {
-            Double surface = findFillSurfaceY();
-            fillDrop = surface == null ? 0.0 : getTrunkBase().y - surface;
-        }
-        double ratio = Mth.clamp(fillDrop / TRUNK_LENGTH, -1.0, 1.0);
-        return (float) Math.toDegrees(Math.asin(ratio));
-    }
 
     /**
      * Abaissement supplémentaire de la tête pendant l'aspiration, en degrés.
@@ -1358,18 +1413,20 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         trunkAimWeightO = trunkAimWeight;
         trunkHeadDipO = trunkHeadDip;
 
-        // Zone neutre : tant que la trompe atteint l'eau sans forcer, l'encolure ne bouge pas. Elle
-        // ne s'abaisse que sur les derniers centimètres hors d'allonge, et ne se relève que si
-        // l'eau est franchement plus haute que la base de la trompe.
-        float targetDip = 0f;
+        // Le régulateur d'aspiration tient les deux consignes ; on ne fait ici que les rejoindre
+        // en douceur, et les relâcher dès que la bête cesse de puiser.
         if (isFillingTrunk()) {
-            if (fillDrop > TRUNK_LENGTH * 0.75) {
-                targetDip = (float) Mth.clamp((fillDrop - TRUNK_LENGTH * 0.75) * 26.0, 0.0, 24.0);
-            } else if (fillDrop < 0.0) {
-                targetDip = (float) Mth.clamp(fillDrop * 26.0, -18.0, 0.0);
+            if (!wasFillingTrunk) {
+                fillPitch = 45f;
+                fillHeadDip = 0f;
             }
+            tickFillReach();
+            wasFillingTrunk = true;
+        } else {
+            wasFillingTrunk = false;
+            fillHeadDip = 0f;
         }
-        trunkHeadDip += (targetDip - trunkHeadDip) * 0.15f;
+        trunkHeadDip += (fillHeadDip - trunkHeadDip) * 0.25f;
 
         float targetWeight = isTrunkAimActive() ? 1f : 0f;
         trunkAimWeight += (targetWeight - trunkAimWeight) * 0.12f;
@@ -1383,7 +1440,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             // faut pour l'atteindre, au lieu d'un angle figé qui tombait à côté dès que la nappe
             // n'était pas à la profondeur prévue.
             targetYaw = 0f;
-            targetPitch = computeFillPitch();
+            targetPitch = fillPitch;
         } else {
             float aimYaw = rider != null ? rider.getYRot() : this.getYRot();
             float aimPitch = rider != null ? rider.getXRot() : this.getXRot();
@@ -1404,23 +1461,29 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         // moindre écart se lirait comme un jet qui rate sa cible.
         float t = this.tickCount;
         float wander;
+        // Le lacet a sa propre amplitude : pendant le jet, la trompe balaie franchement de gauche
+        // à droite alors qu'elle reste sage en hauteur. C'est ce balayage horizontal qui donne
+        // l'arrosage un peu approximatif d'une lance tenue à bout de trompe ; un vagabondage
+        // vertical de même ampleur, lui, ferait piquer et cabrer le jet sans arrêt.
+        float wanderYaw;
         float follow;
         if (isSprayingWater()) {
-            // Resserré d'autant plus que le jet porte loin : à vingt blocs, chaque degré d'écart
-            // déplace le point de chute d'un tiers de bloc.
             wander = 0.15f;
+            wanderYaw = 0.55f;
             follow = 0.34f;
         } else if (isFillingTrunk()) {
             wander = 0.50f;
+            wanderYaw = 0.50f;
             follow = 0.18f;
         } else {
             // Franchement vague : la trompe ne vise pas, elle occupe le voisinage du curseur. Une
             // poursuite très lente laisse l'errance dominer, et c'est elle qu'on doit voir.
             wander = 2.7f;
+            wanderYaw = 2.7f;
             follow = 0.032f;
         }
 
-        targetYaw += wander * (7.0f * Mth.sin(t * 0.037f)
+        targetYaw += wanderYaw * (7.0f * Mth.sin(t * 0.037f)
                 + 3.5f * Mth.sin(t * 0.091f)
                 + 5.0f * Mth.sin(t * 0.017f)
                 + 4.0f * Mth.sin(t * 0.0071f));
@@ -1431,9 +1494,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         trunkAimYaw += (targetYaw - trunkAimYaw) * follow;
         trunkAimPitch += (targetPitch - trunkAimPitch) * follow;
 
+        // Le volume de la trompe suit la réserve, en permanence : une bête qui vient de faire le
+        // plein garde sa trompe gonflée en marchant, et elle ne dégonfle qu'au fil du jet. Seule
+        // l'aspiration y ajoute un battement, le temps qu'elle pompe.
         float targetSwell = getTrunkWaterRatio();
         if (isFillingTrunk()) targetSwell += 0.22f * Mth.sin(t * 0.45f);
-        else if (isSprayingWater()) targetSwell *= 0.45f;
         trunkSwell += (targetSwell - trunkSwell) * 0.2f;
     }
 
@@ -1746,6 +1811,32 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
+    /**
+     * Dosage de la poussée du jet selon la corpulence de la cible, et sa résistance au recul.
+     *
+     * <p>Le volume de la boîte englobante sert de masse : c'est grossier, mais c'est la seule
+     * grandeur que porte n'importe quelle créature, moddée comprise. On en prend la racine carrée
+     * — le rapport brut va de un à plusieurs centaines entre une poule et un pachyderme — puis on
+     * borne, pour qu'aucune bête ne devienne ni un boulet de canon ni un rocher.</p>
+     */
+    private static double massPushFactor(LivingEntity target, double minFactor, double maxFactor) {
+        double volume = target.getBbWidth() * target.getBbWidth() * target.getBbHeight();
+        double factor = Math.sqrt(OWAttacksConstants.Elephant.WATER_SPRAY_PUSH_REFERENCE_VOLUME
+                / Math.max(0.05, volume));
+        factor = Mth.clamp(factor, minFactor, maxFactor);
+
+        // La résistance au recul est respectée comme pour n'importe quel coup : une créature bardée
+        // d'armure ou un boss censé ne pas bouger ne se laisse pas davantage déplacer.
+        double resistance = target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        return factor * Math.max(0.0, 1.0 - resistance);
+    }
+
+    private static double sprayPushFactor(LivingEntity target) {
+        return massPushFactor(target,
+                OWAttacksConstants.Elephant.WATER_SPRAY_PUSH_MIN_FACTOR,
+                OWAttacksConstants.Elephant.WATER_SPRAY_PUSH_MAX_FACTOR);
+    }
+
     private void pushEntitiesAlongArc(ServerLevel level, Vec3 origin, Vec3 dir, List<Vec3> arc, double range) {
         if (arc.isEmpty()) return;
 
@@ -1786,11 +1877,13 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             }
 
             // Poussée dans le sens réel du jet à cet endroit-là : de face près de la trompe, de
-            // plus en plus plongeante à mesure que l'eau retombe.
+            // plus en plus plongeante à mesure que l'eau retombe. Dosée selon le gabarit de la
+            // cible, pour qu'un éléphant ne glisse pas comme une poule.
             double s = range * (hitIndex + 1) / OWAttacksConstants.Elephant.WATER_SPRAY_BLOCK_STEPS;
-            Vec3 push = sprayArcTangent(dir, s).scale(OWAttacksConstants.Elephant.WATER_SPRAY_PUSH);
+            double strength = OWAttacksConstants.Elephant.WATER_SPRAY_PUSH * sprayPushFactor(target);
+            Vec3 push = sprayArcTangent(dir, s).scale(strength);
             target.setDeltaMovement(target.getDeltaMovement()
-                    .add(push.x, Math.max(push.y, 0) + OWAttacksConstants.Elephant.WATER_SPRAY_PUSH * 0.20, push.z));
+                    .add(push.x, Math.max(push.y, 0) + strength * 0.20, push.z));
             target.hurtMarked = true;
         }
     }
@@ -1861,11 +1954,17 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
                     (float) (this.getDamage() * OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE_RATIO));
             // setDeltaMovement plutôt que push : la poussée s'ajoute à l'élan existant, si bien
             // qu'une cible qui venait vers l'éléphant partait deux fois moins loin que celle qui
-            // fuyait. On impose la trajectoire, elle ne dépend plus de ce que faisait la victime.
+            // fuyait. On impose la trajectoire, elle ne dépend plus de ce que faisait la victime —
+            // seulement de son gabarit.
+            double bashFactor = massPushFactor(target,
+                    OWAttacksConstants.Elephant.SHOULDER_BASH_PUSH_MIN_FACTOR,
+                    OWAttacksConstants.Elephant.SHOULDER_BASH_PUSH_MAX_FACTOR);
+            double bashPush = OWAttacksConstants.Elephant.SHOULDER_BASH_KNOCKBACK * bashFactor;
+
             target.setDeltaMovement(
-                    dir.x * OWAttacksConstants.Elephant.SHOULDER_BASH_KNOCKBACK,
-                    OWAttacksConstants.Elephant.SHOULDER_BASH_KNOCKBACK_LIFT,
-                    dir.z * OWAttacksConstants.Elephant.SHOULDER_BASH_KNOCKBACK);
+                    dir.x * bashPush,
+                    OWAttacksConstants.Elephant.SHOULDER_BASH_KNOCKBACK_LIFT * bashFactor,
+                    dir.z * bashPush);
             target.hurtMarked = true;
         }
 

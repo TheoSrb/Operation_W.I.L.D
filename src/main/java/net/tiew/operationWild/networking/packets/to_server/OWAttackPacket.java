@@ -90,6 +90,14 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
 
                     boolean ultimate = OWAttackIds.isUltimate(packet.attackId());
 
+                    // Refus net plutôt que silencieux : le client a déjà armé sa prédiction, il
+                    // faut la lui faire défaire (cf. OWAttackRejectedPacket plus bas).
+                    if (ultimate && !entity.canUseUltimate()) {
+                        PacketDistributor.sendToPlayer(player,
+                                new OWAttackRejectedPacket(entity.getId(), packet.attackId()));
+                        return;
+                    }
+
                     // Un ultime l'emporte sur l'enchaînement en cours au lieu d'être jeté en
                     // silence : le client, dont la copie de l'état de combo arrive avec un tick de
                     // retard, croyait l'avoir lancé et en jouait déjà le son.

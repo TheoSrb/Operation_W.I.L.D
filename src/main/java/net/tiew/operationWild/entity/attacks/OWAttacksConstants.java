@@ -57,8 +57,17 @@ public class OWAttacksConstants {
          * qu'un tiers — sans approcher la démesure d'un ultime.</p>
          */
         public static final float SHOULDER_BASH_DAMAGE_RATIO = 0.5f;
-        public static final float SHOULDER_BASH_KNOCKBACK = 6.2f;
-        public static final double SHOULDER_BASH_KNOCKBACK_LIFT = 0.78;
+        public static final float SHOULDER_BASH_KNOCKBACK = 3.4f;
+        public static final double SHOULDER_BASH_KNOCKBACK_LIFT = 0.62;
+        /**
+         * Bornes du dosage par gabarit, plus resserrées que celles du jet d'eau.
+         *
+         * <p>Un coup d'épaule reste un choc physique : il doit ébranler même une grosse bête, là où
+         * de l'eau se contente de la mouiller. L'écart entre une poule et un pachyderme y est donc
+         * de un à six, contre un à quinze pour le jet.</p>
+         */
+        public static final double SHOULDER_BASH_PUSH_MIN_FACTOR = 0.25;
+        public static final double SHOULDER_BASH_PUSH_MAX_FACTOR = 1.5;
 
         // ── Jet de Trompe (attaque secondaire alternative, maintenue) ───────────
         public static final float WATER_SPRAY_ENERGY = 0f;
@@ -140,6 +149,22 @@ public class OWAttacksConstants {
                 (float) (2.0 * WATER_SPRAY_DROOP * WATER_SPRAY_LAUNCH_SPEED * WATER_SPRAY_LAUNCH_SPEED / 0.04);
         /** Poussée par tick sur ce que le jet balaie : on bouscule, on ne projette pas. */
         public static final double WATER_SPRAY_PUSH = 0.42;
+        /**
+         * Encombrement de référence pour la poussée du jet : celui d'un joueur.
+         *
+         * <p>Un jet d'eau n'a aucune raison de déplacer une bête d'une tonne comme il chasse une
+         * poule. La poussée se pondère donc par le volume de la cible, rapporté à ce gabarit-là.</p>
+         */
+        public static final double WATER_SPRAY_PUSH_REFERENCE_VOLUME = 0.65;
+        /**
+         * Bornes de cette pondération.
+         *
+         * <p>Le rapport brut des volumes va de un à plusieurs centaines entre une poule et un
+         * éléphant : appliqué tel quel, il enverrait la volaille en orbite et rendrait les grosses
+         * bêtes parfaitement inamovibles. On en prend la racine carrée, puis on borne.</p>
+         */
+        public static final double WATER_SPRAY_PUSH_MIN_FACTOR = 0.12;
+        public static final double WATER_SPRAY_PUSH_MAX_FACTOR = 1.8;
         /**
          * Dégâts par salve aux créatures que l'eau brûle — blaze, enderman, golem de neige,
          * strider. Modestes mais réguliers : c'est l'arrosage qui tue, pas le premier jet.

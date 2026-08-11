@@ -557,10 +557,15 @@ public class OWAttacksInformation {
 
     // ── Utilitaires de rendu ──────────────────────────────────────────────────
 
-    // Pictogramme de molette, pris dans l'atlas des cartes — le même que le HUD porte au coin de la
-    // carte interchangeable.
-    private static final int WHEEL_U = 0, WHEEL_V = 247, WHEEL_W = 10, WHEEL_H = 9;
-    private static final int WHEEL_DRAW_W = 7, WHEEL_DRAW_H = 6;
+    /**
+     * Souris du didacticiel de Minecraft, celle des info-bulles « bougez la souris ».
+     *
+     * <p>Sprite vanilla plutôt que celui du mod : le HUD, lui, garde le pictogramme maison au coin
+     * de la carte. Ici on est dans une fiche d'aide, où le dessin que le joueur associe déjà à sa
+     * souris se lit mieux qu'un symbole propre au mod.</p>
+     */
+    private static final ResourceLocation WHEEL_SPRITE = ResourceLocation.withDefaultNamespace("toast/mouse");
+    private static final int WHEEL_DRAW_W = 8, WHEEL_DRAW_H = 8;
 
     /**
      * Ligne de rappel de la commande, avec le <b>dessin</b> de la molette au milieu de la phrase.
@@ -584,13 +589,10 @@ public class OWAttacksInformation {
 
         drawScaled(g, font, before, x, y, scale);
 
-        g.pose().pushPose();
-        // Remontée d'un pixel : le pictogramme est plus haut que la ligne de texte, il faut le
+        // Remontée de deux pixels : le dessin est plus haut que la ligne de texte, il faut le
         // recentrer sur elle plutôt que de l'aligner par le haut.
-        g.pose().translate(x + beforeW + gap, y - 1f, 0f);
-        g.pose().scale((float) WHEEL_DRAW_W / WHEEL_W, (float) WHEEL_DRAW_H / WHEEL_H, 1f);
-        g.blit(CARDS, 0, 0, WHEEL_U, WHEEL_V, WHEEL_W, WHEEL_H, TEX_SIZE, TEX_SIZE);
-        g.pose().popPose();
+        g.blitSprite(WHEEL_SPRITE, (int) (x + beforeW + gap), (int) y - 2,
+                WHEEL_DRAW_W, WHEEL_DRAW_H);
 
         drawScaled(g, font, after, x + beforeW + gap + WHEEL_DRAW_W + gap, y, scale);
     }

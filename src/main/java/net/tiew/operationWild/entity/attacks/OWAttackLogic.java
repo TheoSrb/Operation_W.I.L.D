@@ -1152,6 +1152,13 @@ public class OWAttackLogic {
             return;
         }
 
+        // La bête est occupée ailleurs : on refuse tout de suite plutôt que de jouer le
+        // déclenchement puis de le défaire au retour du serveur.
+        if (attack.isUltimate() && !owEntity.canUseUltimate()) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
         if (attack.getId() == OWAttacksHandler.PRIMAL_DIVE_ID) {
             handleCrocPrimalDiveKey(attack, owEntity);
             return;

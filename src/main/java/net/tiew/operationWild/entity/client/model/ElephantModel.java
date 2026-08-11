@@ -328,6 +328,7 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
 
         applyShoulderBash(elephant, ageInTicks);
         applyTrunkAim(elephant, ageInTicks);
+        applyTrunkSwell(elephant, ageInTicks);
 
         if (externalChargeHeadPitch > 0.01f) {
             this.head.xRot += (float) Math.toRadians(externalChargeHeadPitch);
@@ -475,14 +476,26 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         this.trunk2.yRot = Mth.lerp(weight, this.trunk2.yRot, targetY * tipShare - whipYaw + sway * 2f);
         this.trunk2.zRot = Mth.lerp(weight, this.trunk2.zRot, -sway * 0.4f);
 
-        float swell = elephant.getTrunkSwell(partial) * weight;
-        if (swell > 0.001f) {
-            float grow = 1f + swell * 0.28f;
-            this.trunk.xScale *= grow;
-            this.trunk.zScale *= grow;
-            this.trunk2.xScale *= 1f + swell * 0.36f;
-            this.trunk2.zScale *= 1f + swell * 0.36f;
-        }
+    }
+
+    /**
+     * Gonflement de la trompe, à la mesure de ce qu'elle contient.
+     *
+     * <p>Appliqué hors de la pose de visée, et c'est tout l'intérêt : celle-ci ne pèse que pendant
+     * le jet ou l'aspiration, si bien que le volume retombait dès qu'on relâchait le clic. Une
+     * trompe pleine reste désormais gonflée en marchant, et ne dégonfle qu'au fil de ce qu'elle
+     * dépense.</p>
+     */
+    private void applyTrunkSwell(ElephantEntity elephant, float ageInTicks) {
+        float partial = Mth.clamp(ageInTicks - elephant.tickCount, 0f, 1f);
+        float swell = elephant.getTrunkSwell(partial);
+        if (swell <= 0.001f) return;
+
+        float grow = 1f + swell * 0.28f;
+        this.trunk.xScale *= grow;
+        this.trunk.zScale *= grow;
+        this.trunk2.xScale *= 1f + swell * 0.36f;
+        this.trunk2.zScale *= 1f + swell * 0.36f;
     }
 
     /**
