@@ -1609,12 +1609,12 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         super.remove(reason);
     }
 
-    public void activateBigMouth() {
-        if (this.level().isClientSide()) return;
+    public boolean activateBigMouth() {
+        if (this.level().isClientSide()) return false;
 
         if (hasSwallowed()) {
             beginSpit();
-            return;
+            return true;
         }
 
         LivingEntity prey = findMouthTarget();
@@ -1622,7 +1622,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             this.entityData.set(MOUTH_LUNGE_TICKS, MOUTH_LUNGE_DURATION);
             this.level().playSound(null, getX(), getY(), getZ(),
                     net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK, SoundSource.HOSTILE, 1.1f, 0.74f);
-            return;
+            return false;
         }
 
         this.pendingPreyId = prey.getId();
@@ -1634,6 +1634,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             serverLevel.sendParticles(ParticleTypes.BUBBLE,
                     getX(), getY() + 0.6, getZ(), 18, 1.0, 0.5, 1.0, 0.06);
         }
+        return true;
     }
 
     private void closeMouthOnPrey() {

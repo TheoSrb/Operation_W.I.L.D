@@ -1389,13 +1389,13 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return !this.level().noCollision(this, probe);
     }
 
-    public void activateTelluricStomp() {
-        if (this.level().isClientSide()) return;
-        if (isTelluricStomping()) return;
-        if (getUltimateKillCount() < OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED) return;
+    public boolean activateTelluricStomp() {
+        if (this.level().isClientSide()) return false;
+        if (isTelluricStomping()) return false;
+        if (getUltimateKillCount() < OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED) return false;
         if (getVitalEnergy() > getVitalEnergyCapacity() - OWAttacksConstants.Kangaroo.TELLURIC_STOMP_ENERGY) {
             canShowVitalEnergyLack = true;
-            return;
+            return false;
         }
 
         setVitalEnergy(getVitalEnergy() + OWAttacksConstants.Kangaroo.TELLURIC_STOMP_ENERGY);
@@ -1415,6 +1415,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL, 1.2f, 0.7f);
+        return true;
     }
 
     private void cancelTelluricStomp() {

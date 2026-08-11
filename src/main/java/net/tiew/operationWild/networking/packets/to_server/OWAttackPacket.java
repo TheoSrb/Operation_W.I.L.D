@@ -5,12 +5,15 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.attacks.OWAttack;
+import net.tiew.operationWild.entity.attacks.OWAttackIds;
 import net.tiew.operationWild.entity.attacks.OWChargedAttack;
+import net.tiew.operationWild.networking.packets.to_client.OWAttackRejectedPacket;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -79,53 +82,65 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             switch (packet.action()) {
                 case ACTION_EXECUTE -> {
                     // Boa — toggle Crochets Venimeux : autorisé à tout moment (même pendant un combo)
-                    if (packet.attackId() == 9) {
+                    if (packet.attackId() == OWAttackIds.VENOM_FANGS) {
                         if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)
                             boa.toggleVenomFangs();
                         return;
                     }
-                    if (entity.isCombo()) return;
-                    switch (packet.attackId()) {
-                        case 2 -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
-                                tiger.activateShadowStrike();
-                        }
-                        case 4 -> {
-                            if (entity instanceof CrocodileEntity croc)
-                                croc.activatePrimalDive();
-                        }
-                        case 6 -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak)
-                                kodiak.activateUltimateNap();
-                        }
-                        case 8 -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)
-                                orca.activateBigMouth();
-                        }
-                        case 10 -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)
-                                boa.activateConstrictUltimate();
-                        }
-                        case 12 -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo)
-                                kangaroo.activateTelluricStomp();
-                        }
-                        case 14 -> {
-                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
-                                elephant.activateEarthquake();
-                        }
+
+                    boolean ultimate = OWAttackIds.isUltimate(packet.attackId());
+
+                    // Un ultime l'emporte sur l'enchaînement en cours au lieu d'être jeté en
+                    // silence : le client, dont la copie de l'état de combo arrive avec un tick de
+                    // retard, croyait l'avoir lancé et en jouait déjà le son.
+                    if (entity.isCombo()) {
+                        if (!ultimate) return;
+                        entity.resetCombo(0);
+                        entity.actualAttackNumber = 0;
+                    }
+
+                    boolean started = switch (packet.attackId()) {
+                        case OWAttackIds.SHADOW_STRIKE ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger
+                                        && tiger.activateShadowStrike();
+                        case OWAttackIds.PRIMAL_DIVE ->
+                                entity instanceof CrocodileEntity croc && croc.activatePrimalDive();
+                        case OWAttackIds.NAP_ULTIMATE ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak
+                                        && kodiak.activateUltimateNap();
+                        case OWAttackIds.BIG_MOUTH ->
+                                entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca
+                                        && orca.activateBigMouth();
+                        case OWAttackIds.CONSTRICT_ULTIMATE ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa
+                                        && boa.activateConstrictUltimate();
+                        case OWAttackIds.TELLURIC_STOMP ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo
+                                        && kangaroo.activateTelluricStomp();
+                        case OWAttackIds.EARTHQUAKE ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant
+                                        && elephant.activateEarthquake();
+                        default -> true;
+                    };
+
+                    // Le serveur reste seul juge de l'énergie et du déverrouillage : quand il refuse,
+                    // le client doit défaire sa prédiction (temps de recharge, jauge de drain, effet
+                    // de déclenchement) au lieu de laisser croire au joueur que le coup est parti.
+                    if (!started && ultimate) {
+                        PacketDistributor.sendToPlayer(player,
+                                new OWAttackRejectedPacket(entity.getId(), packet.attackId()));
                     }
                 }
 
                 case ACTION_EXECUTE_WITH_TARGET -> {
                     switch (packet.attackId()) {
-                        case 4 -> {
+                        case OWAttackIds.PRIMAL_DIVE -> {
                             if (entity instanceof CrocodileEntity croc) {
                                 int targetId = Float.floatToRawIntBits(packet.value());
                                 croc.executePrimalDive(targetId);
                             }
                         }
-                        case 10 -> {
+                        case OWAttackIds.CONSTRICT_ULTIMATE -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa) {
                                 int targetId = Float.floatToRawIntBits(packet.value());
                                 boa.executeConstrictUltimate(targetId);
@@ -135,8 +150,15 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 }
 
                 case ACTION_CHARGE_START -> {
+                    // Éléphant — Jet de Trompe : ouverture du robinet (autorisée hors combo).
+                    if (packet.attackId() == OWAttackIds.WATER_SPRAY) {
+                        if (!entity.isCombo()
+                                && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
+                            elephant.startTrunkAction();
+                        return;
+                    }
                     // Kangourou — Tornade de Poings : démarrage du maintien (autorisé hors combo).
-                    if (packet.attackId() == 11) {
+                    if (packet.attackId() == OWAttackIds.WHIRLWIND_FISTS) {
                         if (!entity.isCombo()
                                 && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo)
                             kangaroo.startWhirlwind();
@@ -145,15 +167,15 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                     if (entity.isCombo()) return;
                     entity.isChargingAttack = true;
                     switch (packet.attackId()) {
-                        case 1 -> {
+                        case OWAttackIds.ATTACK_JUMP -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
                                 tiger.startJumpCharge();
                         }
-                        case 5 -> {
+                        case OWAttackIds.PAW_SLAM -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak)
                                 kodiak.startPawSlamCharge();
                         }
-                        case 3 -> {
+                        case OWAttackIds.MOUTH_SLAM -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
                                 croc.startMouthSlamCharge();
                             }
@@ -162,28 +184,34 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 }
 
                 case ACTION_CHARGE_CANCEL -> {
+                    // Éléphant — Jet de Trompe : fermeture du robinet.
+                    if (packet.attackId() == OWAttackIds.WATER_SPRAY) {
+                        if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
+                            elephant.stopTrunkAction();
+                        return;
+                    }
                     // Kangourou — Tornade de Poings : relâchement du maintien.
-                    if (packet.attackId() == 11) {
+                    if (packet.attackId() == OWAttackIds.WHIRLWIND_FISTS) {
                         if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo)
                             kangaroo.stopWhirlwind();
                         return;
                     }
                     entity.isChargingAttack = false;
                     switch (packet.attackId()) {
-                        case 1 -> {
+                        case OWAttackIds.ATTACK_JUMP -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
                                 tiger.cancelJumpCharge();
                         }
-                        case 5 -> {
+                        case OWAttackIds.PAW_SLAM -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak)
                                 kodiak.cancelPawSlamCharge();
                         }
-                        case 3 -> {
+                        case OWAttackIds.MOUTH_SLAM -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
                                 croc.cancelMouthSlamCharge();
                             }
                         }
-                        case 13 -> {
+                        case OWAttackIds.SHOULDER_BASH -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
                                 elephant.cancelShoulderBash();
                         }
@@ -193,25 +221,25 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 case ACTION_CHARGE_RELEASE -> {
                     entity.isChargingAttack = false;
                     switch (packet.attackId()) {
-                        case 1 -> {
+                        case OWAttackIds.ATTACK_JUMP -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.TigerEntity tiger)
                                 tiger.performJumpAttack(packet.value());
                         }
-                        case 5 -> {
+                        case OWAttackIds.PAW_SLAM -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity kodiak)
                                 kodiak.performPawSlam(packet.value());
                         }
-                        case 3 -> {
+                        case OWAttackIds.MOUTH_SLAM -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity croc) {
                                 croc.performMouthSlam(packet.value());
                                 croc.setPlayerMouthCharging(false);
                             }
                         }
-                        case 7 -> {
+                        case OWAttackIds.TIDAL_RUSH -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)
                                 orca.performOrcaDash();
                         }
-                        case 13 -> {
+                        case OWAttackIds.SHOULDER_BASH -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
                                 elephant.performShoulderBash();
                         }

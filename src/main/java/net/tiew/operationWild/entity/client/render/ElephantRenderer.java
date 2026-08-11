@@ -26,6 +26,7 @@ public class ElephantRenderer extends OWEntityRenderer<ElephantEntity, ElephantM
         this.context = context;
         this.addLayer(new ElephantLayer(this));
         this.addLayer(new ElephantSkinRenderLayer(this, context));
+        this.addLayer(new net.tiew.operationWild.entity.client.layer.ElephantTrunkSprayLayer(this));
         // En dernier : le drapeau porte la bannière de tribu par-dessus le skin actif.
         this.addLayer(new OWTribeFlagLayer<>(this));
     }

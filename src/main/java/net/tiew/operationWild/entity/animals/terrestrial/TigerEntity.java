@@ -1190,13 +1190,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     //               SHADOW STRIKE (ultime)
     // ==================================================
 
-    public void activateShadowStrike() {
-        if (getShadowStrikeKillCount() < OWAttacksConstants.Tiger.SHADOW_STRIKE_KILLS_REQUIRED) return;
+    public boolean activateShadowStrike() {
+        if (getShadowStrikeKillCount() < OWAttacksConstants.Tiger.SHADOW_STRIKE_KILLS_REQUIRED) return false;
 
         float cost = OWAttacksConstants.Tiger.SHADOW_STRIKE_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
-            return;
+            return false;
         }
         setVitalEnergy(0);
 
@@ -1225,6 +1225,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                         ? OWSounds.TIGER_ROAR.get() : OWSounds.TIGER_ROAR_VIRUS.get(),
                 SoundSource.AMBIENT, 1.5f,
                 (float) OWUtils.generateRandomInterval(0.9, 1.1));
+        return true;
     }
 
     /**

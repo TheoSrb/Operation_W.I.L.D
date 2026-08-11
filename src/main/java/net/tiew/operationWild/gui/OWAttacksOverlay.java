@@ -8,12 +8,14 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.attacks.OWAttack;
 import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.attacks.OWChargedAttack;
+import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
 
 import java.util.List;
 
@@ -70,7 +72,9 @@ public class OWAttacksOverlay {
                 && !entity.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) return;
 
         Class<?> entityClass = entity.getClass();
-        List<OWAttack> attacks = OWAttacksHandler.getAttacks(entityClass);
+        // Une seule carte secondaire est affichée : celle que le joueur a mise en place à la
+        // molette. Le rang des cartes ne bouge donc pas quand il en change, seul le dessin change.
+        List<OWAttack> attacks = OWAttacksHandler.getActiveAttacks(entity);
 
         int baseX = (screenWidth / 2) + 96;
         int baseY = screenHeight - 22;
@@ -124,7 +128,24 @@ public class OWAttacksOverlay {
         for (int i = 0; i < attacks.size(); i++) {
             OWAttack attack = attacks.get(i);
             int cardX = baseX + (i + 1) * CARD_SPACING;
-            int texX  = (columnOffset + i + 1) * CARD_SIZE;
+            // Une carte peut imposer ses propres coordonnées dans l'atlas plutôt que de les déduire
+            // de son rang : c'est le cas des secondaires interchangeables, qui partagent un rang mais
+            // pas un dessin. La version grisée reste 20 pixels sous l'allumée, comme partout ailleurs.
+            // Retournement en cours : tant que la tranche n'est pas passée, c'est encore la face
+            // qu'on quitte qui est tournée vers le joueur. Sans cela la nouvelle carte serait déjà
+            // là avant même que l'ancienne ait disparu, et le geste ne se lirait plus.
+            float flipProgress = OWAttacksHandler.isSecondaryCard(attack)
+                    ? OWAttackLogic.getSecondaryFlipProgress(entity.getId())
+                    : -1f;
+            OWAttack shown = attack;
+            if (flipProgress >= 0f && flipProgress < 0.5f) {
+                OWAttack leaving = OWAttackPacket.getAttack(OWAttackLogic.getSecondaryFlipFromId());
+                if (leaving != null) shown = leaving;
+            }
+
+            int texX        = shown.hasCardTexture() ? shown.getCardTexX() : (columnOffset + i + 1) * CARD_SIZE;
+            int cardNormalY = shown.hasCardTexture() ? shown.getCardTexY() : normalTexY;
+            int cardGrayY   = cardNormalY + CARD_SIZE;
 
             // ── Primal Dive special states ────────────────────────────────────
             boolean isPrimalDive = attack.getId() == OWAttacksHandler.PRIMAL_DIVE_ID;
@@ -141,6 +162,9 @@ public class OWAttacksOverlay {
 
             // ── Kangourou Tornade de Poings (maintien) ────────────────────────
             boolean isWhirlwind = attack.getId() == OWAttacksHandler.WHIRLWIND_FISTS_ID;
+
+            // ── Éléphant Jet de Trompe (maintien) ─────────────────────────────
+            boolean isWaterSpray = attack.getId() == OWAttacksHandler.WATER_SPRAY_ID;
 
             boolean isCharging = attack instanceof OWChargedAttack
                     && OWAttackLogic.isCharging
@@ -163,6 +187,11 @@ public class OWAttacksOverlay {
                             ? 1.0f - (float) cd / OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS
                             : 1.0f;
                 }
+            } else if (isWaterSpray && entity instanceof ElephantEntity elephant) {
+                // La carte EST la jauge : son remplissage bas→haut donne le volume en trompe.
+                // Grisée à sec, elle respire dès qu'il y a de quoi arroser ou de quoi puiser.
+                fillProgress = elephant.getTrunkWaterRatio();
+                isGlowing    = elephant.canUseTrunkWater();
             } else if (isWhirlwind && entity instanceof KangarooEntity kangaroo) {
                 if (kangaroo.isSpinning()) {
                     // Respiration jaune en continu ; pleine pendant les 3 premières secondes,
@@ -240,19 +269,27 @@ public class OWAttacksOverlay {
 
             boolean fInvalid = OWAttackLogic.isAttackClickInvalid(attack.getId());
 
-            applyCardScale(g, cardX, baseY, cardScale, () -> {
+            // L'écrasement du retournement se multiplie à l'échelle courante : la carte peut ainsi
+            // se retourner alors même qu'elle respire ou qu'elle rebondit d'un clic.
+            float flipScaleX = flipProgress >= 0f
+                    ? cardScale * OWAttackLogic.getSecondaryFlipScaleX(flipProgress)
+                    : cardScale;
+
+            float flipLift = flipProgress >= 0f ? OWAttackLogic.getSecondaryFlipLift(flipProgress) : 0f;
+
+            applyCardScale(g, cardX, baseY, flipScaleX, cardScale, flipLift, () -> {
                 // Rendu unifié : grisé haut→bas pour drain (fillProgress 1→0),
                 // coloré bas→haut pour remplissage (fillProgress 0→1).
                 // Le branch NAP utilise le même rendu que les autres ultimes.
                 if (fGrayH > 0) {
                     g.blit(TEXTURE, cardX, baseY,
-                            texX, grayTexY,
+                            texX, cardGrayY,
                             CARD_SIZE, fGrayH,
                             TEX_SIZE, TEX_SIZE);
                 }
                 if (fColoredH > 0) {
                     g.blit(TEXTURE, cardX, baseY + fGrayH,
-                            texX, normalTexY + fGrayH,
+                            texX, cardNormalY + fGrayH,
                             CARD_SIZE, fColoredH,
                             TEX_SIZE, TEX_SIZE);
                 }
@@ -269,8 +306,71 @@ public class OWAttacksOverlay {
                     }
                 }
             });
+
+            // Hors du scale de rebond : le rappel de commande doit rester lisible et immobile,
+            // il ne fait pas partie de l'animation de la carte.
+            if (OWAttacksHandler.hasSwitchableSecondary(entityClass)
+                    && OWAttacksHandler.isSecondaryCard(attack)) {
+                drawSwitchHint(g, cardX, baseY, flipProgress);
+            }
         }
 
+    }
+
+    // ── Rappel « touche + molette » sur la carte secondaire interchangeable ────
+
+    /**
+     * Pictogramme du changement de carte, pris dans l'atlas des cartes.
+     *
+     * <p>Il remplace le libellé « TOUCHE + » et sa souris dessinée au pixel : sur vingt pixels de
+     * carte, un texte à l'échelle 0,35 restait pâteux et mangeait l'illustration. Le sens de la
+     * commande est désormais expliqué en toutes lettres dans la fiche d'attaques ; ici, le
+     * pictogramme ne sert plus qu'à signaler que la carte est interchangeable.</p>
+     */
+    private static final int SWITCH_ICON_U = 0;
+    private static final int SWITCH_ICON_V = 247;
+    private static final int SWITCH_ICON_W = 10;
+    private static final int SWITCH_ICON_H = 9;
+    /**
+     * Débord du rappel hors de la carte, vers le bas et vers la droite.
+     *
+     * <p>Il déborde plutôt que de se poser dessus : l'illustration reste ainsi entière. Vers le bas
+     * la marge est comptée au plus juste — les cartes sont posées à vingt-deux pixels du bord de
+     * l'écran, il n'en reste que deux sous elles.</p>
+     */
+    private static final int HINT_OFFSET_X = 3;
+    private static final int HINT_OFFSET_Y = 2;
+
+    /**
+     * Marque la carte comme interchangeable, au coin bas-droit.
+     *
+     * <p>Le pictogramme déborde de l'angle au lieu de se poser dessus : l'illustration reste
+     * entière, et seul le coin est effleuré. Il ne dit pas QUELLE touche presser — c'est le rôle
+     * de la fiche d'attaques, qui a la place de l'écrire lisiblement.</p>
+     */
+    private static void drawSwitchHint(GuiGraphics g, int cardX, int cardY, float flipProgress) {
+        int x = cardX + CARD_SIZE - SWITCH_ICON_W + HINT_OFFSET_X;
+        int y = cardY + CARD_SIZE - SWITCH_ICON_H + HINT_OFFSET_Y;
+
+        if (flipProgress < 0f) {
+            g.blit(TEXTURE, x, y, SWITCH_ICON_U, SWITCH_ICON_V,
+                    SWITCH_ICON_W, SWITCH_ICON_H, TEX_SIZE, TEX_SIZE);
+            return;
+        }
+
+        // Il suit le bond de la carte — il en est solidaire — et tourne sur lui-même par-dessus.
+        float angle = OWAttackLogic.getSecondaryFlipIconAngle(flipProgress);
+        float lift = OWAttackLogic.getSecondaryFlipLift(flipProgress);
+        float cx = x + SWITCH_ICON_W / 2f;
+        float cy = y + SWITCH_ICON_H / 2f;
+
+        g.pose().pushPose();
+        g.pose().translate(cx, cy - lift, 0f);
+        g.pose().mulPose(com.mojang.math.Axis.ZP.rotationDegrees(angle));
+        g.pose().translate(-cx, -cy, 0f);
+        g.blit(TEXTURE, x, y, SWITCH_ICON_U, SWITCH_ICON_V,
+                SWITCH_ICON_W, SWITCH_ICON_H, TEX_SIZE, TEX_SIZE);
+        g.pose().popPose();
     }
 
     /**
@@ -294,12 +394,25 @@ public class OWAttacksOverlay {
      * puis restaure la matrice. Si scale == 1.0 le lambda est appelé directement (pas de push/pop).
      */
     private static void applyCardScale(GuiGraphics g, int cardX, int cardY, float scale, Runnable draw) {
-        if (scale == 1f) { draw.run(); return; }
+        applyCardScale(g, cardX, cardY, scale, scale, 0f, draw);
+    }
+
+    /**
+     * Même chose, mais avec deux échelles distinctes et un décalage vertical.
+     *
+     * <p>Le retournement de carte n'écrase que l'horizontale : c'est ce qui simule la rotation
+     * autour de l'axe vertical. La verticale, elle, continue de porter le rebond du clic ou la
+     * respiration de la lueur, sans que les deux effets se marchent dessus. Le décalage, lui, sert
+     * au petit bond que la carte fait en se retournant.</p>
+     */
+    private static void applyCardScale(GuiGraphics g, int cardX, int cardY,
+                                       float scaleX, float scaleY, float liftY, Runnable draw) {
+        if (scaleX == 1f && scaleY == 1f && liftY == 0f) { draw.run(); return; }
         float cx = cardX + CARD_SIZE / 2f;
         float cy = cardY + CARD_SIZE / 2f;
         g.pose().pushPose();
-        g.pose().translate(cx, cy, 0f);
-        g.pose().scale(scale, scale, 1f);
+        g.pose().translate(cx, cy - liftY, 0f);
+        g.pose().scale(scaleX, scaleY, 1f);
         g.pose().translate(-cx, -cy, 0f);
         draw.run();
         g.pose().popPose();

@@ -24,6 +24,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
+import net.tiew.operationWild.networking.packets.to_server.OWSelectSecondaryAttackPacket;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
@@ -88,6 +89,33 @@ public class OWAttackLogic {
     }
     private static void removeUltimateStart(int entityId, int attackId) {
         ultimateActiveMs.remove(packKey(entityId, attackId));
+    }
+
+    /**
+     * Défait la prédiction locale d'une attaque que le serveur vient de refuser.
+     *
+     * <p>Le client arme le temps de recharge, la jauge de drain et l'effet de déclenchement sans
+     * attendre la réponse — c'est ce qui rend la touche vive. Quand le serveur refuse (énergie ou
+     * déverrouillage jugés sur SA copie de l'état, seule qui fasse foi), il faut tout rendre :
+     * sinon le joueur entend son ultime partir, voit la carte se vider, et rien ne se produit.</p>
+     */
+    public static void rollbackRejectedAttack(int entityId, int attackId) {
+        cooldownEndMs.remove(packKey(entityId, attackId));
+        removeUltimateStart(entityId, attackId);
+        ultimateWowEffectStartMs = -1L;
+
+        if (attackId == OWAttacksHandler.NAP_ULTIMATE_ID && kodiakNapEntityId == entityId) {
+            isKodiakNapping = false;
+            kodiakNapEntityId = -1;
+        }
+        if (attackId == OWAttacksHandler.PRIMAL_DIVE_ID && crocRidingEntityId == entityId) {
+            cancelCrocTargeting(attackId);
+        }
+        if (attackId == OWAttacksHandler.CONSTRICT_ULTIMATE_ID && boaRidingEntityId == entityId) {
+            cancelBoaTargeting(attackId);
+        }
+
+        recordAttackClick(attackId, true);
     }
 
     // ── Kodiak Bear Nap (ultime) state ───────────────────────────────────────
@@ -214,6 +242,75 @@ public class OWAttackLogic {
         return 1f + 0.05f * (float) Math.sin(System.currentTimeMillis() / 350.0 * Math.PI * 2);
     }
 
+    // ── Retournement de carte secondaire ──────────────────────────────────────
+    //
+    // Générique : rien ici ne connaît d'espèce en particulier. Toute bête qui déclare plusieurs
+    // cartes secondaires en hérite, aujourd'hui l'éléphant et demain les autres.
+
+    public static final long SECONDARY_FLIP_DURATION_MS = 260L;
+
+    /** Dernier changement de carte, pour borner la molette côté client comme le serveur le fait. */
+    private static long lastSecondarySwitchMs = -1L;
+
+    private static long secondaryFlipStartMs = -1L;
+    private static int secondaryFlipEntityId = -1;
+    private static int secondaryFlipFromId = -1;
+
+    /** Arme le retournement, en retenant la carte qu'on quitte pour la montrer sur la 1re moitié. */
+    public static void startSecondaryFlip(int entityId, int fromAttackId) {
+        secondaryFlipStartMs = System.currentTimeMillis();
+        secondaryFlipEntityId = entityId;
+        secondaryFlipFromId = fromAttackId;
+    }
+
+    /** Progression [0..1] du retournement de cette entité, ou -1 si aucun n'est en cours. */
+    public static float getSecondaryFlipProgress(int entityId) {
+        if (secondaryFlipStartMs < 0 || secondaryFlipEntityId != entityId) return -1f;
+        float p = (float) (System.currentTimeMillis() - secondaryFlipStartMs) / SECONDARY_FLIP_DURATION_MS;
+        if (p >= 1f) {
+            secondaryFlipStartMs = -1L;
+            secondaryFlipEntityId = -1;
+            secondaryFlipFromId = -1;
+            return -1f;
+        }
+        return p;
+    }
+
+    /** Identifiant de la carte qu'on quitte, à dessiner tant que la tranche montre encore sa face. */
+    public static int getSecondaryFlipFromId() {
+        return secondaryFlipFromId;
+    }
+
+    /**
+     * Écrasement horizontal de la carte pendant le retournement.
+     *
+     * <p>Un cosinus : la carte se met de profil à mi-course — largeur nulle — puis se rouvre sur son
+     * autre face. C'est ce passage par zéro qui fait lire un <i>retournement</i> plutôt qu'un
+     * simple écrasement. Un plancher évite la largeur strictement nulle, qui ne dessinerait rien du
+     * tout et ferait clignoter la carte.</p>
+     */
+    public static float getSecondaryFlipScaleX(float progress) {
+        return Math.max(0.04f, Math.abs((float) Math.cos(progress * Math.PI)));
+    }
+
+    /** Hauteur du petit bond, en pixels : une cloche, pleine à mi-retournement. */
+    public static final float SECONDARY_FLIP_LIFT = 3.5f;
+
+    public static float getSecondaryFlipLift(float progress) {
+        return SECONDARY_FLIP_LIFT * (float) Math.sin(progress * Math.PI);
+    }
+
+    /**
+     * Angle du pictogramme, en degrés : un <b>demi</b>-tour, au même rythme que la carte.
+     *
+     * <p>Rotation dans le plan de l'écran (axe Z) et non basculement sur la tranche : le
+     * pictogramme figure une molette, et une molette tourne sur elle-même. L'écraser
+     * horizontalement le faisait basculer comme une carte, ce qui n'a aucun sens pour cet objet.</p>
+     */
+    public static float getSecondaryFlipIconAngle(float progress) {
+        return progress * 180f;
+    }
+
     /**
      * Facteur de scale [1.0 .. PEAK .. 1.0] pour la carte d'une attaque (ID ≥ 1).
      * Retourne 1.0 si aucune animation en cours.
@@ -277,6 +374,12 @@ public class OWAttackLogic {
             kangarooWasTelluricStomping = stomping;
         } else {
             kangarooWasTelluricStomping = false;
+        }
+
+        // Jet de Trompe : le robinet se ferme si le joueur quitte l'éléphant sans relâcher le clic.
+        if (elephantSprayHeld && mc.player != null
+                && !(mc.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity)) {
+            elephantSprayHeld = false;
         }
 
         // Tornade de Poings : si le joueur n'est plus sur un kangourou, on lâche le maintien/amorce
@@ -501,10 +604,53 @@ public class OWAttackLogic {
         }
     }
 
+    /**
+     * Éléphant monté : la brutalité du coup d'épaule à la première personne.
+     *
+     * <p>Pilotée par l'état synchronisé de la bête, comme la Roulade de la Mort et le Pilon
+     * Tellurique : la secousse reste donc calée sur le geste réel, et vaut pour tout client
+     * concerné. C'est elle qui porte l'essentiel de la violence — bien plus qu'une bascule du
+     * modèle, qui à force ne fait que casser la silhouette.</p>
+     */
+    private static void applyShoulderBashShake(ViewportEvent.ComputeCameraAngles event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        if (!(mc.player.getRootVehicle()
+                instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)) return;
+
+        int timer = elephant.getShoulderBashTimer();
+        if (timer <= 0) return;
+
+        int elapsed = OWAttacksConstants.Elephant.SHOULDER_BASH_DURATION_TICKS - timer;
+        int windup = OWAttacksConstants.Elephant.SHOULDER_BASH_WINDUP_TICKS;
+        int dashEnd = windup + OWAttacksConstants.Elephant.SHOULDER_BASH_DASH_TICKS;
+
+        float amplitude;
+        if (elapsed < windup) {
+            // La bête se ramasse : un grondement qui monte, discret.
+            amplitude = 1.4f * ((float) elapsed / windup);
+        } else if (elapsed < dashEnd) {
+            // Le choc, puis l'extinction sur la longueur du déport.
+            float p = (float) (elapsed - windup) / (dashEnd - windup);
+            amplitude = 9.0f * (1f - p) * (1f - p);
+        } else {
+            float p = (float) (elapsed - dashEnd)
+                    / Math.max(1, OWAttacksConstants.Elephant.SHOULDER_BASH_RECOVER_TICKS);
+            amplitude = 2.2f * (1f - p);
+        }
+
+        long t = System.currentTimeMillis();
+        int side = elephant.getShoulderBashSide();
+        event.setRoll(event.getRoll() + amplitude * 0.9f * side + amplitude * 0.5f * (float) Math.sin(t / 24.0));
+        event.setPitch(event.getPitch() + amplitude * 0.55f * (float) Math.cos(t / 31.0));
+        event.setYaw(event.getYaw() + amplitude * 0.45f * (float) Math.sin(t / 27.0));
+    }
+
     @SubscribeEvent
     public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
         applyDeathRollShake(event);
         applyTelluricStompShake(event);
+        applyShoulderBashShake(event);
 
         // Orca Tidal Rush — secousse frontale + légère bascule au déclenchement
         if (orcaDashEffectStartMs >= 0) {
@@ -859,6 +1005,89 @@ public class OWAttackLogic {
         }
     }
 
+    /**
+     * Changement de carte secondaire : modificateur maintenu + molette.
+     *
+     * <p>L'événement est annulé pour que la barre d'inventaire ne défile pas en même temps — le
+     * joueur monté garde ses objets en main, il ne veut que retourner la carte. Sans monture, sans
+     * pilotage ou sur une espèce à carte unique, on laisse la molette tranquille.</p>
+     */
+    @SubscribeEvent
+    public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.screen != null) return;
+        if (!net.tiew.operationWild.core.OWKeysBinding.OW_SWITCH_ATTACK.isDown()) return;
+        if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+        if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
+        if (!owEntity.canPilotAttacks(mc.player)) return;
+
+        int count = OWAttacksHandler.getSecondaryAttacks(owEntity.getClass()).size();
+        if (count <= 1) return;
+
+        double scroll = event.getScrollDeltaY();
+        if (scroll == 0) return;
+
+        // Délai entre deux changements. On avale quand même le cran de molette : pendant la demi
+        // seconde d'attente, le joueur tient toujours la touche, et laisser la barre d'inventaire
+        // défiler à sa place serait pire que de ne rien faire.
+        long now = System.currentTimeMillis();
+        if (now - lastSecondarySwitchMs < OWEntity.SECONDARY_SWITCH_COOLDOWN_TICKS * 50L) {
+            event.setCanceled(true);
+            return;
+        }
+        lastSecondarySwitchMs = now;
+
+        int step = scroll > 0 ? -1 : 1;
+        int next = Math.floorMod(owEntity.getSecondaryAttackIndex() + step, count);
+
+        // La carte quittée est retenue AVANT le changement d'index : c'est elle que le
+        // retournement montre tant qu'on voit encore sa face.
+        OWAttack leaving = OWAttacksHandler.getActiveSecondary(owEntity);
+
+        // Prédiction locale : la carte se retourne à l'instant du cran de molette. Le serveur
+        // renvoie l'index retenu juste après, et c'est lui qui fait foi.
+        owEntity.setSecondaryAttackIndex(next);
+        PacketDistributor.sendToServer(new OWSelectSecondaryAttackPacket(next));
+
+        startSecondaryFlip(owEntity.getId(), leaving != null ? leaving.getId() : -1);
+
+        event.setCanceled(true);
+    }
+
+    private static boolean elephantSprayHeld = false;
+
+    /**
+     * Éléphant — Jet de Trompe : press démarre l'action de trompe, release l'arrête.
+     *
+     * <p>C'est le serveur qui tranche entre aspirer et pulvériser, sur SA lecture du décor : lui
+     * seul sait si de l'eau est vraiment à portée. Le client ne fait qu'ouvrir et fermer le
+     * robinet.</p>
+     */
+    private static void handleElephantWaterSpray(OWAttack attack,
+                                                 net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant,
+                                                 Player player, int action) {
+        if (action == GLFW.GLFW_PRESS) {
+            if (elephantSprayHeld) return;
+            if (elephant.isCombo() || elephant.isShoulderBashing() || elephant.isEarthquakeGesture()) {
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
+            if (playerHoldsUsableItem(player)) {
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
+            elephantSprayHeld = true;
+            PacketDistributor.sendToServer(
+                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_START, 0f));
+            recordAttackClick(attack.getId(), elephant.getTrunkWater() <= 0 && !elephant.isInWater());
+
+        } else if (action == GLFW.GLFW_RELEASE && elephantSprayHeld) {
+            elephantSprayHeld = false;
+            PacketDistributor.sendToServer(
+                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));
+        }
+    }
+
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         if (event.getAction() != GLFW.GLFW_PRESS) return;
@@ -870,7 +1099,7 @@ public class OWAttackLogic {
         if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
         if (!owEntity.canPilotAttacks(mc.player)) return;
 
-        OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getKey());
+        OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity, event.getKey());
         if (attack == null) return;
 
         // Kodiak NAP : traité en priorité (peut annuler même si d'autres blocages sont actifs)
@@ -910,7 +1139,15 @@ public class OWAttackLogic {
         // moindre signe — d'où l'impression qu'il fallait insister plusieurs fois.
         boolean isCrocLockIn = isCrocTargeting && attack.getId() == OWAttacksHandler.PRIMAL_DIVE_ID;
 
-        if ((isCharging || owEntity.isCombo()) && !isCrocLockIn) {
+        if (isCharging && !isCrocLockIn) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        // Un ultime prime sur l'enchaînement : le serveur interrompt le combo pour le jouer. Le
+        // refuser ici rendrait la touche muette pendant les deux secondes d'un combo, alors même
+        // que le coup est légitime.
+        if (owEntity.isCombo() && !isCrocLockIn && !attack.isUltimate()) {
             recordAttackClick(attack.getId(), true);
             return;
         }
@@ -1060,9 +1297,19 @@ public class OWAttackLogic {
         if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
                 && event.getAction() == GLFW.GLFW_PRESS
                 && owEntity instanceof BoaEntity boa) {
-            OWAttack venom = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getButton());
+            OWAttack venom = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
             if (venom != null) {
                 handleBoaVenomToggle(venom, boa, mc.player);
+                return;
+            }
+        }
+
+        // Éléphant — Jet de Trompe : attaque secondaire MAINTENUE sur le clic droit (press + release).
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
+                && owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant) {
+            OWAttack spray = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
+            if (spray != null && spray.getId() == OWAttacksHandler.WATER_SPRAY_ID) {
+                handleElephantWaterSpray(spray, elephant, mc.player, event.getAction());
                 return;
             }
         }
@@ -1070,14 +1317,14 @@ public class OWAttackLogic {
         // Kangourou — Tornade de Poings : attaque secondaire MAINTENUE sur le clic droit (press + release).
         if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
                 && owEntity instanceof KangarooEntity kangaroo) {
-            OWAttack whirlwind = OWAttacksHandler.findInstantAttack(owEntity.getClass(), event.getButton());
+            OWAttack whirlwind = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
             if (whirlwind != null) {
                 handleKangarooWhirlwind(whirlwind, kangaroo, mc.player, event.getAction());
                 return;
             }
         }
 
-        OWChargedAttack attack = OWAttacksHandler.findChargedAttack(owEntity.getClass(), event.getButton());
+        OWChargedAttack attack = OWAttacksHandler.findChargedAttack(owEntity, event.getButton());
         if (attack == null) return;
 
         if (event.getAction() == GLFW.GLFW_PRESS) {

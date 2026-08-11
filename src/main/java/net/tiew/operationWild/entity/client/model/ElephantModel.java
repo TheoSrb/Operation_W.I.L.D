@@ -138,8 +138,8 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         .texOffs(142, 37).addBox(-7.5F, -9.0F, -15.0F, 15.0F, 18.0F, 15.0F, new CubeDeformation(0.5F)), PartPose.offset(0.0F, -7.0F, -21.0F));
 
         PartDefinition cube_r9 = head.addOrReplaceChild("cube_r9", CubeListBuilder.create().texOffs(140, 83).mirror().addBox(-9.0F, -5.0F, -9.0F, 5.0F, 8.0F, 5.0F, new CubeDeformation(0.0F)).mirror(false)
-        .texOffs(116, 132).mirror().addBox(-8.0F, 11.0F, -17.0F, 3.0F, 3.0F, 9.0F, new CubeDeformation(0.0F)).mirror(false)
-        .texOffs(140, 110).mirror().addBox(-8.0F, 3.0F, -8.0F, 3.0F, 11.0F, 3.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(0.0F, 12.0F, -9.0F, -0.3442F, 0.0594F, 0.1642F));
+        .texOffs(116, 132).mirror().addBox(-8.0F, 17.0F, -17.0F, 3.0F, 3.0F, 9.0F, new CubeDeformation(0.0F)).mirror(false)
+        .texOffs(140, 110).mirror().addBox(-8.0F, 3.0F, -8.0F, 3.0F, 17.0F, 3.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offsetAndRotation(0.0F, 12.0F, -9.0F, -0.3442F, 0.0594F, 0.1642F));
 
         PartDefinition cube_r10 = head.addOrReplaceChild("cube_r10", CubeListBuilder.create().texOffs(223, 211).mirror().addBox(-8.0F, 3.0F, -8.0F, 3.0F, 11.0F, 3.0F, new CubeDeformation(0.0F)).mirror(false)
         .texOffs(223, 184).mirror().addBox(-9.0F, -5.0F, -9.0F, 5.0F, 8.0F, 5.0F, new CubeDeformation(0.0F)).mirror(false)
@@ -149,8 +149,8 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         .texOffs(223, 211).addBox(5.0F, 3.0F, -8.0F, 3.0F, 11.0F, 3.0F, new CubeDeformation(0.0F))
         .texOffs(223, 184).addBox(4.0F, -5.0F, -9.0F, 5.0F, 8.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(3.0F, 11.0F, -6.0F, -0.2898F, -0.1975F, -0.582F));
 
-        PartDefinition cube_r12 = head.addOrReplaceChild("cube_r12", CubeListBuilder.create().texOffs(116, 132).addBox(5.0F, 11.0F, -17.0F, 3.0F, 3.0F, 9.0F, new CubeDeformation(0.0F))
-        .texOffs(140, 110).addBox(5.0F, 3.0F, -8.0F, 3.0F, 11.0F, 3.0F, new CubeDeformation(0.0F))
+        PartDefinition cube_r12 = head.addOrReplaceChild("cube_r12", CubeListBuilder.create().texOffs(116, 132).addBox(5.0F, 17.0F, -17.0F, 3.0F, 3.0F, 9.0F, new CubeDeformation(0.0F))
+        .texOffs(140, 110).addBox(5.0F, 3.0F, -8.0F, 3.0F, 17.0F, 3.0F, new CubeDeformation(0.0F))
         .texOffs(140, 83).addBox(4.0F, -5.0F, -9.0F, 5.0F, 8.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(0.0F, 12.0F, -9.0F, -0.3442F, -0.0594F, -0.1642F));
 
         PartDefinition cube_r13 = head.addOrReplaceChild("cube_r13", CubeListBuilder.create().texOffs(144, 187).addBox(6.0F, -10.5F, -1.5F, 3.0F, 9.0F, 3.0F, new CubeDeformation(0.0F)), PartPose.offsetAndRotation(7.5F, -5.5F, -11.5F, 0.1666F, -0.0859F, -0.3564F));
@@ -323,10 +323,11 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
 
         this.animate(elephant.idleAnimationState, ElephantAnimations.MISC_IDLE, ageInTicks, 1.0f);
 
-        applyShoulderBashLean(elephant);
-
         KeyframeAnimations.animate(this, ElephantAnimations.MOVE_WALK, (long) walkTimeMs,
                 Math.min(limbSwingAmount * 7.5f, 1.0f), WALK_ANIM_VECTOR);
+
+        applyShoulderBash(elephant, ageInTicks);
+        applyTrunkAim(elephant, ageInTicks);
 
         if (externalChargeHeadPitch > 0.01f) {
             this.head.xRot += (float) Math.toRadians(externalChargeHeadPitch);
@@ -335,20 +336,174 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
     }
 
-    private void applyShoulderBashLean(ElephantEntity elephant) {
-        int timer = elephant.getShoulderBashTimer();
-        if (timer <= 0) return;
+    private static final float HALF_PI = (float) (Math.PI / 2.0);
 
-        int duration = OWAttacksConstants.Elephant.SHOULDER_BASH_DURATION_TICKS;
-        float progress = 1f - ((float) timer / duration);
-        float envelope = progress < 0.33f
-                ? progress / 0.33f
-                : 1f - (progress - 0.33f) / 0.67f;
-
-        float lean = envelope * 0.45f * elephant.getShoulderBashSide();
-        this.ALL.zRot += lean;
-        this.head.zRot -= lean * 0.5f;
+    /**
+     * Temps écoulé du coup d'épaule, en ticks fractionnaires.
+     *
+     * <p>Le minuteur est une donnée synchronisée : il ne bouge qu'une fois par tick, et le geste
+     * saccadait à vingt images par seconde. On lui rend la partie fractionnaire du tick en cours.</p>
+     */
+    private static float shoulderBashTime(ElephantEntity elephant, float ageInTicks) {
+        float partial = Mth.clamp(ageInTicks - elephant.tickCount, 0f, 1f);
+        int elapsed = elephant.clientBashElapsed >= 0
+                ? elephant.clientBashElapsed
+                : OWAttacksConstants.Elephant.SHOULDER_BASH_DURATION_TICKS - elephant.getShoulderBashTimer();
+        return elapsed + partial;
     }
+
+    /** Rampe en S : pente nulle aux deux extrémités, donc aucun raccord anguleux entre phases. */
+    private static float smoothStep(float t) {
+        float u = Mth.clamp(t, 0f, 1f);
+        return u * u * (3f - 2f * u);
+    }
+
+    /** Repli d'anticipation [0..1] : la bête se ramasse du côté opposé avant de se jeter. */
+    private static float shoulderBashCoil(float t) {
+        int windup = OWAttacksConstants.Elephant.SHOULDER_BASH_WINDUP_TICKS;
+        if (t < windup) return smoothStep(t / windup);
+        float p = (t - windup) / OWAttacksConstants.Elephant.SHOULDER_BASH_DASH_TICKS;
+        return 1f - smoothStep(p / 0.30f);
+    }
+
+    /**
+     * Engagement de l'épaule [0..1], puis retour élastique.
+     *
+     * <p>La réception dépasse la verticale avant de se replacer — c'est ce contre-mouvement qui
+     * donne son poids à la masse. Une simple rampe descendante rendait l'arrêt caoutchouteux.</p>
+     */
+    private static float shoulderBashThrust(float t) {
+        int windup = OWAttacksConstants.Elephant.SHOULDER_BASH_WINDUP_TICKS;
+        int dash = OWAttacksConstants.Elephant.SHOULDER_BASH_DASH_TICKS;
+        if (t < windup) return 0f;
+        if (t < windup + dash) {
+            float p = (t - windup) / dash;
+            return p < 0.35f ? smoothStep(p / 0.35f) : 1f;
+        }
+        float p = Mth.clamp((t - windup - dash) / OWAttacksConstants.Elephant.SHOULDER_BASH_RECOVER_TICKS, 0f, 1f);
+        // Amorti en S plutôt qu'en carré : la valeur ET sa pente valent zéro à l'arrivée, si bien
+        // que le retour au repos ne se termine pas par une saccade.
+        float damping = 1f - smoothStep(p);
+        return damping * (float) Math.cos(p * Math.PI * 1.5);
+    }
+
+    /**
+     * Coup d'épaule : le geste est dans le <b>déplacement</b>, pas dans la pose.
+     *
+     * <p>L'éléphant se déporte réellement de deux ou trois blocs sur le côté, et c'est cela qui doit
+     * se lire. Une bascule marquée du buste avait été tentée : basculer une masse pareille d'un
+     * quart de tour ne fait pas « puissant », ça fait cassé. Il ne reste donc qu'une inclinaison de
+     * quelques degrés et un regard qui accompagne le côté visé — juste de quoi ne pas glisser
+     * latéralement comme un bloc de pierre.</p>
+     */
+    private void applyShoulderBash(ElephantEntity elephant, float ageInTicks) {
+        if (elephant.getShoulderBashTimer() <= 0) return;
+
+        float t = shoulderBashTime(elephant, ageInTicks);
+        float coil = shoulderBashCoil(t);
+        float thrust = shoulderBashThrust(t);
+        float side = elephant.getShoulderBashSide();
+
+        float lean = (thrust * 0.24f - coil * 0.11f) * side;
+
+        this.ALL.zRot += lean;
+        // Le buste s'affaisse à l'impact puis se relève : c'est ce coup de rein qui donne la
+        // brutalité, bien mieux qu'une bascule prononcée — celle-ci ne faisait que casser la bête.
+        this.ALL.y += thrust * 1.6f - coil * 0.9f;
+
+        this.body.zRot += lean * 0.35f;
+        this.head.yRot += (thrust * 0.30f - coil * 0.20f) * side;
+        this.head.zRot -= lean * 0.45f;
+        this.trunk.zRot += lean * 2.0f;
+        this.trunk2.zRot += lean * 1.4f;
+        this.left_ear.yRot += thrust * 0.35f;
+        this.right_ear.yRot -= thrust * 0.35f;
+        this.tail.zRot -= lean * 1.5f;
+    }
+
+    /**
+     * Pose de trompe pilotée à la visée, superposée aux animations clés.
+     *
+     * <p>Le poids monte et descend progressivement ({@code trunkAimWeight}), de sorte que la trompe
+     * quitte et retrouve son animation de repos sans à-coup quand on change de carte secondaire.
+     * Le second segment traîne sur le premier : c'est ce retard qui fait le fouet plutôt que la
+     * barre rigide.</p>
+     */
+    private void applyTrunkAim(ElephantEntity elephant, float ageInTicks) {
+        float partial = Mth.clamp(ageInTicks - elephant.tickCount, 0f, 1f);
+        float weight = elephant.getTrunkAimWeight(partial);
+        if (weight <= 0.01f) return;
+
+        // L'encolure descend AVANT que la trompe ne se calcule : celle-ci retranche ensuite la
+        // rotation de la tête, si bien qu'elle continue de pointer où il faut tout en partant de
+        // plus bas. C'est ce gain d'allonge qui lui fait atteindre une eau trop profonde pour elle.
+        float dip = (float) Math.toRadians(elephant.getTrunkHeadDip(partial));
+        if (Math.abs(dip) > 0.001f) this.head.xRot += dip;
+
+        float yaw = (float) Math.toRadians(elephant.getTrunkAimYaw(partial));
+        float pitch = (float) Math.toRadians(elephant.getTrunkAimPitch(partial));
+
+        // La trompe PEND au repos : son orientation naturelle est déjà un quart de tour sous
+        // l'horizontale. Sans retrancher ce quart de tour, viser droit devant obligeait à lever les
+        // yeux au ciel. On retranche aussi la rotation de la tête, dont la trompe est fille, pour
+        // que l'angle final soit bien celui du regard et non sa somme avec celui du crâne.
+        float targetX = pitch - HALF_PI - this.head.xRot;
+        float targetY = yaw - this.head.yRot;
+
+        // La rotation se RÉPARTIT sur les deux segments au lieu de se concentrer sur le premier.
+        // Tout mettre à la base donnait une barre rigide qu'on pivote ; en la partageant, la trompe
+        // s'incurve, et c'est cette courbe qui la fait lire comme un muscle. Comme les os sont
+        // chaînés, la somme des deux angles vaut toujours la direction visée : la pointe désigne
+        // exactement le curseur malgré la courbure.
+        float baseShare = 0.60f;
+        float tipShare = 1f - baseShare;
+
+        // Le segment du bas traîne sur celui du haut : le retard fait le fouet quand on balaie du
+        // regard, et évite que les deux moitiés ne pivotent d'un seul bloc.
+        float whipYaw = (float) Math.toRadians(elephant.trunkAimYaw - elephant.trunkAimYawO) * 1.4f;
+        float whipPitch = (float) Math.toRadians(elephant.trunkAimPitch - elephant.trunkAimPitchO) * 1.4f;
+
+        // Enroulement lent et permanent : une trompe au repos n'est jamais parfaitement droite.
+        float breath = Mth.sin((elephant.tickCount + partial) * 0.045f) * 0.10f;
+        float sway = Mth.sin((elephant.tickCount + partial) * 0.031f) * 0.08f;
+
+        this.trunk.xRot = Mth.lerp(weight, this.trunk.xRot, targetX * baseShare - breath);
+        this.trunk.yRot = Mth.lerp(weight, this.trunk.yRot, targetY * baseShare - sway);
+        this.trunk.zRot = Mth.lerp(weight, this.trunk.zRot, sway * 0.5f);
+
+        this.trunk2.xRot = Mth.lerp(weight, this.trunk2.xRot, targetX * tipShare - whipPitch + breath * 2f);
+        this.trunk2.yRot = Mth.lerp(weight, this.trunk2.yRot, targetY * tipShare - whipYaw + sway * 2f);
+        this.trunk2.zRot = Mth.lerp(weight, this.trunk2.zRot, -sway * 0.4f);
+
+        float swell = elephant.getTrunkSwell(partial) * weight;
+        if (swell > 0.001f) {
+            float grow = 1f + swell * 0.28f;
+            this.trunk.xScale *= grow;
+            this.trunk.zScale *= grow;
+            this.trunk2.xScale *= 1f + swell * 0.36f;
+            this.trunk2.zScale *= 1f + swell * 0.36f;
+        }
+    }
+
+    /**
+     * Empile les transformations jusqu'à la <b>pointe</b> de la trompe, telle qu'elle est
+     * réellement dessinée cette image-ci.
+     *
+     * <p>C'est le seul moyen d'ancrer les gouttes sur une trompe qui ondule : recalculer la pointe
+     * à partir des angles synchronisés donnerait une position juste au tick près, donc fausse entre
+     * deux ticks et décalée de tout ce que les animations clés ajoutent par-dessus.</p>
+     */
+    public void translateToTrunkTip(PoseStack poseStack) {
+        this.ALL2.translateAndRotate(poseStack);
+        this.ALL.translateAndRotate(poseStack);
+        this.body.translateAndRotate(poseStack);
+        this.head.translateAndRotate(poseStack);
+        this.trunk.translateAndRotate(poseStack);
+        this.trunk2.translateAndRotate(poseStack);
+    }
+
+    /** Longueur du second segment de trompe, en unités de modèle : la pointe est à son extrémité. */
+    public static final float TRUNK_TIP_LENGTH = 16.0f;
 
     private void captureBodyState(ElephantEntity elephant, float restPoseYSum, ModelPart... boneChain) {
         if (!elephant.level().isClientSide()) return;

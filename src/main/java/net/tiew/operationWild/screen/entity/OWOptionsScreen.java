@@ -109,6 +109,12 @@ public class OWOptionsScreen extends Screen {
                     entity::isShowTribeFlag,
                     () -> OWNetworkHandler.sendToServer(new OWEntityTogglePacket("tribeFlag"))
             ));
+            scrollPanel.add(toggle(
+                    Component.translatable("option.followOwner"),
+                    Component.translatable("option.followOwner.desc"),
+                    entity::isFollowingOwner,
+                    () -> OWNetworkHandler.sendToServer(new OWEntityTogglePacket("followOwner"))
+            ));
         }
 
         if (entity instanceof IOWWaypointEntity) {

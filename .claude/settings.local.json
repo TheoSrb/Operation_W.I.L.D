@@ -300,7 +300,12 @@
       "Bash(python mockup_png.py)",
       "Bash(echo \"EXIT=$?\")",
       "Bash(python saddler_mockup.py)",
-      "Bash(sort -t: -k2 -rn)"
+      "Bash(sort -t: -k2 -rn)",
+      "Bash(grep -v '^$')",
+      "Bash(cd \"C:/Users/Tiew_37\" && echo \"=== NEW \\(Desktop\\) ===\" && grep -n \"public static final AnimationDefinition\" Desktop/elephant_animations.java && echo \"\" && echo \"=== OLD \\(repo\\) ===\" && grep -n \"public static final AnimationDefinition\" IdeaProjects/Operation-W.I.L.D/src/main/java/net/tiew/operationWild/entity/client/animation/ElephantAnimations.java)",
+      "Bash(awk 'NR>=2965 && /\\\\.build\\\\\\(\\\\\\);/{print NR\": \"$0; exit}' src/main/java/net/tiew/operationWild/entity/client/animation/KangarooAnimations.java)",
+      "Bash('/c/Program Files/Java/jdk-25/bin/javap.exe' -p -c C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/e3cb1237-06ff-4dd1-a19c-dafc3d5b973a/scratchpad/cls/net/minecraft/client/particle/WakeParticle.class)",
+      "Bash('/c/Program Files/Java/jdk-25/bin/javap.exe' -p C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/e3cb1237-06ff-4dd1-a19c-dafc3d5b973a/scratchpad/cls/net/minecraft/world/entity/Mob.class)"
     ]
   }
 }

@@ -18,9 +18,12 @@ import java.util.List;
 
 public class KangarooThumpAlertGoal extends Goal {
 
-    public static final int THUMP_DURATION = 20;
-    private static final int FIRST_SLAM_TICK = 6;
+    public static final int THUMP_DURATION = 60;
+    private static final int FIRST_SLAM_TICK = 5;
     private static final int SECOND_SLAM_TICK = 12;
+    private static final int DRUM_START_TICK = 5;
+    private static final int DRUM_END_TICK = 53;
+    private static final int DRUM_INTERVAL_TICKS = 3;
 
     private static final double PLAYER_DETECTION_RANGE = 10.0;
     private static final double PLAYER_LOUD_RANGE = 16.0;
@@ -106,6 +109,26 @@ public class KangarooThumpAlertGoal extends Goal {
             secondSlamDone = true;
             slam(0.85f);
         }
+
+        if (thumpTicks >= DRUM_START_TICK && thumpTicks <= DRUM_END_TICK
+                && thumpTicks != FIRST_SLAM_TICK && thumpTicks != SECOND_SLAM_TICK
+                && (thumpTicks - DRUM_START_TICK) % DRUM_INTERVAL_TICKS == 0) {
+            drumTap();
+        }
+    }
+
+    private void drumTap() {
+        kangaroo.level().playSound(null, kangaroo.getX(), kangaroo.getY(), kangaroo.getZ(),
+                SoundEvents.ROOTED_DIRT_BREAK, SoundSource.NEUTRAL, 0.45f,
+                0.5f + kangaroo.getRandom().nextFloat() * 0.1f);
+
+        if (!(kangaroo.level() instanceof ServerLevel serverLevel)) return;
+
+        BlockState ground = kangaroo.level().getBlockState(kangaroo.blockPosition().below());
+        if (ground.isAir()) return;
+        serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
+                kangaroo.getX(), kangaroo.getY() + 0.05, kangaroo.getZ(),
+                4, 0.35, 0.02, 0.35, 0.05);
     }
 
     private boolean isAvailable() {

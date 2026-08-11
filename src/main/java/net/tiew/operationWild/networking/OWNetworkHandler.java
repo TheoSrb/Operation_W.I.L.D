@@ -43,6 +43,7 @@ public class OWNetworkHandler {
         registrar.playToServer(OWEntityGrabManagerPacket.TYPE, OWEntityGrabManagerPacket.STREAM_CODEC, OWEntityGrabManagerPacket::handle);
         registrar.playToServer(OWCraftSaddlePacket.TYPE, OWCraftSaddlePacket.STREAM_CODEC, OWCraftSaddlePacket::handle);
         registrar.playToServer(OWNameEntityPacket.TYPE, OWNameEntityPacket.STREAM_CODEC, OWNameEntityPacket::handle);
+        registrar.playToServer(OWSelectSecondaryAttackPacket.TYPE, OWSelectSecondaryAttackPacket.STREAM_CODEC, OWSelectSecondaryAttackPacket::handle);
         registrar.playToServer(OWEntityTogglePacket.TYPE, OWEntityTogglePacket.STREAM_CODEC, OWEntityTogglePacket::handle);
         registrar.playToServer(OWAttackPacket.TYPE, OWAttackPacket.STREAM_CODEC, OWAttackPacket::handle);
         registrar.playToServer(CreateOWTeamPacket.TYPE, CreateOWTeamPacket.STREAM_CODEC, CreateOWTeamPacket::handle);
@@ -91,6 +92,7 @@ public class OWNetworkHandler {
         registrar.playToClient(AddEntityToManuscriptPacket.TYPE, AddEntityToManuscriptPacket.STREAM_CODEC, AddEntityToManuscriptPacket::handle);
         registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, (packet, context) -> OpenChooseNameScreenHandler.handle(packet, context));
         registrar.playToClient(TigerLeapStatePacket.TYPE, TigerLeapStatePacket.STREAM_CODEC, TigerLeapStatePacket::handle);
+        registrar.playToClient(OWAttackRejectedPacket.TYPE, OWAttackRejectedPacket.STREAM_CODEC, OWAttackRejectedPacket::handle);
         registrar.playToClient(HeartShotPacket.TYPE, HeartShotPacket.STREAM_CODEC, HeartShotPacket::handle);
         registrar.playToClient(ElephantFootstepPacket.TYPE, ElephantFootstepPacket.STREAM_CODEC, ElephantFootstepPacket::handle);
         registrar.playToClient(SyncOWTeamPacket.TYPE, SyncOWTeamPacket.STREAM_CODEC, SyncOWTeamPacket::handle);

@@ -16,6 +16,8 @@ public class KangarooLayer extends RenderLayer<KangarooEntity, KangarooModel<Kan
 
     private static final ResourceLocation BOXING_GLOVES_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kangaroo/kangaroo.png");
 
+    private static final ResourceLocation SADDLE_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kangaroo/kangaroo_saddle.png");
+
     private static final ResourceLocation BLOODY_STAGE_0_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kangaroo/kangaroo_bloody_stage_0.png");
     private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kangaroo/kangaroo_bloody_stage_1.png");
     private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/kangaroo/kangaroo_bloody_stage_2.png");
@@ -28,6 +30,8 @@ public class KangarooLayer extends RenderLayer<KangarooEntity, KangarooModel<Kan
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int packedLight, KangarooEntity kangaroo, float v, float v1, float v2, float v3, float v4, float v5) {
 
         if (kangaroo.isWearingBoxingGloves()) renderOverlay(poseStack, multiBufferSource, BOXING_GLOVES_TEXTURE, packedLight);
+
+        if (kangaroo.isSaddled()) renderOverlay(poseStack, multiBufferSource, SADDLE_TEXTURE, packedLight);
 
         double kangarooHealthTier = kangaroo.getMaxHealth() / 4;
 

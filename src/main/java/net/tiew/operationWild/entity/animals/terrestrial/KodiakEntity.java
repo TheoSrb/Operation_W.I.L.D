@@ -1400,18 +1400,18 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
 
-    public void activateUltimateNap() {
+    public boolean activateUltimateNap() {
         if (isUltimateNapping()) {
             cancelUltimateNap();
-            return;
+            return true;
         }
-        if (getNapKillCount() < OWAttacksConstants.Kodiak.NAP_KILLS_REQUIRED) return;
+        if (getNapKillCount() < OWAttacksConstants.Kodiak.NAP_KILLS_REQUIRED) return false;
         float cost = OWAttacksConstants.Kodiak.NAP_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             setUltimateNapping(false);
             setNap(false);
-            return;
+            return false;
         }
         setVitalEnergy(0);
         setNapKillCount(0);
@@ -1419,6 +1419,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         setNap(true);
         ultimateNapDurationTimer = OWAttacksConstants.Kodiak.NAP_DURATION_TICKS;
         this.playSound(OWSounds.KODIAK_HURT.get(), 1.0f, (float) OWUtils.generateRandomInterval(0.9f, 1.1f));
+        return true;
     }
 
     private void cancelUltimateNap() {

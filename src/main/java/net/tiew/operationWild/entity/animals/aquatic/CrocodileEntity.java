@@ -1834,14 +1834,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         setChargingMouthTimer(0);
     }
 
-    public void activatePrimalDive() {
-        if (getUltimateKillCount() < OWAttacksConstants.Crocodile.PRIMAL_DIVE_KILLS_REQUIRED) return;
-        if (!this.isInWater()) return;
-        if (this.isGrabbing() || primalDivePhase != 0) return;
+    public boolean activatePrimalDive() {
+        if (getUltimateKillCount() < OWAttacksConstants.Crocodile.PRIMAL_DIVE_KILLS_REQUIRED) return false;
+        if (!this.isInWater()) return false;
+        if (this.isGrabbing() || primalDivePhase != 0) return false;
         float cost = OWAttacksConstants.Crocodile.PRIMAL_DIVE_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
-            return;
+            return false;
         }
         setVitalEnergy(getVitalEnergy() + cost);
         this.isChargingAttack = true;
@@ -1852,6 +1852,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         this.level().playSound(null, getX(), getY(), getZ(),
                 OWSounds.CROCODILE_IDLE_1.get(), SoundSource.AMBIENT, 1.5f,
                 (float) OWUtils.generateRandomInterval(0.7, 0.9));
+        return true;
     }
 
     public void executePrimalDive(int targetEntityId) {

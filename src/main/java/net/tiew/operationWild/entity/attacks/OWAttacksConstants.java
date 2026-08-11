@@ -22,16 +22,138 @@ public class OWAttacksConstants {
         // ── Coup d'Épaule (attaque secondaire instantanée) ──────────────────────
         public static final int SHOULDER_BASH_COOLDOWN_TICKS = 100;
         public static final float SHOULDER_BASH_ENERGY = 60f;
-        /** Poussée latérale imprimée à l'éléphant, appliquée dans le localEffect du cavalier. */
-        public static final double SHOULDER_BASH_SIDE_POWER = 1.35;
-        /** Petit sursaut vertical : sans lui la masse colle au sol et l'écart ne se voit pas. */
-        public static final double SHOULDER_BASH_LIFT = 0.22;
+
+        /**
+         * Le geste se joue en trois temps, et c'est ce découpage qui le rend lisible : la bête se
+         * ramasse du côté opposé, se jette sur l'épaule, puis se rattrape.
+         *
+         * <p>L'amorce sert aussi de tampon réseau. La ruée n'est plus une impulsion unique posée par
+         * le client du cavalier mais une vitesse <b>entretenue</b> des deux côtés pendant toute sa
+         * durée ; il faut donc que l'état soit arrivé avant qu'elle ne commence, et un quart de
+         * seconde d'anticipation y suffit largement.</p>
+         */
+        public static final int SHOULDER_BASH_WINDUP_TICKS = 4;
+        public static final int SHOULDER_BASH_DASH_TICKS = 8;
+        public static final int SHOULDER_BASH_RECOVER_TICKS = 7;
+        public static final int SHOULDER_BASH_DURATION_TICKS =
+                SHOULDER_BASH_WINDUP_TICKS + SHOULDER_BASH_DASH_TICKS + SHOULDER_BASH_RECOVER_TICKS;
+
+        /**
+         * Vitesse latérale maintenue pendant la ruée. Elle est réécrite à chaque tick, donc le
+         * frottement n'entre pas en jeu : dix ticks à 0,26 déportent l'éléphant de deux blocs et
+         * demi, l'écart demandé. Une impulsion unique, elle, s'éteignait en un demi-bloc.
+         */
+        public static final double SHOULDER_BASH_DASH_SPEED = 0.42;
+        /** Petit sursaut vertical au départ : sans lui la masse colle au sol et l'écart ne se voit pas. */
+        public static final double SHOULDER_BASH_LIFT = 0.26;
         /** Demi-largeur de la boîte de frappe, prise du côté vers lequel l'éléphant se déporte. */
-        public static final double SHOULDER_BASH_RADIUS = 4.0;
-        public static final float SHOULDER_BASH_DAMAGE = 11f;
-        public static final float SHOULDER_BASH_KNOCKBACK = 2.6f;
-        /** Le geste dure ce que dure le déport ; passé ce délai l'éléphant reprend la main. */
-        public static final int SHOULDER_BASH_DURATION_TICKS = 12;
+        public static final double SHOULDER_BASH_RADIUS = 5.0;
+        /**
+         * Part des dégâts de l'éléphant infligée par le coup d'épaule.
+         *
+         * <p>Proportionnel et non plus forfaitaire : un chiffre fixe ignorait le niveau et les
+         * statistiques de la bête, si bien qu'une jeune recrue frappait aussi fort qu'une monture
+         * de fin de partie. La moitié des dégâts, c'est plus d'une frappe de combo — qui n'en vaut
+         * qu'un tiers — sans approcher la démesure d'un ultime.</p>
+         */
+        public static final float SHOULDER_BASH_DAMAGE_RATIO = 0.5f;
+        public static final float SHOULDER_BASH_KNOCKBACK = 6.2f;
+        public static final double SHOULDER_BASH_KNOCKBACK_LIFT = 0.78;
+
+        // ── Jet de Trompe (attaque secondaire alternative, maintenue) ───────────
+        public static final float WATER_SPRAY_ENERGY = 0f;
+        /** Contenance de la trompe, en unités de réserve. */
+        public static final int WATER_SPRAY_CAPACITY = 300;
+        /** Aspiration par tick au contact de l'eau : sept secondes et demie pour faire le plein. */
+        public static final int WATER_SPRAY_FILL_PER_TICK = 2;
+        /** Distance à laquelle la trompe atteint l'eau : il faut vraiment être au bord. */
+        public static final double WATER_SPRAY_FILL_REACH = 2.5;
+        /**
+         * Consommation du jet : une unité tous les deux ticks, soit trente secondes de douche à
+         * pleine trompe. De quoi figer une douzaine de blocs de lave par plein.
+         */
+        public static final int WATER_SPRAY_COST_INTERVAL = 2;
+        /**
+         * Fuite naturelle. Elle aussi mise à l'échelle : une trompe pleine se vide en cinq minutes,
+         * comme avant l'agrandissement de la réserve.
+         */
+        public static final int WATER_SPRAY_LEAK_INTERVAL = 20;
+        /**
+         * Longueur maximale de la trajectoire, mesurée le long de la direction de tir.
+         *
+         * <p>C'est un plafond, pas une portée : l'arc s'arrête au premier bloc plein rencontré. Tiré
+         * à plat, le jet touche le sol bien avant ; tiré vers le haut, il déroule toute sa parabole
+         * et porte loin. C'est le geste de visée qui décide de l'allonge, comme avec une lance.</p>
+         */
+        public static final double WATER_SPRAY_RANGE = 30.0;
+        /**
+         * Demi-largeur du faisceau à pleine portée. Resserrée : le jet est une lance, pas une
+         * douche. Il se resserre encore en approchant de la trompe, et l'émission de particules
+         * reprend exactement ce profil pour que ce qu'on voit arrosé soit bien ce qui est touché.
+         */
+        public static final double WATER_SPRAY_RADIUS = 3.2;
+        /**
+         * Rayon d'extinction autour de l'arc, en blocs.
+         *
+         * <p>Plus généreux que le faisceau près de la trompe : viser un brasier au bloc près relève
+         * de l'exercice de tir, alors qu'arroser un incendie devrait rester facile. Il reste
+         * toutefois en deçà du panache sur la fin de course, pour qu'un feu s'éteigne parce qu'on
+         * l'a arrosé et non parce qu'on est passé à côté.</p>
+         */
+        public static final double WATER_SPRAY_DOUSE_RADIUS = 1.9;
+        /**
+         * Affaissement du jet : la moitié de la gravité, la vitesse initiale valant un bloc par tick.
+         *
+         * <p>Le jet est un <b>projectile</b>. Il part droit dans l'axe de la trompe — donc vers le
+         * haut si l'on vise haut — monte, culmine, puis retombe. Une valeur trop forte donnait un
+         * filet qui piquait du nez dès la sortie, sans jamais s'élever : la parabole existait mais
+         * son sommet était collé à la trompe.</p>
+         *
+         * <p>À 40° de visée, le sommet est atteint vers douze blocs et culmine à près de quatre
+         * blocs au-dessus de la trompe, avant de redescendre. C'est cette courbe-là qui porte le
+         * panache comme la zone touchée.</p>
+         */
+        public static final double WATER_SPRAY_DROOP = 0.0275;
+        /**
+         * Relevé de la trompe au-dessus de la ligne de visée, en degrés.
+         *
+         * <p>Une trompe qui pointe pile là où l'on regarde pend trop bas : elle donne l'impression
+         * d'une bête qui traîne son nez par terre. Elle se tient donc un peu au-dessus.</p>
+         *
+         * <p>Le relevé s'applique <b>aussi</b> à la direction du jet, et c'est indispensable : les
+         * gouttes partent selon l'axe réel de la trompe, si bien qu'un relevé purement décoratif
+         * ferait diverger le panache de la zone réellement arrosée. Effet de bord bienvenu — même
+         * en visant à plat, le jet est lobé et décrit un arc au lieu de tomber devant les pattes.</p>
+         */
+        public static final float WATER_SPRAY_LIFT_DEGREES = 11f;
+        /** Vitesse de sortie des gouttes, en blocs par tick : vingt blocs franchis en une seconde. */
+        public static final double WATER_SPRAY_LAUNCH_SPEED = 1.5;
+        /**
+         * Gravité de la goutte, au format attendu par {@code Particle} (qui retranche
+         * {@code 0.04 × gravity} à la vitesse verticale à chaque tick).
+         *
+         * <p>Déduite de l'affaissement et de la vitesse de sortie plutôt que réglée à la main : la
+         * parabole parcourue par les gouttes est ainsi <b>exactement</b> celle sur laquelle le
+         * serveur calcule les dégâts, et un ajustement de l'une suit forcément l'autre.</p>
+         */
+        public static final float WATER_SPRAY_PARTICLE_GRAVITY =
+                (float) (2.0 * WATER_SPRAY_DROOP * WATER_SPRAY_LAUNCH_SPEED * WATER_SPRAY_LAUNCH_SPEED / 0.04);
+        /** Poussée par tick sur ce que le jet balaie : on bouscule, on ne projette pas. */
+        public static final double WATER_SPRAY_PUSH = 0.42;
+        /**
+         * Dégâts par salve aux créatures que l'eau brûle — blaze, enderman, golem de neige,
+         * strider. Modestes mais réguliers : c'est l'arrosage qui tue, pas le premier jet.
+         */
+        public static final float WATER_SPRAY_SENSITIVE_DAMAGE = 1.5f;
+        /** Intervalle entre deux salves de dégâts : trois par seconde, pas vingt. */
+        public static final int WATER_SPRAY_DAMAGE_INTERVAL = 6;
+        /**
+         * Ticks de jet <b>continu</b> sur le même bloc de lave avant qu'il ne fige. Deux secteurs
+         * et demi par bloc : nettoyer une coulée demande de s'y tenir, et vide la trompe.
+         */
+        public static final int WATER_SPRAY_LAVA_TICKS = 50;
+        /** Points échantillonnés le long de l'arc : un tous les trois quarts de bloc environ. */
+        public static final int WATER_SPRAY_BLOCK_STEPS = 40;
 
         // ── Tremblement de Terre (ultime) ───────────────────────────────────────
         public static final int EARTHQUAKE_KILLS_REQUIRED = 5;

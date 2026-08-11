@@ -33,10 +33,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -90,6 +92,14 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     private static final EntityDataAccessor<Integer> SHOULDER_BASH_TIMER = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SHOULDER_BASH_SIDE = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+
+    public static final int TRUNK_IDLE = 0;
+    public static final int TRUNK_FILLING = 1;
+    public static final int TRUNK_SPRAYING = 2;
+
+    private static final EntityDataAccessor<Integer> TRUNK_WATER = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> TRUNK_MODE = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> TRUNK_WATER_NEARBY = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
 
     private static final EntityDataAccessor<Integer> EARTHQUAKE_TICK = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SADDLE_WOOL_0 = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
@@ -207,6 +217,32 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public volatile float bodyAnimY = 0f;
 
     private int shoulderBashCooldown = 0;
+
+    private BlockPos lavaTargetPos = null;
+    private int lavaSoakTicks = 0;
+
+    /**
+     * Avancement local du coup d'épaule, compté par le client pour son propre compte.
+     *
+     * <p>Le minuteur synchronisé ne décroît que côté serveur, et sa copie n'arrive au client que
+     * lorsque le réseau la lui apporte — pas forcément à chaque tick. L'animation avançait donc par
+     * à-coups, restant figée deux images puis sautant deux crans. Ce compteur-ci progresse d'un
+     * tick client par tick client ; le minuteur réseau ne sert plus qu'à savoir quand le geste
+     * commence et quand il finit.</p>
+     */
+    public int clientBashElapsed = -1;
+
+    /** Visée lissée de la trompe (client), en degrés relatifs au corps. */
+    public float trunkAimYaw, trunkAimYawO;
+    public float trunkAimPitch, trunkAimPitchO;
+    /** Gonflement de la trompe pendant l'aspiration (client) : 0 au repos, 1 pleine. */
+    public float trunkSwell, trunkSwellO;
+    /** Part de la pose de trompe pilotée à la visée plutôt que par les animations clés. */
+    public float trunkAimWeight, trunkAimWeightO;
+    /** Abaissement de l'encolure pendant l'aspiration, en degrés. */
+    public float trunkHeadDip, trunkHeadDipO;
+    /** Dernier tick où le panache a été émis : borne l'émission à 20 salves/s, pas à une par image. */
+    public int lastSprayParticleTick = -1;
     private int callCooldown = (int) OWUtils.generateRandomInterval(CALL_MIN_COOLDOWN, CALL_MAX_COOLDOWN);
 
     private boolean earthquakeImpactDone = false;
@@ -301,6 +337,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         builder.define(IS_CALLING, false);
         builder.define(SHOULDER_BASH_TIMER, 0);
         builder.define(SHOULDER_BASH_SIDE, 1);
+        builder.define(TRUNK_WATER, 0);
+        builder.define(TRUNK_MODE, TRUNK_IDLE);
+        builder.define(TRUNK_WATER_NEARBY, false);
         builder.define(EARTHQUAKE_TICK, 0);
         builder.define(ULTIMATE_KILL_COUNT, 0);
         builder.define(SADDLE_WOOL_0, NO_TRIBE_WOOL_0);
@@ -445,9 +484,21 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return Mth.clamp(this.getAcceleration() / FULL_CHARGE, 0f, 1f);
     }
 
+    /**
+     * L'éléphant peut-il charger tête baissée ?
+     *
+     * <p>Seulement le Coup d'Épaule en main. Avec le Jet de Trompe, la trompe est en position de
+     * tir et la tête reste haute : la bête ne baisse plus l'encolure en sprintant, et ne laboure
+     * donc plus rien au passage — ni arbres, ni feuillages. C'est le prix de l'autre carte.</p>
+     */
+    public boolean canChargeHeadDown() {
+        return getSecondaryAttackIndex() == 0;
+    }
+
     private void tickChargeHeadPitch() {
         chargeHeadPitchPrev = chargeHeadPitch;
-        chargeHeadPitch += (getChargeRamp() * CHARGE_HEAD_MAX_PITCH - chargeHeadPitch) * CHARGE_HEAD_RESPONSE;
+        float target = canChargeHeadDown() ? getChargeRamp() * CHARGE_HEAD_MAX_PITCH : 0f;
+        chargeHeadPitch += (target - chargeHeadPitch) * CHARGE_HEAD_RESPONSE;
     }
 
     public float getChargeHeadPitch(float partialTick) {
@@ -654,6 +705,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (this.level().isClientSide()) {
             setupAnimationState();
             tickChargeHeadPitch();
+            tickTrunkAim();
+            tickClientBashElapsed();
         }
         if (this.isInResurrection()) this.setSleeping(true);
 
@@ -665,8 +718,10 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             this.setDeltaMovement(this.getDeltaMovement().multiply(0.2, 1.0, 0.2));
         }
 
+        tickShoulderBash();
+
         if (!this.level().isClientSide()) {
-            tickShoulderBash();
+            tickTrunkWater();
             tickEarthquake();
             tickShockwave();
             tickChargeStall();
@@ -771,6 +826,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private void tickCharge() {
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
         if (!isFullyCharged()) return;
+        // Tête haute, rien ne se laboure : le geste et son effet vont de pair, sans quoi les arbres
+        // tomberaient sous une charge que plus rien ne montre à l'écran.
+        if (!canChargeHeadDown()) return;
 
         plough(serverLevel);
     }
@@ -839,7 +897,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 .move(0, this.getBbHeight() * 0.5, 0)
                 .expandTowards(0, PLOUGH_EXTRA_HEIGHT, 0);
 
-        if (canBreakTerrain(serverLevel)) {
+        if (canBreakTerrain(serverLevel) && canChargeHeadDown()) {
             BlockPos.betweenClosedStream(front).forEach(pos -> {
                 BlockState state = serverLevel.getBlockState(pos);
 
@@ -913,11 +971,39 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         int timer = this.entityData.get(SHOULDER_BASH_TIMER);
         if (timer <= 0) return;
 
-        if (timer == OWAttacksConstants.Elephant.SHOULDER_BASH_DURATION_TICKS - 1) {
-            applyShoulderBashDamage();
+        int elapsed = OWAttacksConstants.Elephant.SHOULDER_BASH_DURATION_TICKS - timer;
+        int windup = OWAttacksConstants.Elephant.SHOULDER_BASH_WINDUP_TICKS;
+        int dashEnd = windup + OWAttacksConstants.Elephant.SHOULDER_BASH_DASH_TICKS;
+
+        // La ruée se pilote des DEUX côtés, comme le plongeon du kangourou : sur une monture, c'est
+        // le client du cavalier qui fait autorité sur la position, et une vitesse posée par le seul
+        // serveur serait écrasée au paquet suivant. Seul le minuteur, lui, avance côté serveur.
+        if (elapsed >= windup && elapsed < dashEnd) {
+            Vec3 dir = getBashDirection(getShoulderBashSide());
+            double speed = OWAttacksConstants.Elephant.SHOULDER_BASH_DASH_SPEED * shoulderBashDashFalloff(elapsed - windup);
+            double lift = elapsed == windup ? OWAttacksConstants.Elephant.SHOULDER_BASH_LIFT : this.getDeltaMovement().y;
+            this.setDeltaMovement(dir.x * speed, lift, dir.z * speed);
+            this.hasImpulse = true;
+        } else if (elapsed >= dashEnd) {
+            this.setDeltaMovement(this.getDeltaMovement().multiply(0.6, 1.0, 0.6));
         }
 
+        if (this.level().isClientSide()) return;
+
+        if (elapsed == windup) applyShoulderBashDamage();
+
         this.entityData.set(SHOULDER_BASH_TIMER, timer - 1);
+    }
+
+    /**
+     * Profil de la ruée : plein régime sur les deux tiers, puis extinction douce. Une coupure nette
+     * en fin de course arrêtait la masse comme un mur et ruinait tout le poids du geste.
+     */
+    private static double shoulderBashDashFalloff(int dashTick) {
+        int dash = OWAttacksConstants.Elephant.SHOULDER_BASH_DASH_TICKS;
+        float t = (float) dashTick / dash;
+        if (t < 0.66f) return 1.0;
+        return Mth.clamp(1.0 - (t - 0.66f) / 0.34f, 0.0, 1.0);
     }
 
     private void tickEarthquake() {
@@ -1174,16 +1260,595 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 2.0f, (float) OWUtils.generateRandomInterval(0.85, 1.0));
     }
 
+    private void tickClientBashElapsed() {
+        if (!isShoulderBashing()) {
+            clientBashElapsed = -1;
+            return;
+        }
+        // Le geste vient de commencer : on se cale sur ce que le serveur annonce, puis on avance
+        // seul. Un simple recalage doux corrige ensuite les dérives éventuelles sans à-coup.
+        int serverElapsed = OWAttacksConstants.Elephant.SHOULDER_BASH_DURATION_TICKS - getShoulderBashTimer();
+        if (clientBashElapsed < 0) {
+            clientBashElapsed = serverElapsed;
+        } else {
+            clientBashElapsed++;
+            if (Math.abs(clientBashElapsed - serverElapsed) > 2) clientBashElapsed = serverElapsed;
+        }
+    }
+
+    /**
+     * Rend la main sur la vélocité pendant le coup d'épaule.
+     *
+     * <p>Sans cet aiguillage, {@code OWEntity#travelRidden} réécrit chaque tick la vitesse de la
+     * monture en {@code direction du regard × vitesse de marche} : le déport latéral était posé puis
+     * effacé dans le même tick, et l'éléphant ne bougeait pas d'un pouce. C'est la même échappatoire
+     * que celle du Pilon Tellurique du kangourou.</p>
+     */
+    @Override
+    protected boolean isLeapingVehicle() {
+        return isShoulderBashing() || super.isLeapingVehicle();
+    }
+
     public void cancelShoulderBash() {
         if (this.level().isClientSide()) return;
         this.entityData.set(SHOULDER_BASH_TIMER, 0);
         this.entityData.set(SHOULDER_BASH_SIDE, 1);
     }
 
+    // ── Jet de Trompe ────────────────────────────────────────────────────────
+
+    /**
+     * La trompe suit-elle le curseur en ce moment ?
+     *
+     * <p>Hors de ces cas, on laisse les animations clés en disposer entièrement : un éléphant
+     * sauvage ou monté sur le coup d'épaule ne doit pas voir sa trompe changer de comportement.</p>
+     */
+    private boolean isTrunkAimActive() {
+        // Uniquement pendant l'action, jamais sur la simple sélection de la carte. Le passage à la
+        // pose de visée demande une seconde : équiper le Jet de Trompe faisait donc lentement
+        // retomber la trompe hors de son animation de repos, sans que rien ne se passe par
+        // ailleurs. On ne quitte les animations clés qu'au moment où l'on s'en sert.
+        return isSprayingWater() || isFillingTrunk();
+    }
+
+    /**
+     * Visée de la trompe, côté client uniquement.
+     *
+     * <p>Elle ne colle pas au curseur, elle le <b>rejoint</b> : une poursuite amortie, sur laquelle
+     * se superposent deux sinusoïdes de périodes incommensurables. Rien ne se répète donc jamais à
+     * l'identique, et la trompe garde son air vivant tout en restant du côté où l'on regarde.</p>
+     */
+    /** Profondeur de la nappe sous la base de la trompe, mise à jour par intermittence. */
+    private double fillDrop = 0.0;
+
+    /**
+     * Angle de plongée nécessaire pour que le bout de la trompe touche l'eau.
+     *
+     * <p>Trigonométrie directe : une trompe de deux blocs inclinée de {@code a} descend de
+     * {@code 2 × sin(a)}. On inverse. Au-delà de deux blocs de dénivelé la trompe seule ne suffit
+     * plus, et c'est la tête qui va chercher le reste (cf. {@link #getTrunkHeadDip}).</p>
+     *
+     * <p>La nappe n'est ré-échantillonnée que toutes les cinq images : une bête qui boit ne se
+     * déplace guère, et la recherche balaie une cinquantaine de colonnes.</p>
+     */
+    private float computeFillPitch() {
+        if (this.tickCount % 5 == 0) {
+            Double surface = findFillSurfaceY();
+            fillDrop = surface == null ? 0.0 : getTrunkBase().y - surface;
+        }
+        double ratio = Mth.clamp(fillDrop / TRUNK_LENGTH, -1.0, 1.0);
+        return (float) Math.toDegrees(Math.asin(ratio));
+    }
+
+    /**
+     * Abaissement supplémentaire de la tête pendant l'aspiration, en degrés.
+     *
+     * <p>Il n'entre en jeu que lorsque la trompe touche à sa limite d'allonge : la bête baisse
+     * alors l'encolure pour aller chercher les derniers centimètres, comme elle le ferait pour
+     * boire dans un trou. Négatif si l'eau est plus haute qu'elle — elle relève la tête.</p>
+     */
+    public float getTrunkHeadDip(float partial) {
+        return Mth.lerp(partial, trunkHeadDipO, trunkHeadDip);
+    }
+
+    private void tickTrunkAim() {
+        trunkAimYawO = trunkAimYaw;
+        trunkAimPitchO = trunkAimPitch;
+        trunkSwellO = trunkSwell;
+        trunkAimWeightO = trunkAimWeight;
+        trunkHeadDipO = trunkHeadDip;
+
+        // Zone neutre : tant que la trompe atteint l'eau sans forcer, l'encolure ne bouge pas. Elle
+        // ne s'abaisse que sur les derniers centimètres hors d'allonge, et ne se relève que si
+        // l'eau est franchement plus haute que la base de la trompe.
+        float targetDip = 0f;
+        if (isFillingTrunk()) {
+            if (fillDrop > TRUNK_LENGTH * 0.75) {
+                targetDip = (float) Mth.clamp((fillDrop - TRUNK_LENGTH * 0.75) * 26.0, 0.0, 24.0);
+            } else if (fillDrop < 0.0) {
+                targetDip = (float) Mth.clamp(fillDrop * 26.0, -18.0, 0.0);
+            }
+        }
+        trunkHeadDip += (targetDip - trunkHeadDip) * 0.15f;
+
+        float targetWeight = isTrunkAimActive() ? 1f : 0f;
+        trunkAimWeight += (targetWeight - trunkAimWeight) * 0.12f;
+
+        LivingEntity rider = this.getControllingPassenger();
+        float targetYaw;
+        float targetPitch;
+
+        if (isFillingTrunk()) {
+            // Elle plonge vers l'eau, quoi que regarde le cavalier — et exactement d'autant qu'il
+            // faut pour l'atteindre, au lieu d'un angle figé qui tombait à côté dès que la nappe
+            // n'était pas à la profondeur prévue.
+            targetYaw = 0f;
+            targetPitch = computeFillPitch();
+        } else {
+            float aimYaw = rider != null ? rider.getYRot() : this.getYRot();
+            float aimPitch = rider != null ? rider.getXRot() : this.getXRot();
+            // Débattement large : la trompe doit pouvoir désigner franchement les côtés et le sol,
+            // pas se contenter d'incliner poliment la pointe. Le relevé la tient au-dessus de la
+            // ligne de visée — c'est le même que celui du jet, sans quoi les deux divergeraient.
+            targetYaw = Mth.clamp(Mth.wrapDegrees(aimYaw - this.yBodyRot), -80f, 80f);
+            targetPitch = Mth.clamp(aimPitch - OWAttacksConstants.Elephant.WATER_SPRAY_LIFT_DEGREES, -70f, 80f);
+        }
+
+        // Deux régimes bien distincts.
+        //
+        // Au repos, la trompe FLÂNE autour du curseur : elle en garde le voisinage sans jamais s'y
+        // poser, avec une poursuite très molle et une errance ample et lente. C'est ce qui lui donne
+        // son air d'appendice vivant plutôt que de viseur.
+        //
+        // Pendant le jet elle se verrouille : les gouttes partent selon son axe réel, donc le
+        // moindre écart se lirait comme un jet qui rate sa cible.
+        float t = this.tickCount;
+        float wander;
+        float follow;
+        if (isSprayingWater()) {
+            // Resserré d'autant plus que le jet porte loin : à vingt blocs, chaque degré d'écart
+            // déplace le point de chute d'un tiers de bloc.
+            wander = 0.15f;
+            follow = 0.34f;
+        } else if (isFillingTrunk()) {
+            wander = 0.50f;
+            follow = 0.18f;
+        } else {
+            // Franchement vague : la trompe ne vise pas, elle occupe le voisinage du curseur. Une
+            // poursuite très lente laisse l'errance dominer, et c'est elle qu'on doit voir.
+            wander = 2.7f;
+            follow = 0.032f;
+        }
+
+        targetYaw += wander * (7.0f * Mth.sin(t * 0.037f)
+                + 3.5f * Mth.sin(t * 0.091f)
+                + 5.0f * Mth.sin(t * 0.017f)
+                + 4.0f * Mth.sin(t * 0.0071f));
+        targetPitch += wander * (5.0f * Mth.sin(t * 0.053f)
+                + 2.5f * Mth.sin(t * 0.113f)
+                + 3.5f * Mth.sin(t * 0.023f)
+                + 3.0f * Mth.sin(t * 0.0089f));
+        trunkAimYaw += (targetYaw - trunkAimYaw) * follow;
+        trunkAimPitch += (targetPitch - trunkAimPitch) * follow;
+
+        float targetSwell = getTrunkWaterRatio();
+        if (isFillingTrunk()) targetSwell += 0.22f * Mth.sin(t * 0.45f);
+        else if (isSprayingWater()) targetSwell *= 0.45f;
+        trunkSwell += (targetSwell - trunkSwell) * 0.2f;
+    }
+
+    public float getTrunkAimYaw(float partial) { return Mth.lerp(partial, trunkAimYawO, trunkAimYaw); }
+
+    public float getTrunkAimPitch(float partial) { return Mth.lerp(partial, trunkAimPitchO, trunkAimPitch); }
+
+    public float getTrunkSwell(float partial) { return Mth.lerp(partial, trunkSwellO, trunkSwell); }
+
+    public float getTrunkAimWeight(float partial) { return Mth.lerp(partial, trunkAimWeightO, trunkAimWeight); }
+
+    /** L'éléphant porte deux cartes secondaires : le coup d'épaule et le jet de trompe. */
+    @Override
+    public int getSecondaryAttackCount() {
+        return 2;
+    }
+
+    @Override
+    protected void onSecondaryAttackChanged() {
+        stopTrunkAction();
+    }
+
+    public int getTrunkWater() { return this.entityData.get(TRUNK_WATER); }
+
+    public int getTrunkMode() { return this.entityData.get(TRUNK_MODE); }
+
+    public boolean isSprayingWater() { return getTrunkMode() == TRUNK_SPRAYING; }
+
+    public boolean isFillingTrunk() { return getTrunkMode() == TRUNK_FILLING; }
+
+    public float getTrunkWaterRatio() {
+        return (float) getTrunkWater() / OWAttacksConstants.Elephant.WATER_SPRAY_CAPACITY;
+    }
+
+    /**
+     * De l'eau est-elle à portée de trompe ?
+     *
+     * <p>Synchronisé plutôt que recalculé par le client : la carte du HUD s'en sert pour se griser,
+     * et elle est redessinée à chaque image — sonder cent cinquante blocs soixante fois par seconde
+     * pour une information qui bouge à peine n'aurait aucun sens. Le serveur la rafraîchit dix fois
+     * moins souvent, ce qui suffit largement pour une bête qui marche.</p>
+     */
+    public boolean isWaterNearby() { return this.entityData.get(TRUNK_WATER_NEARBY); }
+
+    /** La carte du jet est-elle utilisable : de l'eau en réserve, ou de quoi en puiser ? */
+    public boolean canUseTrunkWater() { return getTrunkWater() > 0 || isWaterNearby(); }
+
+    /**
+     * Base de la trompe, en coordonnées du monde.
+     *
+     * <p>Volontairement approximative : c'est l'origine du jet côté <b>règles</b>, celle qui décide
+     * de ce qui est touché. Le panache de gouttes, lui, part de la pointe réellement animée, calculée
+     * image par image à partir des transformations d'os (cf. {@code ElephantTrunkSprayLayer}) — les
+     * deux ne peuvent pas coïncider puisque la trompe ondule autour de la ligne de visée.</p>
+     */
+    public Vec3 getTrunkBase() {
+        Vec3 forward = Vec3.directionFromRotation(0f, this.yBodyRot);
+        return this.position().add(forward.scale(2.0)).add(0, this.getBbHeight() * 0.62, 0);
+    }
+
+    /**
+     * Direction du jet : le regard du cavalier fait foi, relevé du même angle que la trompe.
+     *
+     * <p>Le relevé doit être appliqué ici aussi, et pas seulement à la pose : les gouttes suivent
+     * l'axe dessiné de la trompe, donc les deux doivent partager le même angle sous peine de voir
+     * l'eau tomber ailleurs qu'où elle est dessinée.</p>
+     */
+    public Vec3 getSprayDirection() {
+        LivingEntity rider = this.getControllingPassenger();
+        float pitch = rider != null ? rider.getXRot() : this.getXRot();
+        float yaw = rider != null ? rider.getYRot() : this.yBodyRot;
+        return Vec3.directionFromRotation(pitch - OWAttacksConstants.Elephant.WATER_SPRAY_LIFT_DEGREES, yaw);
+    }
+
+    /**
+     * Démarre l'action de trompe au clic droit maintenu : elle aspire si de l'eau est à portée et
+     * qu'il reste de la place, elle pulvérise sinon. Une seule commande pour les deux gestes.
+     */
+    public void startTrunkAction() {
+        if (this.level().isClientSide()) return;
+        if (isEarthquakeGesture() || isShoulderBashing() || this.isCombo()) return;
+
+        boolean canFill = getTrunkWater() < OWAttacksConstants.Elephant.WATER_SPRAY_CAPACITY
+                && isWaterInTrunkReach();
+
+        if (canFill) {
+            this.entityData.set(TRUNK_MODE, TRUNK_FILLING);
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.AMBIENT_UNDERWATER_ENTER, SoundSource.NEUTRAL, 0.7f, 1.4f);
+        } else if (getTrunkWater() > 0) {
+            // Aucun cri au déclenchement : le jet s'annonce par son propre bruit d'eau, entretenu
+            // tant qu'il dure (cf. tickTrunkWater). Un barrissement par pression sur le clic droit
+            // rendait la moindre giclée tonitruante.
+            this.entityData.set(TRUNK_MODE, TRUNK_SPRAYING);
+        }
+    }
+
+    public void stopTrunkAction() {
+        if (this.level().isClientSide()) return;
+        this.entityData.set(TRUNK_MODE, TRUNK_IDLE);
+        lavaTargetPos = null;
+        lavaSoakTicks = 0;
+    }
+
+    /** Longueur de la trompe déployée, en blocs : deux segments de seize unités de modèle. */
+    private static final double TRUNK_LENGTH = 2.0;
+
+    /**
+     * Hauteur de la surface d'eau la plus haute à portée de trompe, ou {@code null} s'il n'y en a
+     * aucune.
+     *
+     * <p>On retient la <b>surface</b> et non le bloc : une eau à mi-hauteur ne se puise pas à la
+     * même profondeur qu'une source pleine, et c'est précisément l'écart que la trompe doit
+     * rattraper. Chaque colonne est parcourue de haut en bas et abandonnée dès sa première eau —
+     * ce qui donne bien le dessus de la nappe et non son fond.</p>
+     */
+    private Double findFillSurfaceY() {
+        Vec3 base = getTrunkBase();
+        int reach = (int) Math.ceil(OWAttacksConstants.Elephant.WATER_SPRAY_FILL_REACH);
+        BlockPos centre = BlockPos.containing(base);
+        double best = Double.NEGATIVE_INFINITY;
+
+        for (int dx = -reach; dx <= reach; dx++) {
+            for (int dz = -reach; dz <= reach; dz++) {
+                for (int dy = 1; dy >= -reach * 2; dy--) {
+                    BlockPos pos = centre.offset(dx, dy, dz);
+                    var fluid = this.level().getFluidState(pos);
+                    if (!fluid.is(FluidTags.WATER)) continue;
+                    best = Math.max(best, pos.getY() + fluid.getHeight(this.level(), pos));
+                    break;
+                }
+            }
+        }
+        return best == Double.NEGATIVE_INFINITY ? null : best;
+    }
+
+    private boolean isWaterInTrunkReach() {
+        if (this.isInWater()) return true;
+
+        Vec3 base = getTrunkBase();
+        double reach = OWAttacksConstants.Elephant.WATER_SPRAY_FILL_REACH;
+        // La trompe plonge : on sonde surtout vers le bas, pas une sphère centrée sur la tête.
+        BlockPos min = BlockPos.containing(base.x - reach, base.y - reach * 2.0, base.z - reach);
+        BlockPos max = BlockPos.containing(base.x + reach, base.y + 0.5, base.z + reach);
+
+        for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
+            if (this.level().getFluidState(pos).is(FluidTags.WATER)) return true;
+        }
+        return false;
+    }
+
+    private void tickTrunkWater() {
+        int mode = getTrunkMode();
+        int water = getTrunkWater();
+        int capacity = OWAttacksConstants.Elephant.WATER_SPRAY_CAPACITY;
+
+        // Rafraîchi dix fois par seconde au plus, et seulement sous un cavalier : c'est la seule
+        // situation où l'information sert (grisage de la carte).
+        if (this.tickCount % 10 == 0) {
+            boolean nearby = this.getControllingPassenger() != null && isWaterInTrunkReach();
+            if (nearby != isWaterNearby()) this.entityData.set(TRUNK_WATER_NEARBY, nearby);
+        }
+
+        // Le cavalier a lâché la bête sans lâcher le clic : personne ne fermera le robinet.
+        if (mode != TRUNK_IDLE && this.getControllingPassenger() == null) {
+            stopTrunkAction();
+            return;
+        }
+
+        // Un geste lourd prend le pas sur la trompe : on ne pulvérise pas en plein séisme.
+        if (isEarthquakeGesture() || isShoulderBashing()) {
+            if (mode != TRUNK_IDLE) stopTrunkAction();
+            mode = TRUNK_IDLE;
+        }
+
+        if (mode == TRUNK_FILLING) {
+            if (water >= capacity || !isWaterInTrunkReach()) {
+                stopTrunkAction();
+            } else {
+                this.entityData.set(TRUNK_WATER,
+                        Math.min(capacity, water + OWAttacksConstants.Elephant.WATER_SPRAY_FILL_PER_TICK));
+            }
+        } else if (mode == TRUNK_SPRAYING) {
+            if (water <= 0) {
+                stopTrunkAction();
+            } else {
+                if (this.tickCount % OWAttacksConstants.Elephant.WATER_SPRAY_COST_INTERVAL == 0) {
+                    this.entityData.set(TRUNK_WATER, Math.max(0, water - 1));
+                }
+                if (this.level() instanceof ServerLevel serverLevel) performTrunkSpray(serverLevel);
+
+                // Bruit d'eau entretenu : la brasse sur place, relancée assez serré pour qu'on
+                // n'entende plus les coutures — un « pschhh » continu plutôt qu'un clapotis
+                // périodique. Le pas de 3 ticks se marie mal avec la cadence de consommation
+                // (2 ticks), et c'est voulu : les deux ne se synchronisent pas, ce qui évite un
+                // battement régulier à l'oreille. La hauteur varie légèrement à chaque relance.
+                if (this.tickCount % 3 == 0) {
+                    float pitch = 1.45f + this.getRandom().nextFloat() * 0.35f;
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                            SoundEvents.PLAYER_SWIM, SoundSource.NEUTRAL, 0.60f, pitch);
+                }
+                if (this.tickCount % 9 == 0) {
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                            SoundEvents.WATER_AMBIENT, SoundSource.NEUTRAL, 0.45f, 1.3f);
+                }
+            }
+        } else {
+            lavaTargetPos = null;
+            lavaSoakTicks = 0;
+            if (water > 0 && this.tickCount % OWAttacksConstants.Elephant.WATER_SPRAY_LEAK_INTERVAL == 0) {
+                this.entityData.set(TRUNK_WATER, water - 1);
+            }
+        }
+    }
+
+    /**
+     * Point de l'arc du jet à {@code s} blocs de course depuis la trompe.
+     *
+     * <p>Statique et partagée : le serveur s'en sert pour décider de ce qui est touché, le rendu
+     * pour semer ses gouttes. Les deux dessinent ainsi rigoureusement la même parabole — c'est la
+     * seule façon que l'eau tombe là où on la voit tomber.</p>
+     */
+    public static Vec3 sprayArcPoint(Vec3 origin, Vec3 dir, double s) {
+        double drop = OWAttacksConstants.Elephant.WATER_SPRAY_DROOP * s * s;
+        return origin.add(dir.scale(s)).subtract(0, drop, 0);
+    }
+
+    /** Tangente à l'arc : direction réelle des gouttes à cette distance, de plus en plus piquée. */
+    public static Vec3 sprayArcTangent(Vec3 dir, double s) {
+        return dir.subtract(0, 2.0 * OWAttacksConstants.Elephant.WATER_SPRAY_DROOP * s, 0).normalize();
+    }
+
+    /**
+     * Longueur réellement parcourue par le jet avant qu'il ne rencontre un obstacle.
+     *
+     * <p>Partagée elle aussi : sans elle, le rendu sèmerait ses gouttes sur toute la trajectoire
+     * théorique, y compris sous le sol, là où le serveur a déjà arrêté le jet.</p>
+     */
+    public static double sprayReach(Level level, Vec3 origin, Vec3 dir) {
+        double range = OWAttacksConstants.Elephant.WATER_SPRAY_RANGE;
+        int steps = OWAttacksConstants.Elephant.WATER_SPRAY_BLOCK_STEPS;
+        for (int i = 1; i <= steps; i++) {
+            double s = range * i / steps;
+            BlockPos pos = BlockPos.containing(sprayArcPoint(origin, dir, s));
+            // La lave se laisse arroser : c'est tout l'intérêt, elle n'arrête pas le jet.
+            if (level.getBlockState(pos).blocksMotion() && !level.getFluidState(pos).is(FluidTags.LAVA)) {
+                return s;
+            }
+        }
+        return range;
+    }
+
+    /** Demi-largeur du faisceau à cette distance : fin à la trompe, plus large au bout. */
+    public static double sprayRadiusAt(double s) {
+        double t = s / OWAttacksConstants.Elephant.WATER_SPRAY_RANGE;
+        return OWAttacksConstants.Elephant.WATER_SPRAY_RADIUS * (0.35 + 0.65 * t);
+    }
+
+    private void performTrunkSpray(ServerLevel level) {
+        Vec3 origin = getTrunkBase();
+        Vec3 dir = getSprayDirection();
+        double range = OWAttacksConstants.Elephant.WATER_SPRAY_RANGE;
+        int steps = OWAttacksConstants.Elephant.WATER_SPRAY_BLOCK_STEPS;
+
+        List<Vec3> arc = new ArrayList<>(steps);
+        BlockPos firstLava = null;
+        Set<BlockPos> doused = new HashSet<>();
+
+        for (int i = 1; i <= steps; i++) {
+            double s = range * i / steps;
+            Vec3 point = sprayArcPoint(origin, dir, s);
+            BlockPos pos = BlockPos.containing(point);
+
+            // Un point sur trois suffit : les échantillons sont espacés de trois quarts de bloc et
+            // le rayon d'arrosage en fait deux et demi, donc la couverture reste continue pour un
+            // tiers du coût.
+            if (i % 3 == 1) douseAround(level, point, doused);
+            if (firstLava == null && level.getFluidState(pos).is(FluidTags.LAVA)) firstLava = pos.immutable();
+
+            arc.add(point);
+
+            // L'eau ne traverse pas les murs : le jet s'arrête au premier obstacle plein. La lave,
+            // elle, se laisse arroser — c'est tout l'intérêt.
+            if (level.getBlockState(pos).blocksMotion() && !level.getFluidState(pos).is(FluidTags.LAVA)) break;
+        }
+
+        tickLavaSoak(level, firstLava);
+        pushEntitiesAlongArc(level, origin, dir, arc, range);
+    }
+
+    /**
+     * Noie tout ce qui brûle autour d'un point de l'arc.
+     *
+     * <p>Le jet n'éteignait que les blocs qu'il traversait exactement, ce qui obligeait à viser au
+     * bloc près : sur un arc en cloche, autant dire au jugé. Il arrose maintenant tout son
+     * voisinage. Les positions déjà traitées sont mémorisées, sinon les voisinages de quarante
+     * points d'échantillonnage se recouvriraient dix fois.</p>
+     */
+    private void douseAround(ServerLevel level, Vec3 point, Set<BlockPos> alreadyDone) {
+        int r = (int) Math.ceil(OWAttacksConstants.Elephant.WATER_SPRAY_DOUSE_RADIUS);
+        double rSqr = OWAttacksConstants.Elephant.WATER_SPRAY_DOUSE_RADIUS
+                * OWAttacksConstants.Elephant.WATER_SPRAY_DOUSE_RADIUS;
+        BlockPos center = BlockPos.containing(point);
+
+        for (BlockPos pos : BlockPos.betweenClosed(center.offset(-r, -r, -r), center.offset(r, r, r))) {
+            if (pos.getCenter().distanceToSqr(point) > rSqr) continue;
+            BlockPos immutable = pos.immutable();
+            if (!alreadyDone.add(immutable)) continue;
+            extinguishAt(level, immutable);
+        }
+    }
+
+    private void pushEntitiesAlongArc(ServerLevel level, Vec3 origin, Vec3 dir, List<Vec3> arc, double range) {
+        if (arc.isEmpty()) return;
+
+        AABB box = new AABB(origin, origin);
+        for (Vec3 point : arc) box = box.minmax(new AABB(point, point));
+        box = box.inflate(OWAttacksConstants.Elephant.WATER_SPRAY_RADIUS);
+
+        double reached = range * arc.size() / OWAttacksConstants.Elephant.WATER_SPRAY_BLOCK_STEPS;
+
+        for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, box)) {
+            if (target == this || target == this.getControllingPassenger()) continue;
+
+            Vec3 center = target.getBoundingBox().getCenter();
+            int hitIndex = -1;
+            for (int i = 0; i < arc.size(); i++) {
+                double s = range * (i + 1) / OWAttacksConstants.Elephant.WATER_SPRAY_BLOCK_STEPS;
+                double allowed = sprayRadiusAt(s) + target.getBbWidth() * 0.5;
+                if (arc.get(i).distanceToSqr(center) <= allowed * allowed) {
+                    hitIndex = i;
+                    break;
+                }
+            }
+            if (hitIndex < 0) continue;
+
+            // Éteindre vaut pour tout le monde, y compris les alliés : c'est un secours, pas une
+            // attaque. Seule la bourrade épargne la tribu.
+            target.clearFire();
+
+            if (this.isAlliedTo(target)) continue;
+
+            // Ce que l'eau brûle : blaze, enderman, golem de neige, strider. On s'appuie sur le
+            // drapeau vanilla plutôt que sur une liste en dur, pour que toute créature du même
+            // genre — moddée comprise — y réagisse aussi.
+            if (target instanceof Mob mob && mob.isSensitiveToWater()
+                    && this.tickCount % OWAttacksConstants.Elephant.WATER_SPRAY_DAMAGE_INTERVAL == 0) {
+                target.hurt(this.damageSources().drown(),
+                        OWAttacksConstants.Elephant.WATER_SPRAY_SENSITIVE_DAMAGE);
+            }
+
+            // Poussée dans le sens réel du jet à cet endroit-là : de face près de la trompe, de
+            // plus en plus plongeante à mesure que l'eau retombe.
+            double s = range * (hitIndex + 1) / OWAttacksConstants.Elephant.WATER_SPRAY_BLOCK_STEPS;
+            Vec3 push = sprayArcTangent(dir, s).scale(OWAttacksConstants.Elephant.WATER_SPRAY_PUSH);
+            target.setDeltaMovement(target.getDeltaMovement()
+                    .add(push.x, Math.max(push.y, 0) + OWAttacksConstants.Elephant.WATER_SPRAY_PUSH * 0.20, push.z));
+            target.hurtMarked = true;
+        }
+    }
+
+    private void extinguishAt(ServerLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (state.is(BlockTags.FIRE)) {
+            level.removeBlock(pos, false);
+            level.levelEvent(null, 1009, pos, 0);
+        } else if (state.getBlock() instanceof net.minecraft.world.level.block.CampfireBlock
+                && state.getValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT)) {
+            level.setBlockAndUpdate(pos, state.setValue(
+                    net.minecraft.world.level.block.state.properties.BlockStateProperties.LIT, false));
+            level.levelEvent(null, 1009, pos, 0);
+        }
+    }
+
+    /**
+     * Figeage de la lave : il faut tenir le jet sur le <b>même</b> bloc sans interruption. Dès que
+     * la visée change de bloc, le décompte repart de zéro — d'où le fait qu'assécher une coulée
+     * demande de s'y appliquer, et vide la trompe bien avant d'en venir à bout.
+     */
+    private void tickLavaSoak(ServerLevel level, BlockPos lava) {
+        if (lava == null) {
+            lavaTargetPos = null;
+            lavaSoakTicks = 0;
+            return;
+        }
+
+        if (!lava.equals(lavaTargetPos)) {
+            lavaTargetPos = lava;
+            lavaSoakTicks = 0;
+        }
+
+        lavaSoakTicks++;
+
+        if (lavaSoakTicks % 5 == 0) {
+            level.sendParticles(ParticleTypes.LARGE_SMOKE,
+                    lava.getX() + 0.5, lava.getY() + 1.0, lava.getZ() + 0.5, 6, 0.35, 0.1, 0.35, 0.02);
+            level.playSound(null, lava, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5f, 2.0f);
+        }
+
+        if (lavaSoakTicks < OWAttacksConstants.Elephant.WATER_SPRAY_LAVA_TICKS) return;
+
+        level.setBlockAndUpdate(lavaTargetPos, Blocks.COBBLESTONE.defaultBlockState());
+        level.levelEvent(null, 1501, lavaTargetPos, 0);
+        lavaTargetPos = null;
+        lavaSoakTicks = 0;
+    }
+
     private void applyShoulderBashDamage() {
         int side = getShoulderBashSide();
         Vec3 dir = getBashDirection(side);
         double radius = OWAttacksConstants.Elephant.SHOULDER_BASH_RADIUS;
+
+        // Le choc s'entend : un impact sourd doublé du barrissement de l'effort.
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.GENERIC_EXPLODE.value(), SoundSource.NEUTRAL, 0.55f, 1.7f);
 
         Vec3 center = this.position().add(dir.scale(radius * 0.5)).add(0, this.getBbHeight() * 0.5, 0);
         AABB box = new AABB(center, center).inflate(radius * 0.75, this.getBbHeight() * 0.6, radius * 0.75);
@@ -1192,9 +1857,14 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             if (target == this || target == this.getControllingPassenger()) continue;
             if (this.isAlliedTo(target)) continue;
 
-            target.hurt(this.damageSources().mobAttack(this), OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE);
-            target.push(dir.x * OWAttacksConstants.Elephant.SHOULDER_BASH_KNOCKBACK,
-                    0.45,
+            target.hurt(this.damageSources().mobAttack(this),
+                    (float) (this.getDamage() * OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE_RATIO));
+            // setDeltaMovement plutôt que push : la poussée s'ajoute à l'élan existant, si bien
+            // qu'une cible qui venait vers l'éléphant partait deux fois moins loin que celle qui
+            // fuyait. On impose la trajectoire, elle ne dépend plus de ce que faisait la victime.
+            target.setDeltaMovement(
+                    dir.x * OWAttacksConstants.Elephant.SHOULDER_BASH_KNOCKBACK,
+                    OWAttacksConstants.Elephant.SHOULDER_BASH_KNOCKBACK_LIFT,
                     dir.z * OWAttacksConstants.Elephant.SHOULDER_BASH_KNOCKBACK);
             target.hurtMarked = true;
         }
@@ -1261,10 +1931,19 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         BlockPos.betweenClosedStream(zone).forEach(pos -> breakComboBlock(serverLevel, pos, maxHardness));
     }
 
+    /** Le bois n'est abattu que par la bête qui charge tête baissée, quel qu'en soit le geste. */
+    private boolean isWoodwork(BlockState state) {
+        return state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES) || state.is(BlockTags.SAPLINGS);
+    }
+
     private void breakComboBlock(ServerLevel serverLevel, BlockPos pos, float maxHardness) {
         BlockState state = serverLevel.getBlockState(pos);
 
         if (state.isAir()) return;
+        // Le combo continue d'ouvrir la terre et la pierre, mais plus le bois : c'est le labour
+        // tête baissée qui fait le bûcheron, et il est indisponible avec le Jet de Trompe en main.
+        // Sans cette garde, l'éléphant abattait encore des arbres en tapant devant lui.
+        if (!canChargeHeadDown() && isWoodwork(state)) return;
         if (state.hasBlockEntity()) return;
         if (!state.getFluidState().isEmpty()) return;
 
@@ -1381,15 +2060,15 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
     }
 
-    public void activateEarthquake() {
-        if (this.level().isClientSide()) return;
-        if (isEarthquaking()) return;
-        if (getUltimateKillCount() < OWAttacksConstants.Elephant.EARTHQUAKE_KILLS_REQUIRED) return;
+    public boolean activateEarthquake() {
+        if (this.level().isClientSide()) return false;
+        if (isEarthquaking()) return false;
+        if (getUltimateKillCount() < OWAttacksConstants.Elephant.EARTHQUAKE_KILLS_REQUIRED) return false;
 
         float cost = OWAttacksConstants.Elephant.EARTHQUAKE_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
-            return;
+            return false;
         }
         setVitalEnergy(0);
 
@@ -1404,6 +2083,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 OWSounds.ELEPHANT_CALL.get(), SoundSource.NEUTRAL, 3.0f, 0.75f);
+        return true;
     }
 
     private void cancelEarthquake() {
@@ -1702,6 +2382,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
         tag.putInt("ultimateKillCount", this.getUltimateKillCount());
+        tag.putInt("trunkWater", this.getTrunkWater());
         tag.putInt("saddleWool0", this.getSaddleWoolColor(0));
         tag.putInt("saddleWool1", this.getSaddleWoolColor(1));
     }
@@ -1716,6 +2397,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (tag.contains("ultimateKillCount")) {
             setUltimateKillCount(tag.getInt("ultimateKillCount"));
         }
+        this.entityData.set(TRUNK_WATER, Mth.clamp(tag.getInt("trunkWater"), 0,
+                OWAttacksConstants.Elephant.WATER_SPRAY_CAPACITY));
         if (tag.contains("saddleWool0")) this.entityData.set(SADDLE_WOOL_0, tag.getInt("saddleWool0"));
         if (tag.contains("saddleWool1")) this.entityData.set(SADDLE_WOOL_1, tag.getInt("saddleWool1"));
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }

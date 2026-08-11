@@ -758,18 +758,19 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.entityData.set(ULTIMATE_KILL_COUNT, count);
     }
 
-    public void activateConstrictUltimate() {
-        if (this.level().isClientSide()) return;
-        if (getUltimateKillCount() < OWAttacksConstants.Boa.CONSTRICT_ULT_KILLS_REQUIRED) return;
-        if (this.isConstricting()) return;
+    public boolean activateConstrictUltimate() {
+        if (this.level().isClientSide()) return false;
+        if (getUltimateKillCount() < OWAttacksConstants.Boa.CONSTRICT_ULT_KILLS_REQUIRED) return false;
+        if (this.isConstricting()) return false;
         float cost = OWAttacksConstants.Boa.CONSTRICT_ULT_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
-            return;
+            return false;
         }
         this.constrictUltArmed = true;
         this.constrictUltArmedTimer = (int) (OWAttacksConstants.Boa.CONSTRICT_ULT_TARGETING_MS / 50L) + 20;
         this.level().playSound(null, getX(), getY(), getZ(), OWSounds.BOA_HITTING.get(), SoundSource.HOSTILE, 1.2f, 0.7f);
+        return true;
     }
 
     public void executeConstrictUltimate(int targetEntityId) {

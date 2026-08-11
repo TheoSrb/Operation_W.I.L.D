@@ -41,20 +41,21 @@ public class OWAttacksHandler {
     private static final Map<Class<? extends OWEntity>, Integer> ENTITY_COMBO_MAX_TIMERS = new HashMap<>();
 
 
-    public static final int ATTACK_JUMP_ID = 1;
-    public static final int SHADOW_STRIKE_ID = 2;
-    public static final int MOUTH_SLAM_ID = 3;
-    public static final int PRIMAL_DIVE_ID = 4;
-    public static final int PAW_SLAM_ID = 5;
-    public static final int NAP_ULTIMATE_ID = 6;
-    public static final int TIDAL_RUSH_ID = 7;
-    public static final int BIG_MOUTH_ID = 8;
-    public static final int VENOM_FANGS_ID = 9;
-    public static final int CONSTRICT_ULTIMATE_ID = 10;
-    public static final int WHIRLWIND_FISTS_ID = 11;
-    public static final int TELLURIC_STOMP_ID = 12;
-    public static final int SHOULDER_BASH_ID = 13;
-    public static final int EARTHQUAKE_ID = 14;
+    public static final int ATTACK_JUMP_ID = OWAttackIds.ATTACK_JUMP;
+    public static final int SHADOW_STRIKE_ID = OWAttackIds.SHADOW_STRIKE;
+    public static final int MOUTH_SLAM_ID = OWAttackIds.MOUTH_SLAM;
+    public static final int PRIMAL_DIVE_ID = OWAttackIds.PRIMAL_DIVE;
+    public static final int PAW_SLAM_ID = OWAttackIds.PAW_SLAM;
+    public static final int NAP_ULTIMATE_ID = OWAttackIds.NAP_ULTIMATE;
+    public static final int TIDAL_RUSH_ID = OWAttackIds.TIDAL_RUSH;
+    public static final int BIG_MOUTH_ID = OWAttackIds.BIG_MOUTH;
+    public static final int VENOM_FANGS_ID = OWAttackIds.VENOM_FANGS;
+    public static final int CONSTRICT_ULTIMATE_ID = OWAttackIds.CONSTRICT_ULTIMATE;
+    public static final int WHIRLWIND_FISTS_ID = OWAttackIds.WHIRLWIND_FISTS;
+    public static final int TELLURIC_STOMP_ID = OWAttackIds.TELLURIC_STOMP;
+    public static final int SHOULDER_BASH_ID = OWAttackIds.SHOULDER_BASH;
+    public static final int EARTHQUAKE_ID = OWAttackIds.EARTHQUAKE;
+    public static final int WATER_SPRAY_ID = OWAttackIds.WATER_SPRAY;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -131,6 +132,7 @@ public class OWAttacksHandler {
         registerEntityColumn(ElephantEntity.class, 3);
         registerComboMaxTimer(ElephantEntity.class, 24);
         register(ElephantEntity.class, ElephantAttacks.SHOULDER_BASH);
+        register(ElephantEntity.class, ElephantAttacks.WATER_SPRAY);
         register(ElephantEntity.class, ElephantAttacks.EARTHQUAKE);
     }
 
@@ -150,10 +152,55 @@ public class OWAttacksHandler {
         return ENTITY_COMBO_MAX_TIMERS.getOrDefault(entityClass, 10);
     }
 
-    public static OWChargedAttack findChargedAttack(Class<?> entityClass, int button) {
+    /** Cartes secondaires (clic droit) déclarées par l'espèce, dans leur ordre d'enregistrement. */
+    public static List<OWAttack> getSecondaryAttacks(Class<?> entityClass) {
         List<OWAttack> attacks = ENTITY_ATTACKS.get(entityClass);
-        if (attacks == null) return null;
+        if (attacks == null) return List.of();
+        return attacks.stream().filter(a -> a.getKey() == OW_ATTACK_0).toList();
+    }
+
+    /** Vrai si l'espèce propose plusieurs cartes secondaires, donc si le switch a un sens. */
+    public static boolean hasSwitchableSecondary(Class<?> entityClass) {
+        return getSecondaryAttacks(entityClass).size() > 1;
+    }
+
+    /** Vrai si cette attaque occupe le rang de carte secondaire (clic droit). */
+    public static boolean isSecondaryCard(OWAttack attack) {
+        return attack.getKey() == OW_ATTACK_0;
+    }
+
+    /** Carte secondaire actuellement équipée, ou {@code null} si l'espèce n'en a aucune. */
+    public static OWAttack getActiveSecondary(OWEntity entity) {
+        List<OWAttack> secondaries = getSecondaryAttacks(entity.getClass());
+        if (secondaries.isEmpty()) return null;
+        return secondaries.get(Math.min(entity.getSecondaryAttackIndex(), secondaries.size() - 1));
+    }
+
+    /**
+     * Attaques réellement pilotables par cette bête : toutes celles de l'espèce, mais une seule
+     * carte secondaire — celle que le joueur a mise en place.
+     *
+     * <p>L'ordre d'enregistrement est conservé, si bien que le rang d'affichage d'une carte ne
+     * bouge pas quand on change de secondaire : seul son dessin change.</p>
+     */
+    public static List<OWAttack> getActiveAttacks(OWEntity entity) {
+        List<OWAttack> attacks = ENTITY_ATTACKS.get(entity.getClass());
+        if (attacks == null) return List.of();
+
+        List<OWAttack> secondaries = getSecondaryAttacks(entity.getClass());
+        if (secondaries.size() <= 1) return attacks;
+
+        OWAttack active = getActiveSecondary(entity);
+        List<OWAttack> result = new ArrayList<>(attacks.size());
         for (OWAttack attack : attacks) {
+            if (secondaries.contains(attack) && attack != active) continue;
+            result.add(attack);
+        }
+        return result;
+    }
+
+    public static OWChargedAttack findChargedAttack(OWEntity entity, int button) {
+        for (OWAttack attack : getActiveAttacks(entity)) {
             if (attack instanceof OWChargedAttack charged
                     && charged.getKey().getKey().getValue() == button) {
                 return charged;
@@ -162,10 +209,8 @@ public class OWAttacksHandler {
         return null;
     }
 
-    public static OWAttack findInstantAttack(Class<?> entityClass, int key) {
-        List<OWAttack> attacks = ENTITY_ATTACKS.get(entityClass);
-        if (attacks == null) return null;
-        for (OWAttack attack : attacks) {
+    public static OWAttack findInstantAttack(OWEntity entity, int key) {
+        for (OWAttack attack : getActiveAttacks(entity)) {
             if (!(attack instanceof OWChargedAttack)
                     && attack.getKey().getKey().getValue() == key) {
                 return attack;
@@ -431,9 +476,10 @@ public class OWAttacksHandler {
          * Un {@link OWAttack} simple n'a pas ce point d'entrée, et la poussée serait alors appliquée
          * deux fois.</p>
          *
-         * <p>Le côté du déport se recalcule des deux côtés du réseau au lieu d'être synchronisé :
-         * client et serveur lisent les mêmes angles au même instant, là où une donnée synchronisée
-         * arriverait un tick trop tard et enverrait l'éléphant du mauvais côté.</p>
+         * <p>La ruée elle-même n'est plus posée ici. Une impulsion unique s'éteignait en un demi-bloc
+         * sous l'effet du frottement ; c'est maintenant une vitesse entretenue tick après tick dans
+         * {@code ElephantEntity#tickShoulderBash}, des deux côtés du réseau, le temps de l'amorce
+         * suffisant à ce que l'état soit arrivé chez le cavalier.</p>
          */
         public static final OWChargedAttack SHOULDER_BASH = new OWChargedAttack(
                 SHOULDER_BASH_ID,
@@ -445,22 +491,30 @@ public class OWAttacksHandler {
                 entity -> { },
                 entity -> ((ElephantEntity) entity).cancelShoulderBash(),
                 (entity, factor) -> ((ElephantEntity) entity).performShoulderBash(),
-                (entity, factor, dir) -> {
-                    if (!(entity instanceof ElephantEntity elephant)) return;
-
-                    LivingEntity rider = elephant.getControllingPassenger();
-                    int side = ElephantEntity.computeBashSide(
-                            rider != null ? rider.getYRot() : elephant.getYRot(), elephant.yBodyRot);
-
-                    Vec3 push = elephant.getBashDirection(side)
-                            .scale(OWAttacksConstants.Elephant.SHOULDER_BASH_SIDE_POWER);
-
-                    elephant.setDeltaMovement(push.x, OWAttacksConstants.Elephant.SHOULDER_BASH_LIFT, push.z);
-                    elephant.hasImpulse = true;
-                },
+                (entity, factor, dir) -> { },
                 false,
                 false
         );
+
+        /**
+         * Jet de Trompe — seconde carte secondaire, MAINTENUE (clic droit / OW_ATTACK_0).
+         *
+         * <p>Une seule commande pour deux gestes : au bord de l'eau la trompe aspire, ailleurs elle
+         * pulvérise. Le jet bouscule ce qu'il balaie, éteint les incendies, et fige la lave à force
+         * d'insistance. Comme la Tornade de Poings, toute la machine d'état vit sur l'entité et
+         * l'input maintenu est traité dans {@link OWAttackLogic#onMouseInput} : le cooldownTicks
+         * de l'OWAttack reste donc à zéro.</p>
+         *
+         * <p>Les coordonnées de carte sont imposées : les deux secondaires occupent le même rang à
+         * l'écran, chacune avec son propre dessin dans l'atlas.</p>
+         */
+        public static final OWAttack WATER_SPRAY = new OWAttack(
+                WATER_SPRAY_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Elephant.WATER_SPRAY_ENERGY,
+                entity -> { },
+                0
+        ).withCardTexture(236, 216);
 
         /**
          * Tremblement de Terre — ultime (touche X). Cinq victimes pour l'armer. L'éléphant se cabre

@@ -154,6 +154,8 @@
   "option.autoPickup.desc": "Automatically pick up nearby items",
   "option.tribeFlag": "Tribe Flag",
   "option.tribeFlag.desc": "Carry your tribe's banner on the entity's back.",
+  "option.followOwner": "Follow Owner",
+  "option.followOwner.desc": "Run after its owner and teleport to them from afar. Turned off, the entity holds its ground.",
   "option.sit": "Sit / Stand",
   "option.sit.desc": "Order your entity to sit or stand",
   "option.mode.prefix": "Mode: ",
@@ -1068,7 +1070,6 @@
   "ow.attacks.orca.tidal_rush.title": "Ocean Surge",
   "ow.attacks.orca.slipstream.desc": "Within %s blocks, your tamed creatures and tribe members swim %s%% faster and hold their breath %s%% longer.",
   "ow.attacks.orca.slipstream.title": "Slipstream",
-
   "tooltip.elephantSkin1.desc": "Solid gold plating over four tonnes of muscle. Unlocks at level 50.",
   "tooltip.elephantSkin2.desc": "Membranous wings and blackened tusks: something came back up with him.",
   "tooltip.elephantSkin3.desc": "The flesh gave out long ago. The march did not.",
@@ -1080,5 +1081,10 @@
   "ow.attacks.elephant.earthquake.title": "Earthquake",
   "ow.attacks.elephant.earthquake.desc": "Charges with %s kills. The Elephant rears up, then drops its full weight: a shockwave across %s blocks, up to %s damage at the centre, shattered ground and shaking cameras. %s second cooldown.",
   "ow.attacks.elephant.lumberjack.title": "Lumberjack",
-  "ow.attacks.elephant.lumberjack.desc": "At full charge, the Elephant fells the whole tree it rams in one go and pulls %s%% more wood from it."
+  "ow.attacks.elephant.lumberjack.desc": "At full charge, the Elephant fells the whole tree it rams in one go and pulls %s%% more wood from it.",
+  "key.ow.switch_attack": "Switch secondary attack (+ scroll)",
+  "ow.attacks.elephant.water_spray.title": "Trunk Jet",
+  "ow.attacks.elephant.water_spray.desc": "Hold right-click: at the water's edge the Elephant fills its trunk; anywhere else it sprays over %s blocks, shoving back whatever it sweeps and putting out fires. Holding the jet on one lava block for %s seconds turns it to stone. The reserve slowly leaks away.",
+  "ow.attacks.switch_secondary.before": "%s +",
+  "ow.attacks.switch_secondary.after": ": swap card"
 }

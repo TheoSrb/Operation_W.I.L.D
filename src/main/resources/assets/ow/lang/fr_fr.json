@@ -153,6 +153,8 @@
   "option.autoPickup.desc": "Ramasser automatiquement les objets proches",
   "option.tribeFlag": "Drapeau de tribu",
   "option.tribeFlag.desc": "Porter la bannière de votre tribu sur le dos de l'entité.",
+  "option.followOwner": "Suivre le propriétaire",
+  "option.followOwner.desc": "Rejoindre son propriétaire en courant et se téléporter à lui de loin. Désactivé, l'entité tient sa position.",
   "option.sit": "S'asseoir / Se lever",
   "option.sit.desc": "Ordonner à l'entité de s'asseoir ou de se lever",
   "option.mode.prefix": "Mode : ",
@@ -1068,7 +1070,6 @@
   "ow.attacks.orca.tidal_rush.title": "Élan Marin",
   "ow.attacks.orca.slipstream.desc": "Dans un rayon de %s blocs, vos créatures apprivoisées et les membres de votre tribu nagent %s%% plus vite et tiennent %s%% plus longtemps sans respirer.",
   "ow.attacks.orca.slipstream.title": "Courant Porteur",
-
   "tooltip.elephantSkin1.desc": "Une carapace d'or massif posée sur quatre tonnes de muscle. Se débloque au niveau 50.",
   "tooltip.elephantSkin2.desc": "Deux ailes membraneuses et des défenses noircies : quelque chose est remonté avec lui.",
   "tooltip.elephantSkin3.desc": "La chair a lâché depuis longtemps. La marche, elle, continue.",
@@ -1080,5 +1081,10 @@
   "ow.attacks.elephant.earthquake.title": "Tremblement de Terre",
   "ow.attacks.elephant.earthquake.desc": "Se charge avec %s kills. L'Éléphant se cabre puis retombe de tout son poids : onde de choc sur %s blocs, jusqu'à %s points de dégâts au centre, sol disloqué et caméras ébranlées. %s secondes de recharge.",
   "ow.attacks.elephant.lumberjack.title": "Bûcheron",
-  "ow.attacks.elephant.lumberjack.desc": "Lancé au galop, l'Éléphant abat d'un seul coup l'arbre entier qu'il percute et en tire %s%% de bois en plus."
+  "ow.attacks.elephant.lumberjack.desc": "Lancé au galop, l'Éléphant abat d'un seul coup l'arbre entier qu'il percute et en tire %s%% de bois en plus.",
+  "key.ow.switch_attack": "Changer d'attaque secondaire (+ molette)",
+  "ow.attacks.elephant.water_spray.title": "Jet de Trompe",
+  "ow.attacks.elephant.water_spray.desc": "Clic droit maintenu : au bord de l'eau, l'Éléphant remplit sa trompe ; ailleurs, il pulvérise sur %s blocs, repoussant ce qu'il balaie et éteignant les incendies. Insister %s secondes sur un même bloc de lave le fige en pierre. La réserve fuit lentement avec le temps.",
+  "ow.attacks.switch_secondary.before": "%s +",
+  "ow.attacks.switch_secondary.after": ": changer de carte"
 }

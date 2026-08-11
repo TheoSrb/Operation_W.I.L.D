@@ -154,6 +154,8 @@
   "option.autoPickup.desc": "Recoger automáticamente los objetos cercanos",
   "option.tribeFlag": "Bandera de tribu",
   "option.tribeFlag.desc": "Llevar el estandarte de tu tribu en el lomo de la entidad.",
+  "option.followOwner": "Seguir al propietario",
+  "option.followOwner.desc": "Correr tras su propietario y teletransportarse hasta él desde lejos. Desactivado, la entidad mantiene su posición.",
   "option.sit": "Sentarse / Levantarse",
   "option.sit.desc": "Ordenar a tu entidad que se siente o se levante",
   "option.mode.prefix": "Modo: ",
@@ -1068,7 +1070,6 @@
   "ow.attacks.orca.tidal_rush.title": "Impulso Marino",
   "ow.attacks.orca.slipstream.desc": "En un radio de %s bloques, tus criaturas domesticadas y los miembros de tu tribu nadan un %s%% más rápido y aguantan la respiración un %s%% más.",
   "ow.attacks.orca.slipstream.title": "Corriente de Arrastre",
-
   "tooltip.elephantSkin1.desc": "Una coraza de oro macizo sobre cuatro toneladas de músculo. Se desbloquea al nivel 50.",
   "tooltip.elephantSkin2.desc": "Alas membranosas y colmillos ennegrecidos: algo subió con él.",
   "tooltip.elephantSkin3.desc": "La carne cedió hace mucho. La marcha, no.",
@@ -1080,5 +1081,10 @@
   "ow.attacks.elephant.earthquake.title": "Terremoto",
   "ow.attacks.elephant.earthquake.desc": "Se carga con %s muertes. El Elefante se encabrita y deja caer todo su peso: onda expansiva de %s bloques, hasta %s puntos de daño en el centro, suelo destrozado y cámaras temblando. %s segundos de recarga.",
   "ow.attacks.elephant.lumberjack.title": "Leñador",
-  "ow.attacks.elephant.lumberjack.desc": "Al galope, el Elefante derriba de un golpe el árbol entero que embiste y obtiene un %s%% más de madera."
+  "ow.attacks.elephant.lumberjack.desc": "Al galope, el Elefante derriba de un golpe el árbol entero que embiste y obtiene un %s%% más de madera.",
+  "key.ow.switch_attack": "Cambiar de ataque secundario (+ rueda)",
+  "ow.attacks.elephant.water_spray.title": "Chorro de Trompa",
+  "ow.attacks.elephant.water_spray.desc": "Mantén clic derecho: junto al agua el Elefante llena su trompa; en otro lugar rocía hasta %s bloques, empujando lo que barre y apagando incendios. Insistir %s segundos sobre un mismo bloque de lava lo convierte en piedra. La reserva se escapa poco a poco.",
+  "ow.attacks.switch_secondary.before": "%s +",
+  "ow.attacks.switch_secondary.after": ": cambiar carta"
 }

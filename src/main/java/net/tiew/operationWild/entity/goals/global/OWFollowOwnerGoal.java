@@ -48,6 +48,8 @@ public class OWFollowOwnerGoal extends Goal {
         LivingEntity $$0 = this.tamable.getOwner();
         if ($$0 == null) {
             return false;
+        } else if (!this.tamable.isFollowingOwner()) {
+            return false;
         } else if (this.tamable.unableToMoveToOwner()) {
             return false;
         } else if (this.tamable.distanceToSqr($$0) < (double)(this.startDistance * this.startDistance)) {
@@ -60,6 +62,8 @@ public class OWFollowOwnerGoal extends Goal {
 
     public boolean canContinueToUse() {
         if (this.owner == null) {
+            return false;
+        } else if (!this.tamable.isFollowingOwner()) {
             return false;
         } else if (this.navigation().isDone()) {
             return false;

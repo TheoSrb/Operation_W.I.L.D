@@ -25,6 +25,17 @@ public class OWKeysBinding {
     );
 
 
+    /**
+     * Modificateur de changement de carte secondaire : maintenu, la molette fait défiler les
+     * attaques secondaires de la monture au lieu de la barre d'inventaire.
+     */
+    public static final String OW_SWITCH_ATTACK_KEY = "key.ow.switch_attack";
+    public static final KeyMapping OW_SWITCH_ATTACK = new KeyMapping(
+            OW_SWITCH_ATTACK_KEY, KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_LEFT_ALT,
+            OWAttacksHandler.OW_CATEGORY
+    );
+
     public static final String PET_INVENTORY_KEY = "key.pet.inventory_key";
     public static final KeyMapping PET_INVENTORY = new KeyMapping(PET_INVENTORY_KEY, KeyConflictContext.IN_GAME, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_E, OW_CATEGORY);
 

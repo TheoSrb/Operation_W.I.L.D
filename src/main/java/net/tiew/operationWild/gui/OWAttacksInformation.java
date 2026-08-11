@@ -33,7 +33,8 @@ import java.util.function.Function;
  * ─── Ajouter une entité ──────────────────────────────────────────────────────
  *   1. Créer un nouveau bloc dans la section "DÉFINITIONS" ci-dessous.
  *   2. PROFILES.put(MonEntity.class, new EntityProfile(...)).
- *   3. Pour les cartes, cardTexX = index × 20, cardTexY = entityRow × 40.
+ *   3. Pour les cartes, cardTexX = index × 20, cardTexY = entityRow × 40 — sauf carte secondaire
+ *      interchangeable, qui porte ses propres coordonnées où qu'elles soient dans l'atlas.
  *
  * ─── Formater du texte ───────────────────────────────────────────────────────
  *   e -> desc("ow.attacks.xxx.desc", val("3"), val(e.getDamage()))
@@ -103,13 +104,26 @@ public class OWAttacksInformation {
     record EntityProfile(
             AttackSlot combo,
             AttackSlot charged,
+            AttackSlot charged2,
             AttackSlot ultimate,
             AttackSlot passive
     ) {
-        /** Colonnes d'attaque (combo/chargée/ultime) ; les null sont filtrés → moins de colonnes.
-         *  Le passif est affiché à part (bandeau du bas), pas comme une colonne. */
-        AttackSlot[] columnSlots() {
-            return java.util.stream.Stream.of(combo, charged, ultimate)
+        /** Espèce à carte secondaire unique : la seconde reste vide. */
+        EntityProfile(AttackSlot combo, AttackSlot charged, AttackSlot ultimate, AttackSlot passive) {
+            this(combo, charged, null, ultimate, passive);
+        }
+
+        /**
+         * Colonnes d'attaque (combo/secondaire/ultime) ; les null sont filtrés → moins de colonnes.
+         * Le passif est affiché à part (bandeau du bas), pas comme une colonne.
+         *
+         * <p>Une espèce qui porte plusieurs cartes secondaires n'en documente qu'une : celle qui est
+         * en place. La fiche reste ainsi sur trois colonnes lisibles, et dit ce que fait vraiment le
+         * clic droit à cet instant — comme le HUD, qui n'affiche lui aussi que la carte équipée.</p>
+         */
+        AttackSlot[] columnSlots(OWEntity entity) {
+            AttackSlot secondary = charged2 != null && entity.getSecondaryAttackIndex() == 1 ? charged2 : charged;
+            return java.util.stream.Stream.of(combo, secondary, ultimate)
                     .filter(java.util.Objects::nonNull)
                     .toArray(AttackSlot[]::new);
         }
@@ -163,19 +177,19 @@ public class OWAttacksInformation {
 
         PROFILES.put(CrocodileEntity.class, new EntityProfile(
 
-                new AttackSlot(0, 0, "LMB",
+                new AttackSlot(0, 80, "LMB",
                         title("ow.attacks.crocodile.combo.title"),
                         e -> desc("ow.attacks.crocodile.combo.desc",
                                 val("0.75"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(20, 0, "RMB",
+                new AttackSlot(20, 80, "RMB",
                         title("ow.attacks.crocodile.mouth.title"),
                         e -> desc("ow.attacks.crocodile.mouth.desc",
                                 val("3"), val(OWAttacksConstants.Crocodile.MOUTH_SLAM_COOLDOWN_TICKS / 20), val(e.getDamageToClient()))
                 ),
 
-                new AttackSlot(40, 0, "X",
+                new AttackSlot(40, 80, "X",
                         title("ow.attacks.crocodile.primal_dive.title"),
                         // Total d'une rotation, déduit des constantes de l'entité : recopier le
                         // chiffre ici l'aurait laissé vieillir au premier rééquilibrage.
@@ -199,19 +213,19 @@ public class OWAttacksInformation {
 
         PROFILES.put(KodiakEntity.class, new EntityProfile(
 
-                new AttackSlot(0, 0, "LMB",
+                new AttackSlot(0, 40, "LMB",
                         title("ow.attacks.kodiak.combo.title"),
                         e -> desc("ow.attacks.kodiak.combo.desc",
                                 val("0.75"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(20, 0, "RMB",
+                new AttackSlot(20, 40, "RMB",
                         title("ow.attacks.kodiak.paw_slam.title"),
                         e -> desc("ow.attacks.kodiak.paw_slam.desc",
                                 val("3"), val(OWAttacksConstants.Kodiak.PAW_SLAM_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(40, 0, "X",
+                new AttackSlot(40, 40, "X",
                         title("ow.attacks.kodiak.nap.title"),
                         e -> desc("ow.attacks.kodiak.nap.desc",
                                 val(OWAttacksConstants.Kodiak.NAP_DURATION_TICKS / 20),
@@ -285,8 +299,16 @@ public class OWAttacksInformation {
                 new AttackSlot(80, 160, "RMB",
                         title("ow.attacks.elephant.shoulder_bash.title"),
                         e -> desc("ow.attacks.elephant.shoulder_bash.desc",
-                                val((int) OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE),
+                                val((int) (e.getDamageToClient()
+                                        * OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE_RATIO)),
                                 val(OWAttacksConstants.Elephant.SHOULDER_BASH_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(236, 216, "RMB",
+                        title("ow.attacks.elephant.water_spray.title"),
+                        e -> desc("ow.attacks.elephant.water_spray.desc",
+                                val((int) OWAttacksConstants.Elephant.WATER_SPRAY_RANGE),
+                                val(OWAttacksConstants.Elephant.WATER_SPRAY_LAVA_TICKS / 20))
                 ),
 
                 new AttackSlot(100, 160, "X",
@@ -452,11 +474,9 @@ public class OWAttacksInformation {
         int  PASSIVE_H = 34;
         int  colW      = BG_W / 3;
         int  innerW    = colW - 14;
-        int  entityRow = OWAttacksHandler.getEntityRow(entity.getClass());
-        int  cardTexY  = entityRow * 40;
         int  maxDescY  = bgY + BG_H - PASSIVE_H - 8;
 
-        AttackSlot[] slots = profile.columnSlots();
+        AttackSlot[] slots = profile.columnSlots(entity);
 
         // ── 3 colonnes d'attaque ──────────────────────────────────────────────
         for (int i = 0; i < 3 && i < slots.length; i++) {
@@ -465,9 +485,11 @@ public class OWAttacksInformation {
             int curY  = bgY + 6;
 
             if (slot.hasCard()) {
+                // Le Y du slot fait foi, et non la rangée de l'espèce : une carte secondaire
+                // interchangeable peut vivre ailleurs dans l'atlas que sur la rangée de sa bête.
                 g.blit(CARDS,
                         colCX - CARD_SIZE / 2, curY,
-                        slot.cardTexX(), cardTexY,
+                        slot.cardTexX(), slot.cardTexY(),
                         CARD_SIZE, CARD_SIZE,
                         TEX_SIZE, TEX_SIZE);
             }
@@ -480,6 +502,14 @@ public class OWAttacksInformation {
                         colCX, curY, 0.6f);
             }
             curY += 7;
+
+            // Carte secondaire interchangeable : c'est ici qu'on explique la commande, sous la
+            // touche d'usage. Le HUD, lui, ne porte qu'un pictogramme — vingt pixels de carte ne
+            // suffisent pas à écrire lisiblement un nom de touche.
+            if (profile.charged2() != null && i == 1) {
+                drawSwitchLine(g, font, colCX, curY);
+                curY += 7;
+            }
 
             drawText(g, font, slot.title(), colCX, curY, 0.7f);
             curY += (int)(font.lineHeight * 0.7f) + 3;
@@ -526,6 +556,53 @@ public class OWAttacksInformation {
     }
 
     // ── Utilitaires de rendu ──────────────────────────────────────────────────
+
+    // Pictogramme de molette, pris dans l'atlas des cartes — le même que le HUD porte au coin de la
+    // carte interchangeable.
+    private static final int WHEEL_U = 0, WHEEL_V = 247, WHEEL_W = 10, WHEEL_H = 9;
+    private static final int WHEEL_DRAW_W = 7, WHEEL_DRAW_H = 6;
+
+    /**
+     * Ligne de rappel de la commande, avec le <b>dessin</b> de la molette au milieu de la phrase.
+     *
+     * <p>Le libellé est donc coupé en deux morceaux traduits séparément, l'image se glissant entre
+     * les deux. Écrire « molette » en toutes lettres obligeait le lecteur à faire le lien lui-même,
+     * là où le pictogramme est celui qu'il a déjà sous les yeux sur la carte.</p>
+     */
+    private static void drawSwitchLine(GuiGraphics g, Font font, int cx, int y) {
+        final float scale = 0.55f;
+        final int gap = 2;
+
+        Component before = Component.translatable("ow.attacks.switch_secondary.before",
+                OWKeysBinding.OW_SWITCH_ATTACK.getTranslatedKeyMessage());
+        Component after = Component.translatable("ow.attacks.switch_secondary.after");
+
+        float beforeW = font.width(before) * scale;
+        float afterW = font.width(after) * scale;
+        float total = beforeW + gap + WHEEL_DRAW_W + gap + afterW;
+        float x = cx - total / 2f;
+
+        drawScaled(g, font, before, x, y, scale);
+
+        g.pose().pushPose();
+        // Remontée d'un pixel : le pictogramme est plus haut que la ligne de texte, il faut le
+        // recentrer sur elle plutôt que de l'aligner par le haut.
+        g.pose().translate(x + beforeW + gap, y - 1f, 0f);
+        g.pose().scale((float) WHEEL_DRAW_W / WHEEL_W, (float) WHEEL_DRAW_H / WHEEL_H, 1f);
+        g.blit(CARDS, 0, 0, WHEEL_U, WHEEL_V, WHEEL_W, WHEEL_H, TEX_SIZE, TEX_SIZE);
+        g.pose().popPose();
+
+        drawScaled(g, font, after, x + beforeW + gap + WHEEL_DRAW_W + gap, y, scale);
+    }
+
+    /** Texte calé à gauche, contrairement à {@link #drawText} qui centre sur son abscisse. */
+    private static void drawScaled(GuiGraphics g, Font font, Component text, float x, float y, float scale) {
+        g.pose().pushPose();
+        g.pose().translate(x, y, 0f);
+        g.pose().scale(scale, scale, 1f);
+        g.drawString(font, text.copy().withStyle(Style.EMPTY.withColor(0x7FC8FF)), 0, 0, 0x7FC8FF, false);
+        g.pose().popPose();
+    }
 
     private static void drawText(GuiGraphics g, Font font, Component text, int cx, int y, float scale) {
         g.pose().pushPose();

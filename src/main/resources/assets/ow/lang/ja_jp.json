@@ -154,6 +154,8 @@
   "option.autoPickup.desc": "近くのアイテムを自動的に拾う",
   "option.tribeFlag": "部族の旗",
   "option.tribeFlag.desc": "エンティティの背中に部族のバナーを掲げます。",
+  "option.followOwner": "飼い主について行く",
+  "option.followOwner.desc": "飼い主を追いかけて走り、離れるとテレポートで合流します。オフにすると、その場に留まります。",
   "option.sit": "お座り / 立つ",
   "option.sit.desc": "エンティティにお座りまたは立つよう命じる",
   "option.mode.prefix": "モード：",
@@ -1068,7 +1070,6 @@
   "ow.attacks.orca.tidal_rush.title": "海流の推進",
   "ow.attacks.orca.slipstream.desc": "半径 %s ブロック以内で、あなたの心を開いた生き物と部族の仲間は %s%% 速く泳ぎ、%s%% 長く息を止められます。",
   "ow.attacks.orca.slipstream.title": "伴流",
-
   "tooltip.elephantSkin1.desc": "4トンの筋肉を包む純金の装甲。レベル50で解放されます。",
   "tooltip.elephantSkin2.desc": "膜状の翼と黒ずんだ牙 ― 何かが一緒に戻ってきた。",
   "tooltip.elephantSkin3.desc": "肉はとうに朽ちた。歩みは止まらない。",
@@ -1080,5 +1081,10 @@
   "ow.attacks.elephant.earthquake.title": "大地震",
   "ow.attacks.elephant.earthquake.desc": "%s体の撃破で充填。ゾウが身を起こし、全体重を叩きつけます：%sブロックに衝撃波、中心で最大%sのダメージ、地面は砕け、カメラが揺れます。クールダウン%s秒。",
   "ow.attacks.elephant.lumberjack.title": "木こり",
-  "ow.attacks.elephant.lumberjack.desc": "全速力のゾウは、ぶつかった木を一撃で丸ごと切り倒し、木材を%s%%多く手に入れます。"
+  "ow.attacks.elephant.lumberjack.desc": "全速力のゾウは、ぶつかった木を一撃で丸ごと切り倒し、木材を%s%%多く手に入れます。",
+  "key.ow.switch_attack": "サブ攻撃を切り替え（＋ホイール）",
+  "ow.attacks.elephant.water_spray.title": "鼻の水鉄砲",
+  "ow.attacks.elephant.water_spray.desc": "右クリック長押し：水辺ではゾウが鼻に水を吸い込み、それ以外では %s ブロック先まで噴射して、当たったものを押し戻し、火を消します。同じ溶岩ブロックに %s 秒当て続けると石に変わります。水は時間とともに少しずつ減ります。",
+  "ow.attacks.switch_secondary.before": "%s ＋",
+  "ow.attacks.switch_secondary.after": "：カード切替"
 }

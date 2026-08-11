@@ -154,6 +154,8 @@
   "option.autoPickup.desc": "Nahe Gegenstände automatisch aufsammeln",
   "option.tribeFlag": "Stammesflagge",
   "option.tribeFlag.desc": "Das Banner deines Stammes auf dem Rücken der Kreatur tragen.",
+  "option.followOwner": "Besitzer folgen",
+  "option.followOwner.desc": "Dem Besitzer hinterherlaufen und aus der Ferne zu ihm teleportieren. Deaktiviert hält die Kreatur ihre Position.",
   "option.sit": "Sitzen / Aufstehen",
   "option.sit.desc": "Befehle deinem Wesen, sich zu setzen oder aufzustehen",
   "option.mode.prefix": "Modus: ",
@@ -1068,7 +1070,6 @@
   "ow.attacks.orca.tidal_rush.title": "Meeresschub",
   "ow.attacks.orca.slipstream.desc": "Im Umkreis von %s Blöcken schwimmen deine gezähmten Kreaturen und Stammesmitglieder %s%% schneller und halten die Luft %s%% länger an.",
   "ow.attacks.orca.slipstream.title": "Sogwelle",
-
   "tooltip.elephantSkin1.desc": "Massives Goldgeflecht über vier Tonnen Muskeln. Wird auf Stufe 50 freigeschaltet.",
   "tooltip.elephantSkin2.desc": "Häutige Flügel und geschwärzte Stoßzähne: Etwas ist mit ihm zurückgekommen.",
   "tooltip.elephantSkin3.desc": "Das Fleisch gab längst nach. Der Marsch nicht.",
@@ -1080,5 +1081,10 @@
   "ow.attacks.elephant.earthquake.title": "Erdbeben",
   "ow.attacks.elephant.earthquake.desc": "Lädt sich mit %s Abschüssen auf. Der Elefant bäumt sich auf und lässt sein volles Gewicht fallen: Druckwelle über %s Blöcke, bis zu %s Schadenspunkte im Zentrum, aufgerissener Boden und wackelnde Kameras. %s Sekunden Abklingzeit.",
   "ow.attacks.elephant.lumberjack.title": "Holzfäller",
-  "ow.attacks.elephant.lumberjack.desc": "Im vollen Lauf fällt der Elefant den gerammten Baum mit einem Schlag und gewinnt %s%% mehr Holz daraus."
+  "ow.attacks.elephant.lumberjack.desc": "Im vollen Lauf fällt der Elefant den gerammten Baum mit einem Schlag und gewinnt %s%% mehr Holz daraus.",
+  "key.ow.switch_attack": "Sekundärangriff wechseln (+ Mausrad)",
+  "ow.attacks.elephant.water_spray.title": "Rüsselstrahl",
+  "ow.attacks.elephant.water_spray.desc": "Rechtsklick halten: Am Wasser füllt der Elefant seinen Rüssel; sonst sprüht er über %s Blöcke, drängt zurück, was er trifft, und löscht Feuer. Hält man den Strahl %s Sekunden auf denselben Lavablock, erstarrt er zu Stein. Der Vorrat versickert langsam.",
+  "ow.attacks.switch_secondary.before": "%s +",
+  "ow.attacks.switch_secondary.after": ": Karte wechseln"
 }

@@ -328,6 +328,10 @@ public class OperationWild {
             event.registerSpriteSet(OWParticles.ELECTRIC_PARTICLES.get(), ElectricParticles.Provider::new);
             event.registerSpriteSet(OWParticles.NAP_PARTICLES.get(), NapParticles.Provider::new);
             event.registerSpriteSet(OWParticles.GOLD_TRAIL_PARTICLE.get(), GoldTrailParticle.Provider::new);
+            event.registerSpriteSet(OWParticles.WATER_JET_PARTICLE.get(),
+                    net.tiew.operationWild.particle.WaterJetParticle.Provider::new);
+            event.registerSpriteSet(OWParticles.WATER_SPLAT_PARTICLE.get(),
+                    net.tiew.operationWild.particle.WaterSplatParticle.Provider::new);
         }
     }
 }

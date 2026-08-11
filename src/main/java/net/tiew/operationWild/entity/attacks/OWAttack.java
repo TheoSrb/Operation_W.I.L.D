@@ -21,6 +21,9 @@ public class OWAttack {
     private Function<OWEntity, Float> unlockProgressFn = null;
     // 0 = pas d'animation de drain ; sinon durée en ms de la phase active de l'ultime
     private long ultimateDurationMs = 0L;
+    // -1 = position déduite du rang d'affichage ; sinon coordonnées imposées dans l'atlas de cartes
+    private int cardTexX = -1;
+    private int cardTexY = -1;
 
     public OWAttack(int id, KeyMapping key, float energyRequired, Consumer<OWEntity> action, int cooldownTicks) {
         this.id = id;
@@ -83,6 +86,33 @@ public class OWAttack {
 
     public long getUltimateDurationMs() {
         return ultimateDurationMs;
+    }
+
+    /**
+     * Impose les coordonnées de la carte dans l'atlas, au lieu de les déduire du rang d'affichage.
+     *
+     * <p>Indispensable dès qu'une espèce porte plusieurs cartes secondaires interchangeables : elles
+     * occupent toutes le même rang à l'écran, mais chacune a son propre dessin. Les coordonnées sont
+     * celles de la carte <b>allumée</b> ; la version grisée se lit 20 pixels plus bas, comme partout
+     * ailleurs dans l'atlas.</p>
+     */
+    public OWAttack withCardTexture(int texX, int texY) {
+        this.cardTexX = texX;
+        this.cardTexY = texY;
+        return this;
+    }
+
+    /** Vrai si cette carte a des coordonnées propres dans l'atlas. */
+    public boolean hasCardTexture() {
+        return cardTexX >= 0 && cardTexY >= 0;
+    }
+
+    public int getCardTexX() {
+        return cardTexX;
+    }
+
+    public int getCardTexY() {
+        return cardTexY;
     }
 
     public void trigger(OWEntity entity) {

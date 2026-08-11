@@ -154,6 +154,8 @@
   "option.autoPickup.desc": "Coletar automaticamente os itens próximos",
   "option.tribeFlag": "Bandeira da tribo",
   "option.tribeFlag.desc": "Levar o estandarte da sua tribo nas costas da entidade.",
+  "option.followOwner": "Seguir o dono",
+  "option.followOwner.desc": "Correr atrás do dono e teleportar-se até ele de longe. Desativado, a entidade mantém sua posição.",
   "option.sit": "Sentar / Levantar",
   "option.sit.desc": "Ordenar que sua entidade sente ou levante",
   "option.mode.prefix": "Modo: ",
@@ -1068,7 +1070,6 @@
   "ow.attacks.orca.tidal_rush.title": "Impulso Marinho",
   "ow.attacks.orca.slipstream.desc": "Num raio de %s blocos, suas criaturas domesticadas e os membros da sua tribo nadam %s%% mais rápido e prendem a respiração %s%% mais tempo.",
   "ow.attacks.orca.slipstream.title": "Esteira de Arrasto",
-
   "tooltip.elephantSkin1.desc": "Uma couraça de ouro maciço sobre quatro toneladas de músculo. Desbloqueia-se ao nível 50.",
   "tooltip.elephantSkin2.desc": "Asas membranosas e presas enegrecidas: algo subiu com ele.",
   "tooltip.elephantSkin3.desc": "A carne cedeu há muito. A marcha, não.",
@@ -1080,5 +1081,10 @@
   "ow.attacks.elephant.earthquake.title": "Terramoto",
   "ow.attacks.elephant.earthquake.desc": "Carrega-se com %s abates. O Elefante empina-se e deixa cair todo o seu peso: onda de choque em %s blocos, até %s pontos de dano no centro, solo despedaçado e câmaras a tremer. %s segundos de recarga.",
   "ow.attacks.elephant.lumberjack.title": "Lenhador",
-  "ow.attacks.elephant.lumberjack.desc": "A galope, o Elefante derruba de uma só vez a árvore inteira que atinge e extrai %s%% mais madeira."
+  "ow.attacks.elephant.lumberjack.desc": "A galope, o Elefante derruba de uma só vez a árvore inteira que atinge e extrai %s%% mais madeira.",
+  "key.ow.switch_attack": "Trocar de ataque secundário (+ roda)",
+  "ow.attacks.elephant.water_spray.title": "Jato de Tromba",
+  "ow.attacks.elephant.water_spray.desc": "Segure o botão direito: à beira da água o Elefante enche a tromba; em outro lugar ele borrifa por %s blocos, empurrando o que varre e apagando incêndios. Insistir %s segundos no mesmo bloco de lava o transforma em pedra. A reserva escapa aos poucos.",
+  "ow.attacks.switch_secondary.before": "%s +",
+  "ow.attacks.switch_secondary.after": ": trocar carta"
 }

@@ -298,6 +298,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final EntityDataAccessor<Integer> FOOD_COUNT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> AUTO_PICKUP = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> SHOW_TRIBE_FLAG = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> FOLLOW_OWNER = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> SECONDARY_ATTACK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> QUESTS_ARE_UPDATED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TAMING_PERCENTAGE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> MATURATION_PERCENTAGE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
@@ -779,6 +781,71 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean isAutoPickup() { return this.entityData.get(AUTO_PICKUP); }
 
     public void setAutoPickup(boolean value) { this.entityData.set(AUTO_PICKUP, value); }
+
+    /**
+     * La bête emboîte-t-elle le pas à son maître ?
+     *
+     * <p>Le réglage coupe les <b>deux</b> façons de le rejoindre : la course et le rappel par
+     * téléportation. Une créature laissée sur « non » tient donc sa position, et c'est tout
+     * l'intérêt du réglage — poster une garde quelque part sans la voir repartir au bout de vingt
+     * blocs. Synchronisé plutôt que gardé côté serveur : l'écran de réglages lit l'état directement
+     * sur l'entité pour dessiner l'interrupteur.</p>
+     */
+    public boolean isFollowingOwner() { return this.entityData.get(FOLLOW_OWNER); }
+
+    public void setFollowingOwner(boolean value) { this.entityData.set(FOLLOW_OWNER, value); }
+
+    /**
+     * Nombre de cartes secondaires que cette espèce sait porter.
+     *
+     * <p>Déclaré sur l'entité et non dans le registre d'attaques : ce dernier ne vit que côté
+     * client (il tient des {@code KeyMapping}), or c'est le serveur qui arbitre le choix.</p>
+     */
+    public int getSecondaryAttackCount() { return 1; }
+
+    public int getSecondaryAttackIndex() {
+        return Mth.positiveModulo(this.entityData.get(SECONDARY_ATTACK), Math.max(1, getSecondaryAttackCount()));
+    }
+
+    public void setSecondaryAttackIndex(int index) {
+        int resolved = Mth.positiveModulo(index, Math.max(1, getSecondaryAttackCount()));
+        if (resolved == this.entityData.get(SECONDARY_ATTACK)) return;
+        this.entityData.set(SECONDARY_ATTACK, resolved);
+        onSecondaryAttackChanged();
+    }
+
+    /** Délai entre deux changements de carte secondaire, en ticks (une demi-seconde). */
+    public static final int SECONDARY_SWITCH_COOLDOWN_TICKS = 10;
+
+    private long lastSecondarySwitchGameTime = Long.MIN_VALUE;
+
+    /**
+     * Change de carte secondaire si le délai est écoulé, et dit si le changement a eu lieu.
+     *
+     * <p>Le délai est tenu <b>ici</b>, c'est-à-dire côté serveur, et pas seulement dans la boucle
+     * d'entrée du client : celle-ci ne borne que la molette du joueur honnête. Le temps de jeu sert
+     * de référence plutôt qu'une horloge murale, pour rester juste quand le serveur ralentit.</p>
+     */
+    public boolean trySwitchSecondaryAttack(int index) {
+        long now = this.level().getGameTime();
+        if (now - lastSecondarySwitchGameTime < SECONDARY_SWITCH_COOLDOWN_TICKS) return false;
+
+        int before = getSecondaryAttackIndex();
+        setSecondaryAttackIndex(index);
+        if (getSecondaryAttackIndex() == before) return false;
+
+        lastSecondarySwitchGameTime = now;
+        return true;
+    }
+
+    /**
+     * Ranger la carte qu'on vient de quitter.
+     *
+     * <p>Une secondaire maintenue continuerait sinon de tourner dans le vide : son relâchement
+     * n'est plus routé vers elle une fois la carte changée, et plus rien ne viendrait l'arrêter.</p>
+     */
+    protected void onSecondaryAttackChanged() {
+    }
 
     /**
      * Port de la banniere de tribu sur le dos de l'entite. Synchronise : le drapeau etant rendu
@@ -4391,6 +4458,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public boolean shouldTryTeleportToOwner() {
         if (this.isBaby()) return false;
+        if (!this.isFollowingOwner()) return false;
         LivingEntity livingentity = this.getOwner();
         return livingentity != null && this.distanceToSqr(this.getOwner()) >= (double) 432.0F;
     }
@@ -4899,6 +4967,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(FOOD_COUNT, 0);
         builder.define(AUTO_PICKUP, true);
         builder.define(SHOW_TRIBE_FLAG, true);
+        builder.define(FOLLOW_OWNER, true);
+        builder.define(SECONDARY_ATTACK, 0);
         builder.define(ULTIMATE, false);
         builder.define(QUESTS_ARE_UPDATED, false);
         builder.define(TAMING_PERCENTAGE, 0);
@@ -4953,6 +5023,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putBoolean("isPassive", this.isPassive());
         tag.putBoolean("autoPickup", this.isAutoPickup());
         tag.putBoolean("showTribeFlag", this.isShowTribeFlag());
+        tag.putBoolean("followOwner", this.isFollowingOwner());
+        tag.putInt("secondaryAttack", this.entityData.get(SECONDARY_ATTACK));
         tag.putBoolean("isFemale", this.isFemale());
         tag.putBoolean("isPreparingNapping", this.isPreparingNapping());
         tag.putBoolean("isFed", this.isFed());
@@ -5095,6 +5167,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(AUTO_PICKUP, tag.contains("autoPickup") ? tag.getBoolean("autoPickup") : true);
         // Absent des entites d'avant la feature : le drapeau est porte par defaut.
         this.entityData.set(SHOW_TRIBE_FLAG, !tag.contains("showTribeFlag") || tag.getBoolean("showTribeFlag"));
+        // Meme regle pour le suivi : les betes d'avant le reglage continuent de suivre leur maitre.
+        this.entityData.set(FOLLOW_OWNER, !tag.contains("followOwner") || tag.getBoolean("followOwner"));
+        this.entityData.set(SECONDARY_ATTACK, tag.getInt("secondaryAttack"));
         this.entityData.set(IS_FEMALE, tag.getBoolean("isFemale"));
         this.entityData.set(SADDLED, tag.getBoolean("isSaddled"));
         this.entityData.set(IS_FED, tag.getBoolean("isFed"));

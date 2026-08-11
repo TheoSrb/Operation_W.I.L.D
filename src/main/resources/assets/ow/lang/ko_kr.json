@@ -154,6 +154,8 @@
   "option.autoPickup.desc": "근처의 아이템을 자동으로 줍습니다",
   "option.tribeFlag": "부족 깃발",
   "option.tribeFlag.desc": "개체의 등에 부족의 배너를 답니다.",
+  "option.followOwner": "주인 따라가기",
+  "option.followOwner.desc": "주인을 따라 달리고 멀어지면 순간이동합니다. 끄면 엔티티가 그 자리를 지킵니다.",
   "option.sit": "앉기 / 일어서기",
   "option.sit.desc": "엔티티에게 앉거나 일어서라고 명령합니다",
   "option.mode.prefix": "모드: ",
@@ -1068,7 +1070,6 @@
   "ow.attacks.orca.tidal_rush.title": "바다 추진",
   "ow.attacks.orca.slipstream.desc": "반경 %s 블록 이내에서 길들인 생물과 부족원은 %s%% 더 빠르게 헤엄치고 숫을 %s%% 더 오래 참습니다.",
   "ow.attacks.orca.slipstream.title": "반류",
-
   "tooltip.elephantSkin1.desc": "4톤의 근육을 감싼 순금 갑주. 50레벨에 해금됩니다.",
   "tooltip.elephantSkin2.desc": "막으로 된 날개와 검게 그을린 엄니 — 무언가가 함께 올라왔습니다.",
   "tooltip.elephantSkin3.desc": "살은 진작에 무너졌습니다. 걸음은 그렇지 않았습니다.",
@@ -1080,5 +1081,10 @@
   "ow.attacks.elephant.earthquake.title": "대지진",
   "ow.attacks.elephant.earthquake.desc": "%s회 처치로 충전됩니다. 코끼리가 몸을 일으켰다가 온 체중을 내리찍습니다: %s블록 범위의 충격파, 중심에서 최대 %s의 피해, 부서지는 지면과 흔들리는 화면. 재사용 대기시간 %s초.",
   "ow.attacks.elephant.lumberjack.title": "나무꾼",
-  "ow.attacks.elephant.lumberjack.desc": "전속력으로 달리는 코끼리는 들이받은 나무를 통째로 쓰러뜨리고 목재를 %s%% 더 얻습니다."
+  "ow.attacks.elephant.lumberjack.desc": "전속력으로 달리는 코끼리는 들이받은 나무를 통째로 쓰러뜨리고 목재를 %s%% 더 얻습니다.",
+  "key.ow.switch_attack": "보조 공격 전환 (+ 휠)",
+  "ow.attacks.elephant.water_spray.title": "코 물줄기",
+  "ow.attacks.elephant.water_spray.desc": "우클릭 유지: 물가에서는 코끼리가 코에 물을 채우고, 그 외의 곳에서는 %s 블록까지 물을 뿜어 휩쓴 대상을 밀어내고 불을 끕니다. 같은 용암 블록에 %s초 동안 계속 뿜으면 돌로 굳습니다. 저장된 물은 시간이 지나면 조금씩 새어 나갑니다.",
+  "ow.attacks.switch_secondary.before": "%s +",
+  "ow.attacks.switch_secondary.after": ": 카드 전환"
 }

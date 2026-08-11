@@ -154,6 +154,8 @@
   "option.autoPickup.desc": "自動拾取附近的物品",
   "option.tribeFlag": "部落旗幟",
   "option.tribeFlag.desc": "讓實體背負你所在部落的旗幟。",
+  "option.followOwner": "跟隨主人",
+  "option.followOwner.desc": "奔跑跟隨主人，距離過遠時傳送到主人身邊。關閉後，實體將留在原地。",
   "option.sit": "坐下 / 起立",
   "option.sit.desc": "命令你的實體坐下或起立",
   "option.mode.prefix": "模式：",
@@ -1068,7 +1070,6 @@
   "ow.attacks.orca.tidal_rush.title": "海流推進",
   "ow.attacks.orca.slipstream.desc": "在 %s 格範圍內，你馴服的生物和部落成員游速提升 %s%%，屏息時長增加 %s%%。",
   "ow.attacks.orca.slipstream.title": "隨流",
-
   "tooltip.elephantSkin1.desc": "四噸肌肉之上覆著的純金甲冑。50 級解鎖。",
   "tooltip.elephantSkin2.desc": "膜質的雙翼與焦黑的長牙——有什麼東西跟著牠一起回來了。",
   "tooltip.elephantSkin3.desc": "血肉早已崩壞，腳步卻不曾停下。",
@@ -1080,5 +1081,10 @@
   "ow.attacks.elephant.earthquake.title": "地震",
   "ow.attacks.elephant.earthquake.desc": "擊殺 %s 個目標後充能。大象昂身而起，再以全身重量砸下：%s 格範圍的衝擊波，中心最高 %s 點傷害，地面碎裂，鏡頭震顫。冷卻 %s 秒。",
   "ow.attacks.elephant.lumberjack.title": "伐木者",
-  "ow.attacks.elephant.lumberjack.desc": "全速衝鋒時，大象一擊撞倒整棵樹，並額外獲得 %s%% 的木材。"
+  "ow.attacks.elephant.lumberjack.desc": "全速衝鋒時，大象一擊撞倒整棵樹，並額外獲得 %s%% 的木材。",
+  "key.ow.switch_attack": "切換副攻擊（＋滾輪）",
+  "ow.attacks.elephant.water_spray.title": "象鼻水柱",
+  "ow.attacks.elephant.water_spray.desc": "按住右鍵：在水邊大象會往鼻子裡吸水；在別處則可噴射 %s 格，擊退被掃到的目標並撲滅火焰。對同一個熔岩方塊持續噴射 %s 秒可將其凝固成石頭。儲水會隨時間緩慢流失。",
+  "ow.attacks.switch_secondary.before": "%s ＋",
+  "ow.attacks.switch_secondary.after": "：切換卡牌"
 }

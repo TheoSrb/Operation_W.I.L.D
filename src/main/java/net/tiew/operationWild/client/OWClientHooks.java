@@ -74,4 +74,9 @@ public final class OWClientHooks {
         OWEntity e = clientOWEntity(entityId);
         if (e != null) e.currentTeam = null;
     }
+
+    /** Annule la prédiction client d'une attaque que le serveur a refusée. */
+    public static void onAttackRejected(int entityId, int attackId) {
+        net.tiew.operationWild.entity.attacks.OWAttackLogic.rollbackRejectedAttack(entityId, attackId);
+    }
 }
