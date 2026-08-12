@@ -17,7 +17,7 @@ import net.tiew.operationWild.entity.client.animation.RedPandaAnimations;
 public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "red_panda"), "main");
 
-    private static final float WALK_SPEED = 2.4f;
+    private static final float WALK_SPEED = 3f;
     private static final long STEP_RIGHT_MS = 240L;
     private static final long STEP_LEFT_MS = 920L;
 
