@@ -229,7 +229,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 0.28f * (1 + ((float) this.getLevel() / 50));
+        return 0.15f * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
