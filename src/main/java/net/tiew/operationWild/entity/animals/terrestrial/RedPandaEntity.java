@@ -72,21 +72,9 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static final double SHOULDER_SIDE_OFFSET = 0.44;
     private static final double SHOULDER_HEIGHT_OFFSET = 1.22;
     private static final double SHOULDER_FORWARD_OFFSET = -0.05;
-    /**
-     * Correction d'assise quand le porteur s'accroupit.
-     *
-     * <p>Le modèle vanilla ne se contente pas de baisser : son torse pique de 0,5 rad vers l'avant
-     * ({@code HumanoidModel}), et l'épaule descend ET avance. Un simple facteur sur la hauteur — ce
-     * qu'il y avait — laissait la bête flotter en arrière du dos penché.</p>
-     *
-     * <p>Valeurs absolues et non proportionnelles : l'accroupissement du joueur ne dépend pas de la
-     * taille de l'animal qu'il porte.</p>
-     */
     private static final double CROUCH_DROP = 0.28;
     private static final double CROUCH_FORWARD = 0.09;
-    /** Inclinaison prise par la bête pour rester solidaire de l'épaule qui bascule, en degrés. */
     public static final float CROUCH_PITCH_DEGREES = 9f;
-    /** Vitesse de la transition. Un booléen nu faisait sauter la bête d'un cran à l'accroupissement. */
     private static final float CROUCH_BLEND = 0.35f;
 
     private static final int SHOULDER_TOGGLE_COOLDOWN = 10;
@@ -107,20 +95,11 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     private static final EntityDataAccessor<Float> HEAL_POWER =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
-    /**
-     * Escalade en cours : compte a rebours partage avec le client, et sens du trajet.
-     *
-     * <p>La bete n'est PAS passagere pendant la montee — elle grimpe pour de bon. Le serveur la
-     * deplace le long de la courbe et pousse sa position comme pour n'importe quelle entite libre ;
-     * le client n'a donc rien a recalculer, l'interpolation ordinaire suffit a rendre le trajet
-     * fluide. Seul l'etat sert au modele, pour choisir la pose d'escalade.</p>
-     */
     private static final EntityDataAccessor<Integer> CLIMB_TIMER =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> CLIMB_MOUNTING =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.BOOLEAN);
 
-    /** Duree du trajet, dans un sens comme dans l'autre : une seconde pleine. */
     public static final int CLIMB_TICKS = 20;
 
     private static final EntityDataAccessor<Integer> AURA_TIMER = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
@@ -139,7 +118,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private int auraPulseTimer = 0;
     private double auraAnchorY = Double.NaN;
     private int shoulderCooldown = 0;
-    /** Part d'accroupissement en cours, lissée : 0 debout, 1 accroupi. Doublée pour l'interpolation. */
     private Vec3 climbStart = null;
     private int climbCarrierId = -1;
 
@@ -190,7 +168,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     public boolean isClimbingUp() { return this.entityData.get(CLIMB_MOUNTING); }
 
-    /** Avancement du trajet, de 0 au depart a 1 a l'arrivee. Lu par le modele pour doser la pose. */
     public float climbProgress() {
         return 1f - this.entityData.get(CLIMB_TIMER) / (float) CLIMB_TICKS;
     }
@@ -443,8 +420,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
         if (vehicle instanceof Player player) {
             syncPassengersToCarrier(player);
-            // Descente animee, symetrique de la montee : elle repart de l'epaule, la ou la bete se
-            // trouve a l'instant ou elle cesse d'etre passagere.
             beginClimb(player, false);
             return;
         }
@@ -452,14 +427,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         if (vehicle != null) this.setPos(vehicle.getX(), vehicle.getY(), vehicle.getZ());
     }
 
-    /**
-     * Ouvre le trajet, dans un sens ou dans l'autre.
-     *
-     * <p>{@code noPhysics} le temps du parcours : la bete suit une courbe posee a la main, la
-     * gravite et les collisions la feraient devier ou la coinceraient dans les jambes du porteur.
-     * Elle n'est passagere qu'a l'arrivee — jusque-la elle grimpe vraiment, et un porteur qui
-     * s'eloigne la laisse simplement retomber.</p>
-     */
     private boolean beginClimb(Player carrier, boolean mounting) {
         if (this.level().isClientSide()) return false;
 
@@ -498,8 +465,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         Vec3 ground = carrier.position().add(
                 shoulderOffset(carrier.yBodyRot, this.getScale(), 0f).multiply(1.6, 0, 1.6));
 
-        // La cible se recalcule a chaque tick : un porteur qui marche pendant la montee emmene le
-        // point d'arrivee avec lui, et la bete le rattrape au lieu de grimper dans le vide.
         Vec3 from = mounting ? climbStart : shoulder;
         Vec3 to = mounting ? shoulder : ground;
         this.setPos(climbCurve(from, to, progress));
@@ -532,14 +497,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         this.climbCarrierId = -1;
     }
 
-    /**
-     * Courbe du trajet : on se rapproche vite, on s'eleve ensuite.
-     *
-     * <p>Horizontale et verticale sont dissociees, et c'est ce qui donne le geste. Menees ensemble,
-     * elles auraient trace une diagonale de mouche. La, la bete franchit d'abord la distance au sol,
-     * puis se hisse — et le petit depassement du milieu de montee lui donne l'elan d'un saut plutot
-     * que la regularite d'un ascenseur.</p>
-     */
     private static Vec3 climbCurve(Vec3 from, Vec3 to, float progress) {
         double approach = 1 - Math.pow(1 - progress, 3);
         double x = Mth.lerp(approach, from.x, to.x);
@@ -588,8 +545,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         double forwardZ = Mth.cos(yaw);
 
         double side = SHOULDER_SIDE_OFFSET * scale;
-        // L'avancée de l'accroupissement s'ajoute au décalage de base, elle ne le remplace pas : le
-        // torse penché emmène l'épaule vers l'avant, l'écart latéral ne change pas.
         double forward = SHOULDER_FORWARD_OFFSET * scale + CROUCH_FORWARD * crouch;
 
         return new Vec3(
@@ -607,9 +562,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
         this.getNavigation().stop();
 
-        // Poursuite molle de l'état accroupi. La bascule du modèle vanilla, elle, est instantanée,
-        // mais la caméra l'amortit : suivre le booléen aurait fait sauter la bête d'un cran alors
-        // que la vue, elle, descend en douceur.
         this.crouchAmountO = this.crouchAmount;
         this.crouchAmount += ((carrier.isCrouching() ? 1f : 0f) - this.crouchAmount) * CROUCH_BLEND;
 
