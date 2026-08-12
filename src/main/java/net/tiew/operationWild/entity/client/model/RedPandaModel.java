@@ -122,7 +122,7 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
 
         if (redPanda.isOnShoulder()) {
             this.animate(redPanda.idleAnimationState, RedPandaAnimations.MISC_IDLE, ageInTicks, 0.6f);
-            animateShoulderPerch(ageInTicks);
+            animateShoulderPerch(redPanda, ageInTicks);
             animateGestures(redPanda, ageInTicks);
             this.prevLimbSwing = limbSwing;
             return;
@@ -252,24 +252,91 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     }
 
     /** Assise compacte sur l'épaule : pattes repliées, queue enroulée le long du dos du porteur. */
-    private void animateShoulderPerch(float ageInTicks) {
-        float sway = Mth.sin(ageInTicks * 0.12f);
+    /**
+     * Oisivete sur l'epaule : respiration, coups d'oeil et oreilles qui frissonnent.
+     *
+     * <p>Trois periodes volontairement incommensurables — 0,09, 0,045 et 0,17. Des cycles multiples
+     * les uns des autres se resynchronisent regulierement, et la bete se met alors a battre la
+     * mesure comme un metronome. Decales, les gestes ne retombent jamais ensemble et l'oisivete
+     * parait vivante meme observee longtemps.</p>
+     */
+    private void animateShoulderPerch(T redPanda, float ageInTicks) {
+        float breath = Mth.sin(ageInTicks * 0.09f);
+        float glance = Mth.sin(ageInTicks * 0.045f);
+        float twitch = Mth.sin(ageInTicks * 0.17f);
 
-        this.ALL.y += 1.4f;
+        this.ALL.y += 1.4f - 0.22f * breath;
         this.ALL.xRot += 0.12f;
-        this.ALL.zRot += 0.05f * sway;
+        this.ALL.zRot += 0.04f * breath;
 
+        // Assise compacte : pattes repliees sous le corps, bras ramenes contre la poitrine.
         this.left_leg.xRot += -1.35f;
         this.right_leg.xRot += -1.35f;
         this.left_leg.z += -1.0f;
         this.right_leg.z += -1.0f;
 
-        this.left_arm.xRot += -0.55f;
-        this.right_arm.xRot += -0.55f;
+        this.left_arm.xRot += -0.55f + 0.08f * breath;
+        this.right_arm.xRot += -0.55f - 0.08f * breath;
 
-        this.tail.xRot += 0.75f + 0.06f * sway;
-        this.tail.yRot += 0.28f;
+        // Coups d'oeil lents, avec un leger inclinement de tete : c'est ce qui donne l'air curieux.
+        this.head.yRot += 0.22f * glance;
+        this.head.zRot += 0.09f * glance;
+        this.head.xRot += 0.05f * breath;
+
+        // Frisson d'oreilles, chacune sur son propre decalage.
+        this.left_Ear.zRot += 0.20f + 0.10f * twitch;
+        this.right_Ear.zRot += -0.20f - 0.10f * Mth.sin(ageInTicks * 0.17f + 1.7f);
+
+        animatePerchedTail(redPanda, ageInTicks, breath);
     }
+
+    /**
+     * Queue pendante, entrainee par les virages du porteur.
+     *
+     * <p>Meme principe que l'etendard de tribu : la rotation du corps par tick pilote une cible, un
+     * ressort amorti la poursuit, et la queue traine donc VERS L'EXTERIEUR du virage avant de
+     * revenir. Une simple copie du lacet l'aurait rendue rigide ; c'est le retard et le rebond qui
+     * font le poids de la fourrure.</p>
+     *
+     * <p>L'integration se fait sur l'ecart d'age reel et non sur l'age absolu : a plusieurs milliers
+     * de ticks, la moindre variation de cadence ferait sauter la phase d'un tour entier.</p>
+     */
+    private void animatePerchedTail(T redPanda, float ageInTicks, float breath) {
+        float dt = Float.isNaN(redPanda.tailLastAge) ? 0f
+                : Mth.clamp(ageInTicks - redPanda.tailLastAge, 0f, 2f);
+        redPanda.tailLastAge = ageInTicks;
+
+        // Le lacet du CORPS du porteur ne bouge presque pas quand on tourne la souris a l'arret :
+        // il reste fige jusqu'a quarante-cinq degres avant de rattraper d'un bloc. La queue, calee
+        // dessus, ne reagissait donc quasiment pas au regard. C'est celui de la TETE qui la pilote,
+        // le seul a suivre la camera image par image.
+        net.minecraft.world.entity.player.Player carrier = redPanda.getCarrier();
+        float turnRate = carrier != null
+                ? Mth.wrapDegrees(carrier.getYRot() - carrier.yRotO)
+                : Mth.wrapDegrees(redPanda.yBodyRot - redPanda.yBodyRotO);
+        float target = Mth.clamp(-turnRate * TAIL_SWING_GAIN, -TAIL_SWING_MAX, TAIL_SWING_MAX);
+
+        redPanda.tailSwingVelocity += (target - redPanda.tailSwing) * TAIL_STIFFNESS * dt;
+        redPanda.tailSwingVelocity *= (float) Math.pow(TAIL_DAMPING, dt);
+        redPanda.tailSwing += redPanda.tailSwingVelocity * dt;
+
+        // Elle PEND le long du dos du porteur : angle negatif, l'axe des X releve la queue.
+        this.tail.xRot += -0.62f + 0.05f * breath;
+        this.tail.yRot += (redPanda.tailSwing + 4f * breath) * Mth.DEG_TO_RAD;
+        this.tail.zRot += redPanda.tailSwing * 0.5f * Mth.DEG_TO_RAD;
+    }
+
+    /**
+     * Degres de balancement par degre de rotation du regard, et butee.
+     *
+     * <p>Le ressort est volontairement mou : une raideur elevee ramenerait la queue trop vite et
+     * mangerait l'amplitude qu'on vient de lui donner. C'est le retard qui fait le poids de la
+     * fourrure, pas l'angle seul.</p>
+     */
+    private static final float TAIL_SWING_GAIN = 7.5f;
+    private static final float TAIL_SWING_MAX = 78f;
+    private static final float TAIL_STIFFNESS = 0.38f;
+    private static final float TAIL_DAMPING = 0.78f;
 
     /** Position assise au sol : arrière-train posé, avant-train redressé. */
     private void animateSit() {

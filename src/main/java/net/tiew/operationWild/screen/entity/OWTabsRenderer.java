@@ -45,6 +45,27 @@ public class OWTabsRenderer {
     private Button skinButton;
     private Button teamButton;
     private Button dailyQuestButton;
+
+    /**
+     * Le panda roux n'a pas de quetes quotidiennes.
+     *
+     * <p>Elles reposent toutes sur des faits d'armes — tuer, encaisser, enchainer — qu'un soigneur
+     * incapable d'infliger le moindre degat ne produira jamais. L'onglet n'aurait affiche que des
+     * objectifs hors de portee.</p>
+     */
+    private static boolean hasDailyQuests(OWEntity entity) {
+        return !(entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity);
+    }
+
+    /**
+     * Recul des onglets qui suivent celui des quetes quand il est absent.
+     *
+     * <p>Laisser un trou aurait ete plus simple, mais une rangee trouee se lit comme un onglet
+     * casse. Les suivants remontent donc d'un cran.</p>
+     */
+    private static int questShift(OWEntity entity) {
+        return hasDailyQuests(entity) ? 0 : -20;
+    }
     private Button pisteButton;
     private Button optionsButton;
 
@@ -96,22 +117,27 @@ public class OWTabsRenderer {
                 () -> onTeamClicked(entity));
         teamButton.setAlpha(0f);
 
-        dailyQuestButton = buildButton("", 0xFFFFFF, i + 62, j - 18, 20, 18,
-                () -> onDailyQuestsClicked(entity));
-        dailyQuestButton.setAlpha(0f);
+        int shift = questShift(entity);
 
-        pisteButton = buildButton("", 0xFFFFFF, i + 82, j - 18, 20, 18,
+        dailyQuestButton = null;
+        if (hasDailyQuests(entity)) {
+            dailyQuestButton = buildButton("", 0xFFFFFF, i + 62, j - 18, 20, 18,
+                    () -> onDailyQuestsClicked(entity));
+            dailyQuestButton.setAlpha(0f);
+        }
+
+        pisteButton = buildButton("", 0xFFFFFF, i + 82 + shift, j - 18, 20, 18,
                 () -> onPisteClicked(entity));
         pisteButton.setAlpha(0f);
 
-        optionsButton = buildButton("", 0xFFFFFF, i + 102, j - 18, 20, 18,
+        optionsButton = buildButton("", 0xFFFFFF, i + 102 + shift, j - 18, 20, 18,
                 () -> Minecraft.getInstance().setScreen(new OWOptionsScreen()));
         optionsButton.setAlpha(0f);
 
         addWidget.accept(inventoryButton);
         addWidget.accept(skinButton);
         addWidget.accept(teamButton);
-        addWidget.accept(dailyQuestButton);
+        if (dailyQuestButton != null) addWidget.accept(dailyQuestButton);
         addWidget.accept(pisteButton);
         addWidget.accept(optionsButton);
     }
@@ -201,16 +227,20 @@ public class OWTabsRenderer {
         boolean hoverInventory = isHovering(mouseX, mouseY, i + 2, j - 18, 20, 18);
         boolean hoverSkin = isHovering(mouseX, mouseY, i + 22, j - 18, 20, 18);
         boolean hoverTeam = isHovering(mouseX, mouseY, i + 42, j - 18, 20, 18);
-        boolean hoverQuests = isHovering(mouseX, mouseY, i + 62, j - 18, 20, 18);
-        boolean hoverPiste = isHovering(mouseX, mouseY, i + 82, j - 18, 20, 18);
-        boolean hoverOptions = isHovering(mouseX, mouseY, i + 102, j - 18, 20, 18);
+        int shift = questShift(entity);
+        boolean showQuests = hasDailyQuests(entity);
+
+        boolean hoverQuests = showQuests && isHovering(mouseX, mouseY, i + 62, j - 18, 20, 18);
+        boolean hoverPiste = isHovering(mouseX, mouseY, i + 82 + shift, j - 18, 20, 18);
+        boolean hoverOptions = isHovering(mouseX, mouseY, i + 102 + shift, j - 18, 20, 18);
 
         graphics.blit(OW_INVENTORY_LOCATION, i + 2, j - 18, (hoverInventory || activeTab == Tab.INVENTORY) ? 20 : 0, 206, 20, 18);
         graphics.blit(OW_INVENTORY_LOCATION, i + 22, j - 18, (hoverSkin || activeTab == Tab.COSMETICS) ? 20 : 0, 206, 20, 18);
         graphics.blit(OW_INVENTORY_LOCATION, i + 42, j - 18, (hoverTeam || activeTab == Tab.TEAM) ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 62, j - 18, (hoverQuests || activeTab == Tab.DAILY_QUESTS) ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 82, j - 18, (hoverPiste || activeTab == Tab.PISTE) ? 20 : 0, 206, 20, 18);
-        graphics.blit(OW_INVENTORY_LOCATION, i + 102, j - 18, (hoverOptions || activeTab == Tab.OPTIONS) ? 20 : 0, 206, 20, 18);
+        if (showQuests)
+            graphics.blit(OW_INVENTORY_LOCATION, i + 62, j - 18, (hoverQuests || activeTab == Tab.DAILY_QUESTS) ? 20 : 0, 206, 20, 18);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 82 + shift, j - 18, (hoverPiste || activeTab == Tab.PISTE) ? 20 : 0, 206, 20, 18);
+        graphics.blit(OW_INVENTORY_LOCATION, i + 102 + shift, j - 18, (hoverOptions || activeTab == Tab.OPTIONS) ? 20 : 0, 206, 20, 18);
 
         graphics.blit(OW_INVENTORY_LOCATION, i + 4, j - 16, 176, 0, 16, 16); // Inventaire
         graphics.blit(OW_INVENTORY_LOCATION, i + 24, j - 16, 176, 16, 16, 16); // Skin
@@ -221,9 +251,10 @@ public class OWTabsRenderer {
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
 
 
-        graphics.blit(OW_INVENTORY_LOCATION, i + 64, j - 16, 176, 48, 16, 16); // Daily Quests
-        graphics.blit(OW_INVENTORY_LOCATION, i + 84, j - 16, 176, 64, 16, 16); // Piste Sauvage
-        graphics.blit(OW_INVENTORY_LOCATION, i + 104, j - 16, 176, 80, 16, 16); // Options
+        if (showQuests)
+            graphics.blit(OW_INVENTORY_LOCATION, i + 64, j - 16, 176, 48, 16, 16); // Daily Quests
+        graphics.blit(OW_INVENTORY_LOCATION, i + 84 + shift, j - 16, 176, 64, 16, 16); // Piste Sauvage
+        graphics.blit(OW_INVENTORY_LOCATION, i + 104 + shift, j - 16, 176, 80, 16, 16); // Options
 
         renderNotificationBadges(graphics, font, entity, i, j);
 
@@ -238,10 +269,13 @@ public class OWTabsRenderer {
     }
 
     private void renderNotificationBadges(GuiGraphics graphics, Font font, OWEntity entity, int i, int j) {
-        int[] tabOffsets = {2, 22, 42, 62, 82, 102};
+        int shift = questShift(entity);
+        int[] tabOffsets = {2, 22, 42, 62, 82 + shift, 102 + shift};
+        boolean showQuests = hasDailyQuests(entity);
         int color = (entity.tickCount / 7) % 2 == 0 ? 0x92d124 : 0xF3F28F;
 
         for (int tab = 0; tab < 6; tab++) {
+            if (tab == 3 && !showQuests) continue;
             int count = notifications[tab];
             if (count <= 0) continue;
 

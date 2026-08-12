@@ -60,6 +60,8 @@ public class CrocodileTailPartRenderer extends EntityRenderer<CrocodileTailPart>
     @Override
     public void render(CrocodileTailPart entity, float entityYaw, float partialTick,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        net.tiew.operationWild.event.ClientEvents.tintHealGlow(entity);
+
         CrocodileEntity parent = entity.getParent();
         if (parent == null || parent.isRemoved() || parent.isBaby()) return;
 

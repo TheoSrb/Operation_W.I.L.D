@@ -82,7 +82,9 @@ public class OWAttacksOverlay {
         List<OWAttack> attacks = OWAttacksHandler.getActiveAttacks(entity);
 
         boolean hasComboCard = !carriedOnShoulder;
-        int baseX = carriedOnShoulder ? (screenWidth / 2) - 141 : (screenWidth / 2) + 96;
+        // Meme ancrage que les montures : une interface qui change de cote selon l'espece oblige
+        // l'oeil a la rechercher. L'absence de carte de combo suffit a distinguer le porte.
+        int baseX = (screenWidth / 2) + 96;
         int baseY = screenHeight - 22;
 
         int entityRow  = OWAttacksHandler.getEntityRow(entityClass);

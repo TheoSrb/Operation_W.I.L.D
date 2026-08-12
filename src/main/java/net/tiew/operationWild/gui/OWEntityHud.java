@@ -152,8 +152,7 @@ public class OWEntityHud {
             case "LionEntity": return 10;
             case "OrcaEntity": return 11;
             case "KangarooEntity": return 12;
-            // Bande propre pas encore dessinée : celle du tigre tient lieu de provisoire.
-            case "RedPandaEntity": return 0;
+            case "RedPandaEntity": return 13;
             default: return 0;
         }
     }
@@ -223,8 +222,7 @@ public class OWEntityHud {
         } else if (entity instanceof KangarooEntity) {
             return new EntityIconData(239, 203, 17, 23, -(17 / 2), -14);
         } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity) {
-            // Vignette propre pas encore dessinée : celle du tigre tient lieu de provisoire.
-            return new EntityIconData(237, 21, 19, 17, -(19 / 2), -8);
+            return new EntityIconData(232, 226, 24, 19, -(24 / 2), -10);
         } else if (entity instanceof ElephantEntity) {
             // Vignette la plus large du lot (31 px) : elle déborde des deux côtés de l'ancrage, d'où
             // un décalage horizontal deux fois plus grand que celui du kodiak.
@@ -233,12 +231,42 @@ public class OWEntityHud {
         return null;
     }
 
+    /** Durée du battement de refus, et bête concernée : une seule peut clignoter à la fois. */
+    private static final long ENERGY_LACK_FLASH_MS = 1200L;
+    private static long energyLackUntilMs = 0L;
+    private static int energyLackEntityId = -1;
+
     public static void createVitalEnergyBar(GuiGraphics guiGraphics, OWEntity entity, int x, int y) {
         int xPlacement = x / 2 + 10;
         int yPlacement = y - 39;
 
         guiGraphics.blit(HUD, xPlacement + 81 + 5, yPlacement, 0, 230, 8, 14);
 
+        // Refus faute d'énergie : l'icône bat en violet vif pendant une seconde et quelque.
+        //
+        // Le drapeau était pose par les NEUF especes et lu par personne — du code mort depuis
+        // toujours. Il est consomme ici, donc rendu tout de suite a zero : laisse a vrai, il ferait
+        // clignoter la jauge sans fin. Rien ne peut regresser, puisque jusqu'ici il ne se passait
+        // rien du tout.
+        if (entity.canShowVitalEnergyLack) {
+            entity.canShowVitalEnergyLack = false;
+            energyLackEntityId = entity.getId();
+            energyLackUntilMs = System.currentTimeMillis() + ENERGY_LACK_FLASH_MS;
+        }
+
+        if (energyLackEntityId == entity.getId() && System.currentTimeMillis() < energyLackUntilMs) {
+            boolean beat = (System.currentTimeMillis() / 90L) % 2 == 0;
+            if (beat) RenderSystem.setShaderColor(1.35f, 0.45f, 1.9f, 1.0f);
+            guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 1, 244, 6, 12);
+            if (beat) RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
+            guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 7, 244, 6,
+                    (int) (12 * ((float) (entity.getVitalEnergy() / entity.getVitalEnergyCapacity()))));
+            return;
+        }
+
+        // Une bete qui ne court pas et n'enchaine pas peut tout de meme se depenser : le panda roux
+        // ne fait que lancer des soins, et ni le combo ni la course ne le decrivaient. Le battement
+        // suit donc aussi la depense recente, quelle qu'en soit la source.
         boolean isActuallySpendingEnergy = entity.isCombo()
                 || (entity.isRunning() && entity.isVehicle() && entity.isTame()
                     && entity.getDeltaMovement().horizontalDistanceSqr() > 0.00005);

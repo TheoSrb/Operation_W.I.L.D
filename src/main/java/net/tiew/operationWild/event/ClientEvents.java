@@ -2739,7 +2739,7 @@ public class ClientEvents {
         if (panda == null || !panda.isTame()) return;
 
         Vec3 cam = event.getCamera().getPosition();
-        refreshVitalSenseTargets(mc, cam);
+        refreshVitalSenseTargets(mc, panda, cam);
         if (vitalSenseVisibleIds.isEmpty()) return;
 
         float pt = event.getPartialTick().getGameTimeDeltaPartialTick(true);
@@ -2816,6 +2816,62 @@ public class ClientEvents {
     }
 
     private static void applyHealGlow(Minecraft mc, LivingEntity entity, boolean glowing) {
+        setGlowFlag(entity, glowing);
+        if (mc.level == null) return;
+
+        if (!glowing) {
+            // Extinction par la liste tenue a l'allumage, et non par un second balayage : un segment
+            // qui a derive hors de la boite entre-temps resterait allume pour toujours.
+            for (int id : healGlowPartIds) {
+                if (mc.level.getEntity(id) != null) setGlowFlag(mc.level.getEntity(id), false);
+            }
+            healGlowPartIds.clear();
+            return;
+        }
+
+        // Boa et crocodile ne sont pas d'un seul tenant : leur queue est faite d'entites separees.
+        //
+        // Elles sont retrouvees par BALAYAGE et non demandees a la tete. Le crocodile ne tient son
+        // tableau de segments que cote serveur — il est vide ici —, et le boa n'expose que ses deux
+        // premiers enfants alors que sa queue en compte davantage : d'où une queue eteinte chez l'un
+        // et a moitie allumee chez l'autre. Chaque segment, lui, sait a qui il appartient.
+        for (net.minecraft.world.entity.Entity part :
+                mc.level.getEntities(entity, entity.getBoundingBox().inflate(BODY_PART_REACH),
+                        candidate -> isBodyPartOf(candidate, entity))) {
+            setGlowFlag(part, true);
+            healGlowPartIds.add(part.getId());
+        }
+    }
+
+    /** Portee du balayage : la plus longue queue du mod tient largement dedans. */
+    private static final double BODY_PART_REACH = 24.0;
+    private static final java.util.Set<Integer> healGlowPartIds = new java.util.HashSet<>();
+
+    /** Vrai si {@code candidate} est un segment du corps de {@code target}. */
+    private static boolean isBodyPartOf(net.minecraft.world.entity.Entity candidate,
+                                        net.minecraft.world.entity.Entity target) {
+        net.minecraft.world.entity.Entity parent = bodyPartParent(candidate);
+        // La chaine est remontee plutot que testee d'un cran : rien ne garantit qu'un segment pointe
+        // la tete directement, et une queue articulee peut se rattacher au maillon precedent.
+        for (int depth = 0; parent != null && depth < 8; depth++) {
+            if (parent == target) return true;
+            parent = bodyPartParent(parent);
+        }
+        return false;
+    }
+
+    private static net.minecraft.world.entity.Entity bodyPartParent(net.minecraft.world.entity.Entity entity) {
+        if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart boaPart) {
+            return boaPart.getParentForRender();
+        }
+        if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileTailPart crocPart) {
+            return crocPart.getParent();
+        }
+        return null;
+    }
+
+    private static void setGlowFlag(net.minecraft.world.entity.Entity entity, boolean glowing) {
+        if (entity == null) return;
         byte flags = entity.getEntityData().get(SHARED_FLAGS);
         byte updated = glowing ? (byte) (flags | SHARED_FLAG_GLOWING) : (byte) (flags & ~SHARED_FLAG_GLOWING);
         if (flags != updated) entity.getEntityData().set(SHARED_FLAGS, updated);
@@ -2835,11 +2891,35 @@ public class ClientEvents {
      */
     @SubscribeEvent
     public static void onRenderLivingPre(net.neoforged.neoforge.client.event.RenderLivingEvent.Pre<?, ?> event) {
-        if (healGlowTargetId == -1 || event.getEntity().getId() != healGlowTargetId) return;
+        if (healGlowTargetId == -1) return;
+        if (!isHealGlowPart(event.getEntity())) return;
         Minecraft.getInstance().renderBuffers().outlineBufferSource().setColor(92, 255, 115, 255);
     }
 
-    private static void refreshVitalSenseTargets(Minecraft mc, Vec3 cam) {
+    /**
+     * Vrai pour la cible du soin comme pour les segments qui prolongent son corps.
+     *
+     * <p>Le parent est demande a {@code getParentForRender} et non a {@code getParent} : le second
+     * est resolu cote serveur et rendrait toujours {@code null} ici.</p>
+     */
+    public static boolean isHealGlowPart(net.minecraft.world.entity.Entity entity) {
+        if (healGlowTargetId == -1) return false;
+        if (entity.getId() == healGlowTargetId) return true;
+        return healGlowPartIds.contains(entity.getId());
+    }
+
+    /**
+     * Teinte le liseré d'un segment de corps. Appelée par les rendus de queue qui ne passent pas par
+     * {@code RenderLivingEvent} — celui du crocodile, dont les segments ne sont pas des êtres vivants.
+     */
+    public static void tintHealGlow(net.minecraft.world.entity.Entity entity) {
+        if (!isHealGlowPart(entity)) return;
+        Minecraft.getInstance().renderBuffers().outlineBufferSource().setColor(92, 255, 115, 255);
+    }
+
+    private static void refreshVitalSenseTargets(Minecraft mc,
+                                                 net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity panda,
+                                                 Vec3 cam) {
         long now = mc.level.getGameTime();
         if (now == vitalSenseCacheTime) return;
         vitalSenseCacheTime = now;
@@ -2851,6 +2931,11 @@ public class ClientEvents {
                 mc.player.getBoundingBox().inflate(radius))) {
             if (le == mc.player || le.getVehicle() == mc.player) continue;
             if (le instanceof net.minecraft.world.entity.decoration.ArmorStand) continue;
+            // Le passif veille sur les siens, pas sur la faune : une alerte au-dessus de chaque
+            // cochon blesse du voisinage aurait noye celle qui compte. Le cercle est celui que le
+            // panda peut effectivement soigner — meme predicat que la designation de l'orbe, donc
+            // rien ne peut clignoter sans qu'il y ait de quoi y repondre.
+            if (!panda.isHealAlly(le)) continue;
             // Segment de corps et non créature : la queue du boa est faite d'entités blessables
             // indépendantes, qui alignaient chacune leur propre barre le long de l'animal. Le test
             // porte sur le contrat de multipart, pas sur la classe : toute chaîne future en hérite.

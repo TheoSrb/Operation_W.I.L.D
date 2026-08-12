@@ -328,7 +328,14 @@
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/swap_passive_keys.py\")",
       "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/src/main/java/net/tiew/operationWild\"; grep -n \"setupAnim\" -A 22 entity/client/model/RedPandaModel.java | head -28; echo \"=== mixin dir ===\"; ls mixin/ | head -20; echo \"=== mixin json ===\"; find ../../../../resources -name \"*.mixins.json\" | head)",
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/climb.py\")",
-      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/climbpose.py\")"
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/climbpose.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/batch1.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/batch2.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/batch4.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/batch6.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/batch7.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/tailglow.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/tune.py\")"
     ]
   }
 }

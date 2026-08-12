@@ -523,10 +523,16 @@ public class OWAttacksInformation {
 
         AttackSlot[] slots = profile.columnSlots(entity);
 
-        // ── 3 colonnes d'attaque ──────────────────────────────────────────────
-        for (int i = 0; i < 3 && i < slots.length; i++) {
+        // Le groupe de colonnes est centre au lieu d'etre cale a gauche. Une espece sans combo n'en
+        // remplit que deux, et les laisser a leur rang laissait un tiers de vide sur la droite.
+        // La largeur de colonne, elle, ne bouge pas : elle regle la coupure des descriptions.
+        int  usedCols = Math.min(3, slots.length);
+        int  colsX    = bgX + (BG_W - usedCols * colW) / 2;
+
+        // ── colonnes d'attaque ────────────────────────────────────────────────
+        for (int i = 0; i < usedCols; i++) {
             AttackSlot slot  = slots[i];
-            int colCX = bgX + i * colW + colW / 2;
+            int colCX = colsX + i * colW + colW / 2;
             int curY  = bgY + 6;
 
             if (slot.hasCard()) {

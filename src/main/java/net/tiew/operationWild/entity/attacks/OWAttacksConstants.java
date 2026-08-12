@@ -384,8 +384,10 @@ public class OWAttacksConstants {
          * la caméra au lieu de la bête qu'on regardait.</p>
          */
         public static final double HEAL_ORB_MIN_AIM_DISTANCE = 2.0;
-        public static final float HEAL_ORB_INSTANT_RATIO = 0.10f;
-        public static final float HEAL_ORB_OVER_TIME_RATIO = 0.20f;
+        /** Part de la vie maximale rendue a l'impact. Baissee de 30 % : l'orbe soulage, elle ne remet pas debout. */
+        public static final float HEAL_ORB_INSTANT_RATIO = 0.05f;
+        /** Part rendue ensuite, etalee sur la duree. Baissee de 30 % dans le meme mouvement. */
+        public static final float HEAL_ORB_OVER_TIME_RATIO = 0.14f;
         public static final int HEAL_ORB_OVER_TIME_TICKS = 200;
         public static final int HEAL_ORB_OVER_TIME_INTERVAL = 10;
         public static final double HEAL_ORB_SPEED = 0.85;
@@ -401,7 +403,14 @@ public class OWAttacksConstants {
         public static final int LIFE_AURA_DURATION_TICKS = 160;
         public static final long LIFE_AURA_DURATION_MS = LIFE_AURA_DURATION_TICKS * 50L;
         public static final double LIFE_AURA_RADIUS = 10.0;
-        public static final float LIFE_AURA_HEAL_PER_PULSE = 5f;
+        /**
+         * Soin par pulsation, et la pulsation tombe chaque seconde : trois points de vie par seconde.
+         *
+         * <p>Forfaitaire et non proportionnel, contrairement a l'orbe — l'aura arrose tout un cercle
+         * pendant huit secondes, l'indexer sur la vie maximale de chacun aurait remis une grosse bete
+         * d'aplomb a elle seule.</p>
+         */
+        public static final float LIFE_AURA_HEAL_PER_PULSE = 3f;
         public static final int LIFE_AURA_PULSE_INTERVAL = 20;
 
         /**

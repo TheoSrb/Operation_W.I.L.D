@@ -121,6 +121,17 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private Vec3 climbStart = null;
     private int climbCarrierId = -1;
 
+    /**
+     * Ressort de la queue, cote client.
+     *
+     * <p>Porte par l'entite et non par le modele : une seule instance de modele sert TOUS les pandas
+     * a l'ecran, et y ranger l'etat ferait battre leurs queues a l'unisson. Meme raison qui pousse
+     * le rendu de drapeau a tenir une table indexee par porteur.</p>
+     */
+    public float tailSwing = 0f;
+    public float tailSwingVelocity = 0f;
+    public float tailLastAge = Float.NaN;
+
     public float crouchAmount = 0f;
     public float crouchAmountO = 0f;
     private int miscIdleCooldown = (int) OWUtils.generateRandomInterval(300, 700);
@@ -229,7 +240,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 0.15f * (1 + ((float) this.getLevel() / 50));
+        return 0.175f * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
@@ -572,7 +583,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         this.yHeadRot = carrier.yHeadRot;
         this.setYHeadRot(carrier.yHeadRot);
         this.fallDistance = 0f;
-        this.setAirSupply(this.getMaxAirSupply());
     }
 
     @Override
@@ -581,10 +591,16 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         return super.hurt(damageSource, amount);
     }
 
+    /**
+     * Seule la melee est ecartee.
+     *
+     * <p>Tout le reste porte : noyade, etouffement, chute, feu, potion, foudre, explosion. Un
+     * passager partage le sort de son porteur, et c'est ce qui donne du poids au fait de l'emmener
+     * partout — mais il n'a pas a encaisser les coups qui visent celui-ci.</p>
+     */
     private boolean isShieldedWhileCarried(DamageSource source) {
-        if (source.is(DamageTypes.DROWN) || source.is(DamageTypes.IN_WALL) || source.is(DamageTypes.DRY_OUT)) {
-            return true;
-        }
+        // Une explosion de creeper et une fleche portent toutes deux un tireur vivant : sans ces deux
+        // ecarts, le test « quelque chose de vivant l'a touche » les aurait prises pour de la melee.
         if (source.is(DamageTypeTags.IS_EXPLOSION) || source.is(DamageTypeTags.IS_PROJECTILE)) return false;
         return source.getDirectEntity() instanceof LivingEntity;
     }
@@ -875,7 +891,13 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             if (!isHealAlly(candidate)) continue;
             if (candidate.getHealth() >= candidate.getMaxHealth()) continue;
 
-            candidate.heal(OWAttacksConstants.RedPanda.LIFE_AURA_HEAL_PER_PULSE * getHealPower());
+            // Montant FIXE, seul soin du panda a echapper a la Puissance de Soin.
+            //
+            // L'aura arrose tout un cercle pendant huit secondes : la moindre multiplication y pese
+            // huit fois, sur tout le monde a la fois. A pleine statistique elle rendait pres de six
+            // points par seconde et par bete, soit le double de ce qu'elle doit valoir. Le stat
+            // garde son emprise sur l'orbe, ou il porte sur une cible et une seule.
+            candidate.heal(OWAttacksConstants.RedPanda.LIFE_AURA_HEAL_PER_PULSE);
 
             if (this.level() instanceof ServerLevel serverLevel) {
                 spawnAuraLink(serverLevel, candidate);
