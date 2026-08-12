@@ -28,6 +28,7 @@ public class OWNetworkHandler {
 
         // To Server packets
         registrar.playToServer(OpenOWInventoryPacket.TYPE, OpenOWInventoryPacket.STREAM_CODEC, OpenOWInventoryPacket::handle);
+        registrar.playToServer(RedPandaDismountPacket.TYPE, RedPandaDismountPacket.STREAM_CODEC, RedPandaDismountPacket::handle);
         registrar.playToServer(ClientPressedLeftClick.TYPE, ClientPressedLeftClick.STREAM_CODEC, ClientPressedLeftClick::handle);
         registrar.playToServer(ClientPressedRightClick.TYPE, ClientPressedRightClick.STREAM_CODEC, ClientPressedRightClick::handle);
         registrar.playToServer(LevelUpOWInventoryPacket.TYPE, LevelUpOWInventoryPacket.STREAM_CODEC, LevelUpOWInventoryPacket::handle);

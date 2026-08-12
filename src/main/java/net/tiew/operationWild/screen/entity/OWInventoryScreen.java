@@ -59,13 +59,14 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
 
     public OWInventoryScreen(OWInventoryMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
-        if (Minecraft.getInstance().player.getRootVehicle() instanceof OWEntity entity) this.entity = entity;
-        else this.entity = null;
+        this.entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity
+                .resolveControlledEntity(Minecraft.getInstance().player);
     }
 
     private static final int STAT_ROW_TOP = 18;
     private static final int STAT_ROW_STEP = 13;
     private static final int STAT_ICON_CELL = 10;
+    private static final int STAT_ICON_HEAL_V = 40;
     private static final int STAT_ICON_U = 205;
     private static final int STAT_ICON_V = 0;
     private static final int STAT_ICON_X = 82;
@@ -79,6 +80,11 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     private static final int STAT_ARROW_W = 7;
     private static final int STAT_ARROW_H = 8;
 
+    /** Ligne des dégâts remplacée par la Puissance de Soin sur une espèce qui ne frappe pas. */
+    private boolean isHealer() {
+        return entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
+    }
+
     private static int statRowY(int row) {
         return STAT_ROW_TOP + row * STAT_ROW_STEP + 1;
     }
@@ -88,7 +94,9 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
 
         return switch (row) {
             case 0 -> OWUtils.aboveSpeciesAverage(this.entity, Attributes.MAX_HEALTH, this.entity.getMaxHealth());
-            case 1 -> OWUtils.aboveSpeciesAverage(this.entity, Attributes.ATTACK_DAMAGE, this.entity.getDamageToClient());
+            case 1 -> isHealer()
+                    ? OWUtils.aboveHealPowerAverage((net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity) this.entity)
+                    : OWUtils.aboveSpeciesAverage(this.entity, Attributes.ATTACK_DAMAGE, this.entity.getDamageToClient());
             case 2 -> OWUtils.aboveSpeciesAverage(this.entity, Attributes.MOVEMENT_SPEED, this.entity.getSpeed());
             case 3 -> OWUtils.aboveEnergyAverage(this.entity);
             default -> null;
@@ -110,7 +118,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     protected void init() {
         super.init();
         upgradeHealthButton = createButton("+", 0xb8e45a, 175, -statRowY(0), 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("MaxHealth")));
-        upgradeDamageButton = createButton("+", 0xb8e45a, 175, -statRowY(1), 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("AttackDamage")));
+        upgradeDamageButton = createButton("+", 0xb8e45a, 175, -statRowY(1), 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket(isHealer() ? "HealPower" : "AttackDamage")));
         upgradeSpeedButton = createButton("+", 0xb8e45a, 175, -statRowY(2), 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("MovementSpeed")));
         upgradeEnergyButton = createButton("+", 0xb8e45a, 175, -statRowY(3), 10, 10, () -> OWNetworkHandler.sendToServer(new LevelUpOWInventoryPacket("VitalEnergy")));
 
@@ -144,6 +152,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "PeacockEntity" -> entityScale = 35;
             case "ElephantEntity" -> entityScale = 12;
             case "HyenaEntity" -> entityScale = 30;
+            case "RedPandaEntity" -> entityScale = 40;
         }
 
         tabsRenderer.init(this.width, this.height, this.imageWidth, this.imageHeight, entity, this::addRenderableWidget);
@@ -253,8 +262,9 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + 18, 240, entitySaddleCoords(), 16, 16);
 
         for (int row = 0; row < 4; row++) {
+            int iconV = (row == 1 && isHealer()) ? STAT_ICON_HEAL_V : STAT_ICON_V + row * STAT_ICON_CELL;
             guiGraphics.blit(OW_INVENTORY_LOCATION, i + STAT_ICON_X, j + statRowY(row),
-                    STAT_ICON_U, STAT_ICON_V + row * STAT_ICON_CELL, STAT_ICON_CELL, STAT_ICON_CELL);
+                    STAT_ICON_U, iconV, STAT_ICON_CELL, STAT_ICON_CELL);
 
             Boolean aboveAverage = statAboveAverage(row);
             if (aboveAverage == null) continue;
@@ -323,7 +333,10 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
 
         boolean hasLevelPoints = entity.getLevelPoints() > 0;
         upgradeHealthButton.visible = hasLevelPoints && this.entity.getMaxHealth() < (this.entity.getBaseHealth() * upgradeHealthLimit);
-        upgradeDamageButton.visible = hasLevelPoints && this.entity.getDamageToClient() < (this.entity.getBaseDamage() * upgradeDamageLimit);
+        upgradeDamageButton.visible = hasLevelPoints && (isHealer()
+                ? ((net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity) entity).getHealPower()
+                        < net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.HEAL_POWER_MAX
+                : this.entity.getDamageToClient() < (this.entity.getBaseDamage() * upgradeDamageLimit));
         upgradeSpeedButton.visible = hasLevelPoints && this.entity.getSpeed() < (this.entity.getBaseSpeed() * upgradeSpeedLimit);
         upgradeEnergyButton.visible = hasLevelPoints;
 
@@ -420,7 +433,10 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
 
         String levelPoints = String.valueOf(entity.getLevelPoints());
         String entityHealth = String.valueOf(Math.round(entity.getHealth() * 2) / 2.0 + " / " + Math.round(entity.getMaxHealth() * 2) / 2.0);
-        String entityDamage = String.valueOf(Math.round(entity.getDamageToClient() * 10) / 10.0);
+        String entityDamage = isHealer()
+                ? "x" + String.format(java.util.Locale.ROOT, "%.2f",
+                        ((net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity) entity).getHealPower())
+                : String.valueOf(Math.round(entity.getDamageToClient() * 10) / 10.0);
         String entityBaseSpeed = String.valueOf(Math.round(OWUtils.getSpeedBlocksPerSecond(entity) * 100) / 100.0);
         Component entitySpeed = Component.literal(entityBaseSpeed)
                 .append(Component.translatable("tooltip.entitySpeed"));

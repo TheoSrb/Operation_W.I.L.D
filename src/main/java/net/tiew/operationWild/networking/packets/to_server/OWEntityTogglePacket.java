@@ -27,7 +27,7 @@ public record OWEntityTogglePacket(String option) implements CustomPacketPayload
     public static void handle(OWEntityTogglePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player
-                    && player.getRootVehicle() instanceof OWEntity entity) {
+                    && net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(player) instanceof OWEntity entity) {
                 // L'option bascule est toujours celle de la monture du joueur : aucun identifiant
                 // d'entité n'est accepté depuis le client, donc aucune entité tierce n'est joignable.
                 switch (packet.option()) {

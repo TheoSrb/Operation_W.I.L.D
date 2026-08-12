@@ -30,7 +30,7 @@ public record OWVariantsSkinsPacket(int skinIndex) implements CustomPacketPayloa
     public static void handle(OWVariantsSkinsPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
-                Entity entity = player.getRootVehicle();
+                Entity entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(player);
 
                 if (entity instanceof OWEntity owEntity && owEntity.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.SKINS)) {
                     owEntity.changeSkin(packet.skinIndex(), true);

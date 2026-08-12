@@ -42,7 +42,7 @@ public record ToggleWaypointPacket(UUID entityUuid) implements CustomPacketPaylo
             if (server == null) return;
 
             OWWaypointData data = OWWaypointData.get(server);
-            if (player.getRootVehicle() instanceof OWEntity mount
+            if (net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(player) instanceof OWEntity mount
                     && mount.getUUID().equals(packet.entityUuid())) {
                 data.upsert(mount);
             }

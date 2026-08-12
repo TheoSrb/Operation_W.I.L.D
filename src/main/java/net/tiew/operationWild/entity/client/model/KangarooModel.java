@@ -87,15 +87,30 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
 
         PartDefinition ALL = ALL2.addOrReplaceChild("ALL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 
+        // Les cubes gonflés de 0,5 sur `body` et `body2` sont la SELLE : une coque posée par-dessus le
+        // corps, avec ses propres UV. Elle reste invisible tant que la bête n'est pas sellée, la
+        // texture de robe étant transparente à cet endroit ; c'est la passe de KangarooLayer, qui
+        // repeint tout le modèle avec kangaroo_saddle.png, qui la fait apparaître.
         PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-6.0F, -5.0F, -7.0F, 12.0F, 12.0F, 15.0F, new CubeDeformation(0.0F))
-                .texOffs(82, 113).addBox(-5.0F, -7.0F, -6.0F, 10.0F, 2.0F, 13.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+                .texOffs(74, 101).addBox(-6.0F, -5.0F, -7.0F, 12.0F, 12.0F, 15.0F, new CubeDeformation(0.5F))
+                .texOffs(0, 113).addBox(-5.0F, -7.0F, -6.0F, 10.0F, 2.0F, 13.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
-        PartDefinition body2 = body.addOrReplaceChild("body2", CubeListBuilder.create().texOffs(48, 49).addBox(-5.0F, -5.0F, -10.0F, 10.0F, 11.0F, 10.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, -7.0F));
+        PartDefinition body2 = body.addOrReplaceChild("body2", CubeListBuilder.create().texOffs(48, 49).addBox(-5.0F, -5.0F, -10.0F, 10.0F, 11.0F, 10.0F, new CubeDeformation(0.0F))
+                .texOffs(88, 17).addBox(-5.0F, -5.0F, -10.0F, 10.0F, 11.0F, 10.0F, new CubeDeformation(0.5F)), PartPose.offset(0.0F, 0.0F, -7.0F));
 
         PartDefinition neck = body2.addOrReplaceChild("neck", CubeListBuilder.create().texOffs(30, 85).addBox(-2.6F, -14.0F, -2.0F, 5.0F, 16.0F, 5.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 2.0F, -10.0F));
 
+        PartDefinition cube_r1 = neck.addOrReplaceChild("cube_r1", CubeListBuilder.create().texOffs(66, 60).mirror().addBox(-0.08F, -0.5819F, -0.3214F, 0.0F, 7.0F, 13.0F, new CubeDeformation(0.001F)).mirror(false), PartPose.offsetAndRotation(4.2F, -13.5F, 0.4F, 0.0695F, 0.0266F, -0.4894F));
+
+        PartDefinition cube_r2 = neck.addOrReplaceChild("cube_r2", CubeListBuilder.create().texOffs(66, 60).addBox(0.08F, -0.5819F, -0.3214F, 0.0F, 7.0F, 13.0F, new CubeDeformation(0.001F)), PartPose.offsetAndRotation(-4.2F, -13.5F, 0.4F, 0.0695F, -0.0266F, 0.4894F));
+
         PartDefinition head = neck.addOrReplaceChild("head", CubeListBuilder.create().texOffs(50, 85).addBox(-2.0F, -4.0F, -10.0F, 4.0F, 4.0F, 6.0F, new CubeDeformation(0.0F))
+                .texOffs(36, 108).addBox(-3.5F, -2.0F, -9.0F, 7.0F, 1.0F, 1.0F, new CubeDeformation(0.0F))
                 .texOffs(0, 74).addBox(-3.5F, -6.0F, -4.0F, 7.0F, 6.0F, 8.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -14.0F, 0.0F));
+
+        PartDefinition cube_r3 = head.addOrReplaceChild("cube_r3", CubeListBuilder.create().texOffs(54, 87).mirror().addBox(3.0F, -23.0F, -14.0F, 0.0F, 5.0F, 13.0F, new CubeDeformation(0.001F)).mirror(false), PartPose.offsetAndRotation(1.5F, 19.0F, 5.3F, 0.0F, 0.0873F, 0.0F));
+
+        PartDefinition cube_r4 = head.addOrReplaceChild("cube_r4", CubeListBuilder.create().texOffs(54, 87).addBox(-3.0F, -23.0F, -14.0F, 0.0F, 5.0F, 13.0F, new CubeDeformation(0.001F)), PartPose.offsetAndRotation(-1.5F, 19.0F, 5.3F, 0.0F, -0.0873F, 0.0F));
 
         PartDefinition left_Ear = head.addOrReplaceChild("left_Ear", CubeListBuilder.create().texOffs(88, 8).mirror().addBox(-1.5F, -7.0F, -0.5F, 3.0F, 7.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(3.0F, -5.0F, 2.5F));
 

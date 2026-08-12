@@ -134,10 +134,11 @@ public class OWSkinsInterface extends Screen {
 
     public OWSkinsInterface() {
         super(Component.literal("OWSkinsInterface"));
-        if (Minecraft.getInstance().player.getRootVehicle() instanceof OWEntity e)
-            this.entity = e;
-        else
-            this.entity = null;
+        // Même résolution que l'écran d'inventaire : le panda roux n'est pas le véhicule du joueur
+        // mais son passager, et le chercher parmi les véhicules ne rendait que null — l'écran
+        // s'ouvrait alors sans entité et plantait au premier aperçu de skin.
+        this.entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity
+                .resolveControlledEntity(Minecraft.getInstance().player);
         initLockedSkins();
         initSkinPrices();
     }

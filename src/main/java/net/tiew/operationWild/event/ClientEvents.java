@@ -229,7 +229,11 @@ public class ClientEvents {
             return;
         }
 
-        if (minecraft.player != null && minecraft.player.getRootVehicle() instanceof OWEntity owEntity) {
+        // Chevaucher l'emporte sur porter : à cheval sur une bête avec un panda roux sur l'épaule,
+        // c'est l'inventaire de la monture qui s'ouvre, jamais celui du passager.
+        OWEntity owEntity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity
+                .resolveControlledEntity(minecraft.player);
+        if (owEntity != null) {
 
             // Inventaire bloqué tant qu'un didacticiel (vie / énergie / niveau / attaques) est affiché.
             if (OWKeysBinding.PET_INVENTORY.isDown() && event.getAction() == GLFW.GLFW_PRESS
@@ -506,6 +510,17 @@ public class ClientEvents {
                 && (event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.EXPERIENCE_BAR)
                 || event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.JUMP_METER))) {
             event.setCanceled(true);
+        }
+
+        // Porter un panda roux libère la bande de la faim, exactement comme chevaucher : Minecraft
+        // l'efface de lui-même au profit des jauges de la monture, et les jauges de compagnon sont
+        // placées pour cette bande-là. Sans cela elles se superposaient aux pilons.
+        if (event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.FOOD_LEVEL)) {
+            Player player = Minecraft.getInstance().player;
+            if (player != null
+                    && net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(player) != null) {
+                event.setCanceled(true);
+            }
         }
     }
 
@@ -951,7 +966,14 @@ public class ClientEvents {
                 RightClickAlertOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
-            if (player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine)) {
+            // Porter n'est pas chevaucher : le joueur qui transporte un panda roux n'a pas de
+            // véhicule, il EN EST un. Sans ce second cas, ni ses jauges ni ses cartes n'atteignaient
+            // jamais l'écran, la garde ci-dessous ne regardant que la monture.
+            boolean ridingOwEntity = player.getVehicle() instanceof OWEntity && !(player.getVehicle() instanceof Submarine);
+            boolean carryingRedPanda = player.getVehicle() == null
+                    && net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(player) != null;
+
+            if (ridingOwEntity || carryingRedPanda) {
                 if (player.getVehicle() instanceof TigerEntity tiger && tiger.getGrabbedTarget() == player) return;
                 if (player.getVehicle() instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == player)
                     return;
@@ -2101,6 +2123,8 @@ public class ClientEvents {
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             renderPassiveEsp(event);
             renderThermalHearts(event);
+            renderRedPandaVitalSense(event);
+            renderHealTargetOutline(event);
             computeWaypointScreenPositions(event);
         }
 
@@ -2691,6 +2715,294 @@ public class ClientEvents {
         RenderSystem.disableBlend();
         RenderSystem.enableDepthTest();
         pose.popPose();
+    }
+
+    // --- Sens Vital du panda roux ---
+    // La visibilité se calcule par un lancer de rayon et par cible : à trente-deux blocs, un pré
+    // peuplé en aligne facilement une trentaine. Fait à la fréquence d'images, cela ferait plusieurs
+    // milliers de lancers par seconde pour un résultat qui ne change qu'au tick. La liste est donc
+    // établie une fois par tick ; seules les positions, elles, s'interpolent à chaque image.
+    private static long vitalSenseCacheTime = Long.MIN_VALUE;
+    private static java.util.List<Integer> vitalSenseVisibleIds = java.util.List.of();
+
+    private static void renderRedPandaVitalSense(RenderLevelStageEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null || mc.options.hideGui) return;
+
+        // En selle, l'écran appartient à la monture : ses cartes, ses jauges, sa conduite. Y ajouter
+        // une barre de vie au-dessus de chaque bête à trente-deux blocs le rendrait illisible au
+        // moment précis où il faut voir où l'on va.
+        if (mc.player.getVehicle() != null) return;
+
+        net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity panda =
+                net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(mc.player);
+        if (panda == null || !panda.isTame()) return;
+
+        Vec3 cam = event.getCamera().getPosition();
+        refreshVitalSenseTargets(mc, cam);
+        if (vitalSenseVisibleIds.isEmpty()) return;
+
+        float pt = event.getPartialTick().getGameTimeDeltaPartialTick(true);
+        org.joml.Quaternionf camRot = event.getCamera().rotation();
+
+        PoseStack pose = event.getPoseStack();
+        net.minecraft.client.renderer.MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
+
+        for (int id : vitalSenseVisibleIds) {
+            if (!(mc.level.getEntity(id) instanceof LivingEntity le) || !le.isAlive()) continue;
+            if (le.getMaxHealth() <= 0) continue;
+            if (le.getHealth() / le.getMaxHealth() > OWAttacksConstants.RedPanda.VITAL_SENSE_WARNING_RATIO) continue;
+
+            drawVitalSenseWarning(pose, buffers, camRot, cam, vitalSenseAnchor(le, pt));
+        }
+
+        buffers.endBatch();
+    }
+
+    /**
+     * Marque verte autour de la créature que l'Orbe de Soin va chercher.
+     *
+     * <p>La désignation n'est pas refaite ici : c'est {@code RedPandaEntity.pickHealTarget} qui
+     * répond, la même méthode que le serveur consulte au moment du tir. Une seconde implémentation
+     * côté client aurait tôt ou tard entouré quelqu'un d'autre que le bénéficiaire réel.</p>
+     *
+     * <p>Rien ne s'affiche quand le geste ne partirait pas — accroupi, objet en main, curseur pris
+     * ailleurs : la marque annonce un soin possible, pas une cible théorique.</p>
+     */
+    private static void renderHealTargetOutline(RenderLevelStageEvent event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null || mc.options.hideGui) {
+            markHealTarget(mc, null);
+            return;
+        }
+
+        net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity panda =
+                mc.player.getVehicle() != null ? null
+                        : net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(mc.player);
+
+        if (panda == null || !panda.isTame()
+                || net.tiew.operationWild.entity.attacks.OWAttackLogic.isHealOrbBlocked(mc.player)) {
+            markHealTarget(mc, null);
+            return;
+        }
+
+        LivingEntity target = panda.pickHealTarget(mc.player);
+        markHealTarget(mc, target != null && target.isAlive() ? target : null);
+    }
+
+    // --- Surbrillance de la cible du soin ---
+    // Ni quads empilés ni boîte filaire : c'est le système de surbrillance de Minecraft qui est
+    // sollicité, le seul qui suive la silhouette du MODÈLE. Le drapeau se pose sur la copie cliente
+    // de l'entité — il ne quitte jamais cette machine et n'est visible que du porteur.
+    private static final int SHARED_FLAG_GLOWING = 0x40;
+    private static final net.minecraft.network.syncher.EntityDataAccessor<Byte> SHARED_FLAGS =
+            new net.minecraft.network.syncher.EntityDataAccessor<>(
+                    0, net.minecraft.network.syncher.EntityDataSerializers.BYTE);
+
+    private static int healGlowTargetId = -1;
+
+    private static void markHealTarget(Minecraft mc, @org.jetbrains.annotations.Nullable LivingEntity target) {
+        int wanted = target == null ? -1 : target.getId();
+
+        if (wanted != healGlowTargetId && healGlowTargetId != -1 && mc.level != null
+                && mc.level.getEntity(healGlowTargetId) instanceof LivingEntity previous) {
+            applyHealGlow(mc, previous, false);
+        }
+        healGlowTargetId = wanted;
+
+        // Réappliqué à chaque image plutôt qu'une fois au changement : le serveur renvoie l'octet de
+        // drapeaux dès qu'il change pour une tout autre raison, et la surbrillance s'éteindrait.
+        if (target != null) applyHealGlow(mc, target, true);
+    }
+
+    private static void applyHealGlow(Minecraft mc, LivingEntity entity, boolean glowing) {
+        byte flags = entity.getEntityData().get(SHARED_FLAGS);
+        byte updated = glowing ? (byte) (flags | SHARED_FLAG_GLOWING) : (byte) (flags & ~SHARED_FLAG_GLOWING);
+        if (flags != updated) entity.getEntityData().set(SHARED_FLAGS, updated);
+    }
+
+    /**
+     * Teinte le liseré en vert, au seul moment où c'est possible.
+     *
+     * <p>Le rendu du niveau lit {@code getTeamColor()} juste avant de dessiner une créature qui
+     * brille, et pose la couleur sur le tampon de contour. Passer par une équipe verte pour peser
+     * sur cette lecture ne marchait pas : le mod réaffecte les bêtes à l'équipe de leur tribu, et la
+     * mienne était écrasée dans le même souffle — d'où un liseré resté blanc.</p>
+     *
+     * <p>La couleur est donc réécrite <b>après</b> cette lecture et avant que le modèle ne demande
+     * son tampon, ce que cet événement permet exactement. Plus d'équipe empruntée, plus de nom qui
+     * change de couleur au passage.</p>
+     */
+    @SubscribeEvent
+    public static void onRenderLivingPre(net.neoforged.neoforge.client.event.RenderLivingEvent.Pre<?, ?> event) {
+        if (healGlowTargetId == -1 || event.getEntity().getId() != healGlowTargetId) return;
+        Minecraft.getInstance().renderBuffers().outlineBufferSource().setColor(92, 255, 115, 255);
+    }
+
+    private static void refreshVitalSenseTargets(Minecraft mc, Vec3 cam) {
+        long now = mc.level.getGameTime();
+        if (now == vitalSenseCacheTime) return;
+        vitalSenseCacheTime = now;
+
+        double radius = OWAttacksConstants.RedPanda.VITAL_SENSE_RADIUS;
+        java.util.List<Integer> visible = new java.util.ArrayList<>();
+
+        for (LivingEntity le : mc.level.getEntitiesOfClass(LivingEntity.class,
+                mc.player.getBoundingBox().inflate(radius))) {
+            if (le == mc.player || le.getVehicle() == mc.player) continue;
+            if (le instanceof net.minecraft.world.entity.decoration.ArmorStand) continue;
+            // Segment de corps et non créature : la queue du boa est faite d'entités blessables
+            // indépendantes, qui alignaient chacune leur propre barre le long de l'animal. Le test
+            // porte sur le contrat de multipart, pas sur la classe : toute chaîne future en hérite.
+            if (le instanceof net.tiew.operationWild.entity.animals.terrestrial.IHurtableMultipart) continue;
+            if (!le.isAlive() || le.isInvisible() || le.isSpectator()) continue;
+            if (mc.player.distanceTo(le) > radius) continue;
+
+            Vec3 anchor = new Vec3(le.getX(),
+                    le.getY() + le.getBbHeight() + OWAttacksConstants.RedPanda.VITAL_SENSE_BAR_HEIGHT,
+                    le.getZ());
+
+            net.minecraft.world.phys.BlockHitResult clip = mc.level.clip(new net.minecraft.world.level.ClipContext(
+                    cam, anchor,
+                    net.minecraft.world.level.ClipContext.Block.COLLIDER,
+                    net.minecraft.world.level.ClipContext.Fluid.NONE, mc.player));
+            if (clip.getType() != net.minecraft.world.phys.HitResult.Type.MISS) continue;
+
+            visible.add(le.getId());
+        }
+
+        vitalSenseVisibleIds = visible;
+    }
+
+    private static Vec3 vitalSenseAnchor(LivingEntity le, float partialTick) {
+        double x = Mth.lerp(partialTick, le.xo, le.getX());
+        double y = Mth.lerp(partialTick, le.yo, le.getY());
+        double z = Mth.lerp(partialTick, le.zo, le.getZ());
+        return new Vec3(x, y + le.getBbHeight() + OWAttacksConstants.RedPanda.VITAL_SENSE_BAR_HEIGHT, z);
+    }
+
+    /**
+     * Points de vie en clair au-dessus de la bête, et souffle d'alerte quand elle est en danger.
+     *
+     * <p>La rangée de cœurs disait un rapport, pas un état : dix cœurs valaient autant sur une poule
+     * que sur une orque, et il fallait les compter pour savoir où en était la bête. Le chiffre, lui,
+     * se lit d'un coup — et sous le seuil d'alerte l'inscription se met à enfler et à rougir au
+     * rythme d'un souffle court, ce qu'aucune barre statique n'aurait signalé.</p>
+     *
+     * <p>L'inscription grandit avec la distance pour garder à peu près la même taille à l'écran :
+     * une taille fixe dans le monde devenait illisible bien avant les trente-deux blocs de portée.</p>
+     */
+    /** Texture blanche unie, teintée au sommet : c'est ainsi que le mod trace déjà ses jauges. */
+    private static final ResourceLocation WARNING_SIGN_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/misc/white.png");
+
+
+
+    /**
+     * Panneau d'alerte au-dessus des bêtes en danger, et rien d'autre.
+     *
+     * <p>Ni jauge ni chiffres : au-dessus du seuil, une créature en bonne santé n'a rien à signaler,
+     * et couvrir le champ de vision d'états lisibles mais inutiles finit par masquer le seul qui
+     * compte. Le passif ne parle que lorsqu'il y a lieu — c'est ce qui lui donne du poids.</p>
+     */
+    private static void drawVitalSenseWarning(PoseStack pose,
+                                              net.minecraft.client.renderer.MultiBufferSource.BufferSource buffers,
+                                              org.joml.Quaternionf camRot, Vec3 cam, Vec3 anchor) {
+
+        double distance = cam.distanceTo(anchor);
+        float scale = OWAttacksConstants.RedPanda.VITAL_SENSE_SIGN_SCALE
+                * (1f + (float) distance * OWAttacksConstants.RedPanda.VITAL_SENSE_SIGN_DISTANCE_GAIN);
+
+        pose.pushPose();
+        pose.translate(anchor.x - cam.x, anchor.y - cam.y, anchor.z - cam.z);
+        pose.mulPose(camRot);
+        // X POSITIF, Y négatif. Inverser aussi le X retournerait chaque quad, dos à la caméra, et
+        // rien ne s'afficherait — c'est exactement ce qui masquait ce panneau au départ.
+        pose.scale(scale, -scale, scale);
+
+        addWarningSign(buffers.getBuffer(
+                net.minecraft.client.renderer.RenderType.entityTranslucent(WARNING_SIGN_TEXTURE)),
+                pose.last().pose());
+
+        pose.popPose();
+    }
+
+    /**
+     * Panneau d'alerte : triangle plein évidé d'un point d'exclamation.
+     *
+     * <p>Dessiné en masque de pixels plutôt qu'écrit avec la police : aucun caractère
+     * d'avertissement n'est garanti par la fonte de Minecraft, et un {@code !} nu ne se lit pas
+     * comme un panneau. Le masque rend le même dessin partout.</p>
+     */
+    private static final int[][] WARNING_MASK = {
+            {0, 0, 0, 0, 1, 0, 0, 0, 0},
+            {0, 0, 0, 1, 1, 1, 0, 0, 0},
+            {0, 0, 0, 1, 0, 1, 0, 0, 0},
+            {0, 0, 1, 1, 0, 1, 1, 0, 0},
+            {0, 0, 1, 1, 0, 1, 1, 0, 0},
+            {0, 1, 1, 1, 1, 1, 1, 1, 0},
+            {0, 1, 1, 1, 0, 1, 1, 1, 0},
+            {1, 1, 1, 1, 1, 1, 1, 1, 1},
+    };
+
+    private static final float WARNING_SIGN_CELL = 1.5f;
+    private static final float WARNING_SIGN_SWELL = 0.75f;
+    private static final float WARNING_SIGN_PERIOD_MS = 300f;
+
+    /**
+     * Souffle court et ample.
+     *
+     * <p>La racine appliquée au sinus écrase le sommet et creuse le passage par zéro : le panneau
+     * reste gros presque tout le cycle puis se rétracte d'un coup, ce qui halète au lieu d'osciller.
+     * Une sinusoïde nue donnait une respiration paisible, à l'opposé de ce qu'annonce une alerte.</p>
+     */
+    private static void addWarningSign(VertexConsumer consumer, Matrix4f matrix) {
+        float phase = (System.currentTimeMillis() % (long) WARNING_SIGN_PERIOD_MS) / WARNING_SIGN_PERIOD_MS;
+        float breath = (float) Math.pow(Math.abs(Mth.sin(phase * Mth.PI)), 0.55);
+
+        float cell = WARNING_SIGN_CELL * (1f + WARNING_SIGN_SWELL * breath);
+        int columns = WARNING_MASK[0].length, rows = WARNING_MASK.length;
+
+        float width = columns * cell, height = rows * cell;
+        float left = -width / 2f;
+        float top = -height / 2f;
+
+        // Du rouge sang au blanc incandescent au sommet du souffle.
+        int flare = (int) (breath * 235f);
+        int rgb = 0xC00000 | (flare << 8) | flare;
+        int alpha = (int) (170f + breath * 85f);
+
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < columns; col++) {
+                if (WARNING_MASK[row][col] == 0) continue;
+                addPlateQuad(consumer, matrix,
+                        left + col * cell, top + row * cell, cell, cell, rgb, alpha, 0f);
+            }
+        }
+    }
+
+    private static void addPlateQuad(VertexConsumer consumer, Matrix4f matrix,
+                                     float x, float y, float width, float height, int rgb, int alpha, float z) {
+        if (width <= 0f) return;
+
+        int red = (rgb >> 16) & 0xFF, green = (rgb >> 8) & 0xFF, blue = rgb & 0xFF;
+        int lightU = net.minecraft.client.renderer.LightTexture.FULL_BRIGHT & 0xFFFF;
+        int lightV = (net.minecraft.client.renderer.LightTexture.FULL_BRIGHT >> 16) & 0xFFFF;
+
+        consumer.addVertex(matrix, x, y, z).setColor(red, green, blue, alpha)
+                .setUv(0f, 0f).setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0f, 1f, 0f);
+        consumer.addVertex(matrix, x + width, y, z).setColor(red, green, blue, alpha)
+                .setUv(1f, 0f).setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0f, 1f, 0f);
+        consumer.addVertex(matrix, x + width, y + height, z).setColor(red, green, blue, alpha)
+                .setUv(1f, 1f).setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0f, 1f, 0f);
+        consumer.addVertex(matrix, x, y + height, z).setColor(red, green, blue, alpha)
+                .setUv(0f, 1f).setOverlay(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0f, 1f, 0f);
+    }
+
+    /** Vert au-dessus de la moitié, ambre en dessous, et bascule blanc/rouge sous le seuil d'alerte. */
+    private static int vitalSenseColor(float ratio, boolean warning, boolean beat) {
+        if (warning) return beat ? 0xFF6060 : 0xE01414;
+        return ratio > 0.5f ? 0x4FE05A : 0xE8A33A;
     }
 
     private static int heartMaskAt(int r, int c) {

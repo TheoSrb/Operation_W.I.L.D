@@ -165,6 +165,7 @@ public class OWTabsRenderer {
             case "BoaEntity"       -> Minecraft.getInstance().setScreen(new BoaSkinsScreen());
             case "KangarooEntity"  -> Minecraft.getInstance().setScreen(new KangarooSkinsScreen());
             case "ElephantEntity"  -> Minecraft.getInstance().setScreen(new ElephantSkinsScreen());
+            case "RedPandaEntity"  -> Minecraft.getInstance().setScreen(new RedPandaSkinsScreen());
             default -> Minecraft.getInstance().player.sendSystemMessage(
                     Component.translatable("tooltip.noSkins").withStyle(Style.EMPTY).withColor(0xFF0000));
         }

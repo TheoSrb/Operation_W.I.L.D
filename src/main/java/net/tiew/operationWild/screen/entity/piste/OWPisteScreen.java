@@ -145,7 +145,7 @@ public class OWPisteScreen extends Screen {
     public OWPisteScreen() {
         super(Component.translatable("piste.title"));
         Minecraft mc = Minecraft.getInstance();
-        this.entity = (mc.player != null && mc.player.getRootVehicle() instanceof OWEntity e) ? e : null;
+        this.entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(mc.player);
         this.graph = OWPisteGraphs.forEntity(entity);
     }
 

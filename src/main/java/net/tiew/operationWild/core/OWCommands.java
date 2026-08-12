@@ -394,8 +394,12 @@ public class OWCommands {
             int amount = IntegerArgumentType.getInteger(context, "amount");
             try {
                 ServerPlayer player = EntityArgument.getPlayer(context, "player");
-                if (player.getRootVehicle() != null && player.getRootVehicle() != player) {
-                    OWEntity.addExperienceCommand((OWEntity) player.getRootVehicle(), amount);
+                // Monture OU compagnon d'épaule : le panda roux est passager du joueur, jamais son
+                // véhicule, et le cast sur getRootVehicle() ne l'aurait de toute façon jamais atteint.
+                OWEntity target = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity
+                        .resolveControlledEntity(player);
+                if (target != null) {
+                    OWEntity.addExperienceCommand(target, amount);
                     source.sendSuccess(() -> Component.translatable("addExperienceCommandWork", amount)
                             .setStyle(Style.EMPTY.withColor(0x00FF00)), false);
                 } else {

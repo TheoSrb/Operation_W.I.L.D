@@ -62,9 +62,14 @@ public class OWAttacksOverlay {
         Player player = mc.player;
         if (player == null) return;
 
-        if (!(player.getRootVehicle() instanceof OWEntity entity)) return;
+        OWEntity entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity
+                .resolveControlledEntity(player);
+        if (entity == null) return;
 
-        if (entity.getPassengers().indexOf(player) != 0) return;
+        // Le panda roux n'est pas monté mais porté : il n'a pas de cavalier dont vérifier le rang,
+        // et ses cartes se posent à gauche de l'écran plutôt qu'à droite.
+        boolean carriedOnShoulder = net.tiew.operationWild.entity.attacks.OWAttackLogic.isCarriedOnShoulder(entity);
+        if (!carriedOnShoulder && entity.getPassengers().indexOf(player) != 0) return;
 
         boolean isCrocodileReadyForTaming = entity instanceof CrocodileEntity croc
                 && croc.crocodileBehaviorHandler.isReadyForTaming() && !croc.isTame();
@@ -76,7 +81,8 @@ public class OWAttacksOverlay {
         // molette. Le rang des cartes ne bouge donc pas quand il en change, seul le dessin change.
         List<OWAttack> attacks = OWAttacksHandler.getActiveAttacks(entity);
 
-        int baseX = (screenWidth / 2) + 96;
+        boolean hasComboCard = !carriedOnShoulder;
+        int baseX = carriedOnShoulder ? (screenWidth / 2) - 141 : (screenWidth / 2) + 96;
         int baseY = screenHeight - 22;
 
         int entityRow  = OWAttacksHandler.getEntityRow(entityClass);
@@ -90,7 +96,9 @@ public class OWAttacksOverlay {
         boolean isGrabbing = entity instanceof CrocodileEntity && entity.isGrabbing();
 
         // ── Carte 0 : combo ───────────────────────────────────────────────────
-        applyCardScale(g, baseX, baseY, OWAttackLogic.getComboClickScale(), () -> {
+        // Une espèce sans enchaînement n'affiche rien ici : la carte de combo serait une case morte,
+        // et le clic gauche du joueur qui la porte reste son propre coup, pas celui de la bête.
+        if (hasComboCard) applyCardScale(g, baseX, baseY, OWAttackLogic.getComboClickScale(), () -> {
             if (isGrabbing) {
                 // Tout gris quand grab actif
                 g.blit(TEXTURE, baseX, baseY, comboTexX, grayTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
@@ -127,7 +135,7 @@ public class OWAttacksOverlay {
 
         for (int i = 0; i < attacks.size(); i++) {
             OWAttack attack = attacks.get(i);
-            int cardX = baseX + (i + 1) * CARD_SPACING;
+            int cardX = baseX + (hasComboCard ? i + 1 : i) * CARD_SPACING;
             // Une carte peut imposer ses propres coordonnées dans l'atlas plutôt que de les déduire
             // de son rang : c'est le cas des secondaires interchangeables, qui partagent un rang mais
             // pas un dessin. La version grisée reste 20 pixels sous l'allumée, comme partout ailleurs.
@@ -246,7 +254,13 @@ public class OWAttacksOverlay {
             // Tornade indisponible dans l'eau : carte grisée.
             boolean isWhirlwindBlockedInWater = isWhirlwind && entity.isInWater();
 
-            if (isGrabbing || isWhirlwindBlockedInWater) {
+            // Panda roux : accroupi le clic droit rend la bête au sol, et un objet à usage garde son
+            // propre clic droit. Dans les deux cas la carte s'éteint, pour que l'indisponibilité se
+            // voie avant le clic plutôt qu'après.
+            boolean isHealOrbBlocked = attack.getId() == OWAttacksHandler.HEAL_ORB_ID
+                    && carriedOnShoulder && OWAttackLogic.isHealOrbBlocked(player);
+
+            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;

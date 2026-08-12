@@ -31,7 +31,7 @@ public record SkinBuyingPacket(int price, int skinIndex) implements CustomPacket
     public static void handle(SkinBuyingPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
-            Entity entity = player.getRootVehicle();
+            Entity entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(player);
             if (!(entity instanceof OWEntity owEntity)) return;
 
             // Seul le propriétaire / un membre de sa tribu peut acheter un skin pour ce pet.

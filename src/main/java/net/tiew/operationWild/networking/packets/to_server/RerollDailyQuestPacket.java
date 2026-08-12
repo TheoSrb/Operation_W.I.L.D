@@ -29,7 +29,7 @@ public record RerollDailyQuestPacket(int slot) implements CustomPacketPayload {
     public static void handle(RerollDailyQuestPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player
-                    && player.getRootVehicle() instanceof OWEntity owEntity) {
+                    && net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(player) instanceof OWEntity owEntity) {
                 owEntity.rerollSingleQuest(packet.slot());
             }
         });

@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
@@ -27,7 +28,21 @@ public class OWEntityHud {
         if (Minecraft.getInstance().options.hideGui) return;
 
         if (rider != null) {
-            LivingEntity entity = (LivingEntity) rider.getVehicle();
+            // Le panda roux ne se monte pas, il se porte : le joueur à pied n'a pas de véhicule, et
+            // c'est parmi ses PASSAGERS qu'il faut aller chercher la bête dont afficher les jauges.
+            // La monture garde la priorité quand il y a les deux.
+            if (rider.getVehicle() == null) {
+                net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity shoulderPanda =
+                        net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(rider);
+                if (shoulderPanda != null && shoulderPanda.isTame()) {
+                    // Place d'origine : c'est la barre de faim qui s'efface pour lui laisser la
+                    // bande, comme elle le fait pour une monture (cf. ClientEvents.onRenderGuiLayer).
+                    createHUD(guiGraphics, shoulderPanda, screenWidth, screenHeight);
+                }
+                return;
+            }
+
+            Entity entity = rider.getVehicle();
             if (entity != null) {
                 if (entity instanceof OWEntity owEntity) {
 
@@ -137,6 +152,8 @@ public class OWEntityHud {
             case "LionEntity": return 10;
             case "OrcaEntity": return 11;
             case "KangarooEntity": return 12;
+            // Bande propre pas encore dessinée : celle du tigre tient lieu de provisoire.
+            case "RedPandaEntity": return 0;
             default: return 0;
         }
     }
@@ -205,6 +222,9 @@ public class OWEntityHud {
             return new EntityIconData(242, 38, 14, 11, -(14 / 2), -2);
         } else if (entity instanceof KangarooEntity) {
             return new EntityIconData(239, 203, 17, 23, -(17 / 2), -14);
+        } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity) {
+            // Vignette propre pas encore dessinée : celle du tigre tient lieu de provisoire.
+            return new EntityIconData(237, 21, 19, 17, -(19 / 2), -8);
         } else if (entity instanceof ElephantEntity) {
             // Vignette la plus large du lot (31 px) : elle déborde des deux côtés de l'ancrage, d'où
             // un décalage horizontal deux fois plus grand que celui du kodiak.

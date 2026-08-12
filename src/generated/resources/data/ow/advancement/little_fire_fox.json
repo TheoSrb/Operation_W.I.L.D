@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_red_panda": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:red_panda"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.little_fire_fox.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:red_panda_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.little_fire_fox.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_red_panda"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

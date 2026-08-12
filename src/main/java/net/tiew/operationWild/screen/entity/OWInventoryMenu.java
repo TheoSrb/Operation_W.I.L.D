@@ -35,8 +35,8 @@ public class OWInventoryMenu extends AbstractContainerMenu {
 
     public OWInventoryMenu(int containerId, Inventory playerInventory, IItemHandler dataInventory) {
         super(OWMenuRegister.OW_INVENTORY_MENU.get(), containerId);
-        if (!(playerInventory.player.getRootVehicle() instanceof OWEntity)) return;
-        entity = (OWEntity) playerInventory.player.getRootVehicle();
+        entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(playerInventory.player);
+        if (entity == null) return;
 
 
         this.addSlot(new SlotItemHandler(dataInventory, 0, 6, 18) {

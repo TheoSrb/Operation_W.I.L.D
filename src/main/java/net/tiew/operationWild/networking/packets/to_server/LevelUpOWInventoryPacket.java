@@ -37,7 +37,7 @@ public record LevelUpOWInventoryPacket(String attributeName) implements CustomPa
     public static void handle(LevelUpOWInventoryPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (context.player() instanceof ServerPlayer player) {
-                Entity entity = player.getRootVehicle();
+                Entity entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(player);
                 float pitch = (float) OWUtils.generateRandomInterval(0.8, 1.2);
 
                 if (entity != null && entity instanceof OWEntity owEntity && owEntity.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.LEVEL_UP)) {
@@ -49,6 +49,14 @@ public record LevelUpOWInventoryPacket(String attributeName) implements CustomPa
                         owEntity.upgradeAttributes(owEntity, Attributes.MOVEMENT_SPEED);
                     } else if (packet.attributeName().equals("VitalEnergy")) {
                         owEntity.upgradeVitalEnergy();
+                    } else if (packet.attributeName().equals("HealPower")) {
+                        // Le panda roux n'a pas de dégâts à monter : ce poste-là est le sien. Le
+                        // point n'est retenu que si la montée a vraiment eu lieu, sinon un clic au
+                        // plafond le brûlerait pour rien.
+                        if (owEntity.getLevelPoints() <= 0) return;
+                        if (!(owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPanda)
+                                || !redPanda.upgradeHealPower()) return;
+                        owEntity.setLevelPoints(owEntity.getLevelPoints() - 1);
                     }
                     owEntity.playSound(SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0f, pitch);
                 }

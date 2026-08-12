@@ -43,7 +43,7 @@ public record OWPisteAdvancePacket(int nodeId, int choice) implements CustomPack
     public static void handle(OWPisteAdvancePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
-            Entity vehicle = player.getRootVehicle();
+            Entity vehicle = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(player);
             if (!(vehicle instanceof OWEntity entity)) return;
 
             OWPisteGraph graph = OWPisteGraphs.forEntity(entity);

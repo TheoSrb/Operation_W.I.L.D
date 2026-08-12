@@ -52,8 +52,7 @@ public class OWDailyQuestScreen extends Screen {
 
     public OWDailyQuestScreen() {
         super(Component.literal("OWDailyQuestScreen"));
-        if (Minecraft.getInstance().player.getRootVehicle() instanceof OWEntity e) this.entity = e;
-        else this.entity = null;
+        this.entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(Minecraft.getInstance().player);
     }
 
     @Override

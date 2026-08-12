@@ -16,6 +16,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.DefaultAttributes;
 import net.minecraft.world.item.ItemStack;
@@ -88,6 +89,18 @@ public class OWUtils {
     }
 
     /**
+     * Puissance de Soin comparée à la référence de l'espèce.
+     *
+     * <p>Elle ne vit pas dans un attribut : {@link #aboveSpeciesAverage} ne sait donc pas la lire,
+     * et la fiche restait sans flèche là où la vie et la vitesse en avaient une. La référence est
+     * la valeur pivot du tirage, celle autour de laquelle naissent les individus.</p>
+     */
+    public static Boolean aboveHealPowerAverage(net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPanda) {
+        return redPanda.getHealPower()
+                >= net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.HEAL_POWER_BASE;
+    }
+
+    /**
      * Énergie vitale comparée à celle d'un animal de la même espèce <b>au même niveau</b> : cette
      * statistique n'a aucun tirage aléatoire à l'apparition, seul le bonus acquis la différencie.
      */
@@ -97,11 +110,26 @@ public class OWUtils {
         return average <= 0.0 ? null : entity.getVitalEnergyCapacity() >= average;
     }
 
+    /**
+     * Vitesse affichée sur la fiche, en blocs par seconde.
+     *
+     * <p>Lue sur l'ATTRIBUT et non sur {@code getSpeed()}, qui ne rend que la vitesse du tick en
+     * cours : une bête assise, endormie ou portée sur l'épaule y vaut zéro, et sa fiche annonçait
+     * « 0,0 bloc/s » comme si elle était infirme. L'attribut, lui, est bien la statistique de
+     * l'animal — celle-là même que plafonnent les boutons d'amélioration.</p>
+     */
     public static float getSpeedBlocksPerSecond(OWEntity entity) {
+        float base = (float) entity.getAttributeValue(Attributes.MOVEMENT_SPEED);
+
+        // Une espèce qui ne se monte pas n'a pas de multiplicateur de course : il vaut zéro, et
+        // toute la formule avec lui. On affiche alors sa vitesse de marche telle quelle — c'est bien
+        // à celle-là qu'elle se déplace, portée sur une épaule ou non.
+        if (entity.vehicleRunSpeedMultiplier() <= 0f) return base * 20f;
+
         if (entity.canIncreasesSpeedDuringSprint()) {
-            return (((entity.getSpeed() * 20) / 3) * ((entity.vehicleRunSpeedMultiplier() * (0.5f + ((float) (Math.min(100, 50 / 100))) / 2) * 1.75f)));
+            return (((base * 20) / 3) * ((entity.vehicleRunSpeedMultiplier() * (0.5f + ((float) (Math.min(100, 50 / 100))) / 2) * 1.75f)));
         }
-        return (entity.getSpeed() * 20) * (entity.vehicleRunSpeedMultiplier() / 1.75f);
+        return (base * 20) * (entity.vehicleRunSpeedMultiplier() / 1.75f);
     }
 
     public static void showMessage(ServerPlayer player, String messageText, TextColor color, boolean isBold) {

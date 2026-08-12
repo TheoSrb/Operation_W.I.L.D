@@ -281,9 +281,17 @@ public class OWRendererUtils {
                 .append(Component.translatable("imageHealth").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
                 .append(" " + Math.round(entity.getHealth() * 2.0f) / 2.0f + " / " + Math.round(entity.getMaxHealth() * 2.0f) / 2.0f);
 
-        Component damagesComponent = Component.empty()
-                .append(Component.translatable("imageDamages").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
-                .append(" " + Math.round(entity.getDamageToClient() * 10.0f) / 10.0f);
+        // Le panda roux ne frappe pas : sa ligne de dégâts porte la Puissance de Soin, comme sur la
+        // fiche d'inventaire. Deux affichages pour une même bête n'auraient rien dit de bon.
+        boolean healer = entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
+        Component damagesComponent = healer
+                ? Component.empty()
+                        .append(Component.translatable("imageHealPower").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
+                        .append(" x" + String.format(java.util.Locale.ROOT, "%.2f",
+                                ((net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity) entity).getHealPower()))
+                : Component.empty()
+                        .append(Component.translatable("imageDamages").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
+                        .append(" " + Math.round(entity.getDamageToClient() * 10.0f) / 10.0f);
 
         Component speedComponent = Component.empty()
                 .append(Component.translatable("imageSpeed").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
@@ -381,7 +389,9 @@ public class OWRendererUtils {
         Matrix4f statMatrix = poseStack.last().pose();
         drawStatArrow(OWUtils.aboveSpeciesAverage(entity, Attributes.MAX_HEALTH, entity.getMaxHealth()),
                 bufferSource, statMatrix, lefttextX + font.width(healthComponent) + 3, textY, opacity);
-        drawStatArrow(OWUtils.aboveSpeciesAverage(entity, Attributes.ATTACK_DAMAGE, entity.getDamageToClient()),
+        drawStatArrow(entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity healerPanda
+                        ? OWUtils.aboveHealPowerAverage(healerPanda)
+                        : OWUtils.aboveSpeciesAverage(entity, Attributes.ATTACK_DAMAGE, entity.getDamageToClient()),
                 bufferSource, statMatrix, lefttextX + font.width(damagesComponent) + 3, textY + (leftPadding * 1), opacity);
         drawStatArrow(OWUtils.aboveSpeciesAverage(entity, Attributes.MOVEMENT_SPEED, entity.getSpeed()),
                 bufferSource, statMatrix, lefttextX + font.width(speedComponent) + 3, textY + (leftPadding * 2), opacity);
@@ -1318,7 +1328,13 @@ public class OWRendererUtils {
             if (infoState.opacity > (int) (smoothAnimationTimeInSeconds * 6.375))
                 infoState.opacity -= (int) (smoothAnimationTimeInSeconds * 6.375);
         }
-        if (player != null && infoState.opacity > (int) (smoothAnimationTimeInSeconds * 6.375) && !entity.isVehicle()) {
+        // Une bête portée sur l'épaule est en permanence à bout portant : sa fiche se dressait donc
+        // en travers de l'écran sans jamais s'effacer. Même raison que pour la monture juste à côté,
+        // à ceci près que la relation est inversée — c'est le joueur qui est le véhicule.
+        boolean carriedOnShoulder = entity.getVehicle() instanceof Player;
+
+        if (player != null && infoState.opacity > (int) (smoothAnimationTimeInSeconds * 6.375)
+                && !entity.isVehicle() && !carriedOnShoulder) {
             if (entity.isInResurrection()) OWRendererUtils.displayResurrectionTimeEntity(entity, poseStack, bufferSource, packedLight, Minecraft.getInstance().getEntityRenderDispatcher(), infoState.opacity, offsetYMultiplier);
             else OWRendererUtils.displayOverlayOnEntity(entity, poseStack, bufferSource, packedLight, infoState.opacity, offsetX, offsetY, offsetZ);
         }

@@ -21,10 +21,21 @@ public final class OWPistePassives {
     /** Désarmement de la cible après un coup réussi (comme le tigre à l'état sauvage). */
     public static final int DISARM = 1;
 
+    /** Panda roux : l'Orbe de Soin part en salve de deux, espacées d'une demi-seconde. */
+    public static final int TWIN_ORB = 2;
+    /** Panda roux : l'Aura de Vie dure une fois et demie plus longtemps et porte 30 % plus loin. */
+    public static final int WIDE_AURA = 3;
+
     /** Multiplicateur de viande crue lâchée par les proies (séparé de la valeur innée du Kodiak). */
     public static final float BUTCHER_MULTIPLIER = 1.5f;
     /** Probabilité de désarmement : 1 chance sur {@value} (identique à l'état sauvage du tigre). */
     public static final int DISARM_CHANCE = 7;
+
+    /** Délai entre les deux orbes de la salve, en ticks : un quart de seconde. */
+    public static final int TWIN_ORB_DELAY_TICKS = 5;
+    /** Allongement de l'aura et de son rayon quand le palier est pris. */
+    public static final float WIDE_AURA_DURATION_FACTOR = 1.5f;
+    public static final float WIDE_AURA_RADIUS_FACTOR = 1.3f;
 
     /** DEBUG temporaire : trace la résolution des passifs dans le log. */
     public static boolean DEBUG = false;

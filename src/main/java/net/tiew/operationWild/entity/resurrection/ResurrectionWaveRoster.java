@@ -41,6 +41,7 @@ public final class ResurrectionWaveRoster {
 
     /** Palier de puissance (1 à 5) par espèce. Modifiable librement. */
     public static final Map<String, Integer> POWER_TIERS = new HashMap<>(Map.of(
+            "red_panda", 1,
             "boa", 2,
             "tiger", 3,
             "crocodile", 3,

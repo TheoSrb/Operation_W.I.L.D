@@ -45,10 +45,7 @@ public class OWOptionsScreen extends Screen {
 
     public OWOptionsScreen() {
         super(Component.literal("OWOptionsScreen"));
-        if (Minecraft.getInstance().player.getRootVehicle() instanceof OWEntity e)
-            this.entity = e;
-        else
-            this.entity = null;
+        this.entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(Minecraft.getInstance().player);
     }
 
     public static ToggleEntry toggle(Component label, Component desc,

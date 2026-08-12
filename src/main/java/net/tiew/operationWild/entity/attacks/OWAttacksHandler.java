@@ -16,6 +16,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
 
@@ -57,6 +58,8 @@ public class OWAttacksHandler {
     public static final int EARTHQUAKE_ID = OWAttackIds.EARTHQUAKE;
     public static final int WATER_SPRAY_ID = OWAttackIds.WATER_SPRAY;
     public static final int PRIMAL_ROAR_ID = OWAttackIds.PRIMAL_ROAR;
+    public static final int HEAL_ORB_ID = OWAttackIds.HEAL_ORB;
+    public static final int LIFE_AURA_ID = OWAttackIds.LIFE_AURA;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -136,6 +139,13 @@ public class OWAttacksHandler {
         register(ElephantEntity.class, ElephantAttacks.SHOULDER_BASH);
         register(ElephantEntity.class, ElephantAttacks.WATER_SPRAY);
         register(ElephantEntity.class, ElephantAttacks.EARTHQUAKE);
+
+        // Panda roux : aucune carte de combo, et deux cartes isolées en haut à droite de l'atlas.
+        // La rangée ne sert donc à rien ici — chaque carte porte ses propres coordonnées.
+        registerEntityRow(RedPandaEntity.class, 0);
+        register(RedPandaEntity.class, RedPandaAttacks.HEAL_ORB);
+        register(RedPandaEntity.class, RedPandaAttacks.LIFE_AURA);
+        registerPassive(RedPandaEntity.class, RedPandaPassives.VITAL_SENSE);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -292,6 +302,59 @@ public class OWAttacksHandler {
                 false,
                 false
         ).withCardTexture(216, 216);
+    }
+
+    public static class RedPandaAttacks {
+
+        public static final OWAttack HEAL_ORB = new OWAttack(
+                HEAL_ORB_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.RedPanda.HEAL_ORB_ENERGY,
+                entity -> ((RedPandaEntity) entity).throwHealOrb(),
+                OWAttacksConstants.RedPanda.HEAL_ORB_COOLDOWN_TICKS
+        ).withCardTexture(216, 0);
+
+        /**
+         * Aura de Vie — ultime sans condition de déblocage.
+         *
+         * <p>Les autres ultimes s'arment sur cinq victimes ; un soigneur qui n'inflige aucun dégât
+         * n'en réunirait jamais une seule. La condition est donc toujours vraie — ce qui garde à la
+         * carte son statut d'ultime, sa bordure dorée et sa jauge de drain — et c'est le temps de
+         * recharge, une minute et demie contre une minute ailleurs, qui en règle la fréquence.</p>
+         */
+        public static final OWAttack LIFE_AURA = new OWAttack(
+                LIFE_AURA_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.RedPanda.LIFE_AURA_ENERGY,
+                entity -> ((RedPandaEntity) entity).activateLifeAura(),
+                OWAttacksConstants.RedPanda.LIFE_AURA_COOLDOWN_TICKS
+        ).withUnlockCondition(entity -> true)
+                .withUnlockProgress(entity -> 1f)
+                .withUltimateDuration(OWAttacksConstants.RedPanda.LIFE_AURA_DURATION_MS)
+                .withCardTexture(236, 0);
+    }
+
+    public static class RedPandaPassives {
+
+        /**
+         * Sens Vital — le seul passif du mod qui ne surligne rien.
+         *
+         * <p>Il ne désigne pas des cibles à travers les murs comme le Sens du Prédateur : il rend
+         * lisible la vie de ce qui est déjà en vue. Le rendu vit donc dans son propre passage
+         * ({@code ClientEvents.renderRedPandaVitalSense}) et la liste de surlignage reste vide ; le
+         * passif n'est enregistré ici que pour figurer là où le mod énumère les passifs d'espèce.</p>
+         */
+        public static final OWPassive VITAL_SENSE = new OWPassive() {
+            @Override
+            public Set<Integer> getHighlightEntityIds(OWEntity entity, Level level) {
+                return Set.of();
+            }
+
+            @Override
+            public int highlightColor() {
+                return 0xFF5A5A;
+            }
+        };
     }
 
     public static class KodiakAttacks {

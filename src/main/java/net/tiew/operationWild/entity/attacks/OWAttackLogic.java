@@ -22,6 +22,7 @@ import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
 import net.tiew.operationWild.networking.packets.to_server.OWSelectSecondaryAttackPacket;
@@ -723,6 +724,21 @@ public class OWAttackLogic {
 
     // ── Input handling ────────────────────────────────────────────────────────
 
+    /**
+     * Vrai quand le clic droit ne partira pas en Orbe de Soin : le joueur s'accroupit pour reposer
+     * la bête, ou il tient un objet dont le clic droit est déjà pris. Sert au geste comme à
+     * l'affichage, pour que la carte s'éteigne exactement quand l'attaque est indisponible.
+     */
+    public static boolean isHealOrbBlocked(Player player) {
+        if (player.isShiftKeyDown() || playerHoldsUsableItem(player)) return true;
+
+        // Seule une créature sous le viseur éteint la carte. Les blocs en sont exclus : à pied on en
+        // vise un presque tout le temps — le sol suffit —, et la carte passait sa vie grisée pour
+        // annoncer une indisponibilité qui ne dure qu'un pas de côté.
+        net.minecraft.world.phys.HitResult hit = Minecraft.getInstance().hitResult;
+        return hit != null && hit.getType() == net.minecraft.world.phys.HitResult.Type.ENTITY;
+    }
+
     private static boolean playerHoldsUsableItem(Player player) {
         ItemStack stack = player.getMainHandItem();
         if (stack.isEmpty()) return false;
@@ -1112,9 +1128,10 @@ public class OWAttackLogic {
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.screen != null) return;
-        if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+        OWEntity owEntity = RedPandaEntity.resolveControlledEntity(mc.player);
+        if (owEntity == null) return;
         if (isLocalPlayerGrabbed(owEntity, mc.player)) return;
-        if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
+        if (!isCarriedOnShoulder(owEntity) && owEntity.getPassengers().indexOf(mc.player) != 0) return;
         if (!owEntity.canPilotAttacks(mc.player)) return;
 
         OWAttack attack = OWAttacksHandler.findInstantAttack(owEntity, event.getKey());
@@ -1247,15 +1264,93 @@ public class OWAttackLogic {
         return false;
     }
 
+    /**
+     * Vrai pour la seule bête du mod qui pilote ses attaques sans être montée : le panda roux perché
+     * sur l'épaule. Le contrôle de rang de passager ne le concerne pas — il n'a pas de cavalier.
+     */
+    public static boolean isCarriedOnShoulder(OWEntity owEntity) {
+        return owEntity instanceof RedPandaEntity redPanda && redPanda.isOnShoulder();
+    }
+
+    private static void handleRedPandaHealOrb(RedPandaEntity redPanda) {
+        OWAttack orb = OWAttacksHandler.RedPandaAttacks.HEAL_ORB;
+
+        long endMs = getCooldownEnd(redPanda.getId(), orb.getId());
+        if (endMs != -1L && System.currentTimeMillis() < endMs) {
+            recordAttackClick(orb.getId(), true);
+            return;
+        }
+
+        if (redPanda.getVitalEnergy() > redPanda.getVitalEnergyCapacity() - orb.getEnergyRequired()) {
+            redPanda.canShowVitalEnergyLack = true;
+            recordAttackClick(orb.getId(), true);
+            return;
+        }
+
+        // Tir à vide : personne à soigner sous le curseur. La carte vire au rouge et rien ne part —
+        // ni paquet, ni énergie, ni recharge. La désignation est demandée à la même méthode que le
+        // serveur consultera, donc le refus d'ici et le refus de là-bas ne peuvent pas diverger.
+        if (redPanda.pickHealTarget(Minecraft.getInstance().player) == null) {
+            recordAttackClick(orb.getId(), true);
+            return;
+        }
+
+        PacketDistributor.sendToServer(
+                new OWAttackPacket(orb.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+
+        setCooldownEnd(redPanda.getId(), orb.getId(),
+                System.currentTimeMillis() + (long) orb.getCooldownTicks() * 50L);
+        recordAttackClick(orb.getId(), false);
+    }
+
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton.Pre event) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.screen != null) return;
-        if (!(mc.player.getRootVehicle() instanceof OWEntity owEntity)) return;
+        OWEntity owEntity = RedPandaEntity.resolveControlledEntity(mc.player);
+        if (owEntity == null) return;
         // Avant toute chose : la proie ne pilote pas. On laisse passer ses clics.
         if (isLocalPlayerGrabbed(owEntity, mc.player)) return;
-        if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
+        if (!isCarriedOnShoulder(owEntity) && owEntity.getPassengers().indexOf(mc.player) != 0) return;
         if (!owEntity.canPilotAttacks(mc.player)) return;
+
+        // Panda roux — Orbe de Soin : lancer instantané au clic droit, avant tout le reste. Porté
+        // sur l'épaule, il n'a ni combo ni charge à arbitrer.
+        if (owEntity instanceof RedPandaEntity redPanda && redPanda.isOnShoulder()) {
+            if (event.getButton() != GLFW.GLFW_MOUSE_BUTTON_RIGHT || event.getAction() != GLFW.GLFW_PRESS) return;
+
+            // Un compagnon d'épaule joue sur un clic droit déjà très encombré : à pied, ce bouton
+            // sert à monter, asseoir, ouvrir, poser, manger. Le soin ne le prend donc QUE lorsque le
+            // geste ne veut rien dire par ailleurs — sans quoi porter la bête interdirait le reste
+            // du jeu. Chaque sortie ci-dessous rend la main sans rien annuler.
+
+            // Nourriture, arc, trident, potion, bouclier… : le clic appartient à l'objet tenu.
+            if (playerHoldsUsableItem(mc.player)) return;
+
+            // Curseur sur une créature : monter, asseoir, relever, nourrir, échanger. L'interaction
+            // prime toujours — y compris accroupi, sinon vouloir asseoir sa monture délogerait le
+            // passager. Au-delà de la portée d'interaction, la bête visée n'est plus dans le viseur
+            // et le soin redevient possible en la regardant droit dans les yeux.
+            if (mc.hitResult != null && mc.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.ENTITY) return;
+
+            // Accroupi, main vide : descente. Le geste ne peut PAS passer par l'interaction d'entité
+            // vanilla — perché, le panda se tient à côté de la caméra, aucun rayon de visée ne
+            // l'atteint en vue subjective. Il part donc en paquet direct, sans cible à désigner.
+            // Main vide exigée : accroupi avec un bloc en main, le clic droit sert à le poser.
+            if (mc.player.isShiftKeyDown()) {
+                if (!mc.player.getMainHandItem().isEmpty()) return;
+                PacketDistributor.sendToServer(new net.tiew.operationWild.networking.packets.to_server.RedPandaDismountPacket());
+                event.setCanceled(true);
+                return;
+            }
+
+            // Curseur sur un bloc à portée : coffre, porte, établi, pose de bloc.
+            if (mc.hitResult != null && mc.hitResult.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK) return;
+
+            handleRedPandaHealOrb(redPanda);
+            event.setCanceled(true);
+            return;
+        }
 
         boolean isCrocGrabbing = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
         boolean isKodiakUltNapping = isKodiakNapping && owEntity instanceof KodiakEntity;

@@ -321,7 +321,14 @@
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/fear_lang3.py\")",
       "Bash(awk 'NR>=493 && NR<=570 { n=match\\($0,/[^ ]/\\); if \\(n<=8 && length\\($0\\)>0\\) printf \"%d\\(%d\\): %s\\\\n\", NR, n, $0 }' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java)",
       "Bash(awk 'NR>=494 && NR<=566 { n=match\\($0,/[^ ]/\\); if \\(length\\($0\\)>0 && n<=12\\) printf \"%3d [%2d] %s\\\\n\", NR, n, $0 }' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java)",
-      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/roar_lock.py\")"
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/09854659-5499-44a0-ab23-1720f68067ae/scratchpad/roar_lock.py\")",
+      "Bash(grep -v \"^\\\\s*//\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/add_lang.py\")",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/src/main/java/net/tiew/operationWild/event\"; ls; echo \"=== game bus classes ===\"; grep -ln \"EventBusSubscriber\\(modid = OperationWild.MOD_ID\\)\\\\|Bus.GAME\\\\|@EventBusSubscriber$\" *.java; echo \"=== AttackEntityEvent deja utilise ? ===\"; grep -rn \"AttackEntityEvent\\\\|LivingIncomingDamageEvent\\\\|LivingAttackEvent\" ../ --include=*.java | head)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/swap_passive_keys.py\")",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D/src/main/java/net/tiew/operationWild\"; grep -n \"setupAnim\" -A 22 entity/client/model/RedPandaModel.java | head -28; echo \"=== mixin dir ===\"; ls mixin/ | head -20; echo \"=== mixin json ===\"; find ../../../../resources -name \"*.mixins.json\" | head)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/climb.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/climbpose.py\")"
     ]
   }
 }

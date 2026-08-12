@@ -54,6 +54,20 @@ public class ServerEvents {
         }
     }
 
+    /**
+     * Le porteur ne frappe pas son propre passager.
+     *
+     * <p>Le panda roux perché n'encaisse déjà plus la mêlée, mais le coup partait quand même : bras
+     * levé, son d'impact, animation de dégât. Sur une bête assise à hauteur de visage, chaque clic
+     * gauche donnait l'impression de tabasser son compagnon. L'attaque est donc annulée avant même
+     * d'exister — événement commun aux deux côtés, donc le geste ne se joue pas non plus.</p>
+     */
+    @SubscribeEvent
+    public static void onAttackShoulderCompanion(net.neoforged.neoforge.event.entity.player.AttackEntityEvent event) {
+        if (!(event.getTarget() instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPanda)) return;
+        if (redPanda.getVehicle() == event.getEntity()) event.setCanceled(true);
+    }
+
 
     @SubscribeEvent
     public static void onEntityDeath(LivingDeathEvent event) {

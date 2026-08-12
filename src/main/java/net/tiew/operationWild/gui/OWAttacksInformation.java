@@ -18,6 +18,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
@@ -417,6 +418,40 @@ public class OWAttacksInformation {
 
         ));
 
+
+        // Panda roux : pas de carte de combo — la colonne reste vide et la fiche n'en montre que
+        // deux. Ses deux cartes sont isolées en haut à droite de l'atlas.
+        PROFILES.put(RedPandaEntity.class, new EntityProfile(
+
+                null,
+
+                new AttackSlot(216, 0, "RMB",
+                        title("ow.attacks.red_panda.heal_orb.title"),
+                        e -> desc("ow.attacks.red_panda.heal_orb.desc",
+                                val((int) (OWAttacksConstants.RedPanda.HEAL_ORB_INSTANT_RATIO * 100)),
+                                val((int) (OWAttacksConstants.RedPanda.HEAL_ORB_OVER_TIME_RATIO * 100)),
+                                val(OWAttacksConstants.RedPanda.HEAL_ORB_OVER_TIME_TICKS / 20),
+                                val((int) OWAttacksConstants.RedPanda.HEAL_ORB_RANGE),
+                                val(OWAttacksConstants.RedPanda.HEAL_ORB_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(236, 0, "X",
+                        title("ow.attacks.red_panda.life_aura.title"),
+                        e -> desc("ow.attacks.red_panda.life_aura.desc",
+                                val((int) OWAttacksConstants.RedPanda.LIFE_AURA_RADIUS),
+                                val(OWAttacksConstants.RedPanda.LIFE_AURA_HEAL_PER_PULSE),
+                                val(OWAttacksConstants.RedPanda.LIFE_AURA_DURATION_TICKS / 20),
+                                val(OWAttacksConstants.RedPanda.LIFE_AURA_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.red_panda.vital_sense.title"),
+                        e -> desc("ow.attacks.red_panda.vital_sense.desc",
+                                val((int) OWAttacksConstants.RedPanda.VITAL_SENSE_RADIUS))
+                )
+
+        ));
+
     }
 
     // =========================================================================
@@ -459,7 +494,8 @@ public class OWAttacksInformation {
     public static void render(GuiGraphics g, int screenWidth, int screenHeight) {
         Player player = Minecraft.getInstance().player;
         if (player == null) return;
-        if (!(player.getVehicle() instanceof OWEntity entity)) return;
+        OWEntity entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(player);
+        if (entity == null) return;
 
         EntityProfile profile = PROFILES.get(entity.getClass());
         if (profile == null) return;

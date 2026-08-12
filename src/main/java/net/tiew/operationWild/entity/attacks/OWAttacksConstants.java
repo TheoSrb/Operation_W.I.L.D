@@ -362,6 +362,101 @@ public class OWAttacksConstants {
         public static final int    TELLURIC_STOMP_SLOWNESS_TICKS   = 200;   // 10 s
     }
 
+    public static class RedPanda {
+        public static final int HEAL_ORB_COOLDOWN_TICKS = 100;
+        /**
+         * Coût d'une orbe, sur une réserve de 300.
+         *
+         * <p>Dimensionné contre la récupération, pas dans l'absolu : le panda regagne 7 points par
+         * seconde, soit 35 sur les cinq secondes de recharge. À 70, chaque jet creuse donc de 35 —
+         * une poignée de soins d'affilée passe sans peine, mais un soutien continu vide la réserve
+         * en une quarantaine de secondes et impose une pause. C'est le débit soutenu qui est borné,
+         * pas la réaction d'urgence.</p>
+         */
+        public static final float HEAL_ORB_ENERGY = 70f;
+        public static final double HEAL_ORB_RANGE = 36.0;
+        public static final double HEAL_ORB_AIM_TOLERANCE = 1.5;
+        /**
+         * Distance en deçà de laquelle rien n'est désignable.
+         *
+         * <p>La visée part des yeux du porteur, et le panda comme le porteur lui-même occupent cet
+         * espace : sans plancher, l'orbe se verrouillait systématiquement sur ce qui était collé à
+         * la caméra au lieu de la bête qu'on regardait.</p>
+         */
+        public static final double HEAL_ORB_MIN_AIM_DISTANCE = 2.0;
+        public static final float HEAL_ORB_INSTANT_RATIO = 0.10f;
+        public static final float HEAL_ORB_OVER_TIME_RATIO = 0.20f;
+        public static final int HEAL_ORB_OVER_TIME_TICKS = 200;
+        public static final int HEAL_ORB_OVER_TIME_INTERVAL = 10;
+        public static final double HEAL_ORB_SPEED = 0.85;
+        public static final int HEAL_ORB_MAX_LIFETIME = 200;
+        public static final int HEAL_ORB_THROW_TICKS = 12;
+
+        /**
+         * L'aura prend les deux tiers de la réserve : on ne la déclenche pas au passage. Épuisé, on
+         * n'y a pas droit du tout, et juste après il ne reste de quoi lancer qu'une seule orbe.
+         */
+        public static final float LIFE_AURA_ENERGY = 210f;
+        public static final int LIFE_AURA_COOLDOWN_TICKS = 1800;
+        public static final int LIFE_AURA_DURATION_TICKS = 160;
+        public static final long LIFE_AURA_DURATION_MS = LIFE_AURA_DURATION_TICKS * 50L;
+        public static final double LIFE_AURA_RADIUS = 10.0;
+        public static final float LIFE_AURA_HEAL_PER_PULSE = 5f;
+        public static final int LIFE_AURA_PULSE_INTERVAL = 20;
+
+        /**
+         * Cadence des vagues, en ticks. Une onde part du panda toutes les douze images de tick et met
+         * {@link #LIFE_AURA_WAVE_TRAVEL_TICKS} à gagner le bord : deux fronts sont donc toujours en
+         * vol, l'un à mi-chemin quand l'autre naît. Une seule vague à la fois laissait de longs
+         * silences visuels entre deux passages.
+         */
+        public static final int LIFE_AURA_WAVE_INTERVAL = 12;
+        public static final int LIFE_AURA_WAVE_COUNT = 2;
+        public static final int LIFE_AURA_WAVE_TRAVEL_TICKS = LIFE_AURA_WAVE_INTERVAL * LIFE_AURA_WAVE_COUNT;
+        /**
+         * Le front s'élève un peu en s'éloignant : une onde parfaitement plate se lit comme un
+         * décalque. Volontairement modeste — au-delà, le cercle décolle du sol et perd sa lisibilité
+         * de portée.
+         */
+        public static final double LIFE_AURA_WAVE_LIFT = 0.3;
+        /** Hauteur de la colonne qui tourne sur le panda pendant toute la durée. */
+        public static final double LIFE_AURA_COLUMN_HEIGHT = 1.9;
+        /** Points échantillonnés sur le trait qui relie le panda à chaque bête soignée. */
+        public static final int LIFE_AURA_LINK_POINTS = 9;
+
+        /** Rayon de la bille, en blocs. */
+        public static final float HEAL_ORB_VISUAL_RADIUS = 0.11f;
+
+        /**
+         * Gravité de l'orbe, en blocs par tick². Le quart de celle d'un objet lancé : la bille est
+         * légère et plane, elle décrit un arc franc sans plonger comme une pierre.
+         */
+        public static final double HEAL_ORB_GRAVITY = 0.014;
+        /** Vitesse horizontale de croisière : c'est elle qui fixe la durée de vol. */
+        public static final double HEAL_ORB_FLIGHT_SPEED = 0.75;
+        /** Bornes de la durée de vol, en ticks — un jet de trois blocs garde un arc lisible. */
+        public static final int HEAL_ORB_MIN_FLIGHT_TICKS = 9;
+        public static final int HEAL_ORB_MAX_FLIGHT_TICKS = 70;
+
+        // ── Sens Vital (passif, actif seulement quand le panda roux est porté) ──
+        public static final double VITAL_SENSE_RADIUS = 32.0;
+        /** Hauteur du panneau au-dessus du crâne de la cible. */
+        public static final double VITAL_SENSE_BAR_HEIGHT = 0.90;
+
+        public static final float VITAL_SENSE_SIGN_SCALE = 0.021f;
+        /**
+         * Grossissement par bloc de distance.
+         *
+         * <p>Un panneau de taille fixe dans le monde rétrécit avec l'éloignement et disparaît bien
+         * avant la portée du passif. Il grandit donc avec la distance, ce qui lui garde à peu près la
+         * même taille à l'écran — c'est une alerte, pas un objet posé dans le décor.</p>
+         */
+        public static final float VITAL_SENSE_SIGN_DISTANCE_GAIN = 0.055f;
+
+        /** Seuil d'alerte : en dessous, et en dessous seulement, le panneau apparaît. */
+        public static final float VITAL_SENSE_WARNING_RATIO = 0.35f;
+    }
+
     public static class Boa {
         public static final int VENOM_FANGS_MIN_DURATION_TICKS = 600;
         public static final int VENOM_FANGS_MAX_DURATION_TICKS = 1200;

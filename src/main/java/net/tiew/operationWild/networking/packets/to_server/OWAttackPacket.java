@@ -66,8 +66,15 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
     public static void handle(OWAttackPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) return;
-            if (!(player.getRootVehicle() instanceof OWEntity entity)) return;
-            if (entity.getPassengers().indexOf(player) != 0) return;
+            // Le panda roux inverse la relation : c'est lui qui monte le joueur, et non l'inverse.
+            // Il n'est donc jamais le véhicule racine, et le contrôle lui revient seulement quand le
+            // joueur ne chevauche rien d'autre (cf. RedPandaEntity#resolveControlledEntity).
+            OWEntity entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity
+                    .resolveControlledEntity(player);
+            if (entity == null) return;
+            boolean carriedOnShoulder = entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPanda
+                    && redPanda.isOnShoulder();
+            if (!carriedOnShoulder && entity.getPassengers().indexOf(player) != 0) return;
             // Le propriétaire OU tout membre de sa tribu doté du Contrôle peut piloter les attaques
             // de l'entité (cf. OWEntity#canPilotAttacks, garde commune client/serveur).
             if (!entity.canPilotAttacks(player)) return;
@@ -92,6 +99,13 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
 
             switch (packet.action()) {
                 case ACTION_EXECUTE -> {
+                    // Panda roux — Orbe de Soin : lancer instantané, sans combo à interrompre.
+                    if (packet.attackId() == OWAttackIds.HEAL_ORB) {
+                        if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPandaOrb)
+                            redPandaOrb.throwHealOrb();
+                        return;
+                    }
+
                     // Boa — toggle Crochets Venimeux : autorisé à tout moment (même pendant un combo)
                     if (packet.attackId() == OWAttackIds.VENOM_FANGS) {
                         if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)
@@ -139,6 +153,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.EARTHQUAKE ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant
                                         && elephant.activateEarthquake();
+                        case OWAttackIds.LIFE_AURA ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPandaAura
+                                        && redPandaAura.activateLifeAura();
                         default -> true;
                     };
 

@@ -16,6 +16,7 @@ public final class OWPisteGraphs {
         BY_SPECIES.put("TigerEntity", buildTiger());
         BY_SPECIES.put("CrocodileEntity", buildCrocodile());
         BY_SPECIES.put("BoaEntity", buildBoa());
+        BY_SPECIES.put("RedPandaEntity", buildRedPanda());
     }
 
     public static OWPisteGraph forEntity(OWEntity entity) {
@@ -182,6 +183,68 @@ public final class OWPisteGraphs {
                 .coins('K', 6, 15, 39)
                 .xp('A', 90, 15, 42)
                 .attack('R', 0, 1, 75, 46)
+                .xp('Z', 250, 15, 50).requireAll('Z')
+                .build();
+    }
+
+    /**
+     * Piste du panda roux, bâtie sur le patron du tigre : un tronc qui serpente, des embranchements
+     * qui reviennent sur eux-mêmes, et les gros gains rejetés en bout de branche pour qu'on ait à
+     * choisir par où passer plutôt qu'à tout ramasser au passage.
+     *
+     * <p>Le palier de choix est posé au niveau 34, à mi-chemin de la dernière remontée : assez tard
+     * pour que le joueur sache déjà comment il soigne, assez tôt pour en profiter seize niveaux.</p>
+     */
+    private static OWPisteGraph buildRedPanda() {
+        return OWPisteMaze.create(U)
+                .map("""
+                       o
+                       |
+                     A-o--C
+                     |    |
+                   D-o-E  |
+                     |  | |
+                     F  o-G---H
+                     |  |     |
+                   I-o--J     o-K
+                     |  |     |
+                     L  o-M-N-o
+                     |      |
+                     o--P   Q---R
+                     |  |   |
+                     S  o-T-o-U
+                     |      |
+                     V------W---X
+                            |
+                            Y
+                            |
+                            Z
+                """)
+                .coins('J', 3, 5, 0)
+                .fork('J')
+                .xp('E', 30, 5, 4)
+                .step('M', 8, 6)
+                .coins('G', 4, 10, 9)
+                .step('N', 12, 11)
+                .xp('C', 42, 10, 13)
+                .coins('K', 5, 10, 16)
+                .step('T', 15, 18)
+                .xp('H', 55, 10, 20)
+                .coins('P', 5, 10, 22)
+                .step('Q', 15, 24)
+                .xp('A', 68, 12, 26)
+                .fork('A')
+                .coins('U', 6, 12, 28)
+                .step('F', 18, 30)
+                .xp('D', 82, 12, 32)
+                .attack('R', 2, 3, 70, 34)
+                .coins('I', 6, 15, 36)
+                .step('L', 20, 38)
+                .xp('S', 105, 15, 40)
+                .coins('W', 7, 15, 42)
+                .step('V', 25, 44)
+                .xp('X', 140, 15, 46)
+                .coins('Y', 8, 20, 48)
                 .xp('Z', 250, 15, 50).requireAll('Z')
                 .build();
     }

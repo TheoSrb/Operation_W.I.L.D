@@ -17,6 +17,10 @@ IDs d'attaque déjà pris :
  12 → Kangourou TELLURIC_STOMP  (ultime — touche X, 5 kills requis)
  13 → Éléphant SHOULDER_BASH   (Coup d'Épaule — clic droit instantané, déport latéral)
  14 → Éléphant EARTHQUAKE      (ultime — touche X, 5 kills requis, Tremblement de Terre)
+ 15 → Éléphant WATER_SPRAY     (Jet de Trompe — clic droit MAINTENU)
+ 16 → Tiger  PRIMAL_ROAR       (Rugissement Primal — 2e carte secondaire, clic droit chargé)
+ 17 → Panda roux HEAL_ORB      (Orbe de Soin — clic droit instantané, depuis l'épaule du joueur)
+ 18 → Panda roux LIFE_AURA     (ultime — touche X, AUCUN kill requis : cooldown de 90 s à la place)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR

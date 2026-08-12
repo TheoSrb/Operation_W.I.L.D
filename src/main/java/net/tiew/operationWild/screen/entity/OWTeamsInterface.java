@@ -95,7 +95,7 @@ public class OWTeamsInterface extends Screen {
     public OWTeamsInterface(Component title) {
         super(title);
         Minecraft mc = Minecraft.getInstance();
-        this.entity = mc.player != null && mc.player.getRootVehicle() instanceof OWEntity e ? e : null;
+        this.entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(mc.player);
     }
 
     // ── Init ────────────────────────────────────────────────────────────────

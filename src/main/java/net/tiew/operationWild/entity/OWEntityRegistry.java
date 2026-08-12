@@ -25,6 +25,7 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<CrocodileEntity>> CROCODILE = ENTITY_TYPES.register("crocodile", () -> EntityType.Builder.<CrocodileEntity>of((type, world) -> new CrocodileEntity(type, world, 1.0f, 5000, 2), MobCategory.CREATURE).sized(1.9f, 1.1f).build("crocodile"));
     public static final DeferredHolder<EntityType<?>, EntityType<OrcaEntity>> ORCA = ENTITY_TYPES.register("orca", () -> EntityType.Builder.<OrcaEntity>of((type, world) -> new OrcaEntity(type, world, 1.1f, 7500, 2), MobCategory.CREATURE).sized(2.2f, 2.0f).build("orca"));
     public static final DeferredHolder<EntityType<?>, EntityType<ElephantEntity>> ELEPHANT = ENTITY_TYPES.register("elephant", () -> EntityType.Builder.<ElephantEntity>of((type, world) -> new ElephantEntity(type, world, 1.05f, 8000, 4), MobCategory.CREATURE).sized(2.6f, 3.2f).build("elephant"));
+    public static final DeferredHolder<EntityType<?>, EntityType<RedPandaEntity>> RED_PANDA = ENTITY_TYPES.register("red_panda", () -> EntityType.Builder.<RedPandaEntity>of((type, world) -> new RedPandaEntity(type, world, 0.95f, 2500, 1), MobCategory.CREATURE).sized(0.8f, 0.7f).build("red_panda"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<CrocodileTailPart>> CROCODILE_TAIL_PART =
             ENTITY_TYPES.register("crocodile_tail_part", () -> EntityType.Builder
@@ -65,6 +66,16 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<AdventurerManuscript>> ADVENTURER_MANUSCRIPT = ENTITY_TYPES.register("adventurer_manuscript", () -> EntityType.Builder.<AdventurerManuscript>of(AdventurerManuscript::new, MobCategory.MISC).sized(0.5f, 0.5f).build("adventurer_manuscript"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<SoulGhostEntity>> SOUL_GHOST = ENTITY_TYPES.register("soul_ghost", () -> EntityType.Builder.<SoulGhostEntity>of(SoulGhostEntity::new, MobCategory.MISC).sized(1.0f, 1.0f).clientTrackingRange(12).build("soul_ghost"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<HealOrbEntity>> HEAL_ORB =
+            ENTITY_TYPES.register("heal_orb", () -> EntityType.Builder
+                    .<HealOrbEntity>of(HealOrbEntity::new, MobCategory.MISC)
+                    .noSave()
+                    .noSummon()
+                    .clientTrackingRange(8)
+                    .updateInterval(1)
+                    .sized(0.4f, 0.4f)
+                    .build("heal_orb"));
 
 
 

@@ -76,6 +76,7 @@ public class OWEntityLootTableProvider extends EntityLootSubProvider {
         // Aucun butin demandé pour l'éléphant : la table reste vide, mais elle doit exister, sinon
         // getKnownEntityTypes() signale un type sans table à chaque exécution du datagen.
         this.add(OWEntityRegistry.ELEPHANT.get(), LootTable.lootTable());
+        this.add(OWEntityRegistry.RED_PANDA.get(), LootTable.lootTable());
 
         this.add(OWEntityRegistry.SEABUG.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.SEABUG_SHARD_0.get(), LootTable.lootTable());
