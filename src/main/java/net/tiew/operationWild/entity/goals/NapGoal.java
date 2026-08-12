@@ -15,6 +15,14 @@ public class NapGoal extends Goal {
     private final OWEntity entity;
     private final float wantNapMultiplier;
     private final boolean conditionToWork;
+    /**
+     * Autorise la sieste une fois la bete apprivoisee.
+     *
+     * <p>Faux partout ailleurs, et c'est voulu : une monture qui s'endort sous son cavalier serait
+     * une nuisance. Le panda roux, lui, ne se monte pas — il s'endort au sol comme il le ferait a
+     * l'etat sauvage, et rien de ce que fait son maitre n'en depend.</p>
+     */
+    private final boolean allowWhenTamed;
 
     private int NAP_DURATION_MAX;
     private final int napTimerMax;
@@ -23,10 +31,16 @@ public class NapGoal extends Goal {
     private boolean shouldStop = false;
 
     public NapGoal(OWEntity entity, float wantNapMultiplier, int napTimerMax, boolean conditionToWork) {
+        this(entity, wantNapMultiplier, napTimerMax, conditionToWork, false);
+    }
+
+    public NapGoal(OWEntity entity, float wantNapMultiplier, int napTimerMax, boolean conditionToWork,
+                   boolean allowWhenTamed) {
         this.entity = entity;
         this.wantNapMultiplier = wantNapMultiplier;
         this.napTimerMax = napTimerMax;
         this.conditionToWork = conditionToWork;
+        this.allowWhenTamed = allowWhenTamed;
 
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK, Goal.Flag.JUMP));
     }
@@ -69,7 +83,7 @@ public class NapGoal extends Goal {
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.isRolling() || kodiak.isSniffing() || kodiak.isCatchingSalmon() || kodiak.isHungry()) return false;
         }
-        return !shouldStop && conditionToWork && entity.isNapping() && !entity.isTame() && entity.getTarget() == null;
+        return !shouldStop && conditionToWork && entity.isNapping() && mayNapWhileTame() && entity.getTarget() == null;
     }
 
     @Override
@@ -108,13 +122,21 @@ public class NapGoal extends Goal {
         if (entity instanceof TigerEntity tiger) {
             if (tiger.level().isNight()) return false;
         }
-        return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork && !entity.isTame() && entity.getTarget() == null;
+        return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork && mayNapWhileTame() && entity.getTarget() == null;
+    }
+
+    private boolean mayNapWhileTame() {
+        return allowWhenTamed || !entity.isTame();
     }
 
     private boolean canNap() {
-        return !entity.isTame()
+        return mayNapWhileTame()
+                && entity.canStartNap()
                 && !entity.isDeadOrDying()
                 && entity.getTarget() == null
+                // Une bete portee ou montee ne s'endort pas : elle n'a ni sol sous elle ni maitrise
+                // de sa position, et la pose de sieste ecraserait celle de son perchoir.
+                && !entity.isPassenger()
                 && !entity.isInWater()
                 && entity.onGround()
                 && entity.getHealth() > (entity.getMaxHealth() * 0.3f);
@@ -127,15 +149,16 @@ public class NapGoal extends Goal {
         if (cycle < 3) {
             Vec3 lookDirection = entity.getLookAngle();
             double entityX = entity.getX();
-            double entityY = entity.getY() + 1.15;
+            double entityY = entity.getY() + entity.napParticleHeight();
             double entityZ = entity.getZ();
 
             Vec3 rightDirection = new Vec3(-lookDirection.z, 0, lookDirection.x).normalize();
             double rightOffset = 0.0;
 
-            double fixedX = entityX + lookDirection.x * 1.25 + rightDirection.x * rightOffset;
+            double forward = entity.napParticleForward();
+            double fixedX = entityX + lookDirection.x * forward + rightDirection.x * rightOffset;
             double fixedY = entityY;
-            double fixedZ = entityZ + lookDirection.z * 1.25 + rightDirection.z * rightOffset;
+            double fixedZ = entityZ + lookDirection.z * forward + rightDirection.z * rightOffset;
 
             if (!entity.level().isClientSide()) {
                 if (entity.level() instanceof ServerLevel serverLevel) {

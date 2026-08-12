@@ -17,7 +17,7 @@ import net.tiew.operationWild.entity.client.animation.RedPandaAnimations;
 public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "red_panda"), "main");
 
-    private static final float WALK_SPEED = 3f;
+    private static final float WALK_SPEED = 3.5f;
     private static final long STEP_RIGHT_MS = 240L;
     private static final long STEP_LEFT_MS = 920L;
 
@@ -91,10 +91,6 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         return LayerDefinition.create(meshdefinition, 64, 64);
     }
 
-    /**
-     * Le panda roux n'enchaîne rien : il n'a ni combo ni animation de frappe. Renvoyer {@code null}
-     * suffit à neutraliser {@code animateCombos}, qui saute toute frappe sans définition.
-     */
     @Override
     protected AnimationDefinition comboAnimation(int index) {
         return null;
@@ -104,13 +100,6 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     public void setupAnim(T redPanda, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-        // Perchée, la bête ne suit pas le regard de son porteur : elle regarde droit devant elle.
-        //
-        // L'écart tête/corps dont dépend cette rotation est recopié du porteur à chaque tick, et le
-        // corps d'un joueur ne suit son regard que par à-coups — il reste immobile jusqu'à
-        // quarante-cinq degrés puis rattrape d'un bloc. La tête du panda encaissait ces sauts en
-        // plein champ de vision, ce qui se lisait comme une animation qui bégaie. L'oisiveté suffit
-        // à la faire vivre.
         if (!redPanda.isOnShoulder()) this.applyHeadRotation(netHeadYaw, headPitch);
 
         if (redPanda.isClimbing()) {
@@ -121,23 +110,45 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         }
 
         if (redPanda.isOnShoulder()) {
-            this.animate(redPanda.idleAnimationState, RedPandaAnimations.MISC_IDLE, ageInTicks, 0.6f);
-            animateShoulderPerch(redPanda, ageInTicks);
+            this.animate(redPanda.shoulderIdleAnimationState, RedPandaAnimations.SHOULDER_IDLE, ageInTicks, 1.0f);
+            animatePerchPhysics(redPanda, ageInTicks);
             animateGestures(redPanda, ageInTicks);
             this.prevLimbSwing = limbSwing;
             return;
         }
 
+        if (redPanda.transitionIdleSit.isStarted()) {
+            this.animate(redPanda.transitionIdleSit, RedPandaAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
+            this.prevLimbSwing = limbSwing;
+            return;
+        }
+
+        if (redPanda.transitionSitIdle.isStarted()) {
+            this.animate(redPanda.transitionSitIdle, RedPandaAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
+            this.prevLimbSwing = limbSwing;
+            return;
+        }
+
+        if (redPanda.transitionIdleSleep.isStarted()) {
+            this.animate(redPanda.transitionIdleSleep, RedPandaAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
+            this.prevLimbSwing = limbSwing;
+            return;
+        }
+
+        if (redPanda.transitionSleepIdle.isStarted()) {
+            this.animate(redPanda.transitionSleepIdle, RedPandaAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
+            this.prevLimbSwing = limbSwing;
+            return;
+        }
+
         if (redPanda.isNapping() || redPanda.isSleeping()) {
-            this.animate(redPanda.napAnimationState, RedPandaAnimations.MISC_IDLE, ageInTicks, 0.35f);
-            animateCurledUp(ageInTicks);
+            this.animate(redPanda.napAnimationState, RedPandaAnimations.NAP, ageInTicks, 1.0f);
             this.prevLimbSwing = limbSwing;
             return;
         }
 
         if (redPanda.isSitting()) {
-            this.animate(redPanda.sittingAnimationState, RedPandaAnimations.MISC_IDLE, ageInTicks, 0.7f);
-            animateSit();
+            this.animate(redPanda.sittingAnimationState, RedPandaAnimations.SIT, ageInTicks, 1.0f);
             animateGestures(redPanda, ageInTicks);
             this.prevLimbSwing = limbSwing;
             return;
@@ -154,20 +165,10 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.prevLimbSwing = limbSwing;
     }
 
-    /**
-     * Les deux gestes d'attaque sont écrits à la main : l'export Blockbench ne fournit que le repos
-     * et la marche. Ils s'ADDITIONNENT à la pose en cours plutôt que de la remplacer, ce qui les rend
-     * lisibles aussi bien depuis l'épaule qu'assis au sol.
-     */
     private void animateGestures(T redPanda, float ageInTicks) {
         if (redPanda.getThrowTimer() > 0) animateOrbThrow(redPanda, ageInTicks);
-        if (redPanda.isAuraActive()) animateLifeAura(redPanda, ageInTicks);
     }
 
-    /**
-     * Trois temps en douze ticks : la patte part en arrière, fouette vers l'avant au tiers du geste
-     * — l'instant où l'orbe quitte la main —, puis retombe.
-     */
     private void animateOrbThrow(T redPanda, float ageInTicks) {
         float total = OWAttacksConstants.RedPanda.HEAL_ORB_THROW_TICKS;
         float partial = Mth.clamp(ageInTicks - redPanda.tickCount, 0f, 1f);
@@ -196,41 +197,8 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.right_Ear.zRot -= earFlick;
     }
 
-    /**
-     * Pendant l'aura, le panda roux se dresse et tient les deux pattes levées : il ne frappe pas,
-     * il porte quelque chose au-dessus de lui. La respiration lente distingue la posture d'un simple
-     * geste de lancer.
-     */
-    private void animateLifeAura(T redPanda, float ageInTicks) {
-        float breathe = Mth.sin(ageInTicks * 0.35f);
-
-        this.ALL.xRot += -0.30f;
-        this.ALL.y += -1.2f - 0.4f * breathe;
-
-        this.left_arm.xRot += -2.15f + 0.12f * breathe;
-        this.left_arm.zRot += -0.30f;
-        this.right_arm.xRot += -2.15f - 0.12f * breathe;
-        this.right_arm.zRot += 0.30f;
-
-        this.head.xRot += -0.45f + 0.08f * breathe;
-        this.body.xRot += -0.18f;
-        this.tail.xRot += 0.35f + 0.10f * breathe;
-
-        this.left_Ear.zRot += 0.20f;
-        this.right_Ear.zRot += -0.20f;
-    }
-
-    /**
-     * Pose d'escalade : la bete se dresse et brasse des quatre pattes.
-     *
-     * <p>Les membres avancent par paires croisees, comme un vrai grimpeur, et non tous ensemble. Le
-     * redressement suit l'avancement du trajet plutot qu'une valeur fixe : elle part a plat ventre,
-     * se cabre au plus fort de la montee, puis se remet d'aplomb en arrivant sur l'epaule — sans
-     * quoi la derniere image aurait juxtapose une bete cabree et une bete assise.</p>
-     */
     private void animateClimb(T redPanda, float ageInTicks) {
         float progress = redPanda.climbProgress();
-        // Cloche : nulle au depart, pleine a mi-parcours, nulle a l'arrivee.
         float effort = Mth.sin(progress * Mth.PI);
         float reach = Mth.sin(ageInTicks * 1.15f);
 
@@ -242,7 +210,6 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.left_leg.xRot += -0.55f - 0.55f * reach;
         this.right_leg.xRot += -0.55f + 0.55f * reach;
 
-        // Queue relevee en balancier : c'est elle qui vend l'equilibre precaire.
         this.tail.xRot += -0.65f * effort;
         this.tail.yRot += 0.22f * reach;
 
@@ -251,129 +218,196 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.right_Ear.zRot += -0.18f;
     }
 
-    /** Assise compacte sur l'épaule : pattes repliées, queue enroulée le long du dos du porteur. */
     /**
-     * Oisivete sur l'epaule : respiration, coups d'oeil et oreilles qui frissonnent.
+     * Physique du perchoir : ce que la bete subit du porteur, par-dessus son animation de repos.
      *
-     * <p>Trois periodes volontairement incommensurables — 0,09, 0,045 et 0,17. Des cycles multiples
-     * les uns des autres se resynchronisent regulierement, et la bete se met alors a battre la
-     * mesure comme un metronome. Decales, les gestes ne retombent jamais ensemble et l'oisivete
-     * parait vivante meme observee longtemps.</p>
-     */
-    private void animateShoulderPerch(T redPanda, float ageInTicks) {
-        float breath = Mth.sin(ageInTicks * 0.09f);
-        float glance = Mth.sin(ageInTicks * 0.045f);
-        float twitch = Mth.sin(ageInTicks * 0.17f);
-
-        this.ALL.y += 1.4f - 0.22f * breath;
-        this.ALL.xRot += 0.12f;
-        this.ALL.zRot += 0.04f * breath;
-
-        // Assise compacte : pattes repliees sous le corps, bras ramenes contre la poitrine.
-        this.left_leg.xRot += -1.35f;
-        this.right_leg.xRot += -1.35f;
-        this.left_leg.z += -1.0f;
-        this.right_leg.z += -1.0f;
-
-        this.left_arm.xRot += -0.55f + 0.08f * breath;
-        this.right_arm.xRot += -0.55f - 0.08f * breath;
-
-        // Coups d'oeil lents, avec un leger inclinement de tete : c'est ce qui donne l'air curieux.
-        this.head.yRot += 0.22f * glance;
-        this.head.zRot += 0.09f * glance;
-        this.head.xRot += 0.05f * breath;
-
-        // Frisson d'oreilles, chacune sur son propre decalage.
-        this.left_Ear.zRot += 0.20f + 0.10f * twitch;
-        this.right_Ear.zRot += -0.20f - 0.10f * Mth.sin(ageInTicks * 0.17f + 1.7f);
-
-        animatePerchedTail(redPanda, ageInTicks, breath);
-    }
-
-    /**
-     * Queue pendante, entrainee par les virages du porteur.
-     *
-     * <p>Meme principe que l'etendard de tribu : la rotation du corps par tick pilote une cible, un
-     * ressort amorti la poursuit, et la queue traine donc VERS L'EXTERIEUR du virage avant de
-     * revenir. Une simple copie du lacet l'aurait rendue rigide ; c'est le retard et le rebond qui
-     * font le poids de la fourrure.</p>
+     * <p>Trois ressorts amortis, tous nourris par le mouvement du joueur et jamais par une horloge.
+     * C'est ce qui les distingue de l'animation elle-meme : celle-ci deroule un cycle immuable, eux
+     * repondent a ce qui arrive. Un cycle ne saura jamais qu'on vient de sauter.</p>
      *
      * <p>L'integration se fait sur l'ecart d'age reel et non sur l'age absolu : a plusieurs milliers
      * de ticks, la moindre variation de cadence ferait sauter la phase d'un tour entier.</p>
      */
-    private void animatePerchedTail(T redPanda, float ageInTicks, float breath) {
+    private void animatePerchPhysics(T redPanda, float ageInTicks) {
         float dt = Float.isNaN(redPanda.tailLastAge) ? 0f
                 : Mth.clamp(ageInTicks - redPanda.tailLastAge, 0f, 2f);
         redPanda.tailLastAge = ageInTicks;
 
-        // Le lacet du CORPS du porteur ne bouge presque pas quand on tourne la souris a l'arret :
-        // il reste fige jusqu'a quarante-cinq degres avant de rattraper d'un bloc. La queue, calee
-        // dessus, ne reagissait donc quasiment pas au regard. C'est celui de la TETE qui la pilote,
-        // le seul a suivre la camera image par image.
         net.minecraft.world.entity.player.Player carrier = redPanda.getCarrier();
-        float turnRate = carrier != null
-                ? Mth.wrapDegrees(carrier.getYRot() - carrier.yRotO)
-                : Mth.wrapDegrees(redPanda.yBodyRot - redPanda.yBodyRotO);
-        float target = Mth.clamp(-turnRate * TAIL_SWING_GAIN, -TAIL_SWING_MAX, TAIL_SWING_MAX);
 
-        redPanda.tailSwingVelocity += (target - redPanda.tailSwing) * TAIL_STIFFNESS * dt;
+        // ── Virage ────────────────────────────────────────────────────────────
+        // Le lacet est mesure D'UNE IMAGE A L'AUTRE, et pas pris sur le couple (yRotO, yRot) du
+        // moteur. {@code Entity.turn} ajoute le mouvement de souris aux DEUX : leur difference reste
+        // constante pendant qu'on tourne le regard, et la queue ne bougeait donc jamais.
+        float carrierYaw = carrier != null ? carrier.getYRot() : redPanda.yBodyRot;
+        float yawDelta = Float.isNaN(redPanda.perchLastCarrierYaw)
+                ? 0f : Mth.wrapDegrees(carrierYaw - redPanda.perchLastCarrierYaw);
+        redPanda.perchLastCarrierYaw = carrierYaw;
+
+        // Ramene en degres PAR TICK : sans cette division, la meme rotation produirait un effet
+        // trois fois moindre a soixante images par seconde qu'a vingt.
+        float instantRate = dt > 1.0e-4f ? yawDelta / dt : 0f;
+        redPanda.perchTurnRate += (instantRate - redPanda.perchTurnRate)
+                * Math.min(1f, dt * PERCH_TURN_SMOOTHING);
+
+        float turnRate = redPanda.perchTurnRate;
+        float swingTarget = Mth.clamp(-turnRate * TAIL_SWING_GAIN, -TAIL_SWING_MAX, TAIL_SWING_MAX);
+
+        // ── Roulis ────────────────────────────────────────────────────────────
+        // Meme facture que le devers de l'elephant, de l'orque et du crocodile : le taux est
+        // normalise contre une reference puis mis en forme par une puissance, ce qui donne une
+        // courbe qui ignore les micro-corrections et se cabre nettement sur un vrai virage. La
+        // reponse est asymetrique — on s'incline vite, on se redresse doucement.
+        float normalized = Mth.clamp(Math.abs(turnRate) / PERCH_ROLL_REFERENCE, 0f, 1f);
+        float shaped = (float) Math.pow(normalized, PERCH_ROLL_SHARPNESS);
+        float rollTarget = -Math.signum(turnRate) * shaped * PERCH_ROLL_MAX;
+
+        float rollResponse = Math.abs(rollTarget) > Math.abs(redPanda.perchRoll)
+                ? PERCH_ROLL_RISE : PERCH_ROLL_FALL;
+        redPanda.perchRoll += (rollTarget - redPanda.perchRoll) * Math.min(1f, rollResponse * dt);
+
+        redPanda.tailSwingVelocity += (swingTarget - redPanda.tailSwing) * TAIL_STIFFNESS * dt;
         redPanda.tailSwingVelocity *= (float) Math.pow(TAIL_DAMPING, dt);
         redPanda.tailSwing += redPanda.tailSwingVelocity * dt;
 
-        // Elle PEND le long du dos du porteur : angle negatif, l'axe des X releve la queue.
-        this.tail.xRot += -0.62f + 0.05f * breath;
-        this.tail.yRot += (redPanda.tailSwing + 4f * breath) * Mth.DEG_TO_RAD;
-        this.tail.zRot += redPanda.tailSwing * 0.5f * Mth.DEG_TO_RAD;
+        // ── Saut et chute ─────────────────────────────────────────────────────
+        // La VALEUR ABSOLUE de la vitesse verticale, et non son signe : monter et tomber cabrent tous
+        // deux la bete, qui se ramasse sur ses appuis. Un lean signe l'aurait fait piquer du nez en
+        // chute libre, ce qui se lit comme un plongeon volontaire plutot que comme une secousse subie.
+        boolean airborne = carrier != null && !carrier.onGround();
+        double verticalSpeed = carrier != null ? carrier.getDeltaMovement().y : 0;
+        float pitchTarget = airborne
+                ? Mth.clamp((float) Math.abs(verticalSpeed) * PERCH_PITCH_GAIN, 0f, PERCH_PITCH_MAX)
+                : 0f;
+
+        redPanda.perchPitchVelocity += (pitchTarget - redPanda.perchPitch) * PERCH_PITCH_STIFFNESS * dt;
+        redPanda.perchPitchVelocity *= (float) Math.pow(PERCH_PITCH_DAMPING, dt);
+        redPanda.perchPitch += redPanda.perchPitchVelocity * dt;
+
+        // ── Reception ─────────────────────────────────────────────────────────
+        // L'ecrasement est declenche par la TRANSITION vers le sol, pas par le contact : teste a
+        // chaque image, il se redeclencherait tant que le joueur reste pose.
+        //
+        // Et c'est une IMPULSION dans un ressort, non une valeur posee. Passer de zero a un en une
+        // image cassait net la pose au moment meme de l'atterrissage : la bete changeait de forme
+        // entre deux images, ce qui se lit comme une animation qui saute. En poussant la VITESSE du
+        // ressort, l'ecrasement s'installe en deux ou trois images, rebondit et se resorbe.
+        if (redPanda.perchWasAirborne && !airborne) {
+            float impact = Mth.clamp(Math.abs(redPanda.perchLastVerticalSpeed) / PERCH_IMPACT_REFERENCE, 0f, 1f);
+            redPanda.perchSquashVelocity += PERCH_SQUASH_IMPULSE * impact;
+        }
+        redPanda.perchWasAirborne = airborne;
+        if (airborne) redPanda.perchLastVerticalSpeed = (float) verticalSpeed;
+
+        redPanda.perchSquashVelocity += (0f - redPanda.perchLandSquash) * PERCH_SQUASH_STIFFNESS * dt;
+        redPanda.perchSquashVelocity *= (float) Math.pow(PERCH_SQUASH_DAMPING, dt);
+        redPanda.perchLandSquash += redPanda.perchSquashVelocity * dt;
+        redPanda.perchLandSquash = Mth.clamp(redPanda.perchLandSquash, 0f, 1f);
+
+        // ── Allure ────────────────────────────────────────────────────────────
+        // Au repos la queue pend le long du dos ; en course elle se leve presque a l'horizontale,
+        // comme celle de toute bete qui se sert de sa queue pour s'equilibrer. La poursuite est
+        // molle pour que le passage de la marche au sprint se lise comme une prise d'elan.
+        double pace = carrier != null ? carrier.getDeltaMovement().horizontalDistance() : 0;
+        float paceTarget = Mth.clamp((float) pace / TAIL_RUN_REFERENCE, 0f, 1f) * TAIL_RUN_LIFT;
+        redPanda.perchRunLift += (paceTarget - redPanda.perchRunLift) * Math.min(1f, TAIL_RUN_RESPONSE * dt);
+
+        float pitchRad = redPanda.perchPitch * Mth.DEG_TO_RAD;
+        float squash = redPanda.perchLandSquash;
+
+        // Cabrage : l'axe des X abaisse le museau, le cabrage est donc negatif.
+        this.ALL.xRot += -pitchRad;
+        this.ALL.zRot += redPanda.perchRoll * Mth.DEG_TO_RAD;
+        this.ALL.y += 2.3f * squash;
+
+        // Ecrasement puis etirement : le volume se conserve a l'oeil, la bete s'aplatit en
+        // s'elargissant. L'elargissement suit la compression de pres — sans lui, la bete maigrirait
+        // au lieu de s'ecraser, ce qui se lit comme un defaut d'echelle et non comme un impact.
+        this.body.yScale *= 1f - 0.31f * squash;
+        this.body.xScale *= 1f + 0.20f * squash;
+        this.body.zScale *= 1f + 0.20f * squash;
+
+        // La queue prend tout : l'allure, le virage, le cabrage et le contrecoup de la reception.
+        //
+        // Le balancement la fait aussi MONTER, proportionnellement a son ampleur. C'est ce qui la
+        // sortait du corps du porteur : un balayage purement horizontal la faisait passer au travers
+        // en fin de course. Une vraie queue decrit un arc — elle se leve en s'ecartant —, et le
+        // roulis suit le meme mouvement pour que la fourrure se vrille au lieu de rester a plat.
+        float swingRad = redPanda.tailSwing * Mth.DEG_TO_RAD;
+        float swingArc = Math.abs(redPanda.tailSwing) * TAIL_SWING_ARC * Mth.DEG_TO_RAD;
+
+        this.tail.xRot += redPanda.perchRunLift * Mth.DEG_TO_RAD + swingArc
+                - pitchRad * 0.75f + 0.35f * squash;
+        this.tail.yRot += swingRad;
+        this.tail.zRot += swingRad * TAIL_SWING_TWIST;
+
+        // Oreilles rabattues par le vent de la chute, puis un sursaut a l'atterrissage.
+        float earFlap = -pitchRad * 0.55f + 0.30f * squash;
+        this.left_Ear.xRot += earFlap;
+        this.right_Ear.xRot += earFlap;
+
+        // La tete resiste au cabrage : elle cherche a rester d'aplomb, comme tout animal qui tombe.
+        this.head.xRot += pitchRad * 0.45f;
     }
 
     /**
      * Degres de balancement par degre de rotation du regard, et butee.
      *
      * <p>Le ressort est volontairement mou : une raideur elevee ramenerait la queue trop vite et
-     * mangerait l'amplitude qu'on vient de lui donner. C'est le retard qui fait le poids de la
-     * fourrure, pas l'angle seul.</p>
+     * mangerait l'amplitude. C'est le retard qui fait le poids de la fourrure, pas l'angle seul.</p>
      */
-    private static final float TAIL_SWING_GAIN = 7.5f;
-    private static final float TAIL_SWING_MAX = 78f;
-    private static final float TAIL_STIFFNESS = 0.38f;
-    private static final float TAIL_DAMPING = 0.78f;
+    /** Lissage du taux de rotation : assez mou pour ignorer une secousse d'une seule image. */
+    private static final float PERCH_TURN_SMOOTHING = 0.55f;
 
-    /** Position assise au sol : arrière-train posé, avant-train redressé. */
-    private void animateSit() {
-        this.ALL.xRot += -0.35f;
-        this.ALL.y += 1.8f;
+    /**
+     * Roulis du corps : degres par tick au-dela desquels il est complet, durete de la courbe, angle
+     * maximal, puis vitesses de mise en devers et de redressement.
+     */
+    private static final float PERCH_ROLL_REFERENCE = 11f;
+    private static final float PERCH_ROLL_SHARPNESS = 0.7f;
+    private static final float PERCH_ROLL_MAX = 19f;
+    private static final float PERCH_ROLL_RISE = 0.35f;
+    private static final float PERCH_ROLL_FALL = 0.14f;
 
-        this.left_leg.xRot += -1.15f;
-        this.right_leg.xRot += -1.15f;
-        this.left_arm.xRot += 0.20f;
-        this.right_arm.xRot += 0.20f;
+    /**
+     * Balancement : degres par degre de rotation du regard, butee, puis raideur et amortissement.
+     *
+     * <p>Volontairement plus mou et moins ample qu'avant. Un ressort vif rend une queue de plastique
+     * — elle colle au regard, atteint sa butee et y reste. En ralentissant la reponse tout en
+     * gardant l'energie plus longtemps, la fourrure traine, depasse, puis revient : c'est ce retard
+     * qui lui donne du poids.</p>
+     */
+    private static final float TAIL_SWING_GAIN = 6f;
+    private static final float TAIL_SWING_MAX = 58f;
+    private static final float TAIL_STIFFNESS = 0.26f;
+    private static final float TAIL_DAMPING = 0.86f;
 
-        this.tail.xRot += 0.55f;
-        this.head.xRot += 0.18f;
-    }
+    /** Part du balancement reportee en montee et en vrille : l'arc, plutot que le balayage a plat. */
+    private static final float TAIL_SWING_ARC = 0.45f;
+    private static final float TAIL_SWING_TWIST = 0.65f;
 
-    /** Sommeil : la bête se roule en boule et se couvre du panache de sa queue. */
-    private void animateCurledUp(float ageInTicks) {
-        float breathe = Mth.sin(ageInTicks * 0.10f);
+    /** Allure : vitesse a laquelle le relevement est complet, angle gagne, et vitesse de poursuite. */
+    private static final float TAIL_RUN_REFERENCE = 0.22f;
+    private static final float TAIL_RUN_LIFT = 46f;
+    private static final float TAIL_RUN_RESPONSE = 0.12f;
 
-        this.ALL.y += 3.0f;
-        this.ALL.xRot += 0.10f;
-
-        this.head.xRot += 0.85f;
-        this.head.yRot += 0.55f;
-        this.head.y += 1.2f;
-
-        this.left_leg.xRot += -1.55f;
-        this.right_leg.xRot += -1.55f;
-        this.left_arm.xRot += -1.45f;
-        this.right_arm.xRot += -1.45f;
-
-        this.tail.xRot += 0.30f + 0.03f * breathe;
-        this.tail.yRot += 1.15f;
-
-        this.left_Ear.zRot += 0.35f;
-        this.right_Ear.zRot += -0.35f;
-    }
+    /** Cabrage : degres par bloc-par-tick de vitesse verticale, butee, puis raideur et amortissement. */
+    private static final float PERCH_PITCH_GAIN = 55f;
+    private static final float PERCH_PITCH_MAX = 32f;
+    private static final float PERCH_PITCH_STIFFNESS = 0.30f;
+    private static final float PERCH_PITCH_DAMPING = 0.80f;
+    /**
+     * Reception : force de l'impulsion, raideur et amortissement du ressort qui la resorbe, et
+     * vitesse de chute au-dela de laquelle l'ecrasement est complet.
+     *
+     * <p>Un simple saut sur place n'ecrase donc presque pas, la ou une chute de plusieurs blocs
+     * ramasse franchement la bete — c'est le dosage par la vitesse d'impact qui rend le geste
+     * credible, plus que son amplitude.</p>
+     */
+    private static final float PERCH_SQUASH_IMPULSE = 0.55f;
+    private static final float PERCH_SQUASH_STIFFNESS = 0.45f;
+    private static final float PERCH_SQUASH_DAMPING = 0.68f;
+    private static final float PERCH_IMPACT_REFERENCE = 0.7f;
 
     private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
         long durationMs = (long) (animation.lengthInSeconds() * 1000f);

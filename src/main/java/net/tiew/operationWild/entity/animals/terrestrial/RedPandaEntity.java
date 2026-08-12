@@ -67,10 +67,10 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     public static final double TAMING_EXPERIENCE = 40.0;
-    public static final int ENTITY_COLOR = 0xe0732a;
+    public static final int ENTITY_COLOR = 0xec8925;
 
     private static final double SHOULDER_SIDE_OFFSET = 0.44;
-    private static final double SHOULDER_HEIGHT_OFFSET = 1.22;
+    private static final double SHOULDER_HEIGHT_OFFSET = 1.02;
     private static final double SHOULDER_FORWARD_OFFSET = -0.05;
     private static final double CROUCH_DROP = 0.28;
     private static final double CROUCH_FORWARD = 0.09;
@@ -78,6 +78,14 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static final float CROUCH_BLEND = 0.35f;
 
     private static final int SHOULDER_TOGGLE_COOLDOWN = 10;
+    /**
+     * Delai avant qu'une bete tout juste descendue puisse s'endormir.
+     *
+     * <p>On repose son compagnon pour une raison — le faire garder un endroit, l'ecarter d'un
+     * combat, lui faire suivre une piste. Le voir se rouler en boule dans la seconde annulait
+     * l'intention du geste. Dix secondes suffisent a laisser la main au joueur.</p>
+     */
+    private static final int NAP_COOLDOWN_AFTER_DISMOUNT = 200;
     private static final int SHOULDER_RESTORE_TIMEOUT = 600;
     private static final double SHOULDER_RESTORE_RANGE = 8.0;
 
@@ -101,12 +109,22 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.BOOLEAN);
 
     public static final int CLIMB_TICKS = 20;
+    /** Duree du raccord de reveil, calee sur celle que pose {@code createTransitionAnimation}. */
+    private static final int WAKE_TRANSITION_TICKS = 20;
 
     private static final EntityDataAccessor<Integer> AURA_TIMER = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
 
     public final AnimationState napAnimationState = new AnimationState();
     public final AnimationState throwAnimationState = new AnimationState();
-    public final AnimationState auraAnimationState = new AnimationState();
+    /**
+     * Etat propre au repos d'epaule.
+     *
+     * <p>Il ne peut pas partager {@code idleAnimationState} : {@code createIdleAnimation} le relance
+     * toutes les quatre-vingts images de tick, ce qui tranchait net une animation de dix secondes et
+     * la faisait repartir du debut. Celui-ci demarre une fois en montant sur l'epaule et court sans
+     * interruption — la definition boucle d'elle-meme.</p>
+     */
+    public final AnimationState shoulderIdleAnimationState = new AnimationState();
     public final AnimationState miscIdleAnimationState = new AnimationState();
 
     public int napAnimationTimeout = 0;
@@ -118,6 +136,17 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private int auraPulseTimer = 0;
     private double auraAnchorY = Double.NaN;
     private int shoulderCooldown = 0;
+    private int napCooldown = 0;
+    /**
+     * Montee differee, le temps que la bete se reveille.
+     *
+     * <p>Cliquer sur un panda endormi le faisait bondir a l'epaule sans transition, l'animation de
+     * reveil etant tranchee par celle d'escalade. Le clic ouvre donc le reveil, et la montee attend
+     * que le raccord soit joue.</p>
+     */
+    private int wakeThenClimbDelay = 0;
+    private int wakeThenClimbCarrierId = -1;
+
     private Vec3 climbStart = null;
     private int climbCarrierId = -1;
 
@@ -131,6 +160,27 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public float tailSwing = 0f;
     public float tailSwingVelocity = 0f;
     public float tailLastAge = Float.NaN;
+
+    /** Cabrage du saut et de la chute, sa vitesse, et l'ecrasement de la reception. */
+    public float perchPitch = 0f;
+    public float perchPitchVelocity = 0f;
+    public float perchLandSquash = 0f;
+    public float perchSquashVelocity = 0f;
+    public float perchLastVerticalSpeed = 0f;
+
+    /**
+     * Lacet du porteur a l'image precedente, sa vitesse lissee, et le roulis qui en decoule.
+     *
+     * <p>Le lacet est mesure ici et nulle part ailleurs. {@code Entity.turn} ajoute le mouvement de
+     * souris A LA FOIS a {@code yRot} et a {@code yRotO} : leur difference reste donc constante
+     * pendant qu'on tourne le regard, et toute mesure fondee dessus rend zero.</p>
+     */
+    public float perchLastCarrierYaw = Float.NaN;
+    public float perchTurnRate = 0f;
+    public float perchRoll = 0f;
+    /** Relevement de la queue du a l'allure du porteur, poursuivi mollement. */
+    public float perchRunLift = 0f;
+    public boolean perchWasAirborne = false;
 
     public float crouchAmount = 0f;
     public float crouchAmountO = 0f;
@@ -159,6 +209,9 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
+        // Sieste ouverte aux deux etats, apprivoise compris : c'est la seule espece du mod qui ne se
+        // monte pas, donc la seule ou l'endormissement d'un compagnon ne prive de rien.
+        this.goalSelector.addGoal(5, new net.tiew.operationWild.entity.goals.NapGoal(this, 1f, 800, true, true));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
@@ -207,6 +260,12 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public float getTheoreticalScale() {
         return 4f;
     }
+
+    @Override
+    public double napParticleHeight() { return 0.15; }
+
+    @Override
+    public double napParticleForward() { return 0.75; }
 
     @Override
     public double getTamingExperience() {
@@ -346,6 +405,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
         if (healOrbCooldown > 0) healOrbCooldown--;
         if (shoulderCooldown > 0) shoulderCooldown--;
+        if (napCooldown > 0) napCooldown--;
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
@@ -355,6 +415,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         if (!this.level().isClientSide()) {
             if (getThrowTimer() > 0) setThrowTimer(getThrowTimer() - 1);
 
+            handleWakeThenClimb();
             handleShoulderClimb();
             handleLifeAura();
             handleTwinOrb();
@@ -401,11 +462,22 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         }
 
         if (player.isSteppingCarefully()) return super.mobInteract(player, hand);
-        if (shoulderCooldown > 0 || isClimbing()) return InteractionResult.PASS;
+        if (shoulderCooldown > 0 || isClimbing() || wakeThenClimbDelay > 0) return InteractionResult.PASS;
         if (!this.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) {
             return InteractionResult.PASS;
         }
         if (!player.getPassengers().isEmpty()) return InteractionResult.PASS;
+
+        if (isNapping() || isSleeping()) {
+            setNap(false);
+            setSleeping(false);
+            wakeThenClimbDelay = WAKE_TRANSITION_TICKS;
+            wakeThenClimbCarrierId = player.getId();
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.FOX_SNIFF, SoundSource.NEUTRAL, 0.6f,
+                    (float) OWUtils.generateRandomInterval(0.8, 1.0));
+            return InteractionResult.SUCCESS;
+        }
 
         return beginClimb(player, true) ? InteractionResult.SUCCESS : InteractionResult.PASS;
     }
@@ -428,6 +500,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         Entity vehicle = this.getVehicle();
         this.stopRiding();
         shoulderCooldown = SHOULDER_TOGGLE_COOLDOWN;
+        napCooldown = NAP_COOLDOWN_AFTER_DISMOUNT;
 
         if (vehicle instanceof Player player) {
             syncPassengersToCarrier(player);
@@ -456,6 +529,22 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
                 mounting ? SoundEvents.FOX_AMBIENT : SoundEvents.FOX_SNIFF, SoundSource.NEUTRAL, 0.7f,
                 (float) OWUtils.generateRandomInterval(1.2, 1.45));
         return true;
+    }
+
+    private void handleWakeThenClimb() {
+        if (wakeThenClimbDelay <= 0) return;
+        if (--wakeThenClimbDelay > 0) return;
+
+        int carrierId = wakeThenClimbCarrierId;
+        wakeThenClimbCarrierId = -1;
+
+        // Le porteur a pu s'eloigner, mourir ou prendre un autre passager pendant le reveil : la
+        // bete reste alors simplement debout, ce qui est un aboutissement acceptable.
+        if (!(this.level().getEntity(carrierId) instanceof Player carrier) || !carrier.isAlive()) return;
+        if (!carrier.getPassengers().isEmpty()) return;
+        if (this.distanceTo(carrier) > SHOULDER_RESTORE_RANGE) return;
+
+        beginClimb(carrier, true);
     }
 
     private void handleShoulderClimb() {
@@ -524,6 +613,13 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         if (carrier instanceof ServerPlayer serverPlayer) {
             serverPlayer.connection.send(new ClientboundSetPassengersPacket(serverPlayer));
         }
+    }
+
+    @Override
+    public boolean canStartNap() {
+        // Le delai court a partir de la descente, mais la garde couvre aussi le trajet lui-meme :
+        // une bete en pleine escalade n'a rien a faire endormie.
+        return napCooldown <= 0 && !isClimbing() && !isOnShoulder();
     }
 
     public boolean isOnShoulder() {
@@ -991,6 +1087,9 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     }
 
     private void setupAnimationState() {
+        if (isOnShoulder()) this.shoulderIdleAnimationState.startIfStopped(this.tickCount);
+        else this.shoulderIdleAnimationState.stop();
+
         createIdleAnimation(80, true);
         createSitAnimation(83, true);
 
@@ -1015,9 +1114,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         }
 
         if (isAuraActive()) {
-            this.auraAnimationState.startIfStopped(this.tickCount);
         } else {
-            this.auraAnimationState.stop();
         }
     }
 

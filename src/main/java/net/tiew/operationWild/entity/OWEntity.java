@@ -1734,6 +1734,26 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
+    /**
+     * Place des « Z » de sieste, en blocs : hauteur au-dessus des pieds et avancee devant le museau.
+     *
+     * <p>Les valeurs par defaut sont taillees pour un tigre ou un kodiak. Une petite bete les porte
+     * bien trop haut et bien trop loin — d'ou ces deux points de surcharge plutot qu'un reglage
+     * unique que chaque espece aurait fini par contredire.</p>
+     */
+    /**
+     * Dernier mot de l'espece sur le declenchement d'une sieste.
+     *
+     * <p>Vrai partout par defaut. Une espece s'en sert pour interdire l'endormissement dans des
+     * situations que le goal ne peut pas connaitre — il ne sait rien, par exemple, de ce qui vient
+     * de se passer entre la bete et son maitre.</p>
+     */
+    public boolean canStartNap() { return true; }
+
+    public double napParticleHeight() { return 1.15; }
+
+    public double napParticleForward() { return 1.25; }
+
     public void setNap(boolean nap) { this.entityData.set(NAPPING, nap);}
     public boolean isNapping() { return this.entityData.get(NAPPING);}
 

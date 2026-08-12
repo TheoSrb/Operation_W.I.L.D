@@ -174,7 +174,7 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> ELEPHANT_SPAWN_EGG = ITEMS.register("elephant_spawn_egg",
             () -> new DeferredSpawnEggItem(OWEntityRegistry.ELEPHANT, 0x827570, 0x6b5c57, new Item.Properties()));
     public static final DeferredHolder<Item, Item> RED_PANDA_SPAWN_EGG = ITEMS.register("red_panda_spawn_egg",
-            () -> new DeferredSpawnEggItem(OWEntityRegistry.RED_PANDA, 0xd15d2a, 0xec8925, new Item.Properties()));
+            () -> new DeferredSpawnEggItem(OWEntityRegistry.RED_PANDA, 0xec8925, 0xd15d2a, new Item.Properties()));
 
 
     public static void register(IEventBus eventBus) { ITEMS.register(eventBus);}

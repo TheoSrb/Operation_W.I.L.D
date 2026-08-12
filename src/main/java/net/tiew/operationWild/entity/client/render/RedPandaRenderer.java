@@ -28,7 +28,7 @@ public class RedPandaRenderer extends OWEntityRenderer<RedPandaEntity, RedPandaM
     private final EntityRendererProvider.Context context;
     private final Map<ModelLayerLocation, RedPandaModel<RedPandaEntity>> modelCache = new HashMap<>();
 
-    private static final float FIRST_PERSON_SCALE = 0.48f;
+    private static final float FIRST_PERSON_SCALE = 0.41f;
     /** Avancé dans le champ, devant la ligne d'épaule. Négatif le renverrait derrière le regard. */
     private static final double FIRST_PERSON_FORWARD_PUSH = 0.06;
     /** Rapproché de l'axe du regard : à pleine largeur d'épaule il sortait par le bord de l'écran. */
