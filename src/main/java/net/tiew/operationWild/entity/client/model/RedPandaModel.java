@@ -26,13 +26,6 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     private static final long STEP_LEFT_MS = 920L;
     private static final float PAW_TRAIL = 0.045f;
 
-    /**
-     * Queue soumise au sol : allonge du point sonde derriere la bete, profondeur du sondage, degres
-     * de bascule par bloc de vide, bornes et vitesse de rattrapage.
-     *
-     * <p>La chute pese plus que la marche : une queue qui pend dans le vide tombe franchement, alors
-     * qu'un talus derriere elle ne fait que la relever un peu.</p>
-     */
     private static final double TAIL_REACH = 0.75;
     private static final double TAIL_PROBE_DEPTH = 2.5;
     private static final float TAIL_GRAVITY_GAIN = 42f;
@@ -87,7 +80,7 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         PartDefinition body = ALL.addOrReplaceChild("body", CubeListBuilder.create().texOffs(0, 0).addBox(-3.5F, -4.0F, -6.0F, 7.0F, 7.0F, 12.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.5F, 0.0F));
 
         PartDefinition head = body.addOrReplaceChild("head", CubeListBuilder.create().texOffs(34, 20).addBox(-4.0F, -3.0F, -5.0F, 8.0F, 6.0F, 5.0F, new CubeDeformation(0.0F))
-        .texOffs(38, 7).addBox(-2.0F, 0.0F, -7.0F, 4.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -1.5F, -6.0F));
+                .texOffs(38, 7).addBox(-2.0F, 0.0F, -7.0F, 4.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, -1.5F, -6.0F));
 
         PartDefinition left_Ear = head.addOrReplaceChild("left_Ear", CubeListBuilder.create().texOffs(38, 12).mirror().addBox(-1.5F, -1.5F, -0.5F, 3.0F, 2.0F, 1.0F, new CubeDeformation(0.0F)).mirror(false), PartPose.offset(3.5F, -2.5F, -1.5F));
 
@@ -182,8 +175,10 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.animateWalk(RedPandaAnimations.MOVE_WALK, limbSwing, limbSwingAmount, WALK_SPEED, WALK_SPEED * 1.2f);
 
         if (!RENDER_AS_GROUNDED) {
-            if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, WALK_SPEED, STEP_RIGHT_MS)) redPanda.onRightFootDown();
-            if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, WALK_SPEED, STEP_LEFT_MS)) redPanda.onLeftFootDown();
+            if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, WALK_SPEED, STEP_RIGHT_MS))
+                redPanda.onRightFootDown();
+            if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, WALK_SPEED, STEP_LEFT_MS))
+                redPanda.onLeftFootDown();
         }
 
         animateTailGravity(redPanda, ageInTicks);
@@ -192,18 +187,6 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.prevLimbSwing = limbSwing;
     }
 
-    /**
-     * La queue suit le sol qu'elle surplombe.
-     *
-     * <p>Le point sonde est pris DERRIERE la bete, la ou pend reellement le bout de la queue, et non
-     * sous son centre : c'est tout l'interet, une bete au bord d'un bloc a les pattes sur le plein
-     * et la queue au-dessus du vide.</p>
-     *
-     * <p>Le sondage vaut pour un tick et se garde : {@code setupAnim} tourne a la frequence
-     * d'affichage, et lancer un rayon a chaque image pour un sol qui ne bouge pas coutait trois fois
-     * le necessaire. La poursuite, elle, reste calee sur le temps ecoule, donc identique quelle que
-     * soit cette frequence.</p>
-     */
     private void animateTailGravity(T redPanda, float ageInTicks) {
         if (RENDER_AS_GROUNDED) return;
 
@@ -221,14 +204,9 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         redPanda.tailGroundPitch += (target - redPanda.tailGroundPitch)
                 * Math.min(1f, TAIL_GRAVITY_RESPONSE * dt);
 
-        // L'axe des X abaisse le bout de la queue quand il est negatif : un affaissement se retranche.
         this.tail.xRot += -redPanda.tailGroundPitch * Mth.DEG_TO_RAD;
     }
 
-    /**
-     * Hauteur de vide sous le bout de la queue, en blocs. Negative quand le sol y est plus haut que
-     * sous les pattes — la bete adossee a une marche releve alors sa queue au lieu de l'y enfoncer.
-     */
     private static float probeTailDrop(RedPandaEntity redPanda) {
         float yaw = redPanda.yBodyRot * Mth.DEG_TO_RAD;
         double reach = TAIL_REACH * redPanda.getScale();
