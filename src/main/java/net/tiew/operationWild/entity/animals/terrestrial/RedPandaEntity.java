@@ -134,14 +134,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.BOOLEAN);
 
     public static final int CLIMB_TICKS = 20;
-    /**
-     * Le bond : part du parcours passee ramassee, profondeur du ramassement, et hauteur du sommet
-     * au-dessus de la corde qui joint le depart a l'epaule.
-     *
-     * <p>Un ramassement long est ce qui fait lire un saut : la bete se tasse pres d'un tiers du
-     * temps, puis franchit tout le reste d'un trait. Le sommet passant AU-DESSUS de l'epaule, elle
-     * retombe dessus au lieu d'y monter — c'est la difference entre bondir et se hisser.</p>
-     */
     private static final float CLIMB_CROUCH_PHASE = 0.28f;
     private static final double CLIMB_CROUCH_DEPTH = 0.17;
     private static final double CLIMB_LEAP_APEX = 0.62;
@@ -179,7 +171,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static final EntityDataAccessor<Float> CLIMB_PITCH =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
 
-    /** Assiette de la queue donnee par le sol qu'elle surplombe, en degres, et cache de la sonde. */
     public float tailGroundPitch = 0f;
     public float tailGroundDrop = 0f;
     public int tailGroundProbeTick = -1;
@@ -214,13 +205,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
-    /**
-     * Poursuite ramenee de vingt a douze.
-     *
-     * <p>Le facteur herite multipliait une vitesse deja relevee pour l'allure ordinaire : le panda
-     * roux rattrapait son maitre plus vite qu'un tigre lance. Le baisser ici, plutot que de rogner
-     * l'attribut, decouple les deux — il trotte comme il faut et rejoint sans foncer.</p>
-     */
     @Override
     protected double followOwnerSpeedFactor() {
         return 12;
@@ -241,14 +225,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
 
-        // Une bete de six kilos ne rend pas les coups : frappee, elle detale. Reserve a l'etat
-        // sauvage — un compagnon qui fuit son maitre au premier degat serait ingerable.
-        // Fuite DECLENCHEE PAR LE COUP, et non permanente.
-        //
-        // Le OWPanicGoal du mod s'affole tant que la bete est sauvage, ce qui la ferait detaler sans
-        // fin ; le PanicGoal de vanilla, lui, ne connait que le feu et le gel. Ni l'un ni l'autre ne
-        // repond a « on m'a frappe » — d'ou la condition posee ici. Le moteur oublie le dernier
-        // agresseur au bout de cinq secondes, la fuite s'arrete donc d'elle-meme.
         this.goalSelector.addGoal(1, new OWPanicGoal(this, 2.8f, 1.0, 0) {
             @Override
             protected boolean shouldPanic() {
@@ -350,7 +326,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 0.175f * (1 + ((float) this.getLevel() / 50));
+        return 0.225f * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
@@ -674,9 +650,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         float leap = 0f;
 
         if (mounting) {
-            // Trajectoire de projectile : vitesse horizontale CONSTANTE, hauteur en parabole. Les
-            // courbes amorties d'avant faisaient glisser la bete jusqu'a sa place ; rien ne freine
-            // un animal en l'air, et c'est cette absence de freinage qui se lit comme un bond.
             leap = Mth.clamp((progress - CLIMB_CROUCH_PHASE) / (1f - CLIMB_CROUCH_PHASE), 0f, 1f);
             approach = leap;
             rise = leap;
@@ -875,13 +848,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         }
     }
 
-    /**
-     * Le second lancer de la Double Ration : le geste ordinaire, rejoue.
-     *
-     * <p>Rien de plus qu'un minuteur relance quand le premier vient de s'eteindre. C'est la remontee
-     * du compteur qui redemarre l'etat d'animation, donc la bete refait exactement le meme
-     * mouvement, l'en-cas partant cette fois de l'autre patoune.</p>
-     */
     private void handleSecondThrow() {
         if (secondThrowDelay <= 0) return;
         if (--secondThrowDelay > 0) return;
