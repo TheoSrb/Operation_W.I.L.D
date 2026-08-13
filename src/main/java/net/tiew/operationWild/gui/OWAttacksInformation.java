@@ -426,22 +426,27 @@ public class OWAttacksInformation {
                 null,
 
                 new AttackSlot(216, 0, "RMB",
-                        title("ow.attacks.red_panda.heal_orb.title"),
-                        e -> desc("ow.attacks.red_panda.heal_orb.desc",
-                                val((int) (OWAttacksConstants.RedPanda.HEAL_ORB_INSTANT_RATIO * 100)),
-                                val((int) (OWAttacksConstants.RedPanda.HEAL_ORB_OVER_TIME_RATIO * 100)),
-                                val(OWAttacksConstants.RedPanda.HEAL_ORB_OVER_TIME_TICKS / 20),
-                                val((int) OWAttacksConstants.RedPanda.HEAL_ORB_RANGE),
-                                val(OWAttacksConstants.RedPanda.HEAL_ORB_COOLDOWN_TICKS / 20))
+                        title("ow.attacks.red_panda.heal_snack.title"),
+                        e -> desc("ow.attacks.red_panda.heal_snack.desc",
+                                val((int) (OWAttacksConstants.RedPanda.HEAL_SNACK_INSTANT_RATIO * 100)),
+                                val((int) (OWAttacksConstants.RedPanda.HEAL_SNACK_OVER_TIME_RATIO * 100)),
+                                val(OWAttacksConstants.RedPanda.HEAL_SNACK_OVER_TIME_TICKS / 20),
+                                val((int) OWAttacksConstants.RedPanda.HEAL_SNACK_RANGE),
+                                val(OWAttacksConstants.RedPanda.HEAL_SNACK_COOLDOWN_TICKS / 20))
                 ),
 
                 new AttackSlot(236, 0, "X",
-                        title("ow.attacks.red_panda.life_aura.title"),
-                        e -> desc("ow.attacks.red_panda.life_aura.desc",
-                                val((int) OWAttacksConstants.RedPanda.LIFE_AURA_RADIUS),
-                                val(OWAttacksConstants.RedPanda.LIFE_AURA_HEAL_PER_PULSE),
-                                val(OWAttacksConstants.RedPanda.LIFE_AURA_DURATION_TICKS / 20),
-                                val(OWAttacksConstants.RedPanda.LIFE_AURA_COOLDOWN_TICKS / 20))
+                        title("ow.attacks.red_panda.feast.title"),
+                        e -> desc("ow.attacks.red_panda.feast.desc",
+                                val(OWAttacksConstants.RedPanda.FEAST_SNACKS_REQUIRED),
+                                val((int) OWAttacksConstants.RedPanda.FEAST_RADIUS),
+                                val(OWAttacksConstants.RedPanda.FEAST_HEAL_PER_PULSE),
+                                val(OWAttacksConstants.RedPanda.FEAST_DURATION_TICKS / 20),
+                                val(OWAttacksConstants.RedPanda.FEAST_OVERCHARGE_MAX),
+                                val((OWAttacksConstants.RedPanda.FEAST_DURATION_TICKS
+                                        + OWAttacksConstants.RedPanda.FEAST_OVERCHARGE_MAX
+                                        * OWAttacksConstants.RedPanda.FEAST_OVERCHARGE_TICKS_EACH) / 20),
+                                val(OWAttacksConstants.RedPanda.FEAST_COOLDOWN_TICKS / 20))
                 ),
 
                 new AttackSlot(-1, -1, "",

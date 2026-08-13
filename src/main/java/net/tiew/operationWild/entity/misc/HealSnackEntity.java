@@ -8,6 +8,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntityRegistry;
@@ -23,10 +24,10 @@ import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
  * pas rater le soin — c'est un geste de secours, pas un tir d'adresse —, mais la trajectoire reste
  * une vraie parabole plutôt qu'un trait tendu.</p>
  *
- * <p>Aucune particule : la bille est un objet à part entière, dessinée par {@code HealOrbRenderer}.
+ * <p>Aucune particule : la bille est un objet à part entière, dessinée par {@code HealSnackRenderer}.
  * La nuée de points d'avant se lisait comme une fuite, jamais comme un projectile.</p>
  */
-public class HealOrbEntity extends Entity {
+public class HealSnackEntity extends Entity {
 
     /**
      * Cible et durée de vol partagées avec le client.
@@ -38,26 +39,39 @@ public class HealOrbEntity extends Entity {
      * rien de visible.</p>
      */
     private static final EntityDataAccessor<Integer> DATA_TARGET_ID =
-            SynchedEntityData.defineId(HealOrbEntity.class, EntityDataSerializers.INT);
+            SynchedEntityData.defineId(HealSnackEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_FLIGHT_TICKS =
-            SynchedEntityData.defineId(HealOrbEntity.class, EntityDataSerializers.INT);
+            SynchedEntityData.defineId(HealSnackEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<ItemStack> DATA_SNACK =
+            SynchedEntityData.defineId(HealSnackEntity.class, EntityDataSerializers.ITEM_STACK);
 
     /** Part de l'écart rattrapée par tick quand le serveur corrige : on rejoint sans sauter. */
     private static final double CORRECTION_RATE = 0.25;
 
     private int ownerId = -1;
+    private boolean credits = true;
     private int lifetime = 0;
 
-    public HealOrbEntity(EntityType<? extends HealOrbEntity> type, Level level) {
+    public HealSnackEntity(EntityType<? extends HealSnackEntity> type, Level level) {
         super(type, level);
         this.noPhysics = true;
         this.setNoGravity(true);
     }
 
-    public HealOrbEntity(Level level, RedPandaEntity owner, LivingEntity target) {
-        this(OWEntityRegistry.HEAL_ORB.get(), level);
+    public HealSnackEntity(Level level, RedPandaEntity owner, LivingEntity target, ItemStack snack) {
+        this(OWEntityRegistry.HEAL_SNACK.get(), level);
         this.ownerId = owner.getId();
         this.entityData.set(DATA_TARGET_ID, target.getId());
+        this.entityData.set(DATA_SNACK, snack.copy());
+    }
+
+    public void setCredits(boolean credits) {
+        this.credits = credits;
+    }
+
+    public ItemStack getSnack() {
+        ItemStack snack = this.entityData.get(DATA_SNACK);
+        return snack.isEmpty() ? RedPandaEntity.snackForIndex(0) : snack;
     }
 
     /**
@@ -70,15 +84,16 @@ public class HealOrbEntity extends Entity {
     public void aimAt(LivingEntity target) {
         double horizontal = target.position().subtract(this.position()).multiply(1, 0, 1).length();
         this.entityData.set(DATA_FLIGHT_TICKS, Mth.clamp(
-                (int) Math.round(horizontal / OWAttacksConstants.RedPanda.HEAL_ORB_FLIGHT_SPEED),
-                OWAttacksConstants.RedPanda.HEAL_ORB_MIN_FLIGHT_TICKS,
-                OWAttacksConstants.RedPanda.HEAL_ORB_MAX_FLIGHT_TICKS));
+                (int) Math.round(horizontal / OWAttacksConstants.RedPanda.HEAL_SNACK_FLIGHT_SPEED),
+                OWAttacksConstants.RedPanda.HEAL_SNACK_MIN_FLIGHT_TICKS,
+                OWAttacksConstants.RedPanda.HEAL_SNACK_MAX_FLIGHT_TICKS));
     }
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         builder.define(DATA_TARGET_ID, -1);
-        builder.define(DATA_FLIGHT_TICKS, OWAttacksConstants.RedPanda.HEAL_ORB_MIN_FLIGHT_TICKS);
+        builder.define(DATA_FLIGHT_TICKS, OWAttacksConstants.RedPanda.HEAL_SNACK_MIN_FLIGHT_TICKS);
+        builder.define(DATA_SNACK, ItemStack.EMPTY);
     }
 
     private int targetId() {
@@ -112,7 +127,7 @@ public class HealOrbEntity extends Entity {
         lifetime++;
 
         boolean server = !this.level().isClientSide();
-        if (server && lifetime > OWAttacksConstants.RedPanda.HEAL_ORB_MAX_LIFETIME) {
+        if (server && lifetime > OWAttacksConstants.RedPanda.HEAL_SNACK_MAX_LIFETIME) {
             this.discard();
             return;
         }
@@ -137,7 +152,7 @@ public class HealOrbEntity extends Entity {
         // Déroulée des DEUX côtés, à partir des mêmes données : la trajectoire du client est celle
         // du serveur, aux quelques centimètres près que l'amortissement de lerpTo absorbe.
         double remaining = Math.max(1, flightTicks() - lifetime);
-        double gravity = OWAttacksConstants.RedPanda.HEAL_ORB_GRAVITY;
+        double gravity = OWAttacksConstants.RedPanda.HEAL_SNACK_GRAVITY;
 
         Vec3 velocity = new Vec3(
                 delta.x / remaining,
@@ -151,7 +166,7 @@ public class HealOrbEntity extends Entity {
     private void deliver(LivingEntity target) {
         Entity owner = this.level().getEntity(ownerId);
         if (owner instanceof RedPandaEntity redPanda) {
-            redPanda.applyOrbHeal(target);
+            redPanda.serveSnack(target, getSnack(), credits);
         }
         this.discard();
     }
@@ -159,6 +174,7 @@ public class HealOrbEntity extends Entity {
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         this.ownerId = tag.getInt("ownerId");
+        this.credits = tag.getBoolean("credits");
         this.lifetime = tag.getInt("lifetime");
         this.entityData.set(DATA_TARGET_ID, tag.getInt("targetId"));
         this.entityData.set(DATA_FLIGHT_TICKS, Math.max(1, tag.getInt("flightTicks")));
@@ -167,6 +183,7 @@ public class HealOrbEntity extends Entity {
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         tag.putInt("ownerId", this.ownerId);
+        tag.putBoolean("credits", this.credits);
         tag.putInt("lifetime", this.lifetime);
         tag.putInt("targetId", targetId());
         tag.putInt("flightTicks", flightTicks());

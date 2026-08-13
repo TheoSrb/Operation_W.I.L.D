@@ -53,7 +53,11 @@ import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
-import net.tiew.operationWild.entity.misc.HealOrbEntity;
+import net.tiew.operationWild.entity.misc.FeastPileEntity;
+import net.tiew.operationWild.entity.misc.HealSnackEntity;
+import net.tiew.operationWild.networking.packets.to_client.FeedingPacket;
+import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.entity.variants.RedPandaVariant;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,18 +82,38 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static final float CROUCH_BLEND = 0.35f;
 
     private static final int SHOULDER_TOGGLE_COOLDOWN = 10;
-    /**
-     * Delai avant qu'une bete tout juste descendue puisse s'endormir.
-     *
-     * <p>On repose son compagnon pour une raison — le faire garder un endroit, l'ecarter d'un
-     * combat, lui faire suivre une piste. Le voir se rouler en boule dans la seconde annulait
-     * l'intention du geste. Dix secondes suffisent a laisser la main au joueur.</p>
-     */
     private static final int NAP_COOLDOWN_AFTER_DISMOUNT = 200;
     private static final int SHOULDER_RESTORE_TIMEOUT = 600;
     private static final double SHOULDER_RESTORE_RANGE = 8.0;
 
     private static final int MISC_IDLE_DURATION = 54;
+    private static final double PAW_SIDE_OFFSET = 0.17;
+
+    private static final ItemStack[] SNACKS = {
+            new ItemStack(Items.BAMBOO),
+            new ItemStack(net.tiew.operationWild.item.OWItems.SAVAGE_BERRIES.get()),
+            new ItemStack(Items.SWEET_BERRIES),
+            new ItemStack(Items.GLOW_BERRIES),
+            new ItemStack(Items.HONEYCOMB),
+            new ItemStack(Items.APPLE),
+            new ItemStack(Items.CARROT),
+            new ItemStack(Items.POTATO),
+            new ItemStack(Items.MELON_SLICE),
+    };
+
+    public static ItemStack snackForIndex(int index) {
+        return SNACKS[Math.floorMod(index, SNACKS.length)];
+    }
+
+    private static final List<Integer> SNACK_BAG = new ArrayList<>();
+
+    private static ItemStack randomSnack() {
+        if (SNACK_BAG.isEmpty()) {
+            for (int i = 0; i < SNACKS.length; i++) SNACK_BAG.add(i);
+            java.util.Collections.shuffle(SNACK_BAG);
+        }
+        return SNACKS[SNACK_BAG.remove(SNACK_BAG.size() - 1)];
+    }
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> THROW_TIMER = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
@@ -109,55 +133,43 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.BOOLEAN);
 
     public static final int CLIMB_TICKS = 20;
-    private static final float CLIMB_CROUCH_PHASE = 0.13f;
-    private static final double CLIMB_CROUCH_DEPTH = 0.10;
-    private static final float CLIMB_RISE_DELAY = 0.18f;
+    /**
+     * Le bond : part du parcours passee ramassee, profondeur du ramassement, et hauteur du sommet
+     * au-dessus de la corde qui joint le depart a l'epaule.
+     *
+     * <p>Un ramassement long est ce qui fait lire un saut : la bete se tasse pres d'un tiers du
+     * temps, puis franchit tout le reste d'un trait. Le sommet passant AU-DESSUS de l'epaule, elle
+     * retombe dessus au lieu d'y monter — c'est la difference entre bondir et se hisser.</p>
+     */
+    private static final float CLIMB_CROUCH_PHASE = 0.28f;
+    private static final double CLIMB_CROUCH_DEPTH = 0.17;
+    private static final double CLIMB_LEAP_APEX = 0.62;
     private static final float CLIMB_HESITATION = 0.16f;
     private static final double CLIMB_HOP = 0.20;
     private static final double CLIMB_SPIRAL = 0.28;
-    /** Duree du raccord de reveil, calee sur celle que pose {@code createTransitionAnimation}. */
     private static final int WAKE_TRANSITION_TICKS = 20;
 
     private static final EntityDataAccessor<Integer> AURA_TIMER = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> FEAST_CHARGE = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> FEAST_CAST_TIMER = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
 
     public final AnimationState napAnimationState = new AnimationState();
     public final AnimationState throwAnimationState = new AnimationState();
-    /**
-     * Etat propre au repos d'epaule.
-     *
-     * <p>Il ne peut pas partager {@code idleAnimationState} : {@code createIdleAnimation} le relance
-     * toutes les quatre-vingts images de tick, ce qui tranchait net une animation de dix secondes et
-     * la faisait repartir du debut. Celui-ci demarre une fois en montant sur l'epaule et court sans
-     * interruption — la definition boucle d'elle-meme.</p>
-     */
+    public final AnimationState feastAnimationState = new AnimationState();
     public final AnimationState shoulderIdleAnimationState = new AnimationState();
     public final AnimationState miscIdleAnimationState = new AnimationState();
 
     public int miscIdleAnimationStartTime = 0;
-    /**
-     * Derniere valeur vue du minuteur de jet, cote client.
-     *
-     * <p>Elle sert a reperer un jet NEUF a la remontee du compteur. La Volee Jumelle relance le
-     * minuteur avant qu'il ait atteint zero : un simple {@code startIfStopped} n'aurait jamais
-     * redemarre l'etat, et le second jet serait reste fige sur la derniere pose du premier.</p>
-     */
     private int lastThrowTimer = 0;
+    private int lastFeastCastTimer = 0;
+    private int secondThrowDelay = 0;
+    private int pendingFeastPortions = 0;
 
-    private int healOrbCooldown = 0;
-    private int twinOrbDelay = 0;
-    private final List<int[]> pendingOrbs = new ArrayList<>();
-    private int twinOrbTargetId = -1;
-    private int auraPulseTimer = 0;
-    private double auraAnchorY = Double.NaN;
+    private int healSnackCooldown = 0;
+    private final List<int[]> pendingSnacks = new ArrayList<>();
+    private final List<int[]> pendingBites = new ArrayList<>();
     private int shoulderCooldown = 0;
     private int napCooldown = 0;
-    /**
-     * Montee differee, le temps que la bete se reveille.
-     *
-     * <p>Cliquer sur un panda endormi le faisait bondir a l'epaule sans transition, l'animation de
-     * reveil etant tranchee par celle d'escalade. Le clic ouvre donc le reveil, et la montee attend
-     * que le raccord soit joue.</p>
-     */
     private int wakeThenClimbDelay = 0;
     private int wakeThenClimbCarrierId = -1;
 
@@ -166,35 +178,19 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static final EntityDataAccessor<Float> CLIMB_PITCH =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
 
-    /**
-     * Ressort de la queue, cote client.
-     *
-     * <p>Porte par l'entite et non par le modele : une seule instance de modele sert TOUS les pandas
-     * a l'ecran, et y ranger l'etat ferait battre leurs queues a l'unisson. Meme raison qui pousse
-     * le rendu de drapeau a tenir une table indexee par porteur.</p>
-     */
     public float tailSwing = 0f;
     public float tailSwingVelocity = 0f;
     public float tailLastAge = Float.NaN;
 
-    /** Cabrage du saut et de la chute, sa vitesse, et l'ecrasement de la reception. */
     public float perchPitch = 0f;
     public float perchPitchVelocity = 0f;
     public float perchLandSquash = 0f;
     public float perchSquashVelocity = 0f;
     public float perchLastVerticalSpeed = 0f;
 
-    /**
-     * Lacet du porteur a l'image precedente, sa vitesse lissee, et le roulis qui en decoule.
-     *
-     * <p>Le lacet est mesure ici et nulle part ailleurs. {@code Entity.turn} ajoute le mouvement de
-     * souris A LA FOIS a {@code yRot} et a {@code yRotO} : leur difference reste donc constante
-     * pendant qu'on tourne le regard, et toute mesure fondee dessus rend zero.</p>
-     */
     public float perchLastCarrierYaw = Float.NaN;
     public float perchTurnRate = 0f;
     public float perchRoll = 0f;
-    /** Relevement de la queue du a l'allure du porteur, poursuivi mollement. */
     public float perchRunLift = 0f;
     public boolean perchWasAirborne = false;
 
@@ -225,8 +221,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
-        // Sieste ouverte aux deux etats, apprivoise compris : c'est la seule espece du mod qui ne se
-        // monte pas, donc la seule ou l'endormissement d'un compagnon ne prive de rien.
         this.goalSelector.addGoal(5, new net.tiew.operationWild.entity.goals.NapGoal(this, 1f, 800, true, true));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D));
@@ -239,6 +233,8 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         builder.define(DATA_INITIAL_VARIANT, -1);
         builder.define(THROW_TIMER, 0);
         builder.define(AURA_TIMER, 0);
+        builder.define(FEAST_CHARGE, 0);
+        builder.define(FEAST_CAST_TIMER, 0);
         builder.define(HEAL_POWER, HEAL_POWER_BASE);
         builder.define(CLIMB_TIMER, 0);
         builder.define(CLIMB_MOUNTING, true);
@@ -424,7 +420,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public void tick() {
         super.tick();
 
-        if (healOrbCooldown > 0) healOrbCooldown--;
+        if (healSnackCooldown > 0) healSnackCooldown--;
         if (shoulderCooldown > 0) shoulderCooldown--;
         if (napCooldown > 0) napCooldown--;
 
@@ -438,10 +434,12 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
             handleWakeThenClimb();
             handleShoulderClimb();
-            handleLifeAura();
-            handleTwinOrb();
-            handlePendingOrbs();
-            handleOrbCharge();
+            handleFeast();
+            handleFeastCast();
+            handleSecondThrow();
+            handlePendingSnacks();
+            handlePendingBites();
+            handleSnackCharge();
             handleHealOverTime();
             handleShoulderRestore();
 
@@ -561,8 +559,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         int carrierId = wakeThenClimbCarrierId;
         wakeThenClimbCarrierId = -1;
 
-        // Le porteur a pu s'eloigner, mourir ou prendre un autre passager pendant le reveil : la
-        // bete reste alors simplement debout, ce qui est un aboutissement acceptable.
         if (!(this.level().getEntity(carrierId) instanceof Player carrier) || !carrier.isAlive()) return;
         if (!carrier.getPassengers().isEmpty()) return;
         if (this.distanceTo(carrier) > SHOULDER_RESTORE_RANGE) return;
@@ -641,10 +637,15 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static Vec3 climbCurve(Vec3 from, Vec3 to, float progress, boolean mounting) {
         float approach;
         float rise;
+        float leap = 0f;
 
         if (mounting) {
-            approach = easeOutCubic(Mth.clamp((progress - CLIMB_CROUCH_PHASE) / (1f - CLIMB_CROUCH_PHASE), 0f, 1f));
-            rise = easeInOutCubic(Mth.clamp((progress - CLIMB_RISE_DELAY) / (1f - CLIMB_RISE_DELAY), 0f, 1f));
+            // Trajectoire de projectile : vitesse horizontale CONSTANTE, hauteur en parabole. Les
+            // courbes amorties d'avant faisaient glisser la bete jusqu'a sa place ; rien ne freine
+            // un animal en l'air, et c'est cette absence de freinage qui se lit comme un bond.
+            leap = Mth.clamp((progress - CLIMB_CROUCH_PHASE) / (1f - CLIMB_CROUCH_PHASE), 0f, 1f);
+            approach = leap;
+            rise = leap;
         } else {
             float fall = Mth.clamp((progress - CLIMB_HESITATION) / (1f - CLIMB_HESITATION), 0f, 1f);
             approach = easeInOutCubic(fall);
@@ -661,7 +662,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             float crouch = progress < CLIMB_CROUCH_PHASE
                     ? Mth.sin(progress / CLIMB_CROUCH_PHASE * Mth.PI) : 0f;
             y -= CLIMB_CROUCH_DEPTH * crouch;
-            y += CLIMB_HOP * Mth.sin(Mth.clamp(rise, 0f, 1f) * Mth.PI);
+            y += CLIMB_LEAP_APEX * 4.0 * leap * (1f - leap);
         } else {
             y += CLIMB_HOP * 0.4f * Mth.sin(Mth.clamp(rise, 0f, 1f) * Mth.PI);
         }
@@ -694,8 +695,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     @Override
     public boolean canStartNap() {
-        // Le delai court a partir de la descente, mais la garde couvre aussi le trajet lui-meme :
-        // une bete en pleine escalade n'a rien a faire endormie.
         return napCooldown <= 0 && !isClimbing() && !isOnShoulder();
     }
 
@@ -764,16 +763,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         return super.hurt(damageSource, amount);
     }
 
-    /**
-     * Seule la melee est ecartee.
-     *
-     * <p>Tout le reste porte : noyade, etouffement, chute, feu, potion, foudre, explosion. Un
-     * passager partage le sort de son porteur, et c'est ce qui donne du poids au fait de l'emmener
-     * partout — mais il n'a pas a encaisser les coups qui visent celui-ci.</p>
-     */
     private boolean isShieldedWhileCarried(DamageSource source) {
-        // Une explosion de creeper et une fleche portent toutes deux un tireur vivant : sans ces deux
-        // ecarts, le test « quelque chose de vivant l'a touche » les aurait prises pour de la melee.
         if (source.is(DamageTypeTags.IS_EXPLOSION) || source.is(DamageTypeTags.IS_PROJECTILE)) return false;
         return source.getDirectEntity() instanceof LivingEntity;
     }
@@ -815,9 +805,9 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         return net.tiew.operationWild.core.OWArena.Terrain.TERRESTRIAL.bit();
     }
 
-    public void throwHealOrb() {
+    public void throwHealSnack() {
         if (this.level().isClientSide()) return;
-        if (healOrbCooldown > 0) return;
+        if (healSnackCooldown > 0) return;
 
         Player carrier = getCarrier();
         if (carrier != null && carrier.isSteppingCarefully()) return;
@@ -832,84 +822,125 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             return;
         }
 
-        float cost = OWAttacksConstants.RedPanda.HEAL_ORB_ENERGY;
+        float cost = OWAttacksConstants.RedPanda.HEAL_SNACK_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             return;
         }
         setVitalEnergy(getVitalEnergy() + cost);
-        healOrbCooldown = OWAttacksConstants.RedPanda.HEAL_ORB_COOLDOWN_TICKS;
-        setThrowTimer(OWAttacksConstants.RedPanda.HEAL_ORB_THROW_TICKS);
+        healSnackCooldown = OWAttacksConstants.RedPanda.HEAL_SNACK_COOLDOWN_TICKS;
 
-        if (OWPistePassives.has(this, OWPistePassives.TWIN_ORB)) {
-            twinOrbDelay = OWPistePassives.TWIN_ORB_DELAY_TICKS;
-            twinOrbTargetId = target.getId();
+        boolean twin = OWPistePassives.has(this, OWPistePassives.DOUBLE_RATION);
+        setThrowTimer(OWAttacksConstants.RedPanda.HEAL_SNACK_THROW_TICKS);
+
+        queueSnack(target, true, 0, -1);
+
+        if (twin) {
+            secondThrowDelay = OWPistePassives.DOUBLE_RATION_DELAY_TICKS;
+            queueSnack(target, false, OWPistePassives.DOUBLE_RATION_DELAY_TICKS, 1);
         }
-
-        queueOrb(target);
     }
 
-    private void queueOrb(LivingEntity target) {
-        pendingOrbs.add(new int[]{OWAttacksConstants.RedPanda.HEAL_ORB_RELEASE_TICKS, target.getId()});
+    /**
+     * Le second lancer de la Double Ration : le geste ordinaire, rejoue.
+     *
+     * <p>Rien de plus qu'un minuteur relance quand le premier vient de s'eteindre. C'est la remontee
+     * du compteur qui redemarre l'etat d'animation, donc la bete refait exactement le meme
+     * mouvement, l'en-cas partant cette fois de l'autre patoune.</p>
+     */
+    private void handleSecondThrow() {
+        if (secondThrowDelay <= 0) return;
+        if (--secondThrowDelay > 0) return;
+
+        setThrowTimer(OWAttacksConstants.RedPanda.HEAL_SNACK_THROW_TICKS);
     }
 
-    private void handlePendingOrbs() {
-        if (pendingOrbs.isEmpty()) return;
+    private void queueSnack(LivingEntity target, boolean credits, int stagger, int side) {
+        pendingSnacks.add(new int[]{
+                OWAttacksConstants.RedPanda.HEAL_SNACK_RELEASE_TICKS + stagger,
+                target.getId(), credits ? 1 : 0, side});
+    }
+
+    private void handlePendingBites() {
+        if (pendingBites.isEmpty()) return;
+
+        Iterator<int[]> iterator = pendingBites.iterator();
+        while (iterator.hasNext()) {
+            int[] pending = iterator.next();
+            if (--pending[0] > 0) continue;
+
+            iterator.remove();
+            if (!(this.level().getEntity(pending[1]) instanceof LivingEntity target) || !target.isAlive()) continue;
+
+            float max = target.getMaxHealth();
+            target.heal(max * OWAttacksConstants.RedPanda.HEAL_SNACK_INSTANT_RATIO * getHealPower());
+
+            int pulses = OWAttacksConstants.RedPanda.HEAL_SNACK_OVER_TIME_TICKS
+                    / OWAttacksConstants.RedPanda.HEAL_SNACK_OVER_TIME_INTERVAL;
+            float perPulse =
+                    (max * OWAttacksConstants.RedPanda.HEAL_SNACK_OVER_TIME_RATIO * getHealPower()) / pulses;
+
+            healOverTime.removeIf(entry -> entry.targetId == target.getId());
+            healOverTime.add(new HealOverTime(target.getId(), pulses, perPulse));
+
+            if (this.level() instanceof ServerLevel serverLevel) {
+                serverLevel.sendParticles(ParticleTypes.HEART,
+                        target.getX(), target.getY() + target.getBbHeight() * 0.95, target.getZ(),
+                        4, 0.3, 0.2, 0.3, 0.02);
+            }
+
+            this.level().playSound(null, target.getX(), target.getY(), target.getZ(),
+                    SoundEvents.PLAYER_BURP, SoundSource.NEUTRAL, 0.4f,
+                    (float) OWUtils.generateRandomInterval(1.4, 1.7));
+        }
+    }
+
+    private void handlePendingSnacks() {
+        if (pendingSnacks.isEmpty()) return;
 
         if (!this.isAlive()) {
-            pendingOrbs.clear();
+            pendingSnacks.clear();
             return;
         }
 
-        Iterator<int[]> iterator = pendingOrbs.iterator();
+        Iterator<int[]> iterator = pendingSnacks.iterator();
         while (iterator.hasNext()) {
             int[] pending = iterator.next();
             if (--pending[0] > 0) continue;
 
             iterator.remove();
             if (this.level().getEntity(pending[1]) instanceof LivingEntity target && target.isAlive()) {
-                launchHealOrb(target);
+                launchHealSnack(target, pending[2] == 1, pending[3]);
             }
         }
     }
 
-    /** Point ou les patounes se rejoignent : l'orbe s'y condense, puis en part. */
-    private Vec3 orbHoldPoint() {
+    private Vec3 pawHoldPoint() {
         Player carrier = getCarrier();
         float yaw = (carrier != null ? carrier.getYRot() : this.getYRot()) * Mth.DEG_TO_RAD;
         return new Vec3(this.getX() - Mth.sin(yaw) * 0.3, this.getEyeY() - 0.05, this.getZ() + Mth.cos(yaw) * 0.3);
     }
 
-    /**
-     * L'orbe se rassemble entre les pattes pendant l'elan.
-     *
-     * <p>Sans cela, le geste mimait la tenue d'un objet absent : les patounes se refermaient sur du
-     * vide et l'orbe ne surgissait qu'une fois lancee. Les particules convergent vers le point de
-     * tenue au lieu de s'en echapper, ce qui donne au mouvement sa raison d'etre.</p>
-     */
-    private void handleOrbCharge() {
+    private void handleSnackCharge() {
         int timer = getThrowTimer();
-        if (timer <= OWAttacksConstants.RedPanda.HEAL_ORB_THROW_TICKS
-                - OWAttacksConstants.RedPanda.HEAL_ORB_RELEASE_TICKS) return;
+        if (timer <= OWAttacksConstants.RedPanda.HEAL_SNACK_THROW_TICKS
+                - OWAttacksConstants.RedPanda.HEAL_SNACK_RELEASE_TICKS) return;
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
 
-        Vec3 paws = orbHoldPoint();
-        for (int i = 0; i < 2; i++) {
-            double angle = RANDOM.nextDouble() * Math.PI * 2;
-            double tilt = (RANDOM.nextDouble() - 0.5) * Math.PI;
-            double radius = 0.5 + RANDOM.nextDouble() * 0.3;
-
-            Vec3 direction = new Vec3(Math.cos(angle) * Math.cos(tilt), Math.sin(tilt), Math.sin(angle) * Math.cos(tilt));
-            Vec3 at = paws.add(direction.scale(radius));
-            Vec3 inward = direction.scale(-0.32);
-
-            serverLevel.sendParticles(ParticleTypes.COMPOSTER, at.x, at.y, at.z, 0, inward.x, inward.y, inward.z, 1.0);
-        }
+        Vec3 paws = pawHoldPoint();
+        serverLevel.sendParticles(ParticleTypes.COMPOSTER,
+                paws.x, paws.y, paws.z, 1, 0.12, 0.06, 0.12, 0.01);
     }
 
-    private void launchHealOrb(LivingEntity target) {
-        HealOrbEntity orb = new HealOrbEntity(this.level(), this, target);
-        Vec3 paws = orbHoldPoint();
+    private void launchHealSnack(LivingEntity target, boolean credits, int side) {
+        HealSnackEntity orb = new HealSnackEntity(this.level(), this, target, randomSnack());
+        orb.setCredits(credits);
+
+        Player carrier = getCarrier();
+        float yaw = (carrier != null ? carrier.getYRot() : this.getYRot()) * Mth.DEG_TO_RAD;
+        Vec3 paws = pawHoldPoint()
+                .add(Mth.cos(yaw) * side * PAW_SIDE_OFFSET, 0, Mth.sin(yaw) * side * PAW_SIDE_OFFSET);
+
         orb.setPos(paws.x, paws.y + 0.18, paws.z);
         orb.aimAt(target);
         this.level().addFreshEntity(orb);
@@ -925,9 +956,9 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     }
 
     public @Nullable LivingEntity pickHealTarget(LivingEntity aimer) {
-        double range = OWAttacksConstants.RedPanda.HEAL_ORB_RANGE;
-        double tolerance = OWAttacksConstants.RedPanda.HEAL_ORB_AIM_TOLERANCE;
-        double minDistance = OWAttacksConstants.RedPanda.HEAL_ORB_MIN_AIM_DISTANCE;
+        double range = OWAttacksConstants.RedPanda.HEAL_SNACK_RANGE;
+        double tolerance = OWAttacksConstants.RedPanda.HEAL_SNACK_AIM_TOLERANCE;
+        double minDistance = OWAttacksConstants.RedPanda.HEAL_SNACK_MIN_AIM_DISTANCE;
 
         Vec3 eye = aimer.getEyePosition();
         Vec3 look = aimer.getLookAngle().normalize();
@@ -966,52 +997,38 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         return candidate instanceof TamableAnimal tamed && tamed.isOwnedBy(this.getOwner());
     }
 
-    private void handleTwinOrb() {
-        if (twinOrbDelay <= 0) return;
-        if (--twinOrbDelay > 0) return;
 
-        Entity found = this.level().getEntity(twinOrbTargetId);
-        twinOrbTargetId = -1;
-        if (!(found instanceof LivingEntity target) || !target.isAlive()) return;
-
-        setThrowTimer(OWAttacksConstants.RedPanda.HEAL_ORB_THROW_TICKS);
-        queueOrb(target);
-    }
-
-    public void applyOrbHeal(LivingEntity target) {
+    public void serveSnack(LivingEntity target, ItemStack snack, boolean credits) {
         if (this.level().isClientSide() || target == null || !target.isAlive()) return;
 
-        float max = target.getMaxHealth();
-        float power = getHealPower();
-        target.heal(max * OWAttacksConstants.RedPanda.HEAL_ORB_INSTANT_RATIO * power);
+        pendingBites.add(new int[]{OWAttacksConstants.RedPanda.HEAL_SNACK_FEED_TICKS, target.getId()});
+        beginFeeding(target, OWAttacksConstants.RedPanda.HEAL_SNACK_FEED_TICKS, snack);
+        if (credits) creditFeastCharge();
 
-        int pulses = OWAttacksConstants.RedPanda.HEAL_ORB_OVER_TIME_TICKS
-                / OWAttacksConstants.RedPanda.HEAL_ORB_OVER_TIME_INTERVAL;
-        float perPulse = (max * OWAttacksConstants.RedPanda.HEAL_ORB_OVER_TIME_RATIO * power) / pulses;
+        this.level().playSound(null, target.getX(), target.getY(), target.getZ(),
+                SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL, 0.7f,
+                (float) OWUtils.generateRandomInterval(1.2, 1.5));
+    }
 
-        healOverTime.removeIf(entry -> entry.targetId == target.getId());
-        healOverTime.add(new HealOverTime(target.getId(), pulses, perPulse));
+    public void beginFeeding(LivingEntity target, int ticks) {
+        beginFeeding(target, ticks, randomSnack());
+    }
+
+    public void beginFeeding(LivingEntity target, int ticks, ItemStack snack) {
+        if (this.level().isClientSide() || target == null) return;
+
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(target, FeedingPacket.of(target, ticks, snack));
 
         if (this.level() instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.HEART,
-                    target.getX(), target.getY() + target.getBbHeight() * 0.9, target.getZ(),
-                    4, 0.3, 0.2, 0.3, 0.02);
             serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER,
-                    target.getX(), target.getY() + target.getBbHeight() * 0.5, target.getZ(),
-                    24, target.getBbWidth() * 0.6, target.getBbHeight() * 0.5, target.getBbWidth() * 0.6, 0.1);
+                    target.getX(), target.getY() + target.getBbHeight() * 0.6, target.getZ(),
+                    6, target.getBbWidth() * 0.4, target.getBbHeight() * 0.3, target.getBbWidth() * 0.4, 0.02);
         }
-
-        this.level().playSound(null, target.getX(), target.getY(), target.getZ(),
-                SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.NEUTRAL, 0.9f,
-                (float) OWUtils.generateRandomInterval(1.1, 1.3));
-        this.level().playSound(null, target.getX(), target.getY(), target.getZ(),
-                SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.NEUTRAL, 0.6f,
-                (float) OWUtils.generateRandomInterval(1.2, 1.5));
     }
 
     private void handleHealOverTime() {
         if (healOverTime.isEmpty()) return;
-        if (this.tickCount % OWAttacksConstants.RedPanda.HEAL_ORB_OVER_TIME_INTERVAL != 0) return;
+        if (this.tickCount % OWAttacksConstants.RedPanda.HEAL_SNACK_OVER_TIME_INTERVAL != 0) return;
 
         Iterator<HealOverTime> iterator = healOverTime.iterator();
         while (iterator.hasNext()) {
@@ -1034,203 +1051,107 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         }
     }
 
-    public boolean activateLifeAura() {
+    public boolean activateFeast() {
         if (this.level().isClientSide()) return false;
         if (isAuraActive()) return false;
 
         Player carrier = getCarrier();
         if (carrier != null && carrier.getVehicle() != null) return false;
 
-        float cost = OWAttacksConstants.RedPanda.LIFE_AURA_ENERGY;
+        float cost = OWAttacksConstants.RedPanda.FEAST_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             return false;
         }
         setVitalEnergy(getVitalEnergy() + cost);
 
-        setAuraTimer(auraDurationTicks());
-        auraPulseTimer = 0;
-        auraAnchorY = auraFeetY();
-
-        OWUtils.spawnServerParticles(this, ParticleTypes.FLASH, 0, 0.5, 0, 1, 0);
-        if (this.level() instanceof ServerLevel serverLevel) {
-            serverLevel.sendParticles(ParticleTypes.COMPOSTER,
-                    this.getX(), this.getY() + 0.4, this.getZ(), 60, 0.5, 0.5, 0.5, 0.35);
-            serverLevel.sendParticles(ParticleTypes.END_ROD,
-                    this.getX(), this.getY() + 0.4, this.getZ(), 25, 0.3, 0.4, 0.3, 0.12);
-            serverLevel.sendParticles(ParticleTypes.HEART,
-                    this.getX(), this.getY() + 1.0, this.getZ(), 8, 0.6, 0.4, 0.6, 0.02);
-        }
+        int duration = feastDurationTicks();
+        this.entityData.set(FEAST_CHARGE, 0);
+        this.pendingFeastPortions = duration / OWAttacksConstants.RedPanda.FEAST_PULSE_INTERVAL;
+        setAuraTimer(duration);
+        this.entityData.set(FEAST_CAST_TIMER, OWAttacksConstants.RedPanda.FEAST_CAST_TICKS);
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                SoundEvents.BEACON_ACTIVATE, SoundSource.NEUTRAL, 1.2f, 1.4f);
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                SoundEvents.AMETHYST_BLOCK_RESONATE, SoundSource.NEUTRAL, 1.4f, 0.7f);
-        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.NEUTRAL, 1.0f, 1.6f);
+                SoundEvents.BUNDLE_INSERT, SoundSource.NEUTRAL, 1.0f, 0.7f);
         return true;
     }
 
-    public void cancelLifeAura() {
-        setAuraTimer(0);
-        auraPulseTimer = 0;
-    }
+    private void handleFeastCast() {
+        int timer = getFeastCastTimer();
+        if (timer <= 0) return;
 
-    private void handleLifeAura() {
-        if (!isAuraActive()) return;
+        this.entityData.set(FEAST_CAST_TIMER, timer - 1);
 
-        setAuraTimer(getAuraTimer() - 1);
+        if (timer - 1 != OWAttacksConstants.RedPanda.FEAST_CAST_TICKS
+                - OWAttacksConstants.RedPanda.FEAST_CAST_RELEASE_TICKS) return;
 
-        double feet = auraFeetY();
-        auraAnchorY = Double.isNaN(auraAnchorY) ? feet : auraAnchorY + (feet - auraAnchorY) * 0.1;
+        dropFeastPile(getCarrier());
 
-        spawnAuraWaves();
-        spawnAuraColumn();
+        if (this.level() instanceof ServerLevel serverLevel) {
+            Vec3 paws = pawHoldPoint();
 
-        if (++auraPulseTimer >= OWAttacksConstants.RedPanda.LIFE_AURA_PULSE_INTERVAL) {
-            auraPulseTimer = 0;
-            pulseLifeAura();
-        }
-
-        if (getAuraTimer() <= 0) {
-            cancelLifeAura();
-            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                    SoundEvents.BEACON_DEACTIVATE, SoundSource.NEUTRAL, 0.9f, 1.5f);
-        }
-    }
-
-    private int auraDurationTicks() {
-        int base = OWAttacksConstants.RedPanda.LIFE_AURA_DURATION_TICKS;
-        return OWPistePassives.has(this, OWPistePassives.WIDE_AURA)
-                ? Math.round(base * OWPistePassives.WIDE_AURA_DURATION_FACTOR)
-                : base;
-    }
-
-    private double auraRadius() {
-        double base = OWAttacksConstants.RedPanda.LIFE_AURA_RADIUS;
-        return OWPistePassives.has(this, OWPistePassives.WIDE_AURA)
-                ? base * OWPistePassives.WIDE_AURA_RADIUS_FACTOR
-                : base;
-    }
-
-    private void pulseLifeAura() {
-        double radius = auraRadius();
-        AABB box = this.getBoundingBox().inflate(radius);
-
-        for (LivingEntity candidate : this.level().getEntitiesOfClass(LivingEntity.class, box)) {
-            if (!candidate.isAlive() || candidate == this) continue;
-            if (this.distanceTo(candidate) > radius) continue;
-            if (!isHealAlly(candidate)) continue;
-            if (candidate.getHealth() >= candidate.getMaxHealth()) continue;
-
-            // Montant FIXE, seul soin du panda a echapper a la Puissance de Soin.
-            //
-            // L'aura arrose tout un cercle pendant huit secondes : la moindre multiplication y pese
-            // huit fois, sur tout le monde a la fois. A pleine statistique elle rendait pres de six
-            // points par seconde et par bete, soit le double de ce qu'elle doit valoir. Le stat
-            // garde son emprise sur l'orbe, ou il porte sur une cible et une seule.
-            candidate.heal(OWAttacksConstants.RedPanda.LIFE_AURA_HEAL_PER_PULSE);
-
-            if (this.level() instanceof ServerLevel serverLevel) {
-                spawnAuraLink(serverLevel, candidate);
-                serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER,
-                        candidate.getX(), candidate.getY() + candidate.getBbHeight() * 0.5, candidate.getZ(),
-                        10, candidate.getBbWidth() * 0.5, candidate.getBbHeight() * 0.6, candidate.getBbWidth() * 0.5, 0.08);
-                serverLevel.sendParticles(ParticleTypes.HEART,
-                        candidate.getX(), candidate.getY() + candidate.getBbHeight() + 0.25, candidate.getZ(),
-                        2, 0.2, 0.1, 0.2, 0.01);
+            for (ItemStack snack : SNACKS) {
+                serverLevel.sendParticles(
+                        new net.minecraft.core.particles.ItemParticleOption(ParticleTypes.ITEM, snack),
+                        paws.x, paws.y, paws.z, 9, 0.35, 0.25, 0.35, 0.14);
             }
+
+            serverLevel.sendParticles(ParticleTypes.COMPOSTER,
+                    this.getX(), this.getY() + 0.4, this.getZ(), 40, 0.5, 0.3, 0.5, 0.18);
         }
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
-                SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.NEUTRAL, 0.7f,
-                (float) OWUtils.generateRandomInterval(0.9, 1.2));
+                SoundEvents.BAMBOO_WOOD_PLACE, SoundSource.NEUTRAL, 1.1f, 0.8f);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.COMPOSTER_FILL_SUCCESS, SoundSource.NEUTRAL, 1.2f, 0.9f);
     }
 
-    private void spawnAuraWaves() {
-        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+    private void dropFeastPile(@Nullable Player carrier) {
+        LivingEntity thrower = carrier != null ? carrier : this;
+        float yaw = thrower.getYRot() * Mth.DEG_TO_RAD;
+        double distance = OWAttacksConstants.RedPanda.FEAST_TOSS_DISTANCE;
 
-        double maxRadius = auraRadius();
-        int travel = OWAttacksConstants.RedPanda.LIFE_AURA_WAVE_TRAVEL_TICKS;
-        int elapsed = auraDurationTicks() - getAuraTimer();
+        FeastPileEntity pile = new FeastPileEntity(this.level(), this,
+                Math.max(1, pendingFeastPortions), feastRadius());
 
-        for (int wave = 0; wave < OWAttacksConstants.RedPanda.LIFE_AURA_WAVE_COUNT; wave++) {
-            int offset = wave * OWAttacksConstants.RedPanda.LIFE_AURA_WAVE_INTERVAL;
-            double progress = ((elapsed + offset) % travel) / (double) travel;
+        pile.setPos(thrower.getX() - Mth.sin(yaw) * distance,
+                thrower.getY() + 0.35,
+                thrower.getZ() + Mth.cos(yaw) * distance);
+        pile.plantOnGround();
 
-            double radius = progress * maxRadius;
-            if (radius < 0.35) continue;
-
-            double y = auraAnchorY + 0.05 + progress * OWAttacksConstants.RedPanda.LIFE_AURA_WAVE_LIFT;
-
-            int points = Math.max(10, (int) (radius * 7));
-            double spin = elapsed * 0.06;
-
-            for (int i = 0; i < points; i++) {
-                double angle = spin + (Math.PI * 2 * i) / points;
-                double x = this.getX() + Math.cos(angle) * radius;
-                double z = this.getZ() + Math.sin(angle) * radius;
-
-                serverLevel.sendParticles(WAVE_DUST, x, y, z, 1, 0, 0, 0, 0);
-
-                if (i % 5 == 0) {
-                    serverLevel.sendParticles(ParticleTypes.END_ROD, x, y + 0.1, z, 1, 0.02, 0.01, 0.02, 0.004);
-                }
-            }
-        }
+        this.level().addFreshEntity(pile);
     }
 
-    private static final net.minecraft.core.particles.DustParticleOptions WAVE_DUST =
-            new net.minecraft.core.particles.DustParticleOptions(new org.joml.Vector3f(0.25f, 1.0f, 0.42f), 1.1f);
-
-    private double auraFeetY() {
-        Player carrier = getCarrier();
-        return carrier != null ? carrier.getY() : this.getY();
+    public void cancelFeast() {
+        setAuraTimer(0);
     }
 
-    private void spawnAuraColumn() {
-        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+    private void handleFeast() {
+        if (!isAuraActive()) return;
 
-        double height = OWAttacksConstants.RedPanda.LIFE_AURA_COLUMN_HEIGHT;
-        double base = isOnShoulder() ? this.getY() - 0.6 : this.getY();
-
-        for (int strand = 0; strand < 3; strand++) {
-            double t = ((this.tickCount * 0.09) + strand / 3.0) % 1.0;
-            double angle = this.tickCount * 0.35 + strand * (Math.PI * 2 / 3);
-            double ray = 0.55 * (1.0 - t * 0.7);
-
-            serverLevel.sendParticles(ParticleTypes.COMPOSTER,
-                    this.getX() + Math.cos(angle) * ray,
-                    base + t * height,
-                    this.getZ() + Math.sin(angle) * ray,
-                    1, 0, 0.01, 0, 0.0);
-        }
+        setAuraTimer(getAuraTimer() - 1);
+        if (getAuraTimer() <= 0) cancelFeast();
     }
 
-    private void spawnAuraLink(ServerLevel serverLevel, LivingEntity target) {
-        double sourceY = this.getY() + this.getBbHeight() * 0.6;
-        double targetY = target.getY() + target.getBbHeight() * 0.6;
-        int points = OWAttacksConstants.RedPanda.LIFE_AURA_LINK_POINTS;
-
-        for (int i = 1; i <= points; i++) {
-            double t = i / (double) (points + 1);
-            serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER,
-                    Mth.lerp(t, this.getX(), target.getX()),
-                    Mth.lerp(t, sourceY, targetY) + Math.sin(t * Math.PI) * 0.45,
-                    Mth.lerp(t, this.getZ(), target.getZ()),
-                    1, 0.02, 0.02, 0.02, 0.0);
-        }
+    private int feastDurationTicks() {
+        int base = OWAttacksConstants.RedPanda.FEAST_DURATION_TICKS
+                + getFeastOvercharge() * OWAttacksConstants.RedPanda.FEAST_OVERCHARGE_TICKS_EACH;
+        return OWPistePassives.has(this, OWPistePassives.LONG_TABLE)
+                ? Math.round(base * OWPistePassives.LONG_TABLE_DURATION_FACTOR)
+                : base;
     }
 
-    /**
-     * Pilotage des etats d'animation.
-     *
-     * <p>Les poses durables se conduisent par PRESENCE et non par minuteur : elles bouclent
-     * d'elles-memes, et un minuteur plus court que l'animation la tranche avant sa fin. Les aides
-     * de {@code OWEntity} relancaient la sieste toutes les 64 images de tick pour une animation qui
-     * en dure 80, et l'assise toutes les 83 pour 80 — l'une coupee net, l'autre bloquee un
-     * quinzieme de seconde a chaque tour.</p>
-     */
+    private double feastRadius() {
+        double base = OWAttacksConstants.RedPanda.FEAST_RADIUS;
+        return OWPistePassives.has(this, OWPistePassives.LONG_TABLE)
+                ? base * OWPistePassives.LONG_TABLE_RADIUS_FACTOR
+                : base;
+    }
+
+
+
+
+
     private void setupAnimationState() {
         boolean resting = isNapping() || isSleeping();
 
@@ -1250,6 +1171,11 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         if (throwTimer > lastThrowTimer) this.throwAnimationState.start(this.tickCount);
         else if (throwTimer <= 0) this.throwAnimationState.stop();
         lastThrowTimer = throwTimer;
+
+        int castTimer = getFeastCastTimer();
+        if (castTimer > lastFeastCastTimer) this.feastAnimationState.start(this.tickCount);
+        else if (castTimer <= 0) this.feastAnimationState.stop();
+        lastFeastCastTimer = castTimer;
     }
 
     public boolean canPlayIdleAnimation() {
@@ -1364,7 +1290,24 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     public int getThrowTimer() { return this.entityData.get(THROW_TIMER); }
 
+
     public void setThrowTimer(int timer) { this.entityData.set(THROW_TIMER, timer); }
+
+    public int getFeastCharge() { return this.entityData.get(FEAST_CHARGE); }
+
+    public int getFeastCastTimer() { return this.entityData.get(FEAST_CAST_TIMER); }
+
+    public void creditFeastCharge() {
+        int ceiling = OWAttacksConstants.RedPanda.FEAST_SNACKS_REQUIRED
+                + OWAttacksConstants.RedPanda.FEAST_OVERCHARGE_MAX;
+        if (getFeastCharge() >= ceiling) return;
+        this.entityData.set(FEAST_CHARGE, Math.min(ceiling, getFeastCharge() + 1));
+    }
+
+    public int getFeastOvercharge() {
+        return Mth.clamp(getFeastCharge() - OWAttacksConstants.RedPanda.FEAST_SNACKS_REQUIRED,
+                0, OWAttacksConstants.RedPanda.FEAST_OVERCHARGE_MAX);
+    }
 
     public int getAuraTimer() { return this.entityData.get(AURA_TIMER); }
 
@@ -1372,7 +1315,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     public boolean isAuraActive() { return getAuraTimer() > 0; }
 
-    public int getHealOrbCooldownTicks() { return healOrbCooldown; }
+    public int getHealOrbCooldownTicks() { return healSnackCooldown; }
 
     @Override
     public void addAdditionalSaveData(CompoundTag tag) {
@@ -1382,6 +1325,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
         tag.putFloat("healPower", this.getHealPower());
+        tag.putInt("feastCharge", this.getFeastCharge());
 
         Player carrier = getCarrier();
         if (carrier != null) tag.putUUID("shoulderCarrier", carrier.getUUID());
@@ -1396,6 +1340,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
         if (tag.contains("healPower")) setHealPower(tag.getFloat("healPower"));
+        this.entityData.set(FEAST_CHARGE, tag.getInt("feastCharge"));
         this.pendingCarrier = tag.hasUUID("shoulderCarrier") ? tag.getUUID("shoulderCarrier") : null;
         this.pendingCarrierTicks = 0;
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }

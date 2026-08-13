@@ -19,6 +19,8 @@ public class OWAttack {
     private Predicate<OWEntity> unlockCondition = null;
     // null = renvoie 0 ou 1 selon isUnlocked ; sinon progression [0..1] pour l'overlay
     private Function<OWEntity, Float> unlockProgressFn = null;
+    private Function<OWEntity, Integer> unlockCountFn = null;
+    private int unlockCountMax = 0;
     // 0 = pas d'animation de drain ; sinon durée en ms de la phase active de l'ultime
     private long ultimateDurationMs = 0L;
     // -1 = position déduite du rang d'affichage ; sinon coordonnées imposées dans l'atlas de cartes
@@ -61,6 +63,31 @@ public class OWAttack {
      * pour remplir la carte progressivement (ex : kills / killsRequired).
      * Retourne this pour le chaînage.
      */
+    /**
+     * Compteur brut affiche sur la carte pendant la charge, du genre « +3 ».
+     *
+     * <p>La barre de remplissage seule ne disait pas combien il en manquait : elle montait d'un
+     * cinquieme sans qu'on sache qu'il en fallait cinq. Le compte s'ajoute a elle plutot que de la
+     * remplacer, et disparait des que l'ultime est arme.</p>
+     */
+    public OWAttack withUnlockCounter(Function<OWEntity, Integer> countFn, int max) {
+        this.unlockCountFn = countFn;
+        this.unlockCountMax = max;
+        return this;
+    }
+
+    public boolean hasUnlockCounter() {
+        return unlockCountFn != null && unlockCountMax > 0;
+    }
+
+    public int getUnlockCountMax() {
+        return unlockCountMax;
+    }
+
+    public int getUnlockCount(OWEntity entity) {
+        return unlockCountFn == null ? 0 : unlockCountFn.apply(entity);
+    }
+
     public OWAttack withUnlockProgress(Function<OWEntity, Float> progressFn) {
         this.unlockProgressFn = progressFn;
         return this;

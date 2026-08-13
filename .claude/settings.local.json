@@ -349,7 +349,12 @@
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/strip.py\")",
       "Bash(sed -n '/private static Vec3 climbCurve/,/^    private static float easeInOutCubic/p' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java)",
       "Bash(sed -n '/private void animateClimb/,/^    }/p' src/main/java/net/tiew/operationWild/entity/client/model/RedPandaModel.java)",
-      "Bash(sort -t, -k2 -n)"
+      "Bash(sort -t, -k2 -n)",
+      "Bash(sed -n '/private void handleLifeAura/,/^    }$/p' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java)",
+      "Bash(sed -n '/public void applyOrbHeal/,/^    }$/p;/private void handleHealOverTime/,/^    }$/p' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java)",
+      "Bash(:)",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/lang_forager.py\")",
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/feast2.py\")"
     ]
   }
 }

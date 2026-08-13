@@ -100,9 +100,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
             switch (packet.action()) {
                 case ACTION_EXECUTE -> {
                     // Panda roux — Orbe de Soin : lancer instantané, sans combo à interrompre.
-                    if (packet.attackId() == OWAttackIds.HEAL_ORB) {
+                    if (packet.attackId() == OWAttackIds.HEAL_SNACK) {
                         if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPandaOrb)
-                            redPandaOrb.throwHealOrb();
+                            redPandaOrb.throwHealSnack();
                         return;
                     }
 
@@ -153,9 +153,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.EARTHQUAKE ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant
                                         && elephant.activateEarthquake();
-                        case OWAttackIds.LIFE_AURA ->
+                        case OWAttackIds.FEAST ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPandaAura
-                                        && redPandaAura.activateLifeAura();
+                                        && redPandaAura.activateFeast();
                         default -> true;
                     };
 

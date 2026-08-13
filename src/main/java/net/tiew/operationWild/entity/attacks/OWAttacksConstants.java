@@ -363,7 +363,7 @@ public class OWAttacksConstants {
     }
 
     public static class RedPanda {
-        public static final int HEAL_ORB_COOLDOWN_TICKS = 100;
+        public static final int HEAL_SNACK_COOLDOWN_TICKS = 100;
         /**
          * Coût d'une orbe, sur une réserve de 300.
          *
@@ -373,9 +373,9 @@ public class OWAttacksConstants {
          * en une quarantaine de secondes et impose une pause. C'est le débit soutenu qui est borné,
          * pas la réaction d'urgence.</p>
          */
-        public static final float HEAL_ORB_ENERGY = 70f;
-        public static final double HEAL_ORB_RANGE = 36.0;
-        public static final double HEAL_ORB_AIM_TOLERANCE = 1.5;
+        public static final float HEAL_SNACK_ENERGY = 70f;
+        public static final double HEAL_SNACK_RANGE = 36.0;
+        public static final double HEAL_SNACK_AIM_TOLERANCE = 1.5;
         /**
          * Distance en deçà de laquelle rien n'est désignable.
          *
@@ -383,70 +383,157 @@ public class OWAttacksConstants {
          * espace : sans plancher, l'orbe se verrouillait systématiquement sur ce qui était collé à
          * la caméra au lieu de la bête qu'on regardait.</p>
          */
-        public static final double HEAL_ORB_MIN_AIM_DISTANCE = 2.0;
-        /** Part de la vie maximale rendue a l'impact. Baissee de 30 % : l'orbe soulage, elle ne remet pas debout. */
-        public static final float HEAL_ORB_INSTANT_RATIO = 0.05f;
-        /** Part rendue ensuite, etalee sur la duree. Baissee de 30 % dans le meme mouvement. */
-        public static final float HEAL_ORB_OVER_TIME_RATIO = 0.14f;
-        public static final int HEAL_ORB_OVER_TIME_TICKS = 200;
-        public static final int HEAL_ORB_OVER_TIME_INTERVAL = 10;
-        public static final double HEAL_ORB_SPEED = 0.85;
-        public static final int HEAL_ORB_MAX_LIFETIME = 200;
-        public static final int HEAL_ORB_THROW_TICKS = 26;
-        public static final int HEAL_ORB_RELEASE_TICKS = 15;
+        public static final double HEAL_SNACK_MIN_AIM_DISTANCE = 2.0;
+        /**
+         * Parts de la vie maximale rendues par un en-cas, en deux temps.
+         *
+         * <p>La premiere bouchee compte tout de suite, le reste vient pendant la mastication et la
+         * digestion qui suit.</p>
+         */
+        public static final float HEAL_SNACK_INSTANT_RATIO = 0.05f;
+        public static final float HEAL_SNACK_OVER_TIME_RATIO = 0.14f;
+        /** Duree de la mastication. Purement visuelle : la digestion, elle, court bien plus longtemps. */
+        public static final int HEAL_SNACK_FEED_TICKS = 45;
+        public static final int HEAL_SNACK_OVER_TIME_TICKS = 200;
+        public static final int HEAL_SNACK_OVER_TIME_INTERVAL = 10;
+        public static final double HEAL_SNACK_SPEED = 0.85;
+        public static final int HEAL_SNACK_MAX_LIFETIME = 200;
+        public static final int HEAL_SNACK_THROW_TICKS = 26;
+        public static final int HEAL_SNACK_RELEASE_TICKS = 15;
 
         /**
          * L'aura prend les deux tiers de la réserve : on ne la déclenche pas au passage. Épuisé, on
          * n'y a pas droit du tout, et juste après il ne reste de quoi lancer qu'une seule orbe.
          */
-        public static final float LIFE_AURA_ENERGY = 210f;
-        public static final int LIFE_AURA_COOLDOWN_TICKS = 1800;
-        public static final int LIFE_AURA_DURATION_TICKS = 160;
-        public static final long LIFE_AURA_DURATION_MS = LIFE_AURA_DURATION_TICKS * 50L;
-        public static final double LIFE_AURA_RADIUS = 10.0;
+        public static final float FEAST_ENERGY = 210f;
+        public static final int FEAST_COOLDOWN_TICKS = 1200;
+        public static final int FEAST_DURATION_TICKS = 100;
+        public static final long FEAST_DURATION_MS = FEAST_DURATION_TICKS * 50L;
+        public static final double FEAST_RADIUS = 8.0;
+        /**
+         * Nombre de parts du tas, et duree au-dela de laquelle il se gate.
+         *
+         * <p>Une part part a chaque pulsation OU QUELQU'UN MANGE : un tas devant lequel personne ne
+         * vient ne s'epuise pas. Le minuteur de peremption est la pour qu'il finisse quand meme par
+         * disparaitre, faute de quoi un festin oublie resterait la jusqu'a la fin du monde.</p>
+         */
+        public static final int FEAST_PORTIONS = FEAST_DURATION_TICKS / 20;
+        /**
+         * Peremption du tas, en parts de sa propre duree.
+         *
+         * <p>Une fois et demie : un festin que personne ne vient manger restait sur place une
+         * demi-minute, si bien que l'ultime paraissait interminable alors que son minuteur etait
+         * depuis longtemps ecoule. La duree variant desormais avec la surcharge, le plafond se
+         * calcule sur celle du tas et non sur une constante.</p>
+         */
+        public static final int FEAST_LIFETIME_FACTOR_NUM = 3;
+        public static final int FEAST_LIFETIME_FACTOR_DEN = 2;
+        /** Distance devant le panda ou le tas est pose. */
+        public static final double FEAST_TOSS_DISTANCE = 1.6;
+        /**
+         * Repartition du festin : nombre de petits tas, et part du rayon laissee libre au centre.
+         *
+         * <p>Un tas unique sur un seul bloc ne disait rien de la portee et ne ressemblait pas a un
+         * festin. La nourriture couvre desormais toute la nappe, avec un creux au milieu — c'est ce
+         * vide central qui laisse la place aux convives et fait lire la chose comme une tablee.</p>
+         */
+        /**
+         * Densite de la nappe, en emplacements par bloc carre, et plafond de securite.
+         *
+         * <p>Un nombre fixe ne tenait pas : la Grande Tablee elargit le rayon de trente pour cent,
+         * soit deux tiers de surface en plus, et la meme quantite de nourriture s'y serait diluee au
+         * point de rendre le bonus moins fourni que le festin ordinaire. Compter en densite le fait
+         * suivre tout seul, ici comme pour toute portee future.</p>
+         */
+        public static final double FEAST_SPOT_DENSITY = 0.95;
+        public static final int FEAST_SPOTS_MIN = 40;
+        public static final int FEAST_SPOTS_MAX = 340;
+        /**
+         * Arrivee de la nourriture : duree de vol d'une piece, et retard du bord sur le centre.
+         *
+         * <p>Le tas surgissait d'un bloc a l'image ou les pattes s'ouvraient. Les pieces partent
+         * desormais du panda, grandissent en vol et se posent de proche en proche, si bien que la
+         * nappe se deroule vers l'exterieur au lieu d'apparaitre.</p>
+         */
+        public static final float FEAST_ARRIVAL_TICKS = 9f;
+        public static final float FEAST_ARRIVAL_SPREAD = 8f;
+        public static final double FEAST_SPREAD_INNER = 0.18;
+        public static final double FEAST_SPREAD_OUTER = 0.94;
+        /** Couronne de miettes qui marque la limite : cadence et nombre de points. */
+        public static final int FEAST_EDGE_INTERVAL = 6;
+        public static final int FEAST_EDGE_POINTS = 30;
+        /**
+         * Bruits de nappe : cadence, et pas angulaire d'un bruit au suivant.
+         *
+         * <p>Le point d'emission fait le tour du bord par bonds irreguliers, ce qui donne a entendre
+         * l'etendue du festin. Un son cale sur le centre n'aurait rien dit de sa portee.</p>
+         */
+        public static final int FEAST_EDGE_SOUND_INTERVAL = 13;
+        /**
+         * Vagues de miettes qui partent du centre et gagnent le bord.
+         *
+         * <p>Deux fronts sont toujours en vol, l'un a mi-chemin quand l'autre nait : une seule onde
+         * a la fois laissait de longs silences visuels entre deux passages. Elles rasent le sol et
+         * n'emploient que la particule de nourriture — c'est une nappe qu'on deroule, pas un sort.</p>
+         */
+        /**
+         * Ronde de miettes autour de chaque convive : cadence d'emission, points par tour, vitesse
+         * angulaire, et cadence de recensement des betes concernees.
+         */
+        public static final int FEAST_SWIRL_INTERVAL = 1;
+        public static final int FEAST_SWIRL_POINTS = 4;
+        public static final double FEAST_SWIRL_SPEED = 0.26;
+        public static final int FEAST_DINER_SCAN_INTERVAL = 5;
+
+        public static final int FEAST_WAVE_INTERVAL = 14;
+        public static final int FEAST_WAVE_COUNT = 2;
+        public static final int FEAST_WAVE_TRAVEL_TICKS = FEAST_WAVE_INTERVAL * FEAST_WAVE_COUNT;
+        public static final double FEAST_EDGE_SOUND_STEP = 2.399963;
         /**
          * Soin par pulsation, et la pulsation tombe chaque seconde : trois points de vie par seconde.
          *
-         * <p>Forfaitaire et non proportionnel, contrairement a l'orbe — l'aura arrose tout un cercle
-         * pendant huit secondes, l'indexer sur la vie maximale de chacun aurait remis une grosse bete
-         * d'aplomb a elle seule.</p>
+         * <p>Forfaitaire et non proportionnel, contrairement a l'en-cas — le festin sert tout un
+         * cercle pendant plusieurs secondes, l'indexer sur la vie maximale de chacun aurait remis une
+         * grosse bete d'aplomb a elle seule. Il echappe pour la meme raison a la Puissance de Soin,
+         * dont la moindre multiplication pesait ici sur tout le monde a la fois.</p>
          */
-        public static final float LIFE_AURA_HEAL_PER_PULSE = 3f;
-        public static final int LIFE_AURA_PULSE_INTERVAL = 20;
-
+        public static final float FEAST_HEAL_PER_PULSE = 3f;
+        public static final int FEAST_PULSE_INTERVAL = 20;
         /**
-         * Cadence des vagues, en ticks. Une onde part du panda toutes les douze images de tick et met
-         * {@link #LIFE_AURA_WAVE_TRAVEL_TICKS} à gagner le bord : deux fronts sont donc toujours en
-         * vol, l'un à mi-chemin quand l'autre naît. Une seule vague à la fois laissait de longs
-         * silences visuels entre deux passages.
+         * En-cas a servir pour armer le festin.
+         *
+         * <p>Les autres ultimes s'arment sur cinq victimes. Un soigneur n'en fait aucune : le sien
+         * s'arme donc sur cinq betes NOURRIES, ce qui demande le meme engagement dans le meme sens.
+         * La condition n'est plus une formalite toujours vraie, et la recharge redescend a la minute
+         * commune au reste du mod.</p>
          */
-        public static final int LIFE_AURA_WAVE_INTERVAL = 12;
-        public static final int LIFE_AURA_WAVE_COUNT = 2;
-        public static final int LIFE_AURA_WAVE_TRAVEL_TICKS = LIFE_AURA_WAVE_INTERVAL * LIFE_AURA_WAVE_COUNT;
+        public static final int FEAST_SNACKS_REQUIRED = 5;
         /**
-         * Le front s'élève un peu en s'éloignant : une onde parfaitement plate se lit comme un
-         * décalque. Volontairement modeste — au-delà, le cercle décolle du sol et perd sa lisibilité
-         * de portée.
+         * Surcharge : chaque en-cas servi APRES l'armement rallonge le festin d'une seconde.
+         *
+         * <p>Le compteur ne s'arrete donc plus a cinq. Continuer a soigner entre deux ultimes n'est
+         * plus du gaspillage mais une mise de fonds — le festin passe de cinq a quinze secondes selon
+         * ce qu'on a nourri avant lui.</p>
          */
-        public static final double LIFE_AURA_WAVE_LIFT = 0.3;
-        /** Hauteur de la colonne qui tourne sur le panda pendant toute la durée. */
-        public static final double LIFE_AURA_COLUMN_HEIGHT = 1.9;
-        /** Points échantillonnés sur le trait qui relie le panda à chaque bête soignée. */
-        public static final int LIFE_AURA_LINK_POINTS = 9;
+        public static final int FEAST_OVERCHARGE_MAX = 10;
+        public static final int FEAST_OVERCHARGE_TICKS_EACH = 20;
+        /** Duree du geste de dispersion, et image a laquelle la nourriture quitte les pattes. */
+        public static final int FEAST_CAST_TICKS = 30;
+        public static final int FEAST_CAST_RELEASE_TICKS = 17;
 
         /** Rayon de la bille, en blocs. */
-        public static final float HEAL_ORB_VISUAL_RADIUS = 0.11f;
+        public static final float HEAL_SNACK_VISUAL_RADIUS = 0.11f;
 
         /**
          * Gravité de l'orbe, en blocs par tick². Le quart de celle d'un objet lancé : la bille est
          * légère et plane, elle décrit un arc franc sans plonger comme une pierre.
          */
-        public static final double HEAL_ORB_GRAVITY = 0.014;
+        public static final double HEAL_SNACK_GRAVITY = 0.014;
         /** Vitesse horizontale de croisière : c'est elle qui fixe la durée de vol. */
-        public static final double HEAL_ORB_FLIGHT_SPEED = 0.75;
+        public static final double HEAL_SNACK_FLIGHT_SPEED = 0.75;
         /** Bornes de la durée de vol, en ticks — un jet de trois blocs garde un arc lisible. */
-        public static final int HEAL_ORB_MIN_FLIGHT_TICKS = 9;
-        public static final int HEAL_ORB_MAX_FLIGHT_TICKS = 70;
+        public static final int HEAL_SNACK_MIN_FLIGHT_TICKS = 9;
+        public static final int HEAL_SNACK_MAX_FLIGHT_TICKS = 70;
 
         // ── Sens Vital (passif, actif seulement quand le panda roux est porté) ──
         public static final double VITAL_SENSE_RADIUS = 32.0;

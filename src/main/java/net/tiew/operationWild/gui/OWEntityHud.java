@@ -248,13 +248,16 @@ public class OWEntityHud {
         // toujours. Il est consomme ici, donc rendu tout de suite a zero : laisse a vrai, il ferait
         // clignoter la jauge sans fin. Rien ne peut regresser, puisque jusqu'ici il ne se passait
         // rien du tout.
+        // Fenetre partagee avec la bordure d'ecran. Le drapeau brut ne pouvait pas la servir : il
+        // est consomme ICI, dans une couche de GUI, alors que la bordure se dessine apres toutes les
+        // couches — elle le trouvait donc toujours deja remis a faux.
         if (entity.canShowVitalEnergyLack) {
             entity.canShowVitalEnergyLack = false;
             energyLackEntityId = entity.getId();
             energyLackUntilMs = System.currentTimeMillis() + ENERGY_LACK_FLASH_MS;
         }
 
-        if (energyLackEntityId == entity.getId() && System.currentTimeMillis() < energyLackUntilMs) {
+        if (isEnergyLackFlashing(entity.getId())) {
             boolean beat = (System.currentTimeMillis() / 90L) % 2 == 0;
             if (beat) RenderSystem.setShaderColor(1.35f, 0.45f, 1.9f, 1.0f);
             guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 1, 244, 6, 12);
@@ -291,6 +294,10 @@ public class OWEntityHud {
      * d'oxygène, encore pleine. Le HUD tourne sur le client et connaît déjà la profondeur : il n'y
      * avait aucune raison de faire voyager quoi que ce soit.</p>
      */
+    public static boolean isEnergyLackFlashing(int entityId) {
+        return energyLackEntityId == entityId && System.currentTimeMillis() < energyLackUntilMs;
+    }
+
     private static void renderPressureWarning(GuiGraphics guiGraphics, int screenWidth, int tickCount) {
         Component warning = Component.translatable("tooHighPressure");
         int color = (tickCount / 5) % 2 == 0 ? 0xFF4040 : 0xFFD24A;

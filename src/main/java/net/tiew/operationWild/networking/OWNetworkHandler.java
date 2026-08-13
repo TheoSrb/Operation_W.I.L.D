@@ -96,6 +96,7 @@ public class OWNetworkHandler {
         registrar.playToClient(OWAttackRejectedPacket.TYPE, OWAttackRejectedPacket.STREAM_CODEC, OWAttackRejectedPacket::handle);
         registrar.playToClient(HeartShotPacket.TYPE, HeartShotPacket.STREAM_CODEC, HeartShotPacket::handle);
         registrar.playToClient(ElephantFootstepPacket.TYPE, ElephantFootstepPacket.STREAM_CODEC, ElephantFootstepPacket::handle);
+        registrar.playToClient(FeedingPacket.TYPE, FeedingPacket.STREAM_CODEC, FeedingPacket::handle);
         registrar.playToClient(SyncOWTeamPacket.TYPE, SyncOWTeamPacket.STREAM_CODEC, SyncOWTeamPacket::handle);
         registrar.playToClient(ClearOWTeamPacket.TYPE, ClearOWTeamPacket.STREAM_CODEC, ClearOWTeamPacket::handle);
         registrar.playToClient(OWEntityAlreadyInTeamPacket.TYPE, OWEntityAlreadyInTeamPacket.STREAM_CODEC, OWEntityAlreadyInTeamPacket::handle);

@@ -22,9 +22,9 @@ public final class OWPistePassives {
     public static final int DISARM = 1;
 
     /** Panda roux : l'Orbe de Soin part en salve de deux, espacées d'une demi-seconde. */
-    public static final int TWIN_ORB = 2;
+    public static final int DOUBLE_RATION = 2;
     /** Panda roux : l'Aura de Vie dure une fois et demie plus longtemps et porte 30 % plus loin. */
-    public static final int WIDE_AURA = 3;
+    public static final int LONG_TABLE = 3;
 
     /** Multiplicateur de viande crue lâchée par les proies (séparé de la valeur innée du Kodiak). */
     public static final float BUTCHER_MULTIPLIER = 1.5f;
@@ -32,10 +32,19 @@ public final class OWPistePassives {
     public static final int DISARM_CHANCE = 7;
 
     /** Délai entre les deux orbes de la salve, en ticks : un quart de seconde. */
-    public static final int TWIN_ORB_DELAY_TICKS = 5;
+    /**
+      * Retard du second en-cas sur le premier : exactement la duree du geste de lancer.
+      *
+      * <p>Cale la-dessus, le second jet n'a besoin d'AUCUNE animation propre — c'est la premiere,
+      * rejouee telle quelle une fois terminee. Un ecart plus court tranchait le premier geste en
+      * cours de route ; un geste sur mesure pour deux lancers dupliquait sans raison ce que le
+      * lancer ordinaire savait deja faire.</p>
+      */
+    public static final int DOUBLE_RATION_DELAY_TICKS =
+            OWAttacksConstants.RedPanda.HEAL_SNACK_THROW_TICKS;
     /** Allongement de l'aura et de son rayon quand le palier est pris. */
-    public static final float WIDE_AURA_DURATION_FACTOR = 1.5f;
-    public static final float WIDE_AURA_RADIUS_FACTOR = 1.3f;
+    public static final float LONG_TABLE_DURATION_FACTOR = 1.5f;
+    public static final float LONG_TABLE_RADIUS_FACTOR = 1.3f;
 
     /** DEBUG temporaire : trace la résolution des passifs dans le log. */
     public static boolean DEBUG = false;

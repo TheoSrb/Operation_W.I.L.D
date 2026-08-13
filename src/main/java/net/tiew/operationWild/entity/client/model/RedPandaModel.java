@@ -188,7 +188,75 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     }
 
     private void animateGestures(T redPanda, float ageInTicks) {
-        if (redPanda.throwAnimationState.isStarted()) animateOrbThrow(redPanda, ageInTicks);
+        if (redPanda.feastAnimationState.isStarted()) animateFeastCast(redPanda, ageInTicks);
+        else if (redPanda.throwAnimationState.isStarted()) animateOrbThrow(redPanda, ageInTicks);
+    }
+
+    /**
+     * Il vide sa besace : le geste de l'ultime.
+     *
+     * <p>Volontairement l'oppose du lancer, qui projetait les deux patounes VERS LE HAUT en fuseau.
+     * Ici elles s'ouvrent LARGE, vers l'exterieur — on ne lance pas un festin, on le repand. C'est
+     * cet ecartement qui distingue les deux gestes au premier coup d'oeil, meme joues cote a cote.</p>
+     *
+     * <p>Et il finit par secouer le sac pour en faire tomber les dernieres miettes. Ce dernier temps
+     * n'a aucune utilite mecanique — le tas est deja pose — mais c'est lui qui rend la chose
+     * attachante, et il explique pourquoi le geste dure plus longtemps que son effet.</p>
+     */
+    private void animateFeastCast(T redPanda, float ageInTicks) {
+        redPanda.feastAnimationState.updateTime(ageInTicks, 1f);
+
+        float total = OWAttacksConstants.RedPanda.FEAST_CAST_TICKS;
+        float elapsed = redPanda.feastAnimationState.getAccumulatedTime() / 50f;
+        float progress = Mth.clamp(elapsed / total, 0f, 1f);
+
+        float rise = band(progress, 0f, 0.16f) - band(progress, 0.82f, 1f);
+        float reach = band(progress, 0.10f, 0.30f) - band(progress, 0.44f, 0.56f);
+        float heave = band(progress, 0.32f, 0.46f) - band(progress, 0.46f, 0.54f);
+        float sweep = band(progress, 0.46f, 0.60f) - band(progress, 0.60f, 0.80f);
+        float shake = band(progress, 0.62f, 0.72f) - band(progress, 0.80f, 0.92f);
+        float settle = band(progress, 0.86f, 0.93f) - band(progress, 0.93f, 1f);
+
+        float wobble = Mth.sin(ageInTicks * 3.2f);
+        float strain = Mth.sin(ageInTicks * 2.6f) * 0.05f * heave;
+
+        this.ALL.xRot += -0.48f * rise + 0.10f * reach + 0.22f * heave - 0.30f * sweep + 0.12f * settle;
+        this.ALL.y += -1.4f * rise + 0.9f * heave - 1.3f * sweep + 0.8f * settle;
+        this.ALL.zRot += 0.11f * shake * wobble;
+
+        this.left_leg.xRot += 0.48f * rise + 0.30f * sweep;
+        this.right_leg.xRot += 0.48f * rise + 0.30f * sweep;
+        this.left_leg.zRot += -0.15f * rise;
+        this.right_leg.zRot += 0.15f * rise;
+
+        float armLift = 0.95f * reach - 0.35f * heave - 0.95f * sweep - 0.55f * shake
+                + 0.22f * shake * wobble + 0.30f * settle;
+        this.left_arm.xRot += armLift;
+        this.right_arm.xRot += armLift;
+
+        // L'ouverture est le coeur du geste : elle nait au balayage et tient pendant la secousse.
+        float spread = 1.05f * sweep + 0.75f * shake;
+        this.left_arm.zRot += -spread + 0.18f * reach - strain;
+        this.right_arm.zRot += spread - 0.18f * reach + strain;
+
+        this.head.xRot += 0.20f * rise + 0.26f * heave - 0.30f * sweep;
+        this.head.zRot += -0.14f * shake * wobble;
+
+        this.tail.xRot += -0.45f * rise + 0.20f * heave + 0.65f * sweep - 0.20f * settle;
+        this.tail.yRot += 0.16f * shake * wobble;
+
+        this.left_Ear.xRot += -0.15f * rise;
+        this.right_Ear.xRot += -0.15f * rise;
+        this.left_Ear.zRot += 0.24f * sweep + 0.18f * shake * wobble;
+        this.right_Ear.zRot += -0.24f * sweep + 0.18f * shake * wobble;
+
+        this.body.yScale *= 1f - 0.18f * heave + 0.15f * sweep - 0.07f * settle;
+        this.body.xScale *= 1f + 0.13f * heave - 0.09f * sweep + 0.05f * settle;
+        this.body.zScale *= 1f + 0.13f * heave - 0.09f * sweep + 0.05f * settle;
+
+        this.head.yScale *= 1f - 0.10f * heave + 0.09f * sweep;
+        this.head.xScale *= 1f + 0.08f * heave - 0.05f * sweep;
+        this.head.zScale *= 1f + 0.08f * heave - 0.05f * sweep;
     }
 
     private void animateOrbThrow(T redPanda, float ageInTicks) {
@@ -198,7 +266,7 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         // et mesure la suite sur {@code ageInTicks}, qui porte la fraction d'image.
         redPanda.throwAnimationState.updateTime(ageInTicks, 1f);
 
-        float total = OWAttacksConstants.RedPanda.HEAL_ORB_THROW_TICKS;
+        float total = OWAttacksConstants.RedPanda.HEAL_SNACK_THROW_TICKS;
         float elapsed = redPanda.throwAnimationState.getAccumulatedTime() / 50f;
         float progress = Mth.clamp(elapsed / total, 0f, 1f);
         float trailing = Math.max(0f, progress - PAW_TRAIL);
@@ -206,7 +274,7 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         float rise = band(progress, 0f, 0.18f) - band(progress, 0.80f, 1f);
         float cradle = band(progress, 0.10f, 0.30f) - band(progress, 0.62f, 0.76f);
         float hold = band(progress, 0.38f, 0.48f) - band(progress, 0.48f, 0.56f);
-        float launch = band(progress, 0.48f, 0.62f) - band(progress, 0.62f, 0.86f);
+        float launch = band(progress, 0.46f, 0.64f) - band(progress, 0.64f, 0.86f);
         float watch = band(progress, 0.62f, 0.72f) - band(progress, 0.86f, 1f);
         float settle = band(progress, 0.84f, 0.92f) - band(progress, 0.92f, 1f);
         float launchTrail = band(trailing, 0.48f, 0.62f) - band(trailing, 0.62f, 0.86f);
@@ -223,15 +291,30 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.left_leg.zRot += -0.13f * rise;
         this.right_leg.zRot += 0.13f * rise;
 
-        this.left_arm.xRot += -0.78f * cradle + 0.42f * hold - 1.05f * launchTrail
-                + 0.30f * watch + 0.26f * settle + knead;
-        this.right_arm.xRot += -0.78f * cradle + 0.42f * hold - 1.05f * launch
-                + 0.30f * watch + 0.26f * settle - knead;
-        this.left_arm.zRot += 0.36f * cradle - 0.30f * launchTrail + cup - tremble;
-        this.right_arm.zRot += -0.36f * cradle + 0.30f * launch + cup + tremble;
+        // Le bras ne fait pas que tourner, il SE DEPLACE. Une rotation seule autour d'un pivot
+        // colle a l'epaule reste petite a l'ecran sur une patte de quatre pixels — le mouvement
+        // existait dans les chiffres sans se voir. La translation le sort du corps et l'y ramene.
+        float reach = -1.10f * cradle + 1.55f * hold - 1.45f * launch + 0.30f * watch + 0.26f * settle;
+        float reachTrail = -1.10f * cradle + 1.55f * hold - 1.45f * launchTrail + 0.30f * watch + 0.26f * settle;
 
-        this.head.xRot += 0.10f * rise + 0.40f * cradle + 0.18f * hold
+        this.left_arm.xRot += reachTrail + knead;
+        this.right_arm.xRot += reach - knead;
+        this.left_arm.zRot += 0.36f * cradle - 0.60f * launchTrail + cup - tremble;
+        this.right_arm.zRot += -0.36f * cradle + 0.60f * launch + cup + tremble;
+
+        float armPush = -1.4f * cradle + 1.9f * hold - 3.0f * launch;
+        float armLift = 0.9f * hold - 2.2f * launch;
+        this.left_arm.z += armPush;
+        this.right_arm.z += armPush;
+        this.left_arm.y += armLift;
+        this.right_arm.y += armLift;
+
+        // Le museau se relevait a peine et les patounes, qui passent maintenant loin devant, le
+        // traversaient. La tete se DEGAGE : moins de nez baisse sur la coupe, et elle se souleve
+        // franchement aux deux instants ou les pattes voyagent.
+        this.head.xRot += 0.10f * rise + 0.26f * cradle + 0.10f * hold
                 - 0.70f * launch - 0.22f * watch;
+        this.head.y += -1.6f * hold - 2.4f * launch;
         this.head.zRot += 0.16f * cradle - 0.16f * launch;
 
         this.tail.xRot += -0.42f * rise + 0.22f * hold + 0.70f * launch - 0.20f * settle;

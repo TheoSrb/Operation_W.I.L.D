@@ -1273,7 +1273,7 @@ public class OWAttackLogic {
     }
 
     private static void handleRedPandaHealOrb(RedPandaEntity redPanda) {
-        OWAttack orb = OWAttacksHandler.RedPandaAttacks.HEAL_ORB;
+        OWAttack orb = OWAttacksHandler.RedPandaAttacks.HEAL_SNACK;
 
         long endMs = getCooldownEnd(redPanda.getId(), orb.getId());
         if (endMs != -1L && System.currentTimeMillis() < endMs) {

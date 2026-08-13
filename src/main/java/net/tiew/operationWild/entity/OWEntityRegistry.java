@@ -67,15 +67,24 @@ public class OWEntityRegistry {
 
     public static final DeferredHolder<EntityType<?>, EntityType<SoulGhostEntity>> SOUL_GHOST = ENTITY_TYPES.register("soul_ghost", () -> EntityType.Builder.<SoulGhostEntity>of(SoulGhostEntity::new, MobCategory.MISC).sized(1.0f, 1.0f).clientTrackingRange(12).build("soul_ghost"));
 
-    public static final DeferredHolder<EntityType<?>, EntityType<HealOrbEntity>> HEAL_ORB =
-            ENTITY_TYPES.register("heal_orb", () -> EntityType.Builder
-                    .<HealOrbEntity>of(HealOrbEntity::new, MobCategory.MISC)
+    public static final DeferredHolder<EntityType<?>, EntityType<HealSnackEntity>> HEAL_SNACK =
+            ENTITY_TYPES.register("heal_snack", () -> EntityType.Builder
+                    .<HealSnackEntity>of(HealSnackEntity::new, MobCategory.MISC)
                     .noSave()
                     .noSummon()
                     .clientTrackingRange(8)
                     .updateInterval(1)
                     .sized(0.4f, 0.4f)
-                    .build("heal_orb"));
+                    .build("heal_snack"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<FeastPileEntity>> FEAST_PILE =
+            ENTITY_TYPES.register("feast_pile", () -> EntityType.Builder
+                    .<FeastPileEntity>of(FeastPileEntity::new, MobCategory.MISC)
+                    .noSummon()
+                    .clientTrackingRange(10)
+                    .updateInterval(4)
+                    .sized(1.4f, 0.5f)
+                    .build("feast_pile"));
 
 
 

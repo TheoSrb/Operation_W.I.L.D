@@ -1196,25 +1196,35 @@ public class ClientEvents {
     public static void renderBorders(RenderGuiEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 
-        if (mc.player != null && mc.player.getVehicle() instanceof OWEntity vehicle && !(vehicle instanceof Submarine)) {
-            boolean isGrabbedByCrocodile = vehicle instanceof CrocodileEntity crocodile && crocodile.getGrabbedTarget() == mc.player;
-            boolean isCrocodileReadyForTaming = vehicle instanceof CrocodileEntity croc
-                    && croc.crocodileBehaviorHandler.isReadyForTaming() && !croc.isTame();
+        if (mc.player == null) return;
 
-            if (vehicle.getOwner() == mc.player || isCrocodileReadyForTaming
-                    || vehicle.hasTribePermission(mc.player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) {
-                boolean isLowHealth = ((float) (vehicle.getHealth() / vehicle.getMaxHealth())) <= 0.25f;
-                boolean showVitalEnergyLack = vehicle.canShowVitalEnergyLack;
+        OWEntity ridden = mc.player.getVehicle() instanceof OWEntity ow && !(ow instanceof Submarine) ? ow : null;
 
-                if (isLowHealth) {
-                    float opacityPercent = ((float) (-2.8 * (float) (vehicle.getHealth() / vehicle.getMaxHealth())) + 1) * 1.5f;
-                    renderBorder(event.getGuiGraphics(), mc, 0xbc0c0c, opacityPercent, 1.0f);
-                }
+        // Le panda roux pilote ses attaques SANS etre monte : il est passager du joueur, pas sa
+        // monture. La bordure ne testait que le vehicule, elle ne pouvait donc jamais le voir.
+        OWEntity controlled = ridden != null ? ridden : (mc.player.getVehicle() == null
+                ? net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(mc.player)
+                : null);
 
-                if (showVitalEnergyLack) {
-                    renderBorder(event.getGuiGraphics(), mc, 0x6442ac, 1.0f, 1.0f);
-                }
-            }
+        if (controlled == null) return;
+
+        boolean isCrocodileReadyForTaming = controlled instanceof CrocodileEntity croc
+                && croc.crocodileBehaviorHandler.isReadyForTaming() && !croc.isTame();
+
+        if (controlled.getOwner() != mc.player && !isCrocodileReadyForTaming
+                && !controlled.hasTribePermission(mc.player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) {
+            return;
+        }
+
+        // Le lisere rouge reste reserve a la monture : un compagnon d'epaule blesse a deja sa barre
+        // de vie et son signe d'alerte, un ecran rouge se lirait comme la sante du joueur.
+        if (ridden != null && ridden.getHealth() / ridden.getMaxHealth() <= 0.25f) {
+            float opacityPercent = ((float) (-2.8 * (ridden.getHealth() / ridden.getMaxHealth())) + 1) * 1.5f;
+            renderBorder(event.getGuiGraphics(), mc, 0xbc0c0c, opacityPercent, 1.0f);
+        }
+
+        if (net.tiew.operationWild.gui.OWEntityHud.isEnergyLackFlashing(controlled.getId())) {
+            renderBorder(event.getGuiGraphics(), mc, 0x6442ac, 1.0f, 1.0f);
         }
     }
 
@@ -2425,6 +2435,8 @@ public class ClientEvents {
         hasProcessedThisFrame = false;
         if (shaderLoadCooldown > 0) shaderLoadCooldown--;
 
+        OWFeedingEffects.tick(Minecraft.getInstance());
+
         // Ouverture et verdict d'un duel : le chef reste planté face au champ de bataille le temps
         // de l'animation. Le blocage des commandes s'occupe des déplacements, ceci du regard — sans
         // quoi la souris ferait pivoter un spectateur censé être figé.
@@ -2891,9 +2903,37 @@ public class ClientEvents {
      */
     @SubscribeEvent
     public static void onRenderLivingPre(net.neoforged.neoforge.client.event.RenderLivingEvent.Pre<?, ?> event) {
+        applyFeedingPose(event);
+
         if (healGlowTargetId == -1) return;
         if (!isHealGlowPart(event.getEntity())) return;
         Minecraft.getInstance().renderBuffers().outlineBufferSource().setColor(92, 255, 115, 255);
+    }
+
+    /**
+     * Mastication : un tassement et un leger pique du nez, poses sur la pile du rendu.
+     *
+     * <p>Le geste porte sur la bete ENTIERE et non sur sa tete, faute de quoi il faudrait connaitre
+     * le squelette de chaque espece — or le soin s'adresse a n'importe quoi de vivant, du poulet
+     * vanilla au crocodile du mod. Un affaissement du corps se lit de la meme facon sur tous.</p>
+     *
+     * <p>La transformation ne fuit pas : le repartiteur de rendu empile et depile autour de l'appel
+     * complet, cet evenement compris.</p>
+     */
+    private static void applyFeedingPose(net.neoforged.neoforge.client.event.RenderLivingEvent.Pre<?, ?> event) {
+        LivingEntity entity = event.getEntity();
+        if (!OWFeedingEffects.isFeeding(entity)) return;
+
+        float partial = event.getPartialTick();
+        float dip = OWFeedingEffects.chewDip(entity, entity.tickCount + partial, partial);
+        float lean = OWFeedingEffects.chewLean(entity, partial);
+        if (dip <= 0f && lean <= 0f) return;
+
+        com.mojang.blaze3d.vertex.PoseStack pose = event.getPoseStack();
+        pose.translate(0, -dip, 0);
+        pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(-entity.getYRot()));
+        pose.mulPose(com.mojang.math.Axis.XP.rotationDegrees(lean));
+        pose.mulPose(com.mojang.math.Axis.YP.rotationDegrees(entity.getYRot()));
     }
 
     /**

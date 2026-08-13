@@ -259,7 +259,7 @@ public class OWAttacksOverlay {
             // Panda roux : accroupi le clic droit rend la bête au sol, et un objet à usage garde son
             // propre clic droit. Dans les deux cas la carte s'éteint, pour que l'indisponibilité se
             // voie avant le clic plutôt qu'après.
-            boolean isHealOrbBlocked = attack.getId() == OWAttacksHandler.HEAL_ORB_ID
+            boolean isHealOrbBlocked = attack.getId() == OWAttacksHandler.HEAL_SNACK_ID
                     && carriedOnShoulder && OWAttackLogic.isHealOrbBlocked(player);
 
             if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked) {
@@ -284,6 +284,9 @@ public class OWAttacksOverlay {
                     : clickScale;
 
             boolean fInvalid = OWAttackLogic.isAttackClickInvalid(attack.getId());
+
+            int counter = attack.isUltimate() && attack.hasUnlockCounter() && attack.isUnlocked(entity)
+                    ? attack.getUnlockCount(entity) : 0;
 
             // L'écrasement du retournement se multiplie à l'échelle courante : la carte peut ainsi
             // se retourner alors même qu'elle respire ou qu'elle rebondit d'un clic.
@@ -329,6 +332,13 @@ public class OWAttacksOverlay {
                     && OWAttacksHandler.isSecondaryCard(attack)) {
                 drawSwitchHint(g, cardX, baseY, flipProgress);
             }
+
+            // Hors de l'echelle de la carte : la bulle a sa propre vie, elle monte et s'efface
+            // pendant que la carte respire dessous.
+            if (attack.isUltimate() && attack.hasUnlockCounter()) {
+                noteUnlockCounter(entity.getId(), counter);
+                drawUnlockPop(g, cardX, baseY, entity.getId());
+            }
         }
 
     }
@@ -354,6 +364,18 @@ public class OWAttacksOverlay {
      * la marge est comptée au plus juste — les cartes sont posées à vingt-deux pixels du bord de
      * l'écran, il n'en reste que deux sous elles.</p>
      */
+    /** Bulle de surcharge : duree de vie, hauteur de montee, echelle et debord sous la carte. */
+    private static final long COUNTER_POP_MS = 950L;
+    private static final float COUNTER_POP_RISE = 9f;
+    private static final float COUNTER_POP_SCALE = 0.78f;
+    private static final int COUNTER_POP_OFFSET_X = 4;
+    private static final int COUNTER_POP_OFFSET_Y = 1;
+
+    private static int counterPopEntityId = -1;
+    private static int counterPopValue = 0;
+    private static int counterPopSeen = -1;
+    private static long counterPopStartMs = 0L;
+
     private static final int HINT_OFFSET_X = 3;
     private static final int HINT_OFFSET_Y = 2;
 
@@ -364,6 +386,81 @@ public class OWAttacksOverlay {
      * entière, et seul le coin est effleuré. Il ne dit pas QUELLE touche presser — c'est le rôle
      * de la fiche d'attaques, qui a la place de l'écrire lisiblement.</p>
      */
+    /**
+     * Compte de charge de l'ultime, en haut a droite de la carte.
+     *
+     * <p>Hors de l'echelle de rebond, comme le rappel de commande : c'est une information, elle doit
+     * rester lisible et immobile pendant que la carte respire.</p>
+     */
+    /**
+     * Jauge de surcharge : une pastille par seconde de bonus, sous la carte.
+     *
+     * <p>Un nombre ecrit ne tenait pas a cette taille — vingt pixels de carte, une police qu'il
+     * fallait reduire encore, et le tout se lisait comme un defaut d'affichage. Les pastilles se
+     * comptent d'un coup d'oeil et disent en plus ce qui reste a gagner, ce que le nombre seul ne
+     * disait pas.</p>
+     */
+    /**
+     * Anneau de surcharge : le pourtour de la carte se dessine a mesure qu'elle accumule.
+     *
+     * <p>Trois formes ont echoue avant celle-ci, toutes pour la meme raison : elles cherchaient une
+     * place SUR une carte de vingt pixels deja pleine. Le pourtour est le seul espace qu'elle
+     * n'utilise pas. Le trait part du coin bas gauche et tourne dans le sens horaire ; sa longueur
+     * dit le compte sans qu'aucun chiffre soit ecrit, et le sillon sombre dessous montre ce qui
+     * reste a gagner.</p>
+     */
+    /**
+     * Repere le moment ou un en-cas de plus vient d'etre servi.
+     *
+     * <p>Aucun paquet : le compte est deja synchronise, et une valeur qui MONTE ne peut vouloir dire
+     * qu'une chose. Elle retombe a zero quand l'ultime part, ce qui reamorce le guet tout seul.</p>
+     */
+    private static void noteUnlockCounter(int entityId, int count) {
+        if (entityId != counterPopEntityId) {
+            counterPopEntityId = entityId;
+            counterPopSeen = count;
+            counterPopStartMs = 0L;
+            return;
+        }
+
+        if (count > counterPopSeen) {
+            counterPopValue = count;
+            counterPopStartMs = System.currentTimeMillis();
+        }
+        counterPopSeen = count;
+    }
+
+    /**
+     * Bulle « +N » au coin bas droit de la carte, qui monte et s'efface.
+     *
+     * <p>Trois affichages permanents ont echoue avant elle, tous pour la meme raison : ils
+     * cherchaient une place durable sur une carte de vingt pixels deja pleine. Celui-ci ne dure
+     * qu'une seconde — il annonce le gain au moment ou il arrive, puis rend la carte a son etat.</p>
+     */
+    private static void drawUnlockPop(GuiGraphics g, int cardX, int cardY, int entityId) {
+        if (entityId != counterPopEntityId || counterPopValue <= 0) return;
+
+        long age = System.currentTimeMillis() - counterPopStartMs;
+        if (counterPopStartMs == 0L || age >= COUNTER_POP_MS) return;
+
+        float life = age / (float) COUNTER_POP_MS;
+        int alpha = (int) (net.minecraft.util.Mth.clamp((1f - life) * 2.2f, 0f, 1f) * 255f);
+        if (alpha <= 8) return;
+
+        net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
+        String text = "+" + counterPopValue;
+
+        float x = cardX + CARD_SIZE + COUNTER_POP_OFFSET_X - font.width(text) * COUNTER_POP_SCALE;
+        float y = cardY + CARD_SIZE + COUNTER_POP_OFFSET_Y
+                - font.lineHeight * COUNTER_POP_SCALE - COUNTER_POP_RISE * life;
+
+        g.pose().pushPose();
+        g.pose().translate(x, y, 0f);
+        g.pose().scale(COUNTER_POP_SCALE, COUNTER_POP_SCALE, 1f);
+        g.drawString(font, text, 0, 0, (alpha << 24) | 0xFFFFFF, true);
+        g.pose().popPose();
+    }
+
     private static void drawSwitchHint(GuiGraphics g, int cardX, int cardY, float flipProgress) {
         int x = cardX + CARD_SIZE - SWITCH_ICON_W + HINT_OFFSET_X;
         int y = cardY + CARD_SIZE - SWITCH_ICON_H + HINT_OFFSET_Y;

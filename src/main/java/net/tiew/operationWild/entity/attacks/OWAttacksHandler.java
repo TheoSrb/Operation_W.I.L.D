@@ -58,8 +58,8 @@ public class OWAttacksHandler {
     public static final int EARTHQUAKE_ID = OWAttackIds.EARTHQUAKE;
     public static final int WATER_SPRAY_ID = OWAttackIds.WATER_SPRAY;
     public static final int PRIMAL_ROAR_ID = OWAttackIds.PRIMAL_ROAR;
-    public static final int HEAL_ORB_ID = OWAttackIds.HEAL_ORB;
-    public static final int LIFE_AURA_ID = OWAttackIds.LIFE_AURA;
+    public static final int HEAL_SNACK_ID = OWAttackIds.HEAL_SNACK;
+    public static final int FEAST_ID = OWAttackIds.FEAST;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -143,8 +143,8 @@ public class OWAttacksHandler {
         // Panda roux : aucune carte de combo, et deux cartes isolées en haut à droite de l'atlas.
         // La rangée ne sert donc à rien ici — chaque carte porte ses propres coordonnées.
         registerEntityRow(RedPandaEntity.class, 0);
-        register(RedPandaEntity.class, RedPandaAttacks.HEAL_ORB);
-        register(RedPandaEntity.class, RedPandaAttacks.LIFE_AURA);
+        register(RedPandaEntity.class, RedPandaAttacks.HEAL_SNACK);
+        register(RedPandaEntity.class, RedPandaAttacks.FEAST);
         registerPassive(RedPandaEntity.class, RedPandaPassives.VITAL_SENSE);
     }
 
@@ -306,12 +306,12 @@ public class OWAttacksHandler {
 
     public static class RedPandaAttacks {
 
-        public static final OWAttack HEAL_ORB = new OWAttack(
-                HEAL_ORB_ID,
+        public static final OWAttack HEAL_SNACK = new OWAttack(
+                HEAL_SNACK_ID,
                 OW_ATTACK_0,
-                OWAttacksConstants.RedPanda.HEAL_ORB_ENERGY,
-                entity -> ((RedPandaEntity) entity).throwHealOrb(),
-                OWAttacksConstants.RedPanda.HEAL_ORB_COOLDOWN_TICKS
+                OWAttacksConstants.RedPanda.HEAL_SNACK_ENERGY,
+                entity -> ((RedPandaEntity) entity).throwHealSnack(),
+                OWAttacksConstants.RedPanda.HEAL_SNACK_COOLDOWN_TICKS
         ).withCardTexture(216, 0);
 
         /**
@@ -322,15 +322,23 @@ public class OWAttacksHandler {
          * carte son statut d'ultime, sa bordure dorée et sa jauge de drain — et c'est le temps de
          * recharge, une minute et demie contre une minute ailleurs, qui en règle la fréquence.</p>
          */
-        public static final OWAttack LIFE_AURA = new OWAttack(
-                LIFE_AURA_ID,
+        public static final OWAttack FEAST = new OWAttack(
+                FEAST_ID,
                 OW_ATTACK_1,
-                OWAttacksConstants.RedPanda.LIFE_AURA_ENERGY,
-                entity -> ((RedPandaEntity) entity).activateLifeAura(),
-                OWAttacksConstants.RedPanda.LIFE_AURA_COOLDOWN_TICKS
-        ).withUnlockCondition(entity -> true)
-                .withUnlockProgress(entity -> 1f)
-                .withUltimateDuration(OWAttacksConstants.RedPanda.LIFE_AURA_DURATION_MS)
+                OWAttacksConstants.RedPanda.FEAST_ENERGY,
+                entity -> ((RedPandaEntity) entity).activateFeast(),
+                OWAttacksConstants.RedPanda.FEAST_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof RedPandaEntity panda
+                        && panda.getFeastCharge() >= OWAttacksConstants.RedPanda.FEAST_SNACKS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof RedPandaEntity panda
+                        ? (float) panda.getFeastCharge() / OWAttacksConstants.RedPanda.FEAST_SNACKS_REQUIRED
+                        : 0f
+        ).withUnlockCounter(
+                entity -> entity instanceof RedPandaEntity panda ? panda.getFeastOvercharge() : 0,
+                OWAttacksConstants.RedPanda.FEAST_OVERCHARGE_MAX
+        ).withUltimateDuration(OWAttacksConstants.RedPanda.FEAST_DURATION_MS)
                 .withCardTexture(236, 0);
     }
 
