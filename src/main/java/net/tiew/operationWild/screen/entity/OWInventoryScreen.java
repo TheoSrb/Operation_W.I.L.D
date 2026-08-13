@@ -152,7 +152,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "PeacockEntity" -> entityScale = 35;
             case "ElephantEntity" -> entityScale = 12;
             case "HyenaEntity" -> entityScale = 30;
-            case "RedPandaEntity" -> entityScale = 40;
+            case "RedPandaEntity" -> entityScale = 32;
         }
 
         tabsRenderer.init(this.width, this.height, this.imageWidth, this.imageHeight, entity, this::addRenderableWidget);
@@ -283,11 +283,13 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         int boaUp = isBoa ? 7 : 0;
         net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = true;
         net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = true;
+        net.tiew.operationWild.entity.client.model.RedPandaModel.RENDER_AS_GROUNDED = true;
         try {
             InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 26, j + 18 - boaUp, i + 78, j + 70 - boaUp, previewScale, 0.25F, this.xMouse, this.yMouse, this.entity);
         } finally {
             net.tiew.operationWild.entity.client.model.BoaModel.RENDER_FULL_BODY = false;
             net.tiew.operationWild.entity.client.model.CrocodileModel.RENDER_FULL_BODY = false;
+            net.tiew.operationWild.entity.client.model.RedPandaModel.RENDER_AS_GROUNDED = false;
         }
 
         renderTexts(guiGraphics, i, j);

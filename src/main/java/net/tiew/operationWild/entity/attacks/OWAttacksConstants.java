@@ -392,7 +392,8 @@ public class OWAttacksConstants {
         public static final int HEAL_ORB_OVER_TIME_INTERVAL = 10;
         public static final double HEAL_ORB_SPEED = 0.85;
         public static final int HEAL_ORB_MAX_LIFETIME = 200;
-        public static final int HEAL_ORB_THROW_TICKS = 12;
+        public static final int HEAL_ORB_THROW_TICKS = 26;
+        public static final int HEAL_ORB_RELEASE_TICKS = 15;
 
         /**
          * L'aura prend les deux tiers de la réserve : on ne la déclenche pas au passage. Épuisé, on

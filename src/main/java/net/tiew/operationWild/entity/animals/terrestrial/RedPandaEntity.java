@@ -109,6 +109,12 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.BOOLEAN);
 
     public static final int CLIMB_TICKS = 20;
+    private static final float CLIMB_CROUCH_PHASE = 0.13f;
+    private static final double CLIMB_CROUCH_DEPTH = 0.10;
+    private static final float CLIMB_RISE_DELAY = 0.18f;
+    private static final float CLIMB_HESITATION = 0.16f;
+    private static final double CLIMB_HOP = 0.20;
+    private static final double CLIMB_SPIRAL = 0.28;
     /** Duree du raccord de reveil, calee sur celle que pose {@code createTransitionAnimation}. */
     private static final int WAKE_TRANSITION_TICKS = 20;
 
@@ -127,11 +133,19 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public final AnimationState shoulderIdleAnimationState = new AnimationState();
     public final AnimationState miscIdleAnimationState = new AnimationState();
 
-    public int napAnimationTimeout = 0;
     public int miscIdleAnimationStartTime = 0;
+    /**
+     * Derniere valeur vue du minuteur de jet, cote client.
+     *
+     * <p>Elle sert a reperer un jet NEUF a la remontee du compteur. La Volee Jumelle relance le
+     * minuteur avant qu'il ait atteint zero : un simple {@code startIfStopped} n'aurait jamais
+     * redemarre l'etat, et le second jet serait reste fige sur la derniere pose du premier.</p>
+     */
+    private int lastThrowTimer = 0;
 
     private int healOrbCooldown = 0;
     private int twinOrbDelay = 0;
+    private final List<int[]> pendingOrbs = new ArrayList<>();
     private int twinOrbTargetId = -1;
     private int auraPulseTimer = 0;
     private double auraAnchorY = Double.NaN;
@@ -149,6 +163,8 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     private Vec3 climbStart = null;
     private int climbCarrierId = -1;
+    private static final EntityDataAccessor<Float> CLIMB_PITCH =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
 
     /**
      * Ressort de la queue, cote client.
@@ -198,7 +214,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 16.0)
-                .add(Attributes.MOVEMENT_SPEED, 0.22D)
+                .add(Attributes.MOVEMENT_SPEED, 0.15D)
                 .add(Attributes.FOLLOW_RANGE, 20.0D)
                 .add(Attributes.ATTACK_DAMAGE, 0.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.0D);
@@ -226,11 +242,16 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         builder.define(HEAL_POWER, HEAL_POWER_BASE);
         builder.define(CLIMB_TIMER, 0);
         builder.define(CLIMB_MOUNTING, true);
+        builder.define(CLIMB_PITCH, 0f);
     }
 
     public boolean isClimbing() { return this.entityData.get(CLIMB_TIMER) > 0; }
 
     public boolean isClimbingUp() { return this.entityData.get(CLIMB_MOUNTING); }
+
+    public float climbPitch() {
+        return this.entityData.get(CLIMB_PITCH);
+    }
 
     public float climbProgress() {
         return 1f - this.entityData.get(CLIMB_TIMER) / (float) CLIMB_TICKS;
@@ -419,6 +440,8 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             handleShoulderClimb();
             handleLifeAura();
             handleTwinOrb();
+            handlePendingOrbs();
+            handleOrbCharge();
             handleHealOverTime();
             handleShoulderRestore();
 
@@ -567,7 +590,23 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
         Vec3 from = mounting ? climbStart : shoulder;
         Vec3 to = mounting ? shoulder : ground;
-        this.setPos(climbCurve(from, to, progress));
+
+        Vec3 previous = this.position();
+        Vec3 next = climbCurve(from, to, progress, mounting);
+        this.setPos(next);
+
+        Vec3 step = next.subtract(previous);
+        if (step.lengthSqr() > 1.0e-8) {
+            float slope = (float) (Mth.atan2(step.y, Math.max(step.horizontalDistance(), 1.0e-4))
+                    * Mth.RAD_TO_DEG);
+            this.entityData.set(CLIMB_PITCH, Mth.lerp(0.35f, climbPitch(), Mth.clamp(slope, -80f, 80f)));
+        }
+
+        if (remaining == CLIMB_TICKS / 2) {
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.WOOL_HIT, SoundSource.NEUTRAL, 0.35f,
+                    (float) OWUtils.generateRandomInterval(1.5, 1.8));
+        }
 
         double dx = carrier.getX() - this.getX(), dz = carrier.getZ() - this.getZ();
         if (dx * dx + dz * dz > 1.0e-4) {
@@ -581,6 +620,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         this.noPhysics = false;
         this.climbStart = null;
         this.climbCarrierId = -1;
+        this.entityData.set(CLIMB_PITCH, 0f);
 
         if (mounting && this.startRiding(carrier, true)) {
             syncPassengersToCarrier(carrier);
@@ -592,21 +632,58 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     private void abortClimb() {
         this.entityData.set(CLIMB_TIMER, 0);
+        this.entityData.set(CLIMB_PITCH, 0f);
         this.noPhysics = false;
         this.climbStart = null;
         this.climbCarrierId = -1;
     }
 
-    private static Vec3 climbCurve(Vec3 from, Vec3 to, float progress) {
-        double approach = 1 - Math.pow(1 - progress, 3);
+    private static Vec3 climbCurve(Vec3 from, Vec3 to, float progress, boolean mounting) {
+        float approach;
+        float rise;
+
+        if (mounting) {
+            approach = easeOutCubic(Mth.clamp((progress - CLIMB_CROUCH_PHASE) / (1f - CLIMB_CROUCH_PHASE), 0f, 1f));
+            rise = easeInOutCubic(Mth.clamp((progress - CLIMB_RISE_DELAY) / (1f - CLIMB_RISE_DELAY), 0f, 1f));
+        } else {
+            float fall = Mth.clamp((progress - CLIMB_HESITATION) / (1f - CLIMB_HESITATION), 0f, 1f);
+            approach = easeInOutCubic(fall);
+            rise = fall < 0.75f
+                    ? (fall / 0.75f) * (fall / 0.75f) * 0.88f
+                    : 0.88f + 0.12f * easeOutCubic((fall - 0.75f) / 0.25f);
+        }
+
         double x = Mth.lerp(approach, from.x, to.x);
         double z = Mth.lerp(approach, from.z, to.z);
+        double y = Mth.lerp(rise, from.y, to.y);
 
-        double rise = Mth.clamp((progress - 0.15) / 0.85, 0, 1);
-        double eased = rise < 0.5 ? 2 * rise * rise : 1 - Math.pow(-2 * rise + 2, 2) / 2;
-        double hop = Math.sin(rise * Math.PI) * 0.22;
+        if (mounting) {
+            float crouch = progress < CLIMB_CROUCH_PHASE
+                    ? Mth.sin(progress / CLIMB_CROUCH_PHASE * Mth.PI) : 0f;
+            y -= CLIMB_CROUCH_DEPTH * crouch;
+            y += CLIMB_HOP * Mth.sin(Mth.clamp(rise, 0f, 1f) * Mth.PI);
+        } else {
+            y += CLIMB_HOP * 0.4f * Mth.sin(Mth.clamp(rise, 0f, 1f) * Mth.PI);
+        }
 
-        return new Vec3(x, Mth.lerp(eased, from.y, to.y) + hop, z);
+        Vec3 flat = to.subtract(from).multiply(1, 0, 1);
+        if (flat.lengthSqr() > 1.0e-6) {
+            Vec3 side = new Vec3(-flat.z, 0, flat.x).normalize();
+            double spiral = CLIMB_SPIRAL * Mth.sin(progress * Mth.PI);
+            x += side.x * spiral;
+            z += side.z * spiral;
+        }
+
+        return new Vec3(x, y, z);
+    }
+
+    private static float easeOutCubic(float t) {
+        float inverse = 1f - t;
+        return 1f - inverse * inverse * inverse;
+    }
+
+    private static float easeInOutCubic(float t) {
+        return t < 0.5f ? 4f * t * t * t : 1f - (float) Math.pow(-2f * t + 2f, 3) / 2f;
     }
 
     private static void syncPassengersToCarrier(Player carrier) {
@@ -769,12 +846,71 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             twinOrbTargetId = target.getId();
         }
 
-        launchHealOrb(target);
+        queueOrb(target);
+    }
+
+    private void queueOrb(LivingEntity target) {
+        pendingOrbs.add(new int[]{OWAttacksConstants.RedPanda.HEAL_ORB_RELEASE_TICKS, target.getId()});
+    }
+
+    private void handlePendingOrbs() {
+        if (pendingOrbs.isEmpty()) return;
+
+        if (!this.isAlive()) {
+            pendingOrbs.clear();
+            return;
+        }
+
+        Iterator<int[]> iterator = pendingOrbs.iterator();
+        while (iterator.hasNext()) {
+            int[] pending = iterator.next();
+            if (--pending[0] > 0) continue;
+
+            iterator.remove();
+            if (this.level().getEntity(pending[1]) instanceof LivingEntity target && target.isAlive()) {
+                launchHealOrb(target);
+            }
+        }
+    }
+
+    /** Point ou les patounes se rejoignent : l'orbe s'y condense, puis en part. */
+    private Vec3 orbHoldPoint() {
+        Player carrier = getCarrier();
+        float yaw = (carrier != null ? carrier.getYRot() : this.getYRot()) * Mth.DEG_TO_RAD;
+        return new Vec3(this.getX() - Mth.sin(yaw) * 0.3, this.getEyeY() - 0.05, this.getZ() + Mth.cos(yaw) * 0.3);
+    }
+
+    /**
+     * L'orbe se rassemble entre les pattes pendant l'elan.
+     *
+     * <p>Sans cela, le geste mimait la tenue d'un objet absent : les patounes se refermaient sur du
+     * vide et l'orbe ne surgissait qu'une fois lancee. Les particules convergent vers le point de
+     * tenue au lieu de s'en echapper, ce qui donne au mouvement sa raison d'etre.</p>
+     */
+    private void handleOrbCharge() {
+        int timer = getThrowTimer();
+        if (timer <= OWAttacksConstants.RedPanda.HEAL_ORB_THROW_TICKS
+                - OWAttacksConstants.RedPanda.HEAL_ORB_RELEASE_TICKS) return;
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+        Vec3 paws = orbHoldPoint();
+        for (int i = 0; i < 2; i++) {
+            double angle = RANDOM.nextDouble() * Math.PI * 2;
+            double tilt = (RANDOM.nextDouble() - 0.5) * Math.PI;
+            double radius = 0.5 + RANDOM.nextDouble() * 0.3;
+
+            Vec3 direction = new Vec3(Math.cos(angle) * Math.cos(tilt), Math.sin(tilt), Math.sin(angle) * Math.cos(tilt));
+            Vec3 at = paws.add(direction.scale(radius));
+            Vec3 inward = direction.scale(-0.32);
+
+            serverLevel.sendParticles(ParticleTypes.COMPOSTER, at.x, at.y, at.z, 0, inward.x, inward.y, inward.z, 1.0);
+        }
     }
 
     private void launchHealOrb(LivingEntity target) {
         HealOrbEntity orb = new HealOrbEntity(this.level(), this, target);
-        orb.setPos(this.getX(), this.getEyeY() - 0.1, this.getZ());
+        Vec3 paws = orbHoldPoint();
+        orb.setPos(paws.x, paws.y + 0.18, paws.z);
         orb.aimAt(target);
         this.level().addFreshEntity(orb);
 
@@ -838,8 +974,8 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         twinOrbTargetId = -1;
         if (!(found instanceof LivingEntity target) || !target.isAlive()) return;
 
-        launchHealOrb(target);
         setThrowTimer(OWAttacksConstants.RedPanda.HEAL_ORB_THROW_TICKS);
+        queueOrb(target);
     }
 
     public void applyOrbHeal(LivingEntity target) {
@@ -1086,36 +1222,34 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         }
     }
 
+    /**
+     * Pilotage des etats d'animation.
+     *
+     * <p>Les poses durables se conduisent par PRESENCE et non par minuteur : elles bouclent
+     * d'elles-memes, et un minuteur plus court que l'animation la tranche avant sa fin. Les aides
+     * de {@code OWEntity} relancaient la sieste toutes les 64 images de tick pour une animation qui
+     * en dure 80, et l'assise toutes les 83 pour 80 — l'une coupee net, l'autre bloquee un
+     * quinzieme de seconde a chaque tour.</p>
+     */
     private void setupAnimationState() {
+        boolean resting = isNapping() || isSleeping();
+
         if (isOnShoulder()) this.shoulderIdleAnimationState.startIfStopped(this.tickCount);
         else this.shoulderIdleAnimationState.stop();
 
-        createIdleAnimation(80, true);
-        createSitAnimation(83, true);
+        if (resting) this.napAnimationState.startIfStopped(this.tickCount);
+        else this.napAnimationState.stop();
 
+        if (isSitting() && !resting && !isOnShoulder()) this.sittingAnimationState.startIfStopped(this.tickCount);
+        else this.sittingAnimationState.stop();
+
+        this.idleAnimationState.startIfStopped(this.tickCount);
         handleMiscIdleAnimations();
 
-        if (this.isNapping() || this.isSleeping()) {
-            if (this.napAnimationTimeout <= 0) {
-                this.napAnimationTimeout = 64;
-                this.napAnimationState.start(this.tickCount);
-            } else --this.napAnimationTimeout;
-        }
-
-        if (!this.isNapping() && !this.isSleeping()) {
-            this.napAnimationTimeout = 0;
-            this.napAnimationState.stop();
-        }
-
-        if (getThrowTimer() > 0) {
-            this.throwAnimationState.startIfStopped(this.tickCount);
-        } else {
-            this.throwAnimationState.stop();
-        }
-
-        if (isAuraActive()) {
-        } else {
-        }
+        int throwTimer = getThrowTimer();
+        if (throwTimer > lastThrowTimer) this.throwAnimationState.start(this.tickCount);
+        else if (throwTimer <= 0) this.throwAnimationState.stop();
+        lastThrowTimer = throwTimer;
     }
 
     public boolean canPlayIdleAnimation() {
@@ -1167,7 +1301,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
         super.onSyncedDataUpdated(accessor);
         if (OWEntity.NAPPING.equals(accessor) && !isNapping() && !isSleeping() && this.level().isClientSide()) {
-            napAnimationTimeout = 0;
             napAnimationState.stop();
         }
     }

@@ -62,7 +62,11 @@ public class RedPandaRenderer extends OWEntityRenderer<RedPandaEntity, RedPandaM
                 : getOrBakeModel(RedPandaModel.LAYER_LOCATION);
 
         Player carrier = redPanda.getCarrier();
-        if (carrier == null) {
+
+        // Portrait d'inventaire : aucun ancrage d'epaule. L'ecran pose lui-meme la position et le
+        // lacet pour que la bete suive la souris ; les recaler sur le porteur les ecrasait, et la
+        // vignette restait plantee de trois quarts, indifferente au curseur.
+        if (carrier == null || RedPandaModel.RENDER_AS_GROUNDED) {
             super.render(redPanda, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
             return;
         }

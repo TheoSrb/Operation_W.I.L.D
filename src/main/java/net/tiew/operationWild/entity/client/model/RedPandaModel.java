@@ -20,6 +20,7 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     private static final float WALK_SPEED = 3.5f;
     private static final long STEP_RIGHT_MS = 240L;
     private static final long STEP_LEFT_MS = 920L;
+    private static final float PAW_TRAIL = 0.045f;
 
     private final ModelPart ALL2;
     private final ModelPart ALL;
@@ -35,6 +36,16 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     private final ModelPart left_leg;
     private final ModelPart right_leg;
     private final ModelPart right_arm;
+
+    /**
+     * Vrai le temps d'un apercu d'interface.
+     *
+     * <p>L'inventaire dessine la VRAIE bete, celle qui se tient sur l'epaule : elle s'y montrait donc
+     * repliee en boule, pattes rentrees, comme si le cadre etait pose sur le joueur. Le drapeau lui
+     * fait ignorer son perchoir le temps du portrait — meme procede que le boa et le crocodile, qui
+     * deplient leur corps entier pour la meme raison.</p>
+     */
+    public static boolean RENDER_AS_GROUNDED = false;
 
     private float prevLimbSwing = 0f;
 
@@ -100,16 +111,23 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     public void setupAnim(T redPanda, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-        if (!redPanda.isOnShoulder()) this.applyHeadRotation(netHeadYaw, headPitch);
+        // Portrait d'interface : la bete est immobile quoi qu'elle fasse dans le monde. Sans cela
+        // l'apercu heriterait du balancement du porteur qui court, et la vignette galoperait sur
+        // place dans son cadre.
+        if (RENDER_AS_GROUNDED) limbSwingAmount = 0f;
 
-        if (redPanda.isClimbing()) {
+        // Le portrait d'inventaire, lui, doit suivre la souris : c'est tout l'interet de la vignette,
+        // et la bete y est immobile, donc sans les a-coups qui avaient fait couper cette rotation.
+        if (!redPanda.isOnShoulder() || RENDER_AS_GROUNDED) this.applyHeadRotation(netHeadYaw, headPitch);
+
+        if (redPanda.isClimbing() && !RENDER_AS_GROUNDED) {
             this.animate(redPanda.idleAnimationState, RedPandaAnimations.MISC_IDLE, ageInTicks, 0.4f);
             animateClimb(redPanda, ageInTicks);
             this.prevLimbSwing = limbSwing;
             return;
         }
 
-        if (redPanda.isOnShoulder()) {
+        if (redPanda.isOnShoulder() && !RENDER_AS_GROUNDED) {
             this.animate(redPanda.shoulderIdleAnimationState, RedPandaAnimations.SHOULDER_IDLE, ageInTicks, 1.0f);
             animatePerchPhysics(redPanda, ageInTicks);
             animateGestures(redPanda, ageInTicks);
@@ -157,8 +175,12 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.animate(redPanda.idleAnimationState, RedPandaAnimations.MISC_IDLE, ageInTicks, 1.0f);
         this.animateWalk(RedPandaAnimations.MOVE_WALK, limbSwing, limbSwingAmount, WALK_SPEED, WALK_SPEED * 1.2f);
 
-        if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, WALK_SPEED, STEP_RIGHT_MS)) redPanda.onRightFootDown();
-        if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, WALK_SPEED, STEP_LEFT_MS)) redPanda.onLeftFootDown();
+        // Les bruits de pas sont pilotes par le RENDU : un portrait d'inventaire les declencherait
+        // aussi, et l'ecran se mettrait a marteler le sol.
+        if (!RENDER_AS_GROUNDED) {
+            if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, WALK_SPEED, STEP_RIGHT_MS)) redPanda.onRightFootDown();
+            if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, WALK_SPEED, STEP_LEFT_MS)) redPanda.onLeftFootDown();
+        }
 
         animateGestures(redPanda, ageInTicks);
 
@@ -166,56 +188,116 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     }
 
     private void animateGestures(T redPanda, float ageInTicks) {
-        if (redPanda.getThrowTimer() > 0) animateOrbThrow(redPanda, ageInTicks);
+        if (redPanda.throwAnimationState.isStarted()) animateOrbThrow(redPanda, ageInTicks);
     }
 
     private void animateOrbThrow(T redPanda, float ageInTicks) {
+        // L'horloge du geste est celle du RENDU, pas le compte a rebours synchronise. Ce dernier
+        // n'arrive pas une fois par tick : il reste fige une image puis saute de deux, et le geste
+        // se lisait donc par a-coups. L'etat d'animation, lui, ne retient que l'instant du depart
+        // et mesure la suite sur {@code ageInTicks}, qui porte la fraction d'image.
+        redPanda.throwAnimationState.updateTime(ageInTicks, 1f);
+
         float total = OWAttacksConstants.RedPanda.HEAL_ORB_THROW_TICKS;
-        float partial = Mth.clamp(ageInTicks - redPanda.tickCount, 0f, 1f);
-        float remaining = Math.max(0f, redPanda.getThrowTimer() - partial);
-        float progress = Mth.clamp(1f - remaining / total, 0f, 1f);
+        float elapsed = redPanda.throwAnimationState.getAccumulatedTime() / 50f;
+        float progress = Mth.clamp(elapsed / total, 0f, 1f);
+        float trailing = Math.max(0f, progress - PAW_TRAIL);
 
-        float swing;
-        if (progress < 0.35f) {
-            swing = -1.35f * (progress / 0.35f);
-        } else if (progress < 0.6f) {
-            swing = Mth.lerp((progress - 0.35f) / 0.25f, -1.35f, 0.95f);
-        } else {
-            swing = 0.95f * (1f - (progress - 0.6f) / 0.4f);
-        }
+        float rise = band(progress, 0f, 0.18f) - band(progress, 0.80f, 1f);
+        float cradle = band(progress, 0.10f, 0.30f) - band(progress, 0.62f, 0.76f);
+        float hold = band(progress, 0.38f, 0.48f) - band(progress, 0.48f, 0.56f);
+        float launch = band(progress, 0.48f, 0.62f) - band(progress, 0.62f, 0.86f);
+        float watch = band(progress, 0.62f, 0.72f) - band(progress, 0.86f, 1f);
+        float settle = band(progress, 0.84f, 0.92f) - band(progress, 0.92f, 1f);
+        float launchTrail = band(trailing, 0.48f, 0.62f) - band(trailing, 0.62f, 0.86f);
 
-        this.right_arm.xRot += swing;
-        this.right_arm.zRot += -0.25f * Math.abs(swing);
-        this.left_arm.xRot += swing * 0.35f;
+        float knead = Mth.cos(ageInTicks * 0.9f) * 0.10f * cradle;
+        float cup = Mth.sin(ageInTicks * 0.9f) * 0.08f * cradle;
+        float tremble = Mth.sin(ageInTicks * 2.6f) * 0.04f * hold;
 
-        this.body.xRot += -0.10f * swing;
-        this.head.xRot += -0.18f * swing;
-        this.tail.xRot += 0.22f * Math.abs(swing);
+        this.ALL.xRot += -0.42f * rise + 0.16f * hold - 0.34f * launch + 0.12f * settle;
+        this.ALL.y += -1.3f * rise + 0.8f * hold - 1.5f * launch + 0.9f * settle;
 
-        float earFlick = Mth.sin(progress * Mth.PI) * 0.35f;
-        this.left_Ear.zRot += earFlick;
-        this.right_Ear.zRot -= earFlick;
+        this.left_leg.xRot += 0.42f * rise + 0.34f * launch;
+        this.right_leg.xRot += 0.42f * rise + 0.34f * launch;
+        this.left_leg.zRot += -0.13f * rise;
+        this.right_leg.zRot += 0.13f * rise;
+
+        this.left_arm.xRot += -0.78f * cradle + 0.42f * hold - 1.05f * launchTrail
+                + 0.30f * watch + 0.26f * settle + knead;
+        this.right_arm.xRot += -0.78f * cradle + 0.42f * hold - 1.05f * launch
+                + 0.30f * watch + 0.26f * settle - knead;
+        this.left_arm.zRot += 0.36f * cradle - 0.30f * launchTrail + cup - tremble;
+        this.right_arm.zRot += -0.36f * cradle + 0.30f * launch + cup + tremble;
+
+        this.head.xRot += 0.10f * rise + 0.40f * cradle + 0.18f * hold
+                - 0.70f * launch - 0.22f * watch;
+        this.head.zRot += 0.16f * cradle - 0.16f * launch;
+
+        this.tail.xRot += -0.42f * rise + 0.22f * hold + 0.70f * launch - 0.20f * settle;
+        this.tail.yRot += Mth.sin(ageInTicks * 0.7f) * 0.18f * cradle;
+
+        this.left_Ear.xRot += -0.14f * rise - 0.12f * watch
+                + Mth.sin(ageInTicks * 0.5f) * 0.12f * cradle;
+        this.right_Ear.xRot += -0.14f * rise - 0.12f * watch;
+        this.left_Ear.zRot += 0.26f * launch;
+        this.right_Ear.zRot += -0.26f * launch;
+        this.tong.xRot += -0.22f * cradle - 0.30f * launch;
+
+        this.body.yScale *= 1f - 0.10f * cradle - 0.16f * hold + 0.16f * launch - 0.08f * settle;
+        this.body.xScale *= 1f + 0.07f * cradle + 0.12f * hold - 0.10f * launch + 0.06f * settle;
+        this.body.zScale *= 1f + 0.07f * cradle + 0.12f * hold - 0.10f * launch + 0.06f * settle;
+
+        this.head.yScale *= 1f - 0.09f * hold + 0.09f * launch;
+        this.head.xScale *= 1f + 0.07f * hold - 0.05f * launch;
+        this.head.zScale *= 1f + 0.07f * hold - 0.05f * launch;
+    }
+
+    private static float band(float value, float from, float to) {
+        if (value <= from) return 0f;
+        if (value >= to) return 1f;
+        float t = (value - from) / (to - from);
+        return t * t * (3f - 2f * t);
     }
 
     private void animateClimb(T redPanda, float ageInTicks) {
         float progress = redPanda.climbProgress();
+        float pitch = redPanda.climbPitch() * Mth.DEG_TO_RAD;
         float effort = Mth.sin(progress * Mth.PI);
-        float reach = Mth.sin(ageInTicks * 1.15f);
+        float reach = Mth.sin(ageInTicks * 1.35f);
 
-        this.ALL.xRot += -0.85f * effort;
-        this.ALL.y += -1.2f * effort;
+        this.ALL.xRot += -pitch * 0.85f;
+        this.ALL.y += -1.4f * effort;
+        this.ALL.zRot += 0.22f * effort;
 
-        this.left_arm.xRot += -1.15f + 0.75f * reach;
-        this.right_arm.xRot += -1.15f - 0.75f * reach;
-        this.left_leg.xRot += -0.55f - 0.55f * reach;
-        this.right_leg.xRot += -0.55f + 0.55f * reach;
+        this.left_arm.xRot += -1.25f + 0.85f * reach * effort;
+        this.right_arm.xRot += -1.25f - 0.85f * reach * effort;
+        this.left_leg.xRot += -0.60f - 0.60f * reach * effort;
+        this.right_leg.xRot += -0.60f + 0.60f * reach * effort;
 
-        this.tail.xRot += -0.65f * effort;
-        this.tail.yRot += 0.22f * reach;
+        this.left_arm.zRot += -0.30f * effort;
+        this.right_arm.zRot += 0.30f * effort;
 
-        this.head.xRot += 0.45f * effort;
-        this.left_Ear.zRot += 0.18f;
-        this.right_Ear.zRot += -0.18f;
+        this.tail.xRot += pitch * 0.55f - 0.30f * effort;
+        this.tail.yRot += 0.28f * reach * effort;
+
+        this.head.xRot += pitch * 0.60f;
+        this.left_Ear.zRot += 0.22f * effort;
+        this.right_Ear.zRot += -0.22f * effort;
+
+        float gather = band(progress, 0f, 0.13f) - band(progress, 0.13f, 0.32f);
+        float arrive = band(progress, 0.80f, 0.93f) - band(progress, 0.93f, 1f);
+        float squash = gather + arrive;
+
+        this.body.yScale *= 1f - 0.21f * squash + 0.14f * effort;
+        this.body.xScale *= 1f + 0.15f * squash - 0.07f * effort;
+        this.body.zScale *= 1f + 0.15f * squash - 0.07f * effort;
+
+        this.head.yScale *= 1f - 0.10f * squash + 0.07f * effort;
+        this.head.xScale *= 1f + 0.08f * squash - 0.04f * effort;
+        this.head.zScale *= 1f + 0.08f * squash - 0.04f * effort;
+
+        this.ALL.y += 1.5f * squash;
     }
 
     /**
@@ -296,13 +378,25 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
             float impact = Mth.clamp(Math.abs(redPanda.perchLastVerticalSpeed) / PERCH_IMPACT_REFERENCE, 0f, 1f);
             redPanda.perchSquashVelocity += PERCH_SQUASH_IMPULSE * impact;
         }
+
+        // Au decollage, la meme impulsion EN NEGATIF : la bete s'etire d'un coup vers le haut. Le
+        // ressort etant le meme, l'etirement rebondit ensuite en ecrasement puis se resorbe, ce qui
+        // donne le tremblotement de gelatine sans qu'aucune courbe ait a le decrire.
+        if (!redPanda.perchWasAirborne && airborne && verticalSpeed > PERCH_LEAP_SPEED) {
+            redPanda.perchSquashVelocity -= PERCH_LEAP_IMPULSE;
+        }
+
         redPanda.perchWasAirborne = airborne;
         if (airborne) redPanda.perchLastVerticalSpeed = (float) verticalSpeed;
 
         redPanda.perchSquashVelocity += (0f - redPanda.perchLandSquash) * PERCH_SQUASH_STIFFNESS * dt;
         redPanda.perchSquashVelocity *= (float) Math.pow(PERCH_SQUASH_DAMPING, dt);
         redPanda.perchLandSquash += redPanda.perchSquashVelocity * dt;
-        redPanda.perchLandSquash = Mth.clamp(redPanda.perchLandSquash, 0f, 1f);
+
+        // La borne basse est NEGATIVE : c'est elle qui autorise le rebond. Bloquee a zero, la
+        // reception s'ecrasait puis remontait pile a sa taille, sans le depassement qui fait tout
+        // l'interet de la chose.
+        redPanda.perchLandSquash = Mth.clamp(redPanda.perchLandSquash, PERCH_STRETCH_LIMIT, 1f);
 
         // ── Allure ────────────────────────────────────────────────────────────
         // Au repos la queue pend le long du dos ; en course elle se leve presque a l'horizontale,
@@ -318,14 +412,24 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         // Cabrage : l'axe des X abaisse le museau, le cabrage est donc negatif.
         this.ALL.xRot += -pitchRad;
         this.ALL.zRot += redPanda.perchRoll * Mth.DEG_TO_RAD;
-        this.ALL.y += 2.3f * squash;
+        this.ALL.y += 2.8f * squash;
 
         // Ecrasement puis etirement : le volume se conserve a l'oeil, la bete s'aplatit en
         // s'elargissant. L'elargissement suit la compression de pres — sans lui, la bete maigrirait
         // au lieu de s'ecraser, ce qui se lit comme un defaut d'echelle et non comme un impact.
-        this.body.yScale *= 1f - 0.31f * squash;
-        this.body.xScale *= 1f + 0.20f * squash;
-        this.body.zScale *= 1f + 0.20f * squash;
+        //
+        // Le terme d'air etire dans l'autre sens, et il pompe DEUX FOIS par saut : il suit la
+        // vitesse verticale en valeur absolue, qui culmine a la montee, retombe a zero au sommet et
+        // reprend a la descente.
+        float air = Mth.clamp(redPanda.perchPitch / PERCH_PITCH_MAX, 0f, 1f);
+
+        this.body.yScale *= 1f - 0.34f * squash + 0.20f * air;
+        this.body.xScale *= 1f + 0.23f * squash - 0.10f * air;
+        this.body.zScale *= 1f + 0.23f * squash - 0.10f * air;
+
+        this.head.yScale *= 1f - 0.11f * squash + 0.08f * air;
+        this.head.xScale *= 1f + 0.08f * squash - 0.04f * air;
+        this.head.zScale *= 1f + 0.08f * squash - 0.04f * air;
 
         // La queue prend tout : l'allure, le virage, le cabrage et le contrecoup de la reception.
         //
@@ -337,12 +441,12 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         float swingArc = Math.abs(redPanda.tailSwing) * TAIL_SWING_ARC * Mth.DEG_TO_RAD;
 
         this.tail.xRot += redPanda.perchRunLift * Mth.DEG_TO_RAD + swingArc
-                - pitchRad * 0.75f + 0.35f * squash;
+                - pitchRad * 0.75f + 0.48f * squash;
         this.tail.yRot += swingRad;
         this.tail.zRot += swingRad * TAIL_SWING_TWIST;
 
         // Oreilles rabattues par le vent de la chute, puis un sursaut a l'atterrissage.
-        float earFlap = -pitchRad * 0.55f + 0.30f * squash;
+        float earFlap = -pitchRad * 0.55f + 0.44f * squash;
         this.left_Ear.xRot += earFlap;
         this.right_Ear.xRot += earFlap;
 
@@ -404,10 +508,13 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
      * ramasse franchement la bete — c'est le dosage par la vitesse d'impact qui rend le geste
      * credible, plus que son amplitude.</p>
      */
-    private static final float PERCH_SQUASH_IMPULSE = 0.55f;
+    private static final float PERCH_SQUASH_IMPULSE = 0.68f;
     private static final float PERCH_SQUASH_STIFFNESS = 0.45f;
     private static final float PERCH_SQUASH_DAMPING = 0.68f;
     private static final float PERCH_IMPACT_REFERENCE = 0.7f;
+    private static final float PERCH_LEAP_IMPULSE = 0.34f;
+    private static final float PERCH_STRETCH_LIMIT = -0.4f;
+    private static final double PERCH_LEAP_SPEED = 0.08;
 
     private boolean walkAnimCrossed(AnimationDefinition animation, float limbSwing, float speedScale, long triggerTimeMs) {
         long durationMs = (long) (animation.lengthInSeconds() * 1000f);
