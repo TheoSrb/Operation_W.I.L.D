@@ -52,6 +52,7 @@ import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
+import net.tiew.operationWild.entity.goals.global.OWPanicGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.misc.FeastPileEntity;
 import net.tiew.operationWild.entity.misc.HealSnackEntity;
@@ -178,6 +179,12 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static final EntityDataAccessor<Float> CLIMB_PITCH =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
 
+    /** Assiette de la queue donnee par le sol qu'elle surplombe, en degres, et cache de la sonde. */
+    public float tailGroundPitch = 0f;
+    public float tailGroundDrop = 0f;
+    public int tailGroundProbeTick = -1;
+    public float tailGroundLastAge = Float.NaN;
+
     public float tailSwing = 0f;
     public float tailSwingVelocity = 0f;
     public float tailLastAge = Float.NaN;
@@ -207,10 +214,22 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
+    /**
+     * Poursuite ramenee de vingt a douze.
+     *
+     * <p>Le facteur herite multipliait une vitesse deja relevee pour l'allure ordinaire : le panda
+     * roux rattrapait son maitre plus vite qu'un tigre lance. Le baisser ici, plutot que de rogner
+     * l'attribut, decouple les deux — il trotte comme il faut et rejoint sans foncer.</p>
+     */
+    @Override
+    protected double followOwnerSpeedFactor() {
+        return 12;
+    }
+
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 16.0)
-                .add(Attributes.MOVEMENT_SPEED, 0.15D)
+                .add(Attributes.MOVEMENT_SPEED, 0.16D)
                 .add(Attributes.FOLLOW_RANGE, 20.0D)
                 .add(Attributes.ATTACK_DAMAGE, 0.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.0D);
@@ -221,9 +240,24 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
+
+        // Une bete de six kilos ne rend pas les coups : frappee, elle detale. Reserve a l'etat
+        // sauvage — un compagnon qui fuit son maitre au premier degat serait ingerable.
+        // Fuite DECLENCHEE PAR LE COUP, et non permanente.
+        //
+        // Le OWPanicGoal du mod s'affole tant que la bete est sauvage, ce qui la ferait detaler sans
+        // fin ; le PanicGoal de vanilla, lui, ne connait que le feu et le gel. Ni l'un ni l'autre ne
+        // repond a « on m'a frappe » — d'ou la condition posee ici. Le moteur oublie le dernier
+        // agresseur au bout de cinq secondes, la fuite s'arrete donc d'elle-meme.
+        this.goalSelector.addGoal(1, new OWPanicGoal(this, 2.8f, 1.0, 0) {
+            @Override
+            protected boolean shouldPanic() {
+                return !RedPandaEntity.this.isTame() && RedPandaEntity.this.getLastHurtByMob() != null;
+            }
+        });
         this.goalSelector.addGoal(5, new net.tiew.operationWild.entity.goals.NapGoal(this, 1f, 800, true, true));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D));
+        this.goalSelector.addGoal(10, new RandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
     }
 

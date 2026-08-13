@@ -36,11 +36,20 @@ public class FeastPileEntity extends Entity {
      * partir la nourriture, et la faisait jaillir du centre du tas. Elle part maintenant des pattes
      * de la bete qui la lance, et le suit si le porteur se deplace pendant le geste.</p>
      */
+    /**
+     * Le rayon, connu du client.
+     *
+     * <p>C'etait un simple champ pose au serveur : la copie cliente gardait donc la valeur par
+     * defaut, et la nourriture s'arretait a huit blocs meme quand la Grande Tablee portait la nappe
+     * a dix. Les miettes du bord, elles, sont emises par le serveur — d'ou une couronne qui allait
+     * plus loin que le festin qu'elle etait censee delimiter.</p>
+     */
+    private static final EntityDataAccessor<Float> DATA_RADIUS =
+            SynchedEntityData.defineId(FeastPileEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> DATA_OWNER =
             SynchedEntityData.defineId(FeastPileEntity.class, EntityDataSerializers.INT);
 
     private int ownerId = -1;
-    private double radius = OWAttacksConstants.RedPanda.FEAST_RADIUS;
     private int pulseTimer = 0;
     private int lifetime = 0;
     private int maxLifetime = OWAttacksConstants.RedPanda.FEAST_DURATION_TICKS;
@@ -79,14 +88,14 @@ public class FeastPileEntity extends Entity {
      */
     @Override
     public AABB getBoundingBoxForCulling() {
-        return this.getBoundingBox().inflate(radius + 2.0, 3.0, radius + 2.0);
+        return this.getBoundingBox().inflate(radius() + 2.0, 3.0, radius() + 2.0);
     }
 
     public FeastPileEntity(Level level, RedPandaEntity owner, int portions, double radius) {
         this(OWEntityRegistry.FEAST_PILE.get(), level);
         this.ownerId = owner.getId();
         this.entityData.set(DATA_OWNER, owner.getId());
-        this.radius = radius;
+        this.entityData.set(DATA_RADIUS, (float) radius);
         this.maxLifetime = portions * OWAttacksConstants.RedPanda.FEAST_PULSE_INTERVAL
                 * OWAttacksConstants.RedPanda.FEAST_LIFETIME_FACTOR_NUM
                 / OWAttacksConstants.RedPanda.FEAST_LIFETIME_FACTOR_DEN;
@@ -99,6 +108,7 @@ public class FeastPileEntity extends Entity {
         builder.define(DATA_PORTIONS, OWAttacksConstants.RedPanda.FEAST_PORTIONS);
         builder.define(DATA_PORTIONS_MAX, OWAttacksConstants.RedPanda.FEAST_PORTIONS);
         builder.define(DATA_OWNER, -1);
+        builder.define(DATA_RADIUS, (float) OWAttacksConstants.RedPanda.FEAST_RADIUS);
     }
 
     public int portions() {
@@ -110,7 +120,7 @@ public class FeastPileEntity extends Entity {
     }
 
     public double radius() {
-        return this.radius;
+        return this.entityData.get(DATA_RADIUS);
     }
 
     public int ownerId() {
@@ -194,8 +204,8 @@ public class FeastPileEntity extends Entity {
 
         for (int i = 0; i < points; i++) {
             double angle = spin + (Math.PI * 2 * i) / points;
-            double x = this.getX() + Math.cos(angle) * radius;
-            double z = this.getZ() + Math.sin(angle) * radius;
+            double x = this.getX() + Math.cos(angle) * radius();
+            double z = this.getZ() + Math.sin(angle) * radius();
 
             Vec3 from = new Vec3(x, this.getY() + 2.5, z);
             Vec3 to = new Vec3(x, this.getY() - 4.0, z);
@@ -218,7 +228,7 @@ public class FeastPileEntity extends Entity {
     private void soundEdge() {
         edgeSoundAngle += OWAttacksConstants.RedPanda.FEAST_EDGE_SOUND_STEP;
 
-        double reach = radius * (0.72 + this.random.nextDouble() * 0.28);
+        double reach = radius() * (0.72 + this.random.nextDouble() * 0.28);
         double x = this.getX() + Math.cos(edgeSoundAngle) * reach;
         double z = this.getZ() + Math.sin(edgeSoundAngle) * reach;
 
@@ -241,11 +251,11 @@ public class FeastPileEntity extends Entity {
      */
     private java.util.List<LivingEntity> guestsInRange(RedPandaEntity panda) {
         java.util.List<LivingEntity> found = new java.util.ArrayList<>();
-        AABB box = this.getBoundingBox().inflate(radius);
+        AABB box = this.getBoundingBox().inflate(radius());
 
         for (LivingEntity guest : this.level().getEntitiesOfClass(LivingEntity.class, box)) {
             if (!guest.isAlive() || guest == panda) continue;
-            if (this.distanceTo(guest) > radius) continue;
+            if (this.distanceTo(guest) > radius()) continue;
             if (!panda.isHealAlly(guest)) continue;
             found.add(guest);
         }
@@ -318,7 +328,7 @@ public class FeastPileEntity extends Entity {
         for (int wave = 0; wave < OWAttacksConstants.RedPanda.FEAST_WAVE_COUNT; wave++) {
             int offset = wave * OWAttacksConstants.RedPanda.FEAST_WAVE_INTERVAL;
             double progress = ((lifetime + offset) % travel) / (double) travel;
-            double ring = progress * radius;
+            double ring = progress * radius();
             if (ring < 0.6) continue;
 
             int points = Math.max(8, (int) (ring * 3));
@@ -348,7 +358,7 @@ public class FeastPileEntity extends Entity {
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         this.ownerId = tag.getInt("ownerId");
-        this.radius = tag.getDouble("radius");
+        this.entityData.set(DATA_RADIUS, tag.getFloat("radius"));
         this.lifetime = tag.getInt("lifetime");
         this.maxLifetime = Math.max(1, tag.getInt("maxLifetime"));
         this.entityData.set(DATA_PORTIONS, tag.getInt("portions"));
@@ -358,7 +368,7 @@ public class FeastPileEntity extends Entity {
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
         tag.putInt("ownerId", this.ownerId);
-        tag.putDouble("radius", this.radius);
+        tag.putFloat("radius", (float) radius());
         tag.putInt("lifetime", this.lifetime);
         tag.putInt("maxLifetime", this.maxLifetime);
         tag.putInt("portions", portions());

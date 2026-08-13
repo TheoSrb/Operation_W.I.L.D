@@ -587,11 +587,22 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
+    /**
+     * Facteur applique a la vitesse de base pour la poursuite du maitre.
+     *
+     * <p>La vitesse de rattrapage vaut donc le CARRE de l'attribut : une espece deja rapide court
+     * doublement vite pour rejoindre. Les especes que ce carre emporte trop loin abaissent ce
+     * facteur plutot que leur vitesse, qui commande aussi leur allure ordinaire.</p>
+     */
+    protected double followOwnerSpeedFactor() {
+        return this instanceof OWWaterEntity ? 5 : 20;
+    }
+
     protected void registerGoals() {
         this.registerBehaviorGoals(this);
 
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
-        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * (this instanceof OWWaterEntity ? 5 : 20), 15, 3));
+        this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * followOwnerSpeedFactor(), 15, 3));
         this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25));
         this.goalSelector.addGoal(6, new OWLookAtPlayerGoal(this, Player.class, 6.0F));
 
