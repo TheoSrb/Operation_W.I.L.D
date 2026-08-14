@@ -8,11 +8,609 @@ import net.minecraft.client.animation.KeyframeAnimations;
 /**
  * Animations du panda roux (export Blockbench 5.1.6).
  *
- * <p>Dix définitions : intimidation, repos, marche, repos d'épaule, sieste, assise, et les quatre
- * transitions qui les relient. Les gestes d'attaque, eux, restent écrits à la main dans
+ * <p>Quatorze définitions : jeu, peur, intimidation, repos, marche, repos d'épaule, sieste, assise,
+ * et les transitions qui les relient. Les gestes d'attaque, eux, restent écrits à la main dans
  * {@code RedPandaModel} — l'export n'en fournit aucun.</p>
  */
 public class RedPandaAnimations {
+	public static final AnimationDefinition MISC_PLAY = AnimationDefinition.Builder.withLength(7.5F)
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(29.1475F, -7.4355F, 13.0643F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.degreeVec(71.5626F, 9.1832F, 7.5606F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.125F, KeyframeAnimations.degreeVec(108.526F, -18.7441F, -12.0827F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0625F, KeyframeAnimations.degreeVec(71.5626F, 9.1832F, 7.5606F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(108.526F, -18.7441F, -12.0827F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.9375F, KeyframeAnimations.degreeVec(71.5626F, 9.1832F, 7.5606F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.5625F, KeyframeAnimations.degreeVec(117.3183F, -1.8162F, -59.5618F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.posVec(0.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.9271F, KeyframeAnimations.posVec(0.0F, -2.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.8646F, KeyframeAnimations.posVec(1.0F, -2.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.8021F, KeyframeAnimations.posVec(0.0F, -2.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.7396F, KeyframeAnimations.posVec(1.0F, -2.0F, -3.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.6771F, KeyframeAnimations.posVec(0.0F, -2.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.3021F, KeyframeAnimations.posVec(1.0F, -4.0F, -2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.1875F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_Ear", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.8854F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 90.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0208F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 90.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0104F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.9479F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 90.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.9375F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_Ear", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.8854F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 35.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.7083F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 35.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.6979F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.7396F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 35.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.7292F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.degreeVec(0.0F, -5.0F, 10.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.degreeVec(0.0F, 5.0F, -10.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.4375F, KeyframeAnimations.degreeVec(0.0F, -5.0F, 10.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.6875F, KeyframeAnimations.degreeVec(0.0F, 5.0F, -10.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.9375F, KeyframeAnimations.degreeVec(0.0F, -5.0F, 10.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-12.5557F, 13.0304F, 5.6892F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(-10.7716F, -27.7634F, -8.1315F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(-10.7716F, 27.7634F, 8.1315F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.6979F, KeyframeAnimations.degreeVec(-10.7716F, -27.7634F, -8.1315F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.9479F, KeyframeAnimations.degreeVec(-10.7716F, 27.7634F, 8.1315F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.1979F, KeyframeAnimations.degreeVec(-10.7716F, -27.7634F, -8.1315F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(-12.5557F, 13.0304F, 5.6892F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9896F, KeyframeAnimations.posVec(0.0F, -3.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.2396F, KeyframeAnimations.posVec(1.0F, -3.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.4375F, KeyframeAnimations.posVec(0.0F, -3.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.6875F, KeyframeAnimations.posVec(1.0F, -3.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.9375F, KeyframeAnimations.posVec(0.0F, -3.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.1875F, KeyframeAnimations.posVec(0.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_arm", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.8125F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.125F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.4375F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.75F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0625F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.375F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.6875F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.3125F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.625F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.9375F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.25F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.5625F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.875F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.875F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_arm", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.8125F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.125F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.4375F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.75F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0625F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.375F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.6875F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.3125F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.625F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.9375F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.25F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.5625F, KeyframeAnimations.degreeVec(-25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.875F, KeyframeAnimations.degreeVec(25.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.875F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_leg", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.degreeVec(-23.3583F, -15.4602F, -4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.degreeVec(-23.3583F, -15.4602F, -4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.8125F, KeyframeAnimations.degreeVec(-23.3583F, -15.4602F, -4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.125F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.4375F, KeyframeAnimations.degreeVec(-23.3583F, -15.4602F, -4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.75F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0625F, KeyframeAnimations.degreeVec(-23.3583F, -15.4602F, -4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.375F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.6875F, KeyframeAnimations.degreeVec(-23.3583F, -15.4602F, -4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.3125F, KeyframeAnimations.degreeVec(-23.3583F, -15.4602F, -4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.625F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.9375F, KeyframeAnimations.degreeVec(-23.3583F, -15.4602F, -4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.25F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.5625F, KeyframeAnimations.degreeVec(-23.3583F, -15.4602F, -4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.875F, KeyframeAnimations.degreeVec(26.9703F, -6.8802F, -14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_leg", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.posVec(2.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.875F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_leg", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.degreeVec(26.9703F, 6.8802F, 14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.degreeVec(26.9703F, 6.8802F, 14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.8125F, KeyframeAnimations.degreeVec(26.9703F, 6.8802F, 14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.125F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.4375F, KeyframeAnimations.degreeVec(26.9703F, 6.8802F, 14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.75F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0625F, KeyframeAnimations.degreeVec(26.9703F, 6.8802F, 14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.375F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.6875F, KeyframeAnimations.degreeVec(26.9703F, 6.8802F, 14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.3125F, KeyframeAnimations.degreeVec(26.9703F, 6.8802F, 14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.625F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.9375F, KeyframeAnimations.degreeVec(26.9703F, 6.8802F, 14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.25F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.5625F, KeyframeAnimations.degreeVec(26.9703F, 6.8802F, 14.4335F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.875F, KeyframeAnimations.degreeVec(-23.3583F, 15.4602F, 4.0038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_leg", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.posVec(-2.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.875F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -180.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.5625F, KeyframeAnimations.degreeVec(2.5F, 0.0F, -180.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9896F, KeyframeAnimations.posVec(0.0F, -3.5F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(6.3021F, KeyframeAnimations.posVec(0.0F, -3.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(7.2396F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_Eyeball", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.4479F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.6032F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.6042F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.7594F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.7604F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.9157F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.9167F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.0719F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.0729F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.4677F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.4688F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.624F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.625F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.7802F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.7813F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.9365F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.9375F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(6.0927F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(6.0938F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR)
+		))
+		.addAnimation("right_Eyeball", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.4479F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.6032F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.6042F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.7594F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.7604F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.9157F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.9167F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.0719F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.0729F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.4677F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.4688F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.624F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.625F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.7802F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.7813F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.9365F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.9375F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(6.0927F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(6.0938F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR)
+		))
+		.build();
+
+	public static final AnimationDefinition TRANSITION_IDLE_FEAR = AnimationDefinition.Builder.withLength(0.5F)
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.375F, KeyframeAnimations.degreeVec(112.4709F, -11.253F, 25.2575F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.375F, KeyframeAnimations.posVec(2.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_Ear", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_Ear", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.25F, KeyframeAnimations.degreeVec(-8.4585F, -5.3537F, -34.6038F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-12.5557F, 13.0304F, 5.6892F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.375F, KeyframeAnimations.degreeVec(-132.7949F, 18.8895F, -16.6854F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.375F, KeyframeAnimations.posVec(1.0F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5F, KeyframeAnimations.posVec(-1.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5F, KeyframeAnimations.posVec(-0.25F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_leg", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5F, KeyframeAnimations.posVec(-1.0F, 0.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_leg", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5F, KeyframeAnimations.posVec(-0.25F, 0.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.25F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -90.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.25F, KeyframeAnimations.posVec(-0.5F, 9.13F, 0.25F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5F, KeyframeAnimations.posVec(-2.0F, -3.5F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_Eyeball", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.build();
+
+	public static final AnimationDefinition FEAR = AnimationDefinition.Builder.withLength(2.5F).looping()
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(112.4709F, -11.253F, 25.2575F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3125F, KeyframeAnimations.degreeVec(117.8882F, -10.0915F, 23.0047F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.625F, KeyframeAnimations.degreeVec(112.4709F, -11.253F, 25.2575F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.degreeVec(117.8882F, -10.0915F, 23.0047F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(112.4709F, -11.253F, 25.2575F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.degreeVec(117.8882F, -10.0915F, 23.0047F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.degreeVec(112.4709F, -11.253F, 25.2575F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.degreeVec(117.8882F, -10.0915F, 23.0047F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(112.4709F, -11.253F, 25.2575F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(2.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3125F, KeyframeAnimations.posVec(1.4F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.625F, KeyframeAnimations.posVec(2.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.posVec(1.4F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.posVec(2.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.posVec(1.4F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.posVec(2.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.posVec(1.4F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.posVec(2.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.SCALE, 
+			new Keyframe(0.0F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3125F, KeyframeAnimations.scaleVec(0.9F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.625F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.scaleVec(0.9F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.scaleVec(0.9F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.scaleVec(0.9F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.0521F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.1042F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.1563F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.2083F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.2604F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3125F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3646F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.4167F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.4688F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5208F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5729F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.625F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.6771F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.7292F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.7813F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.8333F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.8854F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9896F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.0417F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.0938F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.1458F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.1979F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.3021F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.3542F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4063F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.4583F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5104F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.6146F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.6667F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.7188F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.7708F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.8229F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.9271F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.9792F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.0313F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.0833F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1354F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.2396F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.2917F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.3438F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.3958F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.4479F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(-19.9825F, 0.8548F, 2.3494F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3125F, KeyframeAnimations.posVec(0.4F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.625F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.posVec(0.4F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.posVec(0.4F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.posVec(0.4F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.SCALE, 
+			new Keyframe(0.0F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3125F, KeyframeAnimations.scaleVec(1.1F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.625F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.scaleVec(1.1F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.scaleVec(1.1F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.scaleVec(1.1F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-132.7949F, 18.8895F, -16.6854F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3125F, KeyframeAnimations.degreeVec(-139.1993F, 22.2042F, -20.684F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.625F, KeyframeAnimations.degreeVec(-132.7949F, 18.8895F, -16.6854F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.degreeVec(-139.1993F, 22.2042F, -20.684F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.degreeVec(-132.7949F, 18.8895F, -16.6854F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.degreeVec(-139.1993F, 22.2042F, -20.684F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.degreeVec(-132.7949F, 18.8895F, -16.6854F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.degreeVec(-139.1993F, 22.2042F, -20.684F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(-132.7949F, 18.8895F, -16.6854F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(1.0F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3125F, KeyframeAnimations.posVec(0.4F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.625F, KeyframeAnimations.posVec(1.0F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.posVec(0.4F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.posVec(1.0F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.posVec(0.4F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.posVec(1.0F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.posVec(0.4F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.posVec(1.0F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.SCALE, 
+			new Keyframe(0.0F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.3125F, KeyframeAnimations.scaleVec(0.9F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.625F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.9375F, KeyframeAnimations.scaleVec(0.9F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.25F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5625F, KeyframeAnimations.scaleVec(0.9F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.875F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.1875F, KeyframeAnimations.scaleVec(0.9F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-1.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-0.25F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_leg", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-1.0F, 0.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_leg", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-0.25F, 0.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -90.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-2.0F, -3.5F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.build();
+
+	public static final AnimationDefinition TRANSITION_FEAR_IDLE = AnimationDefinition.Builder.withLength(5.0F)
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(112.4709F, -11.253F, 25.2575F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.75F, KeyframeAnimations.degreeVec(6.5602F, -80.5387F, 76.0293F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-6.6156F, -78.0207F, 89.4893F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.2917F, KeyframeAnimations.degreeVec(-6.6156F, -125.0F, 89.4893F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-9.6156F, -132.0F, 95.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.degreeVec(-6.6156F, -127.5F, 89.4893F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.75F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(2.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.75F, KeyframeAnimations.posVec(6.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5F, KeyframeAnimations.posVec(6.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.2917F, KeyframeAnimations.posVec(6.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.posVec(6.0F, -2.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.posVec(5.0F, -2.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.75F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.SCALE, 
+			new Keyframe(0.0F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_Ear", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.75F, KeyframeAnimations.degreeVec(-61.7509F, -16.7796F, 3.2493F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-31.4012F, -7.3346F, -2.3427F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(-16.1688F, 15.2834F, 46.1541F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-19.0131F, 2.2462F, -2.8173F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.degreeVec(35.3157F, 0.3083F, -16.9694F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 25.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_Ear", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.75F, KeyframeAnimations.degreeVec(-61.7509F, -16.7796F, 3.2493F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(1.5F, KeyframeAnimations.degreeVec(-31.4012F, -7.3346F, -2.3427F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(2.5F, KeyframeAnimations.degreeVec(-16.1688F, 15.2834F, 46.1541F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.0F, KeyframeAnimations.degreeVec(-19.0131F, 2.2462F, -2.8173F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.degreeVec(35.3157F, 0.3083F, -16.9694F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -25.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.125F, KeyframeAnimations.degreeVec(-19.9919F, 0.8552F, 2.3516F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.25F, KeyframeAnimations.degreeVec(-20.0018F, -0.8582F, -2.3501F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.375F, KeyframeAnimations.degreeVec(-19.9919F, 0.8552F, 2.3516F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.5F, KeyframeAnimations.degreeVec(-20.0018F, -0.8582F, -2.3501F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(0.75F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -5.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("body", new AnimationChannel(AnimationChannel.Targets.SCALE, 
+			new Keyframe(0.0F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(-132.7949F, 18.8895F, -16.6854F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.degreeVec(-132.7949F, 18.8895F, -16.6854F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.25F, KeyframeAnimations.degreeVec(-112.6773F, 11.5172F, -29.0732F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.5F, KeyframeAnimations.degreeVec(-91.9284F, 7.8767F, -75.4413F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(-12.5557F, 13.0304F, 5.6892F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(1.0F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.posVec(1.0F, -4.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.posVec(0.0F, -2.0F, 0.0F), AnimationChannel.Interpolations.LINEAR)
+		))
+		.addAnimation("tail", new AnimationChannel(AnimationChannel.Targets.SCALE, 
+			new Keyframe(0.0F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.scaleVec(1.0F, 1.0F, 1.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-1.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.posVec(-1.0F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_arm", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-0.25F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.posVec(-0.25F, 0.0F, 2.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_leg", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-1.0F, 0.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.posVec(-1.0F, 0.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("right_leg", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-0.25F, 0.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(4.0F, KeyframeAnimations.posVec(-0.25F, 0.0F, -1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
+			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -90.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.7917F, KeyframeAnimations.degreeVec(0.0F, 0.0F, -90.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("ALL", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(-2.0F, -3.5F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(3.7917F, KeyframeAnimations.posVec(-2.0F, -3.5F, 1.0F), AnimationChannel.Interpolations.CATMULLROM),
+			new Keyframe(5.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)
+		))
+		.addAnimation("left_Eyeball", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(2.5F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.7073F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.7083F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.9157F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.9167F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.124F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.125F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.2907F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.2917F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(4.999F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR)
+		))
+		.addAnimation("right_Eyeball", new AnimationChannel(AnimationChannel.Targets.POSITION, 
+			new Keyframe(0.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.5F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.7073F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.7083F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.9157F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(2.9167F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.124F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.125F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.2907F, KeyframeAnimations.posVec(0.0F, -1.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(3.2917F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(4.999F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(5.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR)
+		))
+		.build();
+
 	public static final AnimationDefinition INTIMIDATION = AnimationDefinition.Builder.withLength(4.0F)
 		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION, 
 			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),

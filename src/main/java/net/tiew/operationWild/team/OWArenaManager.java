@@ -1133,6 +1133,8 @@ public final class OWArenaManager {
             if (e instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart) return;
             if (e instanceof net.tiew.operationWild.entity.animals.aquatic.CrocodileTailPart) return;
             if (e instanceof net.minecraft.world.entity.projectile.Projectile) return;   // une attaque en vol
+            if (e instanceof net.tiew.operationWild.entity.misc.HealSnackEntity) return;
+            if (e instanceof net.tiew.operationWild.entity.misc.FeastPileEntity) return;
             intruders.add(e);
         });
         for (Entity e : intruders) e.discard();
@@ -1640,6 +1642,9 @@ public final class OWArenaManager {
             double angle = i * (Math.PI * 2 / SPARRING_SPECIES.length);
             owE.moveTo(player.getX() + Math.cos(angle) * 5, player.getY(), player.getZ() + Math.sin(angle) * 5,
                     player.getYRot(), 0f);
+
+            owE.finalizeSpawn(level, level.getCurrentDifficultyAt(owE.blockPosition()),
+                    net.minecraft.world.entity.MobSpawnType.COMMAND, null);
             level.addFreshEntity(owE);
 
             // On apprivoise avec le joueur (pour tous les effets de bord du taming), puis on
@@ -1649,6 +1654,10 @@ public final class OWArenaManager {
             owE.setCachedOwnerName(SPARRING_TRIBE_NAME);
             owE.setLevel(20);
             owE.currentTeam = bot;
+
+            owE.setPassive(false);
+            owE.setCurrentMode(OWEntity.Mode.Aggressive);
+            owE.setHealth(owE.getMaxHealth());
         }
         OWTribeManager.refreshEntitiesOfPlayer(server, SPARRING_CHIEF);
     }

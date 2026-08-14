@@ -1,6 +1,7 @@
 package net.tiew.operationWild.entity.goals.red_panda;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.CakeBlock;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -21,7 +23,10 @@ import java.util.EnumSet;
 
 public class RedPandaSweetLureGoal extends Goal {
 
-    private static final double EAT_RANGE_SQR = 2.3 * 2.3;
+    private static final double EAT_RANGE_SQR = 1.3 * 1.3;
+    private static final double FINAL_APPROACH_SQR = 5.0 * 5.0;
+    private static final double CREEP_RANGE_SQR = 2.5 * 2.5;
+    private static final int CRUMB_INTERVAL = 8;
 
     private static final int HOP_RADIUS = 10;
     private static final int HOP_Y = 4;
@@ -30,7 +35,7 @@ public class RedPandaSweetLureGoal extends Goal {
     private static final int PAUSE_MAX = 60;
     private static final int GLANCE_INTERVAL = 25;
 
-    private static final int BITE_INTERVAL = 60;
+    private static final int BITE_INTERVAL = 70;
     private static final int HONEY_LICKS = 5;
     private static final double SHARE_RADIUS = 16.0;
     private static final int SHARE_INTERVAL = 40;
@@ -88,6 +93,7 @@ public class RedPandaSweetLureGoal extends Goal {
     public void stop() {
         if (lure == null || !isSweet(lure)) panda.forgetSweetLure();
 
+        panda.setMealTimer(0);
         panda.getNavigation().stop();
         lure = null;
         stayTicks = 0;
@@ -113,14 +119,50 @@ public class RedPandaSweetLureGoal extends Goal {
         travelTicks = 0;
         panda.getNavigation().stop();
         panda.getLookControl().setLookAt(target.x, target.y, target.z);
+        if (panda.onGround()) {
+            panda.setDeltaMovement(panda.getDeltaMovement().multiply(0.0, 1.0, 0.0));
+        }
+
+        if (panda.isEatingMeal()) {
+            if (panda.getMealTimer() % CRUMB_INTERVAL == 0) spawnCrumbs();
+            return;
+        }
 
         if (++biteTicks < BITE_INTERVAL) return;
         biteTicks = 0;
         bite();
     }
 
+    private void spawnCrumbs() {
+        if (!(panda.level() instanceof ServerLevel serverLevel)) return;
+
+        ItemStack crumbs = lureStack();
+        if (crumbs.isEmpty()) return;
+
+        Vec3 mouth = panda.position().add(
+                panda.getLookAngle().x * 0.35, panda.getBbHeight() * 0.72, panda.getLookAngle().z * 0.35);
+
+        serverLevel.sendParticles(new ItemParticleOption(ParticleTypes.ITEM, crumbs),
+                mouth.x, mouth.y, mouth.z, 3, 0.08, 0.06, 0.08, 0.03);
+    }
+
+    private ItemStack lureStack() {
+        return new ItemStack(panda.level().getBlockState(lure).getBlock());
+    }
+
     private void drift(Vec3 target) {
         travelTicks++;
+
+        if (panda.distanceToSqr(target) <= FINAL_APPROACH_SQR) {
+            if (!panda.getNavigation().isDone()) return;
+
+            if (panda.distanceToSqr(target) > CREEP_RANGE_SQR) {
+                panda.getNavigation().moveTo(target.x, target.y, target.z, speedModifier);
+            } else {
+                panda.getMoveControl().setWantedPosition(target.x, target.y, target.z, speedModifier);
+            }
+            return;
+        }
 
         if (pauseTicks > 0) {
             pauseTicks--;
@@ -141,6 +183,7 @@ public class RedPandaSweetLureGoal extends Goal {
     private void bite() {
         BlockState state = panda.level().getBlockState(lure);
 
+        panda.setMealTimer(RedPandaEntity.MEAL_TICKS);
         panda.level().playSound(null, lure, SoundEvents.GENERIC_EAT, SoundSource.NEUTRAL, 0.8f,
                 (float) OWUtils.generateRandomInterval(1.15, 1.45));
 

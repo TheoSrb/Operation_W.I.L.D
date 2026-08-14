@@ -19,8 +19,7 @@ import java.util.List;
 
 public class RedPandaIntimidationGoal extends Goal {
 
-    private static final double PLAYER_RANGE = 9.0;
-    private static final double PLAYER_LOUD_RANGE = 14.0;
+    private static final double PLAYER_SPRINT_RANGE = 8.0;
     private static final double MONSTER_RANGE = 10.0;
     private static final double HUNTER_RANGE = 12.0;
 
@@ -139,20 +138,19 @@ public class RedPandaIntimidationGoal extends Goal {
                 && !panda.isVehicle()
                 && !panda.isTreeClimbing()
                 && !panda.isClimbing()
-                && !panda.isEatingEgg()
+                && !panda.isEatingMeal()
+                && !panda.isCowering()
                 && !panda.isAlerted();
     }
 
     private @Nullable LivingEntity findThreat() {
-        Player player = panda.level().getNearestPlayer(panda, PLAYER_LOUD_RANGE);
-        if (player != null && !player.isSpectator() && !player.isCreative() && !player.isCrouching()) {
-            double distance = panda.distanceTo(player);
-            boolean loud = player.isSprinting() || player.swinging;
-            if ((distance <= PLAYER_RANGE || (loud && distance <= PLAYER_LOUD_RANGE))
-                    && panda.hasLineOfSight(player)) {
-                return player;
-            }
-        }
+        List<Player> runners = panda.level().getEntitiesOfClass(Player.class,
+                panda.getBoundingBox().inflate(PLAYER_SPRINT_RANGE),
+                candidate -> candidate.isSprinting()
+                        && !candidate.isSpectator()
+                        && !candidate.isCreative()
+                        && panda.hasLineOfSight(candidate));
+        if (!runners.isEmpty()) return runners.get(0);
 
         List<Monster> monsters = panda.level().getEntitiesOfClass(Monster.class,
                 panda.getBoundingBox().inflate(MONSTER_RANGE),

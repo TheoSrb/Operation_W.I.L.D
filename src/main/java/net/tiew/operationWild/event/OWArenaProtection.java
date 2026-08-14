@@ -70,7 +70,9 @@ public class OWArenaProtection {
                 || entity instanceof OWEntity
                 || entity instanceof BoaTailPart
                 || entity instanceof CrocodileTailPart
-                || entity instanceof Projectile;
+                || entity instanceof Projectile
+                || entity instanceof net.tiew.operationWild.entity.misc.HealSnackEntity
+                || entity instanceof net.tiew.operationWild.entity.misc.FeastPileEntity;
     }
 
     @SubscribeEvent

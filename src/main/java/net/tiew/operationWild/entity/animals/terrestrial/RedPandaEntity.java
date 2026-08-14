@@ -58,8 +58,10 @@ import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWPanicGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.goals.red_panda.RedPandaAlertedFleeGoal;
+import net.tiew.operationWild.entity.goals.red_panda.RedPandaCombatHealGoal;
 import net.tiew.operationWild.entity.goals.red_panda.RedPandaEggStealGoal;
 import net.tiew.operationWild.entity.goals.red_panda.RedPandaIntimidationGoal;
+import net.tiew.operationWild.entity.goals.red_panda.RedPandaPlayGoal;
 import net.tiew.operationWild.entity.goals.red_panda.RedPandaSweetLureGoal;
 import net.tiew.operationWild.entity.goals.red_panda.RedPandaTreeClimbGoal;
 import net.tiew.operationWild.entity.misc.FeastPileEntity;
@@ -91,6 +93,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static final float CROUCH_BLEND = 0.35f;
 
     private static final int SHOULDER_TOGGLE_COOLDOWN = 10;
+    private static final double HUNTER_RELEASE_RANGE = 24.0;
     private static final int NAP_COOLDOWN_AFTER_DISMOUNT = 200;
     private static final int SHOULDER_RESTORE_TIMEOUT = 600;
     private static final double SHOULDER_RESTORE_RANGE = 8.0;
@@ -170,16 +173,30 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> INTIMIDATE_TIMER =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
-    private static final EntityDataAccessor<Integer> EGG_EAT_TIMER =
+    private static final EntityDataAccessor<Integer> MEAL_TIMER =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ALERT_TICKS =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> COWERING =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> FEAR_RECOVER_TIMER =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> PLAY_TIMER =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> SWIPE_TIMER =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> CLIMB_PACE =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<ItemStack> MOUTH_ITEM =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.ITEM_STACK);
 
     public static final int INTIMIDATE_TICKS = 80;
-    public static final int EGG_EAT_TICKS = 46;
+    public static final int MEAL_TICKS = 46;
+    public static final int SWIPE_TICKS = 16;
+    public static final int PLAY_TICKS = 150;
     public static final int ALERT_DURATION_TICKS = 140;
+    public static final int FEAR_ENTER_TICKS = 10;
+    public static final int FEAR_EXIT_TICKS = 100;
     public static final int MOUTH_CHEW_TICKS = 400;
     private static final float MOUTH_MEAL_HEAL = 1.5f;
 
@@ -198,15 +215,25 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public final AnimationState shoulderIdleAnimationState = new AnimationState();
     public final AnimationState miscIdleAnimationState = new AnimationState();
     public final AnimationState intimidateAnimationState = new AnimationState();
-    public final AnimationState eggEatAnimationState = new AnimationState();
+    public final AnimationState mealAnimationState = new AnimationState();
+    public final AnimationState swipeAnimationState = new AnimationState();
+    public final AnimationState playAnimationState = new AnimationState();
+    public final AnimationState fearAnimationState = new AnimationState();
+    public final AnimationState transitionIdleFear = new AnimationState();
+    public final AnimationState transitionFearIdle = new AnimationState();
 
     public float treeLean = 0f;
     public float treeLeanO = 0f;
     public float treeFlip = 0f;
     public float treeFlipO = 0f;
 
+    public float climbCycle = 0f;
+    public float climbEffort = 0f;
+    public float climbLastAge = Float.NaN;
+
     private LivingEntity alertSource = null;
     private BlockPos sweetLure = null;
+    private BlockPos climbColumn = null;
     private int mouthChewTicks = 0;
     private int fallGraceTicks = 0;
     private final List<int[]> scaredMobs = new ArrayList<>();
@@ -215,7 +242,10 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private int lastThrowTimer = 0;
     private int lastFeastCastTimer = 0;
     private int lastIntimidateTimer = 0;
-    private int lastEggEatTimer = 0;
+    private int lastMealTimer = 0;
+    private int lastSwipeTimer = 0;
+    private int lastPlayTimer = 0;
+    private int lastFearRecoverTimer = 0;
     private int secondThrowDelay = 0;
     private int pendingFeastPortions = 0;
 
@@ -266,11 +296,6 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
     }
 
-    @Override
-    protected double followOwnerSpeedFactor() {
-        return 12;
-    }
-
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 16.0)
@@ -289,14 +314,18 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         this.goalSelector.addGoal(1, new OWPanicGoal(this, 2.8f, 1.0, 0) {
             @Override
             protected boolean shouldPanic() {
-                return !RedPandaEntity.this.isTame() && RedPandaEntity.this.getLastHurtByMob() != null;
+                if (RedPandaEntity.this.isTame()) return false;
+                if (RedPandaEntity.this.isTreeClimbing() || RedPandaEntity.this.isAlerted()) return false;
+                return RedPandaEntity.this.getLastHurtByMob() != null;
             }
         });
+        this.goalSelector.addGoal(1, new RedPandaCombatHealGoal(this));
         this.goalSelector.addGoal(2, new RedPandaIntimidationGoal(this));
-        this.goalSelector.addGoal(3, new RedPandaTreeClimbGoal(this, 1.15D));
+        this.goalSelector.addGoal(3, new RedPandaTreeClimbGoal(this, 1.5D));
         this.goalSelector.addGoal(3, new RedPandaAlertedFleeGoal(this, 2.6D));
         this.goalSelector.addGoal(5, new RedPandaEggStealGoal(this, 1.25D));
         this.goalSelector.addGoal(5, new RedPandaSweetLureGoal(this, 1.0D));
+        this.goalSelector.addGoal(5, new RedPandaPlayGoal(this));
         this.goalSelector.addGoal(5, new net.tiew.operationWild.entity.goals.NapGoal(this, 1f, 800, true, true));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 1.0D));
@@ -320,8 +349,13 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         builder.define(TREE_LEAN_TARGET, 0f);
         builder.define(TREE_FLIP_TARGET, 0f);
         builder.define(INTIMIDATE_TIMER, 0);
-        builder.define(EGG_EAT_TIMER, 0);
+        builder.define(MEAL_TIMER, 0);
         builder.define(ALERT_TICKS, 0);
+        builder.define(COWERING, false);
+        builder.define(FEAR_RECOVER_TIMER, 0);
+        builder.define(PLAY_TIMER, 0);
+        builder.define(SWIPE_TIMER, 0);
+        builder.define(CLIMB_PACE, 0f);
         builder.define(MOUTH_ITEM, ItemStack.EMPTY);
     }
 
@@ -343,11 +377,35 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     public boolean isIntimidating() { return getIntimidateTimer() > 0; }
 
-    public int getEggEatTimer() { return this.entityData.get(EGG_EAT_TIMER); }
+    public int getMealTimer() { return this.entityData.get(MEAL_TIMER); }
 
-    public void setEggEatTimer(int timer) { this.entityData.set(EGG_EAT_TIMER, Math.max(0, timer)); }
+    public void setMealTimer(int timer) { this.entityData.set(MEAL_TIMER, Math.max(0, timer)); }
 
-    public boolean isEatingEgg() { return getEggEatTimer() > 0; }
+    public boolean isEatingMeal() { return getMealTimer() > 0; }
+
+    public boolean isCowering() { return this.entityData.get(COWERING); }
+
+    public void setCowering(boolean cowering) { this.entityData.set(COWERING, cowering); }
+
+    public int getFearRecoverTimer() { return this.entityData.get(FEAR_RECOVER_TIMER); }
+
+    public void setFearRecoverTimer(int timer) { this.entityData.set(FEAR_RECOVER_TIMER, Math.max(0, timer)); }
+
+    public int getPlayTimer() { return this.entityData.get(PLAY_TIMER); }
+
+    public void setPlayTimer(int timer) { this.entityData.set(PLAY_TIMER, Math.max(0, timer)); }
+
+    public boolean isPlaying() { return getPlayTimer() > 0; }
+
+    public int getSwipeTimer() { return this.entityData.get(SWIPE_TIMER); }
+
+    public void setSwipeTimer(int timer) { this.entityData.set(SWIPE_TIMER, Math.max(0, timer)); }
+
+    public boolean isSwiping() { return getSwipeTimer() > 0; }
+
+    public float getClimbPace() { return this.entityData.get(CLIMB_PACE); }
+
+    public void setClimbPace(float pace) { this.entityData.set(CLIMB_PACE, Math.max(0f, pace)); }
 
     public ItemStack getMouthItem() { return this.entityData.get(MOUTH_ITEM); }
 
@@ -356,6 +414,14 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public void setMouthItem(ItemStack stack) {
         this.entityData.set(MOUTH_ITEM, stack);
         this.mouthChewTicks = stack.isEmpty() ? 0 : MOUTH_CHEW_TICKS;
+    }
+
+    public void offerToMouth(ItemStack offered) {
+        setMouthItem(offered);
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL, 0.7f,
+                (float) OWUtils.generateRandomInterval(1.1, 1.3));
     }
 
     public void takeMouthItem(Player player) {
@@ -389,6 +455,10 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
                 SoundEvents.GENERIC_EAT, SoundSource.NEUTRAL, 0.7f,
                 (float) OWUtils.generateRandomInterval(1.1, 1.35));
     }
+
+    public @Nullable BlockPos getClimbColumn() { return this.climbColumn; }
+
+    public void setClimbColumn(@Nullable BlockPos pos) { this.climbColumn = pos; }
 
     public @Nullable BlockPos getSweetLure() { return this.sweetLure; }
 
@@ -716,7 +786,10 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         if (!this.level().isClientSide()) {
             if (getThrowTimer() > 0) setThrowTimer(getThrowTimer() - 1);
             if (getIntimidateTimer() > 0) setIntimidateTimer(getIntimidateTimer() - 1);
-            if (getEggEatTimer() > 0) setEggEatTimer(getEggEatTimer() - 1);
+            if (getMealTimer() > 0) setMealTimer(getMealTimer() - 1);
+            if (getSwipeTimer() > 0) setSwipeTimer(getSwipeTimer() - 1);
+            if (getPlayTimer() > 0) setPlayTimer(getPlayTimer() - 1);
+            if (getFearRecoverTimer() > 0) setFearRecoverTimer(getFearRecoverTimer() - 1);
             if (fallGraceTicks > 0) fallGraceTicks--;
 
             tickAlert();
@@ -758,6 +831,11 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     }
 
     @Override
+    protected double followOwnerSpeedFactor() {
+        return 12;
+    }
+
+    @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (this.level().isClientSide()) return super.mobInteract(player, hand);
         if (hand != InteractionHand.MAIN_HAND) return super.mobInteract(player, hand);
@@ -769,7 +847,21 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             return InteractionResult.SUCCESS;
         }
 
-        if (!this.isTame() || this.isBaby() || this.isInResurrection()) return super.mobInteract(player, hand);
+        boolean mouthFree = !hasMouthItem() && !isOnShoulder() && !isInResurrection();
+
+        if (mouthFree && stack.is(Items.BAMBOO)) {
+            offerToMouth(stack.copyWithCount(1));
+            if (!player.getAbilities().instabuild) stack.shrink(1);
+            return InteractionResult.SUCCESS;
+        }
+
+        if (!this.isTame() || this.isBaby() || this.isInResurrection()) {
+            ItemStack offered = stack.copyWithCount(1);
+            InteractionResult fed = super.mobInteract(player, hand);
+            if (mouthFree && isFood(offered) && fed.consumesAction()) offerToMouth(offered);
+            return fed;
+        }
+
         if (isFood(stack) && this.getHealth() < this.getMaxHealth()) return super.mobInteract(player, hand);
 
         if (isOnShoulder()) {
@@ -806,6 +898,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         if (!this.startRiding(player, true)) return false;
 
         syncPassengersToCarrier(player);
+        shakeOffHunters();
 
         shoulderCooldown = SHOULDER_TOGGLE_COOLDOWN;
         this.level().playSound(null, player.getX(), player.getY(), player.getZ(),
@@ -917,6 +1010,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
         if (mounting && this.startRiding(carrier, true)) {
             syncPassengersToCarrier(carrier);
+            shakeOffHunters();
             this.level().playSound(null, carrier.getX(), carrier.getY(), carrier.getZ(),
                     SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.NEUTRAL, 0.8f,
                     (float) OWUtils.generateRandomInterval(1.2, 1.4));
@@ -990,7 +1084,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     @Override
     public boolean canStartNap() {
         return napCooldown <= 0 && !isClimbing() && !isOnShoulder()
-                && !isTreeClimbing() && !isIntimidating() && !isEatingEgg();
+                && !isTreeClimbing() && !isIntimidating() && !isEatingMeal();
     }
 
     public boolean isOnShoulder() {
@@ -1055,7 +1149,12 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     @Override
     public boolean hurt(DamageSource damageSource, float amount) {
         if (isOnShoulder() && isShieldedWhileCarried(damageSource)) return false;
-        return super.hurt(damageSource, amount);
+
+        boolean hurt = super.hurt(damageSource, amount);
+        if (hurt && !isTame() && !isBaby() && damageSource.getEntity() instanceof LivingEntity attacker) {
+            raiseAlert(attacker);
+        }
+        return hurt;
     }
 
     private boolean isShieldedWhileCarried(DamageSource source) {
@@ -1086,7 +1185,21 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     @Override
     public boolean canBeHitByProjectile() {
-        return this.isAlive();
+        return this.isAlive() && !isOnShoulder();
+    }
+
+    @Override
+    public boolean canBeSeenAsEnemy() {
+        return !isOnShoulder() && super.canBeSeenAsEnemy();
+    }
+
+    private void shakeOffHunters() {
+        if (this.level().isClientSide()) return;
+
+        for (Mob hunter : this.level().getEntitiesOfClass(Mob.class,
+                this.getBoundingBox().inflate(HUNTER_RELEASE_RANGE))) {
+            if (hunter.getTarget() == this) hunter.setTarget(null);
+        }
     }
 
     @Override
@@ -1118,23 +1231,33 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             return;
         }
 
+        if (!throwHealSnackAt(target)) canShowVitalEnergyLack = true;
+    }
+
+    public boolean throwHealSnackAt(@Nullable LivingEntity target) {
+        if (this.level().isClientSide()) return false;
+        if (target == null || !target.isAlive()) return false;
+        if (healSnackCooldown > 0) return false;
+
         float cost = OWAttacksConstants.RedPanda.HEAL_SNACK_ENERGY;
-        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
-            canShowVitalEnergyLack = true;
-            return;
-        }
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) return false;
+
         setVitalEnergy(getVitalEnergy() + cost);
         healSnackCooldown = OWAttacksConstants.RedPanda.HEAL_SNACK_COOLDOWN_TICKS;
 
-        boolean twin = OWPistePassives.has(this, OWPistePassives.DOUBLE_RATION);
         setThrowTimer(OWAttacksConstants.RedPanda.HEAL_SNACK_THROW_TICKS);
-
         queueSnack(target, true, 0, -1);
 
-        if (twin) {
+        if (OWPistePassives.has(this, OWPistePassives.DOUBLE_RATION)) {
             secondThrowDelay = OWPistePassives.DOUBLE_RATION_DELAY_TICKS;
             queueSnack(target, false, OWPistePassives.DOUBLE_RATION_DELAY_TICKS, 1);
         }
+        return true;
+    }
+
+    public boolean canThrowHealSnack() {
+        return healSnackCooldown <= 0
+                && getVitalEnergy() <= getVitalEnergyCapacity() - OWAttacksConstants.RedPanda.HEAL_SNACK_ENERGY;
     }
 
     private void handleSecondThrow() {
@@ -1283,7 +1406,12 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public boolean isHealAlly(LivingEntity candidate) {
         if (candidate == this.getOwner()) return true;
         if (this.isTameGrabAlly(candidate)) return true;
-        return candidate instanceof TamableAnimal tamed && tamed.isOwnedBy(this.getOwner());
+
+        if (candidate instanceof TamableAnimal tamed && this.getOwnerUUID() != null
+                && this.getOwnerUUID().equals(tamed.getOwnerUUID())) {
+            return true;
+        }
+        return this.isAlliedTo(candidate);
     }
 
 
@@ -1471,16 +1599,36 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         else if (intimidateTimer <= 0) this.intimidateAnimationState.stop();
         lastIntimidateTimer = intimidateTimer;
 
-        int eggTimer = getEggEatTimer();
-        if (eggTimer > lastEggEatTimer) this.eggEatAnimationState.start(this.tickCount);
-        else if (eggTimer <= 0) this.eggEatAnimationState.stop();
-        lastEggEatTimer = eggTimer;
+        int mealTimer = getMealTimer();
+        if (mealTimer > lastMealTimer) this.mealAnimationState.start(this.tickCount);
+        else if (mealTimer <= 0) this.mealAnimationState.stop();
+        lastMealTimer = mealTimer;
+
+        int swipeTimer = getSwipeTimer();
+        if (swipeTimer > lastSwipeTimer) this.swipeAnimationState.start(this.tickCount);
+        else if (swipeTimer <= 0) this.swipeAnimationState.stop();
+        lastSwipeTimer = swipeTimer;
+
+        int playTimer = getPlayTimer();
+        if (playTimer > lastPlayTimer) this.playAnimationState.start(this.tickCount);
+        else if (playTimer <= 0) this.playAnimationState.stop();
+        lastPlayTimer = playTimer;
+
+        if (isCowering()) this.fearAnimationState.startIfStopped(this.tickCount);
+        else this.fearAnimationState.stop();
+
+        int recoverTimer = getFearRecoverTimer();
+        if (recoverTimer > lastFearRecoverTimer) this.transitionFearIdle.start(this.tickCount);
+        else if (recoverTimer <= 0) this.transitionFearIdle.stop();
+        lastFearRecoverTimer = recoverTimer;
+
+        createTransitionAnimation("idleFear", transitionIdleFear, isCowering(), FEAR_ENTER_TICKS);
     }
 
     public boolean canPlayIdleAnimation() {
         return this.getTarget() == null && !this.isNapping() && !this.isMoving()
                 && !this.isPassenger() && !this.isInWater()
-                && !this.isIntimidating() && !this.isEatingEgg() && !this.isTreePosed();
+                && !this.isIntimidating() && !this.isEatingMeal() && !this.isTreePosed();
     }
 
     public boolean isAnyIdleAnimationPlaying() {

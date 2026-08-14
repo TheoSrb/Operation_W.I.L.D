@@ -40,7 +40,8 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     private static final float TAIL_GRAVITY_RESPONSE = 0.22f;
 
     private static final float TREE_UPRIGHT_PITCH = (float) (Math.PI / 2.0);
-    private static final float TREE_CADENCE = 0.55f;
+    private static final float TREE_CYCLE_RATE = 0.42f;
+    private static final float TREE_EFFORT_RESPONSE = 0.30f;
     private static final float TREE_ARM_BASE = -1.35f;
     private static final float TREE_ARM_SWING = 0.55f;
     private static final float TREE_ARM_SPREAD = 0.30f;
@@ -66,9 +67,10 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
 
     public static boolean RENDER_AS_GROUNDED = false;
 
-    private static final double MOUTH_DROP = 0.15;
-    private static final double MOUTH_FORWARD = -0.42;
-    private static final float MOUTH_ITEM_SCALE = 0.55f;
+    private static final double MOUTH_DROP = 0.13;
+    private static final double MOUTH_FORWARD = -0.38;
+    private static final float MOUTH_ITEM_SCALE = 0.9f;
+    private static final float MOUTH_ITEM_SPIN = -45f;
 
     private T currentEntity;
     private MultiBufferSource currentBufferSource;
@@ -142,11 +144,16 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.root().getAllParts().forEach(ModelPart::resetPose);
         this.currentEntity = redPanda;
 
-        if (RENDER_AS_GROUNDED) limbSwingAmount = 0f;
-
         boolean treePosed = !RENDER_AS_GROUNDED && redPanda.isTreePosed();
 
-        boolean posed = redPanda.isOnShoulder() || treePosed || redPanda.intimidateAnimationState.isStarted();
+        if (RENDER_AS_GROUNDED || treePosed) limbSwingAmount = 0f;
+
+        boolean posed = redPanda.isOnShoulder() || treePosed
+                || redPanda.intimidateAnimationState.isStarted()
+                || redPanda.isCowering()
+                || redPanda.transitionIdleFear.isStarted()
+                || redPanda.getFearRecoverTimer() > 0
+                || redPanda.playAnimationState.isStarted();
         if (RENDER_AS_GROUNDED || !posed) {
             this.applyHeadRotation(netHeadYaw, headPitch);
         }
@@ -154,6 +161,9 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         setupBaseAnim(redPanda, limbSwing, limbSwingAmount, ageInTicks, treePosed);
 
         if (treePosed) animateTreeClimb(redPanda, ageInTicks);
+        if (redPanda.swipeAnimationState.isStarted() && !RENDER_AS_GROUNDED) {
+            animateHarvestSwipe(redPanda, ageInTicks);
+        }
 
         this.prevLimbSwing = limbSwing;
     }
@@ -175,6 +185,28 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         if (redPanda.intimidateAnimationState.isStarted() && !RENDER_AS_GROUNDED) {
             this.animate(redPanda.intimidateAnimationState, RedPandaAnimations.INTIMIDATION, ageInTicks, 1.0f);
             return;
+        }
+
+        if (!RENDER_AS_GROUNDED) {
+            if (redPanda.transitionIdleFear.isStarted()) {
+                this.animate(redPanda.transitionIdleFear, RedPandaAnimations.TRANSITION_IDLE_FEAR, ageInTicks, 1.0f);
+                return;
+            }
+
+            if (redPanda.isCowering()) {
+                this.animate(redPanda.fearAnimationState, RedPandaAnimations.FEAR, ageInTicks, 1.0f);
+                return;
+            }
+
+            if (redPanda.transitionFearIdle.isStarted() && !redPanda.isMoving()) {
+                this.animate(redPanda.transitionFearIdle, RedPandaAnimations.TRANSITION_FEAR_IDLE, ageInTicks, 1.0f);
+                return;
+            }
+
+            if (redPanda.playAnimationState.isStarted()) {
+                this.animate(redPanda.playAnimationState, RedPandaAnimations.MISC_PLAY, ageInTicks, 1.0f);
+                return;
+            }
         }
 
         if (redPanda.transitionIdleSit.isStarted()) {
@@ -263,16 +295,16 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     }
 
     private void animateGestures(T redPanda, float ageInTicks) {
-        if (redPanda.eggEatAnimationState.isStarted()) animateEggMeal(redPanda, ageInTicks);
+        if (redPanda.mealAnimationState.isStarted()) animateMeal(redPanda, ageInTicks);
         else if (redPanda.feastAnimationState.isStarted()) animateFeastCast(redPanda, ageInTicks);
         else if (redPanda.throwAnimationState.isStarted()) animateOrbThrow(redPanda, ageInTicks);
     }
 
-    private void animateEggMeal(T redPanda, float ageInTicks) {
-        redPanda.eggEatAnimationState.updateTime(ageInTicks, 1f);
+    private void animateMeal(T redPanda, float ageInTicks) {
+        redPanda.mealAnimationState.updateTime(ageInTicks, 1f);
 
-        float total = RedPandaEntity.EGG_EAT_TICKS;
-        float elapsed = redPanda.eggEatAnimationState.getAccumulatedTime() / 50f;
+        float total = RedPandaEntity.MEAL_TICKS;
+        float elapsed = redPanda.mealAnimationState.getAccumulatedTime() / 50f;
         float progress = Mth.clamp(elapsed / total, 0f, 1f);
 
         float stoop = band(progress, 0f, 0.14f) - band(progress, 0.86f, 1f);
@@ -316,6 +348,38 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.head.yScale *= 1f + 0.05f * chew * nibble;
     }
 
+    private void animateHarvestSwipe(T redPanda, float ageInTicks) {
+        redPanda.swipeAnimationState.updateTime(ageInTicks, 1f);
+
+        float total = RedPandaEntity.SWIPE_TICKS;
+        float elapsed = redPanda.swipeAnimationState.getAccumulatedTime() / 50f;
+        float progress = Mth.clamp(elapsed / total, 0f, 1f);
+
+        float coil = band(progress, 0f, 0.28f) - band(progress, 0.28f, 0.46f);
+        float strike = band(progress, 0.30f, 0.46f) - band(progress, 0.58f, 0.86f);
+        float snap = band(progress, 0.40f, 0.48f) - band(progress, 0.48f, 0.62f);
+
+        this.right_arm.xRot += 0.55f * coil - 1.30f * strike;
+        this.right_arm.zRot += 0.30f * coil - 0.45f * strike;
+        this.right_arm.y += -1.4f * strike;
+
+        this.left_arm.xRot += -0.18f * strike;
+        this.left_arm.zRot += 0.14f * strike;
+
+        this.head.xRot += -0.30f * coil - 0.16f * strike;
+        this.head.zRot += 0.22f * snap;
+        this.head.yRot += -0.18f * strike;
+
+        this.body.zRot += -0.10f * strike;
+        this.ALL.zRot += 0.07f * snap;
+
+        this.left_Ear.zRot += 0.26f * snap;
+        this.right_Ear.zRot += -0.26f * snap;
+
+        this.tail.yRot += 0.24f * strike;
+        this.tong.xRot += -0.20f * snap;
+    }
+
     private void animateTreeClimb(T redPanda, float ageInTicks) {
         float partial = Mth.clamp(ageInTicks - redPanda.tickCount, 0f, 1f);
         float lean = Mth.lerp(partial, redPanda.treeLeanO, redPanda.treeLean);
@@ -325,9 +389,17 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.ALL2.zRot += flip * Mth.PI;
         this.ALL2.y += TREE_BODY_LIFT * lean;
 
-        float cadence = ageInTicks * TREE_CADENCE;
-        float reach = Mth.sin(cadence);
-        float pull = Mth.cos(cadence);
+        float dt = Float.isNaN(redPanda.climbLastAge) ? 0f
+                : Mth.clamp(ageInTicks - redPanda.climbLastAge, 0f, 2f);
+        redPanda.climbLastAge = ageInTicks;
+
+        float pace = redPanda.getClimbPace();
+        redPanda.climbEffort += (Mth.clamp(pace, 0f, 1f) - redPanda.climbEffort)
+                * Math.min(1f, TREE_EFFORT_RESPONSE * dt);
+        redPanda.climbCycle += pace * TREE_CYCLE_RATE * dt;
+
+        float reach = Mth.sin(redPanda.climbCycle) * redPanda.climbEffort;
+        float pull = Mth.cos(redPanda.climbCycle) * redPanda.climbEffort;
 
         this.left_arm.xRot += lean * (TREE_ARM_BASE + TREE_ARM_SWING * reach);
         this.right_arm.xRot += lean * (TREE_ARM_BASE - TREE_ARM_SWING * reach);
@@ -697,8 +769,9 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.head.translateAndRotate(poseStack);
 
         poseStack.translate(0.0, MOUTH_DROP, MOUTH_FORWARD);
-        poseStack.mulPose(Axis.XP.rotationDegrees(90f));
         poseStack.mulPose(Axis.ZP.rotationDegrees(90f));
+        poseStack.mulPose(Axis.YP.rotationDegrees(90f));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(MOUTH_ITEM_SPIN));
         poseStack.scale(MOUTH_ITEM_SCALE, MOUTH_ITEM_SCALE, MOUTH_ITEM_SCALE);
 
         Minecraft.getInstance().getItemRenderer().renderStatic(

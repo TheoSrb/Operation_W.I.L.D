@@ -365,7 +365,14 @@
       "Bash(sed -n '/private void tickAscend/,/private boolean beginSidestep/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaTreeClimbGoal.java)",
       "Bash(sed -n '/private void tickDescend/,/^    }/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaTreeClimbGoal.java)",
       "Bash(.\\\\gradlew.bat compileJava --console=plain)",
-      "Bash(grep -cE \"\\(^\\\\s*//\\)|/\\\\*\" src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaSweetLureGoal.java src/main/java/net/tiew/operationWild/event/OWSweetLureTracker.java)"
+      "Bash(grep -cE \"\\(^\\\\s*//\\)|/\\\\*\" src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaSweetLureGoal.java src/main/java/net/tiew/operationWild/event/OWSweetLureTracker.java)",
+      "Bash(sed -n '/private @Nullable BlockPos findColumnBase/,/^    }/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaTreeClimbGoal.java)",
+      "Bash(sed -n '/public boolean canUse\\(\\)/,/^    }/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaTreeClimbGoal.java)",
+      "Bash(sed -n '/private void tickAscend/,/private void beginSidestep/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaTreeClimbGoal.java)",
+      "Bash(sed -n '/private boolean isAvailable/,/^    }/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaTreeClimbGoal.java)",
+      "Bash(sed -n '/goalSelector.addGoal\\(1, new OWPanicGoal/,/}\\);/p' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java)",
+      "Bash(sed -n '/public boolean hurt\\(DamageSource damageSource, float amount\\)/,/^    }/p' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java)",
+      "Bash(grep -cE \"\\(^\\\\s*//\\)|/\\\\*\" src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaCombatHealGoal.java)"
     ]
   }
 }

@@ -955,6 +955,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     private boolean canBeShakenByFootfall(LivingEntity target) {
         if (target == this || target.getRootVehicle() == this) return false;
+        if (this.isAlliedTo(target)) return false;
         if (target instanceof ElephantEntity) return false;
         if (target instanceof OWWaterEntity || target instanceof WaterAnimal) return false;
 

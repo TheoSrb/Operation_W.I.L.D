@@ -36,6 +36,7 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 
 import java.util.List;
@@ -75,7 +76,7 @@ public final class OWTargetLists {
             Pig.class, Cow.class, Sheep.class, Goat.class, Chicken.class, Rabbit.class,
             Horse.class, Donkey.class, Mule.class, Llama.class,
             Panda.class, Parrot.class, Ocelot.class, Cat.class, Fox.class,
-            BoaEntity.class, CrocodileEntity.class
+            BoaEntity.class, CrocodileEntity.class, RedPandaEntity.class
     );
 
     /**
@@ -87,7 +88,8 @@ public final class OWTargetLists {
             Pig.class, Sheep.class, Cow.class, Horse.class,
             Chicken.class, Rabbit.class, Parrot.class, Bat.class,
             Ocelot.class, Cat.class, Fox.class,
-            Frog.class, Turtle.class
+            Frog.class, Turtle.class,
+            RedPandaEntity.class
     );
 
     /**
@@ -101,7 +103,7 @@ public final class OWTargetLists {
             Salmon.class, Cod.class, TropicalFish.class,
             Turtle.class, Frog.class,
             Drowned.class, Zombie.class,
-            KangarooEntity.class, BoaEntity.class, TigerEntity.class
+            KangarooEntity.class, BoaEntity.class, TigerEntity.class, RedPandaEntity.class
     );
 
     /**

@@ -66,7 +66,7 @@ public class RedPandaEggStealGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (!isAvailable()) return false;
-        if (eatTicks > 0) return eatTicks < RedPandaEntity.EGG_EAT_TICKS;
+        if (eatTicks > 0) return eatTicks < RedPandaEntity.MEAL_TICKS;
         if (egg == null || !egg.isAlive() || egg.getItem().isEmpty()) return false;
         return travelTicks <= TRAVEL_TIMEOUT;
     }
@@ -85,7 +85,7 @@ public class RedPandaEggStealGoal extends Goal {
     public void stop() {
         boolean ate = eatTicks > 0;
 
-        panda.setEggEatTimer(0);
+        panda.setMealTimer(0);
         panda.getNavigation().stop();
         egg = null;
         meal = ItemStack.EMPTY;
@@ -135,7 +135,7 @@ public class RedPandaEggStealGoal extends Goal {
 
     private void beginMeal() {
         meal = egg.getItem().copyWithCount(1);
-        panda.setEggEatTimer(RedPandaEntity.EGG_EAT_TICKS);
+        panda.setMealTimer(RedPandaEntity.MEAL_TICKS);
         panda.level().playSound(null, panda.getX(), panda.getY(), panda.getZ(),
                 SoundEvents.FOX_SNIFF, SoundSource.NEUTRAL, 0.6f,
                 (float) OWUtils.generateRandomInterval(1.2, 1.45));
