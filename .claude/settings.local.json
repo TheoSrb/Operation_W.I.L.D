@@ -354,7 +354,18 @@
       "Bash(sed -n '/public void applyOrbHeal/,/^    }$/p;/private void handleHealOverTime/,/^    }$/p' src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java)",
       "Bash(:)",
       "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/lang_forager.py\")",
-      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/feast2.py\")"
+      "Bash(python \"C:/Users/Tiew_37/AppData/Local/Temp/claude/C--Users-Tiew-37-IdeaProjects-Operation-W-I-L-D/ed3146ce-d7db-462a-acb4-35d6449076b5/scratchpad/feast2.py\")",
+      "Bash(cd \"C:/Users/Tiew_37/IdeaProjects/Operation-W.I.L.D\" && grep -rn \"HALF_PI\" --include=*.java src/main/java/ | head -3; echo \"---getPosAway sig---\"; find ~/.gradle /c/Users/Tiew_37/.gradle -name \"Mth.class\" 2>/dev/null | head -1)",
+      "Bash(grep -E \"//|/\\\\*|\\\\*\")",
+      "Bash(grep -E \"\\(^\\\\+\\\\s*//\\)|\\(/\\\\*\\)\")",
+      "Bash(grep -nE \"\\(^\\\\s*//\\)|/\\\\*\" src/main/java/net/tiew/operationWild/entity/goals/red_panda/*.java)",
+      "Bash(sed -n '/public void start\\(\\)/,/^    }/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaIntimidationGoal.java)",
+      "Bash(sed -n '/public boolean canUse\\(\\)/,/^    }/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaAlertedFleeGoal.java)",
+      "Bash(sed -n '/public boolean canUse\\(\\)/,/^    }/p;/public void start\\(\\)/,/^    }/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaTreeClimbGoal.java)",
+      "Bash(sed -n '/private void tickAscend/,/private boolean beginSidestep/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaTreeClimbGoal.java)",
+      "Bash(sed -n '/private void tickDescend/,/^    }/p' src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaTreeClimbGoal.java)",
+      "Bash(.\\\\gradlew.bat compileJava --console=plain)",
+      "Bash(grep -cE \"\\(^\\\\s*//\\)|/\\\\*\" src/main/java/net/tiew/operationWild/entity/goals/red_panda/RedPandaSweetLureGoal.java src/main/java/net/tiew/operationWild/event/OWSweetLureTracker.java)"
     ]
   }
 }

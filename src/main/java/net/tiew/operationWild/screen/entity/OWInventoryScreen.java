@@ -337,7 +337,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         upgradeHealthButton.visible = hasLevelPoints && this.entity.getMaxHealth() < (this.entity.getBaseHealth() * upgradeHealthLimit);
         upgradeDamageButton.visible = hasLevelPoints && (isHealer()
                 ? ((net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity) entity).getHealPower()
-                        < net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.HEAL_POWER_MAX
+                        < ((net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity) entity).getHealPowerCap()
                 : this.entity.getDamageToClient() < (this.entity.getBaseDamage() * upgradeDamageLimit));
         upgradeSpeedButton.visible = hasLevelPoints && this.entity.getSpeed() < (this.entity.getBaseSpeed() * upgradeSpeedLimit);
         upgradeEnergyButton.visible = hasLevelPoints;

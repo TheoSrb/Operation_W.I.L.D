@@ -198,6 +198,20 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.RED_MUSHROOM);
 
 
+        tag(OWTags.Items.RED_PANDA_EGGS_COMMON)
+                .add(Items.EGG);
+
+        tag(OWTags.Items.RED_PANDA_EGGS_RARE)
+                .add(Items.TURTLE_EGG);
+
+        tag(OWTags.Items.RED_PANDA_EGGS_PRIZED)
+                .add(Items.SNIFFER_EGG);
+
+        tag(OWTags.Items.RED_PANDA_STEALABLE_EGGS)
+                .addTag(OWTags.Items.RED_PANDA_EGGS_COMMON)
+                .addTag(OWTags.Items.RED_PANDA_EGGS_RARE)
+                .addTag(OWTags.Items.RED_PANDA_EGGS_PRIZED);
+
         tag(OWTags.Items.OW_EGGS)
                 .add(OWBlocks.PEACOCK_EGG.asItem());
     }

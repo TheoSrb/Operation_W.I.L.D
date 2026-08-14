@@ -1,4 +1,4 @@
-// 1.21	2026-08-12T10:45:08.4615939	Tags for minecraft:item mod id ow
+// 1.21	2026-08-14T09:44:46.749505	Tags for minecraft:item mod id ow
 ac05fb97b8a10e0240f5df28bfd2335e56b849a2 data/c/tags/item/foods.json
 f8d501a36ea77641a87cf4a609abbe712de43220 data/c/tags/item/foods/cooked_meat.json
 ab3e0a596f197aa4eb83eb43165511a904cee0c6 data/c/tags/item/foods/raw_meat.json
@@ -24,5 +24,9 @@ ac26f32b2f697795a207db5976fbff7eb4c42baf data/minecraft/tags/item/meat.json
 d47129685f4cff2843892f180a9d38430d2fb4c5 data/ow/tags/item/kodiak_dangerous_food.json
 3fe6df0882f02c83c296f5dfaed148dab475c556 data/ow/tags/item/kodiak_food.json
 209ae96362162785a92a91118a6d3a66fde7d0da data/ow/tags/item/ow_eggs.json
+d66078fe03c4a07a0a12934d4bb5bbf3b63a223e data/ow/tags/item/red_panda_eggs_common.json
+954ed3a24c77a56bc29a6063f857033154042602 data/ow/tags/item/red_panda_eggs_prized.json
+6429b3e3e4f89e7bb44af0c2ab98368717674afc data/ow/tags/item/red_panda_eggs_rare.json
 e9a44b131906e9875f506987f15d2b93b4d4a7d5 data/ow/tags/item/red_panda_food.json
+cd4d98ca0f65d7c792582aaa7c1461f178d7cc7a data/ow/tags/item/red_panda_stealable_eggs.json
 af74db7c26d6996937716831062ceb36f174264a data/ow/tags/item/tiger_food.json

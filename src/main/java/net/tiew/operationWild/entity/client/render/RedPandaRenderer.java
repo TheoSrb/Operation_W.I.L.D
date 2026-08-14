@@ -61,6 +61,8 @@ public class RedPandaRenderer extends OWEntityRenderer<RedPandaEntity, RedPandaM
                 ? skin.getModelLayer().map(this::getOrBakeModel).orElse(getOrBakeModel(RedPandaModel.LAYER_LOCATION))
                 : getOrBakeModel(RedPandaModel.LAYER_LOCATION);
 
+        this.model.setBufferSource(bufferSource);
+
         Player carrier = redPanda.getCarrier();
 
         // Portrait d'inventaire : aucun ancrage d'epaule. L'ecran pose lui-meme la position et le

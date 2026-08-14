@@ -25,13 +25,16 @@ import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -54,6 +57,11 @@ import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
 import net.tiew.operationWild.entity.goals.global.OWPanicGoal;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
+import net.tiew.operationWild.entity.goals.red_panda.RedPandaAlertedFleeGoal;
+import net.tiew.operationWild.entity.goals.red_panda.RedPandaEggStealGoal;
+import net.tiew.operationWild.entity.goals.red_panda.RedPandaIntimidationGoal;
+import net.tiew.operationWild.entity.goals.red_panda.RedPandaSweetLureGoal;
+import net.tiew.operationWild.entity.goals.red_panda.RedPandaTreeClimbGoal;
 import net.tiew.operationWild.entity.misc.FeastPileEntity;
 import net.tiew.operationWild.entity.misc.HealSnackEntity;
 import net.tiew.operationWild.networking.packets.to_client.FeedingPacket;
@@ -126,7 +134,15 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public static final float HEAL_POWER_MAX = 1.85f;
     public static final float HEAL_POWER_STEP = 0.02f;
 
+    public static final float EGG_NOURISHMENT_MAX = 0.30f;
+    public static final float EGG_GAIN_COMMON = 0.010f;
+    public static final float EGG_GAIN_RARE = 0.030f;
+    public static final float EGG_GAIN_PRIZED = 0.060f;
+    private static final float EGG_IMMEDIATE_SHARE = 0.5f;
+
     private static final EntityDataAccessor<Float> HEAL_POWER =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> EGG_NOURISHMENT =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> CLIMB_TIMER =
             SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
@@ -146,15 +162,60 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static final EntityDataAccessor<Integer> FEAST_CHARGE = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FEAST_CAST_TIMER = SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
 
+    private static final EntityDataAccessor<Boolean> TREE_CLIMBING =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> TREE_LEAN_TARGET =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> TREE_FLIP_TARGET =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Integer> INTIMIDATE_TIMER =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> EGG_EAT_TIMER =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> ALERT_TICKS =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<ItemStack> MOUTH_ITEM =
+            SynchedEntityData.defineId(RedPandaEntity.class, EntityDataSerializers.ITEM_STACK);
+
+    public static final int INTIMIDATE_TICKS = 80;
+    public static final int EGG_EAT_TICKS = 46;
+    public static final int ALERT_DURATION_TICKS = 140;
+    public static final int MOUTH_CHEW_TICKS = 400;
+    private static final float MOUTH_MEAL_HEAL = 1.5f;
+
+    private static final float TREE_LEAN_RESPONSE = 0.155f;
+    private static final float TREE_FLIP_RESPONSE = 0.21f;
+    private static final float TREE_POSE_EPSILON = 0.002f;
+
+    private static final int SCARE_REPATH_INTERVAL = 12;
+    private static final int SCARE_FLEE_HORIZONTAL = 12;
+    private static final int SCARE_FLEE_VERTICAL = 5;
+    private static final double SCARE_FLEE_SPEED = 1.35;
+
     public final AnimationState napAnimationState = new AnimationState();
     public final AnimationState throwAnimationState = new AnimationState();
     public final AnimationState feastAnimationState = new AnimationState();
     public final AnimationState shoulderIdleAnimationState = new AnimationState();
     public final AnimationState miscIdleAnimationState = new AnimationState();
+    public final AnimationState intimidateAnimationState = new AnimationState();
+    public final AnimationState eggEatAnimationState = new AnimationState();
+
+    public float treeLean = 0f;
+    public float treeLeanO = 0f;
+    public float treeFlip = 0f;
+    public float treeFlipO = 0f;
+
+    private LivingEntity alertSource = null;
+    private BlockPos sweetLure = null;
+    private int mouthChewTicks = 0;
+    private int fallGraceTicks = 0;
+    private final List<int[]> scaredMobs = new ArrayList<>();
 
     public int miscIdleAnimationStartTime = 0;
     private int lastThrowTimer = 0;
     private int lastFeastCastTimer = 0;
+    private int lastIntimidateTimer = 0;
+    private int lastEggEatTimer = 0;
     private int secondThrowDelay = 0;
     private int pendingFeastPortions = 0;
 
@@ -231,6 +292,11 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
                 return !RedPandaEntity.this.isTame() && RedPandaEntity.this.getLastHurtByMob() != null;
             }
         });
+        this.goalSelector.addGoal(2, new RedPandaIntimidationGoal(this));
+        this.goalSelector.addGoal(3, new RedPandaTreeClimbGoal(this, 1.15D));
+        this.goalSelector.addGoal(3, new RedPandaAlertedFleeGoal(this, 2.6D));
+        this.goalSelector.addGoal(5, new RedPandaEggStealGoal(this, 1.25D));
+        this.goalSelector.addGoal(5, new RedPandaSweetLureGoal(this, 1.0D));
         this.goalSelector.addGoal(5, new net.tiew.operationWild.entity.goals.NapGoal(this, 1f, 800, true, true));
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 1.0D));
@@ -246,9 +312,188 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         builder.define(FEAST_CHARGE, 0);
         builder.define(FEAST_CAST_TIMER, 0);
         builder.define(HEAL_POWER, HEAL_POWER_BASE);
+        builder.define(EGG_NOURISHMENT, 0f);
         builder.define(CLIMB_TIMER, 0);
         builder.define(CLIMB_MOUNTING, true);
         builder.define(CLIMB_PITCH, 0f);
+        builder.define(TREE_CLIMBING, false);
+        builder.define(TREE_LEAN_TARGET, 0f);
+        builder.define(TREE_FLIP_TARGET, 0f);
+        builder.define(INTIMIDATE_TIMER, 0);
+        builder.define(EGG_EAT_TIMER, 0);
+        builder.define(ALERT_TICKS, 0);
+        builder.define(MOUTH_ITEM, ItemStack.EMPTY);
+    }
+
+    public boolean isTreeClimbing() { return this.entityData.get(TREE_CLIMBING); }
+
+    public void setTreeClimbing(boolean climbing) { this.entityData.set(TREE_CLIMBING, climbing); }
+
+    public void setTreeLeanTarget(float target) { this.entityData.set(TREE_LEAN_TARGET, Mth.clamp(target, 0f, 1f)); }
+
+    public void setTreeFlipTarget(float target) { this.entityData.set(TREE_FLIP_TARGET, Mth.clamp(target, 0f, 1f)); }
+
+    public boolean isTreePosed() {
+        return this.treeLean > TREE_POSE_EPSILON || this.treeFlip > TREE_POSE_EPSILON;
+    }
+
+    public int getIntimidateTimer() { return this.entityData.get(INTIMIDATE_TIMER); }
+
+    public void setIntimidateTimer(int timer) { this.entityData.set(INTIMIDATE_TIMER, Math.max(0, timer)); }
+
+    public boolean isIntimidating() { return getIntimidateTimer() > 0; }
+
+    public int getEggEatTimer() { return this.entityData.get(EGG_EAT_TIMER); }
+
+    public void setEggEatTimer(int timer) { this.entityData.set(EGG_EAT_TIMER, Math.max(0, timer)); }
+
+    public boolean isEatingEgg() { return getEggEatTimer() > 0; }
+
+    public ItemStack getMouthItem() { return this.entityData.get(MOUTH_ITEM); }
+
+    public boolean hasMouthItem() { return !getMouthItem().isEmpty(); }
+
+    public void setMouthItem(ItemStack stack) {
+        this.entityData.set(MOUTH_ITEM, stack);
+        this.mouthChewTicks = stack.isEmpty() ? 0 : MOUTH_CHEW_TICKS;
+    }
+
+    public void takeMouthItem(Player player) {
+        ItemStack held = getMouthItem().copy();
+        if (held.isEmpty()) return;
+
+        setMouthItem(ItemStack.EMPTY);
+        if (!player.addItem(held)) player.drop(held, false);
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.ITEM_PICKUP, SoundSource.NEUTRAL, 0.7f,
+                (float) OWUtils.generateRandomInterval(1.2, 1.5));
+    }
+
+    private void handleMouthItem() {
+        if (!hasMouthItem()) return;
+        if (--mouthChewTicks > 0) return;
+
+        ItemStack eaten = getMouthItem();
+        setMouthItem(ItemStack.EMPTY);
+        this.heal(MOUTH_MEAL_HEAL);
+
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(
+                    new net.minecraft.core.particles.ItemParticleOption(ParticleTypes.ITEM, eaten),
+                    this.getX(), this.getY() + this.getBbHeight() * 0.75, this.getZ(),
+                    8, 0.15, 0.1, 0.15, 0.04);
+        }
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.GENERIC_EAT, SoundSource.NEUTRAL, 0.7f,
+                (float) OWUtils.generateRandomInterval(1.1, 1.35));
+    }
+
+    public @Nullable BlockPos getSweetLure() { return this.sweetLure; }
+
+    public void noticeSweetLure(BlockPos pos) {
+        if (this.level().isClientSide() || isTame() || isBaby()) return;
+        this.sweetLure = pos;
+    }
+
+    public void forgetSweetLure() { this.sweetLure = null; }
+
+    public int getAlertTicks() { return this.entityData.get(ALERT_TICKS); }
+
+    public boolean isAlerted() { return getAlertTicks() > 0; }
+
+    public @Nullable LivingEntity getAlertSource() { return this.alertSource; }
+
+    public void raiseAlert(@Nullable LivingEntity source) {
+        if (this.level().isClientSide()) return;
+        this.alertSource = source;
+        this.entityData.set(ALERT_TICKS, ALERT_DURATION_TICKS);
+    }
+
+    public void clearAlert() {
+        this.alertSource = null;
+        this.entityData.set(ALERT_TICKS, 0);
+    }
+
+    public void grantFallGrace(int ticks) {
+        this.fallGraceTicks = Math.max(this.fallGraceTicks, ticks);
+    }
+
+    @Override
+    public boolean causeFallDamage(float distance, float multiplier, DamageSource damageSource) {
+        if (fallGraceTicks > 0) {
+            this.fallDistance = 0f;
+            return false;
+        }
+        return super.causeFallDamage(distance, multiplier, damageSource);
+    }
+
+    public void scareAway(Mob victim, int ticks) {
+        if (this.level().isClientSide()) return;
+        scaredMobs.removeIf(entry -> entry[0] == victim.getId());
+        scaredMobs.add(new int[]{victim.getId(), ticks, SCARE_REPATH_INTERVAL});
+        pushScared(victim);
+    }
+
+    private void handleScaredMobs() {
+        if (scaredMobs.isEmpty()) return;
+
+        Iterator<int[]> iterator = scaredMobs.iterator();
+        while (iterator.hasNext()) {
+            int[] entry = iterator.next();
+            if (--entry[1] <= 0) {
+                iterator.remove();
+                continue;
+            }
+
+            if (!(this.level().getEntity(entry[0]) instanceof Mob victim) || !victim.isAlive()) {
+                iterator.remove();
+                continue;
+            }
+
+            if (--entry[2] > 0) continue;
+            entry[2] = SCARE_REPATH_INTERVAL;
+            pushScared(victim);
+        }
+    }
+
+    private void pushScared(Mob victim) {
+        if (victim.getTarget() == this) victim.setTarget(null);
+        victim.getLookControl().setLookAt(this, 30f, 30f);
+
+        if (!(victim instanceof PathfinderMob walker)) return;
+
+        Vec3 away = DefaultRandomPos.getPosAway(walker, SCARE_FLEE_HORIZONTAL, SCARE_FLEE_VERTICAL, this.position());
+        if (away == null) return;
+        walker.getNavigation().moveTo(away.x, away.y, away.z, SCARE_FLEE_SPEED);
+    }
+
+    private void tickAlert() {
+        if (getAlertTicks() <= 0) {
+            alertSource = null;
+            return;
+        }
+
+        this.entityData.set(ALERT_TICKS, getAlertTicks() - 1);
+
+        if (alertSource != null && (!alertSource.isAlive() || alertSource.level() != this.level())) {
+            clearAlert();
+        }
+    }
+
+    private void handleTreePose() {
+        this.treeLeanO = this.treeLean;
+        this.treeFlipO = this.treeFlip;
+
+        float leanTarget = this.entityData.get(TREE_LEAN_TARGET);
+        float flipTarget = this.entityData.get(TREE_FLIP_TARGET);
+
+        this.treeLean += (leanTarget - this.treeLean) * TREE_LEAN_RESPONSE;
+        this.treeFlip += (flipTarget - this.treeFlip) * TREE_FLIP_RESPONSE;
+
+        if (Math.abs(leanTarget - this.treeLean) < TREE_POSE_EPSILON) this.treeLean = leanTarget;
+        if (Math.abs(flipTarget - this.treeFlip) < TREE_POSE_EPSILON) this.treeFlip = flipTarget;
     }
 
     public boolean isClimbing() { return this.entityData.get(CLIMB_TIMER) > 0; }
@@ -268,14 +513,41 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     }
 
     public void setHealPower(float power) {
-        this.entityData.set(HEAL_POWER, Mth.clamp(power, HEAL_POWER_ROLL_MIN, HEAL_POWER_MAX));
+        this.entityData.set(HEAL_POWER, Mth.clamp(power, HEAL_POWER_ROLL_MIN, getHealPowerCap()));
     }
 
     public boolean upgradeHealPower() {
         float current = getHealPower();
-        if (current >= HEAL_POWER_MAX) return false;
+        if (current >= getHealPowerCap()) return false;
         setHealPower(current + HEAL_POWER_STEP);
         return true;
+    }
+
+    public float getEggNourishment() {
+        return this.entityData.get(EGG_NOURISHMENT);
+    }
+
+    public float getHealPowerCap() {
+        return HEAL_POWER_MAX + getEggNourishment();
+    }
+
+    public static float eggNourishmentGain(ItemStack egg) {
+        if (egg.is(OWTags.Items.RED_PANDA_EGGS_PRIZED)) return EGG_GAIN_PRIZED;
+        if (egg.is(OWTags.Items.RED_PANDA_EGGS_RARE)) return EGG_GAIN_RARE;
+        if (egg.is(OWTags.Items.RED_PANDA_EGGS_COMMON)) return EGG_GAIN_COMMON;
+        return 0f;
+    }
+
+    public float nourishWithEgg(float gain) {
+        if (this.level().isClientSide() || gain <= 0f) return 0f;
+
+        float current = getEggNourishment();
+        float applied = Math.min(gain, EGG_NOURISHMENT_MAX - current);
+        if (applied <= 0f) return 0f;
+
+        this.entityData.set(EGG_NOURISHMENT, current + applied);
+        setHealPower(getHealPower() + applied * EGG_IMMEDIATE_SHARE);
+        return applied;
     }
 
     @Override
@@ -436,11 +708,20 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
+        handleTreePose();
+
         if (this.level().isClientSide()) setupAnimationState();
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (!this.level().isClientSide()) {
             if (getThrowTimer() > 0) setThrowTimer(getThrowTimer() - 1);
+            if (getIntimidateTimer() > 0) setIntimidateTimer(getIntimidateTimer() - 1);
+            if (getEggEatTimer() > 0) setEggEatTimer(getEggEatTimer() - 1);
+            if (fallGraceTicks > 0) fallGraceTicks--;
+
+            tickAlert();
+            handleScaredMobs();
+            handleMouthItem();
 
             handleWakeThenClimb();
             handleShoulderClimb();
@@ -480,9 +761,15 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (this.level().isClientSide()) return super.mobInteract(player, hand);
         if (hand != InteractionHand.MAIN_HAND) return super.mobInteract(player, hand);
-        if (!this.isTame() || this.isBaby() || this.isInResurrection()) return super.mobInteract(player, hand);
 
         ItemStack stack = player.getItemInHand(hand);
+
+        if (stack.isEmpty() && hasMouthItem() && !isOnShoulder()) {
+            takeMouthItem(player);
+            return InteractionResult.SUCCESS;
+        }
+
+        if (!this.isTame() || this.isBaby() || this.isInResurrection()) return super.mobInteract(player, hand);
         if (isFood(stack) && this.getHealth() < this.getMaxHealth()) return super.mobInteract(player, hand);
 
         if (isOnShoulder()) {
@@ -702,7 +989,8 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     @Override
     public boolean canStartNap() {
-        return napCooldown <= 0 && !isClimbing() && !isOnShoulder();
+        return napCooldown <= 0 && !isClimbing() && !isOnShoulder()
+                && !isTreeClimbing() && !isIntimidating() && !isEatingEgg();
     }
 
     public boolean isOnShoulder() {
@@ -804,6 +1092,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     @Override
     public void die(DamageSource damageSource) {
         if (isOnShoulder()) this.stopRiding();
+        if (hasMouthItem()) this.spawnAtLocation(getMouthItem());
         super.die(damageSource);
     }
 
@@ -1176,11 +1465,22 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         if (castTimer > lastFeastCastTimer) this.feastAnimationState.start(this.tickCount);
         else if (castTimer <= 0) this.feastAnimationState.stop();
         lastFeastCastTimer = castTimer;
+
+        int intimidateTimer = getIntimidateTimer();
+        if (intimidateTimer > lastIntimidateTimer) this.intimidateAnimationState.start(this.tickCount);
+        else if (intimidateTimer <= 0) this.intimidateAnimationState.stop();
+        lastIntimidateTimer = intimidateTimer;
+
+        int eggTimer = getEggEatTimer();
+        if (eggTimer > lastEggEatTimer) this.eggEatAnimationState.start(this.tickCount);
+        else if (eggTimer <= 0) this.eggEatAnimationState.stop();
+        lastEggEatTimer = eggTimer;
     }
 
     public boolean canPlayIdleAnimation() {
         return this.getTarget() == null && !this.isNapping() && !this.isMoving()
-                && !this.isPassenger() && !this.isInWater();
+                && !this.isPassenger() && !this.isInWater()
+                && !this.isIntimidating() && !this.isEatingEgg() && !this.isTreePosed();
     }
 
     public boolean isAnyIdleAnimationPlaying() {
@@ -1325,6 +1625,8 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         tag.putInt("foodGiven", this.foodGiven);
         tag.putInt("foodWanted", this.foodWanted);
         tag.putFloat("healPower", this.getHealPower());
+        tag.putFloat("eggNourishment", this.getEggNourishment());
+        if (hasMouthItem()) tag.put("mouthItem", getMouthItem().save(this.registryAccess()));
         tag.putInt("feastCharge", this.getFeastCharge());
 
         Player carrier = getCarrier();
@@ -1339,10 +1641,16 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         this.entityData.set(VARIANT, tag.getInt("Variant"));
         this.foodGiven = tag.getInt("foodGiven");
         this.foodWanted = tag.getInt("foodWanted");
+        this.entityData.set(EGG_NOURISHMENT, Mth.clamp(tag.getFloat("eggNourishment"), 0f, EGG_NOURISHMENT_MAX));
+        if (tag.contains("mouthItem")) {
+            setMouthItem(ItemStack.parse(this.registryAccess(), tag.getCompound("mouthItem")).orElse(ItemStack.EMPTY));
+        }
         if (tag.contains("healPower")) setHealPower(tag.getFloat("healPower"));
         this.entityData.set(FEAST_CHARGE, tag.getInt("feastCharge"));
         this.pendingCarrier = tag.hasUUID("shoulderCarrier") ? tag.getUUID("shoulderCarrier") : null;
         this.pendingCarrierTicks = 0;
+
+        this.setNoGravity(false);
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
 

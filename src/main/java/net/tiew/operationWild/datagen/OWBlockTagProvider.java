@@ -9,6 +9,7 @@ import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.block.OWBlocks;
+import net.tiew.operationWild.core.OWTags;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.CompletableFuture;
@@ -21,6 +22,10 @@ public class OWBlockTagProvider extends BlockTagsProvider {
 
     @Override
     protected void addTags(HolderLookup.Provider provider) {
+        tag(OWTags.Blocks.RED_PANDA_SWEETS)
+                .add(Blocks.CAKE)
+                .add(Blocks.HONEY_BLOCK);
+
         tag(BlockTags.LOGS_THAT_BURN)
                 .add(OWBlocks.REDWOOD_LOG.get())
                 .add(OWBlocks.REDWOOD_WOOD.get())
