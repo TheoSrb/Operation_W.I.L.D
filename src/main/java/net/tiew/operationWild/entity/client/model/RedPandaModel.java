@@ -70,7 +70,8 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     private static final double MOUTH_DROP = 0.13;
     private static final double MOUTH_FORWARD = -0.38;
     private static final float MOUTH_ITEM_SCALE = 0.9f;
-    private static final float MOUTH_ITEM_SPIN = -45f;
+    private static final float MOUTH_ITEM_SPIN = 45f;
+    private static final float GROUND_DISPLAY_LIFT = 2f / 16f;
 
     private T currentEntity;
     private MultiBufferSource currentBufferSource;
@@ -773,6 +774,7 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         poseStack.mulPose(Axis.YP.rotationDegrees(90f));
         poseStack.mulPose(Axis.ZP.rotationDegrees(MOUTH_ITEM_SPIN));
         poseStack.scale(MOUTH_ITEM_SCALE, MOUTH_ITEM_SCALE, MOUTH_ITEM_SCALE);
+        poseStack.translate(0.0, -GROUND_DISPLAY_LIFT, 0.0);
 
         Minecraft.getInstance().getItemRenderer().renderStatic(
                 redPanda.getMouthItem(),
