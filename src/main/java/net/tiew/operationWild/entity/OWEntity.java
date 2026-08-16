@@ -303,6 +303,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final EntityDataAccessor<Boolean> SHOW_TRIBE_FLAG = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> FOLLOW_OWNER = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> SECONDARY_ATTACK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> SECONDARY_COOLDOWN = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> QUESTS_ARE_UPDATED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> TAMING_PERCENTAGE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> MATURATION_PERCENTAGE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
@@ -873,6 +874,36 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
      * n'est plus routé vers elle une fois la carte changée, et plus rien ne viendrait l'arrêter.</p>
      */
     protected void onSecondaryAttackChanged() {
+    }
+
+    /**
+     * Durée du temps de recharge <b>commun</b> aux cartes secondaires de l'espèce, en ticks.
+     *
+     * <p>Zéro pour les espèces qui n'en ont qu'une : chaque carte y garde alors sa propre recharge.
+     * Dès qu'il y en a plusieurs, une valeur unique s'impose — sans quoi tirer une carte, tourner la
+     * molette et tirer l'autre revient à n'avoir aucune recharge du tout.</p>
+     */
+    public int getSecondaryCooldownDuration() { return 0; }
+
+    /** Ticks restants avant que les cartes secondaires ne redeviennent disponibles. */
+    public int getSecondaryCooldown() { return this.entityData.get(SECONDARY_COOLDOWN); }
+
+    public boolean isSecondaryOnCooldown() { return getSecondaryCooldown() > 0; }
+
+    /**
+     * Arme le temps de recharge commun. Serveur uniquement : c'est lui qui fait autorité, le client
+     * n'en tient qu'une prédiction locale le temps que la donnée synchronisée lui revienne.
+     */
+    public void startSecondaryCooldown() {
+        if (this.level().isClientSide()) return;
+        int duration = getSecondaryCooldownDuration();
+        if (duration <= 0) return;
+        this.entityData.set(SECONDARY_COOLDOWN, duration);
+    }
+
+    private void tickSecondaryCooldown() {
+        int remaining = getSecondaryCooldown();
+        if (remaining > 0) this.entityData.set(SECONDARY_COOLDOWN, remaining - 1);
     }
 
     /**
@@ -3233,6 +3264,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (srv != null) net.tiew.operationWild.waypoint.OWWaypointData.get(srv).upsert(this);
             }
             this.fearHandler.tick();
+            tickSecondaryCooldown();
         }
 
         if (this.isTame()) {
@@ -5058,6 +5090,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(SHOW_TRIBE_FLAG, true);
         builder.define(FOLLOW_OWNER, true);
         builder.define(SECONDARY_ATTACK, 0);
+        builder.define(SECONDARY_COOLDOWN, 0);
         builder.define(ULTIMATE, false);
         builder.define(QUESTS_ARE_UPDATED, false);
         builder.define(TAMING_PERCENTAGE, 0);
@@ -5116,6 +5149,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putBoolean("showTribeFlag", this.isShowTribeFlag());
         tag.putBoolean("followOwner", this.isFollowingOwner());
         tag.putInt("secondaryAttack", this.entityData.get(SECONDARY_ATTACK));
+        tag.putInt("secondaryCooldown", this.entityData.get(SECONDARY_COOLDOWN));
         tag.putBoolean("isFemale", this.isFemale());
         tag.putBoolean("isPreparingNapping", this.isPreparingNapping());
         tag.putBoolean("isFed", this.isFed());
@@ -5261,6 +5295,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         // Meme regle pour le suivi : les betes d'avant le reglage continuent de suivre leur maitre.
         this.entityData.set(FOLLOW_OWNER, !tag.contains("followOwner") || tag.getBoolean("followOwner"));
         this.entityData.set(SECONDARY_ATTACK, tag.getInt("secondaryAttack"));
+        // Borné à la durée de l'espèce : une sauvegarde d'avant la recharge commune, ou faite alors
+        // que celle-ci était plus longue, laisserait sinon la bête muette bien après son terme.
+        this.entityData.set(SECONDARY_COOLDOWN,
+                Math.min(tag.getInt("secondaryCooldown"), getSecondaryCooldownDuration()));
         this.entityData.set(IS_FEMALE, tag.getBoolean("isFemale"));
         this.entityData.set(SADDLED, tag.getBoolean("isSaddled"));
         this.entityData.set(IS_FED, tag.getBoolean("isFed"));

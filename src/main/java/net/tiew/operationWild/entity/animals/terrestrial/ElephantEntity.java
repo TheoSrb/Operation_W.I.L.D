@@ -216,8 +216,6 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     public volatile float bodyAnimY = 0f;
 
-    private int shoulderBashCooldown = 0;
-
     private BlockPos lavaTargetPos = null;
     private int lavaSoakTicks = 0;
 
@@ -693,8 +691,6 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     @Override
     public void tick() {
         super.tick();
-
-        if (shoulderBashCooldown > 0) shoulderBashCooldown--;
 
         createCombo(28, 20, OWSounds.ELEPHANT_HURTING.get(), 4.0, 4.0, 2.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 3 : 1);
         setTamingPercentage(this.foodGiven, this.foodWanted);
@@ -1253,7 +1249,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public void performShoulderBash() {
         if (this.level().isClientSide()) return;
         if (isShoulderBashing() || isEarthquakeGesture()) return;
-        if (shoulderBashCooldown > 0) return;
+        if (isSecondaryOnCooldown()) return;
 
         float cost = OWAttacksConstants.Elephant.SHOULDER_BASH_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
@@ -1268,7 +1264,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         this.entityData.set(SHOULDER_BASH_SIDE, side);
         this.entityData.set(SHOULDER_BASH_TIMER, OWAttacksConstants.Elephant.SHOULDER_BASH_DURATION_TICKS);
-        shoulderBashCooldown = OWAttacksConstants.Elephant.SHOULDER_BASH_COOLDOWN_TICKS;
+        startSecondaryCooldown();
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 OWSounds.ELEPHANT_SCREAM.get(), SoundSource.NEUTRAL,
@@ -1517,6 +1513,19 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         return 2;
     }
 
+    /**
+     * Recharge commune aux deux cartes, mais armée par le seul Coup d'Épaule.
+     *
+     * <p>Le Jet de Trompe ne se paie pas en temps : sa dépense, c'est sa réserve d'eau, et c'est
+     * la même carte qui sert à la refaire. L'armer aurait interdit d'aspirer au sortir d'une
+     * douche. Il la <b>subit</b> en revanche pleinement — sans quoi la molette resterait une porte
+     * de sortie au temps de récupération de la charge.</p>
+     */
+    @Override
+    public int getSecondaryCooldownDuration() {
+        return OWAttacksConstants.Elephant.SECONDARY_COOLDOWN_TICKS;
+    }
+
     @Override
     protected void onSecondaryAttackChanged() {
         stopTrunkAction();
@@ -1581,6 +1590,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public void startTrunkAction() {
         if (this.level().isClientSide()) return;
         if (isEarthquakeGesture() || isShoulderBashing() || this.isCombo()) return;
+        if (isSecondaryOnCooldown()) return;
 
         boolean canFill = getTrunkWater() < OWAttacksConstants.Elephant.WATER_SPRAY_CAPACITY
                 && isWaterInTrunkReach();

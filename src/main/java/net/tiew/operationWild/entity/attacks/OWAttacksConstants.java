@@ -3,7 +3,15 @@ package net.tiew.operationWild.entity.attacks;
 public class OWAttacksConstants {
 
     public static class Tiger {
-        public static final int JUMP_ATTACK_COOLDOWN_TICKS = 400;
+        /**
+         * Recharge commune aux deux cartes secondaires : le Bond Bestial et le Rugissement Primal.
+         *
+         * <p>Une valeur unique, et surtout un seul compteur pour les deux. Chacune avait la sienne —
+         * vingt secondes pour le bond, soixante pour le cri — et il suffisait d'un cran de molette
+         * entre les deux pour n'en subir aucune : on bondissait, on retournait la carte, on
+         * rugissait, et le tigre repartait comme si de rien n'était.</p>
+         */
+        public static final int SECONDARY_COOLDOWN_TICKS = 800;
         public static final float JUMP_POWER = 1.75f;
         public static final float JUMP_ENERGY = 100f;
 
@@ -19,7 +27,6 @@ public class OWAttacksConstants {
 
         public static final long PRIMAL_ROAR_CHARGE_MS = 2000L;
         public static final int PRIMAL_ROAR_CHARGE_TICKS = (int) (PRIMAL_ROAR_CHARGE_MS / 50L);
-        public static final int PRIMAL_ROAR_COOLDOWN_TICKS = 1200;
         public static final float PRIMAL_ROAR_ENERGY = 70f;
         public static final double PRIMAL_ROAR_RADIUS = 15.0;
         public static final int PRIMAL_ROAR_FEAR_TICKS = 100;
@@ -36,8 +43,17 @@ public class OWAttacksConstants {
     }
 
     public static class Elephant {
+        /**
+         * Recharge commune aux deux cartes secondaires : le Coup d'Épaule et le Jet de Trompe.
+         *
+         * <p>Elle n'est armée que par le Coup d'Épaule — le jet, lui, se paie sur la réserve de la
+         * trompe et non sur le temps. Mais elle les bloque tous les deux : sans cela, retourner la
+         * carte après une charge rendait à l'éléphant l'usage immédiat de sa trompe, et le retour à
+         * la charge n'attendait plus que la fin d'un compteur qu'on avait cessé de subir.</p>
+         */
+        public static final int SECONDARY_COOLDOWN_TICKS = 300;
+
         // ── Coup d'Épaule (attaque secondaire instantanée) ──────────────────────
-        public static final int SHOULDER_BASH_COOLDOWN_TICKS = 100;
         public static final float SHOULDER_BASH_ENERGY = 60f;
 
         /**

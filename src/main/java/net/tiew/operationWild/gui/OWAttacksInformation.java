@@ -152,7 +152,7 @@ public class OWAttacksInformation {
             new AttackSlot(20, 0, "RMB",
                 title("ow.attacks.tiger.bond.title"),
                 e -> desc("ow.attacks.tiger.bond.desc",
-                    val(OWAttacksConstants.Tiger.JUMP_ATTACK_COOLDOWN_TICKS / 20))
+                    val(OWAttacksConstants.Tiger.SECONDARY_COOLDOWN_TICKS / 20))
             ),
 
             new AttackSlot(216, 216, "RMB",
@@ -161,7 +161,7 @@ public class OWAttacksInformation {
                     val(OWAttacksConstants.Tiger.PRIMAL_ROAR_CHARGE_MS / 1000),
                     val((int) OWAttacksConstants.Tiger.PRIMAL_ROAR_RADIUS),
                     val(OWAttacksConstants.Tiger.PRIMAL_ROAR_FEAR_TICKS / 20),
-                    val(OWAttacksConstants.Tiger.PRIMAL_ROAR_COOLDOWN_TICKS / 20))
+                    val(OWAttacksConstants.Tiger.SECONDARY_COOLDOWN_TICKS / 20))
             ),
 
             new AttackSlot(40, 0, "X",
@@ -311,14 +311,15 @@ public class OWAttacksInformation {
                         e -> desc("ow.attacks.elephant.shoulder_bash.desc",
                                 val((int) (e.getDamageToClient()
                                         * OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE_RATIO)),
-                                val(OWAttacksConstants.Elephant.SHOULDER_BASH_COOLDOWN_TICKS / 20))
+                                val(OWAttacksConstants.Elephant.SECONDARY_COOLDOWN_TICKS / 20))
                 ),
 
                 new AttackSlot(236, 216, "RMB",
                         title("ow.attacks.elephant.water_spray.title"),
                         e -> desc("ow.attacks.elephant.water_spray.desc",
                                 val((int) OWAttacksConstants.Elephant.WATER_SPRAY_RANGE),
-                                val(OWAttacksConstants.Elephant.WATER_SPRAY_LAVA_TICKS / 20))
+                                val(OWAttacksConstants.Elephant.WATER_SPRAY_LAVA_TICKS / 20),
+                                val(OWAttacksConstants.Elephant.SECONDARY_COOLDOWN_TICKS / 20))
                 ),
 
                 new AttackSlot(100, 160, "X",

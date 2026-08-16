@@ -92,6 +92,68 @@ public class OWAttackLogic {
         ultimateActiveMs.remove(packKey(entityId, attackId));
     }
 
+    // ── Temps de recharge commun aux cartes secondaires ───────────────────────
+    //
+    // Générique : rien ici ne connaît d'espèce en particulier. Toute bête qui porte plusieurs cartes
+    // de clic droit et déclare une durée commune ({@code OWEntity#getSecondaryCooldownDuration})
+    // les fait tenir sur un seul compteur, aujourd'hui le tigre et l'éléphant, demain les autres.
+
+    /**
+     * Clé de la prédiction locale des secondaires — une seule pour toutes les cartes de la bête.
+     *
+     * <p>Zéro est libre : les attaques sont numérotées à partir de 1, et la carte 0, celle du combo,
+     * tient son délai dans une table à part.</p>
+     */
+    private static final int SHARED_SECONDARY_KEY = 0;
+
+    public static boolean hasSharedSecondaryCooldown(OWEntity entity) {
+        return entity.getSecondaryCooldownDuration() > 0
+                && OWAttacksHandler.hasSwitchableSecondary(entity.getClass());
+    }
+
+    private static boolean isSharedSecondary(OWEntity entity, OWAttack attack) {
+        return OWAttacksHandler.isSecondaryCard(attack) && hasSharedSecondaryCooldown(entity);
+    }
+
+    /**
+     * Recharge restante [1..0] des cartes secondaires de cette bête.
+     *
+     * <p>Deux sources, et on retient la plus longue. L'entité fait autorité — le serveur seul décide
+     * qu'un coup est parti, et sa valeur vaut pour tout client qui prend les rênes ensuite, y
+     * compris un coéquipier qui monte en cours de route. La prédiction locale, elle, comble le
+     * battement de tick entre le clic et le retour du serveur, pendant lequel la carte semblerait
+     * encore prête.</p>
+     */
+    public static float getSharedSecondaryProgress(OWEntity entity) {
+        int duration = entity.getSecondaryCooldownDuration();
+        if (duration <= 0) return 0f;
+
+        long remaining = (long) entity.getSecondaryCooldown() * 50L;
+        long localEnd = getCooldownEnd(entity.getId(), SHARED_SECONDARY_KEY);
+        if (localEnd != -1L) remaining = Math.max(remaining, localEnd - System.currentTimeMillis());
+
+        if (remaining <= 0L) return 0f;
+        return Math.min(1f, (float) remaining / ((long) duration * 50L));
+    }
+
+    /** Cette carte est-elle indisponible pour cause de recharge, commune ou propre ? */
+    private static boolean isAttackOnCooldown(OWEntity entity, OWAttack attack) {
+        if (isSharedSecondary(entity, attack)) return getSharedSecondaryProgress(entity) > 0f;
+        long endMs = getCooldownEnd(entity.getId(), attack.getId());
+        return endMs != -1L && System.currentTimeMillis() < endMs;
+    }
+
+    /** Arme la prédiction locale, sur le compteur commun quand la carte en relève. */
+    private static void armCooldown(OWEntity entity, OWAttack attack) {
+        if (isSharedSecondary(entity, attack)) {
+            setCooldownEnd(entity.getId(), SHARED_SECONDARY_KEY,
+                    System.currentTimeMillis() + (long) entity.getSecondaryCooldownDuration() * 50L);
+            return;
+        }
+        setCooldownEnd(entity.getId(), attack.getId(),
+                System.currentTimeMillis() + (long) attack.getCooldownTicks() * 50L);
+    }
+
     /**
      * Défait la prédiction locale d'une attaque que le serveur vient de refuser.
      *
@@ -434,8 +496,7 @@ public class OWAttackLogic {
             currentAttack = null;
             recordAttackClick(fired.getId(), false);
             if (mc.player.getRootVehicle() instanceof OWEntity mount) {
-                setCooldownEnd(mount.getId(), fired.getId(),
-                        System.currentTimeMillis() + (long) fired.getCooldownTicks() * 50L);
+                armCooldown(mount, fired);
             }
         }
     }
@@ -1106,6 +1167,12 @@ public class OWAttackLogic {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
+            // La trompe n'arme jamais la recharge commune, mais elle la subit : le coup d'épaule
+            // resterait sinon contournable d'un cran de molette.
+            if (isAttackOnCooldown(elephant, attack)) {
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
             if (playerHoldsUsableItem(player)) {
                 recordAttackClick(attack.getId(), true);
                 return;
@@ -1448,8 +1515,7 @@ public class OWAttackLogic {
         if (attack == null) return;
 
         if (event.getAction() == GLFW.GLFW_PRESS) {
-            long endMs = getCooldownEnd(owEntity.getId(), attack.getId());
-            if (endMs != -1L && System.currentTimeMillis() < endMs) {
+            if (isAttackOnCooldown(owEntity, attack)) {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
@@ -1520,8 +1586,7 @@ public class OWAttackLogic {
                     recordAttackClick(attack.getId(), !hasEnergy);
 
                     if (hasEnergy) {
-                        setCooldownEnd(entity.getId(), attack.getId(),
-                                System.currentTimeMillis() + (long) attack.getCooldownTicks() * 50L);
+                        armCooldown(entity, attack);
                     }
                     attack.applyLocalEffect(entity, chargeFactor, chargeDirection);
 

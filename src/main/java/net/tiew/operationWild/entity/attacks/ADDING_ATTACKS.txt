@@ -70,6 +70,43 @@ IMPORTANT — qui gère la vélocité ?
   Le serveur gère uniquement l'état (flags, cooldown, sons, particles, syncs).
 
 ------------------------------------------------------------
+RECHARGE COMMUNE AUX CARTES SECONDAIRES
+------------------------------------------------------------
+
+Dès qu'une espèce porte PLUSIEURS cartes de clic droit interchangeables
+(molette + touche de switch), leurs temps de recharge doivent être fondus
+en un seul. Sinon un cran de molette suffit à n'en subir aucun : on tire
+la carte A, on retourne la carte, on tire la carte B, et ainsi de suite.
+
+Le compteur vit sur l'entité, synchronisé, donc serveur-autoritaire :
+
+  OWEntity#getSecondaryCooldownDuration()   → durée en ticks, 0 = pas de
+                                               recharge commune (défaut)
+  OWEntity#isSecondaryOnCooldown()          → garde à poser côté serveur
+  OWEntity#startSecondaryCooldown()         → à armer après un tir réussi
+
+Pour une nouvelle espèce à plusieurs secondaires :
+
+  1. Surcharger getSecondaryCooldownDuration() avec UNE constante d'espèce
+     (ex : OWAttacksConstants.Tiger.SECONDARY_COOLDOWN_TICKS).
+  2. Passer cette même constante en cooldownTicks à CHAQUE carte secondaire
+     déclarée dans OWAttacksHandler.
+  3. Dans chaque méthode serveur qui exécute une secondaire :
+       • refuser si isSecondaryOnCooldown()
+       • appeler startSecondaryCooldown() une fois le tir validé
+     Et refuser aussi dans la méthode de DÉMARRAGE de charge, sinon le
+     joueur se ramasse deux secondes pour s'entendre dire non à la fin.
+
+Côté client, rien à faire : OWAttackLogic route automatiquement toutes les
+cartes secondaires d'une telle bête sur une clé de recharge unique, et
+l'overlay dessine le compteur commun à la place du dessin propre à la carte.
+
+Une carte peut SUBIR la recharge sans jamais l'ARMER — c'est le cas du Jet
+de Trompe de l'éléphant, dont la dépense est sa réserve d'eau et non du
+temps. Il suffit alors de ne pas appeler startSecondaryCooldown() dans son
+exécution ; le blocage, lui, reste automatique.
+
+------------------------------------------------------------
 ÉNERGIE VITALE
 ------------------------------------------------------------
 

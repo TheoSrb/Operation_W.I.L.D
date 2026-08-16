@@ -155,7 +155,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public volatile float bodyAnimY = 0f;
 
     private boolean isJumpCharging = false;
-    private int jumpAttackCooldown = 0;
     private boolean isPlayerLeaping = false;
     private boolean isRidingJump = false;
     protected float playerJumpPendingScale;
@@ -496,7 +495,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         // ------------ FONCTIONNEMENT GLOBAL ------------
 
-        if (jumpAttackCooldown > 0) jumpAttackCooldown--;
         if (grabCooldown > 0) grabCooldown--;
         if (isJumpCharging && !this.isVehicle()) cancelJumpCharge();
         if (!this.level().isClientSide() && this.entityData.get(GRAB_PUNCH_TIMER) > 0)
@@ -1086,7 +1084,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public void startJumpCharge() {
         if (isJumpCharging) return;
         isJumpCharging = true;  // toujours enregistrer la charge pour que performJumpAttack s'exécute
-        if (jumpAttackCooldown > 0) return;  // cooldown désynchronisé côté serveur : charge acceptée sans animation
+        if (isSecondaryOnCooldown()) return;  // cooldown désynchronisé côté serveur : charge acceptée sans animation
         this.isPreparing = true;
         this.setDeltaMovement(0, 0, 0);
         this.getNavigation().stop();
@@ -1111,6 +1109,9 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
      */
     public void startRoarCharge() {
         if (this.isRoaring()) return;
+        // Recharge commune : deux secondes d'amorce pour s'entendre refuser le cri au bout serait
+        // la pire des réponses. On le refuse avant même de se ramasser.
+        if (isSecondaryOnCooldown()) return;
         this.isRoarChargePending = true;
         this.setRoarCharging(true);
         this.setDeltaMovement(0, 0, 0);
@@ -1162,7 +1163,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
      * la gueule s'ouvre vraiment.</p>
      */
     public void performPrimalRoar() {
-        if (!this.isRoarChargePending || this.isRoaring()) {
+        if (!this.isRoarChargePending || this.isRoaring() || isSecondaryOnCooldown()) {
             cancelRoarCharge();
             return;
         }
@@ -1170,6 +1171,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.roarChargeTicks = 0;
         this.isChargingAttack = false;
         this.setRoarCharging(false);
+        startSecondaryCooldown();
         this.roarFromRider = true;
         this.roarTimer = OWAttacksConstants.Tiger.PRIMAL_ROAR_ANIM_SKIP_TICKS;
         this.setRoar(true);
@@ -1191,6 +1193,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public int getSecondaryAttackCount() {
         return 2;
+    }
+
+    @Override
+    public int getSecondaryCooldownDuration() {
+        return OWAttacksConstants.Tiger.SECONDARY_COOLDOWN_TICKS;
     }
 
     @Override
@@ -1370,6 +1377,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         isJumpCharging = false;
 
+        // La recharge est commune aux deux cartes secondaires : un cri encore chaud interdit le
+        // bond, exactement comme un bond encore chaud interdit le cri.
+        if (isSecondaryOnCooldown()) {
+            cancelJumpCharge();
+            return;
+        }
+
         float energyRequired = OWAttacksConstants.Tiger.JUMP_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - energyRequired) {
             canShowVitalEnergyLack = true;
@@ -1378,7 +1392,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         }
         setVitalEnergy(getVitalEnergy() + energyRequired);
 
-        jumpAttackCooldown = OWAttacksConstants.Tiger.JUMP_ATTACK_COOLDOWN_TICKS;
+        startSecondaryCooldown();
 
         Vec3 lookDir;
         Entity rider = this.getFirstPassenger();

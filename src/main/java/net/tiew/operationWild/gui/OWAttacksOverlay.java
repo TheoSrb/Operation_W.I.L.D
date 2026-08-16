@@ -180,12 +180,22 @@ public class OWAttacksOverlay {
                     && OWAttackLogic.isCharging
                     && OWAttackLogic.getCurrentAttackId() == attack.getId();
 
+            // Recharge commune aux cartes secondaires interchangeables : elle passe avant le dessin
+            // propre à chaque carte. Le Jet de Trompe montre normalement sa réserve d'eau, mais tant
+            // que le compteur tourne c'est lui qui décide de la disponibilité — et c'est donc lui
+            // qu'il faut voir se remplir, sans quoi la carte s'annoncerait prête sans l'être.
+            float sharedCooldown = OWAttacksHandler.isSecondaryCard(attack)
+                    ? OWAttackLogic.getSharedSecondaryProgress(entity)
+                    : 0f;
+
             float fillProgress;
             boolean isGlowing = false;
 
             if (isCharging) {
                 fillProgress = OWAttackLogic.getChargeProgress();
                 isGlowing    = fillProgress >= 1.0f;
+            } else if (sharedCooldown > 0f) {
+                fillProgress = 1.0f - sharedCooldown;
             } else if (isVenomFangs && entity instanceof BoaEntity boa) {
                 // Armé : carte pleine qui respire ; en cooldown : remplissage progressif bas→haut ; sinon prête.
                 if (isVenomArmed) {
