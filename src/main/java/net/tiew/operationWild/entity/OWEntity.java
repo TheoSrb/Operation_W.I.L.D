@@ -93,7 +93,9 @@ import net.tiew.operationWild.networking.packets.to_client.*;
 import net.tiew.operationWild.screen.entity.OWChooseNameScreen;
 import net.tiew.operationWild.team.OWTeam;
 import net.tiew.operationWild.team.OWTribesSavedData;
+
 import java.util.UUID;
+
 import net.tiew.operationWild.team.OWTeamMosaicPattern;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
@@ -128,13 +130,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private float lastPlay;
     public DamageSource damageSource = this.damageSources().mobAttack(this);
     public int numberFeedsGiven = 0;
-    // 3 slots : 0 = selle, 1 = nourriture, 2 = gants de boxe (kangourou uniquement).
     public static final int FOOD_SLOT = 1;
     private final ItemStackHandler itemStackHandler = new ItemStackHandler(3) {
         @Override
         public void deserializeNBT(net.minecraft.core.HolderLookup.Provider provider, net.minecraft.nbt.CompoundTag nbt) {
-            // Anciennes sauvegardes (Size=2) : on force 3 slots AVANT le chargement des items
-            // (setSize vide tout), pour garantir le slot gants sans perdre selle/nourriture.
             if (nbt.getInt("Size") < 3) {
                 nbt = nbt.copy();
                 nbt.putInt("Size", 3);
@@ -148,27 +147,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int runTime;
     private double prevTickX, prevTickZ;
     public int chance = random.nextInt(100);
-    /** Maintien à plein après un coup (5 s), puis fonte de la jauge (5 s) : 10 s en tout. */
     public static final int FIGHT_HOLD_TICKS = 100;
     public static final int FIGHT_DECAY_TICKS = 100;
     public static final int FIGHT_COOLDOWN_TICKS = FIGHT_HOLD_TICKS + FIGHT_DECAY_TICKS;
 
-    /** Intervalle entre deux bouchées, une fois le combat quitté. */
     public static final int FEED_INTERVAL_TICKS = 60;
 
-    /**
-     * Multiplicateur de soin du ravitaillement <b>automatique</b>, bien plus sobre que celui de la
-     * main du joueur (1,5) : nourrir soi-même est un geste, se servir tout seul toutes les trois
-     * secondes n'en est pas un. Un aliment de prédilection rend ainsi 1,6 PV là où la main en rend
-     * six — de quoi tenir sur la durée sans jamais remplacer les soins du maître.
-     */
     public static final float AUTO_FEED_HEAL_MULTIPLIER = 0.4f;
 
-    /**
-     * Régénération passive au repos : de quoi ne pas rester éternellement blessé faute de vivres,
-     * sans jamais se substituer au ravitaillement. Une demi-vie toutes les vingt secondes, contre un
-     * point toutes les dix auparavant — quatre fois moins de récupération à l'heure.
-     */
     public static final int PASSIVE_REGEN_INTERVAL_TICKS = 400;
     public static final float PASSIVE_REGEN_AMOUNT = 0.5f;
 
@@ -176,8 +162,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int feedCooldown = 0;
     public boolean canAttack = true;
     private BlockPos lastPosition;
-    // Quête « parcourir X blocs » : accumulation de la distance HORIZONTALE réelle (ignore Y, sinon un
-    // animal qui rebondit sur place — le kangourou par ex. — gonflerait la progression).
     private double lastTravelX = Double.NaN;
     private double lastTravelZ = Double.NaN;
     private double travelAccumulator = 0.0;
@@ -213,19 +197,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static long lastKillTime2 = 0;
     private static long lastHurtTime = 0;
     private int healAmount = 0;
-    /** PV réellement rendus par le dernier {@link #heal(float)} (borné par la vie max). */
     private int lastRealHealDelta = 0;
     private int hurtAmount = 0;
 
-    // Entites reellement TOUCHEES par le dernier appel a attackEntitiesInFront (cote serveur).
-    // Permet aux effets post-impact (ex : uppercut du combo 3 du kangourou) de ne s'appliquer
-    // qu'aux ennemis effectivement frappes, et pas a tout ce qui passe dans une zone elargie.
     public final List<LivingEntity> lastAttackHitEntities = new ArrayList<>();
     private int sleepBarDownSpeed;
     public int maxSleepBar;
     public float maxHealthBeforeResurrection;
     public int resurrectionTimer = 0;
-    /** Quand true, le taming n'ouvre pas l'écran de nommage (ex : résurrection, le nom est déjà restauré). */
     public boolean skipNameSelection = false;
     public float actualMaturation = 0;
     public float maxHealth;
@@ -347,35 +326,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean quest9isLocked = false;
     public boolean quest10isLocked = false;
 
-    /**
-     * Jour (epoch day) de la période pour laquelle la progression des quêtes de CETTE entité a été
-     * reset. Comparé à {@link OWDailyQuests#computePeriodDay()} sur le tick serveur : dès qu'ils
-     * diffèrent, cette entité re-tire ses quêtes et remet sa progression à zéro. Ce mécanisme
-     * paresseux gère aussi les entités dans des chunks non chargés au moment du reset (elles se
-     * remettent à jour à leur prochain chargement).
-     */
     private long lastQuestResetDay = Long.MIN_VALUE;
 
-    /** Ids des 3 quêtes actives PROPRES à cette entité (-1 = non tiré). Persistés en NBT, synchronisés au cavalier. */
     public int activeQuest0 = -1;
     public int activeQuest1 = -1;
     public int activeQuest2 = -1;
 
-    /**
-     * Récompense pré-tirée de chaque quête active (code : &gt;0 = orbes d'XP, &lt;0 = -pièces, 0 = non tiré).
-     * Tirée au moment du reroll (déterministe et affichable), versée à la complétion de la quête.
-     */
     public int questReward0 = 0;
     public int questReward1 = 0;
     public int questReward2 = 0;
 
-    /** Reroll manuel d'une quête : disponible une seule fois par jour (remis à true à chaque reset). NBT + synchronisé. */
     public boolean dailyRerollAvailable = true;
 
-    /** Valeur en XP d'un « orbe » de récompense (moyenne d'un orbe absorbé). */
     private static final float ORB_XP_VALUE = 4.0f;
 
-    /** Tire 3 nouvelles quêtes distinctes pour cette entité, et pré-tire leur récompense (XP ou pièces). */
     public void rerollDailyQuests() {
         int[] ids = net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests.pickRandomQuestIds(this::questAllowed);
         this.activeQuest0 = ids[0];
@@ -386,24 +350,28 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.questReward2 = rollQuestReward(ids[2]);
     }
 
-    /**
-     * Reroll manuel d'UNE quête (emplacement 0..2) : tire une nouvelle quête distincte des deux autres
-     * actives, pré-tire sa récompense, remet sa progression à zéro, et consomme le reroll du jour.
-     */
     public void rerollSingleQuest(int slot) {
         if (!this.dailyRerollAvailable || slot < 0 || slot > 2) return;
         int newId = pickQuestIdExcluding(this.activeQuest0, this.activeQuest1, this.activeQuest2);
         if (newId < 0) return;
         switch (slot) {
-            case 0 -> { this.activeQuest0 = newId; this.questReward0 = rollQuestReward(newId); }
-            case 1 -> { this.activeQuest1 = newId; this.questReward1 = rollQuestReward(newId); }
-            case 2 -> { this.activeQuest2 = newId; this.questReward2 = rollQuestReward(newId); }
+            case 0 -> {
+                this.activeQuest0 = newId;
+                this.questReward0 = rollQuestReward(newId);
+            }
+            case 1 -> {
+                this.activeQuest1 = newId;
+                this.questReward1 = rollQuestReward(newId);
+            }
+            case 2 -> {
+                this.activeQuest2 = newId;
+                this.questReward2 = rollQuestReward(newId);
+            }
         }
         resetQuestById(newId);
         this.dailyRerollAvailable = false;
     }
 
-    /** Tire un id de quête au hasard, distinct de {@code a}, {@code b} et {@code c} et autorisé ; -1 si impossible. */
     private int pickQuestIdExcluding(int a, int b, int c) {
         int n = net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry.ALL.length;
         java.util.List<Integer> pool = new java.util.ArrayList<>();
@@ -414,7 +382,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return pool.get(this.getRandom().nextInt(pool.size()));
     }
 
-    /** Une quête est-elle attribuable à cette entité ? (ex : « passer un niveau » interdit au niveau max). */
     private boolean questAllowed(int id) {
         net.tiew.operationWild.entity.quests.daily_quests.DailyQuest q =
                 net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry.getById(id);
@@ -423,24 +390,55 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return true;
     }
 
-    /** Remet à zéro la progression et le verrou d'une seule quête (par id). */
     private void resetQuestById(int id) {
         switch (id) {
-            case 0 -> { quest0Progression = 0; quest0isLocked = false; }
-            case 1 -> { quest1Progression = 0; quest1isLocked = false; }
-            case 2 -> { quest2Progression = 0; quest2isLocked = false; }
-            case 3 -> { quest3Progression = 0; quest3isLocked = false; }
-            case 4 -> { quest4Progression = 0; quest4isLocked = false; }
-            case 5 -> { quest5Progression = 0; quest5isLocked = false; }
-            case 6 -> { quest6Progression = 0; quest6isLocked = false; }
-            case 7 -> { quest7Progression = 0; quest7isLocked = false; }
-            case 8 -> { quest8Progression = 0; quest8isLocked = false; }
-            case 9 -> { quest9Progression = 0; quest9isLocked = false; }
-            case 10 -> { quest10Progression = 0; quest10isLocked = false; }
+            case 0 -> {
+                quest0Progression = 0;
+                quest0isLocked = false;
+            }
+            case 1 -> {
+                quest1Progression = 0;
+                quest1isLocked = false;
+            }
+            case 2 -> {
+                quest2Progression = 0;
+                quest2isLocked = false;
+            }
+            case 3 -> {
+                quest3Progression = 0;
+                quest3isLocked = false;
+            }
+            case 4 -> {
+                quest4Progression = 0;
+                quest4isLocked = false;
+            }
+            case 5 -> {
+                quest5Progression = 0;
+                quest5isLocked = false;
+            }
+            case 6 -> {
+                quest6Progression = 0;
+                quest6isLocked = false;
+            }
+            case 7 -> {
+                quest7Progression = 0;
+                quest7isLocked = false;
+            }
+            case 8 -> {
+                quest8Progression = 0;
+                quest8isLocked = false;
+            }
+            case 9 -> {
+                quest9Progression = 0;
+                quest9isLocked = false;
+            }
+            case 10 -> {
+                quest10Progression = 0;
+                quest10isLocked = false;
+            }
         }
     }
 
-    /** Tire la récompense d'une quête selon son palier (code : &gt;0 orbes, &lt;0 -pièces). */
     private int rollQuestReward(int questId) {
         net.tiew.operationWild.entity.quests.daily_quests.DailyQuest q =
                 net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry.getById(questId);
@@ -448,7 +446,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return q.getTier().rollReward(this.getRandom());
     }
 
-    /** Verse la récompense pré-tirée de la quête d'id {@code questId} (XP au pet, ou pièces au propriétaire). */
     private void grantQuestReward(int questId) {
         int code = 0;
         if (activeQuest0 == questId) code = questReward0;
@@ -460,8 +457,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             ServerPlayer owner = (this.getOwner() instanceof ServerPlayer op) ? op : null;
 
             if (this.getLevel() >= 50) {
-                // Entité au niveau max : la récompense d'XP devient de l'Expérience d'Apprivoisement
-                // (cagnotte du propriétaire), divisée par deux (ex : 18 XP → 9 exp d'apprivoisement).
                 int tamingGain = Math.max(1, Math.round(code / 2f));
                 Player rewardPlayer = (owner != null) ? owner : rider;
                 if (rewardPlayer != null) {
@@ -489,7 +484,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    /** Remet à zéro la progression et le verrouillage des 11 quêtes (nouvelle journée). */
     public void resetDailyQuestProgress() {
         quest0Progression = 0;
         quest1Progression = 0;
@@ -522,9 +516,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.lastPosition = this.blockPosition();
         this.sleepBarDownSpeed = sleepBarDownSpeed;
         this.maxSleepBar = maxSleepBar;
-        // Posé ici pour valoir par défaut à toute l'écurie. Les espèces qui ont besoin d'un pilotage
-        // à elles — la nage, par exemple — le remplacent dans leur propre constructeur, qui s'exécute
-        // après celui-ci.
         this.moveControl = new OWMoveControl(this);
 
         babyQuests.put(0, "quest.babyQuest0");
@@ -532,18 +523,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         babyQuests.put(2, "quest.babyQuest2");
     }
 
-    /**
-     * Pilotage de déplacement commun, qui rend le virage à l'espèce.
-     *
-     * <p>Le regard avait beau être lissé, il ne servait à rien dès que la bête MARCHAIT : c'est le
-     * pilotage qui pose le cap quand un chemin existe, et il s'exécute après les goals. Celui de
-     * vanilla vire jusqu'à quatre-vingt-dix degrés par tick, autant dire d'un bloc — c'est lui qu'on
-     * voyait, et non le regard.</p>
-     *
-     * <p>Plutôt que de réécrire {@code tick()} — qui gère aussi les sauts, les pas de côté et les
-     * obstacles —, seul {@code rotlerp} est repris. Vanilla l'appelle pour toute rotation : en
-     * changer le contenu suffit, et rien du reste de la logique de déplacement n'est touché.</p>
-     */
     public static class OWMoveControl extends net.minecraft.world.entity.ai.control.MoveControl {
 
         private final OWEntity owner;
@@ -553,25 +532,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.owner = mob;
         }
 
-        /**
-         * Virage minimal garanti, en degrés par tick.
-         *
-         * <p>Sans plancher, le lissage devient une infirmité. {@code getRotationSpeed()} a été écrit
-         * pour le <b>pilotage par un cavalier</b> — la vitesse à laquelle une monture rattrape le
-         * regard de son pilote — et ses valeurs sont très basses, jusqu'à quelques centièmes. Or une
-         * bête en navigation continue d'avancer pendant qu'elle vire : trop lente à tourner, elle
-         * dépasse sa destination, décrit un grand arc pour y revenir, et ne va jamais droit sur sa
-         * cible. C'est ce qu'on observait sur toute l'écurie.</p>
-         *
-         * <p>Six degrés par tick bornent le pire cas à une demi-seconde pour un quart de tour : assez
-         * pour que le chemin reste tenable, assez peu pour que le lissage de l'espèce se voie encore
-         * sur les corrections courantes, qui sont l'essentiel du trajet.</p>
-         */
-
         @Override
         protected float rotlerp(float from, float to, float maxDelta) {
-            // Apprivoisée ou montée : on garde la réactivité de vanilla, un cavalier ne veut pas
-            // sentir sa monture traîner à suivre son cap.
             if (this.owner.isTame() || this.owner.getControllingPassenger() != null) {
                 return super.rotlerp(from, to, maxDelta);
             }
@@ -579,8 +541,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             float delta = Mth.wrapDegrees(to - from);
             float step = delta * Mth.clamp(this.owner.getRotationSpeed(), 0f, 1f);
 
-            // Le pas ne descend jamais sous le plancher, sans jamais dépasser l'écart restant : la
-            // bête ne peut ni s'enliser dans son virage, ni osciller autour de son cap.
             float floor = Math.min(OWEntity.MIN_TURN_STEP, Math.abs(delta));
             if (Math.abs(step) < floor) step = Math.signum(delta) * floor;
 
@@ -588,13 +548,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    /**
-     * Facteur applique a la vitesse de base pour la poursuite du maitre.
-     *
-     * <p>La vitesse de rattrapage vaut donc le CARRE de l'attribut : une espece deja rapide court
-     * doublement vite pour rejoindre. Les especes que ce carre emporte trop loin abaissent ce
-     * facteur plutot que leur vitesse, qui commande aussi leur allure ordinaire.</p>
-     */
     protected double followOwnerSpeedFactor() {
         return this instanceof OWWaterEntity ? 5 : 20;
     }
@@ -633,12 +586,29 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     );
 
-    public float getBaseHealth() { return this.entityData.get(BASE_HEALTH);}
-    public void setBaseHealth(float health) { this.entityData.set(BASE_HEALTH, health);}
-    public float getBaseDamage() { return this.entityData.get(BASE_DAMAGE);}
-    public void setBaseDamage(float damage) { this.entityData.set(BASE_DAMAGE, damage);}
-    public float getBaseSpeed() { return this.entityData.get(BASE_SPEED);}
-    public void setBaseSpeed(float speed) { this.entityData.set(BASE_SPEED, speed);}
+    public float getBaseHealth() {
+        return this.entityData.get(BASE_HEALTH);
+    }
+
+    public void setBaseHealth(float health) {
+        this.entityData.set(BASE_HEALTH, health);
+    }
+
+    public float getBaseDamage() {
+        return this.entityData.get(BASE_DAMAGE);
+    }
+
+    public void setBaseDamage(float damage) {
+        this.entityData.set(BASE_DAMAGE, damage);
+    }
+
+    public float getBaseSpeed() {
+        return this.entityData.get(BASE_SPEED);
+    }
+
+    public void setBaseSpeed(float speed) {
+        this.entityData.set(BASE_SPEED, speed);
+    }
 
     private void executeQuestProgression(byte id) {
         if (!this.isTame() || this.isInResurrection() || this.isBaby()) return;
@@ -652,7 +622,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (quest1Progression >= 200) this.finishQuest((byte) 1);
         }
         if (id == 2 && !this.quest2isLocked) {
-            // Compte les PV RÉELLEMENT régénérés : à pleine vie le delta est 0 → pas de progression.
             this.quest2Progression += lastRealHealDelta;
             if (quest2Progression >= 100) this.finishQuest((byte) 2);
         }
@@ -661,7 +630,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (!Double.isNaN(lastTravelX)) {
                 double dx = x - lastTravelX, dz = z - lastTravelZ;
                 double d = Math.sqrt(dx * dx + dz * dz);
-                if (d < 20.0) travelAccumulator += d;   // ignore les téléportations
+                if (d < 20.0) travelAccumulator += d;
                 while (travelAccumulator >= 1.0 && quest3Progression < 2000) {
                     quest3Progression++;
                     travelAccumulator -= 1.0;
@@ -696,7 +665,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (quest9Progression >= 50) this.finishQuest((byte) 9);
         }
         if (id == 10 && !this.quest10isLocked) {
-            this.quest10Progression ++;
+            this.quest10Progression++;
             if (quest10Progression >= 8) this.finishQuest((byte) 10);
         }
     }
@@ -762,15 +731,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             xpReward = 7.5f;
         }
 
-        // Récompense selon le palier de la quête (pré-tirée au reroll) : soit des orbes d'XP versées
-        // dans le pipeline de leveling, soit des Pièces Sauvages pour le propriétaire.
         grantQuestReward(id);
 
-        // La petite fanfare de quête s'adresse au maître <b>en selle</b>, à lui seul. Diffusée dans
-        // le monde, elle partait à la cantonade — n'importe quel passant à portée l'entendait, le
-        // propriétaire resté trop loin la manquait, et une créature qui bouclait une quête dans son
-        // coin sonnait pour personne. Envoyée directement au cavalier, elle arrive à coup sûr, et
-        // seulement quand il est aux commandes.
         if (this.getControllingPassenger() instanceof ServerPlayer rider
                 && rider.getUUID().equals(this.getOwnerUUID())) {
             rider.playNotifySound(OWSounds.TAME_SUCCESS.get(), SoundSource.PLAYERS, 1.0f, (float) pitch);
@@ -783,42 +745,49 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.activeQuest0 == id || this.activeQuest1 == id || this.activeQuest2 == id;
     }
 
-    public int getState() { return this.entityData.get(STATE);}
+    public int getState() {
+        return this.entityData.get(STATE);
+    }
 
-    public void setState(int state) { this.entityData.set(STATE, state);}
+    public void setState(int state) {
+        this.entityData.set(STATE, state);
+    }
 
-    public boolean isFalling() { return this.entityData.get(IS_FALLING);}
+    public boolean isFalling() {
+        return this.entityData.get(IS_FALLING);
+    }
 
-    public void setFalling(boolean isFalling) { this.entityData.set(IS_FALLING, isFalling);}
+    public void setFalling(boolean isFalling) {
+        this.entityData.set(IS_FALLING, isFalling);
+    }
 
-    public boolean isPassive() { return this.entityData.get(IS_PASSIVE);}
+    public boolean isPassive() {
+        return this.entityData.get(IS_PASSIVE);
+    }
 
-    public void setPassive(boolean isPassive) { this.entityData.set(IS_PASSIVE, isPassive);}
+    public void setPassive(boolean isPassive) {
+        this.entityData.set(IS_PASSIVE, isPassive);
+    }
 
-    public boolean isAutoPickup() { return this.entityData.get(AUTO_PICKUP); }
+    public boolean isAutoPickup() {
+        return this.entityData.get(AUTO_PICKUP);
+    }
 
-    public void setAutoPickup(boolean value) { this.entityData.set(AUTO_PICKUP, value); }
+    public void setAutoPickup(boolean value) {
+        this.entityData.set(AUTO_PICKUP, value);
+    }
 
-    /**
-     * La bête emboîte-t-elle le pas à son maître ?
-     *
-     * <p>Le réglage coupe les <b>deux</b> façons de le rejoindre : la course et le rappel par
-     * téléportation. Une créature laissée sur « non » tient donc sa position, et c'est tout
-     * l'intérêt du réglage — poster une garde quelque part sans la voir repartir au bout de vingt
-     * blocs. Synchronisé plutôt que gardé côté serveur : l'écran de réglages lit l'état directement
-     * sur l'entité pour dessiner l'interrupteur.</p>
-     */
-    public boolean isFollowingOwner() { return this.entityData.get(FOLLOW_OWNER); }
+    public boolean isFollowingOwner() {
+        return this.entityData.get(FOLLOW_OWNER);
+    }
 
-    public void setFollowingOwner(boolean value) { this.entityData.set(FOLLOW_OWNER, value); }
+    public void setFollowingOwner(boolean value) {
+        this.entityData.set(FOLLOW_OWNER, value);
+    }
 
-    /**
-     * Nombre de cartes secondaires que cette espèce sait porter.
-     *
-     * <p>Déclaré sur l'entité et non dans le registre d'attaques : ce dernier ne vit que côté
-     * client (il tient des {@code KeyMapping}), or c'est le serveur qui arbitre le choix.</p>
-     */
-    public int getSecondaryAttackCount() { return 1; }
+    public int getSecondaryAttackCount() {
+        return 1;
+    }
 
     public int getSecondaryAttackIndex() {
         return Mth.positiveModulo(this.entityData.get(SECONDARY_ATTACK), Math.max(1, getSecondaryAttackCount()));
@@ -831,29 +800,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         onSecondaryAttackChanged();
     }
 
-    /** Délai entre deux changements de carte secondaire, en ticks (une demi-seconde). */
     public static final int SECONDARY_SWITCH_COOLDOWN_TICKS = 10;
 
-    /** Sentinelle : aucun changement n'a encore eu lieu sur cette bête. */
     private static final long NO_SECONDARY_SWITCH_YET = Long.MIN_VALUE;
 
     private long lastSecondarySwitchGameTime = NO_SECONDARY_SWITCH_YET;
 
-    /**
-     * Change de carte secondaire si le délai est écoulé, et dit si le changement a eu lieu.
-     *
-     * <p>Le délai est tenu <b>ici</b>, c'est-à-dire côté serveur, et pas seulement dans la boucle
-     * d'entrée du client : celle-ci ne borne que la molette du joueur honnête. Le temps de jeu sert
-     * de référence plutôt qu'une horloge murale, pour rester juste quand le serveur ralentit.</p>
-     */
     public boolean trySwitchSecondaryAttack(int index) {
         long now = this.level().getGameTime();
 
-        // La sentinelle doit être écartée AVANT la soustraction : retrancher Long.MIN_VALUE d'un
-        // temps de jeu positif déborde et retombe sur un nombre négatif, toujours inférieur au
-        // délai. Le tout premier changement était donc refusé — et comme le refus intervenait avant
-        // l'enregistrement de la date, la bête n'en acceptait plus jamais aucun. Le client, lui,
-        // appliquait sa prédiction : les deux copies divergeaient sans retour.
         if (lastSecondarySwitchGameTime != NO_SECONDARY_SWITCH_YET
                 && now - lastSecondarySwitchGameTime < SECONDARY_SWITCH_COOLDOWN_TICKS) {
             return false;
@@ -867,33 +822,21 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return true;
     }
 
-    /**
-     * Ranger la carte qu'on vient de quitter.
-     *
-     * <p>Une secondaire maintenue continuerait sinon de tourner dans le vide : son relâchement
-     * n'est plus routé vers elle une fois la carte changée, et plus rien ne viendrait l'arrêter.</p>
-     */
     protected void onSecondaryAttackChanged() {
     }
 
-    /**
-     * Durée du temps de recharge <b>commun</b> aux cartes secondaires de l'espèce, en ticks.
-     *
-     * <p>Zéro pour les espèces qui n'en ont qu'une : chaque carte y garde alors sa propre recharge.
-     * Dès qu'il y en a plusieurs, une valeur unique s'impose — sans quoi tirer une carte, tourner la
-     * molette et tirer l'autre revient à n'avoir aucune recharge du tout.</p>
-     */
-    public int getSecondaryCooldownDuration() { return 0; }
+    public int getSecondaryCooldownDuration() {
+        return 0;
+    }
 
-    /** Ticks restants avant que les cartes secondaires ne redeviennent disponibles. */
-    public int getSecondaryCooldown() { return this.entityData.get(SECONDARY_COOLDOWN); }
+    public int getSecondaryCooldown() {
+        return this.entityData.get(SECONDARY_COOLDOWN);
+    }
 
-    public boolean isSecondaryOnCooldown() { return getSecondaryCooldown() > 0; }
+    public boolean isSecondaryOnCooldown() {
+        return getSecondaryCooldown() > 0;
+    }
 
-    /**
-     * Arme le temps de recharge commun. Serveur uniquement : c'est lui qui fait autorité, le client
-     * n'en tient qu'une prédiction locale le temps que la donnée synchronisée lui revienne.
-     */
     public void startSecondaryCooldown() {
         if (this.level().isClientSide()) return;
         int duration = getSecondaryCooldownDuration();
@@ -906,26 +849,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (remaining > 0) this.entityData.set(SECONDARY_COOLDOWN, remaining - 1);
     }
 
-    /**
-     * Port de la banniere de tribu sur le dos de l'entite. Synchronise : le drapeau etant rendu
-     * par tous les clients qui voient l'entite, le choix doit valoir pour tout le monde et pas
-     * seulement pour son proprietaire.
-     */
-    public boolean isShowTribeFlag() { return this.entityData.get(SHOW_TRIBE_FLAG); }
+    public boolean isShowTribeFlag() {
+        return this.entityData.get(SHOW_TRIBE_FLAG);
+    }
 
-    public void setShowTribeFlag(boolean value) { this.entityData.set(SHOW_TRIBE_FLAG, value); }
+    public void setShowTribeFlag(boolean value) {
+        this.entityData.set(SHOW_TRIBE_FLAG, value);
+    }
 
-    /**
-     * Cette créature arbore-t-elle l'étendard de sa tribu ?
-     *
-     * <p>Règle unique, partagée par tous les layers de drapeau (entités d'un seul tenant comme
-     * segments de boa) : le port de l'étendard est un <b>honneur</b>, réservé aux champions
-     * désignés par le chef, et non un signe d'appartenance porté par toute la tribu.</p>
-     *
-     * <p>Trois conditions cumulées : être champion, porter la selle (c'est elle qui tient la
-     * hampe), et ne pas avoir été masquée par son propriétaire. S'y ajoutent les états où la
-     * créature ne se montre pas du tout.</p>
-     */
     public boolean carriesTribeFlag() {
         return this.currentTeam != null && this.currentTeam.isChampion(this.getUUID())
                 && this.isSaddled() && this.isShowTribeFlag()
@@ -933,39 +864,41 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 && !this.isInvisible() && !this.isInResurrection();
     }
 
-    public float getAcceleration() { return this.entityData.get(ACCELERATION);}
+    public float getAcceleration() {
+        return this.entityData.get(ACCELERATION);
+    }
 
-    public void setAcceleration(float getAcceleration) { this.entityData.set(ACCELERATION, getAcceleration);}
+    public void setAcceleration(float getAcceleration) {
+        this.entityData.set(ACCELERATION, getAcceleration);
+    }
 
-    public int getNecklaceColor() { return this.entityData.get(NECKLACE_COLOR);}
+    public int getNecklaceColor() {
+        return this.entityData.get(NECKLACE_COLOR);
+    }
 
-    public void setNecklaceColor(int necklaceColor) { this.entityData.set(NECKLACE_COLOR, necklaceColor);}
+    public void setNecklaceColor(int necklaceColor) {
+        this.entityData.set(NECKLACE_COLOR, necklaceColor);
+    }
 
     public static final EntityDataAccessor<Integer> SKIN_INDEX = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
-    // CSV des indices de skins débloqués (achetés avec des Pièces Sauvages). Appartient au pet, donc
-    // stocké et synchronisé sur l'entité (serveur-autoritaire), sauvegardé en NBT et restauré à la résurrection.
     public static final EntityDataAccessor<String> SKINS_UNLOCKED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
     public static final EntityDataAccessor<Integer> COSMETIC_QUEST_KILLS = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> FIGHT_COOLDOWN = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     public boolean nbtRestoring = false;
 
-    // --- Piste Sauvage (labyrinthe de progression par individu) ---
-    // Avancement payé en Pièces Sauvages (OWCurrency, par joueur) ; ici on ne stocke que la progression.
-    // Nœud courant du pion sur la Piste (0 = départ).
     public static final EntityDataAccessor<Integer> PISTE_NODE = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
-    // CSV des ids de nœuds débloqués (contient toujours "0"), et des nœuds verrouillés à vie par un choix exclusif.
     public static final EntityDataAccessor<String> PISTE_UNLOCKED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
     public static final EntityDataAccessor<String> PISTE_LOCKED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
-    // Option choisie sur chaque palier à choix : CSV "nodeId:optionIndex".
     public static final EntityDataAccessor<String> PISTE_CHOICES = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
-    /** DEBUG/TEST : à true, remet à zéro la progression de la Piste de chaque entité au chargement. Repasser à false une fois le reset fait. */
     public static final boolean DEBUG_RESET_PISTE = false;
 
     public int getSkinIndex() {
         return this.entityData.get(SKIN_INDEX);
     }
 
-    protected int getDefaultSkinIndex() { return 0; }
+    protected int getDefaultSkinIndex() {
+        return 0;
+    }
 
     public void changeSkin(int skinIndex, boolean playingEffects) {
         this.entityData.set(SKIN_INDEX, skinIndex);
@@ -976,57 +909,40 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(SKIN_INDEX, skinIndex);
     }
 
-    /**
-     * Pose le skin « Par Défaut » de l'espèce sur une créature qui n'en porte aucun.
-     *
-     * <p>L'indice 0 ne désigne pas une apparence, mais son absence : la bête s'affiche alors dans
-     * son habit sauvage, alors que chaque espèce a un cosmétique de base fait pour elle. Le geste
-     * n'avait lieu qu'à l'apprivoisement, si bien qu'une créature apprivoisée avant que son espèce
-     * ne déclare son indice restait nue pour toujours. On le rejoue donc tant que le compte n'y est
-     * pas — une seule fois en pratique, puisque le skin s'installe aussitôt.</p>
-     */
     private void equipDefaultSkinIfNeeded() {
         if (!this.isTame() || this.getSkinIndex() != 0) return;
         int defaultSkin = this.getDefaultSkinIndex();
         if (defaultSkin > 0) this.changeSkinSilent(defaultSkin);
     }
 
-    // --- Skins débloqués (achetés) : appartiennent au pet, serveur-autoritaire + synchronisés ---
+    public String getUnlockedSkinsRaw() {
+        return this.entityData.get(SKINS_UNLOCKED);
+    }
 
-    /** CSV brut des indices de skins débloqués (pour la sérialisation Âme / NBT). */
-    public String getUnlockedSkinsRaw() { return this.entityData.get(SKINS_UNLOCKED); }
+    public void setUnlockedSkinsRaw(String csv) {
+        this.entityData.set(SKINS_UNLOCKED, csv == null ? "" : csv);
+    }
 
-    /** Restaure l'ensemble des skins débloqués depuis un CSV (NBT / résurrection). */
-    public void setUnlockedSkinsRaw(String csv) { this.entityData.set(SKINS_UNLOCKED, csv == null ? "" : csv); }
+    public java.util.Set<Integer> getUnlockedSkins() {
+        return parsePisteIds(this.entityData.get(SKINS_UNLOCKED));
+    }
 
-    public java.util.Set<Integer> getUnlockedSkins() { return parsePisteIds(this.entityData.get(SKINS_UNLOCKED)); }
-
-    /** Le skin d'index 0 (défaut) est toujours débloqué. */
     public boolean isSkinUnlocked(int skinIndex) {
         return skinIndex == 0 || getUnlockedSkins().contains(skinIndex);
     }
 
-    /**
-     * Proies abattues par cette créature, décomptées pour les quêtes de skins.
-     *
-     * <p>Le compte vit <b>sur la créature</b> et voyage jusqu'au client, comme les skins débloqués.
-     * Il tenait auparavant dans une table statique alimentée par le seul serveur : en solo les deux
-     * moitiés du jeu partagent la même mémoire et l'illusion tenait, mais en partie multijoueur le
-     * client n'y lisait jamais rien — la barre d'avancement restait plantée à 0 % et le skin ne se
-     * débloquait pas.</p>
-     */
-    public int getCosmeticQuestKills() { return this.entityData.get(COSMETIC_QUEST_KILLS); }
+    public int getCosmeticQuestKills() {
+        return this.entityData.get(COSMETIC_QUEST_KILLS);
+    }
 
     public void setCosmeticQuestKills(int kills) {
         this.entityData.set(COSMETIC_QUEST_KILLS, Math.max(0, kills));
     }
 
-    /** Ajoute une proie au compte. À n'appeler que côté serveur. */
     public void addCosmeticQuestKill() {
         setCosmeticQuestKills(getCosmeticQuestKills() + 1);
     }
 
-    /** Débloque un skin (idempotent). À n'appeler que côté serveur. */
     public void unlockSkin(int skinIndex) {
         if (skinIndex == 0) return;
         java.util.Set<Integer> ids = getUnlockedSkins();
@@ -1088,65 +1004,103 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void setSitting(boolean sitting) {
-        this.entityData.set(SITTING, sitting); this.setOrderedToSit(sitting);
+        this.entityData.set(SITTING, sitting);
+        this.setOrderedToSit(sitting);
         if (sitting) {
             this.ejectPassengers();
         }
     }
 
-    public boolean isSitting() { return this.entityData.get(SITTING);}
+    public boolean isSitting() {
+        return this.entityData.get(SITTING);
+    }
 
-    public void setUltimate(boolean isUltimate) { this.entityData.set(ULTIMATE, isUltimate);}
+    public void setUltimate(boolean isUltimate) {
+        this.entityData.set(ULTIMATE, isUltimate);
+    }
 
-    public boolean isUltimate() { return this.entityData.get(ULTIMATE);}
+    public boolean isUltimate() {
+        return this.entityData.get(ULTIMATE);
+    }
 
-    public float getXp() { return this.entityData.get(XP);}
+    public float getXp() {
+        return this.entityData.get(XP);
+    }
 
-    public void setXp(float xp) { this.entityData.set(XP, xp);}
+    public void setXp(float xp) {
+        this.entityData.set(XP, xp);
+    }
 
-    public boolean isBaby() { return this.entityData.get(IS_BABY);}
+    public boolean isBaby() {
+        return this.entityData.get(IS_BABY);
+    }
 
-    public void setBaby(boolean isBaby) { this.entityData.set(IS_BABY, isBaby);}
+    public void setBaby(boolean isBaby) {
+        this.entityData.set(IS_BABY, isBaby);
+    }
 
-    public int getXpStage() { return this.entityData.get(STAGE);}
+    public int getXpStage() {
+        return this.entityData.get(STAGE);
+    }
 
-    public void setXpStage(int xpStage) { this.entityData.set(STAGE, xpStage);}
+    public void setXpStage(int xpStage) {
+        this.entityData.set(STAGE, xpStage);
+    }
 
-    public int getLevel() { return this.entityData.get(LEVEL);}
+    public int getLevel() {
+        return this.entityData.get(LEVEL);
+    }
 
-    public void setLevel(int level) { this.entityData.set(LEVEL, level);}
+    public void setLevel(int level) {
+        this.entityData.set(LEVEL, level);
+    }
 
-    public int getLevelPoints() { return this.entityData.get(LEVEL_POINTS);}
+    public int getLevelPoints() {
+        return this.entityData.get(LEVEL_POINTS);
+    }
 
-    public void setLevelPoints(int level) { this.entityData.set(LEVEL_POINTS, level);}
+    public void setLevelPoints(int level) {
+        this.entityData.set(LEVEL_POINTS, level);
+    }
 
-    // --- Piste Sauvage : progression (l'avancement se paie en Pièces Sauvages, voir OWCurrency) ---
-    public int getPisteCurrentNode() { return this.entityData.get(PISTE_NODE); }
+    public int getPisteCurrentNode() {
+        return this.entityData.get(PISTE_NODE);
+    }
 
-    public void setPisteCurrentNode(int nodeId) { this.entityData.set(PISTE_NODE, nodeId); }
+    public void setPisteCurrentNode(int nodeId) {
+        this.entityData.set(PISTE_NODE, nodeId);
+    }
 
-    public java.util.Set<Integer> getPisteUnlockedNodes() { return parsePisteIds(this.entityData.get(PISTE_UNLOCKED)); }
+    public java.util.Set<Integer> getPisteUnlockedNodes() {
+        return parsePisteIds(this.entityData.get(PISTE_UNLOCKED));
+    }
 
-    public boolean isPisteNodeUnlocked(int nodeId) { return getPisteUnlockedNodes().contains(nodeId); }
+    public boolean isPisteNodeUnlocked(int nodeId) {
+        return getPisteUnlockedNodes().contains(nodeId);
+    }
 
     public void addPisteUnlockedNode(int nodeId) {
         java.util.Set<Integer> ids = getPisteUnlockedNodes();
         if (ids.add(nodeId)) this.entityData.set(PISTE_UNLOCKED, joinPisteIds(ids));
     }
 
-    public java.util.Set<Integer> getPisteLockedNodes() { return parsePisteIds(this.entityData.get(PISTE_LOCKED)); }
+    public java.util.Set<Integer> getPisteLockedNodes() {
+        return parsePisteIds(this.entityData.get(PISTE_LOCKED));
+    }
 
-    public boolean isPisteNodeLocked(int nodeId) { return getPisteLockedNodes().contains(nodeId); }
+    public boolean isPisteNodeLocked(int nodeId) {
+        return getPisteLockedNodes().contains(nodeId);
+    }
 
     public void addPisteLockedNode(int nodeId) {
         java.util.Set<Integer> ids = getPisteLockedNodes();
         if (ids.add(nodeId)) this.entityData.set(PISTE_LOCKED, joinPisteIds(ids));
     }
 
-    /** CSV brut des choix de paliers (debug). */
-    public String getPisteChoicesRaw() { return this.entityData.get(PISTE_CHOICES); }
+    public String getPisteChoicesRaw() {
+        return this.entityData.get(PISTE_CHOICES);
+    }
 
-    /** Option choisie sur un palier à choix, ou -1 si aucun choix fait. */
     public int getPisteChoice(int nodeId) {
         String csv = this.entityData.get(PISTE_CHOICES);
         if (csv == null || csv.isEmpty()) return -1;
@@ -1157,13 +1111,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (Integer.parseInt(part.substring(0, sep).trim()) == nodeId) {
                     return Integer.parseInt(part.substring(sep + 1).trim());
                 }
-            } catch (NumberFormatException ignored) {}
+            } catch (NumberFormatException ignored) {
+            }
         }
         return -1;
     }
 
     public void setPisteChoice(int nodeId, int optionIndex) {
-        if (getPisteChoice(nodeId) != -1) return; // définitif : on ne réécrit jamais
+        if (getPisteChoice(nodeId) != -1) return;
         String csv = this.entityData.get(PISTE_CHOICES);
         String entry = nodeId + ":" + optionIndex;
         this.entityData.set(PISTE_CHOICES, (csv == null || csv.isEmpty()) ? entry : csv + "," + entry);
@@ -1175,7 +1130,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         for (String part : csv.split(",")) {
             String trimmed = part.trim();
             if (!trimmed.isEmpty()) {
-                try { ids.add(Integer.parseInt(trimmed)); } catch (NumberFormatException ignored) {}
+                try {
+                    ids.add(Integer.parseInt(trimmed));
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
         return ids;
@@ -1190,54 +1148,61 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return sb.toString();
     }
 
-    public boolean canReUpdatedDailyQuests() { return this.entityData.get(RE_UPDATED_QUESTS);}
+    public boolean canReUpdatedDailyQuests() {
+        return this.entityData.get(RE_UPDATED_QUESTS);
+    }
 
-    public void setReUpdatedDailyQuests(boolean canReUpdatedDailyQuests) { this.entityData.set(RE_UPDATED_QUESTS, canReUpdatedDailyQuests);}
+    public void setReUpdatedDailyQuests(boolean canReUpdatedDailyQuests) {
+        this.entityData.set(RE_UPDATED_QUESTS, canReUpdatedDailyQuests);
+    }
 
     public double getResurrectionPercentage() {
         if (this.resurrectionTimer <= 0 || this.getResurrectionMaxTimer() <= 0) return 0;
         return ((double) this.resurrectionTimer / this.getResurrectionMaxTimer()) * 100;
     }
 
-    public int getTamingPercentage() { return this.entityData.get(TAMING_PERCENTAGE);}
+    public int getTamingPercentage() {
+        return this.entityData.get(TAMING_PERCENTAGE);
+    }
 
     public void setTamingPercentage(int actualTaming, int maxTaming) {
         if (actualTaming <= 0 && maxTaming <= 0 && this.isTame()) return;
-        this.entityData.set(TAMING_PERCENTAGE, (int)(((double) actualTaming / maxTaming) * 100));
+        this.entityData.set(TAMING_PERCENTAGE, (int) (((double) actualTaming / maxTaming) * 100));
     }
 
-    public float getMaturationPercentage() { return this.entityData.get(MATURATION_PERCENTAGE);}
+    public float getMaturationPercentage() {
+        return this.entityData.get(MATURATION_PERCENTAGE);
+    }
 
     public void setMaturationPercentage(float actualMaturation, float maxMaturation) {
         if (actualMaturation <= 0 && maxMaturation <= 0 && this.isTame()) return;
         this.entityData.set(MATURATION_PERCENTAGE, (((float) actualMaturation / maxMaturation) * 100));
     }
 
-    public int getSleepBarPercent() { return (int) (((double) getActualSleepingBar() / getMaxSleepingBar()) * 100);}
+    public int getSleepBarPercent() {
+        return (int) (((double) getActualSleepingBar() / getMaxSleepingBar()) * 100);
+    }
 
-    public void resetSleepBar() { setActualSleepingBarTo(0); }
+    public void resetSleepBar() {
+        setActualSleepingBarTo(0);
+    }
 
-    public boolean isInFight() { return this.entityData.get(IS_IN_FIGHT);}
+    public boolean isInFight() {
+        return this.entityData.get(IS_IN_FIGHT);
+    }
 
     public void setFighting(boolean isInFight) {
         if (isBaby()) isInFight = false;
-        if (isInFight) this.fightingTime = FIGHT_COOLDOWN_TICKS;   // chaque déclenchement rafraîchit le timer
+        if (isInFight) this.fightingTime = FIGHT_COOLDOWN_TICKS;
         else this.fightingTime = 0;
         if (!this.level().isClientSide()) this.entityData.set(FIGHT_COOLDOWN, this.fightingTime);
         this.entityData.set(IS_IN_FIGHT, isInFight);
     }
 
-    /**
-     * Décompte avant la sortie de combat, en ticks, répliqué jusqu'au client.
-     *
-     * <p>Deux temps de cinq secondes : le premier fige le compteur à plein — un coup vient d'être
-     * porté, rien ne redescend encore —, le second le fait fondre jusqu'à zéro. Toucher ou être
-     * touché relance le tout depuis le début. Tant qu'il n'est pas épuisé, la créature ne mange
-     * pas : on ne se ravitaille pas au milieu d'un échange.</p>
-     */
-    public int getFightCooldown() { return this.entityData.get(FIGHT_COOLDOWN); }
+    public int getFightCooldown() {
+        return this.entityData.get(FIGHT_COOLDOWN);
+    }
 
-    /** Part de la jauge à afficher [0..1] : pleine pendant le maintien, décroissante ensuite. */
     public float getFightCooldownFraction() {
         int t = getFightCooldown();
         if (t <= 0) return 0f;
@@ -1245,21 +1210,22 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return t / (float) FIGHT_DECAY_TICKS;
     }
 
-    public float getDamageToClient() { return this.entityData.get(DAMAGE_TO_CLIENT);}
+    public float getDamageToClient() {
+        return this.entityData.get(DAMAGE_TO_CLIENT);
+    }
 
-    public void setDamageToClient(float damage) { this.entityData.set(DAMAGE_TO_CLIENT, damage);}
+    public void setDamageToClient(float damage) {
+        this.entityData.set(DAMAGE_TO_CLIENT, damage);
+    }
 
-    public boolean questsAreUpdated() { return this.entityData.get(QUESTS_ARE_UPDATED);}
+    public boolean questsAreUpdated() {
+        return this.entityData.get(QUESTS_ARE_UPDATED);
+    }
 
-    public void setUpdatingQuests(boolean questsAreUpdated) { this.entityData.set(QUESTS_ARE_UPDATED, questsAreUpdated);}
+    public void setUpdatingQuests(boolean questsAreUpdated) {
+        this.entityData.set(QUESTS_ARE_UPDATED, questsAreUpdated);
+    }
 
-    /**
-     * Le maître de cette créature a-t-il déjà consulté les quêtes de la période {@code period} ?
-     *
-     * <p>Maître hors ligne : on répond non, et la pastille se lève. Il la verra en revenant, et elle
-     * s'effacera partout dès qu'il aura ouvert l'onglet une fois — mieux vaut une pastille de trop
-     * qu'une journée entière passée sous silence.</p>
-     */
     private boolean ownerHasSeenQuestPeriod(long period) {
         net.minecraft.server.MinecraftServer server = this.getServer();
         UUID owner = this.getOwnerUUID();
@@ -1281,7 +1247,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.playSound(SoundEvents.PLAYER_LEVELUP);
         }
 
-        // Tous les 10 niveaux atteints par n'importe quel pet, l'owner gagne 1 Pièce Sauvage.
         if (!this.level().isClientSide() && this.getLevel() % 10 == 0
                 && this.getOwner() instanceof ServerPlayer owner) {
             net.tiew.operationWild.core.OWCurrency.grantWildCoins(owner, 1);
@@ -1296,11 +1261,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    /**
-     * Envoie au client concerné le déclencheur de l'animation de passage de niveau
-     * (anneaux concentriques + chiffre). La cible est le rider s'il y en a un, sinon le propriétaire
-     * en ligne et proche. Ne fait rien côté client.
-     */
     private void notifyLevelUpClient() {
         if (this.level().isClientSide()) return;
 
@@ -1310,8 +1270,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             target = sp;
         } else if (this.getOwner() instanceof ServerPlayer owner
                 && owner.level() == this.level() && owner.distanceToSqr(this) <= 48 * 48) {
-            // Pas chevauché : on prévient le propriétaire seulement s'il est proche et dans le même monde,
-            // pour éviter une animation surprise venue d'un pet à l'autre bout de la carte.
             target = owner;
         }
 
@@ -1323,11 +1281,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    /**
-     * Ajoute de l'XP de niveau (1 → 50). Unique point d'entrée du leveling : l'XP provient
-     * exclusivement de l'absorption de boules d'expérience (voir {@link #absorbNearbyXpOrbs()})
-     * et des récompenses de quêtes.
-     */
     public void gainLevelXp(float amount) {
         if (!isTame() || this.getLevel() >= 50 || amount <= 0) return;
 
@@ -1351,17 +1304,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    /** Facteur d'échelle des récompenses d'XP de quête pour rester cohérent avec la nouvelle courbe. */
     private static final float QUEST_XP_SCALE = 6.0f;
 
     private static final double XP_ORB_ATTRACT_RADIUS = 8.0;
     private static final double XP_ORB_PICKUP_RADIUS = 1.25;
 
-    /**
-     * Comme un joueur, une entité apprivoisée non encore au niveau max attire et absorbe les
-     * boules d'expérience proches. Une fois le niveau 50 atteint, elle n'aspire plus rien : les
-     * orbes retournent naturellement au joueur (rider compris). Appelé côté serveur uniquement.
-     */
     private void absorbNearbyXpOrbs() {
         java.util.List<ExperienceOrb> orbs = this.level().getEntitiesOfClass(
                 ExperienceOrb.class, this.getBoundingBox().inflate(XP_ORB_ATTRACT_RADIUS));
@@ -1381,7 +1328,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                             ((this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.35f + 1.0f) * 2.0f);
                 }
                 orb.discard();
-                if (this.getLevel() >= 50) return; // niveau max atteint pendant l'absorption
+                if (this.getLevel() >= 50) return;
             } else if (dist > 0.01) {
                 double pull = (1.0 - dist / XP_ORB_ATTRACT_RADIUS) * 0.12;
                 orb.setDeltaMovement(orb.getDeltaMovement().add(toEntity.normalize().scale(pull)));
@@ -1394,9 +1341,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (i <= 0) {
             return false;
         } else {
-            this.hurt(damageSource, (float)i);
+            this.hurt(damageSource, (float) i);
             if (this.isVehicle()) {
-                for(Entity entity : this.getIndirectPassengers()) {
+                for (Entity entity : this.getIndirectPassengers()) {
                     entity.hurt(damageSource, 0);
                 }
             }
@@ -1406,11 +1353,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    /**
-     * Suit le gain de PV réellement appliqué (borné par la vie max) dans {@link #lastRealHealDelta}.
-     * La quête « régénérer des PV » (id 2) s'appuie dessus : à pleine vie, {@code super.heal} ne rend
-     * rien → delta 0 → la quête ne progresse pas (correction du comptage à vide).
-     */
     @Override
     public void heal(float amount) {
         float before = this.getHealth();
@@ -1418,30 +1360,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.lastRealHealDelta = Math.max(0, Math.round(this.getHealth() - before));
     }
 
-    /**
-     * Vrai si ce régime accepte cet aliment. Un carnivore ne touche pas aux légumes, un herbivore
-     * pas à la viande : rien ne sert de laisser une créature grignoter ce qui ne la nourrira pas.
-     */
     public boolean canEatFood(ItemStack stack) {
         return foodHealAmount(stack, preferRawMeat(), preferCookedMeat()) > 0f;
     }
 
-    /**
-     * Se ravitaille sur la nourriture rangée dans son inventaire, hors combat uniquement.
-     *
-     * <p>Une bouchée toutes les trois secondes, et seulement si la créature est blessée : elle ne
-     * gaspille pas les réserves de son maître à pleine vie. Le compteur de bouchées ne court pas
-     * pendant le combat — c'est le fait d'en sortir qui ouvre le repas, pas le simple fait
-     * d'attendre. Ce que rend chaque aliment dépend du régime et de la cuisson, comme lorsqu'on la
-     * nourrit à la main (cf. {@link #healWithFavoriteFood}).</p>
-     */
     private void tickFeeding() {
         if (this.isInFight() || this.getFightCooldown() > 0) {
-            feedCooldown = FEED_INTERVAL_TICKS;   // sortie de combat = plein délai avant la 1re bouchée
+            feedCooldown = FEED_INTERVAL_TICKS;
             return;
         }
         if (this.getHealth() >= this.getMaxHealth() || this.isDeadOrDying()) return;
-        if (feedCooldown > 0) { feedCooldown--; return; }
+        if (feedCooldown > 0) {
+            feedCooldown--;
+            return;
+        }
 
         ItemStackHandler inventory = this.getInventory();
         if (inventory == null) return;
@@ -1460,14 +1392,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         feedCooldown = FEED_INTERVAL_TICKS;
     }
 
-    /**
-     * PV rendus par un aliment, <b>avant</b> multiplicateur. {@code 0} si le régime le refuse.
-     *
-     * <p>Une seule décision, un seul chiffre. Le calcul tenait auparavant dans deux blocs
-     * indépendants — l'un pour la viande, l'autre pour le végétal — chacun avec ses branches et son
-     * propre appel à {@code heal} : un aliment portant les deux étiquettes se voyait soigné deux
-     * fois, et il était impossible de dire d'un coup d'œil combien un repas rendait.</p>
-     */
     public float foodHealAmount(ItemStack food, boolean preferRawMeat, boolean preferCookedMeat) {
         if (food == null || food.isEmpty()) return 0f;
 
@@ -1476,25 +1400,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         boolean meat = raw || cooked || food.is(ItemTags.MEAT) || food.is(ItemTags.FISHES);
         boolean plant = food.is(Tags.Items.FOODS_VEGETABLE) || food.is(Tags.Items.FOODS_FRUIT);
 
-        // La viande prime pour qui la mange : un omnivore devant un aliment doublement étiqueté
-        // n'en tire qu'un seul repas.
         if (meat && (this.isCarnivorous() || this.isOmnivorous())) {
             if (preferRawMeat) return raw ? 4f : 2f;
             if (preferCookedMeat) return cooked ? 4f : 2f;
-            return 3f;   // espèce sans penchant déclaré : la viande la nourrit tout de même
+            return 3f;
         }
         if (plant && (this.isVegetarian() || this.isOmnivorous())) return 3f;
         return 0f;
     }
 
-    /**
-     * Applique le soin d'un aliment selon le régime et la cuisson — <b>un seul</b> {@code heal},
-     * quel que soit l'aliment.
-     *
-     * <p>Ne joue aucun son : la bouchée appartient à l'appelant. Les branches de ce calcul en
-     * émettaient chacune un, parfois deux, et l'appelant en ajoutait un troisième — un seul repas
-     * déclenchait donc une rafale de mastications.</p>
-     */
     public void healWithFavoriteFood(float healMultiplier, boolean preferRawMeat, boolean preferCookedMeat) {
         float base = foodHealAmount(this.getItemFood(), preferRawMeat, preferCookedMeat);
         if (base <= 0f) return;
@@ -1510,47 +1424,81 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return Mth.ceil((v * 0.5F - 3.0F) * v1);
     }
 
-    public float getScale() { return this.entityData.get(SCALE);}
+    public float getScale() {
+        return this.entityData.get(SCALE);
+    }
 
-    public void setScale(float scale) { this.entityData.set(SCALE, scale);}
+    public void setScale(float scale) {
+        this.entityData.set(SCALE, scale);
+    }
 
-    public boolean isFemale() { return this.entityData.get(IS_FEMALE);}
+    public boolean isFemale() {
+        return this.entityData.get(IS_FEMALE);
+    }
 
-    public boolean isMale() { return !isFemale();}
+    public boolean isMale() {
+        return !isFemale();
+    }
 
-    public void setGender(int gender) { this.entityData.set(IS_FEMALE, gender == 0);}
+    public void setGender(int gender) {
+        this.entityData.set(IS_FEMALE, gender == 0);
+    }
 
-    public void setPrepareNap(boolean prepareNap) { this.entityData.set(PREPARE_NAP, prepareNap);}
+    public void setPrepareNap(boolean prepareNap) {
+        this.entityData.set(PREPARE_NAP, prepareNap);
+    }
 
-    public boolean isPreparingNapping() { return this.entityData.get(PREPARE_NAP);}
+    public boolean isPreparingNapping() {
+        return this.entityData.get(PREPARE_NAP);
+    }
 
     public void setAttacking(boolean isAttacking) {
         this.entityData.set(IS_ATTACKING, isAttacking);
     }
 
-    public boolean isAttacking() { return this.entityData.get(IS_ATTACKING);}
+    public boolean isAttacking() {
+        return this.entityData.get(IS_ATTACKING);
+    }
 
     public void setRunning(boolean isRunning) {
         this.entityData.set(IS_RUNNING, isRunning);
     }
 
-    public boolean isRunning() { return this.entityData.get(IS_RUNNING);}
+    public boolean isRunning() {
+        return this.entityData.get(IS_RUNNING);
+    }
 
-    public boolean isPlayerControlledDeathRoll() { return false; }
+    public boolean isPlayerControlledDeathRoll() {
+        return false;
+    }
 
-    public boolean isGrabbing() { return false; }
+    public boolean isGrabbing() {
+        return false;
+    }
 
-    public String getNickname() { return this.entityData.get(NAME);}
+    public String getNickname() {
+        return this.entityData.get(NAME);
+    }
 
-    public void setNickname(String getNickname) { this.entityData.set(NAME, getNickname);}
+    public void setNickname(String getNickname) {
+        this.entityData.set(NAME, getNickname);
+    }
 
-    public float getVitalEnergy() { return this.entityData.get(VITAL_ENERGY);}
+    public float getVitalEnergy() {
+        return this.entityData.get(VITAL_ENERGY);
+    }
 
-    public void setVitalEnergy(float getVitalEnergy) { this.entityData.set(VITAL_ENERGY, getVitalEnergy);}
+    public void setVitalEnergy(float getVitalEnergy) {
+        this.entityData.set(VITAL_ENERGY, getVitalEnergy);
+    }
 
-    public float getVitalEnergyBonus() { return this.entityData.get(VITAL_ENERGY_BONUS);}
+    public float getVitalEnergyBonus() {
+        return this.entityData.get(VITAL_ENERGY_BONUS);
+    }
 
-    public void setVitalEnergyBonus(float bonus) { this.entityData.set(VITAL_ENERGY_BONUS, Math.max(0f, bonus));}
+    public void setVitalEnergyBonus(float bonus) {
+        this.entityData.set(VITAL_ENERGY_BONUS, Math.max(0f, bonus));
+    }
 
     public final float getVitalEnergyCapacity() {
         float levelled = getMaxVitalEnergy()
@@ -1563,27 +1511,42 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.setFoodCount(food.isEmpty() ? 0 : food.getCount());
     }
 
-    public ItemStack getItemFood() { return this.entityData.get(ITEM_FOOD);}
+    public ItemStack getItemFood() {
+        return this.entityData.get(ITEM_FOOD);
+    }
 
-    public int getFoodCount() { return this.entityData.get(FOOD_COUNT);}
+    public int getFoodCount() {
+        return this.entityData.get(FOOD_COUNT);
+    }
 
-    public void setFoodCount(int count) { this.entityData.set(FOOD_COUNT, count);}
+    public void setFoodCount(int count) {
+        this.entityData.set(FOOD_COUNT, count);
+    }
 
-    public int getResurrectionMaxTimer() { return this.entityData.get(RESURRECTION_MAX_TIMER);}
+    public int getResurrectionMaxTimer() {
+        return this.entityData.get(RESURRECTION_MAX_TIMER);
+    }
 
-    public void setResurrectionMaxTimer(int maxTimer) { this.entityData.set(RESURRECTION_MAX_TIMER, maxTimer);}
+    public void setResurrectionMaxTimer(int maxTimer) {
+        this.entityData.set(RESURRECTION_MAX_TIMER, maxTimer);
+    }
 
-    public boolean canDropSoul() { return this.entityData.get(CAN_DROP_SOUL);}
+    public boolean canDropSoul() {
+        return this.entityData.get(CAN_DROP_SOUL);
+    }
 
-    public void setCanDropSoul(boolean canDropSoul) { this.entityData.set(CAN_DROP_SOUL, canDropSoul);}
+    public void setCanDropSoul(boolean canDropSoul) {
+        this.entityData.set(CAN_DROP_SOUL, canDropSoul);
+    }
 
-    public boolean isInResurrection() { return this.entityData.get(IS_IN_RESURRECTION);}
+    public boolean isInResurrection() {
+        return this.entityData.get(IS_IN_RESURRECTION);
+    }
 
-    public void setResurrection(boolean isInResurrection) { this.entityData.set(IS_IN_RESURRECTION, isInResurrection);}
+    public void setResurrection(boolean isInResurrection) {
+        this.entityData.set(IS_IN_RESURRECTION, isInResurrection);
+    }
 
-    // ==================== Système d'Âme / Résurrection (générique, tout OWEntity) ====================
-
-    /** Construit le snapshot complet et générique de ce compagnon, indépendant du type d'entité. */
     public SoulData buildSoulData() {
         ResourceLocation typeId = BuiltInRegistries.ENTITY_TYPE.getKey(this.getType());
         UUID ownerUuid = this.getOwnerUUID() != null ? this.getOwnerUUID() : SoulData.NO_UUID;
@@ -1598,19 +1561,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 this.getUnlockedSkinsRaw(), teamTag);
     }
 
-    /** Crée l'item Âme portant le snapshot de ce compagnon. */
     public ItemStack captureSoul() {
         ItemStack soulStack = new ItemStack(OWItems.ANIMAL_SOUL.get());
         soulStack.set(OWDataComponentTypes.SOUL_DATA.get(), this.buildSoulData());
         return soulStack;
     }
 
-    /** Doit-on droper l'Âme à la mort ? Conditions communes à toutes les entités. */
     public boolean shouldDropSoulOnDeath() {
         return this.canDropSoul() && this.isTame() && !this.isInResurrection() && !this.isBaby();
     }
 
-    /** Restaure intégralement ce compagnon (fraîchement spawn) depuis un snapshot d'Âme. */
     public void restoreFromSoul(SoulData data) {
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(data.maxHealth());
         this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(data.damage());
@@ -1629,13 +1589,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.setUnlockedSkinsRaw(data.skinsUnlocked());
             if (data.skinIndex() != 0) this.changeSkinSilent(data.skinIndex());
         } catch (Exception ignored) {
-            // Restauration de skin non critique : ne doit jamais interrompre la résurrection.
         }
         if (data.hasTeam()) this.applyTeamFromTag(data.teamTag());
         this.setHealth(this.getMaxHealth());
     }
 
-    /** Écrit les données de la tribu courante dans le tag fourni (même format que la sauvegarde NBT). */
     public void writeTeamToTag(CompoundTag teamTag) {
         if (this.currentTeam == null) return;
         teamTag.putInt("teamId", currentTeam.getTeamId());
@@ -1666,7 +1624,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         teamTag.putByteArray("paintPixels", OWTeamMosaicPattern.packPixels3(pixels != null ? pixels : new byte[0]));
     }
 
-    /** Reconstruit et applique une tribu depuis un tag (même format que la sauvegarde NBT). */
     public void applyTeamFromTag(CompoundTag teamTag) {
         if (teamTag == null || teamTag.isEmpty()) return;
         List<String> pNames = new ArrayList<>();
@@ -1681,8 +1638,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (teamTag.contains("entityUUIDs")) {
             ListTag euTag = teamTag.getList("entityUUIDs", Tag.TAG_STRING);
             for (int i = 0; i < euTag.size(); i++) {
-                try { eUUIDs.add(UUID.fromString(euTag.getString(i))); }
-                catch (IllegalArgumentException ignored) {}
+                try {
+                    eUUIDs.add(UUID.fromString(euTag.getString(i)));
+                } catch (IllegalArgumentException ignored) {
+                }
             }
         }
 
@@ -1691,11 +1650,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (teamTag.contains("playerUUIDs")) {
             ListTag puTag = teamTag.getList("playerUUIDs", Tag.TAG_STRING);
             for (int i = 0; i < puTag.size(); i++) {
-                try { pUUIDs.add(UUID.fromString(puTag.getString(i))); }
-                catch (IllegalArgumentException ignored) {}
+                try {
+                    pUUIDs.add(UUID.fromString(puTag.getString(i)));
+                } catch (IllegalArgumentException ignored) {
+                }
             }
         }
-        // Migration des anciennes sauvegardes (aucun UUID joueur stocké) : le chef reste membre.
         if (pUUIDs.isEmpty()) pUUIDs.add(ownerUUID);
 
         byte[] savedPixels = OWTeamMosaicPattern.unpackPixels3(
@@ -1720,47 +1680,88 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(IS_SLEEPING, isSleeping);
     }
 
-    public boolean isSleeping() { return this.entityData.get(IS_SLEEPING);}
+    public boolean isSleeping() {
+        return this.entityData.get(IS_SLEEPING);
+    }
 
-    public void setMaxSleepingBarTo(int maxSleep) { this.entityData.set(MAX_SLEEPING_BAR, maxSleep);}
+    public void setMaxSleepingBarTo(int maxSleep) {
+        this.entityData.set(MAX_SLEEPING_BAR, maxSleep);
+    }
 
-    public int getMaxSleepingBar() { return this.entityData.get(MAX_SLEEPING_BAR);}
+    public int getMaxSleepingBar() {
+        return this.entityData.get(MAX_SLEEPING_BAR);
+    }
 
-    public void setActualSleepingBarTo(int actualSleepingBar) { this.entityData.set(ACTUAL_SLEEPING_BAR, actualSleepingBar);}
+    public void setActualSleepingBarTo(int actualSleepingBar) {
+        this.entityData.set(ACTUAL_SLEEPING_BAR, actualSleepingBar);
+    }
 
-    public int getActualSleepingBar() { return this.entityData.get(ACTUAL_SLEEPING_BAR);}
+    public int getActualSleepingBar() {
+        return this.entityData.get(ACTUAL_SLEEPING_BAR);
+    }
 
     public void setBodyXRot(float getBodyXRot) {
         if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) this.entityData.set(BODY_X_ROT, 0.0f);
         else this.entityData.set(BODY_X_ROT, getBodyXRot);
     }
-    public float getBodyXRot() { return this.entityData.get(BODY_X_ROT);}
+
+    public float getBodyXRot() {
+        return this.entityData.get(BODY_X_ROT);
+    }
 
     public void setBodyYRot(float getBodYXRot) {
         if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) this.entityData.set(BODY_Y_ROT, 0.0f);
         else this.entityData.set(BODY_Y_ROT, getBodYXRot);
     }
-    public float getBodyYRot() { return this.entityData.get(BODY_Y_ROT);}
+
+    public float getBodyYRot() {
+        return this.entityData.get(BODY_Y_ROT);
+    }
 
     public void setBodyZRot(float getBodyZRot) {
         if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) this.entityData.set(BODY_Z_ROT, 0.0f);
         else this.entityData.set(BODY_Z_ROT, getBodyZRot);
     }
-    public float getBodyZRot() { return this.entityData.get(BODY_Z_ROT);}
 
-    public void setBodyYOffset(float getBodyXRot) { this.entityData.set(BODY_Y_OFFSET, getBodyXRot);}
-    public float getBodyYOffset() { return this.entityData.get(BODY_Y_OFFSET);}
+    public float getBodyZRot() {
+        return this.entityData.get(BODY_Z_ROT);
+    }
 
-    public void setPanicLevel(float panicLevel) { this.entityData.set(PANIC_LEVEL, panicLevel);}
-    public float getPanicLevel() { return this.entityData.get(PANIC_LEVEL);}
+    public void setBodyYOffset(float getBodyXRot) {
+        this.entityData.set(BODY_Y_OFFSET, getBodyXRot);
+    }
 
-    public void setPanicBuck(int signedTicks) { this.entityData.set(PANIC_BUCK, signedTicks);}
-    public int getPanicBuck() { return this.entityData.get(PANIC_BUCK);}
+    public float getBodyYOffset() {
+        return this.entityData.get(BODY_Y_OFFSET);
+    }
 
-    public int getBuckTicks() { return java.lang.Math.abs(this.entityData.get(PANIC_BUCK));}
-    public int getBuckSide() { return Integer.signum(this.entityData.get(PANIC_BUCK));}
+    public void setPanicLevel(float panicLevel) {
+        this.entityData.set(PANIC_LEVEL, panicLevel);
+    }
 
-    public boolean isPanicking() { return this.getPanicLevel() > 0f;}
+    public float getPanicLevel() {
+        return this.entityData.get(PANIC_LEVEL);
+    }
+
+    public void setPanicBuck(int signedTicks) {
+        this.entityData.set(PANIC_BUCK, signedTicks);
+    }
+
+    public int getPanicBuck() {
+        return this.entityData.get(PANIC_BUCK);
+    }
+
+    public int getBuckTicks() {
+        return java.lang.Math.abs(this.entityData.get(PANIC_BUCK));
+    }
+
+    public int getBuckSide() {
+        return Integer.signum(this.entityData.get(PANIC_BUCK));
+    }
+
+    public boolean isPanicking() {
+        return this.getPanicLevel() > 0f;
+    }
 
     public void playPanicVoice(float pitch) {
         net.minecraft.sounds.SoundEvent voice = this.getAmbientSound();
@@ -1776,31 +1777,33 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
-    /**
-     * Place des « Z » de sieste, en blocs : hauteur au-dessus des pieds et avancee devant le museau.
-     *
-     * <p>Les valeurs par defaut sont taillees pour un tigre ou un kodiak. Une petite bete les porte
-     * bien trop haut et bien trop loin — d'ou ces deux points de surcharge plutot qu'un reglage
-     * unique que chaque espece aurait fini par contredire.</p>
-     */
-    /**
-     * Dernier mot de l'espece sur le declenchement d'une sieste.
-     *
-     * <p>Vrai partout par defaut. Une espece s'en sert pour interdire l'endormissement dans des
-     * situations que le goal ne peut pas connaitre — il ne sait rien, par exemple, de ce qui vient
-     * de se passer entre la bete et son maitre.</p>
-     */
-    public boolean canStartNap() { return true; }
+    public boolean canStartNap() {
+        return true;
+    }
 
-    public double napParticleHeight() { return 1.15; }
+    public double napParticleHeight() {
+        return 1.15;
+    }
 
-    public double napParticleForward() { return 1.25; }
+    public double napParticleForward() {
+        return 1.25;
+    }
 
-    public void setNap(boolean nap) { this.entityData.set(NAPPING, nap);}
-    public boolean isNapping() { return this.entityData.get(NAPPING);}
+    public void setNap(boolean nap) {
+        this.entityData.set(NAPPING, nap);
+    }
 
-    public float getSpeed() { return (float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);}
-    public float getDamage() { return (float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE);}
+    public boolean isNapping() {
+        return this.entityData.get(NAPPING);
+    }
+
+    public float getSpeed() {
+        return (float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);
+    }
+
+    public float getDamage() {
+        return (float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE);
+    }
 
     public InteractionResult createFoodHealingSystem(Player player, ItemStack itemStack, boolean preferRawMeat, boolean preferCookedMeat, boolean preferVegetables, float healingMultiplier) {
         if (this.isTame() && !this.level().isClientSide() && !isBaby()) {
@@ -1818,8 +1821,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                                 if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
                                     this.executeQuestProgression((byte) 2);
                                 }
-                            }
-                            else {
+                            } else {
                                 heal(2 * healingMultiplier);
                                 healAmount = (int) (2 * healingMultiplier);
                                 if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
@@ -1833,8 +1835,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                                 if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
                                     this.executeQuestProgression((byte) 2);
                                 }
-                            }
-                            else {
+                            } else {
                                 heal(2 * healingMultiplier);
                                 healAmount = (int) (2 * healingMultiplier);
                                 if (isQuestInProgress(DailyQuestRegistry.quest3) && !this.level().isClientSide()) {
@@ -1870,7 +1871,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void setRandomScale(float actualScale, double minPurcent, double maxPurcent) {
-        float randomScaleMultiplicator = (float) (minPurcent + (Math.random() * (maxPurcent  - minPurcent)));
+        float randomScaleMultiplicator = (float) (minPurcent + (Math.random() * (maxPurcent - minPurcent)));
         float newScale = randomScaleMultiplicator * actualScale;
         this.setScale(newScale);
     }
@@ -1905,8 +1906,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void upgradeAttributes(OWEntity entity, Holder<Attribute> attribute) {
         if (attribute == null) return;
-        // Garde serveur : sans point de niveau disponible, aucune amélioration (empêche le spam de
-        // paquets qui ferait grimper les stats gratuitement et passerait les points en négatif).
         if (this.getLevelPoints() <= 0) return;
         if (attribute == Attributes.MAX_HEALTH) {
             entity.getAttribute(Attributes.MAX_HEALTH).setBaseValue(entity.getAttribute(attribute).getBaseValue() + (1 * getArchetype().getHealthMultiplier()));
@@ -1935,34 +1934,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return OWUtils.generateRandomInterval(min * multiplicator, max * multiplicator);
     }
 
-    /**
-     * Fait virer la bete vers une direction horizontale, a l'allure que dicte son espece.
-     *
-     * <p>Point de passage unique de toute orientation imposee. La part de l'ecart rattrapee a chaque
-     * appel vient de {@link #getRotationSpeed()} : le meme reglage gouverne donc le virage sous les
-     * ordres d'un cavalier et celui d'une bete livree a elle-meme, au lieu de deux allures separees
-     * dont une seule etait reglable.</p>
-     */
-    /** Virage minimal garanti, en degres par tick — voir OWMoveControl. */
     public static final float MIN_TURN_STEP = 6.0f;
 
     public void turnTowards(Vec3 direction) {
         turnTowards(direction, this.getRotationSpeed());
     }
 
-    /**
-     * Variante a facteur impose, pour les rares cas ou l'allure de l'espece ne convient pas.
-     *
-     * @param factor part de l'ecart restant rattrapee a chaque appel, entre 0 et 1.
-     */
     public void turnTowards(Vec3 direction, float factor) {
         if (direction.horizontalDistanceSqr() < 1.0E-6) return;
         float wanted = (float) (Mth.atan2(direction.z, direction.x) * Mth.RAD_TO_DEG) - 90.0F;
         float delta = Mth.wrapDegrees(wanted - this.getYRot());
         float step = delta * Mth.clamp(factor, 0f, 1f);
 
-        // Meme plancher que le pilotage terrestre : une bete qui vire moins vite qu'elle n'avance
-        // depasse sa destination et y revient par un grand arc, au lieu d'aller droit dessus.
         float floor = Math.min(MIN_TURN_STEP, Math.abs(delta));
         if (Math.abs(step) < floor) step = Math.signum(delta) * floor;
 
@@ -1972,22 +1955,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.yHeadRot = yaw;
     }
 
-    /**
-     * Oriente la bête vers un point — progressivement quand elle est livrée à elle-même.
-     *
-     * <p>{@code lookAt} pose le cap d'une seule affectation <b>et recopie la valeur dans
-     * {@code yRotO}</b>. La bête se retourne donc d'une image à l'autre, et l'écrasement du cap
-     * précédent prive le client de toute interpolation : il n'a plus rien à lisser. Or les goals de
-     * poursuite appellent cette méthode à chaque tick tant qu'une cible est en vue — d'où une
-     * orientation qui claque en permanence, sur toutes les espèces du mod.</p>
-     *
-     * <p>Une bête sauvage vire donc désormais à l'allure de son espèce, {@link #getRotationSpeed()},
-     * qui gouvernait jusqu'ici le seul pilotage par un cavalier. Un même réglage, un seul
-     * comportement.</p>
-     *
-     * <p>Apprivoisée ou montée, la visée reste sèche : un cavalier attend que sa monture regarde où
-     * il pointe, sans délai, et un compagnon qui vise pour frapper n'a pas à hésiter.</p>
-     */
     public void setLookAt(double targetX, double targetY, double targetZ) {
         if (this.isTame() || this.getControllingPassenger() != null) {
             this.lookAt(EntityAnchorArgument.Anchor.EYES, new Vec3(targetX, targetY, targetZ));
@@ -2046,8 +2013,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     private boolean hasReachedEnergyLimit = false;
 
-    // Vrai si la monture etait dans l'eau au tick precedent : sert a annuler
-    // l'elan vertical de nage quand elle sort de l'eau (sinon boost violent vers le haut).
     private boolean wasInWaterWhileRidden = false;
 
     public boolean hasReachedEnergyLimit() {
@@ -2074,7 +2039,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         } else this.setState(0);
     }
 
-    public long gameTime() { return this.level().getGameTime();}
+    public long gameTime() {
+        return this.level().getGameTime();
+    }
 
     public void swing(InteractionHand hand) {
         this.setState(1);
@@ -2097,35 +2064,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this instanceof SeaBugEntity ? new SeaBugInventoryMenu(id, inventory, this.itemStackHandlerSeaBug) : new OWInventoryMenu(id, inventory, this.itemStackHandler);
     }
 
-    /** Remet la vitesse de monture lissée à zéro (ex : après une attaque qui immobilise la monture,
-     *  pour ne pas relancer le mouvement à l'ancienne allure conservée). */
     protected void resetRiddenSpeed() {
         this.currentSpeed = 0f;
         this.targetSpeed = 0f;
     }
 
-    /**
-     * Réactivité du lissage de vitesse, par tick. Assez haut pour que la monture réponde tout de
-     * suite au doigt, assez bas pour qu'elle ne change pas d'allure d'un seul coup.
-     */
     private static final float RIDDEN_SPEED_RESPONSE = 0.3f;
 
-    /** Prise d'élan d'une nageuse montée : environ 1,7 s pour atteindre son allure. */
     protected static final float RIDDEN_SWIM_ACCEL_RESPONSE = 0.09f;
-    /** Et près de 3 s pour s'arrêter : une masse pareille ne se plante pas dans l'eau. */
     protected static final float RIDDEN_SWIM_BRAKE_RESPONSE = 0.055f;
 
-    /**
-     * Réactivité du lissage de vitesse pour ce tick, selon qu'on prend de l'élan ou qu'on freine.
-     *
-     * <p>Une seule valeur servait aux deux, et elle convient à une bête qui pose des pattes au sol.
-     * Dans l'eau, rien ne mord : une nageuse de plusieurs tonnes ne passe pas de l'arrêt à sa vitesse
-     * de croisière en une demi-seconde, et surtout elle ne s'immobilise pas net — elle glisse sur son
-     * erre. Les familles aquatiques rallongent donc les deux rampes, et le freinage plus encore que
-     * la mise en route.</p>
-     *
-     * @param accelerating vrai si l'allure visée dépasse l'allure courante
-     */
     protected float riddenSpeedResponse(boolean accelerating) {
         return RIDDEN_SPEED_RESPONSE;
     }
@@ -2136,11 +2084,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         final boolean reversing = player.zza < 0 && !isRunning();
         final boolean idle = player.zza == 0 && !this.isCombo();
 
-        // En l'air, on garde l'élan tel quel : il n'y a rien à lisser tant qu'on ne touche pas le sol.
         if (!reversing && !idle && !this.onGround() && !this.isInWater()) return this.getSpeed();
 
         if (!reversing && !idle && isCombo()) {
-            if ((this instanceof BoaEntity || this instanceof KangarooEntity) && this.isTame() && player.zza == 0) return 0.0f;
+            if ((this instanceof BoaEntity || this instanceof KangarooEntity) && this.isTame() && player.zza == 0)
+                return 0.0f;
             if (this instanceof KodiakEntity kodiak) {
                 if (kodiak.getComboAttack() == 3) {
                     return (this.getSpeed() / 3) * (vehicleComboSpeedMultiplier() / 4);
@@ -2154,13 +2102,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
-        // Une seule cible, un seul lissage, quel que soit le cas.
-        //
-        // Le recul et l'arrêt court-circuitaient l'interpolation : le premier renvoyait sa vitesse
-        // sans jamais toucher à {@code currentSpeed}, qui restait donc figé à l'allure de course.
-        // Quand on relâchait la marche arrière, l'arrêt faisait décroître cette valeur périmée — et
-        // la monture repartait en avant à presque pleine vitesse. Les faire passer par la même cible
-        // règle le défaut et rend au passage tous les changements d'allure progressifs.
         float target;
         if (reversing) {
             target = -this.getSpeed() * 0.2f;
@@ -2182,29 +2123,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
         currentSpeed += (target - currentSpeed)
                 * riddenSpeedResponse(Math.abs(target) > Math.abs(currentSpeed));
-        if (Math.abs(currentSpeed) < 1.0e-4f) currentSpeed = 0f;   // évite une dérive résiduelle
+        if (Math.abs(currentSpeed) < 1.0e-4f) currentSpeed = 0f;
         return currentSpeed;
     }
 
-    /**
-     * Dérive verticale par tick d'une monture en nage, cavalier regardant l'horizon. Négative, la
-     * bête s'enfonce ; nulle, elle tient sa profondeur.
-     *
-     * <p>Ce léger poids convient aux semi-aquatiques, qu'on veut voir redescendre d'elles-mêmes vers
-     * le fond quand on cesse de les diriger vers la surface. Les nageuses à part entière l'annulent
-     * (cf. {@code OWWaterEntity}) : couler sous son cavalier n'est pas un comportement d'orque.</p>
-     */
     protected double riddenBuoyancy() {
         return -0.01D;
     }
 
-    /**
-     * Poussée verticale, par tick, quand le cavalier tient la touche de saut en nage.
-     *
-     * <p>{@code 0} par défaut : sauter n'a rien à dire à une monture terrestre plongée dans l'eau,
-     * et le saut sert déjà d'autre chose à certaines espèces. Les nageuses la relèvent pour offrir
-     * une remontée à la demande, à la manière du submersible (cf. {@code OWWaterEntity}).</p>
-     */
     protected double riddenAscendSpeed() {
         return 0.0D;
     }
@@ -2223,17 +2149,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     double yMovement;
                     if (inWater) {
                         yMovement = lookDirection.y * speedPerTick + riddenBuoyancy();
-                        // Touche de saut : remontée à la demande, sans avoir à piquer du nez vers le
-                        // haut. S'ajoute au pilotage au regard, comme sur le submersible. On lit la
-                        // touche et non l'état de saut du cavalier, protégé et hors de portée d'ici ;
-                        // cette branche ne tourne de toute façon que sur le client qui pilote.
                         if (riddenAscendSpeed() != 0.0D && this.level().isClientSide()
                                 && net.tiew.operationWild.client.OWClientHooks.isJumpKeyDown()) {
                             yMovement += riddenAscendSpeed();
                         }
                     } else if (this.wasInWaterWhileRidden && currentMovement.y > 0.1) {
-                        // On vient de sortir de l'eau : on coupe l'elan de nage vers le
-                        // haut pour eviter une propulsion violente une fois hors de l'eau.
                         yMovement = 0.1;
                     } else {
                         yMovement = currentMovement.y;
@@ -2324,7 +2244,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     d3 = this.getFluidHeight(FluidTags.WATER);
                 }
 
-                boolean flag = this.isInWater() && d3 > (double)0.0F;
+                boolean flag = this.isInWater() && d3 > (double) 0.0F;
                 double d4 = this.getFluidJumpThreshold();
                 if (!flag || this.onGround() && !(d3 > d4)) {
                     if (!this.isInLava() || this.onGround() && !(d3 > d4)) {
@@ -2337,10 +2257,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                             this.jumpInFluid(fluidType);
                         }
                     } else {
-                        this.jumpInFluid((FluidType)NeoForgeMod.LAVA_TYPE.value());
+                        this.jumpInFluid((FluidType) NeoForgeMod.LAVA_TYPE.value());
                     }
                 } else {
-                    this.jumpInFluid((FluidType)NeoForgeMod.WATER_TYPE.value());
+                    this.jumpInFluid((FluidType) NeoForgeMod.WATER_TYPE.value());
                 }
             } else {
                 this.noJumpDelay = 0;
@@ -2364,15 +2284,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         double d1 = vec3.y;
         double d2 = vec3.z;
         if (java.lang.Math.abs(vec3.x) < 0.003) {
-            d0 = (double)0.0F;
+            d0 = (double) 0.0F;
         }
 
         if (java.lang.Math.abs(vec3.y) < 0.003) {
-            d1 = (double)0.0F;
+            d1 = (double) 0.0F;
         }
 
         if (java.lang.Math.abs(vec3.z) < 0.003) {
-            d2 = (double)0.0F;
+            d2 = (double) 0.0F;
         }
 
         this.setDeltaMovement(d0, d1, d2);
@@ -2400,7 +2320,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 d3 = this.getFluidHeight(FluidTags.WATER);
             }
 
-            boolean flag = this.isInWater() && d3 > (double)0.0F;
+            boolean flag = this.isInWater() && d3 > (double) 0.0F;
             double d4 = this.getFluidJumpThreshold();
             if (!flag || this.onGround() && !(d3 > d4)) {
                 if (!this.isInLava() || this.onGround() && !(d3 > d4)) {
@@ -2413,10 +2333,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                         this.jumpInFluid(fluidType);
                     }
                 } else {
-                    this.jumpInFluid((FluidType)NeoForgeMod.LAVA_TYPE.value());
+                    this.jumpInFluid((FluidType) NeoForgeMod.LAVA_TYPE.value());
                 }
             } else {
-                this.jumpInFluid((FluidType)NeoForgeMod.WATER_TYPE.value());
+                this.jumpInFluid((FluidType) NeoForgeMod.WATER_TYPE.value());
             }
         } else {
             this.noJumpDelay = 0;
@@ -2428,12 +2348,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.zza *= 0.98F;
         this.updateFallFlying();
         AABB aabb = this.getBoundingBox();
-        Vec3 vec31 = new Vec3((double)this.xxa, (double)this.yya, (double)this.zza);
+        Vec3 vec31 = new Vec3((double) this.xxa, (double) this.yya, (double) this.zza);
         if (this.hasEffect(MobEffects.SLOW_FALLING) || this.hasEffect(MobEffects.LEVITATION)) {
             this.resetFallDistance();
         }
 
-        label111: {
+        label111:
+        {
             LivingEntity var17 = this.getControllingPassenger();
             if (var17 instanceof Player player) {
                 if (this.isAlive()) {
@@ -2672,42 +2593,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     private float adaptHealthForBaby(float health) {
-        if (health >= this.getAttribute(Attributes.MAX_HEALTH).getBaseValue() * 1.5) return (float) (this.getAttribute(Attributes.MAX_HEALTH).getBaseValue() * 1.5);
+        if (health >= this.getAttribute(Attributes.MAX_HEALTH).getBaseValue() * 1.5)
+            return (float) (this.getAttribute(Attributes.MAX_HEALTH).getBaseValue() * 1.5);
         return health;
     }
 
     private float adaptDamagesForBaby(float damages) {
-        if (damages >= this.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() * 1.35) return (float) (this.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() * 1.35);
+        if (damages >= this.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() * 1.35)
+            return (float) (this.getAttribute(Attributes.ATTACK_DAMAGE).getBaseValue() * 1.35);
         return damages;
     }
 
     private float adaptSpeedForBaby(float speed) {
-        if (speed >= this.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue() * 1.2) return (float) (this.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue() * 1.2);
+        if (speed >= this.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue() * 1.2)
+            return (float) (this.getAttribute(Attributes.MOVEMENT_SPEED).getBaseValue() * 1.2);
         return speed;
     }
 
-    /**
-     * Variante <b>naturelle</b> de la créature (son pelage d'origine), indépendamment du skin
-     * cosmétique qu'elle porte.
-     *
-     * <p>{@link #getTypeVariant()} rend la variante <i>courante</i>, qui vaut la variante cosmétique
-     * dès qu'un skin est appliqué. Recréer une créature à partir de celle-ci donne une bête dont le
-     * corps est peint avec la texture de l'accessoire — c'est ce qu'il faut pour un skin de
-     * remplacement, et absolument pas pour un skin en surcouche, dont le corps doit garder son
-     * pelage. Les sous-classes qui distinguent les deux surchargent cette méthode.</p>
-     */
-    /**
-     * Tribu de cette créature, retrouvée depuis le registre si la référence en mémoire manque.
-     *
-     * <p>{@link #currentTeam} n'est <b>pas sérialisé</b> : il est posé par la synchronisation de
-     * tribu et repart à {@code null} à chaque rechargement de chunk, changement de dimension ou
-     * recréation d'entité. Une créature dont le maître est hors ligne pouvait ainsi rester sans
-     * tribu indéfiniment — et donc s'en prendre à ses propres alliés, faute de les reconnaître.</p>
-     *
-     * <p>Le repli interroge la source de vérité par l'UUID du maître, et <b>réamorce</b> le champ au
-     * passage : la recherche n'a lieu qu'une fois par créature. Côté client, où le registre n'existe
-     * pas, on s'en tient à ce qui a été répliqué.</p>
-     */
     public OWTeam resolvedTeam() {
         if (this.currentTeam != null) return this.currentTeam;
         if (this.level().isClientSide() || this.getServer() == null) return null;
@@ -2751,7 +2653,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return;
         }
 
-        // Allie (meme proprietaire, ou segment de queue d'un Boa allie) : pas de ciblage.
         if (target != null && this.isAlliedTo(target)) {
             super.setTarget(null);
             return;
@@ -2771,9 +2672,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (!hasCamouflage && !isBaby()) {
-            // Monté : NE PAS forcer l'état de combat ici (sinon ça écrase le setFighting(true) des
-            // attaques avant que le timer fightingTime n'agisse → le boost « marauder » ne s'active jamais).
-            // Quand on est monté, le combat est piloté par les attaques + le timer (cf. tick).
             if (!ownerIsRiding()) {
                 setFighting(target != null);
             }
@@ -2842,14 +2740,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
-    /**
-     * La bete est-elle prise dans un geste qui n'admet aucune autre attaque ?
-     *
-     * <p>Verrou unique interroge par tous les chemins : combo, ultime, cartes secondaires. Une espece
-     * qui immobilise sa monture le temps d'une action le declare ici plutot que de rejouer la meme
-     * condition dans chaque garde — c'est ce qui evite qu'un chemin oublie laisse passer un coup au
-     * milieu d'un geste cense etre exclusif.</p>
-     */
     public boolean isAttackLocked() {
         return isPanicking();
     }
@@ -2858,13 +2748,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return !isAttackLocked();
     }
 
-    /**
-     * L'ultime est-il déclenchable en ce moment ?
-     *
-     * <p>Pendant du {@link #canStartCombo()}, interrogé des deux côtés : le client refuse tout de
-     * suite pour ne pas jouer un déclenchement qui n'aura pas lieu, et le serveur retranche par
-     * la même règle — c'est lui qui tranche.</p>
-     */
     public boolean canUseUltimate() {
         return !isAttackLocked();
     }
@@ -2877,19 +2760,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return Math.min(100f, this.getAcceleration());
     }
 
-    /** Vrai si le joueur (UUID) fait partie de la tribu de cette entité (chef inclus). */
     public boolean isInMyTribe(UUID playerUuid) {
         if (playerUuid == null) return false;
         OWTeam t = this.resolvedTeam();
         return t != null && t.isMember(playerUuid);
     }
 
-    /**
-     * Vrai si ce joueur a le droit d'agir sur cette entité comme un propriétaire :
-     * il en est le propriétaire, OU il appartient à la même tribu que l'entité.
-     * Sert de base à toutes les permissions de contrôle (montée d'attaques, inventaire,
-     * assis/suivre, …). Des permissions plus fines par membre pourront s'y greffer plus tard.
-     */
     public boolean canBeControlledBy(Player player) {
         if (player == null) return false;
         UUID id = player.getUUID();
@@ -2897,70 +2773,35 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.isInMyTribe(id);
     }
 
-    /**
-     * Vrai si {@code player} a la permission {@code perm} sur cette entité. Le propriétaire, le chef et
-     * les chefs adjoints ont toujours l'accès complet ; un membre simple doit posséder le bit de
-     * permission correspondant (cf. onglet Permissions de la tribu).
-     */
     public boolean hasTribePermission(Player player, net.tiew.operationWild.team.OWTribePermission perm) {
         if (player == null) return false;
         UUID id = player.getUUID();
         if (id.equals(this.getOwnerUUID())) return true;
         net.tiew.operationWild.team.OWTeam t = this.resolvedTeam();
         if (t == null || !t.isMember(id)) return false;
-        if (t.isChief(id)) return true;              // le chef seul a l'accès total
-        return t.hasPermissionBit(id, perm.bit());   // adjoint ET membre : selon leur bitmask
+        if (t.isChief(id)) return true;
+        return t.hasPermissionBit(id, perm.bit());
     }
 
-    /**
-     * Vrai si {@code player} a le droit de <b>piloter les attaques</b> de cette créature depuis son dos :
-     * son propriétaire, ou un membre de sa tribu doté de la permission
-     * {@link net.tiew.operationWild.team.OWTribePermission#CONTROL}.
-     *
-     * <p>Sert de garde <b>unique</b> aux deux bouts du fil — entrées client (combo, attaques annexes,
-     * surcouche HUD) et paquets serveur. Les deux côtés testaient jusqu'ici la seule propriété, et le
-     * serveur avait beau accepter la tribu, le client n'envoyait jamais rien : un membre autorisé
-     * montait la bête d'un camarade sans pouvoir en tirer un seul coup.</p>
-     */
     public boolean canPilotAttacks(Player player) {
         if (player == null) return false;
         if (this.allowsUnownedPiloting()) return true;
         return this.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL);
     }
 
-    /**
-     * Cette créature se laisse-t-elle piloter par n'importe quel cavalier, sans propriétaire ni tribu ?
-     * Faux partout, sauf pour une bête qu'on chevauche <b>avant</b> de la posséder (cf. le crocodile
-     * en cours d'apprivoisement), où aucune permission ne peut encore exister.
-     */
     protected boolean allowsUnownedPiloting() {
         return false;
     }
 
-    /** Permissions par défaut selon le rôle (utilisé à l'entrée / promotion). */
     public static int defaultPermissionsFor(net.tiew.operationWild.team.OWTeam team, java.util.UUID uuid) {
         if (team != null && team.isDeputy(uuid)) return net.tiew.operationWild.team.OWTribePermission.DEPUTY_DEFAULT;
         return net.tiew.operationWild.team.OWTribePermission.MEMBER_DEFAULT;
     }
 
-    /**
-     * Terrains d'arène sur lesquels cette espèce sait se battre, en masque de bits
-     * ({@link net.tiew.operationWild.core.OWArena.Terrain#bit()}).
-     *
-     * <p>Le défaut est la <b>terre ferme seule</b>, et il est porté par la hiérarchie plutôt que
-     * redéclaré espèce par espèce : {@link OWSemiWaterEntity} l'ouvre aux deux éléments,
-     * {@link OWWaterEntity} le restreint à l'eau. Une créature qui hérite directement de cette
-     * classe est un animal terrestre — le supposer à l'aise partout laissait un kangourou descendre
-     * combattre au fond de l'eau, et aurait laissé passer chaque nouvelle espèce terrestre.</p>
-     */
     public int arenaTerrainMask() {
         return net.tiew.operationWild.core.OWArena.Terrain.TERRESTRIAL.bit();
     }
 
-    /**
-     * Le porteur de tribu derrière une entité : l'entité elle-même, ou le Boa parent d'un segment de
-     * queue. Toute autre entité (joueur, mob vanilla) n'en a pas.
-     */
     @Nullable
     private static OWEntity tribeCarrierOf(@Nullable Entity entity) {
         if (entity instanceof OWEntity owE) return owE;
@@ -2968,14 +2809,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return null;
     }
 
-    /**
-     * Vrai si les deux entités appartiennent à la <b>même tribu</b>. Filet de sécurité serveur des
-     * tirs alliés : les gardes par attaque (ciblage, zones d'effet) peuvent être contournés par une
-     * attaque exotique, celui-ci ne l'est pas — il s'applique au moment où les dégâts arrivent.
-     *
-     * <p>Côté client, la tribu n'est répliquée que partiellement : la question ne s'y pose pas, les
-     * dégâts sont décidés par le serveur.</p>
-     */
     public static boolean shareTribe(@Nullable Entity a, @Nullable Entity b) {
         OWEntity first = tribeCarrierOf(a);
         OWEntity second = tribeCarrierOf(b);
@@ -2987,21 +2820,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return teamB != null && teamA.getTeamId() == teamB.getTeamId();
     }
 
-    /**
-     * Vrai si {@code target} est un allié de cette entité <b>apprivoisée</b> qu'une attaque de grab ne
-     * doit jamais saisir : le propriétaire, un membre joueur de la tribu, une entité de la même tribu,
-     * ou une entité possédée par le propriétaire / un membre de la tribu. Toujours {@code false} à l'état
-     * sauvage (aucune protection). Sert de garde commun aux grabbers (Tigre, Crocodile, Boa).
-     */
     public boolean isTameGrabAlly(Entity target) {
         if (target == null || !this.isTame()) return false;
 
-        // Joueur : propriétaire ou membre de la tribu.
         if (target instanceof Player player) {
             return this.canBeControlledBy(player);
         }
 
-        // Entité OW : même tribu, ou possédée par le propriétaire / un membre de la tribu.
         if (target instanceof OWEntity owE) {
             if (owE == this) return true;
             if (this.currentTeam != null && owE.currentTeam != null
@@ -3017,17 +2842,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     @Override
     public void remove(net.minecraft.world.entity.Entity.RemovalReason reason) {
-        // Réputation : ne purge l'entrée que lors d'une suppression réelle (mort / discard),
-        // jamais lors d'un simple déchargement de chunk (sinon on perdrait les contributions
-        // des créatures des membres hors-ligne).
         if (!this.level().isClientSide
                 && (reason == net.minecraft.world.entity.Entity.RemovalReason.KILLED
                 || reason == net.minecraft.world.entity.Entity.RemovalReason.DISCARDED)) {
             net.minecraft.server.MinecraftServer srv = this.level().getServer();
             if (srv != null) {
                 net.tiew.operationWild.team.OWReputationData.get(srv).removeEntity(this.getUUID());
-                // Waypoint : même règle. Un chunk qui se décharge doit au contraire laisser la trace
-                // intacte — c'est précisément le cas où le repère sert.
                 net.tiew.operationWild.waypoint.OWWaypointData.get(srv).remove(this.getUUID());
             }
         }
@@ -3050,22 +2870,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final float LEAN_CRUISE_STEP = 0.1f;
     private static final float LEAN_IDLE_DRIVE = 0.3f;
 
-    /**
-     * Réglages propres à la nage LIBRE, plus doux que ceux du pilotage.
-     *
-     * <p>Le signal de lacet d'une bête livrée à son IA est bien plus bruité que celui d'une monture.
-     * Vanilla ne réoriente son corps sur sa direction de marche qu'au-delà de 0,05 bloc parcouru par
-     * tick ({@code LivingEntity#tick}) : une nageuse en vadrouille flotte autour de ce seuil, et la
-     * réorientation s'allume et s'éteint d'un tick à l'autre. Ses positions arrivent en prime par
-     * paquets, interpolées sur trois ticks, ce qui hache encore le déplacement mesuré.</p>
-     *
-     * <p>Filtrer plus fort et monter plus lentement n'y coûte rien — une orque sauvage ne vire pas
-     * dans l'urgence — et supprime les à-coups que ce bruit provoquait.</p>
-     */
     private static final float BANK_RATE_SMOOTHING_FREE = 0.25f;
     private static final float BANK_RISE_FREE = 0.15f;
 
-    /** Lissage de l'allure, pour que le facteur d'entraînement ne saute pas d'un tick à l'autre. */
     private static final float LEAN_STEP_SMOOTHING = 0.25f;
 
     private float bankRoll = 0f;
@@ -3087,83 +2894,41 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return Mth.lerp(partialTick, this.leanPitchPrev, this.leanPitch);
     }
 
-    /**
-     * Ouvre l'inclinaison de nage. Fausse par défaut : une bête terrestre qui traverse une rivière
-     * n'a pas à s'incliner dans ses virages. Les familles aquatiques la relèvent.
-     */
-    protected boolean canLean() { return false; }
+    protected boolean canLean() {
+        return false;
+    }
 
-    /**
-     * Vrai pendant une FIGURE en roulis — un tonneau, par opposition à l'assiette d'un virage.
-     *
-     * <p>Sert à la vue à la première personne : elle suit l'arc que décrit l'œil du cavalier quand
-     * son corps s'incline, ce qui n'a de sens que pour une inclinaison bornée. Sur un tour complet,
-     * le même calcul promènerait la caméra sur un cercle d'un mètre et demi.</p>
-     */
-    public boolean isRollingFigure() { return false; }
+    public boolean isRollingFigure() {
+        return false;
+    }
 
-    /**
-     * La vue à la première personne suit-elle l'inclinaison du corps du cavalier ?
-     *
-     * <p>Le modèle du cavalier pivote autour de ses PIEDS : dès que la monture penche, son œil décrit
-     * un arc. À {@code true}, la caméra se pose sur cet œil et accompagne le mouvement ; à
-     * {@code false}, elle reste à l'aplomb de la position d'entité, comme avant l'ajout de ce
-     * rattrapage.</p>
-     *
-     * <p>Ce n'est pas un défaut à corriger partout : sur une monture qui se couche franchement, suivre
-     * l'arc rend la vue solidaire du corps ; sur une monture au roulis discret, ça n'apporte qu'un
-     * ballant. Chaque espèce tranche donc pour elle-même, et la réponse est {@code false} par
-     * défaut.</p>
-     */
-    public boolean riderCameraFollowsBodyTilt() { return false; }
+    public boolean riderCameraFollowsBodyTilt() {
+        return false;
+    }
 
-    /**
-     * Matrice des os qui portent le cavalier, ou {@code null} si l'espèce n'en publie pas.
-     *
-     * <p>Quand elle existe, l'orientation du cavalier s'en déduit EXACTEMENT au lieu d'être
-     * reconstruite en additionnant les angles d'Euler de chaque os. Cette somme n'est juste qu'aux
-     * petits angles et ignore l'ordre de composition : le cavalier était posé au bon endroit — la
-     * position, elle, vient déjà de la matrice — mais orienté de travers dès que la bête penchait
-     * franchement.</p>
-     */
-    public org.joml.Matrix4f riderBoneMatrix() { return null; }
+    public org.joml.Matrix4f riderBoneMatrix() {
+        return null;
+    }
 
-    /**
-     * {@code positionRider} rend-il une assise juste à l'IMAGE, ou seulement au tick ?
-     *
-     * <p>Le rattrapage d'assise de {@code OWRiderSmoothing} vaut {@code siège exact − position
-     * interpolée par le moteur}. Il ne redresse quelque chose que si le premier terme est réellement
-     * recalculé à chaque image — c'est le cas des espèces dont le siège se déduit d'une matrice d'os,
-     * relevée au rendu.</p>
-     *
-     * <p>{@code false} pour une espèce dont le siège est figé sur le tick : la soustraction y annule
-     * purement l'interpolation du moteur et cloue le cavalier sur sa position de tick, soit vingt
-     * pas par seconde. Mieux vaut alors ne rien corriger du tout et laisser le moteur interpoler.</p>
-     */
-    public boolean riderSeatIsFrameAccurate() { return true; }
+    public boolean riderSeatIsFrameAccurate() {
+        return true;
+    }
 
-    protected float bankMaxAngle() { return BANK_MAX_ANGLE; }
+    protected float bankMaxAngle() {
+        return BANK_MAX_ANGLE;
+    }
 
-    /**
-     * Vitesse de lacet, en degrés par tick, à laquelle le roulis atteint son amplitude maximale.
-     *
-     * <p>Le régime n'a rien de commun entre les deux cas, d'où le paramètre. Livrée à son IA, une
-     * bête tourne d'une fraction de degré par tick ; sous les mains d'un cavalier, elle rattrape le
-     * regard à {@code getRotationSpeed()} de l'écart et peut monter à plusieurs degrés. Un seuil
-     * réglé sur la vadrouille sature donc au moindre geste de souris.</p>
-     */
-    protected float bankReferenceYawRate(boolean ridden) { return BANK_REFERENCE_YAW_RATE; }
+    protected float bankReferenceYawRate(boolean ridden) {
+        return BANK_REFERENCE_YAW_RATE;
+    }
 
-    /** {@code 0} désactive le canal de tangage, pour une espèce qui gère le sien autrement. */
-    protected float pitchMaxAngle() { return PITCH_MAX_ANGLE; }
+    protected float pitchMaxAngle() {
+        return PITCH_MAX_ANGLE;
+    }
 
-    /**
-     * En nage LIBRE, le tangage se déduit-il de la pente réellement parcourue ?
-     *
-     * <p>{@code false} laisse ce cas à l'espèce, qui a son propre pilotage — le tangage monté, lui,
-     * reste pris en charge dans les deux cas.</p>
-     */
-    protected boolean leanPitchWhenFree() { return true; }
+    protected boolean leanPitchWhenFree() {
+        return true;
+    }
 
     protected LivingEntity leaningRider() {
         if (!this.canLean()) return null;
@@ -3183,9 +2948,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             double dz = this.getZ() - this.zOld;
             float step = (float) java.lang.Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-            // Allure lissee, et non le pas du tick : une nageuse en vadrouille croise justement le
-            // seuil de LEAN_CRUISE_STEP, si bien que le facteur d'entrainement sautait entre 0,3 et 1
-            // d'un tick a l'autre — et le roulis avec lui.
             this.leanStep += (step - this.leanStep) * LEAN_STEP_SMOOTHING;
             float drive = Mth.clamp(this.leanStep / LEAN_CRUISE_STEP, LEAN_IDLE_DRIVE, 1f);
 
@@ -3233,13 +2995,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (this.level().isClientSide()) this.tickLean();
 
         if (!this.level().isClientSide) {
-            // Résout la tribu depuis le propriétaire (registre serveur) une fois après le chargement.
             resolveTeamFromOwnerIfNeeded();
             equipDefaultSkinIfNeeded();
             if (this.level().getGameRules().getBoolean(OWGameRules.ANIMALS_NO_EFFORT)) {
                 this.setVitalEnergy(0);
             }
-            // Leveling par absorption d'orbes (comme le joueur) tant que le niveau max n'est pas atteint.
             if (this.isTame() && this.getLevel() < 50) {
                 if (this.getLevel() < 1) {
                     this.setLevel(1);
@@ -3247,7 +3007,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
                 absorbNearbyXpOrbs();
             }
-            // Réputation de tribu : upsert throttlé de cette créature dans le registre serveur persistant.
             if ((this.tickCount + this.getId()) % 100 == 0) {
                 net.minecraft.server.MinecraftServer srv = this.level().getServer();
                 if (srv != null) {
@@ -3256,9 +3015,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     else rep.removeEntity(this.getUUID());
                 }
             }
-            // Waypoint : la position connue du monde est rafraîchie environ une fois par seconde.
-            // C'est cette trace-là qui survit au déchargement du chunk et à la déconnexion — quand le
-            // client a la créature sous les yeux, il lit sa position réelle et ignore celle-ci.
             if ((this.tickCount + this.getId()) % 20 == 0) {
                 net.minecraft.server.MinecraftServer srv = this.level().getServer();
                 if (srv != null) net.tiew.operationWild.waypoint.OWWaypointData.get(srv).upsert(this);
@@ -3337,7 +3093,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(maxHealthBeforeResurrection);
                 this.setHealth(maxHealthBeforeResurrection);
                 this.resurrectionTimer = 0;
-                // Fin de la fragilité : le compagnon stabilisé pourra de nouveau livrer son Âme s'il meurt.
                 this.setCanDropSoul(true);
             }
         }
@@ -3350,7 +3105,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
-        if (this.isInResurrection() && tickCount % 10 == 0) OWUtils.spawnParticles(this, ParticleTypes.SOUL, 0, 0, 0, 25, this.getBbHeight() * this.getBbWidth());
+        if (this.isInResurrection() && tickCount % 10 == 0)
+            OWUtils.spawnParticles(this, ParticleTypes.SOUL, 0, 0, 0, 25, this.getBbHeight() * this.getBbWidth());
 
         if (this.isTame()) {
             if (this.isUltimate()) {
@@ -3361,9 +3117,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
             }
         }
-
-
-
 
 
         LivingEntity rider = this.getControllingPassenger();
@@ -3429,7 +3182,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (this.onGround()) {
                 this.setDeltaMovement(0, 0, 0);
                 this.hasImpulse = false;
-                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,5, 255, false, false, false));
+                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 5, 255, false, false, false));
             }
         }
 
@@ -3445,7 +3198,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (getActualSleepingBar() > 0 && !(this instanceof PlantEmpressEntity)) {
             int decreaseRate = isSleeping() ? sleepBarDownSpeed * 2 : sleepBarDownSpeed;
-            if (tickCount % decreaseRate == 0) setActualSleepingBarTo(getActualSleepingBar() - 1);;
+            if (tickCount % decreaseRate == 0) setActualSleepingBarTo(getActualSleepingBar() - 1);
+            ;
         }
 
         if (isSleeping() && getActualSleepingBar() <= 0) {
@@ -3457,36 +3211,25 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
-            // Quêtes PROPRES À CHAQUE INDIVIDU : à chaque nouvelle journée (14h heure réelle), cette
-            // entité tire ses 3 propres quêtes, remet sa progression à zéro et lève sa notification.
-            // Vérifié une fois par seconde (l'horloge réelle n'a pas besoin d'être lue 20x/s).
             if (this.tickCount % 20 == 0) {
                 long period = OWDailyQuests.computePeriodDay();
                 if (period != this.lastQuestResetDay || this.activeQuest0 < 0) {
-                    // Nouveau jour (ou entité jamais initialisée) : reroll complet + reset + notification.
                     this.rerollDailyQuests();
                     this.resetDailyQuestProgress();
                     this.lastQuestResetDay = period;
-                    this.dailyRerollAvailable = true;   // le reroll manuel se recharge chaque jour
+                    this.dailyRerollAvailable = true;
                     this.setUpdatingQuests(!ownerHasSeenQuestPeriod(period));
                 } else if (this.questReward0 == 0) {
-                    // Migration : quêtes déjà en cours mais récompenses pas encore tirées (sauvegarde
-                    // antérieure à ce champ) → on tire seulement les récompenses, sans toucher aux quêtes.
                     this.questReward0 = rollQuestReward(this.activeQuest0);
                     this.questReward1 = rollQuestReward(this.activeQuest1);
                     this.questReward2 = rollQuestReward(this.activeQuest2);
                 }
 
-                // Journée déjà lue ailleurs : on éteint la pastille. Le cas se présente pour une
-                // créature qui tire ses quêtes après coup — déchargée au changement de jour, ou
-                // revenue en jeu plus tard : elle n'annoncerait rien que son maître n'ait déjà vu.
                 if (this.questsAreUpdated() && ownerHasSeenQuestPeriod(period)) {
                     this.setUpdatingQuests(false);
                 }
             }
 
-            // La progression des quêtes n'est consultée que par le joueur qui chevauche l'entité
-            // (l'écran de quêtes exige de la chevaucher) : inutile de diffuser à tout le monde.
             if (this.getControllingPassenger() instanceof ServerPlayer questRider) {
                 OWNetworkHandler.sendToClient(new OWQuestProgressToClient(this.getId(),
                         this.activeQuest0, this.activeQuest1, this.activeQuest2,
@@ -3523,7 +3266,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
 
         }
-
 
 
         if (isQuestInProgress(DailyQuestRegistry.quest4) && !this.level().isClientSide()) {
@@ -3575,14 +3317,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (this.onGround()) {
                 this.setDeltaMovement(0, 0, 0);
                 this.hasImpulse = false;
-                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,5, 255, false, false, false));
+                this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 5, 255, false, false, false));
             }
         }
 
-        // Régénération passive : un fond de récupération au repos, rien de plus. Elle ne doit
-        // jamais rivaliser avec le ravitaillement — c'est la nourriture rangée dans l'inventaire qui
-        // doit remettre une bête sur pied, pas le simple fait d'attendre. Coupée dès qu'un combo est
-        // engagé, au même titre qu'en combat : une créature en train de frapper ne se soigne pas.
         if (this.isTame() && !this.isInFight() && !this.isCombo()
                 && tickCount % PASSIVE_REGEN_INTERVAL_TICKS == 0) {
             this.heal(PASSIVE_REGEN_AMOUNT);
@@ -3609,15 +3347,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return items.get(this.random.nextInt(items.size()));
     }
 
-    /**
-     * Vitesse maximale, en degrés par tick, à laquelle la bête peut se retourner vers sa cible
-     * pendant un enchaînement.
-     *
-     * <p>{@code 360} — la valeur par défaut — signifie « instantané », c'est-à-dire le comportement
-     * historique : la bête se recale sur sa proie à chaque tick, quoi que celle-ci fasse. C'est
-     * imparable, et ça se voit. Une espèce peut brider ce recalage pour laisser une chance à
-     * l'esquive latérale, sans pour autant renoncer à toucher.</p>
-     */
     protected float comboTrackingDegreesPerTick() {
         return 360f;
     }
@@ -3666,8 +3395,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
             }
         }
-        // Tigre : une gerbe de terre sous la patte a CHACUN des trois coups, la ou le kodiak ne
-        // secoue le sol qu'au dernier.
         if (this instanceof TigerEntity tigerCombo) {
             if (attackTimer == timeToHit) tigerCombo.createPawImpact();
         }
@@ -3688,8 +3415,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 kangaroo.level().playSound(null, kangaroo.getX(), kangaroo.getY(), kangaroo.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, getComboAttack() == 3 ? pitch / 1.5f : pitch);
 
                 if (getComboAttack() == 3) {
-                    // Uppercut : on ne propulse QUE les ennemis reellement frappes par l'attaque
-                    // (remplis par attackEntitiesInFront), pas tout ce qui passe dans une zone elargie.
                     for (LivingEntity target : kangaroo.lastAttackHitEntities) {
                         Vec3 motion = target.getDeltaMovement();
                         target.setDeltaMovement(motion.x * 0.3, 0.65, motion.z * 0.3);
@@ -3727,9 +3452,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         setCombo(false, numberOfAttacks);
         attackTimer = 0;
         playerContinueCombo = false;
-        // Le kangourou lève ce drapeau au quatrième coup pour taire l'animation du troisième. Il
-        // n'était jamais rabaissé : une fois le geste joué, la condition restait fausse à vie et
-        // l'animation ne revenait plus jamais. La fin d'un enchaînement le remet à zéro.
         if (this instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo) {
             kangaroo.fourthHitFired = false;
         }
@@ -3737,9 +3459,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void createCombo(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
         if (!this.isAlive()) return;
-        // Cible morte (ex : entité tuée à l'instant, encore référencée le temps de son anim de mort /
-        // avant despawn) : on l'OUBLIE au lieu de bloquer. Sinon la machine d'état du combo se fige
-        // (attackTimer gelé, isCombo jamais remis à false) et l'attaque « boucle sans finir ».
         if (this.getTarget() != null && this.getTarget().getHealth() <= 0.0F) {
             this.setTarget(null);
         }
@@ -4109,33 +3828,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    /**
-     * Force la rotation du CORPS de la monture vers le regard du rider même à l'arrêt
-     * (sinon seule la tête suit quand le rider n'avance pas). Surchargé par les entités
-     * qui ont besoin de viser à l'arrêt (ex : tornade du kangourou).
-     */
-    protected boolean forceRiderLookBodyRotation() { return false; }
+    protected boolean forceRiderLookBodyRotation() {
+        return false;
+    }
 
-    /**
-     * Empêche le sneak + clic droit de basculer assis/debout (ex : pendant une attaque ultime).
-     * Surchargé par les entités qui ont besoin de verrouiller cette interaction.
-     */
-    protected boolean isSittingToggleLocked() { return false; }
+    protected boolean isSittingToggleLocked() {
+        return false;
+    }
 
-    public Vec2 getRiddenRotation(LivingEntity livingEntity) { return new Vec2(livingEntity.getXRot() * 0.5F, livingEntity.getYRot());}
+    public Vec2 getRiddenRotation(LivingEntity livingEntity) {
+        return new Vec2(livingEntity.getXRot() * 0.5F, livingEntity.getYRot());
+    }
 
     @Override
     public float maxUpStep() {
         return this.getFirstPassenger() instanceof Player ? 1.0f : super.maxUpStep();
     }
 
-    /**
-     * États d'animation des trois coups de combo, et leurs minuteurs de vie.
-     *
-     * <p>Déclarés ici plutôt que recopiés dans chaque espèce : ils étaient identiques aux six
-     * exemplaires, et {@code OWComboModel} s'appuie dessus pour rendre l'enchaînement une bonne fois
-     * pour toutes.</p>
-     */
     public final AnimationState attack1Combo = new AnimationState();
     public final AnimationState attack2Combo = new AnimationState();
     public final AnimationState attack3Combo = new AnimationState();
@@ -4144,24 +3853,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public int attack2ComboTimer = 0;
     public int attack3ComboTimer = 0;
 
-    /** Coup de combo actif au tick précédent, par emplacement (1..3). Sert à repérer un redémarrage. */
     private final boolean[] comboWasActive = new boolean[4];
 
-    /**
-     * Fait vivre l'animation d'un coup de combo et renvoie son minuteur mis à jour.
-     *
-     * <p>Le redémarrage se décide sur le <b>front montant</b> de {@code active}, et non sur un
-     * minuteur épuisé. C'est la correction d'un défaut de conception : l'animation ne repartait que
-     * si son minuteur était retombé à zéro, si bien qu'un coup relancé alors que sa queue courait
-     * encore — ce qui arrive dès qu'on enchaîne vite, la chaîne revenant sur un emplacement déjà
-     * joué — voyait son {@code start()} purement sauté. Le geste ne se rejouait pas. Le défaut
-     * dormait tant que les queues étaient courtes ; les allonger l'a réveillé.</p>
-     *
-     * <p>Mutualisé ici plutôt que recopié dans chaque espèce : la logique était identique aux six
-     * exemplaires, et un correctif appliqué à cinq d'entre eux n'aurait servi à rien.</p>
-     *
-     * @param active vrai si ce coup doit jouer ce tick (l'espèce décide : état de combo, garde propre…)
-     */
     protected int tickComboAnimation(int comboNumber, AnimationState state, int timer, int maxTimer, boolean active) {
         if (comboNumber < 1 || comboNumber >= comboWasActive.length) return timer;
         boolean was = comboWasActive[comboNumber];
@@ -4169,33 +3862,24 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (active) {
             if (!was) {
-                state.start(this.tickCount);   // front montant : le geste repart de sa première image
+                state.start(this.tickCount);
                 return maxTimer;
             }
             return Math.max(0, timer - 1);
         }
-        // Queue : le geste finit de se jouer et se mélange au coup suivant, puis s'éteint.
         if (timer > 0) return timer - 1;
         state.stop();
         return 0;
     }
 
-    /**
-     * Où se trouve la place de ce cavalier <b>à cet instant</b>, sans l'y déplacer.
-     *
-     * <p>Rejoue le calcul de siège de l'espèce en lui passant une fonction qui se contente de noter
-     * la position au lieu de l'appliquer. Aucune formule n'est donc recopiée ailleurs : le rattrapage
-     * visuel du cavalier (cf. {@code OWRiderSmoothing}) s'appuie sur la même arithmétique que le
-     * placement réel, et suit automatiquement toute espèce ajoutée par la suite.</p>
-     *
-     * <p>{@code null} si l'espèce refuse de placer ce passager — chunk non chargé, passager qui n'est
-     * plus à bord : il n'y a alors rien à corriger.</p>
-     */
     public Vec3 captureSeatPosition(Entity passenger) {
         final double[] pos = new double[3];
-        final boolean[] placed = { false };
+        final boolean[] placed = {false};
         this.positionRider(passenger, (e, x, y, z) -> {
-            pos[0] = x; pos[1] = y; pos[2] = z; placed[0] = true;
+            pos[0] = x;
+            pos[1] = y;
+            pos[2] = z;
+            placed[0] = true;
         });
         return placed[0] ? new Vec3(pos[0], pos[1], pos[2]) : null;
     }
@@ -4224,12 +3908,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (entityRiding != null && entityRiding instanceof LivingEntity living && living.zza == 0) {
         }
         if (entityRiding instanceof Mob) {
-            return (Mob)entityRiding;
+            return (Mob) entityRiding;
         } else {
             if (this.isSaddled()) {
                 entityRiding = this.getFirstPassenger();
                 if (entityRiding instanceof Player) {
-                    return (Player)entityRiding;
+                    return (Player) entityRiding;
                 }
             }
 
@@ -4246,11 +3930,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void die(DamageSource damageSource) {
         super.die(damageSource);
 
-        // Le repère et l'entrée de réputation se retirent ici, à l'instant de la mort, et non dans
-        // remove() : celui-ci n'est appelé qu'au bout des vingt ticks de l'animation de mort, et si
-        // le chunk se décharge entre-temps — le cas dès qu'on est loin — la créature part en
-        // UNLOADED_TO_CHUNK, qui préserve volontairement la trace. Le repère survivait alors à la
-        // bête. Un retrait de trop est sans danger : upsert() le recrée à la seconde suivante.
         if (!this.level().isClientSide()) {
             net.minecraft.server.MinecraftServer srv = this.level().getServer();
             if (srv != null) {
@@ -4265,8 +3944,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.spawnAtLocation(stack);
         }
 
-        // Drop générique de l'Âme : capture le snapshot complet de TOUT OWEntity apprivoisé (hors véhicules),
-        // sans code dédié par type. Remplace les anciennes méthodes createSoulStack() dupliquées.
         if (!this.level().isClientSide() && shouldDropSoulOnDeath()) {
             this.spawnAtLocation(this.captureSoul());
         }
@@ -4293,8 +3970,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     @Override
     public boolean killedEntity(ServerLevel level, LivingEntity target) {
-        // Le leveling 1→50 provient uniquement de l'absorption d'orbes (voir absorbNearbyXpOrbs),
-        // pas des kills.
 
         if (isQuestInProgress(DailyQuestRegistry.quest11) && !this.level().isClientSide()) {
             this.executeQuestProgression((byte) 10);
@@ -4404,8 +4079,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (player.isSteppingCarefully() && !this.isInResurrection()) {
                 if (this.isSittingToggleLocked()) return InteractionResult.PASS;
 
-                // Propriétaire OU membre de la tribu : peut basculer assis/suivre.
-                if (!this.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) return InteractionResult.PASS;
+                if (!this.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL))
+                    return InteractionResult.PASS;
                 if (this.getControllingPassenger() != null) return InteractionResult.PASS;
                 if (this.sittingCooldown > 0) return InteractionResult.PASS;
 
@@ -4420,8 +4095,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 return InteractionResult.SUCCESS;
             } else {
                 if (!this.isSitting() && !this.isInResurrection() && !itemstack.is(Tags.Items.FOODS) && !this.isBaby()) {
-                    // Monter exige d'être le propriétaire ou un membre de tribu autorisé : on ne
-                    // chevauche pas la bête d'un autre dresseur.
                     if (!this.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) {
                         return InteractionResult.PASS;
                     }
@@ -4457,28 +4130,44 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     @Override
-    public PlayerTeam getTeam() { return super.getTeam();}
+    public PlayerTeam getTeam() {
+        return super.getTeam();
+    }
 
     @Override
-    public boolean removeWhenFarAway(double v) { return false;}
+    public boolean removeWhenFarAway(double v) {
+        return false;
+    }
 
     @Override
-    public boolean canBeLeashed() { return super.canBeLeashed();}
+    public boolean canBeLeashed() {
+        return super.canBeLeashed();
+    }
 
-    public void setSaddle(boolean isSaddled) { this.entityData.set(SADDLED, isSaddled);}
+    public void setSaddle(boolean isSaddled) {
+        this.entityData.set(SADDLED, isSaddled);
+    }
 
-    public void onSaddleEquipped(ItemStack saddle) {}
+    public void onSaddleEquipped(ItemStack saddle) {
+    }
 
-    public boolean isSaddled() { return this.entityData.get(SADDLED); }
+    public boolean isSaddled() {
+        return this.entityData.get(SADDLED);
+    }
 
-    public void setFed(boolean isFed) { this.entityData.set(IS_FED, isFed);}
+    public void setFed(boolean isFed) {
+        this.entityData.set(IS_FED, isFed);
+    }
 
-    public boolean isFed() { return this.entityData.get(IS_FED); }
+    public boolean isFed() {
+        return this.entityData.get(IS_FED);
+    }
 
-    public boolean isTame() { return (this.entityData.get(DATA_FLAGS_ID) & 4) != 0;}
+    public boolean isTame() {
+        return (this.entityData.get(DATA_FLAGS_ID) & 4) != 0;
+    }
 
     public void addTamingExperience(double experience, Player player) {
-        // Cagnotte par joueur, serveur-autoritaire (voir OWTamingXp). Ne fait rien hors serveur.
         if (!(player instanceof ServerPlayer serverPlayer)) return;
 
         net.tiew.operationWild.core.OWTamingXp.grantTamingXp(serverPlayer, experience);
@@ -4555,7 +4244,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                     if (isOwnerNearby) {
                         OWNetworkHandler.sendToClient(new OpenChooseNameScreen(this.getId()), (ServerPlayer) player);
-                    } else this.setNickname(String.valueOf(Component.translatable("entity.ow." + this.getClass().getSimpleName().toLowerCase().split("entity")[0])));
+                    } else
+                        this.setNickname(String.valueOf(Component.translatable("entity.ow." + this.getClass().getSimpleName().toLowerCase().split("entity")[0])));
                 }
             } else {
                 this.entityData.set(DATA_FLAGS_ID, (byte) (b0 & -5));
@@ -4701,18 +4391,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         Passive,
         Aggressive;
     }
+
     public Mode currentMode;
-    /**
-     * Le champ est transitoire : il repart à {@code null} au moindre rechargement de chunk ou
-     * changement de dimension, alors que l'indicateur passif/agressif, lui, est bien sauvegardé et
-     * répliqué. On le redéduit donc de celui-ci plutôt que de laisser la créature sans mode — une
-     * créature « sans mode » ne prend jamais l'initiative du combat, quoi qu'affiche son état.
-     */
+
     public Mode getCurrentMode() {
         if (currentMode == null) currentMode = this.isPassive() ? Mode.Passive : Mode.Aggressive;
         return currentMode;
     }
-    public void setCurrentMode(Mode mode) { this.currentMode = mode;}
+
+    public void setCurrentMode(Mode mode) {
+        this.currentMode = mode;
+    }
 
     public void switchMode(Player player) {
         Component tooltipMode = null;
@@ -4745,8 +4434,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (!(this instanceof SeaBugEntity)) {
 
             boolean isBoa = this instanceof BoaEntity;
-            float[] scales = new float[] {0.95f, 1.05f};
-            float[] boaScales = new float[] {0.9f, 1.15f};
+            float[] scales = new float[]{0.95f, 1.05f};
+            float[] boaScales = new float[]{0.9f, 1.15f};
 
             this.setRandomScale(this.averageScale, isBoa ? boaScales[0] : scales[0], isBoa ? boaScales[1] : scales[1]);
         } else {
@@ -4757,7 +4446,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     @Override
-    public boolean isFood(ItemStack itemStack) { return false;}
+    public boolean isFood(ItemStack itemStack) {
+        return false;
+    }
 
     @Override
     public @Nullable AgeableMob getBreedOffspring(ServerLevel serverLevel, AgeableMob ageableMob) {
@@ -4770,20 +4461,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    /**
-     * Alliance commune a toutes les entites du mod. Les overrides par espece gerent
-     * l'alliance intra-espece puis appellent super (= cette methode).
-     *
-     * Ajouts centraux :
-     *   - Un segment de queue de Boa (BoaTailPart) redirige ses degats vers le Boa parent :
-     *     on raisonne donc sur le Boa parent (sinon les allies peuvent frapper la queue).
-     *   - Deux animaux apprivoises du meme proprietaire sont allies, toutes especes confondues.
-     */
     @Override
     public boolean isAlliedTo(Entity entity) {
         if (entity instanceof BoaTailPart tailPart) {
             Entity parent = tailPart.getParent();
-            if (parent == this) return true;                         // sa propre queue
+            if (parent == this) return true;
             if (parent instanceof LivingEntity parentLiving) return this.isAlliedTo(parentLiving);
         }
 
@@ -4793,14 +4475,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return true;
         }
 
-        // Alliance de tribu : deux entités d'une même tribu ne se ciblent/blessent pas...
         OWTeam myTeam = this.resolvedTeam();
         if (myTeam != null) {
             if (entity instanceof OWEntity other) {
                 OWTeam otherTeam = other.resolvedTeam();
                 if (otherTeam != null && otherTeam.getTeamId() == myTeam.getTeamId()) return true;
             }
-            // ...et les membres joueurs de la tribu ne sont pas des cibles.
             if (entity instanceof Player player && myTeam.isMember(player.getUUID())) {
                 return true;
             }
@@ -5000,7 +4680,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    public int getTypeVariant() { return this.entityData.get(VARIANT);}
+    public int getTypeVariant() {
+        return this.entityData.get(VARIANT);
+    }
 
     public void createIdleAnimation(int maxDuration, boolean condition) {
         if (!condition) return;
@@ -5014,7 +4696,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void createAttackAnimation(int maxDuration, boolean condition) {
         if (!condition) return;
 
-        if ((this.getState() == 1 || this.isAttacking())&& this.isAlive() && this.attackAnimationTimeout <= 0) {
+        if ((this.getState() == 1 || this.isAttacking()) && this.isAlive() && this.attackAnimationTimeout <= 0) {
             this.attackAnimationTimeout = maxDuration;
             this.attackAnimationState.start(this.tickCount);
         } else --this.attackAnimationTimeout;
@@ -5038,7 +4720,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    public String getCachedOwnerName() { return this.entityData.get(CACHED_OWNER_NAME); }
+    public String getCachedOwnerName() {
+        return this.entityData.get(CACHED_OWNER_NAME);
+    }
+
     public void setCachedOwnerName(String name) {
         if (name != null && !name.isEmpty()) this.entityData.set(CACHED_OWNER_NAME, name);
     }
@@ -5243,8 +4928,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         tag.putString("cachedOwnerName", this.getCachedOwnerName());
 
-        // Refonte player-centric : la tribu n'est plus persistée sur l'entité. Elle est portée par
-        // le registre serveur (OWTribesSavedData) et dérivée à l'exécution du propriétaire de l'entité.
     }
 
     public void readAdditionalSaveData(CompoundTag tag) {
@@ -5276,7 +4959,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(LEVEL_POINTS, tag.getInt("LevelPoints"));
         this.setVitalEnergyBonus(tag.getFloat("VitalEnergyBonus"));
         if (DEBUG_RESET_PISTE) {
-            // Debug/test : remet à zéro la progression de la Piste de chaque entité au chargement.
             this.entityData.set(PISTE_NODE, 0);
             this.entityData.set(PISTE_UNLOCKED, "0");
             this.entityData.set(PISTE_LOCKED, "");
@@ -5290,13 +4972,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(SCALE, tag.getFloat("Scale"));
         this.entityData.set(IS_PASSIVE, tag.getBoolean("isPassive"));
         this.entityData.set(AUTO_PICKUP, tag.contains("autoPickup") ? tag.getBoolean("autoPickup") : true);
-        // Absent des entites d'avant la feature : le drapeau est porte par defaut.
         this.entityData.set(SHOW_TRIBE_FLAG, !tag.contains("showTribeFlag") || tag.getBoolean("showTribeFlag"));
-        // Meme regle pour le suivi : les betes d'avant le reglage continuent de suivre leur maitre.
         this.entityData.set(FOLLOW_OWNER, !tag.contains("followOwner") || tag.getBoolean("followOwner"));
         this.entityData.set(SECONDARY_ATTACK, tag.getInt("secondaryAttack"));
-        // Borné à la durée de l'espèce : une sauvegarde d'avant la recharge commune, ou faite alors
-        // que celle-ci était plus longue, laisserait sinon la bête muette bien après son terme.
         this.entityData.set(SECONDARY_COOLDOWN,
                 Math.min(tag.getInt("secondaryCooldown"), getSecondaryCooldownDuration()));
         this.entityData.set(IS_FEMALE, tag.getBoolean("isFemale"));
@@ -5389,16 +5067,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         this.setCachedOwnerName(tag.getString("cachedOwnerName"));
 
-        // Refonte player-centric : la tribu n'est plus lue depuis l'entité (les anciennes tribus
-        // hébergées par entité sont volontairement abandonnées). currentTeam est résolu au tick
-        // serveur depuis OWTribesSavedData via le propriétaire (cf. resolveTeamFromOwner).
     }
 
-    /**
-     * Résout {@code currentTeam} depuis le registre serveur en fonction du propriétaire de l'entité,
-     * une seule fois après le chargement. Les changements ultérieurs de tribu sont poussés par
-     * {@link net.tiew.operationWild.team.OWTribeManager}.
-     */
     private boolean teamResolvedFromOwner = false;
 
     public void resolveTeamFromOwnerIfNeeded() {
@@ -5406,8 +5076,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (this.level().isClientSide) return;
         net.minecraft.server.MinecraftServer server = this.level().getServer();
         if (server == null) return;
-        // On attend de connaître le propriétaire (apprivoisement) avant de figer la résolution,
-        // afin qu'une entité apprivoisée après coup hérite bien de la tribu de son maître.
         if (this.getOwnerUUID() == null) return;
         teamResolvedFromOwner = true;
         net.tiew.operationWild.team.OWTribeManager.refreshEntityTeam(server, this);

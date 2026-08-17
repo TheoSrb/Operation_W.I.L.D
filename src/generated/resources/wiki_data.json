@@ -1,0 +1,656 @@
+{
+  "entities": [
+    {
+      "height": 1.9,
+      "id": "ow:kodiak",
+      "name": "entity.ow.kodiak",
+      "width": 1.9
+    },
+    {
+      "height": 1.5,
+      "id": "ow:kangaroo",
+      "name": "entity.ow.kangaroo",
+      "width": 1.6
+    },
+    {
+      "height": 1.4,
+      "id": "ow:tiger",
+      "name": "entity.ow.tiger",
+      "width": 1.3
+    },
+    {
+      "height": 1.0,
+      "id": "ow:boa",
+      "name": "entity.ow.boa",
+      "width": 1.0
+    },
+    {
+      "height": 1.1,
+      "id": "ow:crocodile",
+      "name": "entity.ow.crocodile",
+      "width": 1.9
+    },
+    {
+      "height": 2.0,
+      "id": "ow:orca",
+      "name": "entity.ow.orca",
+      "width": 2.2
+    },
+    {
+      "height": 3.2,
+      "id": "ow:elephant",
+      "name": "entity.ow.elephant",
+      "width": 2.6
+    },
+    {
+      "height": 0.7,
+      "id": "ow:red_panda",
+      "name": "entity.ow.red_panda",
+      "width": 0.8
+    },
+    {
+      "height": 0.55,
+      "id": "ow:crocodile_tail_part",
+      "name": "entity.ow.crocodile_tail_part",
+      "width": 0.7
+    },
+    {
+      "height": 0.5,
+      "id": "ow:boa_tail_part",
+      "name": "entity.ow.boa_tail_part",
+      "width": 0.6
+    },
+    {
+      "height": 2.1,
+      "id": "ow:seabug",
+      "name": "entity.ow.seabug",
+      "width": 2.0
+    },
+    {
+      "height": 1.6,
+      "id": "ow:seabug_shard_0",
+      "name": "entity.ow.seabug_shard_0",
+      "width": 1.8
+    },
+    {
+      "height": 1.1,
+      "id": "ow:seabug_shard_1",
+      "name": "entity.ow.seabug_shard_1",
+      "width": 1.8
+    },
+    {
+      "height": 1.1,
+      "id": "ow:seabug_shard_2",
+      "name": "entity.ow.seabug_shard_2",
+      "width": 1.3
+    },
+    {
+      "height": 3.0,
+      "id": "ow:plant_empress",
+      "name": "entity.ow.plant_empress",
+      "width": 2.5
+    },
+    {
+      "height": 0.5,
+      "id": "ow:primitive_spear",
+      "name": "entity.ow.primitive_spear",
+      "width": 0.5
+    },
+    {
+      "height": 0.5,
+      "id": "ow:tranquilizer_arrow",
+      "name": "entity.ow.tranquilizer_arrow",
+      "width": 0.5
+    },
+    {
+      "height": 0.25,
+      "id": "ow:wooden_stinger",
+      "name": "entity.ow.wooden_stinger",
+      "width": 0.25
+    },
+    {
+      "height": 0.25,
+      "id": "ow:tranquilizer_wooden_stinger",
+      "name": "entity.ow.tranquilizer_wooden_stinger",
+      "width": 0.25
+    },
+    {
+      "height": 0.5,
+      "id": "ow:venomous_arrow",
+      "name": "entity.ow.venomous_arrow",
+      "width": 0.5
+    },
+    {
+      "height": 0.5,
+      "id": "ow:slingshot_projectile",
+      "name": "entity.ow.slingshot_projectile",
+      "width": 0.5
+    },
+    {
+      "height": 0.5,
+      "id": "ow:adventurer_manuscript",
+      "name": "entity.ow.adventurer_manuscript",
+      "width": 0.5
+    },
+    {
+      "height": 1.0,
+      "id": "ow:soul_ghost",
+      "name": "entity.ow.soul_ghost",
+      "width": 1.0
+    },
+    {
+      "height": 0.4,
+      "id": "ow:heal_snack",
+      "name": "entity.ow.heal_snack",
+      "width": 0.4
+    },
+    {
+      "height": 0.5,
+      "id": "ow:feast_pile",
+      "name": "entity.ow.feast_pile",
+      "width": 1.4
+    }
+  ],
+  "items": [
+    {
+      "id": "ow:manuscript_fragment",
+      "name": "item.ow.manuscript_fragment"
+    },
+    {
+      "id": "ow:empty_syringe",
+      "name": "item.ow.empty_syringe"
+    },
+    {
+      "id": "ow:bloody_syringe",
+      "name": "item.ow.bloody_syringe"
+    },
+    {
+      "id": "ow:medal_0",
+      "name": "item.ow.medal_0"
+    },
+    {
+      "id": "ow:medal_1",
+      "name": "item.ow.medal_1"
+    },
+    {
+      "id": "ow:medal_2",
+      "name": "item.ow.medal_2"
+    },
+    {
+      "id": "ow:medal_3",
+      "name": "item.ow.medal_3"
+    },
+    {
+      "id": "ow:seabug_cockpit",
+      "name": "item.ow.seabug_cockpit"
+    },
+    {
+      "id": "ow:seabug_hull",
+      "name": "item.ow.seabug_hull"
+    },
+    {
+      "id": "ow:seabug_porthole",
+      "name": "item.ow.seabug_porthole"
+    },
+    {
+      "id": "ow:seabug",
+      "name": "item.ow.seabug"
+    },
+    {
+      "id": "ow:plant_fiber",
+      "name": "item.ow.plant_fiber"
+    },
+    {
+      "id": "ow:lavender_bouquet",
+      "name": "item.ow.lavender_bouquet"
+    },
+    {
+      "id": "ow:jade",
+      "name": "item.ow.jade"
+    },
+    {
+      "id": "ow:ruby",
+      "name": "item.ow.ruby"
+    },
+    {
+      "id": "ow:platinum_ingot",
+      "name": "item.ow.platinum_ingot"
+    },
+    {
+      "id": "ow:battery",
+      "name": "item.ow.battery"
+    },
+    {
+      "id": "ow:jade_sword",
+      "name": "item.ow.jade_sword"
+    },
+    {
+      "id": "ow:jade_pickaxe",
+      "name": "item.ow.jade_pickaxe"
+    },
+    {
+      "id": "ow:jade_axe",
+      "name": "item.ow.jade_axe"
+    },
+    {
+      "id": "ow:jade_shovel",
+      "name": "item.ow.jade_shovel"
+    },
+    {
+      "id": "ow:jade_hoe",
+      "name": "item.ow.jade_hoe"
+    },
+    {
+      "id": "ow:ruby_sword",
+      "name": "item.ow.ruby_sword"
+    },
+    {
+      "id": "ow:ruby_pickaxe",
+      "name": "item.ow.ruby_pickaxe"
+    },
+    {
+      "id": "ow:ruby_axe",
+      "name": "item.ow.ruby_axe"
+    },
+    {
+      "id": "ow:ruby_shovel",
+      "name": "item.ow.ruby_shovel"
+    },
+    {
+      "id": "ow:ruby_hoe",
+      "name": "item.ow.ruby_hoe"
+    },
+    {
+      "id": "ow:platinum_plated_ruby_sword",
+      "name": "item.ow.platinum_plated_ruby_sword"
+    },
+    {
+      "id": "ow:platinum_plated_ruby_pickaxe",
+      "name": "item.ow.platinum_plated_ruby_pickaxe"
+    },
+    {
+      "id": "ow:savage_berries",
+      "name": "item.ow.savage_berries"
+    },
+    {
+      "id": "ow:plant_empress_music_disc",
+      "name": "item.ow.plant_empress_music_disc"
+    },
+    {
+      "id": "ow:tiger_fur",
+      "name": "item.ow.tiger_fur"
+    },
+    {
+      "id": "ow:boa_tong",
+      "name": "item.ow.boa_tong"
+    },
+    {
+      "id": "ow:predator_tooth",
+      "name": "item.ow.predator_tooth"
+    },
+    {
+      "id": "ow:venomous_tooth",
+      "name": "item.ow.venomous_tooth"
+    },
+    {
+      "id": "ow:venomous_glands",
+      "name": "item.ow.venomous_glands"
+    },
+    {
+      "id": "ow:peacock_feather",
+      "name": "item.ow.peacock_feather"
+    },
+    {
+      "id": "ow:shark_fin",
+      "name": "item.ow.shark_fin"
+    },
+    {
+      "id": "ow:stinging_filament",
+      "name": "item.ow.stinging_filament"
+    },
+    {
+      "id": "ow:bioluminescent_jelly",
+      "name": "item.ow.bioluminescent_jelly"
+    },
+    {
+      "id": "ow:kodiak_coat",
+      "name": "item.ow.kodiak_coat"
+    },
+    {
+      "id": "ow:crocodile_scale",
+      "name": "item.ow.crocodile_scale"
+    },
+    {
+      "id": "ow:animal_soul",
+      "name": "item.ow.animal_soul"
+    },
+    {
+      "id": "ow:tiger_saddle",
+      "name": "item.ow.tiger_saddle"
+    },
+    {
+      "id": "ow:boa_saddle",
+      "name": "item.ow.boa_saddle"
+    },
+    {
+      "id": "ow:peacock_saddle",
+      "name": "item.ow.peacock_saddle"
+    },
+    {
+      "id": "ow:tiger_shark_saddle",
+      "name": "item.ow.tiger_shark_saddle"
+    },
+    {
+      "id": "ow:elephant_saddle",
+      "name": "item.ow.elephant_saddle"
+    },
+    {
+      "id": "ow:kodiak_saddle",
+      "name": "item.ow.kodiak_saddle"
+    },
+    {
+      "id": "ow:crocodile_saddle",
+      "name": "item.ow.crocodile_saddle"
+    },
+    {
+      "id": "ow:orca_saddle",
+      "name": "item.ow.orca_saddle"
+    },
+    {
+      "id": "ow:boxing_gloves",
+      "name": "item.ow.boxing_gloves"
+    },
+    {
+      "id": "ow:camouflage_helmet",
+      "name": "item.ow.camouflage_helmet"
+    },
+    {
+      "id": "ow:camouflage_chestplate",
+      "name": "item.ow.camouflage_chestplate"
+    },
+    {
+      "id": "ow:camouflage_leggings",
+      "name": "item.ow.camouflage_leggings"
+    },
+    {
+      "id": "ow:camouflage_boots",
+      "name": "item.ow.camouflage_boots"
+    },
+    {
+      "id": "ow:resurrection_amulet",
+      "name": "item.ow.resurrection_amulet"
+    },
+    {
+      "id": "ow:jade_helmet",
+      "name": "item.ow.jade_helmet"
+    },
+    {
+      "id": "ow:jade_chestplate",
+      "name": "item.ow.jade_chestplate"
+    },
+    {
+      "id": "ow:jade_leggings",
+      "name": "item.ow.jade_leggings"
+    },
+    {
+      "id": "ow:jade_boots",
+      "name": "item.ow.jade_boots"
+    },
+    {
+      "id": "ow:primitive_spear",
+      "name": "item.ow.primitive_spear"
+    },
+    {
+      "id": "ow:primitive_slingshot",
+      "name": "item.ow.primitive_slingshot"
+    },
+    {
+      "id": "ow:primitive_sickle",
+      "name": "item.ow.primitive_sickle"
+    },
+    {
+      "id": "ow:maya_blowpipe",
+      "name": "item.ow.maya_blowpipe"
+    },
+    {
+      "id": "ow:reptilian_dagger",
+      "name": "item.ow.reptilian_dagger"
+    },
+    {
+      "id": "ow:wooden_stinger",
+      "name": "item.ow.wooden_stinger"
+    },
+    {
+      "id": "ow:tranquilizer_wooden_stinger",
+      "name": "item.ow.tranquilizer_wooden_stinger"
+    },
+    {
+      "id": "ow:tranquilizer_arrow",
+      "name": "item.ow.tranquilizer_arrow"
+    },
+    {
+      "id": "ow:venomous_arrow",
+      "name": "item.ow.venomous_arrow"
+    },
+    {
+      "id": "ow:raw_tiger",
+      "name": "item.ow.raw_tiger"
+    },
+    {
+      "id": "ow:cooked_tiger",
+      "name": "item.ow.cooked_tiger"
+    },
+    {
+      "id": "ow:raw_kodiak",
+      "name": "item.ow.raw_kodiak"
+    },
+    {
+      "id": "ow:cooked_kodiak",
+      "name": "item.ow.cooked_kodiak"
+    },
+    {
+      "id": "ow:raw_boa",
+      "name": "item.ow.raw_boa"
+    },
+    {
+      "id": "ow:cooked_boa",
+      "name": "item.ow.cooked_boa"
+    },
+    {
+      "id": "ow:raw_peacock",
+      "name": "item.ow.raw_peacock"
+    },
+    {
+      "id": "ow:cooked_peacock",
+      "name": "item.ow.cooked_peacock"
+    },
+    {
+      "id": "ow:kodiak_spawn_egg",
+      "name": "item.ow.kodiak_spawn_egg"
+    },
+    {
+      "id": "ow:kangaroo_spawn_egg",
+      "name": "item.ow.kangaroo_spawn_egg"
+    },
+    {
+      "id": "ow:tiger_spawn_egg",
+      "name": "item.ow.tiger_spawn_egg"
+    },
+    {
+      "id": "ow:crocodile_spawn_egg",
+      "name": "item.ow.crocodile_spawn_egg"
+    },
+    {
+      "id": "ow:orca_spawn_egg",
+      "name": "item.ow.orca_spawn_egg"
+    },
+    {
+      "id": "ow:boa_spawn_egg",
+      "name": "item.ow.boa_spawn_egg"
+    },
+    {
+      "id": "ow:elephant_spawn_egg",
+      "name": "item.ow.elephant_spawn_egg"
+    },
+    {
+      "id": "ow:red_panda_spawn_egg",
+      "name": "item.ow.red_panda_spawn_egg"
+    },
+    {
+      "id": "ow:lavender",
+      "name": "block.ow.lavender"
+    },
+    {
+      "id": "ow:camellia",
+      "name": "block.ow.camellia"
+    },
+    {
+      "id": "ow:potted_lavender",
+      "name": "block.ow.potted_lavender"
+    },
+    {
+      "id": "ow:potted_camellia",
+      "name": "block.ow.potted_camellia"
+    },
+    {
+      "id": "ow:peacock_egg",
+      "name": "block.ow.peacock_egg"
+    },
+    {
+      "id": "ow:teddy_bear",
+      "name": "block.ow.teddy_bear"
+    },
+    {
+      "id": "ow:animal_carcass",
+      "name": "block.ow.animal_carcass"
+    },
+    {
+      "id": "ow:marked_mud",
+      "name": "block.ow.marked_mud"
+    },
+    {
+      "id": "ow:bear_trap",
+      "name": "block.ow.bear_trap"
+    },
+    {
+      "id": "ow:jade_ore",
+      "name": "block.ow.jade_ore"
+    },
+    {
+      "id": "ow:deepslate_jade_ore",
+      "name": "block.ow.deepslate_jade_ore"
+    },
+    {
+      "id": "ow:ruby_ore",
+      "name": "block.ow.ruby_ore"
+    },
+    {
+      "id": "ow:deepslate_ruby_ore",
+      "name": "block.ow.deepslate_ruby_ore"
+    },
+    {
+      "id": "ow:saddler",
+      "name": "block.ow.saddler"
+    },
+    {
+      "id": "ow:dna_analyser",
+      "name": "block.ow.dna_analyser"
+    },
+    {
+      "id": "ow:savage_berry_bush",
+      "name": "block.ow.savage_berry_bush"
+    },
+    {
+      "id": "ow:scarified_oak_log",
+      "name": "block.ow.scarified_oak_log"
+    },
+    {
+      "id": "ow:scarified_dark_oak_log",
+      "name": "block.ow.scarified_dark_oak_log"
+    },
+    {
+      "id": "ow:scarified_spruce_log",
+      "name": "block.ow.scarified_spruce_log"
+    },
+    {
+      "id": "ow:scarified_mangrove_log",
+      "name": "block.ow.scarified_mangrove_log"
+    },
+    {
+      "id": "ow:scarified_cherry_log",
+      "name": "block.ow.scarified_cherry_log"
+    },
+    {
+      "id": "ow:scarified_birch_log",
+      "name": "block.ow.scarified_birch_log"
+    },
+    {
+      "id": "ow:scarified_acacia_log",
+      "name": "block.ow.scarified_acacia_log"
+    },
+    {
+      "id": "ow:scarified_jungle_log",
+      "name": "block.ow.scarified_jungle_log"
+    },
+    {
+      "id": "ow:redwood_log",
+      "name": "block.ow.redwood_log"
+    },
+    {
+      "id": "ow:redwood_wood",
+      "name": "block.ow.redwood_wood"
+    },
+    {
+      "id": "ow:stripped_redwood_log",
+      "name": "block.ow.stripped_redwood_log"
+    },
+    {
+      "id": "ow:stripped_redwood_wood",
+      "name": "block.ow.stripped_redwood_wood"
+    },
+    {
+      "id": "ow:redwood_planks",
+      "name": "block.ow.redwood_planks"
+    },
+    {
+      "id": "ow:redwood_leaves",
+      "name": "block.ow.redwood_leaves"
+    },
+    {
+      "id": "ow:redwood_sapling",
+      "name": "block.ow.redwood_sapling"
+    },
+    {
+      "id": "ow:redwood_stairs",
+      "name": "block.ow.redwood_stairs"
+    },
+    {
+      "id": "ow:redwood_slab",
+      "name": "block.ow.redwood_slab"
+    },
+    {
+      "id": "ow:redwood_pressure_plate",
+      "name": "block.ow.redwood_pressure_plate"
+    },
+    {
+      "id": "ow:redwood_button",
+      "name": "block.ow.redwood_button"
+    },
+    {
+      "id": "ow:redwood_fence",
+      "name": "block.ow.redwood_fence"
+    },
+    {
+      "id": "ow:redwood_fence_gate",
+      "name": "block.ow.redwood_fence_gate"
+    },
+    {
+      "id": "ow:redwood_door",
+      "name": "block.ow.redwood_door"
+    },
+    {
+      "id": "ow:redwood_trapdoor",
+      "name": "block.ow.redwood_trapdoor"
+    }
+  ]
+}
