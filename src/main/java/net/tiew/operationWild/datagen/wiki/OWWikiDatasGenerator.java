@@ -1,4 +1,4 @@
-package net.tiew.operationWild.datagen;
+package net.tiew.operationWild.datagen.wiki;
 
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -12,7 +12,7 @@ public class OWWikiDatasGenerator {
     public static void onGatherData(GatherDataEvent event) {
         event.getGenerator().addProvider(
                 true,
-                new OWWikiDatasProvider(event.getGenerator().getPackOutput())
+                new OWWikiDatasProvider(event.getGenerator().getPackOutput(), event.getLookupProvider())
         );
     }
 }

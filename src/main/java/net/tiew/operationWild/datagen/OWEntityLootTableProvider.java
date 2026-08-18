@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 
 public class OWEntityLootTableProvider extends EntityLootSubProvider {
 
-    protected OWEntityLootTableProvider(HolderLookup.Provider provider) {
+    public OWEntityLootTableProvider(HolderLookup.Provider provider) {
         super(FeatureFlags.REGISTRY.allFlags(), provider);
     }
 

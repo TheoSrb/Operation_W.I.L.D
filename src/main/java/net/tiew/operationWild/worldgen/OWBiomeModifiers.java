@@ -61,6 +61,19 @@ public class OWBiomeModifiers {
             List.of(Biomes.SWAMP)
     );
 
+    public record SpawnRule(ResourceKey<BiomeModifier> modifier,
+                           Supplier<? extends EntityType<?>> entity,
+                           ArrayList<ResourceKey<Biome>> biomes,
+                           int weight,
+                           int minCount,
+                           int maxCount) {}
+
+    public static final List<SpawnRule> SPAWN_RULES = List.of(
+            new SpawnRule(SPAWN_TIGER, OWEntityRegistry.TIGER, TIGER_BIOMES, 30, 1, 1),
+            new SpawnRule(SPAWN_KODIAK, OWEntityRegistry.KODIAK, KODIAK_BIOMES, 35, 1, 1),
+            new SpawnRule(SPAWN_CROCODILE, OWEntityRegistry.CROCODILE, CROCODILE_BIOMES, 48, 2, 4),
+            new SpawnRule(SPAWN_BOA, OWEntityRegistry.BOA, BOA_BIOMES, 60, 1, 2));
+
     public static void bootstrap(BootstrapContext<BiomeModifier> context) {
         var placedFeature = context.lookup(Registries.PLACED_FEATURE);
         var biomes = context.lookup(Registries.BIOME);
@@ -81,10 +94,9 @@ public class OWBiomeModifiers {
 
 
 
-        spawnEntity(context, SPAWN_TIGER, TIGER_BIOMES, OWEntityRegistry.TIGER, 30, 1, 1);
-        spawnEntity(context, SPAWN_KODIAK, KODIAK_BIOMES, OWEntityRegistry.KODIAK, 35, 1, 1);
-        spawnEntity(context, SPAWN_CROCODILE, CROCODILE_BIOMES, OWEntityRegistry.CROCODILE, 48, 2, 4);
-        spawnEntity(context, SPAWN_BOA, BOA_BIOMES, OWEntityRegistry.BOA, 60, 1, 2);
+        for (SpawnRule rule : SPAWN_RULES) {
+            spawnEntity(context, rule.modifier(), rule.biomes(), rule.entity(), rule.weight(), rule.minCount(), rule.maxCount());
+        }
 
 
 
