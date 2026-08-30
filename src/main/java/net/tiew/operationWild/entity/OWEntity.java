@@ -3444,6 +3444,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 }
             }
         }
+        if (this instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla) {
+            if (attackTimer == timeToHit) {
+                float pitch = (float) (OWUtils.generateRandomInterval(0.95, 1.2));
+                gorilla.level().playSound(null, gorilla.getX(), gorilla.getY(), gorilla.getZ(),
+                        OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f,
+                        getComboAttack() == 3 ? pitch / 1.4f : pitch);
+            }
+        }
     }
 
     public void resetCombo(int numberOfAttacks) {
@@ -3910,7 +3918,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (entityRiding instanceof Mob) {
             return (Mob) entityRiding;
         } else {
-            if (this.isSaddled()) {
+            if (this.isRideEquipped()) {
                 entityRiding = this.getFirstPassenger();
                 if (entityRiding instanceof Player) {
                     return (Player) entityRiding;
@@ -4149,6 +4157,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void onSaddleEquipped(ItemStack saddle) {
+    }
+
+    public boolean requiresSaddleToRide() {
+        return true;
+    }
+
+    public final boolean isRideEquipped() {
+        return this.isSaddled() || !this.requiresSaddleToRide();
     }
 
     public boolean isSaddled() {

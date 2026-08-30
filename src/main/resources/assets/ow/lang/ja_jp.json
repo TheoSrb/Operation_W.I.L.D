@@ -1106,5 +1106,20 @@
   "piste.attack.3.name": "大テーブル",
   "piste.attack.3.desc": "ごちそうの持続が 50 % 延び、山が 30 % 遠くまで届きます。",
   "tooltip.redPandaSkin0": "デフォルトのレッサーパンダ",
-  "tooltip.redPandaSkin0.desc": "あなたのレッサーパンダをデフォルトの見た目に戻そう！"
+  "tooltip.redPandaSkin0.desc": "あなたのレッサーパンダをデフォルトの見た目に戻そう！",
+  "entity.ow.gorilla": "ゴリラ",
+  "chapter.entity.ow.gorilla": "ゴリラ",
+  "item.ow.gorilla_spawn_egg": "ゴリラのスポーンエッグ",
+  "tooltip.gorillaSkin0": "デフォルトのゴリラ",
+  "tooltip.gorillaSkin0.desc": "ゴリラを元の姿に戻しましょう！",
+  "ow.attacks.gorilla.combo.title": "打ち下ろし",
+  "ow.attacks.gorilla.combo.desc": "左クリック：右、左と拳を叩き込み、三発目は両拳を同時に振り下ろして相手を吹き飛ばします。射程 %s ブロック、一撃あたり %s ダメージ。",
+  "ow.attacks.gorilla.rock_throw.title": "岩投げ",
+  "ow.attacks.gorilla.rock_throw.desc": "右クリック長押し：ゴリラが石のブロックを引き抜いて投げつけます。溜めが長いほど遠く、強く飛び、最大 %s ダメージ。着弾で %s ブロックにわたって砕け散り、その場のものを吹き飛ばします。地形は壊れず、資源も消費しません。クールダウン %s 秒。",
+  "ow.attacks.gorilla.rider_launch.title": "投げ飛ばし",
+  "ow.attacks.gorilla.rider_launch.desc": "右クリック長押し：ゴリラが騎乗者をつかみ、大きな弧を描いて放り投げます。溜めが高さと距離を決め、着地で落下ダメージは受けません。他の手段では登れない足場にも届きます。クールダウン %s 秒。",
+  "ow.attacks.gorilla.chest_beat.title": "ドラミング",
+  "ow.attacks.gorilla.chest_beat.desc": "%s 体を仕留めると発動可能。ゴリラが立ち上がり胸を叩くと、半径 %s ブロックの味方は攻撃力が %s%% 上がり打たれ強くなり、敵は押し戻されて標的を見失います。効果は %s 秒。クールダウン %s 秒。",
+  "ow.advancements.silverback.title": "シルバーバック",
+  "ow.advancements.silverback.description": "ゴリラをテイムしました！"
 }

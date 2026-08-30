@@ -1106,5 +1106,20 @@
   "piste.attack.3.name": "Mesa Larga",
   "piste.attack.3.desc": "El Festín dura un 50 % más y su montón alimenta un 30 % más lejos.",
   "tooltip.redPandaSkin0": "Panda Rojo Por Defecto",
-  "tooltip.redPandaSkin0.desc": "¡Devuelve a tu Panda Rojo su aspecto por defecto!"
+  "tooltip.redPandaSkin0.desc": "¡Devuelve a tu Panda Rojo su aspecto por defecto!",
+  "entity.ow.gorilla": "Gorila",
+  "chapter.entity.ow.gorilla": "Gorila",
+  "item.ow.gorilla_spawn_egg": "Huevo generador de gorila",
+  "tooltip.gorillaSkin0": "Gorila Por Defecto",
+  "tooltip.gorillaSkin0.desc": "¡Devuelve a tu Gorila su aspecto original!",
+  "ow.attacks.gorilla.combo.title": "Martilleo",
+  "ow.attacks.gorilla.combo.desc": "Clic izquierdo: tres puñetazos, primero el derecho, luego el izquierdo, y el tercero cae con ambos puños a la vez — ese sale despedido. %s bloque de alcance, %s de daño por golpe.",
+  "ow.attacks.gorilla.rock_throw.title": "Lanzamiento de Roca",
+  "ow.attacks.gorilla.rock_throw.desc": "Mantén clic derecho: el gorila arranca un bloque de piedra y lo lanza. Cuanto más larga la carga, más lejos y más fuerte llega — hasta %s de daño. El bloque estalla al impactar en %s bloques y barre lo que haya allí. Nada se rompe ni se consume. %s segundos de recarga.",
+  "ow.attacks.gorilla.rider_launch.title": "Proyección",
+  "ow.attacks.gorilla.rider_launch.desc": "Mantén clic derecho: el gorila agarra a su propio jinete y lo lanza en arco. La carga fija la altura y el alcance, y el aterrizaje no cuesta daño por caída. Lo justo para llegar a la cornisa que nadie escala. %s segundos de recarga.",
+  "ow.attacks.gorilla.chest_beat.title": "Golpe de Pecho",
+  "ow.attacks.gorilla.chest_beat.desc": "Se arma con %s presas. El gorila se yergue y se golpea el pecho: a %s bloques a la redonda, tus aliados golpean un %s%% más fuerte y aguantan mejor, mientras los hostiles retroceden y pierden su objetivo. El dominio dura %s segundos. %s segundos de recarga.",
+  "ow.advancements.silverback.title": "Espalda plateada",
+  "ow.advancements.silverback.description": "¡Has domesticado un Gorila!"
 }

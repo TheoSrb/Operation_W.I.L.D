@@ -1106,5 +1106,20 @@
   "piste.attack.3.name": "Grande Tablée",
   "piste.attack.3.desc": "Le Festin dure 50 % plus longtemps et son tas nourrit 30 % plus loin.",
   "tooltip.redPandaSkin0": "Panda Roux Par Défaut",
-  "tooltip.redPandaSkin0.desc": "Rendez votre Panda Roux par défaut !"
+  "tooltip.redPandaSkin0.desc": "Rendez votre Panda Roux par défaut !",
+  "entity.ow.gorilla": "Gorille",
+  "chapter.entity.ow.gorilla": "Gorille",
+  "item.ow.gorilla_spawn_egg": "Oeuf d'apparition de gorille",
+  "tooltip.gorillaSkin0": "Gorille Par Défaut",
+  "tooltip.gorillaSkin0.desc": "Rendez votre Gorille par défaut !",
+  "ow.attacks.gorilla.combo.title": "Martèlement",
+  "ow.attacks.gorilla.combo.desc": "Clic gauche : trois coups de poing, le droit puis le gauche, et le troisième s'abat des deux mains à la fois — celui-là projette. Portée de %s bloc, %s dégâts par coup.",
+  "ow.attacks.gorilla.rock_throw.title": "Jet de Rocher",
+  "ow.attacks.gorilla.rock_throw.desc": "Clic droit maintenu : le gorille arrache un bloc de pierre et le lance. Plus la charge est longue, plus le tir part loin et fort — jusqu'à %s dégâts. Le bloc explose à l'impact sur %s blocs et souffle ce qui s'y trouve. Rien n'est cassé ni consommé. %s secondes de recharge.",
+  "ow.attacks.gorilla.rider_launch.title": "Projection",
+  "ow.attacks.gorilla.rider_launch.desc": "Clic droit maintenu : le gorille saisit son propre cavalier et l'envoie en cloche. La charge règle la hauteur et la portée du vol, et l'atterrissage ne coûte aucun dégât de chute. De quoi atteindre la corniche que rien n'escalade. %s secondes de recharge.",
+  "ow.attacks.gorilla.chest_beat.title": "Frappe de Poitrine",
+  "ow.attacks.gorilla.chest_beat.desc": "S'arme sur %s victimes. Le gorille se dresse et martèle son torse : à %s blocs à la ronde, vos alliés frappent %s%% plus fort et encaissent mieux, tandis que les hostiles reculent et perdent leur cible. L'ascendant dure %s secondes. %s secondes de recharge.",
+  "ow.advancements.silverback.title": "Dos argenté",
+  "ow.advancements.silverback.description": "Vous avez apprivoisé un Gorille !"
 }

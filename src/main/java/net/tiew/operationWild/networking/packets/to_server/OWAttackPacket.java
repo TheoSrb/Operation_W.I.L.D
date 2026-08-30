@@ -156,6 +156,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.FEAST ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPandaAura
                                         && redPandaAura.activateFeast();
+                        case OWAttackIds.CHEST_BEAT ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorillaBeat
+                                        && gorillaBeat.activateChestBeat();
                         default -> true;
                     };
 
@@ -220,6 +223,14 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                                 croc.startMouthSlamCharge();
                             }
                         }
+                        case OWAttackIds.ROCK_THROW -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla)
+                                gorilla.startRockCharge();
+                        }
+                        case OWAttackIds.RIDER_LAUNCH -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla)
+                                gorilla.startRiderLaunchCharge();
+                        }
                     }
                 }
 
@@ -259,6 +270,14 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
                                 elephant.cancelShoulderBash();
                         }
+                        case OWAttackIds.ROCK_THROW -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla)
+                                gorilla.cancelRockCharge();
+                        }
+                        case OWAttackIds.RIDER_LAUNCH -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla)
+                                gorilla.cancelRiderLaunchCharge();
+                        }
                     }
                 }
 
@@ -290,6 +309,14 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.SHOULDER_BASH -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)
                                 elephant.performShoulderBash();
+                        }
+                        case OWAttackIds.ROCK_THROW -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla)
+                                gorilla.performRockThrow(packet.value());
+                        }
+                        case OWAttackIds.RIDER_LAUNCH -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla)
+                                gorilla.performRiderLaunch(packet.value());
                         }
                     }
                 }

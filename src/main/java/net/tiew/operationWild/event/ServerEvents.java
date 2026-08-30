@@ -310,6 +310,25 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
+    public static void onGorillaClimbDamage(LivingIncomingDamageEvent event) {
+        LivingEntity victim = event.getEntity();
+
+        net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla = null;
+        if (victim instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity self) gorilla = self;
+        else if (victim.getVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity mount) gorilla = mount;
+
+        if (gorilla == null || (!gorilla.isClimbing() && !gorilla.isVaulting())) return;
+
+        DamageSource source = event.getSource();
+        if (source.is(net.minecraft.world.damagesource.DamageTypes.IN_WALL)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.FLY_INTO_WALL)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.CRAMMING)
+                || source.is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
     public static void onTribeFriendlyFire(LivingIncomingDamageEvent event) {
         LivingEntity victim = event.getEntity();
         if (victim.level().isClientSide()) return;

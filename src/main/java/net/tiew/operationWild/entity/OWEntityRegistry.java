@@ -26,6 +26,7 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<OrcaEntity>> ORCA = ENTITY_TYPES.register("orca", () -> EntityType.Builder.<OrcaEntity>of((type, world) -> new OrcaEntity(type, world, 1.1f, 7500, 2), MobCategory.CREATURE).sized(2.2f, 2.0f).build("orca"));
     public static final DeferredHolder<EntityType<?>, EntityType<ElephantEntity>> ELEPHANT = ENTITY_TYPES.register("elephant", () -> EntityType.Builder.<ElephantEntity>of((type, world) -> new ElephantEntity(type, world, 1.05f, 8000, 4), MobCategory.CREATURE).sized(2.6f, 3.2f).build("elephant"));
     public static final DeferredHolder<EntityType<?>, EntityType<RedPandaEntity>> RED_PANDA = ENTITY_TYPES.register("red_panda", () -> EntityType.Builder.<RedPandaEntity>of((type, world) -> new RedPandaEntity(type, world, 0.95f, 2500, 1), MobCategory.CREATURE).sized(0.8f, 0.7f).build("red_panda"));
+    public static final DeferredHolder<EntityType<?>, EntityType<GorillaEntity>> GORILLA = ENTITY_TYPES.register("gorilla", () -> EntityType.Builder.<GorillaEntity>of((type, world) -> new GorillaEntity(type, world, 1.0f, 5500, 3), MobCategory.CREATURE).sized(1.5f, 1.9f).build("gorilla"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<CrocodileTailPart>> CROCODILE_TAIL_PART =
             ENTITY_TYPES.register("crocodile_tail_part", () -> EntityType.Builder
@@ -61,6 +62,7 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<TranquilizerWoodenStinger>> TRANQUILIZER_WOODEN_STINGER = ENTITY_TYPES.register("tranquilizer_wooden_stinger", () -> EntityType.Builder.<TranquilizerWoodenStinger>of(TranquilizerWoodenStinger::new, MobCategory.MISC).sized(0.25f, 0.25f).build("tranquilizer_wooden_stinger"));
     public static final DeferredHolder<EntityType<?>, EntityType<VenomousArrow>> VENOMOUS_ARROW = ENTITY_TYPES.register("venomous_arrow", () -> EntityType.Builder.<VenomousArrow>of(VenomousArrow::new, MobCategory.MISC).sized(0.5f, 0.5f).build("venomous_arrow"));
     public static final DeferredHolder<EntityType<?>, EntityType<SlingshotProjectile>> SLINGSHOT_PROJECTILE = ENTITY_TYPES.register("slingshot_projectile", () -> EntityType.Builder.<SlingshotProjectile>of(SlingshotProjectile::new, MobCategory.MISC).sized(0.5f, 0.5f).build("slingshot_projectile"));
+    public static final DeferredHolder<EntityType<?>, EntityType<ThrownRockEntity>> THROWN_ROCK = ENTITY_TYPES.register("thrown_rock", () -> EntityType.Builder.<ThrownRockEntity>of(ThrownRockEntity::new, MobCategory.MISC).sized(1.0f, 1.0f).build("thrown_rock"));
 
 
     public static final DeferredHolder<EntityType<?>, EntityType<AdventurerManuscript>> ADVENTURER_MANUSCRIPT = ENTITY_TYPES.register("adventurer_manuscript", () -> EntityType.Builder.<AdventurerManuscript>of(AdventurerManuscript::new, MobCategory.MISC).sized(0.5f, 0.5f).build("adventurer_manuscript"));

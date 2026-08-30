@@ -1106,5 +1106,20 @@
   "piste.attack.3.name": "Long Table",
   "piste.attack.3.desc": "The Feast lasts 50% longer and its pile feeds 30% further out.",
   "tooltip.redPandaSkin0": "Default Red Panda",
-  "tooltip.redPandaSkin0.desc": "Return your Red Panda to its default look!"
+  "tooltip.redPandaSkin0.desc": "Return your Red Panda to its default look!",
+  "entity.ow.gorilla": "Gorilla",
+  "chapter.entity.ow.gorilla": "Gorilla",
+  "item.ow.gorilla_spawn_egg": "Gorilla Spawn Egg",
+  "tooltip.gorillaSkin0": "Default Gorilla",
+  "tooltip.gorillaSkin0.desc": "Set your Gorilla back to default!",
+  "ow.attacks.gorilla.combo.title": "Hammering",
+  "ow.attacks.gorilla.combo.desc": "Left click: three punches, right then left, and a third that comes down with both fists at once — that one sends them flying. %s block reach, %s damage per blow.",
+  "ow.attacks.gorilla.rock_throw.title": "Rock Throw",
+  "ow.attacks.gorilla.rock_throw.desc": "Hold right click: the gorilla tears out a block of stone and hurls it. The longer the charge, the further and harder it flies — up to %s damage. The block bursts on impact across %s blocks and blows away whatever stands there. Nothing is broken or spent. %s second cooldown.",
+  "ow.attacks.gorilla.rider_launch.title": "Toss",
+  "ow.attacks.gorilla.rider_launch.desc": "Hold right click: the gorilla grabs its own rider and lobs them in a high arc. The charge sets the height and the range, and the landing costs no fall damage. Enough to reach the ledge nothing else climbs. %s second cooldown.",
+  "ow.attacks.gorilla.chest_beat.title": "Chest Beat",
+  "ow.attacks.gorilla.chest_beat.desc": "Armed by %s kills. The gorilla rears up and drums its chest: within %s blocks your allies hit %s%% harder and take punishment better, while hostiles are driven back and lose their target. The hold lasts %s seconds. %s second cooldown.",
+  "ow.advancements.silverback.title": "Silverback",
+  "ow.advancements.silverback.description": "You tamed a Gorilla!"
 }

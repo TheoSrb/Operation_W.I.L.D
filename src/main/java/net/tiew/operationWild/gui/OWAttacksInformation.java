@@ -16,6 +16,7 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
@@ -298,6 +299,42 @@ public class OWAttacksInformation {
         //  ÉLÉPHANT  (entityRow = 4 → cardTexY = 160 ; cartes en colonnes 60 / 80 / 100)
         // ──────────────────────────────────────────────────────────────────────
         // Même rangée que l'orque, qui occupe les colonnes 0 à 2 : l'éléphant prend les suivantes.
+        PROFILES.put(GorillaEntity.class, new EntityProfile(
+
+                new AttackSlot(60, 0, "LMB",
+                        title("ow.attacks.gorilla.combo.title"),
+                        e -> desc("ow.attacks.gorilla.combo.desc",
+                                val("0.75"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(80, 0, "RMB",
+                        title("ow.attacks.gorilla.rock_throw.title"),
+                        e -> desc("ow.attacks.gorilla.rock_throw.desc",
+                                val((int) (e.getDamageToClient() * OWAttacksConstants.Gorilla.ROCK_THROW_MAX_DAMAGE_RATIO)),
+                                val((int) OWAttacksConstants.Gorilla.ROCK_THROW_IMPACT_RADIUS),
+                                val(OWAttacksConstants.Gorilla.SECONDARY_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(196, 216, "RMB",
+                        title("ow.attacks.gorilla.rider_launch.title"),
+                        e -> desc("ow.attacks.gorilla.rider_launch.desc",
+                                val(OWAttacksConstants.Gorilla.SECONDARY_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(100, 0, "X",
+                        title("ow.attacks.gorilla.chest_beat.title"),
+                        e -> desc("ow.attacks.gorilla.chest_beat.desc",
+                                val(OWAttacksConstants.Gorilla.CHEST_BEAT_KILLS_REQUIRED),
+                                val((int) OWAttacksConstants.Gorilla.CHEST_BEAT_RADIUS),
+                                val((int) (OWAttacksConstants.Gorilla.CHEST_BEAT_ALLY_DAMAGE_BONUS * 100)),
+                                val(OWAttacksConstants.Gorilla.CHEST_BEAT_DURATION_TICKS / 20),
+                                val(OWAttacksConstants.Gorilla.CHEST_BEAT_COOLDOWN_TICKS / 20))
+                ),
+
+                null
+
+        ));
+
         PROFILES.put(ElephantEntity.class, new EntityProfile(
 
                 new AttackSlot(60, 160, "LMB",

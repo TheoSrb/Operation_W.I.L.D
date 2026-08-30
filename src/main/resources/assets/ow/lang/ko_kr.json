@@ -1106,5 +1106,20 @@
   "piste.attack.3.name": "긴 식탁",
   "piste.attack.3.desc": "만찬의 지속 시간이 50 % 늘고, 더미가 30 % 더 멀리까지 먹입니다.",
   "tooltip.redPandaSkin0": "기본 레서판다",
-  "tooltip.redPandaSkin0.desc": "당신의 레서판다를 기본 모습으로 되돌리세요!"
+  "tooltip.redPandaSkin0.desc": "당신의 레서판다를 기본 모습으로 되돌리세요!",
+  "entity.ow.gorilla": "고릴라",
+  "chapter.entity.ow.gorilla": "고릴라",
+  "item.ow.gorilla_spawn_egg": "고릴라 스폰 알",
+  "tooltip.gorillaSkin0": "기본 고릴라",
+  "tooltip.gorillaSkin0.desc": "고릴라를 기본 모습으로 되돌리세요!",
+  "ow.attacks.gorilla.combo.title": "내리치기",
+  "ow.attacks.gorilla.combo.desc": "좌클릭: 오른손, 왼손으로 두 번 내지른 뒤 세 번째는 두 주먹을 한꺼번에 내리찍어 상대를 날려 버립니다. 사거리 %s 블록, 타격당 %s 피해.",
+  "ow.attacks.gorilla.rock_throw.title": "바위 던지기",
+  "ow.attacks.gorilla.rock_throw.desc": "우클릭 유지: 고릴라가 돌 블록을 뜯어내 던집니다. 오래 모을수록 더 멀리, 더 세게 날아가 최대 %s 피해를 줍니다. 착탄하면 %s 블록 범위로 부서지며 그 자리의 대상을 날려 버립니다. 지형은 부서지지 않고 자원도 소모되지 않습니다. 재사용 대기시간 %s초.",
+  "ow.attacks.gorilla.rider_launch.title": "탑승자 던지기",
+  "ow.attacks.gorilla.rider_launch.desc": "우클릭 유지: 고릴라가 자기 탑승자를 붙잡아 크게 포물선을 그리며 던집니다. 모은 정도가 높이와 거리를 정하고, 착지에는 낙하 피해가 없습니다. 달리 오를 수 없는 절벽 턱까지 닿습니다. 재사용 대기시간 %s초.",
+  "ow.attacks.gorilla.chest_beat.title": "가슴 두드리기",
+  "ow.attacks.gorilla.chest_beat.desc": "처치 %s회로 충전됩니다. 고릴라가 일어서서 가슴을 두드리면 반경 %s 블록의 아군은 공격력이 %s%% 오르고 더 잘 버티며, 적은 밀려나고 목표를 잃습니다. 효과는 %s초 지속됩니다. 재사용 대기시간 %s초.",
+  "ow.advancements.silverback.title": "실버백",
+  "ow.advancements.silverback.description": "고릴라를 길들였습니다!"
 }

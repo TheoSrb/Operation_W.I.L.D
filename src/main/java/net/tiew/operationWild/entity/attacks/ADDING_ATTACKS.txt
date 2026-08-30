@@ -21,6 +21,9 @@ IDs d'attaque déjà pris :
  16 → Tiger  PRIMAL_ROAR       (Rugissement Primal — 2e carte secondaire, clic droit chargé)
  17 → Panda roux HEAL_SNACK      (Orbe de Soin — clic droit instantané, depuis l'épaule du joueur)
  18 → Panda roux FEAST     (ultime — touche X, AUCUN kill requis : cooldown de 90 s à la place)
+ 19 → Gorille JET_DE_ROCHER  (clic droit CHARGÉ — bloc de cobblestone, explosion à l'impact)
+ 20 → Gorille PROJECTION      (2e carte secondaire, clic droit CHARGÉ — lance le cavalier)
+ 21 → Gorille FRAPPE_DE_POITRINE (ultime — touche X, 5 kills requis)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR

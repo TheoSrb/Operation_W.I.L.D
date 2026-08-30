@@ -107,6 +107,18 @@ public final class OWTargetLists {
     );
 
     /**
+     * Gorille — végétarien : il ne chasse rien. Cette liste n'est donc pas un menu mais un répertoire
+     * d'intrus, celui que le dos argenté charge pour écarter la troupe — les félins à défaut du léopard
+     * que le mod n'a pas, le tigre qui tient le même rôle à son échelle, et le zombie qui monte au
+     * campement. Rien d'autre : un gorille qui poursuit du bétail ne serait plus un gorille.
+     */
+    public static final List<Class<?>> GORILLA = List.of(
+            Ocelot.class, Cat.class,
+            TigerEntity.class,
+            Zombie.class
+    );
+
+    /**
      * Orque — apex marin. Strictement aquatique : plus une seule proie terrestre. L'ours blanc et
      * le dauphin sont deux prédations documentées, les gardiens sont les seuls hostiles de son
      * élément.

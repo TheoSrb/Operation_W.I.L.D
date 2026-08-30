@@ -1106,5 +1106,20 @@
   "piste.attack.3.name": "長桌",
   "piste.attack.3.desc": "盛宴持續時間延長 50 %，食堆的供餐範圍擴大 30 %。",
   "tooltip.redPandaSkin0": "預設小貓熊",
-  "tooltip.redPandaSkin0.desc": "把你的小貓熊恢復為預設外觀！"
+  "tooltip.redPandaSkin0.desc": "把你的小貓熊恢復為預設外觀！",
+  "entity.ow.gorilla": "大猩猩",
+  "chapter.entity.ow.gorilla": "大猩猩",
+  "item.ow.gorilla_spawn_egg": "大猩猩生怪蛋",
+  "tooltip.gorillaSkin0": "預設大猩猩",
+  "tooltip.gorillaSkin0.desc": "把你的大猩猩變回原本的模樣！",
+  "ow.attacks.gorilla.combo.title": "重錘",
+  "ow.attacks.gorilla.combo.desc": "左鍵：先右拳再左拳，第三下雙拳齊落，把目標直接砸飛。攻擊距離 %s 格，每擊 %s 點傷害。",
+  "ow.attacks.gorilla.rock_throw.title": "投石",
+  "ow.attacks.gorilla.rock_throw.desc": "長按右鍵：大猩猩掰下一塊石頭砸出去。蓄力越久，飛得越遠越狠，最高 %s 點傷害。落點炸開 %s 格範圍，把附近的一切掀翻。不會破壞方塊，也不消耗材料。冷卻 %s 秒。",
+  "ow.attacks.gorilla.rider_launch.title": "拋投",
+  "ow.attacks.gorilla.rider_launch.desc": "長按右鍵：大猩猩抓起自己的騎乘者，劃出一道高高的弧線拋出去。蓄力決定高度與距離，落地不受摔落傷害。足以搆到別處爬不上的岩台。冷卻 %s 秒。",
+  "ow.attacks.gorilla.chest_beat.title": "捶胸",
+  "ow.attacks.gorilla.chest_beat.desc": "累計 %s 次擊殺後可用。大猩猩直起身捶打胸膛：%s 格範圍內的同伴傷害提高 %s%% 且更耐打，敵人則被逼退並失去目標。威懾持續 %s 秒。冷卻 %s 秒。",
+  "ow.advancements.silverback.title": "銀背",
+  "ow.advancements.silverback.description": "你馴服了一隻大猩猩！"
 }

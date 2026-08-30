@@ -9,6 +9,7 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
@@ -32,6 +33,7 @@ public record OWWikiSpecies(EntityType<?> type, Class<? extends OWEntity> implem
                 of(OWEntityRegistry.ELEPHANT.get(), ElephantEntity.class),
                 of(OWEntityRegistry.KANGAROO.get(), KangarooEntity.class),
                 of(OWEntityRegistry.RED_PANDA.get(), RedPandaEntity.class),
+                of(OWEntityRegistry.GORILLA.get(), GorillaEntity.class),
                 of(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressEntity.class));
     }
 

@@ -14,6 +14,7 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
@@ -60,6 +61,9 @@ public class OWAttacksHandler {
     public static final int PRIMAL_ROAR_ID = OWAttackIds.PRIMAL_ROAR;
     public static final int HEAL_SNACK_ID = OWAttackIds.HEAL_SNACK;
     public static final int FEAST_ID = OWAttackIds.FEAST;
+    public static final int ROCK_THROW_ID = OWAttackIds.ROCK_THROW;
+    public static final int RIDER_LAUNCH_ID = OWAttackIds.RIDER_LAUNCH;
+    public static final int CHEST_BEAT_ID = OWAttackIds.CHEST_BEAT;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -146,6 +150,13 @@ public class OWAttacksHandler {
         register(RedPandaEntity.class, RedPandaAttacks.HEAL_SNACK);
         register(RedPandaEntity.class, RedPandaAttacks.FEAST);
         registerPassive(RedPandaEntity.class, RedPandaPassives.VITAL_SENSE);
+
+        registerEntityRow(GorillaEntity.class, 0);
+        registerEntityColumn(GorillaEntity.class, 3);
+        registerComboMaxTimer(GorillaEntity.class, 18);
+        register(GorillaEntity.class, GorillaAttacks.ROCK_THROW);
+        register(GorillaEntity.class, GorillaAttacks.RIDER_LAUNCH);
+        register(GorillaEntity.class, GorillaAttacks.CHEST_BEAT);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -302,6 +313,57 @@ public class OWAttacksHandler {
                 false,
                 false
         ).withCardTexture(216, 216);
+    }
+
+    public static class GorillaAttacks {
+
+        public static final OWChargedAttack ROCK_THROW = new OWChargedAttack(
+                ROCK_THROW_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Gorilla.ROCK_THROW_ENERGY,
+                OWAttacksConstants.Gorilla.SECONDARY_COOLDOWN_TICKS,
+                OWAttacksConstants.Gorilla.ROCK_THROW_CHARGE_MIN_MS,
+                OWAttacksConstants.Gorilla.ROCK_THROW_CHARGE_MAX_MS,
+                entity -> ((GorillaEntity) entity).startRockCharge(),
+                entity -> ((GorillaEntity) entity).cancelRockCharge(),
+                (entity, factor) -> ((GorillaEntity) entity).performRockThrow(factor),
+                (entity, factor, dir) -> { },
+                false,
+                true
+        );
+
+        public static final OWChargedAttack RIDER_LAUNCH = new OWChargedAttack(
+                RIDER_LAUNCH_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Gorilla.RIDER_LAUNCH_ENERGY,
+                OWAttacksConstants.Gorilla.SECONDARY_COOLDOWN_TICKS,
+                OWAttacksConstants.Gorilla.RIDER_LAUNCH_CHARGE_MIN_MS,
+                OWAttacksConstants.Gorilla.RIDER_LAUNCH_CHARGE_MAX_MS,
+                entity -> ((GorillaEntity) entity).startRiderLaunchCharge(),
+                entity -> ((GorillaEntity) entity).cancelRiderLaunchCharge(),
+                (entity, factor) -> ((GorillaEntity) entity).performRiderLaunch(factor),
+                (entity, factor, dir) -> { },
+                false,
+                true
+        ).withCardTexture(196, 216);
+
+        public static final OWAttack CHEST_BEAT = new OWAttack(
+                CHEST_BEAT_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Gorilla.CHEST_BEAT_ENERGY,
+                entity -> ((GorillaEntity) entity).activateChestBeat(),
+                OWAttacksConstants.Gorilla.CHEST_BEAT_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof GorillaEntity gorilla
+                        && gorilla.getUltimateKillCount() >= OWAttacksConstants.Gorilla.CHEST_BEAT_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof GorillaEntity gorilla
+                        ? (float) gorilla.getUltimateKillCount() / OWAttacksConstants.Gorilla.CHEST_BEAT_KILLS_REQUIRED
+                        : 0f
+        ).withUnlockCounter(
+                entity -> entity instanceof GorillaEntity gorilla ? gorilla.getUltimateKillCount() : 0,
+                OWAttacksConstants.Gorilla.CHEST_BEAT_KILLS_REQUIRED
+        ).withUltimateDuration(OWAttacksConstants.Gorilla.CHEST_BEAT_DURATION_MS);
     }
 
     public static class RedPandaAttacks {

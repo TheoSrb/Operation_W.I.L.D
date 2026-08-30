@@ -1,4 +1,4 @@
-// 1.21	2026-08-12T10:45:08.4527674	Item Models: ow
+// 1.21	2026-08-29T18:14:13.0731846	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
@@ -62,6 +62,7 @@ adcbfb5ceaa0d9a0a15bae4f5e815587d9060969 assets/ow/models/item/cooked_boa.json
 6acfec09b74bbd111ce7893a2ce3a2783baf44f8 assets/ow/models/item/elephant_saddle.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/elephant_spawn_egg.json
 8a2e89662a3bdba5a446db64684da0dcb959f138 assets/ow/models/item/empty_syringe.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/gorilla_spawn_egg.json
 b69eeee753a6359c8db1bbfa417adb15e820c348 assets/ow/models/item/jade.json
 87aca1381e079a50f6f081841c74981e7a073ec1 assets/ow/models/item/jade_axe.json
 fbdb90272bf022892c9cac11da66272abae6ad1e assets/ow/models/item/jade_boots.json

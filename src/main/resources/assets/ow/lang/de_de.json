@@ -1106,5 +1106,20 @@
   "piste.attack.3.name": "Lange Tafel",
   "piste.attack.3.desc": "Das Festmahl dauert 50 % länger und sein Haufen sättigt 30 % weiter.",
   "tooltip.redPandaSkin0": "Standard-Roter Panda",
-  "tooltip.redPandaSkin0.desc": "Gib deinem Roten Panda sein Standardaussehen zurück!"
+  "tooltip.redPandaSkin0.desc": "Gib deinem Roten Panda sein Standardaussehen zurück!",
+  "entity.ow.gorilla": "Gorilla",
+  "chapter.entity.ow.gorilla": "Gorilla",
+  "item.ow.gorilla_spawn_egg": "Gorilla-Spawn-Ei",
+  "tooltip.gorillaSkin0": "Standard-Gorilla",
+  "tooltip.gorillaSkin0.desc": "Setze deinen Gorilla auf das Standardfell zurück!",
+  "ow.attacks.gorilla.combo.title": "Hämmern",
+  "ow.attacks.gorilla.combo.desc": "Linksklick: drei Fausthiebe, erst rechts, dann links, und der dritte kommt mit beiden Fäusten zugleich herunter — der schleudert das Ziel weg. %s Block Reichweite, %s Schaden pro Schlag.",
+  "ow.attacks.gorilla.rock_throw.title": "Felswurf",
+  "ow.attacks.gorilla.rock_throw.desc": "Rechtsklick halten: Der Gorilla reißt einen Steinblock heraus und schleudert ihn. Je länger die Ladung, desto weiter und härter fliegt er — bis zu %s Schaden. Der Block zerbirst beim Aufprall auf %s Blöcken und fegt alles davon. Nichts wird zerstört oder verbraucht. %s Sekunden Abklingzeit.",
+  "ow.attacks.gorilla.rider_launch.title": "Wurf",
+  "ow.attacks.gorilla.rider_launch.desc": "Rechtsklick halten: Der Gorilla packt seinen eigenen Reiter und schleudert ihn in hohem Bogen. Die Ladung bestimmt Höhe und Weite, und die Landung kostet keinen Fallschaden. Genug für den Vorsprung, den sonst niemand erklimmt. %s Sekunden Abklingzeit.",
+  "ow.attacks.gorilla.chest_beat.title": "Brusttrommeln",
+  "ow.attacks.gorilla.chest_beat.desc": "Wird mit %s Abschüssen scharf. Der Gorilla richtet sich auf und trommelt sich auf die Brust: Im Umkreis von %s Blöcken schlagen deine Verbündeten %s%% härter zu und stecken mehr weg, während Feinde zurückweichen und ihr Ziel verlieren. Die Wirkung hält %s Sekunden. %s Sekunden Abklingzeit.",
+  "ow.advancements.silverback.title": "Silberrücken",
+  "ow.advancements.silverback.description": "Du hast einen Gorilla gezähmt!"
 }

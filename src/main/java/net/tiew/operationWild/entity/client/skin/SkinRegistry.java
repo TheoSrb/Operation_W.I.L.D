@@ -7,6 +7,7 @@ import net.tiew.operationWild.entity.client.skin.skins.*;
 import net.tiew.operationWild.entity.variants.BoaVariant;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
+import net.tiew.operationWild.entity.variants.GorillaVariant;
 import net.tiew.operationWild.entity.variants.KangarooVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.entity.variants.OrcaVariant;
@@ -21,6 +22,40 @@ public final class SkinRegistry {
     // ──────────────────────────────────────────────────────────────────────────
     //  RED PANDA SKINS
     // ──────────────────────────────────────────────────────────────────────────
+
+    public static class GorillaSkins {
+
+        private static final Map<GorillaVariant, GorillaSkin> REGISTRY = new EnumMap<>(GorillaVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/gorilla/" + path);
+        }
+
+        static {
+            register(GorillaVariant.DEFAULT, GorillaSkin.base(tex("gorilla_default.png")));
+            register(GorillaVariant.DARK,    GorillaSkin.base(tex("gorilla_dark.png")));
+            register(GorillaVariant.SILVER,  GorillaSkin.base(tex("gorilla_silver.png")));
+            register(GorillaVariant.ALBINOS, GorillaSkin.base(tex("gorilla_albinos.png")));
+        }
+
+        public static void register(GorillaVariant variant, GorillaSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static GorillaSkin get(GorillaVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(GorillaVariant.DEFAULT));
+        }
+
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
 
     public static class RedPandaSkins {
 

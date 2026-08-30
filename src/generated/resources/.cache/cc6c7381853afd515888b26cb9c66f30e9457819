@@ -1,4 +1,4 @@
-// 1.21	2026-08-14T09:44:46.749505	Tags for minecraft:item mod id ow
+// 1.21	2026-08-29T18:14:13.0801895	Tags for minecraft:item mod id ow
 ac05fb97b8a10e0240f5df28bfd2335e56b849a2 data/c/tags/item/foods.json
 f8d501a36ea77641a87cf4a609abbe712de43220 data/c/tags/item/foods/cooked_meat.json
 ab3e0a596f197aa4eb83eb43165511a904cee0c6 data/c/tags/item/foods/raw_meat.json
@@ -21,6 +21,7 @@ ac26f32b2f697795a207db5976fbff7eb4c42baf data/minecraft/tags/item/meat.json
 418bfb19ad50ebcdc49f07712559521c6ffe9a0c data/minecraft/tags/item/swords.json
 46dbc842f9f9d1b14cafe87a04be0bbf78c0b582 data/ow/tags/item/crocodile_food.json
 976c3d06e89ace6bd56236675521381f556d2eba data/ow/tags/item/elephant_food.json
+a2a4afa51caee8037097bd69e8ec1e6236360cb5 data/ow/tags/item/gorilla_food.json
 d47129685f4cff2843892f180a9d38430d2fb4c5 data/ow/tags/item/kodiak_dangerous_food.json
 3fe6df0882f02c83c296f5dfaed148dab475c556 data/ow/tags/item/kodiak_food.json
 209ae96362162785a92a91118a6d3a66fde7d0da data/ow/tags/item/ow_eggs.json

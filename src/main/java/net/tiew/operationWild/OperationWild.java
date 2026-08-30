@@ -273,6 +273,8 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.ORCA.get(), OrcaRenderer::new);
             EntityRenderers.register(OWEntityRegistry.ELEPHANT.get(), ElephantRenderer::new);
             EntityRenderers.register(OWEntityRegistry.RED_PANDA.get(), RedPandaRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.GORILLA.get(), net.tiew.operationWild.entity.client.render.GorillaRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.THROWN_ROCK.get(), net.tiew.operationWild.entity.client.render.ThrownRockRenderer::new);
             EntityRenderers.register(OWEntityRegistry.HEAL_SNACK.get(), net.tiew.operationWild.entity.client.render.HealSnackRenderer::new);
             EntityRenderers.register(OWEntityRegistry.FEAST_PILE.get(), net.tiew.operationWild.entity.client.render.FeastPileRenderer::new);
             EntityRenderers.register(OWEntityRegistry.SEABUG.get(), SeaBugRenderer::new);

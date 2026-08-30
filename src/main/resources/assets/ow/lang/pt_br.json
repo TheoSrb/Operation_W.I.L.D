@@ -1106,5 +1106,20 @@
   "piste.attack.3.name": "Mesa Comprida",
   "piste.attack.3.desc": "O Banquete dura 50 % mais e sua pilha alimenta 30 % mais longe.",
   "tooltip.redPandaSkin0": "Panda-Vermelho Padrão",
-  "tooltip.redPandaSkin0.desc": "Devolva ao seu Panda-Vermelho o visual padrão!"
+  "tooltip.redPandaSkin0.desc": "Devolva ao seu Panda-Vermelho o visual padrão!",
+  "entity.ow.gorilla": "Gorila",
+  "chapter.entity.ow.gorilla": "Gorila",
+  "item.ow.gorilla_spawn_egg": "Ovo gerador de gorila",
+  "tooltip.gorillaSkin0": "Gorila Padrão",
+  "tooltip.gorillaSkin0.desc": "Devolva ao seu Gorila o visual padrão!",
+  "ow.attacks.gorilla.combo.title": "Martelada",
+  "ow.attacks.gorilla.combo.desc": "Clique esquerdo: três murros, primeiro o direito, depois o esquerdo, e o terceiro desce com os dois punhos ao mesmo tempo — esse projeta. %s bloco de alcance, %s de dano por golpe.",
+  "ow.attacks.gorilla.rock_throw.title": "Arremesso de Rocha",
+  "ow.attacks.gorilla.rock_throw.desc": "Mantenha o clique direito: o gorila arranca um bloco de pedra e atira-o. Quanto mais longa a carga, mais longe e mais forte vai — até %s de dano. O bloco rebenta no impacto em %s blocos e varre o que lá estiver. Nada é partido nem consumido. %s segundos de recarga.",
+  "ow.attacks.gorilla.rider_launch.title": "Projeção",
+  "ow.attacks.gorilla.rider_launch.desc": "Mantenha o clique direito: o gorila agarra o próprio cavaleiro e lança-o num arco alto. A carga define a altura e o alcance, e a aterragem não custa dano de queda. O suficiente para alcançar a saliência que ninguém escala. %s segundos de recarga.",
+  "ow.attacks.gorilla.chest_beat.title": "Batida no Peito",
+  "ow.attacks.gorilla.chest_beat.desc": "Arma-se com %s presas. O gorila ergue-se e bate no peito: a %s blocos em redor, os seus aliados batem %s%% mais forte e aguentam melhor, enquanto os hostis recuam e perdem o alvo. O domínio dura %s segundos. %s segundos de recarga.",
+  "ow.advancements.silverback.title": "Dorso prateado",
+  "ow.advancements.silverback.description": "Você domesticou um Gorila!"
 }

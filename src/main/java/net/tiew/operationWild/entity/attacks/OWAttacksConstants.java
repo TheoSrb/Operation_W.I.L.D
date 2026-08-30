@@ -606,4 +606,43 @@ public class OWAttacksConstants {
         public static final double CONSTRICT_ULT_RANGE          = 5.0;
         public static final float  CONSTRICT_ULT_ENERGY         = 100f;
     }
+
+    public static class Gorilla {
+        public static final int SECONDARY_COOLDOWN_TICKS = 260;
+
+        public static final long ROCK_THROW_CHARGE_MIN_MS = 300L;
+        public static final long ROCK_THROW_CHARGE_MAX_MS = 1800L;
+        public static final float ROCK_THROW_ENERGY = 60f;
+        public static final int ROCK_THROW_WINDUP_TICKS = 7;
+        public static final int ROCK_THROW_RELEASE_TICKS = 9;
+        public static final double ROCK_THROW_MIN_SPEED = 0.95;
+        public static final double ROCK_THROW_MAX_SPEED = 2.30;
+        public static final double ROCK_THROW_IMPACT_RADIUS = 3.5;
+        public static final double ROCK_THROW_MIN_DAMAGE_RATIO = 0.75;
+        public static final double ROCK_THROW_MAX_DAMAGE_RATIO = 2.00;
+        public static final double ROCK_THROW_KNOCKBACK = 0.85;
+        public static final int ROCK_THROW_MAX_LIFETIME_TICKS = 200;
+
+        public static final long RIDER_LAUNCH_CHARGE_MIN_MS = 300L;
+        public static final long RIDER_LAUNCH_CHARGE_MAX_MS = 1600L;
+        public static final float RIDER_LAUNCH_ENERGY = 40f;
+        public static final int RIDER_LAUNCH_WINDUP_TICKS = 8;
+        public static final int RIDER_LAUNCH_RELEASE_TICKS = 10;
+        public static final double RIDER_LAUNCH_MIN_POWER = 1.05;
+        public static final double RIDER_LAUNCH_MAX_POWER = 2.35;
+        public static final double RIDER_LAUNCH_LIFT_RATIO = 0.80;
+        public static final int RIDER_LAUNCH_FALL_IMMUNITY_TICKS = 240;
+
+        public static final int CHEST_BEAT_KILLS_REQUIRED = 5;
+        public static final int CHEST_BEAT_WINDUP_TICKS = 10;
+        public static final int CHEST_BEAT_GESTURE_TICKS = 30;
+        public static final int CHEST_BEAT_DURATION_TICKS = 200;
+        public static final long CHEST_BEAT_DURATION_MS = CHEST_BEAT_DURATION_TICKS * 50L;
+        public static final int CHEST_BEAT_COOLDOWN_TICKS = 1200;
+        public static final float CHEST_BEAT_ENERGY = 100f;
+        public static final double CHEST_BEAT_RADIUS = 14.0;
+        public static final double CHEST_BEAT_ALLY_DAMAGE_BONUS = 0.30;
+        public static final int CHEST_BEAT_FEAR_TICKS = 120;
+        public static final double CHEST_BEAT_PUSH_POWER = 0.55;
+    }
 }

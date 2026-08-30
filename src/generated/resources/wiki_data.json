@@ -101,6 +101,16 @@
       "title": {
         "fr_fr": "Petit renard de feu"
       }
+    },
+    {
+      "constant": "GORILLA_TAMED_ADVANCEMENT",
+      "description": {
+        "fr_fr": "Vous avez apprivoisé un Gorille !"
+      },
+      "id": "ow:silverback",
+      "title": {
+        "fr_fr": "Dos argenté"
+      }
     }
   ],
   "blocks": [
@@ -1235,6 +1245,7 @@
         "combo_speed_multiplier": 3.0,
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
+        "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": -0.0,
         "run_speed_multiplier": 5.0,
@@ -2921,6 +2932,7 @@
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
         "max_vital_energy": 350.0,
+        "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": -0.0,
         "run_speed_multiplier": 4.0,
@@ -4256,6 +4268,7 @@
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
         "max_vital_energy": 290.0,
+        "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": -0.0,
         "run_speed_multiplier": 2.5,
@@ -5757,6 +5770,7 @@
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
         "max_vital_energy": 250.0,
+        "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": 0.0,
         "run_speed_multiplier": 2.2,
@@ -6903,6 +6917,7 @@
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
         "max_vital_energy": 315.0,
+        "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": -0.0,
         "run_speed_multiplier": 3.0,
@@ -7376,6 +7391,7 @@
         "increases_speed_during_sprint": true,
         "leaping_vehicle": false,
         "max_vital_energy": 280.0,
+        "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": -0.0,
         "run_speed_multiplier": 4.5,
@@ -8058,6 +8074,7 @@
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
         "max_vital_energy": 150.0,
+        "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": -0.0,
         "run_speed_multiplier": 3.75,
@@ -8502,6 +8519,7 @@
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
         "max_vital_energy": 250.0,
+        "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": 0.0,
         "run_speed_multiplier": 0.0,
@@ -9177,6 +9195,393 @@
       ]
     },
     {
+      "abilities": {
+        "cards": [
+          {
+            "desc": {
+              "key": "ow.attacks.gorilla.combo.desc",
+              "plain": "Clic gauche : trois coups de poing, le droit puis le gauche, et le troisième s'abat des deux mains à la fois — celui-là projette. Portée de %s bloc, %s dégâts par coup.",
+              "translations": {
+                "fr_fr": "Clic gauche : trois coups de poing, le droit puis le gauche, et le troisième s'abat des deux mains à la fois — celui-là projette. Portée de %s bloc, %s dégâts par coup."
+              }
+            },
+            "slug": "combo",
+            "title": {
+              "key": "ow.attacks.gorilla.combo.title",
+              "plain": "Martèlement",
+              "translations": {
+                "fr_fr": "Martèlement"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.gorilla.rock_throw.desc",
+              "plain": "Clic droit maintenu : le gorille arrache un bloc de pierre et le lance. Plus la charge est longue, plus le tir part loin et fort — jusqu'à %s dégâts. Le bloc explose à l'impact sur %s blocs et souffle ce qui s'y trouve. Rien n'est cassé ni consommé. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "Clic droit maintenu : le gorille arrache un bloc de pierre et le lance. Plus la charge est longue, plus le tir part loin et fort — jusqu'à %s dégâts. Le bloc explose à l'impact sur %s blocs et souffle ce qui s'y trouve. Rien n'est cassé ni consommé. %s secondes de recharge."
+              }
+            },
+            "slug": "rock_throw",
+            "title": {
+              "key": "ow.attacks.gorilla.rock_throw.title",
+              "plain": "Jet de Rocher",
+              "translations": {
+                "fr_fr": "Jet de Rocher"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.gorilla.rider_launch.desc",
+              "plain": "Clic droit maintenu : le gorille saisit son propre cavalier et l'envoie en cloche. La charge règle la hauteur et la portée du vol, et l'atterrissage ne coûte aucun dégât de chute. De quoi atteindre la corniche que rien n'escalade. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "Clic droit maintenu : le gorille saisit son propre cavalier et l'envoie en cloche. La charge règle la hauteur et la portée du vol, et l'atterrissage ne coûte aucun dégât de chute. De quoi atteindre la corniche que rien n'escalade. %s secondes de recharge."
+              }
+            },
+            "slug": "rider_launch",
+            "title": {
+              "key": "ow.attacks.gorilla.rider_launch.title",
+              "plain": "Projection",
+              "translations": {
+                "fr_fr": "Projection"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.gorilla.chest_beat.desc",
+              "plain": "S'arme sur %s victimes. Le gorille se dresse et martèle son torse : à %s blocs à la ronde, vos alliés frappent %s%% plus fort et encaissent mieux, tandis que les hostiles reculent et perdent leur cible. L'ascendant dure %s secondes. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "S'arme sur %s victimes. Le gorille se dresse et martèle son torse : à %s blocs à la ronde, vos alliés frappent %s%% plus fort et encaissent mieux, tandis que les hostiles reculent et perdent leur cible. L'ascendant dure %s secondes. %s secondes de recharge."
+              }
+            },
+            "slug": "chest_beat",
+            "title": {
+              "key": "ow.attacks.gorilla.chest_beat.title",
+              "plain": "Frappe de Poitrine",
+              "translations": {
+                "fr_fr": "Frappe de Poitrine"
+              }
+            }
+          }
+        ]
+      },
+      "attack_constants": {
+        "CHEST_BEAT_ALLY_DAMAGE_BONUS": 0.3,
+        "CHEST_BEAT_COOLDOWN_TICKS": 1200,
+        "CHEST_BEAT_DURATION_MS": 10000,
+        "CHEST_BEAT_DURATION_TICKS": 200,
+        "CHEST_BEAT_ENERGY": 100.0,
+        "CHEST_BEAT_FEAR_TICKS": 120,
+        "CHEST_BEAT_GESTURE_TICKS": 30,
+        "CHEST_BEAT_KILLS_REQUIRED": 5,
+        "CHEST_BEAT_PUSH_POWER": 0.55,
+        "CHEST_BEAT_RADIUS": 14.0,
+        "CHEST_BEAT_WINDUP_TICKS": 10,
+        "RIDER_LAUNCH_CHARGE_MAX_MS": 1600,
+        "RIDER_LAUNCH_CHARGE_MIN_MS": 300,
+        "RIDER_LAUNCH_ENERGY": 40.0,
+        "RIDER_LAUNCH_FALL_IMMUNITY_TICKS": 240,
+        "RIDER_LAUNCH_LIFT_RATIO": 0.8,
+        "RIDER_LAUNCH_MAX_POWER": 2.35,
+        "RIDER_LAUNCH_MIN_POWER": 1.05,
+        "RIDER_LAUNCH_RELEASE_TICKS": 10,
+        "RIDER_LAUNCH_WINDUP_TICKS": 8,
+        "ROCK_THROW_CHARGE_MAX_MS": 1800,
+        "ROCK_THROW_CHARGE_MIN_MS": 300,
+        "ROCK_THROW_ENERGY": 60.0,
+        "ROCK_THROW_IMPACT_RADIUS": 3.5,
+        "ROCK_THROW_KNOCKBACK": 0.85,
+        "ROCK_THROW_MAX_DAMAGE_RATIO": 2.0,
+        "ROCK_THROW_MAX_LIFETIME_TICKS": 200,
+        "ROCK_THROW_MAX_SPEED": 2.3,
+        "ROCK_THROW_MIN_DAMAGE_RATIO": 0.75,
+        "ROCK_THROW_MIN_SPEED": 0.95,
+        "ROCK_THROW_RELEASE_TICKS": 9,
+        "ROCK_THROW_WINDUP_TICKS": 7,
+        "SECONDARY_COOLDOWN_TICKS": 260
+      },
+      "attributes": {
+        "minecraft:generic.armor": 0.0,
+        "minecraft:generic.armor_toughness": 0.0,
+        "minecraft:generic.attack_damage": 8.0,
+        "minecraft:generic.attack_knockback": 0.0,
+        "minecraft:generic.burning_time": 1.0,
+        "minecraft:generic.explosion_knockback_resistance": 0.0,
+        "minecraft:generic.fall_damage_multiplier": 1.0,
+        "minecraft:generic.follow_range": 28.0,
+        "minecraft:generic.gravity": 0.08,
+        "minecraft:generic.jump_strength": 0.95,
+        "minecraft:generic.knockback_resistance": 0.75,
+        "minecraft:generic.max_absorption": 0.0,
+        "minecraft:generic.max_health": 34.0,
+        "minecraft:generic.movement_efficiency": 0.0,
+        "minecraft:generic.movement_speed": 0.17,
+        "minecraft:generic.oxygen_bonus": 0.0,
+        "minecraft:generic.safe_fall_distance": 3.0,
+        "minecraft:generic.scale": 1.0,
+        "minecraft:generic.step_height": 0.6,
+        "minecraft:generic.water_movement_efficiency": 0.0,
+        "neoforge:nametag_distance": 64.0,
+        "neoforge:swim_speed": 1.0
+      },
+      "chapter_names": {
+        "fr_fr": "Gorille"
+      },
+      "class": "net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity",
+      "classification": {
+        "boss": false,
+        "family": "terrestrial",
+        "friendly": true,
+        "hierarchy": [
+          "GorillaEntity",
+          "OWEntity",
+          "TamableAnimal",
+          "Animal",
+          "AgeableMob",
+          "PathfinderMob",
+          "Mob",
+          "LivingEntity",
+          "Entity",
+          "AttachmentHolder"
+        ],
+        "interfaces": [
+          "IOWEntity",
+          "IOWTamable",
+          "IOWRideable",
+          "NeutralMob"
+        ],
+        "max_instances_per_chunk": 10,
+        "mob_category": "creature",
+        "persistent": true
+      },
+      "client": {
+        "animations": [
+          {
+            "looping": true,
+            "name": "MISC_IDLE",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "MISC_IDLE_2",
+            "seconds": 7.0
+          },
+          {
+            "looping": true,
+            "name": "MOVE_WALK",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "MOVE_RUN",
+            "seconds": 0.8
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE",
+            "seconds": 1.5
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE_2",
+            "seconds": 1.5
+          },
+          {
+            "looping": true,
+            "name": "SIT",
+            "seconds": 6.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_IDLE_SIT",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_SIT_IDLE",
+            "seconds": 1.0
+          }
+        ],
+        "layers": [
+          "GorillaLayer"
+        ],
+        "model": "GorillaModel",
+        "renderer": "GorillaRenderer",
+        "skin": "GorillaSkin"
+      },
+      "constants": {
+        "CLIMB_SURGE_TICKS": 11,
+        "DEFAULT_SKIN_INDEX": 1,
+        "ENTITY_COLOR": 3357762,
+        "TAMING_EXPERIENCE": 175.0
+      },
+      "cosmetics": [],
+      "gameplay": {
+        "allows_unowned_piloting": false,
+        "archetype": {
+          "damage_multiplier": 1.1,
+          "energy_multiplier": 0.8,
+          "health_multiplier": 1.2,
+          "name": "BERSERKER",
+          "speed_multiplier": 1.0
+        },
+        "arena_terrain_mask": 1,
+        "bank_max_angle": 34.0,
+        "can_lean": false,
+        "combo_pause_delay": 2,
+        "default_skin_index": 1,
+        "diet": {
+          "name": "VEGETARIAN",
+          "saturation_multiplier": 0.75
+        },
+        "entity_color": 3357762,
+        "entity_color_hex": "#333C42",
+        "fights_in_arena": true,
+        "follow_owner_speed_factor": 20.0,
+        "initial_variant": 3,
+        "mounted_speed_blocks_per_second": 6.994285529000419,
+        "nap_particle_forward": 1.25,
+        "nap_particle_height": 1.15,
+        "pitch_max_angle": 45.0,
+        "prefers_cooked_meat": false,
+        "prefers_raw_meat": false,
+        "prefers_vegetables": true,
+        "rider_camera_follows_body_tilt": false,
+        "rider_seat_frame_accurate": true,
+        "rolling_figure": false,
+        "rotation_speed": 0.15,
+        "secondary_attack_count": 2,
+        "secondary_cooldown_ticks": 260,
+        "taming_experience": 175.0,
+        "teleports_to_owner": false,
+        "temperament": "NEUTRAL",
+        "theoretical_scale": 9.0,
+        "unresolved": [
+          "maxUpStep",
+          "getDefaultGravity"
+        ],
+        "walk_speed_blocks_per_second": 3.4000000000000004
+      },
+      "id": "ow:gorilla",
+      "loot": {
+        "drops": [],
+        "table": "ow:entities/gorilla",
+        "table_json": {
+          "type": "minecraft:entity"
+        }
+      },
+      "mount": {
+        "base_rider_y_offset": 0.949999988079071,
+        "changes_speed_during_combo": false,
+        "combo_speed_multiplier": 2.0,
+        "increases_speed_during_sprint": false,
+        "leaping_vehicle": false,
+        "max_vital_energy": 340.0,
+        "needs_saddle": false,
+        "rideable": true,
+        "rider_anim_y_offset": -0.0,
+        "run_speed_multiplier": 3.6,
+        "vital_energy_level_gain": 0.5,
+        "vital_energy_recuperation": 0.95,
+        "walk_speed_multiplier": 1.7,
+        "water_speed_divider": 3.0
+      },
+      "names": {
+        "fr_fr": "Gorille"
+      },
+      "path": "gorilla",
+      "piste": {
+        "available": false
+      },
+      "probe_resolved": true,
+      "simple_class": "GorillaEntity",
+      "size": {
+        "eye_height": 1.615,
+        "fixed": false,
+        "height": 1.9,
+        "theoretical_scale": 9.0,
+        "width": 1.5
+      },
+      "sounds": [],
+      "taming": {
+        "advancement": "ow:silverback",
+        "experience": 175.0,
+        "food_tags": [
+          {
+            "constant": "GORILLA_FOOD",
+            "entries": [
+              "minecraft:bamboo",
+              "minecraft:sugar_cane",
+              "minecraft:apple",
+              "minecraft:melon_slice",
+              "minecraft:sweet_berries",
+              "minecraft:carrot"
+            ],
+            "id": "ow:gorilla_food"
+          }
+        ],
+        "tameable": true
+      },
+      "textures": [
+        "textures/entity/gorilla/gorilla_albinos.png",
+        "textures/entity/gorilla/gorilla_dark.png",
+        "textures/entity/gorilla/gorilla_default.png",
+        "textures/entity/gorilla/gorilla_default_angry_eyes.png",
+        "textures/entity/gorilla/gorilla_silver.png"
+      ],
+      "tracking": {
+        "client_tracking_range": 5,
+        "fire_immune": false,
+        "loot_table": "ow:entities/gorilla",
+        "serializable": true,
+        "spawns_far_from_player": true,
+        "summonable": true,
+        "update_interval": 3
+      },
+      "traits": {
+        "diver": false,
+        "grabber": false,
+        "neutral_mob": true,
+        "rideable": true,
+        "rideable_jumping": false,
+        "tameable": true,
+        "waypoint": true
+      },
+      "translation_key": "entity.ow.gorilla",
+      "variants": [
+        {
+          "cosmetic": false,
+          "deprecated": false,
+          "id": 0,
+          "name": "DEFAULT",
+          "ordinal": 0
+        },
+        {
+          "cosmetic": false,
+          "deprecated": false,
+          "id": 1,
+          "name": "DARK",
+          "ordinal": 1
+        },
+        {
+          "cosmetic": false,
+          "deprecated": false,
+          "id": 2,
+          "name": "SILVER",
+          "ordinal": 2
+        },
+        {
+          "cosmetic": false,
+          "deprecated": false,
+          "id": 3,
+          "name": "ALBINOS",
+          "ordinal": 3
+        }
+      ]
+    },
+    {
       "abilities": {},
       "attributes": {
         "minecraft:generic.armor": 0.0,
@@ -9333,6 +9738,7 @@
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
         "max_vital_energy": 0.0,
+        "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": 0.0,
         "run_speed_multiplier": 0.0,
@@ -9466,6 +9872,7 @@
     "attack_ids": {
       "ATTACK_JUMP": 1,
       "BIG_MOUTH": 8,
+      "CHEST_BEAT": 21,
       "CONSTRICT_ULTIMATE": 10,
       "EARTHQUAKE": 14,
       "FEAST": 18,
@@ -9475,6 +9882,8 @@
       "PAW_SLAM": 5,
       "PRIMAL_DIVE": 4,
       "PRIMAL_ROAR": 16,
+      "RIDER_LAUNCH": 20,
+      "ROCK_THROW": 19,
       "SHADOW_STRIKE": 2,
       "SHOULDER_BASH": 13,
       "TELLURIC_STOMP": 12,
@@ -11266,6 +11675,19 @@
     {
       "class": "DeferredSpawnEggItem",
       "fire_resistant": false,
+      "id": "ow:gorilla_spawn_egg",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Oeuf d'apparition de gorille"
+      },
+      "path": "gorilla_spawn_egg",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.gorilla_spawn_egg"
+    },
+    {
+      "class": "DeferredSpawnEggItem",
+      "fire_resistant": false,
       "id": "ow:red_panda_spawn_egg",
       "max_damage": 0,
       "max_stack_size": 64,
@@ -11781,7 +12203,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1108
+      "fr_fr": 1123
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -14429,6 +14851,18 @@
           "minecraft:carrot"
         ],
         "id": "ow:red_panda_food"
+      },
+      {
+        "constant": "GORILLA_FOOD",
+        "entries": [
+          "minecraft:bamboo",
+          "minecraft:sugar_cane",
+          "minecraft:apple",
+          "minecraft:melon_slice",
+          "minecraft:sweet_berries",
+          "minecraft:carrot"
+        ],
+        "id": "ow:gorilla_food"
       },
       {
         "constant": "RED_PANDA_STEALABLE_EGGS",

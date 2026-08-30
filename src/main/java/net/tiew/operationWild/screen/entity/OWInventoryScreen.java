@@ -153,6 +153,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "ElephantEntity" -> entityScale = 12;
             case "HyenaEntity" -> entityScale = 30;
             case "RedPandaEntity" -> entityScale = 32;
+            case "GorillaEntity" -> entityScale = 20;
         }
 
         tabsRenderer.init(this.width, this.height, this.imageWidth, this.imageHeight, entity, this::addRenderableWidget);
@@ -236,7 +237,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         guiGraphics.blit(MISC_LOCATION, i + titleLength + 10, j + 4, 0, genderImagePosition, 12, 12);
 
         if (!entity.getItemFood().isEmpty()) {
-            guiGraphics.blit(OW_INVENTORY_LOCATION, i + 5, j + 35, 0, 224, 16, 16);
+            guiGraphics.blit(OW_INVENTORY_LOCATION, i + 5, j + foodSlotFrameY(), 0, 224, 16, 16);
         }
 
         // 3e slot (gants de boxe) du kangourou : cadre dessine manuellement (absent du fond).
@@ -259,7 +260,11 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             guiGraphics.blit(OW_INVENTORY_LOCATION, i + 89, j + 75, 0, 184, xpBarWidth, 5);
         }
 
-        guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + 18, 240, entitySaddleCoords(), 16, 16);
+        if (entity.requiresSaddleToRide()) {
+            guiGraphics.blit(OW_INVENTORY_LOCATION, i + 6, j + 18, 240, entitySaddleCoords(), 16, 16);
+        } else {
+            guiGraphics.blit(OW_INVENTORY_LOCATION, i + 5, j + 35, 80, 18, 18, 18);
+        }
 
         for (int row = 0; row < 4; row++) {
             int iconV = (row == 1 && isHealer()) ? STAT_ICON_HEAL_V : STAT_ICON_V + row * STAT_ICON_CELL;
@@ -293,6 +298,10 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         }
 
         renderTexts(guiGraphics, i, j);
+    }
+
+    private int foodSlotFrameY() {
+        return entity.requiresSaddleToRide() ? 35 : 17;
     }
 
     private int entitySaddleCoords() {

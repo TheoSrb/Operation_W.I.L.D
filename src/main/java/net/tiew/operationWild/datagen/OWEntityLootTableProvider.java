@@ -77,6 +77,7 @@ public class OWEntityLootTableProvider extends EntityLootSubProvider {
         // getKnownEntityTypes() signale un type sans table à chaque exécution du datagen.
         this.add(OWEntityRegistry.ELEPHANT.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.RED_PANDA.get(), LootTable.lootTable());
+        this.add(OWEntityRegistry.GORILLA.get(), LootTable.lootTable());
 
         this.add(OWEntityRegistry.SEABUG.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.SEABUG_SHARD_0.get(), LootTable.lootTable());

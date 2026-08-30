@@ -14,6 +14,7 @@ import net.minecraft.world.entity.PlayerRideableJumping;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.tiew.operationWild.core.OWSaddleRecipe;
 import net.tiew.operationWild.core.OWSaddleRecipes;
@@ -288,10 +289,11 @@ public final class OWWikiEntitySection {
         mount.addProperty("rideable", IOWRideable.class.isAssignableFrom(species.implementation()));
         probeGroup(mount, probe, species.implementation(), PROBED_MOUNT_VALUES);
         OWWikiReflect.call(probe, "acceptSaddle").ifPresent(saddle -> {
-            if (saddle instanceof Item item) {
+            if (saddle instanceof Item item && item != Items.AIR) {
                 mount.addProperty("saddle_item", BuiltInRegistries.ITEM.getKey(item).toString());
             }
         });
+        mount.addProperty("needs_saddle", probe.requiresSaddleToRide());
         mount.addProperty("vital_energy_level_gain", OWEntity.VITAL_ENERGY_LEVEL_GAIN);
         return mount;
     }

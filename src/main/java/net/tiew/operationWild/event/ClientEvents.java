@@ -189,7 +189,7 @@ public class ClientEvents {
                 if (rightButtonIsPressed && canUseRightClick(minecraft)) {
                     OWNetworkHandler.sendToServer(new ClientPressedRightClick());
                 }
-            } else if (ridingEntity instanceof OWEntity entity && entity.isAlive() && entity.isSaddled()) {
+            } else if (ridingEntity instanceof OWEntity entity && entity.isAlive() && entity.isRideEquipped()) {
                 if (entity instanceof CrocodileEntity crocodile && crocodile.crocodileBehaviorHandler.isReadyForTaming() && !crocodile.isTame()) {
                     if (leftButtonIsPressed && !OWAttackLogic.isCharging) {
                         boolean isScreenOpen = minecraft.screen != null;
@@ -989,6 +989,7 @@ public class ClientEvents {
                 // Rendu de l'indication ICI, juste après le HUD de l'entité, pour passer au-dessus de
                 // la barre de vie / énergie / cartes (même handler → ordre de dessin garanti).
                 OWIndicationOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
+                net.tiew.operationWild.gui.OWGorillaAimOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
             if (isNotifiedOWBook) {
@@ -1610,6 +1611,10 @@ public class ClientEvents {
             outerYaw = bodyYaw;
             zRot = -elephant.getBodyZRot();
             xRot = -elephant.getBodyXRot();
+        } else if (vehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla) {
+            outerYaw = bodyYaw;
+            zRot = -gorilla.getBodyZRot();
+            xRot = -gorilla.getBodyXRot();
         } else {
             outerYaw = player.getYRot();
             zRot = -vehicle.getBodyZRot();
@@ -1707,6 +1712,9 @@ public class ClientEvents {
                 // éléphant au pas est ample et lent, le diviser par six l'effaçait complètement.
                 event.setRoll((float) (event.getRoll() + (elephant.getBodyZRot() / 3) * intensity));
                 event.setPitch((float) (event.getPitch() + (elephant.getBodyXRot() / 3) * intensity));
+            } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla) {
+                event.setRoll((float) (event.getRoll() + (gorilla.getBodyZRot() / 4) * intensity));
+                event.setPitch((float) (event.getPitch() + (gorilla.getBodyXRot() / 4) * intensity));
             }
         }
     }

@@ -42,6 +42,7 @@ public class ModClientEventBusEvents {
         event.registerLayerDefinition(TigerModel.LAYER_LOCATION, TigerModel::createBodyLayer);
         event.registerLayerDefinition(BoaModel.LAYER_LOCATION, BoaModel::createBodyLayer);
         event.registerLayerDefinition(ElephantModel.LAYER_LOCATION, ElephantModel::createBodyLayer);
+        event.registerLayerDefinition(GorillaModel.LAYER_LOCATION, GorillaModel::createBodyLayer);
         event.registerLayerDefinition(SeaBugModel.LAYER_LOCATION, SeaBugModel::createBodyLayer);
         event.registerLayerDefinition(PlantEmpressModel.LAYER_LOCATION, PlantEmpressModel::createBodyLayer);
 
@@ -78,5 +79,6 @@ public class ModClientEventBusEvents {
         SkinRegistry.BoaSkins.registerAllLayerDefinitions(event);
         SkinRegistry.ElephantSkins.registerAllLayerDefinitions(event);
         SkinRegistry.RedPandaSkins.registerAllLayerDefinitions(event);
+        SkinRegistry.GorillaSkins.registerAllLayerDefinitions(event);
     }
 }
