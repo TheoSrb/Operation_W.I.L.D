@@ -1121,5 +1121,7 @@
   "ow.attacks.gorilla.chest_beat.title": "Batida no Peito",
   "ow.attacks.gorilla.chest_beat.desc": "Arma-se com %s presas. O gorila ergue-se e bate no peito: a %s blocos em redor, os seus aliados batem %s%% mais forte e aguentam melhor, enquanto os hostis recuam e perdem o alvo. O domínio dura %s segundos. %s segundos de recarga.",
   "ow.advancements.silverback.title": "Dorso prateado",
-  "ow.advancements.silverback.description": "Você domesticou um Gorila!"
+  "ow.advancements.silverback.description": "Você domesticou um Gorila!",
+  "ow.attacks.gorilla.cold_blood.title": "Sangue-frio",
+  "ow.attacks.gorilla.cold_blood.desc": "Um dorso prateado não recua. O Medo primitivo nunca pega no gorila: o efeito é-lhe recusado à partida, por isso nunca perde o controlo nem escoiceia, e o seu cavaleiro mantém o comando. O que as outras feras sofrem a tremer, ele limita-se a ver chegar."
 }

@@ -18,6 +18,7 @@ import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.NeutralMob;
@@ -79,6 +80,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public static final double TAMING_EXPERIENCE = 175.0;
     public static final int ENTITY_COLOR = 0x333C42;
     public static final int DEFAULT_SKIN_INDEX = 1;
+    public static final float AI_STEP_JUMP_FACTOR = 0.45f;
 
     private static final int MISC_IDLE_2_DURATION = 140;
 
@@ -98,6 +100,8 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private static final double CLIMB_WALL_MARGIN = 0.45;
     private static final int CLIMB_RIDERLESS_TICKS = 100;
     private static final double SEAT_FORWARD = -0.15;
+    private static final double ULTIMATE_SEAT_FORWARD = 0.62;
+    private static final double ULTIMATE_SEAT_LIFT = 0.55;
     private static final double SEAT_FORWARD_CLIMBING = -0.85;
 
     private static final double CLIMB_ORBIT_RADIUS = 1.30;
@@ -161,6 +165,8 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public float clientClimbSteer = 0f;
 
     public int clientRockChargeTicks = 0;
+
+    public final AnimationState chestBeatAnimationState = new AnimationState();
 
     private int remainingPersistentAngerTime;
 
@@ -306,12 +312,12 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     @Override
     public float getMaxVitalEnergy() {
-        return 340f;
+        return 200f;
     }
 
     @Override
     public float getVitalEnergyRecuperation() {
-        return 0.95f * (1 + ((float) this.getLevel() / 50));
+        return 0.85f * (1 + ((float) this.getLevel() / 50));
     }
 
     @Override
@@ -353,6 +359,12 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     @Override
     public float getScale() {
         return super.getScale() <= 0 ? 1f : super.getScale();
+    }
+
+    @Override
+    protected float getJumpPower() {
+        if (this.getControllingPassenger() != null) return super.getJumpPower();
+        return super.getJumpPower() * AI_STEP_JUMP_FACTOR;
     }
 
     @Override
@@ -424,6 +436,10 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         super.tick();
 
         if (!this.level().isClientSide()) {
+            if (this.hasEffect(OWEffects.FEAR_EFFECT.getDelegate())) {
+                this.removeEffect(OWEffects.FEAR_EFFECT.getDelegate());
+            }
+
             if (isRockCharging() && !this.isVehicle()) cancelRockCharge();
             if (isLaunchCharging() && !this.isVehicle()) cancelRiderLaunchCharge();
 
@@ -434,8 +450,8 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             handleLaunchedRider();
         }
 
-        createCombo(18, 12, OWSounds.LEG_HURT.get(),
-                3.0, 3.0, 1.6, actualAttackNumber == 3, actualAttackNumber == 3 ? 2 : 0);
+        createCombo(18, 11, OWSounds.LEG_HURT.get(),
+                3.0, 3.0, 1.6, actualAttackNumber == 3, actualAttackNumber == 3 ? 1 : 2);
 
         if (this.isVehicle() && this.isTame() && !this.isSitting()) setMadByRider(this.isCombo());
 
@@ -797,6 +813,12 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     }
 
     @Override
+    public boolean canBeAffected(MobEffectInstance effect) {
+        if (effect.is(OWEffects.FEAR_EFFECT.getDelegate())) return false;
+        return super.canBeAffected(effect);
+    }
+
+    @Override
     public boolean hurt(DamageSource damageSource, float v) {
         if (!this.isTame() && this.isSitting()) this.setSitting(false);
 
@@ -950,7 +972,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         rock.setPos(this.getX() + look.x * 1.8,
                 this.getEyeY() + 0.35 + look.y * 0.6,
                 this.getZ() + look.z * 1.8);
-        rock.shoot(look.x, look.y + 0.08, look.z, (float) speed, 0f);
+        rock.shoot(look.x, look.y + 0.10, look.z, (float) speed, 0f);
         this.level().addFreshEntity(rock);
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -1080,12 +1102,32 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             if (tick - 1 == OWAttacksConstants.Gorilla.CHEST_BEAT_GESTURE_TICKS) {
                 executeChestBeat();
             }
+            playChestDrum(chestBeatTotalTicks() - tick);
         }
 
         if (chestBeatBuffTimer > 0) {
             chestBeatBuffTimer--;
             if (chestBeatBuffTimer == 0) clearChestBeatBonuses();
         }
+    }
+
+    private static int chestBeatTotalTicks() {
+        return OWAttacksConstants.Gorilla.CHEST_BEAT_WINDUP_TICKS
+                + OWAttacksConstants.Gorilla.CHEST_BEAT_GESTURE_TICKS;
+    }
+
+    private void playChestDrum(int elapsed) {
+        if (elapsed < OWAttacksConstants.Gorilla.CHEST_BEAT_DRUM_FIRST_TICK) return;
+        if (elapsed > OWAttacksConstants.Gorilla.CHEST_BEAT_DRUM_LAST_TICK) return;
+        if ((elapsed - OWAttacksConstants.Gorilla.CHEST_BEAT_DRUM_FIRST_TICK)
+                % OWAttacksConstants.Gorilla.CHEST_BEAT_DRUM_INTERVAL != 0) return;
+
+        boolean rightHand = ((elapsed - OWAttacksConstants.Gorilla.CHEST_BEAT_DRUM_FIRST_TICK)
+                / OWAttacksConstants.Gorilla.CHEST_BEAT_DRUM_INTERVAL) % 2 == 0;
+
+        this.level().playSound(null, this.getX(), this.getY() + this.getBbHeight() * 0.6, this.getZ(),
+                OWSounds.LEG_HURT.get(), SoundSource.NEUTRAL,
+                0.55f, rightHand ? 0.58f : 0.66f);
     }
 
     private void executeChestBeat() {
@@ -1174,6 +1216,25 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
+        if (isChestBeating()) {
+            Vec3 shoulders = new Vec3(0, 0, ULTIMATE_SEAT_FORWARD)
+                    .yRot((float) Math.toRadians(-this.yBodyRot));
+
+            passenger.fallDistance = 0f;
+            function.accept(passenger,
+                    this.getX() + shoulders.x,
+                    this.getY() + getBaseRiderYOffset() + ULTIMATE_SEAT_LIFT + getRiderAnimYOffset(),
+                    this.getZ() + shoulders.z);
+
+            float fixedYaw = this.getYRot();
+            passenger.setYRot(fixedYaw);
+            if (passenger instanceof LivingEntity living) {
+                living.yBodyRot = fixedYaw;
+                living.yHeadRot = fixedYaw;
+            }
+            return;
+        }
+
         Vec3 seatOffset = new Vec3(0, 0, isClimbing() || isVaulting() ? SEAT_FORWARD_CLIMBING : SEAT_FORWARD)
                 .yRot((float) Math.toRadians(-this.yBodyRot));
         double baseY = getBaseRiderYOffset();
@@ -1214,6 +1275,9 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private void setupAnimationState() {
         createIdleAnimation(80, true);
         createSitAnimation(120, true);
+
+        if (isChestBeating()) this.chestBeatAnimationState.startIfStopped(this.tickCount);
+        else this.chestBeatAnimationState.stop();
 
         handleMiscIdleAnimations();
         setupComboAnimations();

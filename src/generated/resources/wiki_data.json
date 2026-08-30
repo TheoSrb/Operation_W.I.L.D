@@ -9264,17 +9264,37 @@
                 "fr_fr": "Frappe de Poitrine"
               }
             }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.gorilla.cold_blood.desc",
+              "plain": "Un dos argenté ne recule pas. La Peur primitive ne prend jamais sur le gorille : l'effet lui est refusé d'emblée, il ne perd donc jamais le contrôle, ne rue pas, et son cavalier garde la main. Ce que les autres bêtes subissent en tremblant, lui le regarde venir.",
+              "translations": {
+                "fr_fr": "Un dos argenté ne recule pas. La Peur primitive ne prend jamais sur le gorille : l'effet lui est refusé d'emblée, il ne perd donc jamais le contrôle, ne rue pas, et son cavalier garde la main. Ce que les autres bêtes subissent en tremblant, lui le regarde venir."
+              }
+            },
+            "slug": "cold_blood",
+            "title": {
+              "key": "ow.attacks.gorilla.cold_blood.title",
+              "plain": "Sang-froid",
+              "translations": {
+                "fr_fr": "Sang-froid"
+              }
+            }
           }
         ]
       },
       "attack_constants": {
         "CHEST_BEAT_ALLY_DAMAGE_BONUS": 0.3,
         "CHEST_BEAT_COOLDOWN_TICKS": 1200,
+        "CHEST_BEAT_DRUM_FIRST_TICK": 15,
+        "CHEST_BEAT_DRUM_INTERVAL": 5,
+        "CHEST_BEAT_DRUM_LAST_TICK": 80,
         "CHEST_BEAT_DURATION_MS": 10000,
         "CHEST_BEAT_DURATION_TICKS": 200,
         "CHEST_BEAT_ENERGY": 100.0,
         "CHEST_BEAT_FEAR_TICKS": 120,
-        "CHEST_BEAT_GESTURE_TICKS": 30,
+        "CHEST_BEAT_GESTURE_TICKS": 85,
         "CHEST_BEAT_KILLS_REQUIRED": 5,
         "CHEST_BEAT_PUSH_POWER": 0.55,
         "CHEST_BEAT_RADIUS": 14.0,
@@ -9389,6 +9409,11 @@
             "seconds": 1.5
           },
           {
+            "looping": false,
+            "name": "ATTACK_STRIKE_3",
+            "seconds": 1.5
+          },
+          {
             "looping": true,
             "name": "SIT",
             "seconds": 6.0
@@ -9402,6 +9427,11 @@
             "looping": false,
             "name": "TRANSITION_SIT_IDLE",
             "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "ULTIMATE",
+            "seconds": 4.75
           }
         ],
         "layers": [
@@ -9478,13 +9508,13 @@
         "combo_speed_multiplier": 2.0,
         "increases_speed_during_sprint": false,
         "leaping_vehicle": false,
-        "max_vital_energy": 340.0,
+        "max_vital_energy": 200.0,
         "needs_saddle": false,
         "rideable": true,
         "rider_anim_y_offset": -0.0,
         "run_speed_multiplier": 3.6,
         "vital_energy_level_gain": 0.5,
-        "vital_energy_recuperation": 0.95,
+        "vital_energy_recuperation": 0.85,
         "walk_speed_multiplier": 1.7,
         "water_speed_divider": 3.0
       },
@@ -12203,7 +12233,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1123
+      "fr_fr": 1125
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",

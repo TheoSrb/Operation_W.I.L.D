@@ -157,6 +157,7 @@ public class OWAttacksHandler {
         register(GorillaEntity.class, GorillaAttacks.ROCK_THROW);
         register(GorillaEntity.class, GorillaAttacks.RIDER_LAUNCH);
         register(GorillaEntity.class, GorillaAttacks.CHEST_BEAT);
+        registerPassive(GorillaEntity.class, GorillaPassives.COLD_BLOOD);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -364,6 +365,21 @@ public class OWAttacksHandler {
                 entity -> entity instanceof GorillaEntity gorilla ? gorilla.getUltimateKillCount() : 0,
                 OWAttacksConstants.Gorilla.CHEST_BEAT_KILLS_REQUIRED
         ).withUltimateDuration(OWAttacksConstants.Gorilla.CHEST_BEAT_DURATION_MS);
+    }
+
+    public static class GorillaPassives {
+
+        public static final OWPassive COLD_BLOOD = new OWPassive() {
+            @Override
+            public Set<Integer> getHighlightEntityIds(OWEntity entity, Level level) {
+                return Set.of();
+            }
+
+            @Override
+            public int highlightColor() {
+                return 0x8FB4C8;
+            }
+        };
     }
 
     public static class RedPandaAttacks {

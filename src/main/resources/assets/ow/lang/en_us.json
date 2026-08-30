@@ -1121,5 +1121,7 @@
   "ow.attacks.gorilla.chest_beat.title": "Chest Beat",
   "ow.attacks.gorilla.chest_beat.desc": "Armed by %s kills. The gorilla rears up and drums its chest: within %s blocks your allies hit %s%% harder and take punishment better, while hostiles are driven back and lose their target. The hold lasts %s seconds. %s second cooldown.",
   "ow.advancements.silverback.title": "Silverback",
-  "ow.advancements.silverback.description": "You tamed a Gorilla!"
+  "ow.advancements.silverback.description": "You tamed a Gorilla!",
+  "ow.attacks.gorilla.cold_blood.title": "Cool Head",
+  "ow.attacks.gorilla.cold_blood.desc": "A silverback does not back down. Primal Fear never takes hold on the gorilla: the effect is refused outright, so it never loses control, never bucks, and its rider keeps command. What other beasts endure trembling, it simply watches coming."
 }

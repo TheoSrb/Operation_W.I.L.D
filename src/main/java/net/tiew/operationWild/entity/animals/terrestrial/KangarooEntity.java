@@ -385,6 +385,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    protected int sitTransitionTicks() {
+        return 25;
+    }
+
+    @Override
     public boolean riderCameraFollowsBodyTilt() {
         return false;
     }

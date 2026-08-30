@@ -615,8 +615,8 @@ public class OWAttacksConstants {
         public static final float ROCK_THROW_ENERGY = 60f;
         public static final int ROCK_THROW_WINDUP_TICKS = 7;
         public static final int ROCK_THROW_RELEASE_TICKS = 9;
-        public static final double ROCK_THROW_MIN_SPEED = 0.95;
-        public static final double ROCK_THROW_MAX_SPEED = 2.30;
+        public static final double ROCK_THROW_MIN_SPEED = 0.85;
+        public static final double ROCK_THROW_MAX_SPEED = 1.80;
         public static final double ROCK_THROW_IMPACT_RADIUS = 3.5;
         public static final double ROCK_THROW_MIN_DAMAGE_RATIO = 0.75;
         public static final double ROCK_THROW_MAX_DAMAGE_RATIO = 2.00;
@@ -635,7 +635,10 @@ public class OWAttacksConstants {
 
         public static final int CHEST_BEAT_KILLS_REQUIRED = 5;
         public static final int CHEST_BEAT_WINDUP_TICKS = 10;
-        public static final int CHEST_BEAT_GESTURE_TICKS = 30;
+        public static final int CHEST_BEAT_GESTURE_TICKS = 85;
+        public static final int CHEST_BEAT_DRUM_FIRST_TICK = 15;
+        public static final int CHEST_BEAT_DRUM_LAST_TICK = 80;
+        public static final int CHEST_BEAT_DRUM_INTERVAL = 5;
         public static final int CHEST_BEAT_DURATION_TICKS = 200;
         public static final long CHEST_BEAT_DURATION_MS = CHEST_BEAT_DURATION_TICKS * 50L;
         public static final int CHEST_BEAT_COOLDOWN_TICKS = 1200;

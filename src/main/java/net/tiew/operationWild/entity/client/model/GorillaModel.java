@@ -141,7 +141,7 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
         return switch (index) {
             case 1 -> GorillaAnimations.ATTACK_STRIKE;
             case 2 -> GorillaAnimations.ATTACK_STRIKE_2;
-            case 3 -> GorillaAnimations.ATTACK_STRIKE;
+            case 3 -> GorillaAnimations.ATTACK_STRIKE_3;
             default -> null;
         };
     }
@@ -198,8 +198,8 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
         }
 
         if (gorilla.isChestBeating()) {
-            applyChestBeat(gorilla, ageInTicks);
-            captureBodyState(gorilla);
+            this.animate(gorilla.chestBeatAnimationState, GorillaAnimations.ULTIMATE, ageInTicks, 1.0f);
+            captureBodyState(gorilla, this.ALL.xRot);
             return;
         }
 
@@ -222,6 +222,12 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
         }
 
         animateStance(gorilla, limbSwing, limbSwingAmount, ageInTicks, prevSwing);
+
+        if (comboOwnsArms(gorilla)) {
+            this.left_arm.resetPose();
+            this.right_arm.resetPose();
+        }
+
         animateCombos(gorilla, ageInTicks, COMBO_ANIMATION_SPEED);
 
         applyRockThrow(gorilla, ageInTicks);
@@ -271,6 +277,13 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
 
         if (prev <= cur) return prev < triggerTimeMs && cur >= triggerTimeMs;
         return triggerTimeMs <= cur || triggerTimeMs > prev;
+    }
+
+    private static boolean comboOwnsArms(GorillaEntity gorilla) {
+        return gorilla.isCombo()
+                || gorilla.attack1Combo.isStarted()
+                || gorilla.attack2Combo.isStarted()
+                || gorilla.attack3Combo.isStarted();
     }
 
     private static float smoothStep(float t) {
@@ -347,28 +360,6 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
         this.ALL.y += 1.6f - sweep * 2.4f;
         this.body.xRot += 0.22f - sweep * 0.45f;
         this.head.xRot += -0.28f + sweep * 0.55f;
-    }
-
-    private void applyChestBeat(T gorilla, float ageInTicks) {
-        int tick = gorilla.getChestBeatTick();
-        int total = OWAttacksConstants.Gorilla.CHEST_BEAT_WINDUP_TICKS
-                + OWAttacksConstants.Gorilla.CHEST_BEAT_GESTURE_TICKS;
-        float elapsed = total - tick + partialTick(gorilla, ageInTicks);
-
-        float rise = smoothStep(elapsed / OWAttacksConstants.Gorilla.CHEST_BEAT_WINDUP_TICKS);
-        float beat = (float) Math.sin(elapsed * 1.15f);
-
-        this.ALL.xRot -= rise * 0.30f;
-        this.ALL.y -= rise * 1.4f;
-        this.head.xRot -= rise * 0.35f;
-
-        this.right_arm.xRot += rise * (-1.55f + beat * 0.55f);
-        this.left_arm.xRot += rise * (-1.55f - beat * 0.55f);
-        this.right_arm.zRot += rise * 0.55f;
-        this.left_arm.zRot -= rise * 0.55f;
-
-        float shake = swell(elapsed / total) * 0.06f;
-        this.body.zRot += (float) Math.sin(elapsed * 2.3f) * shake;
     }
 
     private void applyHeadRotation(float netHeadYaw, float headPitch) {

@@ -331,7 +331,10 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Gorilla.CHEST_BEAT_COOLDOWN_TICKS / 20))
                 ),
 
-                null
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.gorilla.cold_blood.title"),
+                        e -> desc("ow.attacks.gorilla.cold_blood.desc")
+                )
 
         ));
 

@@ -1121,5 +1121,7 @@
   "ow.attacks.gorilla.chest_beat.title": "Golpe de Pecho",
   "ow.attacks.gorilla.chest_beat.desc": "Se arma con %s presas. El gorila se yergue y se golpea el pecho: a %s bloques a la redonda, tus aliados golpean un %s%% más fuerte y aguantan mejor, mientras los hostiles retroceden y pierden su objetivo. El dominio dura %s segundos. %s segundos de recarga.",
   "ow.advancements.silverback.title": "Espalda plateada",
-  "ow.advancements.silverback.description": "¡Has domesticado un Gorila!"
+  "ow.advancements.silverback.description": "¡Has domesticado un Gorila!",
+  "ow.attacks.gorilla.cold_blood.title": "Sangre fría",
+  "ow.attacks.gorilla.cold_blood.desc": "Un espalda plateada no retrocede. El Miedo primitivo nunca prende en el gorila: el efecto se le niega de entrada, así que jamás pierde el control ni cocea, y su jinete conserva el mando. Lo que otras bestias sufren temblando, él se limita a verlo llegar."
 }

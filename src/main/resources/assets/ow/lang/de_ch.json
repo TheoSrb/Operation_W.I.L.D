@@ -1121,5 +1121,7 @@
   "ow.attacks.gorilla.chest_beat.title": "Brusttrommeln",
   "ow.attacks.gorilla.chest_beat.desc": "Wird mit %s Abschüssen scharf. Der Gorilla richtet sich auf und trommelt sich auf die Brust: Im Umkreis von %s Blöcken schlagen deine Verbündeten %s%% härter zu und stecken mehr weg, während Feinde zurückweichen und ihr Ziel verlieren. Die Wirkung hält %s Sekunden. %s Sekunden Abklingzeit.",
   "ow.advancements.silverback.title": "Silberrücken",
-  "ow.advancements.silverback.description": "Du hast einen Gorilla gezähmt!"
+  "ow.advancements.silverback.description": "Du hast einen Gorilla gezähmt!",
+  "ow.attacks.gorilla.cold_blood.title": "Kaltblütig",
+  "ow.attacks.gorilla.cold_blood.desc": "Ein Silberrücken weicht nicht zurück. Die Urangst greift beim Gorilla nie: Der Effekt wird von vornherein abgewiesen, er verliert also nie die Kontrolle, bockt nicht, und sein Reiter behält das Kommando. Was andere Tiere zitternd erdulden, sieht er einfach kommen."
 }

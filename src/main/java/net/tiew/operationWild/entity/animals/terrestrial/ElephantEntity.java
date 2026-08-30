@@ -447,6 +447,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    protected int sitTransitionTicks() {
+        return 14;
+    }
+
+    @Override
     public boolean riderCameraFollowsBodyTilt() {
         return true;
     }

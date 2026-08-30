@@ -14,8 +14,15 @@ import net.tiew.operationWild.entity.client.render.GorillaRenderer;
 
 public class GorillaLayer extends RenderLayer<GorillaEntity, GorillaModel<GorillaEntity>> {
 
-    private static final ResourceLocation ANGRY_EYES_TEXTURE = ResourceLocation.fromNamespaceAndPath(
-            OperationWild.MOD_ID, "textures/entity/gorilla/gorilla_default_angry_eyes.png");
+    private static final ResourceLocation ANGRY_EYES_TEXTURE = tex("gorilla_default_angry_eyes.png");
+
+    private static final ResourceLocation BLOODY_STAGE_0_TEXTURE = tex("gorilla_bloody_stage_0.png");
+    private static final ResourceLocation BLOODY_STAGE_1_TEXTURE = tex("gorilla_bloody_stage_1.png");
+    private static final ResourceLocation BLOODY_STAGE_2_TEXTURE = tex("gorilla_bloody_stage_2.png");
+
+    private static ResourceLocation tex(String path) {
+        return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/gorilla/" + path);
+    }
 
     public GorillaLayer(GorillaRenderer gorillaRenderer) {
         super(gorillaRenderer);
@@ -27,6 +34,16 @@ public class GorillaLayer extends RenderLayer<GorillaEntity, GorillaModel<Gorill
                        float netHeadYaw, float headPitch) {
         if (gorilla.isMad()) {
             renderOverlay(poseStack, bufferSource, ANGRY_EYES_TEXTURE, packedLight);
+        }
+
+        double healthTier = gorilla.getMaxHealth() / 4;
+
+        if (gorilla.getHealth() < healthTier) {
+            renderOverlay(poseStack, bufferSource, BLOODY_STAGE_2_TEXTURE, packedLight);
+        } else if (gorilla.getHealth() < healthTier * 2) {
+            renderOverlay(poseStack, bufferSource, BLOODY_STAGE_1_TEXTURE, packedLight);
+        } else if (gorilla.getHealth() < healthTier * 3) {
+            renderOverlay(poseStack, bufferSource, BLOODY_STAGE_0_TEXTURE, packedLight);
         }
     }
 

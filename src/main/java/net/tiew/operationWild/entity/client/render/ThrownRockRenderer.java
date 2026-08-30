@@ -10,13 +10,13 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Quaternionf;
 import net.tiew.operationWild.entity.misc.ThrownRockEntity;
 
 public class ThrownRockRenderer extends EntityRenderer<ThrownRockEntity> {
 
     private static final float SCALE = 4.5f;
-    private static final float SPIN_PER_TICK = 9f;
-    private static final float TUMBLE_PER_TICK = 13f;
 
     private final ItemRenderer itemRenderer;
 
@@ -28,12 +28,18 @@ public class ThrownRockRenderer extends EntityRenderer<ThrownRockEntity> {
     @Override
     public void render(ThrownRockEntity rock, float yaw, float partialTick, PoseStack pose,
                        MultiBufferSource buffers, int light) {
-        float age = rock.tickCount + partialTick;
+        Vec3 axis = rock.getSpinAxis();
 
         pose.pushPose();
         pose.translate(0.0, rock.getBbHeight() * 0.5, 0.0);
-        pose.mulPose(Axis.YP.rotationDegrees(age * SPIN_PER_TICK + rock.getSpinSeed()));
-        pose.mulPose(Axis.XP.rotationDegrees(age * TUMBLE_PER_TICK));
+
+        if (axis != null) {
+            pose.mulPose(new Quaternionf().rotateAxis(
+                    (float) Math.toRadians(rock.getSpin(partialTick)),
+                    (float) axis.x, (float) axis.y, (float) axis.z));
+        }
+
+        pose.mulPose(Axis.YP.rotationDegrees(rock.getSpinSeed()));
         pose.scale(SCALE, SCALE, SCALE);
 
         this.itemRenderer.renderStatic(rock.getItem(), ItemDisplayContext.GROUND, light,

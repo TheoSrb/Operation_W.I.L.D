@@ -807,6 +807,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private long lastSecondarySwitchGameTime = NO_SECONDARY_SWITCH_YET;
 
     public boolean trySwitchSecondaryAttack(int index) {
+        // Une charge en cours appartient à la carte qu'on tient. Retourner la carte sous elle laisse
+        // le relâchement partir sur l'attaque d'à côté, avec l'état de charge de la précédente :
+        // pose figée, coût prélevé sur la mauvaise, geste qui ne se termine jamais.
+        if (isChargingAttack) return false;
+
         long now = this.level().getGameTime();
 
         if (lastSecondarySwitchGameTime != NO_SECONDARY_SWITCH_YET
@@ -3035,8 +3040,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.setAcceleration(0);
         }
 
-        createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), 13);
-        createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), 13);
+        createTransitionAnimation("idleSit", transitionIdleSit, this.isSitting(), sitTransitionTicks());
+        createTransitionAnimation("sitIdle", transitionSitIdle, !this.isSitting(), sitTransitionTicks());
         createTransitionAnimation("idleSleep", transitionIdleSleep, this.isNapping() || this.isSleeping(), 20);
         createTransitionAnimation("sleepIdle", transitionSleepIdle, !this.isNapping() && !this.isSleeping(), 20);
 
@@ -3446,10 +3451,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
         if (this instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla) {
             if (attackTimer == timeToHit) {
+                boolean clap = getComboAttack() == 3;
                 float pitch = (float) (OWUtils.generateRandomInterval(0.95, 1.2));
                 gorilla.level().playSound(null, gorilla.getX(), gorilla.getY(), gorilla.getZ(),
-                        OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f,
-                        getComboAttack() == 3 ? pitch / 1.4f : pitch);
+                        OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, clap ? 0.6f : 1.0f,
+                        clap ? pitch / 1.4f : pitch);
+
+                if (clap) {
+                    double clapY = gorilla.getY() + gorilla.getBbHeight() * 0.55;
+                    gorilla.level().playSound(null, gorilla.getX(), clapY, gorilla.getZ(),
+                            SoundEvents.PLAYER_ATTACK_CRIT, SoundSource.HOSTILE, 1.3f,
+                            (float) OWUtils.generateRandomInterval(0.7, 0.8));
+                }
             }
         }
     }
@@ -4655,6 +4668,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public final Map<String, TransitionData> transitions = new HashMap<>();
+
+    protected int sitTransitionTicks() {
+        return 20;
+    }
 
     public void createTransitionAnimation(String name, AnimationState animationState, boolean condition, int maxDuration) {
         if (this.level().isClientSide()) {

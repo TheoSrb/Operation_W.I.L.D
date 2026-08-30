@@ -1122,6 +1122,14 @@ public class OWAttackLogic {
         double scroll = event.getScrollDeltaY();
         if (scroll == 0) return;
 
+        // Charge en cours : la molette est avalée sans rien changer. Le serveur refuse déjà le
+        // changement, mais sans ce retour la carte se retournerait côté client sur une prédiction
+        // que le serveur ne suivra pas.
+        if (isCharging) {
+            event.setCanceled(true);
+            return;
+        }
+
         // Délai entre deux changements. On avale quand même le cran de molette : pendant la demi
         // seconde d'attente, le joueur tient toujours la touche, et laisser la barre d'inventaire
         // défiler à sa place serait pire que de ne rien faire.

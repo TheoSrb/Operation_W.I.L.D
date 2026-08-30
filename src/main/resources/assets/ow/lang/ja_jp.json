@@ -1121,5 +1121,7 @@
   "ow.attacks.gorilla.chest_beat.title": "ドラミング",
   "ow.attacks.gorilla.chest_beat.desc": "%s 体を仕留めると発動可能。ゴリラが立ち上がり胸を叩くと、半径 %s ブロックの味方は攻撃力が %s%% 上がり打たれ強くなり、敵は押し戻されて標的を見失います。効果は %s 秒。クールダウン %s 秒。",
   "ow.advancements.silverback.title": "シルバーバック",
-  "ow.advancements.silverback.description": "ゴリラをテイムしました！"
+  "ow.advancements.silverback.description": "ゴリラをテイムしました！",
+  "ow.attacks.gorilla.cold_blood.title": "冷静沈着",
+  "ow.attacks.gorilla.cold_blood.desc": "シルバーバックは退かない。ゴリラに原初の恐怖は決して効かず、効果そのものが拒まれます。取り乱すことも暴れることもなく、騎乗者は操作を保ったままです。他の獣が震えて耐えるものを、ゴリラはただ見据えます。"
 }

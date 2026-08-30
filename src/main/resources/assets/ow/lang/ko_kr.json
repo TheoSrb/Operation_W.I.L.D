@@ -1121,5 +1121,7 @@
   "ow.attacks.gorilla.chest_beat.title": "가슴 두드리기",
   "ow.attacks.gorilla.chest_beat.desc": "처치 %s회로 충전됩니다. 고릴라가 일어서서 가슴을 두드리면 반경 %s 블록의 아군은 공격력이 %s%% 오르고 더 잘 버티며, 적은 밀려나고 목표를 잃습니다. 효과는 %s초 지속됩니다. 재사용 대기시간 %s초.",
   "ow.advancements.silverback.title": "실버백",
-  "ow.advancements.silverback.description": "고릴라를 길들였습니다!"
+  "ow.advancements.silverback.description": "고릴라를 길들였습니다!",
+  "ow.attacks.gorilla.cold_blood.title": "냉정",
+  "ow.attacks.gorilla.cold_blood.desc": "실버백은 물러서지 않습니다. 원초적 공포는 고릴라에게 결코 걸리지 않으며, 효과 자체가 거부됩니다. 통제를 잃지도, 날뛰지도 않으므로 탑승자는 계속 조종할 수 있습니다. 다른 짐승이 떨며 견디는 것을 고릴라는 그저 마주 봅니다."
 }

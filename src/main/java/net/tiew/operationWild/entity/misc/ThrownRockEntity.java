@@ -4,6 +4,7 @@ import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -34,10 +35,28 @@ public class ThrownRockEntity extends ThrowableItemProjectile {
 
     private boolean exploded = false;
 
+    private static final double SPIN_DEGREES_PER_BLOCK = 5.5;
+    private static final float SPIN_RATE_MIN = 3f;
+    private static final float SPIN_RATE_MAX = 12f;
+    private static final double SPIN_AXIS_TILT = 0.8;
+
     private final float spinSeed = (float) (Math.random() * 360.0);
+
+    private Vec3 spinAxis = null;
+    private float spinRate = 0f;
+    private float spin = 0f;
+    private float spinPrev = 0f;
 
     public float getSpinSeed() {
         return spinSeed;
+    }
+
+    public Vec3 getSpinAxis() {
+        return spinAxis;
+    }
+
+    public float getSpin(float partialTick) {
+        return Mth.lerp(partialTick, spinPrev, spin);
     }
 
     public ThrownRockEntity(EntityType<? extends ThrownRockEntity> entityType, Level level) {
@@ -56,11 +75,15 @@ public class ThrownRockEntity extends ThrowableItemProjectile {
 
     @Override
     protected double getDefaultGravity() {
-        return 0.06;
+        return 0.055;
     }
 
     @Override
     public void tick() {
+        this.spinPrev = this.spin;
+        if (this.spinAxis == null) initSpin();
+        this.spin += this.spinRate;
+
         super.tick();
 
         if (this.tickCount > OWAttacksConstants.Gorilla.ROCK_THROW_MAX_LIFETIME_TICKS) {
@@ -92,6 +115,17 @@ public class ThrownRockEntity extends ThrowableItemProjectile {
         }
     }
 
+    private void initSpin() {
+        Vec3 motion = this.getDeltaMovement();
+        double horizontal = Math.sqrt(motion.x * motion.x + motion.z * motion.z);
+        if (horizontal < 1.0E-4) return;
+
+        double tilt = (this.spinSeed / 360.0 - 0.5) * SPIN_AXIS_TILT;
+        this.spinAxis = new Vec3(-motion.z / horizontal, tilt, motion.x / horizontal).normalize();
+        this.spinRate = (float) Mth.clamp(motion.length() * SPIN_DEGREES_PER_BLOCK,
+                SPIN_RATE_MIN, SPIN_RATE_MAX);
+    }
+
     @Override
     protected boolean canHitEntity(Entity target) {
         if (!super.canHitEntity(target)) return false;
@@ -119,11 +153,6 @@ public class ThrownRockEntity extends ThrowableItemProjectile {
         explode(at, struckPos);
     }
 
-    /**
-     * Le rocher est dessiné bien plus large que le rayon qui sert à sa collision : vanilla ne teste
-     * qu'un segment entre deux positions, si bien que le bloc traversait visiblement un mur qu'il
-     * frôlait. Ce balayage rattrape ce que le segment laisse passer.
-     */
     private BlockPos grazedBlock() {
         AABB box = this.getBoundingBox().inflate(ROCK_VISUAL_MARGIN);
 

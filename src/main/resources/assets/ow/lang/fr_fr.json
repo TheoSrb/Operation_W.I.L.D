@@ -1121,5 +1121,7 @@
   "ow.attacks.gorilla.chest_beat.title": "Frappe de Poitrine",
   "ow.attacks.gorilla.chest_beat.desc": "S'arme sur %s victimes. Le gorille se dresse et martèle son torse : à %s blocs à la ronde, vos alliés frappent %s%% plus fort et encaissent mieux, tandis que les hostiles reculent et perdent leur cible. L'ascendant dure %s secondes. %s secondes de recharge.",
   "ow.advancements.silverback.title": "Dos argenté",
-  "ow.advancements.silverback.description": "Vous avez apprivoisé un Gorille !"
+  "ow.advancements.silverback.description": "Vous avez apprivoisé un Gorille !",
+  "ow.attacks.gorilla.cold_blood.title": "Sang-froid",
+  "ow.attacks.gorilla.cold_blood.desc": "Un dos argenté ne recule pas. La Peur primitive ne prend jamais sur le gorille : l'effet lui est refusé d'emblée, il ne perd donc jamais le contrôle, ne rue pas, et son cavalier garde la main. Ce que les autres bêtes subissent en tremblant, lui le regarde venir."
 }
