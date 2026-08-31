@@ -9315,9 +9315,9 @@
         "ROCK_THROW_KNOCKBACK": 0.85,
         "ROCK_THROW_MAX_DAMAGE_RATIO": 2.0,
         "ROCK_THROW_MAX_LIFETIME_TICKS": 200,
-        "ROCK_THROW_MAX_SPEED": 2.3,
+        "ROCK_THROW_MAX_SPEED": 1.8,
         "ROCK_THROW_MIN_DAMAGE_RATIO": 0.75,
-        "ROCK_THROW_MIN_SPEED": 0.95,
+        "ROCK_THROW_MIN_SPEED": 0.85,
         "ROCK_THROW_RELEASE_TICKS": 9,
         "ROCK_THROW_WINDUP_TICKS": 7,
         "SECONDARY_COOLDOWN_TICKS": 260
@@ -9442,6 +9442,7 @@
         "skin": "GorillaSkin"
       },
       "constants": {
+        "AI_STEP_JUMP_FACTOR": 0.45,
         "CLIMB_SURGE_TICKS": 11,
         "DEFAULT_SKIN_INDEX": 1,
         "ENTITY_COLOR": 3357762,
@@ -9556,6 +9557,9 @@
       },
       "textures": [
         "textures/entity/gorilla/gorilla_albinos.png",
+        "textures/entity/gorilla/gorilla_bloody_stage_0.png",
+        "textures/entity/gorilla/gorilla_bloody_stage_1.png",
+        "textures/entity/gorilla/gorilla_bloody_stage_2.png",
         "textures/entity/gorilla/gorilla_dark.png",
         "textures/entity/gorilla/gorilla_default.png",
         "textures/entity/gorilla/gorilla_default_angry_eyes.png",

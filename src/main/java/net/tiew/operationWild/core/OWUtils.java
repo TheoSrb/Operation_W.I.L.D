@@ -119,7 +119,9 @@ public class OWUtils {
      * l'animal — celle-là même que plafonnent les boutons d'amélioration.</p>
      */
     public static float getSpeedBlocksPerSecond(OWEntity entity) {
-        float base = (float) entity.getAttributeValue(Attributes.MOVEMENT_SPEED);
+        float base = (float) entity.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);
+        if (base <= 0f) base = entity.getBaseSpeed();
+        if (base <= 0f) base = (float) entity.getAttributeValue(Attributes.MOVEMENT_SPEED);
 
         // Une espèce qui ne se monte pas n'a pas de multiplicateur de course : il vaut zéro, et
         // toute la formule avec lui. On affiche alors sa vitesse de marche telle quelle — c'est bien
