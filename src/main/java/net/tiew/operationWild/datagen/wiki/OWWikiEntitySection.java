@@ -146,6 +146,7 @@ public final class OWWikiEntitySection {
         addIfPresent(entity, "lore", lore(species, lang));
         addIfPresent(entity, "textures", sources.textures(species.id()));
         addIfPresent(entity, "client", sources.client(species.stem()));
+        addIfPresent(entity, "history", sources.history(implementation));
 
         return entity;
     }

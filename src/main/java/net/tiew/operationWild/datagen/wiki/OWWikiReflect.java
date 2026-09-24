@@ -52,7 +52,8 @@ public final class OWWikiReflect {
 
             return (OWEntity) instance;
         } catch (Throwable failure) {
-            PROBE_FAILURES.add(implementation.getSimpleName() + ": " + failure);
+            String message = implementation.getSimpleName() + ": " + failure;
+            if (!PROBE_FAILURES.contains(message)) PROBE_FAILURES.add(message);
             return null;
         }
     }
@@ -149,12 +150,16 @@ public final class OWWikiReflect {
     }
 
     public static JsonObject constants(Class<?> owner) {
+        return constants(owner, false);
+    }
+
+    public static JsonObject constants(Class<?> owner, boolean includeHidden) {
         JsonObject constants = new JsonObject();
         if (owner == null) return constants;
         for (Field field : owner.getDeclaredFields()) {
             int modifiers = field.getModifiers();
             if (!Modifier.isStatic(modifiers) || !Modifier.isFinal(modifiers) || field.isSynthetic()) continue;
-            if (!Modifier.isPublic(modifiers)) continue;
+            if (!includeHidden && !Modifier.isPublic(modifiers)) continue;
             Class<?> valueType = field.getType();
             if (!valueType.isPrimitive() && valueType != String.class && !valueType.isEnum()) continue;
             try {

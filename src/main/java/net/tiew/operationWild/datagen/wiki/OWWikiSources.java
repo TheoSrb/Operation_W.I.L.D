@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,6 +47,40 @@ public final class OWWikiSources {
 
     public boolean available() {
         return root != null;
+    }
+
+    public Path rootPath() {
+        return root;
+    }
+
+    public JsonObject history(Class<?> owner) {
+        if (root == null || owner == null) return null;
+        String relative = "src/main/java/" + owner.getName().replace('.', '/') + ".java";
+        Path file = root.resolve(relative);
+        if (!Files.isRegularFile(file)) return null;
+        try {
+            BasicFileAttributes attributes = Files.readAttributes(file, BasicFileAttributes.class);
+            JsonObject history = new JsonObject();
+            history.addProperty("file", relative);
+            history.addProperty("created", instant(attributes.creationTime()));
+            history.addProperty("created_date", date(attributes.creationTime()));
+            history.addProperty("last_modified", instant(attributes.lastModifiedTime()));
+            history.addProperty("last_modified_date", date(attributes.lastModifiedTime()));
+            history.addProperty("size_bytes", attributes.size());
+            return history;
+        } catch (IOException failure) {
+            return null;
+        }
+    }
+
+    private static String instant(FileTime time) {
+        return time == null ? null : time.toInstant().atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+    }
+
+    private static String date(FileTime time) {
+        return time == null ? null : time.toInstant().atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ISO_LOCAL_DATE);
     }
 
     public Path dataDirectory(String folder) {
@@ -88,6 +126,17 @@ public final class OWWikiSources {
         JsonArray animations = animations(stem);
         if (animations != null) client.add("animations", animations);
         return client.isEmpty() ? null : client;
+    }
+
+    public JsonArray classNames(String packagePath) {
+        if (root == null) return null;
+        List<String> files = relativeFiles(root.resolve("src/main/java").resolve(packagePath), ".java");
+        if (files.isEmpty()) return null;
+        JsonArray names = new JsonArray();
+        for (String file : files) {
+            names.add(file.substring(0, file.length() - ".java".length()).replace('/', '.'));
+        }
+        return names;
     }
 
     private void addIfFound(JsonObject target, String property, String directory, String className) {

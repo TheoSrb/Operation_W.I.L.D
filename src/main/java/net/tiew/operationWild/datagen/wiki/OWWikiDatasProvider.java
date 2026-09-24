@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class OWWikiDatasProvider implements DataProvider {
 
-    public static final int SCHEMA_VERSION = 2;
+    public static final int SCHEMA_VERSION = 3;
 
     public static final boolean ALL_LANGUAGES = false;
 
@@ -42,6 +42,7 @@ public class OWWikiDatasProvider implements DataProvider {
         root.add("entities", OWWikiEntitySection.build(provider, lang, sources, recipes));
         root.add("meta", meta(lang));
         root.add("glossary", OWWikiGlossarySection.build(lang));
+        root.add("tribes", OWWikiTribesSection.build(provider, lang, sources));
         root.add("items", OWWikiCatalogSection.items(lang));
         root.add("blocks", OWWikiCatalogSection.blocks(lang));
         root.add("saddles", OWWikiCatalogSection.saddles(lang));
