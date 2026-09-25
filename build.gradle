@@ -185,6 +185,32 @@ publishing {
     }
 }
 
+// Regenere les donnees du mod puis pousse le wiki_data.json vers le dossier du site wiki.
+// La destination vit dans gradle.properties (ow_wiki_data_target).
+var wikiDataSource = file("src/generated/resources/wiki_data.json")
+var wikiDataTarget = file(providers.gradleProperty("ow_wiki_data_target").get())
+
+tasks.register("runWikiDatas") {
+    group = "operation wild"
+    description = "Lance runData, puis remplace ${wikiDataTarget} par le wiki_data.json genere."
+    dependsOn tasks.named("runData")
+
+    doLast {
+        if (!wikiDataSource.isFile()) {
+            throw new GradleException("wiki_data.json introuvable : ${wikiDataSource}")
+        }
+        var destination = wikiDataTarget.parentFile
+        if (!destination.isDirectory() && !destination.mkdirs()) {
+            throw new GradleException("Dossier du wiki introuvable et non creable : ${destination}")
+        }
+        if (wikiDataTarget.exists() && !wikiDataTarget.delete()) {
+            throw new GradleException("Impossible de supprimer l'ancien fichier : ${wikiDataTarget}")
+        }
+        wikiDataTarget.bytes = wikiDataSource.bytes
+        logger.lifecycle("wiki_data.json copie vers ${wikiDataTarget} (${wikiDataTarget.length()} octets)")
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
