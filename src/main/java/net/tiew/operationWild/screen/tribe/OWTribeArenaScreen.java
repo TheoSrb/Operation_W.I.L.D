@@ -1834,13 +1834,13 @@ public class OWTribeArenaScreen extends OWTribeScreen {
     // ── Utilitaires d'affichage ──────────────────────────────────────────────────
     private static int archetypeColor(int ordinal) {
         return switch (ordinal) {
-            case 0 -> 0x7FA8D8; // TANK
-            case 1 -> 0xD87F9E; // ASSASSIN
-            case 2 -> 0xD8A87F; // MARAUDER
-            case 3 -> 0x7FD89A; // HEALER
-            case 4 -> 0xD87F7F; // BERSERKER
-            case 5 -> 0xD8D07F; // SCOUT
-            default -> 0xAAAAAA; // NORMAL
+            case 0 -> 0x55FFFF; // TANK      (§b aqua)
+            case 1 -> 0xAA0000; // ASSASSIN  (§4 dark_red)
+            case 2 -> 0xAA00AA; // MARAUDER  (§5 dark_purple)
+            case 3 -> 0x55FF55; // HEALER    (§a green)
+            case 4 -> 0xFFAA00; // BERSERKER (§6 gold)
+            case 5 -> 0xFFFF55; // SCOUT     (§e yellow)
+            default -> 0xFFFFFF; // NORMAL   (§f white)
         };
     }
 
