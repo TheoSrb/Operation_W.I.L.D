@@ -278,6 +278,22 @@ public class BoaModel<T extends BoaEntity> extends OWComboModel<T> implements OW
         this.head.yRot = 0f;
         this.head.xRot = 0f;
 
+        boolean showBody = RENDER_FULL_BODY;
+        this.body_0.visible = showBody;
+        this.body_1.visible = showBody;
+        this.body_2.visible = showBody;
+        this.body_3.visible = showBody;
+        this.body_4.visible = showBody;
+        this.body_5.visible = showBody;
+        this.body_6.visible = showBody;
+
+        if (boa.isNapping() || boa.isSleeping()) {
+            this.animate(boa.restAnimationState, BoaAnimations.SIT, ageInTicks, 1.0f);
+            this.head.xRot += boa.getSedatedHeadNod(ageInTicks);
+            if (showBody) applyGuiBodyPose();
+            return;
+        }
+
         // Les coups sont EMPILES : les transformations s'ajoutent a la pose courante, donc la fin
         // d'un coup et le debut du suivant se melangent d'eux-memes. Un {@code return} par branche
         // n'en laissait jouer qu'un a la fois : le precedent restait fige sur sa derniere image,
@@ -288,15 +304,6 @@ public class BoaModel<T extends BoaEntity> extends OWComboModel<T> implements OW
         if (boa.tongAnimationState.isStarted()) {
             this.animate(boa.tongAnimationState, BoaAnimations.TONG, ageInTicks, 1.0f);
         }
-
-        boolean showBody = RENDER_FULL_BODY;
-        this.body_0.visible = showBody;
-        this.body_1.visible = showBody;
-        this.body_2.visible = showBody;
-        this.body_3.visible = showBody;
-        this.body_4.visible = showBody;
-        this.body_5.visible = showBody;
-        this.body_6.visible = showBody;
 
         if (boa.isSitting()) {
             this.animate(boa.sittingAnimationState, BoaAnimations.SIT, ageInTicks, 1.0f);

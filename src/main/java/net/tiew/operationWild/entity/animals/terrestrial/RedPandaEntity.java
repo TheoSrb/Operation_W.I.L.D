@@ -82,6 +82,8 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     public static final double TAMING_EXPERIENCE = 40.0;
+    public static final int MAX_SOMNOLENCE = 2500;
+    public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final int ENTITY_COLOR = 0xec8925;
 
     private static final double SHOULDER_SIDE_OFFSET = 0.44;
@@ -642,6 +644,16 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     }
 
     @Override
+    public boolean usesAggressiveTaming() {
+        return true;
+    }
+
+    @Override
+    public float sedatedFleeSpeed() {
+        return 2.8f;
+    }
+
+    @Override
     public OWEntityConfig.Archetypes getArchetype() {
         return OWEntityConfig.Archetypes.HEALER;
     }
@@ -837,7 +849,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (this.level().isClientSide()) return super.mobInteract(player, hand);
+        if (this.level().isClientSide() || this.isKnockedOut()) return super.mobInteract(player, hand);
         if (hand != InteractionHand.MAIN_HAND) return super.mobInteract(player, hand);
 
         ItemStack stack = player.getItemInHand(hand);
@@ -1626,7 +1638,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     }
 
     public boolean canPlayIdleAnimation() {
-        return this.getTarget() == null && !this.isNapping() && !this.isMoving()
+        return this.getTarget() == null && !this.isNapping() && !this.isSleeping() && !this.isMoving()
                 && !this.isPassenger() && !this.isInWater()
                 && !this.isIntimidating() && !this.isEatingMeal() && !this.isTreePosed();
     }

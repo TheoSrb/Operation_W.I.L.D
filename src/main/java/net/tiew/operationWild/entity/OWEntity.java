@@ -86,6 +86,9 @@ import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.global.OWFollowOwnerGoal;
 import net.tiew.operationWild.entity.goals.global.OWLookAtPlayerGoal;
+import net.tiew.operationWild.entity.goals.global.OWSedatedFleeGoal;
+import net.tiew.operationWild.entity.taming.OWAggressiveTaming;
+import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.entity.misc.*;
 import net.tiew.operationWild.entity.quests.ascent.AscentMission;
 import net.tiew.operationWild.entity.variants.*;
@@ -153,6 +156,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public static final int FEED_INTERVAL_TICKS = 60;
 
+    public static final int SOMNOLENCE_SPREAD_PERCENT = 20;
+    public static final int SLEEPING_SOMNOLENCE_LOSS_FACTOR = 2;
+
     public static final float AUTO_FEED_HEAL_MULTIPLIER = 0.4f;
 
     public static final int PASSIVE_REGEN_INTERVAL_TICKS = 400;
@@ -182,6 +188,26 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public final net.tiew.operationWild.entity.behavior.OWFearHandler fearHandler =
             new net.tiew.operationWild.entity.behavior.OWFearHandler(this);
+
+    public final OWAggressiveTaming aggressiveTaming = new OWAggressiveTaming(this);
+
+    public final AnimationState sedatedCollapseAnimationState = new AnimationState();
+    public final AnimationState sedatedMealAnimationState = new AnimationState();
+    public final AnimationState restAnimationState = new AnimationState();
+
+    private static final float MEAL_HEAD_LIFT = -0.25f;
+    private static final float MEAL_HEAD_NOD = 0.22f;
+    private static final float MEAL_HEAD_NOD_SPEED = 0.7f;
+
+    private float tamingDisplay;
+    private float tamingDisplayO;
+    private float somnolenceDisplay;
+    private float somnolenceDisplayO;
+    private float mealBob;
+    private float mealBobO;
+    private boolean knockedOutOnClient;
+    private boolean sedationDisplayPrimed;
+    private int dizzyStarIndex;
 
     public static float comboSpeedMultiplier = 1.0f;
 
@@ -301,6 +327,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final EntityDataAccessor<Integer> PANIC_BUCK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> CACHED_OWNER_NAME = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
+    private static final EntityDataAccessor<Integer> TAMING_HITS = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<ItemStack> TAMING_MEAL = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.ITEM_STACK);
 
     public int quest0Progression = 0;
     public int quest1Progression = 0;
@@ -555,6 +583,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     protected void registerGoals() {
         this.registerBehaviorGoals(this);
 
+        this.goalSelector.addGoal(0, new OWSedatedFleeGoal(this));
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * followOwnerSpeedFactor(), 15, 3));
         this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25));
@@ -1802,6 +1831,134 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.entityData.get(NAPPING);
     }
 
+    public boolean usesAggressiveTaming() {
+        return true;
+    }
+
+    public float sedatedFleeSpeed() {
+        return 3.0f;
+    }
+
+    public boolean isTamingFood(ItemStack stack) {
+        return this.isFood(stack);
+    }
+
+    public boolean isKnockedOut() {
+        return this.usesAggressiveTaming() && !this.isTame() && this.isSleeping() && !this.isInResurrection();
+    }
+
+    public boolean isSedatedFleeing() {
+        return this.usesAggressiveTaming() && !this.isTame() && !this.isSleeping() && !this.isInResurrection()
+                && this.getMaxSleepingBar() > 0 && this.getSleepBarPercent() >= OWAggressiveTaming.FLEE_THRESHOLD;
+    }
+
+    public void onSedationKnockOut() {
+    }
+
+    public void playSedationVoice(float pitch) {
+        SoundEvent voice = this.getAmbientSound();
+        if (voice == null) voice = this.getHurtSound(this.damageSources().generic());
+        if (voice != null) this.playSound(voice, 1.0f, pitch);
+    }
+
+    public Vec3 getSedationHeadPosition() {
+        float yaw = this.yBodyRot * Mth.DEG_TO_RAD;
+        double forward = this.napParticleForward();
+        return new Vec3(this.getX() - Mth.sin(yaw) * forward, this.getY() + this.napParticleHeight(), this.getZ() + Mth.cos(yaw) * forward);
+    }
+
+    public float getSleepBarProgress() {
+        int max = this.getMaxSleepingBar();
+        return max <= 0 ? 0f : Mth.clamp(this.getActualSleepingBar() / (float) max, 0f, 1f);
+    }
+
+    public int getTamingHits() {
+        return this.entityData.get(TAMING_HITS);
+    }
+
+    public void setTamingHits(int hits) {
+        this.entityData.set(TAMING_HITS, Mth.clamp(hits, 0, OWAggressiveTaming.MAX_BONUS_POINTS));
+    }
+
+    public ItemStack getTamingMeal() {
+        return this.entityData.get(TAMING_MEAL);
+    }
+
+    public void setTamingMeal(ItemStack meal) {
+        this.entityData.set(TAMING_MEAL, meal);
+    }
+
+    public float getTamingDisplay(float partialTick) {
+        return Mth.lerp(partialTick, this.tamingDisplayO, this.tamingDisplay);
+    }
+
+    public float getSomnolenceDisplay(float partialTick) {
+        return Mth.lerp(partialTick, this.somnolenceDisplayO, this.somnolenceDisplay);
+    }
+
+    public float getMealBob(float partialTick) {
+        return Mth.lerp(partialTick, this.mealBobO, this.mealBob);
+    }
+
+    public float getSedatedHeadNod(float ageInTicks) {
+        float bob = this.getMealBob(Mth.clamp(ageInTicks - this.tickCount, 0f, 1f));
+        if (bob <= 0f) return 0f;
+        return bob * (MEAL_HEAD_LIFT + MEAL_HEAD_NOD * Mth.sin(ageInTicks * MEAL_HEAD_NOD_SPEED));
+    }
+
+    private void fallAsleepFromSedation() {
+        this.setSleeping(true);
+        if (this.isKnockedOut()) this.aggressiveTaming.knockOut();
+    }
+
+    private void tickSedationClient() {
+        float tamingTarget = this.getTamingPercentage();
+        float somnolenceTarget = this.getSleepBarProgress() * 100f;
+        if (!this.sedationDisplayPrimed) {
+            this.sedationDisplayPrimed = true;
+            this.tamingDisplay = tamingTarget;
+            this.somnolenceDisplay = somnolenceTarget;
+        }
+        this.tamingDisplayO = this.tamingDisplay;
+        this.somnolenceDisplayO = this.somnolenceDisplay;
+        this.tamingDisplay = approachDisplay(this.tamingDisplay, tamingTarget);
+        this.somnolenceDisplay = approachDisplay(this.somnolenceDisplay, somnolenceTarget);
+
+        boolean knockedOut = this.isKnockedOut();
+        if (knockedOut && !this.knockedOutOnClient && this.tickCount > 5) {
+            this.sedatedCollapseAnimationState.start(this.tickCount);
+        }
+        if (!knockedOut) this.sedatedCollapseAnimationState.stop();
+        this.knockedOutOnClient = knockedOut;
+        this.restAnimationState.animateWhen(this.isNapping() || this.isSleeping(), this.tickCount);
+
+        boolean eating = knockedOut && !this.getTamingMeal().isEmpty();
+        this.sedatedMealAnimationState.animateWhen(eating, this.tickCount);
+        this.mealBobO = this.mealBob;
+        this.mealBob = Mth.approach(this.mealBob, eating ? 1f : 0f, 0.2f);
+
+        if (knockedOut) this.spawnSedationParticles();
+    }
+
+    private static float approachDisplay(float current, float target) {
+        float next = current + (target - current) * 0.15f;
+        return Mth.abs(target - next) < 0.05f ? target : next;
+    }
+
+    private void spawnSedationParticles() {
+        Vec3 head = this.getSedationHeadPosition();
+        int clock = this.tickCount + this.getId();
+        if (clock % OWAggressiveTaming.DIZZY_STAR_INTERVAL == 0) {
+            this.level().addParticle(OWParticles.DIZZY_STAR.get(), head.x, head.y, head.z,
+                    this.getId(), this.dizzyStarIndex++, 0.0);
+        }
+        if (clock % 23 < 3) {
+            this.level().addParticle(OWParticles.NAP_PARTICLES.get(),
+                    head.x + (this.random.nextDouble() - 0.5) * 0.2, head.y,
+                    head.z + (this.random.nextDouble() - 0.5) * 0.2, 0.0, 0.0, 0.0);
+        }
+    }
+
     public float getSpeed() {
         return (float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);
     }
@@ -2302,7 +2459,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         this.setDeltaMovement(d0, d1, d2);
         this.level().getProfiler().push("ai");
-        if (this.isImmobile()) {
+        if (this.isImmobile() || this.isKnockedOut()) {
             this.jumping = false;
             this.xxa = 0.0F;
             this.zza = 0.0F;
@@ -2498,31 +2655,41 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     @Override
     public boolean hurt(DamageSource damageSource, float amount) {
+        Entity directEntity = damageSource.getDirectEntity();
+        boolean sedative = directEntity instanceof TranquilizerArrow || directEntity instanceof SlingshotProjectile
+                || directEntity instanceof TranquilizerWoodenStinger;
+        if (sedative && this.isKnockedOut()) return false;
+
         boolean isTankAndReduceDmg = this.isTank() && (damageSource.is(DamageTypes.MOB_ATTACK) || damageSource.is(DamageTypes.PLAYER_ATTACK) || damageSource.is(DamageTypes.GENERIC));
         boolean willTakeDamage = super.hurt(damageSource, amount * (isTankAndReduceDmg ? 0.8f : 1.0f));
 
         if (willTakeDamage) {
-            if (damageSource.getDirectEntity() instanceof TranquilizerArrow sedativeArrow) {
+            if (sedative && this.usesAggressiveTaming() && !this.isTame()) {
+                this.aggressiveTaming.onSedated(damageSource);
+            }
+            if (directEntity instanceof TranquilizerArrow sedativeArrow) {
                 if (isSleeping()) return false;
                 int tranquilizerPower = amount > 0.5 ? (int) (sedativeArrow.tranquilizerEffectiveness * (amount / 2)) : 0;
                 this.setActualSleepingBarTo(this.getActualSleepingBar() + tranquilizerPower);
                 if (!isSleeping() && getActualSleepingBar() >= getMaxSleepingBar()) {
-                    setSleeping(true);
+                    fallAsleepFromSedation();
                 }
-            } else if (damageSource.getDirectEntity() instanceof SlingshotProjectile slingshotProjectile) {
+            } else if (directEntity instanceof SlingshotProjectile slingshotProjectile) {
                 if (isSleeping()) return false;
                 int tranquilizerPower = amount > 0.5 ? (int) (slingshotProjectile.tranquilizerEffectiveness * (amount / 2)) : 0;
                 this.setActualSleepingBarTo(this.getActualSleepingBar() + tranquilizerPower);
                 if (!isSleeping() && getActualSleepingBar() >= getMaxSleepingBar()) {
-                    setSleeping(true);
+                    fallAsleepFromSedation();
                 }
-            } else if (damageSource.getDirectEntity() instanceof TranquilizerWoodenStinger tranquilizerWoodenStinger) {
+            } else if (directEntity instanceof TranquilizerWoodenStinger tranquilizerWoodenStinger) {
                 if (isSleeping()) return false;
                 int tranquilizerPower = tranquilizerWoodenStinger.tranquilizerEffectiveness;
                 this.setActualSleepingBarTo(this.getActualSleepingBar() + tranquilizerPower);
                 if (!isSleeping() && getActualSleepingBar() >= getMaxSleepingBar()) {
-                    setSleeping(true);
+                    fallAsleepFromSedation();
                 }
+            } else if (this.isKnockedOut() && damageSource.getEntity() != null) {
+                this.aggressiveTaming.onHit(damageSource);
             }
         }
 
@@ -2649,6 +2816,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (isSleeping() || isInResurrection()) {
+            super.setTarget(null);
+            return;
+        }
+
+        if (target != null && this.isSedatedFleeing()) {
             super.setTarget(null);
             return;
         }
@@ -3025,6 +3197,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (srv != null) net.tiew.operationWild.waypoint.OWWaypointData.get(srv).upsert(this);
             }
             this.fearHandler.tick();
+            if (this.usesAggressiveTaming()) this.aggressiveTaming.tick();
             tickSecondaryCooldown();
         }
 
@@ -3034,6 +3207,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (this.level().isClientSide) {
             handleClientAnimationSync();
+            tickSedationClient();
         }
 
         if (this.isCombo() && !keepsAccelerationDuringCombo()) {
@@ -3183,7 +3357,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
-        if (isSleeping()) {
+        if (isSleeping() && !this.aggressiveTaming.isCollapsing()) {
             if (this.onGround()) {
                 this.setDeltaMovement(0, 0, 0);
                 this.hasImpulse = false;
@@ -3202,7 +3376,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (getActualSleepingBar() > 0 && !(this instanceof PlantEmpressEntity)) {
-            int decreaseRate = isSleeping() ? sleepBarDownSpeed * 2 : sleepBarDownSpeed;
+            int decreaseRate = isSleeping() ? sleepBarDownSpeed * SLEEPING_SOMNOLENCE_LOSS_FACTOR : sleepBarDownSpeed;
             if (tickCount % decreaseRate == 0) setActualSleepingBarTo(getActualSleepingBar() - 1);
             ;
         }
@@ -4073,6 +4247,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (this.isKnockedOut()) return InteractionResult.PASS;
+
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
 
@@ -4459,7 +4635,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     @Override
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor levelAccessor, DifficultyInstance difficultyInstance, MobSpawnType mobSpawnType, @Nullable SpawnGroupData spawnGroupData) {
-        setMaxSleepingBarTo((int) OWUtils.determinateMinAndMax(maxSleepBar, 20));
+        setMaxSleepingBarTo((int) OWUtils.determinateMinAndMax(maxSleepBar, SOMNOLENCE_SPREAD_PERCENT));
         if (!(this instanceof SeaBugEntity)) {
 
             boolean isBoa = this instanceof BoaEntity;
@@ -4829,6 +5005,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(CACHED_OWNER_NAME, "");
         builder.define(PANIC_LEVEL, 0.0f);
         builder.define(PANIC_BUCK, 0);
+        builder.define(TAMING_HITS, 0);
+        builder.define(TAMING_MEAL, ItemStack.EMPTY);
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {
@@ -4960,6 +5138,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         tag.putInt("CosmeticQuestKills", this.entityData.get(COSMETIC_QUEST_KILLS));
 
         tag.putString("cachedOwnerName", this.getCachedOwnerName());
+        this.aggressiveTaming.save(tag);
 
     }
 
@@ -5099,6 +5278,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(COSMETIC_QUEST_KILLS, tag.getInt("CosmeticQuestKills"));
 
         this.setCachedOwnerName(tag.getString("cachedOwnerName"));
+        this.aggressiveTaming.load(tag);
 
     }
 

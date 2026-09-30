@@ -305,6 +305,7 @@ public final class OWWikiEntitySection {
         OWWikiReflect.putCall(taming, "experience", probe, "getTamingExperience");
         OWWikiReflect.call(probe, "getTamingAdvancement")
                 .ifPresent(advancement -> taming.addProperty("advancement", String.valueOf(advancement)));
+        addIfPresent(taming, "somnolence", somnolence(species.implementation()));
 
         JsonArray tags = OWWikiTags.itemTagsFor(species.id());
         if (!tags.isEmpty()) taming.add("food_tags", tags);
@@ -317,6 +318,42 @@ public final class OWWikiEntitySection {
         JsonArray manual = lang.pages(species.id() + ".taming.page");
         if (manual != null) taming.add("manual", manual);
         return taming;
+    }
+
+    private static JsonObject somnolence(Class<? extends OWEntity> implementation) {
+        Integer max = staticInt(implementation, "MAX_SOMNOLENCE");
+        Integer interval = staticInt(implementation, "SOMNOLENCE_LOSS_INTERVAL");
+        if (max == null || interval == null) return null;
+
+        double spread = OWEntity.SOMNOLENCE_SPREAD_PERCENT / 100.0;
+        JsonObject somnolence = new JsonObject();
+        somnolence.addProperty("max", max);
+        somnolence.addProperty("max_min", (int) (max * (1 - spread)));
+        somnolence.addProperty("max_max", (int) (max * (1 + spread)));
+        somnolence.addProperty("spread_percent", OWEntity.SOMNOLENCE_SPREAD_PERCENT);
+        somnolence.addProperty("decays", interval > 0);
+        if (interval <= 0) return somnolence;
+
+        int asleepInterval = interval * OWEntity.SLEEPING_SOMNOLENCE_LOSS_FACTOR;
+        double awakePerSecond = 20.0 / interval;
+        double asleepPerSecond = 20.0 / asleepInterval;
+        somnolence.addProperty("loss_interval_ticks_awake", interval);
+        somnolence.addProperty("loss_interval_ticks_asleep", asleepInterval);
+        somnolence.addProperty("loss_per_second_awake", awakePerSecond);
+        somnolence.addProperty("loss_per_second_asleep", asleepPerSecond);
+        somnolence.addProperty("full_bar_awake_seconds", max / awakePerSecond);
+        somnolence.addProperty("full_bar_asleep_seconds", max / asleepPerSecond);
+        return somnolence;
+    }
+
+    private static Integer staticInt(Class<?> owner, String name) {
+        try {
+            java.lang.reflect.Field field = owner.getField(name);
+            if (!java.lang.reflect.Modifier.isStatic(field.getModifiers())) return null;
+            return field.getInt(null);
+        } catch (ReflectiveOperationException | IllegalArgumentException missing) {
+            return null;
+        }
     }
 
     private static JsonObject saddleRecipe(OWSaddleRecipe recipe, OWWikiLang lang) {

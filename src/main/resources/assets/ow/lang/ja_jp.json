@@ -1123,5 +1123,7 @@
   "ow.advancements.silverback.title": "シルバーバック",
   "ow.advancements.silverback.description": "ゴリラをテイムしました！",
   "ow.attacks.gorilla.cold_blood.title": "冷静沈着",
-  "ow.attacks.gorilla.cold_blood.desc": "シルバーバックは退かない。ゴリラに原初の恐怖は決して効かず、効果そのものが拒まれます。取り乱すことも暴れることもなく、騎乗者は操作を保ったままです。他の獣が震えて耐えるものを、ゴリラはただ見据えます。"
+  "ow.attacks.gorilla.cold_blood.desc": "シルバーバックは退かない。ゴリラに原初の恐怖は決して効かず、効果そのものが拒まれます。取り乱すことも暴れることもなく、騎乗者は操作を保ったままです。他の獣が震えて耐えるものを、ゴリラはただ見据えます。",
+  "taming.ow.woke_up": "手懐け失敗（%s）：獣が目を覚ました",
+  "taming.ow.bonus_lost": "眠っている獣を攻撃した！ボーナスポイント：%s/%s"
 }

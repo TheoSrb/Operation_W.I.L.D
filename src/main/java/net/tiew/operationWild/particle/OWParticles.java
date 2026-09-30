@@ -18,4 +18,5 @@ public class OWParticles {
     public static final Supplier<SimpleParticleType> GOLD_TRAIL_PARTICLE = PARTICLE_TYPES.register("gold_trail_particle", () -> new SimpleParticleType(true));
     public static final Supplier<SimpleParticleType> WATER_JET_PARTICLE = PARTICLE_TYPES.register("water_jet_particle", () -> new SimpleParticleType(true));
     public static final Supplier<SimpleParticleType> WATER_SPLAT_PARTICLE = PARTICLE_TYPES.register("water_splat_particle", () -> new SimpleParticleType(true));
+    public static final Supplier<SimpleParticleType> DIZZY_STAR = PARTICLE_TYPES.register("dizzy_star", () -> new SimpleParticleType(true));
 }

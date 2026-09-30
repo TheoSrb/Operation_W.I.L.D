@@ -123,10 +123,6 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
                         OWRendererUtils.displayOwnerAboveEntity(entity, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, infosUpOffset());
                         OWRendererUtils.displayLevelAboveEntity(entity, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, infosUpOffset());
                     }
-                } else {
-                    if (entity.isSleeping()) {
-                        OWRendererUtils.displayBonusPointAboveEntity(entity, poseStack, bufferSource, packedLight, this.entityRenderDispatcher, 0);
-                    }
                 }
             }
         }

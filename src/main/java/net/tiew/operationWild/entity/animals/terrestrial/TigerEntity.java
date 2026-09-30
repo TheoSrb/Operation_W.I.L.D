@@ -96,10 +96,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     // ==================================================
 
     public static final double TAMING_EXPERIENCE = 185.0;
+    public static final int MAX_SOMNOLENCE = 4000;
+    public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final float AI_STEP_JUMP_FACTOR = 0.45f;
     public static final int MAX_HIDING_TIMER = 1000;
     public static final int MAX_NO_HIDING_TIMER = 400;
-    public static final int DROWSY_FLEE_THRESHOLD = 80;
 
     private static final int SCRATCHES_DURATION = 60;
 
@@ -209,7 +210,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         this.goalSelector.addGoal(0, new TigerLeapingGoal(this, 4f, 20f));
         this.goalSelector.addGoal(0, new TigerDistractedByFoodGoal(this));
 
-        this.goalSelector.addGoal(1, new TigerDrowsyFleeGoal(this, 6f));
         this.goalSelector.addGoal(2, new TigerMeleeAttackGoal());
 
         this.goalSelector.addGoal(3, new TigerScarifyTreeGoal(this, 30, 0.7D));
@@ -279,6 +279,21 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public double getTamingExperience() {
         return TAMING_EXPERIENCE;
+    }
+
+    @Override
+    public boolean usesAggressiveTaming() {
+        return true;
+    }
+
+    @Override
+    public float sedatedFleeSpeed() {
+        return 6f;
+    }
+
+    @Override
+    public void onSedationKnockOut() {
+        if (this.isGrabbing()) this.releaseGrab();
     }
 
     @Override
@@ -711,7 +726,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             return;
         }
 
-        if (target != null && !isTame() && getSleepBarPercent() >= DROWSY_FLEE_THRESHOLD) {
+        if (target != null && isSedatedFleeing()) {
             return;
         }
 
@@ -732,29 +747,6 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     public float getRiddenSpeedVehicle(Player player) {
         return this.isImmobile() || this.isPreparing || this.isRoarCharging() ? 0 : super.getRiddenSpeedVehicle(player);
-    }
-
-    @Override
-    public InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (!this.level().isClientSide()) {
-            ItemStack stack = player.getItemInHand(hand);
-
-            if (this.isSleeping() && !this.isTame() && stack.is(OWTags.Items.TIGER_FOOD)) {
-                if (!player.isCreative()) stack.shrink(1);
-                this.playSound(SoundEvents.CAMEL_EAT, 1.0f, (float) OWUtils.generateRandomInterval(0.9, 1.1));
-                this.foodGiven++;
-
-                if (this.foodGiven >= this.foodWanted) {
-                    this.setTame(true, player);
-                    this.setSleeping(false);
-                    this.resetSleepBar();
-                    this.foodGiven = foodWanted;
-                }
-
-                return InteractionResult.SUCCESS;
-            }
-        }
-        return super.mobInteract(player, hand);
     }
 
     @Override
@@ -1639,7 +1631,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     public boolean canPlayIdleAnimation() {
-        return this.getTarget() == null && !this.isNapping() && !this.isNapping() && !this.isMoving() && !this.isVehicle() && !this.isInWater();
+        return this.getTarget() == null && !this.isNapping() && !this.isSleeping() && !this.isMoving() && !this.isVehicle() && !this.isInWater();
     }
 
     public boolean canGrowl() {
@@ -1661,7 +1653,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             return;
         }
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide && !this.isNapping() && !this.isSleeping()) {
             this.level().playLocalSound(this.getX(), this.getY(), this.getZ(),
                     getVariant() != TigerVariant.Cosmetics.VIRUS.variant ? OWSounds.TIGER_3.get() : OWSounds.TIGER_3_VIRUS.get(), this.getSoundSource(),
                     1.0F, isBaby() ? 2.0F : 1.0F, false);
@@ -1906,13 +1898,13 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         @Override
         public boolean canUse() {
-            if (!TigerEntity.this.isTame() && TigerEntity.this.getSleepBarPercent() >= DROWSY_FLEE_THRESHOLD) return false;
+            if (TigerEntity.this.isSedatedFleeing()) return false;
             return super.canUse();
         }
 
         @Override
         public boolean canContinueToUse() {
-            if (!TigerEntity.this.isTame() && TigerEntity.this.getSleepBarPercent() >= DROWSY_FLEE_THRESHOLD) return false;
+            if (TigerEntity.this.isSedatedFleeing()) return false;
             return super.canContinueToUse();
         }
 

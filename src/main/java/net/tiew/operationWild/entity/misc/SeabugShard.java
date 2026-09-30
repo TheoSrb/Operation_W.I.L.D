@@ -16,6 +16,11 @@ public class SeabugShard extends OWEntity {
     }
 
     @Override
+    public boolean usesAggressiveTaming() {
+        return false;
+    }
+
+    @Override
     public boolean canDrownInFluidType(FluidType type) {
         return false;
     }

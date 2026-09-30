@@ -180,16 +180,6 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
     public void setupAnim(T kangaroo, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-        this.applyHeadRotation(netHeadYaw, headPitch);
-
-        animateCombos(kangaroo, ageInTicks, COMBO_ANIMATION_SPEED);
-
-        if (kangaroo.isTelluricStomping() || kangaroo.telluricStompOutroTicks > 0) {
-            animateTelluricStomp(kangaroo, ageInTicks);
-            captureBodyState(kangaroo);
-            return;
-        }
-
         if (kangaroo.transitionIdleSleep.isStarted()) {
             this.animate(kangaroo.transitionIdleSleep, KangarooAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
             captureBodyState(kangaroo);
@@ -202,7 +192,18 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         }
 
         if (kangaroo.isNapping() || kangaroo.isSleeping()) {
-            this.animate(kangaroo.napAnimationState, KangarooAnimations.NAP, ageInTicks, 1.0f);
+            this.animate(kangaroo.restAnimationState, KangarooAnimations.NAP, ageInTicks, 1.0f);
+            this.head.xRot += kangaroo.getSedatedHeadNod(ageInTicks);
+            captureBodyState(kangaroo);
+            return;
+        }
+
+        this.applyHeadRotation(netHeadYaw, headPitch);
+
+        animateCombos(kangaroo, ageInTicks, COMBO_ANIMATION_SPEED);
+
+        if (kangaroo.isTelluricStomping() || kangaroo.telluricStompOutroTicks > 0) {
+            animateTelluricStomp(kangaroo, ageInTicks);
             captureBodyState(kangaroo);
             return;
         }

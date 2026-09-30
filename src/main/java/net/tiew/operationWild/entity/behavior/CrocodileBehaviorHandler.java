@@ -54,7 +54,7 @@ public class CrocodileBehaviorHandler {
     }
 
     public boolean canPlayIdleAnimation() {
-        return crocodile.getTarget() == null && !crocodile.isNapping() && !crocodile.isChargingMouth() && !crocodile.isMoving() && !crocodile.isVehicle() && !crocodile.isInWater();
+        return crocodile.getTarget() == null && !crocodile.isNapping() && !crocodile.isSleeping() && !crocodile.isChargingMouth() && !crocodile.isMoving() && !crocodile.isVehicle() && !crocodile.isInWater();
     }
 
     public boolean canGrowl() {

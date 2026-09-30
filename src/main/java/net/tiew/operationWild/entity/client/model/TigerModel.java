@@ -247,6 +247,26 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 			this.head.yScale *= headScale;
 			this.head.zScale *= headScale;
 		}
+
+		if (tiger.transitionIdleSleep.isStarted()) {
+			this.animate(tiger.transitionIdleSleep, TigerAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
+		if (tiger.transitionSleepIdle.isStarted()) {
+			this.animate(tiger.transitionSleepIdle, TigerAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
+		if (tiger.isNapping() || tiger.isSleeping()) {
+			this.animate(tiger.restAnimationState, TigerAnimations.NAP, ageInTicks, 1.0f);
+			this.head.xRot += tiger.getSedatedHeadNod(ageInTicks);
+			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
 		this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (!tiger.isGrabbing()) {
@@ -283,18 +303,6 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 			this.animate(tiger.scratchesAnimationState, TigerAnimations.MISC_IDLE_2, ageInTicks, 1.0f);
 		}
 
-		if (tiger.transitionIdleSleep.isStarted()) {
-			this.animate(tiger.transitionIdleSleep, TigerAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
-			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
-		if (tiger.transitionSleepIdle.isStarted()) {
-			this.animate(tiger.transitionSleepIdle, TigerAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
-			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
 		if (tiger.transitionSitIdle.isStarted()) {
 			this.animate(tiger.transitionSitIdle, TigerAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
 			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
@@ -303,12 +311,6 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 
 		if (tiger.transitionIdleSit.isStarted()) {
 			this.animate(tiger.transitionIdleSit, TigerAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
-			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
-		if (tiger.isNapping() || tiger.isSleeping()) {
-			this.animate(tiger.napAnimationState, TigerAnimations.NAP, ageInTicks, 1.0f);
 			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 			return;
 		}

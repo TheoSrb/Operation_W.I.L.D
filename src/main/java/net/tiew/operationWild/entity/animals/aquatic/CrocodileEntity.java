@@ -81,6 +81,8 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity {
 
     public static final double TAMING_EXPERIENCE = 205.0;
+    public static final int MAX_SOMNOLENCE = 5000;
+    public static final int SOMNOLENCE_LOSS_INTERVAL = 2;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
@@ -295,6 +297,21 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public double getTamingExperience() {
         return TAMING_EXPERIENCE;
+    }
+
+    @Override
+    public boolean usesAggressiveTaming() {
+        return true;
+    }
+
+    @Override
+    public float sedatedFleeSpeed() {
+        return 2.8f;
+    }
+
+    @Override
+    public void onSedationKnockOut() {
+        if (this.isGrabbing()) this.releaseGrab();
     }
 
     @Override
@@ -977,6 +994,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (this.isKnockedOut()) return super.mobInteract(player, hand);
         ItemStack itemStack = player.getItemInHand(hand);
 
         crocodileTaming.mobInteract(player, hand);

@@ -146,6 +146,11 @@ public class Submarine extends OWEntity implements IOWWaypointEntity {
     }
 
     @Override
+    public boolean usesAggressiveTaming() {
+        return false;
+    }
+
+    @Override
     public Vec3 getDismountLocationForPassenger(LivingEntity living) {
         /*if (this.level().isClientSide) {
             Minecraft.getInstance().getSoundManager().stop(OWSounds.SUBMARINE_MOVE_LOOP.get().getLocation(), null);

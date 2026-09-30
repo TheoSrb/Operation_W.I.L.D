@@ -34,6 +34,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.Tags;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -73,6 +74,8 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity {
 
     public static final double TAMING_EXPERIENCE = 80.0;
+    public static final int MAX_SOMNOLENCE = 3000;
+    public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
 
     private BoaTailPart[] parts;
 
@@ -289,6 +292,26 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     @Override
     public double getTamingExperience() {
         return TAMING_EXPERIENCE;
+    }
+
+    @Override
+    public boolean usesAggressiveTaming() {
+        return true;
+    }
+
+    @Override
+    public float sedatedFleeSpeed() {
+        return 2.5f;
+    }
+
+    @Override
+    public boolean isTamingFood(ItemStack stack) {
+        return stack.is(Tags.Items.FOODS_RAW_MEAT);
+    }
+
+    @Override
+    public void onSedationKnockOut() {
+        if (this.isGrabbing()) this.stopConstrict();
     }
 
     @Override
@@ -1046,6 +1069,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         this.entityData.set(DATA_INITIAL_VARIANT, tag.getInt("initialVariant"));
         this.setVariant(BoaVariant.byId(tag.getInt("variant")));
         this.setUltimateKillCount(tag.getInt("ultimateKillCount"));
+        this.foodGiven = tag.getInt("foodGiven");
+        this.foodWanted = tag.getInt("foodWanted");
     }
 
     @Override
@@ -1054,6 +1079,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
         tag.putInt("initialVariant", this.getInitialVariant().getId());
         tag.putInt("variant", this.getVariant().getId());
         tag.putInt("ultimateKillCount", this.getUltimateKillCount());
+        tag.putInt("foodGiven", this.foodGiven);
+        tag.putInt("foodWanted", this.foodWanted);
     }
 
     @Override
@@ -1374,7 +1401,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     public boolean canPlayIdleAnimation() {
-        return this.getTarget() == null && !this.isNapping() && !this.isNapping() && !this.isMoving() && !this.isVehicle() && !this.isInWater();
+        return this.getTarget() == null && !this.isNapping() && !this.isSleeping() && !this.isMoving() && !this.isVehicle() && !this.isInWater();
     }
 
     public boolean canTong() {
@@ -1391,7 +1418,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             return;
         }
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide && !this.isNapping() && !this.isSleeping()) {
 
             SoundEvent[] sounds = new SoundEvent[]{OWSounds.BOA_IDLE_1.get(), OWSounds.BOA_IDLE_2.get(), OWSounds.BOA_IDLE_3.get(), OWSounds.BOA_IDLE_4.get()};
 

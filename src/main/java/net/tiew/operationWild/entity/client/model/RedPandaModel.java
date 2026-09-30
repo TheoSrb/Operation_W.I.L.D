@@ -155,7 +155,8 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
                 || redPanda.transitionIdleFear.isStarted()
                 || redPanda.getFearRecoverTimer() > 0
                 || redPanda.playAnimationState.isStarted();
-        if (RENDER_AS_GROUNDED || !posed) {
+        boolean resting = !RENDER_AS_GROUNDED && (redPanda.isNapping() || redPanda.isSleeping());
+        if ((RENDER_AS_GROUNDED || !posed) && !resting) {
             this.applyHeadRotation(netHeadYaw, headPitch);
         }
 
@@ -180,6 +181,22 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
             this.animate(redPanda.shoulderIdleAnimationState, RedPandaAnimations.SHOULDER_IDLE, ageInTicks, 1.0f);
             animatePerchPhysics(redPanda, ageInTicks);
             animateGestures(redPanda, ageInTicks);
+            return;
+        }
+
+        if (redPanda.transitionIdleSleep.isStarted()) {
+            this.animate(redPanda.transitionIdleSleep, RedPandaAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
+            return;
+        }
+
+        if (redPanda.transitionSleepIdle.isStarted()) {
+            this.animate(redPanda.transitionSleepIdle, RedPandaAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
+            return;
+        }
+
+        if (redPanda.isNapping() || redPanda.isSleeping()) {
+            this.animate(redPanda.restAnimationState, RedPandaAnimations.NAP, ageInTicks, 1.0f);
+            this.head.xRot += redPanda.getSedatedHeadNod(ageInTicks);
             return;
         }
 
@@ -217,21 +234,6 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
 
         if (redPanda.transitionSitIdle.isStarted()) {
             this.animate(redPanda.transitionSitIdle, RedPandaAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
-            return;
-        }
-
-        if (redPanda.transitionIdleSleep.isStarted()) {
-            this.animate(redPanda.transitionIdleSleep, RedPandaAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
-            return;
-        }
-
-        if (redPanda.transitionSleepIdle.isStarted()) {
-            this.animate(redPanda.transitionSleepIdle, RedPandaAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
-            return;
-        }
-
-        if (redPanda.isNapping() || redPanda.isSleeping()) {
-            this.animate(redPanda.napAnimationState, RedPandaAnimations.NAP, ageInTicks, 1.0f);
             return;
         }
 

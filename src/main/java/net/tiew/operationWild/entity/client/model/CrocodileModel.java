@@ -301,6 +301,25 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 			this.head.zScale *= headScale;
 		}
 
+		if (crocodile.transitionIdleSleep.isStarted()) {
+			this.animate(crocodile.transitionIdleSleep, CrocodileAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
+		if (crocodile.transitionSleepIdle.isStarted()) {
+			this.animate(crocodile.transitionSleepIdle, CrocodileAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
+		if (crocodile.isNapping() || crocodile.isSleeping()) {
+			this.animate(crocodile.restAnimationState, CrocodileAnimations.NAP, ageInTicks, 1.0f);
+			this.head.xRot += crocodile.getSedatedHeadNod(ageInTicks);
+			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
 		this.applyHeadRotation(netHeadYaw, headPitch);
 
 		if (crocodile.isMouthSlamming()) {
@@ -361,30 +380,12 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 			return;
 		}
 
-		if (crocodile.transitionIdleSleep.isStarted()) {
-			this.animate(crocodile.transitionIdleSleep, CrocodileAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
-		if (crocodile.transitionSleepIdle.isStarted()) {
-			this.animate(crocodile.transitionSleepIdle, CrocodileAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
-			return;
-		}
-
 		if (crocodile.growlsAnimationState.isStarted()) {
 			this.animate(crocodile.growlsAnimationState, CrocodileAnimations.MISC_IDLE_2, ageInTicks, 1.0f);
 		}
 
 		if (crocodile.gruntAnimationState.isStarted()) {
 			this.animate(crocodile.gruntAnimationState, CrocodileAnimations.MISC_IDLE_3, ageInTicks, 1.0f);
-		}
-
-		if (crocodile.isNapping()) {
-			this.animate(crocodile.napAnimationState, CrocodileAnimations.NAP, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
-			return;
 		}
 
 		if (crocodile.isSitting()) {

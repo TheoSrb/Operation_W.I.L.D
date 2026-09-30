@@ -165,6 +165,9 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(OWItems.RAW_PEACOCK.get())
                 .add(Items.BEEF);
 
+        tag(OWTags.Items.SOMNOLENCE_FOOD)
+                .add(OWItems.BOA_TONG.get());
+
 
         // Le panda roux vit de bambou, et le reste tient de la friandise : quelques baies, un fruit,
         // une racine. Tag court, à l'inverse de l'éléphant — il ne broute pas, il choisit.

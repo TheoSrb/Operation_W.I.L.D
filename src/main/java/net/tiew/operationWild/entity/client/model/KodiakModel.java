@@ -267,6 +267,29 @@ public class KodiakModel<T extends KodiakEntity> extends OWComboModel<T> impleme
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
+
+        if (kodiak.transitionIdleSleep.isStarted()) {
+            this.animate(kodiak.transitionIdleSleep, KodiakAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 2.0f);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            return;
+        }
+
+        if (kodiak.transitionSleepIdle.isStarted()) {
+            this.animate(kodiak.transitionSleepIdle, KodiakAnimations.TRANSITION_SLEEP_IDLE, ageInTicks, 2.0f);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            return;
+        }
+
+        if (kodiak.isNapping() || kodiak.isSleeping()) {
+            this.animate(kodiak.restAnimationState, KodiakAnimations.SLEEP, ageInTicks, 1.0f);
+            this.head.xRot += kodiak.getSedatedHeadNod(ageInTicks);
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
+            return;
+        }
+
         this.applyHeadRotation(netHeadYaw, headPitch);
 
         animateCombos(kodiak, ageInTicks, COMBO_ANIMATION_SPEED);
@@ -337,20 +360,6 @@ public class KodiakModel<T extends KodiakEntity> extends OWComboModel<T> impleme
             return;
         }
 
-        if (kodiak.transitionIdleSleep.isStarted()) {
-            this.animate(kodiak.transitionIdleSleep, KodiakAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 2.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
-            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
-            return;
-        }
-
-        if (kodiak.transitionSleepIdle.isStarted()) {
-            this.animate(kodiak.transitionSleepIdle, KodiakAnimations.TRANSITION_SLEEP_IDLE, ageInTicks, 2.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
-            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
-            return;
-        }
-
         if (kodiak.transitionIdleStandingUp.isStarted()) {
             this.animate(kodiak.transitionIdleStandingUp, KodiakAnimations.TRANSITION_IDLE_STAND_UP, ageInTicks, 1.0f);
             captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
@@ -360,13 +369,6 @@ public class KodiakModel<T extends KodiakEntity> extends OWComboModel<T> impleme
 
         if (kodiak.transitionStandingUpIdle.isStarted()) {
             this.animate(kodiak.transitionStandingUpIdle, KodiakAnimations.TRANSITION_STAND_UP_IDLE, ageInTicks, 1.0f);
-            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
-            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
-            return;
-        }
-
-        if (kodiak.isNapping()) {
-            this.animate(kodiak.napAnimationState, KodiakAnimations.SLEEP, ageInTicks, 1.0f);
             captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
             captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
             return;

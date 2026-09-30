@@ -80,6 +80,8 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, NeutralMob {
 
     public static final double TAMING_EXPERIENCE = 180.0;
+    public static final int MAX_SOMNOLENCE = 6500;
+    public static final int SOMNOLENCE_LOSS_INTERVAL = 10;
     private static final int MAX_EATING_TIMER = 400;
     private static final int MAX_HONEY_TIMER = 750;
     public static final int MAX_DIRTY_TIMER = 1200;
@@ -286,6 +288,16 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public double getTamingExperience() {
         return TAMING_EXPERIENCE;
+    }
+
+    @Override
+    public boolean usesAggressiveTaming() {
+        return true;
+    }
+
+    @Override
+    public float sedatedFleeSpeed() {
+        return 4.5f;
     }
 
     @Override
@@ -1019,6 +1031,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if (this.isKnockedOut()) return super.mobInteract(player, hand);
         ItemStack itemStack = player.getItemInHand(hand);
         Item heldItem = itemStack.getItem();
 

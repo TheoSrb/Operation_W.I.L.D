@@ -171,6 +171,13 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
             this.head.zScale *= headScale;
         }
 
+        if (gorilla.isNapping() || gorilla.isSleeping()) {
+            this.animate(gorilla.restAnimationState, GorillaAnimations.SIT, ageInTicks, 1.0f);
+            this.head.xRot += gorilla.getSedatedHeadNod(ageInTicks);
+            captureBodyState(gorilla);
+            return;
+        }
+
         this.applyHeadRotation(netHeadYaw, headPitch);
 
         if (gorilla.isClimbing()) {
@@ -215,7 +222,7 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
             return;
         }
 
-        if (gorilla.isNapping() || gorilla.isSleeping() || gorilla.isSitting()) {
+        if (gorilla.isSitting()) {
             this.animate(gorilla.sittingAnimationState, GorillaAnimations.SIT, ageInTicks, 1.0f);
             captureBodyState(gorilla);
             return;

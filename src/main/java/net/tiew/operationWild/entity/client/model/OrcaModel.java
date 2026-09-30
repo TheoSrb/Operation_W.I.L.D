@@ -248,6 +248,14 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 			this.head.zScale *= headScale;
 		}
 
+		if (orca.isNapping() || orca.isSleeping()) {
+			this.animate(orca.restAnimationState, OrcaAnimations.MISC_IDLE, ageInTicks, 0.35f);
+			this.head.xRot += orca.getSedatedHeadNod(ageInTicks);
+			this.prevLimbSwing = limbSwing;
+			captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
+			return;
+		}
+
 		this.applyHeadRotation(netHeadYaw, headPitch);
 
 		// Les trois coups sont EMPILÉS, sans sortie anticipée : les transformations d'une animation

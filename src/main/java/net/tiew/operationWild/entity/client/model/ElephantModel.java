@@ -276,6 +276,14 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
+
+        if (elephant.isNapping() || elephant.isSleeping()) {
+            this.animate(elephant.restAnimationState, ElephantAnimations.SIT, ageInTicks, 1.0f);
+            this.head.xRot += elephant.getSedatedHeadNod(ageInTicks);
+            captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
+            return;
+        }
+
         this.applyHeadRotation(netHeadYaw, headPitch);
 
         if (Math.abs(externalBankRoll) > 0.01f) {
@@ -315,7 +323,7 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
             return;
         }
 
-        if (elephant.isNapping() || elephant.isSleeping() || elephant.isSitting()) {
+        if (elephant.isSitting()) {
             this.animate(elephant.sittingAnimationState, ElephantAnimations.SIT, ageInTicks, 1.0f);
             captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
             return;

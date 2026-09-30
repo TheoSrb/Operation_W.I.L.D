@@ -822,13 +822,14 @@
       },
       "constants": {
         "AI_STEP_JUMP_FACTOR": 0.45,
-        "DROWSY_FLEE_THRESHOLD": 80,
         "ENTITY_COLOR": 14251827,
         "GRAB_ESCAPE_COOLDOWN": 80,
         "GRAB_START_TIMEOUT": 120,
         "GRAB_STRUGGLE_REDUCTION": 18,
         "MAX_HIDING_TIMER": 1000,
         "MAX_NO_HIDING_TIMER": 400,
+        "MAX_SOMNOLENCE": 4000,
+        "SOMNOLENCE_LOSS_INTERVAL": 1,
         "TAMING_EXPERIENCE": 185.0
       },
       "cosmetics": [
@@ -1057,12 +1058,12 @@
         "walk_speed_blocks_per_second": 3.5999999999999996
       },
       "history": {
-        "created": "2026-08-16T09:32:02.5895665+02:00",
-        "created_date": "2026-08-16",
+        "created": "2026-09-30T18:47:21.755165+02:00",
+        "created_date": "2026-09-30",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-09-25T17:20:34.6189893+02:00",
-        "last_modified_date": "2026-09-25",
-        "size_bytes": 79297
+        "last_modified": "2026-09-30T19:53:56.3424302+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 78551
       },
       "id": "ow:tiger",
       "loot": {
@@ -2128,6 +2129,19 @@
           "result": "ow:tiger_saddle",
           "taming_threshold": 185.0
         },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 400.0,
+          "full_bar_awake_seconds": 200.0,
+          "loss_interval_ticks_asleep": 2,
+          "loss_interval_ticks_awake": 1,
+          "loss_per_second_asleep": 10.0,
+          "loss_per_second_awake": 20.0,
+          "max": 4000,
+          "max_max": 4800,
+          "max_min": 3200,
+          "spread_percent": 20
+        },
         "tameable": true
       },
       "textures": [
@@ -2260,7 +2274,6 @@
       ],
       "wild_behaviors": [
         "TigerDistractedByFoodGoal",
-        "TigerDrowsyFleeGoal",
         "TigerLeapingGoal",
         "TigerScarifyTreeGoal",
         "TigerSmellBloodGoal"
@@ -2589,6 +2602,8 @@
       "constants": {
         "ENTITY_COLOR": 8215109,
         "MAX_DIRTY_TIMER": 1200,
+        "MAX_SOMNOLENCE": 6500,
+        "SOMNOLENCE_LOSS_INTERVAL": 10,
         "TAMING_EXPERIENCE": 180.0
       },
       "cosmetics": [
@@ -2754,9 +2769,9 @@
         "created": "2026-08-11T08:55:30.1806933+02:00",
         "created_date": "2026-08-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-08-11T08:55:30.1817157+02:00",
-        "last_modified_date": "2026-08-11",
-        "size_bytes": 60794
+        "last_modified": "2026-09-30T19:53:56.340729+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 61143
       },
       "id": "ow:kodiak",
       "loot": {
@@ -3737,6 +3752,19 @@
           "result": "ow:kodiak_saddle",
           "taming_threshold": 180.0
         },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 6500.0,
+          "full_bar_awake_seconds": 3250.0,
+          "loss_interval_ticks_asleep": 20,
+          "loss_interval_ticks_awake": 10,
+          "loss_per_second_asleep": 1.0,
+          "loss_per_second_awake": 2.0,
+          "max": 6500,
+          "max_max": 7800,
+          "max_min": 5200,
+          "spread_percent": 20
+        },
         "tameable": true
       },
       "textures": [
@@ -4096,7 +4124,9 @@
         "DEATH_ROLL_WINDUP_TICKS": 3,
         "ENTITY_COLOR": 7502167,
         "GRAB_START_TIMEOUT": 300,
+        "MAX_SOMNOLENCE": 5000,
         "PRIMAL_DIVE_GRAB_TICKS": 200,
+        "SOMNOLENCE_LOSS_INTERVAL": 2,
         "TAMING_EXPERIENCE": 205.0
       },
       "cosmetics": [
@@ -4187,9 +4217,9 @@
         "created": "2026-08-11T08:55:20.0962883+02:00",
         "created_date": "2026-08-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-08-11T08:55:20.0962883+02:00",
-        "last_modified_date": "2026-08-11",
-        "size_bytes": 81140
+        "last_modified": "2026-09-30T19:53:56.3444428+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 81599
       },
       "id": "ow:crocodile",
       "loot": {
@@ -5077,6 +5107,19 @@
           "result": "ow:crocodile_saddle",
           "taming_threshold": 205.0
         },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 1000.0,
+          "full_bar_awake_seconds": 500.0,
+          "loss_interval_ticks_asleep": 4,
+          "loss_interval_ticks_awake": 2,
+          "loss_per_second_asleep": 5.0,
+          "loss_per_second_awake": 10.0,
+          "max": 5000,
+          "max_max": 6000,
+          "max_min": 4000,
+          "spread_percent": 20
+        },
         "tameable": true
       },
       "textures": [
@@ -5431,6 +5474,8 @@
       },
       "constants": {
         "ENTITY_COLOR": 5660706,
+        "MAX_SOMNOLENCE": 3000,
+        "SOMNOLENCE_LOSS_INTERVAL": 1,
         "TAMING_EXPERIENCE": 80.0
       },
       "cosmetics": [
@@ -5593,9 +5638,9 @@
         "created": "2026-08-11T08:55:49.6926657+02:00",
         "created_date": "2026-08-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-08-11T08:55:49.6931838+02:00",
-        "last_modified_date": "2026-08-11",
-        "size_bytes": 58405
+        "last_modified": "2026-09-30T19:53:56.3434425+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 59206
       },
       "id": "ow:boa",
       "loot": {
@@ -6529,6 +6574,19 @@
           "result": "ow:boa_saddle",
           "taming_threshold": 80.0
         },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 300.0,
+          "full_bar_awake_seconds": 150.0,
+          "loss_interval_ticks_asleep": 2,
+          "loss_interval_ticks_awake": 1,
+          "loss_per_second_asleep": 10.0,
+          "loss_per_second_awake": 20.0,
+          "max": 3000,
+          "max_max": 3600,
+          "max_min": 2400,
+          "spread_percent": 20
+        },
         "tameable": true
       },
       "textures": [
@@ -6808,6 +6866,7 @@
         "FLOP_GROUND_LIFT": 0.75,
         "FLOP_SIDE_OFFSET": 1.0,
         "FLOP_SLAM_DURATION": 12,
+        "MAX_SOMNOLENCE": 7500,
         "MOUTH_ANIM_RECOVER": 8,
         "MOUTH_ANIM_STRIKE": 4,
         "MOUTH_ANIM_TENSE": 4,
@@ -6821,6 +6880,7 @@
         "SLIPSTREAM_BREATH_NUM": 7,
         "SLIPSTREAM_RADIUS": 32.0,
         "SLIPSTREAM_SPEED_BONUS": 0.15,
+        "SOMNOLENCE_LOSS_INTERVAL": 2,
         "TAMING_EXPERIENCE": 270.0,
         "WAVE_BREACH_DURATION": 26,
         "WAVE_BREACH_SLAM": 7
@@ -6898,9 +6958,9 @@
         "created": "2026-08-11T08:55:40.538043+02:00",
         "created_date": "2026-08-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-08-11T08:55:40.538043+02:00",
-        "last_modified_date": "2026-08-11",
-        "size_bytes": 94093
+        "last_modified": "2026-09-30T19:53:56.3444428+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 94505
       },
       "id": "ow:orca",
       "loot": {
@@ -7014,6 +7074,19 @@
           "needs_colors": false,
           "result": "ow:orca_saddle",
           "taming_threshold": 270.0
+        },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 1500.0,
+          "full_bar_awake_seconds": 750.0,
+          "loss_interval_ticks_asleep": 4,
+          "loss_interval_ticks_awake": 2,
+          "loss_per_second_asleep": 5.0,
+          "loss_per_second_awake": 10.0,
+          "max": 7500,
+          "max_max": 9000,
+          "max_min": 6000,
+          "spread_percent": 20
         },
         "tameable": true
       },
@@ -7345,8 +7418,10 @@
       "constants": {
         "ENTITY_COLOR": 7826014,
         "LEFT_FOOT_CONTACT_MS": 2900,
+        "MAX_SOMNOLENCE": 8000,
         "RIGHT_FOOT_CONTACT_MS": 1200,
         "RUN_ANIM_SPEED": 6.63,
+        "SOMNOLENCE_LOSS_INTERVAL": 4,
         "TAMING_EXPERIENCE": 300.0,
         "TRUNK_FILLING": 1,
         "TRUNK_IDLE": 0,
@@ -7420,9 +7495,9 @@
         "created": "2026-08-16T09:32:33.5836427+02:00",
         "created_date": "2026-08-16",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-08-30T18:08:56.2333393+02:00",
-        "last_modified_date": "2026-08-30",
-        "size_bytes": 110516
+        "last_modified": "2026-09-30T19:53:56.3459468+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 110801
       },
       "id": "ow:elephant",
       "loot": {
@@ -7590,6 +7665,19 @@
           "needs_colors": true,
           "result": "ow:elephant_saddle",
           "taming_threshold": 300.0
+        },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 3200.0,
+          "full_bar_awake_seconds": 1600.0,
+          "loss_interval_ticks_asleep": 8,
+          "loss_interval_ticks_awake": 4,
+          "loss_per_second_asleep": 2.5,
+          "loss_per_second_awake": 5.0,
+          "max": 8000,
+          "max_max": 9600,
+          "max_min": 6400,
+          "spread_percent": 20
         },
         "tameable": true
       },
@@ -7987,9 +8075,11 @@
         "HOT_BIOME_TEMPERATURE": 0.95,
         "HOT_HOURS_END": 9000,
         "HOT_HOURS_START": 4000,
+        "MAX_SOMNOLENCE": 3000,
         "OVERHEAT_MAX_TICKS": 900,
         "OVERHEAT_THRESHOLD_TICKS": 300,
         "PIVOT_DAMAGE_MULTIPLIER": 1.25,
+        "SOMNOLENCE_LOSS_INTERVAL": 1,
         "STOMP_PHASE_DIVE": 4,
         "STOMP_PHASE_HOVER": 3,
         "STOMP_PHASE_LEAP": 2,
@@ -8071,9 +8161,9 @@
         "created": "2026-08-11T08:55:57.9348997+02:00",
         "created_date": "2026-08-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-08-30T18:08:56.2318271+02:00",
-        "last_modified_date": "2026-08-30",
-        "size_bytes": 84064
+        "last_modified": "2026-09-30T19:53:56.3414245+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 84484
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -8160,6 +8250,19 @@
       "taming": {
         "advancement": "ow:wild_meow",
         "experience": 65.0,
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 300.0,
+          "full_bar_awake_seconds": 150.0,
+          "loss_interval_ticks_asleep": 2,
+          "loss_interval_ticks_awake": 1,
+          "loss_per_second_asleep": 10.0,
+          "loss_per_second_awake": 20.0,
+          "max": 3000,
+          "max_max": 3600,
+          "max_min": 2400,
+          "spread_percent": 20
+        },
         "tameable": true
       },
       "textures": [
@@ -8501,9 +8604,11 @@
         "HEAL_POWER_ROLL_MIN": 0.9,
         "HEAL_POWER_STEP": 0.02,
         "INTIMIDATE_TICKS": 80,
+        "MAX_SOMNOLENCE": 2500,
         "MEAL_TICKS": 46,
         "MOUTH_CHEW_TICKS": 400,
         "PLAY_TICKS": 150,
+        "SOMNOLENCE_LOSS_INTERVAL": 1,
         "SWIPE_TICKS": 16,
         "TAMING_EXPERIENCE": 40.0
       },
@@ -8564,9 +8669,9 @@
         "created": "2026-08-14T10:34:02.6053922+02:00",
         "created_date": "2026-08-14",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-08-14T16:19:07.3889651+02:00",
-        "last_modified_date": "2026-08-14",
-        "size_bytes": 73839
+        "last_modified": "2026-09-30T19:53:56.3469519+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 74171
       },
       "id": "ow:red_panda",
       "loot": {
@@ -9188,6 +9293,19 @@
             "id": "ow:red_panda_sweets"
           }
         ],
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 250.0,
+          "full_bar_awake_seconds": 125.0,
+          "loss_interval_ticks_asleep": 2,
+          "loss_interval_ticks_awake": 1,
+          "loss_per_second_asleep": 10.0,
+          "loss_per_second_awake": 20.0,
+          "max": 2500,
+          "max_max": 3000,
+          "max_min": 2000,
+          "spread_percent": 20
+        },
         "tameable": true
       },
       "textures": [
@@ -9510,6 +9628,8 @@
         "CLIMB_SURGE_TICKS": 11,
         "DEFAULT_SKIN_INDEX": 1,
         "ENTITY_COLOR": 3357762,
+        "MAX_SOMNOLENCE": 5500,
+        "SOMNOLENCE_LOSS_INTERVAL": 3,
         "TAMING_EXPERIENCE": 175.0
       },
       "cosmetics": [],
@@ -9563,9 +9683,9 @@
         "created": "2026-08-29T18:00:58.5038582+02:00",
         "created_date": "2026-08-29",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-08-30T18:37:00.0997683+02:00",
-        "last_modified_date": "2026-08-30",
-        "size_bytes": 57225
+        "last_modified": "2026-09-30T19:53:56.3474657+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 57510
       },
       "id": "ow:gorilla",
       "loot": {
@@ -9625,6 +9745,19 @@
             "id": "ow:gorilla_food"
           }
         ],
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 1650.0,
+          "full_bar_awake_seconds": 825.0,
+          "loss_interval_ticks_asleep": 6,
+          "loss_interval_ticks_awake": 3,
+          "loss_per_second_asleep": 3.3333333333333335,
+          "loss_per_second_awake": 6.666666666666667,
+          "max": 5500,
+          "max_max": 6600,
+          "max_min": 4400,
+          "spread_percent": 20
+        },
         "tameable": true
       },
       "textures": [
@@ -9794,6 +9927,10 @@
         "model": "PlantEmpressModel",
         "renderer": "PlantEmpressRenderer"
       },
+      "constants": {
+        "MAX_SOMNOLENCE": 100000,
+        "SOMNOLENCE_LOSS_INTERVAL": 0
+      },
       "gameplay": {
         "allows_unowned_piloting": false,
         "arena_terrain_mask": 1,
@@ -9833,9 +9970,9 @@
         "created": "2026-02-25T10:58:13.1092156+01:00",
         "created_date": "2026-02-25",
         "file": "src/main/java/net/tiew/operationWild/entity/bosses/PlantEmpressEntity.java",
-        "last_modified": "2026-02-25T10:58:13.1092156+01:00",
-        "last_modified_date": "2026-02-25",
-        "size_bytes": 24812
+        "last_modified": "2026-09-30T19:54:07.1115817+02:00",
+        "last_modified_date": "2026-09-30",
+        "size_bytes": 25019
       },
       "id": "ow:plant_empress",
       "loot": {
@@ -9897,6 +10034,13 @@
       "taming": {
         "advancement": "ow:",
         "experience": 0.0,
+        "somnolence": {
+          "decays": false,
+          "max": 100000,
+          "max_max": 120000,
+          "max_min": 80000,
+          "spread_percent": 20
+        },
         "tameable": true
       },
       "textures": [
@@ -10179,6 +10323,8 @@
       "PASSIVE_REGEN_INTERVAL_TICKS": 400,
       "SAVAGE_ENTITY_DAMAGE_MULTIPLIER": 1.4,
       "SECONDARY_SWITCH_COOLDOWN_TICKS": 10,
+      "SLEEPING_SOMNOLENCE_LOSS_FACTOR": 2,
+      "SOMNOLENCE_SPREAD_PERCENT": 20,
       "VITAL_ENERGY_LEVEL_GAIN": 0.5,
       "VITAL_ENERGY_UPGRADE_STEP": 6.0
     },
@@ -12317,7 +12463,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1125
+      "fr_fr": 1127
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -14977,6 +15123,13 @@
           "minecraft:carrot"
         ],
         "id": "ow:gorilla_food"
+      },
+      {
+        "constant": "SOMNOLENCE_FOOD",
+        "entries": [
+          "ow:boa_tong"
+        ],
+        "id": "ow:somnolence_food"
       },
       {
         "constant": "RED_PANDA_STEALABLE_EGGS",

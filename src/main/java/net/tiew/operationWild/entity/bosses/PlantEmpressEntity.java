@@ -47,6 +47,9 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
 public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
 
+    public static final int MAX_SOMNOLENCE = 100000;
+    public static final int SOMNOLENCE_LOSS_INTERVAL = 0;
+
     public String[] quests = {};
     public boolean test = false;
     private int bodyPartHitCooldown = 0;
@@ -83,6 +86,11 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
 
     public PlantEmpressEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+    }
+
+    @Override
+    public boolean usesAggressiveTaming() {
+        return false;
     }
 
     protected void registerGoals() {

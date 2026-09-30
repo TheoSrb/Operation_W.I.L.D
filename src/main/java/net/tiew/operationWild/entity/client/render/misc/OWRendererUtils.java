@@ -45,6 +45,10 @@ public class OWRendererUtils {
     private static final ResourceLocation FOOD_FULL = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_full.png");
     private static final ResourceLocation FOOD_HALF = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_half.png");
     private static final ResourceLocation FOOD_EMPTY = ResourceLocation.withDefaultNamespace("textures/gui/sprites/hud/food_empty.png");
+    private static final int TAMING_BONUS_XP_COLOR = 0x80FF20;
+    private static final float TAMING_BONUS_TEXT_SCALE = 0.0042F;
+    private static final float TAMING_BONUS_BOB_SPEED = 0.7F;
+    private static final float TAMING_BONUS_BOB_HEIGHT = 1.6F;
 
     // Origine UV (dans ow_teams_banners_styles.png) de la silhouette en cours de rendu, positionnée
     // par renderBannerPattern selon la forme de la bannière. Le rendu 3D est mono-thread (render thread).
@@ -95,7 +99,10 @@ public class OWRendererUtils {
         int fullBrightLight = 0xF000F0;
 
 
-        float tamingBarProgress = entity.getTamingPercentage() / 100.0F;
+        float partialTick = minecraft.getTimer().getGameTimeDeltaPartialTick(true);
+        float tamingDisplay = entity.getTamingDisplay(partialTick);
+        float somnolenceDisplay = entity.getSomnolenceDisplay(partialTick);
+        float tamingBarProgress = Math.min(1.0F, tamingDisplay / 100.0F);
 
         poseStack.pushPose();
         poseStack.translate(0.0D, 0.0D, 0.003D);
@@ -119,9 +126,23 @@ public class OWRendererUtils {
 
         poseStack.popPose();
 
+        int tamingBonus = entity.isKnockedOut() ? entity.aggressiveTaming.getBonusPoints() : 0;
+        if (tamingBonus > 0) {
+            Component bonusText = Component.literal("+" + tamingBonus);
+            float bob = net.minecraft.util.Mth.sin((entity.tickCount + partialTick) * TAMING_BONUS_BOB_SPEED)
+                    * TAMING_BONUS_BOB_HEIGHT * entity.getMealBob(partialTick);
+            poseStack.pushPose();
+            poseStack.translate(-0.43F + tamingBarWidth, tamingBarY + 0.004F + font.lineHeight * TAMING_BONUS_TEXT_SCALE, 0.004D);
+            poseStack.scale(TAMING_BONUS_TEXT_SCALE, -TAMING_BONUS_TEXT_SCALE, TAMING_BONUS_TEXT_SCALE);
+            font.drawInBatch8xOutline(bonusText.getVisualOrderText(), -font.width(bonusText), bob,
+                    (opacity << 24) | TAMING_BONUS_XP_COLOR, opacity << 24,
+                    poseStack.last().pose(), bufferSource, fullBrightLight);
+            poseStack.popPose();
+        }
+
         // Second bar: maturation for babies, somnolence for wild — hidden for tamed non-babies
         if (!entity.isTame() || entity.isBaby()) {
-            float secondBarProgress = entity.isBaby() ? entity.getMaturationPercentage() / 100.0F : entity.getSleepBarPercent() / 100.0F;
+            float secondBarProgress = Math.min(1.0F, entity.isBaby() ? entity.getMaturationPercentage() / 100.0F : somnolenceDisplay / 100.0F);
 
             poseStack.pushPose();
             poseStack.translate(0.0D, 0.0D, 0.003D);
@@ -303,7 +324,7 @@ public class OWRendererUtils {
 
         Component tamingComponent = Component.empty()
                 .append(Component.translatable("imageTaming").withStyle(style -> style.withColor(0x8e9eb9).withBold(true)))
-                .append(" " + Math.round(entity.getTamingPercentage() * 10.0f) / 10.0f + "%");
+                .append(" " + Math.round(tamingDisplay * 10.0f) / 10.0f + "%");
 
 
         String timeDisplay = "";
@@ -329,7 +350,7 @@ public class OWRendererUtils {
 
         }
 
-        float percentage = entity.isBaby() ? entity.getMaturationPercentage() : entity.getSleepBarPercent();
+        float percentage = entity.isBaby() ? entity.getMaturationPercentage() : somnolenceDisplay;
 
         // Somnolence only relevant for wild or baby entities
         Component sleepingComponent = (!entity.isTame() || entity.isBaby()) ? Component.empty()
@@ -745,20 +766,6 @@ public class OWRendererUtils {
         poseStack.scale(0.0175F, -0.0175F, 0.0175F);
         Matrix4f matrix4f = poseStack.last().pose();
         font.drawInBatch(cached.text, (float) (-cached.width / 2), 0, -1, false, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
-        poseStack.popPose();
-    }
-
-    public static void displayBonusPointAboveEntity(OWEntity entity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, EntityRenderDispatcher entityRenderDispatcher, double offsetY) {
-        int textColor = 0xdfdfdf;
-        Component text = Component.translatable("tooltip.lvlBonusPoints", entity.getHealth() < entity.getMaxHealth() / 2 ? 0 : (int) ((entity.getHealth() - (entity.getMaxHealth() / 2)) / (entity.getMaxHealth() / 10))).withStyle(Style.EMPTY).withColor(TextColor.fromRgb(textColor).getValue());
-        poseStack.pushPose();
-        poseStack.translate(0, entity.getBbHeight() + offsetY, 0);
-        poseStack.mulPose(entityRenderDispatcher.cameraOrientation());
-        poseStack.scale(0.02F, -0.02F, 0.02F);
-        Matrix4f matrix4f = poseStack.last().pose();
-        Font font = Minecraft.getInstance().font;
-        float textWidth = (float)(-font.width(text) / 2);
-        font.drawInBatch(text, textWidth, 0, -1, false, matrix4f, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         poseStack.popPose();
     }
 

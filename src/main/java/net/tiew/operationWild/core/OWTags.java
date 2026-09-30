@@ -69,6 +69,8 @@ public class OWTags {
 
         public static final TagKey<Item> GORILLA_FOOD = tag("gorilla_food");
 
+        public static final TagKey<Item> SOMNOLENCE_FOOD = tag("somnolence_food");
+
         public static final TagKey<Item> RED_PANDA_STEALABLE_EGGS = tag("red_panda_stealable_eggs");
         public static final TagKey<Item> RED_PANDA_EGGS_COMMON = tag("red_panda_eggs_common");
         public static final TagKey<Item> RED_PANDA_EGGS_RARE = tag("red_panda_eggs_rare");
