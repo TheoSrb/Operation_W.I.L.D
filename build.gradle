@@ -185,29 +185,60 @@ publishing {
     }
 }
 
-// Regenere les donnees du mod puis pousse le wiki_data.json vers le dossier du site wiki.
-// La destination vit dans gradle.properties (ow_wiki_data_target).
+// Met tout le wiki a jour depuis le mod : runData, puis le script du wiki
+// tools/sync-wiki.py, qui
+//   - nettoie le wiki_data.json genere (secrets de tools/hidden.json) et le pose
+//     dans data/ du wiki (jamais de copie brute : elle remettrait les secrets) ;
+//   - recopie dans le dossier des assets (publie sur GitHub) tout ce qui vient
+//     du mod (textures, sons, musiques, modeles 3D) et du dossier de travail
+//     (wallpapers, logo, theme), en gardant le plus recent ;
+//   - refait vignettes, apercus de partage, passants, inventaire du site ;
+//   - affiche ce qui manque encore par rapport au tigre ;
+//   - publie le dossier des assets sur GitHub (commit + push), d'ou le site le lit.
+// Les dossiers vivent dans gradle.properties (ow_wiki_dir, ow_wiki_assets_dir, ow_studio_dir).
 var wikiDataSource = file("src/generated/resources/wiki_data.json")
-var wikiDataTarget = file(providers.gradleProperty("ow_wiki_data_target").get())
+var wikiDir = file(providers.gradleProperty("ow_wiki_dir").get())
+var wikiAssetsDir = file(providers.gradleProperty("ow_wiki_assets_dir").get())
+var studioDir = file(providers.gradleProperty("ow_studio_dir").get())
+var pythonExe = providers.gradleProperty("ow_python").getOrElse("python")
+var modDir = projectDir
 
 tasks.register("runWikiDatas") {
     group = "operation wild"
-    description = "Lance runData, puis remplace ${wikiDataTarget} par le wiki_data.json genere."
+    description = "Lance runData, puis met a jour le JSON et tous les assets du wiki (${wikiDir}, ${wikiAssetsDir})."
     dependsOn tasks.named("runData")
 
     doLast {
         if (!wikiDataSource.isFile()) {
             throw new GradleException("wiki_data.json introuvable : ${wikiDataSource}")
         }
-        var destination = wikiDataTarget.parentFile
-        if (!destination.isDirectory() && !destination.mkdirs()) {
-            throw new GradleException("Dossier du wiki introuvable et non creable : ${destination}")
+        var script = new File(wikiDir, "tools/sync-wiki.py")
+        if (!script.isFile()) {
+            throw new GradleException("Script du wiki introuvable : ${script}")
         }
-        if (wikiDataTarget.exists() && !wikiDataTarget.delete()) {
-            throw new GradleException("Impossible de supprimer l'ancien fichier : ${wikiDataTarget}")
+        var args = [script.absolutePath,
+                    "--mod", modDir.absolutePath,
+                    "--export", wikiDataSource.absolutePath,
+                    "--assets", wikiAssetsDir.absolutePath,
+                    "--studio", studioDir.absolutePath]
+        // « python » d'abord, « py » (le lanceur Windows) s'il n'est pas dans le PATH.
+        Process process = null
+        for (candidate in [pythonExe, "py"].unique()) {
+            try {
+                var builder = new ProcessBuilder([candidate] + args).directory(wikiDir).redirectErrorStream(true)
+                builder.environment().put("PYTHONIOENCODING", "utf-8")
+                process = builder.start()
+                break
+            } catch (IOException ignored) {
+            }
         }
-        wikiDataTarget.bytes = wikiDataSource.bytes
-        logger.lifecycle("wiki_data.json copie vers ${wikiDataTarget} (${wikiDataTarget.length()} octets)")
+        if (process == null) {
+            throw new GradleException("Python introuvable : installer Python, ou regler ow_python dans gradle.properties.")
+        }
+        process.inputStream.newReader("UTF-8").eachLine { logger.lifecycle(it) }
+        if (process.waitFor() != 0) {
+            throw new GradleException("La mise a jour du wiki a echoue (voir ci-dessus). Rien de secret n'a ete publie.")
+        }
     }
 }
 
