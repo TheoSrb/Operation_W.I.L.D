@@ -84,7 +84,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public static final double TAMING_EXPERIENCE = 40.0;
     public static final int MAX_SOMNOLENCE = 150;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
-    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 5;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 30;
     public static final int ENTITY_COLOR = 0xec8925;
 
     private static final double SHOULDER_SIDE_OFFSET = 0.44;

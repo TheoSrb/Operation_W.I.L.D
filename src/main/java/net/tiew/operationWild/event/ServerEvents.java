@@ -40,6 +40,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.goals.crocodile.MonstersAvoidCrocodileGoal;
+import net.tiew.operationWild.entity.misc.TranquilizerArrow;
 import net.tiew.operationWild.item.OWItems;
 
 import java.util.List;
@@ -306,6 +307,13 @@ public class ServerEvents {
             if (attacker.hasEffect(OWEffects.FRACTURE.getDelegate())) {
                 event.setCanceled(true);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void onTranquilizerArrowDamage(LivingIncomingDamageEvent event) {
+        if (event.getSource().getDirectEntity() instanceof TranquilizerArrow) {
+            event.setAmount(event.getAmount() * TranquilizerArrow.DAMAGE_FACTOR);
         }
     }
 

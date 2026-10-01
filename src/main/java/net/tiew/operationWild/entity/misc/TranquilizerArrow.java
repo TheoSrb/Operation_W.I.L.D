@@ -13,6 +13,8 @@ import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.item.OWItems;
 
 public class TranquilizerArrow extends AbstractArrow {
+    public static final float DAMAGE_FACTOR = 0.2f;
+
     public Vec2 groundedOffset;
     public int tranquilizerEffectiveness = 175;
 

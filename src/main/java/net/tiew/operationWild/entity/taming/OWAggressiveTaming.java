@@ -44,8 +44,8 @@ public class OWAggressiveTaming {
     public static final int DIZZY_STAR_LIFETIME = 60;
     public static final int DIZZY_STAR_INTERVAL = DIZZY_STAR_LIFETIME / DIZZY_STAR_RING;
 
-    private static final int MEAL_INTERVAL_MIN = 200;
-    private static final int MEAL_INTERVAL_MAX = 800;
+    private static final int MEAL_INTERVAL_MIN = 400;
+    private static final int MEAL_INTERVAL_MAX = 1800;
     private static final int NOTICE_DELAY_MIN = 15;
     private static final int NOTICE_DELAY_MAX = 40;
     private static final int MEAL_DURATION = 60;

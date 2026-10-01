@@ -43,7 +43,7 @@ public class DizzyStarParticle extends TextureSheetParticle {
 
         Entity entity = level.getEntity(entityId);
         float width = entity != null ? entity.getBbWidth() : 1f;
-        this.baseSize = 0.11f + width * 0.035f;
+        this.baseSize = 0.065f + width * 0.021f;
         this.quadSize = this.baseSize;
 
         float warm = 0.85f + this.random.nextFloat() * 0.15f;

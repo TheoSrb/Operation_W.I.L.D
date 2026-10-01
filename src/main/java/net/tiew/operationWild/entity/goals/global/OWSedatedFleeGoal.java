@@ -74,21 +74,25 @@ public class OWSedatedFleeGoal extends Goal {
     @Nullable
     private Vec3 findEscape() {
         Entity threat = mob.aggressiveTaming.getThreat();
-        Vec3 danger = threat != null ? threat.position() : null;
-        boolean swimmer = mob.isInWater() && (mob instanceof OWWaterEntity || mob instanceof OWSemiWaterEntity);
-        if (swimmer) return findSwimEscape(danger);
-        Vec3 target = danger != null
-                ? DefaultRandomPos.getPosAway(mob, ESCAPE_RADIUS, ESCAPE_HEIGHT, danger)
-                : DefaultRandomPos.getPos(mob, ESCAPE_RADIUS, ESCAPE_HEIGHT);
-        return target != null ? target : DefaultRandomPos.getPos(mob, ESCAPE_RADIUS / 2, ESCAPE_HEIGHT);
+        return findEscapeFrom(mob, threat != null ? threat.position() : null, ESCAPE_RADIUS, ESCAPE_HEIGHT);
     }
 
     @Nullable
-    private Vec3 findSwimEscape(@Nullable Vec3 danger) {
+    public static Vec3 findEscapeFrom(OWEntity mob, @Nullable Vec3 danger, int radius, int height) {
+        boolean swimmer = mob.isInWater() && (mob instanceof OWWaterEntity || mob instanceof OWSemiWaterEntity);
+        if (swimmer) return findSwimEscape(mob, danger, radius, height);
+        Vec3 target = danger != null
+                ? DefaultRandomPos.getPosAway(mob, radius, height, danger)
+                : DefaultRandomPos.getPos(mob, radius, height);
+        return target != null ? target : DefaultRandomPos.getPos(mob, radius / 2, height);
+    }
+
+    @Nullable
+    private static Vec3 findSwimEscape(OWEntity mob, @Nullable Vec3 danger, int radius, int height) {
         Vec3 best = null;
         double bestDistance = -1;
         for (int i = 0; i < SWIM_SAMPLES; i++) {
-            Vec3 candidate = BehaviorUtils.getRandomSwimmablePos(mob, ESCAPE_RADIUS, ESCAPE_HEIGHT);
+            Vec3 candidate = BehaviorUtils.getRandomSwimmablePos(mob, radius, height);
             if (candidate == null) continue;
             if (danger == null) return candidate;
             double distance = candidate.distanceToSqr(danger);

@@ -87,7 +87,10 @@ import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.global.OWFollowOwnerGoal;
 import net.tiew.operationWild.entity.goals.global.OWLookAtPlayerGoal;
 import net.tiew.operationWild.entity.goals.global.OWSedatedFleeGoal;
+import net.tiew.operationWild.entity.goals.global.OWSedationRetaliationGoal;
+import net.tiew.operationWild.entity.goals.global.OWSedationRetreatGoal;
 import net.tiew.operationWild.entity.taming.OWAggressiveTaming;
+import net.tiew.operationWild.entity.taming.OWSedationResponse;
 import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.entity.misc.*;
 import net.tiew.operationWild.entity.quests.ascent.AscentMission;
@@ -190,6 +193,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             new net.tiew.operationWild.entity.behavior.OWFearHandler(this);
 
     public final OWAggressiveTaming aggressiveTaming = new OWAggressiveTaming(this);
+    public final OWSedationResponse sedationResponse = new OWSedationResponse(this);
 
     public final AnimationState sedatedCollapseAnimationState = new AnimationState();
     public final AnimationState sedatedMealAnimationState = new AnimationState();
@@ -584,11 +588,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.registerBehaviorGoals(this);
 
         this.goalSelector.addGoal(0, new OWSedatedFleeGoal(this));
+        this.goalSelector.addGoal(0, new OWSedationRetreatGoal(this));
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
         this.goalSelector.addGoal(2, new OWFollowOwnerGoal(this, this.getSpeed() * followOwnerSpeedFactor(), 15, 3));
         this.goalSelector.addGoal(4, new FollowParentGoal(this, 1.25));
         this.goalSelector.addGoal(6, new OWLookAtPlayerGoal(this, Player.class, 6.0F));
 
+        this.targetSelector.addGoal(0, new OWSedationRetaliationGoal(this));
         this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
 
@@ -2695,6 +2701,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             } else if (this.isKnockedOut() && damageSource.getEntity() != null) {
                 this.aggressiveTaming.onHit(damageSource);
             }
+            if (sedative) this.sedationResponse.onSedativeHit(damageSource);
         }
 
         lastVisibleTarget = (LivingEntity) damageSource.getEntity();
@@ -2824,7 +2831,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return;
         }
 
-        if (target != null && this.isSedatedFleeing()) {
+        if (target != null && (this.isSedatedFleeing() || this.sedationResponse.isRetreating())) {
             super.setTarget(null);
             return;
         }
@@ -3202,6 +3209,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
             this.fearHandler.tick();
             if (this.usesAggressiveTaming()) this.aggressiveTaming.tick();
+            this.sedationResponse.tick();
             tickSecondaryCooldown();
         }
 

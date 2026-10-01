@@ -6885,7 +6885,7 @@
         "SLIPSTREAM_RADIUS": 32.0,
         "SLIPSTREAM_SPEED_BONUS": 0.15,
         "SOMNOLENCE_LOSS_INTERVAL": 2,
-        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 3,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
         "TAMING_EXPERIENCE": 270.0,
         "WAVE_BREACH_DURATION": 26,
         "WAVE_BREACH_SLAM": 7
@@ -6960,10 +6960,10 @@
         "walk_speed_blocks_per_second": 3.5999999999999996
       },
       "history": {
-        "created": "2026-10-01T16:57:09.3072813+02:00",
+        "created": "2026-10-01T17:14:08.6500573+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-01T16:57:09.3072813+02:00",
+        "last_modified": "2026-10-01T17:14:08.6506945+02:00",
         "last_modified_date": "2026-10-01",
         "size_bytes": 94687
       },
@@ -7082,11 +7082,11 @@
         },
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 705.0,
+          "full_bar_asleep_seconds": 470.0,
           "full_bar_awake_seconds": 470.0,
-          "loss_interval_ticks_asleep": 3,
+          "loss_interval_ticks_asleep": 2,
           "loss_interval_ticks_awake": 2,
-          "loss_per_second_asleep": 6.666666666666667,
+          "loss_per_second_asleep": 10.0,
           "loss_per_second_awake": 10.0,
           "max": 4700,
           "max_max": 5640,
@@ -8086,7 +8086,7 @@
         "OVERHEAT_THRESHOLD_TICKS": 300,
         "PIVOT_DAMAGE_MULTIPLIER": 1.25,
         "SOMNOLENCE_LOSS_INTERVAL": 1,
-        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 1,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
         "STOMP_PHASE_DIVE": 4,
         "STOMP_PHASE_HOVER": 3,
         "STOMP_PHASE_LEAP": 2,
@@ -8165,10 +8165,10 @@
         "walk_speed_blocks_per_second": 4.2
       },
       "history": {
-        "created": "2026-10-01T16:57:09.2378833+02:00",
+        "created": "2026-10-01T17:11:04.2566378+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-01T16:57:09.2391875+02:00",
+        "last_modified": "2026-10-01T17:11:04.2566378+02:00",
         "last_modified_date": "2026-10-01",
         "size_bytes": 84672
       },
@@ -8259,11 +8259,11 @@
         "experience": 65.0,
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 65.0,
+          "full_bar_asleep_seconds": 130.0,
           "full_bar_awake_seconds": 65.0,
-          "loss_interval_ticks_asleep": 1,
+          "loss_interval_ticks_asleep": 2,
           "loss_interval_ticks_awake": 1,
-          "loss_per_second_asleep": 20.0,
+          "loss_per_second_asleep": 10.0,
           "loss_per_second_awake": 20.0,
           "max": 1300,
           "max_max": 1560,
@@ -8616,7 +8616,7 @@
         "MOUTH_CHEW_TICKS": 400,
         "PLAY_TICKS": 150,
         "SOMNOLENCE_LOSS_INTERVAL": 1,
-        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 5,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 30,
         "SWIPE_TICKS": 16,
         "TAMING_EXPERIENCE": 40.0
       },
@@ -8674,12 +8674,12 @@
         "walk_speed_blocks_per_second": 3.2
       },
       "history": {
-        "created": "2026-10-01T16:57:09.3412038+02:00",
+        "created": "2026-10-01T17:11:35.3085605+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-01T16:57:09.3418103+02:00",
+        "last_modified": "2026-10-01T17:11:35.3085605+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 74358
+        "size_bytes": 74359
       },
       "id": "ow:red_panda",
       "loot": {
@@ -9303,11 +9303,11 @@
         ],
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 37.5,
+          "full_bar_asleep_seconds": 225.0,
           "full_bar_awake_seconds": 7.5,
-          "loss_interval_ticks_asleep": 5,
+          "loss_interval_ticks_asleep": 30,
           "loss_interval_ticks_awake": 1,
-          "loss_per_second_asleep": 4.0,
+          "loss_per_second_asleep": 0.6666666666666666,
           "loss_per_second_awake": 20.0,
           "max": 150,
           "max_max": 180,
