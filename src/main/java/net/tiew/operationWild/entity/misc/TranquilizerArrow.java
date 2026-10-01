@@ -16,7 +16,7 @@ public class TranquilizerArrow extends AbstractArrow {
     public static final float DAMAGE_FACTOR = 0.2f;
 
     public Vec2 groundedOffset;
-    public int tranquilizerEffectiveness = 175;
+    public int tranquilizerEffectiveness = 100;
 
     public TranquilizerArrow(EntityType<? extends AbstractArrow> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
