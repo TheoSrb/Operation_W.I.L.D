@@ -1123,7 +1123,5 @@
   "ow.advancements.silverback.title": "Silverback",
   "ow.advancements.silverback.description": "You tamed a Gorilla!",
   "ow.attacks.gorilla.cold_blood.title": "Cool Head",
-  "ow.attacks.gorilla.cold_blood.desc": "A silverback does not back down. Primal Fear never takes hold on the gorilla: the effect is refused outright, so it never loses control, never bucks, and its rider keeps command. What other beasts endure trembling, it simply watches coming.",
-  "taming.ow.woke_up": "Taming lost (%s): the beast woke up",
-  "taming.ow.bonus_lost": "Sleeping beast struck! Bonus points: %s/%s"
+  "ow.attacks.gorilla.cold_blood.desc": "A silverback does not back down. Primal Fear never takes hold on the gorilla: the effect is refused outright, so it never loses control, never bucks, and its rider keeps command. What other beasts endure trembling, it simply watches coming."
 }

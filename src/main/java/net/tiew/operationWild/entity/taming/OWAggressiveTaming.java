@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.taming;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
@@ -7,7 +8,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -46,6 +46,8 @@ public class OWAggressiveTaming {
 
     private static final int MEAL_INTERVAL_MIN = 400;
     private static final int MEAL_INTERVAL_MAX = 1800;
+    private static final int SOMNOLENCE_MEAL_HASTE = 2;
+    private static final int MEAL_SCAN_INTERVAL = 5;
     private static final int NOTICE_DELAY_MIN = 15;
     private static final int NOTICE_DELAY_MAX = 40;
     private static final int MEAL_DURATION = 60;
@@ -63,10 +65,7 @@ public class OWAggressiveTaming {
     private static final float SOMNOLENCE_GAIN_RATE = 0.1f;
     private static final double THREAT_RADIUS = 32.0;
     private static final double SEDATOR_MEMORY_RADIUS = 48.0;
-    private static final double FEEDER_NOTIFY_RADIUS = 64.0;
     private static final double OWNER_FALLBACK_RADIUS = 24.0;
-
-    private static final int RED = 0xFF6B6B;
 
     private final OWEntity entity;
     private final Map<UUID, Integer> feeders = new LinkedHashMap<>();
@@ -77,6 +76,7 @@ public class OWAggressiveTaming {
     @Nullable
     private ItemEntity mealItem;
     private int mealCooldown;
+    private boolean onlySomnolenceFoodAhead;
     private int noticeDelay;
     private int mealTicks;
     private int collapseTicks;
@@ -159,10 +159,6 @@ public class OWAggressiveTaming {
         if (hits < MAX_BONUS_POINTS) entity.setTamingHits(hits + 1);
         sendHeadParticles(ParticleTypes.ANGRY_VILLAGER, 3, 0.25);
         entity.playSound(SoundEvents.ITEM_BREAK, 0.7f, 0.6f);
-        if (source.getEntity() instanceof ServerPlayer player) {
-            player.displayClientMessage(Component.translatable("taming.ow.bonus_lost", getBonusPoints(), MAX_BONUS_POINTS)
-                    .withStyle(style -> style.withColor(RED)), true);
-        }
     }
 
     public void tick() {
@@ -236,7 +232,10 @@ public class OWAggressiveTaming {
             return;
         }
         if (mealCooldown > 0) {
-            mealCooldown--;
+            if ((entity.tickCount + entity.getId()) % MEAL_SCAN_INTERVAL == 0) {
+                onlySomnolenceFoodAhead = hasOnlySomnolenceFoodAhead();
+            }
+            mealCooldown = Math.max(0, mealCooldown - (onlySomnolenceFoodAhead ? SOMNOLENCE_MEAL_HASTE : 1));
             return;
         }
         if (noticeDelay > 0) {
@@ -248,7 +247,7 @@ public class OWAggressiveTaming {
             if (--noticeDelay == 0) startMeal(mealItem);
             return;
         }
-        if ((entity.tickCount + entity.getId()) % 5 != 0) return;
+        if ((entity.tickCount + entity.getId()) % MEAL_SCAN_INTERVAL != 0) return;
         ItemEntity food = findMeal();
         if (food == null) return;
         mealItem = food;
@@ -267,6 +266,22 @@ public class OWAggressiveTaming {
                 .min(Comparator.comparingInt((ItemEntity item) -> mealPriority(item.getItem(), urgent))
                         .thenComparingDouble(item -> item.distanceToSqr(mouth)))
                 .orElse(null);
+    }
+
+    private boolean hasOnlySomnolenceFoodAhead() {
+        Vec3 mouth = mouthPosition();
+        double reach = mealReach();
+        AABB zone = new AABB(mouth, mouth).inflate(reach, MEAL_VERTICAL_REACH, reach);
+        boolean somnolenceFood = false;
+        for (ItemEntity item : entity.level().getEntitiesOfClass(ItemEntity.class, zone, ItemEntity::isAlive)) {
+            ItemStack stack = item.getItem();
+            if (isSomnolenceFood(stack)) {
+                somnolenceFood |= canEat(item);
+            } else if (entity.isTamingFood(stack) || stack.has(DataComponents.FOOD)) {
+                return false;
+            }
+        }
+        return somnolenceFood;
     }
 
     private int mealPriority(ItemStack stack, boolean urgent) {
@@ -407,29 +422,11 @@ public class OWAggressiveTaming {
             clearState();
             return;
         }
-        if (entity.foodGiven > 0) {
-            notifyTamers(Component.translatable("taming.ow.woke_up", entity.getType().getDescription())
-                    .withStyle(style -> style.withColor(RED)));
-        }
         entity.foodGiven = 0;
         entity.setTamingPercentage(0, Math.max(1, entity.foodWanted));
         clearState();
         sendHeadParticles(ParticleTypes.CLOUD, 10, 0.3);
         entity.playSedationVoice(1.0f);
-    }
-
-    private void notifyTamers(Component message) {
-        MinecraftServer server = entity.getServer();
-        if (server == null) return;
-        List<UUID> tamers = new ArrayList<>(feeders.keySet());
-        if (sedator != null && !tamers.contains(sedator)) tamers.add(sedator);
-        for (UUID id : tamers) {
-            ServerPlayer player = server.getPlayerList().getPlayer(id);
-            if (player != null && player.level() == entity.level()
-                    && player.distanceToSqr(entity) <= FEEDER_NOTIFY_RADIUS * FEEDER_NOTIFY_RADIUS) {
-                player.displayClientMessage(message, true);
-            }
-        }
     }
 
     private void clearState() {
@@ -454,6 +451,7 @@ public class OWAggressiveTaming {
 
     private void scheduleMeal(int ticks) {
         mealCooldown = ticks;
+        onlySomnolenceFoodAhead = false;
         noticeDelay = 0;
     }
 

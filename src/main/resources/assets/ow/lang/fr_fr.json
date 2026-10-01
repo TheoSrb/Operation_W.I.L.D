@@ -1123,7 +1123,5 @@
   "ow.advancements.silverback.title": "Dos argenté",
   "ow.advancements.silverback.description": "Vous avez apprivoisé un Gorille !",
   "ow.attacks.gorilla.cold_blood.title": "Sang-froid",
-  "ow.attacks.gorilla.cold_blood.desc": "Un dos argenté ne recule pas. La Peur primitive ne prend jamais sur le gorille : l'effet lui est refusé d'emblée, il ne perd donc jamais le contrôle, ne rue pas, et son cavalier garde la main. Ce que les autres bêtes subissent en tremblant, lui le regarde venir.",
-  "taming.ow.woke_up": "Apprivoisement perdu (%s) : la bête s'est réveillée",
-  "taming.ow.bonus_lost": "Bête endormie frappée ! Points bonus : %s/%s"
+  "ow.attacks.gorilla.cold_blood.desc": "Un dos argenté ne recule pas. La Peur primitive ne prend jamais sur le gorille : l'effet lui est refusé d'emblée, il ne perd donc jamais le contrôle, ne rue pas, et son cavalier garde la main. Ce que les autres bêtes subissent en tremblant, lui le regarde venir."
 }

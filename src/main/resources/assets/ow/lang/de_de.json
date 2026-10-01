@@ -1123,7 +1123,5 @@
   "ow.advancements.silverback.title": "Silberrücken",
   "ow.advancements.silverback.description": "Du hast einen Gorilla gezähmt!",
   "ow.attacks.gorilla.cold_blood.title": "Kaltblütig",
-  "ow.attacks.gorilla.cold_blood.desc": "Ein Silberrücken weicht nicht zurück. Die Urangst greift beim Gorilla nie: Der Effekt wird von vornherein abgewiesen, er verliert also nie die Kontrolle, bockt nicht, und sein Reiter behält das Kommando. Was andere Tiere zitternd erdulden, sieht er einfach kommen.",
-  "taming.ow.woke_up": "Zähmung verloren (%s): Das Tier ist aufgewacht",
-  "taming.ow.bonus_lost": "Schlafendes Tier getroffen! Bonuspunkte: %s/%s"
+  "ow.attacks.gorilla.cold_blood.desc": "Ein Silberrücken weicht nicht zurück. Die Urangst greift beim Gorilla nie: Der Effekt wird von vornherein abgewiesen, er verliert also nie die Kontrolle, bockt nicht, und sein Reiter behält das Kommando. Was andere Tiere zitternd erdulden, sieht er einfach kommen."
 }

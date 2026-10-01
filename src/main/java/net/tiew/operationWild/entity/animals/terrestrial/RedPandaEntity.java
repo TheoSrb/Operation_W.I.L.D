@@ -1685,7 +1685,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             this.setVariant(chooseRedPandaVariant());
             this.setInitialVariant(this.getVariant());
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(6, 10);
+        this.foodWanted = (int) OWUtils.generateRandomInterval(3, 7);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 

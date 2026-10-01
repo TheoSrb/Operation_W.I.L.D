@@ -1123,7 +1123,5 @@
   "ow.advancements.silverback.title": "银背",
   "ow.advancements.silverback.description": "你驯服了一只大猩猩！",
   "ow.attacks.gorilla.cold_blood.title": "泰然自若",
-  "ow.attacks.gorilla.cold_blood.desc": "银背从不退让。原始恐惧对大猩猩从不生效，该效果会被直接拒绝，因此它永远不会失控、不会尥蹶子，骑乘者也始终掌握操控。别的野兽颤抖着忍受的东西，它只是静静看着它来。",
-  "taming.ow.woke_up": "驯服失败（%s）：野兽醒来了",
-  "taming.ow.bonus_lost": "沉睡的野兽遭到攻击！额外点数：%s/%s"
+  "ow.attacks.gorilla.cold_blood.desc": "银背从不退让。原始恐惧对大猩猩从不生效，该效果会被直接拒绝，因此它永远不会失控、不会尥蹶子，骑乘者也始终掌握操控。别的野兽颤抖着忍受的东西，它只是静静看着它来。"
 }

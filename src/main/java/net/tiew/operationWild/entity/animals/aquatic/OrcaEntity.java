@@ -1430,7 +1430,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         if (source.getEntity() instanceof LivingEntity attacker
                 && attacker != this
                 && !this.isAlliedTo(attacker)
-                && !this.sedationResponse.isRetreating()) {
+                && !this.sedationResponse.blocksTarget(attacker)) {
             this.forceSetTarget(attacker);
         }
         return hurt;

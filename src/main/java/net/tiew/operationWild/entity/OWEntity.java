@@ -207,6 +207,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private float tamingDisplayO;
     private float somnolenceDisplay;
     private float somnolenceDisplayO;
+    private int observedSomnolence = -1;
+    private int somnolenceStepTick;
     private float mealBob;
     private float mealBobO;
     private boolean knockedOutOnClient;
@@ -1733,7 +1735,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void setActualSleepingBarTo(int actualSleepingBar) {
-        this.entityData.set(ACTUAL_SLEEPING_BAR, actualSleepingBar);
+        int max = this.getMaxSleepingBar();
+        this.entityData.set(ACTUAL_SLEEPING_BAR, max > 0 ? Math.min(actualSleepingBar, max) : actualSleepingBar);
     }
 
     public int getActualSleepingBar() {
@@ -1849,6 +1852,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.sleepBarDownSpeed * SLEEPING_SOMNOLENCE_LOSS_FACTOR;
     }
 
+    public int somnolenceLossInterval() {
+        return this.isSleeping() ? this.asleepSomnolenceLossInterval() : this.sleepBarDownSpeed;
+    }
+
+    private boolean losesSomnolence() {
+        return this.getActualSleepingBar() > 0 && this.somnolenceLossInterval() > 0 && !(this instanceof PlantEmpressEntity);
+    }
+
     public boolean isTamingFood(ItemStack stack) {
         return this.isFood(stack);
     }
@@ -1923,7 +1934,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     private void tickSedationClient() {
         float tamingTarget = this.getTamingPercentage();
-        float somnolenceTarget = this.getSleepBarProgress() * 100f;
+        float somnolenceTarget = this.smoothSomnolencePercent();
         if (!this.sedationDisplayPrimed) {
             this.sedationDisplayPrimed = true;
             this.tamingDisplay = tamingTarget;
@@ -1948,6 +1959,21 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.mealBob = Mth.approach(this.mealBob, eating ? 1f : 0f, 0.2f);
 
         if (knockedOut) this.spawnSedationParticles();
+    }
+
+    private float smoothSomnolencePercent() {
+        int max = this.getMaxSleepingBar();
+        if (max <= 0) return 0f;
+        int actual = this.getActualSleepingBar();
+        if (actual != this.observedSomnolence) {
+            this.observedSomnolence = actual;
+            this.somnolenceStepTick = this.tickCount;
+        }
+        float value = actual;
+        if (this.losesSomnolence()) {
+            value -= Math.min(1f, (this.tickCount - this.somnolenceStepTick) / (float) this.somnolenceLossInterval());
+        }
+        return Mth.clamp(value / max, 0f, 1f) * 100f;
     }
 
     private static float approachDisplay(float current, float target) {
@@ -2831,7 +2857,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return;
         }
 
-        if (target != null && (this.isSedatedFleeing() || this.sedationResponse.isRetreating())) {
+        if (target != null && (this.isSedatedFleeing() || this.sedationResponse.blocksTarget(target))) {
             super.setTarget(null);
             return;
         }
@@ -3387,10 +3413,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
-        if (getActualSleepingBar() > 0 && !(this instanceof PlantEmpressEntity)) {
-            int decreaseRate = isSleeping() ? asleepSomnolenceLossInterval() : sleepBarDownSpeed;
-            if (tickCount % decreaseRate == 0) setActualSleepingBarTo(getActualSleepingBar() - 1);
-            ;
+        if (!this.level().isClientSide() && this.losesSomnolence() && tickCount % this.somnolenceLossInterval() == 0) {
+            setActualSleepingBarTo(getActualSleepingBar() - 1);
         }
 
         if (isSleeping() && getActualSleepingBar() <= 0) {
@@ -5216,8 +5240,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(TAMING_PERCENTAGE, tag.getInt("getTamingPercentage"));
         this.entityData.set(MATURATION_PERCENTAGE, tag.getFloat("getMaturationPercentage"));
         this.entityData.set(IS_SLEEPING, tag.getBoolean("isSleeping"));
-        this.entityData.set(ACTUAL_SLEEPING_BAR, tag.getInt("getActualSleepingBar"));
         this.entityData.set(MAX_SLEEPING_BAR, tag.getInt("getMaxSleepingBar"));
+        this.setActualSleepingBarTo(tag.getInt("getActualSleepingBar"));
         this.entityData.set(RE_UPDATED_QUESTS, tag.getBoolean("canReUpdatedDailyQuests"));
         this.entityData.set(IS_IN_RESURRECTION, tag.getBoolean("isInResurrection"));
         this.entityData.set(CAN_DROP_SOUL, tag.getBoolean("canDropSoul"));
