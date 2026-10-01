@@ -71,8 +71,9 @@ import java.util.UUID;
 public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity, PlayerRideableJumping, NeutralMob {
 
     public static final double TAMING_EXPERIENCE = 65.0;
-    public static final int MAX_SOMNOLENCE = 3000;
+    public static final int MAX_SOMNOLENCE = 1300;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 1;
 
     private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(25, 40);
     public static final double HERD_ANGER_RADIUS = 20.0;
@@ -314,6 +315,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     @Override
     public float sedatedFleeSpeed() {
         return 4f;
+    }
+
+    @Override
+    public int asleepSomnolenceLossInterval() {
+        return SOMNOLENCE_LOSS_INTERVAL_ASLEEP;
     }
 
     @Override

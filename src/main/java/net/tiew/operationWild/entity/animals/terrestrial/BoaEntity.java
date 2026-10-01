@@ -74,8 +74,9 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity {
 
     public static final double TAMING_EXPERIENCE = 80.0;
-    public static final int MAX_SOMNOLENCE = 3000;
+    public static final int MAX_SOMNOLENCE = 1200;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 4;
 
     private BoaTailPart[] parts;
 
@@ -302,6 +303,11 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     @Override
     public float sedatedFleeSpeed() {
         return 2.5f;
+    }
+
+    @Override
+    public int asleepSomnolenceLossInterval() {
+        return SOMNOLENCE_LOSS_INTERVAL_ASLEEP;
     }
 
     @Override

@@ -81,8 +81,9 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
 
     public static final double TAMING_EXPERIENCE = 300.0;
-    public static final int MAX_SOMNOLENCE = 8000;
+    public static final int MAX_SOMNOLENCE = 5000;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 4;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 10;
 
     private static final int CALL_MIN_COOLDOWN = 700;
     private static final int CALL_MAX_COOLDOWN = 1400;
@@ -371,6 +372,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     @Override
     public float sedatedFleeSpeed() {
         return 6f;
+    }
+
+    @Override
+    public int asleepSomnolenceLossInterval() {
+        return SOMNOLENCE_LOSS_INTERVAL_ASLEEP;
     }
 
     @Override

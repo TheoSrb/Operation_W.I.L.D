@@ -82,8 +82,9 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     public static final double TAMING_EXPERIENCE = 40.0;
-    public static final int MAX_SOMNOLENCE = 2500;
+    public static final int MAX_SOMNOLENCE = 150;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 5;
     public static final int ENTITY_COLOR = 0xec8925;
 
     private static final double SHOULDER_SIDE_OFFSET = 0.44;
@@ -651,6 +652,11 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     @Override
     public float sedatedFleeSpeed() {
         return 2.8f;
+    }
+
+    @Override
+    public int asleepSomnolenceLossInterval() {
+        return SOMNOLENCE_LOSS_INTERVAL_ASLEEP;
     }
 
     @Override

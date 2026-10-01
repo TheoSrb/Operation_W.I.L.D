@@ -81,8 +81,9 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity {
 
     public static final double TAMING_EXPERIENCE = 205.0;
-    public static final int MAX_SOMNOLENCE = 5000;
+    public static final int MAX_SOMNOLENCE = 3250;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 2;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 4;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
@@ -307,6 +308,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public float sedatedFleeSpeed() {
         return 2.8f;
+    }
+
+    @Override
+    public int asleepSomnolenceLossInterval() {
+        return SOMNOLENCE_LOSS_INTERVAL_ASLEEP;
     }
 
     @Override

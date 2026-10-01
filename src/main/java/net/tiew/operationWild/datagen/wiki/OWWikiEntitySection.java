@@ -334,7 +334,8 @@ public final class OWWikiEntitySection {
         somnolence.addProperty("decays", interval > 0);
         if (interval <= 0) return somnolence;
 
-        int asleepInterval = interval * OWEntity.SLEEPING_SOMNOLENCE_LOSS_FACTOR;
+        Integer asleepOverride = staticInt(implementation, "SOMNOLENCE_LOSS_INTERVAL_ASLEEP");
+        int asleepInterval = asleepOverride != null ? asleepOverride : interval * OWEntity.SLEEPING_SOMNOLENCE_LOSS_FACTOR;
         double awakePerSecond = 20.0 / interval;
         double asleepPerSecond = 20.0 / asleepInterval;
         somnolence.addProperty("loss_interval_ticks_awake", interval);

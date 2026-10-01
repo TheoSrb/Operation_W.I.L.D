@@ -78,8 +78,9 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     // ==================================================
 
     public static final double TAMING_EXPERIENCE = 175.0;
-    public static final int MAX_SOMNOLENCE = 5500;
+    public static final int MAX_SOMNOLENCE = 1800;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 3;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 3;
     public static final int ENTITY_COLOR = 0x333C42;
     public static final int DEFAULT_SKIN_INDEX = 1;
     public static final float AI_STEP_JUMP_FACTOR = 0.45f;
@@ -255,6 +256,11 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     @Override
     public float sedatedFleeSpeed() {
         return 5f;
+    }
+
+    @Override
+    public int asleepSomnolenceLossInterval() {
+        return SOMNOLENCE_LOSS_INTERVAL_ASLEEP;
     }
 
     @Override

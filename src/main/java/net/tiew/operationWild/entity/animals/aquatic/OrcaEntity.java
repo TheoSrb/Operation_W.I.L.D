@@ -66,8 +66,9 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, IOWRideable {
 
     public static final double TAMING_EXPERIENCE = 270.0;
-    public static final int MAX_SOMNOLENCE = 7500;
+    public static final int MAX_SOMNOLENCE = 4700;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 2;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 3;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> RIDER_CONTROL_PITCH = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.FLOAT);
@@ -813,6 +814,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     @Override
     public float sedatedFleeSpeed() {
         return this.getSwimSpeed();
+    }
+
+    @Override
+    public int asleepSomnolenceLossInterval() {
+        return SOMNOLENCE_LOSS_INTERVAL_ASLEEP;
     }
 
     @Override

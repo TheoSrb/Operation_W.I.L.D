@@ -1839,6 +1839,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return 3.0f;
     }
 
+    public int asleepSomnolenceLossInterval() {
+        return this.sleepBarDownSpeed * SLEEPING_SOMNOLENCE_LOSS_FACTOR;
+    }
+
     public boolean isTamingFood(ItemStack stack) {
         return this.isFood(stack);
     }
@@ -3376,7 +3380,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
 
         if (getActualSleepingBar() > 0 && !(this instanceof PlantEmpressEntity)) {
-            int decreaseRate = isSleeping() ? sleepBarDownSpeed * SLEEPING_SOMNOLENCE_LOSS_FACTOR : sleepBarDownSpeed;
+            int decreaseRate = isSleeping() ? asleepSomnolenceLossInterval() : sleepBarDownSpeed;
             if (tickCount % decreaseRate == 0) setActualSleepingBarTo(getActualSleepingBar() - 1);
             ;
         }

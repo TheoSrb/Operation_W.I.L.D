@@ -80,8 +80,9 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, NeutralMob {
 
     public static final double TAMING_EXPERIENCE = 180.0;
-    public static final int MAX_SOMNOLENCE = 6500;
+    public static final int MAX_SOMNOLENCE = 3400;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 10;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 7;
     private static final int MAX_EATING_TIMER = 400;
     private static final int MAX_HONEY_TIMER = 750;
     public static final int MAX_DIRTY_TIMER = 1200;
@@ -298,6 +299,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public float sedatedFleeSpeed() {
         return 4.5f;
+    }
+
+    @Override
+    public int asleepSomnolenceLossInterval() {
+        return SOMNOLENCE_LOSS_INTERVAL_ASLEEP;
     }
 
     @Override
