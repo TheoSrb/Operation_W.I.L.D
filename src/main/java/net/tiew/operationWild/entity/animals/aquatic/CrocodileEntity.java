@@ -84,6 +84,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public static final int MAX_SOMNOLENCE = 3250;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 2;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 4;
+    public static final int FOOD_WANTED_MIN = 6;
+    public static final int FOOD_WANTED_MAX = 10;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
@@ -1018,7 +1020,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             this.setVariant(chooseCrocodileVariant());
             this.setInitialVariant(this.getVariant());
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(6, 11);
+        this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
 
         if (this.isBaby()) {
             maxHealth = (float) this.getAttribute(Attributes.MAX_HEALTH).getValue();

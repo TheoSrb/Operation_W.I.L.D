@@ -77,6 +77,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     public static final int MAX_SOMNOLENCE = 1200;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 4;
+    public static final int FOOD_WANTED_MIN = 8;
+    public static final int FOOD_WANTED_MAX = 14;
 
     private BoaTailPart[] parts;
 
@@ -1057,7 +1059,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
             this.setVariant(chooseBoaVariant());
             this.setInitialVariant(this.getVariant());
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(8, 15);
+        this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 

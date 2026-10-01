@@ -85,6 +85,8 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public static final int MAX_SOMNOLENCE = 150;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 30;
+    public static final int FOOD_WANTED_MIN = 3;
+    public static final int FOOD_WANTED_MAX = 6;
     public static final int ENTITY_COLOR = 0xec8925;
 
     private static final double SHOULDER_SIDE_OFFSET = 0.44;
@@ -1685,7 +1687,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             this.setVariant(chooseRedPandaVariant());
             this.setInitialVariant(this.getVariant());
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(3, 7);
+        this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 

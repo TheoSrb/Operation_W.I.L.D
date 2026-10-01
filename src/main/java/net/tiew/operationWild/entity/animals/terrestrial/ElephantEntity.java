@@ -84,6 +84,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public static final int MAX_SOMNOLENCE = 5000;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 4;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 10;
+    public static final int FOOD_WANTED_MIN = 12;
+    public static final int FOOD_WANTED_MAX = 19;
 
     private static final int CALL_MIN_COOLDOWN = 700;
     private static final int CALL_MAX_COOLDOWN = 1400;
@@ -1241,7 +1243,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             this.setVariant(chooseElephantVariant());
             this.setInitialVariant(this.getVariant());
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(12, 20);
+        this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 

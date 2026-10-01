@@ -74,6 +74,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public static final int MAX_SOMNOLENCE = 1300;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 2;
+    public static final int FOOD_WANTED_MIN = 8;
+    public static final int FOOD_WANTED_MAX = 14;
 
     private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(25, 40);
     public static final double HERD_ANGER_RADIUS = 20.0;
@@ -1830,7 +1832,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             this.setVariant(chooseKangarooVariant());
             this.setInitialVariant(this.getVariant());
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(8, 15);
+        this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 

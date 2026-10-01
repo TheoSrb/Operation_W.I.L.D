@@ -823,6 +823,8 @@
       "constants": {
         "AI_STEP_JUMP_FACTOR": 0.45,
         "ENTITY_COLOR": 14251827,
+        "FOOD_WANTED_MAX": 14,
+        "FOOD_WANTED_MIN": 8,
         "GRAB_ESCAPE_COOLDOWN": 80,
         "GRAB_START_TIMEOUT": 120,
         "GRAB_STRUGGLE_REDUCTION": 18,
@@ -1062,9 +1064,9 @@
         "created": "2026-10-01T16:57:09.0503808+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-01T16:57:09.0509011+02:00",
+        "last_modified": "2026-10-01T18:20:21.8057222+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 78739
+        "size_bytes": 78873
       },
       "id": "ow:tiger",
       "loot": {
@@ -2045,6 +2047,18 @@
       "taming": {
         "advancement": "ow:wild_meow",
         "experience": 185.0,
+        "feeding": {
+          "food_wanted_max": 14,
+          "food_wanted_min": 8,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
         "food_tags": [
           {
             "constant": "TIGER_TAMING_FOOD",
@@ -2602,6 +2616,8 @@
       },
       "constants": {
         "ENTITY_COLOR": 8215109,
+        "FOOD_WANTED_MAX": 10,
+        "FOOD_WANTED_MIN": 6,
         "MAX_DIRTY_TIMER": 1200,
         "MAX_SOMNOLENCE": 3400,
         "SOMNOLENCE_LOSS_INTERVAL": 10,
@@ -2771,9 +2787,9 @@
         "created": "2026-10-01T16:57:09.2733788+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-01T16:57:09.2739681+02:00",
+        "last_modified": "2026-10-01T18:20:21.8062238+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 61325
+        "size_bytes": 61457
       },
       "id": "ow:kodiak",
       "loot": {
@@ -3703,6 +3719,18 @@
       "taming": {
         "advancement": "ow:big_fuzzball",
         "experience": 180.0,
+        "feeding": {
+          "food_wanted_max": 10,
+          "food_wanted_min": 6,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
         "food_tags": [
           {
             "constant": "KODIAK_FOOD",
@@ -4125,6 +4153,8 @@
         "DEATH_ROLL_WILD_MULTIPLIER": 0.65,
         "DEATH_ROLL_WINDUP_TICKS": 3,
         "ENTITY_COLOR": 7502167,
+        "FOOD_WANTED_MAX": 10,
+        "FOOD_WANTED_MIN": 6,
         "GRAB_START_TIMEOUT": 300,
         "MAX_SOMNOLENCE": 3250,
         "PRIMAL_DIVE_GRAB_TICKS": 200,
@@ -4220,9 +4250,9 @@
         "created": "2026-10-01T16:57:09.130431+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-01T16:57:09.130431+02:00",
+        "last_modified": "2026-10-01T18:20:21.8077323+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 81781
+        "size_bytes": 81913
       },
       "id": "ow:crocodile",
       "loot": {
@@ -5073,6 +5103,18 @@
       "taming": {
         "advancement": "ow:predatory_smile",
         "experience": 205.0,
+        "feeding": {
+          "food_wanted_max": 10,
+          "food_wanted_min": 6,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
         "food_tags": [
           {
             "constant": "CROCODILE_FOOD",
@@ -5477,6 +5519,8 @@
       },
       "constants": {
         "ENTITY_COLOR": 5660706,
+        "FOOD_WANTED_MAX": 14,
+        "FOOD_WANTED_MIN": 8,
         "MAX_SOMNOLENCE": 1200,
         "SOMNOLENCE_LOSS_INTERVAL": 1,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 4,
@@ -5642,9 +5686,9 @@
         "created": "2026-10-01T16:57:09.0953895+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-01T16:57:09.0953895+02:00",
+        "last_modified": "2026-10-01T18:20:21.8092537+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 59388
+        "size_bytes": 59520
       },
       "id": "ow:boa",
       "loot": {
@@ -6520,6 +6564,18 @@
       "taming": {
         "advancement": "ow:arms_what_for",
         "experience": 80.0,
+        "feeding": {
+          "food_wanted_max": 14,
+          "food_wanted_min": 8,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
         "manual": [
           {
             "key": "boa.taming.page1",
@@ -6870,6 +6926,8 @@
         "FLOP_GROUND_LIFT": 0.75,
         "FLOP_SIDE_OFFSET": 1.0,
         "FLOP_SLAM_DURATION": 12,
+        "FOOD_WANTED_MAX": 10,
+        "FOOD_WANTED_MIN": 6,
         "MAX_SOMNOLENCE": 4700,
         "MOUTH_ANIM_RECOVER": 8,
         "MOUTH_ANIM_STRIKE": 4,
@@ -6960,12 +7018,12 @@
         "walk_speed_blocks_per_second": 3.5999999999999996
       },
       "history": {
-        "created": "2026-10-01T17:14:08.6500573+02:00",
+        "created": "2026-10-01T17:52:43.79329+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-01T17:14:08.6506945+02:00",
+        "last_modified": "2026-10-01T18:20:21.8077323+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 94687
+        "size_bytes": 94884
       },
       "id": "ow:orca",
       "loot": {
@@ -7052,6 +7110,18 @@
       "taming": {
         "advancement": "ow:deep_shadow",
         "experience": 270.0,
+        "feeding": {
+          "food_wanted_max": 10,
+          "food_wanted_min": 6,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
         "saddle_recipe": {
           "accent_color": "#28313E",
           "entity_key": "entity.ow.orca",
@@ -7422,6 +7492,8 @@
       },
       "constants": {
         "ENTITY_COLOR": 7826014,
+        "FOOD_WANTED_MAX": 19,
+        "FOOD_WANTED_MIN": 12,
         "LEFT_FOOT_CONTACT_MS": 2900,
         "MAX_SOMNOLENCE": 5000,
         "RIGHT_FOOT_CONTACT_MS": 1200,
@@ -7501,9 +7573,9 @@
         "created": "2026-10-01T16:57:09.1667373+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-01T16:57:09.1672371+02:00",
+        "last_modified": "2026-10-01T18:20:21.8102594+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 110990
+        "size_bytes": 111124
       },
       "id": "ow:elephant",
       "loot": {
@@ -7602,6 +7674,18 @@
       "taming": {
         "advancement": "ow:trailer",
         "experience": 300.0,
+        "feeding": {
+          "food_wanted_max": 19,
+          "food_wanted_min": 12,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
         "food_tags": [
           {
             "constant": "ELEPHANT_FOOD",
@@ -8055,6 +8139,8 @@
         "DROWN_SUBMERGE_MARGIN": 0.28,
         "DROWN_WINDUP_MAX_RANGE": 4.0,
         "DROWN_WINDUP_TICKS": 22,
+        "FOOD_WANTED_MAX": 14,
+        "FOOD_WANTED_MIN": 8,
         "HERD_ANGER_RADIUS": 20.0,
         "HOP_AIR_FRICTION": 0.91,
         "HOP_CHASE_TURN": 0.35,
@@ -8168,9 +8254,9 @@
         "created": "2026-10-01T17:11:04.2566378+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-01T17:11:04.2566378+02:00",
+        "last_modified": "2026-10-01T18:20:21.8122629+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 84672
+        "size_bytes": 84806
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -8257,6 +8343,18 @@
       "taming": {
         "advancement": "ow:wild_meow",
         "experience": 65.0,
+        "feeding": {
+          "food_wanted_max": 14,
+          "food_wanted_min": 8,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
         "somnolence": {
           "decays": true,
           "full_bar_asleep_seconds": 130.0,
@@ -8605,6 +8703,8 @@
         "ENTITY_COLOR": 15501605,
         "FEAR_ENTER_TICKS": 10,
         "FEAR_EXIT_TICKS": 100,
+        "FOOD_WANTED_MAX": 6,
+        "FOOD_WANTED_MIN": 3,
         "HEAL_POWER_BASE": 1.0,
         "HEAL_POWER_MAX": 1.85,
         "HEAL_POWER_ROLL_MAX": 1.1,
@@ -8677,9 +8777,9 @@
         "created": "2026-10-01T17:11:35.3085605+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-01T17:11:35.3085605+02:00",
+        "last_modified": "2026-10-01T18:20:21.8122629+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 74359
+        "size_bytes": 74492
       },
       "id": "ow:red_panda",
       "loot": {
@@ -9250,6 +9350,18 @@
       "taming": {
         "advancement": "ow:little_fire_fox",
         "experience": 40.0,
+        "feeding": {
+          "food_wanted_max": 6,
+          "food_wanted_min": 3,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
         "food_tags": [
           {
             "constant": "RED_PANDA_FOOD",
@@ -9636,6 +9748,8 @@
         "CLIMB_SURGE_TICKS": 11,
         "DEFAULT_SKIN_INDEX": 1,
         "ENTITY_COLOR": 3357762,
+        "FOOD_WANTED_MAX": 14,
+        "FOOD_WANTED_MIN": 8,
         "MAX_SOMNOLENCE": 1800,
         "SOMNOLENCE_LOSS_INTERVAL": 3,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 3,
@@ -9692,9 +9806,9 @@
         "created": "2026-10-01T16:57:09.2032806+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-01T16:57:09.2032806+02:00",
+        "last_modified": "2026-10-01T18:20:21.8112599+02:00",
         "last_modified_date": "2026-10-01",
-        "size_bytes": 57698
+        "size_bytes": 57832
       },
       "id": "ow:gorilla",
       "loot": {
@@ -9740,6 +9854,18 @@
       "taming": {
         "advancement": "ow:silverback",
         "experience": 175.0,
+        "feeding": {
+          "food_wanted_max": 14,
+          "food_wanted_min": 8,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
         "food_tags": [
           {
             "constant": "GORILLA_FOOD",
@@ -12472,7 +12598,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1127
+      "fr_fr": 1125
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",

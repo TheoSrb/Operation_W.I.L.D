@@ -81,6 +81,8 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public static final int MAX_SOMNOLENCE = 1800;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 3;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 3;
+    public static final int FOOD_WANTED_MIN = 8;
+    public static final int FOOD_WANTED_MAX = 14;
     public static final int ENTITY_COLOR = 0x333C42;
     public static final int DEFAULT_SKIN_INDEX = 1;
     public static final float AI_STEP_JUMP_FACTOR = 0.45f;
@@ -1273,7 +1275,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             this.setVariant(chooseGorillaVariant());
             this.setInitialVariant(this.getVariant());
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(8, 15);
+        this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 

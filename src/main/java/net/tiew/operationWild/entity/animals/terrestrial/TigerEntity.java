@@ -99,6 +99,8 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public static final int MAX_SOMNOLENCE = 2500;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 2;
+    public static final int FOOD_WANTED_MIN = 8;
+    public static final int FOOD_WANTED_MAX = 14;
     public static final float AI_STEP_JUMP_FACTOR = 0.45f;
     public static final int MAX_HIDING_TIMER = 1000;
     public static final int MAX_NO_HIDING_TIMER = 400;
@@ -1534,7 +1536,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             this.setVariant(chooseTigerVariant());
             this.setInitialVariant(this.getVariant());
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(8, 15);
+        this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 

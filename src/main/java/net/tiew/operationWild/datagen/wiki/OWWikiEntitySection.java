@@ -30,6 +30,7 @@ import net.tiew.operationWild.entity.piste.OWPisteAttacks;
 import net.tiew.operationWild.entity.piste.OWPisteGraph;
 import net.tiew.operationWild.entity.piste.OWPisteGraphs;
 import net.tiew.operationWild.entity.piste.OWPisteNode;
+import net.tiew.operationWild.entity.taming.OWAggressiveTaming;
 import net.tiew.operationWild.worldgen.OWBiomeModifiers;
 
 import java.lang.reflect.Method;
@@ -306,6 +307,7 @@ public final class OWWikiEntitySection {
         OWWikiReflect.call(probe, "getTamingAdvancement")
                 .ifPresent(advancement -> taming.addProperty("advancement", String.valueOf(advancement)));
         addIfPresent(taming, "somnolence", somnolence(species.implementation()));
+        addIfPresent(taming, "feeding", feeding(species.implementation()));
 
         JsonArray tags = OWWikiTags.itemTagsFor(species.id());
         if (!tags.isEmpty()) taming.add("food_tags", tags);
@@ -345,6 +347,27 @@ public final class OWWikiEntitySection {
         somnolence.addProperty("full_bar_awake_seconds", max / awakePerSecond);
         somnolence.addProperty("full_bar_asleep_seconds", max / asleepPerSecond);
         return somnolence;
+    }
+
+    private static JsonObject feeding(Class<? extends OWEntity> implementation) {
+        Integer foodMin = staticInt(implementation, "FOOD_WANTED_MIN");
+        Integer foodMax = staticInt(implementation, "FOOD_WANTED_MAX");
+        if (foodMin == null || foodMax == null) return null;
+
+        int somnolenceMealMin = OWAggressiveTaming.MEAL_INTERVAL_MIN / OWAggressiveTaming.SOMNOLENCE_MEAL_HASTE;
+        int somnolenceMealMax = OWAggressiveTaming.MEAL_INTERVAL_MAX / OWAggressiveTaming.SOMNOLENCE_MEAL_HASTE;
+        JsonObject feeding = new JsonObject();
+        feeding.addProperty("food_wanted_min", foodMin);
+        feeding.addProperty("food_wanted_max", foodMax);
+        feeding.addProperty("meal_interval_ticks_min", OWAggressiveTaming.MEAL_INTERVAL_MIN);
+        feeding.addProperty("meal_interval_ticks_max", OWAggressiveTaming.MEAL_INTERVAL_MAX);
+        feeding.addProperty("meal_interval_seconds_min", OWAggressiveTaming.MEAL_INTERVAL_MIN / 20.0);
+        feeding.addProperty("meal_interval_seconds_max", OWAggressiveTaming.MEAL_INTERVAL_MAX / 20.0);
+        feeding.addProperty("somnolence_meal_interval_ticks_min", somnolenceMealMin);
+        feeding.addProperty("somnolence_meal_interval_ticks_max", somnolenceMealMax);
+        feeding.addProperty("somnolence_meal_interval_seconds_min", somnolenceMealMin / 20.0);
+        feeding.addProperty("somnolence_meal_interval_seconds_max", somnolenceMealMax / 20.0);
+        return feeding;
     }
 
     private static Integer staticInt(Class<?> owner, String name) {

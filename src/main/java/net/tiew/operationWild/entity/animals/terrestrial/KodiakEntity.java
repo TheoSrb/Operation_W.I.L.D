@@ -83,6 +83,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public static final int MAX_SOMNOLENCE = 3400;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 10;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 7;
+    public static final int FOOD_WANTED_MIN = 6;
+    public static final int FOOD_WANTED_MAX = 10;
     private static final int MAX_EATING_TIMER = 400;
     private static final int MAX_HONEY_TIMER = 750;
     public static final int MAX_DIRTY_TIMER = 1200;
@@ -1106,7 +1108,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
             this.setFoodBarValue(10);
         }
-        this.foodWanted = (int) OWUtils.generateRandomInterval(6, 11);
+        this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
     }
 
