@@ -425,6 +425,16 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public Item favoriteFoodTier2() {
+        return Items.SWEET_BERRIES;
+    }
+
+    @Override
+    public Item favoriteFoodTier3() {
+        return Items.HONEYCOMB;
+    }
+
+    @Override
     public float getScale() {
         return super.getScale() <= 0 ? 1f : super.getScale();
     }

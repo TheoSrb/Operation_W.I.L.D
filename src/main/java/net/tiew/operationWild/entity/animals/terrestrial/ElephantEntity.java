@@ -539,6 +539,16 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public Item favoriteFoodTier2() {
+        return Items.MELON_SLICE;
+    }
+
+    @Override
+    public Item favoriteFoodTier3() {
+        return Items.SUGAR_CANE;
+    }
+
+    @Override
     public float getScale() {
         return super.getScale() <= 0 ? 1f : super.getScale();
     }

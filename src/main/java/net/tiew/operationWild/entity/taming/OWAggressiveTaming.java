@@ -29,7 +29,6 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.particle.OWParticles;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,7 +37,7 @@ import java.util.UUID;
 
 public class OWAggressiveTaming {
 
-    public static final int FLEE_THRESHOLD = 90;
+    public static final int FLEE_THRESHOLD = 80;
     public static final int MAX_BONUS_POINTS = 5;
     public static final int DIZZY_STAR_RING = 3;
     public static final int DIZZY_STAR_LIFETIME = 60;
@@ -66,6 +65,9 @@ public class OWAggressiveTaming {
     private static final double THREAT_RADIUS = 32.0;
     private static final double SEDATOR_MEMORY_RADIUS = 48.0;
     private static final double OWNER_FALLBACK_RADIUS = 24.0;
+    public static final int MEAL_ANNOUNCE_TICKS = 60;
+    private static final float WAKE_GRUMBLE_CHANCE = 0.012f;
+    public static final int MAX_FOOD_TIER = 3;
 
     private final OWEntity entity;
     private final Map<UUID, Integer> feeders = new LinkedHashMap<>();
@@ -88,6 +90,10 @@ public class OWAggressiveTaming {
 
     public OWAggressiveTaming(OWEntity entity) {
         this.entity = entity;
+    }
+
+    public static int mealPortions(int tier) {
+        return tier;
     }
 
     public static boolean isSomnolenceFood(ItemStack stack) {
@@ -174,6 +180,7 @@ public class OWAggressiveTaming {
         tickCollapse();
         tickFloating();
         tickSomnolenceGain();
+        tickWakeWarning();
         tickMeal();
     }
 
@@ -190,6 +197,10 @@ public class OWAggressiveTaming {
     private void landImpact() {
         if (!(entity.level() instanceof ServerLevel level)) return;
         boolean heavy = entity.getBbWidth() >= 1.5f;
+        if (entity.isInWater()) {
+            splashImpact(level, heavy);
+            return;
+        }
         level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
                 heavy ? SoundEvents.GENERIC_BIG_FALL : SoundEvents.GENERIC_SMALL_FALL,
                 SoundSource.NEUTRAL, 0.9f, 0.75f);
@@ -200,6 +211,18 @@ public class OWAggressiveTaming {
         int count = 8 + (int) (entity.getBbWidth() * 10);
         level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
                 entity.getX(), entity.getY() + 0.1, entity.getZ(), count, spread, 0.05, spread, 0.15);
+    }
+
+    private void splashImpact(ServerLevel level, boolean heavy) {
+        level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
+                heavy ? SoundEvents.GENERIC_SPLASH : SoundEvents.PLAYER_SPLASH,
+                SoundSource.NEUTRAL, 0.9f, 0.8f);
+        double spread = entity.getBbWidth() * 0.5;
+        int count = 10 + (int) (entity.getBbWidth() * 12);
+        double surface = entity.getY() + entity.getFluidHeight(FluidTags.WATER);
+        level.sendParticles(ParticleTypes.SPLASH, entity.getX(), surface, entity.getZ(), count, spread, 0.1, spread, 0.2);
+        level.sendParticles(ParticleTypes.BUBBLE, entity.getX(), entity.getY() + entity.getBbHeight() * 0.5, entity.getZ(),
+                count / 2, spread, entity.getBbHeight() * 0.3, spread, 0.05);
     }
 
     private void tickFloating() {
@@ -215,6 +238,13 @@ public class OWAggressiveTaming {
         pendingSomnolence -= step;
         int gained = entity.getActualSleepingBar() + Math.round(step);
         entity.setActualSleepingBarTo(Math.min(entity.getMaxSleepingBar(), gained));
+    }
+
+    private void tickWakeWarning() {
+        if (mealTicks > 0 || !entity.isNearWaking()) return;
+        if (entity.getRandom().nextFloat() >= WAKE_GRUMBLE_CHANCE) return;
+        entity.playSedationVoice(0.55f + entity.getRandom().nextFloat() * 0.15f);
+        sendHeadParticles(ParticleTypes.CLOUD, 2, 0.15);
     }
 
     private void tickMeal() {
@@ -235,7 +265,9 @@ public class OWAggressiveTaming {
             if ((entity.tickCount + entity.getId()) % MEAL_SCAN_INTERVAL == 0) {
                 onlySomnolenceFoodAhead = hasOnlySomnolenceFoodAhead();
             }
+            int before = mealCooldown;
             mealCooldown = Math.max(0, mealCooldown - (onlySomnolenceFoodAhead ? SOMNOLENCE_MEAL_HASTE : 1));
+            if (before > MEAL_ANNOUNCE_TICKS && mealCooldown <= MEAL_ANNOUNCE_TICKS) announceMeal();
             return;
         }
         if (noticeDelay > 0) {
@@ -252,6 +284,13 @@ public class OWAggressiveTaming {
         if (food == null) return;
         mealItem = food;
         noticeDelay = NOTICE_DELAY_MIN + entity.getRandom().nextInt(NOTICE_DELAY_MAX - NOTICE_DELAY_MIN + 1);
+    }
+
+    private void announceMeal() {
+        entity.playSound(SoundEvents.SNIFFER_SNIFFING, 0.7f, 1.3f + entity.getRandom().nextFloat() * 0.2f);
+        if (!(entity.level() instanceof ServerLevel level)) return;
+        Vec3 mouth = mouthPosition();
+        level.sendParticles(ParticleTypes.POOF, mouth.x, mouth.y + 0.2, mouth.z, 3, 0.1, 0.05, 0.1, 0.01);
     }
 
     @Nullable
@@ -277,7 +316,7 @@ public class OWAggressiveTaming {
             ItemStack stack = item.getItem();
             if (isSomnolenceFood(stack)) {
                 somnolenceFood |= canEat(item);
-            } else if (entity.isTamingFood(stack) || stack.has(DataComponents.FOOD)) {
+            } else if (entity.isTamingMeal(stack) || stack.has(DataComponents.FOOD)) {
                 return false;
             }
         }
@@ -285,8 +324,9 @@ public class OWAggressiveTaming {
     }
 
     private int mealPriority(ItemStack stack, boolean urgent) {
-        if (entity.isTamingFood(stack)) return urgent ? 1 : 0;
-        return urgent ? 0 : 1;
+        int tier = entity.tamingFoodTier(stack);
+        if (tier > 0) return MAX_FOOD_TIER + 1 - tier;
+        return urgent ? 0 : MAX_FOOD_TIER + 1;
     }
 
     private boolean canEat(@Nullable ItemEntity item) {
@@ -301,7 +341,7 @@ public class OWAggressiveTaming {
     }
 
     private boolean wants(ItemStack stack) {
-        if (entity.isTamingFood(stack)) return true;
+        if (entity.isTamingMeal(stack)) return true;
         return isSomnolenceFood(stack) && entity.getSleepBarPercent() < SOMNOLENCE_FOOD_REFUSE_PERCENT;
     }
 
@@ -354,7 +394,7 @@ public class OWAggressiveTaming {
         }
         entity.playSound(SoundEvents.PLAYER_BURP, 0.6f, 0.65f + entity.getRandom().nextFloat() * 0.2f);
 
-        if (!entity.isTamingFood(eaten)) {
+        if (!entity.isTamingMeal(eaten)) {
             pendingSomnolence += entity.getMaxSleepingBar() * SOMNOLENCE_FOOD_RESTORE;
             sendHeadParticles(OWParticles.NAP_PARTICLES.get(), 3, 0.2);
             sendHeadParticles(ParticleTypes.WITCH, 8, 0.35);
@@ -362,11 +402,13 @@ public class OWAggressiveTaming {
             return;
         }
 
-        entity.foodGiven = Math.min(entity.foodWanted, entity.foodGiven + 1);
+        int portions = mealPortions(entity.tamingFoodTier(eaten));
+        entity.foodGiven = Math.min(entity.foodWanted, entity.foodGiven + portions);
         if (thrower instanceof Player player) {
-            feeders.merge(player.getUUID(), 1, Integer::sum);
+            feeders.merge(player.getUUID(), portions, Integer::sum);
             lastFeeder = player.getUUID();
         }
+        if (portions > 1) celebrateFavorite(portions);
         int wanted = Math.max(1, entity.foodWanted);
         entity.setTamingPercentage(entity.foodGiven, wanted);
         float progress = entity.foodGiven / (float) wanted;
@@ -380,17 +422,27 @@ public class OWAggressiveTaming {
         scheduleMeal(rollMealInterval());
     }
 
+    private void celebrateFavorite(int tier) {
+        int strength = tier - 1;
+        sendHeadParticles(ParticleTypes.HEART, strength * 2, 0.35);
+        entity.playSound(SoundEvents.NOTE_BLOCK_BELL.value(), 0.8f, 0.9f + strength * 0.25f);
+    }
+
     private void holdAsleep() {
         if (entity.getActualSleepingBar() < 2) entity.setActualSleepingBarTo(2);
     }
 
     private void completeTaming() {
-        ServerPlayer owner = resolveOwner();
-        if (owner == null || EventHooks.onAnimalTame(entity, owner)) return;
+        MinecraftServer server = entity.getServer();
+        UUID ownerId = resolveOwner();
+        if (server == null || ownerId == null) return;
+        ServerPlayer owner = server.getPlayerList().getPlayer(ownerId);
+        if (owner != null && EventHooks.onAnimalTame(entity, owner)) return;
 
         int bonus = getBonusPoints();
         knockedOutLastTick = false;
-        entity.setTame(true, owner);
+        if (owner != null) entity.setTame(true, owner);
+        else entity.setTameForAbsentOwner(ownerId);
         entity.setSleeping(false);
         entity.resetSleepBar();
         entity.foodGiven = entity.foodWanted;
@@ -399,22 +451,20 @@ public class OWAggressiveTaming {
     }
 
     @Nullable
-    private ServerPlayer resolveOwner() {
-        MinecraftServer server = entity.getServer();
-        if (server == null) return null;
-        List<Map.Entry<UUID, Integer>> ranking = new ArrayList<>(feeders.entrySet());
-        ranking.sort((a, b) -> {
-            int byMeals = Integer.compare(b.getValue(), a.getValue());
-            if (byMeals != 0) return byMeals;
-            if (a.getKey().equals(lastFeeder)) return -1;
-            if (b.getKey().equals(lastFeeder)) return 1;
-            return 0;
-        });
-        for (Map.Entry<UUID, Integer> entry : ranking) {
-            ServerPlayer player = server.getPlayerList().getPlayer(entry.getKey());
-            if (player != null && !player.isSpectator()) return player;
+    private UUID resolveOwner() {
+        UUID best = null;
+        int bestMeals = -1;
+        for (Map.Entry<UUID, Integer> entry : feeders.entrySet()) {
+            int meals = entry.getValue();
+            if (meals > bestMeals || (meals == bestMeals && entry.getKey().equals(lastFeeder))) {
+                best = entry.getKey();
+                bestMeals = meals;
+            }
         }
-        return entity.level().getNearestPlayer(entity, OWNER_FALLBACK_RADIUS) instanceof ServerPlayer nearest ? nearest : null;
+        if (best != null) return best;
+        Player nearest = entity.level().getNearestPlayer(entity.getX(), entity.getY(), entity.getZ(), OWNER_FALLBACK_RADIUS,
+                candidate -> !candidate.isSpectator());
+        return nearest != null ? nearest.getUUID() : null;
     }
 
     private void onWakeUp() {
@@ -424,6 +474,10 @@ public class OWAggressiveTaming {
         }
         entity.foodGiven = 0;
         entity.setTamingPercentage(0, Math.max(1, entity.foodWanted));
+        if (entity.isLeashed()) {
+            entity.dropLeash(true, true);
+            entity.playSound(SoundEvents.LEASH_KNOT_BREAK, 1.0f, 0.8f);
+        }
         clearState();
         sendHeadParticles(ParticleTypes.CLOUD, 10, 0.3);
         entity.playSedationVoice(1.0f);

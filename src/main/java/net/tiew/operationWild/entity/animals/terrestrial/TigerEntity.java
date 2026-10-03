@@ -96,7 +96,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     // ==================================================
 
     public static final double TAMING_EXPERIENCE = 185.0;
-    public static final int MAX_SOMNOLENCE = 2500;
+    public static final int MAX_SOMNOLENCE = 2000;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 2;
     public static final int FOOD_WANTED_MIN = 8;
@@ -415,6 +415,16 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public boolean isFood(ItemStack itemStack) {
         return itemStack.is(OWTags.Items.TIGER_FOOD);
+    }
+
+    @Override
+    public Item favoriteFoodTier2() {
+        return Items.MUTTON;
+    }
+
+    @Override
+    public Item favoriteFoodTier3() {
+        return Items.PORKCHOP;
     }
 
     @Override

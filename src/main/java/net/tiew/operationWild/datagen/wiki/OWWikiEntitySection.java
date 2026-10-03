@@ -312,6 +312,9 @@ public final class OWWikiEntitySection {
         JsonArray tags = OWWikiTags.itemTagsFor(species.id());
         if (!tags.isEmpty()) taming.add("food_tags", tags);
 
+        taming.add("food_tiers", foodTiers(probe));
+        taming.add("knockout", knockout());
+
         OWSaddleRecipe recipe = OWSaddleRecipes.all().stream()
                 .filter(candidate -> candidate.id().equals(species.id()))
                 .findFirst().orElse(null);
@@ -320,6 +323,43 @@ public final class OWWikiEntitySection {
         JsonArray manual = lang.pages(species.id() + ".taming.page");
         if (manual != null) taming.add("manual", manual);
         return taming;
+    }
+
+    private static JsonArray foodTiers(OWEntity probe) {
+        JsonArray tiers = new JsonArray();
+        JsonObject diet = new JsonObject();
+        diet.addProperty("tier", 1);
+        diet.addProperty("kind", "diet");
+        diet.addProperty("portions", OWAggressiveTaming.mealPortions(1));
+        diet.addProperty("items_from", "food_tags");
+        tiers.add(diet);
+
+        String[] kinds = {"preferred", "adored"};
+        for (int tier = 2; tier <= OWAggressiveTaming.MAX_FOOD_TIER; tier++) {
+            int rank = tier;
+            OWWikiReflect.call(probe, "favoriteFoodTier" + tier).ifPresent(value -> {
+                if (!(value instanceof Item item) || item == Items.AIR) return;
+                JsonObject favorite = new JsonObject();
+                favorite.addProperty("tier", rank);
+                favorite.addProperty("kind", kinds[rank - 2]);
+                favorite.addProperty("portions", OWAggressiveTaming.mealPortions(rank));
+                favorite.addProperty("item", BuiltInRegistries.ITEM.getKey(item).toString());
+                tiers.add(favorite);
+            });
+        }
+        return tiers;
+    }
+
+    private static JsonObject knockout() {
+        JsonObject knockout = new JsonObject();
+        knockout.addProperty("flee_threshold_percent", OWAggressiveTaming.FLEE_THRESHOLD);
+        knockout.addProperty("wake_warning_percent", OWEntity.WAKE_WARNING_PERCENT);
+        knockout.addProperty("max_bonus_points", OWAggressiveTaming.MAX_BONUS_POINTS);
+        knockout.addProperty("bonus_lost_on_player_hit_only", true);
+        knockout.addProperty("meal_announce_seconds", OWAggressiveTaming.MEAL_ANNOUNCE_TICKS / 20.0);
+        knockout.addProperty("leash_drag_slack_blocks", OWEntity.LEASH_DRAG_SLACK);
+        knockout.addProperty("leash_drag_snap_blocks", OWEntity.LEASH_DRAG_SNAP);
+        return knockout;
     }
 
     private static JsonObject somnolence(Class<? extends OWEntity> implementation) {

@@ -72,6 +72,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.component.SoulData;
 import net.tiew.operationWild.core.OWDatasSave;
@@ -214,6 +215,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private boolean knockedOutOnClient;
     private boolean sedationDisplayPrimed;
     private int dizzyStarIndex;
+    private int wakeTwitchTicks;
+    private int syncedFoodGiven = -1;
+    private int syncedFoodWanted = -1;
+
+    public static final int WAKE_WARNING_PERCENT = 15;
+    private static final int WAKE_TWITCH_DURATION = 7;
+    private static final float WAKE_TWITCH_CHANCE = 0.025f;
+    private static final float WAKE_TWITCH_AMPLITUDE = 0.35f;
+
+    public static final float LEASH_DRAG_SLACK = 3.0f;
+    public static final float LEASH_DRAG_SNAP = 10.0f;
+    private static final double LEASH_DRAG_MAX_SPEED = 0.16;
+    private static final double LEASH_DRAG_CLIMB = 0.42;
+    private static final float LEASH_DRAG_TURN = 6.0f;
 
     public static float comboSpeedMultiplier = 1.0f;
 
@@ -1864,6 +1879,67 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.isFood(stack);
     }
 
+    @Nullable
+    public Item favoriteFoodTier2() {
+        return null;
+    }
+
+    @Nullable
+    public Item favoriteFoodTier3() {
+        return null;
+    }
+
+    public int tamingFoodTier(ItemStack stack) {
+        if (stack.isEmpty()) return 0;
+        if (stack.getItem() == this.favoriteFoodTier3()) return 3;
+        if (stack.getItem() == this.favoriteFoodTier2()) return 2;
+        return this.isTamingFood(stack) ? 1 : 0;
+    }
+
+    public boolean isTamingMeal(ItemStack stack) {
+        return this.tamingFoodTier(stack) > 0;
+    }
+
+    @Override
+    public boolean handleLeashAtDistance(Entity leashHolder, float distance) {
+        if (!this.isKnockedOut()) return super.handleLeashAtDistance(leashHolder, distance);
+        if (distance > LEASH_DRAG_SNAP) return true;
+        if (!this.aggressiveTaming.isCollapsing()) this.dragTowards(leashHolder, distance);
+        return false;
+    }
+
+    private void dragTowards(Entity leashHolder, float distance) {
+        Vec3 motion = this.getDeltaMovement();
+        if (distance <= LEASH_DRAG_SLACK) {
+            this.setDeltaMovement(0, motion.y, 0);
+            return;
+        }
+        double tension = (distance - LEASH_DRAG_SLACK) / (LEASH_DRAG_SNAP - LEASH_DRAG_SLACK);
+        double speed = LEASH_DRAG_MAX_SPEED * tension / Math.max(1.0, this.getBbWidth() * 0.8);
+        Vec3 pull = new Vec3(leashHolder.getX() - this.getX(), 0, leashHolder.getZ() - this.getZ()).normalize().scale(speed);
+        double rise = this.horizontalCollision && this.onGround() ? LEASH_DRAG_CLIMB : motion.y;
+        this.setDeltaMovement(pull.x, rise, pull.z);
+        this.hasImpulse = true;
+
+        float wanted = (float) (Mth.atan2(pull.z, pull.x) * Mth.RAD_TO_DEG) - 90.0f;
+        float yaw = Mth.approachDegrees(this.getYRot(), wanted, LEASH_DRAG_TURN);
+        this.setYRot(yaw);
+        this.setYBodyRot(yaw);
+        this.setYHeadRot(yaw);
+
+        if (this.onGround() && this.level() instanceof ServerLevel level && (this.tickCount + this.getId()) % 4 == 0) {
+            BlockState ground = this.getBlockStateOn();
+            if (!ground.isAir()) {
+                double spread = this.getBbWidth() * 0.35;
+                level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
+                        this.getX(), this.getY() + 0.05, this.getZ(), 3, spread, 0.02, spread, 0.05);
+                if ((this.tickCount + this.getId()) % 12 == 0) {
+                    this.playSound(ground.getSoundType(level, this.getOnPos(), this).getStepSound(), 0.5f, 0.6f);
+                }
+            }
+        }
+    }
+
     public boolean isKnockedOut() {
         return this.usesAggressiveTaming() && !this.isTame() && this.isSleeping() && !this.isInResurrection();
     }
@@ -1922,9 +1998,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public float getSedatedHeadNod(float ageInTicks) {
-        float bob = this.getMealBob(Mth.clamp(ageInTicks - this.tickCount, 0f, 1f));
-        if (bob <= 0f) return 0f;
-        return bob * (MEAL_HEAD_LIFT + MEAL_HEAD_NOD * Mth.sin(ageInTicks * MEAL_HEAD_NOD_SPEED));
+        float partialTick = Mth.clamp(ageInTicks - this.tickCount, 0f, 1f);
+        float bob = this.getMealBob(partialTick);
+        float nod = bob <= 0f ? 0f : bob * (MEAL_HEAD_LIFT + MEAL_HEAD_NOD * Mth.sin(ageInTicks * MEAL_HEAD_NOD_SPEED));
+        return nod + this.getWakeTwitch(partialTick);
+    }
+
+    private float getWakeTwitch(float partialTick) {
+        if (this.wakeTwitchTicks <= 0) return 0f;
+        float progress = Mth.clamp((WAKE_TWITCH_DURATION - this.wakeTwitchTicks + partialTick) / WAKE_TWITCH_DURATION, 0f, 1f);
+        return -WAKE_TWITCH_AMPLITUDE * Mth.sin(progress * Mth.PI);
+    }
+
+    public boolean isNearWaking() {
+        return this.isKnockedOut() && this.getMaxSleepingBar() > 0 && this.getSleepBarPercent() < WAKE_WARNING_PERCENT;
     }
 
     private void fallAsleepFromSedation() {
@@ -1958,6 +2045,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.mealBobO = this.mealBob;
         this.mealBob = Mth.approach(this.mealBob, eating ? 1f : 0f, 0.2f);
 
+        if (this.wakeTwitchTicks > 0) {
+            this.wakeTwitchTicks--;
+        } else if (!eating && this.isNearWaking() && this.random.nextFloat() < WAKE_TWITCH_CHANCE) {
+            this.wakeTwitchTicks = WAKE_TWITCH_DURATION;
+        }
+
         if (knockedOut) this.spawnSedationParticles();
     }
 
@@ -1988,7 +2081,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.level().addParticle(OWParticles.DIZZY_STAR.get(), head.x, head.y, head.z,
                     this.getId(), this.dizzyStarIndex++, 0.0);
         }
-        if (clock % 23 < 3) {
+        if (clock % 23 < 3 && !this.isNearWaking()) {
             this.level().addParticle(OWParticles.NAP_PARTICLES.get(),
                     head.x + (this.random.nextDouble() - 0.5) * 0.2, head.y,
                     head.z + (this.random.nextDouble() - 0.5) * 0.2, 0.0, 0.0, 0.0);
@@ -2724,7 +2817,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (!isSleeping() && getActualSleepingBar() >= getMaxSleepingBar()) {
                     fallAsleepFromSedation();
                 }
-            } else if (this.isKnockedOut() && damageSource.getEntity() != null) {
+            } else if (this.isKnockedOut() && damageSource.getEntity() instanceof Player) {
                 this.aggressiveTaming.onHit(damageSource);
             }
             if (sedative) this.sedationResponse.onSedativeHit(damageSource);
@@ -3259,12 +3352,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         if (sittingCooldown > 0) sittingCooldown--;
 
-        if (!this.level().isClientSide()) {
-            if (this.level() instanceof ServerLevel serverLevel) {
-                for (ServerPlayer player : serverLevel.players()) {
-                    OWNetworkHandler.sendToClient(new OWFoodPacketClient(this.getId(), this.foodGiven, this.foodWanted), player);
-                }
-            }
+        if (!this.level().isClientSide() && (this.foodGiven != this.syncedFoodGiven || this.foodWanted != this.syncedFoodWanted)) {
+            this.syncedFoodGiven = this.foodGiven;
+            this.syncedFoodWanted = this.foodWanted;
+            PacketDistributor.sendToPlayersTrackingEntity(this, new OWFoodPacketClient(this.getId(), this.foodGiven, this.foodWanted));
         }
 
         if (this.getArchetype() == OWEntityConfig.Archetypes.BERSERKER) {
@@ -4009,6 +4100,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
+        OWNetworkHandler.sendToClient(new OWFoodPacketClient(this.getId(), this.foodGiven, this.foodWanted), player);
         if (this.currentTeam != null) {
             OWNetworkHandler.sendToClient(SyncOWTeamPacket.of(this.getId(), this.currentTeam), player);
         }
@@ -4443,55 +4535,70 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void setTame(boolean tame, Player player) {
-        if (!this.level().isClientSide()) {
-            byte b0 = this.entityData.get(DATA_FLAGS_ID);
-            if (tame) {
-                setNecklaceColor(0x993333);
-                int levelPointsBonus = 0;
-                levelPointsBonus = this.getHealth() < this.getMaxHealth() / 2 ? 0 : (int) ((this.getHealth() - (this.getMaxHealth() / 2)) / (this.getMaxHealth() / 10));
-                if (!isBaby()) this.setLevelPoints(levelPointsBonus);
-                this.entityData.set(DATA_FLAGS_ID, (byte) (b0 | 4));
-                this.setTamedAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH));
-                this.navigation.recomputePath();
-                this.setTarget(null);
-                this.level().broadcastEntityEvent(this, (byte) 7);
-                this.setSitting(false);
-                this.setNap(false);
+        if (this.level().isClientSide()) return;
+        if (!tame) {
+            this.entityData.set(DATA_FLAGS_ID, (byte) (this.entityData.get(DATA_FLAGS_ID) & -5));
+            return;
+        }
 
-                this.setHealth(this.getMaxHealth());
-                double pitch = OWUtils.generateRandomInterval(0.8, 1.0);
-                this.playSound(OWSounds.TAME_SUCCESS.get(), 1.0f, (float) pitch);
-                this.playSound(SoundEvents.TOTEM_USE);
-                this.level().broadcastEntityEvent(this, (byte) 8);
-                this.setOwnerUUID(player.getUUID());
-                if (player != null) {
-                    setCachedOwnerName(player.getName().getString());
-                }
-                this.setDamageToClient(this.getDamage());
-                this.setCurrentMode(Mode.Passive);
-                this.setPassive(true);
-                int defaultSkin = this.getDefaultSkinIndex();
-                if (this.getSkinIndex() == 0 && defaultSkin > 0) this.changeSkin(defaultSkin, false);
+        this.applyTame(player.getUUID(), player.getName().getString());
 
-                if (player instanceof ServerPlayer serverPlayer) {
-                    AdvancementHolder advancement = player.getServer().getAdvancements().get(this.getTamingAdvancement());
-                    if (advancement != null) {
-                        serverPlayer.getAdvancements().award(advancement, "tamed_" + this.getClass().getSimpleName().toLowerCase().split("entity")[0]);
-                    }
-                }
-
-                if (this.getOwner() != null && !this.skipNameSelection) {
-                    boolean isOwnerNearby = this.getOwner().distanceTo(this) <= 20;
-
-                    if (isOwnerNearby) {
-                        OWNetworkHandler.sendToClient(new OpenChooseNameScreen(this.getId()), (ServerPlayer) player);
-                    } else
-                        this.setNickname(String.valueOf(Component.translatable("entity.ow." + this.getClass().getSimpleName().toLowerCase().split("entity")[0])));
-                }
-            } else {
-                this.entityData.set(DATA_FLAGS_ID, (byte) (b0 & -5));
+        if (player instanceof ServerPlayer serverPlayer) {
+            AdvancementHolder advancement = player.getServer().getAdvancements().get(this.getTamingAdvancement());
+            if (advancement != null) {
+                serverPlayer.getAdvancements().award(advancement, "tamed_" + this.getClass().getSimpleName().toLowerCase().split("entity")[0]);
             }
         }
+
+        if (this.getOwner() != null && !this.skipNameSelection) {
+            boolean isOwnerNearby = this.getOwner().distanceTo(this) <= 20;
+
+            if (isOwnerNearby) {
+                OWNetworkHandler.sendToClient(new OpenChooseNameScreen(this.getId()), (ServerPlayer) player);
+            } else
+                this.setNickname(this.defaultNickname());
+        }
+    }
+
+    public void setTameForAbsentOwner(UUID ownerId) {
+        if (this.level().isClientSide()) return;
+        String ownerName = null;
+        net.minecraft.server.MinecraftServer server = this.getServer();
+        if (server != null && server.getProfileCache() != null) {
+            ownerName = server.getProfileCache().get(ownerId).map(com.mojang.authlib.GameProfile::getName).orElse(null);
+        }
+        this.applyTame(ownerId, ownerName);
+        if (!this.skipNameSelection) this.setNickname(this.defaultNickname());
+    }
+
+    private void applyTame(UUID ownerId, @Nullable String ownerName) {
+        setNecklaceColor(0x993333);
+        int levelPointsBonus = this.getHealth() < this.getMaxHealth() / 2 ? 0 : (int) ((this.getHealth() - (this.getMaxHealth() / 2)) / (this.getMaxHealth() / 10));
+        if (!isBaby()) this.setLevelPoints(levelPointsBonus);
+        this.entityData.set(DATA_FLAGS_ID, (byte) (this.entityData.get(DATA_FLAGS_ID) | 4));
+        this.setTamedAttributes(this, this.getAttributeBaseValue(Attributes.MAX_HEALTH));
+        this.navigation.recomputePath();
+        this.setTarget(null);
+        this.level().broadcastEntityEvent(this, (byte) 7);
+        this.setSitting(false);
+        this.setNap(false);
+
+        this.setHealth(this.getMaxHealth());
+        double pitch = OWUtils.generateRandomInterval(0.8, 1.0);
+        this.playSound(OWSounds.TAME_SUCCESS.get(), 1.0f, (float) pitch);
+        this.playSound(SoundEvents.TOTEM_USE);
+        this.level().broadcastEntityEvent(this, (byte) 8);
+        this.setOwnerUUID(ownerId);
+        setCachedOwnerName(ownerName);
+        this.setDamageToClient(this.getDamage());
+        this.setCurrentMode(Mode.Passive);
+        this.setPassive(true);
+        int defaultSkin = this.getDefaultSkinIndex();
+        if (this.getSkinIndex() == 0 && defaultSkin > 0) this.changeSkin(defaultSkin, false);
+    }
+
+    private String defaultNickname() {
+        return Component.translatable("entity.ow." + this.getClass().getSimpleName().toLowerCase().split("entity")[0]).getString();
     }
 
     public static void addExperienceCommand(OWEntity entity, int amount) {

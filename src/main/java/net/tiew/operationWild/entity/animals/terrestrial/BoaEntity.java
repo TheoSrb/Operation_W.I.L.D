@@ -33,6 +33,7 @@ import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.Tags;
 import net.minecraft.world.item.context.UseOnContext;
@@ -315,6 +316,16 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     @Override
     public boolean isTamingFood(ItemStack stack) {
         return stack.is(Tags.Items.FOODS_RAW_MEAT);
+    }
+
+    @Override
+    public Item favoriteFoodTier2() {
+        return Items.CHICKEN;
+    }
+
+    @Override
+    public Item favoriteFoodTier3() {
+        return Items.RABBIT;
     }
 
     @Override

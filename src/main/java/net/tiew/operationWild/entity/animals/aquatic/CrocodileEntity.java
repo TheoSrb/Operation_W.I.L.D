@@ -38,6 +38,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -470,6 +471,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public boolean isFood(ItemStack itemStack) {
         return itemStack.is(OWTags.Items.CROCODILE_FOOD);
+    }
+
+    @Override
+    public Item favoriteFoodTier2() {
+        return Items.SALMON;
+    }
+
+    @Override
+    public Item favoriteFoodTier3() {
+        return Items.BEEF;
     }
 
     protected @Nullable SoundEvent getAmbientSound() {

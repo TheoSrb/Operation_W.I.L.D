@@ -32,6 +32,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -956,6 +957,16 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     @Override
     public boolean isFood(ItemStack itemStack) {
         return itemStack.is(OWTags.Items.CROCODILE_FOOD);
+    }
+
+    @Override
+    public Item favoriteFoodTier2() {
+        return Items.COD;
+    }
+
+    @Override
+    public Item favoriteFoodTier3() {
+        return Items.SALMON;
     }
 
     private static final float ORCA_VOICE_PITCH = 0.55f;

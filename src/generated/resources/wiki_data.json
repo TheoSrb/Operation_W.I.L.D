@@ -830,7 +830,7 @@
         "GRAB_STRUGGLE_REDUCTION": 18,
         "MAX_HIDING_TIMER": 1000,
         "MAX_NO_HIDING_TIMER": 400,
-        "MAX_SOMNOLENCE": 2500,
+        "MAX_SOMNOLENCE": 2000,
         "SOMNOLENCE_LOSS_INTERVAL": 1,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
         "TAMING_EXPERIENCE": 185.0
@@ -1064,9 +1064,9 @@
         "created": "2026-10-01T16:57:09.0503808+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-01T18:20:21.8057222+02:00",
-        "last_modified_date": "2026-10-01",
-        "size_bytes": 78873
+        "last_modified": "2026-10-03T12:05:24.5145814+02:00",
+        "last_modified_date": "2026-10-03",
+        "size_bytes": 77096
       },
       "id": "ow:tiger",
       "loot": {
@@ -2086,6 +2086,35 @@
             "id": "ow:tiger_food"
           }
         ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:mutton",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:porkchop",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
         "manual": [
           {
             "key": "tiger.taming.page1",
@@ -2146,15 +2175,15 @@
         },
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 250.0,
-          "full_bar_awake_seconds": 125.0,
+          "full_bar_asleep_seconds": 200.0,
+          "full_bar_awake_seconds": 100.0,
           "loss_interval_ticks_asleep": 2,
           "loss_interval_ticks_awake": 1,
           "loss_per_second_asleep": 10.0,
           "loss_per_second_awake": 20.0,
-          "max": 2500,
-          "max_max": 3000,
-          "max_min": 2000,
+          "max": 2000,
+          "max_max": 2400,
+          "max_min": 1600,
           "spread_percent": 20
         },
         "tameable": true
@@ -2787,9 +2816,9 @@
         "created": "2026-10-01T16:57:09.2733788+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-01T18:20:21.8062238+02:00",
-        "last_modified_date": "2026-10-01",
-        "size_bytes": 61457
+        "last_modified": "2026-10-03T11:58:04.9833057+02:00",
+        "last_modified_date": "2026-10-03",
+        "size_bytes": 61643
       },
       "id": "ow:kodiak",
       "loot": {
@@ -3748,6 +3777,35 @@
             "id": "ow:kodiak_dangerous_food"
           }
         ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:sweet_berries",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:honeycomb",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
         "saddle_recipe": {
           "accent_color": "#7D5A45",
           "entity_key": "entity.ow.kodiak",
@@ -4250,9 +4308,9 @@
         "created": "2026-10-01T16:57:09.130431+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-01T18:20:21.8077323+02:00",
-        "last_modified_date": "2026-10-01",
-        "size_bytes": 81913
+        "last_modified": "2026-10-03T11:58:04.9853558+02:00",
+        "last_modified_date": "2026-10-03",
+        "size_bytes": 82126
       },
       "id": "ow:crocodile",
       "loot": {
@@ -5124,6 +5182,35 @@
             "id": "ow:crocodile_food"
           }
         ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:salmon",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:beef",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
         "saddle_recipe": {
           "accent_color": "#727957",
           "entity_key": "entity.ow.crocodile",
@@ -5686,9 +5773,9 @@
         "created": "2026-10-01T16:57:09.0953895+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-01T18:20:21.8092537+02:00",
-        "last_modified_date": "2026-10-01",
-        "size_bytes": 59520
+        "last_modified": "2026-10-03T11:58:04.988393+02:00",
+        "last_modified_date": "2026-10-03",
+        "size_bytes": 59736
       },
       "id": "ow:boa",
       "loot": {
@@ -6576,6 +6663,35 @@
           "somnolence_meal_interval_ticks_max": 900,
           "somnolence_meal_interval_ticks_min": 200
         },
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:chicken",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:rabbit",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
         "manual": [
           {
             "key": "boa.taming.page1",
@@ -7021,9 +7137,9 @@
         "created": "2026-10-01T17:52:43.79329+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-01T18:20:21.8077323+02:00",
-        "last_modified_date": "2026-10-01",
-        "size_bytes": 94884
+        "last_modified": "2026-10-03T11:58:04.9873622+02:00",
+        "last_modified_date": "2026-10-03",
+        "size_bytes": 95096
       },
       "id": "ow:orca",
       "loot": {
@@ -7121,6 +7237,35 @@
           "somnolence_meal_interval_seconds_min": 10.0,
           "somnolence_meal_interval_ticks_max": 900,
           "somnolence_meal_interval_ticks_min": 200
+        },
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:cod",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:salmon",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
         },
         "saddle_recipe": {
           "accent_color": "#28313E",
@@ -7573,9 +7718,9 @@
         "created": "2026-10-01T16:57:09.1667373+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-01T18:20:21.8102594+02:00",
-        "last_modified_date": "2026-10-01",
-        "size_bytes": 111124
+        "last_modified": "2026-10-03T11:58:04.990935+02:00",
+        "last_modified_date": "2026-10-03",
+        "size_bytes": 108721
       },
       "id": "ow:elephant",
       "loot": {
@@ -7712,6 +7857,35 @@
             "id": "ow:elephant_food"
           }
         ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:melon_slice",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:sugar_cane",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
         "saddle_recipe": {
           "accent_color": "#776A5E",
           "entity_key": "entity.ow.elephant",
@@ -8254,9 +8428,9 @@
         "created": "2026-10-01T17:11:04.2566378+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-01T18:20:21.8122629+02:00",
-        "last_modified_date": "2026-10-01",
-        "size_bytes": 84806
+        "last_modified": "2026-10-03T11:58:04.9955119+02:00",
+        "last_modified_date": "2026-10-03",
+        "size_bytes": 82879
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -8354,6 +8528,29 @@
           "somnolence_meal_interval_seconds_min": 10.0,
           "somnolence_meal_interval_ticks_max": 900,
           "somnolence_meal_interval_ticks_min": 200
+        },
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:wheat",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
         },
         "somnolence": {
           "decays": true,
@@ -8777,9 +8974,9 @@
         "created": "2026-10-01T17:11:35.3085605+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-01T18:20:21.8122629+02:00",
-        "last_modified_date": "2026-10-01",
-        "size_bytes": 74492
+        "last_modified": "2026-10-03T11:58:04.9940019+02:00",
+        "last_modified_date": "2026-10-03",
+        "size_bytes": 72864
       },
       "id": "ow:red_panda",
       "loot": {
@@ -9413,6 +9610,35 @@
             "id": "ow:red_panda_sweets"
           }
         ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:egg",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:bamboo",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
         "somnolence": {
           "decays": true,
           "full_bar_asleep_seconds": 225.0,
@@ -9806,9 +10032,9 @@
         "created": "2026-10-01T16:57:09.2032806+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-01T18:20:21.8112599+02:00",
-        "last_modified_date": "2026-10-01",
-        "size_bytes": 57832
+        "last_modified": "2026-10-03T11:58:04.9924738+02:00",
+        "last_modified_date": "2026-10-03",
+        "size_bytes": 56512
       },
       "id": "ow:gorilla",
       "loot": {
@@ -9880,6 +10106,35 @@
             "id": "ow:gorilla_food"
           }
         ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:apple",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:melon_slice",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
         "somnolence": {
           "decays": true,
           "full_bar_asleep_seconds": 270.0,
@@ -10169,6 +10424,23 @@
       "taming": {
         "advancement": "ow:",
         "experience": 0.0,
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
         "somnolence": {
           "decays": false,
           "max": 100000,
@@ -10453,6 +10725,8 @@
       "FIGHT_DECAY_TICKS": 100,
       "FIGHT_HOLD_TICKS": 100,
       "FOOD_SLOT": 1,
+      "LEASH_DRAG_SLACK": 3.0,
+      "LEASH_DRAG_SNAP": 10.0,
       "MIN_TURN_STEP": 6.0,
       "PASSIVE_REGEN_AMOUNT": 0.5,
       "PASSIVE_REGEN_INTERVAL_TICKS": 400,
@@ -10461,7 +10735,8 @@
       "SLEEPING_SOMNOLENCE_LOSS_FACTOR": 2,
       "SOMNOLENCE_SPREAD_PERCENT": 20,
       "VITAL_ENERGY_LEVEL_GAIN": 0.5,
-      "VITAL_ENERGY_UPGRADE_STEP": 6.0
+      "VITAL_ENERGY_UPGRADE_STEP": 6.0,
+      "WAKE_WARNING_PERCENT": 15
     },
     "level_curve": {
       "formula": "6 + 2 * level + (level * level) / 8",

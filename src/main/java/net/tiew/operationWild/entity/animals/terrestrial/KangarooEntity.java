@@ -28,6 +28,7 @@ import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -432,6 +433,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     @Override
     public boolean isFood(ItemStack itemStack) {
         return itemStack.is(OWTags.Items.TIGER_FOOD);
+    }
+
+    @Override
+    public Item favoriteFoodTier2() {
+        return Items.WHEAT;
     }
 
     @Override
