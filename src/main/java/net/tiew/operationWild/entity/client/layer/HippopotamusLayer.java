@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class HippopotamusLayer extends RenderLayer<HippopotamusEntity, HippopotamusModel<HippopotamusEntity>> {
 
-    private static final ResourceLocation ANGRY_EYES_TEXTURE = tex("hippopotamus_angry_eyes.png");
+    private static final ResourceLocation ANGRY_EYES_TEXTURE = tex("hippopotamus_default_angry_eyes.png");
     private static final ResourceLocation SADDLE_TEXTURE = tex("hippopotamus_saddle.png");
     private static final ResourceLocation NECKLACE_TEXTURE = tex("hippopotamus_necklace.png");
     private static final ResourceLocation NECKLACE_SPIKES_TEXTURE = tex("hippopotamus_necklace_spikes.png");
@@ -52,7 +52,7 @@ public class HippopotamusLayer extends RenderLayer<HippopotamusEntity, Hippopota
             renderOverlay(poseStack, bufferSource, NECKLACE_SPIKES_TEXTURE, false, packedLight);
         }
 
-        if (hippo.isMad()) renderOverlay(poseStack, bufferSource, ANGRY_EYES_TEXTURE, true, packedLight);
+        if (hippo.isMad()) renderOverlay(poseStack, bufferSource, ANGRY_EYES_TEXTURE, false, packedLight);
         if (hippo.isSaddled()) renderOverlay(poseStack, bufferSource, SADDLE_TEXTURE, false, packedLight);
 
         double healthTier = hippo.getMaxHealth() / 4;

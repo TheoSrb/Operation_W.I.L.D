@@ -164,7 +164,7 @@ public class OWAttacksHandler {
 
         registerEntityRow(HippopotamusEntity.class, 1);
         registerEntityColumn(HippopotamusEntity.class, 3);
-        registerComboMaxTimer(HippopotamusEntity.class, 14);
+        registerComboMaxTimer(HippopotamusEntity.class, 15);
         register(HippopotamusEntity.class, HippopotamusAttacks.ROLL);
         register(HippopotamusEntity.class, HippopotamusAttacks.RIVER_FURY);
         registerPassive(HippopotamusEntity.class, HippopotamusPassives.RIVER_SURGE);

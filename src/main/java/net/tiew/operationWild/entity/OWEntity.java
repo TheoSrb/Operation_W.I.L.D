@@ -2101,6 +2101,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return (float) this.getAttributeBaseValue(Attributes.ATTACK_DAMAGE);
     }
 
+    public float getCombatDamage() {
+        return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
+    }
+
     public InteractionResult createFoodHealingSystem(Player player, ItemStack itemStack, boolean preferRawMeat, boolean preferCookedMeat, boolean preferVegetables, float healingMultiplier) {
         if (this.isTame() && !this.level().isClientSide() && !isBaby()) {
             Item item = itemStack.getItem();
@@ -3761,7 +3765,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 return;
             }
             if (attackTimer == timeToHit) {
-                float d0 = (float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
+                float d0 = (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
                 attackEntitiesInFront(d0, sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
 
                 if (spawnBlurr) {
@@ -3829,7 +3833,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (attackTimer == timeToHit + 21) {
                 if (getComboAttack() == 3) {
                     boolean isRided = this.getControllingPassenger() != null;
-                    float d0 = (float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
+                    float d0 = (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
                     attackEntitiesInFront(d0, SoundEvents.PLAYER_ATTACK_STRONG, 3.0f * (isRided ? 1 : 1.5f), 3.0f * (isRided ? 1 : 1.5f), 1.5f * (isRided ? 1 : 1.5f), 0.5f);
                     kangaroo.createMiniShockwave();
                     kangaroo.fourthHitFired = true;
@@ -3902,7 +3906,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 return;
             }
             if (attackTimer == timeToHit) {
-                attackEntitiesInFront(this.getDamage(), sound, width, height, reach, 1.0f);
+                attackEntitiesInFront(this.getCombatDamage(), sound, width, height, reach, 1.0f);
                 if (spawnBlurr) OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
             }
         }
@@ -4015,7 +4019,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (attackTimer == timeToHit) {
                     boolean isRided = this.getControllingPassenger() != null;
                     attackEntitiesInFrontSimple(
-                            (float) ((this.getDamage() / MAX_ATTACKS_IN_COMBO) * (this.isVehicle() && !this.isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER)),
+                            (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (this.isVehicle() && !this.isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER)),
                             sound,
                             width * (isRided ? 1 : 1.5f),
                             height * (isRided ? 1 : 1.5f),

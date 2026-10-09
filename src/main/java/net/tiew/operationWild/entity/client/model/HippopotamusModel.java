@@ -201,9 +201,9 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
-            case 1 -> 1.0f;
-            case 2 -> 1.1f;
-            case 3 -> 1.25f;
+            case 1 -> 0.9f;
+            case 2 -> 0.99f;
+            case 3 -> 1.125f;
             default -> 1.0f;
         };
     }
@@ -258,6 +258,16 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
         }
 
         float roarWeight = roarWeight(hippo, pt);
+
+        if (hippo.isMad()) {
+            this.left_eyeBall.xScale = 0;
+            this.left_eyeBall.yScale = 0;
+            this.left_eyeBall.zScale = 0;
+
+            this.right_eyeBall.xScale = 0;
+            this.right_eyeBall.yScale = 0;
+            this.right_eyeBall.zScale = 0;
+        }
 
         this.applyHeadRotation(netHeadYaw, headPitch, (1f - rollWeight) * (1f - roarWeight));
 

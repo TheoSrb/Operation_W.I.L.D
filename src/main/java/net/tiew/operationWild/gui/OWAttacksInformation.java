@@ -344,7 +344,7 @@ public class OWAttacksInformation {
                 new AttackSlot(60, 40, "LMB",
                         title("ow.attacks.hippopotamus.combo.title"),
                         e -> desc("ow.attacks.hippopotamus.combo.desc",
-                                val("0.7"), val(e.getDamageToClient() / 3))
+                                val("0.75"), val(e.getDamageToClient() / 3))
                 ),
 
                 new AttackSlot(80, 40, "RMB",

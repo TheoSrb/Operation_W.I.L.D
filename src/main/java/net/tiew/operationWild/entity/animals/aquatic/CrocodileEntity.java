@@ -1285,7 +1285,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             grabbed.invulnerableTime = 0;
             float ratio = grabbed instanceof Player ? DEATH_ROLL_PLAYER_BITE_RATIO : DEATH_ROLL_BITE_RATIO;
             if (!this.isTame()) ratio *= DEATH_ROLL_WILD_MULTIPLIER;
-            grabbed.hurt(this.damageSources().mobAttack(this), this.getDamage() * ratio);
+            grabbed.hurt(this.damageSources().mobAttack(this), this.getCombatDamage() * ratio);
 
             if (this.level() instanceof ServerLevel serverLevel) {
                 serverLevel.sendParticles(ParticleTypes.SPLASH,
@@ -2032,7 +2032,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         }
         setVitalEnergy(getVitalEnergy() + energyRequired);
 
-        float baseDamage = Mth.lerp(factor, 5.0f, this.getDamage());
+        float baseDamage = Mth.lerp(factor, 5.0f, this.getCombatDamage());
         mouthSlamPendingDamage = factor >= 1.0f ? baseDamage * 2f : baseDamage;
         mouthSlamPendingKnockback = 1.5f + factor * 2.0f;
         mouthSlamPendingBleed = factor >= 1.0f;
@@ -2043,7 +2043,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public void performWildMouthSlam(float chargeRatio) {
-        mouthSlamPendingDamage = this.getDamage() * (0.5f + chargeRatio * 0.5f);
+        mouthSlamPendingDamage = this.getCombatDamage() * (0.5f + chargeRatio * 0.5f);
         mouthSlamPendingKnockback = 2.0f + chargeRatio * 1.5f;
         mouthSlamPendingBleed = chargeRatio >= 1.0f;
         mouthSlamHitTimer = 8;

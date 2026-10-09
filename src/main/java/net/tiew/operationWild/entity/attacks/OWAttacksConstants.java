@@ -660,15 +660,16 @@ public class OWAttacksConstants {
         public static final float ROLL_BRAKE_RATIO = 0.45f;
         public static final float ROLL_SLOPE_GAIN = 1.5f;
         public static final float ROLL_SLOPE_MAX_BONUS = 0.45f;
-        public static final float ROLL_TURN_SPEED = 0.012f;
-        public static final float ROLL_TURN_MAX_DEGREES = 1.5f;
+        public static final float ROLL_TURN_SPEED = 0.02f;
+        public static final float ROLL_TURN_MAX_DEGREES = 2.5f;
         public static final float ROLL_STOP_GLIDE = 0.93f;
         public static final float ROLL_RADIUS_BLOCKS = 0.75f;
         public static final float ROLL_SEAT_LIFT = -0.22f;
         public static final float ROLL_SEAT_SPREAD = 0.35f;
 
         public static final double ROLL_CRUSH_MIN_SPEED = 0.10;
-        public static final float ROLL_CRUSH_DAMAGE_RATIO = 0.9f;
+        public static final float ROLL_CRUSH_DAMAGE_RATIO = 0.72f;
+        public static final float ROLL_BUMP_DAMAGE_RATIO = 0.32f;
         public static final int ROLL_CRUSH_IMMUNITY_TICKS = 15;
         public static final int ROLL_CRUSH_FLATTEN_TICKS = 25;
         public static final double ROLL_CRUSH_KNOCKBACK = 0.55;

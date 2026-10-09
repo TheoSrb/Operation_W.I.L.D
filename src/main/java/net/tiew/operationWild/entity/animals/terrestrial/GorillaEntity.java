@@ -1208,7 +1208,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         double speed = Mth.lerp(factor,
                 OWAttacksConstants.Gorilla.ROCK_THROW_MIN_SPEED,
                 OWAttacksConstants.Gorilla.ROCK_THROW_MAX_SPEED);
-        float damage = (float) (getDamage() * Mth.lerp(factor,
+        float damage = (float) (getCombatDamage() * Mth.lerp(factor,
                 OWAttacksConstants.Gorilla.ROCK_THROW_MIN_DAMAGE_RATIO,
                 OWAttacksConstants.Gorilla.ROCK_THROW_MAX_DAMAGE_RATIO));
 

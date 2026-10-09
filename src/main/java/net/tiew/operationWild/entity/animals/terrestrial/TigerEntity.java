@@ -703,7 +703,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
         LivingEntity grabbed = getGrabbedTarget();
         if (grabbed == null) return;
         grabbed.invulnerableTime = 0;
-        grabbed.hurt(this.damageSource, this.getDamage() / 6f);
+        grabbed.hurt(this.damageSource, this.getCombatDamage() / 6f);
         playerGrabPunchCooldown = 10;
         this.entityData.set(GRAB_PUNCH_TIMER, 8);
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
@@ -961,7 +961,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                     if (grabDamageTimer >= 10) {
                         grabDamageTimer = 0;
                         grabbed.invulnerableTime = 0;
-                        grabbed.hurt(this.damageSource, this.getDamage() * 0.2f);
+                        grabbed.hurt(this.damageSource, this.getCombatDamage() * 0.2f);
                     }
                 }
             }
@@ -991,7 +991,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
                 if (grabDamageTimer >= 8) {
                     grabDamageTimer = 0;
                     grabbed.invulnerableTime = 0;
-                    grabbed.hurt(this.damageSource, this.getDamage() * 0.075f);
+                    grabbed.hurt(this.damageSource, this.getCombatDamage() * 0.075f);
                 }
             }
         }

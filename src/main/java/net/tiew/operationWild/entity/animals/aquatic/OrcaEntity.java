@@ -712,7 +712,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         this.entityData.set(FLOP_SLAM_ID, this.entityData.get(FLOP_SLAM_ID) + 1);
 
         AABB crushBox = this.getBoundingBox().inflate(FLOP_CRUSH_RADIUS, 0.6, FLOP_CRUSH_RADIUS);
-        float damage = this.getDamage() * FLOP_CRUSH_RATIO;
+        float damage = this.getCombatDamage() * FLOP_CRUSH_RATIO;
 
         for (LivingEntity victim : this.level().getEntitiesOfClass(LivingEntity.class, crushBox)) {
             if (victim == this || this.hasPassenger(victim) || this.isAlliedTo(victim)) continue;
@@ -1525,8 +1525,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     private float getRushDamage() {
         return this.isTame()
-                ? this.getDamage()
-                : this.getDamage() * OWAttacksConstants.Orca.TIDAL_RUSH_WILD_DAMAGE_MULTIPLIER;
+                ? this.getCombatDamage()
+                : this.getCombatDamage() * OWAttacksConstants.Orca.TIDAL_RUSH_WILD_DAMAGE_MULTIPLIER;
     }
 
     private final java.util.Set<java.util.UUID> dashHits = new java.util.HashSet<>();
@@ -2014,7 +2014,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         if (!friendly && !this.abyssalHold && this.tickCount % MOUTH_DAMAGE_INTERVAL == 0) {
             prey.invulnerableTime = 0;
-            prey.hurt(this.damageSources().mobAttack(this), this.getDamage() * MOUTH_BITE_RATIO);
+            prey.hurt(this.damageSources().mobAttack(this), this.getCombatDamage() * MOUTH_BITE_RATIO);
             this.level().playSound(null, getX(), getY(), getZ(),
                     net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK, SoundSource.HOSTILE, 0.8f, 0.5f);
         }

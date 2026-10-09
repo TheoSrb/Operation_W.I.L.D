@@ -1997,7 +1997,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             if (this.isAlliedTo(target)) continue;
 
             target.hurt(this.damageSources().mobAttack(this),
-                    (float) (this.getDamage() * OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE_RATIO));
+                    (float) (this.getCombatDamage() * OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE_RATIO));
             // setDeltaMovement plutôt que push : la poussée s'ajoute à l'élan existant, si bien
             // qu'une cible qui venait vers l'éléphant partait deux fois moins loin que celle qui
             // fuyait. On impose la trajectoire, elle ne dépend plus de ce que faisait la victime —

@@ -1717,7 +1717,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             return this.distanceToSqr(target) <= radius * radius;
         });
 
-        float baseDamage = this.getDamage();
+        float baseDamage = this.getCombatDamage();
         for (LivingEntity target : targets) {
             double dist = Math.sqrt(this.distanceToSqr(target));
             float t = (float) Mth.clamp(dist / radius, 0.0, 1.0);

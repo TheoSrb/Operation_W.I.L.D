@@ -280,7 +280,11 @@ public class OWAttacksOverlay {
             boolean isHealOrbBlocked = attack.getId() == OWAttacksHandler.HEAL_SNACK_ID
                     && carriedOnShoulder && OWAttackLogic.isHealOrbBlocked(player);
 
-            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked) {
+            boolean isRiverFuryBlockedInWater = attack.getId() == OWAttacksHandler.RIVER_FURY_ID
+                    && entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity furyHippo
+                    && furyHippo.isInWater() && furyHippo.getFuryTick() <= 0;
+
+            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isRiverFuryBlockedInWater) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;

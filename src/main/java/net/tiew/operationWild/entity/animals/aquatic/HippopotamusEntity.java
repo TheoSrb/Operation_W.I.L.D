@@ -504,7 +504,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public void tick() {
         super.tick();
 
-        createCombo(20, 12, actualAttackNumber == 1 ? SoundEvents.RAVAGER_ATTACK : SoundEvents.EVOKER_FANGS_ATTACK,
+        createCombo(22, 13, actualAttackNumber == 1 ? SoundEvents.RAVAGER_ATTACK : SoundEvents.EVOKER_FANGS_ATTACK,
                 3.2, 2.6, 2.3, actualAttackNumber == 2, actualAttackNumber == 2 ? 2.5f : 1.2f);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
@@ -608,7 +608,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
     @Override
     public boolean canUseUltimate() {
-        return super.canUseUltimate() && !isRolling() && !isRollStaggered();
+        return super.canUseUltimate() && !isRolling() && !isRollStaggered() && !this.isInWater();
     }
 
     @Override
@@ -848,12 +848,12 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
             }
 
             if (isTooBigToCrush(target)) {
-                target.hurt(this.damageSources().mobAttack(this), this.getDamage() * 0.4f * speedFactor);
+                target.hurt(this.damageSources().mobAttack(this), this.getCombatDamage() * OWAttacksConstants.Hippopotamus.ROLL_BUMP_DAMAGE_RATIO * speedFactor);
                 bounceOffObstacle();
                 return;
             }
 
-            float damage = this.getDamage() * OWAttacksConstants.Hippopotamus.ROLL_CRUSH_DAMAGE_RATIO * speedFactor;
+            float damage = this.getCombatDamage() * OWAttacksConstants.Hippopotamus.ROLL_CRUSH_DAMAGE_RATIO * speedFactor;
             if (isRiverFuryActive()) damage *= OWAttacksConstants.Hippopotamus.FURY_ROLL_CRUSH_MULTIPLIER;
 
             if (!target.hurt(this.damageSources().mobAttack(this), damage)) continue;
@@ -926,7 +926,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         if (this.level().isClientSide()) return false;
         if (getFuryTick() > 0) return false;
         if (getUltimateKillCount() < OWAttacksConstants.Hippopotamus.FURY_KILLS_REQUIRED) return false;
-        if (isRolling() || isRollStaggered()) return false;
+        if (isRolling() || isRollStaggered() || this.isInWater()) return false;
 
         float cost = OWAttacksConstants.Hippopotamus.FURY_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
@@ -1257,9 +1257,9 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     }
 
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (26 / comboSpeedMultiplier));
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (24 / comboSpeedMultiplier));
-        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (28 / comboSpeedMultiplier));
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (29 / comboSpeedMultiplier));
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (26 / comboSpeedMultiplier));
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (30 / comboSpeedMultiplier));
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
