@@ -318,7 +318,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public float getRotationSpeed() {
         if (isFuryWindup() || isRollStaggered()) return 0f;
         if (isRolling()) return rollTurnSpeed();
-        return 0.14f;
+        return 0.09f;
     }
 
     private float rollTurnSpeed() {
