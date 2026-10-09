@@ -614,12 +614,12 @@ public class OWAttacksConstants {
         public static final long ROCK_THROW_CHARGE_MAX_MS = 1800L;
         public static final float ROCK_THROW_ENERGY = 60f;
         public static final int ROCK_THROW_WINDUP_TICKS = 7;
-        public static final int ROCK_THROW_RELEASE_TICKS = 9;
+        public static final int ROCK_THROW_RELEASE_TICKS = 12;
         public static final double ROCK_THROW_MIN_SPEED = 0.85;
         public static final double ROCK_THROW_MAX_SPEED = 1.80;
         public static final double ROCK_THROW_IMPACT_RADIUS = 3.5;
-        public static final double ROCK_THROW_MIN_DAMAGE_RATIO = 0.75;
-        public static final double ROCK_THROW_MAX_DAMAGE_RATIO = 2.00;
+        public static final double ROCK_THROW_MIN_DAMAGE_RATIO = 0.375;
+        public static final double ROCK_THROW_MAX_DAMAGE_RATIO = 1.00;
         public static final double ROCK_THROW_KNOCKBACK = 0.85;
         public static final int ROCK_THROW_MAX_LIFETIME_TICKS = 200;
 
@@ -627,7 +627,7 @@ public class OWAttacksConstants {
         public static final long RIDER_LAUNCH_CHARGE_MAX_MS = 1600L;
         public static final float RIDER_LAUNCH_ENERGY = 40f;
         public static final int RIDER_LAUNCH_WINDUP_TICKS = 8;
-        public static final int RIDER_LAUNCH_RELEASE_TICKS = 10;
+        public static final int RIDER_LAUNCH_RELEASE_TICKS = 16;
         public static final double RIDER_LAUNCH_MIN_POWER = 1.05;
         public static final double RIDER_LAUNCH_MAX_POWER = 2.35;
         public static final double RIDER_LAUNCH_LIFT_RATIO = 0.80;
@@ -647,5 +647,31 @@ public class OWAttacksConstants {
         public static final double CHEST_BEAT_ALLY_DAMAGE_BONUS = 0.30;
         public static final int CHEST_BEAT_FEAR_TICKS = 120;
         public static final double CHEST_BEAT_PUSH_POWER = 0.55;
+    }
+
+    public static class Slide {
+        public static final float ENERGY = 12f;
+        public static final int COOLDOWN_TICKS = 16;
+        public static final int MIN_TICKS = 7;
+        public static final int MAX_TICKS = 34;
+        public static final int ICE_MAX_TICKS = 50;
+        public static final double MIN_ENTRY_RATIO = 0.30;
+        public static final double SPRINT_BOOST_RATIO = 0.30;
+        public static final double WALK_BOOST_RATIO = 0.12;
+        public static final double MAX_SPEED_RATIO = 1.25;
+        public static final double ICE_MAX_SPEED_BONUS = 1.15;
+        public static final double EXIT_SPEED_RATIO = 0.36;
+        public static final double GROUND_DRAG = 0.965;
+        public static final double SLICK_DRAG = 0.990;
+        public static final double AIR_DRAG = 0.990;
+        public static final double DOWNHILL_GAIN = 0.06;
+        public static final double UPHILL_LOSS = 0.07;
+        public static final float STEER_DEGREES = 3.4f;
+        public static final double ICE_STEER_GRIP = 0.40;
+        public static final double HOP_LIFT = 0.50;
+        public static final double HOP_CARRY = 1.02;
+        public static final int HANDOFF_TICKS = 14;
+        public static final double SHOVE_POWER = 0.65;
+        public static final float FOV_GAIN = 0.08f;
     }
 }

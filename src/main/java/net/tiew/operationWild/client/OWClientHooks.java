@@ -35,6 +35,15 @@ public final class OWClientHooks {
         return Minecraft.getInstance().options.keyJump.isDown();
     }
 
+    public static boolean isSlideKeyDown() {
+        return net.tiew.operationWild.core.OWKeysBinding.OW_SLIDE.isDown();
+    }
+
+    public static void sendSlide(boolean start) {
+        net.tiew.operationWild.networking.OWNetworkHandler.sendToServer(
+                new net.tiew.operationWild.networking.packets.to_server.OWSlidePacket(start));
+    }
+
     /** Ouvre l'Écran de Communion pour lancer le Rituel de Résurrection. */
     public static void openRitualCommunion(SoulData data) {
         Minecraft.getInstance().setScreen(new RitualCommunionScreen(data));

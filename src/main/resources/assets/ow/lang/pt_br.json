@@ -1085,6 +1085,7 @@
   "ow.attacks.elephant.lumberjack.title": "Lenhador",
   "ow.attacks.elephant.lumberjack.desc": "A galope, o Elefante derruba de uma só vez a árvore inteira que atinge e extrai %s%% mais madeira.",
   "key.ow.switch_attack": "Trocar de ataque secundário (+ roda)",
+  "key.ow.slide": "Deslize animal (segurar)",
   "ow.attacks.elephant.water_spray.title": "Jato de Tromba",
   "ow.attacks.elephant.water_spray.desc": "Segure o botão direito: à beira da água o Elefante enche a tromba; em outro lugar ele borrifa por %s blocos, empurrando o que varre e apagando incêndios. Insistir %s segundos no mesmo bloco de lava o transforma em pedra. A reserva escapa aos poucos. A tromba fica inutilizável durante os %s segundos de recarga do Golpe de Ombro.",
   "ow.attacks.switch_secondary.before": "%s +",

@@ -1085,6 +1085,7 @@
   "ow.attacks.elephant.lumberjack.title": "Bûcheron",
   "ow.attacks.elephant.lumberjack.desc": "Lancé au galop, l'Éléphant abat d'un seul coup l'arbre entier qu'il percute et en tire %s%% de bois en plus.",
   "key.ow.switch_attack": "Changer d'attaque secondaire (+ molette)",
+  "key.ow.slide": "Glissade animale (maintenir)",
   "ow.attacks.elephant.water_spray.title": "Jet de Trompe",
   "ow.attacks.elephant.water_spray.desc": "Clic droit maintenu : au bord de l'eau, l'Éléphant remplit sa trompe ; ailleurs, il pulvérise sur %s blocs, repoussant ce qu'il balaie et éteignant les incendies. Insister %s secondes sur un même bloc de lave le fige en pierre. La réserve fuit lentement avec le temps. La trompe reste inutilisable pendant les %s secondes de recharge du Coup d'Épaule.",
   "ow.attacks.switch_secondary.before": "%s +",

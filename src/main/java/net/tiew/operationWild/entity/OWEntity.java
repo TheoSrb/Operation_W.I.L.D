@@ -181,6 +181,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private float customWidth = 1.0F;
     private float customHeight = 1.0F;
     public boolean canShowVitalEnergyLack = false;
+
+    private final OWSlideController slide = new OWSlideController(this);
+
+    protected float seatPartialTick = 1f;
     public boolean isChargingAttack = false;
     private int noJumpDelay;
     private float currentSpeed = 0;
@@ -310,6 +314,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public static final EntityDataAccessor<Boolean> IS_COMBO = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> BODY_Z_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> BODY_X_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Integer> SLIDE_TICK = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> BODY_Y_ROT = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Float> BODY_Y_OFFSET = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Boolean> IS_COMBO_PAUSED = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
@@ -2360,6 +2365,81 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.targetSpeed = 0f;
     }
 
+    protected void carryRiddenSpeed(float speed) {
+        this.currentSpeed = speed;
+    }
+
+    @Nullable
+    public OWSlideProfile slideProfile() {
+        return null;
+    }
+
+    public final boolean canSlide() {
+        return slideProfile() != null;
+    }
+
+    protected boolean canSlideNow() {
+        return this.isTame() && !this.isBaby() && !this.isInWater() && !this.isInLava()
+                && !this.isSitting() && !this.isCombo() && !this.isImmobile() && !this.isKnockedOut();
+    }
+
+    @Nullable
+    protected SoundEvent slideVoice() {
+        return null;
+    }
+
+    protected double slideRunReference() {
+        return Math.max(0.05, this.getSpeed() * (vehicleRunSpeedMultiplier() / 1.75f));
+    }
+
+    public int getSlideTick() {
+        return this.entityData.get(SLIDE_TICK);
+    }
+
+    void setSlideTick(int tick) {
+        this.entityData.set(SLIDE_TICK, tick);
+    }
+
+    public boolean isSliding() {
+        return getSlideTick() > 0;
+    }
+
+    public boolean isSlideMotionActive() {
+        return slide.isMotionActive();
+    }
+
+    public void requestSlide() {
+        slide.request();
+    }
+
+    public void endSlide() {
+        slide.end();
+    }
+
+    public void clientRequestSlide() {
+        slide.clientRequest();
+    }
+
+    public float slideBlend(float partialTick) {
+        return slide.blend(partialTick);
+    }
+
+    public float slideSteer(float partialTick) {
+        return slide.steer(partialTick);
+    }
+
+    public float slideImpact(float partialTick) {
+        return slide.impact(partialTick);
+    }
+
+    public float slideSpeedFactor(float partialTick) {
+        return slide.speedFactor(partialTick);
+    }
+
+    public float slideFovModifier() {
+        return slide.fovModifier();
+    }
+
     private static final float RIDDEN_SPEED_RESPONSE = 0.3f;
 
     protected static final float RIDDEN_SWIM_ACCEL_RESPONSE = 0.09f;
@@ -2413,7 +2493,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return currentSpeed;
         }
         currentSpeed += (target - currentSpeed)
-                * riddenSpeedResponse(Math.abs(target) > Math.abs(currentSpeed));
+                * slide.handoffResponse(riddenSpeedResponse(Math.abs(target) > Math.abs(currentSpeed)));
         if (Math.abs(currentSpeed) < 1.0e-4f) currentSpeed = 0f;
         return currentSpeed;
     }
@@ -2429,10 +2509,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private void travelRidden(Player player, Vec3 travelVector) {
         Vec3 vec3 = this.getRiddenInput(player, travelVector);
         this.tickRidden(player, vec3);
+        boolean ownsMotion = this.isLeapingVehicle() || slide.ownsMotion();
 
         try {
             if (this.isControlledByLocalInstance()) {
-                if (!this.isLeapingVehicle()) {
+                if (!ownsMotion) {
                     boolean inWater = this.isInWater();
                     Vec3 lookDirection = Vec3.directionFromRotation(inWater ? this.getXRot() : 0, this.getYRot()).normalize();
                     double speedPerTick = getRiddenSpeedVehicle(player) / (inWater ? vehicleWaterSpeedDivider() : 1);
@@ -2452,7 +2533,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     this.setDeltaMovement(new Vec3(lookDirection.x * speedPerTick, yMovement, lookDirection.z * speedPerTick));
                     this.wasInWaterWhileRidden = inWater;
                 }
-                this.travel(this.isLeapingVehicle() ? Vec3.ZERO : vec3);
+                this.travel(ownsMotion ? Vec3.ZERO : vec3);
 
             } else if (this.level().isClientSide()) {
                 this.calculateEntityAnimation(false);
@@ -3052,7 +3133,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public boolean canStartCombo() {
-        return !isAttackLocked();
+        return !isAttackLocked() && !isSliding();
     }
 
     public boolean canUseUltimate() {
@@ -3209,6 +3290,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
+    public Vec3 riderCameraOffset(Player player, float eyeHeight, float partialTick) {
+        return Vec3.ZERO;
+    }
+
     public boolean riderCameraFollowsBodyTilt() {
         return false;
     }
@@ -3299,6 +3384,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void tick() {
         super.tick();
 
+        slide.tick();
         if (this.level().isClientSide()) this.tickLean();
 
         if (!this.level().isClientSide) {
@@ -4128,10 +4214,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public void tickRidden(Player player, Vec3 vec3) {
+        float yawOBefore = this.yRotO;
+        float yawBefore = this.getYRot();
+        float bodyBefore = this.yBodyRot;
+
         super.tickRidden(player, vec3);
         Vec2 vec2 = this.getRiddenRotation(player);
         smoothRotation(vec2, player);
         player.resetFallDistance();
+
+        slide.afterRiddenRotation(player, yawOBefore, yawBefore, bodyBefore);
     }
 
     private void smoothRotation(Vec2 vec2, Player player) {
@@ -4193,6 +4285,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (timer > 0) return timer - 1;
         state.stop();
         return 0;
+    }
+
+    public Vec3 captureSeatPosition(Entity passenger, float partialTick) {
+        float previous = this.seatPartialTick;
+        this.seatPartialTick = Mth.clamp(partialTick, 0f, 1f);
+        try {
+            return captureSeatPosition(passenger);
+        } finally {
+            this.seatPartialTick = previous;
+        }
     }
 
     public Vec3 captureSeatPosition(Entity passenger) {
@@ -5082,6 +5184,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
+        builder.define(SLIDE_TICK, 0);
         builder.define(VARIANT, 0);
         builder.define(STATE, 0);
         builder.define(XP, 0f);

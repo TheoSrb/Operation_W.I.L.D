@@ -1085,6 +1085,7 @@
   "ow.attacks.elephant.lumberjack.title": "木こり",
   "ow.attacks.elephant.lumberjack.desc": "全速力のゾウは、ぶつかった木を一撃で丸ごと切り倒し、木材を%s%%多く手に入れます。",
   "key.ow.switch_attack": "サブ攻撃を切り替え（＋ホイール）",
+  "key.ow.slide": "動物スライディング（長押し）",
   "ow.attacks.elephant.water_spray.title": "鼻の水鉄砲",
   "ow.attacks.elephant.water_spray.desc": "右クリック長押し：水辺ではゾウが鼻に水を吸い込み、それ以外では %s ブロック先まで噴射して、当たったものを押し戻し、火を消します。同じ溶岩ブロックに %s 秒当て続けると石に変わります。水は時間とともに少しずつ減ります。ショルダーバッシュのクールダウン %s 秒の間は鼻を使えません。",
   "ow.attacks.switch_secondary.before": "%s ＋",

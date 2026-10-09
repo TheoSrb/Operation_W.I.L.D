@@ -1085,6 +1085,7 @@
   "ow.attacks.elephant.lumberjack.title": "Holzfäller",
   "ow.attacks.elephant.lumberjack.desc": "Im vollen Lauf fällt der Elefant den gerammten Baum mit einem Schlag und gewinnt %s%% mehr Holz daraus.",
   "key.ow.switch_attack": "Sekundärangriff wechseln (+ Mausrad)",
+  "key.ow.slide": "Tier-Rutschen (halten)",
   "ow.attacks.elephant.water_spray.title": "Rüsselstrahl",
   "ow.attacks.elephant.water_spray.desc": "Rechtsklick halten: Am Wasser füllt der Elefant seinen Rüssel; sonst sprüht er über %s Blöcke, drängt zurück, was er trifft, und löscht Feuer. Hält man den Strahl %s Sekunden auf denselben Lavablock, erstarrt er zu Stein. Der Vorrat versickert langsam. Der Rüssel bleibt während der %s Sekunden Abklingzeit des Schulterstosses unbenutzbar.",
   "ow.attacks.switch_secondary.before": "%s +",

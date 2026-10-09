@@ -1085,6 +1085,7 @@
   "ow.attacks.elephant.lumberjack.title": "伐木者",
   "ow.attacks.elephant.lumberjack.desc": "全速衝鋒時，大象一擊撞倒整棵樹，並額外獲得 %s%% 的木材。",
   "key.ow.switch_attack": "切換副攻擊（＋滾輪）",
+  "key.ow.slide": "動物滑鏟（按住）",
   "ow.attacks.elephant.water_spray.title": "象鼻水柱",
   "ow.attacks.elephant.water_spray.desc": "按住右鍵：在水邊大象會往鼻子裡吸水；在別處則可噴射 %s 格，擊退被掃到的目標並撲滅火焰。對同一個熔岩方塊持續噴射 %s 秒可將其凝固成石頭。儲水會隨時間緩慢流失。在撞肩冷卻的 %s 秒內無法使用象鼻。",
   "ow.attacks.switch_secondary.before": "%s ＋",

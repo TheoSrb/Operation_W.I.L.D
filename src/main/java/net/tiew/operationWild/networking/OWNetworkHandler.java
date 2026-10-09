@@ -33,6 +33,7 @@ public class OWNetworkHandler {
         registrar.playToServer(ClientPressedRightClick.TYPE, ClientPressedRightClick.STREAM_CODEC, ClientPressedRightClick::handle);
         registrar.playToServer(LevelUpOWInventoryPacket.TYPE, LevelUpOWInventoryPacket.STREAM_CODEC, LevelUpOWInventoryPacket::handle);
         registrar.playToServer(OWRunningPacket.TYPE, OWRunningPacket.STREAM_CODEC, OWRunningPacket::handle);
+        registrar.playToServer(OWSlidePacket.TYPE, OWSlidePacket.STREAM_CODEC, OWSlidePacket::handle);
         registrar.playToServer(OWVariantsSkinsPacket.TYPE, OWVariantsSkinsPacket.STREAM_CODEC, OWVariantsSkinsPacket::handle);
         registrar.playToServer(SkinBuyingPacket.TYPE, SkinBuyingPacket.STREAM_CODEC, SkinBuyingPacket::handle);
         registrar.playToServer(ConsumeItemPacket.TYPE, ConsumeItemPacket.STREAM_CODEC, ConsumeItemPacket::handle);
@@ -94,6 +95,7 @@ public class OWNetworkHandler {
         registrar.playToClient(OpenChooseNameScreen.TYPE, OpenChooseNameScreen.STREAM_CODEC, (packet, context) -> OpenChooseNameScreenHandler.handle(packet, context));
         registrar.playToClient(TigerLeapStatePacket.TYPE, TigerLeapStatePacket.STREAM_CODEC, TigerLeapStatePacket::handle);
         registrar.playToClient(OWAttackRejectedPacket.TYPE, OWAttackRejectedPacket.STREAM_CODEC, OWAttackRejectedPacket::handle);
+        registrar.playToClient(net.tiew.operationWild.networking.packets.to_client.RiderLaunchPacket.TYPE, net.tiew.operationWild.networking.packets.to_client.RiderLaunchPacket.STREAM_CODEC, net.tiew.operationWild.networking.packets.to_client.RiderLaunchPacket::handle);
         registrar.playToClient(HeartShotPacket.TYPE, HeartShotPacket.STREAM_CODEC, HeartShotPacket::handle);
         registrar.playToClient(ElephantFootstepPacket.TYPE, ElephantFootstepPacket.STREAM_CODEC, ElephantFootstepPacket::handle);
         registrar.playToClient(FeedingPacket.TYPE, FeedingPacket.STREAM_CODEC, FeedingPacket::handle);

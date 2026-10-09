@@ -32,7 +32,7 @@ public record OWRunningPacket(boolean isSprintKeyDown) implements CustomPacketPa
         return TYPE;
     }
 
-    public static boolean $$0 = true;
+    private static final java.util.Set<java.util.UUID> TIRED_NOTIFIED = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     public static void handle(OWRunningPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
@@ -57,13 +57,12 @@ public record OWRunningPacket(boolean isSprintKeyDown) implements CustomPacketPa
                         owEntity.setHasReachedEnergyLimit(true);
                         canSprint = false;
 
-                        if ($$0) {
+                        if (TIRED_NOTIFIED.add(player.getUUID())) {
                             OWUtils.showMessage(player, Component.translatable("tooltip.entityIsTired", Component.translatable("entity.ow." + entity.getClass().getSimpleName().split("Entity")[0].toLowerCase())), 0xd2c7e8, false);
-                            $$0 = false;
                         }
                     }
 
-                    if (canSprint && entity.getRandom().nextInt(3) == 0) $$0 = true;
+                    if (canSprint && entity.getRandom().nextInt(3) == 0) TIRED_NOTIFIED.remove(player.getUUID());
 
                     owEntity.canShowVitalEnergyLack = !canSprint;
 

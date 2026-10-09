@@ -30,6 +30,7 @@ public class ModClientEventBusEvents {
         event.register(OWKeysBinding.OW_TRIBE_MENU);
         event.register(OWKeysBinding.OW_SKIP_TUTORIAL);
         event.register(OWKeysBinding.OW_SWITCH_ATTACK);
+        event.register(OWKeysBinding.OW_SLIDE);
     }
 
     @SubscribeEvent

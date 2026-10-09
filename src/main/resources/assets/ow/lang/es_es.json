@@ -1085,6 +1085,7 @@
   "ow.attacks.elephant.lumberjack.title": "Leñador",
   "ow.attacks.elephant.lumberjack.desc": "Al galope, el Elefante derriba de un golpe el árbol entero que embiste y obtiene un %s%% más de madera.",
   "key.ow.switch_attack": "Cambiar de ataque secundario (+ rueda)",
+  "key.ow.slide": "Deslizamiento animal (mantener)",
   "ow.attacks.elephant.water_spray.title": "Chorro de Trompa",
   "ow.attacks.elephant.water_spray.desc": "Mantén clic derecho: junto al agua el Elefante llena su trompa; en otro lugar rocía hasta %s bloques, empujando lo que barre y apagando incendios. Insistir %s segundos sobre un mismo bloque de lava lo convierte en piedra. La reserva se escapa poco a poco. La trompa queda inutilizable durante los %s segundos de recarga de la Embestida de Hombro.",
   "ow.attacks.switch_secondary.before": "%s +",

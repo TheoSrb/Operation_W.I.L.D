@@ -203,6 +203,15 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                             kangaroo.startWhirlwind();
                         return;
                     }
+                    if ((packet.attackId() == OWAttackIds.ROCK_THROW || packet.attackId() == OWAttackIds.RIDER_LAUNCH)
+                            && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity) {
+                        entity.isChargingAttack = true;
+                        net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla =
+                                (net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity) entity;
+                        if (packet.attackId() == OWAttackIds.ROCK_THROW) gorilla.startRockCharge();
+                        else gorilla.startRiderLaunchCharge();
+                        return;
+                    }
                     if (entity.isCombo()) return;
                     entity.isChargingAttack = true;
                     switch (packet.attackId()) {

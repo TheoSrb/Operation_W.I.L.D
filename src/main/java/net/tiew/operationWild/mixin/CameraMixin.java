@@ -127,6 +127,9 @@ public abstract class CameraMixin {
             // à la vue est facultative, espèce par espèce.
             if (!detached && mount.riderCameraFollowsBodyTilt() && !mount.isRollingFigure()) {
                 this.setPosition(this.getPosition().add(eyeArc));
+            } else if (!detached && !mount.isRollingFigure()) {
+                Vec3 own = mount.riderCameraOffset(player, eye, partialTick);
+                if (own != Vec3.ZERO) this.setPosition(this.getPosition().add(own));
             }
         }
     }

@@ -93,7 +93,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 public class ClientEvents {
 
     public static boolean isNotifiedOWBook = false;
-    private static float damageTimer = 0.0f;
+    private static final Map<UUID, Float> damageTimers = new HashMap<>();
 
     private static int questUpdateTick = 0;
     private static boolean pendingWarning = false;
@@ -691,8 +691,10 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onClientTick(PlayerTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
+        if (event.getEntity() != minecraft.player) return;
+        net.tiew.operationWild.debug.OWLaunchTrace.tickClient(minecraft.player);
 
-        if (pendingWarning && event.getEntity() == minecraft.player) {
+        if (pendingWarning) {
             if (warningTick > 0) {
                 warningTick--;
             } else if (minecraft.screen == null) {
@@ -798,8 +800,10 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
+        boolean localPlayer = player.level().isClientSide() && player == Minecraft.getInstance().player;
+        if (player.level().isClientSide() && !localPlayer) return;
 
-        if (player.level().isClientSide() && ++questUpdateTick >= 20) {
+        if (localPlayer && ++questUpdateTick >= 20) {
             questUpdateTick = 0;
             player.level().getEntitiesOfClass(TigerEntity.class,
                     player.getBoundingBox().inflate(64),
@@ -807,7 +811,7 @@ public class ClientEvents {
             ).forEach(tiger -> CosmeticsQuestsRegistry.getAllQuests().forEach(q -> q.update(tiger)));
         }
 
-        if (player.level().isClientSide()) {
+        if (localPlayer) {
             player.level().getEntitiesOfClass(OWEntity.class,
                     player.getBoundingBox().inflate(32),
                     e -> e.isTame() && !e.isDeadOrDying() && hasGoldCosmetic(e)
@@ -821,7 +825,7 @@ public class ClientEvents {
             if (waterPressure >= 4 && !player.isCreative() && !isInSubmarine(player)) {
                 float damageInterval = Math.max((-1.25f * waterPressure + 65) / 30.0f, 0.1f);
 
-                damageTimer += 0.05f;
+                float damageTimer = damageTimers.getOrDefault(player.getUUID(), 0.0f) + 0.05f;
 
                 if (damageTimer >= damageInterval) {
                     player.invulnerableTime = 0;
@@ -832,23 +836,24 @@ public class ClientEvents {
                     player.invulnerableTime = 0;
                     damageTimer = 0.0f;
                 }
+                damageTimers.put(player.getUUID(), damageTimer);
 
                 if (player.tickCount % 100 == 0) {
                     Component message = Component.translatable("tooHighPressure")
                             .setStyle(Style.EMPTY
                                     .withColor(ChatFormatting.YELLOW));
-                    Minecraft.getInstance().gui.setOverlayMessage(message, true);
+                    player.displayClientMessage(message, true);
                 }
 
                 player.addEffect(new MobEffectInstance(OWEffects.WATER_PRESSURE_EFFECT.getDelegate(), 100, 0, false, true));
 
             } else {
-                damageTimer = 0.0f;
+                damageTimers.remove(player.getUUID());
                 player.removeEffect(OWEffects.WATER_PRESSURE_EFFECT.getDelegate());
             }
         }
 
-        if (waterPressure >= 4 && !player.isCreative() && player.isAlive() && !isInSubmarine(player)) {
+        if (localPlayer && waterPressure >= 4 && !player.isCreative() && player.isAlive() && !isInSubmarine(player)) {
             float normalizedPressure = waterPressure / 4.0f;
             float intensity = 0.05f * (float) Math.pow(normalizedPressure, 2f);
             shakeCamera(intensity, player);
@@ -1714,7 +1719,9 @@ public class ClientEvents {
                 event.setPitch((float) (event.getPitch() + (elephant.getBodyXRot() / 3) * intensity));
             } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorilla) {
                 event.setRoll((float) (event.getRoll() + (gorilla.getBodyZRot() / 4) * intensity));
-                event.setPitch((float) (event.getPitch() + (gorilla.getBodyXRot() / 4) * intensity));
+                float climbTilt = gorilla.climbTilt((float) event.getPartialTick());
+                event.setPitch((float) (event.getPitch() + ((gorilla.getBodyXRot() - climbTilt) / 4) * intensity));
+                event.setPitch(event.getPitch() - climbTilt);
             }
         }
     }
@@ -2462,6 +2469,8 @@ public class ClientEvents {
             blinkShaderOn = false;
         }
         OWAttacksInformation.tick();
+        tickSlideInput();
+        net.tiew.operationWild.networking.packets.to_client.RiderLaunchPacket.guardFlight(Minecraft.getInstance().player);
 
         tickEarthquakeShake();
         footstepShake *= FOOTSTEP_SHAKE_DECAY;
@@ -2492,6 +2501,26 @@ public class ClientEvents {
                 updateBoaTargeting(boaT, mcB.player, mcB.level);
             }
         }
+    }
+
+    private static void tickSlideInput() {
+        Minecraft mc = Minecraft.getInstance();
+        boolean pressed = false;
+        while (OWKeysBinding.OW_SLIDE.consumeClick()) pressed = true;
+
+        if (mc.player == null
+                || !(mc.player.getVehicle() instanceof OWEntity mount)
+                || !mount.canSlide()
+                || mount.getControllingPassenger() != mc.player) {
+            return;
+        }
+
+        if (OWKeysBinding.OW_SLIDE.same(mc.options.keySwapOffhand)) {
+            while (mc.options.keySwapOffhand.consumeClick()) {
+            }
+        }
+
+        if (pressed && mc.screen == null) mount.clientRequestSlide();
     }
 
     private static void updateBoaTargeting(

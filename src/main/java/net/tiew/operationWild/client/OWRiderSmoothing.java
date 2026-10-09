@@ -167,7 +167,7 @@ public final class OWRiderSmoothing {
 
         Vec3 seat;
         try {
-            seat = mount.captureSeatPosition(rider);
+            seat = mount.captureSeatPosition(rider, partialTick);
         } finally {
             mount.yBodyRot = savedBodyYaw;
             mount.setYRot(savedYaw);

@@ -1085,6 +1085,7 @@
   "ow.attacks.elephant.lumberjack.title": "Lumberjack",
   "ow.attacks.elephant.lumberjack.desc": "At full charge, the Elephant fells the whole tree it rams in one go and pulls %s%% more wood from it.",
   "key.ow.switch_attack": "Switch secondary attack (+ scroll)",
+  "key.ow.slide": "Animal slide (hold)",
   "ow.attacks.elephant.water_spray.title": "Trunk Jet",
   "ow.attacks.elephant.water_spray.desc": "Hold right-click: at the water's edge the Elephant fills its trunk; anywhere else it sprays over %s blocks, shoving back whatever it sweeps and putting out fires. Holding the jet on one lava block for %s seconds turns it to stone. The reserve slowly leaks away. The trunk stays unusable during the Shoulder Bash's %s second cooldown.",
   "ow.attacks.switch_secondary.before": "%s +",

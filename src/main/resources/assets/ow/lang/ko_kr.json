@@ -1085,6 +1085,7 @@
   "ow.attacks.elephant.lumberjack.title": "나무꾼",
   "ow.attacks.elephant.lumberjack.desc": "전속력으로 달리는 코끼리는 들이받은 나무를 통째로 쓰러뜨리고 목재를 %s%% 더 얻습니다.",
   "key.ow.switch_attack": "보조 공격 전환 (+ 휠)",
+  "key.ow.slide": "동물 슬라이딩 (길게 누르기)",
   "ow.attacks.elephant.water_spray.title": "코 물줄기",
   "ow.attacks.elephant.water_spray.desc": "우클릭 유지: 물가에서는 코끼리가 코에 물을 채우고, 그 외의 곳에서는 %s 블록까지 물을 뿜어 휩쓴 대상을 밀어내고 불을 끕니다. 같은 용암 블록에 %s초 동안 계속 뿜으면 돌로 굳습니다. 저장된 물은 시간이 지나면 조금씩 새어 나갑니다. 어깨 밀치기의 재사용 대기시간 %s초 동안에는 코를 쓸 수 없습니다.",
   "ow.attacks.switch_secondary.before": "%s +",

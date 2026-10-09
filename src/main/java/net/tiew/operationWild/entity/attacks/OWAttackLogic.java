@@ -505,6 +505,7 @@ public class OWAttackLogic {
     public static void onComputeFov(ComputeFovModifierEvent event) {
         applyTelluricStompFov(event);
         applySprintRushFov(event);
+        applySlideFov(event);
 
         // Orca Tidal Rush — FOV increase (sensation de vitesse)
         if (orcaDashEffectStartMs >= 0) {
@@ -651,6 +652,14 @@ public class OWAttackLogic {
     }
 
     private static final float SPRINT_RUSH_FOV_GAIN = 0.14f;
+
+    private static void applySlideFov(ComputeFovModifierEvent event) {
+        if (!(event.getPlayer().getVehicle() instanceof net.tiew.operationWild.entity.OWEntity mount)) return;
+        float modifier = mount.slideFovModifier();
+        if (modifier <= 1.001f) return;
+
+        event.setNewFovModifier(event.getNewFovModifier() * modifier);
+    }
 
     private static void applySprintRushFov(ComputeFovModifierEvent event) {
         float rush = net.tiew.operationWild.gui.OWWindRushOverlay.rushIntensity();
@@ -1587,6 +1596,7 @@ public class OWAttackLogic {
 
                 PacketDistributor.sendToServer(
                         new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_RELEASE, chargeFactor));
+                net.tiew.operationWild.debug.OWLaunchTrace.log("CLIENT", "release envoye : attaque={} charge={}ms factor={}", attack.getId(), elapsed, chargeFactor);
 
                 if (mc.player.getRootVehicle() instanceof OWEntity entity) {
                     boolean hasEnergy = entity.getVitalEnergy() <= entity.getVitalEnergyCapacity() - attack.getEnergyRequired();
@@ -1604,6 +1614,7 @@ public class OWAttackLogic {
                     }
                 }
             }  else {
+                net.tiew.operationWild.debug.OWLaunchTrace.log("CLIENT", "charge trop courte ({}ms < {}ms) : annulation envoyee", elapsed, attack.getMinChargeMs());
                 shortChargeCooldownEndMs = System.currentTimeMillis() + 300L;
                 PacketDistributor.sendToServer(
                         new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));

@@ -53,6 +53,7 @@ import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.OWSlideProfile;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
@@ -98,16 +99,41 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private static final float CLIMB_TURN_DEGREES = 12f;
     private static final double CLIMB_WALL_PRESS = 0.09;
     private static final float CLIMB_ENERGY_PER_SURGE = 6f;
-    private static final int CLIMB_VAULT_DURATION_TICKS = 5;
-    private static final double CLIMB_VAULT_FORWARD = 0.52;
-    private static final double CLIMB_VAULT_LIFT = 0.46;
+    public static final int CLIMB_VAULT_DURATION_TICKS = 12;
+    private static final int CLIMB_VAULT_SYNC_SLACK_TICKS = 3;
+    private static final int CLIMB_VAULT_RISE_TICKS = 6;
+    private static final int CLIMB_VAULT_FORWARD_START = 5;
+    private static final double CLIMB_VAULT_FORWARD_TOTAL = 1.15;
+    private static final double CLIMB_VAULT_RISE_MARGIN = 0.08;
+    private static final double CLIMB_VAULT_RISE_MIN = 0.3;
+    private static final double CLIMB_VAULT_RISE_MAX = 2.2;
     private static final int CLIMB_FALL_IMMUNITY_TICKS = 60;
     private static final double CLIMB_WALL_MARGIN = 0.45;
+    private static final double CLIMB_START_MARGIN = 0.2;
+    private static final float CLIMB_START_LOOK_TOLERANCE = 50f;
+    private static final double CLIMB_DETACH_SLACK = 0.9;
+    private static final int SECONDARY_COOLDOWN_TOLERANCE_TICKS = 10;
+    private static final float CLIMB_MOMENTUM_START = 0.25f;
+    private static final float CLIMB_MOMENTUM_STOP = 0.18f;
+    private static final float HANG_GRIP_LOOK_THRESHOLD = 12f;
+    private static final float HANG_GRIP_SWAP_RATE = 0.12f;
+    private static final double CLIMB_LATERAL_REGRIP = 0.75;
+    private static final double CLIMB_LATERAL_RELEASE = 1.15;
     private static final int CLIMB_RIDERLESS_TICKS = 100;
     private static final double SEAT_FORWARD = -0.15;
     private static final double ULTIMATE_SEAT_FORWARD = 0.62;
     private static final double ULTIMATE_SEAT_LIFT = 0.55;
     private static final double SEAT_FORWARD_CLIMBING = -0.85;
+    private static final double SEAT_DROP = 0.14;
+    private static final double CLIMB_HIP_OUT = 0.34;
+    private static final double CLIMB_HIP_HEIGHT = 0.70;
+    private static final double RIDER_HIP_HEIGHT = 0.75;
+    public static final float CLIMB_TILT_MAX_DEG = 74.5f;
+    public static final float VAULT_UNWIND_START = 0.25f;
+    private static final int CHEST_BEAT_SEAT_BLEND_TICKS = 7;
+
+    private static final int MOUNT_REACT_TICKS = 16;
+    private static final int DISMOUNT_REACT_TICKS = 14;
 
     private static final double CLIMB_ORBIT_RADIUS = 1.30;
     private static final double CLIMB_FACE_HYSTERESIS = 0.15;
@@ -151,25 +177,63 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     public volatile float bodyAnimY = 0f;
 
-    private boolean rockChargePending = false;
-    private boolean launchChargePending = false;
+
 
     private int chestBeatBuffTimer = 0;
     private final List<Integer> chestBeatAllies = new ArrayList<>();
+
+    private boolean launchingRider = false;
 
     private int launchedRiderId = -1;
     private int launchedRiderTimer = 0;
 
     private int climbFallImmunity = 0;
+    private int vaultElapsed = -1;
+    private double vaultRise = 0.0;
     private int climbRiderlessTicks = 0;
 
     public int clientClimbElapsed = -1;
+
+    private float clientClimbPhase = 0f;
+    private float clientClimbPhaseO = 0f;
+    private float clientHangBlendO = 0f;
+    private float clientClimbSteerO = 0f;
+    private float hangGrip = 1f;
+    private float hangGripO = 1f;
+    private float hangGripTarget = 1f;
+    private float wallThrowSide = 1f;
+    private boolean wallGestureActive = false;
+    private float climbMomentum = 0f;
 
     public float clientHangBlend = 0f;
 
     public float clientClimbSteer = 0f;
 
     public int clientRockChargeTicks = 0;
+
+    public int clientLaunchChargeTicks = 0;
+
+    private float lastGroundRiddenSpeed = 0f;
+
+    private double visTrackX, visTrackY, visTrackZ;
+    private boolean visTrackValid = false;
+    private boolean visWasVehicle = false;
+    private boolean visWasOnGround = true;
+    private double visLastDy = 0;
+    private boolean visWasRockRelease = false;
+    private boolean visWasLaunchRelease = false;
+
+    private float rideBlend, rideBlendO;
+    private float runBlend, runBlendO;
+    private float slopePitch, slopePitchO;
+    private float landPulse, landPulseO;
+    private float rockAim, rockAimO;
+    private float launchAim, launchAimO;
+    private float climbBlend, climbBlendO;
+    private float rockReleaseWeight = 1f;
+    private float launchReleaseWeight = 1f;
+    private int mountReactTicks = -1;
+    private int dismountReactTicks = -1;
 
     public final AnimationState chestBeatAnimationState = new AnimationState();
 
@@ -493,6 +557,8 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         if (this.level().isClientSide()) {
             tickClientClimbElapsed();
             clientRockChargeTicks = isRockCharging() ? clientRockChargeTicks + 1 : 0;
+            clientLaunchChargeTicks = isLaunchCharging() ? clientLaunchChargeTicks + 1 : 0;
+            tickClientVisuals();
         }
         tickClimb();
         setTamingPercentage(this.foodGiven, this.foodWanted);
@@ -508,7 +574,14 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     @Override
     public float getRiddenSpeedVehicle(Player player) {
-        return this.isImmobile() ? 0 : super.getRiddenSpeedVehicle(player);
+        if (this.isImmobile()) return 0;
+
+        boolean airborne = !this.onGround() && !this.isInWater();
+        if (airborne && player.zza > 0 && !this.jumping) return lastGroundRiddenSpeed;
+
+        float speed = super.getRiddenSpeedVehicle(player);
+        if (!airborne) lastGroundRiddenSpeed = speed;
+        return speed;
     }
 
     @Override
@@ -555,6 +628,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             tickVault();
             return;
         }
+        vaultElapsed = -1;
 
         int tick = getClimbTick();
 
@@ -600,15 +674,17 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         float lookDelta = climber != null ? Mth.wrapDegrees(climber.getYRot() - face.toYRot()) : 0f;
         this.yHeadRot = turned + Mth.clamp(lookDelta, -CLIMB_HEAD_FREEDOM, CLIMB_HEAD_FREEDOM);
 
-        float steer = Mth.clamp((Math.abs(lookDelta) - CLIMB_LOOK_DEADZONE)
+        boolean hanging = this.entityData.get(CLIMB_HANG);
+        float steer = hanging ? 0f : Mth.clamp((Math.abs(lookDelta) - CLIMB_LOOK_DEADZONE)
                 / (CLIMB_LOOK_FULL - CLIMB_LOOK_DEADZONE), 0f, 1f) * Math.signum(lookDelta);
         if (climber != null) steer = Mth.clamp(steer - climber.xxa, -1f, 1f);
+        if (isWallGesturing()) steer = 0f;
         if (!this.level().isClientSide()) this.entityData.set(CLIMB_LOOK, steer);
 
-        boolean hanging = this.entityData.get(CLIMB_HANG);
         int phase = (tick - 1) % CLIMB_SURGE_TICKS;
         double bump = Math.sin(Math.PI * (double) phase / CLIMB_SURGE_TICKS);
-        double up = hanging ? 0.0 : CLIMB_SURGE_FLOOR + CLIMB_SURGE_SPEED * bump * bump;
+        climbMomentum = approach(climbMomentum, hanging ? 0f : 1f, hanging ? CLIMB_MOMENTUM_STOP : CLIMB_MOMENTUM_START);
+        double up = (CLIMB_SURGE_FLOOR + CLIMB_SURGE_SPEED * bump * bump) * climbMomentum;
 
         double pull = Mth.clamp((Math.abs(along) - CLIMB_ORBIT_RADIUS) * CLIMB_PULL_GAIN,
                 -CLIMB_PULL_MAX, CLIMB_PULL_MAX) + CLIMB_WALL_PRESS;
@@ -650,8 +726,29 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         int columnX = this.entityData.get(CLIMB_COLUMN_X);
         int columnZ = this.entityData.get(CLIMB_COLUMN_Z);
 
+        if (Math.abs(along) > CLIMB_ORBIT_RADIUS + CLIMB_DETACH_SLACK) {
+            stopClimb();
+            return;
+        }
+
+        double lateral = alongZ ? this.getX() - cx : this.getZ() - cz;
+        if (Math.abs(lateral) > CLIMB_LATERAL_REGRIP) {
+            int side = lateral > 0 ? 1 : -1;
+            int nx = alongZ ? columnX + side : columnX;
+            int nz = alongZ ? columnZ : columnZ + side;
+            if (columnSolid(nx, nz, 1.6) || columnSolid(nx, nz, 0.4)) {
+                columnX = nx;
+                columnZ = nz;
+                this.entityData.set(CLIMB_COLUMN_X, columnX);
+                this.entityData.set(CLIMB_COLUMN_Z, columnZ);
+            } else if (Math.abs(lateral) > CLIMB_LATERAL_RELEASE) {
+                stopClimb();
+                return;
+            }
+        }
+
         if (!columnSolid(columnX, columnZ, 1.6)) {
-            long moved = nearestGrip(columnX, columnZ, 1.6);
+            long moved = nearestGrip(columnX, columnZ, 1.6, alongZ);
             if (moved != Long.MIN_VALUE) {
                 this.entityData.set(CLIMB_COLUMN_X, (int) (moved >> 32));
                 this.entityData.set(CLIMB_COLUMN_Z, (int) moved);
@@ -678,30 +775,103 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     }
 
     private void tickVault() {
-        int tick = getVaultTick();
         Direction face = Direction.fromYRot(getClimbYaw());
+        if (vaultElapsed < 0) {
+            vaultElapsed = 0;
+            vaultRise = computeVaultRise();
+        }
 
-        double lift = tick == CLIMB_VAULT_DURATION_TICKS ? CLIMB_VAULT_LIFT : this.getDeltaMovement().y;
-        this.setDeltaMovement(face.getStepX() * CLIMB_VAULT_FORWARD, lift, face.getStepZ() * CLIMB_VAULT_FORWARD);
-        this.hasImpulse = true;
+        int step = vaultElapsed;
+        if (step < CLIMB_VAULT_DURATION_TICKS) {
+            double up = vaultRise * (vaultCurve(step + 1, 0, CLIMB_VAULT_RISE_TICKS) - vaultCurve(step, 0, CLIMB_VAULT_RISE_TICKS));
+            double forward = CLIMB_VAULT_FORWARD_TOTAL
+                    * (vaultCurve(step + 1, CLIMB_VAULT_FORWARD_START, CLIMB_VAULT_DURATION_TICKS)
+                    - vaultCurve(step, CLIMB_VAULT_FORWARD_START, CLIMB_VAULT_DURATION_TICKS));
+            this.setDeltaMovement(face.getStepX() * forward, up, face.getStepZ() * forward);
+            this.hasImpulse = true;
+            this.setNoGravity(true);
+        } else {
+            this.setNoGravity(false);
+        }
         this.fallDistance = 0f;
+        vaultElapsed++;
 
         if (this.level().isClientSide()) return;
 
+        int tick = getVaultTick();
         this.entityData.set(CLIMB_VAULT_TICK, tick - 1);
-        if (tick - 1 <= 0) climbFallImmunity = CLIMB_FALL_IMMUNITY_TICKS;
+        if (tick - 1 <= 0) {
+            climbFallImmunity = CLIMB_FALL_IMMUNITY_TICKS;
+            this.setNoGravity(false);
+        }
+    }
+
+    private static double vaultCurve(int tick, int from, int to) {
+        return smoothStep((float) (tick - from) / (to - from));
+    }
+
+    private double computeVaultRise() {
+        int columnX = this.entityData.get(CLIMB_COLUMN_X);
+        int columnZ = this.entityData.get(CLIMB_COLUMN_Z);
+        int y = Mth.floor(this.getY() + 0.4);
+        int limit = y + 3;
+        while (y < limit) {
+            BlockPos pos = new BlockPos(columnX, y, columnZ);
+            BlockState state = this.level().getBlockState(pos);
+            if (!state.isFaceSturdy(this.level(), pos, Direction.UP) && !state.isCollisionShapeFullBlock(this.level(), pos)) break;
+            y++;
+        }
+        return Mth.clamp(y - this.getY() + CLIMB_VAULT_RISE_MARGIN, CLIMB_VAULT_RISE_MIN, CLIMB_VAULT_RISE_MAX);
+    }
+
+    public static float vaultUnwind(float progress) {
+        return smoothStep((progress - VAULT_UNWIND_START) / (1f - VAULT_UNWIND_START));
+    }
+
+    public float climbTilt(float partialTick) {
+        if (isVaulting()) {
+            float progress = vaultProgress(partialTick);
+            return progress < 1f ? (1f - vaultUnwind(progress)) * CLIMB_TILT_MAX_DEG : 0f;
+        }
+        return smoothStep(climbBlend(partialTick)) * CLIMB_TILT_MAX_DEG;
+    }
+
+    public float climbPhase(float partialTick) { return lerpTick(partialTick, clientClimbPhaseO, clientClimbPhase); }
+
+    public float hangBlend(float partialTick) { return lerpTick(partialTick, clientHangBlendO, clientHangBlend); }
+
+    public float climbSteer(float partialTick) { return lerpTick(partialTick, clientClimbSteerO, clientClimbSteer); }
+
+    public float hangGrip(float partialTick) { return lerpTick(partialTick, hangGripO, hangGrip); }
+
+    public float wallThrowSide() { return isClimbing() ? wallThrowSide : 1f; }
+
+    public float vaultProgress(float partialTick) {
+        if (vaultElapsed <= 0) return 0f;
+        return Mth.clamp((vaultElapsed - 1 + partialTick) / CLIMB_VAULT_DURATION_TICKS, 0f, 1f);
+    }
+
+    @Override
+    protected boolean isLeapingVehicle() {
+        return (isVaulting() && vaultElapsed < CLIMB_VAULT_DURATION_TICKS) || super.isLeapingVehicle();
+    }
+
+    private boolean isWallGesturing() {
+        return isRockCharging() || isLaunchCharging() || getRockThrowTick() > 0 || getRiderLaunchTick() > 0;
     }
 
     private boolean shouldStartClimb() {
         if (!this.isTame() || this.isBaby() || this.isInWater()) return false;
         if (isChestBeating() || isRockCharging() || isLaunchCharging()) return false;
+        if (isSliding() || isSlideMotionActive()) return false;
         LivingEntity rider = this.getControllingPassenger();
         if (rider == null || rider.zza <= 0) return false;
         if (!this.isRunning()) return false;
         if (getVitalEnergy() > getVitalEnergyCapacity() - CLIMB_ENERGY_PER_SURGE) return false;
 
-        Direction face = Direction.fromYRot(rider.getYRot());
-        return hasWall(face, 0.4) && hasWall(face, 1.6);
+        Direction face = Direction.fromYRot(this.getYRot());
+        if (Math.abs(Mth.wrapDegrees(rider.getYRot() - face.toYRot())) > CLIMB_START_LOOK_TOLERANCE) return false;
+        return hasWall(face, 0.4, CLIMB_START_MARGIN) && hasWall(face, 1.6, CLIMB_START_MARGIN);
     }
 
     private boolean columnSolid(int columnX, int columnZ, double yOffset) {
@@ -711,39 +881,64 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
                 || state.isCollisionShapeFullBlock(this.level(), pos);
     }
 
-    private long nearestGrip(int columnX, int columnZ, double yOffset) {
+    private long nearestGrip(int columnX, int columnZ, double yOffset, boolean alongZ) {
         long best = Long.MIN_VALUE;
         double bestDist = Double.MAX_VALUE;
 
-        for (int ox = -1; ox <= 1; ox++) {
-            for (int oz = -1; oz <= 1; oz++) {
-                if (ox == 0 && oz == 0) continue;
-                int nx = columnX + ox;
-                int nz = columnZ + oz;
-                if (!columnSolid(nx, nz, yOffset)) continue;
+        for (int side = -1; side <= 1; side += 2) {
+            int nx = alongZ ? columnX + side : columnX;
+            int nz = alongZ ? columnZ : columnZ + side;
+            if (!columnSolid(nx, nz, yOffset)) continue;
 
-                double ddx = nx + 0.5 - this.getX();
-                double ddz = nz + 0.5 - this.getZ();
-                double d = ddx * ddx + ddz * ddz;
-                if (d < bestDist) {
-                    bestDist = d;
-                    best = ((long) nx << 32) | (nz & 0xFFFFFFFFL);
-                }
+            double ddx = nx + 0.5 - this.getX();
+            double ddz = nz + 0.5 - this.getZ();
+            double lateral = alongZ ? ddx : ddz;
+            if (Math.abs(lateral) > 1.0) continue;
+
+            double d = ddx * ddx + ddz * ddz;
+            if (d < bestDist) {
+                bestDist = d;
+                best = ((long) nx << 32) | (nz & 0xFFFFFFFFL);
             }
         }
         return best;
     }
 
     private void tickClientClimbElapsed() {
+        clientHangBlendO = clientHangBlend;
+        clientClimbSteerO = clientClimbSteer;
+        clientClimbPhaseO = clientClimbPhase;
+        hangGripO = hangGrip;
+
         if (!isClimbing()) {
             clientClimbElapsed = -1;
             clientHangBlend = 0f;
+            clientHangBlendO = 0f;
             clientClimbSteer *= 0.8f;
+            clientClimbPhase = 0f;
+            clientClimbPhaseO = 0f;
+            hangGrip = 1f;
+            hangGripO = 1f;
+            hangGripTarget = 1f;
+            wallThrowSide = 1f;
+            wallGestureActive = false;
             return;
         }
 
         clientHangBlend = Mth.clamp(clientHangBlend + (isHangingOnWall() ? 0.12f : -0.18f), 0f, 1f);
         clientClimbSteer += (getClimbLook() - clientClimbSteer) * 0.18f;
+        clientClimbPhase += 1f - smoothStep(clientHangBlend);
+
+        LivingEntity climber = this.getControllingPassenger();
+        float look = climber != null ? Mth.wrapDegrees(climber.getYRot() - getClimbYaw()) : 0f;
+        boolean gesturing = isWallGesturing() || rockAim > 0.01f || launchAim > 0.01f;
+        if (gesturing && !wallGestureActive) wallThrowSide = hangGripTarget >= 0f ? 1f : -1f;
+        wallGestureActive = gesturing;
+        if (!gesturing) {
+            if (look > HANG_GRIP_LOOK_THRESHOLD) hangGripTarget = 1f;
+            else if (look < -HANG_GRIP_LOOK_THRESHOLD) hangGripTarget = -1f;
+        }
+        hangGrip = approach(hangGrip, hangGripTarget, HANG_GRIP_SWAP_RATE);
 
         if (isHangingOnWall()) {
             clientClimbElapsed = getClimbTick();
@@ -763,19 +958,18 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         return this.getBbWidth() * 0.5 + CLIMB_WALL_MARGIN;
     }
 
-    private boolean hasWall(Direction face, double yOffset) {
+    private boolean hasWall(Direction face, double yOffset, double margin) {
+        double reach = this.getBbWidth() * 0.5 + margin;
         BlockPos pos = BlockPos.containing(
-                this.getX() + face.getStepX() * climbWallReach(),
+                this.getX() + face.getStepX() * reach,
                 this.getY() + yOffset,
-                this.getZ() + face.getStepZ() * climbWallReach());
+                this.getZ() + face.getStepZ() * reach);
         BlockState state = this.level().getBlockState(pos);
         return state.isFaceSturdy(this.level(), pos, face.getOpposite());
     }
 
     private void startClimb() {
-        LivingEntity rider = this.getControllingPassenger();
-        float yaw = rider != null ? rider.getYRot() : this.yBodyRot;
-        Direction face = Direction.fromYRot(yaw);
+        Direction face = Direction.fromYRot(this.getYRot());
 
         BlockPos grip = BlockPos.containing(
                 this.getX() + face.getStepX() * climbWallReach(),
@@ -787,14 +981,16 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         this.entityData.set(CLIMB_YAW, face.toYRot());
         this.entityData.set(CLIMB_HANG, false);
         this.entityData.set(CLIMB_TICK, 1);
+        climbMomentum = 0f;
         this.getNavigation().stop();
     }
 
     private void startVault(Direction face) {
         this.entityData.set(CLIMB_TICK, 0);
         this.entityData.set(CLIMB_HANG, false);
-        this.entityData.set(CLIMB_VAULT_TICK, CLIMB_VAULT_DURATION_TICKS);
-        this.setNoGravity(false);
+        this.entityData.set(CLIMB_VAULT_TICK, CLIMB_VAULT_DURATION_TICKS + CLIMB_VAULT_SYNC_SLACK_TICKS);
+        this.setNoGravity(true);
+        vaultElapsed = -1;
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 SoundEvents.RAVAGER_ATTACK, SoundSource.NEUTRAL, 0.8f,
                 (float) OWUtils.generateRandomInterval(1.1, 1.3));
@@ -804,6 +1000,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         this.entityData.set(CLIMB_TICK, 0);
         this.entityData.set(CLIMB_HANG, false);
         this.entityData.set(CLIMB_LOOK, 0f);
+        climbMomentum = 0f;
         climbRiderlessTicks = 0;
         this.setNoGravity(false);
         climbFallImmunity = CLIMB_FALL_IMMUNITY_TICKS;
@@ -953,25 +1150,43 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         cancelRiderLaunchCharge();
     }
 
+    private boolean secondaryReady() {
+        return getSecondaryCooldown() <= SECONDARY_COOLDOWN_TOLERANCE_TICKS;
+    }
+
+    private void interruptComboForSecondary() {
+        if (!this.isCombo()) return;
+        resetCombo(0);
+        actualAttackNumber = 0;
+    }
+
+    private void rejectSecondary(int attackId) {
+        if (this.getControllingPassenger() instanceof net.minecraft.server.level.ServerPlayer player) {
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(player,
+                    new net.tiew.operationWild.networking.packets.to_client.OWAttackRejectedPacket(this.getId(), attackId));
+        }
+    }
+
     public void startRockCharge() {
         if (isRockCharging()) return;
-        rockChargePending = true;
-        if (isSecondaryOnCooldown()) return;
+        endSlide();
+        interruptComboForSecondary();
+        if (!secondaryReady()) return;
         this.entityData.set(IS_ROCK_CHARGING, true);
         this.setDeltaMovement(0, 0, 0);
         this.getNavigation().stop();
     }
 
     public void cancelRockCharge() {
-        rockChargePending = false;
         this.isChargingAttack = false;
         this.entityData.set(IS_ROCK_CHARGING, false);
     }
 
     public void performRockThrow(float chargeFactor) {
         if (this.level().isClientSide()) return;
-        if (!rockChargePending || isSecondaryOnCooldown() || isChestBeating()) {
+        if (!secondaryReady() || isChestBeating() || this.getControllingPassenger() == null) {
             cancelRockCharge();
+            rejectSecondary(net.tiew.operationWild.entity.attacks.OWAttackIds.ROCK_THROW);
             return;
         }
 
@@ -979,8 +1194,10 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             cancelRockCharge();
+            rejectSecondary(net.tiew.operationWild.entity.attacks.OWAttackIds.ROCK_THROW);
             return;
         }
+        interruptComboForSecondary();
         setVitalEnergy(getVitalEnergy() + cost);
 
         cancelRockCharge();
@@ -996,7 +1213,9 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
                 OWAttacksConstants.Gorilla.ROCK_THROW_MAX_DAMAGE_RATIO));
 
         LivingEntity aimer = this.getControllingPassenger() != null ? this.getControllingPassenger() : this;
-        Vec3 look = aimer.getLookAngle();
+        Vec3 look = isClimbing() && aimer != this
+                ? Vec3.directionFromRotation(aimer.getXRot() - CLIMB_TILT_MAX_DEG, aimer.getYRot())
+                : aimer.getLookAngle();
 
         ThrownRockEntity rock = new ThrownRockEntity(this.level(), this, damage);
         rock.setPos(this.getX() + look.x * 1.8,
@@ -1012,29 +1231,29 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     public void startRiderLaunchCharge() {
         if (isLaunchCharging()) return;
-        launchChargePending = true;
-        if (isSecondaryOnCooldown()) return;
+        endSlide();
+        interruptComboForSecondary();
+        if (!secondaryReady()) return;
         this.entityData.set(IS_LAUNCH_CHARGING, true);
         this.setDeltaMovement(0, 0, 0);
         this.getNavigation().stop();
     }
 
     public void cancelRiderLaunchCharge() {
-        launchChargePending = false;
         this.isChargingAttack = false;
         this.entityData.set(IS_LAUNCH_CHARGING, false);
     }
 
     public void performRiderLaunch(float chargeFactor) {
         if (this.level().isClientSide()) return;
-        if (!launchChargePending || isSecondaryOnCooldown() || isChestBeating()) {
-            cancelRiderLaunchCharge();
-            return;
-        }
-
         LivingEntity rider = this.getControllingPassenger();
-        if (rider == null) {
+        net.tiew.operationWild.debug.OWLaunchTrace.log("SERVER", "release recu : factor={} cooldown={} chestBeat={} rider={} energie={}/{} passagers={}",
+                chargeFactor, getSecondaryCooldown(), isChestBeating(), rider == null ? "null" : rider.getName().getString(),
+                getVitalEnergy(), getVitalEnergyCapacity(), this.getPassengers().size());
+        if (!secondaryReady() || isChestBeating() || rider == null) {
+            net.tiew.operationWild.debug.OWLaunchTrace.log("SERVER", "REFUS (cooldown/chestBeat/rider)");
             cancelRiderLaunchCharge();
+            rejectSecondary(net.tiew.operationWild.entity.attacks.OWAttackIds.RIDER_LAUNCH);
             return;
         }
 
@@ -1042,8 +1261,11 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             cancelRiderLaunchCharge();
+            net.tiew.operationWild.debug.OWLaunchTrace.log("SERVER", "REFUS (energie)");
+            rejectSecondary(net.tiew.operationWild.entity.attacks.OWAttackIds.RIDER_LAUNCH);
             return;
         }
+        interruptComboForSecondary();
         setVitalEnergy(getVitalEnergy() + cost);
 
         cancelRiderLaunchCharge();
@@ -1062,11 +1284,25 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
         double lift = power * OWAttacksConstants.Gorilla.RIDER_LAUNCH_LIFT_RATIO;
 
-        rider.stopRiding();
-        rider.setDeltaMovement(flat.x * power, lift, flat.z * power);
-        rider.hurtMarked = true;
+        Vec3 launch = new Vec3(flat.x * power, lift, flat.z * power);
+        net.tiew.operationWild.debug.OWLaunchTrace.describe("SERVER", "avant descente", rider);
+        launchingRider = true;
+        try {
+            rider.stopRiding();
+        } finally {
+            launchingRider = false;
+        }
+        net.tiew.operationWild.debug.OWLaunchTrace.describe("SERVER", "apres descente", rider);
+        net.tiew.operationWild.debug.OWLaunchTrace.log("SERVER", "vitesse de lancer = ({}, {}, {})", launch.x, launch.y, launch.z);
+        rider.setDeltaMovement(launch);
         rider.fallDistance = 0f;
         rider.hasImpulse = true;
+        if (rider instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(serverPlayer,
+                    new net.tiew.operationWild.networking.packets.to_client.RiderLaunchPacket(launch.x, launch.y, launch.z));
+        } else {
+            rider.hurtMarked = true;
+        }
 
         launchedRiderId = rider.getId();
         launchedRiderTimer = OWAttacksConstants.Gorilla.RIDER_LAUNCH_FALL_IMMUNITY_TICKS;
@@ -1084,6 +1320,8 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
         launchedRiderTimer--;
         Entity rider = this.level().getEntity(launchedRiderId);
+        if (OWAttacksConstants.Gorilla.RIDER_LAUNCH_FALL_IMMUNITY_TICKS - launchedRiderTimer <= 8)
+            net.tiew.operationWild.debug.OWLaunchTrace.describe("SERVER", "tick+" + (OWAttacksConstants.Gorilla.RIDER_LAUNCH_FALL_IMMUNITY_TICKS - launchedRiderTimer), rider);
         if (rider == null) {
             launchedRiderTimer = 0;
             launchedRiderId = -1;
@@ -1112,6 +1350,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         setUltimateKillCount(0);
         cancelRockCharge();
         cancelRiderLaunchCharge();
+        endSlide();
         resetCombo(0);
         actualAttackNumber = 0;
 
@@ -1233,8 +1472,42 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     }
 
     @Override
+    public OWSlideProfile slideProfile() {
+        return OWSlideProfile.DEFAULT;
+    }
+
+    @Override
+    public Vec3 getDismountLocationForPassenger(LivingEntity passenger) {
+        if (launchingRider && this.level().noCollision(passenger, passenger.getBoundingBox())) {
+            return passenger.position();
+        }
+        return super.getDismountLocationForPassenger(passenger);
+    }
+
+    @Override
+    public Vec3 riderCameraOffset(Player player, float eyeHeight, float partialTick) {
+        float tilt = climbTilt(partialTick);
+        if (tilt <= 0.01f) return Vec3.ZERO;
+
+        double theta = Math.toRadians(tilt);
+        float yaw = Mth.rotLerp(partialTick, this.yBodyRotO, this.yBodyRot) * Mth.DEG_TO_RAD;
+        double away = eyeHeight * Math.sin(theta);
+        return new Vec3(Mth.sin(yaw) * away, eyeHeight * (Math.cos(theta) - 1.0), -Mth.cos(yaw) * away);
+    }
+
+    @Override
+    protected boolean canSlideNow() {
+        return super.canSlideNow() && !isVaulting();
+    }
+
+    @Override
+    protected SoundEvent slideVoice() {
+        return SoundEvents.HOGLIN_ATTACK;
+    }
+
+    @Override
     protected double getBaseRiderYOffset() {
-        return this.getBbHeight() * 0.5 * this.getScale();
+        return (this.getBbHeight() * 0.5 - SEAT_DROP) * this.getScale();
     }
 
     @Override
@@ -1246,32 +1519,56 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
 
+        double seatForward = SEAT_FORWARD;
+        double seatY = getBaseRiderYOffset() + getRiderAnimYOffset();
+
+        if (this.level().isClientSide()) {
+            float climb = Mth.clamp(climbTilt(seatPartialTick) / CLIMB_TILT_MAX_DEG, 0f, 1f);
+            if (climb > 0f) {
+                double tilt = Math.toRadians(this.getBodyXRot());
+                double scale = this.getScale();
+                double climbForward = (-CLIMB_HIP_OUT + RIDER_HIP_HEIGHT * Math.sin(tilt)) * scale;
+                double climbY = (CLIMB_HIP_HEIGHT - RIDER_HIP_HEIGHT * Math.cos(tilt)) * scale;
+                seatForward = Mth.lerp(climb, seatForward, climbForward);
+                seatY = Mth.lerp(climb, seatY, climbY);
+            }
+        } else if (isClimbing() || isVaulting()) {
+            seatForward = SEAT_FORWARD_CLIMBING;
+        }
+
+        float ultimateSeat = chestBeatSeatBlend();
+        double forward = Mth.lerp(ultimateSeat, seatForward, ULTIMATE_SEAT_FORWARD);
+        Vec3 seatOffset = new Vec3(0, 0, forward).yRot((float) Math.toRadians(-this.yBodyRot));
+
+        passenger.fallDistance = 0f;
+        function.accept(passenger,
+                this.getX() + seatOffset.x,
+                this.getY() + seatY + ULTIMATE_SEAT_LIFT * ultimateSeat,
+                this.getZ() + seatOffset.z);
+
         if (isChestBeating()) {
-            Vec3 shoulders = new Vec3(0, 0, ULTIMATE_SEAT_FORWARD)
-                    .yRot((float) Math.toRadians(-this.yBodyRot));
-
-            passenger.fallDistance = 0f;
-            function.accept(passenger,
-                    this.getX() + shoulders.x,
-                    this.getY() + getBaseRiderYOffset() + ULTIMATE_SEAT_LIFT + getRiderAnimYOffset(),
-                    this.getZ() + shoulders.z);
-
             float fixedYaw = this.getYRot();
             passenger.setYRot(fixedYaw);
             if (passenger instanceof LivingEntity living) {
                 living.yBodyRot = fixedYaw;
                 living.yHeadRot = fixedYaw;
             }
-            return;
         }
+    }
 
-        Vec3 seatOffset = new Vec3(0, 0, isClimbing() || isVaulting() ? SEAT_FORWARD_CLIMBING : SEAT_FORWARD)
-                .yRot((float) Math.toRadians(-this.yBodyRot));
-        double baseY = getBaseRiderYOffset();
-        float animY = getRiderAnimYOffset();
+    private float chestBeatSeatBlend() {
+        int tick = getChestBeatTick();
+        if (tick <= 0) return 0f;
+        float pt = this.level().isClientSide() ? seatPartialTick : 0f;
+        float elapsed = chestBeatTotalTicks() - tick + pt;
+        float remaining = Math.max(0f, tick - pt);
+        return Math.min(smoothStep(elapsed / CHEST_BEAT_SEAT_BLEND_TICKS),
+                smoothStep(remaining / CHEST_BEAT_SEAT_BLEND_TICKS));
+    }
 
-        passenger.fallDistance = 0f;
-        function.accept(passenger, this.getX() + seatOffset.x, this.getY() + baseY + animY, this.getZ() + seatOffset.z);
+    public static float smoothStep(float t) {
+        float u = Mth.clamp(t, 0f, 1f);
+        return u * u * (3f - 2f * u);
     }
 
     @Override
@@ -1296,6 +1593,135 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         if (roll < 15) return GorillaVariant.SILVER;
         if (roll < 40) return GorillaVariant.DARK;
         return GorillaVariant.DEFAULT;
+    }
+
+    private static float approach(float value, float target, float step) {
+        return value < target ? Math.min(value + step, target) : Math.max(value - step, target);
+    }
+
+    private static float lerpTick(float partialTick, float previous, float current) {
+        return previous + (current - previous) * partialTick;
+    }
+
+    private void tickClientVisuals() {
+        double dx = 0.0;
+        double dy = 0.0;
+        double dz = 0.0;
+        if (visTrackValid) {
+            dx = this.getX() - visTrackX;
+            dy = this.getY() - visTrackY;
+            dz = this.getZ() - visTrackZ;
+            if (dx * dx + dy * dy + dz * dz > 16.0) {
+                dx = 0.0;
+                dy = 0.0;
+                dz = 0.0;
+            }
+        }
+        visTrackX = this.getX();
+        visTrackY = this.getY();
+        visTrackZ = this.getZ();
+        visTrackValid = true;
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        boolean onGround = this.onGround();
+
+        tickRideReactions();
+
+        runBlendO = runBlend;
+        runBlend = approach(runBlend, this.isRunning() ? 1f : 0f, 0.2f);
+
+        tickTerrainVisuals(dy, horizontal, onGround);
+        tickGestureVisuals();
+    }
+
+    private void tickRideReactions() {
+        boolean vehicle = this.isVehicle();
+        rideBlendO = rideBlend;
+        rideBlend = approach(rideBlend, vehicle ? 1f : 0f, 1f / 9f);
+
+        boolean settled = this.tickCount > 5;
+        if (vehicle && !visWasVehicle && settled) {
+            mountReactTicks = 0;
+            dismountReactTicks = -1;
+            this.level().playLocalSound(this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.HOGLIN_AMBIENT, this.getSoundSource(), 0.55f, 0.8f, false);
+        } else if (mountReactTicks >= 0 && ++mountReactTicks > MOUNT_REACT_TICKS) {
+            mountReactTicks = -1;
+        }
+
+        if (!vehicle && visWasVehicle && settled && getRiderLaunchTick() <= 0) {
+            dismountReactTicks = 0;
+            mountReactTicks = -1;
+        } else if (dismountReactTicks >= 0 && ++dismountReactTicks > DISMOUNT_REACT_TICKS) {
+            dismountReactTicks = -1;
+        }
+        visWasVehicle = vehicle;
+    }
+
+    private void tickTerrainVisuals(double dy, double horizontal, boolean onGround) {
+        boolean vehicle = this.isVehicle();
+        boolean wallWork = isClimbing() || isVaulting();
+
+        slopePitchO = slopePitch;
+        float slopeTarget = 0f;
+        if (vehicle && !onGround && !wallWork && dy < -0.08 && horizontal > 0.02) {
+            slopeTarget += (float) Mth.clamp(-dy * 0.45, 0.0, 0.26);
+        }
+        slopeTarget = Mth.clamp(slopeTarget, -0.32f, 0.30f);
+        slopePitch += (slopeTarget - slopePitch) * 0.35f;
+
+        landPulseO = landPulse;
+        landPulse *= 0.74f;
+        if (onGround && !visWasOnGround && visLastDy < -0.22 && !wallWork) {
+            landPulse = Math.max(landPulse, (float) Mth.clamp(-visLastDy * 1.5, 0.0, 1.0));
+        }
+        visWasOnGround = onGround;
+        visLastDy = dy;
+    }
+
+    private void tickGestureVisuals() {
+        boolean rockRelease = getRockThrowTick() > 0;
+        if (rockRelease && !visWasRockRelease) rockReleaseWeight = smoothStep(rockAim);
+        visWasRockRelease = rockRelease;
+        rockAimO = rockAim;
+        rockAim = approach(rockAim, isRockCharging() ? 1f : 0f,
+                isRockCharging() ? 1f / 6f : (rockRelease ? 0.25f : 0.2f));
+
+        boolean launchRelease = getRiderLaunchTick() > 0;
+        if (launchRelease && !visWasLaunchRelease) launchReleaseWeight = smoothStep(launchAim);
+        visWasLaunchRelease = launchRelease;
+        launchAimO = launchAim;
+        launchAim = approach(launchAim, isLaunchCharging() ? 1f : 0f,
+                isLaunchCharging() ? 0.18f : (launchRelease ? 0.34f : 0.2f));
+
+        climbBlendO = climbBlend;
+        climbBlend = isVaulting() ? 0f : approach(climbBlend, isClimbing() ? 1f : 0f, isClimbing() ? 0.2f : 0.14f);
+    }
+
+    public float rideBlend(float partialTick) { return lerpTick(partialTick, rideBlendO, rideBlend); }
+
+    public float runBlend(float partialTick) { return lerpTick(partialTick, runBlendO, runBlend); }
+
+
+    public float slopePitch(float partialTick) { return lerpTick(partialTick, slopePitchO, slopePitch); }
+
+    public float landPulse(float partialTick) { return lerpTick(partialTick, landPulseO, landPulse); }
+
+    public float rockAim(float partialTick) { return lerpTick(partialTick, rockAimO, rockAim); }
+
+    public float launchAim(float partialTick) { return lerpTick(partialTick, launchAimO, launchAim); }
+
+    public float climbBlend(float partialTick) { return lerpTick(partialTick, climbBlendO, climbBlend); }
+
+    public float rockReleaseWeight() { return rockReleaseWeight; }
+
+    public float launchReleaseWeight() { return launchReleaseWeight; }
+
+    public float mountReactProgress(float partialTick) {
+        return mountReactTicks < 0 ? -1f : Mth.clamp((mountReactTicks + partialTick) / MOUNT_REACT_TICKS, 0f, 1f);
+    }
+
+    public float dismountReactProgress(float partialTick) {
+        return dismountReactTicks < 0 ? -1f : Mth.clamp((dismountReactTicks + partialTick) / DISMOUNT_REACT_TICKS, 0f, 1f);
     }
 
     // ==================================================
