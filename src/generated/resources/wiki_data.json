@@ -111,6 +111,16 @@
       "title": {
         "fr_fr": "Dos argenté"
       }
+    },
+    {
+      "constant": "HIPPOPOTAMUS_TAMED_ADVANCEMENT",
+      "description": {
+        "fr_fr": "Vous avez apprivoisé un Hippopotame !"
+      },
+      "id": "ow:river_giant",
+      "title": {
+        "fr_fr": "Géant des Rivières"
+      }
     }
   ],
   "blocks": [
@@ -1064,9 +1074,9 @@
         "created": "2026-10-01T16:57:09.0503808+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-03T12:05:24.5145814+02:00",
-        "last_modified_date": "2026-10-03",
-        "size_bytes": 77096
+        "last_modified": "2026-10-09T15:15:26.9453642+02:00",
+        "last_modified_date": "2026-10-09",
+        "size_bytes": 79061
       },
       "id": "ow:tiger",
       "loot": {
@@ -2816,9 +2826,9 @@
         "created": "2026-10-01T16:57:09.2733788+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-03T11:58:04.9833057+02:00",
-        "last_modified_date": "2026-10-03",
-        "size_bytes": 61643
+        "last_modified": "2026-10-09T15:15:26.9443618+02:00",
+        "last_modified_date": "2026-10-09",
+        "size_bytes": 63278
       },
       "id": "ow:kodiak",
       "loot": {
@@ -4308,9 +4318,9 @@
         "created": "2026-10-01T16:57:09.130431+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-06T18:45:31.2603783+02:00",
-        "last_modified_date": "2026-10-06",
-        "size_bytes": 82126
+        "last_modified": "2026-10-09T15:15:26.9371328+02:00",
+        "last_modified_date": "2026-10-09",
+        "size_bytes": 84272
       },
       "id": "ow:crocodile",
       "loot": {
@@ -5773,9 +5783,9 @@
         "created": "2026-10-01T16:57:09.0953895+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-03T11:58:04.988393+02:00",
-        "last_modified_date": "2026-10-03",
-        "size_bytes": 59736
+        "last_modified": "2026-10-09T15:15:56.5710815+02:00",
+        "last_modified_date": "2026-10-09",
+        "size_bytes": 61233
       },
       "id": "ow:boa",
       "loot": {
@@ -7137,9 +7147,9 @@
         "created": "2026-10-01T17:52:43.79329+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-03T11:58:04.9873622+02:00",
-        "last_modified_date": "2026-10-03",
-        "size_bytes": 95096
+        "last_modified": "2026-10-09T15:15:26.9381378+02:00",
+        "last_modified_date": "2026-10-09",
+        "size_bytes": 97657
       },
       "id": "ow:orca",
       "loot": {
@@ -7718,9 +7728,9 @@
         "created": "2026-10-01T16:57:09.1667373+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-03T11:58:04.990935+02:00",
-        "last_modified_date": "2026-10-03",
-        "size_bytes": 108721
+        "last_modified": "2026-10-09T17:28:38.8979104+02:00",
+        "last_modified_date": "2026-10-09",
+        "size_bytes": 111318
       },
       "id": "ow:elephant",
       "loot": {
@@ -7742,7 +7752,7 @@
         "rider_anim_y_offset": -0.0,
         "run_speed_multiplier": 4.5,
         "saddle_item": "ow:elephant_saddle",
-        "sprint_acceleration_multiplier": 0.65,
+        "sprint_acceleration_multiplier": 1.3,
         "vital_energy_level_gain": 0.5,
         "vital_energy_recuperation": 0.75,
         "walk_speed_multiplier": 2.0,
@@ -8428,9 +8438,9 @@
         "created": "2026-10-01T17:11:04.2566378+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-03T11:58:04.9955119+02:00",
-        "last_modified_date": "2026-10-03",
-        "size_bytes": 82879
+        "last_modified": "2026-10-09T15:15:26.9433569+02:00",
+        "last_modified_date": "2026-10-09",
+        "size_bytes": 84938
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -9834,19 +9844,19 @@
         "RIDER_LAUNCH_LIFT_RATIO": 0.8,
         "RIDER_LAUNCH_MAX_POWER": 2.35,
         "RIDER_LAUNCH_MIN_POWER": 1.05,
-        "RIDER_LAUNCH_RELEASE_TICKS": 10,
+        "RIDER_LAUNCH_RELEASE_TICKS": 16,
         "RIDER_LAUNCH_WINDUP_TICKS": 8,
         "ROCK_THROW_CHARGE_MAX_MS": 1800,
         "ROCK_THROW_CHARGE_MIN_MS": 300,
         "ROCK_THROW_ENERGY": 60.0,
         "ROCK_THROW_IMPACT_RADIUS": 3.5,
         "ROCK_THROW_KNOCKBACK": 0.85,
-        "ROCK_THROW_MAX_DAMAGE_RATIO": 2.0,
+        "ROCK_THROW_MAX_DAMAGE_RATIO": 1.0,
         "ROCK_THROW_MAX_LIFETIME_TICKS": 200,
         "ROCK_THROW_MAX_SPEED": 1.8,
-        "ROCK_THROW_MIN_DAMAGE_RATIO": 0.75,
+        "ROCK_THROW_MIN_DAMAGE_RATIO": 0.375,
         "ROCK_THROW_MIN_SPEED": 0.85,
-        "ROCK_THROW_RELEASE_TICKS": 9,
+        "ROCK_THROW_RELEASE_TICKS": 12,
         "ROCK_THROW_WINDUP_TICKS": 7,
         "SECONDARY_COOLDOWN_TICKS": 260
       },
@@ -9972,6 +9982,8 @@
       "constants": {
         "AI_STEP_JUMP_FACTOR": 0.45,
         "CLIMB_SURGE_TICKS": 11,
+        "CLIMB_TILT_MAX_DEG": 74.5,
+        "CLIMB_VAULT_DURATION_TICKS": 12,
         "DEFAULT_SKIN_INDEX": 1,
         "ENTITY_COLOR": 3357762,
         "FOOD_WANTED_MAX": 14,
@@ -9979,7 +9991,8 @@
         "MAX_SOMNOLENCE": 1800,
         "SOMNOLENCE_LOSS_INTERVAL": 3,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 3,
-        "TAMING_EXPERIENCE": 175.0
+        "TAMING_EXPERIENCE": 175.0,
+        "VAULT_UNWIND_START": 0.25
       },
       "cosmetics": [],
       "gameplay": {
@@ -10029,12 +10042,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-01T16:57:09.2032806+02:00",
-        "created_date": "2026-10-01",
+        "created": "2026-10-09T14:51:15.7443803+02:00",
+        "created_date": "2026-10-09",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-03T11:58:04.9924738+02:00",
-        "last_modified_date": "2026-10-03",
-        "size_bytes": 56512
+        "last_modified": "2026-10-09T17:29:03.4558264+02:00",
+        "last_modified_date": "2026-10-09",
+        "size_bytes": 75976
       },
       "id": "ow:gorilla",
       "loot": {
@@ -10045,7 +10058,7 @@
         }
       },
       "mount": {
-        "base_rider_y_offset": 0.949999988079071,
+        "base_rider_y_offset": 0.809999988079071,
         "changes_speed_during_combo": false,
         "combo_speed_multiplier": 2.0,
         "increases_speed_during_sprint": false,
@@ -10211,6 +10224,507 @@
       ]
     },
     {
+      "abilities": {
+        "cards": [
+          {
+            "desc": {
+              "key": "ow.attacks.hippopotamus.combo.desc",
+              "plain": "Faites mordre votre Hippopotame toutes les %s secondes, infligeant %s points de dégâts par morsure. Le troisième coup se cabre et s'abat gueule grande ouverte.",
+              "translations": {
+                "fr_fr": "Faites mordre votre Hippopotame toutes les %s secondes, infligeant %s points de dégâts par morsure. Le troisième coup se cabre et s'abat gueule grande ouverte."
+              }
+            },
+            "slug": "combo",
+            "title": {
+              "key": "ow.attacks.hippopotamus.combo.title",
+              "plain": "Coups de Gueule",
+              "translations": {
+                "fr_fr": "Coups de Gueule"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.hippopotamus.roll.desc",
+              "plain": "Clic droit : l'hippopotame se roule en boule et dévale droit devant ; un second clic le déroule. Démarrer coûte %s d'énergie, puis la roulade la consomme plus vite que la course — à bout de souffle, il se déroule seul et reste étourdi. Difficile à diriger, elle prend de la vitesse dans les descentes et écrase tout ce qui n'est pas de votre tribu : jusqu'à %s%% de ses dégâts, et les victimes restent aplaties un instant. Un mur ou une bête trop grosse le fait rebondir, sonné. Impossible en eau profonde. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "Clic droit : l'hippopotame se roule en boule et dévale droit devant ; un second clic le déroule. Démarrer coûte %s d'énergie, puis la roulade la consomme plus vite que la course — à bout de souffle, il se déroule seul et reste étourdi. Difficile à diriger, elle prend de la vitesse dans les descentes et écrase tout ce qui n'est pas de votre tribu : jusqu'à %s%% de ses dégâts, et les victimes restent aplaties un instant. Un mur ou une bête trop grosse le fait rebondir, sonné. Impossible en eau profonde. %s secondes de recharge."
+              }
+            },
+            "slug": "roll",
+            "title": {
+              "key": "ow.attacks.hippopotamus.roll.title",
+              "plain": "Roulade du Mastodonte",
+              "translations": {
+                "fr_fr": "Roulade du Mastodonte"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.hippopotamus.river_fury.desc",
+              "plain": "S'arme sur %s victimes. L'hippopotame se cabre, rugit et frappe le sol : l'onde repousse et ralentit les hostiles alentour. Pendant %s secondes, il frappe %s%% plus fort, gagne %s%% de dégâts à chaque coup encaissé (la Rancune), subit %s%% de dégâts en moins, ne recule plus, et chaque coup de combo déséquilibre sa cible. Sa roulade ne coûte plus d'énergie et écrase plus fort. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "S'arme sur %s victimes. L'hippopotame se cabre, rugit et frappe le sol : l'onde repousse et ralentit les hostiles alentour. Pendant %s secondes, il frappe %s%% plus fort, gagne %s%% de dégâts à chaque coup encaissé (la Rancune), subit %s%% de dégâts en moins, ne recule plus, et chaque coup de combo déséquilibre sa cible. Sa roulade ne coûte plus d'énergie et écrase plus fort. %s secondes de recharge."
+              }
+            },
+            "slug": "river_fury",
+            "title": {
+              "key": "ow.attacks.hippopotamus.river_fury.title",
+              "plain": "Furie du Fleuve",
+              "translations": {
+                "fr_fr": "Furie du Fleuve"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.hippopotamus.river_surge.desc",
+              "plain": "En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan.",
+              "translations": {
+                "fr_fr": "En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan."
+              }
+            },
+            "slug": "river_surge",
+            "title": {
+              "key": "ow.attacks.hippopotamus.river_surge.title",
+              "plain": "Élan du Fleuve",
+              "translations": {
+                "fr_fr": "Élan du Fleuve"
+              }
+            }
+          }
+        ]
+      },
+      "attack_constants": {
+        "FURY_COOLDOWN_TICKS": 1200,
+        "FURY_DAMAGE_BONUS": 0.25,
+        "FURY_DAMAGE_REDUCTION": 0.3,
+        "FURY_DURATION_MS": 13250,
+        "FURY_DURATION_TICKS": 240,
+        "FURY_ENERGY": 100.0,
+        "FURY_FADE_TICKS": 20,
+        "FURY_GRUDGE_MAX": 0.25,
+        "FURY_GRUDGE_PER_HIT": 0.05,
+        "FURY_KILLS_REQUIRED": 5,
+        "FURY_ROLL_CRUSH_MULTIPLIER": 1.5,
+        "FURY_SHOCKWAVE_PUSH": 0.9,
+        "FURY_SHOCKWAVE_RADIUS": 5.0,
+        "FURY_SHOCKWAVE_SLOW_TICKS": 40,
+        "FURY_SHOCKWAVE_TICK": 17,
+        "FURY_SPEED_FACTOR": 1.1,
+        "FURY_STAGGER_TICKS": 20,
+        "FURY_WINDUP_TICKS": 25,
+        "RIVER_SURGE_MIN_WATER_TICKS": 10,
+        "RIVER_SURGE_SPEED_BONUS": 0.15,
+        "RIVER_SURGE_TICKS": 200,
+        "ROLL_ACCEL_TICKS": 30,
+        "ROLL_ALLY_NUDGE": 0.35,
+        "ROLL_BOUNCE_RECOIL_SPEED": 0.32,
+        "ROLL_BOUNCE_RECOIL_TICKS": 7,
+        "ROLL_BOUNCE_TICKS": 20,
+        "ROLL_BRAKE_RATIO": 0.45,
+        "ROLL_COOLDOWN_TICKS": 60,
+        "ROLL_CRUSH_DAMAGE_RATIO": 0.9,
+        "ROLL_CRUSH_FLATTEN_TICKS": 25,
+        "ROLL_CRUSH_IMMUNITY_TICKS": 15,
+        "ROLL_CRUSH_KNOCKBACK": 0.55,
+        "ROLL_CRUSH_MAX_SCALE": 13.0,
+        "ROLL_CRUSH_MIN_SPEED": 0.1,
+        "ROLL_CURL_TICKS": 10,
+        "ROLL_DIZZY_TICKS": 40,
+        "ROLL_ENERGY_PER_TICK": 0.85,
+        "ROLL_RADIUS_BLOCKS": 0.75,
+        "ROLL_SEAT_LIFT": -0.22,
+        "ROLL_SEAT_SPREAD": 0.35,
+        "ROLL_SLOPE_GAIN": 1.5,
+        "ROLL_SLOPE_MAX_BONUS": 0.45,
+        "ROLL_START_ENERGY": 25.0,
+        "ROLL_STOP_GLIDE": 0.93,
+        "ROLL_TOP_SPEED_RATIO": 1.45,
+        "ROLL_TURN_MAX_DEGREES": 1.5,
+        "ROLL_TURN_SPEED": 0.012,
+        "ROLL_UNCURL_TICKS": 12,
+        "ROLL_WALL_BOUNCE_MIN_SPEED": 0.28
+      },
+      "attributes": {
+        "minecraft:generic.armor": 2.0,
+        "minecraft:generic.armor_toughness": 0.0,
+        "minecraft:generic.attack_damage": 11.0,
+        "minecraft:generic.attack_knockback": 0.0,
+        "minecraft:generic.burning_time": 1.0,
+        "minecraft:generic.explosion_knockback_resistance": 0.0,
+        "minecraft:generic.fall_damage_multiplier": 1.0,
+        "minecraft:generic.follow_range": 24.0,
+        "minecraft:generic.gravity": 0.08,
+        "minecraft:generic.jump_strength": 0.41999998688697815,
+        "minecraft:generic.knockback_resistance": 0.85,
+        "minecraft:generic.max_absorption": 0.0,
+        "minecraft:generic.max_health": 50.0,
+        "minecraft:generic.movement_efficiency": 0.0,
+        "minecraft:generic.movement_speed": 0.165,
+        "minecraft:generic.oxygen_bonus": 0.0,
+        "minecraft:generic.safe_fall_distance": 3.0,
+        "minecraft:generic.scale": 1.0,
+        "minecraft:generic.step_height": 0.6,
+        "minecraft:generic.water_movement_efficiency": 0.0,
+        "neoforge:nametag_distance": 64.0,
+        "neoforge:swim_speed": 1.0
+      },
+      "chapter_names": {
+        "fr_fr": "Hippopotame"
+      },
+      "class": "net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity",
+      "classification": {
+        "boss": false,
+        "family": "semi_aquatic",
+        "friendly": true,
+        "hierarchy": [
+          "HippopotamusEntity",
+          "OWSemiWaterEntity",
+          "OWEntity",
+          "TamableAnimal",
+          "Animal",
+          "AgeableMob",
+          "PathfinderMob",
+          "Mob",
+          "LivingEntity",
+          "Entity",
+          "AttachmentHolder"
+        ],
+        "interfaces": [
+          "IOWEntity",
+          "IOWTamable",
+          "IOWRideable"
+        ],
+        "max_instances_per_chunk": 10,
+        "mob_category": "creature",
+        "persistent": true
+      },
+      "client": {
+        "animations": [
+          {
+            "looping": true,
+            "name": "MISC_IDLE",
+            "seconds": 3.5926
+          },
+          {
+            "looping": true,
+            "name": "MOVE_WALK",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "MOVE_RUN",
+            "seconds": 0.5
+          },
+          {
+            "looping": false,
+            "name": "MISC_IDLE_2",
+            "seconds": 3.4
+          },
+          {
+            "looping": true,
+            "name": "SIT",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_IDLE_SIT",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_SIT_IDLE",
+            "seconds": 1.0
+          },
+          {
+            "looping": true,
+            "name": "NAP",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_IDLE_NAP",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "TRANSITION_NAP_IDLE",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_COLLAPSE",
+            "seconds": 1.3
+          },
+          {
+            "looping": true,
+            "name": "SWIM",
+            "seconds": 1.6
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE_2",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE_3",
+            "seconds": 1.3
+          },
+          {
+            "looping": false,
+            "name": "FURY_ROAR",
+            "seconds": 1.25
+          },
+          {
+            "looping": true,
+            "name": "FURY_POSE",
+            "seconds": 1.2
+          },
+          {
+            "looping": true,
+            "name": "DIZZY",
+            "seconds": 1.6
+          },
+          {
+            "looping": true,
+            "name": "ROLL_TUCK",
+            "seconds": 0.8
+          }
+        ],
+        "layers": [
+          "HippopotamusLayer"
+        ],
+        "model": "HippopotamusModel",
+        "renderer": "HippopotamusRenderer",
+        "skin": "HippopotamusSkin"
+      },
+      "constants": {
+        "DEFAULT_SKIN_INDEX": 1,
+        "ENTITY_COLOR": 6771280,
+        "FOOD_WANTED_MAX": 16,
+        "FOOD_WANTED_MIN": 10,
+        "MAX_SOMNOLENCE": 3600,
+        "SOMNOLENCE_LOSS_INTERVAL": 3,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 6,
+        "STAGGER_BOUNCE": 1,
+        "STAGGER_DIZZY": 2,
+        "STAGGER_NONE": 0,
+        "TAMING_EXPERIENCE": 230.0
+      },
+      "cosmetics": [],
+      "gameplay": {
+        "allows_unowned_piloting": false,
+        "archetype": {
+          "damage_multiplier": 1.0,
+          "energy_multiplier": 1.3,
+          "health_multiplier": 1.2,
+          "name": "TANK",
+          "speed_multiplier": 0.8
+        },
+        "arena_terrain_mask": 3,
+        "bank_max_angle": 18.0,
+        "can_lean": true,
+        "combo_pause_delay": 2,
+        "default_skin_index": 1,
+        "diet": {
+          "name": "VEGETARIAN",
+          "saturation_multiplier": 0.75
+        },
+        "entity_color": 6771280,
+        "entity_color_hex": "#675250",
+        "fights_in_arena": true,
+        "follow_owner_speed_factor": 20.0,
+        "initial_variant": 0,
+        "max_depth": 6,
+        "mounted_speed_blocks_per_second": 5.279999910082136,
+        "nap_particle_forward": 1.25,
+        "nap_particle_height": 1.15,
+        "pitch_max_angle": 0.0,
+        "prefers_cooked_meat": false,
+        "prefers_raw_meat": false,
+        "prefers_vegetables": true,
+        "rider_camera_follows_body_tilt": false,
+        "rider_seat_frame_accurate": true,
+        "rolling_figure": false,
+        "rotation_speed": 0.14,
+        "secondary_attack_count": 1,
+        "secondary_cooldown_ticks": 60,
+        "taming_experience": 230.0,
+        "teleports_to_owner": false,
+        "temperament": "NEUTRAL",
+        "theoretical_scale": 13.0,
+        "unresolved": [
+          "maxUpStep",
+          "getDefaultGravity"
+        ],
+        "walk_speed_blocks_per_second": 3.3000000000000003
+      },
+      "history": {
+        "created": "2026-10-09T18:43:48.2977279+02:00",
+        "created_date": "2026-10-09",
+        "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
+        "last_modified": "2026-10-09T19:14:11.5217519+02:00",
+        "last_modified_date": "2026-10-09",
+        "size_bytes": 57521
+      },
+      "id": "ow:hippopotamus",
+      "loot": {
+        "drops": [],
+        "table": "ow:entities/hippopotamus",
+        "table_json": {
+          "type": "minecraft:entity"
+        }
+      },
+      "mount": {
+        "base_rider_y_offset": 1.0370000290870667,
+        "changes_speed_during_combo": false,
+        "combo_speed_multiplier": 1.5,
+        "increases_speed_during_sprint": false,
+        "leaping_vehicle": false,
+        "max_vital_energy": 400.0,
+        "needs_saddle": true,
+        "rideable": true,
+        "rider_anim_y_offset": -0.0,
+        "run_speed_multiplier": 2.8,
+        "saddle_item": "ow:tiger_saddle",
+        "vital_energy_level_gain": 0.5,
+        "vital_energy_recuperation": 0.9,
+        "walk_speed_multiplier": 1.5,
+        "water_speed_divider": 0.93
+      },
+      "names": {
+        "fr_fr": "Hippopotame"
+      },
+      "path": "hippopotamus",
+      "piste": {
+        "available": false
+      },
+      "probe_resolved": true,
+      "simple_class": "HippopotamusEntity",
+      "size": {
+        "eye_height": 1.445,
+        "fixed": false,
+        "height": 1.7,
+        "theoretical_scale": 13.0,
+        "width": 1.8
+      },
+      "sounds": [],
+      "taming": {
+        "advancement": "ow:river_giant",
+        "experience": 230.0,
+        "feeding": {
+          "food_wanted_max": 16,
+          "food_wanted_min": 10,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
+        "food_tags": [
+          {
+            "constant": "HIPPOPOTAMUS_FOOD",
+            "entries": [
+              "minecraft:short_grass",
+              "minecraft:tall_grass",
+              "minecraft:fern",
+              "minecraft:large_fern",
+              "minecraft:wheat",
+              "minecraft:hay_block",
+              "minecraft:sugar_cane",
+              "minecraft:lily_pad",
+              "minecraft:kelp",
+              "minecraft:seagrass",
+              "minecraft:carrot",
+              "minecraft:beetroot",
+              "minecraft:pumpkin",
+              "minecraft:melon"
+            ],
+            "id": "ow:hippopotamus_food"
+          }
+        ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:melon",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 1080.0,
+          "full_bar_awake_seconds": 540.0,
+          "loss_interval_ticks_asleep": 6,
+          "loss_interval_ticks_awake": 3,
+          "loss_per_second_asleep": 3.3333333333333335,
+          "loss_per_second_awake": 6.666666666666667,
+          "max": 3600,
+          "max_max": 4320,
+          "max_min": 2880,
+          "spread_percent": 20
+        },
+        "tameable": true
+      },
+      "textures": [
+        "textures/entity/hippopotamus/hippopotamus_default.png"
+      ],
+      "tracking": {
+        "client_tracking_range": 5,
+        "fire_immune": false,
+        "loot_table": "ow:entities/hippopotamus",
+        "serializable": true,
+        "spawns_far_from_player": true,
+        "summonable": true,
+        "update_interval": 3
+      },
+      "traits": {
+        "diver": true,
+        "grabber": false,
+        "neutral_mob": false,
+        "rideable": true,
+        "rideable_jumping": false,
+        "tameable": true,
+        "waypoint": true
+      },
+      "translation_key": "entity.ow.hippopotamus",
+      "variants": [
+        {
+          "cosmetic": false,
+          "deprecated": false,
+          "id": 0,
+          "name": "DEFAULT",
+          "ordinal": 0
+        }
+      ]
+    },
+    {
       "abilities": {},
       "attributes": {
         "minecraft:generic.armor": 0.0,
@@ -10360,8 +10874,8 @@
         "created": "2026-02-25T10:58:13.1092156+01:00",
         "created_date": "2026-02-25",
         "file": "src/main/java/net/tiew/operationWild/entity/bosses/PlantEmpressEntity.java",
-        "last_modified": "2026-09-30T19:54:07.1115817+02:00",
-        "last_modified_date": "2026-09-30",
+        "last_modified": "2026-10-09T15:15:26.9463698+02:00",
+        "last_modified_date": "2026-10-09",
         "size_bytes": 25019
       },
       "id": "ow:plant_empress",
@@ -10542,12 +11056,14 @@
       "EARTHQUAKE": 14,
       "FEAST": 18,
       "HEAL_SNACK": 17,
+      "HIPPO_ROLL": 22,
       "MOUTH_SLAM": 3,
       "NAP_ULTIMATE": 6,
       "PAW_SLAM": 5,
       "PRIMAL_DIVE": 4,
       "PRIMAL_ROAR": 16,
       "RIDER_LAUNCH": 20,
+      "RIVER_FURY": 23,
       "ROCK_THROW": 19,
       "SHADOW_STRIKE": 2,
       "SHOULDER_BASH": 13,
@@ -12358,6 +12874,19 @@
     {
       "class": "DeferredSpawnEggItem",
       "fire_resistant": false,
+      "id": "ow:hippopotamus_spawn_egg",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Oeuf d'apparition d'hippopotame"
+      },
+      "path": "hippopotamus_spawn_egg",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.hippopotamus_spawn_egg"
+    },
+    {
+      "class": "DeferredSpawnEggItem",
+      "fire_resistant": false,
       "id": "ow:red_panda_spawn_egg",
       "max_damage": 0,
       "max_stack_size": 64,
@@ -12873,7 +13402,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1125
+      "fr_fr": 1141
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -15533,6 +16062,26 @@
           "minecraft:carrot"
         ],
         "id": "ow:gorilla_food"
+      },
+      {
+        "constant": "HIPPOPOTAMUS_FOOD",
+        "entries": [
+          "minecraft:short_grass",
+          "minecraft:tall_grass",
+          "minecraft:fern",
+          "minecraft:large_fern",
+          "minecraft:wheat",
+          "minecraft:hay_block",
+          "minecraft:sugar_cane",
+          "minecraft:lily_pad",
+          "minecraft:kelp",
+          "minecraft:seagrass",
+          "minecraft:carrot",
+          "minecraft:beetroot",
+          "minecraft:pumpkin",
+          "minecraft:melon"
+        ],
+        "id": "ow:hippopotamus_food"
       },
       {
         "constant": "SOMNOLENCE_FOOD",
@@ -20613,6 +21162,19 @@
           ]
         },
         {
+          "archetype": "TANK",
+          "danger": 1.0,
+          "fights_in_arena": true,
+          "id": "ow:hippopotamus",
+          "path": "hippopotamus",
+          "probe_resolved": true,
+          "terrain_mask": 3,
+          "terrains": [
+            "TERRESTRIAL",
+            "AQUATIC"
+          ]
+        },
+        {
           "danger": 1.0,
           "fights_in_arena": true,
           "id": "ow:plant_empress",
@@ -21246,6 +21808,11 @@
           "carries_flag": false,
           "id": "ow:gorilla",
           "model": "GorillaModel"
+        },
+        {
+          "carries_flag": true,
+          "id": "ow:hippopotamus",
+          "model": "HippopotamusModel"
         },
         {
           "carries_flag": false,
@@ -25523,6 +26090,19 @@
           "danger": 1.0,
           "id": "ow:gorilla",
           "path": "gorilla",
+          "value_by_level": {
+            "1": 11.4,
+            "10": 24.0,
+            "25": 45.0,
+            "40": 66.0,
+            "49": 78.6,
+            "50": 255.0
+          }
+        },
+        {
+          "danger": 1.0,
+          "id": "ow:hippopotamus",
+          "path": "hippopotamus",
           "value_by_level": {
             "1": 11.4,
             "10": 24.0,

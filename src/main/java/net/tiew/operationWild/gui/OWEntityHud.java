@@ -154,6 +154,7 @@ public class OWEntityHud {
             case "KangarooEntity": return 12;
             case "RedPandaEntity": return 13;
             case "GorillaEntity": return 14;
+            case "HippopotamusEntity": return 6;
             default: return 0;
         }
     }

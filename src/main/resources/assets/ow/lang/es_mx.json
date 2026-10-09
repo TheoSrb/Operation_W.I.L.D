@@ -1124,5 +1124,20 @@
   "ow.advancements.silverback.title": "Espalda plateada",
   "ow.advancements.silverback.description": "¡Has domesticado un Gorila!",
   "ow.attacks.gorilla.cold_blood.title": "Sangre fría",
-  "ow.attacks.gorilla.cold_blood.desc": "Un espalda plateada no retrocede. El Miedo primitivo nunca prende en el gorila: el efecto se le niega de entrada, así que jamás pierde el control ni cocea, y su jinete conserva el mando. Lo que otras bestias sufren temblando, él se limita a verlo llegar."
+  "ow.attacks.gorilla.cold_blood.desc": "Un espalda plateada no retrocede. El Miedo primitivo nunca prende en el gorila: el efecto se le niega de entrada, así que jamás pierde el control ni cocea, y su jinete conserva el mando. Lo que otras bestias sufren temblando, él se limita a verlo llegar.",
+  "entity.ow.hippopotamus": "Hipopótamo",
+  "chapter.entity.ow.hippopotamus": "Hipopótamo",
+  "item.ow.hippopotamus_spawn_egg": "Huevo generador de hipopótamo",
+  "tooltip.hippopotamusSkin0": "Hipopótamo Por Defecto",
+  "tooltip.hippopotamusSkin0.desc": "¡Devuelve a tu Hipopótamo su aspecto original!",
+  "ow.attacks.hippopotamus.combo.title": "Mandíbula Brutal",
+  "ow.attacks.hippopotamus.combo.desc": "Haz que tu Hipopótamo muerda cada %s segundos, infligiendo %s puntos de daño por mordisco. El tercer golpe se encabrita y cae con las fauces abiertas de par en par.",
+  "ow.attacks.hippopotamus.roll.title": "Rodada del Mastodonte",
+  "ow.attacks.hippopotamus.roll.desc": "Clic derecho: el hipopótamo se hace una bola y arrasa en línea recta; un segundo clic lo desenrolla. Empezar cuesta %s de energía, y luego la rodada la gasta más rápido que correr — sin aliento, se desenrolla solo y queda mareado. Difícil de dirigir, gana velocidad cuesta abajo y aplasta todo lo que no sea de tu tribu: hasta el %s%% de su daño, y las víctimas quedan aplastadas un instante. Un muro o una bestia demasiado grande lo hacen rebotar, aturdido. Imposible en aguas profundas. %s segundos de recarga.",
+  "ow.attacks.hippopotamus.river_fury.title": "Furia del Río",
+  "ow.attacks.hippopotamus.river_fury.desc": "Se carga con %s víctimas. El hipopótamo se encabrita, ruge y golpea el suelo: la onda empuja y ralentiza a los hostiles cercanos. Durante %s segundos golpea un %s%% más fuerte, gana un %s%% de daño por cada golpe recibido (Rencor), recibe un %s%% menos de daño, no retrocede, y cada golpe del combo desequilibra a su objetivo. Su rodada no cuesta energía y aplasta con más fuerza. %s segundos de recarga.",
+  "ow.advancements.river_giant.title": "Gigante de los Ríos",
+  "ow.advancements.river_giant.description": "¡Has domesticado un Hipopótamo!",
+  "ow.attacks.hippopotamus.river_surge.title": "Impulso del Río",
+  "ow.attacks.hippopotamus.river_surge.desc": "Al salir del agua, el hipopótamo conserva el impulso del río: durante %s segundos corre un %s%% más rápido en tierra firme. Cada baño recarga el impulso."
 }

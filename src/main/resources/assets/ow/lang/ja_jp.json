@@ -1124,5 +1124,20 @@
   "ow.advancements.silverback.title": "シルバーバック",
   "ow.advancements.silverback.description": "ゴリラをテイムしました！",
   "ow.attacks.gorilla.cold_blood.title": "冷静沈着",
-  "ow.attacks.gorilla.cold_blood.desc": "シルバーバックは退かない。ゴリラに原初の恐怖は決して効かず、効果そのものが拒まれます。取り乱すことも暴れることもなく、騎乗者は操作を保ったままです。他の獣が震えて耐えるものを、ゴリラはただ見据えます。"
+  "ow.attacks.gorilla.cold_blood.desc": "シルバーバックは退かない。ゴリラに原初の恐怖は決して効かず、効果そのものが拒まれます。取り乱すことも暴れることもなく、騎乗者は操作を保ったままです。他の獣が震えて耐えるものを、ゴリラはただ見据えます。",
+  "entity.ow.hippopotamus": "カバ",
+  "chapter.entity.ow.hippopotamus": "カバ",
+  "item.ow.hippopotamus_spawn_egg": "カバのスポーンエッグ",
+  "tooltip.hippopotamusSkin0": "デフォルトのカバ",
+  "tooltip.hippopotamusSkin0.desc": "カバを元の姿に戻しましょう！",
+  "ow.attacks.hippopotamus.combo.title": "大顎の一撃",
+  "ow.attacks.hippopotamus.combo.desc": "カバが%s秒ごとに噛みつき、一噛みにつき%sのダメージを与えます。三撃目は立ち上がり、大きく口を開けて叩きつけます。",
+  "ow.attacks.hippopotamus.roll.title": "マンモスローリング",
+  "ow.attacks.hippopotamus.roll.desc": "右クリック：カバが丸まって前方へ転がり出します。もう一度クリックすると元に戻ります。開始時に%sのエネルギーを消費し、転がっている間は走るよりも速くエネルギーを使います。息切れすると自動で元に戻り、しばらく目を回します。曲がりにくく、下り坂で加速し、あなたの部族以外のものをすべて押しつぶします。ダメージは最大で攻撃力の%s%%、つぶされた相手はしばらくぺしゃんこになります。壁や大きすぎる生き物にぶつかると跳ね返され、気絶します。深い水中では使えません。クールダウン%s秒。",
+  "ow.attacks.hippopotamus.river_fury.title": "大河の激昂",
+  "ow.attacks.hippopotamus.river_fury.desc": "%s体倒すと解放。カバは立ち上がって咆哮し、地面を叩きつけます。衝撃波が周囲の敵を押し返し、鈍化させます。%s秒間、攻撃力が%s%%上昇し、攻撃を受けるたびにさらに%s%%上昇（恨み）、受けるダメージが%s%%減少し、ノックバックせず、コンボの一撃ごとに相手をよろめかせます。転がり攻撃はエネルギーを消費せず、より強く押しつぶします。クールダウン%s秒。",
+  "ow.advancements.river_giant.title": "大河の巨獣",
+  "ow.advancements.river_giant.description": "カバをテイムしました！",
+  "ow.attacks.hippopotamus.river_surge.title": "大河の勢い",
+  "ow.attacks.hippopotamus.river_surge.desc": "水から上がったカバは川の勢いを保ちます。%s秒間、陸上での移動速度が%s%%上昇します。水に入るたびに勢いが回復します。"
 }

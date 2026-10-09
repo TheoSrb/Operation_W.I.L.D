@@ -1,4 +1,4 @@
-// 1.21	2026-08-12T10:45:08.4600753	Advancements
+// 1.21	2026-10-09T18:42:44.6066985	Advancements
 f6c2913288d4873232a96b7ab12ccd25760f41d3 data/ow/advancement/big_fuzzball.json
 0561a09af04e7411f4c10c0a5a46e3662ff0e489 data/ow/advancement/captain.json
 9583ab1465203bb3bc0522fca29308b927c602b2 data/ow/advancement/friend_dead.json
@@ -10,5 +10,6 @@ ccb5f3fedc52136a3ebb3dd7bf132970e41bb2e2 data/ow/advancement/ow.json
 134315bb24d4782fbd435163ca2ea7646fc65e4e data/ow/advancement/ow_taming.json
 9a5174ff15a48b4cdd5c891c98edd33ee0b2f550 data/ow/advancement/professional_tamer.json
 ac5353bdfc8080b6dda43ed4d5a455fdfee009bc data/ow/advancement/renowned_tamer.json
+5d027d5ec8831af29860cfe58dfced665012887f data/ow/advancement/river_giant.json
 4ea7f4e9b84f16ff114f49eb1bed406e52fc9bf1 data/ow/advancement/upgraded_arrows.json
 c550c6d780afab522adf860975274143ea2b11c8 data/ow/advancement/you_see_me.json

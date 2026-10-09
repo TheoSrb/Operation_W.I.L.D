@@ -1124,5 +1124,20 @@
   "ow.advancements.silverback.title": "Silverback",
   "ow.advancements.silverback.description": "You tamed a Gorilla!",
   "ow.attacks.gorilla.cold_blood.title": "Cool Head",
-  "ow.attacks.gorilla.cold_blood.desc": "A silverback does not back down. Primal Fear never takes hold on the gorilla: the effect is refused outright, so it never loses control, never bucks, and its rider keeps command. What other beasts endure trembling, it simply watches coming."
+  "ow.attacks.gorilla.cold_blood.desc": "A silverback does not back down. Primal Fear never takes hold on the gorilla: the effect is refused outright, so it never loses control, never bucks, and its rider keeps command. What other beasts endure trembling, it simply watches coming.",
+  "entity.ow.hippopotamus": "Hippopotamus",
+  "chapter.entity.ow.hippopotamus": "Hippopotamus",
+  "item.ow.hippopotamus_spawn_egg": "Hippopotamus Spawn Egg",
+  "tooltip.hippopotamusSkin0": "Default Hippopotamus",
+  "tooltip.hippopotamusSkin0.desc": "Set your Hippopotamus back to default!",
+  "ow.attacks.hippopotamus.combo.title": "Jaw Slam",
+  "ow.attacks.hippopotamus.combo.desc": "Make your Hippopotamus bite every %s seconds, dealing %s damage per bite. The third blow rears up and crashes down with its jaws wide open.",
+  "ow.attacks.hippopotamus.roll.title": "Mammoth Roll",
+  "ow.attacks.hippopotamus.roll.desc": "Right click: the hippopotamus curls into a ball and barrels straight ahead; a second click unrolls it. Starting costs %s energy, then the roll drains it faster than running — out of breath, it unrolls on its own and is left dizzy. Hard to steer, it picks up speed downhill and flattens anything outside your tribe: up to %s%% of its damage, and victims stay squashed for a moment. A wall or an oversized beast bounces it back, stunned. Impossible in deep water. %s second cooldown.",
+  "ow.attacks.hippopotamus.river_fury.title": "River Fury",
+  "ow.attacks.hippopotamus.river_fury.desc": "Armed by %s kills. The hippopotamus rears, roars and slams the ground: the shockwave pushes back and slows nearby hostiles. For %s seconds it hits %s%% harder, gains %s%% damage for every blow it takes (Grudge), takes %s%% less damage, cannot be knocked back, and every combo hit staggers its target. Its roll costs no energy and crushes harder. %s second cooldown.",
+  "ow.advancements.river_giant.title": "River Giant",
+  "ow.advancements.river_giant.description": "You tamed a Hippopotamus!",
+  "ow.attacks.hippopotamus.river_surge.title": "River Surge",
+  "ow.attacks.hippopotamus.river_surge.desc": "Coming out of the water, the hippopotamus keeps the river's momentum: for %s seconds it runs %s%% faster on dry land. Every swim refills it."
 }

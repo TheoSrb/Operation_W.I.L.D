@@ -173,6 +173,11 @@ public class OWAttacksOverlay {
             // ── Kangourou Tornade de Poings (maintien) ────────────────────────
             boolean isWhirlwind = attack.getId() == OWAttacksHandler.WHIRLWIND_FISTS_ID;
 
+            boolean isHippoRoll = attack.getId() == OWAttacksHandler.HIPPO_ROLL_ID;
+            boolean isHippoRolling = isHippoRoll
+                    && entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity rollingHippo
+                    && rollingHippo.isRolling();
+
             // ── Éléphant Jet de Trompe (maintien) ─────────────────────────────
             boolean isWaterSpray = attack.getId() == OWAttacksHandler.WATER_SPRAY_ID;
 
@@ -194,6 +199,9 @@ public class OWAttacksOverlay {
             if (isCharging) {
                 fillProgress = OWAttackLogic.getChargeProgress();
                 isGlowing    = fillProgress >= 1.0f;
+            } else if (isHippoRolling) {
+                fillProgress = 1.0f;
+                isGlowing    = true;
             } else if (sharedCooldown > 0f) {
                 fillProgress = 1.0f - sharedCooldown;
             } else if (isVenomFangs && entity instanceof BoaEntity boa) {

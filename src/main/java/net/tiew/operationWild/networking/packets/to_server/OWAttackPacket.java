@@ -106,6 +106,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         return;
                     }
 
+                    if (packet.attackId() == OWAttackIds.HIPPO_ROLL) {
+                        if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo)
+                            hippo.toggleRoll();
+                        return;
+                    }
+
                     // Boa — toggle Crochets Venimeux : autorisé à tout moment (même pendant un combo)
                     if (packet.attackId() == OWAttackIds.VENOM_FANGS) {
                         if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa)
@@ -159,6 +165,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.CHEST_BEAT ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity gorillaBeat
                                         && gorillaBeat.activateChestBeat();
+                        case OWAttackIds.RIVER_FURY ->
+                                entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippoFury
+                                        && hippoFury.activateRiverFury();
                         default -> true;
                     };
 

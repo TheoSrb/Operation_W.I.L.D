@@ -1124,5 +1124,20 @@
   "ow.advancements.silverback.title": "银背",
   "ow.advancements.silverback.description": "你驯服了一只大猩猩！",
   "ow.attacks.gorilla.cold_blood.title": "泰然自若",
-  "ow.attacks.gorilla.cold_blood.desc": "银背从不退让。原始恐惧对大猩猩从不生效，该效果会被直接拒绝，因此它永远不会失控、不会尥蹶子，骑乘者也始终掌握操控。别的野兽颤抖着忍受的东西，它只是静静看着它来。"
+  "ow.attacks.gorilla.cold_blood.desc": "银背从不退让。原始恐惧对大猩猩从不生效，该效果会被直接拒绝，因此它永远不会失控、不会尥蹶子，骑乘者也始终掌握操控。别的野兽颤抖着忍受的东西，它只是静静看着它来。",
+  "entity.ow.hippopotamus": "河马",
+  "chapter.entity.ow.hippopotamus": "河马",
+  "item.ow.hippopotamus_spawn_egg": "河马刷怪蛋",
+  "tooltip.hippopotamusSkin0": "默认河马",
+  "tooltip.hippopotamusSkin0.desc": "把你的河马变回原本的模样！",
+  "ow.attacks.hippopotamus.combo.title": "巨颚猛咬",
+  "ow.attacks.hippopotamus.combo.desc": "让你的河马每 %s 秒咬一次，每次撕咬造成 %s 点伤害。第三击会人立而起，张开血盆大口猛砸而下。",
+  "ow.attacks.hippopotamus.roll.title": "猛犸翻滚",
+  "ow.attacks.hippopotamus.roll.desc": "右键：河马缩成一团向前滚去；再次点击即可展开。启动消耗 %s 点能量，翻滚时的能量消耗比奔跑更快——精疲力尽时会自动展开并陷入眩晕。翻滚难以转向，下坡时会加速，并碾压所有不属于你部落的生物：最高造成其攻击力 %s%% 的伤害，被碾压者会被压扁片刻。撞上墙壁或体型过大的野兽会被弹回并陷入眩晕。无法在深水中使用。冷却 %s 秒。",
+  "ow.attacks.hippopotamus.river_fury.title": "河之狂怒",
+  "ow.attacks.hippopotamus.river_fury.desc": "击杀 %s 个目标后充能。河马人立而起，咆哮并重踏地面：冲击波击退并减速周围的敌对生物。在 %s 秒内，它的攻击力提高 %s%%，每承受一次攻击再提高 %s%%（积怨），受到的伤害降低 %s%%，不会被击退，连击的每一击都会使目标失衡。翻滚不再消耗能量，碾压更为猛烈。冷却 %s 秒。",
+  "ow.advancements.river_giant.title": "河流巨兽",
+  "ow.advancements.river_giant.description": "你驯服了一只河马！",
+  "ow.attacks.hippopotamus.river_surge.title": "河之冲劲",
+  "ow.attacks.hippopotamus.river_surge.desc": "离开水面后，河马会保持河流的冲劲：在 %s 秒内，它在陆地上的奔跑速度提高 %s%%。每次入水都会重新充满冲劲。"
 }

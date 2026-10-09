@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_hippopotamus": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:hippopotamus"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.river_giant.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:hippopotamus_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.river_giant.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_hippopotamus"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

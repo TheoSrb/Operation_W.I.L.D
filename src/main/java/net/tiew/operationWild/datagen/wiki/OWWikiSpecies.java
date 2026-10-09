@@ -6,6 +6,7 @@ import net.minecraft.world.entity.EntityType;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
@@ -34,6 +35,7 @@ public record OWWikiSpecies(EntityType<?> type, Class<? extends OWEntity> implem
                 of(OWEntityRegistry.KANGAROO.get(), KangarooEntity.class),
                 of(OWEntityRegistry.RED_PANDA.get(), RedPandaEntity.class),
                 of(OWEntityRegistry.GORILLA.get(), GorillaEntity.class),
+                of(OWEntityRegistry.HIPPOPOTAMUS.get(), HippopotamusEntity.class),
                 of(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressEntity.class));
     }
 

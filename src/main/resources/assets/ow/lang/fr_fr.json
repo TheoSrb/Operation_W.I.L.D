@@ -1124,5 +1124,20 @@
   "ow.advancements.silverback.title": "Dos argenté",
   "ow.advancements.silverback.description": "Vous avez apprivoisé un Gorille !",
   "ow.attacks.gorilla.cold_blood.title": "Sang-froid",
-  "ow.attacks.gorilla.cold_blood.desc": "Un dos argenté ne recule pas. La Peur primitive ne prend jamais sur le gorille : l'effet lui est refusé d'emblée, il ne perd donc jamais le contrôle, ne rue pas, et son cavalier garde la main. Ce que les autres bêtes subissent en tremblant, lui le regarde venir."
+  "ow.attacks.gorilla.cold_blood.desc": "Un dos argenté ne recule pas. La Peur primitive ne prend jamais sur le gorille : l'effet lui est refusé d'emblée, il ne perd donc jamais le contrôle, ne rue pas, et son cavalier garde la main. Ce que les autres bêtes subissent en tremblant, lui le regarde venir.",
+  "entity.ow.hippopotamus": "Hippopotame",
+  "chapter.entity.ow.hippopotamus": "Hippopotame",
+  "item.ow.hippopotamus_spawn_egg": "Oeuf d'apparition d'hippopotame",
+  "tooltip.hippopotamusSkin0": "Hippopotame Par Défaut",
+  "tooltip.hippopotamusSkin0.desc": "Rendez votre Hippopotame par défaut !",
+  "ow.attacks.hippopotamus.combo.title": "Coups de Gueule",
+  "ow.attacks.hippopotamus.combo.desc": "Faites mordre votre Hippopotame toutes les %s secondes, infligeant %s points de dégâts par morsure. Le troisième coup se cabre et s'abat gueule grande ouverte.",
+  "ow.attacks.hippopotamus.roll.title": "Roulade du Mastodonte",
+  "ow.attacks.hippopotamus.roll.desc": "Clic droit : l'hippopotame se roule en boule et dévale droit devant ; un second clic le déroule. Démarrer coûte %s d'énergie, puis la roulade la consomme plus vite que la course — à bout de souffle, il se déroule seul et reste étourdi. Difficile à diriger, elle prend de la vitesse dans les descentes et écrase tout ce qui n'est pas de votre tribu : jusqu'à %s%% de ses dégâts, et les victimes restent aplaties un instant. Un mur ou une bête trop grosse le fait rebondir, sonné. Impossible en eau profonde. %s secondes de recharge.",
+  "ow.attacks.hippopotamus.river_fury.title": "Furie du Fleuve",
+  "ow.attacks.hippopotamus.river_fury.desc": "S'arme sur %s victimes. L'hippopotame se cabre, rugit et frappe le sol : l'onde repousse et ralentit les hostiles alentour. Pendant %s secondes, il frappe %s%% plus fort, gagne %s%% de dégâts à chaque coup encaissé (la Rancune), subit %s%% de dégâts en moins, ne recule plus, et chaque coup de combo déséquilibre sa cible. Sa roulade ne coûte plus d'énergie et écrase plus fort. %s secondes de recharge.",
+  "ow.advancements.river_giant.title": "Géant des Rivières",
+  "ow.advancements.river_giant.description": "Vous avez apprivoisé un Hippopotame !",
+  "ow.attacks.hippopotamus.river_surge.title": "Élan du Fleuve",
+  "ow.attacks.hippopotamus.river_surge.desc": "En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan."
 }

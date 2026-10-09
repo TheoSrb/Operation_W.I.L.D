@@ -11,6 +11,7 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
@@ -64,6 +65,8 @@ public class OWAttacksHandler {
     public static final int ROCK_THROW_ID = OWAttackIds.ROCK_THROW;
     public static final int RIDER_LAUNCH_ID = OWAttackIds.RIDER_LAUNCH;
     public static final int CHEST_BEAT_ID = OWAttackIds.CHEST_BEAT;
+    public static final int HIPPO_ROLL_ID = OWAttackIds.HIPPO_ROLL;
+    public static final int RIVER_FURY_ID = OWAttackIds.RIVER_FURY;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -158,6 +161,13 @@ public class OWAttacksHandler {
         register(GorillaEntity.class, GorillaAttacks.RIDER_LAUNCH);
         register(GorillaEntity.class, GorillaAttacks.CHEST_BEAT);
         registerPassive(GorillaEntity.class, GorillaPassives.COLD_BLOOD);
+
+        registerEntityRow(HippopotamusEntity.class, 1);
+        registerEntityColumn(HippopotamusEntity.class, 3);
+        registerComboMaxTimer(HippopotamusEntity.class, 14);
+        register(HippopotamusEntity.class, HippopotamusAttacks.ROLL);
+        register(HippopotamusEntity.class, HippopotamusAttacks.RIVER_FURY);
+        registerPassive(HippopotamusEntity.class, HippopotamusPassives.RIVER_SURGE);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -378,6 +388,47 @@ public class OWAttacksHandler {
             @Override
             public int highlightColor() {
                 return 0x8FB4C8;
+            }
+        };
+    }
+
+    public static class HippopotamusAttacks {
+
+        public static final OWAttack ROLL = new OWAttack(
+                HIPPO_ROLL_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Hippopotamus.ROLL_START_ENERGY,
+                entity -> ((HippopotamusEntity) entity).toggleRoll(),
+                0
+        );
+
+        public static final OWAttack RIVER_FURY = new OWAttack(
+                RIVER_FURY_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Hippopotamus.FURY_ENERGY,
+                entity -> ((HippopotamusEntity) entity).activateRiverFury(),
+                OWAttacksConstants.Hippopotamus.FURY_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof HippopotamusEntity hippo
+                        && hippo.getUltimateKillCount() >= OWAttacksConstants.Hippopotamus.FURY_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof HippopotamusEntity hippo
+                        ? (float) hippo.getUltimateKillCount() / OWAttacksConstants.Hippopotamus.FURY_KILLS_REQUIRED
+                        : 0f
+        ).withUltimateDuration(OWAttacksConstants.Hippopotamus.FURY_DURATION_MS);
+    }
+
+    public static class HippopotamusPassives {
+
+        public static final OWPassive RIVER_SURGE = new OWPassive() {
+            @Override
+            public Set<Integer> getHighlightEntityIds(OWEntity entity, Level level) {
+                return Set.of();
+            }
+
+            @Override
+            public int highlightColor() {
+                return 0x4FA3C7;
             }
         };
     }

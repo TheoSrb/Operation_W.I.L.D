@@ -98,6 +98,7 @@ public class OWNetworkHandler {
         registrar.playToClient(net.tiew.operationWild.networking.packets.to_client.RiderLaunchPacket.TYPE, net.tiew.operationWild.networking.packets.to_client.RiderLaunchPacket.STREAM_CODEC, net.tiew.operationWild.networking.packets.to_client.RiderLaunchPacket::handle);
         registrar.playToClient(HeartShotPacket.TYPE, HeartShotPacket.STREAM_CODEC, HeartShotPacket::handle);
         registrar.playToClient(ElephantFootstepPacket.TYPE, ElephantFootstepPacket.STREAM_CODEC, ElephantFootstepPacket::handle);
+        registrar.playToClient(HippopotamusCrushPacket.TYPE, HippopotamusCrushPacket.STREAM_CODEC, HippopotamusCrushPacket::handle);
         registrar.playToClient(FeedingPacket.TYPE, FeedingPacket.STREAM_CODEC, FeedingPacket::handle);
         registrar.playToClient(SyncOWTeamPacket.TYPE, SyncOWTeamPacket.STREAM_CODEC, SyncOWTeamPacket::handle);
         registrar.playToClient(ClearOWTeamPacket.TYPE, ClearOWTeamPacket.STREAM_CODEC, ClearOWTeamPacket::handle);

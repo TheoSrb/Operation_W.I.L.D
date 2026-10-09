@@ -34,6 +34,7 @@ public class ModEventBusEvents {
         event.put(OWEntityRegistry.BOA.get(), BoaEntity.createAttributes().build());
         event.put(OWEntityRegistry.ELEPHANT.get(), ElephantEntity.createAttributes().build());
         event.put(OWEntityRegistry.GORILLA.get(), GorillaEntity.createAttributes().build());
+        event.put(OWEntityRegistry.HIPPOPOTAMUS.get(), HippopotamusEntity.createAttributes().build());
         event.put(OWEntityRegistry.RED_PANDA.get(), RedPandaEntity.createAttributes().build());
         event.put(OWEntityRegistry.BOA_TAIL_PART.get(), BoaTailPart.bakeAttributes().build());
         event.put(OWEntityRegistry.SEABUG.get(), SeaBugEntity.createAttributes().build());

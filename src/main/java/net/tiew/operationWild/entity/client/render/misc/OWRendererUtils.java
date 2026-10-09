@@ -480,6 +480,9 @@ public class OWRendererUtils {
             case "GorillaEntity" -> {
                 return "entity.ow.gorilla";
             }
+            case "HippopotamusEntity" -> {
+                return "entity.ow.hippopotamus";
+            }
             case "MandrillEntity" -> {
                 return "entity.ow.mandrill";
             }

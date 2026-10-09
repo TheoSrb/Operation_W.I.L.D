@@ -13,6 +13,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
@@ -334,6 +335,42 @@ public class OWAttacksInformation {
                 new AttackSlot(-1, -1, "",
                         title("ow.attacks.gorilla.cold_blood.title"),
                         e -> desc("ow.attacks.gorilla.cold_blood.desc")
+                )
+
+        ));
+
+        PROFILES.put(HippopotamusEntity.class, new EntityProfile(
+
+                new AttackSlot(60, 40, "LMB",
+                        title("ow.attacks.hippopotamus.combo.title"),
+                        e -> desc("ow.attacks.hippopotamus.combo.desc",
+                                val("0.7"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(80, 40, "RMB",
+                        title("ow.attacks.hippopotamus.roll.title"),
+                        e -> desc("ow.attacks.hippopotamus.roll.desc",
+                                val((int) OWAttacksConstants.Hippopotamus.ROLL_START_ENERGY),
+                                val((int) (OWAttacksConstants.Hippopotamus.ROLL_CRUSH_DAMAGE_RATIO * 100)),
+                                val(OWAttacksConstants.Hippopotamus.ROLL_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(100, 40, "X",
+                        title("ow.attacks.hippopotamus.river_fury.title"),
+                        e -> desc("ow.attacks.hippopotamus.river_fury.desc",
+                                val(OWAttacksConstants.Hippopotamus.FURY_KILLS_REQUIRED),
+                                val(OWAttacksConstants.Hippopotamus.FURY_DURATION_TICKS / 20),
+                                val((int) (OWAttacksConstants.Hippopotamus.FURY_DAMAGE_BONUS * 100)),
+                                val((int) (OWAttacksConstants.Hippopotamus.FURY_GRUDGE_PER_HIT * 100)),
+                                val((int) (OWAttacksConstants.Hippopotamus.FURY_DAMAGE_REDUCTION * 100)),
+                                val(OWAttacksConstants.Hippopotamus.FURY_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.hippopotamus.river_surge.title"),
+                        e -> desc("ow.attacks.hippopotamus.river_surge.desc",
+                                val(OWAttacksConstants.Hippopotamus.RIVER_SURGE_TICKS / 20),
+                                val((int) (OWAttacksConstants.Hippopotamus.RIVER_SURGE_SPEED_BONUS * 100)))
                 )
 
         ));

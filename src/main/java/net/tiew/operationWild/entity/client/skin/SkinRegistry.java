@@ -8,6 +8,7 @@ import net.tiew.operationWild.entity.variants.BoaVariant;
 import net.tiew.operationWild.entity.variants.CrocodileVariant;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.entity.variants.GorillaVariant;
+import net.tiew.operationWild.entity.variants.HippopotamusVariant;
 import net.tiew.operationWild.entity.variants.KangarooVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.entity.variants.OrcaVariant;
@@ -44,6 +45,37 @@ public final class SkinRegistry {
 
         public static GorillaSkin get(GorillaVariant variant) {
             return REGISTRY.getOrDefault(variant, REGISTRY.get(GorillaVariant.DEFAULT));
+        }
+
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
+
+    public static class HippopotamusSkins {
+
+        private static final Map<HippopotamusVariant, HippopotamusSkin> REGISTRY = new EnumMap<>(HippopotamusVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/hippopotamus/" + path);
+        }
+
+        static {
+            register(HippopotamusVariant.DEFAULT, HippopotamusSkin.base(tex("hippopotamus_default.png")));
+        }
+
+        public static void register(HippopotamusVariant variant, HippopotamusSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static HippopotamusSkin get(HippopotamusVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(HippopotamusVariant.DEFAULT));
         }
 
         public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {

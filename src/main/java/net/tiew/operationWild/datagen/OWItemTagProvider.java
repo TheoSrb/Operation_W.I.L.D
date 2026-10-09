@@ -179,6 +179,22 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.SWEET_BERRIES)
                 .add(Items.CARROT);
 
+        tag(OWTags.Items.HIPPOPOTAMUS_FOOD)
+                .add(Items.SHORT_GRASS)
+                .add(Items.TALL_GRASS)
+                .add(Items.FERN)
+                .add(Items.LARGE_FERN)
+                .add(Items.WHEAT)
+                .add(Items.HAY_BLOCK)
+                .add(Items.SUGAR_CANE)
+                .add(Items.LILY_PAD)
+                .add(Items.KELP)
+                .add(Items.SEAGRASS)
+                .add(Items.CARROT)
+                .add(Items.BEETROOT)
+                .add(Items.PUMPKIN)
+                .add(Items.MELON);
+
         tag(OWTags.Items.RED_PANDA_FOOD)
                 .add(Items.BAMBOO)
                 .add(Items.SWEET_BERRIES)

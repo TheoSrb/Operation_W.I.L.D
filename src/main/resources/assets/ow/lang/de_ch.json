@@ -1124,5 +1124,20 @@
   "ow.advancements.silverback.title": "Silberrücken",
   "ow.advancements.silverback.description": "Du hast einen Gorilla gezähmt!",
   "ow.attacks.gorilla.cold_blood.title": "Kaltblütig",
-  "ow.attacks.gorilla.cold_blood.desc": "Ein Silberrücken weicht nicht zurück. Die Urangst greift beim Gorilla nie: Der Effekt wird von vornherein abgewiesen, er verliert also nie die Kontrolle, bockt nicht, und sein Reiter behält das Kommando. Was andere Tiere zitternd erdulden, sieht er einfach kommen."
+  "ow.attacks.gorilla.cold_blood.desc": "Ein Silberrücken weicht nicht zurück. Die Urangst greift beim Gorilla nie: Der Effekt wird von vornherein abgewiesen, er verliert also nie die Kontrolle, bockt nicht, und sein Reiter behält das Kommando. Was andere Tiere zitternd erdulden, sieht er einfach kommen.",
+  "entity.ow.hippopotamus": "Flusspferd",
+  "chapter.entity.ow.hippopotamus": "Flusspferd",
+  "item.ow.hippopotamus_spawn_egg": "Flusspferd-Spawn-Ei",
+  "tooltip.hippopotamusSkin0": "Standard-Flusspferd",
+  "tooltip.hippopotamusSkin0.desc": "Setze dein Flusspferd auf das Standardaussehen zurück!",
+  "ow.attacks.hippopotamus.combo.title": "Kieferhieb",
+  "ow.attacks.hippopotamus.combo.desc": "Lass dein Flusspferd alle %s Sekunden zubeißen und dabei %s Schadenspunkte pro Biss verursachen. Der dritte Schlag bäumt sich auf und kracht mit weit aufgerissenem Maul herab.",
+  "ow.attacks.hippopotamus.roll.title": "Mammut-Rolle",
+  "ow.attacks.hippopotamus.roll.desc": "Rechtsklick: Das Flusspferd rollt sich zu einer Kugel zusammen und donnert geradeaus; ein zweiter Klick rollt es wieder aus. Der Start kostet %s Energie, danach verbraucht die Rolle sie schneller als das Rennen — außer Atem rollt es sich von selbst aus und bleibt benommen. Schwer zu lenken, wird sie bergab schneller und walzt alles nieder, was nicht zu deinem Stamm gehört: bis zu %s%% seines Schadens, und die Opfer bleiben einen Moment lang platt. Eine Wand oder ein zu großes Tier lässt es benommen zurückprallen. In tiefem Wasser unmöglich. %s Sekunden Abklingzeit.",
+  "ow.attacks.hippopotamus.river_fury.title": "Zorn des Flusses",
+  "ow.attacks.hippopotamus.river_fury.desc": "Wird nach %s Tötungen bereit. Das Flusspferd bäumt sich auf, brüllt und schlägt auf den Boden: Die Druckwelle stößt Feinde in der Nähe zurück und verlangsamt sie. %s Sekunden lang schlägt es %s%% härter, gewinnt %s%% Schaden für jeden eingesteckten Treffer (Groll), erleidet %s%% weniger Schaden, lässt sich nicht zurückstoßen, und jeder Combo-Treffer bringt sein Ziel ins Wanken. Seine Rolle kostet keine Energie und walzt härter. %s Sekunden Abklingzeit.",
+  "ow.advancements.river_giant.title": "Riese der Flüsse",
+  "ow.advancements.river_giant.description": "Du hast ein Flusspferd gezähmt!",
+  "ow.attacks.hippopotamus.river_surge.title": "Schwung des Flusses",
+  "ow.attacks.hippopotamus.river_surge.desc": "Wenn es aus dem Wasser steigt, behält das Flusspferd den Schwung des Flusses: %s Sekunden lang läuft es an Land %s%% schneller. Jedes Bad lädt den Schwung wieder auf."
 }

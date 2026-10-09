@@ -1072,6 +1072,33 @@ public class OWAttackLogic {
         recordAttackClick(attack.getId(), false);
     }
 
+    private static void handleHippoRollToggle(OWAttack attack,
+                                              net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo,
+                                              Player player) {
+        if (hippo.isRolling()) {
+            PacketDistributor.sendToServer(
+                    new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+            recordAttackClick(attack.getId(), false);
+            return;
+        }
+
+        if (getSharedSecondaryProgress(hippo) > 0f || hippo.isRollStaggered() || hippo.isFuryWindup()
+                || hippo.isInWater() || hippo.isSitting() || playerHoldsUsableItem(player)) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        if (!hippo.isRiverFuryActive()
+                && hippo.getVitalEnergy() > hippo.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
+            hippo.canShowVitalEnergyLack = true;
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        PacketDistributor.sendToServer(
+                new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+        recordAttackClick(attack.getId(), false);
+    }
+
     /**
      * Kangourou — Tornade de Poings : attaque secondaire MAINTENUE sur le clic droit.
      * Press → démarre la rotation ; release → l'arrête. Toute la machine d'état (rotation /
@@ -1504,6 +1531,16 @@ public class OWAttackLogic {
             OWAttack venom = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
             if (venom != null) {
                 handleBoaVenomToggle(venom, boa, mc.player);
+                return;
+            }
+        }
+
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
+                && event.getAction() == GLFW.GLFW_PRESS
+                && owEntity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo) {
+            OWAttack roll = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
+            if (roll != null && roll.getId() == OWAttacksHandler.HIPPO_ROLL_ID) {
+                handleHippoRollToggle(roll, hippo, mc.player);
                 return;
             }
         }

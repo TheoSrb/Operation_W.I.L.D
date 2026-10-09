@@ -649,6 +649,62 @@ public class OWAttacksConstants {
         public static final double CHEST_BEAT_PUSH_POWER = 0.55;
     }
 
+    public static class Hippopotamus {
+        public static final float ROLL_START_ENERGY = 25f;
+        public static final float ROLL_ENERGY_PER_TICK = 0.85f;
+        public static final int ROLL_COOLDOWN_TICKS = 60;
+        public static final int ROLL_CURL_TICKS = 10;
+        public static final int ROLL_UNCURL_TICKS = 12;
+        public static final float ROLL_TOP_SPEED_RATIO = 1.45f;
+        public static final int ROLL_ACCEL_TICKS = 30;
+        public static final float ROLL_BRAKE_RATIO = 0.45f;
+        public static final float ROLL_SLOPE_GAIN = 1.5f;
+        public static final float ROLL_SLOPE_MAX_BONUS = 0.45f;
+        public static final float ROLL_TURN_SPEED = 0.012f;
+        public static final float ROLL_TURN_MAX_DEGREES = 1.5f;
+        public static final float ROLL_STOP_GLIDE = 0.93f;
+        public static final float ROLL_RADIUS_BLOCKS = 0.75f;
+        public static final float ROLL_SEAT_LIFT = -0.22f;
+        public static final float ROLL_SEAT_SPREAD = 0.35f;
+
+        public static final double ROLL_CRUSH_MIN_SPEED = 0.10;
+        public static final float ROLL_CRUSH_DAMAGE_RATIO = 0.9f;
+        public static final int ROLL_CRUSH_IMMUNITY_TICKS = 15;
+        public static final int ROLL_CRUSH_FLATTEN_TICKS = 25;
+        public static final double ROLL_CRUSH_KNOCKBACK = 0.55;
+        public static final float ROLL_CRUSH_MAX_SCALE = 13f;
+        public static final double ROLL_ALLY_NUDGE = 0.35;
+
+        public static final double ROLL_WALL_BOUNCE_MIN_SPEED = 0.28;
+        public static final int ROLL_BOUNCE_TICKS = 20;
+        public static final int ROLL_BOUNCE_RECOIL_TICKS = 7;
+        public static final float ROLL_BOUNCE_RECOIL_SPEED = 0.32f;
+        public static final int ROLL_DIZZY_TICKS = 40;
+
+        public static final int FURY_KILLS_REQUIRED = 5;
+        public static final int FURY_WINDUP_TICKS = 25;
+        public static final int FURY_SHOCKWAVE_TICK = 17;
+        public static final int FURY_DURATION_TICKS = 240;
+        public static final int FURY_FADE_TICKS = 20;
+        public static final long FURY_DURATION_MS = (FURY_WINDUP_TICKS + FURY_DURATION_TICKS) * 50L;
+        public static final int FURY_COOLDOWN_TICKS = 1200;
+        public static final float FURY_ENERGY = 100f;
+        public static final float FURY_DAMAGE_BONUS = 0.25f;
+        public static final float FURY_GRUDGE_PER_HIT = 0.05f;
+        public static final float FURY_GRUDGE_MAX = 0.25f;
+        public static final float FURY_DAMAGE_REDUCTION = 0.30f;
+        public static final float FURY_SPEED_FACTOR = 1.10f;
+        public static final double FURY_SHOCKWAVE_RADIUS = 5.0;
+        public static final double FURY_SHOCKWAVE_PUSH = 0.9;
+        public static final int FURY_SHOCKWAVE_SLOW_TICKS = 40;
+        public static final int FURY_STAGGER_TICKS = 20;
+        public static final float FURY_ROLL_CRUSH_MULTIPLIER = 1.5f;
+
+        public static final int RIVER_SURGE_TICKS = 200;
+        public static final int RIVER_SURGE_MIN_WATER_TICKS = 10;
+        public static final float RIVER_SURGE_SPEED_BONUS = 0.15f;
+    }
+
     public static class Slide {
         public static final float ENERGY = 12f;
         public static final int COOLDOWN_TICKS = 16;

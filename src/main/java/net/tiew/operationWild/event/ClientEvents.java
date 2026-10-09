@@ -1348,6 +1348,9 @@ public class ClientEvents {
         boolean isOrcaPassenger = owVehicle instanceof OrcaEntity o
                 && o.getPassengers().indexOf(player) != 0;
 
+        boolean isHippopotamusPassenger = owVehicle instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity h
+                && h.getPassengers().indexOf(player) != 0;
+
         // ATTENTION au choix du lacet source, c'est ici que se jouait la rotation en escalier.
         //
         // Le rendu ne lit pas ces champs tels quels : il interpole le couple (précédent, courant) sur
@@ -1369,6 +1372,9 @@ public class ClientEvents {
         } else if (isOrcaPassenger) {
             player.yBodyRot = ((OrcaEntity) owVehicle).yBodyRot;
             player.yBodyRotO = ((OrcaEntity) owVehicle).yBodyRotO;
+        } else if (isHippopotamusPassenger) {
+            player.yBodyRot = vehicleYaw;
+            player.yBodyRotO = vehicleYawO;
         } else {
             player.yBodyRot = vehicleYaw;
             player.yBodyRotO = vehicleYawO;
@@ -1619,6 +1625,10 @@ public class ClientEvents {
             outerYaw = bodyYaw;
             zRot = -gorilla.getBodyZRot();
             xRot = -gorilla.getBodyXRot();
+        } else if (vehicle instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo) {
+            outerYaw = bodyYaw;
+            zRot = -hippo.getBodyZRot();
+            xRot = -hippo.getBodyXRot();
         } else {
             outerYaw = player.getYRot();
             zRot = -vehicle.getBodyZRot();
@@ -1721,6 +1731,9 @@ public class ClientEvents {
                 float climbTilt = gorilla.climbTilt((float) event.getPartialTick());
                 event.setPitch((float) (event.getPitch() + ((gorilla.getBodyXRot() - climbTilt) / 4) * intensity));
                 event.setPitch(event.getPitch() - climbTilt);
+            } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo) {
+                event.setRoll((float) (event.getRoll() + (hippo.getBodyZRot() / 4) * intensity));
+                event.setPitch((float) (event.getPitch() + (hippo.getBodyXRot() / 4) * intensity));
             }
         }
     }
