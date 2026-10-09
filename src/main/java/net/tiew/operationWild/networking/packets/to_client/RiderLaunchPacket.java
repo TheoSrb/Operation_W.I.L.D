@@ -48,15 +48,12 @@ public record RiderLaunchPacket(double velocityX, double velocityY, double veloc
         context.enqueueWork(() -> {
             Player player = context.player();
             if (player == null) return;
-            net.tiew.operationWild.debug.OWLaunchTrace.describe("CLIENT", "paquet de lancer recu (avant)", player);
             if (player.isPassenger()) player.stopRiding();
             player.setDeltaMovement(packet.velocityX(), packet.velocityY(), packet.velocityZ());
             player.fallDistance = 0f;
             player.hasImpulse = true;
             expected = new net.minecraft.world.phys.Vec3(packet.velocityX(), packet.velocityY(), packet.velocityZ());
             guardTicks = GUARD_TICKS;
-            net.tiew.operationWild.debug.OWLaunchTrace.describe("CLIENT", "paquet de lancer recu (apres)", player);
-            net.tiew.operationWild.debug.OWLaunchTrace.startClientFollow();
         });
     }
 }

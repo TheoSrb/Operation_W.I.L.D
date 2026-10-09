@@ -692,7 +692,6 @@ public class ClientEvents {
     public static void onClientTick(PlayerTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         if (event.getEntity() != minecraft.player) return;
-        net.tiew.operationWild.debug.OWLaunchTrace.tickClient(minecraft.player);
 
         if (pendingWarning) {
             if (warningTick > 0) {

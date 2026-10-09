@@ -1596,7 +1596,6 @@ public class OWAttackLogic {
 
                 PacketDistributor.sendToServer(
                         new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_RELEASE, chargeFactor));
-                net.tiew.operationWild.debug.OWLaunchTrace.log("CLIENT", "release envoye : attaque={} charge={}ms factor={}", attack.getId(), elapsed, chargeFactor);
 
                 if (mc.player.getRootVehicle() instanceof OWEntity entity) {
                     boolean hasEnergy = entity.getVitalEnergy() <= entity.getVitalEnergyCapacity() - attack.getEnergyRequired();
@@ -1614,7 +1613,6 @@ public class OWAttackLogic {
                     }
                 }
             }  else {
-                net.tiew.operationWild.debug.OWLaunchTrace.log("CLIENT", "charge trop courte ({}ms < {}ms) : annulation envoyee", elapsed, attack.getMinChargeMs());
                 shortChargeCooldownEndMs = System.currentTimeMillis() + 300L;
                 PacketDistributor.sendToServer(
                         new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_CHARGE_CANCEL, 0f));

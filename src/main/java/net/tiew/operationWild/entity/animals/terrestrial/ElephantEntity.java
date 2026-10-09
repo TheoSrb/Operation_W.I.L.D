@@ -423,7 +423,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float sprintAccelerationMultiplier() {
-        return 0.65f;
+        return 1.3f;
     }
 
     @Override

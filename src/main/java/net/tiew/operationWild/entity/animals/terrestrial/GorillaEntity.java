@@ -1247,11 +1247,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public void performRiderLaunch(float chargeFactor) {
         if (this.level().isClientSide()) return;
         LivingEntity rider = this.getControllingPassenger();
-        net.tiew.operationWild.debug.OWLaunchTrace.log("SERVER", "release recu : factor={} cooldown={} chestBeat={} rider={} energie={}/{} passagers={}",
-                chargeFactor, getSecondaryCooldown(), isChestBeating(), rider == null ? "null" : rider.getName().getString(),
-                getVitalEnergy(), getVitalEnergyCapacity(), this.getPassengers().size());
         if (!secondaryReady() || isChestBeating() || rider == null) {
-            net.tiew.operationWild.debug.OWLaunchTrace.log("SERVER", "REFUS (cooldown/chestBeat/rider)");
             cancelRiderLaunchCharge();
             rejectSecondary(net.tiew.operationWild.entity.attacks.OWAttackIds.RIDER_LAUNCH);
             return;
@@ -1261,7 +1257,6 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
             canShowVitalEnergyLack = true;
             cancelRiderLaunchCharge();
-            net.tiew.operationWild.debug.OWLaunchTrace.log("SERVER", "REFUS (energie)");
             rejectSecondary(net.tiew.operationWild.entity.attacks.OWAttackIds.RIDER_LAUNCH);
             return;
         }
@@ -1285,15 +1280,12 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         double lift = power * OWAttacksConstants.Gorilla.RIDER_LAUNCH_LIFT_RATIO;
 
         Vec3 launch = new Vec3(flat.x * power, lift, flat.z * power);
-        net.tiew.operationWild.debug.OWLaunchTrace.describe("SERVER", "avant descente", rider);
         launchingRider = true;
         try {
             rider.stopRiding();
         } finally {
             launchingRider = false;
         }
-        net.tiew.operationWild.debug.OWLaunchTrace.describe("SERVER", "apres descente", rider);
-        net.tiew.operationWild.debug.OWLaunchTrace.log("SERVER", "vitesse de lancer = ({}, {}, {})", launch.x, launch.y, launch.z);
         rider.setDeltaMovement(launch);
         rider.fallDistance = 0f;
         rider.hasImpulse = true;
@@ -1320,8 +1312,6 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
         launchedRiderTimer--;
         Entity rider = this.level().getEntity(launchedRiderId);
-        if (OWAttacksConstants.Gorilla.RIDER_LAUNCH_FALL_IMMUNITY_TICKS - launchedRiderTimer <= 8)
-            net.tiew.operationWild.debug.OWLaunchTrace.describe("SERVER", "tick+" + (OWAttacksConstants.Gorilla.RIDER_LAUNCH_FALL_IMMUNITY_TICKS - launchedRiderTimer), rider);
         if (rider == null) {
             launchedRiderTimer = 0;
             launchedRiderId = -1;
