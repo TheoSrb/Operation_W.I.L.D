@@ -11,6 +11,7 @@ import net.tiew.operationWild.entity.variants.GorillaVariant;
 import net.tiew.operationWild.entity.variants.HippopotamusVariant;
 import net.tiew.operationWild.entity.variants.KangarooVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
+import net.tiew.operationWild.entity.variants.LionVariant;
 import net.tiew.operationWild.entity.variants.OrcaVariant;
 import net.tiew.operationWild.entity.variants.RedPandaVariant;
 import net.tiew.operationWild.entity.variants.TigerVariant;
@@ -76,6 +77,38 @@ public final class SkinRegistry {
 
         public static HippopotamusSkin get(HippopotamusVariant variant) {
             return REGISTRY.getOrDefault(variant, REGISTRY.get(HippopotamusVariant.DEFAULT));
+        }
+
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
+
+    public static class LionSkins {
+
+        private static final Map<LionVariant, LionSkin> REGISTRY = new EnumMap<>(LionVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/lion/" + path);
+        }
+
+        static {
+            register(LionVariant.DEFAULT, LionSkin.base(tex("lion_default.png"), tex("lioness_default.png")));
+            register(LionVariant.ALBINO, LionSkin.base(tex("lion_white.png"), tex("lioness_white.png")));
+        }
+
+        public static void register(LionVariant variant, LionSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static LionSkin get(LionVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(LionVariant.DEFAULT));
         }
 
         public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {

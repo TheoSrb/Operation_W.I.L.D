@@ -421,6 +421,19 @@ public class OWRendererUtils {
             font.drawInBatch(stateComponent, lefttextX, textY + (leftPadding * 3), entity.isPassive() ? 0x55FF55 : 0xFF5555, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         }
 
+        if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lion && lion.hasClan() && lion.getClanColor() >= 0) {
+            float clanRows = !entity.isTame() ? 3f : entity.currentTeam != null ? 5.65f : 4f;
+            float clanY = textY + leftPadding * clanRows;
+            Component clanLabel = Component.translatable("imageClan").withStyle(style -> style.withColor(0x8e9eb9).withBold(true));
+            font.drawInBatch(clanLabel, lefttextX, clanY, 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+
+            float squareX = lefttextX + font.width(clanLabel) + 4;
+            drawClanSquare(bufferSource, poseStack.last().pose(), squareX, clanY, lion.getClanColor(), opacity);
+
+            Component clanCount = Component.literal(lion.getClanSize() + "/" + (net.tiew.operationWild.entity.attacks.OWAttacksConstants.Lion.CLAN_MAX_LIONESSES + 1));
+            font.drawInBatch(clanCount, squareX + CLAN_SQUARE_SIZE + 4, clanY, 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
+        }
+
         font.drawInBatch(tamingComponent, tamingTextX - 25, entity.isTame() ? textY + (20 * 4.4f) : textY + (20 * 3), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         if (sleepingComponent != null) font.drawInBatch(sleepingComponent, sleepingTextX - 25, textY + (20 * 4.4f), 0x8e9eb9, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
 
@@ -972,6 +985,31 @@ public class OWRendererUtils {
         vc.addVertex(mat, x, y + ARROW_H, 0).setColor(255, 255, 255, opacity).setUv(u0, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
         vc.addVertex(mat, x + ARROW_W, y + ARROW_H, 0).setColor(255, 255, 255, opacity).setUv(u1, v1).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
         vc.addVertex(mat, x + ARROW_W, y, 0).setColor(255, 255, 255, opacity).setUv(u1, v0).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+    }
+
+    private static final float CLAN_SQUARE_SIZE = 7f;
+    private static final float CLAN_SQUARE_BORDER = 1f;
+
+    private static void drawClanSquare(MultiBufferSource bufferSource, Matrix4f mat, float x, float y, int rgb, int opacity) {
+        VertexConsumer vc = bufferSource.getBuffer(RenderType.entityTranslucent(WHITE));
+        float size = CLAN_SQUARE_SIZE;
+        float border = CLAN_SQUARE_BORDER;
+
+        flatQuad(vc, mat, x, y, x + size, y + border, 0x000000, opacity);
+        flatQuad(vc, mat, x, y + size - border, x + size, y + size, 0x000000, opacity);
+        flatQuad(vc, mat, x, y + border, x + border, y + size - border, 0x000000, opacity);
+        flatQuad(vc, mat, x + size - border, y + border, x + size, y + size - border, 0x000000, opacity);
+        flatQuad(vc, mat, x + border, y + border, x + size - border, y + size - border, rgb, opacity);
+    }
+
+    private static void flatQuad(VertexConsumer vc, Matrix4f mat, float x0, float y0, float x1, float y1, int rgb, int opacity) {
+        int r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
+        int lightU = 0xF000F0 & 0xFFFF, lightV = (0xF000F0 >> 16) & 0xFFFF;
+
+        vc.addVertex(mat, x0, y0, 0).setColor(r, g, b, opacity).setUv(0f, 0f).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, x0, y1, 0).setColor(r, g, b, opacity).setUv(0f, 1f).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, x1, y1, 0).setColor(r, g, b, opacity).setUv(1f, 1f).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
+        vc.addVertex(mat, x1, y0, 0).setColor(r, g, b, opacity).setUv(1f, 0f).setOverlay(OverlayTexture.NO_OVERLAY).setUv2(lightU, lightV).setNormal(0, 1, 0);
     }
 
     private static final int PAINT_W = 55, PAINT_H = 93;

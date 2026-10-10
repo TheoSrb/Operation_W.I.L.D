@@ -1139,5 +1139,18 @@
   "ow.advancements.river_giant.title": "大河の巨獣",
   "ow.advancements.river_giant.description": "カバをテイムしました！",
   "ow.attacks.hippopotamus.river_surge.title": "大河の勢い",
-  "ow.attacks.hippopotamus.river_surge.desc": "水から上がったカバは川の勢いを保ちます。%s秒間、陸上での移動速度が%s%%上昇します。水に入るたびに勢いが回復します。"
+  "ow.attacks.hippopotamus.river_surge.desc": "水から上がったカバは川の勢いを保ちます。%s秒間、陸上での移動速度が%s%%上昇します。水に入るたびに勢いが回復します。",
+  "tooltip.lionSkin0": "デフォルトのライオン",
+  "tooltip.lionSkin0.desc": "ライオンをデフォルトの姿に戻そう！",
+  "imageClan": "群れ",
+  "ow.attacks.lion.combo.title": "爪と牙",
+  "ow.attacks.lion.combo.desc": "ライオンが%s秒ごとに攻撃し、1回につき%sダメージを与える。素早い爪と軽い噛みつきで標的に圧力をかけ続ける。",
+  "ow.attacks.lion.clan_call.title": "群れの呼び声",
+  "ow.attacks.lion.clan_call.desc": "猛獣が群れを呼ぶ：同じ群れの手懐けたメスライオン最大%s頭が、半径%sブロック以内から即座に駆けつけ、狙った生き物（または最後に攻撃した敵）を襲う。%s秒間、体力が回復し、攻撃に強くなる。射程内に群れのメスライオンが1頭以上必要。クールダウン%s秒。",
+  "ow.attacks.lion.domination_roar.title": "支配の咆哮",
+  "ow.attacks.lion.domination_roar.desc": "%s体倒すと解放される。猛獣は立ち止まって咆哮し、威厳を示す：半径%sブロック以内の群れのメスライオンは%s秒間、より速く走り、より強く攻撃し、継続的に体力が回復する。クールダウン%s秒。",
+  "ow.attacks.lion.pride_bond.title": "群れの力",
+  "ow.attacks.lion.pride_bond.desc": "オスは群れのメスライオン1頭につき体力が%s増える（最大%s頭）。近くのメスライオン1頭ごとに与ダメージと耐性が%s%%上昇する（最大%s頭、半径%sブロック以内）。",
+  "ow.advancements.king_of_the_savanna.title": "サバンナの王",
+  "ow.advancements.king_of_the_savanna.description": "ライオンを手懐けた！"
 }

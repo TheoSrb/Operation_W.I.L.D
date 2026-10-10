@@ -284,7 +284,14 @@ public class OWAttacksOverlay {
                     && entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity furyHippo
                     && furyHippo.isInWater() && furyHippo.getFuryTick() <= 0;
 
-            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isRiverFuryBlockedInWater) {
+            boolean isClanCall = attack.getId() == OWAttacksHandler.CLAN_CALL_ID
+                    && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
+            int callableLionesses = isClanCall
+                    ? ((net.tiew.operationWild.entity.animals.terrestrial.LionEntity) entity).getCallableClanmateCount()
+                    : 0;
+            boolean isClanCallEmpty = isClanCall && callableLionesses <= 0 && !isCharging;
+
+            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isRiverFuryBlockedInWater || isClanCallEmpty) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;
@@ -361,8 +368,25 @@ public class OWAttacksOverlay {
                 noteUnlockCounter(entity.getId(), counter);
                 drawUnlockPop(g, cardX, baseY, entity.getId());
             }
+
+            if (isClanCall) {
+                drawClanCallBadge(g, cardX, baseY, callableLionesses);
+            }
         }
 
+    }
+
+    private static void drawClanCallBadge(GuiGraphics g, int cardX, int baseY, int count) {
+        net.minecraft.client.gui.Font font = Minecraft.getInstance().font;
+        String text = String.valueOf(count);
+        int color = count > 0 ? 0xFFE8B04A : 0xFFFF5555;
+        float scale = 0.75f;
+
+        g.pose().pushPose();
+        g.pose().translate(cardX + CARD_SIZE - font.width(text) * scale - 1, baseY + CARD_SIZE - font.lineHeight * scale + 1, 300);
+        g.pose().scale(scale, scale, 1f);
+        g.drawString(font, text, 0, 0, color, true);
+        g.pose().popPose();
     }
 
     // ── Rappel « touche + molette » sur la carte secondaire interchangeable ────

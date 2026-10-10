@@ -155,6 +155,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "RedPandaEntity" -> entityScale = 32;
             case "GorillaEntity" -> entityScale = 20;
             case "HippopotamusEntity" -> entityScale = 16;
+            case "LionEntity" -> entityScale = 20;
         }
 
         tabsRenderer.init(this.width, this.height, this.imageWidth, this.imageHeight, entity, this::addRenderableWidget);
@@ -317,6 +318,8 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     private int entitySaddleCoords() {
         switch (entity.getClass().getSimpleName()) {
             case "HippopotamusEntity":
+                return 240;
+            case "LionEntity":
                 return 240;
             case "TigerEntity":
                 return 240;

@@ -1629,6 +1629,10 @@ public class ClientEvents {
             outerYaw = bodyYaw;
             zRot = -hippo.getBodyZRot();
             xRot = -hippo.getBodyXRot();
+        } else if (vehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lion) {
+            outerYaw = bodyYaw;
+            zRot = -lion.getBodyZRot();
+            xRot = -lion.getBodyXRot();
         } else {
             outerYaw = player.getYRot();
             zRot = -vehicle.getBodyZRot();
@@ -1734,6 +1738,9 @@ public class ClientEvents {
             } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo) {
                 event.setRoll((float) (event.getRoll() + (hippo.getBodyZRot() / 4) * intensity));
                 event.setPitch((float) (event.getPitch() + (hippo.getBodyXRot() / 4) * intensity));
+            } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lion) {
+                event.setRoll((float) (event.getRoll() + (lion.getBodyZRot() / 6) * intensity));
+                event.setPitch((float) (event.getPitch() + (lion.getBodyXRot() / 6) * intensity));
             }
         }
     }

@@ -20,6 +20,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
@@ -371,6 +372,44 @@ public class OWAttacksInformation {
                         e -> desc("ow.attacks.hippopotamus.river_surge.desc",
                                 val(OWAttacksConstants.Hippopotamus.RIVER_SURGE_TICKS / 20),
                                 val((int) (OWAttacksConstants.Hippopotamus.RIVER_SURGE_SPEED_BONUS * 100)))
+                )
+
+        ));
+
+        PROFILES.put(LionEntity.class, new EntityProfile(
+
+                new AttackSlot(0, 120, "LMB",
+                        title("ow.attacks.lion.combo.title"),
+                        e -> desc("ow.attacks.lion.combo.desc",
+                                val("0.5"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(20, 120, "RMB",
+                        title("ow.attacks.lion.clan_call.title"),
+                        e -> desc("ow.attacks.lion.clan_call.desc",
+                                val(OWAttacksConstants.Lion.CLAN_CALL_MAX_LIONESSES),
+                                val((int) OWAttacksConstants.Lion.CLAN_CALL_RADIUS),
+                                val(OWAttacksConstants.Lion.CLAN_CALL_DURATION_TICKS / 20),
+                                val(OWAttacksConstants.Lion.CLAN_CALL_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(40, 120, "X",
+                        title("ow.attacks.lion.domination_roar.title"),
+                        e -> desc("ow.attacks.lion.domination_roar.desc",
+                                val(OWAttacksConstants.Lion.ROAR_KILLS_REQUIRED),
+                                val((int) OWAttacksConstants.Lion.ROAR_RADIUS),
+                                val(OWAttacksConstants.Lion.ROAR_BUFF_TICKS / 20),
+                                val(OWAttacksConstants.Lion.ROAR_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.lion.pride_bond.title"),
+                        e -> desc("ow.attacks.lion.pride_bond.desc",
+                                val((int) OWAttacksConstants.Lion.PACK_HEALTH_PER_LIONESS),
+                                val(OWAttacksConstants.Lion.CLAN_MAX_LIONESSES),
+                                val((int) (OWAttacksConstants.Lion.PACK_BONUS_PER_LIONESS * 100)),
+                                val(OWAttacksConstants.Lion.PACK_BONUS_MAX_LIONESSES),
+                                val((int) OWAttacksConstants.Lion.PACK_NEARBY_RADIUS))
                 )
 
         ));

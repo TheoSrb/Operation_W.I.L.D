@@ -1139,5 +1139,18 @@
   "ow.advancements.river_giant.title": "河流巨兽",
   "ow.advancements.river_giant.description": "你驯服了一只河马！",
   "ow.attacks.hippopotamus.river_surge.title": "河之冲劲",
-  "ow.attacks.hippopotamus.river_surge.desc": "离开水面后，河马会保持河流的冲劲：在 %s 秒内，它在陆地上的奔跑速度提高 %s%%。每次入水都会重新充满冲劲。"
+  "ow.attacks.hippopotamus.river_surge.desc": "离开水面后，河马会保持河流的冲劲：在 %s 秒内，它在陆地上的奔跑速度提高 %s%%。每次入水都会重新充满冲劲。",
+  "tooltip.lionSkin0": "默认狮子",
+  "tooltip.lionSkin0.desc": "将你的狮子恢复为默认外观！",
+  "imageClan": "狮群",
+  "ow.attacks.lion.combo.title": "利爪与獠牙",
+  "ow.attacks.lion.combo.desc": "让你的狮子每%s秒攻击一次，每次造成%s点伤害：迅捷的爪击与轻咬让目标始终处于压力之下。",
+  "ow.attacks.lion.clan_call.title": "狮群召唤",
+  "ow.attacks.lion.clan_call.desc": "猛兽召唤它的狮群：同一狮群中最多%s头已驯服的母狮会从%s格范围内立即赶来，攻击你瞄准的生物（或最后击中的敌人）。在%s秒内，它们会恢复生命并更能承受攻击。需要范围内至少有一头狮群母狮。冷却时间%s秒。",
+  "ow.attacks.lion.domination_roar.title": "统御咆哮",
+  "ow.attacks.lion.domination_roar.desc": "击杀%s个目标后激活。猛兽停下脚步，发出咆哮以彰显威势：%s格范围内的狮群母狮在%s秒内奔跑更快、攻击更猛，并持续恢复生命。冷却时间%s秒。",
+  "ow.attacks.lion.pride_bond.title": "狮群之力",
+  "ow.attacks.lion.pride_bond.desc": "雄狮每拥有一头狮群母狮，生命值增加%s点（最多%s头）。附近每有一头母狮，他的伤害与抗性提高%s%%（最多%s头，范围%s格）。",
+  "ow.advancements.king_of_the_savanna.title": "草原之王",
+  "ow.advancements.king_of_the_savanna.description": "你驯服了一头狮子！"
 }

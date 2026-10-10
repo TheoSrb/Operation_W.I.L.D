@@ -1139,5 +1139,18 @@
   "ow.advancements.river_giant.title": "Gigante dos Rios",
   "ow.advancements.river_giant.description": "Domesticou um Hipopótamo!",
   "ow.attacks.hippopotamus.river_surge.title": "Impulso do Rio",
-  "ow.attacks.hippopotamus.river_surge.desc": "Ao sair da água, o hipopótamo mantém o impulso do rio: durante %s segundos ele corre %s%% mais rápido em terra firme. Cada banho recarrega o impulso."
+  "ow.attacks.hippopotamus.river_surge.desc": "Ao sair da água, o hipopótamo mantém o impulso do rio: durante %s segundos ele corre %s%% mais rápido em terra firme. Cada banho recarrega o impulso.",
+  "tooltip.lionSkin0": "Leão Predefinido",
+  "tooltip.lionSkin0.desc": "Repõe o teu Leão com o aspeto predefinido!",
+  "imageClan": "Clã",
+  "ow.attacks.lion.combo.title": "Garras e Presas",
+  "ow.attacks.lion.combo.desc": "Faz o teu Leão golpear a cada %s segundos, causando %s de dano por golpe: patadas rápidas e dentadas leves para manter a pressão sobre o alvo.",
+  "ow.attacks.lion.clan_call.title": "Chamamento do Clã",
+  "ow.attacks.lion.clan_call.desc": "O felino chama o seu clã: até %s leoas domadas do mesmo clã num raio de %s blocos chegam de imediato e atacam a criatura visada (ou o último inimigo atingido). Durante %s segundos, regeneram e resistem melhor aos golpes. Exige pelo menos uma leoa do clã ao alcance. %s segundos de recarga.",
+  "ow.attacks.lion.domination_roar.title": "Rugido de Dominação",
+  "ow.attacks.lion.domination_roar.desc": "Ativa-se após %s abates. O felino para e ruge para impor a sua presença: as leoas do seu clã num raio de %s blocos correm mais depressa, batem com mais força e regeneram continuamente durante %s segundos. %s segundos de recarga.",
+  "ow.attacks.lion.pride_bond.title": "Força da Alcateia",
+  "ow.attacks.lion.pride_bond.desc": "O macho ganha %s pontos de vida por cada leoa do seu clã (até %s). Cada leoa próxima dá-lhe %s%% de dano e resistência a mais, até %s leoas num raio de %s blocos.",
+  "ow.advancements.king_of_the_savanna.title": "Rei da Savana",
+  "ow.advancements.king_of_the_savanna.description": "Domaste um Leão!"
 }

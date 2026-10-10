@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_lion": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:lion"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.king_of_the_savanna.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:lion_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.king_of_the_savanna.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_lion"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

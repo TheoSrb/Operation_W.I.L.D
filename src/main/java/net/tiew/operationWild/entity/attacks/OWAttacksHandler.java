@@ -18,6 +18,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
@@ -67,6 +68,8 @@ public class OWAttacksHandler {
     public static final int CHEST_BEAT_ID = OWAttackIds.CHEST_BEAT;
     public static final int HIPPO_ROLL_ID = OWAttackIds.HIPPO_ROLL;
     public static final int RIVER_FURY_ID = OWAttackIds.RIVER_FURY;
+    public static final int CLAN_CALL_ID = OWAttackIds.CLAN_CALL;
+    public static final int DOMINATION_ROAR_ID = OWAttackIds.DOMINATION_ROAR;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -168,6 +171,12 @@ public class OWAttacksHandler {
         register(HippopotamusEntity.class, HippopotamusAttacks.ROLL);
         register(HippopotamusEntity.class, HippopotamusAttacks.RIVER_FURY);
         registerPassive(HippopotamusEntity.class, HippopotamusPassives.RIVER_SURGE);
+
+        registerEntityRow(LionEntity.class, 3);
+        registerComboMaxTimer(LionEntity.class, 12);
+        register(LionEntity.class, LionAttacks.CLAN_CALL);
+        register(LionEntity.class, LionAttacks.DOMINATION_ROAR);
+        registerPassive(LionEntity.class, LionPassives.PRIDE_BOND);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -429,6 +438,57 @@ public class OWAttacksHandler {
             @Override
             public int highlightColor() {
                 return 0x4FA3C7;
+            }
+        };
+    }
+
+    public static class LionAttacks {
+
+        public static final OWChargedAttack CLAN_CALL = new OWChargedAttack(
+                CLAN_CALL_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Lion.CLAN_CALL_ENERGY,
+                OWAttacksConstants.Lion.CLAN_CALL_COOLDOWN_TICKS,
+                0L,
+                50L,
+                entity -> { },
+                entity -> { },
+                (entity, factor) -> ((LionEntity) entity).performClanCall(),
+                (entity, factor, dir) -> { },
+                false,
+                false
+        ).withCanUsePredicate(entity -> entity instanceof LionEntity lion && lion.hasCallableClanmates());
+
+        public static final OWAttack DOMINATION_ROAR = new OWAttack(
+                DOMINATION_ROAR_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Lion.ROAR_ENERGY,
+                entity -> ((LionEntity) entity).activateDominationRoar(),
+                OWAttacksConstants.Lion.ROAR_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof LionEntity lion
+                        && lion.getUltimateKillCount() >= OWAttacksConstants.Lion.ROAR_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof LionEntity lion
+                        ? (float) lion.getUltimateKillCount() / OWAttacksConstants.Lion.ROAR_KILLS_REQUIRED
+                        : 0f
+        ).withUnlockCounter(
+                entity -> entity instanceof LionEntity lion ? lion.getUltimateKillCount() : 0,
+                OWAttacksConstants.Lion.ROAR_KILLS_REQUIRED
+        ).withUltimateDuration(OWAttacksConstants.Lion.ROAR_BUFF_MS);
+    }
+
+    public static class LionPassives {
+
+        public static final OWPassive PRIDE_BOND = new OWPassive() {
+            @Override
+            public Set<Integer> getHighlightEntityIds(OWEntity entity, Level level) {
+                return Set.of();
+            }
+
+            @Override
+            public int highlightColor() {
+                return 0xE8B04A;
             }
         };
     }

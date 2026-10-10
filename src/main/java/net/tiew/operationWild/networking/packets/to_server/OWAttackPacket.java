@@ -168,6 +168,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.RIVER_FURY ->
                                 entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippoFury
                                         && hippoFury.activateRiverFury();
+                        case OWAttackIds.DOMINATION_ROAR ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lionRoar
+                                        && lionRoar.activateDominationRoar();
                         default -> true;
                     };
 
@@ -323,6 +326,10 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.TIDAL_RUSH -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.OrcaEntity orca)
                                 orca.performOrcaDash();
+                        }
+                        case OWAttackIds.CLAN_CALL -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lion)
+                                lion.performClanCall();
                         }
                         case OWAttackIds.SHOULDER_BASH -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)

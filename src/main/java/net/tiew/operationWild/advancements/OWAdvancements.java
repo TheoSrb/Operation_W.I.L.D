@@ -19,5 +19,6 @@ public class OWAdvancements {
     public static final ResourceLocation RED_PANDA_TAMED_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "little_fire_fox");
     public static final ResourceLocation GORILLA_TAMED_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "silverback");
     public static final ResourceLocation HIPPOPOTAMUS_TAMED_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "river_giant");
+    public static final ResourceLocation LION_TAMED_ADVANCEMENT = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "king_of_the_savanna");
 
 }

@@ -1533,6 +1533,7 @@ public final class OWArenaManager {
                     () -> net.tiew.operationWild.entity.OWEntityRegistry.ELEPHANT.get(),   // TANK, terre
                     () -> net.tiew.operationWild.entity.OWEntityRegistry.HIPPOPOTAMUS.get(), // TANK, terre et eau
                     () -> net.tiew.operationWild.entity.OWEntityRegistry.RED_PANDA.get(),  // HEALER, terre
+                    () -> net.tiew.operationWild.entity.OWEntityRegistry.LION.get(),
             };
 
     /**

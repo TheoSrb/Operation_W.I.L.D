@@ -121,6 +121,16 @@
       "title": {
         "fr_fr": "Géant des Rivières"
       }
+    },
+    {
+      "constant": "LION_TAMED_ADVANCEMENT",
+      "description": {
+        "fr_fr": "Vous avez apprivoisé un Lion !"
+      },
+      "id": "ow:king_of_the_savanna",
+      "title": {
+        "fr_fr": "Roi de la Savane"
+      }
     }
   ],
   "blocks": [
@@ -4038,7 +4048,7 @@
         "PRIMAL_DIVE_TARGET_RANGE": 10.0
       },
       "attributes": {
-        "minecraft:generic.armor": 0.2,
+        "minecraft:generic.armor": 0.75,
         "minecraft:generic.armor_toughness": 0.0,
         "minecraft:generic.attack_damage": 12.0,
         "minecraft:generic.attack_knockback": 0.0,
@@ -4318,9 +4328,9 @@
         "created": "2026-10-01T16:57:09.130431+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-09T22:20:51.8614709+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 84290
+        "last_modified": "2026-10-10T09:04:41.5809542+02:00",
+        "last_modified_date": "2026-10-10",
+        "size_bytes": 84291
       },
       "id": "ow:crocodile",
       "loot": {
@@ -10326,6 +10336,7 @@
         "ROLL_BRAKE_RATIO": 0.45,
         "ROLL_BUMP_DAMAGE_RATIO": 0.32,
         "ROLL_COOLDOWN_TICKS": 60,
+        "ROLL_CREATURE_BOUNCE_TICKS": 9,
         "ROLL_CRUSH_DAMAGE_RATIO": 0.72,
         "ROLL_CRUSH_FLATTEN_TICKS": 25,
         "ROLL_CRUSH_IMMUNITY_TICKS": 15,
@@ -10346,7 +10357,9 @@
         "ROLL_TURN_MAX_DEGREES": 2.5,
         "ROLL_TURN_SPEED": 0.02,
         "ROLL_UNCURL_TICKS": 12,
-        "ROLL_WALL_BOUNCE_MIN_SPEED": 0.28
+        "ROLL_WALL_BOUNCE_MIN_SPEED": 0.1,
+        "ROLL_WALL_PROBE_DISTANCE": 0.3,
+        "ROLL_WALL_SPEED_DECAY": 0.8
       },
       "attributes": {
         "minecraft:generic.armor": 2.0,
@@ -10572,9 +10585,9 @@
         "created": "2026-10-10T08:50:55.9881606+02:00",
         "created_date": "2026-10-10",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-10T08:50:55.9881606+02:00",
+        "last_modified": "2026-10-10T09:10:18.5496451+02:00",
         "last_modified_date": "2026-10-10",
-        "size_bytes": 57627
+        "size_bytes": 58752
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -10723,6 +10736,450 @@
           "id": 0,
           "name": "DEFAULT",
           "ordinal": 0
+        }
+      ]
+    },
+    {
+      "abilities": {
+        "cards": [
+          {
+            "desc": {
+              "key": "ow.attacks.lion.combo.desc",
+              "plain": "Faites frapper votre Lion toutes les %s secondes, infligeant %s points de dégâts par coup : des griffes rapides et des morsures légères pour garder la pression sur la cible.",
+              "translations": {
+                "fr_fr": "Faites frapper votre Lion toutes les %s secondes, infligeant %s points de dégâts par coup : des griffes rapides et des morsures légères pour garder la pression sur la cible."
+              }
+            },
+            "slug": "combo",
+            "title": {
+              "key": "ow.attacks.lion.combo.title",
+              "plain": "Griffes et Crocs",
+              "translations": {
+                "fr_fr": "Griffes et Crocs"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.lion.clan_call.desc",
+              "plain": "Le fauve appelle son clan : jusqu'à %s lionnes apprivoisées du même clan, dans un rayon de %s blocs, le rejoignent aussitôt et attaquent la créature visée (ou le dernier ennemi frappé). Pendant %s secondes, elles régénèrent et encaissent mieux les coups. Il faut au moins une lionne du clan à portée. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "Le fauve appelle son clan : jusqu'à %s lionnes apprivoisées du même clan, dans un rayon de %s blocs, le rejoignent aussitôt et attaquent la créature visée (ou le dernier ennemi frappé). Pendant %s secondes, elles régénèrent et encaissent mieux les coups. Il faut au moins une lionne du clan à portée. %s secondes de recharge."
+              }
+            },
+            "slug": "clan_call",
+            "title": {
+              "key": "ow.attacks.lion.clan_call.title",
+              "plain": "Appel du Clan",
+              "translations": {
+                "fr_fr": "Appel du Clan"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.lion.domination_roar.desc",
+              "plain": "S'arme sur %s victimes. Le fauve s'immobilise et rugit pour imposer sa présence : les lionnes de son clan dans un rayon de %s blocs courent plus vite, frappent plus fort et régénèrent sans interruption pendant %s secondes. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "S'arme sur %s victimes. Le fauve s'immobilise et rugit pour imposer sa présence : les lionnes de son clan dans un rayon de %s blocs courent plus vite, frappent plus fort et régénèrent sans interruption pendant %s secondes. %s secondes de recharge."
+              }
+            },
+            "slug": "domination_roar",
+            "title": {
+              "key": "ow.attacks.lion.domination_roar.title",
+              "plain": "Rugissement de Domination",
+              "translations": {
+                "fr_fr": "Rugissement de Domination"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.lion.pride_bond.desc",
+              "plain": "Le mâle gagne %s points de vie par lionne de son clan (%s au plus). Chaque lionne proche lui donne %s%% de dégâts et de résistance en plus, jusqu'à %s lionnes dans un rayon de %s blocs.",
+              "translations": {
+                "fr_fr": "Le mâle gagne %s points de vie par lionne de son clan (%s au plus). Chaque lionne proche lui donne %s%% de dégâts et de résistance en plus, jusqu'à %s lionnes dans un rayon de %s blocs."
+              }
+            },
+            "slug": "pride_bond",
+            "title": {
+              "key": "ow.attacks.lion.pride_bond.title",
+              "plain": "Force de la Meute",
+              "translations": {
+                "fr_fr": "Force de la Meute"
+              }
+            }
+          }
+        ]
+      },
+      "attack_constants": {
+        "ARRIVAL_TICKS": 14,
+        "CLAN_CALL_ARRIVAL_SPACING": 3,
+        "CLAN_CALL_COOLDOWN_TICKS": 3600,
+        "CLAN_CALL_DURATION_TICKS": 400,
+        "CLAN_CALL_ENERGY": 100.0,
+        "CLAN_CALL_FIRST_ARRIVAL_TICK": 12,
+        "CLAN_CALL_GESTURE_TICKS": 28,
+        "CLAN_CALL_LAST_HIT_TICKS": 200,
+        "CLAN_CALL_MAX_LIONESSES": 3,
+        "CLAN_CALL_RADIUS": 50.0,
+        "CLAN_CALL_SHOUT_TICK": 10,
+        "CLAN_CALL_STOMP_TICK": 20,
+        "CLAN_CALL_TARGET_RANGE": 24.0,
+        "CLAN_CALL_WAVE_RADIUS": 5.0,
+        "CLAN_CHECK_INTERVAL": 20,
+        "CLAN_DEFENSE_RADIUS": 50.0,
+        "CLAN_FIDELITY_RADIUS_TAMED": 16.0,
+        "CLAN_FIDELITY_RADIUS_WILD": 24.0,
+        "CLAN_JOIN_RADIUS": 32.0,
+        "CLAN_MAX_LIONESSES": 6,
+        "PACK_BONUS_MAX_LIONESSES": 3,
+        "PACK_BONUS_PER_LIONESS": 0.05,
+        "PACK_HEALTH_PER_LIONESS": 2.0,
+        "PACK_NEARBY_RADIUS": 24.0,
+        "RESPOND_TICKS": 16,
+        "ROAR_ANIMATION_TICKS": 90,
+        "ROAR_BUFF_MS": 15000,
+        "ROAR_BUFF_TICKS": 300,
+        "ROAR_COOLDOWN_TICKS": 1200,
+        "ROAR_ENERGY": 100.0,
+        "ROAR_KILLS_REQUIRED": 5,
+        "ROAR_RADIUS": 32.0,
+        "ROAR_REGENERATION_AMPLIFIER": 0,
+        "ROAR_SHOUT_TICK": 11,
+        "ROAR_SPEED_AMPLIFIER": 1,
+        "ROAR_STOMP_TICK": 13,
+        "ROAR_STRENGTH_AMPLIFIER": 0,
+        "ROAR_WAVE_RADIUS": 8.0
+      },
+      "attributes": {
+        "minecraft:generic.armor": 0.0,
+        "minecraft:generic.armor_toughness": 0.0,
+        "minecraft:generic.attack_damage": 7.5,
+        "minecraft:generic.attack_knockback": 0.0,
+        "minecraft:generic.burning_time": 1.0,
+        "minecraft:generic.explosion_knockback_resistance": 0.0,
+        "minecraft:generic.fall_damage_multiplier": 1.0,
+        "minecraft:generic.follow_range": 32.0,
+        "minecraft:generic.gravity": 0.08,
+        "minecraft:generic.jump_strength": 0.9,
+        "minecraft:generic.knockback_resistance": 0.5,
+        "minecraft:generic.max_absorption": 0.0,
+        "minecraft:generic.max_health": 30.0,
+        "minecraft:generic.movement_efficiency": 0.0,
+        "minecraft:generic.movement_speed": 0.205,
+        "minecraft:generic.oxygen_bonus": 0.0,
+        "minecraft:generic.safe_fall_distance": 3.0,
+        "minecraft:generic.scale": 1.0,
+        "minecraft:generic.step_height": 0.6,
+        "minecraft:generic.water_movement_efficiency": 0.0,
+        "neoforge:nametag_distance": 64.0,
+        "neoforge:swim_speed": 1.0
+      },
+      "chapter_names": {
+        "fr_fr": "Lion"
+      },
+      "class": "net.tiew.operationWild.entity.animals.terrestrial.LionEntity",
+      "classification": {
+        "boss": false,
+        "family": "terrestrial",
+        "friendly": true,
+        "hierarchy": [
+          "LionEntity",
+          "OWEntity",
+          "TamableAnimal",
+          "Animal",
+          "AgeableMob",
+          "PathfinderMob",
+          "Mob",
+          "LivingEntity",
+          "Entity",
+          "AttachmentHolder"
+        ],
+        "interfaces": [
+          "IOWEntity",
+          "IOWTamable",
+          "IOWRideable"
+        ],
+        "max_instances_per_chunk": 10,
+        "mob_category": "creature",
+        "persistent": true
+      },
+      "client": {
+        "animations": [
+          {
+            "looping": true,
+            "name": "MISC_IDLE",
+            "seconds": 2.6667
+          },
+          {
+            "looping": true,
+            "name": "MISC_IDLE_2",
+            "seconds": 2.6667
+          },
+          {
+            "looping": true,
+            "name": "MOVE_WALK",
+            "seconds": 1.6
+          },
+          {
+            "looping": true,
+            "name": "MOVE_RUN",
+            "seconds": 0.7864
+          },
+          {
+            "looping": false,
+            "name": "ROAR",
+            "seconds": 4.5067
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE",
+            "seconds": 1.1294
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE_2",
+            "seconds": 1.1294
+          },
+          {
+            "looping": false,
+            "name": "ATTACK_STRIKE_3",
+            "seconds": 1.1294
+          },
+          {
+            "looping": true,
+            "name": "SIT",
+            "seconds": 4.16
+          }
+        ],
+        "layers": [
+          "LionLayer"
+        ],
+        "model": "LionModel",
+        "renderer": "LionRenderer",
+        "skin": "LionSkin"
+      },
+      "constants": {
+        "ALBINO_PERCENT": 3,
+        "DEFAULT_SKIN_INDEX": 1,
+        "ENTITY_COLOR": 13609584,
+        "FEMALE_DAMAGE": 8.0,
+        "FEMALE_HEALTH": 28.0,
+        "FEMALE_SCALE": 0.92,
+        "FEMALE_SPEED": 0.21,
+        "FOOD_WANTED_MAX": 13,
+        "FOOD_WANTED_MIN": 8,
+        "MALE_DAMAGE": 7.0,
+        "MALE_HEALTH": 32.0,
+        "MALE_ONE_IN": 3,
+        "MALE_SPEED": 0.2,
+        "MAX_SOMNOLENCE": 2200,
+        "SOMNOLENCE_LOSS_INTERVAL": 1,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
+        "TAMING_EXPERIENCE": 140.0
+      },
+      "cosmetics": [],
+      "gameplay": {
+        "allows_unowned_piloting": false,
+        "archetype": {
+          "damage_multiplier": 1.1,
+          "energy_multiplier": 1.0,
+          "health_multiplier": 0.9,
+          "name": "MARAUDER",
+          "speed_multiplier": 1.25
+        },
+        "arena_terrain_mask": 1,
+        "bank_max_angle": 34.0,
+        "can_lean": false,
+        "combo_pause_delay": 2,
+        "default_skin_index": 1,
+        "diet": {
+          "name": "CARNIVOROUS",
+          "saturation_multiplier": 1.0
+        },
+        "entity_color": 13609584,
+        "entity_color_hex": "#CFAA70",
+        "fights_in_arena": true,
+        "follow_owner_speed_factor": 20.0,
+        "initial_variant": 1,
+        "mounted_speed_blocks_per_second": 11.128571428571428,
+        "nap_particle_forward": 1.25,
+        "nap_particle_height": 1.15,
+        "pitch_max_angle": 45.0,
+        "prefers_cooked_meat": false,
+        "prefers_raw_meat": true,
+        "prefers_vegetables": false,
+        "rider_camera_follows_body_tilt": false,
+        "rider_seat_frame_accurate": true,
+        "rolling_figure": false,
+        "rotation_speed": 0.3,
+        "secondary_attack_count": 1,
+        "secondary_cooldown_ticks": 3600,
+        "taming_experience": 140.0,
+        "teleports_to_owner": false,
+        "temperament": "NEUTRAL",
+        "theoretical_scale": 7.5,
+        "unresolved": [
+          "maxUpStep",
+          "getDefaultGravity"
+        ],
+        "walk_speed_blocks_per_second": 4.1
+      },
+      "history": {
+        "created": "2026-10-10T12:37:32.5117286+02:00",
+        "created_date": "2026-10-10",
+        "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
+        "last_modified": "2026-10-10T12:58:38.367205+02:00",
+        "last_modified_date": "2026-10-10",
+        "size_bytes": 63237
+      },
+      "id": "ow:lion",
+      "loot": {
+        "drops": [],
+        "table": "ow:entities/lion",
+        "table_json": {
+          "type": "minecraft:entity"
+        }
+      },
+      "mount": {
+        "base_rider_y_offset": 0.78,
+        "changes_speed_during_combo": false,
+        "combo_speed_multiplier": 3.0,
+        "increases_speed_during_sprint": false,
+        "leaping_vehicle": false,
+        "max_vital_energy": 320.0,
+        "needs_saddle": true,
+        "rideable": true,
+        "rider_anim_y_offset": -0.0,
+        "run_speed_multiplier": 4.75,
+        "saddle_item": "ow:tiger_saddle",
+        "vital_energy_level_gain": 0.5,
+        "vital_energy_recuperation": 0.95,
+        "walk_speed_multiplier": 2.2,
+        "water_speed_divider": 3.0
+      },
+      "names": {
+        "fr_fr": "Lion"
+      },
+      "path": "lion",
+      "piste": {
+        "available": false
+      },
+      "probe_resolved": true,
+      "simple_class": "LionEntity",
+      "size": {
+        "eye_height": 1.2750001,
+        "fixed": false,
+        "height": 1.5,
+        "theoretical_scale": 7.5,
+        "width": 1.3
+      },
+      "sounds": [],
+      "taming": {
+        "advancement": "ow:king_of_the_savanna",
+        "experience": 140.0,
+        "feeding": {
+          "food_wanted_max": 13,
+          "food_wanted_min": 8,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
+        "food_tags": [
+          {
+            "constant": "LION_FOOD",
+            "entries": [
+              "minecraft:beef",
+              "minecraft:mutton",
+              "minecraft:porkchop",
+              "minecraft:rabbit"
+            ],
+            "id": "ow:lion_food"
+          }
+        ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": true,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 220.0,
+          "full_bar_awake_seconds": 110.0,
+          "loss_interval_ticks_asleep": 2,
+          "loss_interval_ticks_awake": 1,
+          "loss_per_second_asleep": 10.0,
+          "loss_per_second_awake": 20.0,
+          "max": 2200,
+          "max_max": 2640,
+          "max_min": 1760,
+          "spread_percent": 20
+        },
+        "tameable": true
+      },
+      "textures": [
+        "textures/entity/lion/lion_bloody_stage_0.png",
+        "textures/entity/lion/lion_bloody_stage_1.png",
+        "textures/entity/lion/lion_bloody_stage_2.png",
+        "textures/entity/lion/lion_default.png",
+        "textures/entity/lion/lion_default_angry_eyes.png",
+        "textures/entity/lion/lion_saddle.png",
+        "textures/entity/lion/lion_skin_gold_glowing.png",
+        "textures/entity/lion/lion_white.png",
+        "textures/entity/lion/lioness_default.png",
+        "textures/entity/lion/lioness_white.png"
+      ],
+      "tracking": {
+        "client_tracking_range": 5,
+        "fire_immune": false,
+        "loot_table": "ow:entities/lion",
+        "serializable": true,
+        "spawns_far_from_player": true,
+        "summonable": true,
+        "update_interval": 3
+      },
+      "traits": {
+        "diver": false,
+        "grabber": false,
+        "neutral_mob": false,
+        "rideable": true,
+        "rideable_jumping": false,
+        "tameable": true,
+        "waypoint": true
+      },
+      "translation_key": "entity.ow.lion",
+      "variants": [
+        {
+          "cosmetic": false,
+          "deprecated": false,
+          "id": 0,
+          "name": "DEFAULT",
+          "ordinal": 0
+        },
+        {
+          "cosmetic": false,
+          "deprecated": false,
+          "id": 1,
+          "name": "ALBINO",
+          "ordinal": 1
         }
       ]
     },
@@ -11054,7 +11511,9 @@
       "ATTACK_JUMP": 1,
       "BIG_MOUTH": 8,
       "CHEST_BEAT": 21,
+      "CLAN_CALL": 24,
       "CONSTRICT_ULTIMATE": 10,
+      "DOMINATION_ROAR": 25,
       "EARTHQUAKE": 14,
       "FEAST": 18,
       "HEAL_SNACK": 17,
@@ -12889,6 +13348,19 @@
     {
       "class": "DeferredSpawnEggItem",
       "fire_resistant": false,
+      "id": "ow:lion_spawn_egg",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Oeuf d'apparition de lion"
+      },
+      "path": "lion_spawn_egg",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.lion_spawn_egg"
+    },
+    {
+      "class": "DeferredSpawnEggItem",
+      "fire_resistant": false,
       "id": "ow:red_panda_spawn_egg",
       "max_damage": 0,
       "max_stack_size": 64,
@@ -13404,7 +13876,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1141
+      "fr_fr": 1154
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -16084,6 +16556,16 @@
           "minecraft:melon"
         ],
         "id": "ow:hippopotamus_food"
+      },
+      {
+        "constant": "LION_FOOD",
+        "entries": [
+          "minecraft:beef",
+          "minecraft:mutton",
+          "minecraft:porkchop",
+          "minecraft:rabbit"
+        ],
+        "id": "ow:lion_food"
       },
       {
         "constant": "SOMNOLENCE_FOOD",
@@ -21177,6 +21659,18 @@
           ]
         },
         {
+          "archetype": "MARAUDER",
+          "danger": 1.0,
+          "fights_in_arena": true,
+          "id": "ow:lion",
+          "path": "lion",
+          "probe_resolved": true,
+          "terrain_mask": 1,
+          "terrains": [
+            "TERRESTRIAL"
+          ]
+        },
+        {
           "danger": 1.0,
           "fights_in_arena": true,
           "id": "ow:plant_empress",
@@ -21815,6 +22309,11 @@
           "carries_flag": true,
           "id": "ow:hippopotamus",
           "model": "HippopotamusModel"
+        },
+        {
+          "carries_flag": true,
+          "id": "ow:lion",
+          "model": "LionModel"
         },
         {
           "carries_flag": false,
@@ -26105,6 +26604,19 @@
           "danger": 1.0,
           "id": "ow:hippopotamus",
           "path": "hippopotamus",
+          "value_by_level": {
+            "1": 11.4,
+            "10": 24.0,
+            "25": 45.0,
+            "40": 66.0,
+            "49": 78.6,
+            "50": 255.0
+          }
+        },
+        {
+          "danger": 1.0,
+          "id": "ow:lion",
+          "path": "lion",
           "value_by_level": {
             "1": 11.4,
             "10": 24.0,

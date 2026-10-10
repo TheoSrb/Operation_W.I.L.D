@@ -1,4 +1,4 @@
-// 1.21	2026-10-09T18:42:44.6066985	Tags for minecraft:item mod id ow
+// 1.21	2026-10-10T12:37:26.0377033	Tags for minecraft:item mod id ow
 ac05fb97b8a10e0240f5df28bfd2335e56b849a2 data/c/tags/item/foods.json
 f8d501a36ea77641a87cf4a609abbe712de43220 data/c/tags/item/foods/cooked_meat.json
 ab3e0a596f197aa4eb83eb43165511a904cee0c6 data/c/tags/item/foods/raw_meat.json
@@ -25,6 +25,7 @@ a2a4afa51caee8037097bd69e8ec1e6236360cb5 data/ow/tags/item/gorilla_food.json
 dc69a30c9847f80cef10e0bb6c7fb8e5cdb6ac27 data/ow/tags/item/hippopotamus_food.json
 d47129685f4cff2843892f180a9d38430d2fb4c5 data/ow/tags/item/kodiak_dangerous_food.json
 3fe6df0882f02c83c296f5dfaed148dab475c556 data/ow/tags/item/kodiak_food.json
+15858fbe8785a1a688b003de897a6a381efd540e data/ow/tags/item/lion_food.json
 209ae96362162785a92a91118a6d3a66fde7d0da data/ow/tags/item/ow_eggs.json
 d66078fe03c4a07a0a12934d4bb5bbf3b63a223e data/ow/tags/item/red_panda_eggs_common.json
 954ed3a24c77a56bc29a6063f857033154042602 data/ow/tags/item/red_panda_eggs_prized.json

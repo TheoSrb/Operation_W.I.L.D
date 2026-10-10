@@ -195,6 +195,12 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.PUMPKIN)
                 .add(Items.MELON);
 
+        tag(OWTags.Items.LION_FOOD)
+                .add(Items.BEEF)
+                .add(Items.MUTTON)
+                .add(Items.PORKCHOP)
+                .add(Items.RABBIT);
+
         tag(OWTags.Items.RED_PANDA_FOOD)
                 .add(Items.BAMBOO)
                 .add(Items.SWEET_BERRIES)

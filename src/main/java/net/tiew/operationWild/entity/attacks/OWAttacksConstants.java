@@ -709,6 +709,51 @@ public class OWAttacksConstants {
         public static final float RIVER_SURGE_SPEED_BONUS = 0.15f;
     }
 
+    public static class Lion {
+        public static final int CLAN_MAX_LIONESSES = 6;
+        public static final double CLAN_JOIN_RADIUS = 32.0;
+        public static final double CLAN_DEFENSE_RADIUS = 50.0;
+        public static final double CLAN_FIDELITY_RADIUS_TAMED = 16.0;
+        public static final double CLAN_FIDELITY_RADIUS_WILD = 24.0;
+        public static final int CLAN_CHECK_INTERVAL = 20;
+
+        public static final double PACK_HEALTH_PER_LIONESS = 2.0;
+        public static final double PACK_NEARBY_RADIUS = 24.0;
+        public static final float PACK_BONUS_PER_LIONESS = 0.05f;
+        public static final int PACK_BONUS_MAX_LIONESSES = 3;
+
+        public static final float CLAN_CALL_ENERGY = 100f;
+        public static final int CLAN_CALL_COOLDOWN_TICKS = 3600;
+        public static final double CLAN_CALL_RADIUS = 50.0;
+        public static final int CLAN_CALL_MAX_LIONESSES = 3;
+        public static final int CLAN_CALL_DURATION_TICKS = 400;
+        public static final double CLAN_CALL_TARGET_RANGE = 24.0;
+        public static final int CLAN_CALL_LAST_HIT_TICKS = 200;
+        public static final int CLAN_CALL_GESTURE_TICKS = 28;
+        public static final int CLAN_CALL_SHOUT_TICK = 10;
+        public static final int CLAN_CALL_FIRST_ARRIVAL_TICK = 12;
+        public static final int CLAN_CALL_ARRIVAL_SPACING = 3;
+        public static final int CLAN_CALL_STOMP_TICK = 20;
+        public static final double CLAN_CALL_WAVE_RADIUS = 5.0;
+        public static final int ARRIVAL_TICKS = 14;
+        public static final int RESPOND_TICKS = 16;
+
+        public static final int ROAR_KILLS_REQUIRED = 5;
+        public static final float ROAR_ENERGY = 100f;
+        public static final int ROAR_COOLDOWN_TICKS = 1200;
+        public static final int ROAR_ANIMATION_TICKS = 90;
+        public static final int ROAR_SHOUT_TICK = 11;
+        public static final int ROAR_STOMP_TICK = 13;
+        public static final int[] ROAR_PULSE_TICKS = {11, 19, 27, 34};
+        public static final double ROAR_WAVE_RADIUS = 8.0;
+        public static final double ROAR_RADIUS = 32.0;
+        public static final int ROAR_BUFF_TICKS = 300;
+        public static final long ROAR_BUFF_MS = ROAR_BUFF_TICKS * 50L;
+        public static final int ROAR_SPEED_AMPLIFIER = 1;
+        public static final int ROAR_STRENGTH_AMPLIFIER = 0;
+        public static final int ROAR_REGENERATION_AMPLIFIER = 0;
+    }
+
     public static class Slide {
         public static final float ENERGY = 12f;
         public static final int COOLDOWN_TICKS = 16;

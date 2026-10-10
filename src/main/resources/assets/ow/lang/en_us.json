@@ -1139,5 +1139,18 @@
   "ow.advancements.river_giant.title": "River Giant",
   "ow.advancements.river_giant.description": "You tamed a Hippopotamus!",
   "ow.attacks.hippopotamus.river_surge.title": "River Surge",
-  "ow.attacks.hippopotamus.river_surge.desc": "Coming out of the water, the hippopotamus keeps the river's momentum: for %s seconds it runs %s%% faster on dry land. Every swim refills it."
+  "ow.attacks.hippopotamus.river_surge.desc": "Coming out of the water, the hippopotamus keeps the river's momentum: for %s seconds it runs %s%% faster on dry land. Every swim refills it.",
+  "tooltip.lionSkin0": "Default Lion",
+  "tooltip.lionSkin0.desc": "Set your Lion back to default!",
+  "imageClan": "Clan",
+  "ow.attacks.lion.combo.title": "Claws and Fangs",
+  "ow.attacks.lion.combo.desc": "Make your Lion strike every %s seconds, dealing %s damage per hit: quick claws and light bites that keep the pressure on the target.",
+  "ow.attacks.lion.clan_call.title": "Clan Call",
+  "ow.attacks.lion.clan_call.desc": "The big cat calls its clan: up to %s tamed lionesses of the same clan within %s blocks join it at once and attack the creature you aim at (or the last enemy it hit). For %s seconds they regenerate and withstand blows better. Requires at least one clan lioness in range. %s second cooldown.",
+  "ow.attacks.lion.domination_roar.title": "Roar of Domination",
+  "ow.attacks.lion.domination_roar.desc": "Armed by %s kills. The big cat stands still and roars to impose its presence: the lionesses of its clan within %s blocks run faster, hit harder and regenerate continuously for %s seconds. %s second cooldown.",
+  "ow.attacks.lion.pride_bond.title": "Pride Strength",
+  "ow.attacks.lion.pride_bond.desc": "The male gains %s health per lioness in his clan (up to %s). Each nearby lioness grants him %s%% extra damage and resistance, up to %s lionesses within %s blocks.",
+  "ow.advancements.king_of_the_savanna.title": "King of the Savanna",
+  "ow.advancements.king_of_the_savanna.description": "You tamed a Lion!"
 }

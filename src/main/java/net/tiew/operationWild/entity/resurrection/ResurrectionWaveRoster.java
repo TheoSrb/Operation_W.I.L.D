@@ -44,6 +44,7 @@ public final class ResurrectionWaveRoster {
             "red_panda", 1,
             "boa", 2,
             "tiger", 3,
+            "lion", 3,
             "crocodile", 3,
             "kodiak", 3,
             "orca", 4,

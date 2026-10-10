@@ -26,6 +26,8 @@ IDs d'attaque déjà pris :
  21 → Gorille FRAPPE_DE_POITRINE (ultime — touche X, 5 kills requis)
  22 → Hippopotame HIPPO_ROLL  (Roulade du Mastodonte — clic droit en BASCULE, écrase en roulant)
  23 → Hippopotame RIVER_FURY  (Furie du Fleuve — ultime, touche X, 5 kills requis)
+ 24 → Lion   CLAN_CALL       (Appel du Clan — clic droit instantané, téléporte jusqu'à 3 lionnes apprivoisées du clan)
+ 25 → Lion   DOMINATION_ROAR (Rugissement de Domination — ultime, touche X, 5 kills requis)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR

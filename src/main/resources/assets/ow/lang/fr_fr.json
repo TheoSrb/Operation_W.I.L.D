@@ -1139,5 +1139,18 @@
   "ow.advancements.river_giant.title": "Géant des Rivières",
   "ow.advancements.river_giant.description": "Vous avez apprivoisé un Hippopotame !",
   "ow.attacks.hippopotamus.river_surge.title": "Élan du Fleuve",
-  "ow.attacks.hippopotamus.river_surge.desc": "En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan."
+  "ow.attacks.hippopotamus.river_surge.desc": "En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan.",
+  "tooltip.lionSkin0": "Lion Par Défaut",
+  "tooltip.lionSkin0.desc": "Rendez votre Lion par défaut !",
+  "imageClan": "Clan",
+  "ow.attacks.lion.combo.title": "Griffes et Crocs",
+  "ow.attacks.lion.combo.desc": "Faites frapper votre Lion toutes les %s secondes, infligeant %s points de dégâts par coup : des griffes rapides et des morsures légères pour garder la pression sur la cible.",
+  "ow.attacks.lion.clan_call.title": "Appel du Clan",
+  "ow.attacks.lion.clan_call.desc": "Le fauve appelle son clan : jusqu'à %s lionnes apprivoisées du même clan, dans un rayon de %s blocs, le rejoignent aussitôt et attaquent la créature visée (ou le dernier ennemi frappé). Pendant %s secondes, elles régénèrent et encaissent mieux les coups. Il faut au moins une lionne du clan à portée. %s secondes de recharge.",
+  "ow.attacks.lion.domination_roar.title": "Rugissement de Domination",
+  "ow.attacks.lion.domination_roar.desc": "S'arme sur %s victimes. Le fauve s'immobilise et rugit pour imposer sa présence : les lionnes de son clan dans un rayon de %s blocs courent plus vite, frappent plus fort et régénèrent sans interruption pendant %s secondes. %s secondes de recharge.",
+  "ow.attacks.lion.pride_bond.title": "Force de la Meute",
+  "ow.attacks.lion.pride_bond.desc": "Le mâle gagne %s points de vie par lionne de son clan (%s au plus). Chaque lionne proche lui donne %s%% de dégâts et de résistance en plus, jusqu'à %s lionnes dans un rayon de %s blocs.",
+  "ow.advancements.king_of_the_savanna.title": "Roi de la Savane",
+  "ow.advancements.king_of_the_savanna.description": "Vous avez apprivoisé un Lion !"
 }

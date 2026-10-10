@@ -1139,5 +1139,18 @@
   "ow.advancements.river_giant.title": "Gigante de los Ríos",
   "ow.advancements.river_giant.description": "¡Has domesticado un Hipopótamo!",
   "ow.attacks.hippopotamus.river_surge.title": "Impulso del Río",
-  "ow.attacks.hippopotamus.river_surge.desc": "Al salir del agua, el hipopótamo conserva el impulso del río: durante %s segundos corre un %s%% más rápido en tierra firme. Cada baño recarga el impulso."
+  "ow.attacks.hippopotamus.river_surge.desc": "Al salir del agua, el hipopótamo conserva el impulso del río: durante %s segundos corre un %s%% más rápido en tierra firme. Cada baño recarga el impulso.",
+  "tooltip.lionSkin0": "León por defecto",
+  "tooltip.lionSkin0.desc": "¡Devuelve tu León a su aspecto por defecto!",
+  "imageClan": "Clan",
+  "ow.attacks.lion.combo.title": "Garras y Colmillos",
+  "ow.attacks.lion.combo.desc": "Haz que tu León golpee cada %s segundos, infligiendo %s de daño por golpe: zarpazos rápidos y mordiscos ligeros para mantener la presión sobre el objetivo.",
+  "ow.attacks.lion.clan_call.title": "Llamada del Clan",
+  "ow.attacks.lion.clan_call.desc": "El felino llama a su clan: hasta %s leonas domesticadas del mismo clan en un radio de %s bloques acuden al instante y atacan a la criatura apuntada (o al último enemigo golpeado). Durante %s segundos se regeneran y resisten mejor los golpes. Requiere al menos una leona del clan a su alcance. %s segundos de recarga.",
+  "ow.attacks.lion.domination_roar.title": "Rugido de Dominación",
+  "ow.attacks.lion.domination_roar.desc": "Se activa tras %s víctimas. El felino se detiene y ruge para imponer su presencia: las leonas de su clan en un radio de %s bloques corren más rápido, golpean más fuerte y se regeneran sin parar durante %s segundos. %s segundos de recarga.",
+  "ow.attacks.lion.pride_bond.title": "Fuerza de la Manada",
+  "ow.attacks.lion.pride_bond.desc": "El macho gana %s puntos de vida por cada leona de su clan (hasta %s). Cada leona cercana le añade un %s%% de daño y resistencia, hasta %s leonas en un radio de %s bloques.",
+  "ow.advancements.king_of_the_savanna.title": "Rey de la Sabana",
+  "ow.advancements.king_of_the_savanna.description": "¡Has domesticado un León!"
 }

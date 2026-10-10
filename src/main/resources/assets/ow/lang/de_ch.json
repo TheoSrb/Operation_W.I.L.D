@@ -1139,5 +1139,18 @@
   "ow.advancements.river_giant.title": "Riese der Flüsse",
   "ow.advancements.river_giant.description": "Du hast ein Flusspferd gezähmt!",
   "ow.attacks.hippopotamus.river_surge.title": "Schwung des Flusses",
-  "ow.attacks.hippopotamus.river_surge.desc": "Wenn es aus dem Wasser steigt, behält das Flusspferd den Schwung des Flusses: %s Sekunden lang läuft es an Land %s%% schneller. Jedes Bad lädt den Schwung wieder auf."
+  "ow.attacks.hippopotamus.river_surge.desc": "Wenn es aus dem Wasser steigt, behält das Flusspferd den Schwung des Flusses: %s Sekunden lang läuft es an Land %s%% schneller. Jedes Bad lädt den Schwung wieder auf.",
+  "tooltip.lionSkin0": "Standard-Löwe",
+  "tooltip.lionSkin0.desc": "Setze deinen Löwen auf den Standard zurück!",
+  "imageClan": "Rudel",
+  "ow.attacks.lion.combo.title": "Krallen und Fänge",
+  "ow.attacks.lion.combo.desc": "Lass deinen Löwen alle %s Sekunden zuschlagen und %s Schaden pro Treffer verursachen: schnelle Krallenhiebe und leichte Bisse, die das Ziel unter Druck halten.",
+  "ow.attacks.lion.clan_call.title": "Ruf des Rudels",
+  "ow.attacks.lion.clan_call.desc": "Die Raubkatze ruft ihr Rudel: Bis zu %s gezähmte Löwinnen desselben Rudels im Umkreis von %s Blöcken eilen sofort herbei und greifen die anvisierte Kreatur an (oder den zuletzt getroffenen Feind). %s Sekunden lang regenerieren sie und halten Treffern besser stand. Erfordert mindestens eine Löwin des Rudels in Reichweite. %s Sekunden Abklingzeit.",
+  "ow.attacks.lion.domination_roar.title": "Gebrüll der Vorherrschaft",
+  "ow.attacks.lion.domination_roar.desc": "Wird nach %s Opfern scharf. Die Raubkatze bleibt stehen und brüllt, um ihre Macht zu zeigen: Die Löwinnen ihres Rudels im Umkreis von %s Blöcken laufen schneller, schlagen härter zu und regenerieren %s Sekunden lang fortlaufend. %s Sekunden Abklingzeit.",
+  "ow.attacks.lion.pride_bond.title": "Stärke des Rudels",
+  "ow.attacks.lion.pride_bond.desc": "Das Männchen erhält %s Lebenspunkte pro Löwin seines Rudels (höchstens %s). Jede Löwin in der Nähe gibt ihm %s%% mehr Schaden und Widerstand, bis zu %s Löwinnen im Umkreis von %s Blöcken.",
+  "ow.advancements.king_of_the_savanna.title": "König der Savanne",
+  "ow.advancements.king_of_the_savanna.description": "Du hast einen Löwen gezähmt!"
 }

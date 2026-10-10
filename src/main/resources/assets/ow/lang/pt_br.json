@@ -1139,5 +1139,18 @@
   "ow.advancements.river_giant.title": "Gigante dos Rios",
   "ow.advancements.river_giant.description": "Você domesticou um Hipopótamo!",
   "ow.attacks.hippopotamus.river_surge.title": "Impulso do Rio",
-  "ow.attacks.hippopotamus.river_surge.desc": "Ao sair da água, o hipopótamo mantém o impulso do rio: durante %s segundos ele corre %s%% mais rápido em terra firme. Cada banho recarrega o impulso."
+  "ow.attacks.hippopotamus.river_surge.desc": "Ao sair da água, o hipopótamo mantém o impulso do rio: durante %s segundos ele corre %s%% mais rápido em terra firme. Cada banho recarrega o impulso.",
+  "tooltip.lionSkin0": "Leão Padrão",
+  "tooltip.lionSkin0.desc": "Deixe seu Leão com a aparência padrão!",
+  "imageClan": "Clã",
+  "ow.attacks.lion.combo.title": "Garras e Presas",
+  "ow.attacks.lion.combo.desc": "Faça seu Leão golpear a cada %s segundos, causando %s de dano por golpe: patadas rápidas e mordidas leves para manter a pressão sobre o alvo.",
+  "ow.attacks.lion.clan_call.title": "Chamado do Clã",
+  "ow.attacks.lion.clan_call.desc": "O felino chama seu clã: até %s leoas domadas do mesmo clã num raio de %s blocos chegam na hora e atacam a criatura mirada (ou o último inimigo atingido). Durante %s segundos, elas se regeneram e resistem melhor aos golpes. Requer pelo menos uma leoa do clã ao alcance. %s segundos de recarga.",
+  "ow.attacks.lion.domination_roar.title": "Rugido de Dominação",
+  "ow.attacks.lion.domination_roar.desc": "Ativado após %s abates. O felino para e ruge para impor sua presença: as leoas do seu clã num raio de %s blocos correm mais rápido, batem mais forte e se regeneram continuamente por %s segundos. %s segundos de recarga.",
+  "ow.attacks.lion.pride_bond.title": "Força da Alcateia",
+  "ow.attacks.lion.pride_bond.desc": "O macho ganha %s pontos de vida por leoa do seu clã (até %s). Cada leoa próxima lhe dá %s%% de dano e resistência a mais, até %s leoas num raio de %s blocos.",
+  "ow.advancements.king_of_the_savanna.title": "Rei da Savana",
+  "ow.advancements.king_of_the_savanna.description": "Você domou um Leão!"
 }
