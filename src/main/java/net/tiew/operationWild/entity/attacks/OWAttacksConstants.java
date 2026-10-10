@@ -676,8 +676,11 @@ public class OWAttacksConstants {
         public static final float ROLL_CRUSH_MAX_SCALE = 13f;
         public static final double ROLL_ALLY_NUDGE = 0.35;
 
-        public static final double ROLL_WALL_BOUNCE_MIN_SPEED = 0.28;
+        public static final double ROLL_WALL_BOUNCE_MIN_SPEED = 0.10;
+        public static final double ROLL_WALL_SPEED_DECAY = 0.8;
+        public static final double ROLL_WALL_PROBE_DISTANCE = 0.3;
         public static final int ROLL_BOUNCE_TICKS = 20;
+        public static final int ROLL_CREATURE_BOUNCE_TICKS = 9;
         public static final int ROLL_BOUNCE_RECOIL_TICKS = 7;
         public static final float ROLL_BOUNCE_RECOIL_SPEED = 0.32f;
         public static final int ROLL_DIZZY_TICKS = 40;

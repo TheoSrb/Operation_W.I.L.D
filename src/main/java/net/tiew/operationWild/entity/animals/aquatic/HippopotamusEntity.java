@@ -102,6 +102,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private static final EntityDataAccessor<Boolean> ROLLING = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> ROLL_STAGGER = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ROLL_STAGGER_KIND = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> ROLL_STAGGER_LENGTH = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FURY_TICK = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> FURY_GRUDGE = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Integer> RIVER_SURGE = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.INT);
@@ -130,7 +131,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private double lastTickX = Double.NaN;
     private double lastTickZ = Double.NaN;
     private double measuredSpeed = 0.0;
-    private double measuredSpeedPrev = 0.0;
+    private double recentRollSpeed = 0.0;
     private final Map<Integer, Integer> crushImmunity = new HashMap<>();
     private int rumbleCooldown = 0;
     private int waterTicks = 0;
@@ -190,6 +191,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         builder.define(ROLLING, false);
         builder.define(ROLL_STAGGER, 0);
         builder.define(ROLL_STAGGER_KIND, STAGGER_NONE);
+        builder.define(ROLL_STAGGER_LENGTH, OWAttacksConstants.Hippopotamus.ROLL_BOUNCE_TICKS);
         builder.define(FURY_TICK, 0);
         builder.define(FURY_GRUDGE, 0f);
         builder.define(RIVER_SURGE, 0);
@@ -509,7 +511,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.isVehicle() && this.isTame() && !this.isSitting()) {
-            setMadByRider(this.isCombo() || this.isRolling() || this.isRiverFuryActive());
+            setMadByRider(!this.isRolling() && (this.isCombo() || this.isRiverFuryActive()));
         }
 
         if (!this.level().isClientSide() && !this.isVehicle()) {
@@ -625,7 +627,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
             rollMomentumActive = false;
             resetRiddenSpeed();
             if (getRollStaggerKind() == STAGGER_BOUNCE) {
-                int elapsed = OWAttacksConstants.Hippopotamus.ROLL_BOUNCE_TICKS - stagger;
+                int elapsed = this.entityData.get(ROLL_STAGGER_LENGTH) - stagger;
                 int recoil = OWAttacksConstants.Hippopotamus.ROLL_BOUNCE_RECOIL_TICKS;
                 if (elapsed < recoil) {
                     return -OWAttacksConstants.Hippopotamus.ROLL_BOUNCE_RECOIL_SPEED * (1f - (float) elapsed / recoil);
@@ -730,22 +732,26 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
                 && getSecondaryCooldown() <= 0
                 && !isRollStaggered()
                 && !isFuryWindup()
+                && !isWallAhead()
                 && !this.isSitting()
                 && !this.isKnockedOut();
     }
 
     public void stopRoll(int staggerKind) {
+        stopRoll(staggerKind, staggerKind == STAGGER_DIZZY
+                ? OWAttacksConstants.Hippopotamus.ROLL_DIZZY_TICKS
+                : OWAttacksConstants.Hippopotamus.ROLL_BOUNCE_TICKS);
+    }
+
+    private void stopRoll(int staggerKind, int staggerTicks) {
         if (!isRolling()) return;
         this.entityData.set(ROLLING, false);
         startSecondaryCooldown();
 
-        if (staggerKind == STAGGER_BOUNCE) {
-            this.entityData.set(ROLL_STAGGER_KIND, STAGGER_BOUNCE);
-            this.entityData.set(ROLL_STAGGER, OWAttacksConstants.Hippopotamus.ROLL_BOUNCE_TICKS);
-        } else if (staggerKind == STAGGER_DIZZY) {
-            this.entityData.set(ROLL_STAGGER_KIND, STAGGER_DIZZY);
-            this.entityData.set(ROLL_STAGGER, OWAttacksConstants.Hippopotamus.ROLL_DIZZY_TICKS);
-        }
+        if (staggerKind == STAGGER_NONE) return;
+        this.entityData.set(ROLL_STAGGER_KIND, staggerKind);
+        this.entityData.set(ROLL_STAGGER_LENGTH, staggerTicks);
+        this.entityData.set(ROLL_STAGGER, staggerTicks);
     }
 
     private void rejectSecondary() {
@@ -765,8 +771,8 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         }
         lastTickX = x;
         lastTickZ = z;
-        measuredSpeedPrev = measuredSpeed;
         measuredSpeed = speed;
+        recentRollSpeed = Math.max(speed, recentRollSpeed * OWAttacksConstants.Hippopotamus.ROLL_WALL_SPEED_DECAY);
 
         crushImmunity.entrySet().removeIf(entry -> entry.getValue() <= this.tickCount);
 
@@ -795,10 +801,8 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
             }
         }
 
-        if (measuredSpeedPrev >= OWAttacksConstants.Hippopotamus.ROLL_WALL_BOUNCE_MIN_SPEED
-                && measuredSpeed < measuredSpeedPrev * 0.3
-                && this.horizontalCollision) {
-            bounceOffObstacle();
+        if (recentRollSpeed >= OWAttacksConstants.Hippopotamus.ROLL_WALL_BOUNCE_MIN_SPEED && isWallAhead()) {
+            bounceOffObstacle(OWAttacksConstants.Hippopotamus.ROLL_BOUNCE_TICKS);
             return;
         }
 
@@ -807,6 +811,18 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         tickRollRumble(serverLevel);
 
         if (measuredSpeed >= OWAttacksConstants.Hippopotamus.ROLL_CRUSH_MIN_SPEED) crushAhead(serverLevel);
+    }
+
+    private boolean isWallAhead() {
+        AABB bounds = this.getBoundingBox();
+        double minY = bounds.minY + this.maxUpStep() + 0.05;
+        if (minY >= bounds.maxY) return false;
+
+        double inset = this.getBbWidth() * 0.2;
+        Vec3 forward = Vec3.directionFromRotation(0f, this.getYRot()).scale(inset + OWAttacksConstants.Hippopotamus.ROLL_WALL_PROBE_DISTANCE);
+        AABB probe = new AABB(bounds.minX + inset, minY, bounds.minZ + inset, bounds.maxX - inset, bounds.maxY, bounds.maxZ - inset)
+                .move(forward.x, 0, forward.z);
+        return this.level().getBlockCollisions(this, probe).iterator().hasNext();
     }
 
     private void tickRollRumble(ServerLevel serverLevel) {
@@ -849,7 +865,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
             if (isTooBigToCrush(target)) {
                 target.hurt(this.damageSources().mobAttack(this), this.getCombatDamage() * OWAttacksConstants.Hippopotamus.ROLL_BUMP_DAMAGE_RATIO * speedFactor);
-                bounceOffObstacle();
+                bounceOffObstacle(OWAttacksConstants.Hippopotamus.ROLL_CREATURE_BOUNCE_TICKS);
                 return;
             }
 
@@ -891,8 +907,8 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
                 new HippopotamusCrushPacket(target.getId(), OWAttacksConstants.Hippopotamus.ROLL_CRUSH_FLATTEN_TICKS));
     }
 
-    private void bounceOffObstacle() {
-        stopRoll(STAGGER_BOUNCE);
+    private void bounceOffObstacle(int staggerTicks) {
+        stopRoll(STAGGER_BOUNCE, staggerTicks);
         if (!(this.level() instanceof ServerLevel serverLevel)) return;
 
         serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),

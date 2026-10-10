@@ -2470,7 +2470,7 @@
         "PAW_SLAM_ENERGY": 100.0
       },
       "attributes": {
-        "minecraft:generic.armor": 0.0,
+        "minecraft:generic.armor": 1.0,
         "minecraft:generic.armor_toughness": 0.0,
         "minecraft:generic.attack_damage": 9.0,
         "minecraft:generic.attack_knockback": 0.0,
@@ -2826,9 +2826,9 @@
         "created": "2026-10-01T16:57:09.2733788+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-09T15:15:26.9443618+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 63278
+        "last_modified": "2026-10-10T08:52:05.4558918+02:00",
+        "last_modified_date": "2026-10-10",
+        "size_bytes": 63324
       },
       "id": "ow:kodiak",
       "loot": {
@@ -10569,12 +10569,12 @@
         "walk_speed_blocks_per_second": 3.3000000000000003
       },
       "history": {
-        "created": "2026-10-09T18:43:48.2977279+02:00",
-        "created_date": "2026-10-09",
+        "created": "2026-10-10T08:50:55.9881606+02:00",
+        "created_date": "2026-10-10",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-09T22:21:28.4638839+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 57624
+        "last_modified": "2026-10-10T08:50:55.9881606+02:00",
+        "last_modified_date": "2026-10-10",
+        "size_bytes": 57627
       },
       "id": "ow:hippopotamus",
       "loot": {

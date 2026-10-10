@@ -202,7 +202,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 .add(Attributes.MOVEMENT_SPEED, 0.17D)
                 .add(Attributes.FOLLOW_RANGE, 25.0D)
                 .add(Attributes.ATTACK_DAMAGE, 9.0D)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 0.7D);
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.7D)
+                .add(Attributes.ARMOR, 1.0D);
     }
 
     @Override

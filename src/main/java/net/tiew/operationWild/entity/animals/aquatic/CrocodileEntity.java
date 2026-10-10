@@ -230,7 +230,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
                 .add(Attributes.FOLLOW_RANGE, 22.0D)
                 .add(Attributes.ATTACK_DAMAGE, 12.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.6D)
-                .add(Attributes.ARMOR, 0.2D);
+                .add(Attributes.ARMOR, 0.75D);
     }
 
     @Override
