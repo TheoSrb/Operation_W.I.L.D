@@ -58,5 +58,17 @@ public class ModEventBusEvents {
                 CrocodileEntity::checkCrocodileSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
         event.register(OWEntityRegistry.BOA.get(), SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 CrocodileEntity::checkCrocodileSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
+        event.register(OWEntityRegistry.KANGAROO.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                KangarooEntity::checkKangarooSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
+        event.register(OWEntityRegistry.ELEPHANT.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
+        event.register(OWEntityRegistry.GORILLA.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
+        event.register(OWEntityRegistry.RED_PANDA.get(), SpawnPlacementTypes.NO_RESTRICTIONS, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                RedPandaEntity::checkRedPandaSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
+        event.register(OWEntityRegistry.ORCA.get(), SpawnPlacementTypes.IN_WATER, Heightmap.Types.OCEAN_FLOOR,
+                OrcaEntity::checkOrcaSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
+        event.register(OWEntityRegistry.HIPPOPOTAMUS.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                HippopotamusEntity::checkHippopotamusSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
     }
 }

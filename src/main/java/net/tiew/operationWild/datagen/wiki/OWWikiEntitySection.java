@@ -95,17 +95,19 @@ public final class OWWikiEntitySection {
                                   List<OWWikiRecipes.Recipe> recipes) {
         Map<ResourceLocation, JsonObject> lootTables = OWWikiLoot.collect(registries);
         List<String> animalIds = knownAnimalIds(lang);
+        OWWikiSpawnRarity rarity = new OWWikiSpawnRarity(registries);
 
         JsonArray entities = new JsonArray();
         for (OWWikiSpecies species : OWWikiSpecies.all()) {
-            entities.add(entity(species, lang, sources, recipes, lootTables, animalIds));
+            entities.add(entity(species, lang, sources, recipes, lootTables, animalIds, rarity));
         }
         return entities;
     }
 
     private static JsonObject entity(OWWikiSpecies species, OWWikiLang lang, OWWikiSources sources,
                                      List<OWWikiRecipes.Recipe> recipes,
-                                     Map<ResourceLocation, JsonObject> lootTables, List<String> animalIds) {
+                                     Map<ResourceLocation, JsonObject> lootTables, List<String> animalIds,
+                                     OWWikiSpawnRarity rarity) {
         EntityType<?> type = species.type();
         Class<? extends OWEntity> implementation = species.implementation();
         ResourceLocation key = species.key();
@@ -143,6 +145,8 @@ public final class OWWikiEntitySection {
         JsonArray entityTags = OWWikiTags.entityTagsFor(key.toString());
         if (!entityTags.isEmpty()) entity.add("entity_tags", entityTags);
         addIfPresent(entity, "spawn", spawn(type));
+        addIfPresent(entity, "spawns", spawns(type));
+        entity.add("rarity", rarity.of(type));
         addIfPresent(entity, "piste", piste(species, lang));
         addIfPresent(entity, "lore", lore(species, lang));
         addIfPresent(entity, "textures", sources.textures(species.id()));
@@ -566,18 +570,30 @@ public final class OWWikiEntitySection {
 
     private static JsonObject spawn(EntityType<?> type) {
         for (OWBiomeModifiers.SpawnRule rule : OWBiomeModifiers.SPAWN_RULES) {
-            if (rule.entity().get() != type) continue;
-            JsonObject spawn = new JsonObject();
-            spawn.addProperty("biome_modifier", rule.modifier().location().toString());
-            spawn.addProperty("weight", rule.weight());
-            spawn.addProperty("min_count", rule.minCount());
-            spawn.addProperty("max_count", rule.maxCount());
-            JsonArray biomes = new JsonArray();
-            rule.biomes().forEach(biome -> biomes.add(biome.location().toString()));
-            spawn.add("biomes", biomes);
-            return spawn;
+            if (rule.entity().get() == type) return spawnRule(rule);
         }
         return null;
+    }
+
+    private static JsonArray spawns(EntityType<?> type) {
+        JsonArray spawns = new JsonArray();
+        for (OWBiomeModifiers.SpawnRule rule : OWBiomeModifiers.SPAWN_RULES) {
+            if (rule.entity().get() == type) spawns.add(spawnRule(rule));
+        }
+        return spawns.isEmpty() ? null : spawns;
+    }
+
+    private static JsonObject spawnRule(OWBiomeModifiers.SpawnRule rule) {
+        JsonObject spawn = new JsonObject();
+        spawn.addProperty("biome_modifier", rule.modifier().location().toString());
+        spawn.addProperty("weight", rule.weight());
+        spawn.addProperty("min_count", rule.minCount());
+        spawn.addProperty("max_count", rule.maxCount());
+        spawn.addProperty("chunk_one_in", rule.chunkOneIn());
+        JsonArray biomes = new JsonArray();
+        rule.biomes().forEach(biome -> biomes.add(biome.location().toString()));
+        spawn.add("biomes", biomes);
+        return spawn;
     }
 
     private static JsonObject piste(OWWikiSpecies species, OWWikiLang lang) {

@@ -11,7 +11,9 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.ai.control.SmoothSwimmingLookControl;
 import net.minecraft.world.entity.ai.goal.FollowBoatGoal;
@@ -35,9 +37,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -72,6 +78,9 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 2;
     public static final int FOOD_WANTED_MIN = 6;
     public static final int FOOD_WANTED_MAX = 10;
+    private static final int SPAWN_MIN_DEPTH = 8;
+    public static final int SPAWN_CHUNK_ONE_IN = 8;
+    private static final long SPAWN_CHUNK_SALT = 412837190L;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> RIDER_CONTROL_PITCH = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.FLOAT);
@@ -2271,6 +2280,27 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             foodWanted = (int) this.getMaxHealth();
         }
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
+    }
+
+    public static boolean checkOrcaSpawnRules(EntityType<? extends Animal> type, ServerLevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+        ChunkPos chunk = new ChunkPos(pos);
+        if (WorldgenRandom.seedSlimeChunk(chunk.x, chunk.z, level.getLevel().getSeed(), SPAWN_CHUNK_SALT).nextInt(SPAWN_CHUNK_ONE_IN) != 0) {
+            return false;
+        }
+        for (int depth = 0; depth <= SPAWN_MIN_DEPTH; depth++) {
+            if (!level.getFluidState(pos.above(depth)).is(FluidTags.WATER)) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean checkSpawnRules(LevelAccessor level, MobSpawnType spawnType) {
+        return true;
+    }
+
+    @Override
+    public boolean checkSpawnObstruction(LevelReader level) {
+        return level.isUnobstructed(this);
     }
 
     @Override

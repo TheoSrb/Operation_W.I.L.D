@@ -17,6 +17,7 @@ import net.neoforged.neoforge.common.world.BiomeModifiers;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.worldgen.biome.OWBiomes;
 
 import java.util.ArrayList;
@@ -36,6 +37,13 @@ public class OWBiomeModifiers {
     public static final ResourceKey<BiomeModifier> SPAWN_JELLYFISH = registerKey("spawn_jellyfish");
     public static final ResourceKey<BiomeModifier> SPAWN_KODIAK = registerKey("spawn_kodiak");
     public static final ResourceKey<BiomeModifier> SPAWN_CROCODILE = registerKey("spawn_crocodile");
+    public static final ResourceKey<BiomeModifier> SPAWN_KANGAROO = registerKey("spawn_kangaroo");
+    public static final ResourceKey<BiomeModifier> SPAWN_ELEPHANT = registerKey("spawn_elephant");
+    public static final ResourceKey<BiomeModifier> SPAWN_GORILLA = registerKey("spawn_gorilla");
+    public static final ResourceKey<BiomeModifier> SPAWN_GORILLA_SPARSE = registerKey("spawn_gorilla_sparse");
+    public static final ResourceKey<BiomeModifier> SPAWN_RED_PANDA = registerKey("spawn_red_panda");
+    public static final ResourceKey<BiomeModifier> SPAWN_ORCA = registerKey("spawn_orca");
+    public static final ResourceKey<BiomeModifier> SPAWN_HIPPOPOTAMUS = registerKey("spawn_hippopotamus");
 
     public static final ArrayList<ResourceKey<Biome>> TIGER_BIOMES = new ArrayList<>(
             List.of(Biomes.BAMBOO_JUNGLE, Biomes.JUNGLE)
@@ -61,18 +69,60 @@ public class OWBiomeModifiers {
             List.of(Biomes.SWAMP)
     );
 
+    public static final ArrayList<ResourceKey<Biome>> KANGAROO_BIOMES = new ArrayList<>(
+            List.of(Biomes.WOODED_BADLANDS)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> ELEPHANT_BIOMES = new ArrayList<>(
+            List.of(Biomes.SAVANNA, Biomes.SAVANNA_PLATEAU)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> GORILLA_BIOMES = new ArrayList<>(
+            List.of(Biomes.JUNGLE, Biomes.BAMBOO_JUNGLE)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> GORILLA_SPARSE_BIOMES = new ArrayList<>(
+            List.of(Biomes.SPARSE_JUNGLE)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> RED_PANDA_BIOMES = new ArrayList<>(
+            List.of(Biomes.BAMBOO_JUNGLE)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> ORCA_BIOMES = new ArrayList<>(
+            List.of(Biomes.DEEP_COLD_OCEAN, Biomes.DEEP_FROZEN_OCEAN)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> HIPPOPOTAMUS_BIOMES = new ArrayList<>(
+            List.of(Biomes.SAVANNA, Biomes.SAVANNA_PLATEAU)
+    );
+
     public record SpawnRule(ResourceKey<BiomeModifier> modifier,
                            Supplier<? extends EntityType<?>> entity,
                            ArrayList<ResourceKey<Biome>> biomes,
                            int weight,
                            int minCount,
-                           int maxCount) {}
+                           int maxCount,
+                           int chunkOneIn) {
+
+        public SpawnRule(ResourceKey<BiomeModifier> modifier, Supplier<? extends EntityType<?>> entity,
+                         ArrayList<ResourceKey<Biome>> biomes, int weight, int minCount, int maxCount) {
+            this(modifier, entity, biomes, weight, minCount, maxCount, 1);
+        }
+    }
 
     public static final List<SpawnRule> SPAWN_RULES = List.of(
             new SpawnRule(SPAWN_TIGER, OWEntityRegistry.TIGER, TIGER_BIOMES, 30, 1, 1),
             new SpawnRule(SPAWN_KODIAK, OWEntityRegistry.KODIAK, KODIAK_BIOMES, 35, 1, 1),
             new SpawnRule(SPAWN_CROCODILE, OWEntityRegistry.CROCODILE, CROCODILE_BIOMES, 48, 2, 4),
-            new SpawnRule(SPAWN_BOA, OWEntityRegistry.BOA, BOA_BIOMES, 60, 1, 2));
+            new SpawnRule(SPAWN_BOA, OWEntityRegistry.BOA, BOA_BIOMES, 60, 1, 2),
+            new SpawnRule(SPAWN_KANGAROO, OWEntityRegistry.KANGAROO, KANGAROO_BIOMES, 4, 2, 5),
+            new SpawnRule(SPAWN_ELEPHANT, OWEntityRegistry.ELEPHANT, ELEPHANT_BIOMES, 8, 2, 5),
+            new SpawnRule(SPAWN_GORILLA, OWEntityRegistry.GORILLA, GORILLA_BIOMES, 40, 1, 1),
+            new SpawnRule(SPAWN_GORILLA_SPARSE, OWEntityRegistry.GORILLA, GORILLA_SPARSE_BIOMES, 50, 1, 3),
+            new SpawnRule(SPAWN_RED_PANDA, OWEntityRegistry.RED_PANDA, RED_PANDA_BIOMES, 100, 1, 1),
+            new SpawnRule(SPAWN_ORCA, OWEntityRegistry.ORCA, ORCA_BIOMES, 10, 1, 4, OrcaEntity.SPAWN_CHUNK_ONE_IN),
+            new SpawnRule(SPAWN_HIPPOPOTAMUS, OWEntityRegistry.HIPPOPOTAMUS, HIPPOPOTAMUS_BIOMES, 30, 2, 4));
 
     public static void bootstrap(BootstrapContext<BiomeModifier> context) {
         var placedFeature = context.lookup(Registries.PLACED_FEATURE);

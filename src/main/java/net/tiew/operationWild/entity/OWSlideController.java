@@ -26,6 +26,8 @@ public final class OWSlideController {
     private static final int CONFIRM_TIMEOUT_TICKS = 12;
     private static final int REQUEST_RETRY_TICKS = 6;
     private static final int SERVER_COOLDOWN_SLACK = 4;
+    private static final int SERVER_STALL_TICKS = 20;
+    private static final int STALE_RESEND_TICKS = 10;
     private static final int HOP_MIN_TICKS = 3;
     private static final double STEP_UP_MIN = 0.3;
     private static final double MIN_SPEED_RATIO = 0.12;
@@ -42,6 +44,7 @@ public final class OWSlideController {
     private int serverCooldown = 0;
     private double serverLastX, serverLastZ;
     private boolean serverTracked = false;
+    private int serverSlowTicks = 0;
     private final Set<Integer> shoved = new HashSet<>();
 
     private boolean active = false;
@@ -53,6 +56,7 @@ public final class OWSlideController {
     private int elapsed = 0;
     private int handoff = 0;
     private int requestCooldown = 0;
+    private int staleTicks = 0;
     private int airTicks = 0;
     private double speed = 0;
     private double lastSpeed = 0;
@@ -97,6 +101,7 @@ public final class OWSlideController {
 
         shoved.clear();
         serverTracked = false;
+        serverSlowTicks = 0;
         owner.setSlideTick(1);
     }
 
@@ -114,25 +119,26 @@ public final class OWSlideController {
         int tick = owner.getSlideTick();
         if (tick <= 0) return;
 
-        if (profile == null || owner.getControllingPassenger() == null || owner.isInWater() || owner.isInLava()
-                || tick > profile.durationTicks(1f) + 10) {
-            end();
-            return;
-        }
-
-        owner.setSlideTick(tick + 1);
-        shoveTargets(profile);
-    }
-
-    private void shoveTargets(OWSlideProfile profile) {
         double dx = serverTracked ? owner.getX() - serverLastX : 0.0;
         double dz = serverTracked ? owner.getZ() - serverLastZ : 0.0;
         serverLastX = owner.getX();
         serverLastZ = owner.getZ();
         serverTracked = true;
-
-        double power = profile.shove();
         double moved = Math.sqrt(dx * dx + dz * dz);
+        serverSlowTicks = moved < owner.slideRunReference() * MIN_SPEED_RATIO ? serverSlowTicks + 1 : 0;
+
+        if (profile == null || owner.getControllingPassenger() == null || owner.isInWater() || owner.isInLava()
+                || serverSlowTicks > SERVER_STALL_TICKS) {
+            end();
+            return;
+        }
+
+        owner.setSlideTick(tick + 1);
+        shoveTargets(profile, dx, dz, moved);
+    }
+
+    private void shoveTargets(OWSlideProfile profile, double dx, double dz, double moved) {
+        double power = profile.shove();
         if (power <= 0.0 || moved < 0.08 || moved > 3.0) return;
 
         Vec3 dir = new Vec3(dx / moved, 0, dz / moved);
@@ -234,6 +240,15 @@ public final class OWSlideController {
         if (active) drive(player, profile, my);
         else if (carry) driveCarry(player, profile);
         else if (handoff > 0) handoff--;
+
+        if (!active && !carry && !pendingStart && owner.isSliding()) {
+            if (++staleTicks >= STALE_RESEND_TICKS) {
+                staleTicks = 0;
+                OWClientHooks.sendSlide(false);
+            }
+        } else {
+            staleTicks = 0;
+        }
     }
 
     private void begin(OWSlideProfile profile, double mx, double mz) {
@@ -292,9 +307,7 @@ public final class OWSlideController {
         boolean held = OWClientHooks.isSlideKeyDown();
         boolean spent = speed < run * profile.exitSpeedRatio();
         boolean minDone = elapsed >= profile.minTicks();
-        if (elapsed >= profile.durationTicks(slick)
-                || speed < run * MIN_SPEED_RATIO
-                || (minDone && (!held || spent))) {
+        if (speed < run * MIN_SPEED_RATIO || (minDone && (!held || spent))) {
             finish(profile, true);
         }
     }

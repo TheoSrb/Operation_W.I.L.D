@@ -167,12 +167,14 @@ public final class OWWikiCatalogSection {
             entry.addProperty("weight", rule.weight());
             entry.addProperty("min_count", rule.minCount());
             entry.addProperty("max_count", rule.maxCount());
+            entry.addProperty("chunk_one_in", rule.chunkOneIn());
             JsonArray targets = new JsonArray();
             rule.biomes().forEach(biome -> targets.add(biome.location().toString()));
             entry.add("biomes", targets);
             spawns.add(entry);
         }
         worldgen.add("spawns", spawns);
+        worldgen.add("rarity_scale", OWWikiSpawnRarity.scale());
         return worldgen;
     }
 

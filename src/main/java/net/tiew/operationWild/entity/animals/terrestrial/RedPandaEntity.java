@@ -1,6 +1,7 @@
 package net.tiew.operationWild.entity.animals.terrestrial;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -13,8 +14,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -40,7 +43,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -88,6 +94,10 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 30;
     public static final int FOOD_WANTED_MIN = 3;
     public static final int FOOD_WANTED_MAX = 6;
+    private static final int SPAWN_MIN_CLING_HEIGHT = 3;
+    private static final int SPAWN_COLUMN_SCAN = 24;
+    private static final int SPAWN_TREE_NATURAL_ONE_IN = 6;
+    private static final int SPAWN_FALL_GRACE_TICKS = 100;
     public static final int ENTITY_COLOR = 0xec8925;
 
     private static final double SHOULDER_SIDE_OFFSET = 0.44;
@@ -240,6 +250,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private LivingEntity alertSource = null;
     private BlockPos sweetLure = null;
     private BlockPos climbColumn = null;
+    private BlockPos spawnTreeColumn = null;
     private int mouthChewTicks = 0;
     private int fallGraceTicks = 0;
     private final List<int[]> scaredMobs = new ArrayList<>();
@@ -465,6 +476,12 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     public @Nullable BlockPos getClimbColumn() { return this.climbColumn; }
 
     public void setClimbColumn(@Nullable BlockPos pos) { this.climbColumn = pos; }
+
+    public @Nullable BlockPos takeSpawnTreeColumn() {
+        BlockPos column = this.spawnTreeColumn;
+        this.spawnTreeColumn = null;
+        return column;
+    }
 
     public @Nullable BlockPos getSweetLure() { return this.sweetLure; }
 
@@ -1698,8 +1715,53 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             this.setVariant(chooseRedPandaVariant());
             this.setInitialVariant(this.getVariant());
         }
+        if ((mobSpawnType == MobSpawnType.NATURAL || mobSpawnType == MobSpawnType.CHUNK_GENERATION)
+                && !isGroundSpawn(levelAccessor, this.blockPosition())) {
+            this.spawnTreeColumn = findSpawnColumn(levelAccessor, this.blockPosition());
+            if (this.spawnTreeColumn != null) grantFallGrace(SPAWN_FALL_GRACE_TICKS);
+        }
         this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
+    }
+
+    public static boolean checkRedPandaSpawnRules(EntityType<? extends Animal> type, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+        if (!level.getFluidState(pos).isEmpty() || !isBrightEnoughToSpawn(level, pos)) return false;
+        if (isGroundSpawn(level, pos)) return true;
+        if (spawnType == MobSpawnType.NATURAL && random.nextInt(SPAWN_TREE_NATURAL_ONE_IN) != 0) return false;
+        return findSpawnColumn(level, pos) != null;
+    }
+
+    private static boolean isGroundSpawn(LevelReader level, BlockPos pos) {
+        BlockState below = level.getBlockState(pos.below());
+        return below.is(BlockTags.ANIMALS_SPAWNABLE_ON) || below.is(Blocks.PODZOL)
+                || below.is(Blocks.COARSE_DIRT) || below.is(Blocks.DIRT);
+    }
+
+    private static @Nullable BlockPos findSpawnColumn(LevelReader level, BlockPos pos) {
+        BlockPos below = pos.below();
+        if (RedPandaTreeClimbGoal.isTrunkBlock(level.getBlockState(below))) return spawnColumnBase(level, below, pos);
+
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos side = pos.relative(direction);
+            if (!RedPandaTreeClimbGoal.isTrunkBlock(level.getBlockState(side))) continue;
+            BlockPos base = spawnColumnBase(level, side, pos);
+            if (base != null) return base;
+        }
+        return null;
+    }
+
+    private static @Nullable BlockPos spawnColumnBase(LevelReader level, BlockPos from, BlockPos spawn) {
+        BlockPos base = from;
+        for (int step = 0; step < SPAWN_COLUMN_SCAN && RedPandaTreeClimbGoal.isTrunkBlock(level.getBlockState(base.below())); step++) {
+            base = base.below();
+        }
+        int top = from.getY();
+        for (int step = 0; step < SPAWN_COLUMN_SCAN && RedPandaTreeClimbGoal.isTrunkBlock(level.getBlockState(from.above(step + 1))); step++) {
+            top = from.getY() + step + 1;
+        }
+        if (top - base.getY() + 1 < RedPandaTreeClimbGoal.MIN_TRUNK_HEIGHT) return null;
+        if (spawn.getY() - base.getY() < SPAWN_MIN_CLING_HEIGHT) return null;
+        return base.immutable();
     }
 
     @Override
@@ -1806,6 +1868,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         tag.putFloat("healPower", this.getHealPower());
         tag.putFloat("eggNourishment", this.getEggNourishment());
         if (hasMouthItem()) tag.put("mouthItem", getMouthItem().save(this.registryAccess()));
+        if (spawnTreeColumn != null) tag.putLong("spawnTreeColumn", spawnTreeColumn.asLong());
         tag.putInt("feastCharge", this.getFeastCharge());
 
         Player carrier = getCarrier();
@@ -1828,6 +1891,8 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
         this.entityData.set(FEAST_CHARGE, tag.getInt("feastCharge"));
         this.pendingCarrier = tag.hasUUID("shoulderCarrier") ? tag.getUUID("shoulderCarrier") : null;
         this.pendingCarrierTicks = 0;
+        this.spawnTreeColumn = tag.contains("spawnTreeColumn") ? BlockPos.of(tag.getLong("spawnTreeColumn")) : null;
+        if (this.spawnTreeColumn != null) grantFallGrace(SPAWN_FALL_GRACE_TICKS);
 
         this.setNoGravity(false);
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }

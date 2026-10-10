@@ -1924,6 +1924,35 @@
         "total_cost": 480
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:jungle",
+        "biomes": [
+          {
+            "biome": "minecraft:bamboo_jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 0.98,
+            "individuals_per_100_chunks": 0.98,
+            "pool_weight": 340,
+            "species_weight": 30,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 1.508,
+            "individuals_per_100_chunks": 1.508,
+            "pool_weight": 221,
+            "species_weight": 30,
+            "tier": "rare"
+          }
+        ],
+        "groups_per_100_chunks": 1.508,
+        "individuals_per_100_chunks": 1.508,
+        "spawns_naturally": true,
+        "tier": "rare"
+      },
       "simple_class": "TigerEntity",
       "size": {
         "eye_height": 1.19,
@@ -2060,10 +2089,24 @@
           "minecraft:bamboo_jungle",
           "minecraft:jungle"
         ],
+        "chunk_one_in": 1,
         "max_count": 1,
         "min_count": 1,
         "weight": 30
       },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_tiger",
+          "biomes": [
+            "minecraft:bamboo_jungle",
+            "minecraft:jungle"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 1,
+          "min_count": 1,
+          "weight": 30
+        }
+      ],
       "taming": {
         "advancement": "ow:wild_meow",
         "experience": 185.0,
@@ -3696,6 +3739,25 @@
         "total_cost": 530
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "ow:redwood_forest",
+        "biomes": [
+          {
+            "biome": "ow:redwood_forest",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 6.173,
+            "individuals_per_100_chunks": 6.173,
+            "pool_weight": 90,
+            "species_weight": 50,
+            "tier": "uncommon"
+          }
+        ],
+        "groups_per_100_chunks": 6.173,
+        "individuals_per_100_chunks": 6.173,
+        "spawns_naturally": true,
+        "tier": "uncommon"
+      },
       "simple_class": "KodiakEntity",
       "size": {
         "eye_height": 1.615,
@@ -3761,10 +3823,23 @@
         "biomes": [
           "ow:redwood_forest"
         ],
+        "chunk_one_in": 1,
         "max_count": 1,
         "min_count": 1,
         "weight": 35
       },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_kodiak",
+          "biomes": [
+            "ow:redwood_forest"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 1,
+          "min_count": 1,
+          "weight": 35
+        }
+      ],
       "taming": {
         "advancement": "ow:big_fuzzball",
         "experience": 180.0,
@@ -5114,6 +5189,25 @@
         "total_cost": 555
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:swamp",
+        "biomes": [
+          {
+            "biome": "minecraft:swamp",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 3.376,
+            "individuals_per_100_chunks": 10.127,
+            "pool_weight": 158,
+            "species_weight": 48,
+            "tier": "uncommon"
+          }
+        ],
+        "groups_per_100_chunks": 3.376,
+        "individuals_per_100_chunks": 10.127,
+        "spawns_naturally": true,
+        "tier": "uncommon"
+      },
       "simple_class": "CrocodileEntity",
       "size": {
         "eye_height": 0.93500006,
@@ -5174,10 +5268,23 @@
         "biomes": [
           "minecraft:swamp"
         ],
+        "chunk_one_in": 1,
         "max_count": 4,
         "min_count": 2,
         "weight": 48
       },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_crocodile",
+          "biomes": [
+            "minecraft:swamp"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 4,
+          "min_count": 2,
+          "weight": 48
+        }
+      ],
       "taming": {
         "advancement": "ow:predatory_smile",
         "experience": 205.0,
@@ -6612,6 +6719,45 @@
         "total_cost": 415
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:mangrove_swamp",
+        "biomes": [
+          {
+            "biome": "minecraft:jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 3.017,
+            "individuals_per_100_chunks": 4.525,
+            "pool_weight": 221,
+            "species_weight": 60,
+            "tier": "uncommon"
+          },
+          {
+            "biome": "minecraft:mangrove_swamp",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 9.524,
+            "individuals_per_100_chunks": 14.286,
+            "pool_weight": 70,
+            "species_weight": 60,
+            "tier": "common"
+          },
+          {
+            "biome": "minecraft:swamp",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 4.219,
+            "individuals_per_100_chunks": 6.329,
+            "pool_weight": 158,
+            "species_weight": 60,
+            "tier": "uncommon"
+          }
+        ],
+        "groups_per_100_chunks": 9.524,
+        "individuals_per_100_chunks": 14.286,
+        "spawns_naturally": true,
+        "tier": "common"
+      },
       "simple_class": "BoaEntity",
       "size": {
         "eye_height": 0.85,
@@ -6664,10 +6810,25 @@
           "minecraft:mangrove_swamp",
           "minecraft:swamp"
         ],
+        "chunk_one_in": 1,
         "max_count": 2,
         "min_count": 1,
         "weight": 60
       },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_boa",
+          "biomes": [
+            "minecraft:jungle",
+            "minecraft:mangrove_swamp",
+            "minecraft:swamp"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 2,
+          "min_count": 1,
+          "weight": 60
+        }
+      ],
       "taming": {
         "advancement": "ow:arms_what_for",
         "experience": 80.0,
@@ -7080,6 +7241,7 @@
         "SLIPSTREAM_SPEED_BONUS": 0.15,
         "SOMNOLENCE_LOSS_INTERVAL": 2,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
+        "SPAWN_CHUNK_ONE_IN": 8,
         "TAMING_EXPERIENCE": 270.0,
         "WAVE_BREACH_DURATION": 26,
         "WAVE_BREACH_SLAM": 7
@@ -7157,9 +7319,9 @@
         "created": "2026-10-01T17:52:43.79329+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-09T22:20:51.8634706+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 97681
+        "last_modified": "2026-10-10T17:09:45.8499213+02:00",
+        "last_modified_date": "2026-10-10",
+        "size_bytes": 98980
       },
       "id": "ow:orca",
       "loot": {
@@ -7234,6 +7396,35 @@
         "available": false
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:deep_cold_ocean",
+        "biomes": [
+          {
+            "biome": "minecraft:deep_cold_ocean",
+            "chunk_one_in": 8,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 1.389,
+            "individuals_per_100_chunks": 3.472,
+            "pool_weight": 10,
+            "species_weight": 10,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:deep_frozen_ocean",
+            "chunk_one_in": 8,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 1.263,
+            "individuals_per_100_chunks": 3.157,
+            "pool_weight": 11,
+            "species_weight": 10,
+            "tier": "rare"
+          }
+        ],
+        "groups_per_100_chunks": 1.389,
+        "individuals_per_100_chunks": 3.472,
+        "spawns_naturally": true,
+        "tier": "rare"
+      },
       "simple_class": "OrcaEntity",
       "size": {
         "eye_height": 1.7,
@@ -7243,6 +7434,30 @@
         "width": 2.2
       },
       "sounds": [],
+      "spawn": {
+        "biome_modifier": "ow:spawn_orca",
+        "biomes": [
+          "minecraft:deep_cold_ocean",
+          "minecraft:deep_frozen_ocean"
+        ],
+        "chunk_one_in": 8,
+        "max_count": 4,
+        "min_count": 1,
+        "weight": 10
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_orca",
+          "biomes": [
+            "minecraft:deep_cold_ocean",
+            "minecraft:deep_frozen_ocean"
+          ],
+          "chunk_one_in": 8,
+          "max_count": 4,
+          "min_count": 1,
+          "weight": 10
+        }
+      ],
       "taming": {
         "advancement": "ow:deep_shadow",
         "experience": 270.0,
@@ -7776,6 +7991,35 @@
         "available": false
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:savanna",
+        "biomes": [
+          {
+            "biome": "minecraft:savanna",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 0.988,
+            "individuals_per_100_chunks": 3.457,
+            "pool_weight": 90,
+            "species_weight": 8,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:savanna_plateau",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 0.839,
+            "individuals_per_100_chunks": 2.935,
+            "pool_weight": 106,
+            "species_weight": 8,
+            "tier": "rare"
+          }
+        ],
+        "groups_per_100_chunks": 0.988,
+        "individuals_per_100_chunks": 3.457,
+        "spawns_naturally": true,
+        "tier": "rare"
+      },
       "simple_class": "ElephantEntity",
       "size": {
         "eye_height": 2.72,
@@ -7834,6 +8078,30 @@
           "constant": "ELEPHANT_CALL",
           "id": "ow:elephant_call",
           "path": "elephant_call"
+        }
+      ],
+      "spawn": {
+        "biome_modifier": "ow:spawn_elephant",
+        "biomes": [
+          "minecraft:savanna",
+          "minecraft:savanna_plateau"
+        ],
+        "chunk_one_in": 1,
+        "max_count": 5,
+        "min_count": 2,
+        "weight": 8
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_elephant",
+          "biomes": [
+            "minecraft:savanna",
+            "minecraft:savanna_plateau"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 5,
+          "min_count": 2,
+          "weight": 8
         }
       ],
       "taming": {
@@ -8445,12 +8713,12 @@
         "walk_speed_blocks_per_second": 4.2
       },
       "history": {
-        "created": "2026-10-01T17:11:04.2566378+02:00",
-        "created_date": "2026-10-01",
+        "created": "2026-10-10T16:50:07.122375+02:00",
+        "created_date": "2026-10-10",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-09T22:20:51.8659888+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 84944
+        "last_modified": "2026-10-10T16:50:13.7912923+02:00",
+        "last_modified_date": "2026-10-10",
+        "size_bytes": 85576
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -8525,6 +8793,25 @@
         "available": false
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:wooded_badlands",
+        "biomes": [
+          {
+            "biome": "minecraft:wooded_badlands",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.04,
+            "groups_per_100_chunks": 1.389,
+            "individuals_per_100_chunks": 4.861,
+            "pool_weight": 12,
+            "species_weight": 4,
+            "tier": "rare"
+          }
+        ],
+        "groups_per_100_chunks": 1.389,
+        "individuals_per_100_chunks": 4.861,
+        "spawns_naturally": true,
+        "tier": "rare"
+      },
       "simple_class": "KangarooEntity",
       "size": {
         "eye_height": 1.2750001,
@@ -8534,6 +8821,28 @@
         "width": 1.6
       },
       "sounds": [],
+      "spawn": {
+        "biome_modifier": "ow:spawn_kangaroo",
+        "biomes": [
+          "minecraft:wooded_badlands"
+        ],
+        "chunk_one_in": 1,
+        "max_count": 5,
+        "min_count": 2,
+        "weight": 4
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_kangaroo",
+          "biomes": [
+            "minecraft:wooded_badlands"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 5,
+          "min_count": 2,
+          "weight": 4
+        }
+      ],
       "taming": {
         "advancement": "ow:wild_meow",
         "experience": 65.0,
@@ -8994,9 +9303,9 @@
         "created": "2026-10-01T17:11:35.3085605+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-03T11:58:04.9940019+02:00",
-        "last_modified_date": "2026-10-03",
-        "size_bytes": 72864
+        "last_modified": "2026-10-10T16:55:14.8749942+02:00",
+        "last_modified_date": "2026-10-10",
+        "size_bytes": 76354
       },
       "id": "ow:red_panda",
       "loot": {
@@ -9555,6 +9864,25 @@
         "total_cost": 414
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:bamboo_jungle",
+        "biomes": [
+          {
+            "biome": "minecraft:bamboo_jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 3.268,
+            "individuals_per_100_chunks": 3.268,
+            "pool_weight": 340,
+            "species_weight": 100,
+            "tier": "uncommon"
+          }
+        ],
+        "groups_per_100_chunks": 3.268,
+        "individuals_per_100_chunks": 3.268,
+        "spawns_naturally": true,
+        "tier": "uncommon"
+      },
       "simple_class": "RedPandaEntity",
       "size": {
         "eye_height": 0.595,
@@ -9564,6 +9892,28 @@
         "width": 0.8
       },
       "sounds": [],
+      "spawn": {
+        "biome_modifier": "ow:spawn_red_panda",
+        "biomes": [
+          "minecraft:bamboo_jungle"
+        ],
+        "chunk_one_in": 1,
+        "max_count": 1,
+        "min_count": 1,
+        "weight": 100
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_red_panda",
+          "biomes": [
+            "minecraft:bamboo_jungle"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 1,
+          "min_count": 1,
+          "weight": 100
+        }
+      ],
       "taming": {
         "advancement": "ow:little_fire_fox",
         "experience": 40.0,
@@ -10091,6 +10441,45 @@
         "available": false
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:sparse_jungle",
+        "biomes": [
+          {
+            "biome": "minecraft:bamboo_jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 1.307,
+            "individuals_per_100_chunks": 1.307,
+            "pool_weight": 340,
+            "species_weight": 40,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 2.011,
+            "individuals_per_100_chunks": 2.011,
+            "pool_weight": 221,
+            "species_weight": 40,
+            "tier": "rare"
+          },
+          {
+            "biome": "minecraft:sparse_jungle",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 5.144,
+            "individuals_per_100_chunks": 10.288,
+            "pool_weight": 108,
+            "species_weight": 50,
+            "tier": "uncommon"
+          }
+        ],
+        "groups_per_100_chunks": 5.144,
+        "individuals_per_100_chunks": 10.288,
+        "spawns_naturally": true,
+        "tier": "uncommon"
+      },
       "simple_class": "GorillaEntity",
       "size": {
         "eye_height": 1.615,
@@ -10100,6 +10489,40 @@
         "width": 1.5
       },
       "sounds": [],
+      "spawn": {
+        "biome_modifier": "ow:spawn_gorilla",
+        "biomes": [
+          "minecraft:jungle",
+          "minecraft:bamboo_jungle"
+        ],
+        "chunk_one_in": 1,
+        "max_count": 1,
+        "min_count": 1,
+        "weight": 40
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_gorilla",
+          "biomes": [
+            "minecraft:jungle",
+            "minecraft:bamboo_jungle"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 1,
+          "min_count": 1,
+          "weight": 40
+        },
+        {
+          "biome_modifier": "ow:spawn_gorilla_sparse",
+          "biomes": [
+            "minecraft:sparse_jungle"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 3,
+          "min_count": 1,
+          "weight": 50
+        }
+      ],
       "taming": {
         "advancement": "ow:silverback",
         "experience": 175.0,
@@ -10585,9 +11008,9 @@
         "created": "2026-10-10T08:50:55.9881606+02:00",
         "created_date": "2026-10-10",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-10T09:10:18.5496451+02:00",
+        "last_modified": "2026-10-10T16:51:33.27749+02:00",
         "last_modified_date": "2026-10-10",
-        "size_bytes": 58752
+        "size_bytes": 60326
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -10622,6 +11045,35 @@
         "available": false
       },
       "probe_resolved": true,
+      "rarity": {
+        "best_biome": "minecraft:savanna",
+        "biomes": [
+          {
+            "biome": "minecraft:savanna",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 3.704,
+            "individuals_per_100_chunks": 11.111,
+            "pool_weight": 90,
+            "species_weight": 30,
+            "tier": "uncommon"
+          },
+          {
+            "biome": "minecraft:savanna_plateau",
+            "chunk_one_in": 1,
+            "creature_spawn_probability": 0.1,
+            "groups_per_100_chunks": 3.145,
+            "individuals_per_100_chunks": 9.434,
+            "pool_weight": 106,
+            "species_weight": 30,
+            "tier": "uncommon"
+          }
+        ],
+        "groups_per_100_chunks": 3.704,
+        "individuals_per_100_chunks": 11.111,
+        "spawns_naturally": true,
+        "tier": "uncommon"
+      },
       "simple_class": "HippopotamusEntity",
       "size": {
         "eye_height": 1.445,
@@ -10631,6 +11083,30 @@
         "width": 1.8
       },
       "sounds": [],
+      "spawn": {
+        "biome_modifier": "ow:spawn_hippopotamus",
+        "biomes": [
+          "minecraft:savanna",
+          "minecraft:savanna_plateau"
+        ],
+        "chunk_one_in": 1,
+        "max_count": 4,
+        "min_count": 2,
+        "weight": 30
+      },
+      "spawns": [
+        {
+          "biome_modifier": "ow:spawn_hippopotamus",
+          "biomes": [
+            "minecraft:savanna",
+            "minecraft:savanna_plateau"
+          ],
+          "chunk_one_in": 1,
+          "max_count": 4,
+          "min_count": 2,
+          "weight": 30
+        }
+      ],
       "taming": {
         "advancement": "ow:river_giant",
         "experience": 230.0,
@@ -11067,6 +11543,10 @@
         "available": false
       },
       "probe_resolved": true,
+      "rarity": {
+        "spawns_naturally": false,
+        "tier": "none"
+      },
       "simple_class": "LionEntity",
       "size": {
         "eye_height": 1.2750001,
@@ -11369,6 +11849,10 @@
         "available": false
       },
       "probe_resolved": true,
+      "rarity": {
+        "spawns_naturally": false,
+        "tier": "none"
+      },
       "simple_class": "PlantEmpressEntity",
       "size": {
         "eye_height": 2.5500002,
@@ -26746,6 +27230,32 @@
         "registry": "minecraft:worldgen/biome"
       }
     ],
+    "rarity_scale": {
+      "formula": "100 * p / (1 - p) * species_weight / pool_weight / chunk_one_in",
+      "metric": "groups_per_100_chunks",
+      "tiers": [
+        {
+          "min": 8.0,
+          "tier": "common"
+        },
+        {
+          "min": 3.0,
+          "tier": "uncommon"
+        },
+        {
+          "min": 0.75,
+          "tier": "rare"
+        },
+        {
+          "min": 0.25,
+          "tier": "very_rare"
+        },
+        {
+          "min": 0.0,
+          "tier": "exceptional"
+        }
+      ]
+    },
     "spawns": [
       {
         "biome_modifier": "ow:spawn_tiger",
@@ -26753,6 +27263,7 @@
           "minecraft:bamboo_jungle",
           "minecraft:jungle"
         ],
+        "chunk_one_in": 1,
         "entity": "ow:tiger",
         "max_count": 1,
         "min_count": 1,
@@ -26763,6 +27274,7 @@
         "biomes": [
           "ow:redwood_forest"
         ],
+        "chunk_one_in": 1,
         "entity": "ow:kodiak",
         "max_count": 1,
         "min_count": 1,
@@ -26773,6 +27285,7 @@
         "biomes": [
           "minecraft:swamp"
         ],
+        "chunk_one_in": 1,
         "entity": "ow:crocodile",
         "max_count": 4,
         "min_count": 2,
@@ -26785,10 +27298,92 @@
           "minecraft:mangrove_swamp",
           "minecraft:swamp"
         ],
+        "chunk_one_in": 1,
         "entity": "ow:boa",
         "max_count": 2,
         "min_count": 1,
         "weight": 60
+      },
+      {
+        "biome_modifier": "ow:spawn_kangaroo",
+        "biomes": [
+          "minecraft:wooded_badlands"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:kangaroo",
+        "max_count": 5,
+        "min_count": 2,
+        "weight": 4
+      },
+      {
+        "biome_modifier": "ow:spawn_elephant",
+        "biomes": [
+          "minecraft:savanna",
+          "minecraft:savanna_plateau"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:elephant",
+        "max_count": 5,
+        "min_count": 2,
+        "weight": 8
+      },
+      {
+        "biome_modifier": "ow:spawn_gorilla",
+        "biomes": [
+          "minecraft:jungle",
+          "minecraft:bamboo_jungle"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:gorilla",
+        "max_count": 1,
+        "min_count": 1,
+        "weight": 40
+      },
+      {
+        "biome_modifier": "ow:spawn_gorilla_sparse",
+        "biomes": [
+          "minecraft:sparse_jungle"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:gorilla",
+        "max_count": 3,
+        "min_count": 1,
+        "weight": 50
+      },
+      {
+        "biome_modifier": "ow:spawn_red_panda",
+        "biomes": [
+          "minecraft:bamboo_jungle"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:red_panda",
+        "max_count": 1,
+        "min_count": 1,
+        "weight": 100
+      },
+      {
+        "biome_modifier": "ow:spawn_orca",
+        "biomes": [
+          "minecraft:deep_cold_ocean",
+          "minecraft:deep_frozen_ocean"
+        ],
+        "chunk_one_in": 8,
+        "entity": "ow:orca",
+        "max_count": 4,
+        "min_count": 1,
+        "weight": 10
+      },
+      {
+        "biome_modifier": "ow:spawn_hippopotamus",
+        "biomes": [
+          "minecraft:savanna",
+          "minecraft:savanna_plateau"
+        ],
+        "chunk_one_in": 1,
+        "entity": "ow:hippopotamus",
+        "max_count": 4,
+        "min_count": 2,
+        "weight": 30
       }
     ]
   }

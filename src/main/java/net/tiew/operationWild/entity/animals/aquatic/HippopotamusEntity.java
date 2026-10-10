@@ -12,9 +12,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -37,9 +39,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -80,6 +85,9 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 6;
     public static final int FOOD_WANTED_MIN = 10;
     public static final int FOOD_WANTED_MAX = 16;
+    private static final int SPAWN_WATER_RADIUS = 12;
+    private static final int SPAWN_WATER_DEPTH = 3;
+    private static final int SPAWN_WATER_MIN_BLOCKS = 24;
     public static final int ENTITY_COLOR = 0x675250;
     public static final int DEFAULT_SKIN_INDEX = 1;
 
@@ -1113,6 +1121,28 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         }
         this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
         return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
+    }
+
+    public static boolean checkHippopotamusSpawnRules(EntityType<? extends Animal> type, LevelAccessor level, MobSpawnType spawnType, BlockPos pos, RandomSource random) {
+        BlockState below = level.getBlockState(pos.below());
+        boolean ground = below.is(BlockTags.ANIMALS_SPAWNABLE_ON) || below.is(BlockTags.SAND) || below.is(Blocks.MUD)
+                || below.is(Blocks.COARSE_DIRT) || below.is(Blocks.DIRT);
+        if (!ground || !isBrightEnoughToSpawn(level, pos)) return false;
+
+        int water = 0;
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int dx = -SPAWN_WATER_RADIUS; dx <= SPAWN_WATER_RADIUS; dx++) {
+            for (int dz = -SPAWN_WATER_RADIUS; dz <= SPAWN_WATER_RADIUS; dz++) {
+                for (int dy = -SPAWN_WATER_DEPTH; dy <= 1; dy++) {
+                    cursor.setWithOffset(pos, dx, dy, dz);
+                    if (level.getFluidState(cursor).isSourceOfType(Fluids.WATER)
+                            && ++water >= SPAWN_WATER_MIN_BLOCKS) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private void tickClientVisuals() {

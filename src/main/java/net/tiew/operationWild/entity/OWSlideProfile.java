@@ -8,8 +8,6 @@ public record OWSlideProfile(
         float energyCost,
         int cooldownTicks,
         int minTicks,
-        int maxTicks,
-        int iceMaxTicks,
         double minEntryRatio,
         double sprintBoostRatio,
         double walkBoostRatio,
@@ -37,8 +35,6 @@ public record OWSlideProfile(
             Slide.ENERGY,
             Slide.COOLDOWN_TICKS,
             Slide.MIN_TICKS,
-            Slide.MAX_TICKS,
-            Slide.ICE_MAX_TICKS,
             Slide.MIN_ENTRY_RATIO,
             Slide.SPRINT_BOOST_RATIO,
             Slide.WALK_BOOST_RATIO,
@@ -60,35 +56,35 @@ public record OWSlideProfile(
             Slide.FOV_GAIN);
 
     public OWSlideProfile withStrength(float value) {
-        return new OWSlideProfile(Math.max(MIN_STRENGTH, value), energyCost, cooldownTicks, minTicks, maxTicks, iceMaxTicks,
+        return new OWSlideProfile(Math.max(MIN_STRENGTH, value), energyCost, cooldownTicks, minTicks,
                 minEntryRatio, sprintBoostRatio, walkBoostRatio, maxSpeedRatio, iceMaxSpeedBonus, exitSpeedRatio,
                 groundDrag, slickDrag, airDrag, downhillGain, uphillLoss, steerDegrees, iceSteerGrip,
                 canHop, hopLift, hopCarry, handoffTicks, shovePower, fovGain);
     }
 
     public OWSlideProfile withEnergyCost(float value) {
-        return new OWSlideProfile(strength, value, cooldownTicks, minTicks, maxTicks, iceMaxTicks,
+        return new OWSlideProfile(strength, value, cooldownTicks, minTicks,
                 minEntryRatio, sprintBoostRatio, walkBoostRatio, maxSpeedRatio, iceMaxSpeedBonus, exitSpeedRatio,
                 groundDrag, slickDrag, airDrag, downhillGain, uphillLoss, steerDegrees, iceSteerGrip,
                 canHop, hopLift, hopCarry, handoffTicks, shovePower, fovGain);
     }
 
     public OWSlideProfile withCooldown(int ticks) {
-        return new OWSlideProfile(strength, energyCost, ticks, minTicks, maxTicks, iceMaxTicks,
+        return new OWSlideProfile(strength, energyCost, ticks, minTicks,
                 minEntryRatio, sprintBoostRatio, walkBoostRatio, maxSpeedRatio, iceMaxSpeedBonus, exitSpeedRatio,
                 groundDrag, slickDrag, airDrag, downhillGain, uphillLoss, steerDegrees, iceSteerGrip,
                 canHop, hopLift, hopCarry, handoffTicks, shovePower, fovGain);
     }
 
     public OWSlideProfile withShovePower(double value) {
-        return new OWSlideProfile(strength, energyCost, cooldownTicks, minTicks, maxTicks, iceMaxTicks,
+        return new OWSlideProfile(strength, energyCost, cooldownTicks, minTicks,
                 minEntryRatio, sprintBoostRatio, walkBoostRatio, maxSpeedRatio, iceMaxSpeedBonus, exitSpeedRatio,
                 groundDrag, slickDrag, airDrag, downhillGain, uphillLoss, steerDegrees, iceSteerGrip,
                 canHop, hopLift, hopCarry, handoffTicks, value, fovGain);
     }
 
     public OWSlideProfile withoutHop() {
-        return new OWSlideProfile(strength, energyCost, cooldownTicks, minTicks, maxTicks, iceMaxTicks,
+        return new OWSlideProfile(strength, energyCost, cooldownTicks, minTicks,
                 minEntryRatio, sprintBoostRatio, walkBoostRatio, maxSpeedRatio, iceMaxSpeedBonus, exitSpeedRatio,
                 groundDrag, slickDrag, airDrag, downhillGain, uphillLoss, steerDegrees, iceSteerGrip,
                 false, hopLift, hopCarry, handoffTicks, shovePower, fovGain);
@@ -104,10 +100,6 @@ public record OWSlideProfile(
 
     public double drag(float slick) {
         return 1.0 - (1.0 - Mth.lerp(slick, groundDrag, slickDrag)) / strength;
-    }
-
-    public int durationTicks(float slick) {
-        return Math.round(Mth.lerp(slick, (float) maxTicks, (float) iceMaxTicks) * strength);
     }
 
     public double shove() {

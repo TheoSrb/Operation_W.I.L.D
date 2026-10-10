@@ -758,14 +758,12 @@ public class OWAttacksConstants {
         public static final float ENERGY = 12f;
         public static final int COOLDOWN_TICKS = 16;
         public static final int MIN_TICKS = 7;
-        public static final int MAX_TICKS = 34;
-        public static final int ICE_MAX_TICKS = 50;
         public static final double MIN_ENTRY_RATIO = 0.30;
         public static final double SPRINT_BOOST_RATIO = 0.30;
         public static final double WALK_BOOST_RATIO = 0.12;
         public static final double MAX_SPEED_RATIO = 1.25;
         public static final double ICE_MAX_SPEED_BONUS = 1.15;
-        public static final double EXIT_SPEED_RATIO = 0.36;
+        public static final double EXIT_SPEED_RATIO = 0.22;
         public static final double GROUND_DRAG = 0.965;
         public static final double SLICK_DRAG = 0.990;
         public static final double AIR_DRAG = 0.990;

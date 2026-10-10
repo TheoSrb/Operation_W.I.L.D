@@ -1,0 +1,13 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": [
+    "minecraft:deep_cold_ocean",
+    "minecraft:deep_frozen_ocean"
+  ],
+  "spawners": {
+    "type": "ow:orca",
+    "maxCount": 4,
+    "minCount": 1,
+    "weight": 10
+  }
+}

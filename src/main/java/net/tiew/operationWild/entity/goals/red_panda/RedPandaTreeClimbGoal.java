@@ -32,9 +32,10 @@ public class RedPandaTreeClimbGoal extends Goal {
 
     private static final int SEARCH_RADIUS = 6;
     private static final int SEARCH_SAMPLES = 48;
-    private static final int MIN_TRUNK_HEIGHT = 4;
+    public static final int MIN_TRUNK_HEIGHT = 4;
     private static final int MAX_CLIMB_HEIGHT = 18;
     private static final int MIN_BRANCH_HEIGHT = 3;
+    private static final double SPAWN_CLING_REACH_SQR = 1.6 * 1.6;
     private static final int TRY_CHANCE = 90;
 
     private static final int APPROACH_TIMEOUT = 220;
@@ -107,6 +108,7 @@ public class RedPandaTreeClimbGoal extends Goal {
 
     private Phase phase = Phase.APPROACH;
     private boolean finished;
+    private boolean spawnCling;
     private boolean escapeClimb;
     private LivingEntity escapeThreat;
     private boolean harvested;
@@ -167,6 +169,14 @@ public class RedPandaTreeClimbGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        BlockPos spawnColumn = panda.takeSpawnTreeColumn();
+        if (spawnColumn != null && adoptSpawnColumn(spawnColumn)) {
+            this.escapeThreat = null;
+            this.escapeClimb = false;
+            this.spawnCling = true;
+            return true;
+        }
+
         this.escapeThreat = panda.getAlertSource();
         this.escapeClimb = panda.isAlerted() && escapeThreat != null;
 
@@ -187,6 +197,36 @@ public class RedPandaTreeClimbGoal extends Goal {
 
         adoptColumn(base, chosen);
         return true;
+    }
+
+    private boolean adoptSpawnColumn(BlockPos base) {
+        if (!isAvailable() || !isTrunkBlock(panda.level().getBlockState(base))) return false;
+        if (panda.getY() - base.getY() < MIN_BRANCH_HEIGHT) return false;
+        if (panda.level().getBlockState(base).is(Blocks.BAMBOO) && stalkTaken(base)) return false;
+
+        double dx = panda.getX() - (base.getX() + 0.5);
+        double dz = panda.getZ() - (base.getZ() + 0.5);
+        if (dx * dx + dz * dz > SPAWN_CLING_REACH_SQR) return false;
+
+        Direction chosen = spawnFace(base, dx, dz, Mth.floor(panda.getY()));
+        if (chosen == null) return false;
+
+        adoptColumn(base, chosen);
+        return true;
+    }
+
+    private @Nullable Direction spawnFace(BlockPos base, double dx, double dz, int level) {
+        Direction toward = Direction.getNearest(dx, 0, dz);
+        if (toward.getAxis().isHorizontal() && (Math.abs(dx) > 0.5 || Math.abs(dz) > 0.5)
+                && isPassable(new BlockPos(base.getX() + toward.getStepX(), level, base.getZ() + toward.getStepZ()))) {
+            return toward;
+        }
+        for (Direction candidate : Direction.Plane.HORIZONTAL) {
+            if (isPassable(new BlockPos(base.getX() + candidate.getStepX(), level, base.getZ() + candidate.getStepZ()))) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     private void adoptColumn(BlockPos base, Direction chosen) {
@@ -260,6 +300,12 @@ public class RedPandaTreeClimbGoal extends Goal {
 
         panda.setClimbColumn(bambooColumn ? column : null);
         panda.setSitting(false);
+
+        if (spawnCling) {
+            beginSpawnCling();
+            return;
+        }
+
         panda.getNavigation().moveTo(
                 columnCx + face.getStepX() * 0.9,
                 column.getY(),
@@ -436,6 +482,29 @@ public class RedPandaTreeClimbGoal extends Goal {
         panda.level().playSound(null, panda.getX(), panda.getY(), panda.getZ(),
                 SoundEvents.WOOD_STEP, SoundSource.NEUTRAL, 0.55f,
                 (float) OWUtils.generateRandomInterval(1.3, 1.6));
+    }
+
+    private void beginSpawnCling() {
+        spawnCling = false;
+        panda.getNavigation().stop();
+        panda.noPhysics = true;
+        panda.setNoGravity(true);
+        panda.setTreeClimbing(true);
+        panda.setTreeLeanTarget(1f);
+        panda.setTreeFlipTarget(0f);
+        panda.setClimbPace(ascendPace());
+
+        climbY = Math.min(panda.getY(), climbCeiling);
+        float yaw = face.getOpposite().toYRot();
+        panda.setYRot(yaw);
+        panda.yRotO = yaw;
+        panda.yBodyRot = yaw;
+        panda.yBodyRotO = yaw;
+        panda.setYHeadRot(yaw);
+        applyClimbPosition(climbY);
+
+        phase = Phase.ASCEND;
+        phaseTicks = 0;
     }
 
     private void tickAttach() {
@@ -1067,7 +1136,7 @@ public class RedPandaTreeClimbGoal extends Goal {
         return Mth.atan2(direction.getStepZ(), direction.getStepX());
     }
 
-    private static boolean isTrunkBlock(BlockState state) {
+    public static boolean isTrunkBlock(BlockState state) {
         if (state.is(Blocks.BAMBOO)) return true;
         if (!state.is(BlockTags.LOGS)) return false;
         return !state.hasProperty(RotatedPillarBlock.AXIS)
