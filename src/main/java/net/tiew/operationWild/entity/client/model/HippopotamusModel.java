@@ -18,6 +18,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.client.animation.HippopotamusAnimations;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboModel<T> implements OWFlagModel {
@@ -201,9 +203,9 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
     @Override
     protected float comboSpeed(int index) {
         return switch (index) {
-            case 1 -> 0.9f;
-            case 2 -> 0.99f;
-            case 3 -> 1.125f;
+            case 1 -> 0.85f;
+            case 2 -> 0.85f;
+            case 3 -> 0.75f;
             default -> 1.0f;
         };
     }
@@ -299,7 +301,9 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
         animateCombos(hippo, ageInTicks, COMBO_ANIMATION_SPEED);
 
         if (hippo.furyRoarAnimationState.isStarted()) {
-            this.animate(hippo.furyRoarAnimationState, HippopotamusAnimations.FURY_ROAR, ageInTicks, 1.0f);
+            this.animate(hippo.furyRoarAnimationState,
+                    hippo.isFuryAquatic() ? HippopotamusAnimations.FURY_ROAR_WATER : HippopotamusAnimations.FURY_ROAR,
+                    ageInTicks, 1.0f);
         }
 
         float furyPoseWeight = furyPoseWeight(hippo, pt) * stanceWeight;
@@ -435,6 +439,27 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
 
         hippo.setBodyZRot((float) Math.toDegrees(this.ALL2.zRot + this.ALL.zRot + this.body.zRot));
         hippo.setBodyXRot((float) -Math.toDegrees(this.ALL2.xRot + this.ALL.xRot + this.body.xRot));
+        hippo.setBodyYRot((float) Math.toDegrees(this.ALL.yRot + this.body.yRot));
+
+        PoseStack current = new PoseStack();
+        current.translate(this.ALL2.x / 16f, this.ALL2.y / 16f, this.ALL2.z / 16f);
+        this.ALL.translateAndRotate(current);
+        this.body.translateAndRotate(current);
+
+        PoseStack rest = new PoseStack();
+        rest.translate(this.ALL2.x / 16f, this.ALL2.y / 16f, this.ALL2.z / 16f);
+        applyInitialPose(rest, this.ALL);
+        applyInitialPose(rest, this.body);
+
+        hippo.bodyAnimMotion = new Matrix4f(current.last().pose()).mul(new Matrix4f(rest.last().pose()).invert());
+    }
+
+    private static void applyInitialPose(PoseStack poseStack, ModelPart part) {
+        PartPose pose = part.getInitialPose();
+        poseStack.translate(pose.x / 16f, pose.y / 16f, pose.z / 16f);
+        if (pose.xRot != 0f || pose.yRot != 0f || pose.zRot != 0f) {
+            poseStack.mulPose(new Quaternionf().rotationZYX(pose.zRot, pose.yRot, pose.xRot));
+        }
     }
 
     @Override

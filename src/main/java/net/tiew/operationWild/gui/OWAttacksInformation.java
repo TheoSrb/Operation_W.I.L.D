@@ -364,6 +364,7 @@ public class OWAttacksInformation {
                                 val((int) (OWAttacksConstants.Hippopotamus.FURY_DAMAGE_BONUS * 100)),
                                 val((int) (OWAttacksConstants.Hippopotamus.FURY_GRUDGE_PER_HIT * 100)),
                                 val((int) (OWAttacksConstants.Hippopotamus.FURY_DAMAGE_REDUCTION * 100)),
+                                val((int) (OWAttacksConstants.Hippopotamus.FURY_WATER_SPEED_BONUS * 100)),
                                 val(OWAttacksConstants.Hippopotamus.FURY_COOLDOWN_TICKS / 20))
                 ),
 

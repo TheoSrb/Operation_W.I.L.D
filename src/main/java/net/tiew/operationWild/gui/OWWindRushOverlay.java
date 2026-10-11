@@ -30,22 +30,18 @@ public final class OWWindRushOverlay {
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
-        Minecraft mc = Minecraft.getInstance();
-        float step = isMountAtFullCharge(mc) ? FADE_PER_TICK : -FADE_PER_TICK;
-        intensity = Mth.clamp(intensity + step, 0f, 1f);
+        float target = windRushTarget(Minecraft.getInstance());
+        intensity = Mth.clamp(intensity + Mth.clamp(target - intensity, -FADE_PER_TICK, FADE_PER_TICK), 0f, 1f);
     }
 
     public static float rushIntensity() {
         return intensity;
     }
 
-    public static boolean isMountAtFullCharge(Minecraft mc) {
-        if (mc.player == null) return false;
-        if (!(mc.player.getRootVehicle() instanceof OWEntity mount)) return false;
-        if (!mount.canIncreasesSpeedDuringSprint()) return false;
-        if (mount.getPassengers().indexOf(mc.player) != 0) return false;
-
-        return mount.isRunning() && mount.accelerationIsAtMax();
+    private static float windRushTarget(Minecraft mc) {
+        if (mc.player == null) return 0f;
+        if (!(mc.player.getRootVehicle() instanceof OWEntity mount)) return 0f;
+        return Mth.clamp(mount.windRushTarget(mc.player), 0f, 1f);
     }
 
     public static void render(GuiGraphics g) {

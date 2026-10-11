@@ -109,7 +109,7 @@ public class OWAttacksOverlay {
             g.blit(TEXTURE, baseX, baseY, comboTexX, normalTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
 
             if (entity.attackTimer >= 1) {
-                int comboTimeMax = OWAttacksHandler.getComboMaxTimer(entityClass);
+                int comboTimeMax = entity.comboCardMaxTimer();
                 int coloredH = Math.min(CARD_SIZE, (int)((float) CARD_SIZE / comboTimeMax * entity.attackTimer));
                 int grayH    = CARD_SIZE - coloredH;
 
@@ -280,10 +280,6 @@ public class OWAttacksOverlay {
             boolean isHealOrbBlocked = attack.getId() == OWAttacksHandler.HEAL_SNACK_ID
                     && carriedOnShoulder && OWAttackLogic.isHealOrbBlocked(player);
 
-            boolean isRiverFuryBlockedInWater = attack.getId() == OWAttacksHandler.RIVER_FURY_ID
-                    && entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity furyHippo
-                    && furyHippo.isInWater() && furyHippo.getFuryTick() <= 0;
-
             boolean isClanCall = attack.getId() == OWAttacksHandler.CLAN_CALL_ID
                     && entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
             int callableLionesses = isClanCall
@@ -291,7 +287,7 @@ public class OWAttacksOverlay {
                     : 0;
             boolean isClanCallEmpty = isClanCall && callableLionesses <= 0 && !isCharging;
 
-            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isRiverFuryBlockedInWater || isClanCallEmpty) {
+            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;

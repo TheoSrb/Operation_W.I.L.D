@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.tiew.operationWild.client.HippopotamusRiderBalance;
 import net.tiew.operationWild.entity.misc.SeaBugEntity;
 import net.tiew.operationWild.item.OWItems;
 import org.spongepowered.asm.mixin.Mixin;
@@ -73,5 +74,7 @@ public class PlayerModelRotationMixin {
                 model.rightPants.z = 0.1f;
             }
         }
+
+        HippopotamusRiderBalance.applyPose(model, renderedPlayer, p_103398_);
     }
 }

@@ -52,6 +52,8 @@ public class OWFollowOwnerGoal extends Goal {
             return false;
         } else if (this.tamable.unableToMoveToOwner()) {
             return false;
+        } else if (!this.tamable.canFollowOwner($$0)) {
+            return false;
         } else if (this.tamable.distanceToSqr($$0) < (double)(this.startDistance * this.startDistance)) {
             return false;
         } else {
@@ -68,6 +70,8 @@ public class OWFollowOwnerGoal extends Goal {
         } else if (this.navigation().isDone()) {
             return false;
         } else if (this.tamable.unableToMoveToOwner()) {
+            return false;
+        } else if (!this.tamable.canFollowOwner(this.owner)) {
             return false;
         } else {
             return !(this.tamable.distanceToSqr(this.owner) <= (double)(this.stopDistance * this.stopDistance));

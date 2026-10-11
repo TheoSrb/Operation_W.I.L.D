@@ -665,7 +665,8 @@ public class OWAttacksConstants {
         public static final float ROLL_STOP_GLIDE = 0.93f;
         public static final float ROLL_RADIUS_BLOCKS = 0.75f;
         public static final float ROLL_SEAT_LIFT = -0.22f;
-        public static final float ROLL_SEAT_SPREAD = 0.35f;
+        public static final float ROLL_SEAT_SPREAD = 0.58f;
+        public static final float ROLL_STAND_LIFT = 0.7f;
 
         public static final double ROLL_CRUSH_MIN_SPEED = 0.10;
         public static final float ROLL_CRUSH_DAMAGE_RATIO = 0.72f;
@@ -685,6 +686,11 @@ public class OWAttacksConstants {
         public static final float ROLL_BOUNCE_RECOIL_SPEED = 0.32f;
         public static final int ROLL_DIZZY_TICKS = 40;
 
+        public static final double ROLL_BAMBOO_REACH = 1.0;
+        public static final double ROLL_BAMBOO_SPEED_LOOKAHEAD = 4.0;
+        public static final double ROLL_BAMBOO_SIDE_MARGIN = 0.25;
+        public static final int ROLL_BAMBOO_MAX_STALK = 24;
+
         public static final int FURY_KILLS_REQUIRED = 5;
         public static final int FURY_WINDUP_TICKS = 25;
         public static final int FURY_SHOCKWAVE_TICK = 17;
@@ -698,6 +704,7 @@ public class OWAttacksConstants {
         public static final float FURY_GRUDGE_MAX = 0.25f;
         public static final float FURY_DAMAGE_REDUCTION = 0.30f;
         public static final float FURY_SPEED_FACTOR = 1.10f;
+        public static final float FURY_WATER_SPEED_BONUS = 0.50f;
         public static final double FURY_SHOCKWAVE_RADIUS = 5.0;
         public static final double FURY_SHOCKWAVE_PUSH = 0.9;
         public static final int FURY_SHOCKWAVE_SLOW_TICKS = 40;

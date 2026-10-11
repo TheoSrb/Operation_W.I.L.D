@@ -154,7 +154,7 @@ public class OWEntityHud {
             case "KangarooEntity": return 12;
             case "RedPandaEntity": return 13;
             case "GorillaEntity": return 14;
-            case "HippopotamusEntity": return 6;
+            case "HippopotamusEntity": return 15;
             default: return 0;
         }
     }
@@ -229,6 +229,8 @@ public class OWEntityHud {
             return new EntityIconData(211, 229, 21, 27, -(21 / 2), -18);
         } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity) {
             return new EntityIconData(239, 169, 17, 17, -(17 / 2), -8);
+        } else if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity) {
+            return new EntityIconData(188, 237, 23, 19, -(23 / 2), -10);
         } else if (entity instanceof ElephantEntity) {
             // Vignette la plus large du lot (31 px) : elle déborde des deux côtés de l'ancrage, d'où
             // un décalage horizontal deux fois plus grand que celui du kodiak.

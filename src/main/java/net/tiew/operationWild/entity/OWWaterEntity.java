@@ -8,8 +8,10 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
@@ -19,6 +21,7 @@ import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.core.OWDamageSources;
 import net.tiew.operationWild.event.ClientEvents;
@@ -33,6 +36,11 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
 
     private static final EntityDataAccessor<Float> TARGET_PITCH =
             SynchedEntityData.defineId(OWWaterEntity.class, EntityDataSerializers.FLOAT);
+
+    private static final double OWNER_TELEPORT_DISTANCE = 24.0;
+    private static final int OWNER_TELEPORT_ATTEMPTS = 16;
+    private static final int OWNER_TELEPORT_SPREAD = 6;
+    private static final int OWNER_TELEPORT_DEPTH = 4;
 
     public float damageTimer = 0;
     public boolean firstTimeToDeep = true;
@@ -100,6 +108,53 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
     protected float riddenSpeedResponse(boolean accelerating) {
         if (!this.isInWater()) return super.riddenSpeedResponse(accelerating);
         return accelerating ? RIDDEN_SWIM_ACCEL_RESPONSE : RIDDEN_SWIM_BRAKE_RESPONSE;
+    }
+
+    @Override
+    public boolean canFollowOwner(LivingEntity owner) {
+        return this.isInWater() && isAtSea(owner);
+    }
+
+    @Override
+    public boolean shouldTryTeleportToOwner() {
+        LivingEntity owner = this.getOwner();
+        return owner != null && isAtSea(owner)
+                && this.distanceToSqr(owner) >= OWNER_TELEPORT_DISTANCE * OWNER_TELEPORT_DISTANCE;
+    }
+
+    @Override
+    public void tryToTeleportToOwner() {
+        LivingEntity owner = this.getOwner();
+        if (owner == null || !isAtSea(owner)) return;
+
+        BlockPos center = owner.getRootVehicle().blockPosition();
+        for (int attempt = 0; attempt < OWNER_TELEPORT_ATTEMPTS; attempt++) {
+            int dx = this.random.nextIntBetweenInclusive(-OWNER_TELEPORT_SPREAD, OWNER_TELEPORT_SPREAD);
+            int dz = this.random.nextIntBetweenInclusive(-OWNER_TELEPORT_SPREAD, OWNER_TELEPORT_SPREAD);
+            if (Math.abs(dx) < 2 && Math.abs(dz) < 2) continue;
+
+            BlockPos spot = center.offset(dx, this.random.nextIntBetweenInclusive(-OWNER_TELEPORT_DEPTH, 0), dz);
+            if (!isSubmergedSpot(spot)) continue;
+
+            this.moveTo(spot.getX() + 0.5, spot.getY(), spot.getZ() + 0.5, this.getYRot(), this.getXRot());
+            this.getNavigation().stop();
+            return;
+        }
+    }
+
+    private boolean isAtSea(LivingEntity owner) {
+        Entity carrier = owner.getRootVehicle();
+        BlockPos pos = carrier.blockPosition();
+        return carrier.isInWater()
+                || this.level().getFluidState(pos).is(FluidTags.WATER)
+                || this.level().getFluidState(pos.below()).is(FluidTags.WATER);
+    }
+
+    private boolean isSubmergedSpot(BlockPos feet) {
+        AABB body = this.getDimensions(this.getPose()).makeBoundingBox(feet.getX() + 0.5, feet.getY(), feet.getZ() + 0.5);
+        if (!this.level().noCollision(this, body)) return false;
+        return BlockPos.betweenClosedStream(body.deflate(1.0E-3))
+                .allMatch(pos -> this.level().getFluidState(pos).is(FluidTags.WATER));
     }
 
     @Override

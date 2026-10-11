@@ -1457,6 +1457,11 @@ public class ClientEvents {
             poseStack.pushPose();
             poseStack.mulPose(riderBodyRotation(player, owVehicle, event.getPartialTick()));
         }
+
+        if (owVehicle instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo) {
+            net.tiew.operationWild.client.HippopotamusRiderBalance.steadyHead(player, hippo, event.getPartialTick());
+            net.tiew.operationWild.client.HippopotamusRiderBalance.applyBodySway(poseStack, player, hippo, event.getPartialTick());
+        }
     }
 
     @SubscribeEvent
@@ -1629,6 +1634,7 @@ public class ClientEvents {
             outerYaw = bodyYaw;
             zRot = -hippo.getBodyZRot();
             xRot = -hippo.getBodyXRot();
+            innerYaw = -hippo.getBodyYRot();
         } else if (vehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lion) {
             outerYaw = bodyYaw;
             zRot = -lion.getBodyZRot();

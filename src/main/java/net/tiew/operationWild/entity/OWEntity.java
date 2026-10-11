@@ -606,6 +606,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this instanceof OWWaterEntity ? 5 : 20;
     }
 
+    public boolean canFollowOwner(LivingEntity owner) {
+        return true;
+    }
+
     protected void registerGoals() {
         this.registerBehaviorGoals(this);
 
@@ -2315,6 +2319,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     private boolean wasInWaterWhileRidden = false;
 
+    private long saddleShieldDisabledUntil = 0L;
+
     public boolean hasReachedEnergyLimit() {
         return hasReachedEnergyLimit;
     }
@@ -3128,6 +3134,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.getAcceleration() >= 100;
     }
 
+    public float windRushTarget(Player rider) {
+        if (!canIncreasesSpeedDuringSprint()) return 0f;
+        if (this.getPassengers().indexOf(rider) != 0) return 0f;
+        return this.isRunning() && accelerationIsAtMax() ? 1f : 0f;
+    }
+
     public boolean keepsAccelerationDuringCombo() {
         return false;
     }
@@ -3729,6 +3741,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public int getComboPauseDelay() {
         return 2;
+    }
+
+    public int comboCardMaxTimer() {
+        return net.tiew.operationWild.entity.attacks.OWAttacksHandler.getComboMaxTimer(this.getClass());
     }
 
     private Item getRandomItemFromTag(TagKey<Item> tag) {
@@ -4592,6 +4608,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public boolean isSaddled() {
         return this.entityData.get(SADDLED);
+    }
+
+    public java.util.List<OWSaddleShield> saddleShields() {
+        return java.util.List.of();
+    }
+
+    public boolean isSaddleShieldDisabled() {
+        return this.level().getGameTime() < saddleShieldDisabledUntil;
+    }
+
+    public void disableSaddleShield(int ticks) {
+        saddleShieldDisabledUntil = this.level().getGameTime() + ticks;
     }
 
     public void setFed(boolean isFed) {

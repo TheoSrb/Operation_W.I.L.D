@@ -38,6 +38,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -46,9 +47,11 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.advancements.OWAdvancements;
+import net.tiew.operationWild.core.OWPlacedBlocks;
 import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.effect.OWEffects;
@@ -69,6 +72,7 @@ import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.networking.packets.to_client.HippopotamusCrushPacket;
 import net.tiew.operationWild.networking.packets.to_client.OWAttackRejectedPacket;
 import net.tiew.operationWild.sound.OWSounds;
+import net.tiew.operationWild.team.OWArenaManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -103,6 +107,25 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private static final float CAMERA_TILT_FOLLOW_LAND = 0.6f;
     private static final float FULL_TURN = (float) (Math.PI * 2.0);
     private static final float SWIM_DEPTH = 0.9f;
+    private static final int COMBO_TIME_MAX = 22;
+    private static final int COMBO_TIME_TO_HIT = 12;
+    private static final int HEADBUTT_TIME_MAX = 24;
+    private static final int HEADBUTT_TIME_TO_HIT = 8;
+    private static final int HEADBUTT_RECOVERY = 13;
+    private static final float MODEL_GROUND_BLOCKS = 1.5f;
+    private static final float BITE_KNOCKBACK = 0.3f;
+    private static final float HEADBUTT_KNOCKBACK = 3.5f;
+    private static final double HEADBUTT_LIFT = 0.42;
+    private static final double RIVERBED_SINK_SPEED = 0.08;
+    private static final double RIVERBED_RISE_SPEED = 0.12;
+    private static final double RIVERBED_CLIMB_SPEED = 0.22;
+    private static final double RIVERBED_BANK_MAX_HEIGHT = 2.0;
+    private static final float RIVERBED_SURFACE_FRACTION = 0.75f;
+    private static final float RIVERBED_SPEED_FACTOR = 0.55f;
+    private static final float RIVERBED_SPEED_RESPONSE = 0.12f;
+    private static final float RIDER_STRIDE_BLOCKS = 3.2f;
+    private static final float RIDER_FULL_PACE_SPEED = 0.3f;
+    private static final float RIDER_PACE_RESPONSE = 0.12f;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.BOOLEAN);
@@ -113,6 +136,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private static final EntityDataAccessor<Integer> ROLL_STAGGER_LENGTH = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> FURY_TICK = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> FURY_GRUDGE = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> FURY_AQUATIC = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> RIVER_SURGE = SynchedEntityData.defineId(HippopotamusEntity.class, EntityDataSerializers.INT);
 
     // ==================================================
@@ -130,6 +154,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     // ==================================================
 
     public volatile float bodyAnimY = 0f;
+    public volatile org.joml.Matrix4f bodyAnimMotion = null;
 
     private float rollMomentum = 0f;
     private boolean rollMomentumActive = false;
@@ -143,6 +168,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private final Map<Integer, Integer> crushImmunity = new HashMap<>();
     private int rumbleCooldown = 0;
     private int waterTicks = 0;
+    private float riverBedBlend = 0f;
 
     private double visX;
     private double visZ;
@@ -157,6 +183,9 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private float dizzyBlend, dizzyBlendO;
     private float swimBlend, swimBlendO;
     private float runBlend, runBlendO;
+    private float riderStepPhase, riderStepPhaseO;
+    private float riderPace, riderPaceO;
+    private float riderPaceTime, riderPaceTimeO;
 
     // ==================================================
     //            INTELLIGENCE ARTIFICIELLE
@@ -169,7 +198,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 50.0)
-                .add(Attributes.MOVEMENT_SPEED, 0.165D)
+                .add(Attributes.MOVEMENT_SPEED, 0.17D)
                 .add(Attributes.FOLLOW_RANGE, 24.0D)
                 .add(Attributes.ATTACK_DAMAGE, 11.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.85D)
@@ -202,6 +231,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         builder.define(ROLL_STAGGER_LENGTH, OWAttacksConstants.Hippopotamus.ROLL_BOUNCE_TICKS);
         builder.define(FURY_TICK, 0);
         builder.define(FURY_GRUDGE, 0f);
+        builder.define(FURY_AQUATIC, false);
         builder.define(RIVER_SURGE, 0);
     }
 
@@ -271,7 +301,9 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
     @Override
     public float vehicleWaterSpeedDivider() {
-        return 0.93f;
+        float divider = 0.93f / Mth.lerp(riverBedBlend, 1f, RIVERBED_SPEED_FACTOR);
+        if (isRiverFuryActive()) divider /= 1f + OWAttacksConstants.Hippopotamus.FURY_WATER_SPEED_BONUS;
+        return divider;
     }
 
     @Override
@@ -347,20 +379,60 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
     @Override
     protected float bankMaxAngle() {
-        if (this.isInWater()) return 45f;
+        if (this.isInWater() && !walksRiverBed()) return 45f;
         return isRolling() ? 24f : 18f;
     }
 
     @Override
     protected float bankReferenceYawRate(boolean ridden) {
         if (isRolling()) return 1.0f;
-        if (this.isInWater()) return super.bankReferenceYawRate(ridden);
+        if (this.isInWater() && !walksRiverBed()) return super.bankReferenceYawRate(ridden);
         return ridden ? 7.0f : 2.5f;
     }
 
     @Override
     protected float pitchMaxAngle() {
-        return this.isInWater() ? super.pitchMaxAngle() : 0f;
+        return this.isInWater() && !walksRiverBed() ? super.pitchMaxAngle() : 0f;
+    }
+
+    public boolean walksRiverBed() {
+        return this.isInWater() && this.getControllingPassenger() instanceof Player && !isRolling();
+    }
+
+    public boolean isOnRiverBed() {
+        return walksRiverBed() && this.onGround();
+    }
+
+    @Override
+    public Vec2 getRiddenRotation(LivingEntity rider) {
+        Vec2 rotation = super.getRiddenRotation(rider);
+        return walksRiverBed() ? new Vec2(0f, rotation.y) : rotation;
+    }
+
+    @Override
+    protected double riddenBuoyancy() {
+        if (!walksRiverBed()) return super.riddenBuoyancy();
+        if (canClimbBank()) return RIVERBED_CLIMB_SPEED;
+        return -RIVERBED_SINK_SPEED;
+    }
+
+    @Override
+    protected double riddenAscendSpeed() {
+        if (!walksRiverBed()) return super.riddenAscendSpeed();
+        return breaksSurface() ? RIVERBED_SINK_SPEED : RIVERBED_SINK_SPEED + RIVERBED_RISE_SPEED;
+    }
+
+    private boolean breaksSurface() {
+        return this.getFluidHeight(FluidTags.WATER) < this.getBbHeight() * RIVERBED_SURFACE_FRACTION;
+    }
+
+    private boolean canClimbBank() {
+        if (!this.horizontalCollision) return false;
+        if (!(this.getControllingPassenger() instanceof Player rider) || rider.zza <= 0f) return false;
+
+        Vec3 forward = Vec3.directionFromRotation(0f, this.getYRot()).scale(0.5);
+        AABB above = this.getBoundingBox().move(forward.x, RIVERBED_BANK_MAX_HEIGHT, forward.z);
+        return this.level().noCollision(this, above);
     }
 
     @Override
@@ -469,8 +541,10 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private void playStepSoundFromAnimation(float pitchMod) {
         if (!this.level().isClientSide()) return;
         if (!this.onGround()) return;
-        if (this.isInWater()) return;
         if (isRolling()) return;
+
+        boolean riverBed = this.isInWater();
+        if (riverBed && !walksRiverBed()) return;
 
         if (this.getDeltaMovement().horizontalDistanceSqr() < 0.0001) return;
 
@@ -491,10 +565,30 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
                     this.getZ(),
                     soundtype.getStepSound(),
                     this.getSoundSource(),
-                    soundtype.getVolume() * 0.18F,
-                    soundtype.getPitch() * pitchMod,
+                    soundtype.getVolume() * (riverBed ? 0.1F : 0.18F),
+                    soundtype.getPitch() * pitchMod * (riverBed ? 0.6F : 1.0F),
                     false
             );
+        }
+
+        if (riverBed) stirRiverBed(blockState);
+    }
+
+    private void stirRiverBed(BlockState ground) {
+        double spread = this.getBbWidth() * 0.5;
+        for (int i = 0; i < 10; i++) {
+            this.level().addParticle(new BlockParticleOption(ParticleTypes.BLOCK, ground),
+                    this.getX() + (this.random.nextDouble() - 0.5) * spread * 2.0,
+                    this.getY() + 0.1,
+                    this.getZ() + (this.random.nextDouble() - 0.5) * spread * 2.0,
+                    0.0, 0.04, 0.0);
+        }
+        for (int i = 0; i < 4; i++) {
+            this.level().addParticle(ParticleTypes.BUBBLE,
+                    this.getX() + (this.random.nextDouble() - 0.5) * spread,
+                    this.getY() + 0.3,
+                    this.getZ() + (this.random.nextDouble() - 0.5) * spread,
+                    0.0, 0.08, 0.0);
         }
     }
 
@@ -514,13 +608,22 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public void tick() {
         super.tick();
 
-        createCombo(22, 13, actualAttackNumber == 1 ? SoundEvents.RAVAGER_ATTACK : SoundEvents.EVOKER_FANGS_ATTACK,
-                3.2, 2.6, 2.3, actualAttackNumber == 2, actualAttackNumber == 2 ? 2.5f : 1.2f);
+        boolean headbutt = getComboAttack() == 3;
+        createCombo(headbutt ? HEADBUTT_TIME_MAX : COMBO_TIME_MAX, headbutt ? HEADBUTT_TIME_TO_HIT : COMBO_TIME_TO_HIT,
+                headbutt ? SoundEvents.GOAT_RAM_IMPACT : SoundEvents.EVOKER_FANGS_ATTACK,
+                3.2, 2.6, 2.3, headbutt, headbutt ? HEADBUTT_KNOCKBACK : BITE_KNOCKBACK);
+
+        if (isPauseCombo() && headbutt) {
+            resetCombo(0);
+            actualAttackNumber = 0;
+        }
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.isVehicle() && this.isTame() && !this.isSitting()) {
             setMadByRider(!this.isRolling() && (this.isCombo() || this.isRiverFuryActive()));
         }
+
+        riverBedBlend = approach(riverBedBlend, isOnRiverBed() ? 1f : 0f, RIVERBED_SPEED_RESPONSE);
 
         if (!this.level().isClientSide() && !this.isVehicle()) {
             if (this.getState() == 2) this.setRunning(true);
@@ -543,13 +646,23 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     }
 
     @Override
+    public int getComboPauseDelay() {
+        return getComboAttack() == 3 ? HEADBUTT_RECOVERY : super.getComboPauseDelay();
+    }
+
+    @Override
+    public int comboCardMaxTimer() {
+        return getComboAttack() == 3 ? HEADBUTT_TIME_TO_HIT + HEADBUTT_RECOVERY : super.comboCardMaxTimer();
+    }
+
+    @Override
     public void hurtAfterCombo(LivingEntity entity, int comboAttack) {
         if (this.level().isClientSide() || entity == null) return;
         if (entity == this.getControllingPassenger()) return;
         if (entity instanceof Player player && player.isCreative()) return;
 
         if (comboAttack == 3) {
-            entity.push(0, 0.32, 0);
+            entity.push(0, HEADBUTT_LIFT, 0);
             entity.hurtMarked = true;
         }
 
@@ -618,7 +731,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
     @Override
     public boolean canUseUltimate() {
-        return super.canUseUltimate() && !isRolling() && !isRollStaggered() && !this.isInWater();
+        return super.canUseUltimate() && !isRolling() && !isRollStaggered();
     }
 
     @Override
@@ -809,12 +922,14 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
             }
         }
 
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+
+        smashBamboo(serverLevel);
+
         if (recentRollSpeed >= OWAttacksConstants.Hippopotamus.ROLL_WALL_BOUNCE_MIN_SPEED && isWallAhead()) {
             bounceOffObstacle(OWAttacksConstants.Hippopotamus.ROLL_BOUNCE_TICKS);
             return;
         }
-
-        if (!(this.level() instanceof ServerLevel serverLevel)) return;
 
         tickRollRumble(serverLevel);
 
@@ -831,6 +946,42 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         AABB probe = new AABB(bounds.minX + inset, minY, bounds.minZ + inset, bounds.maxX - inset, bounds.maxY, bounds.maxZ - inset)
                 .move(forward.x, 0, forward.z);
         return this.level().getBlockCollisions(this, probe).iterator().hasNext();
+    }
+
+    private void smashBamboo(ServerLevel serverLevel) {
+        if (OWArenaManager.isArena(serverLevel)) return;
+        if (!serverLevel.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) return;
+
+        double reach = OWAttacksConstants.Hippopotamus.ROLL_BAMBOO_REACH
+                + recentRollSpeed * OWAttacksConstants.Hippopotamus.ROLL_BAMBOO_SPEED_LOOKAHEAD;
+        Vec3 forward = Vec3.directionFromRotation(0f, this.getYRot()).scale(reach);
+        double margin = OWAttacksConstants.Hippopotamus.ROLL_BAMBOO_SIDE_MARGIN;
+        AABB zone = this.getBoundingBox().inflate(margin, 0.0, margin).expandTowards(forward.x, 0.0, forward.z);
+
+        BlockPos.betweenClosedStream(zone).forEach(pos -> {
+            if (isBamboo(serverLevel.getBlockState(pos))) fellBambooStalk(serverLevel, pos.immutable());
+        });
+    }
+
+    private void fellBambooStalk(ServerLevel serverLevel, BlockPos hit) {
+        int maxStalk = OWAttacksConstants.Hippopotamus.ROLL_BAMBOO_MAX_STALK;
+
+        int bottom = hit.getY();
+        while (bottom > hit.getY() - maxStalk && isBamboo(serverLevel.getBlockState(hit.atY(bottom - 1)))) bottom--;
+
+        int top = hit.getY();
+        while (top < hit.getY() + maxStalk && isBamboo(serverLevel.getBlockState(hit.atY(top + 1)))) top++;
+
+        OWPlacedBlocks placed = OWPlacedBlocks.get(serverLevel);
+        for (int y = top; y >= bottom; y--) {
+            BlockPos pos = hit.atY(y);
+            serverLevel.destroyBlock(pos, true, this);
+            placed.forget(pos);
+        }
+    }
+
+    private static boolean isBamboo(BlockState state) {
+        return state.is(Blocks.BAMBOO) || state.is(Blocks.BAMBOO_SAPLING);
     }
 
     private void tickRollRumble(ServerLevel serverLevel) {
@@ -950,7 +1101,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         if (this.level().isClientSide()) return false;
         if (getFuryTick() > 0) return false;
         if (getUltimateKillCount() < OWAttacksConstants.Hippopotamus.FURY_KILLS_REQUIRED) return false;
-        if (isRolling() || isRollStaggered() || this.isInWater()) return false;
+        if (isRolling() || isRollStaggered()) return false;
 
         float cost = OWAttacksConstants.Hippopotamus.FURY_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
@@ -965,6 +1116,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         endSlide();
 
         this.entityData.set(FURY_GRUDGE, 0f);
+        this.entityData.set(FURY_AQUATIC, this.isInWater());
         this.entityData.set(FURY_TICK, furyTotalTicks());
         if (!(this.getControllingPassenger() instanceof Player)) {
             this.setDeltaMovement(0, this.getDeltaMovement().y, 0);
@@ -973,6 +1125,10 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 SoundEvents.RAVAGER_ROAR, SoundSource.NEUTRAL, 3.0f, 0.7f);
+        if (isFuryAquatic()) {
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.NEUTRAL, 1.2f, 0.6f);
+        }
         return true;
     }
 
@@ -1045,6 +1201,11 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
                     OWAttacksConstants.Hippopotamus.FURY_SHOCKWAVE_SLOW_TICKS, 1));
         }
 
+        if (isFuryAquatic()) {
+            furyWaterBurst(serverLevel, radius);
+            return;
+        }
+
         BlockState below = this.getBlockStateOn();
         if (!below.isAir()) {
             for (int i = 0; i < 24; i++) {
@@ -1059,6 +1220,25 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
                 30, radius * 0.4, 0.1, radius * 0.4, 0.05);
         serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
                 SoundEvents.GENERIC_EXPLODE.value(), SoundSource.NEUTRAL, 0.7f, 0.55f);
+    }
+
+    private void furyWaterBurst(ServerLevel serverLevel, double radius) {
+        double midY = this.getY() + this.getBbHeight() * 0.5;
+        double topY = this.getY() + this.getBbHeight();
+
+        for (int i = 0; i < 24; i++) {
+            double angle = i * (Math.PI * 2.0 / 24.0);
+            double ringX = this.getX() + Math.cos(angle) * radius * 0.6;
+            double ringZ = this.getZ() + Math.sin(angle) * radius * 0.6;
+            serverLevel.sendParticles(ParticleTypes.BUBBLE, ringX, midY, ringZ, 6, 0.4, 0.4, 0.4, 0.15);
+            serverLevel.sendParticles(ParticleTypes.SPLASH, ringX, topY, ringZ, 6, 0.3, 0.1, 0.3, 0.3);
+        }
+        serverLevel.sendParticles(ParticleTypes.BUBBLE_COLUMN_UP, this.getX(), midY, this.getZ(),
+                40, this.getBbWidth() * 0.5, this.getBbHeight() * 0.4, this.getBbWidth() * 0.5, 0.1);
+        serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.PLAYER_SPLASH_HIGH_SPEED, SoundSource.NEUTRAL, 1.6f, 0.5f);
+        serverLevel.playSound(null, this.getX(), this.getY(), this.getZ(),
+                SoundEvents.BUBBLE_COLUMN_UPWARDS_INSIDE, SoundSource.NEUTRAL, 1.4f, 0.6f);
     }
 
     private void tickRiverSurge() {
@@ -1094,18 +1274,47 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         double scale = this.getScale();
 
         double forward = (driver ? DRIVER_SEAT_FORWARD : PASSENGER_SEAT_FORWARD) * scale * (1f - roll);
-        double side = OWAttacksConstants.Hippopotamus.ROLL_SEAT_SPREAD * scale * roll * (driver ? 1 : -1);
+        double side = rollSeatSide(passenger, roll);
         double pitch = Math.toRadians(this.getBodyXRot()) * (1f - roll);
         double tilt = (forward + SEAT_PIVOT_BACK * scale) * Math.sin(pitch);
 
         double seatY = getBaseRiderYOffset() + getRiderAnimYOffset() + tilt
-                + OWAttacksConstants.Hippopotamus.ROLL_SEAT_LIFT * scale * roll;
-        Vec3 seatOffset = new Vec3(side, 0, forward).yRot((float) Math.toRadians(-this.yBodyRot));
+                + OWAttacksConstants.Hippopotamus.ROLL_SEAT_LIFT * scale * roll
+                + OWAttacksConstants.Hippopotamus.ROLL_STAND_LIFT * roll;
+        Vec3 shift = bodyAnimShift(forward).scale(1f - roll);
+        Vec3 seatOffset = new Vec3(side + shift.x, 0, forward + shift.z).yRot((float) Math.toRadians(-this.yBodyRot));
 
         passenger.fallDistance = 0f;
         function.accept(passenger, this.getX() + seatOffset.x, this.getY() + seatY, this.getZ() + seatOffset.z);
 
         if (!driver && passenger instanceof LivingEntity living) living.yBodyRot = this.yBodyRot;
+    }
+
+    private Vec3 bodyAnimShift(double forward) {
+        org.joml.Matrix4f motion = this.bodyAnimMotion;
+        if (motion == null || !this.level().isClientSide()) return Vec3.ZERO;
+
+        float scale = this.getScale();
+        org.joml.Vector3f seat = new org.joml.Vector3f(0f,
+                (float) (MODEL_GROUND_BLOCKS - getBaseRiderYOffset() / scale),
+                (float) (-forward / scale));
+        org.joml.Vector3f moved = motion.transformPosition(new org.joml.Vector3f(seat));
+        return new Vec3((moved.x - seat.x) * scale, 0.0, -(moved.z - seat.z) * scale);
+    }
+
+    @Override
+    public float windRushTarget(Player rider) {
+        return isRolling() ? riderPace(1f) : 0f;
+    }
+
+    public boolean hasRollPartner() {
+        return this.getPassengers().size() > 1;
+    }
+
+    public double rollSeatSide(Entity passenger, float roll) {
+        if (!hasRollPartner()) return 0.0;
+        boolean driver = this.getPassengers().indexOf(passenger) == 0;
+        return OWAttacksConstants.Hippopotamus.ROLL_SEAT_SPREAD * this.getScale() * roll * (driver ? 1 : -1);
     }
 
     @Override
@@ -1165,6 +1374,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         float radius = OWAttacksConstants.Hippopotamus.ROLL_RADIUS_BLOCKS * this.getScale();
 
         tickRollVisuals(travelled, radius);
+        tickRiderGait(travelled);
 
         furyBlendO = furyBlend;
         float furyTarget = isRiverFuryActive() ? 1f : 0f;
@@ -1176,7 +1386,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         dizzyBlend = approach(dizzyBlend, dizzy ? 1f : 0f, dizzy ? 0.12f : 0.08f);
 
         swimBlendO = swimBlend;
-        boolean swimming = this.isInWater() && this.getFluidHeight(FluidTags.WATER) > SWIM_DEPTH;
+        boolean swimming = this.isInWater() && this.getFluidHeight(FluidTags.WATER) > SWIM_DEPTH && !isOnRiverBed();
         swimBlend = approach(swimBlend, swimming ? 1f : 0f, 0.1f);
 
         runBlendO = runBlend;
@@ -1184,7 +1394,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
         int elapsed = furyElapsed();
         if (visLastFuryElapsed >= 0 && visLastFuryElapsed < OWAttacksConstants.Hippopotamus.FURY_SHOCKWAVE_TICK
-                && elapsed >= OWAttacksConstants.Hippopotamus.FURY_SHOCKWAVE_TICK) {
+                && elapsed >= OWAttacksConstants.Hippopotamus.FURY_SHOCKWAVE_TICK && !isFuryAquatic()) {
             net.tiew.operationWild.event.ClientEvents.addGroundShake(this, false);
         }
         visLastFuryElapsed = elapsed;
@@ -1242,6 +1452,30 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         }
     }
 
+    private void tickRiderGait(float travelled) {
+        riderStepPhaseO = riderStepPhase;
+        riderPaceO = riderPace;
+        riderPaceTimeO = riderPaceTime;
+
+        if (rollBlend <= 0f && rollBlendO <= 0f) {
+            riderStepPhase = riderStepPhaseO = 0f;
+            riderPace = riderPaceO = 0f;
+            riderPaceTime = riderPaceTimeO = 0f;
+            return;
+        }
+
+        riderStepPhase += travelled / RIDER_STRIDE_BLOCKS * FULL_TURN;
+        float pace = Mth.clamp(Math.abs(travelled) / RIDER_FULL_PACE_SPEED, 0f, 1f);
+        riderPace = approach(riderPace, pace, RIDER_PACE_RESPONSE);
+        riderPaceTime += riderPace;
+
+        if (Math.abs(riderStepPhase) > FULL_TURN * 16f) {
+            float wrap = (float) Math.floor(riderStepPhase / FULL_TURN) * FULL_TURN;
+            riderStepPhase -= wrap;
+            riderStepPhaseO -= wrap;
+        }
+    }
+
     private static float approach(float value, float target, float step) {
         return value < target ? Math.min(value + step, target) : Math.max(value - step, target);
     }
@@ -1262,6 +1496,12 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public float swimBlend(float partialTick) { return Mth.lerp(partialTick, swimBlendO, swimBlend); }
 
     public float runBlend(float partialTick) { return Mth.lerp(partialTick, runBlendO, runBlend); }
+
+    public float riderStepPhase(float partialTick) { return Mth.lerp(partialTick, riderStepPhaseO, riderStepPhase); }
+
+    public float riderPace(float partialTick) { return Mth.lerp(partialTick, riderPaceO, riderPace); }
+
+    public float riderPaceTime(float partialTick) { return Mth.lerp(partialTick, riderPaceTimeO, riderPaceTime); }
 
     // ==================================================
     //                    ANIMATIONS
@@ -1303,9 +1543,9 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     }
 
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (29 / comboSpeedMultiplier));
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (26 / comboSpeedMultiplier));
-        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (30 / comboSpeedMultiplier));
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (31 / comboSpeedMultiplier));
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (31 / comboSpeedMultiplier));
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (29 / comboSpeedMultiplier));
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {
@@ -1401,6 +1641,8 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public boolean isRiverFuryActive() { return getFuryTick() > OWAttacksConstants.Hippopotamus.FURY_FADE_TICKS; }
 
     public float getFuryGrudge() { return this.entityData.get(FURY_GRUDGE); }
+
+    public boolean isFuryAquatic() { return this.entityData.get(FURY_AQUATIC); }
 
     public int getRiverSurge() { return this.entityData.get(RIVER_SURGE); }
 

@@ -54,6 +54,7 @@ import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.OWSaddleShield;
 import net.tiew.operationWild.entity.attacks.OWAttackIds;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.clan.LionClanData;
@@ -229,6 +230,15 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     @Override
     public int getEntityColor() {
         return ENTITY_COLOR;
+    }
+
+    private static final List<OWSaddleShield> SADDLE_SHIELDS = List.of(
+            OWSaddleShield.modelPanel(-5.75f, 7.5f, 3.5f, -1.5708f, -0.0835f, -1.5706f, -6.5f, -5.5f, -0.5f, 12f, 11f, 1f),
+            OWSaddleShield.modelPanel(5.75f, 7.5f, 3.5f, -1.5708f, 0.0835f, 1.5706f, -5.5f, -5.5f, -0.5f, 12f, 11f, 1f));
+
+    @Override
+    public List<OWSaddleShield> saddleShields() {
+        return SADDLE_SHIELDS;
     }
 
     @Override

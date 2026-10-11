@@ -55,6 +55,7 @@ import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.entity.behavior.KodiakBehaviorHandler;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
+import net.tiew.operationWild.entity.OWSaddleShield;
 import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
@@ -282,6 +283,15 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public int getEntityColor() {
         return ENTITY_COLOR;
+    }
+
+    private static final List<OWSaddleShield> SADDLE_SHIELDS = List.of(
+            OWSaddleShield.modelPanel(-12f, 3f, 10f, -1.6107f, 0.0948f, -1.5274f, -6f, -11f, 0f, 12f, 22f, 1f),
+            OWSaddleShield.modelPanel(12f, 3f, 10f, -1.6107f, -0.0948f, 1.5274f, -6f, -11f, 0f, 12f, 22f, 1f));
+
+    @Override
+    public List<OWSaddleShield> saddleShields() {
+        return SADDLE_SHIELDS;
     }
 
     @Override
