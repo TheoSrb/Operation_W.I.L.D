@@ -5,6 +5,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.tiew.operationWild.OperationWild;
@@ -85,5 +86,66 @@ public class OWBlockTagProvider extends BlockTagsProvider {
                 .add(OWBlocks.ANIMAL_CARCASS.get())
                 .add(OWBlocks.BEAR_TRAP.get());
 
+
+        tag(OWTags.Blocks.BEAST_PROOF)
+                .add(Blocks.REINFORCED_DEEPSLATE);
+        tag(OWTags.Blocks.BEAST_TOUGHNESS_SOFT)
+                .addTag(BlockTags.LEAVES)
+                .addTag(BlockTags.WOOL)
+                .addTag(BlockTags.ICE)
+                .addTag(Tags.Blocks.GLASS_BLOCKS)
+                .addTag(Tags.Blocks.GLASS_PANES)
+                .add(Blocks.HAY_BLOCK)
+                .add(Blocks.SNOW_BLOCK)
+                .add(Blocks.SPONGE)
+                .add(Blocks.WET_SPONGE)
+                .add(Blocks.MOSS_BLOCK);
+        tag(OWTags.Blocks.BEAST_TOUGHNESS_WOOD)
+                .addTag(BlockTags.PLANKS)
+                .addTag(BlockTags.LOGS)
+                .addTag(BlockTags.BAMBOO_BLOCKS)
+                .addTag(BlockTags.WOODEN_DOORS)
+                .addTag(BlockTags.WOODEN_TRAPDOORS)
+                .addTag(BlockTags.WOODEN_FENCES)
+                .addTag(BlockTags.FENCE_GATES)
+                .addTag(BlockTags.WOODEN_SLABS)
+                .addTag(BlockTags.WOODEN_STAIRS)
+                .add(Blocks.CHEST)
+                .add(Blocks.TRAPPED_CHEST)
+                .add(Blocks.BARREL)
+                .add(Blocks.CRAFTING_TABLE)
+                .add(Blocks.BOOKSHELF);
+        tag(OWTags.Blocks.BEAST_TOUGHNESS_STONE)
+                .addTag(BlockTags.BASE_STONE_OVERWORLD)
+                .addTag(BlockTags.BASE_STONE_NETHER)
+                .addTag(BlockTags.STONE_BRICKS)
+                .addTag(BlockTags.TERRACOTTA)
+                .addTag(BlockTags.WALLS)
+                .addTag(Tags.Blocks.COBBLESTONES)
+                .addTag(Tags.Blocks.SANDSTONE_BLOCKS)
+                .add(Blocks.BRICKS)
+                .add(Blocks.MUD_BRICKS)
+                .add(Blocks.SMOOTH_STONE);
+        tag(OWTags.Blocks.BEAST_TOUGHNESS_METAL)
+                .addTag(Tags.Blocks.ORES)
+                .addTag(Tags.Blocks.STORAGE_BLOCKS_IRON)
+                .addTag(Tags.Blocks.STORAGE_BLOCKS_RAW_IRON)
+                .addTag(Tags.Blocks.STORAGE_BLOCKS_GOLD)
+                .addTag(Tags.Blocks.STORAGE_BLOCKS_COPPER)
+                .addTag(BlockTags.ANVIL)
+                .add(Blocks.IRON_BARS)
+                .add(Blocks.IRON_DOOR)
+                .add(Blocks.IRON_TRAPDOOR)
+                .add(Blocks.CHAIN)
+                .add(Blocks.HOPPER)
+                .add(Blocks.CAULDRON)
+                .add(Blocks.BELL);
+        tag(OWTags.Blocks.BEAST_TOUGHNESS_OBSIDIAN)
+                .addTag(Tags.Blocks.STORAGE_BLOCKS_NETHERITE)
+                .add(Blocks.OBSIDIAN)
+                .add(Blocks.CRYING_OBSIDIAN)
+                .add(Blocks.ANCIENT_DEBRIS)
+                .add(Blocks.RESPAWN_ANCHOR)
+                .add(Blocks.ENDER_CHEST);
     }
 }

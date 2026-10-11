@@ -46,6 +46,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWTags;
@@ -322,6 +323,11 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     @Override
     public float sedatedFleeSpeed() {
         return 5f;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.STONE;
     }
 
     @Override

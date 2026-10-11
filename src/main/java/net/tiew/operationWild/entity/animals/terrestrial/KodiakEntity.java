@@ -11,6 +11,7 @@ import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.level.block.SoundType;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.particle.OWParticles;
@@ -312,6 +313,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     @Override
     public float sedatedFleeSpeed() {
         return 4.5f;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.STONE;
     }
 
     @Override

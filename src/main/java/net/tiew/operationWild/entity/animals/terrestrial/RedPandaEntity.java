@@ -51,6 +51,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWTags;
 import net.tiew.operationWild.core.OWUtils;
@@ -672,6 +673,11 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     @Override
     public float sedatedFleeSpeed() {
         return 2.8f;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.NONE;
     }
 
     @Override

@@ -47,6 +47,7 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWTags;
@@ -259,6 +260,11 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     @Override
     public float sedatedFleeSpeed() {
         return this.isMale() ? 5.5f : 6.5f;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.WOOD;
     }
 
     @Override

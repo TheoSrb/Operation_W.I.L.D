@@ -2,13 +2,9 @@ package net.tiew.operationWild.entity.goals.global;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
-import net.tiew.operationWild.entity.OWSemiWaterEntity;
-import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.taming.OWAggressiveTaming;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +15,6 @@ public class OWSedatedFleeGoal extends Goal {
     private static final int REPATH_INTERVAL = 30;
     private static final int ESCAPE_RADIUS = 16;
     private static final int ESCAPE_HEIGHT = 7;
-    private static final int SWIM_SAMPLES = 8;
     private static final float DROWSY_SLOWDOWN = 0.45f;
     private static final float STAGGER_BASE_CHANCE = 0.012f;
     private static final float STAGGER_DROWSY_CHANCE = 0.035f;
@@ -27,28 +22,36 @@ public class OWSedatedFleeGoal extends Goal {
     private static final int STAGGER_MAX_TICKS = 14;
     private static final float STAGGER_SPEED_FACTOR = 0.35f;
     private static final double STAGGER_SWAY = 0.12;
+    private static final int RETRY_DELAY = 10;
 
     private final OWEntity mob;
-    @Nullable
-    private Vec3 escape;
-    private int repathTimer;
+    private final OWFleeRoute route;
     private int staggerTicks;
+    private int retryAt;
 
     public OWSedatedFleeGoal(OWEntity mob) {
         this.mob = mob;
+        this.route = new OWFleeRoute(mob, ESCAPE_RADIUS, ESCAPE_HEIGHT, REPATH_INTERVAL);
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
 
     @Override
     public boolean canUse() {
-        if (!mob.isSedatedFleeing() || mob.isPassenger()) return false;
-        escape = findEscape();
-        return escape != null;
+        if (!mob.isSedatedFleeing() || mob.isPassenger() || mob.breakout.wantsControl()) return false;
+        if (mob.tickCount < retryAt) return false;
+        if (route.prepare(danger())) return true;
+        retryAt = mob.tickCount + RETRY_DELAY;
+        return false;
     }
 
     @Override
     public boolean canContinueToUse() {
-        return mob.isSedatedFleeing() && !mob.isPassenger();
+        return mob.isSedatedFleeing() && !mob.isPassenger() && !mob.breakout.wantsControl();
+    }
+
+    @Override
+    public boolean requiresUpdateEveryTick() {
+        return true;
     }
 
     @Override
@@ -56,16 +59,29 @@ public class OWSedatedFleeGoal extends Goal {
         mob.forceSetTarget(null);
         mob.setRunning(true);
         mob.setState(2);
-        runToEscape();
+        route.begin(currentSpeed());
     }
 
     @Override
     public void tick() {
         tickStagger();
-        if (--repathTimer > 0 && !mob.getNavigation().isDone()) return;
-        Vec3 next = findEscape();
-        if (next != null) escape = next;
-        runToEscape();
+        Entity threat = mob.aggressiveTaming.getThreat();
+        route.tick(threat != null ? threat.position() : null, threat, currentSpeed(), drowsiness());
+        mob.setRunning(!route.isHolding());
+    }
+
+    @Override
+    public void stop() {
+        route.stop();
+        staggerTicks = 0;
+        mob.setRunning(false);
+        mob.resetState();
+    }
+
+    @Nullable
+    private Vec3 danger() {
+        Entity threat = mob.aggressiveTaming.getThreat();
+        return threat != null ? threat.position() : null;
     }
 
     private void tickStagger() {
@@ -73,7 +89,7 @@ public class OWSedatedFleeGoal extends Goal {
             if (--staggerTicks == 0) mob.getNavigation().setSpeedModifier(fleeSpeed());
             return;
         }
-        if (!mob.onGround() || mob.isInWater()) return;
+        if (!mob.onGround() || mob.isInWater() || route.isHolding()) return;
         float chance = STAGGER_BASE_CHANCE + STAGGER_DROWSY_CHANCE * drowsiness();
         if (mob.getRandom().nextFloat() >= chance) return;
 
@@ -94,52 +110,7 @@ public class OWSedatedFleeGoal extends Goal {
         return mob.sedatedFleeSpeed() * (1.0f - DROWSY_SLOWDOWN * drowsiness());
     }
 
-    @Override
-    public void stop() {
-        escape = null;
-        staggerTicks = 0;
-        mob.getNavigation().stop();
-        mob.setRunning(false);
-        mob.resetState();
-    }
-
-    private void runToEscape() {
-        repathTimer = REPATH_INTERVAL + mob.getRandom().nextInt(10);
-        if (escape == null) return;
-        double speed = fleeSpeed() * (staggerTicks > 0 ? STAGGER_SPEED_FACTOR : 1.0f);
-        mob.getNavigation().moveTo(escape.x, escape.y, escape.z, speed);
-    }
-
-    @Nullable
-    private Vec3 findEscape() {
-        Entity threat = mob.aggressiveTaming.getThreat();
-        return findEscapeFrom(mob, threat != null ? threat.position() : null, ESCAPE_RADIUS, ESCAPE_HEIGHT);
-    }
-
-    @Nullable
-    public static Vec3 findEscapeFrom(OWEntity mob, @Nullable Vec3 danger, int radius, int height) {
-        boolean swimmer = mob.isInWater() && (mob instanceof OWWaterEntity || mob instanceof OWSemiWaterEntity);
-        if (swimmer) return findSwimEscape(mob, danger, radius, height);
-        Vec3 target = danger != null
-                ? DefaultRandomPos.getPosAway(mob, radius, height, danger)
-                : DefaultRandomPos.getPos(mob, radius, height);
-        return target != null ? target : DefaultRandomPos.getPos(mob, radius / 2, height);
-    }
-
-    @Nullable
-    private static Vec3 findSwimEscape(OWEntity mob, @Nullable Vec3 danger, int radius, int height) {
-        Vec3 best = null;
-        double bestDistance = -1;
-        for (int i = 0; i < SWIM_SAMPLES; i++) {
-            Vec3 candidate = BehaviorUtils.getRandomSwimmablePos(mob, radius, height);
-            if (candidate == null) continue;
-            if (danger == null) return candidate;
-            double distance = candidate.distanceToSqr(danger);
-            if (distance > bestDistance) {
-                bestDistance = distance;
-                best = candidate;
-            }
-        }
-        return best;
+    private double currentSpeed() {
+        return fleeSpeed() * (staggerTicks > 0 ? STAGGER_SPEED_FACTOR : 1.0f);
     }
 }

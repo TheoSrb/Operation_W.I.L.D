@@ -58,6 +58,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWTags;
@@ -292,6 +293,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public float sedatedFleeSpeed() {
         return 6f;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.WOOD;
     }
 
     @Override

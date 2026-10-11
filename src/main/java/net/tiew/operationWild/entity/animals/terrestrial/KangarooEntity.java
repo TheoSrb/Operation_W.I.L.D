@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWIndication;
 import net.tiew.operationWild.core.OWTags;
@@ -76,8 +77,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     public static final double TAMING_EXPERIENCE = 65.0;
     public static final int MAX_SOMNOLENCE = 1300;
-    public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
-    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 2;
+    public static final int SOMNOLENCE_LOSS_INTERVAL = 3;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 12;
     public static final int FOOD_WANTED_MIN = 8;
     public static final int FOOD_WANTED_MAX = 14;
 
@@ -321,6 +322,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     @Override
     public float sedatedFleeSpeed() {
         return 4f;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.WOOD;
     }
 
     @Override

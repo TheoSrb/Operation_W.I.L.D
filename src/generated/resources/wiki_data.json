@@ -1084,9 +1084,9 @@
         "created": "2026-10-01T16:57:09.0503808+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-09T22:20:51.8675338+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 79079
+        "last_modified": "2026-10-11T19:31:24.9510655+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 79235
       },
       "id": "ow:tiger",
       "loot": {
@@ -2109,6 +2109,13 @@
       ],
       "taming": {
         "advancement": "ow:wild_meow",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 2,
+          "level_name": "wood",
+          "respects_mob_griefing": true
+        },
         "experience": 185.0,
         "feeding": {
           "food_wanted_max": 14,
@@ -2876,12 +2883,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-01T16:57:09.2733788+02:00",
-        "created_date": "2026-10-01",
+        "created": "2026-10-11T11:57:02.5093829+02:00",
+        "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-10T08:52:05.4558918+02:00",
-        "last_modified_date": "2026-10-10",
-        "size_bytes": 63324
+        "last_modified": "2026-10-11T19:31:24.9525856+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 63943
       },
       "id": "ow:kodiak",
       "loot": {
@@ -3842,6 +3849,13 @@
       ],
       "taming": {
         "advancement": "ow:big_fuzzball",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 3,
+          "level_name": "stone",
+          "respects_mob_griefing": true
+        },
         "experience": 180.0,
         "feeding": {
           "food_wanted_max": 10,
@@ -4403,9 +4417,9 @@
         "created": "2026-10-01T16:57:09.130431+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-10T09:04:41.5809542+02:00",
-        "last_modified_date": "2026-10-10",
-        "size_bytes": 84291
+        "last_modified": "2026-10-11T19:31:24.9520707+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 84447
       },
       "id": "ow:crocodile",
       "loot": {
@@ -5287,6 +5301,13 @@
       ],
       "taming": {
         "advancement": "ow:predatory_smile",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 2,
+          "level_name": "wood",
+          "respects_mob_griefing": true
+        },
         "experience": 205.0,
         "feeding": {
           "food_wanted_max": 10,
@@ -5900,9 +5921,9 @@
         "created": "2026-10-01T16:57:09.0953895+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-09T15:15:56.5710815+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 61233
+        "last_modified": "2026-10-11T19:31:24.9490557+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 61389
       },
       "id": "ow:boa",
       "loot": {
@@ -6831,6 +6852,13 @@
       ],
       "taming": {
         "advancement": "ow:arms_what_for",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 1,
+          "level_name": "soft",
+          "respects_mob_griefing": true
+        },
         "experience": 80.0,
         "feeding": {
           "food_wanted_max": 14,
@@ -7319,9 +7347,9 @@
         "created": "2026-10-01T17:52:43.79329+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-10T17:09:45.8499213+02:00",
-        "last_modified_date": "2026-10-10",
-        "size_bytes": 98980
+        "last_modified": "2026-10-11T19:31:24.9545915+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 99137
       },
       "id": "ow:orca",
       "loot": {
@@ -7460,6 +7488,13 @@
       ],
       "taming": {
         "advancement": "ow:deep_shadow",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 3,
+          "level_name": "stone",
+          "respects_mob_griefing": true
+        },
         "experience": 270.0,
         "feeding": {
           "food_wanted_max": 10,
@@ -7953,9 +7988,9 @@
         "created": "2026-10-01T16:57:09.1667373+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-09T22:20:51.8644725+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 111324
+        "last_modified": "2026-10-11T19:31:24.9550952+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 111481
       },
       "id": "ow:elephant",
       "loot": {
@@ -8106,6 +8141,13 @@
       ],
       "taming": {
         "advancement": "ow:trailer",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 4,
+          "level_name": "metal",
+          "respects_mob_griefing": true
+        },
         "experience": 300.0,
         "feeding": {
           "food_wanted_max": 19,
@@ -8633,8 +8675,8 @@
         "OVERHEAT_MAX_TICKS": 900,
         "OVERHEAT_THRESHOLD_TICKS": 300,
         "PIVOT_DAMAGE_MULTIPLIER": 1.25,
-        "SOMNOLENCE_LOSS_INTERVAL": 1,
-        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
+        "SOMNOLENCE_LOSS_INTERVAL": 3,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 12,
         "STOMP_PHASE_DIVE": 4,
         "STOMP_PHASE_HOVER": 3,
         "STOMP_PHASE_LEAP": 2,
@@ -8713,12 +8755,12 @@
         "walk_speed_blocks_per_second": 4.2
       },
       "history": {
-        "created": "2026-10-10T16:50:07.122375+02:00",
-        "created_date": "2026-10-10",
+        "created": "2026-10-11T18:54:59.9907571+02:00",
+        "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-10T16:50:13.7912923+02:00",
-        "last_modified_date": "2026-10-10",
-        "size_bytes": 85576
+        "last_modified": "2026-10-11T19:31:24.9495572+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 85733
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -8845,6 +8887,13 @@
       ],
       "taming": {
         "advancement": "ow:wild_meow",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 2,
+          "level_name": "wood",
+          "respects_mob_griefing": true
+        },
         "experience": 65.0,
         "feeding": {
           "food_wanted_max": 14,
@@ -8883,12 +8932,12 @@
         },
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 130.0,
-          "full_bar_awake_seconds": 65.0,
-          "loss_interval_ticks_asleep": 2,
-          "loss_interval_ticks_awake": 1,
-          "loss_per_second_asleep": 10.0,
-          "loss_per_second_awake": 20.0,
+          "full_bar_asleep_seconds": 780.0,
+          "full_bar_awake_seconds": 195.0,
+          "loss_interval_ticks_asleep": 12,
+          "loss_interval_ticks_awake": 3,
+          "loss_per_second_asleep": 1.6666666666666667,
+          "loss_per_second_awake": 6.666666666666667,
           "max": 1300,
           "max_max": 1560,
           "max_min": 1040,
@@ -9303,9 +9352,9 @@
         "created": "2026-10-01T17:11:35.3085605+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-10T16:55:14.8749942+02:00",
-        "last_modified_date": "2026-10-10",
-        "size_bytes": 76354
+        "last_modified": "2026-10-11T19:31:24.9479153+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 76504
       },
       "id": "ow:red_panda",
       "loot": {
@@ -9916,6 +9965,13 @@
       ],
       "taming": {
         "advancement": "ow:little_fire_fox",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": -1,
+          "level_name": "none",
+          "respects_mob_griefing": true
+        },
         "experience": 40.0,
         "feeding": {
           "food_wanted_max": 6,
@@ -10405,9 +10461,9 @@
         "created": "2026-10-09T14:51:15.7443803+02:00",
         "created_date": "2026-10-09",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-09T22:20:51.8654775+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 75982
+        "last_modified": "2026-10-11T19:31:24.9525856+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 76139
       },
       "id": "ow:gorilla",
       "loot": {
@@ -10525,6 +10581,13 @@
       ],
       "taming": {
         "advancement": "ow:silverback",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 3,
+          "level_name": "stone",
+          "respects_mob_griefing": true
+        },
         "experience": 175.0,
         "feeding": {
           "food_wanted_max": 14,
@@ -10662,9 +10725,9 @@
           {
             "desc": {
               "key": "ow.attacks.hippopotamus.combo.desc",
-              "plain": "Faites mordre votre Hippopotame toutes les %s secondes, infligeant %s points de dégâts par morsure. Le troisième coup se cabre et s'abat gueule grande ouverte.",
+              "plain": "Faites mordre votre Hippopotame toutes les %s secondes, infligeant %s points de dégâts par morsure. Le troisième coup est un coup de tête qui projette la cible au loin.",
               "translations": {
-                "fr_fr": "Faites mordre votre Hippopotame toutes les %s secondes, infligeant %s points de dégâts par morsure. Le troisième coup se cabre et s'abat gueule grande ouverte."
+                "fr_fr": "Faites mordre votre Hippopotame toutes les %s secondes, infligeant %s points de dégâts par morsure. Le troisième coup est un coup de tête qui projette la cible au loin."
               }
             },
             "slug": "combo",
@@ -10696,9 +10759,9 @@
           {
             "desc": {
               "key": "ow.attacks.hippopotamus.river_fury.desc",
-              "plain": "S'arme sur %s victimes. L'hippopotame se cabre, rugit et frappe le sol : l'onde repousse et ralentit les hostiles alentour. Pendant %s secondes, il frappe %s%% plus fort, gagne %s%% de dégâts à chaque coup encaissé (la Rancune), subit %s%% de dégâts en moins, ne recule plus, et chaque coup de combo déséquilibre sa cible. Sa roulade ne coûte plus d'énergie et écrase plus fort. %s secondes de recharge.",
+              "plain": "S'arme sur %s victimes. L'hippopotame se cabre, rugit et frappe le sol : l'onde repousse et ralentit les hostiles alentour. Pendant %s secondes, il frappe %s%% plus fort, gagne %s%% de dégâts à chaque coup encaissé (la Rancune), subit %s%% de dégâts en moins, ne recule plus, et chaque coup de combo déséquilibre sa cible. Sa roulade ne coûte plus d'énergie et écrase plus fort. Dans l'eau, il rugit sans frapper le sol et nage %s%% plus vite. %s secondes de recharge.",
               "translations": {
-                "fr_fr": "S'arme sur %s victimes. L'hippopotame se cabre, rugit et frappe le sol : l'onde repousse et ralentit les hostiles alentour. Pendant %s secondes, il frappe %s%% plus fort, gagne %s%% de dégâts à chaque coup encaissé (la Rancune), subit %s%% de dégâts en moins, ne recule plus, et chaque coup de combo déséquilibre sa cible. Sa roulade ne coûte plus d'énergie et écrase plus fort. %s secondes de recharge."
+                "fr_fr": "S'arme sur %s victimes. L'hippopotame se cabre, rugit et frappe le sol : l'onde repousse et ralentit les hostiles alentour. Pendant %s secondes, il frappe %s%% plus fort, gagne %s%% de dégâts à chaque coup encaissé (la Rancune), subit %s%% de dégâts en moins, ne recule plus, et chaque coup de combo déséquilibre sa cible. Sa roulade ne coûte plus d'énergie et écrase plus fort. Dans l'eau, il rugit sans frapper le sol et nage %s%% plus vite. %s secondes de recharge."
               }
             },
             "slug": "river_fury",
@@ -10713,9 +10776,9 @@
           {
             "desc": {
               "key": "ow.attacks.hippopotamus.river_surge.desc",
-              "plain": "En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan.",
+              "plain": "Comme un vrai hippopotame, il ne nage pas : monté, il coule et galope au fond de l'eau, et Saut maintenu le fait remonter respirer. En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan.",
               "translations": {
-                "fr_fr": "En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan."
+                "fr_fr": "Comme un vrai hippopotame, il ne nage pas : monté, il coule et galope au fond de l'eau, et Saut maintenu le fait remonter respirer. En sortant de l'eau, l'hippopotame garde l'élan de la rivière : pendant %s secondes, il court %s%% plus vite sur la terre ferme. Chaque bain recharge l'élan."
               }
             },
             "slug": "river_surge",
@@ -10747,12 +10810,17 @@
         "FURY_SHOCKWAVE_TICK": 17,
         "FURY_SPEED_FACTOR": 1.1,
         "FURY_STAGGER_TICKS": 20,
+        "FURY_WATER_SPEED_BONUS": 0.5,
         "FURY_WINDUP_TICKS": 25,
         "RIVER_SURGE_MIN_WATER_TICKS": 10,
         "RIVER_SURGE_SPEED_BONUS": 0.15,
         "RIVER_SURGE_TICKS": 200,
         "ROLL_ACCEL_TICKS": 30,
         "ROLL_ALLY_NUDGE": 0.35,
+        "ROLL_BAMBOO_MAX_STALK": 24,
+        "ROLL_BAMBOO_REACH": 1.0,
+        "ROLL_BAMBOO_SIDE_MARGIN": 0.25,
+        "ROLL_BAMBOO_SPEED_LOOKAHEAD": 4.0,
         "ROLL_BOUNCE_RECOIL_SPEED": 0.32,
         "ROLL_BOUNCE_RECOIL_TICKS": 7,
         "ROLL_BOUNCE_TICKS": 20,
@@ -10771,9 +10839,10 @@
         "ROLL_ENERGY_PER_TICK": 0.85,
         "ROLL_RADIUS_BLOCKS": 0.75,
         "ROLL_SEAT_LIFT": -0.22,
-        "ROLL_SEAT_SPREAD": 0.35,
+        "ROLL_SEAT_SPREAD": 0.58,
         "ROLL_SLOPE_GAIN": 1.5,
         "ROLL_SLOPE_MAX_BONUS": 0.45,
+        "ROLL_STAND_LIFT": 0.7,
         "ROLL_START_ENERGY": 25.0,
         "ROLL_STOP_GLIDE": 0.93,
         "ROLL_TOP_SPEED_RATIO": 1.45,
@@ -10799,7 +10868,7 @@
         "minecraft:generic.max_absorption": 0.0,
         "minecraft:generic.max_health": 50.0,
         "minecraft:generic.movement_efficiency": 0.0,
-        "minecraft:generic.movement_speed": 0.165,
+        "minecraft:generic.movement_speed": 0.17,
         "minecraft:generic.oxygen_bonus": 0.0,
         "minecraft:generic.safe_fall_distance": 3.0,
         "minecraft:generic.scale": 1.0,
@@ -10913,11 +10982,16 @@
           {
             "looping": false,
             "name": "ATTACK_STRIKE_3",
-            "seconds": 1.3
+            "seconds": 0.8333
           },
           {
             "looping": false,
             "name": "FURY_ROAR",
+            "seconds": 1.25
+          },
+          {
+            "looping": false,
+            "name": "FURY_ROAR_WATER",
             "seconds": 1.25
           },
           {
@@ -10981,7 +11055,7 @@
         "follow_owner_speed_factor": 20.0,
         "initial_variant": 0,
         "max_depth": 6,
-        "mounted_speed_blocks_per_second": 5.279999910082136,
+        "mounted_speed_blocks_per_second": 5.439999907357352,
         "nap_particle_forward": 1.25,
         "nap_particle_height": 1.15,
         "pitch_max_angle": 0.0,
@@ -11002,15 +11076,15 @@
           "maxUpStep",
           "getDefaultGravity"
         ],
-        "walk_speed_blocks_per_second": 3.3000000000000003
+        "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-10T08:50:55.9881606+02:00",
-        "created_date": "2026-10-10",
+        "created": "2026-10-11T14:52:01.0399178+02:00",
+        "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-10T16:51:33.27749+02:00",
-        "last_modified_date": "2026-10-10",
-        "size_bytes": 60326
+        "last_modified": "2026-10-11T19:31:24.9540902+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 69904
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -11109,6 +11183,13 @@
       ],
       "taming": {
         "advancement": "ow:river_giant",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 3,
+          "level_name": "stone",
+          "respects_mob_griefing": true
+        },
         "experience": 230.0,
         "feeding": {
           "food_wanted_max": 16,
@@ -11183,6 +11264,9 @@
         "tameable": true
       },
       "textures": [
+        "textures/entity/hippopotamus/hippopotamus_bloody_stage_0.png",
+        "textures/entity/hippopotamus/hippopotamus_bloody_stage_1.png",
+        "textures/entity/hippopotamus/hippopotamus_bloody_stage_2.png",
         "textures/entity/hippopotamus/hippopotamus_default.png",
         "textures/entity/hippopotamus/hippopotamus_default_angry_eyes.png"
       ],
@@ -11503,12 +11587,12 @@
         "walk_speed_blocks_per_second": 4.1
       },
       "history": {
-        "created": "2026-10-10T12:37:32.5117286+02:00",
-        "created_date": "2026-10-10",
+        "created": "2026-10-11T11:57:02.6081155+02:00",
+        "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-10T12:58:38.367205+02:00",
-        "last_modified_date": "2026-10-10",
-        "size_bytes": 63237
+        "last_modified": "2026-10-11T19:31:24.9505625+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 63877
       },
       "id": "ow:lion",
       "loot": {
@@ -11558,6 +11642,13 @@
       "sounds": [],
       "taming": {
         "advancement": "ow:king_of_the_savanna",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 2,
+          "level_name": "wood",
+          "respects_mob_griefing": true
+        },
         "experience": 140.0,
         "feeding": {
           "food_wanted_max": 13,
@@ -11813,9 +11904,9 @@
         "created": "2026-02-25T10:58:13.1092156+01:00",
         "created_date": "2026-02-25",
         "file": "src/main/java/net/tiew/operationWild/entity/bosses/PlantEmpressEntity.java",
-        "last_modified": "2026-10-09T15:15:26.9463698+02:00",
-        "last_modified_date": "2026-10-09",
-        "size_bytes": 25019
+        "last_modified": "2026-10-11T19:31:24.9566187+02:00",
+        "last_modified_date": "2026-10-11",
+        "size_bytes": 25174
       },
       "id": "ow:plant_empress",
       "loot": {
@@ -11880,6 +11971,13 @@
       ],
       "taming": {
         "advancement": "ow:",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 0,
+          "level_name": "any",
+          "respects_mob_griefing": true
+        },
         "experience": 0.0,
         "food_tiers": [
           {
@@ -16861,6 +16959,30 @@
           "minecraft:honey_block"
         ],
         "id": "ow:red_panda_sweets"
+      },
+      {
+        "constant": "BEAST_PROOF",
+        "id": "ow:beast_proof"
+      },
+      {
+        "constant": "BEAST_TOUGHNESS_SOFT",
+        "id": "ow:beast_toughness/soft"
+      },
+      {
+        "constant": "BEAST_TOUGHNESS_WOOD",
+        "id": "ow:beast_toughness/wood"
+      },
+      {
+        "constant": "BEAST_TOUGHNESS_STONE",
+        "id": "ow:beast_toughness/stone"
+      },
+      {
+        "constant": "BEAST_TOUGHNESS_METAL",
+        "id": "ow:beast_toughness/metal"
+      },
+      {
+        "constant": "BEAST_TOUGHNESS_OBSIDIAN",
+        "id": "ow:beast_toughness/obsidian"
       }
     ],
     "entity_types": [

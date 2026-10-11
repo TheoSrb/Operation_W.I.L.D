@@ -1,7 +1,6 @@
 package net.tiew.operationWild.entity.taming;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -10,16 +9,13 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.PathNavigationRegion;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.navigation.OWPathProbe;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Set;
 
 public class OWSedationResponse {
 
@@ -43,7 +39,6 @@ public class OWSedationResponse {
     private static final double MIN_STRIKE_RISE = 1.0;
     private static final double SEARCH_FRONTIER_MARGIN = 3.0;
     private static final double UNSEEN_SHOOTER_DISTANCE = 16.0;
-    private static final int PROBE_REGION_MARGIN = 8;
     private static final int PROBE_GROUND_SEARCH = 8;
 
     private final OWEntity entity;
@@ -65,6 +60,15 @@ public class OWSedationResponse {
 
     public boolean isRetreating() {
         return stance == Stance.RETREAT;
+    }
+
+    public boolean isAlarmed() {
+        return stance != Stance.CALM;
+    }
+
+    @Nullable
+    public LivingEntity getProvoker() {
+        return provoker;
     }
 
     public boolean blocksTarget(@Nullable LivingEntity target) {
@@ -290,12 +294,7 @@ public class OWSedationResponse {
 
     @Nullable
     private Path probePath(LivingEntity target, float range) {
-        BlockPos origin = entity.blockPosition();
-        int radius = (int) range + PROBE_REGION_MARGIN;
-        PathNavigationRegion region = new PathNavigationRegion(entity.level(),
-                origin.offset(-radius, -radius, -radius), origin.offset(radius, radius, radius));
-        PathFinder finder = new PathFinder(entity.getNavigation().getNodeEvaluator(), Mth.floor(range * 16.0f));
-        return finder.findPath(region, entity, Set.of(groundUnder(target)), range, 0, 1.0f);
+        return OWPathProbe.find(entity, groundUnder(target), range, 0);
     }
 
     private BlockPos groundUnder(LivingEntity target) {

@@ -1,0 +1,17 @@
+{
+  "values": [
+    "#c:ores",
+    "#c:storage_blocks/iron",
+    "#c:storage_blocks/raw_iron",
+    "#c:storage_blocks/gold",
+    "#c:storage_blocks/copper",
+    "#minecraft:anvil",
+    "minecraft:iron_bars",
+    "minecraft:iron_door",
+    "minecraft:iron_trapdoor",
+    "minecraft:chain",
+    "minecraft:hopper",
+    "minecraft:cauldron",
+    "minecraft:bell"
+  ]
+}

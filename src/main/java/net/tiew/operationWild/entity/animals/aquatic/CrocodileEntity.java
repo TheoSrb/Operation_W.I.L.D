@@ -27,6 +27,7 @@ import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.block.OWBlocks;
 import net.tiew.operationWild.block.custom.MarkedMudBlock;
 import net.tiew.operationWild.core.OWUtils;
@@ -311,6 +312,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public float sedatedFleeSpeed() {
         return 2.8f;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.WOOD;
     }
 
     @Override

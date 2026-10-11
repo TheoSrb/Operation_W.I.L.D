@@ -1,0 +1,14 @@
+{
+  "values": [
+    "#minecraft:base_stone_overworld",
+    "#minecraft:base_stone_nether",
+    "#minecraft:stone_bricks",
+    "#minecraft:terracotta",
+    "#minecraft:walls",
+    "#c:cobblestones",
+    "#c:sandstone/blocks",
+    "minecraft:bricks",
+    "minecraft:mud_bricks",
+    "minecraft:smooth_stone"
+  ]
+}

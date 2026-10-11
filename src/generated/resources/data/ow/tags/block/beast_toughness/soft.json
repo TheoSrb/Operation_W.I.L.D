@@ -1,0 +1,14 @@
+{
+  "values": [
+    "#minecraft:leaves",
+    "#minecraft:wool",
+    "#minecraft:ice",
+    "#c:glass_blocks",
+    "#c:glass_panes",
+    "minecraft:hay_block",
+    "minecraft:snow_block",
+    "minecraft:sponge",
+    "minecraft:wet_sponge",
+    "minecraft:moss_block"
+  ]
+}

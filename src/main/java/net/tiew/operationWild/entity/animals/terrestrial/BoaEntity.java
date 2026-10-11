@@ -43,6 +43,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.effect.OWEffects;
@@ -306,6 +307,11 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     @Override
     public float sedatedFleeSpeed() {
         return 2.5f;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.SOFT;
     }
 
     @Override

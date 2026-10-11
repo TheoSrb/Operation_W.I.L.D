@@ -50,6 +50,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.advancements.OWAdvancements;
 import net.tiew.operationWild.core.OWPlacedBlocks;
 import net.tiew.operationWild.core.OWTags;
@@ -262,6 +263,11 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     @Override
     public float sedatedFleeSpeed() {
         return 3.5f;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.STONE;
     }
 
     @Override

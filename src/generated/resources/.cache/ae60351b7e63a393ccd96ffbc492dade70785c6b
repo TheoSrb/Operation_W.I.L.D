@@ -1,4 +1,4 @@
-// 1.21	2026-08-14T10:35:02.6785357	Tags for minecraft:block mod id ow
+// 1.21	2026-10-11T19:34:37.2748733	Tags for minecraft:block mod id ow
 cf3608bd187922aeb48c566c19e8482b0dca34c7 data/minecraft/tags/block/animals_spawnable_on.json
 51755a85e43ca3778bdd32a88c1b481b5d0de2e5 data/minecraft/tags/block/fences.json
 4bf1f566b16f66d008e99e45dc77b4c9f00740e3 data/minecraft/tags/block/fence_gates.json
@@ -12,4 +12,10 @@ cbfafce273850692d0e33d80aeeede1255028bfd data/minecraft/tags/block/leaves.json
 e9859171bfd2c026d313b51e73fe6405b7632e12 data/minecraft/tags/block/needs_iron_tool.json
 61d97644e8a9939a69f21f8ef1c91fde08ac0f6a data/minecraft/tags/block/needs_stone_tool.json
 5a6b6fda74029a60e1c49a42dd474acc74a5ab4f data/minecraft/tags/block/planks.json
+bfdfab925d3aae515709e426b963be6ae6fc0d4b data/ow/tags/block/beast_proof.json
+89fdf343f17dddaacd61b3f2b0bc4fde41b11f49 data/ow/tags/block/beast_toughness/metal.json
+f8949e9844bac3cffa52fe7785cedd41805bac4c data/ow/tags/block/beast_toughness/obsidian.json
+f82a6993e52a23e69c38404972ef5dd50093677d data/ow/tags/block/beast_toughness/soft.json
+8e25fbd3da668e48a4b4bb54790e70c71c65ca24 data/ow/tags/block/beast_toughness/stone.json
+859b57949c7d27467d7983f88c60328dd60142cd data/ow/tags/block/beast_toughness/wood.json
 82ecab05c9730ef6647bcd4a25029db00372bcda data/ow/tags/block/red_panda_sweets.json

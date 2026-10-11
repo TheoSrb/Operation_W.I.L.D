@@ -24,6 +24,7 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.*;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.vehicle.Boat;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWUtils;
 import net.minecraft.world.InteractionHand;
@@ -826,6 +827,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     @Override
     public float sedatedFleeSpeed() {
         return this.getSwimSpeed();
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.STONE;
     }
 
     @Override

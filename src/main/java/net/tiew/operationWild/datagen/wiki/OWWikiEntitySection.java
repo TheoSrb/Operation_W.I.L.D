@@ -22,6 +22,7 @@ import net.tiew.operationWild.entity.IOWWaypointEntity;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.OWWaterEntity;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.entity.config.IOWDiver;
 import net.tiew.operationWild.entity.config.IOWGrabberEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
@@ -318,6 +319,7 @@ public final class OWWikiEntitySection {
 
         taming.add("food_tiers", foodTiers(probe));
         taming.add("knockout", knockout());
+        taming.add("breakout", breakout(probe));
 
         OWSaddleRecipe recipe = OWSaddleRecipes.all().stream()
                 .filter(candidate -> candidate.id().equals(species.id()))
@@ -364,6 +366,20 @@ public final class OWWikiEntitySection {
         knockout.addProperty("leash_drag_slack_blocks", OWEntity.LEASH_DRAG_SLACK);
         knockout.addProperty("leash_drag_snap_blocks", OWEntity.LEASH_DRAG_SNAP);
         return knockout;
+    }
+
+    private static JsonObject breakout(OWEntity probe) {
+        JsonObject breakout = new JsonObject();
+        int level = OWWikiReflect.call(probe, "blockBreakLevel")
+                .filter(Integer.class::isInstance)
+                .map(Integer.class::cast)
+                .orElse(OWBreakLevel.NONE);
+        breakout.addProperty("level", level);
+        breakout.addProperty("level_name", OWBreakLevel.name(level));
+        breakout.addProperty("below_percent", OWAggressiveTaming.FLEE_THRESHOLD);
+        breakout.addProperty("babies_break", false);
+        breakout.addProperty("respects_mob_griefing", true);
+        return breakout;
     }
 
     private static JsonObject somnolence(Class<? extends OWEntity> implementation) {

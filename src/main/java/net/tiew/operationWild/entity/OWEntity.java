@@ -87,6 +87,9 @@ import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.goals.global.OWFollowOwnerGoal;
 import net.tiew.operationWild.entity.goals.global.OWLookAtPlayerGoal;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
+import net.tiew.operationWild.entity.breakout.OWBreakout;
+import net.tiew.operationWild.entity.goals.global.OWBreakoutGoal;
 import net.tiew.operationWild.entity.goals.global.OWSedatedFleeGoal;
 import net.tiew.operationWild.entity.goals.global.OWSedationRetaliationGoal;
 import net.tiew.operationWild.entity.goals.global.OWSedationRetreatGoal;
@@ -178,6 +181,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public LivingEntity lastVisibleTarget = null;
     public int questsReUpdatingTimer = 10;
     private int sittingCooldown = 0;
+    private int sitTransitionStartTick = -1;
     private float customWidth = 1.0F;
     private float customHeight = 1.0F;
     public boolean canShowVitalEnergyLack = false;
@@ -199,6 +203,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public final OWAggressiveTaming aggressiveTaming = new OWAggressiveTaming(this);
     public final OWSedationResponse sedationResponse = new OWSedationResponse(this);
+    public final OWBreakout breakout = new OWBreakout(this);
 
     public final AnimationState sedatedCollapseAnimationState = new AnimationState();
     public final AnimationState sedatedMealAnimationState = new AnimationState();
@@ -613,6 +618,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     protected void registerGoals() {
         this.registerBehaviorGoals(this);
 
+        this.goalSelector.addGoal(0, new OWBreakoutGoal(this));
         this.goalSelector.addGoal(0, new OWSedatedFleeGoal(this));
         this.goalSelector.addGoal(0, new OWSedationRetreatGoal(this));
         this.goalSelector.addGoal(1, new SitWhenOrderedToGoal(this));
@@ -1079,6 +1085,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public boolean isSitting() {
         return this.entityData.get(SITTING);
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
+        super.onSyncedDataUpdated(accessor);
+        if (SITTING.equals(accessor) && !this.firstTick) {
+            this.sitTransitionStartTick = this.tickCount;
+        }
+    }
+
+    public boolean isInSitTransition() {
+        return this.sitTransitionStartTick >= 0 && this.tickCount - this.sitTransitionStartTick < this.sitTransitionTicks();
     }
 
     public void setUltimate(boolean isUltimate) {
@@ -1870,6 +1888,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public float sedatedFleeSpeed() {
         return 3.0f;
+    }
+
+    public int blockBreakLevel() {
+        return OWBreakLevel.NONE;
+    }
+
+    public int effectiveBlockBreakLevel() {
+        return this.isBaby() ? OWBreakLevel.NONE : this.blockBreakLevel();
     }
 
     public int asleepSomnolenceLossInterval() {
@@ -3431,6 +3457,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.fearHandler.tick();
             if (this.usesAggressiveTaming()) this.aggressiveTaming.tick();
             this.sedationResponse.tick();
+            if (this.usesAggressiveTaming()) this.breakout.tick();
             tickSecondaryCooldown();
         }
 
@@ -3766,7 +3793,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void createComboAttackSystem(int timeMax, int timeToHit, SoundEvent sound, double width, double height, double reach, boolean spawnBlurr, float backMultiplier) {
         if (this.isCombo()) {
             boolean isRided = this.getControllingPassenger() != null;
-            if (this.getTarget() != null) {
+            if (this.getTarget() != null && !this.breakout.isStriking()) {
                 float turnCap = comboTrackingDegreesPerTick();
                 if (turnCap >= 360f) {
                     this.setLookAt(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ());
@@ -3780,7 +3807,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 setCombo(false, 0);
                 return;
             }
-            if (attackTimer == timeToHit) {
+            if (attackTimer == timeToHit && !this.breakout.landStrike(sound)) {
                 float d0 = (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
                 attackEntitiesInFront(d0, sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
 
@@ -4020,7 +4047,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         } else {
             if (this.isCombo()) {
-                if (this.getTarget() != null) {
+                if (this.getTarget() != null && !this.breakout.isStriking()) {
                     this.setLookAt(this.getTarget().getX(), this.getTarget().getY(), this.getTarget().getZ());
                 }
 
@@ -4032,7 +4059,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     return;
                 }
 
-                if (attackTimer == timeToHit) {
+                if (attackTimer == timeToHit && !this.breakout.landStrike(sound)) {
                     boolean isRided = this.getControllingPassenger() != null;
                     attackEntitiesInFrontSimple(
                             (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (this.isVehicle() && !this.isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER)),
@@ -4541,7 +4568,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                 return InteractionResult.SUCCESS;
             } else {
-                if (!this.isSitting() && !this.isInResurrection() && !itemstack.is(Tags.Items.FOODS) && !this.isBaby()) {
+                if (!this.isSitting() && !this.isInSitTransition() && !this.isInResurrection() && !itemstack.is(Tags.Items.FOODS) && !this.isBaby()) {
                     if (!this.hasTribePermission(player, net.tiew.operationWild.team.OWTribePermission.CONTROL)) {
                         return InteractionResult.PASS;
                     }

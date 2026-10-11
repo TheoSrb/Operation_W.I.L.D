@@ -1,7 +1,7 @@
 package net.tiew.operationWild.entity.goals.global;
 
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
 
 import java.util.EnumSet;
@@ -13,47 +13,53 @@ public class OWSedationRetreatGoal extends Goal {
     private static final int ESCAPE_HEIGHT = 7;
 
     private final OWEntity mob;
-    private int repathTimer;
+    private final OWFleeRoute route;
 
     public OWSedationRetreatGoal(OWEntity mob) {
         this.mob = mob;
+        this.route = new OWFleeRoute(mob, ESCAPE_RADIUS, ESCAPE_HEIGHT, REPATH_INTERVAL);
         this.setFlags(EnumSet.of(Flag.MOVE));
     }
 
     @Override
     public boolean canUse() {
-        return mob.sedationResponse.isRetreating() && !mob.isPassenger();
+        if (!canContinueToUse()) return false;
+        route.prepare(mob.sedationResponse.getThreatPosition());
+        return true;
     }
 
     @Override
     public boolean canContinueToUse() {
-        return canUse();
+        return mob.sedationResponse.isRetreating() && !mob.isPassenger() && !mob.breakout.wantsControl();
+    }
+
+    @Override
+    public boolean requiresUpdateEveryTick() {
+        return true;
     }
 
     @Override
     public void start() {
-        repathTimer = 0;
         mob.setRunning(true);
         mob.setState(2);
-        runAway();
+        route.begin(mob.sedatedFleeSpeed());
     }
 
     @Override
     public void tick() {
-        if (--repathTimer > 0 && !mob.getNavigation().isDone()) return;
-        runAway();
+        route.tick(mob.sedationResponse.getThreatPosition(), mob.sedationResponse.getProvoker(), mob.sedatedFleeSpeed(), drowsiness());
+        mob.setRunning(!route.isHolding());
+    }
+
+    private float drowsiness() {
+        if (mob.getMaxSleepingBar() <= 0) return 0f;
+        return Mth.clamp(mob.getSleepBarPercent() / 100f, 0f, 1f);
     }
 
     @Override
     public void stop() {
-        mob.getNavigation().stop();
+        route.stop();
         mob.setRunning(false);
         mob.resetState();
-    }
-
-    private void runAway() {
-        repathTimer = REPATH_INTERVAL + mob.getRandom().nextInt(10);
-        Vec3 escape = OWSedatedFleeGoal.findEscapeFrom(mob, mob.sedationResponse.getThreatPosition(), ESCAPE_RADIUS, ESCAPE_HEIGHT);
-        if (escape != null) mob.getNavigation().moveTo(escape.x, escape.y, escape.z, mob.sedatedFleeSpeed());
     }
 }

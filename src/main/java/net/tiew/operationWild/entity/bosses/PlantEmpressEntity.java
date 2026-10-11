@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import net.tiew.operationWild.entity.breakout.OWBreakLevel;
 import net.tiew.operationWild.effect.OWEffects;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityUtils;
@@ -91,6 +92,11 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
     @Override
     public boolean usesAggressiveTaming() {
         return false;
+    }
+
+    @Override
+    public int blockBreakLevel() {
+        return OWBreakLevel.ANY;
     }
 
     protected void registerGoals() {

@@ -34,6 +34,13 @@ public class OWTags {
 
         public static final TagKey<Block> RED_PANDA_SWEETS = tag("red_panda_sweets");
 
+        public static final TagKey<Block> BEAST_PROOF = tag("beast_proof");
+        public static final TagKey<Block> BEAST_TOUGHNESS_SOFT = tag("beast_toughness/soft");
+        public static final TagKey<Block> BEAST_TOUGHNESS_WOOD = tag("beast_toughness/wood");
+        public static final TagKey<Block> BEAST_TOUGHNESS_STONE = tag("beast_toughness/stone");
+        public static final TagKey<Block> BEAST_TOUGHNESS_METAL = tag("beast_toughness/metal");
+        public static final TagKey<Block> BEAST_TOUGHNESS_OBSIDIAN = tag("beast_toughness/obsidian");
+
 
 
 
