@@ -239,7 +239,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final double LEASH_DRAG_CLIMB = 0.42;
     private static final float LEASH_DRAG_TURN = 6.0f;
 
-    public static float comboSpeedMultiplier = 1.0f;
+    public float comboSpeedMultiplier = 1.0f;
 
     public static final float VITAL_ENERGY_UPGRADE_STEP = 6f;
     public static final float VITAL_ENERGY_LEVEL_GAIN = 0.5f;
@@ -584,11 +584,39 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public static class OWMoveControl extends net.minecraft.world.entity.ai.control.MoveControl {
 
+        private static final double STEP_PROBE_DISTANCE = 0.35;
+        private static final double STEP_PROBE_LIFT = 0.02;
+        private static final double STEP_CLEARANCE = 1.05;
+        private static final float BLOCKED_TURN_RATE = 0.35f;
+
         private final OWEntity owner;
 
         public OWMoveControl(OWEntity mob) {
             super(mob);
             this.owner = mob;
+        }
+
+        @Override
+        public void tick() {
+            boolean moving = this.operation == Operation.MOVE_TO;
+            super.tick();
+            if (moving && this.operation != Operation.JUMPING && this.needsStepJump()) {
+                this.mob.getJumpControl().jump();
+                this.operation = Operation.JUMPING;
+            }
+        }
+
+        private boolean needsStepJump() {
+            if (!this.owner.onGround() || !this.owner.horizontalCollision) return false;
+            if (this.owner.isInWater() || this.owner.isInLava() || this.owner.getControllingPassenger() != null) return false;
+            double dx = this.wantedX - this.owner.getX();
+            double dz = this.wantedZ - this.owner.getZ();
+            double length = Math.sqrt(dx * dx + dz * dz);
+            if (length < 1.0E-3) return false;
+            AABB ahead = this.owner.getBoundingBox()
+                    .move(dx / length * STEP_PROBE_DISTANCE, STEP_PROBE_LIFT, dz / length * STEP_PROBE_DISTANCE);
+            if (this.owner.level().noCollision(this.owner, ahead)) return false;
+            return this.owner.level().noCollision(this.owner, ahead.move(0.0, STEP_CLEARANCE, 0.0));
         }
 
         @Override
@@ -598,7 +626,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
 
             float delta = Mth.wrapDegrees(to - from);
-            float step = delta * Mth.clamp(this.owner.getRotationSpeed(), 0f, 1f);
+            float rate = Mth.clamp(this.owner.getRotationSpeed(), 0f, 1f);
+            if (this.owner.horizontalCollision) rate = Math.max(rate, BLOCKED_TURN_RATE);
+            float step = delta * rate;
 
             float floor = Math.min(OWEntity.MIN_TURN_STEP, Math.abs(delta));
             if (Math.abs(step) < floor) step = Math.signum(delta) * floor;

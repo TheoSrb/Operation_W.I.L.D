@@ -338,9 +338,10 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
 
         if (landWeight <= 0.001f) return;
 
-        if (moveWeight < 1.0f && !hippo.isCombo()) {
+        float idleWeight = (1.0f - moveWeight) * landWeight * (1.0f - HippopotamusEntity.smoothStep(hippo.comboBlend(pt)));
+        if (idleWeight > 0.001f) {
             KeyframeAnimations.animate(this, HippopotamusAnimations.MISC_IDLE,
-                    (long) (ageInTicks * 50.0f), (1.0f - moveWeight) * landWeight, ANIM_VECTOR);
+                    (long) (ageInTicks * 50.0f), idleWeight, ANIM_VECTOR);
         }
 
         if (moveWeight <= 0f) return;

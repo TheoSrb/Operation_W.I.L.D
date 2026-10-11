@@ -1,6 +1,7 @@
 package net.tiew.operationWild.entity.taming;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -9,10 +10,14 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.OWSemiWaterEntity;
+import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.navigation.OWPathProbe;
 import org.jetbrains.annotations.Nullable;
@@ -21,17 +26,20 @@ public class OWSedationResponse {
 
     private enum Stance { CALM, CHARGE, RETREAT, WARY }
 
-    private enum Reach { YES, NO, FAR, UNSURE }
+    private enum Reach { YES, BREACH, NO, FAR, UNSURE }
 
     private static final int REEVALUATE_INTERVAL = 20;
     private static final int WATCH_INTERVAL = 10;
     private static final int UNREACHABLE_CHECKS = 2;
     private static final int REACHABLE_CHECKS = 2;
     private static final int CHARGE_MEMORY = 600;
-    private static final int RETREAT_MIN_TICKS = 100;
-    private static final int RETREAT_MAX_TICKS = 700;
-    private static final int WARY_TICKS = 600;
-    private static final double RETREAT_SAFE_DISTANCE = 48.0;
+    private static final int RETREAT_MIN_TICKS = 200;
+    private static final int RETREAT_MAX_TICKS = 1400;
+    private static final int WARY_TICKS = 1200;
+    private static final double RETREAT_SAFE_DISTANCE = 72.0;
+    private static final double WARY_KEEP_DISTANCE = 40.0;
+    private static final int DEEP_WATER_SCAN = 3;
+    private static final int DEEP_WATER_BLOCKS = 2;
     private static final double CHARGE_GIVE_UP_DISTANCE = 56.0;
     private static final double MIN_STRIKE_REACH = 2.0;
     private static final double STRIKE_REACH_MARGIN = 1.2;
@@ -53,6 +61,7 @@ public class OWSedationResponse {
     private int unreachableChecks;
     private int reachableChecks;
     private boolean provisional;
+    private boolean reachedByPath;
 
     public OWSedationResponse(OWEntity entity) {
         this.entity = entity;
@@ -125,6 +134,7 @@ public class OWSedationResponse {
     }
 
     public void reset() {
+        entity.breakout.endSiege();
         stance = Stance.CALM;
         provoker = null;
         threatPosition = null;
@@ -142,6 +152,7 @@ public class OWSedationResponse {
 
         switch (reach(shooter)) {
             case YES -> charge(shooter);
+            case BREACH -> siege(shooter);
             case NO -> retreat();
             case FAR -> {
                 if (stance == Stance.RETREAT || stance == Stance.WARY) {
@@ -179,7 +190,14 @@ public class OWSedationResponse {
         if (entity.getTarget() != shooter) retreat();
     }
 
+    private void siege(LivingEntity shooter) {
+        charge(shooter);
+        if (stance != Stance.CHARGE) return;
+        if (!entity.breakout.startSiege(shooter)) retreat();
+    }
+
     private void retreat() {
+        entity.breakout.endSiege();
         boolean wasRetreating = stance == Stance.RETREAT;
         stance = Stance.RETREAT;
         stanceTicks = 0;
@@ -192,6 +210,7 @@ public class OWSedationResponse {
     }
 
     private void becomeWary() {
+        entity.breakout.endSiege();
         if (provoker == null) {
             reset();
             return;
@@ -203,7 +222,9 @@ public class OWSedationResponse {
     }
 
     private void tickCharge() {
-        if (provoker == null || sinceProvoked > CHARGE_MEMORY
+        boolean besieging = provoker != null && entity.breakout.isSieging(provoker);
+        if (besieging) sinceProvoked = 0;
+        if (provoker == null || (sinceProvoked > CHARGE_MEMORY && !besieging)
                 || entity.distanceToSqr(provoker) > CHARGE_GIVE_UP_DISTANCE * CHARGE_GIVE_UP_DISTANCE) {
             reset();
             return;
@@ -221,6 +242,11 @@ public class OWSedationResponse {
         if (reach == Reach.YES) {
             unreachableChecks = 0;
             provisional = false;
+            if (reachedByPath) entity.breakout.endSiege();
+        } else if (reach == Reach.BREACH) {
+            unreachableChecks = 0;
+            provisional = false;
+            if (!entity.breakout.startSiege(provoker)) retreat();
         } else if (reach == Reach.NO && (provisional || ++unreachableChecks >= UNREACHABLE_CHECKS)) {
             retreat();
         }
@@ -240,21 +266,24 @@ public class OWSedationResponse {
             return;
         }
         if (entity.getTarget() == provoker) entity.setTarget(null);
-        watchForOpening();
+        if (watchForOpening()) return;
+        if (entity.distanceToSqr(provoker) < WARY_KEEP_DISTANCE * WARY_KEEP_DISTANCE) retreat();
     }
 
     private boolean watchForOpening() {
         if (provoker == null || --reevaluateTimer > 0) return false;
         reevaluateTimer = WATCH_INTERVAL;
 
-        boolean opening = !entity.isBaby() && isAttackable(provoker)
+        Reach reach = !entity.isBaby() && isAttackable(provoker)
                 && entity.distanceToSqr(provoker) <= CHARGE_GIVE_UP_DISTANCE * CHARGE_GIVE_UP_DISTANCE
-                && reach(provoker) == Reach.YES;
+                ? reach(provoker) : Reach.NO;
+        boolean opening = reach == Reach.YES || reach == Reach.BREACH;
         reachableChecks = opening ? reachableChecks + 1 : 0;
         if (reachableChecks < REACHABLE_CHECKS) return false;
 
         sinceProvoked = 0;
-        charge(provoker);
+        if (reach == Reach.BREACH) siege(provoker);
+        else charge(provoker);
         return stance == Stance.CHARGE;
     }
 
@@ -275,21 +304,39 @@ public class OWSedationResponse {
     }
 
     private Reach reach(LivingEntity target) {
+        reachedByPath = false;
+        if (sheltersInWater(target)) return Reach.NO;
         if (withinStrike(entity.position(), target)) return Reach.YES;
         if (!entity.onGround() && !entity.isInWater() && !entity.isInLava()) return Reach.UNSURE;
 
         float range = (float) entity.getAttributeValue(Attributes.FOLLOW_RANGE);
         Path path = probePath(target, range);
-        if (path == null) return Reach.NO;
+        Node end = path != null ? path.getEndNode() : null;
+        if (path != null && end == null) return Reach.UNSURE;
 
-        Node end = path.getEndNode();
-        if (end == null) return Reach.UNSURE;
+        if (end != null) {
+            Vec3 standing = Vec3.atBottomCenterOf(end.asBlockPos());
+            if (withinStrike(standing, target)) {
+                reachedByPath = true;
+                return Reach.YES;
+            }
+            if (standing.distanceTo(entity.position()) >= range - SEARCH_FRONTIER_MARGIN) return Reach.FAR;
+        }
+        if (entity.breakout.isSieging(target)) return Reach.BREACH;
+        return switch (entity.breakout.siegeOutlook(target)) {
+            case BREACH, OPEN -> Reach.BREACH;
+            case IMPOSSIBLE -> Reach.NO;
+        };
+    }
 
-        Vec3 standing = Vec3.atBottomCenterOf(end.asBlockPos());
-        if (withinStrike(standing, target)) return Reach.YES;
-
-        boolean stoppedAtFrontier = standing.distanceTo(entity.position()) >= range - SEARCH_FRONTIER_MARGIN;
-        return stoppedAtFrontier ? Reach.FAR : Reach.NO;
+    private boolean sheltersInWater(LivingEntity target) {
+        if (entity instanceof OWWaterEntity || entity instanceof OWSemiWaterEntity) return false;
+        BlockPos feet = target.blockPosition();
+        int water = 0;
+        for (int depth = 0; depth < DEEP_WATER_SCAN; depth++) {
+            if (entity.level().getFluidState(feet.below(depth)).is(FluidTags.WATER)) water++;
+        }
+        return water >= DEEP_WATER_BLOCKS;
     }
 
     @Nullable
@@ -311,7 +358,11 @@ public class OWSedationResponse {
         double dz = target.getZ() - standing.z;
         double gap = Math.sqrt(dx * dx + dz * dz) - target.getBbWidth() * 0.5;
         double rise = target.getY() - standing.y;
-        return gap <= reach && rise <= maxRise && rise > -(entity.getBbHeight() + reach);
+        if (gap > reach || rise > maxRise || rise <= -(entity.getBbHeight() + reach)) return false;
+        Vec3 eye = standing.add(0.0, entity.getEyeHeight(), 0.0);
+        HitResult hit = entity.level().clip(new ClipContext(eye, target.getEyePosition(),
+                ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, entity));
+        return hit.getType() == HitResult.Type.MISS;
     }
 
     private void keepAngry(LivingEntity target) {

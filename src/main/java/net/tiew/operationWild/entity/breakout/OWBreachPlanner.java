@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
@@ -23,6 +24,14 @@ public final class OWBreachPlanner {
     private static final int SEARCH_RADIUS = OWEnclosureProbe.RADIUS + 4;
     private static final int VERTICAL_RANGE = 6;
     private static final int MAX_EXPANSIONS = 3000;
+    private static final int MAX_TARGET_EXPANSIONS = 6000;
+    private static final int TARGET_MARGIN = 6;
+    private static final double MIN_STRIKE_REACH = 2.0;
+    private static final double STRIKE_REACH_MARGIN = 1.2;
+    private static final double MIN_STRIKE_RISE = 1.0;
+    private static final double STRIKE_RISE_MARGIN = 0.5;
+    private static final double LINE_STEP = 0.25;
+    private static final double GOAL_MARGIN = 0.5;
     private static final int MAX_FALL = 3;
     private static final float STEP_COST = 4f;
     private static final float CLIMB_COST = 4f;
@@ -39,7 +48,7 @@ public final class OWBreachPlanner {
     public record Step(BlockPos from, BlockPos to, List<BlockPos> blocks) {
     }
 
-    public record Plan(List<Step> steps, float cost) {
+    public record Plan(List<Step> steps, float cost, BlockPos end) {
     }
 
     private final OWEntity mob;
@@ -55,11 +64,22 @@ public final class OWBreachPlanner {
     private final boolean waterBound;
     private final BlockPos origin;
     private final double escapeDistance;
+    @Nullable
+    private final LivingEntity target;
+    private final int minX;
+    private final int maxX;
+    private final int minZ;
+    private final int maxZ;
+    private final int minY;
+    private final int maxY;
+    private final int maxExpansions;
+    private final double strikeReach;
+    private final double strikeRise;
     private final Long2FloatOpenHashMap bodyCost = new Long2FloatOpenHashMap();
     private final Long2FloatOpenHashMap feetCost = new Long2FloatOpenHashMap();
 
     private OWBreachPlanner(OWEntity mob, ServerLevel level, int breakLevel, float strikePower,
-                            @Nullable Vec3 anchor, boolean seek, double escapeDistance) {
+                            @Nullable Vec3 anchor, boolean seek, double escapeDistance, @Nullable LivingEntity target) {
         this.mob = mob;
         this.level = level;
         this.tracker = OWBlockDamageTracker.of(level);
@@ -72,6 +92,27 @@ public final class OWBreachPlanner {
         this.waterBound = mob instanceof OWWaterEntity;
         this.origin = startNode(mob, footprint);
         this.escapeDistance = escapeDistance;
+        this.target = target;
+        this.strikeReach = Math.max(MIN_STRIKE_REACH, mob.getBbWidth() * 0.5 + STRIKE_REACH_MARGIN) - GOAL_MARGIN;
+        this.strikeRise = Math.max(MIN_STRIKE_RISE, mob.getBbHeight() - STRIKE_RISE_MARGIN);
+        if (target == null) {
+            this.minX = origin.getX() - SEARCH_RADIUS;
+            this.maxX = origin.getX() + SEARCH_RADIUS;
+            this.minZ = origin.getZ() - SEARCH_RADIUS;
+            this.maxZ = origin.getZ() + SEARCH_RADIUS;
+            this.minY = origin.getY() - VERTICAL_RANGE;
+            this.maxY = origin.getY() + VERTICAL_RANGE;
+            this.maxExpansions = MAX_EXPANSIONS;
+        } else {
+            BlockPos aim = target.blockPosition();
+            this.minX = Math.min(origin.getX(), aim.getX()) - TARGET_MARGIN;
+            this.maxX = Math.max(origin.getX(), aim.getX()) + TARGET_MARGIN;
+            this.minZ = Math.min(origin.getZ(), aim.getZ()) - TARGET_MARGIN;
+            this.maxZ = Math.max(origin.getZ(), aim.getZ()) + TARGET_MARGIN;
+            this.minY = Math.min(origin.getY(), aim.getY()) - VERTICAL_RANGE;
+            this.maxY = Math.max(origin.getY(), aim.getY()) + VERTICAL_RANGE;
+            this.maxExpansions = MAX_TARGET_EXPANSIONS;
+        }
         this.bodyCost.defaultReturnValue(Float.NaN);
         this.feetCost.defaultReturnValue(Float.NaN);
     }
@@ -79,7 +120,13 @@ public final class OWBreachPlanner {
     @Nullable
     public static Plan plan(OWEntity mob, int breakLevel, float strikePower, @Nullable Vec3 anchor, boolean seek, double escapeDistance) {
         if (!(mob.level() instanceof ServerLevel level)) return null;
-        return new OWBreachPlanner(mob, level, breakLevel, strikePower, anchor, seek, escapeDistance).search();
+        return new OWBreachPlanner(mob, level, breakLevel, strikePower, anchor, seek, escapeDistance, null).search();
+    }
+
+    @Nullable
+    public static Plan planTo(OWEntity mob, int breakLevel, float strikePower, LivingEntity target) {
+        if (!(mob.level() instanceof ServerLevel level)) return null;
+        return new OWBreachPlanner(mob, level, breakLevel, strikePower, null, false, 0.0, target).search();
     }
 
     public static BlockPos startNode(OWEntity mob, int footprint) {
@@ -98,11 +145,11 @@ public final class OWBreachPlanner {
         best.defaultReturnValue(Float.POSITIVE_INFINITY);
         Long2LongOpenHashMap parent = new Long2LongOpenHashMap();
         parent.defaultReturnValue(NO_PARENT);
-        PriorityQueue<Frontier> open = new PriorityQueue<>(Comparator.comparingDouble(Frontier::cost));
+        PriorityQueue<Frontier> open = new PriorityQueue<>(Comparator.comparingDouble(Frontier::priority));
 
         long start = origin.asLong();
         best.put(start, 0f);
-        open.add(new Frontier(start, 0f));
+        open.add(new Frontier(start, 0f, estimate(origin)));
         int expansions = 0;
 
         while (!open.isEmpty()) {
@@ -110,8 +157,8 @@ public final class OWBreachPlanner {
             if (current.cost > best.get(current.key)) continue;
             if (current.cost > MAX_PLAN_COST) return null;
             BlockPos node = BlockPos.of(current.key);
-            if (current.key != start && isEscape(node)) return rebuild(parent, current.key, current.cost);
-            if (++expansions > MAX_EXPANSIONS) return null;
+            if (isGoal(node, current.key == start)) return rebuild(parent, current.key, current.cost);
+            if (++expansions > maxExpansions) return null;
 
             for (int[] direction : DIRECTIONS) {
                 for (int rise : RISES) {
@@ -123,11 +170,50 @@ public final class OWBreachPlanner {
                     if (cost >= best.get(key)) continue;
                     best.put(key, cost);
                     parent.put(key, current.key);
-                    open.add(new Frontier(key, cost));
+                    open.add(new Frontier(key, cost, cost + estimate(transition.to)));
                 }
             }
         }
         return null;
+    }
+
+    private boolean isGoal(BlockPos node, boolean isStart) {
+        if (target == null) return !isStart && isEscape(node);
+        return canStrikeFrom(node);
+    }
+
+    private float estimate(BlockPos node) {
+        if (target == null) return 0f;
+        double distance = horizontalDistance(nodeCenter(node, footprint), target.position()) - strikeReach - target.getBbWidth() * 0.5;
+        return distance > 0.0 ? (float) distance * STEP_COST : 0f;
+    }
+
+    private boolean canStrikeFrom(BlockPos node) {
+        Vec3 center = nodeCenter(node, footprint);
+        double gap = horizontalDistance(center, target.position()) - target.getBbWidth() * 0.5;
+        double rise = target.getY() - node.getY();
+        if (gap > strikeReach || rise > strikeRise || rise <= -(mob.getBbHeight() + strikeReach)) return false;
+        Vec3 eye = new Vec3(center.x, node.getY() + mob.getEyeHeight(), center.z);
+        return clearLine(node, eye, target.getEyePosition());
+    }
+
+    private boolean clearLine(BlockPos node, Vec3 from, Vec3 to) {
+        double length = from.distanceTo(to);
+        int samples = Math.max(1, Mth.ceil(length / LINE_STEP));
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        long previous = Long.MIN_VALUE;
+        for (int i = 1; i < samples; i++) {
+            Vec3 point = from.lerp(to, i / (double) samples);
+            if (target.getBoundingBox().contains(point)) return true;
+            cursor.set(point.x, point.y, point.z);
+            long key = cursor.asLong();
+            if (key == previous) continue;
+            previous = key;
+            if (insideBody(node, cursor.getX(), cursor.getY(), cursor.getZ())) continue;
+            BlockState state = level.getBlockState(cursor);
+            if (OWBlockToughness.isObstacle(state, level, cursor) && !OWBlockToughness.isSteppable(state, level, cursor)) return false;
+        }
+        return true;
     }
 
     private boolean isEscape(BlockPos node) {
@@ -139,8 +225,8 @@ public final class OWBreachPlanner {
 
     @Nullable
     private Transition transition(BlockPos from, BlockPos to) {
-        if (Math.abs(to.getX() - origin.getX()) > SEARCH_RADIUS || Math.abs(to.getZ() - origin.getZ()) > SEARCH_RADIUS) return null;
-        if (Math.abs(to.getY() - origin.getY()) > VERTICAL_RANGE) return null;
+        if (to.getX() < minX || to.getX() > maxX || to.getZ() < minZ || to.getZ() > maxZ) return null;
+        if (to.getY() < minY || to.getY() > maxY) return null;
         int rise = to.getY() - from.getY();
 
         float cost = STEP_COST + approachPenalty(from, to);
@@ -164,7 +250,7 @@ public final class OWBreachPlanner {
         if (body != 0f) return null;
         for (int drop = 1; drop <= MAX_FALL; drop++) {
             BlockPos landing = to.below(drop);
-            if (Math.abs(landing.getY() - origin.getY()) > VERTICAL_RANGE) return null;
+            if (landing.getY() < minY) return null;
             if (layerCost(to, landing.getY()) != 0f) return null;
             if (supported(landing)) return new Transition(landing, cost + FALL_COST * (drop + 1));
         }
@@ -307,7 +393,7 @@ public final class OWBreachPlanner {
             List<BlockPos> blocks = obstaclesBetween(from, to);
             if (!blocks.isEmpty()) steps.add(new Step(from, to, blocks));
         }
-        return new Plan(List.copyOf(steps), cost);
+        return new Plan(List.copyOf(steps), cost, BlockPos.of(goal));
     }
 
     private List<BlockPos> obstaclesBetween(BlockPos from, BlockPos to) {
@@ -345,7 +431,7 @@ public final class OWBreachPlanner {
         return Math.sqrt(dx * dx + dz * dz);
     }
 
-    private record Frontier(long key, float cost) {
+    private record Frontier(long key, float cost, float priority) {
     }
 
     private record Transition(BlockPos to, float cost) {

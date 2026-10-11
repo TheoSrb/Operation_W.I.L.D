@@ -17,7 +17,7 @@ public class OWFleeRoute {
     private static final int STUCK_STRIKES_BEFORE_PROBE = 2;
     private static final int FAILED_MEMORY = 200;
     private static final double FAILED_RADIUS_SQR = 16.0;
-    private static final double ARRIVAL_DISTANCE_SQR = 2.25;
+    private static final double ARRIVAL_DISTANCE_SQR = 16.0;
     private static final int CORNER_PACE_MIN = 80;
     private static final int CORNER_PACE_MAX = 160;
     private static final int CORNER_RESCAN = 40;

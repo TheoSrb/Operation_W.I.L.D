@@ -31,13 +31,13 @@ public abstract class OWComboModel<T extends OWEntity> extends HierarchicalModel
         if (animation == null) return;
         if (!entity.isCombo(index) && !state.isStarted()) return;
         this.animate(state, animation, ageInTicks,
-                comboSpeed(index) * speedMultiplier * OWEntity.comboSpeedMultiplier);
+                comboSpeed(index) * speedMultiplier * entity.comboSpeedMultiplier);
     }
 
-    public final float comboDurationTicks(int index, float speedMultiplier) {
+    public final float comboDurationTicks(OWEntity entity, int index, float speedMultiplier) {
         AnimationDefinition animation = comboAnimation(index);
         if (animation == null) return 0f;
-        float speed = comboSpeed(index) * speedMultiplier * OWEntity.comboSpeedMultiplier;
+        float speed = comboSpeed(index) * speedMultiplier * entity.comboSpeedMultiplier;
         return speed <= 0f ? 0f : animation.lengthInSeconds() * 20f / speed;
     }
 }

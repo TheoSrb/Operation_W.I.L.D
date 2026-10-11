@@ -184,6 +184,9 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private float dizzyBlend, dizzyBlendO;
     private float swimBlend, swimBlendO;
     private float runBlend, runBlendO;
+    private float comboBlend, comboBlendO;
+    private static final float COMBO_BLEND_IN = 0.34f;
+    private static final float COMBO_BLEND_OUT = 0.12f;
     private float riderStepPhase, riderStepPhaseO;
     private float riderPace, riderPaceO;
     private float riderPaceTime, riderPaceTimeO;
@@ -1398,6 +1401,10 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         runBlendO = runBlend;
         runBlend = approach(runBlend, this.isRunning() ? 1f : 0f, 0.2f);
 
+        comboBlendO = comboBlend;
+        boolean striking = attack1Combo.isStarted() || attack2Combo.isStarted() || attack3Combo.isStarted();
+        comboBlend = approach(comboBlend, striking ? 1f : 0f, striking ? COMBO_BLEND_IN : COMBO_BLEND_OUT);
+
         int elapsed = furyElapsed();
         if (visLastFuryElapsed >= 0 && visLastFuryElapsed < OWAttacksConstants.Hippopotamus.FURY_SHOCKWAVE_TICK
                 && elapsed >= OWAttacksConstants.Hippopotamus.FURY_SHOCKWAVE_TICK && !isFuryAquatic()) {
@@ -1502,6 +1509,8 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public float swimBlend(float partialTick) { return Mth.lerp(partialTick, swimBlendO, swimBlend); }
 
     public float runBlend(float partialTick) { return Mth.lerp(partialTick, runBlendO, runBlend); }
+
+    public float comboBlend(float partialTick) { return Mth.lerp(partialTick, comboBlendO, comboBlend); }
 
     public float riderStepPhase(float partialTick) { return Mth.lerp(partialTick, riderStepPhaseO, riderStepPhase); }
 

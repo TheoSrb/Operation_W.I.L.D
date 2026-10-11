@@ -293,7 +293,8 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> implements 
         // du bone de ce segment se calquent donc sur la tete.
         AnimationDefinition strike = strikeFor(entity.getComboNumber());
         if (strike != null) {
-            this.animate(entity.comboAnimationState, strike, ageInTicks, OWEntity.comboSpeedMultiplier);
+            float strikeSpeed = entity.getParentForRender() instanceof OWEntity boa ? boa.comboSpeedMultiplier : 1.0f;
+            this.animate(entity.comboAnimationState, strike, ageInTicks, strikeSpeed);
             // Translation cumulee des ancetres : voir GhostChain. Rejoue le meme strike,
             // au MEME instant (accumulatedTime du state, deja avance par this.animate juste
             // au-dessus), sur un squelette de bones vides, et ajoute a CE segment la somme des

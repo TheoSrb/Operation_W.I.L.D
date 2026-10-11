@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class OWBreakout {
 
-    private enum Phase { IDLE, BREACHING, STRUGGLING }
+    private enum Phase { IDLE, BREACHING, SIEGING, STRUGGLING }
 
     private static final int AGITATION_MEMORY = 600;
     private static final int SCAN_INTERVAL = 20;
@@ -62,6 +62,16 @@ public class OWBreakout {
     private static final int STRUGGLE_REST_MAX = 280;
     private static final double STRUGGLE_LOOKUP = 4.0;
     private static final double RECOIL = 0.22;
+    private static final double SIEGE_MAX_DISTANCE = 40.0;
+    private static final int SIEGE_PROBE_TTL = 40;
+    private static final int SIEGE_FAILED_TTL = 100;
+    private static final int SIEGE_PROBE_MIN_GAP = 20;
+    private static final double SIEGE_DRIFT_SQR = 9.0;
+    private static final int ASSAULT_COOLDOWN = 12;
+    private static final double MIN_HIT_REACH = 2.0;
+    private static final double HIT_REACH_MARGIN = 1.2;
+    private static final double MIN_HIT_RISE = 1.0;
+    private static final double HIT_RISE_MARGIN = 0.5;
 
     private final OWEntity entity;
     private final OWEnclosureProbe probe;
@@ -87,6 +97,15 @@ public class OWBreakout {
     private int struggleStrikes;
     private int struggleBudget;
     private int struggleRest;
+    @Nullable
+    private LivingEntity siegeTarget;
+    private Vec3 siegeAim = Vec3.ZERO;
+    @Nullable
+    private OWBreachPlanner.Plan siegeProbe;
+    private int siegeProbeTick = Integer.MIN_VALUE / 2;
+    private int siegeProbeTarget = -1;
+    private Vec3 siegeProbeAim = Vec3.ZERO;
+    private int assaultCooldown;
 
     public OWBreakout(OWEntity entity) {
         this.entity = entity;
@@ -102,7 +121,7 @@ public class OWBreakout {
     }
 
     public boolean wantsControl() {
-        return phase == Phase.BREACHING || (phase == Phase.STRUGGLING && struggleRest <= 0);
+        return phase == Phase.BREACHING || phase == Phase.SIEGING || (phase == Phase.STRUGGLING && struggleRest <= 0);
     }
 
     public boolean isStriking() {
@@ -119,6 +138,10 @@ public class OWBreakout {
         if (holdOff > 0) holdOff--;
         if (struggleRest > 0) struggleRest--;
         refreshAgitation();
+        if (phase == Phase.SIEGING) {
+            tickSiege();
+            return;
+        }
         if (!canBreakOut()) {
             reset();
             return;
@@ -142,8 +165,111 @@ public class OWBreakout {
     }
 
     public void drive() {
-        if (phase == Phase.BREACHING) driveBreach();
+        if (phase == Phase.BREACHING || phase == Phase.SIEGING) driveBreach();
         else if (phase == Phase.STRUGGLING) driveStruggle();
+    }
+
+    public boolean isSieging() {
+        return phase == Phase.SIEGING;
+    }
+
+    public boolean isSieging(LivingEntity target) {
+        return phase == Phase.SIEGING && siegeTarget == target;
+    }
+
+    public SiegeOutlook siegeOutlook(LivingEntity target) {
+        if (!siegeAllowed(target)) return SiegeOutlook.IMPOSSIBLE;
+        OWBreachPlanner.Plan probed = probeSiege(target);
+        if (probed == null) return SiegeOutlook.IMPOSSIBLE;
+        return probed.steps().isEmpty() ? SiegeOutlook.OPEN : SiegeOutlook.BREACH;
+    }
+
+    public enum SiegeOutlook { IMPOSSIBLE, OPEN, BREACH }
+
+    public boolean startSiege(LivingEntity target) {
+        if (isSieging(target) && plan != null) return true;
+        if (!siegeAllowed(target)) return false;
+        OWBreachPlanner.Plan probed = probeSiege(target);
+        if (probed == null) return false;
+        clearStrike();
+        resetApproach();
+        plan = probed;
+        stepIndex = 0;
+        phase = Phase.SIEGING;
+        siegeTarget = target;
+        siegeAim = target.position();
+        planCooldown = REPLAN_DELAY;
+        struggleTarget = null;
+        struggleStrikes = 0;
+        struggleRest = 0;
+        return true;
+    }
+
+    public void endSiege() {
+        if (phase != Phase.SIEGING) return;
+        phase = Phase.IDLE;
+        plan = null;
+        stepIndex = 0;
+        siegeTarget = null;
+        holdOff = PLAN_DONE_HOLD;
+        clearStrike();
+        resetApproach();
+        entity.getNavigation().stop();
+    }
+
+    private void tickSiege() {
+        LivingEntity target = siegeTarget;
+        boolean valid = target != null && target.isAlive() && !target.isRemoved() && target.level() == entity.level()
+                && entity.sedationResponse.getChargeTarget() == target && canBreakOut() && siegeAllowed(target);
+        if (!valid) {
+            endSiege();
+            return;
+        }
+        trappedTicks++;
+        announceRage();
+        if (planCooldown <= 0 && target.position().distanceToSqr(siegeAim) > SIEGE_DRIFT_SQR) replanSiege();
+    }
+
+    private void replanSiege() {
+        LivingEntity target = siegeTarget;
+        planCooldown = REPLAN_DELAY;
+        if (target == null) {
+            endSiege();
+            return;
+        }
+        siegeProbeTick = Integer.MIN_VALUE / 2;
+        OWBreachPlanner.Plan next = probeSiege(target);
+        if (next == null) {
+            endSiege();
+            return;
+        }
+        clearStrike();
+        resetApproach();
+        plan = next;
+        stepIndex = 0;
+        siegeAim = target.position();
+    }
+
+    private boolean siegeAllowed(LivingEntity target) {
+        if (!entity.isAlive() || entity.isTame() || !entity.usesAggressiveTaming()) return false;
+        if (entity.effectiveBlockBreakLevel() == OWBreakLevel.NONE) return false;
+        if (!(entity.level() instanceof ServerLevel level) || !EventHooks.canEntityGrief(level, entity)) return false;
+        if (level.dimension().equals(OWDimensions.ARENA)) return false;
+        return entity.distanceToSqr(target) <= SIEGE_MAX_DISTANCE * SIEGE_MAX_DISTANCE;
+    }
+
+    @Nullable
+    private OWBreachPlanner.Plan probeSiege(LivingEntity target) {
+        int age = entity.tickCount - siegeProbeTick;
+        boolean sameTarget = siegeProbeTarget == target.getId();
+        boolean settled = target.position().distanceToSqr(siegeProbeAim) <= SIEGE_DRIFT_SQR;
+        int lifetime = siegeProbe != null ? SIEGE_PROBE_TTL : SIEGE_FAILED_TTL;
+        if (sameTarget && ((settled && age < lifetime) || age < SIEGE_PROBE_MIN_GAP)) return siegeProbe;
+        siegeProbe = OWBreachPlanner.planTo(entity, entity.effectiveBlockBreakLevel(), strikePower(), target);
+        siegeProbeTick = entity.tickCount;
+        siegeProbeTarget = target.getId();
+        siegeProbeAim = target.position();
+        return siegeProbe;
     }
 
     public void release() {
@@ -226,6 +352,7 @@ public class OWBreakout {
         if (phase != Phase.IDLE || strikePending) entity.getNavigation().stop();
         phase = Phase.IDLE;
         plan = null;
+        siegeTarget = null;
         stepIndex = 0;
         clearStrike();
         trappedTicks = 0;
@@ -240,13 +367,14 @@ public class OWBreakout {
         if (tickPendingStrike()) return;
         OWBreachPlanner.Step step = currentStep();
         if (step == null) {
-            finishPlan();
+            if (phase == Phase.SIEGING) driveAssault();
+            else finishPlan();
             return;
         }
         BlockPos block = nextBlock(step);
         if (block == null) return;
         if (!breakableNow(block)) {
-            if (planCooldown <= 0) replanOrStruggle();
+            if (planCooldown <= 0) onPlanBroken();
             else entity.getNavigation().stop();
             return;
         }
@@ -254,10 +382,48 @@ public class OWBreakout {
             strikeAt(block);
             return;
         }
-        if (approach(OWBreachPlanner.nodeCenter(step.from(), footprint())) && planCooldown <= 0) replanOrStruggle();
+        if (approachNode(step.from()) && planCooldown <= 0) onPlanBroken();
     }
 
-    private void replanOrStruggle() {
+    private void driveAssault() {
+        LivingEntity target = siegeTarget;
+        if (target == null || plan == null) {
+            endSiege();
+            return;
+        }
+        if (assaultCooldown > 0) assaultCooldown--;
+        if (canHit(target)) {
+            entity.getNavigation().stop();
+            facePoint(target.position());
+            entity.getLookControl().setLookAt(target, 30f, 30f);
+            if (assaultCooldown > 0) return;
+            if (!entity.isCombo()) {
+                entity.setCombo(true, 1);
+                assaultCooldown = ASSAULT_COOLDOWN;
+            } else if (entity.isPauseCombo()) {
+                entity.playerContinueCombo = true;
+                assaultCooldown = ASSAULT_COOLDOWN;
+            }
+            return;
+        }
+        if (approachNode(plan.end()) && planCooldown <= 0) replanSiege();
+    }
+
+    private boolean canHit(LivingEntity target) {
+        double reach = Math.max(MIN_HIT_REACH, entity.getBbWidth() * 0.5 + HIT_REACH_MARGIN);
+        double dx = target.getX() - entity.getX();
+        double dz = target.getZ() - entity.getZ();
+        double gap = Math.sqrt(dx * dx + dz * dz) - target.getBbWidth() * 0.5;
+        double rise = target.getY() - entity.getY();
+        if (gap > reach || rise > Math.max(MIN_HIT_RISE, entity.getBbHeight() - HIT_RISE_MARGIN)) return false;
+        return rise > -(entity.getBbHeight() + reach) && entity.hasLineOfSight(target);
+    }
+
+    private void onPlanBroken() {
+        if (phase == Phase.SIEGING) {
+            replanSiege();
+            return;
+        }
         if (!replan() && phase == Phase.BREACHING) enterStruggle();
     }
 
@@ -282,7 +448,8 @@ public class OWBreakout {
             if (strikeAt(struggleTarget)) struggleStrikes++;
             return;
         }
-        if (approach(Vec3.atBottomCenterOf(struggleTarget))) struggleTarget = null;
+        Vec3 wall = Vec3.atBottomCenterOf(struggleTarget);
+        if (approach(wall, wall)) struggleTarget = null;
     }
 
     private boolean tickPendingStrike() {
@@ -351,7 +518,7 @@ public class OWBreakout {
     }
 
     private void splash(ServerLevel level, OWBlockDamageTracker tracker, BlockPos origin, float power, int breakLevel) {
-        if (phase != Phase.BREACHING || plan == null || footprint() < 2 || stepIndex >= plan.steps().size()) return;
+        if ((phase != Phase.BREACHING && phase != Phase.SIEGING) || plan == null || footprint() < 2 || stepIndex >= plan.steps().size()) return;
         for (BlockPos pos : plan.steps().get(stepIndex).blocks()) {
             if (pos.equals(origin) || pos.distSqr(origin) > SPLASH_RADIUS_SQR) continue;
             BlockState state = level.getBlockState(pos);
@@ -455,6 +622,10 @@ public class OWBreakout {
     }
 
     private void finishPlan() {
+        if (phase == Phase.SIEGING) {
+            endSiege();
+            return;
+        }
         plan = null;
         stepIndex = 0;
         phase = Phase.IDLE;
@@ -463,7 +634,12 @@ public class OWBreakout {
         entity.getNavigation().stop();
     }
 
-    private boolean approach(Vec3 target) {
+    private boolean approachNode(BlockPos node) {
+        Vec3 navigationTarget = new Vec3(node.getX() + 0.5, node.getY(), node.getZ() + 0.5);
+        return approach(navigationTarget, OWBreachPlanner.nodeCenter(node, footprint()));
+    }
+
+    private boolean approach(Vec3 navigationTarget, Vec3 target) {
         double distance = entity.position().distanceTo(target);
         if (distance < approachBest - APPROACH_PROGRESS) {
             approachBest = distance;
@@ -475,7 +651,7 @@ public class OWBreakout {
             return approachStrikes >= 2;
         }
         if (entity.getNavigation().isDone() || approachTimer % APPROACH_REPATH == 0) {
-            entity.getNavigation().moveTo(target.x, target.y, target.z, approachSpeed());
+            entity.getNavigation().moveTo(navigationTarget.x, navigationTarget.y, navigationTarget.z, approachSpeed());
         }
         return false;
     }
@@ -497,6 +673,10 @@ public class OWBreakout {
     private boolean faceBlock(BlockPos pos) {
         Vec3 center = Vec3.atCenterOf(pos);
         entity.getLookControl().setLookAt(center.x, center.y, center.z, 30f, 30f);
+        return facePoint(center);
+    }
+
+    private boolean facePoint(Vec3 center) {
         double dx = center.x - entity.getX();
         double dz = center.z - entity.getZ();
         if (dx * dx + dz * dz < 0.25) return true;
