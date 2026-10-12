@@ -1321,7 +1321,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         this.entityData.set(IS_MAD, isMad);
     }
 
-    public boolean isMad() { return this.entityData.get(IS_MAD); }
+    public boolean isMad() { return this.entityData.get(IS_MAD) || this.isTamingFury(); }
 
     public int getRoarTick() { return this.entityData.get(ROAR_TICK); }
 

@@ -1634,7 +1634,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         this.entityData.set(IS_MAD, isMad);
     }
 
-    public boolean isMad() { return this.entityData.get(IS_MAD); }
+    public boolean isMad() { return this.entityData.get(IS_MAD) || this.isTamingFury(); }
 
     public boolean isRolling() { return this.entityData.get(ROLLING); }
 

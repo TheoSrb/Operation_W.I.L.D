@@ -106,6 +106,8 @@ public class OWBreakout {
     private int siegeProbeTarget = -1;
     private Vec3 siegeProbeAim = Vec3.ZERO;
     private int assaultCooldown;
+    private boolean blockCombo;
+    private int lastProgressTick = Integer.MIN_VALUE / 2;
 
     public OWBreakout(OWEntity entity) {
         this.entity = entity;
@@ -136,6 +138,7 @@ public class OWBreakout {
         if (entity.level().isClientSide()) return;
         if (planCooldown > 0) planCooldown--;
         if (holdOff > 0) holdOff--;
+        if (blockCombo && !entity.isCombo()) blockCombo = false;
         if (struggleRest > 0) struggleRest--;
         refreshAgitation();
         if (phase == Phase.SIEGING) {
@@ -471,22 +474,46 @@ public class OWBreakout {
 
     private boolean strikeAt(BlockPos block) {
         entity.getNavigation().stop();
-        boolean facing = faceBlock(block);
-        if (!facing || entity.isCombo()) return false;
+        if (!faceBlock(block)) return false;
+        if (!entity.isCombo()) {
+            armStrike(block);
+            blockCombo = true;
+            entity.setCombo(true, 1);
+            return true;
+        }
+        if (blockCombo && entity.isPauseCombo() && !entity.playerContinueCombo && canChainCombo()) {
+            armStrike(block);
+            entity.playerContinueCombo = true;
+            return true;
+        }
+        return false;
+    }
+
+    private void armStrike(BlockPos block) {
         strikeTarget = block.immutable();
         strikePending = true;
         strikeWait = 0;
-        entity.setCombo(true, 1);
-        return true;
+    }
+
+    private boolean canChainCombo() {
+        return entity.actualAttackNumber < entity.MAX_ATTACKS_IN_COMBO - 1;
+    }
+
+    public boolean isBlockCombo() {
+        return blockCombo && entity.isCombo();
+    }
+
+    public int ticksSinceProgress() {
+        return entity.tickCount - lastProgressTick;
     }
 
     private void landPendingStrike(@Nullable SoundEvent sound) {
         BlockPos target = strikeTarget;
         strikePending = false;
         strikeWait = 0;
-        strikePause = phase == Phase.STRUGGLING
-                ? STRUGGLE_PAUSE_MIN + entity.getRandom().nextInt(STRUGGLE_PAUSE_MAX - STRUGGLE_PAUSE_MIN + 1)
-                : STRIKE_PAUSE_MIN + entity.getRandom().nextInt(STRIKE_PAUSE_MAX - STRIKE_PAUSE_MIN + 1);
+        if (blockCombo && entity.isCombo() && canChainCombo()) strikePause = 0;
+        else if (phase == Phase.STRUGGLING) strikePause = STRUGGLE_PAUSE_MIN + entity.getRandom().nextInt(STRUGGLE_PAUSE_MAX - STRUGGLE_PAUSE_MIN + 1);
+        else strikePause = STRIKE_PAUSE_MIN + entity.getRandom().nextInt(STRIKE_PAUSE_MAX - STRIKE_PAUSE_MIN + 1);
         if (target != null) applyStrike(target, sound);
     }
 
@@ -509,6 +536,7 @@ public class OWBreakout {
         }
 
         level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), impact.x, impact.y, impact.z, 12, 0.2, 0.2, 0.2, 0.15);
+        lastProgressTick = entity.tickCount;
         OWBlockDamageTracker tracker = OWBlockDamageTracker.of(level);
         float power = strikePower();
         boolean broken = tracker.damage(pos, state, power * OWBreakLevel.advantage(breakLevel, tier));

@@ -1397,7 +1397,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
         this.entityData.set(IS_MAD, isMad);
     }
 
-    public boolean isMad() { return this.entityData.get(IS_MAD);}
+    public boolean isMad() { return this.entityData.get(IS_MAD) || this.isTamingFury();}
 
     public ItemStack getFoodPick() {
         return this.entityData.get(FOOD_PICK);

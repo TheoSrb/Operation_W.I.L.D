@@ -1834,7 +1834,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         this.entityData.set(IS_MAD, isMad);
     }
 
-    public boolean isMad() { return this.entityData.get(IS_MAD); }
+    public boolean isMad() { return this.entityData.get(IS_MAD) || this.isTamingFury(); }
 
     public boolean isRockCharging() { return this.entityData.get(IS_ROCK_CHARGING); }
 

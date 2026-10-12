@@ -48,6 +48,9 @@ public class OWSedationResponse {
     private static final double SEARCH_FRONTIER_MARGIN = 3.0;
     private static final double UNSEEN_SHOOTER_DISTANCE = 16.0;
     private static final int PROBE_GROUND_SEARCH = 8;
+    private static final int FRUSTRATION_LIMIT = 300;
+    private static final int FRUSTRATION_COOLDOWN = 600;
+    private static final int BREAK_PROGRESS_GRACE = 60;
 
     private final OWEntity entity;
     private Stance stance = Stance.CALM;
@@ -62,6 +65,9 @@ public class OWSedationResponse {
     private int reachableChecks;
     private boolean provisional;
     private boolean reachedByPath;
+    private int frustration;
+    private int lastHitStamp = Integer.MIN_VALUE;
+    private int frustratedUntil = Integer.MIN_VALUE / 2;
 
     public OWSedationResponse(OWEntity entity) {
         this.entity = entity;
@@ -142,10 +148,15 @@ public class OWSedationResponse {
         unreachableChecks = 0;
         reachableChecks = 0;
         provisional = false;
+        frustration = 0;
+    }
+
+    public boolean isFrustrated() {
+        return entity.tickCount < frustratedUntil;
     }
 
     private void decide(LivingEntity shooter) {
-        if (entity.isBaby() || !isAttackable(shooter)) {
+        if (entity.isBaby() || !isAttackable(shooter) || isFrustrated()) {
             retreat();
             return;
         }
@@ -181,6 +192,8 @@ public class OWSedationResponse {
             reachableChecks = 0;
             provisional = false;
             reevaluateTimer = REEVALUATE_INTERVAL;
+            frustration = 0;
+            lastHitStamp = shooter.getLastHurtByMobTimestamp();
         }
         stance = Stance.CHARGE;
         entity.setNap(false);
@@ -233,6 +246,12 @@ public class OWSedationResponse {
             retreat();
             return;
         }
+        if (landedHit(provoker) || (besieging && entity.breakout.ticksSinceProgress() < BREAK_PROGRESS_GRACE)) {
+            frustration = 0;
+        } else if (++frustration >= FRUSTRATION_LIMIT) {
+            giveUp();
+            return;
+        }
 
         keepAngry(provoker);
         if (--reevaluateTimer > 0) return;
@@ -250,6 +269,19 @@ public class OWSedationResponse {
         } else if (reach == Reach.NO && (provisional || ++unreachableChecks >= UNREACHABLE_CHECKS)) {
             retreat();
         }
+    }
+
+    private boolean landedHit(LivingEntity target) {
+        if (target.getLastHurtByMob() != entity) return false;
+        int stamp = target.getLastHurtByMobTimestamp();
+        if (stamp == lastHitStamp) return false;
+        lastHitStamp = stamp;
+        return true;
+    }
+
+    private void giveUp() {
+        frustratedUntil = entity.tickCount + FRUSTRATION_COOLDOWN;
+        retreat();
     }
 
     private void tickRetreat() {
@@ -271,7 +303,7 @@ public class OWSedationResponse {
     }
 
     private boolean watchForOpening() {
-        if (provoker == null || --reevaluateTimer > 0) return false;
+        if (provoker == null || isFrustrated() || --reevaluateTimer > 0) return false;
         reevaluateTimer = WATCH_INTERVAL;
 
         Reach reach = !entity.isBaby() && isAttackable(provoker)

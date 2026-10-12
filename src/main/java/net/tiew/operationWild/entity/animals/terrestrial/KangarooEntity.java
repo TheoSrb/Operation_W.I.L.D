@@ -131,8 +131,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     public static final double HOP_WALK_HEIGHT = 3.0;
     public static final double HOP_WALK_DISTANCE = 2.0;
-    public static final double HOP_RUN_HEIGHT = 1.0;
-    public static final double HOP_RUN_DISTANCE = 6.0;
+    public static final double HOP_RUN_HEIGHT = 1.15;
+    public static final double HOP_RUN_DISTANCE = 4.5;
     public static final double HOP_REFERENCE_SPEED = 0.21;
     public static final double HOP_DISTANCE_FACTOR_MIN = 0.6;
     public static final double HOP_DISTANCE_FACTOR_MAX = 3.0;
@@ -853,7 +853,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (this.isInResurrection()) this.setSleeping(true);
     }
 
-    public boolean isMad() { return this.entityData.get(IS_MAD); }
+    public boolean isMad() { return this.entityData.get(IS_MAD) || this.isTamingFury(); }
     public void setMad(boolean value) { this.entityData.set(IS_MAD, value); }
 
     @Override

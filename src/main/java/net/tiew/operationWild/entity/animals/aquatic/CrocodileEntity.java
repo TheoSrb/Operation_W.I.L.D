@@ -1716,7 +1716,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public boolean isMad() {
-        return this.entityData.get(IS_MAD);
+        return this.entityData.get(IS_MAD) || this.isTamingFury();
     }
 
     public void setDeathRollProgress(int getDeathRollProgress) {

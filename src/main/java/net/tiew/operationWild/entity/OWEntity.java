@@ -359,6 +359,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final EntityDataAccessor<String> NAME = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> CACHED_OWNER_NAME = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Integer> TAMING_HITS = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> TAMING_FURY = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<ItemStack> TAMING_MEAL = SynchedEntityData.defineId(OWEntity.class, EntityDataSerializers.ITEM_STACK);
 
     public int quest0Progression = 0;
@@ -2034,6 +2035,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return max <= 0 ? 0f : Mth.clamp(this.getActualSleepingBar() / (float) max, 0f, 1f);
     }
 
+    public boolean isTamingFury() {
+        return this.entityData.get(TAMING_FURY);
+    }
+
+    private boolean feelsTamingFury() {
+        if (this.isTame() || this.isBaby() || this.isKnockedOut() || this.isSleeping() || this.isNapping()) return false;
+        if (this.isSedatedFleeing() || this.sedationResponse.isRetreating()) return false;
+        return this.sedationResponse.isAlarmed() || this.breakout.isActive() || this.getActualSleepingBar() > 0;
+    }
+
     public int getTamingHits() {
         return this.entityData.get(TAMING_HITS);
     }
@@ -3488,6 +3499,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (this.usesAggressiveTaming()) this.aggressiveTaming.tick();
             this.sedationResponse.tick();
             if (this.usesAggressiveTaming()) this.breakout.tick();
+            this.entityData.set(TAMING_FURY, this.usesAggressiveTaming() && this.feelsTamingFury());
             tickSecondaryCooldown();
         }
 
@@ -3883,7 +3895,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 float pitch = (float) (OWUtils.generateRandomInterval(1.3, 1.65));
                 kangaroo.level().playSound(null, kangaroo.getX(), kangaroo.getY(), kangaroo.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, getComboAttack() == 3 ? pitch / 1.5f : pitch);
 
-                if (getComboAttack() == 3) {
+                if (getComboAttack() == 3 && !this.breakout.isBlockCombo()) {
                     for (LivingEntity target : kangaroo.lastAttackHitEntities) {
                         Vec3 motion = target.getDeltaMovement();
                         target.setDeltaMovement(motion.x * 0.3, 0.65, motion.z * 0.3);
@@ -3904,7 +3916,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
 
             if (attackTimer == timeToHit + 21) {
-                if (getComboAttack() == 3) {
+                if (getComboAttack() == 3 && !this.breakout.isBlockCombo()) {
                     boolean isRided = this.getControllingPassenger() != null;
                     float d0 = (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
                     attackEntitiesInFront(d0, SoundEvents.PLAYER_ATTACK_STRONG, 3.0f * (isRided ? 1 : 1.5f), 3.0f * (isRided ? 1 : 1.5f), 1.5f * (isRided ? 1 : 1.5f), 0.5f);
@@ -5341,6 +5353,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         builder.define(PANIC_LEVEL, 0.0f);
         builder.define(PANIC_BUCK, 0);
         builder.define(TAMING_HITS, 0);
+        builder.define(TAMING_FURY, false);
         builder.define(TAMING_MEAL, ItemStack.EMPTY);
     }
 
