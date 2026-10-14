@@ -78,7 +78,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public static final double TAMING_EXPERIENCE = 65.0;
     public static final int MAX_SOMNOLENCE = 1300;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 3;
-    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 12;
+    public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 6;
     public static final int FOOD_WANTED_MIN = 8;
     public static final int FOOD_WANTED_MAX = 14;
 

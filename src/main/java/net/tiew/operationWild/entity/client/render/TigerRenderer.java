@@ -23,6 +23,7 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
     private static final float ALPHA_SPEED = 1f / 1000f;
     private static final Map<Integer, Float> ALPHA_BY_ENTITY = new HashMap<>();
     public static float currentAlpha = 1f;
+    private static final float SHADER_VISIBLE_THRESHOLD = 0.5f;
 
     // When > 0, bypasses normal fade and forces this alpha (used by ghost tiger renderer)
     public static float ghostAlpha = 0f;
@@ -63,7 +64,9 @@ public class TigerRenderer extends OWEntityRenderer<TigerEntity, TigerModel<Tige
                     : Math.max(alpha - speed, targetAlpha);
             alpha = Math.max(alpha, entity.isHidden() ? 0.1f : 0f);
             ALPHA_BY_ENTITY.put(entity.getId(), alpha);
-            currentAlpha = alpha;
+            currentAlpha = alpha < 1f && !RENDER_AS_GHOST && OWShaderCompat.isShaderPackInUse()
+                    ? (alpha >= SHADER_VISIBLE_THRESHOLD ? 1f : 0f)
+                    : alpha;
         }
 
         super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);

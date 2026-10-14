@@ -164,6 +164,7 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
     public void travel(Vec3 vec3) {
         if (this.isInWater() && (this.isEffectiveAi() || this.isControlledByLocalInstance())) {
             this.moveRelative(0.1F, vec3);
+            if (!(this.getControllingPassenger() instanceof Player)) capWildSwimSpeed();
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.75D));
 
@@ -199,6 +200,19 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
     protected float riddenSpeedResponse(boolean accelerating) {
         if (!this.isInWater()) return super.riddenSpeedResponse(accelerating);
         return accelerating ? RIDDEN_SWIM_ACCEL_RESPONSE : RIDDEN_SWIM_BRAKE_RESPONSE;
+    }
+
+    public float wildSwimSpeedCap() {
+        return 0.15f;
+    }
+
+    private void capWildSwimSpeed() {
+        Vec3 motion = this.getDeltaMovement();
+        double horizontal = motion.horizontalDistance();
+        double cap = wildSwimSpeedCap();
+        if (horizontal <= cap) return;
+        double scale = cap / horizontal;
+        this.setDeltaMovement(motion.x * scale, motion.y, motion.z * scale);
     }
 
     @Override

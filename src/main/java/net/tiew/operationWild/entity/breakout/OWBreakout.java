@@ -24,6 +24,10 @@ import net.tiew.operationWild.entity.taming.OWAggressiveTaming;
 import net.tiew.operationWild.worldgen.dimension.OWDimensions;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 public class OWBreakout {
 
     private enum Phase { IDLE, BREACHING, SIEGING, STRUGGLING }
@@ -34,7 +38,9 @@ public class OWBreakout {
     private static final int FAILED_PLAN_DELAY = 200;
     private static final int EMPTY_PLAN_HOLD = 100;
     private static final int PLAN_DONE_HOLD = 10;
-    private static final int APPROACH_STUCK_TICKS = 60;
+    private static final int APPROACH_STUCK_TICKS = 40;
+    private static final int APPROACH_STALL_TICKS = 8;
+    private static final double BASH_CORRIDOR_MARGIN = 0.6;
     private static final double APPROACH_PROGRESS = 0.5;
     private static final int APPROACH_REPATH = 10;
     private static final float APPROACH_SPEED_FACTOR = 0.45f;
@@ -51,8 +57,13 @@ public class OWBreakout {
     private static final float DAMAGE_REFERENCE = 7f;
     private static final float MIN_DAMAGE_FACTOR = 0.8f;
     private static final float MAX_DAMAGE_FACTOR = 1.35f;
-    private static final float SPLASH_FACTOR = 0.5f;
-    private static final double SPLASH_RADIUS_SQR = 2.25;
+    private static final double IMPACT_MIN_RADIUS = 0.5;
+    private static final double IMPACT_SOFTNESS_REACH = 0.4;
+    private static final int IMPACT_SOFTNESS_STEPS = 3;
+    private static final double IMPACT_MAX_RADIUS = 2.5;
+    private static final float IMPACT_FALLOFF = 0.5f;
+    private static final float IMPACT_BUDGET_PER_VOLUME = 1.5f;
+    private static final int IMPACT_MAX_BLOCKS = 12;
     private static final double ESCAPE_MARGIN = 2.0;
     private static final int STRUGGLE_STRIKES_MIN = 3;
     private static final int STRUGGLE_STRIKES_MAX = 5;
@@ -62,9 +73,9 @@ public class OWBreakout {
     private static final int STRUGGLE_REST_MAX = 280;
     private static final double STRUGGLE_LOOKUP = 4.0;
     private static final double RECOIL = 0.22;
-    private static final double SIEGE_MAX_DISTANCE = 40.0;
+    private static final double SIEGE_MAX_DISTANCE = 56.0;
     private static final int SIEGE_PROBE_TTL = 40;
-    private static final int SIEGE_FAILED_TTL = 100;
+    private static final int SIEGE_FAILED_TTL = 60;
     private static final int SIEGE_PROBE_MIN_GAP = 20;
     private static final double SIEGE_DRIFT_SQR = 9.0;
     private static final int ASSAULT_COOLDOWN = 12;
@@ -381,11 +392,54 @@ public class OWBreakout {
             else entity.getNavigation().stop();
             return;
         }
-        if (distanceTo(block) <= strikeReach()) {
+        double distance = distanceTo(block);
+        if (distance <= strikeReach() || (approachStalled() && distance <= strikeReach() + STUCK_REACH_BONUS)) {
             strikeAt(block);
             return;
         }
+        if (approachStalled()) {
+            BlockPos bash = bashTowards(Vec3.atCenterOf(block));
+            if (bash != null) {
+                strikeAt(bash);
+                return;
+            }
+        }
         if (approachNode(step.from()) && planCooldown <= 0) onPlanBroken();
+    }
+
+    private boolean approachStalled() {
+        return approachStrikes > 0 || (entity.getNavigation().isDone() && approachTimer >= APPROACH_STALL_TICKS);
+    }
+
+    @Nullable
+    private BlockPos bashTowards(Vec3 goal) {
+        Vec3 direction = goal.subtract(entity.position()).multiply(1.0, 0.0, 1.0);
+        if (direction.lengthSqr() < 1.0E-4) return null;
+        direction = direction.normalize();
+        AABB box = entity.getBoundingBox();
+        double reach = strikeReach() + STUCK_REACH_BONUS;
+        double corridor = entity.getBbWidth() * 0.5 + BASH_CORRIDOR_MARGIN;
+        int minY = Mth.floor(box.minY + 0.05);
+        int maxY = Mth.floor(box.maxY - 0.05);
+        BlockPos best = null;
+        double bestScore = Double.MAX_VALUE;
+        for (BlockPos pos : BlockPos.betweenClosed(Mth.floor(box.minX - reach), minY, Mth.floor(box.minZ - reach),
+                Mth.floor(box.maxX + reach), maxY, Mth.floor(box.maxZ + reach))) {
+            if (!isWall(pos) || !breakableNow(pos)) continue;
+            Vec3 offset = Vec3.atCenterOf(pos).subtract(entity.position()).multiply(1.0, 0.0, 1.0);
+            double along = offset.dot(direction);
+            if (along <= 0.0) continue;
+            double lateral = offset.subtract(direction.scale(along)).length();
+            if (lateral > corridor) continue;
+            double distance = distanceTo(pos);
+            if (distance > reach) continue;
+            double score = distance + lateral * 0.5 + (pos.getY() - minY) * 0.3;
+            if (score < bestScore) {
+                bestScore = score;
+                best = pos.immutable();
+            }
+        }
+        return best;
     }
 
     private void driveAssault() {
@@ -408,6 +462,13 @@ public class OWBreakout {
                 assaultCooldown = ASSAULT_COOLDOWN;
             }
             return;
+        }
+        if (approachStalled()) {
+            BlockPos bash = bashTowards(target.position());
+            if (bash != null) {
+                strikeAt(bash);
+                return;
+            }
         }
         if (approachNode(plan.end()) && planCooldown <= 0) replanSiege();
     }
@@ -475,6 +536,10 @@ public class OWBreakout {
     private boolean strikeAt(BlockPos block) {
         entity.getNavigation().stop();
         if (!faceBlock(block)) return false;
+        if (blockCombo && entity.isPauseCombo() && !canChainCombo()) {
+            entity.resetCombo(0);
+            entity.actualAttackNumber = 0;
+        }
         if (!entity.isCombo()) {
             armStrike(block);
             blockCombo = true;
@@ -542,24 +607,59 @@ public class OWBreakout {
         boolean broken = tracker.damage(pos, state, power * OWBreakLevel.advantage(breakLevel, tier));
         accent(level, pos, tier, broken);
         if (broken) breakBlock(level, pos);
-        splash(level, tracker, pos, power, breakLevel);
+        shockwave(level, tracker, pos, power, breakLevel);
     }
 
-    private void splash(ServerLevel level, OWBlockDamageTracker tracker, BlockPos origin, float power, int breakLevel) {
-        if ((phase != Phase.BREACHING && phase != Phase.SIEGING) || plan == null || footprint() < 2 || stepIndex >= plan.steps().size()) return;
-        for (BlockPos pos : plan.steps().get(stepIndex).blocks()) {
-            if (pos.equals(origin) || pos.distSqr(origin) > SPLASH_RADIUS_SQR) continue;
+    private void shockwave(ServerLevel level, OWBlockDamageTracker tracker, BlockPos origin, float power, int breakLevel) {
+        int budget = impactBudget() - 1;
+        if (budget <= 0) return;
+        double bodyRadius = impactBodyRadius();
+        int span = Mth.ceil(bodyRadius + IMPACT_SOFTNESS_REACH * IMPACT_SOFTNESS_STEPS);
+        int floorY = Mth.floor(entity.getY() + 0.05);
+        int topY = Mth.floor(entity.getY() + entity.getBbHeight());
+        Vec3 originCenter = Vec3.atCenterOf(origin);
+        Vec3 facing = originCenter.subtract(entity.position()).multiply(1.0, 0.0, 1.0);
+        boolean directional = facing.lengthSqr() > 0.01;
+
+        List<Impact> impacts = new ArrayList<>();
+        for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-span, -span, -span), origin.offset(span, span, span))) {
+            if (pos.equals(origin) || pos.getY() < floorY || pos.getY() > topY) continue;
+            Vec3 center = Vec3.atCenterOf(pos);
+            if (directional && center.subtract(entity.position()).multiply(1.0, 0.0, 1.0).dot(facing) <= 0.0) continue;
             BlockState state = level.getBlockState(pos);
             if (!OWBlockToughness.isObstacle(state, level, pos)) continue;
             int tier = OWBlockToughness.tierOf(state, level, pos);
-            if (!OWBreakLevel.canBreak(breakLevel, tier) || !CommonHooks.canEntityDestroy(level, pos, entity)) continue;
-            Vec3 center = Vec3.atCenterOf(pos);
-            level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), center.x, center.y, center.z, 4, 0.3, 0.3, 0.3, 0.1);
-            if (tracker.damage(pos, state, power * OWBreakLevel.advantage(breakLevel, tier) * SPLASH_FACTOR)) {
-                accent(level, pos, tier, true);
-                breakBlock(level, pos);
+            if (!OWBreakLevel.canBreak(breakLevel, tier)) continue;
+            int margin = Math.min(OWBreakLevel.strength(breakLevel) - tier, IMPACT_SOFTNESS_STEPS);
+            double radius = Math.min(IMPACT_MAX_RADIUS, bodyRadius + IMPACT_SOFTNESS_REACH * margin);
+            double distance = center.distanceTo(originCenter);
+            if (distance > radius) continue;
+            impacts.add(new Impact(pos.immutable(), state, tier, distance, radius));
+        }
+        impacts.sort(Comparator.comparingDouble(Impact::distance));
+
+        for (Impact impact : impacts) {
+            if (budget-- <= 0) break;
+            if (!CommonHooks.canEntityDestroy(level, impact.pos(), entity)) continue;
+            Vec3 center = Vec3.atCenterOf(impact.pos());
+            level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, impact.state()), center.x, center.y, center.z, 4, 0.3, 0.3, 0.3, 0.1);
+            float falloff = 1f - IMPACT_FALLOFF * (float) (impact.distance() / impact.radius());
+            if (tracker.damage(impact.pos(), impact.state(), power * OWBreakLevel.advantage(breakLevel, impact.tier()) * falloff)) {
+                accent(level, impact.pos(), impact.tier(), true);
+                breakBlock(level, impact.pos());
             }
         }
+    }
+
+    private double impactBodyRadius() {
+        return Math.max(IMPACT_MIN_RADIUS, entity.getBbWidth() * 0.5);
+    }
+
+    private int impactBudget() {
+        return Mth.clamp(1 + Math.round(entity.getBbWidth() * entity.getBbHeight() * IMPACT_BUDGET_PER_VOLUME), 1, IMPACT_MAX_BLOCKS);
+    }
+
+    private record Impact(BlockPos pos, BlockState state, int tier, double distance, double radius) {
     }
 
     private void breakBlock(ServerLevel level, BlockPos pos) {
@@ -695,7 +795,7 @@ public class OWBreakout {
     }
 
     private double strikeReach() {
-        return STRIKE_REACH + (approachStrikes > 0 ? STUCK_REACH_BONUS : 0.0);
+        return Math.max(STRIKE_REACH, entity.getBbWidth() * 0.5) + (approachStrikes > 0 ? STUCK_REACH_BONUS : 0.0);
     }
 
     private boolean faceBlock(BlockPos pos) {

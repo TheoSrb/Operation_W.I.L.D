@@ -30,7 +30,7 @@ public class OWSedationResponse {
 
     private static final int REEVALUATE_INTERVAL = 20;
     private static final int WATCH_INTERVAL = 10;
-    private static final int UNREACHABLE_CHECKS = 2;
+    private static final int UNREACHABLE_CHECKS = 4;
     private static final int REACHABLE_CHECKS = 2;
     private static final int CHARGE_MEMORY = 600;
     private static final int RETREAT_MIN_TICKS = 200;
@@ -48,9 +48,10 @@ public class OWSedationResponse {
     private static final double SEARCH_FRONTIER_MARGIN = 3.0;
     private static final double UNSEEN_SHOOTER_DISTANCE = 16.0;
     private static final int PROBE_GROUND_SEARCH = 8;
-    private static final int FRUSTRATION_LIMIT = 300;
-    private static final int FRUSTRATION_COOLDOWN = 600;
-    private static final int BREAK_PROGRESS_GRACE = 60;
+    private static final int FRUSTRATION_LIMIT = 600;
+    private static final int FRUSTRATION_COOLDOWN = 300;
+    private static final int BREAK_PROGRESS_GRACE = 100;
+    private static final int PATH_DOUBT_TICKS = 100;
 
     private final OWEntity entity;
     private Stance stance = Stance.CALM;
@@ -165,7 +166,7 @@ public class OWSedationResponse {
             case YES -> charge(shooter);
             case BREACH -> siege(shooter);
             case NO -> retreat();
-            case FAR -> {
+            case FAR, UNSURE -> {
                 if (stance == Stance.RETREAT || stance == Stance.WARY) {
                     retreat();
                 } else if (stance != Stance.CHARGE) {
@@ -177,10 +178,6 @@ public class OWSedationResponse {
                 } else {
                     charge(shooter);
                 }
-            }
-            case UNSURE -> {
-                if (stance == Stance.CHARGE) charge(shooter);
-                else retreat();
             }
         }
     }
@@ -248,6 +245,7 @@ public class OWSedationResponse {
         }
         if (landedHit(provoker) || (besieging && entity.breakout.ticksSinceProgress() < BREAK_PROGRESS_GRACE)) {
             frustration = 0;
+            sinceProvoked = 0;
         } else if (++frustration >= FRUSTRATION_LIMIT) {
             giveUp();
             return;
@@ -261,7 +259,8 @@ public class OWSedationResponse {
         if (reach == Reach.YES) {
             unreachableChecks = 0;
             provisional = false;
-            if (reachedByPath) entity.breakout.endSiege();
+            if (!reachedByPath) entity.breakout.endSiege();
+            else if (frustration >= PATH_DOUBT_TICKS && !entity.breakout.isSieging(provoker)) entity.breakout.startSiege(provoker);
         } else if (reach == Reach.BREACH) {
             unreachableChecks = 0;
             provisional = false;

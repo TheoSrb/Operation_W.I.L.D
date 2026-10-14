@@ -39,7 +39,7 @@ public final class OWBreachPlanner {
     private static final float STRIKE_COST = 26f;
     private static final float DANGER_STEP_COST = 8f;
     private static final double DANGER_RADIUS = 16.0;
-    private static final float MAX_PLAN_COST = 3000f;
+    private static final float MAX_PLAN_COST = 6000f;
     private static final float BLOCKED = Float.POSITIVE_INFINITY;
     private static final long NO_PARENT = Long.MIN_VALUE;
     private static final int[][] DIRECTIONS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};

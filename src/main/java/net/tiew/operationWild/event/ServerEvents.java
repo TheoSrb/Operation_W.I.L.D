@@ -303,7 +303,7 @@ public class ServerEvents {
 
     @SubscribeEvent
     public static void onLivingAttack(LivingIncomingDamageEvent event) {
-        if (event.getSource().getEntity() instanceof LivingEntity attacker) {
+        if (event.getSource().getEntity() instanceof LivingEntity attacker && event.getSource().isDirect()) {
             if (attacker.hasEffect(OWEffects.FRACTURE.getDelegate())) {
                 event.setCanceled(true);
             }

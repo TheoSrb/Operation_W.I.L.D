@@ -458,6 +458,7 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 
 	@Override
 	public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
+		if (TigerRenderer.currentAlpha <= 0f) return;
 		int alpha = (int)(TigerRenderer.currentAlpha * 255.0f);
 		int transparentColor = (color & 0x00FFFFFF) | (alpha << 24);
 		this.ALL2.render(poseStack, vertexConsumer, packedLight, packedOverlay, transparentColor);

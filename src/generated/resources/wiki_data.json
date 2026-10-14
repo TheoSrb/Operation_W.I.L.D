@@ -1084,9 +1084,9 @@
         "created": "2026-10-01T16:57:09.0503808+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9510655+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 79235
+        "last_modified": "2026-10-12T17:54:08.1624776+02:00",
+        "last_modified_date": "2026-10-12",
+        "size_bytes": 79258
       },
       "id": "ow:tiger",
       "loot": {
@@ -2886,9 +2886,9 @@
         "created": "2026-10-11T11:57:02.5093829+02:00",
         "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9525856+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 63943
+        "last_modified": "2026-10-12T17:54:08.1614741+02:00",
+        "last_modified_date": "2026-10-12",
+        "size_bytes": 63966
       },
       "id": "ow:kodiak",
       "loot": {
@@ -4417,9 +4417,9 @@
         "created": "2026-10-01T16:57:09.130431+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9520707+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 84447
+        "last_modified": "2026-10-12T17:54:08.157723+02:00",
+        "last_modified_date": "2026-10-12",
+        "size_bytes": 84470
       },
       "id": "ow:crocodile",
       "loot": {
@@ -7919,7 +7919,7 @@
         "TRUNK_FILLING": 1,
         "TRUNK_IDLE": 0,
         "TRUNK_SPRAYING": 2,
-        "WALK_ANIM_SPEED": 4.5
+        "WALK_ANIM_SPEED": 6.0
       },
       "cosmetics": [
         {
@@ -7985,12 +7985,12 @@
         "walk_speed_blocks_per_second": 2.8000000000000003
       },
       "history": {
-        "created": "2026-10-01T16:57:09.1667373+02:00",
-        "created_date": "2026-10-01",
+        "created": "2026-10-12T18:59:45.4143781+02:00",
+        "created_date": "2026-10-12",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9550952+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 111481
+        "last_modified": "2026-10-12T18:59:45.4148798+02:00",
+        "last_modified_date": "2026-10-12",
+        "size_bytes": 111496
       },
       "id": "ow:elephant",
       "loot": {
@@ -8658,8 +8658,8 @@
         "HOP_MIN_SPEED": 0.012,
         "HOP_POWER_RIDDEN": 0.3,
         "HOP_REFERENCE_SPEED": 0.21,
-        "HOP_RUN_DISTANCE": 6.0,
-        "HOP_RUN_HEIGHT": 1.0,
+        "HOP_RUN_DISTANCE": 4.5,
+        "HOP_RUN_HEIGHT": 1.15,
         "HOP_STEER": 0.1,
         "HOP_STEER_CHASE": 0.45,
         "HOP_STEER_RIDDEN": 0.65,
@@ -8676,7 +8676,7 @@
         "OVERHEAT_THRESHOLD_TICKS": 300,
         "PIVOT_DAMAGE_MULTIPLIER": 1.25,
         "SOMNOLENCE_LOSS_INTERVAL": 3,
-        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 12,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 6,
         "STOMP_PHASE_DIVE": 4,
         "STOMP_PHASE_HOVER": 3,
         "STOMP_PHASE_LEAP": 2,
@@ -8755,12 +8755,12 @@
         "walk_speed_blocks_per_second": 4.2
       },
       "history": {
-        "created": "2026-10-11T18:54:59.9907571+02:00",
-        "created_date": "2026-10-11",
+        "created": "2026-10-12T19:33:54.9600162+02:00",
+        "created_date": "2026-10-12",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9495572+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 85733
+        "last_modified": "2026-10-12T19:33:54.9600162+02:00",
+        "last_modified_date": "2026-10-12",
+        "size_bytes": 85756
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -8932,11 +8932,11 @@
         },
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 780.0,
+          "full_bar_asleep_seconds": 390.0,
           "full_bar_awake_seconds": 195.0,
-          "loss_interval_ticks_asleep": 12,
+          "loss_interval_ticks_asleep": 6,
           "loss_interval_ticks_awake": 3,
-          "loss_per_second_asleep": 1.6666666666666667,
+          "loss_per_second_asleep": 3.3333333333333335,
           "loss_per_second_awake": 6.666666666666667,
           "max": 1300,
           "max_max": 1560,
@@ -10461,9 +10461,9 @@
         "created": "2026-10-09T14:51:15.7443803+02:00",
         "created_date": "2026-10-09",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9525856+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 76139
+        "last_modified": "2026-10-12T17:54:08.159889+02:00",
+        "last_modified_date": "2026-10-12",
+        "size_bytes": 76162
       },
       "id": "ow:gorilla",
       "loot": {
@@ -11079,12 +11079,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-11T14:52:01.0399178+02:00",
+        "created": "2026-10-11T21:46:53.9371091+02:00",
         "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9540902+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 69904
+        "last_modified": "2026-10-12T17:54:08.157723+02:00",
+        "last_modified_date": "2026-10-12",
+        "size_bytes": 70440
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -11590,9 +11590,9 @@
         "created": "2026-10-11T11:57:02.6081155+02:00",
         "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9505625+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 63877
+        "last_modified": "2026-10-12T17:54:08.1619754+02:00",
+        "last_modified_date": "2026-10-12",
+        "size_bytes": 63900
       },
       "id": "ow:lion",
       "loot": {
@@ -16962,26 +16962,92 @@
       },
       {
         "constant": "BEAST_PROOF",
+        "entries": [
+          "minecraft:reinforced_deepslate"
+        ],
         "id": "ow:beast_proof"
       },
       {
         "constant": "BEAST_TOUGHNESS_SOFT",
+        "entries": [
+          "#minecraft:leaves",
+          "#minecraft:wool",
+          "#minecraft:ice",
+          "#c:glass_blocks",
+          "#c:glass_panes",
+          "minecraft:hay_block",
+          "minecraft:snow_block",
+          "minecraft:sponge",
+          "minecraft:wet_sponge",
+          "minecraft:moss_block"
+        ],
         "id": "ow:beast_toughness/soft"
       },
       {
         "constant": "BEAST_TOUGHNESS_WOOD",
+        "entries": [
+          "#minecraft:planks",
+          "#minecraft:logs",
+          "#minecraft:bamboo_blocks",
+          "#minecraft:wooden_doors",
+          "#minecraft:wooden_trapdoors",
+          "#minecraft:wooden_fences",
+          "#minecraft:fence_gates",
+          "#minecraft:wooden_slabs",
+          "#minecraft:wooden_stairs",
+          "minecraft:chest",
+          "minecraft:trapped_chest",
+          "minecraft:barrel",
+          "minecraft:crafting_table",
+          "minecraft:bookshelf"
+        ],
         "id": "ow:beast_toughness/wood"
       },
       {
         "constant": "BEAST_TOUGHNESS_STONE",
+        "entries": [
+          "#minecraft:base_stone_overworld",
+          "#minecraft:base_stone_nether",
+          "#minecraft:stone_bricks",
+          "#minecraft:terracotta",
+          "#minecraft:walls",
+          "#c:cobblestones",
+          "#c:sandstone/blocks",
+          "minecraft:bricks",
+          "minecraft:mud_bricks",
+          "minecraft:smooth_stone"
+        ],
         "id": "ow:beast_toughness/stone"
       },
       {
         "constant": "BEAST_TOUGHNESS_METAL",
+        "entries": [
+          "#c:ores",
+          "#c:storage_blocks/iron",
+          "#c:storage_blocks/raw_iron",
+          "#c:storage_blocks/gold",
+          "#c:storage_blocks/copper",
+          "#minecraft:anvil",
+          "minecraft:iron_bars",
+          "minecraft:iron_door",
+          "minecraft:iron_trapdoor",
+          "minecraft:chain",
+          "minecraft:hopper",
+          "minecraft:cauldron",
+          "minecraft:bell"
+        ],
         "id": "ow:beast_toughness/metal"
       },
       {
         "constant": "BEAST_TOUGHNESS_OBSIDIAN",
+        "entries": [
+          "#c:storage_blocks/netherite",
+          "minecraft:obsidian",
+          "minecraft:crying_obsidian",
+          "minecraft:ancient_debris",
+          "minecraft:respawn_anchor",
+          "minecraft:ender_chest"
+        ],
         "id": "ow:beast_toughness/obsidian"
       }
     ],

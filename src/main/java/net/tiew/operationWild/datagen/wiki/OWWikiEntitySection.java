@@ -361,7 +361,7 @@ public final class OWWikiEntitySection {
         knockout.addProperty("flee_threshold_percent", OWAggressiveTaming.FLEE_THRESHOLD);
         knockout.addProperty("wake_warning_percent", OWEntity.WAKE_WARNING_PERCENT);
         knockout.addProperty("max_bonus_points", OWAggressiveTaming.MAX_BONUS_POINTS);
-        knockout.addProperty("bonus_lost_on_player_hit_only", true);
+        knockout.addProperty("bonus_lost_on_player_hit_only", false);
         knockout.addProperty("meal_announce_seconds", OWAggressiveTaming.MEAL_ANNOUNCE_TICKS / 20.0);
         knockout.addProperty("leash_drag_slack_blocks", OWEntity.LEASH_DRAG_SLACK);
         knockout.addProperty("leash_drag_snap_blocks", OWEntity.LEASH_DRAG_SNAP);

@@ -2975,7 +2975,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (!isSleeping() && getActualSleepingBar() >= getMaxSleepingBar()) {
                     fallAsleepFromSedation();
                 }
-            } else if (this.isKnockedOut() && damageSource.getEntity() instanceof Player) {
+            } else if (this.isKnockedOut()) {
                 this.aggressiveTaming.onHit(damageSource);
             }
             if (sedative) this.sedationResponse.onSedativeHit(damageSource);

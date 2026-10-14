@@ -65,6 +65,7 @@ import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.networking.OWNetworkHandler;
 import net.tiew.operationWild.networking.packets.to_client.ElephantFootstepPacket;
+import net.tiew.operationWild.networking.packets.to_client.VerticalHopPacket;
 import net.tiew.operationWild.sound.OWSounds;
 import net.tiew.operationWild.team.OWArenaManager;
 import org.jetbrains.annotations.Nullable;
@@ -123,7 +124,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public static final long RIGHT_FOOT_CONTACT_MS = 1200L;
     public static final long LEFT_FOOT_CONTACT_MS = 2900L;
 
-    public static final float WALK_ANIM_SPEED = 6.0f * 0.75f;
+    public static final float WALK_ANIM_SPEED = 6.0f;
     public static final float RUN_ANIM_SPEED = 7.8f * 0.85f;
 
     private static final Vec3 FRONT_LEFT_FOOT  = new Vec3( 6 / 16.0, 0, 12 / 16.0);
@@ -982,6 +983,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             double nearness = 1.0 - Math.max(distance, FOOTFALL_NEAR_PLATEAU) / FOOTFALL_RADIUS;
             double hop = FOOTFALL_HOP * nearness * footing;
             if (hop < 0.01) continue;
+
+            if (target instanceof ServerPlayer player) {
+                OWNetworkHandler.sendToClient(new VerticalHopPacket((float) hop), player);
+                continue;
+            }
 
             Vec3 motion = target.getDeltaMovement();
             target.setDeltaMovement(motion.x, Math.max(motion.y, hop), motion.z);
@@ -2560,6 +2566,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     class ElephantMeleeAttackGoal extends MeleeAttackGoal {
 
+        private static final double UNRIDDEN_CHARGE_SPEED = 4.56;
+
         public ElephantMeleeAttackGoal() {
             super(ElephantEntity.this, 7, true);
         }
@@ -2567,8 +2575,20 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         @Override
         public void start() {
             super.start();
+            slowUnriddenCharge();
             ElephantEntity.this.setMad(true);
             ElephantEntity.this.setRunning(true);
+        }
+
+        @Override
+        public void tick() {
+            super.tick();
+            slowUnriddenCharge();
+        }
+
+        private void slowUnriddenCharge() {
+            if (ElephantEntity.this.isVehicle()) return;
+            ElephantEntity.this.getNavigation().setSpeedModifier(UNRIDDEN_CHARGE_SPEED);
         }
 
         @Override

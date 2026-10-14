@@ -455,6 +455,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     @Override
+    public float wildSwimSpeedCap() {
+        return 0.17f;
+    }
+
+    @Override
     protected double riddenBuoyancy() {
         return 0.0D;
     }

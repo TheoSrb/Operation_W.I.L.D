@@ -501,6 +501,11 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     }
 
     @Override
+    public float wildSwimSpeedCap() {
+        return 0.12f;
+    }
+
+    @Override
     public int getMaxAirSupply() {
         return 300 * 6;
     }
