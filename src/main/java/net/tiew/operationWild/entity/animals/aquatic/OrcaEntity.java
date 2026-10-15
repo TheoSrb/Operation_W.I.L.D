@@ -1500,6 +1500,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                                       double height, double reach, float knockbackMultiplier) {
         if (strikesAreSuppressed()) return;
         super.attackEntitiesInFront(attackDamage, sound, width, height, reach, knockbackMultiplier);
+        if (isBlockStrikeInProgress() && this.lastAttackHitEntities.isEmpty()) return;
         reinforceBiteImpact(sound, reach);
     }
 

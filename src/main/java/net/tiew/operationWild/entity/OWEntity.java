@@ -63,7 +63,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.PlayerTeam;
@@ -257,6 +259,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int hurtAmount = 0;
 
     public final List<LivingEntity> lastAttackHitEntities = new ArrayList<>();
+    private boolean blockStrikeInProgress;
     private int sleepBarDownSpeed;
     public int maxSleepBar;
     public float maxHealthBeforeResurrection;
@@ -589,6 +592,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         private static final double STEP_PROBE_LIFT = 0.02;
         private static final double STEP_CLEARANCE = 1.05;
         private static final float BLOCKED_TURN_RATE = 0.35f;
+        private static final float TURN_BRAKE_START = 40f;
+        private static final float TURN_BRAKE_FULL = 110f;
+        private static final float TURN_BRAKE_MIN_FACTOR = 0.2f;
+        private static final double TURN_BRAKE_MIN_DISTANCE_SQR = 0.25;
 
         private final OWEntity owner;
 
@@ -601,10 +608,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         public void tick() {
             boolean moving = this.operation == Operation.MOVE_TO;
             super.tick();
+            if (moving) brakeIntoTurn();
             if (moving && this.operation != Operation.JUMPING && this.needsStepJump()) {
                 this.mob.getJumpControl().jump();
                 this.operation = Operation.JUMPING;
             }
+        }
+
+        private void brakeIntoTurn() {
+            if (this.owner.isTame() || this.owner.getControllingPassenger() != null || this.owner.isInWater()) return;
+            double dx = this.wantedX - this.owner.getX();
+            double dz = this.wantedZ - this.owner.getZ();
+            if (dx * dx + dz * dz < TURN_BRAKE_MIN_DISTANCE_SQR) return;
+            float wanted = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
+            float error = Math.abs(Mth.wrapDegrees(wanted - this.owner.getYRot()));
+            if (error <= TURN_BRAKE_START) return;
+            float t = Mth.clamp((error - TURN_BRAKE_START) / (TURN_BRAKE_FULL - TURN_BRAKE_START), 0f, 1f);
+            this.mob.setZza(this.mob.zza * Mth.lerp(t, 1f, TURN_BRAKE_MIN_FACTOR));
         }
 
         private boolean needsStepJump() {
@@ -2165,7 +2185,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public float getSpeed() {
-        return (float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);
+        float base = (float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);
+        return this.sedationResponse == null ? base : base * this.sedationResponse.chaseSpeedFactor();
     }
 
     public float getDamage() {
@@ -3849,11 +3870,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 setCombo(false, 0);
                 return;
             }
-            if (attackTimer == timeToHit && !this.breakout.landStrike(sound)) {
+            if (attackTimer == timeToHit) {
+                boolean blockStrike = this.breakout.landStrike(sound);
                 float d0 = (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
-                attackEntitiesInFront(d0, sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier);
+                runStrike(blockStrike, () -> attackEntitiesInFront(d0, sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier));
 
-                if (spawnBlurr) {
+                if (spawnBlurr && !blockStrike) {
                     OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
                 }
             }
@@ -3895,7 +3917,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 float pitch = (float) (OWUtils.generateRandomInterval(1.3, 1.65));
                 kangaroo.level().playSound(null, kangaroo.getX(), kangaroo.getY(), kangaroo.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.0f, getComboAttack() == 3 ? pitch / 1.5f : pitch);
 
-                if (getComboAttack() == 3 && !this.breakout.isBlockCombo()) {
+                if (getComboAttack() == 3) {
                     for (LivingEntity target : kangaroo.lastAttackHitEntities) {
                         Vec3 motion = target.getDeltaMovement();
                         target.setDeltaMovement(motion.x * 0.3, 0.65, motion.z * 0.3);
@@ -3916,10 +3938,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
 
             if (attackTimer == timeToHit + 21) {
-                if (getComboAttack() == 3 && !this.breakout.isBlockCombo()) {
+                if (getComboAttack() == 3) {
                     boolean isRided = this.getControllingPassenger() != null;
                     float d0 = (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
-                    attackEntitiesInFront(d0, SoundEvents.PLAYER_ATTACK_STRONG, 3.0f * (isRided ? 1 : 1.5f), 3.0f * (isRided ? 1 : 1.5f), 1.5f * (isRided ? 1 : 1.5f), 0.5f);
+                    runStrike(this.breakout.isBlockCombo(), () -> attackEntitiesInFront(d0, SoundEvents.PLAYER_ATTACK_STRONG, 3.0f * (isRided ? 1 : 1.5f), 3.0f * (isRided ? 1 : 1.5f), 1.5f * (isRided ? 1 : 1.5f), 0.5f));
                     kangaroo.createMiniShockwave();
                     kangaroo.fourthHitFired = true;
                 }
@@ -4027,8 +4049,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         List<Entity> entitiesInRange = this.level().getEntities(
                 this,
                 attackBox,
-                entity -> entity instanceof LivingEntity
+                entity -> entity instanceof LivingEntity living && canStrikeReach(living)
         );
+
+        if (blockStrikeInProgress && entitiesInRange.isEmpty()) return;
 
         for (Entity entity : entitiesInRange) {
             if (entity instanceof LivingEntity livingEntity) {
@@ -4101,16 +4125,17 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     return;
                 }
 
-                if (attackTimer == timeToHit && !this.breakout.landStrike(sound)) {
+                if (attackTimer == timeToHit) {
+                    boolean blockStrike = this.breakout.landStrike(sound);
                     boolean isRided = this.getControllingPassenger() != null;
-                    attackEntitiesInFrontSimple(
+                    runStrike(blockStrike, () -> attackEntitiesInFrontSimple(
                             (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (this.isVehicle() && !this.isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER)),
                             sound,
                             width * (isRided ? 1 : 1.5f),
                             height * (isRided ? 1 : 1.5f),
                             reach * (isRided ? 1 : 1.5f),
                             backMultiplier
-                    );
+                    ));
                 }
 
                 applyComboModification(timeToHit);
@@ -5040,6 +5065,32 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return super.isAlliedTo(entity);
     }
 
+    protected boolean isBlockStrikeInProgress() {
+        return blockStrikeInProgress;
+    }
+
+    private void runStrike(boolean blockStrike, Runnable strike) {
+        this.blockStrikeInProgress = blockStrike;
+        try {
+            strike.run();
+        } finally {
+            this.blockStrikeInProgress = false;
+        }
+    }
+
+    private boolean canStrikeReach(LivingEntity target) {
+        if (!blockStrikeInProgress) return true;
+        Vec3 from = new Vec3(this.getX(), this.getY() + this.getBbHeight() * 0.5, this.getZ());
+        AABB box = target.getBoundingBox();
+        Vec3 center = box.getCenter();
+        Vec3[] aims = {center, target.getEyePosition(), new Vec3(center.x, box.minY + 0.1, center.z)};
+        for (Vec3 aim : aims) {
+            HitResult hit = this.level().clip(new ClipContext(from, aim, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, this));
+            if (hit.getType() == HitResult.Type.MISS) return true;
+        }
+        return false;
+    }
+
     public void attackEntitiesInFront(float attackDamage, SoundEvent sound, double width, double height, double reach, float $$1) {
         float pitch = (float) OWUtils.generateRandomInterval(0.8, 1.1f);
         double yaw = Math.toRadians(this.getYRot());
@@ -5058,10 +5109,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         List<Entity> entitiesInRange = this.level().getEntities(
                 this,
                 attackBox,
-                entity -> entity instanceof LivingEntity
+                entity -> entity instanceof LivingEntity living && canStrikeReach(living)
         );
 
         this.lastAttackHitEntities.clear();
+        if (blockStrikeInProgress && entitiesInRange.isEmpty()) return;
 
         UUID ownerUUID = null;
         if (this instanceof TamableAnimal tamable) {

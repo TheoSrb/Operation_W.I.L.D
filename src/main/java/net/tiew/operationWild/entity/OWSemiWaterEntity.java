@@ -209,7 +209,7 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
     private void capWildSwimSpeed() {
         Vec3 motion = this.getDeltaMovement();
         double horizontal = motion.horizontalDistance();
-        double cap = wildSwimSpeedCap();
+        double cap = wildSwimSpeedCap() * this.sedationResponse.chaseSpeedFactor();
         if (horizontal <= cap) return;
         double scale = cap / horizontal;
         this.setDeltaMovement(motion.x * scale, motion.y, motion.z * scale);

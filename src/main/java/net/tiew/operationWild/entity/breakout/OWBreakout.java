@@ -117,6 +117,7 @@ public class OWBreakout {
     private int siegeProbeTarget = -1;
     private Vec3 siegeProbeAim = Vec3.ZERO;
     private int assaultCooldown;
+    private boolean assaultDirect;
     private boolean blockCombo;
     private int lastProgressTick = Integer.MIN_VALUE / 2;
 
@@ -299,8 +300,7 @@ public class OWBreakout {
 
     private void refreshAgitation() {
         boolean provoked = entity.getActualSleepingBar() > 0
-                || entity.sedationResponse.isAlarmed()
-                || entity.getLastHurtByMob() != null;
+                || entity.sedationResponse.isAlarmed();
         if (provoked) agitation = AGITATION_MEMORY;
         else if (agitation > 0) agitation--;
     }
@@ -470,7 +470,13 @@ public class OWBreakout {
                 return;
             }
         }
-        if (approachNode(plan.end()) && planCooldown <= 0) replanSiege();
+        boolean drifted = target.position().distanceToSqr(siegeAim) > SIEGE_DRIFT_SQR;
+        if (drifted != assaultDirect) {
+            assaultDirect = drifted;
+            resetApproach();
+        }
+        boolean stuck = drifted ? approach(target.position(), target.position()) : approachNode(plan.end());
+        if (stuck && planCooldown <= 0) replanSiege();
     }
 
     private boolean canHit(LivingEntity target) {
@@ -791,6 +797,7 @@ public class OWBreakout {
     }
 
     private double approachSpeed() {
+        if (phase == Phase.SIEGING) return Math.max(1.0, entity.sedatedFleeSpeed());
         return Math.max(1.0, entity.sedatedFleeSpeed() * APPROACH_SPEED_FACTOR);
     }
 

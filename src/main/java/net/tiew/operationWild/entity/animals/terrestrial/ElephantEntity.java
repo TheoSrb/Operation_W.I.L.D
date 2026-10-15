@@ -2566,7 +2566,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     class ElephantMeleeAttackGoal extends MeleeAttackGoal {
 
-        private static final double UNRIDDEN_CHARGE_SPEED = 4.56;
+        private static final double UNRIDDEN_CHARGE_SPEED = 5.472;
 
         public ElephantMeleeAttackGoal() {
             super(ElephantEntity.this, 7, true);

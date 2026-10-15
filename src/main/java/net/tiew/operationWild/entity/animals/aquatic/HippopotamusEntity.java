@@ -115,8 +115,10 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private static final int HEADBUTT_RECOVERY = 13;
     private static final float MODEL_GROUND_BLOCKS = 1.5f;
     private static final float BITE_KNOCKBACK = 0.3f;
-    private static final float HEADBUTT_KNOCKBACK = 3.5f;
-    private static final double HEADBUTT_LIFT = 0.42;
+    private static final float HEADBUTT_KNOCKBACK = 2.8f;
+    private static final double HEADBUTT_LIFT = 0.36;
+    private static final float WILD_SWIM_CAP = 0.12f;
+    private static final float WILD_SWIM_CHASE_BONUS = 1.15f;
     private static final double RIVERBED_SINK_SPEED = 0.08;
     private static final double RIVERBED_RISE_SPEED = 0.12;
     private static final double RIVERBED_CLIMB_SPEED = 0.22;
@@ -502,7 +504,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
     @Override
     public float wildSwimSpeedCap() {
-        return 0.12f;
+        return this.getTarget() != null ? WILD_SWIM_CAP * WILD_SWIM_CHASE_BONUS : WILD_SWIM_CAP;
     }
 
     @Override

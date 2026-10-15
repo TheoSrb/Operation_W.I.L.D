@@ -18,15 +18,16 @@ import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.OWWaterEntity;
+import net.tiew.operationWild.entity.breakout.OWBreakout;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
 import net.tiew.operationWild.entity.navigation.OWPathProbe;
 import org.jetbrains.annotations.Nullable;
 
 public class OWSedationResponse {
 
-    private enum Stance { CALM, CHARGE, RETREAT, WARY }
+    private enum Stance { CALM, CHARGE, RETREAT, WARY, AMBUSH }
 
-    private enum Reach { YES, BREACH, NO, FAR, UNSURE }
+    private enum Reach { YES, OPEN, BREACH, NO, FAR, UNSURE }
 
     private static final int REEVALUATE_INTERVAL = 20;
     private static final int WATCH_INTERVAL = 10;
@@ -52,6 +53,16 @@ public class OWSedationResponse {
     private static final int FRUSTRATION_COOLDOWN = 300;
     private static final int BREAK_PROGRESS_GRACE = 100;
     private static final int PATH_DOUBT_TICKS = 100;
+    private static final int HARASS_MIN_FRUSTRATION = 60;
+    private static final int HARASS_LIMIT_MIN = 3;
+    private static final int HARASS_LIMIT_SPREAD = 2;
+    private static final double AMBUSH_RETREAT_DISTANCE = 22.0;
+    private static final int AMBUSH_RETREAT_MIN_TICKS = 60;
+    private static final int AMBUSH_RETREAT_MAX_TICKS = 200;
+    private static final int AMBUSH_MAX_TICKS = 1200;
+    private static final double AMBUSH_TRIGGER_DISTANCE = 14.0;
+    private static final int SURPRISE_TICKS = 100;
+    private static final float SURPRISE_SPEED_BONUS = 1.35f;
 
     private final OWEntity entity;
     private Stance stance = Stance.CALM;
@@ -69,6 +80,10 @@ public class OWSedationResponse {
     private int frustration;
     private int lastHitStamp = Integer.MIN_VALUE;
     private int frustratedUntil = Integer.MIN_VALUE / 2;
+    private int harassment;
+    private int harassLimit = HARASS_LIMIT_MIN;
+    private boolean ambushPlanned;
+    private int surpriseTicks;
 
     public OWSedationResponse(OWEntity entity) {
         this.entity = entity;
@@ -90,7 +105,15 @@ public class OWSedationResponse {
     public boolean blocksTarget(@Nullable LivingEntity target) {
         if (target == null) return false;
         if (stance == Stance.RETREAT) return true;
-        return stance == Stance.WARY && target == provoker;
+        return (stance == Stance.WARY || stance == Stance.AMBUSH) && target == provoker;
+    }
+
+    public boolean isLurking() {
+        return stance == Stance.AMBUSH;
+    }
+
+    public float chaseSpeedFactor() {
+        return stance == Stance.CHARGE && surpriseTicks > 0 ? SURPRISE_SPEED_BONUS : 1f;
     }
 
     @Nullable
@@ -108,9 +131,20 @@ public class OWSedationResponse {
 
         sinceProvoked = 0;
         if (source.getEntity() instanceof LivingEntity shooter && shooter != entity) {
+            if (stance == Stance.CHARGE && shooter == provoker && harassedOut(shooter)) {
+                tacticalRetreat();
+                return;
+            }
+            if (stance == Stance.AMBUSH && shooter == provoker
+                    && entity.distanceToSqr(shooter) > AMBUSH_TRIGGER_DISTANCE * AMBUSH_TRIGGER_DISTANCE) {
+                tacticalRetreat();
+                return;
+            }
+            boolean ambushed = stance == Stance.AMBUSH;
             provoker = shooter;
             threatPosition = shooter.position();
             decide(shooter);
+            if (ambushed && stance == Stance.CHARGE) surpriseTicks = SURPRISE_TICKS;
             return;
         }
 
@@ -128,6 +162,7 @@ public class OWSedationResponse {
 
         stanceTicks++;
         sinceProvoked++;
+        if (surpriseTicks > 0) surpriseTicks--;
         if (provoker != null && !isPresent(provoker)) provoker = null;
         if (provoker != null) threatPosition = provoker.position();
 
@@ -135,6 +170,7 @@ public class OWSedationResponse {
             case CHARGE -> tickCharge();
             case RETREAT -> tickRetreat();
             case WARY -> tickWary();
+            case AMBUSH -> tickAmbush();
             default -> {
             }
         }
@@ -150,6 +186,9 @@ public class OWSedationResponse {
         reachableChecks = 0;
         provisional = false;
         frustration = 0;
+        harassment = 0;
+        ambushPlanned = false;
+        surpriseTicks = 0;
     }
 
     public boolean isFrustrated() {
@@ -166,7 +205,7 @@ public class OWSedationResponse {
             case YES -> charge(shooter);
             case BREACH -> siege(shooter);
             case NO -> retreat();
-            case FAR, UNSURE -> {
+            case OPEN, FAR, UNSURE -> {
                 if (stance == Stance.RETREAT || stance == Stance.WARY) {
                     retreat();
                 } else if (stance != Stance.CHARGE) {
@@ -190,8 +229,11 @@ public class OWSedationResponse {
             provisional = false;
             reevaluateTimer = REEVALUATE_INTERVAL;
             frustration = 0;
+            harassment = 0;
+            harassLimit = HARASS_LIMIT_MIN + entity.getRandom().nextInt(HARASS_LIMIT_SPREAD);
             lastHitStamp = shooter.getLastHurtByMobTimestamp();
         }
+        ambushPlanned = false;
         stance = Stance.CHARGE;
         entity.setNap(false);
         entity.setSitting(false);
@@ -208,6 +250,8 @@ public class OWSedationResponse {
 
     private void retreat() {
         entity.breakout.endSiege();
+        ambushPlanned = false;
+        surpriseTicks = 0;
         boolean wasRetreating = stance == Stance.RETREAT;
         stance = Stance.RETREAT;
         stanceTicks = 0;
@@ -243,7 +287,12 @@ public class OWSedationResponse {
             retreat();
             return;
         }
-        if (landedHit(provoker) || (besieging && entity.breakout.ticksSinceProgress() < BREAK_PROGRESS_GRACE)) {
+        if (landedHit(provoker)) {
+            frustration = 0;
+            sinceProvoked = 0;
+            harassment = 0;
+            surpriseTicks = 0;
+        } else if (besieging && entity.breakout.ticksSinceProgress() < BREAK_PROGRESS_GRACE) {
             frustration = 0;
             sinceProvoked = 0;
         } else if (++frustration >= FRUSTRATION_LIMIT) {
@@ -260,7 +309,10 @@ public class OWSedationResponse {
             unreachableChecks = 0;
             provisional = false;
             if (!reachedByPath) entity.breakout.endSiege();
-            else if (frustration >= PATH_DOUBT_TICKS && !entity.breakout.isSieging(provoker)) entity.breakout.startSiege(provoker);
+            else if (frustration >= PATH_DOUBT_TICKS && !entity.breakout.isSieging(provoker)
+                    && entity.breakout.siegeOutlook(provoker) == OWBreakout.SiegeOutlook.BREACH) {
+                entity.breakout.startSiege(provoker);
+            }
         } else if (reach == Reach.BREACH) {
             unreachableChecks = 0;
             provisional = false;
@@ -283,8 +335,64 @@ public class OWSedationResponse {
         retreat();
     }
 
+    private boolean harassedOut(LivingEntity shooter) {
+        if (entity.isBaby() || frustration < HARASS_MIN_FRUSTRATION) return false;
+        if (entity.breakout.isSieging(shooter) && entity.breakout.ticksSinceProgress() < BREAK_PROGRESS_GRACE) return false;
+        return ++harassment >= harassLimit;
+    }
+
+    private void tacticalRetreat() {
+        retreat();
+        ambushPlanned = provoker != null;
+    }
+
+    private void tickTacticalRetreat() {
+        calmDown();
+        if (provoker == null) {
+            ambushPlanned = false;
+            return;
+        }
+        boolean farEnough = entity.distanceToSqr(provoker) >= AMBUSH_RETREAT_DISTANCE * AMBUSH_RETREAT_DISTANCE;
+        if ((farEnough && stanceTicks >= AMBUSH_RETREAT_MIN_TICKS) || stanceTicks >= AMBUSH_RETREAT_MAX_TICKS) lurk();
+    }
+
+    private void lurk() {
+        entity.breakout.endSiege();
+        ambushPlanned = false;
+        stance = Stance.AMBUSH;
+        stanceTicks = 0;
+        reachableChecks = 0;
+        reevaluateTimer = WATCH_INTERVAL;
+        entity.getNavigation().stop();
+    }
+
+    private void tickAmbush() {
+        if (provoker == null || stanceTicks >= AMBUSH_MAX_TICKS) {
+            reset();
+            return;
+        }
+        calmDown();
+        entity.getNavigation().stop();
+        entity.getLookControl().setLookAt(provoker, 10f, 10f);
+        if (--reevaluateTimer > 0) return;
+        reevaluateTimer = WATCH_INTERVAL;
+        if (entity.distanceToSqr(provoker) > AMBUSH_TRIGGER_DISTANCE * AMBUSH_TRIGGER_DISTANCE) return;
+        if (entity.isBaby() || !isAttackable(provoker)) return;
+
+        Reach reach = reach(provoker);
+        if (reach == Reach.NO || reach == Reach.UNSURE) return;
+        sinceProvoked = 0;
+        if (reach == Reach.BREACH) siege(provoker);
+        else charge(provoker);
+        if (stance == Stance.CHARGE) surpriseTicks = SURPRISE_TICKS;
+    }
+
     private void tickRetreat() {
         calmDown();
+        if (ambushPlanned) {
+            tickTacticalRetreat();
+            return;
+        }
         if (watchForOpening()) return;
         boolean safe = threatPosition == null
                 || entity.position().distanceToSqr(threatPosition) >= RETREAT_SAFE_DISTANCE * RETREAT_SAFE_DISTANCE;
@@ -308,7 +416,7 @@ public class OWSedationResponse {
         Reach reach = !entity.isBaby() && isAttackable(provoker)
                 && entity.distanceToSqr(provoker) <= CHARGE_GIVE_UP_DISTANCE * CHARGE_GIVE_UP_DISTANCE
                 ? reach(provoker) : Reach.NO;
-        boolean opening = reach == Reach.YES || reach == Reach.BREACH;
+        boolean opening = reach == Reach.YES || reach == Reach.OPEN || reach == Reach.BREACH;
         reachableChecks = opening ? reachableChecks + 1 : 0;
         if (reachableChecks < REACHABLE_CHECKS) return false;
 
@@ -355,7 +463,8 @@ public class OWSedationResponse {
         }
         if (entity.breakout.isSieging(target)) return Reach.BREACH;
         return switch (entity.breakout.siegeOutlook(target)) {
-            case BREACH, OPEN -> Reach.BREACH;
+            case BREACH -> Reach.BREACH;
+            case OPEN -> Reach.OPEN;
             case IMPOSSIBLE -> Reach.NO;
         };
     }
