@@ -163,7 +163,7 @@ public class OWEntityHud {
         int xPlacement = x / 2 + 217;;
         int yPlacement = y - 113;
 
-        if (entity instanceof OWEntity owEntity && owEntity.canIncreasesSpeedDuringSprint()) {
+        if (entity instanceof OWEntity owEntity && owEntity.showsChargeBar()) {
             guiGraphics.blit(HUD, xPlacement, yPlacement, 173, 0, 10, 103);
 
             // L'accélération n'a pas de plafond : le paquet de sprint l'incrémente d'un par tick
@@ -178,7 +178,7 @@ public class OWEntityHud {
 
             guiGraphics.blit(HUD, xPlacement, startY, 183, textureY, 10, barHeight);
 
-            guiGraphics.blit(HUD, xPlacement - (19 / 2) + 2, yPlacement - 22, 193, owEntity.getAcceleration() >= 100 ? 0 : 17, 19, 17);
+            guiGraphics.blit(HUD, xPlacement - (19 / 2) + 2, yPlacement - 22, 193, owEntity.isChargeBarFull() ? 0 : 17, 19, 17);
         }
     }
 

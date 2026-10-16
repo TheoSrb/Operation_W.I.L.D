@@ -3257,6 +3257,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return Math.min(100f, this.getAcceleration());
     }
 
+    public boolean showsChargeBar() {
+        return canIncreasesSpeedDuringSprint();
+    }
+
+    public boolean isChargeBarFull() {
+        return this.getAcceleration() >= 100;
+    }
+
     public boolean isInMyTribe(UUID playerUuid) {
         if (playerUuid == null) return false;
         OWTeam t = this.resolvedTeam();

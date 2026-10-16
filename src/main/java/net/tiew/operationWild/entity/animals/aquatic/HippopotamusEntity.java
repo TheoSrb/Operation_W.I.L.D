@@ -323,6 +323,21 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     }
 
     @Override
+    public boolean showsChargeBar() {
+        return rollMomentumActive && this.isControlledByLocalInstance();
+    }
+
+    @Override
+    public float getChargeDisplay() {
+        return Mth.clamp(rollMomentum / Math.max(rollTopSpeed(), 1.0e-3f) * 100f, 0f, 100f);
+    }
+
+    @Override
+    public boolean isChargeBarFull() {
+        return rollMomentum >= rollTopSpeed() * 0.99f;
+    }
+
+    @Override
     public boolean isChangeSpeedDuringCombo() {
         return false;
     }
