@@ -2055,6 +2055,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return max <= 0 ? 0f : Mth.clamp(this.getActualSleepingBar() / (float) max, 0f, 1f);
     }
 
+    public boolean isSedationAgitated() {
+        if (!this.usesAggressiveTaming() || this.isTame()) return false;
+        return this.getActualSleepingBar() > 0 || this.sedationResponse.isAlarmed() || this.breakout.isActive();
+    }
+
     public boolean isTamingFury() {
         return this.entityData.get(TAMING_FURY);
     }

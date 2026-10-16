@@ -80,6 +80,8 @@ public class OWBreakout {
     private static final double SIEGE_DRIFT_SQR = 9.0;
     private static final int ASSAULT_COOLDOWN = 12;
     private static final double MIN_HIT_REACH = 2.0;
+    private static final double PLAN_END_ARRIVAL = 1.0;
+    private static final double PLAN_END_ARRIVAL_MARGIN = 0.5;
     private static final double HIT_REACH_MARGIN = 1.2;
     private static final double MIN_HIT_RISE = 1.0;
     private static final double HIT_RISE_MARGIN = 0.5;
@@ -211,6 +213,7 @@ public class OWBreakout {
         plan = probed;
         stepIndex = 0;
         phase = Phase.SIEGING;
+        assaultDirect = false;
         siegeTarget = target;
         siegeAim = target.position();
         planCooldown = REPLAN_DELAY;
@@ -262,6 +265,7 @@ public class OWBreakout {
         resetApproach();
         plan = next;
         stepIndex = 0;
+        assaultDirect = false;
         siegeAim = target.position();
     }
 
@@ -470,13 +474,23 @@ public class OWBreakout {
                 return;
             }
         }
-        boolean drifted = target.position().distanceToSqr(siegeAim) > SIEGE_DRIFT_SQR;
-        if (drifted != assaultDirect) {
-            assaultDirect = drifted;
+        boolean direct = target.position().distanceToSqr(siegeAim) > SIEGE_DRIFT_SQR || reachedPlanEnd();
+        if (direct && !assaultDirect) {
+            assaultDirect = true;
             resetApproach();
         }
-        boolean stuck = drifted ? approach(target.position(), target.position()) : approachNode(plan.end());
+        boolean stuck = assaultDirect ? approach(target.position(), target.position()) : approachNode(plan.end());
         if (stuck && planCooldown <= 0) replanSiege();
+    }
+
+    private boolean reachedPlanEnd() {
+        if (plan == null) return true;
+        Vec3 end = OWBreachPlanner.nodeCenter(plan.end(), footprint());
+        double dx = end.x - entity.getX();
+        double dz = end.z - entity.getZ();
+        double arrival = Math.max(PLAN_END_ARRIVAL, entity.getBbWidth() * 0.5 + PLAN_END_ARRIVAL_MARGIN);
+        if (dx * dx + dz * dz <= arrival * arrival) return true;
+        return entity.getNavigation().isDone() && approachTimer >= APPROACH_STALL_TICKS;
     }
 
     private boolean canHit(LivingEntity target) {
@@ -797,8 +811,8 @@ public class OWBreakout {
     }
 
     private double approachSpeed() {
-        if (phase == Phase.SIEGING) return Math.max(1.0, entity.sedatedFleeSpeed());
-        return Math.max(1.0, entity.sedatedFleeSpeed() * APPROACH_SPEED_FACTOR);
+        if (phase == Phase.STRUGGLING) return Math.max(1.0, entity.sedatedFleeSpeed() * APPROACH_SPEED_FACTOR);
+        return Math.max(1.0, entity.sedatedFleeSpeed());
     }
 
     private double strikeReach() {

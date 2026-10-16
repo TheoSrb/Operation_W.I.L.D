@@ -90,7 +90,7 @@ public class CrocodileNapGoal extends Goal {
         boolean tameCheck = !crocodile.isTame();
         boolean targetCheck = crocodile.getTarget() == null;
 
-        return shouldStopCheck && conditionCheck && timerCheck && tameCheck && targetCheck && !this.crocodile.isInWater();
+        return shouldStopCheck && conditionCheck && timerCheck && tameCheck && targetCheck && !this.crocodile.isInWater() && !crocodile.isSedationAgitated();
     }
 
     @Override
@@ -126,7 +126,7 @@ public class CrocodileNapGoal extends Goal {
         boolean targetCheck = crocodile.getTarget() == null;
         boolean dayCheck = this.crocodile.level().isDay();
 
-        return randomCheck && canNapCheck && conditionCheck && tameCheck && targetCheck && dayCheck;
+        return randomCheck && canNapCheck && conditionCheck && tameCheck && targetCheck && dayCheck && !crocodile.isSedationAgitated();
     }
 
     private boolean canNap() {

@@ -66,14 +66,14 @@ public class CrocodileChargingMouthGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        if (crocodile.isBaby() || crocodile.hasGrabSomething()) return false;
+        if (crocodile.isBaby() || crocodile.hasGrabSomething() || isProvoked()) return false;
         return crocodile.getTarget() != null && crocodile.isChargingMouth() && !this.crocodile.isInWater() && this.crocodile.getTarget().distanceTo(this.crocodile) <= 20
                 && !crocodile.isNapping();
     }
 
     @Override
     public boolean canUse() {
-        if (crocodile.isBaby()) return false;
+        if (crocodile.isBaby() || isProvoked()) return false;
         if (cooldown > 0) {
             cooldown--;
             return false;
@@ -81,6 +81,10 @@ public class CrocodileChargingMouthGoal extends Goal {
         // Une proie déjà en gueule interdit la Gueule Béante : l'ouvrir la ferait tomber.
         if (crocodile.hasGrabSomething()) return false;
         return isValidTarget(this.crocodile.getTarget()) && !crocodile.isTame() && !crocodile.isSitting() && !crocodile.isNapping();
+    }
+
+    private boolean isProvoked() {
+        return crocodile.sedationResponse.isAlarmed() || crocodile.breakout.wantsControl();
     }
 
     private boolean isValidTarget(LivingEntity target) {

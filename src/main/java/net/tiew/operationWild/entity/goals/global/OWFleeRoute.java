@@ -24,6 +24,7 @@ public class OWFleeRoute {
     private static final float CORNER_WHIMPER_CHANCE = 0.008f;
     private static final double CORNER_SPEED_FACTOR = 0.55;
     private static final int SCOUT_GAP = 10;
+    private static final double STEER_DISTANCE = 8.0;
 
     private final OWEntity mob;
     private final int radius;
@@ -43,6 +44,8 @@ public class OWFleeRoute {
     private BlockPos refuge;
     private int paceTimer;
     private int rescanTimer;
+    @Nullable
+    private Vec3 lastDanger;
 
     public OWFleeRoute(OWEntity mob, int radius, int height, int repathInterval) {
         this.mob = mob;
@@ -55,9 +58,10 @@ public class OWFleeRoute {
     public boolean prepare(@Nullable Vec3 danger) {
         cornered = false;
         refuge = null;
+        lastDanger = danger;
         escape = OWEscapeScout.find(mob, danger, radius, height, this::isFailed);
         if (escape != null) return true;
-        return enterCorner(danger);
+        return enterCorner(danger) || danger != null;
     }
 
     public void begin(double speed) {
@@ -67,7 +71,8 @@ public class OWFleeRoute {
         scoutCooldown = SCOUT_GAP;
         evasion.reset();
         if (cornered) moveToRefuge(speed);
-        else moveToEscape(speed);
+        else if (escape != null) moveToEscape(speed);
+        else steerAway(lastDanger, speed);
     }
 
     public void stop() {
@@ -83,6 +88,7 @@ public class OWFleeRoute {
 
     public void tick(@Nullable Vec3 danger, @Nullable Entity threat, double speed, float drowsiness) {
         forgetExpired();
+        if (danger != null) lastDanger = danger;
         evasion.tick(threat, drowsiness);
         if (cornered) {
             tickCorner(danger, threat, speed);
@@ -94,7 +100,7 @@ public class OWFleeRoute {
             boolean progressed = mob.position().distanceToSqr(anchor) >= STUCK_PROGRESS_SQR;
             stuckTimer = 0;
             anchor = mob.position();
-            if (moving && !progressed) {
+            if (!progressed && (moving || !arrived(escape))) {
                 if (escape != null) remember(escape);
                 stuckStrikes++;
                 repathTimer = 0;
@@ -108,6 +114,7 @@ public class OWFleeRoute {
                 moveToRefuge(speed);
                 return;
             }
+            if (mob.getNavigation().isDone()) steerAway(lastDanger, speed);
         }
 
         if (scoutCooldown > 0) scoutCooldown--;
@@ -162,6 +169,14 @@ public class OWFleeRoute {
         repathTimer = repathInterval + mob.getRandom().nextInt(10);
         if (escape == null) return;
         mob.getNavigation().moveTo(escape.x, escape.y, escape.z, speed);
+    }
+
+    private void steerAway(@Nullable Vec3 danger, double speed) {
+        if (danger == null) return;
+        Vec3 away = new Vec3(mob.getX() - danger.x, 0.0, mob.getZ() - danger.z);
+        if (away.lengthSqr() < 1.0E-4) away = Vec3.directionFromRotation(0f, mob.getYRot());
+        away = away.normalize().scale(STEER_DISTANCE);
+        mob.getMoveControl().setWantedPosition(mob.getX() + away.x, mob.getY(), mob.getZ() + away.z, speed);
     }
 
     private void moveToRefuge(double speed) {

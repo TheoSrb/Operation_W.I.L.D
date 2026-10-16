@@ -8,6 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
@@ -20,6 +21,7 @@ import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.breakout.OWBreakout;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.goals.global.OWAttackGoal;
 import net.tiew.operationWild.entity.navigation.OWPathProbe;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,9 +55,12 @@ public class OWSedationResponse {
     private static final int FRUSTRATION_COOLDOWN = 300;
     private static final int BREAK_PROGRESS_GRACE = 100;
     private static final int PATH_DOUBT_TICKS = 100;
-    private static final int HARASS_MIN_FRUSTRATION = 60;
-    private static final int HARASS_LIMIT_MIN = 3;
+    private static final int HARASS_MIN_FRUSTRATION = 100;
+    private static final int HARASS_LIMIT_MIN = 4;
     private static final int HARASS_LIMIT_SPREAD = 2;
+    private static final int MOMENTUM_SAMPLE = 20;
+    private static final double MOMENTUM_GAIN = 1.0;
+    private static final double MOMENTUM_RANGE = 6.0;
     private static final double AMBUSH_RETREAT_DISTANCE = 22.0;
     private static final int AMBUSH_RETREAT_MIN_TICKS = 60;
     private static final int AMBUSH_RETREAT_MAX_TICKS = 200;
@@ -63,6 +68,8 @@ public class OWSedationResponse {
     private static final double AMBUSH_TRIGGER_DISTANCE = 14.0;
     private static final int SURPRISE_TICKS = 100;
     private static final float SURPRISE_SPEED_BONUS = 1.35f;
+    private static final int STALL_TICKS = 40;
+    private static final double STALL_MOVE_SQR = 0.25;
 
     private final OWEntity entity;
     private Stance stance = Stance.CALM;
@@ -84,6 +91,11 @@ public class OWSedationResponse {
     private int harassLimit = HARASS_LIMIT_MIN;
     private boolean ambushPlanned;
     private int surpriseTicks;
+    private Vec3 stallAnchor = Vec3.ZERO;
+    private int stallTicks;
+    private double pursuitDistance = Double.MAX_VALUE;
+    private int pursuitSampleTimer;
+    private boolean momentum;
 
     public OWSedationResponse(OWEntity entity) {
         this.entity = entity;
@@ -232,6 +244,9 @@ public class OWSedationResponse {
             harassment = 0;
             harassLimit = HARASS_LIMIT_MIN + entity.getRandom().nextInt(HARASS_LIMIT_SPREAD);
             lastHitStamp = shooter.getLastHurtByMobTimestamp();
+            pursuitDistance = Double.MAX_VALUE;
+            pursuitSampleTimer = 0;
+            momentum = false;
         }
         ambushPlanned = false;
         stance = Stance.CHARGE;
@@ -301,6 +316,8 @@ public class OWSedationResponse {
         }
 
         keepAngry(provoker);
+        tickMomentum(provoker);
+        if (stalled(provoker)) unstick(provoker);
         if (--reevaluateTimer > 0) return;
         reevaluateTimer = provisional ? WATCH_INTERVAL : REEVALUATE_INTERVAL;
 
@@ -322,6 +339,42 @@ public class OWSedationResponse {
         }
     }
 
+    private void tickMomentum(LivingEntity target) {
+        if (--pursuitSampleTimer > 0) return;
+        pursuitSampleTimer = MOMENTUM_SAMPLE;
+        double distance = entity.distanceTo(target);
+        double range = Math.max(MOMENTUM_RANGE, entity.getBbWidth() * 2.0);
+        momentum = distance <= range || pursuitDistance - distance >= MOMENTUM_GAIN;
+        pursuitDistance = distance;
+    }
+
+    private boolean stalled(LivingEntity target) {
+        boolean idle = !entity.isCombo() && entity.getNavigation().isDone() && !entity.breakout.isSieging(target)
+                && chasesByGoal() && !withinStrike(entity.position(), target);
+        if (!idle || entity.position().distanceToSqr(stallAnchor) > STALL_MOVE_SQR) {
+            stallAnchor = entity.position();
+            stallTicks = 0;
+            return false;
+        }
+        return ++stallTicks >= STALL_TICKS;
+    }
+
+    private boolean chasesByGoal() {
+        for (WrappedGoal goal : entity.goalSelector.getAvailableGoals()) {
+            if (goal.isRunning() && (goal.getGoal() instanceof MeleeAttackGoal || goal.getGoal() instanceof OWAttackGoal)) return true;
+        }
+        return false;
+    }
+
+    private void unstick(LivingEntity target) {
+        stallTicks = 0;
+        if (entity.hasLineOfSight(target)) {
+            entity.getMoveControl().setWantedPosition(target.getX(), target.getY(), target.getZ(), Math.max(1.0, entity.sedatedFleeSpeed()));
+        } else if (entity.breakout.siegeOutlook(target) != OWBreakout.SiegeOutlook.IMPOSSIBLE) {
+            entity.breakout.startSiege(target);
+        }
+    }
+
     private boolean landedHit(LivingEntity target) {
         if (target.getLastHurtByMob() != entity) return false;
         int stamp = target.getLastHurtByMobTimestamp();
@@ -336,7 +389,7 @@ public class OWSedationResponse {
     }
 
     private boolean harassedOut(LivingEntity shooter) {
-        if (entity.isBaby() || frustration < HARASS_MIN_FRUSTRATION) return false;
+        if (entity.isBaby() || frustration < HARASS_MIN_FRUSTRATION || momentum) return false;
         if (entity.breakout.isSieging(shooter) && entity.breakout.ticksSinceProgress() < BREAK_PROGRESS_GRACE) return false;
         return ++harassment >= harassLimit;
     }

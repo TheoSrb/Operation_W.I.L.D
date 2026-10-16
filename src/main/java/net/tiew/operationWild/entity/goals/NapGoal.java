@@ -83,7 +83,7 @@ public class NapGoal extends Goal {
         if (entity instanceof KodiakEntity kodiak) {
             if (kodiak.isRolling() || kodiak.isSniffing() || kodiak.isCatchingSalmon() || kodiak.isHungry()) return false;
         }
-        return !shouldStop && conditionToWork && entity.isNapping() && mayNapWhileTame() && entity.getTarget() == null;
+        return !shouldStop && conditionToWork && entity.isNapping() && mayNapWhileTame() && entity.getTarget() == null && !entity.isSedationAgitated();
     }
 
     @Override
@@ -122,7 +122,7 @@ public class NapGoal extends Goal {
         if (entity instanceof TigerEntity tiger) {
             if (tiger.level().isNight()) return false;
         }
-        return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork && mayNapWhileTame() && entity.getTarget() == null;
+        return entity.getRandom().nextInt((int) (600 / wantNapMultiplier)) == 0 && canNap() && conditionToWork && mayNapWhileTame() && entity.getTarget() == null && !entity.isSedationAgitated();
     }
 
     private boolean mayNapWhileTame() {
