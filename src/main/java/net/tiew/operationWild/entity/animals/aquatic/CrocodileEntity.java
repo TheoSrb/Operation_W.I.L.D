@@ -121,6 +121,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public volatile float tail1AnimXRot = 0f, tail1AnimYRot = 0f, tail1AnimZRot = 0f;
     public volatile float tail2AnimXRot = 0f, tail2AnimYRot = 0f, tail2AnimZRot = 0f;
     public volatile float tail3AnimXRot = 0f, tail3AnimYRot = 0f, tail3AnimZRot = 0f;
+    public volatile float tailSedationDrop = 0f;
 
     private final double[] seg1 = new double[3];
     private final double[] seg2 = new double[3];
@@ -337,6 +338,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     @Override
     public void onSedationKnockOut() {
         if (this.isGrabbing()) this.releaseGrab();
+    }
+
+    @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return 40;
     }
 
     @Override

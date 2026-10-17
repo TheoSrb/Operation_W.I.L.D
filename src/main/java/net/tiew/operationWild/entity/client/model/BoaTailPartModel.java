@@ -10,10 +10,13 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
 import net.tiew.operationWild.entity.client.animation.BoaAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import org.joml.Vector3f;
 
 /**
@@ -50,6 +53,12 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> implements 
 
     private static final float TAIL_Y  = 20.0f;
     private static final float TAIL3_Y = 21.0f;
+
+    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
+            BoaAnimations.SEDATED_FALL, BoaAnimations.SEDATED_REST, BoaAnimations.SEDATED_WAKE);
+    private static final float SEGMENT_LENGTH = 16.0f;
+    private static final float BELLY_DEPTH = 3.0f;
+    private static final float TAIL_TIP_BELLY_DEPTH = 2.0f;
 
     // --- Animation de digestion (renflement parcourant la queue) ---
     private static final int   DIGEST_SEGMENTS    = 7;    // nb de segments (bodyIndex 0..6)
@@ -281,8 +290,24 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> implements 
         this.root().getAllParts().forEach(ModelPart::resetPose);
         this.segment.visible = true;
 
+        OWEntity boa = entity.getParentForRender() instanceof OWEntity parent ? parent : null;
+        float boaAge = boa != null ? boa.tickCount + Mth.clamp(ageInTicks - entity.tickCount, 0f, 1f) : ageInTicks;
+        float sedation = boa != null ? OWSedationAnimator.weight(boa, SEDATION, boaAge) : 0f;
+
+        if (sedation < 1f) animateAwake(entity, boa, ageInTicks);
+        if (sedation > 0f) applySedationRing(entity.getBodyIndex(), boa, boaAge);
+
         applyDigestionBulge(entity, ageInTicks);
 
+        // Le 2e segment (bodyIndex 1) est le siege du rider : c'est lui qui capture sa pose
+        // animee. BoaEntity.positionRider relit ce delta pour faire suivre le rider et la
+        // camera au cabrage du combo. Chaine root -> ALL -> body_1, Y de repos = TAIL_Y.
+        if (entity.getBodyIndex() == 1) {
+            captureBodyState(entity, TAIL_Y, this.all, this.segment);
+        }
+    }
+
+    private void animateAwake(BoaTailPart entity, OWEntity boa, float ageInTicks) {
         if (entity.isBoaConstricting()) {
             this.animate(entity.constrictBreathAnimationState, BoaAnimations.CONSTRICT_BREATH, ageInTicks, 1.0f);
         }
@@ -293,7 +318,7 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> implements 
         // du bone de ce segment se calquent donc sur la tete.
         AnimationDefinition strike = strikeFor(entity.getComboNumber());
         if (strike != null) {
-            float strikeSpeed = entity.getParentForRender() instanceof OWEntity boa ? boa.comboSpeedMultiplier : 1.0f;
+            float strikeSpeed = boa != null ? boa.comboSpeedMultiplier : 1.0f;
             this.animate(entity.comboAnimationState, strike, ageInTicks, strikeSpeed);
             // Translation cumulee des ancetres : voir GhostChain. Rejoue le meme strike,
             // au MEME instant (accumulatedTime du state, deja avance par this.animate juste
@@ -303,13 +328,18 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> implements 
             addAncestorTranslation(entity.getBodyIndex(), strike,
                     entity.comboAnimationState.getAccumulatedTime());
         }
+    }
 
-        // Le 2e segment (bodyIndex 1) est le siege du rider : c'est lui qui capture sa pose
-        // animee. BoaEntity.positionRider relit ce delta pour faire suivre le rider et la
-        // camera au cabrage du combo. Chaine root -> ALL -> body_1, Y de repos = TAIL_Y.
-        if (entity.getBodyIndex() == 1) {
-            captureBodyState(entity, TAIL_Y, this.all, this.segment);
-        }
+    private void applySedationRing(int index, OWEntity boa, float boaAge) {
+        GHOST.root().getAllParts().forEach(ModelPart::resetPose);
+        OWSedationAnimator.apply(GHOST, boa, SEDATION, boaAge);
+        ModelPart ring = GHOST.bones[1 + index];
+        float next = 2 + index < CHAIN.length ? GHOST.bones[2 + index].y : ring.y;
+        float belly = index == DIGEST_SEGMENTS - 1 ? TAIL_TIP_BELLY_DEPTH : BELLY_DEPTH;
+        this.segment.y += ring.y + belly * (1f - ring.yScale);
+        this.segment.xRot += (float) Math.asin(Mth.clamp((ring.y - next) / SEGMENT_LENGTH, -1f, 1f));
+        this.segment.xScale *= ring.xScale;
+        this.segment.yScale *= ring.yScale;
     }
 
     // -------------------------------------------------------------------------
@@ -448,8 +478,8 @@ public class BoaTailPartModel extends HierarchicalModel<BoaTailPart> implements 
         float bulge = (float) (peakBulge * falloff * Math.exp(-(d * d) / (DIGEST_BULGE_WIDTH * DIGEST_BULGE_WIDTH)));
         if (bulge <= 0.001f) return;
 
-        this.segment.xScale = 1.0f + bulge;
-        this.segment.yScale = 1.0f + bulge;
+        this.segment.xScale *= 1.0f + bulge;
+        this.segment.yScale *= 1.0f + bulge;
         // zScale inchangé : pas de trou ni de chevauchement entre segments.
     }
 }

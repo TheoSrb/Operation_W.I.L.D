@@ -24,6 +24,8 @@ import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.client.animation.CrocodileAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import net.tiew.operationWild.entity.client.animation.OrcaAnimations;
 
 import javax.swing.text.html.parser.Entity;
@@ -42,6 +44,13 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 	private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
 
 	private float prevLimbSwing = 0f;
+
+	private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
+			OrcaAnimations.SEDATED_FALL, OrcaAnimations.SEDATED_REST, OrcaAnimations.SEDATED_WAKE);
+	private static final float SEDATION_BODY_CENTER = 1.0f;
+	private static final float SEDATION_FLOAT_SINK = 5.0f;
+	private static final float SEDATION_STRAND_FIN_FOLD = (float) Math.toRadians(63.0);
+	private static final float SEDATION_TWITCH_FLICK = 0.35f;
 
 	private static final float FLOP_TAIL_SWING = 0.675f;
 	private static final float FLOP_TAIL_SPEED = 0.6f;
@@ -226,6 +235,7 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
     @Override
 	public void setupAnim(OrcaEntity orca, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
+		float sedation = OWSedationAnimator.weight(orca, SEDATION, ageInTicks);
 
 		if (Math.abs(externalRiderPitch) > 0.01f) {
 			this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
@@ -239,6 +249,12 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 			this.ALL2.yRot = (float) Math.toRadians(externalSpinYaw);
 		}
 
+		if (sedation < 1f) this.animateAwake(orca, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+
+		OWSedationAnimator.apply(this, orca, SEDATION, ageInTicks);
+		if (sedation > 0f) this.applySedationPose(orca, sedation, ageInTicks);
+		this.head.xRot += orca.getSedatedHeadNod(ageInTicks) * sedation;
+
 		if (orca.isBaby()) {
 			float maturationPercent = (float) orca.getMaturationPercentage() / 100f;
 			float headScale = 1.5f - (1.6f - 1.0f) * maturationPercent;
@@ -248,11 +264,31 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 			this.head.zScale *= headScale;
 		}
 
-		if (orca.isNapping() || orca.isSleeping()) {
+		this.prevLimbSwing = limbSwing;
+
+		captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
+	}
+
+	private void applySedationPose(OrcaEntity orca, float sedation, float ageInTicks) {
+		float partialTick = Mth.clamp(ageInTicks - orca.tickCount, 0f, 1f);
+		float strand = orca.getSedationStrand(partialTick);
+		float roll = this.ALL.zRot;
+		float limp = (1f - Mth.cos(roll)) * 0.5f;
+
+		this.ALL.zRot = roll * (1f - strand * sedation);
+		this.ALL.x += Mth.sin(this.ALL.zRot) * SEDATION_BODY_CENTER * sedation;
+		this.ALL.y += (1f - Mth.cos(this.ALL.zRot)) * SEDATION_BODY_CENTER * sedation
+				+ SEDATION_FLOAT_SINK * limp * (1f - strand);
+
+		this.left_fan.zRot += SEDATION_STRAND_FIN_FOLD * limp * strand;
+		this.right_fan.zRot -= SEDATION_STRAND_FIN_FOLD * limp * strand;
+
+		this.back_tail.xRot += SEDATION_TWITCH_FLICK * orca.getWakeTwitchAmount(partialTick) * sedation;
+	}
+
+	private void animateAwake(OrcaEntity orca, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+		if (orca.isNapping()) {
 			this.animate(orca.restAnimationState, OrcaAnimations.MISC_IDLE, ageInTicks, 0.35f);
-			this.head.xRot += orca.getSedatedHeadNod(ageInTicks);
-			this.prevLimbSwing = limbSwing;
-			captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
@@ -297,10 +333,6 @@ public class OrcaModel<T extends OrcaEntity> extends OWComboModel<T> implements 
 		applyTailFlick(orca, ageInTicks);
 
 		applyBigMouth(orca, ageInTicks);
-
-		this.prevLimbSwing = limbSwing;
-
-		captureBodyState(orca, 7f, 1.0f, this.ALL2, this.ALL, this.body);
 	}
 
 	/** Cadence du battement de nageoire caudale pendant la charge, en radians par tick. */

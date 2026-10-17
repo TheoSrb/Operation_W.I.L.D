@@ -90,6 +90,7 @@ import static net.tiew.operationWild.core.OWUtils.RANDOM;
 public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     public static final double TAMING_EXPERIENCE = 40.0;
+    private static final int SEDATION_WAKE_TICKS = 40;
     public static final int MAX_SOMNOLENCE = 150;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 2;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 30;
@@ -674,6 +675,16 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     @Override
     public boolean usesAggressiveTaming() {
         return true;
+    }
+
+    @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return SEDATION_WAKE_TICKS;
     }
 
     @Override

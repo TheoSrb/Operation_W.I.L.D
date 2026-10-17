@@ -17,6 +17,8 @@ import net.minecraft.util.Mth;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
 import net.tiew.operationWild.entity.client.animation.LionAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import org.joml.Vector3f;
 
 public class LionModel<T extends LionEntity> extends OWComboModel<T> implements OWFlagModel {
@@ -38,6 +40,7 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
     private static final float LEG_LENGTH = 12f;
     private static final float MANE_BRISTLE = 0.14f;
     private static final Vector3f ANIM_VECTOR = new Vector3f();
+    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(LionAnimations.SEDATED_FALL, LionAnimations.SEDATED_REST, LionAnimations.SEDATED_WAKE);
 
     private float prevLimbSwing = 0f;
 
@@ -219,8 +222,11 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         this.root().getAllParts().forEach(ModelPart::resetPose);
         this.mane.visible = lion.isMale();
 
-        float pt = Mth.clamp(ageInTicks - lion.tickCount, 0f, 1f);
-        long time = (long) (ageInTicks * 50f);
+        float sedation = OWSedationAnimator.weight(lion, SEDATION, ageInTicks);
+        if (sedation < 1f) this.setupAwakeAnim(lion, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+
+        OWSedationAnimator.apply(this, lion, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+        this.head.xRot += lion.getSedatedHeadNod(ageInTicks) * sedation;
 
         if (lion.isBaby()) {
             float maturationPercent = (float) lion.getMaturationPercentage() / 100f;
@@ -230,6 +236,15 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
+
+        this.prevLimbSwing = limbSwing;
+
+        captureBodyState(lion);
+    }
+
+    private void setupAwakeAnim(T lion, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+        float pt = Mth.clamp(ageInTicks - lion.tickCount, 0f, 1f);
+        long time = (long) (ageInTicks * 50f);
 
         float rest = smoothStep(lion.restBlend(pt));
         float sit = smoothStep(lion.sitBlend(pt)) * (1f - rest);
@@ -243,12 +258,6 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         float seated = rest + sit;
         if (seated > 0.001f) {
             KeyframeAnimations.animate(this, LionAnimations.SIT, time, seated, ANIM_VECTOR);
-            this.head.xRot += lion.getSedatedHeadNod(ageInTicks) * rest;
-            if (lion.isKnockedOut()) {
-                this.head.xRot += 0.3f * rest;
-                this.left_ear.xRot += 0.4f * rest;
-                this.right_ear.xRot += 0.4f * rest;
-            }
         }
 
         if (stance > 0.001f) {
@@ -271,10 +280,6 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         applyEarFlick(lion, pt, stance);
 
         if (lion.isMad() || lion.isEmpowered() || lion.isRallied()) hideEyeBalls();
-
-        this.prevLimbSwing = limbSwing;
-
-        captureBodyState(lion);
     }
 
     private void animateLocomotion(T lion, float limbSwing, float limbSwingAmount, float pt, float stance) {

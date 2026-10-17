@@ -88,6 +88,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public static final int MAX_SOMNOLENCE = 3600;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 3;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 6;
+    public static final int SEDATION_WAKE_TICKS = 48;
     public static final int FOOD_WANTED_MIN = 10;
     public static final int FOOD_WANTED_MAX = 16;
     private static final int SPAWN_WATER_RADIUS = 12;
@@ -288,6 +289,16 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     @Override
     public int asleepSomnolenceLossInterval() {
         return SOMNOLENCE_LOSS_INTERVAL_ASLEEP;
+    }
+
+    @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return SEDATION_WAKE_TICKS;
     }
 
     @Override

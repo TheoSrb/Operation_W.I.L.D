@@ -100,6 +100,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public static final int MAX_SOMNOLENCE = 2000;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 2;
+    private static final int SEDATION_WAKE_TICKS = 44;
     public static final int FOOD_WANTED_MIN = 8;
     public static final int FOOD_WANTED_MAX = 14;
     public static final float AI_STEP_JUMP_FACTOR = 0.45f;
@@ -313,6 +314,16 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public void onSedationKnockOut() {
         if (this.isGrabbing()) this.releaseGrab();
+    }
+
+    @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return SEDATION_WAKE_TICKS;
     }
 
     @Override

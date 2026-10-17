@@ -90,6 +90,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public static final float AI_STEP_JUMP_FACTOR = 0.45f;
 
     private static final int MISC_IDLE_2_DURATION = 140;
+    private static final int SEDATION_WAKE_TICKS = 50;
 
     private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(29, 41);
 
@@ -1470,6 +1471,16 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private static void removeChestBeatBonus(LivingEntity living) {
         AttributeInstance damage = living.getAttribute(Attributes.ATTACK_DAMAGE);
         if (damage != null) damage.removeModifier(CHEST_BEAT_DAMAGE_MODIFIER);
+    }
+
+    @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return SEDATION_WAKE_TICKS;
     }
 
     @Override

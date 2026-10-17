@@ -830,6 +830,21 @@
             "looping": true,
             "name": "SIT",
             "seconds": 4.16
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 1.8
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.2
           }
         ],
         "layers": [
@@ -1081,12 +1096,12 @@
         "walk_speed_blocks_per_second": 3.5999999999999996
       },
       "history": {
-        "created": "2026-10-01T16:57:09.0503808+02:00",
-        "created_date": "2026-10-01",
+        "created": "2026-10-17T16:56:05.2950614+02:00",
+        "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8662047+02:00",
+        "last_modified": "2026-10-17T16:56:05.2960775+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 77411
+        "size_bytes": 77647
       },
       "id": "ow:tiger",
       "loot": {
@@ -2704,6 +2719,21 @@
             "looping": false,
             "name": "PAW_SLAM_STRIKE",
             "seconds": 1.5
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 2.2
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 2.4
           }
         ],
         "layers": [
@@ -2883,12 +2913,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-11T11:57:02.5093829+02:00",
-        "created_date": "2026-10-11",
+        "created": "2026-10-17T17:03:45.6660236+02:00",
+        "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8745039+02:00",
+        "last_modified": "2026-10-17T17:03:45.6666614+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 62412
+        "size_bytes": 62576
       },
       "id": "ow:kodiak",
       "loot": {
@@ -4302,6 +4332,21 @@
             "looping": false,
             "name": "GRAB_THRASH",
             "seconds": 0.9
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 1.6
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 6.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.0
           }
         ],
         "layers": [
@@ -4414,12 +4459,12 @@
         "walk_speed_blocks_per_second": 3.2
       },
       "history": {
-        "created": "2026-10-14T19:12:02.2379604+02:00",
-        "created_date": "2026-10-14",
+        "created": "2026-10-17T16:54:47.3649623+02:00",
+        "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8878682+02:00",
+        "last_modified": "2026-10-17T16:54:47.365464+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 82645
+        "size_bytes": 82858
       },
       "id": "ow:crocodile",
       "loot": {
@@ -5741,6 +5786,21 @@
             "looping": false,
             "name": "ATTACK_STRIKE_3",
             "seconds": 0.64
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 1.8
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.0
           }
         ],
         "layers": [
@@ -5918,12 +5978,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-01T16:57:09.0953895+02:00",
-        "created_date": "2026-10-01",
+        "created": "2026-10-17T16:58:42.131349+02:00",
+        "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8831897+02:00",
+        "last_modified": "2026-10-17T16:58:42.133362+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 59989
+        "size_bytes": 60225
       },
       "id": "ow:boa",
       "loot": {
@@ -7231,6 +7291,21 @@
             "looping": false,
             "name": "ATTACK_STRIKE_3",
             "seconds": 1.4286
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.0
           }
         ],
         "layers": [
@@ -7344,12 +7419,12 @@
         "walk_speed_blocks_per_second": 3.5999999999999996
       },
       "history": {
-        "created": "2026-10-15T17:21:39.5239599+02:00",
-        "created_date": "2026-10-15",
+        "created": "2026-10-17T16:53:07.6848615+02:00",
+        "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8929507+02:00",
+        "last_modified": "2026-10-17T16:53:07.687373+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 96951
+        "size_bytes": 98038
       },
       "id": "ow:orca",
       "loot": {
@@ -7895,6 +7970,21 @@
             "looping": false,
             "name": "EARTHQUAKE",
             "seconds": 4.16
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 2.6
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 6.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 3.2
           }
         ],
         "layers": [
@@ -7985,12 +8075,12 @@
         "walk_speed_blocks_per_second": 2.8000000000000003
       },
       "history": {
-        "created": "2026-10-15T17:13:22.5775458+02:00",
-        "created_date": "2026-10-15",
+        "created": "2026-10-17T17:03:23.6764972+02:00",
+        "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8771874+02:00",
+        "last_modified": "2026-10-17T17:03:23.6775122+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 109688
+        "size_bytes": 109925
       },
       "id": "ow:elephant",
       "loot": {
@@ -9257,6 +9347,21 @@
             "looping": false,
             "name": "TRANSITION_SIT_IDLE",
             "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 1.5
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.0
           }
         ],
         "layers": [
@@ -9290,7 +9395,7 @@
         "MEAL_TICKS": 46,
         "MOUTH_CHEW_TICKS": 400,
         "PLAY_TICKS": 150,
-        "SOMNOLENCE_LOSS_INTERVAL": 1,
+        "SOMNOLENCE_LOSS_INTERVAL": 2,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 30,
         "SWIPE_TICKS": 16,
         "TAMING_EXPERIENCE": 40.0
@@ -9349,12 +9454,12 @@
         "walk_speed_blocks_per_second": 3.2
       },
       "history": {
-        "created": "2026-10-01T17:11:35.3085605+02:00",
-        "created_date": "2026-10-01",
+        "created": "2026-10-17T12:57:49.2506819+02:00",
+        "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8859134+02:00",
+        "last_modified": "2026-10-17T16:59:19.1575289+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 76735
+        "size_bytes": 76971
       },
       "id": "ow:red_panda",
       "loot": {
@@ -10068,11 +10173,11 @@
         "somnolence": {
           "decays": true,
           "full_bar_asleep_seconds": 225.0,
-          "full_bar_awake_seconds": 7.5,
+          "full_bar_awake_seconds": 15.0,
           "loss_interval_ticks_asleep": 30,
-          "loss_interval_ticks_awake": 1,
+          "loss_interval_ticks_awake": 2,
           "loss_per_second_asleep": 0.6666666666666666,
-          "loss_per_second_awake": 20.0,
+          "loss_per_second_awake": 10.0,
           "max": 150,
           "max_max": 180,
           "max_min": 120,
@@ -10386,6 +10491,21 @@
             "looping": false,
             "name": "ULTIMATE",
             "seconds": 4.75
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 2.3
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.5
           }
         ],
         "layers": [
@@ -10461,9 +10581,9 @@
         "created": "2026-10-09T14:51:15.7443803+02:00",
         "created_date": "2026-10-09",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8799027+02:00",
+        "last_modified": "2026-10-17T16:52:07.0272242+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 74377
+        "size_bytes": 74613
       },
       "id": "ow:gorilla",
       "loot": {
@@ -10960,11 +11080,6 @@
             "seconds": 1.0
           },
           {
-            "looping": false,
-            "name": "SEDATED_COLLAPSE",
-            "seconds": 1.3
-          },
-          {
             "looping": true,
             "name": "SWIM",
             "seconds": 1.6
@@ -11023,6 +11138,7 @@
         "FOOD_WANTED_MAX": 16,
         "FOOD_WANTED_MIN": 10,
         "MAX_SOMNOLENCE": 3600,
+        "SEDATION_WAKE_TICKS": 48,
         "SOMNOLENCE_LOSS_INTERVAL": 3,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 6,
         "STAGGER_BOUNCE": 1,
@@ -11079,12 +11195,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-16T21:38:10.9743791+02:00",
-        "created_date": "2026-10-16",
+        "created": "2026-10-17T16:53:08.0422051+02:00",
+        "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8896653+02:00",
+        "last_modified": "2026-10-17T16:53:08.1488466+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 71352
+        "size_bytes": 71587
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -11511,6 +11627,21 @@
             "looping": true,
             "name": "SIT",
             "seconds": 4.16
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_FALL",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 4.5
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.4
           }
         ],
         "layers": [
@@ -11590,9 +11721,9 @@
         "created": "2026-10-11T11:57:02.6081155+02:00",
         "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8704461+02:00",
+        "last_modified": "2026-10-17T17:04:35.809465+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 62778
+        "size_bytes": 62932
       },
       "id": "ow:lion",
       "loot": {

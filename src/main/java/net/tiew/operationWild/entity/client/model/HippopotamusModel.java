@@ -18,6 +18,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.client.animation.HippopotamusAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -44,7 +46,8 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
 
     private static final float COMBO_ANIMATION_SPEED = 1.0f;
 
-    private static final long SEDATED_COLLAPSE_MS = (long) (HippopotamusAnimations.SEDATED_COLLAPSE.lengthInSeconds() * 1000f);
+    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
+            HippopotamusAnimations.SEDATED_FALL, HippopotamusAnimations.SEDATED_REST, HippopotamusAnimations.SEDATED_WAKE);
     private static final float FURY_POSE_FADE_START = 18f;
     private static final float FURY_POSE_FADE_TICKS = 7f;
     private static final float FURY_ROAR_RELEASE_TICKS = 6f;
@@ -216,11 +219,12 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
         this.prevLimbSwing = limbSwing;
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
-        float pt = partialTick(hippo, ageInTicks);
-        float rollWeight = HippopotamusEntity.smoothStep(hippo.rollBlend(pt));
+        float sedation = OWSedationAnimator.weight(hippo, SEDATION, ageInTicks);
+        if (sedation < 1f) setupAwake(hippo, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, prevSwing);
 
-        if (Math.abs(externalRiderPitch) > 0.01f) this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
-        applyLean(hippo, pt, rollWeight);
+        OWSedationAnimator.apply(this, hippo, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+        this.head.xRot += hippo.getSedatedHeadNod(ageInTicks) * sedation;
+        if (sedation > 0f) captureBodyState(hippo);
 
         if (hippo.isBaby()) {
             float maturation = (float) hippo.getMaturationPercentage() / 100f;
@@ -229,16 +233,14 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
+    }
 
-        if (hippo.sedatedCollapseAnimationState.isStarted()) {
-            hippo.sedatedCollapseAnimationState.updateTime(ageInTicks, 1.0f);
-            long collapseTime = hippo.sedatedCollapseAnimationState.getAccumulatedTime();
-            if (collapseTime < SEDATED_COLLAPSE_MS) {
-                KeyframeAnimations.animate(this, HippopotamusAnimations.SEDATED_COLLAPSE, collapseTime, 1.0f, ANIM_VECTOR);
-                captureBodyState(hippo);
-                return;
-            }
-        }
+    private void setupAwake(T hippo, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch, float prevSwing) {
+        float pt = partialTick(hippo, ageInTicks);
+        float rollWeight = HippopotamusEntity.smoothStep(hippo.rollBlend(pt));
+
+        if (Math.abs(externalRiderPitch) > 0.01f) this.ALL2.xRot = (float) Math.toRadians(externalRiderPitch);
+        applyLean(hippo, pt, rollWeight);
 
         if (hippo.transitionIdleSleep.isStarted()) {
             this.animate(hippo.transitionIdleSleep, HippopotamusAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
@@ -252,9 +254,8 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
             return;
         }
 
-        if (hippo.isNapping() || hippo.isSleeping()) {
+        if (hippo.isNapping()) {
             this.animate(hippo.restAnimationState, HippopotamusAnimations.NAP, ageInTicks, 1.0f);
-            this.head.xRot += hippo.getSedatedHeadNod(ageInTicks);
             captureBodyState(hippo);
             return;
         }

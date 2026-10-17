@@ -297,8 +297,20 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     private final Set<Integer> ploughStruck = new HashSet<>();
 
+    private static final int SEDATION_WAKE_TICKS = 64;
+
     public ElephantEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
+    }
+
+    @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return SEDATION_WAKE_TICKS;
     }
 
     public static AttributeSupplier.Builder createAttributes() {

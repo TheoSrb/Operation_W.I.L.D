@@ -21,6 +21,8 @@ import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import net.tiew.operationWild.entity.client.animation.RedPandaAnimations;
 
 public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
@@ -49,6 +51,9 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
     private static final float TREE_LEG_SWING = 0.42f;
     private static final float TREE_LEG_SPREAD = 0.26f;
     private static final float TREE_BODY_LIFT = -2.0f;
+
+    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
+            RedPandaAnimations.SEDATED_FALL, RedPandaAnimations.SEDATED_REST, RedPandaAnimations.SEDATED_WAKE);
 
     private final ModelPart ALL2;
     private final ModelPart ALL;
@@ -146,26 +151,33 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.currentEntity = redPanda;
 
         boolean treePosed = !RENDER_AS_GROUNDED && redPanda.isTreePosed();
+        float sedation = OWSedationAnimator.weight(redPanda, SEDATION, ageInTicks);
 
-        if (RENDER_AS_GROUNDED || treePosed) limbSwingAmount = 0f;
+        if (sedation < 1f) {
+            if (RENDER_AS_GROUNDED || treePosed) limbSwingAmount = 0f;
 
-        boolean posed = redPanda.isOnShoulder() || treePosed
-                || redPanda.intimidateAnimationState.isStarted()
-                || redPanda.isCowering()
-                || redPanda.transitionIdleFear.isStarted()
-                || redPanda.getFearRecoverTimer() > 0
-                || redPanda.playAnimationState.isStarted();
-        boolean resting = !RENDER_AS_GROUNDED && (redPanda.isNapping() || redPanda.isSleeping());
-        if ((RENDER_AS_GROUNDED || !posed) && !resting) {
-            this.applyHeadRotation(netHeadYaw, headPitch);
+            boolean posed = redPanda.isOnShoulder() || treePosed
+                    || redPanda.intimidateAnimationState.isStarted()
+                    || redPanda.isCowering()
+                    || redPanda.transitionIdleFear.isStarted()
+                    || redPanda.getFearRecoverTimer() > 0
+                    || redPanda.playAnimationState.isStarted();
+            boolean resting = !RENDER_AS_GROUNDED && redPanda.isNapping();
+            if ((RENDER_AS_GROUNDED || !posed) && !resting) {
+                this.applyHeadRotation(netHeadYaw, headPitch);
+            }
+
+            setupBaseAnim(redPanda, limbSwing, limbSwingAmount, ageInTicks, treePosed);
+
+            if (treePosed) animateTreeClimb(redPanda, ageInTicks);
+            if (redPanda.swipeAnimationState.isStarted() && !RENDER_AS_GROUNDED) {
+                animateHarvestSwipe(redPanda, ageInTicks);
+            }
         }
 
-        setupBaseAnim(redPanda, limbSwing, limbSwingAmount, ageInTicks, treePosed);
-
-        if (treePosed) animateTreeClimb(redPanda, ageInTicks);
-        if (redPanda.swipeAnimationState.isStarted() && !RENDER_AS_GROUNDED) {
-            animateHarvestSwipe(redPanda, ageInTicks);
-        }
+        OWSedationAnimator.apply(this, redPanda, SEDATION, ageInTicks, this.left_Eyeball, this.right_Eyeball);
+        this.head.xRot += redPanda.getSedatedHeadNod(ageInTicks) * sedation;
+        if (treePosed && sedation > 0f) applyTreeRoll(redPanda, ageInTicks, sedation);
 
         this.prevLimbSwing = limbSwing;
     }
@@ -194,9 +206,8 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
             return;
         }
 
-        if (redPanda.isNapping() || redPanda.isSleeping()) {
+        if (redPanda.isNapping()) {
             this.animate(redPanda.restAnimationState, RedPandaAnimations.NAP, ageInTicks, 1.0f);
-            this.head.xRot += redPanda.getSedatedHeadNod(ageInTicks);
             return;
         }
 
@@ -383,14 +394,21 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         this.tong.xRot += -0.20f * snap;
     }
 
-    private void animateTreeClimb(T redPanda, float ageInTicks) {
+    private void applyTreeRoll(T redPanda, float ageInTicks, float amount) {
         float partial = Mth.clamp(ageInTicks - redPanda.tickCount, 0f, 1f);
-        float lean = Mth.lerp(partial, redPanda.treeLeanO, redPanda.treeLean);
-        float flip = Mth.lerp(partial, redPanda.treeFlipO, redPanda.treeFlip);
+        float lean = Mth.lerp(partial, redPanda.treeLeanO, redPanda.treeLean) * amount;
+        float flip = Mth.lerp(partial, redPanda.treeFlipO, redPanda.treeFlip) * amount;
 
         this.ALL2.xRot += -lean * TREE_UPRIGHT_PITCH;
         this.ALL2.zRot += flip * Mth.PI;
         this.ALL2.y += TREE_BODY_LIFT * lean;
+    }
+
+    private void animateTreeClimb(T redPanda, float ageInTicks) {
+        float partial = Mth.clamp(ageInTicks - redPanda.tickCount, 0f, 1f);
+        float lean = Mth.lerp(partial, redPanda.treeLeanO, redPanda.treeLean);
+
+        applyTreeRoll(redPanda, ageInTicks, 1f);
 
         float dt = Float.isNaN(redPanda.climbLastAge) ? 0f
                 : Mth.clamp(ageInTicks - redPanda.climbLastAge, 0f, 2f);

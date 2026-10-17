@@ -296,6 +296,16 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return 48;
+    }
+
+    @Override
     public float getTheoreticalScale() {
         return 10;
     }

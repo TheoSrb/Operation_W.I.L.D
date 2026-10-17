@@ -120,6 +120,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     private static final float ROAR_BLEND_OUT_RATE = 0.12f;
     private static final float EMPOWER_BLEND_RATE = 0.08f;
     private static final int EAR_FLICK_TICKS = 6;
+    private static final int SEDATION_WAKE_TICKS = 48;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.BOOLEAN);
@@ -250,6 +251,16 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     @Override
     public double getTamingExperience() {
         return TAMING_EXPERIENCE;
+    }
+
+    @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return SEDATION_WAKE_TICKS;
     }
 
     private static final java.util.Set<String> FEMALE_HIDDEN_HEAD_PARTS = java.util.Set.of("mane");
@@ -1151,8 +1162,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         sitBlend = approach(sitBlend, this.isSitting() ? 1f : 0f, SIT_BLEND_RATE);
 
         restBlendO = restBlend;
-        restBlend = approach(restBlend, this.isNapping() || this.isSleeping() ? 1f : 0f,
-                this.isKnockedOut() ? REST_BLEND_RATE * 2f : REST_BLEND_RATE);
+        restBlend = approach(restBlend, this.isNapping() ? 1f : 0f, REST_BLEND_RATE);
 
         roarBlendO = roarBlend;
         roarBlend = approach(roarBlend, isRoaring() ? 1f : 0f, isRoaring() ? ROAR_BLEND_IN_RATE : ROAR_BLEND_OUT_RATE);

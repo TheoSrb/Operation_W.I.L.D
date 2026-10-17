@@ -56,6 +56,13 @@ public class OWAggressiveTaming {
     private static final int COLLAPSE_DURATION = 18;
     private static final double COLLAPSE_MAX_SPEED = 0.45;
     private static final double COLLAPSE_MIN_SPEED = 0.02;
+    private static final double FLOAT_LINE = 0.55;
+    private static final double FLOAT_SURFACE_MARGIN = 0.04;
+    private static final double FLOAT_RISE_ACCEL = 0.03;
+    private static final double FLOAT_RISE_MAX = 0.08;
+    private static final double FLOAT_RISE_DRAG = 0.6;
+    private static final double FLOAT_SETTLE_GAIN = 0.35;
+    private static final double FLOAT_SETTLE_MAX = 0.02;
     private static final double MEAL_REACH = 1.6;
     private static final double MEAL_VERTICAL_REACH = 1.5;
     private static final float SOMNOLENCE_FOOD_RESTORE = 0.15f;
@@ -160,6 +167,12 @@ public class OWAggressiveTaming {
         entity.playSedationVoice(0.55f);
     }
 
+    public void onSedatedWhileKnockedOut(DamageSource source, int power) {
+        onSedated(source);
+        pendingSomnolence += power;
+        onHit(source);
+    }
+
     public void onHit(DamageSource source) {
         int hits = entity.getTamingHits();
         if (hits < MAX_BONUS_POINTS) entity.setTamingHits(hits + 1);
@@ -227,9 +240,14 @@ public class OWAggressiveTaming {
 
     private void tickFloating() {
         if (!entity.isInWater()) return;
-        if (entity.getFluidHeight(FluidTags.WATER) <= entity.getBbHeight() * 0.55) return;
+        double excess = entity.getFluidHeight(FluidTags.WATER) - entity.getBbHeight() * FLOAT_LINE;
         Vec3 motion = entity.getDeltaMovement();
-        entity.setDeltaMovement(motion.x, Math.min(Math.max(motion.y, 0.0) + 0.03, 0.08), motion.z);
+        boolean surfaced = excess <= FLOAT_SURFACE_MARGIN;
+        double drag = collapseTicks > 0 ? 1.0 : surfaced ? 0.0 : FLOAT_RISE_DRAG;
+        double vertical = excess > FLOAT_SURFACE_MARGIN * 4
+                ? Math.min(Math.max(motion.y, 0.0) + FLOAT_RISE_ACCEL, FLOAT_RISE_MAX)
+                : Math.max(-FLOAT_SETTLE_MAX, Math.min(excess * FLOAT_SETTLE_GAIN, FLOAT_RISE_MAX));
+        entity.setDeltaMovement(motion.x * drag, vertical, motion.z * drag);
     }
 
     private void tickSomnolenceGain() {

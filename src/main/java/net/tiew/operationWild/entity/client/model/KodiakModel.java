@@ -22,6 +22,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
@@ -253,11 +255,25 @@ public class KodiakModel<T extends KodiakEntity> extends OWComboModel<T> impleme
         };
     }
 
+    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
+            KodiakAnimations.SEDATED_FALL, KodiakAnimations.SEDATED_REST, KodiakAnimations.SEDATED_WAKE);
+
     @Override
     public void setupAnim(KodiakEntity kodiak, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
         this.currentEntity = kodiak;
+
+        float sedation = OWSedationAnimator.weight(kodiak, SEDATION, ageInTicks);
+        if (sedation < 1f) this.setupAwake(kodiak, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+
+        OWSedationAnimator.apply(this, kodiak, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+        this.head.xRot += kodiak.getSedatedHeadNod(ageInTicks) * sedation;
+
+        if (sedation > 0f) {
+            captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
+            captureBodyState(kodiak, 14f, true, this.ALL2, this.ALL, this.body, this.body_2);
+        }
 
         if (kodiak.isBaby()) {
             float maturationPercent = (float) kodiak.getMaturationPercentage() / 100f;
@@ -267,7 +283,9 @@ public class KodiakModel<T extends KodiakEntity> extends OWComboModel<T> impleme
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
+    }
 
+    private void setupAwake(KodiakEntity kodiak, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         if (kodiak.transitionIdleSleep.isStarted()) {
             this.animate(kodiak.transitionIdleSleep, KodiakAnimations.TRANSITION_IDLE_SLEEP, ageInTicks, 2.0f);
             captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);
@@ -282,7 +300,7 @@ public class KodiakModel<T extends KodiakEntity> extends OWComboModel<T> impleme
             return;
         }
 
-        if (kodiak.isNapping() || kodiak.isSleeping()) {
+        if (kodiak.isNapping()) {
             this.animate(kodiak.restAnimationState, KodiakAnimations.SLEEP, ageInTicks, 1.0f);
             this.head.xRot += kodiak.getSedatedHeadNod(ageInTicks);
             captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);

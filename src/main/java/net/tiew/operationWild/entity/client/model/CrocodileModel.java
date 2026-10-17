@@ -20,6 +20,8 @@ import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttackLogic;
 import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import net.tiew.operationWild.entity.client.animation.CrocodileAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 
 public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> implements OWFlagModel {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "crocodile_default"), "main");
@@ -34,7 +36,13 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 	 */
 	private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
 
+	private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
+			CrocodileAnimations.SEDATED_FALL, CrocodileAnimations.SEDATED_REST, CrocodileAnimations.SEDATED_WAKE);
+	private static final float REST_BODY_Y = 12.5453f;
+
 	private float prevLimbSwing = 0f;
+	private final float[] awakeTail = new float[9];
+	private float awakeBodyY = REST_BODY_Y;
 
 	public float externalRiderPitch = 0f;
 	public float externalBankRoll = 0f;
@@ -262,18 +270,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 	public void setupAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 
-		crocodile.tail1AnimXRot = this.tail1.xRot;
-		crocodile.tail1AnimYRot = this.tail1.yRot;
-		crocodile.tail1AnimZRot = this.tail1.zRot;
-
-		crocodile.tail2AnimXRot = this.tail1.xRot + this.tail2.xRot;
-		crocodile.tail2AnimYRot = this.tail1.yRot + this.tail2.yRot;
-		crocodile.tail2AnimZRot = this.tail1.zRot + this.tail2.zRot;
-
-		crocodile.tail3AnimXRot = this.tail1.xRot + this.tail2.xRot + this.tail3.xRot;
-		crocodile.tail3AnimYRot = this.tail1.yRot + this.tail2.yRot + this.tail3.yRot;
-		crocodile.tail3AnimZRot = this.tail1.zRot + this.tail2.zRot + this.tail3.zRot;
-
 		// En jeu, la queue du modèle n'est visible que dans l'eau (les entités CrocodileTailPart
 		// la remplacent sur terre). En GUI, ces entités n'existent pas : RENDER_FULL_BODY force
 		// l'affichage de la queue du modèle pour montrer le crocodile entier.
@@ -292,31 +288,80 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 
 		spawnFootstepParticles(crocodile, limbSwing);
 
-		if (crocodile.isBaby()) {
-			float maturationPercent = (float) crocodile.getMaturationPercentage() / 100f;
-			float headScale = 1.5f - (1.6f - 1.0f) * maturationPercent;
+		float headScale = babyHeadScale(crocodile);
+		float sedation = OWSedationAnimator.weight(crocodile, SEDATION, ageInTicks);
 
+		if (sedation < 1f) {
 			this.head.xScale *= headScale;
 			this.head.yScale *= headScale;
 			this.head.zScale *= headScale;
+			this.setupAwakeAnim(crocodile, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+		} else {
+			this.prevLimbSwing = limbSwing;
 		}
 
+		this.storeAwakeTail();
+		OWSedationAnimator.apply(this, crocodile, SEDATION, ageInTicks, this.left_eyeball, this.right_eyeball);
+		this.head.xRot += crocodile.getSedatedHeadNod(ageInTicks) * sedation;
+
+		if (sedation > 0f) {
+			float babyOffset = sedation * (headScale - 1f);
+			this.head.xScale += babyOffset;
+			this.head.yScale += babyOffset;
+			this.head.zScale += babyOffset;
+		}
+
+		captureTailState(crocodile, sedation);
+		captureBodyState(crocodile, REST_BODY_Y, 1.0f, this.ALL2, this.ALL, this.body);
+	}
+
+	private static float babyHeadScale(CrocodileEntity crocodile) {
+		if (!crocodile.isBaby()) return 1f;
+		float maturationPercent = (float) crocodile.getMaturationPercentage() / 100f;
+		return 1.5f - (1.6f - 1.0f) * maturationPercent;
+	}
+
+	private void storeAwakeTail() {
+		ModelPart[] tail = {this.tail1, this.tail2, this.tail3};
+		for (int i = 0; i < 3; i++) {
+			this.awakeTail[i * 3] = tail[i].xRot;
+			this.awakeTail[i * 3 + 1] = tail[i].yRot;
+			this.awakeTail[i * 3 + 2] = tail[i].zRot;
+		}
+		this.awakeBodyY = this.ALL2.y + this.ALL.y + this.body.y;
+	}
+
+	private void captureTailState(CrocodileEntity crocodile, float sedation) {
+		float keep = 1f - sedation;
+		ModelPart[] tail = {this.tail1, this.tail2, this.tail3};
+		float x = 0f, y = 0f, z = 0f;
+		for (int i = 0; i < 3; i++) {
+			x += tail[i].xRot - keep * this.awakeTail[i * 3];
+			y += tail[i].yRot - keep * this.awakeTail[i * 3 + 1];
+			z += tail[i].zRot - keep * this.awakeTail[i * 3 + 2];
+			switch (i) {
+				case 0 -> { crocodile.tail1AnimXRot = x; crocodile.tail1AnimYRot = y; crocodile.tail1AnimZRot = z; }
+				case 1 -> { crocodile.tail2AnimXRot = x; crocodile.tail2AnimYRot = y; crocodile.tail2AnimZRot = z; }
+				default -> { crocodile.tail3AnimXRot = x; crocodile.tail3AnimYRot = y; crocodile.tail3AnimZRot = z; }
+			}
+		}
+		float bodyY = this.ALL2.y + this.ALL.y + this.body.y;
+		crocodile.tailSedationDrop = bodyY - keep * this.awakeBodyY - sedation * REST_BODY_Y;
+	}
+
+	private void setupAwakeAnim(CrocodileEntity crocodile, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		if (crocodile.transitionIdleSleep.isStarted()) {
 			this.animate(crocodile.transitionIdleSleep, CrocodileAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.transitionSleepIdle.isStarted()) {
 			this.animate(crocodile.transitionSleepIdle, CrocodileAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
-		if (crocodile.isNapping() || crocodile.isSleeping()) {
+		if (crocodile.isNapping()) {
 			this.animate(crocodile.restAnimationState, CrocodileAnimations.NAP, ageInTicks, 1.0f);
-			this.head.xRot += crocodile.getSedatedHeadNod(ageInTicks);
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
@@ -364,19 +409,16 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 			// La nage par-dessus la roulade brouillait la lecture du tonneau : on garde le tonneau seul.
 			crocodile.idleWaterMountedAnimState.stop();
 			this.prevLimbSwing = limbSwing;
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.transitionIdleSit.isStarted()) {
 			this.animate(crocodile.transitionIdleSit, CrocodileAnimations.TRANSITION_IDLE_SIT, ageInTicks, 2.0f);
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
 		if (crocodile.transitionSitIdle.isStarted()) {
 			this.animate(crocodile.transitionSitIdle, CrocodileAnimations.TRANSITION_SIT_IDLE, ageInTicks, 2.0f);
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
@@ -390,7 +432,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 
 		if (crocodile.isSitting()) {
 			this.animate(crocodile.sittingAnimationState, CrocodileAnimations.SIT, ageInTicks, 1.0f);
-			captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 			return;
 		}
 
@@ -445,8 +486,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 		}
 
 		this.prevLimbSwing = limbSwing;
-
-		captureBodyState(crocodile, 12.5453f, 1.0f, this.ALL2, this.ALL, this.body);
 
 		/*if (crocodile.level().isClientSide() && crocodile.isGrabbing()) {
 			if (!crocodile.isInWater()) {

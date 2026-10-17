@@ -13,6 +13,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.client.animation.BoaAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 
 public class BoaModel<T extends BoaEntity> extends OWComboModel<T> implements OWFlagModel {
@@ -31,6 +33,9 @@ public class BoaModel<T extends BoaEntity> extends OWComboModel<T> implements OW
     private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
 
     public static boolean RENDER_FULL_BODY = false;
+
+    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
+            BoaAnimations.SEDATED_FALL, BoaAnimations.SEDATED_REST, BoaAnimations.SEDATED_WAKE);
 
     private static final float GUI_WAVE_AMP = 0.75f;
     private static final float GUI_WAVE_STEP = 0.95f;
@@ -287,10 +292,25 @@ public class BoaModel<T extends BoaEntity> extends OWComboModel<T> implements OW
         this.body_5.visible = showBody;
         this.body_6.visible = showBody;
 
-        if (boa.isNapping() || boa.isSleeping()) {
+        float sedation = OWSedationAnimator.weight(boa, SEDATION, ageInTicks);
+        if (sedation < 1f) animateAwake(boa, ageInTicks);
+
+        if (OWSedationAnimator.apply(this, boa, SEDATION, ageInTicks) > 0f) {
+            this.body_0.resetPose();
+            this.body_1.resetPose();
+            this.body_2.resetPose();
+            this.body_3.resetPose();
+            this.body_4.resetPose();
+            this.body_5.resetPose();
+            this.body_6.resetPose();
+        }
+        this.head.xRot += boa.getSedatedHeadNod(ageInTicks) * sedation;
+        if (showBody) applyGuiBodyPose();
+    }
+
+    private void animateAwake(T boa, float ageInTicks) {
+        if (boa.isNapping()) {
             this.animate(boa.restAnimationState, BoaAnimations.SIT, ageInTicks, 1.0f);
-            this.head.xRot += boa.getSedatedHeadNod(ageInTicks);
-            if (showBody) applyGuiBodyPose();
             return;
         }
 
@@ -307,12 +327,10 @@ public class BoaModel<T extends BoaEntity> extends OWComboModel<T> implements OW
 
         if (boa.isSitting()) {
             this.animate(boa.sittingAnimationState, BoaAnimations.SIT, ageInTicks, 1.0f);
-            if (showBody) applyGuiBodyPose();
             return;
         }
 
         this.animate(boa.idleAnimationState, BoaAnimations.MISC_IDLE, ageInTicks, 1.0f);
-        if (showBody) applyGuiBodyPose();
     }
 
     private void applyGuiBodyPose() {

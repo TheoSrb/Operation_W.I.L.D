@@ -25,6 +25,8 @@ import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.client.animation.CrocodileAnimations;
 import net.tiew.operationWild.entity.client.animation.KodiakAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import net.tiew.operationWild.entity.client.animation.TigerAnimations;
 import net.tiew.operationWild.entity.client.model.skin.TigerModelSkins;
 import net.tiew.operationWild.entity.client.render.TigerRenderer;
@@ -43,6 +45,8 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 	 * Recopie la boîte déclarée par {@code createBodyLayer} : Y ∈ [-5.75, 5.25], Z ∈ [0.5, 19.5].
 	 */
 	private static final Anchor FLAG_ANCHOR = new Anchor(-5.75f, 11f, 0.5f, 19f);
+
+	private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(TigerAnimations.SEDATED_FALL, TigerAnimations.SEDATED_REST, TigerAnimations.SEDATED_WAKE);
 
 	// Tracks the limbSwing value from the previous frame to detect animation crossings.
 	private float prevLimbSwing = 0f;
@@ -239,6 +243,13 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 	public void setupAnim(TigerEntity tiger, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
 
+		float sedation = OWSedationAnimator.weight(tiger, SEDATION, ageInTicks);
+		if (sedation < 1f) this.setupAwakeAnim(tiger, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+
+		OWSedationAnimator.apply(this, tiger, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+		this.head.xRot += tiger.getSedatedHeadNod(ageInTicks) * sedation;
+		if (sedation > 0f) captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
+
 		if (tiger.isBaby()) {
 			float maturationPercent = (float) tiger.getMaturationPercentage() / 100f;
 			float headScale = 1.6f - (1.6f - 1.0f) * maturationPercent;
@@ -247,7 +258,9 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 			this.head.yScale *= headScale;
 			this.head.zScale *= headScale;
 		}
+	}
 
+	private void setupAwakeAnim(TigerEntity tiger, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		if (tiger.transitionIdleSleep.isStarted()) {
 			this.animate(tiger.transitionIdleSleep, TigerAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
 			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
@@ -260,9 +273,8 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 			return;
 		}
 
-		if (tiger.isNapping() || tiger.isSleeping()) {
+		if (tiger.isNapping()) {
 			this.animate(tiger.restAnimationState, TigerAnimations.NAP, ageInTicks, 1.0f);
-			this.head.xRot += tiger.getSedatedHeadNod(ageInTicks);
 			captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 			return;
 		}

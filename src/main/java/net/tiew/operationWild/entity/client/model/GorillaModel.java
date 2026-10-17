@@ -25,6 +25,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.client.animation.GorillaAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import org.joml.Vector3f;
 
 public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
@@ -107,6 +109,10 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
     private static final float FULL_TURN = (float) (Math.PI * 2.0);
 
     private static final Vector3f ANIM_VECTOR = new Vector3f();
+
+    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
+            GorillaAnimations.SEDATED_FALL, GorillaAnimations.SEDATED_REST, GorillaAnimations.SEDATED_WAKE);
+    private static final float SEDATION_LID_DROP = 1.0f;
 
     private final ModelPart ALL2;
     private final ModelPart ALL;
@@ -207,6 +213,21 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
         this.prevLimbSwing = limbSwing;
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
+        float sedation = OWSedationAnimator.weight(gorilla, SEDATION, ageInTicks);
+        if (sedation < 1f) {
+            animateAwake(gorilla, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, prevSwing);
+        }
+
+        OWSedationAnimator.apply(this, gorilla, SEDATION, ageInTicks);
+        this.head.xRot += gorilla.getSedatedHeadNod(ageInTicks) * sedation;
+
+        if (sedation > 0f) {
+            float lid = OWSedationAnimator.eyeClosure(gorilla, SEDATION, ageInTicks) * SEDATION_LID_DROP;
+            this.left_eyeBall.y += lid;
+            this.right_eyeBall.y += lid;
+            captureBodyState(gorilla, (this.ALL.xRot + this.body.xRot) * sedation, (this.ALL.zRot + this.body.zRot) * sedation);
+        }
+
         if (gorilla.isBaby()) {
             float maturation = (float) gorilla.getMaturationPercentage() / 100f;
             float headScale = 1.5f - (1.5f - 1.0f) * maturation;
@@ -214,10 +235,12 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
+    }
 
-        if (gorilla.isNapping() || gorilla.isSleeping()) {
+    private void animateAwake(T gorilla, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw,
+                              float headPitch, float prevSwing) {
+        if (gorilla.isNapping()) {
             this.animate(gorilla.restAnimationState, GorillaAnimations.SIT, ageInTicks, 1.0f);
-            this.head.xRot += gorilla.getSedatedHeadNod(ageInTicks);
             captureBodyState(gorilla);
             return;
         }

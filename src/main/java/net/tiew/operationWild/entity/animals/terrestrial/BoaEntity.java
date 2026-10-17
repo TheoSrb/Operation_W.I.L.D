@@ -108,6 +108,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     private float sitProgress = 0f;
     private static final float SIT_CURL_PER_SEGMENT = 35f;
     private static final float SIT_TRANSITION_STEP = 1f / 20f;
+    private static final int SEDATION_WAKE_TICKS = 40;
 
     private static final float RIDDEN_YAW_LAG = 0.30f;
     private static final float RIDDEN_RUN_YAW_LAG = 0.16f;
@@ -307,6 +308,16 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     @Override
     public boolean usesAggressiveTaming() {
         return true;
+    }
+
+    @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return SEDATION_WAKE_TICKS;
     }
 
     @Override

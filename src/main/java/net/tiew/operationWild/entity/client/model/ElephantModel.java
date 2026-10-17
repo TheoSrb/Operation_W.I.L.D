@@ -16,6 +16,8 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.client.animation.ElephantAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.event.ClientEvents;
 
@@ -260,6 +262,9 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         };
     }
 
+    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
+            ElephantAnimations.SEDATED_FALL, ElephantAnimations.SEDATED_REST, ElephantAnimations.SEDATED_WAKE);
+
     @Override
     public void setupAnim(ElephantEntity elephant, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
@@ -268,19 +273,40 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         this.demon_left_wing.visible = demon;
         this.demon_right_wing.visible = demon;
 
+        float headScale = 1f;
         if (elephant.isBaby()) {
             float maturationPercent = (float) elephant.getMaturationPercentage() / 100f;
-            float headScale = 1.6f - (1.6f - 1.0f) * maturationPercent;
+            headScale = 1.6f - (1.6f - 1.0f) * maturationPercent;
 
             this.head.xScale *= headScale;
             this.head.yScale *= headScale;
             this.head.zScale *= headScale;
         }
 
-        if (elephant.isNapping() || elephant.isSleeping()) {
+        float sedation = OWSedationAnimator.weight(elephant, SEDATION, ageInTicks);
+        if (sedation < 1f) {
+            this.setupAwakeAnim(elephant, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+        }
+
+        OWSedationAnimator.apply(this, elephant, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+        if (sedation > 0f) {
+            float babyFix = headScale / Mth.lerp(sedation, headScale, 1f);
+            this.head.xScale *= babyFix;
+            this.head.yScale *= babyFix;
+            this.head.zScale *= babyFix;
+        }
+
+        float nod = elephant.getSedatedHeadNod(ageInTicks) * sedation;
+        float roll = this.ALL.zRot + this.body.zRot + this.head.zRot;
+        this.head.xRot += nod * Mth.cos(roll);
+        this.head.yRot -= nod * Mth.sin(roll);
+
+        captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
+    }
+
+    private void setupAwakeAnim(ElephantEntity elephant, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+        if (elephant.isNapping()) {
             this.animate(elephant.restAnimationState, ElephantAnimations.SIT, ageInTicks, 1.0f);
-            this.head.xRot += elephant.getSedatedHeadNod(ageInTicks);
-            captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
             return;
         }
 
@@ -291,7 +317,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         }
 
         animateCombos(elephant, ageInTicks, COMBO_ANIMATION_SPEED);
-        captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
 
         double walkTimeMs = externalWalkTimeMs;
 
@@ -307,25 +332,21 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
 
         if (elephant.isEarthquakeGesture()) {
             this.animate(elephant.earthquakeAnimationState, ElephantAnimations.EARTHQUAKE, ageInTicks, 1.0f);
-            captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
             return;
         }
 
         if (elephant.transitionSitIdle.isStarted()) {
             this.animate(elephant.transitionSitIdle, ElephantAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
-            captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
             return;
         }
 
         if (elephant.transitionIdleSit.isStarted()) {
             this.animate(elephant.transitionIdleSit, ElephantAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
-            captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
             return;
         }
 
         if (elephant.isSitting()) {
             this.animate(elephant.sittingAnimationState, ElephantAnimations.SIT, ageInTicks, 1.0f);
-            captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
             return;
         }
 
@@ -341,8 +362,6 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         if (externalChargeHeadPitch > 0.01f) {
             this.head.xRot += (float) Math.toRadians(externalChargeHeadPitch);
         }
-
-        captureBodyState(elephant, REST_POSE_Y_SUM, this.ALL2, this.ALL, this.body);
     }
 
     private static final float HALF_PI = (float) (Math.PI / 2.0);

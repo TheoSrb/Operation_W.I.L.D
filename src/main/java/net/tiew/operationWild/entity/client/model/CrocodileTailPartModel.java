@@ -9,7 +9,10 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileTailPart;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 public class CrocodileTailPartModel extends EntityModel<CrocodileTailPart> {
 
@@ -24,6 +27,7 @@ public class CrocodileTailPartModel extends EntityModel<CrocodileTailPart> {
     private static final float TAIL_Y = 14.5453f;
     // tail3 est 2 unités plus bas (+ tail3.y(+2)) = 16.5453
     private static final float TAIL3_Y = 16.5453f;
+    private static final float SEGMENT_LENGTH = 20f;
 
     private final ModelPart segment;
 
@@ -78,7 +82,23 @@ public class CrocodileTailPartModel extends EntityModel<CrocodileTailPart> {
     public void setupAnim(CrocodileTailPart entity, float limbSwing, float limbSwingAmount,
                           float ageInTicks, float netHeadYaw, float headPitch) {
         this.segment.resetPose();
-        this.segment.visible = entity.getParent() != null && !entity.getParent().isInWater();
+        CrocodileEntity parent = entity.getParent();
+        this.segment.visible = parent != null && !parent.isInWater();
+        if (parent == null) return;
+
+        Vector3f offset = new Vector3f(0f, parent.tailSedationDrop, 0f);
+        int index = entity.getSegmentIndex();
+        if (index >= 1) addJointShift(offset, parent.tail1AnimXRot, parent.tail1AnimYRot, parent.tail1AnimZRot, 0f);
+        if (index >= 2) addJointShift(offset, parent.tail2AnimXRot, parent.tail2AnimYRot, parent.tail2AnimZRot, TAIL3_Y - TAIL_Y);
+        this.segment.x += offset.x;
+        this.segment.y += offset.y;
+        this.segment.z += offset.z;
+    }
+
+    private static void addJointShift(Vector3f offset, float xRot, float yRot, float zRot, float jointY) {
+        Vector3f joint = new Vector3f(0f, jointY, SEGMENT_LENGTH);
+        Vector3f moved = new Quaternionf().rotationZYX(zRot, yRot, xRot).transform(new Vector3f(joint));
+        offset.add(moved.sub(joint));
     }
 
     @Override

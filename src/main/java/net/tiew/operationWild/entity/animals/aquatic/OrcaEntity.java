@@ -1079,6 +1079,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     public void tick() {
         super.tick();
+        if (this.level().isClientSide()) this.tickSedationStrand();
 
         boolean wild = !this.isTame();
         createCombo((int) (28 / comboSpeedMultiplier), (int) (18 / comboSpeedMultiplier),
@@ -1331,6 +1332,38 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     public boolean isFlopping() {
         return !this.isInWater() && this.flopGroundTicks > 0;
+    }
+
+    private static final int SEDATION_WAKE_TICKS = 40;
+    private static final float SEDATION_STRAND_STEP = 0.05f;
+
+    private float sedationStrand = 0f;
+    private float sedationStrandO = 0f;
+    private boolean sedationStrandPrimed = false;
+
+    @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return SEDATION_WAKE_TICKS;
+    }
+
+    private void tickSedationStrand() {
+        float target = this.isFlopping() ? 1f : 0f;
+        if (!this.sedationStrandPrimed) {
+            this.sedationStrandPrimed = true;
+            this.sedationStrand = target;
+        }
+        this.sedationStrandO = this.sedationStrand;
+        this.sedationStrand = Mth.approach(this.sedationStrand, target, SEDATION_STRAND_STEP);
+    }
+
+    public float getSedationStrand(float partialTick) {
+        float strand = Mth.lerp(partialTick, this.sedationStrandO, this.sedationStrand);
+        return strand * strand * (3f - 2f * strand);
     }
 
     @Override
