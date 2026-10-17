@@ -252,6 +252,18 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         return TAMING_EXPERIENCE;
     }
 
+    private static final java.util.Set<String> FEMALE_HIDDEN_HEAD_PARTS = java.util.Set.of("mane");
+
+    @Override
+    public java.util.Set<String> excludedHeadParts() {
+        return this.isMale() ? java.util.Set.of() : FEMALE_HIDDEN_HEAD_PARTS;
+    }
+
+    @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isRoaring() && !this.isCalling();
+    }
+
     @Override
     public boolean usesAggressiveTaming() {
         return true;

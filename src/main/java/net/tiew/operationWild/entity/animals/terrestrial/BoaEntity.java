@@ -300,6 +300,11 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isConstricting();
+    }
+
+    @Override
     public boolean usesAggressiveTaming() {
         return true;
     }

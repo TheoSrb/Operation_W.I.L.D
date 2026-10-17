@@ -306,6 +306,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isRolling();
+    }
+
+    @Override
     public boolean usesAggressiveTaming() {
         return true;
     }

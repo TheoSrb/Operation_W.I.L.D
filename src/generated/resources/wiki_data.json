@@ -1084,9 +1084,9 @@
         "created": "2026-10-01T16:57:09.0503808+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-12T17:54:08.1624776+02:00",
-        "last_modified_date": "2026-10-12",
-        "size_bytes": 79258
+        "last_modified": "2026-10-17T12:41:24.8662047+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 77411
       },
       "id": "ow:tiger",
       "loot": {
@@ -2886,9 +2886,9 @@
         "created": "2026-10-11T11:57:02.5093829+02:00",
         "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-12T17:54:08.1614741+02:00",
-        "last_modified_date": "2026-10-12",
-        "size_bytes": 63966
+        "last_modified": "2026-10-17T12:41:24.8745039+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 62412
       },
       "id": "ow:kodiak",
       "loot": {
@@ -4417,9 +4417,9 @@
         "created": "2026-10-14T19:12:02.2379604+02:00",
         "created_date": "2026-10-14",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-14T19:12:02.2384626+02:00",
-        "last_modified_date": "2026-10-14",
-        "size_bytes": 84556
+        "last_modified": "2026-10-17T12:41:24.8878682+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 82645
       },
       "id": "ow:crocodile",
       "loot": {
@@ -5921,9 +5921,9 @@
         "created": "2026-10-01T16:57:09.0953895+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9490557+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 61389
+        "last_modified": "2026-10-17T12:41:24.8831897+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 59989
       },
       "id": "ow:boa",
       "loot": {
@@ -7347,9 +7347,9 @@
         "created": "2026-10-15T17:21:39.5239599+02:00",
         "created_date": "2026-10-15",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-15T17:21:39.5264784+02:00",
-        "last_modified_date": "2026-10-15",
-        "size_bytes": 99225
+        "last_modified": "2026-10-17T12:41:24.8929507+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 96951
       },
       "id": "ow:orca",
       "loot": {
@@ -7988,9 +7988,9 @@
         "created": "2026-10-15T17:13:22.5775458+02:00",
         "created_date": "2026-10-15",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-15T17:13:22.5780706+02:00",
-        "last_modified_date": "2026-10-15",
-        "size_bytes": 112204
+        "last_modified": "2026-10-17T12:41:24.8771874+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 109688
       },
       "id": "ow:elephant",
       "loot": {
@@ -8758,9 +8758,9 @@
         "created": "2026-10-12T19:33:54.9600162+02:00",
         "created_date": "2026-10-12",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-12T19:33:54.9600162+02:00",
-        "last_modified_date": "2026-10-12",
-        "size_bytes": 85756
+        "last_modified": "2026-10-17T12:41:24.8816343+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 83780
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -9352,9 +9352,9 @@
         "created": "2026-10-01T17:11:35.3085605+02:00",
         "created_date": "2026-10-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9479153+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 76504
+        "last_modified": "2026-10-17T12:41:24.8859134+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 76735
       },
       "id": "ow:red_panda",
       "loot": {
@@ -10461,9 +10461,9 @@
         "created": "2026-10-09T14:51:15.7443803+02:00",
         "created_date": "2026-10-09",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-12T17:54:08.159889+02:00",
-        "last_modified_date": "2026-10-12",
-        "size_bytes": 76162
+        "last_modified": "2026-10-17T12:41:24.8799027+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 74377
       },
       "id": "ow:gorilla",
       "loot": {
@@ -11079,12 +11079,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-15T19:13:38.4416314+02:00",
-        "created_date": "2026-10-15",
+        "created": "2026-10-16T21:38:10.9743791+02:00",
+        "created_date": "2026-10-16",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-15T19:13:38.4423573+02:00",
-        "last_modified_date": "2026-10-15",
-        "size_bytes": 70712
+        "last_modified": "2026-10-17T12:41:24.8896653+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 71352
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -11590,9 +11590,9 @@
         "created": "2026-10-11T11:57:02.6081155+02:00",
         "created_date": "2026-10-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-12T17:54:08.1619754+02:00",
-        "last_modified_date": "2026-10-12",
-        "size_bytes": 63900
+        "last_modified": "2026-10-17T12:41:24.8704461+02:00",
+        "last_modified_date": "2026-10-17",
+        "size_bytes": 62778
       },
       "id": "ow:lion",
       "loot": {
@@ -12284,6 +12284,7 @@
       "FIGHT_DECAY_TICKS": 100,
       "FIGHT_HOLD_TICKS": 100,
       "FOOD_SLOT": 1,
+      "HEADSHOT_SOMNOLENCE_FACTOR": 1.5,
       "LEASH_DRAG_SLACK": 3.0,
       "LEASH_DRAG_SNAP": 10.0,
       "MIN_TURN_STEP": 6.0,

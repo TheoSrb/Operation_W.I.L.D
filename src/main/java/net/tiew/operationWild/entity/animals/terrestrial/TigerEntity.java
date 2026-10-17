@@ -286,6 +286,11 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     }
 
     @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isRoaring() && !this.isRoarCharging();
+    }
+
+    @Override
     public boolean usesAggressiveTaming() {
         return true;
     }

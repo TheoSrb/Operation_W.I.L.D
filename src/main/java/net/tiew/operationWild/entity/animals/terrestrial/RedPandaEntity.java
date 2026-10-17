@@ -91,7 +91,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     public static final double TAMING_EXPERIENCE = 40.0;
     public static final int MAX_SOMNOLENCE = 150;
-    public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
+    public static final int SOMNOLENCE_LOSS_INTERVAL = 2;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 30;
     public static final int FOOD_WANTED_MIN = 3;
     public static final int FOOD_WANTED_MAX = 6;
@@ -663,6 +663,12 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     @Override
     public double getTamingExperience() {
         return TAMING_EXPERIENCE;
+    }
+
+    @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isClimbing() && !this.isTreePosed() && !this.isOnShoulder() && !this.isCowering()
+                && !this.isIntimidating() && !this.isPlaying();
     }
 
     @Override

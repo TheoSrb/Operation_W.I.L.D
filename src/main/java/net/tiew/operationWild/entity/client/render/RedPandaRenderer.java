@@ -162,9 +162,9 @@ public class RedPandaRenderer extends OWEntityRenderer<RedPandaEntity, RedPandaM
      * visible.</p>
      */
     private float shoulderAnchorYaw(Player carrier, float partialTicks, boolean firstPerson) {
-        return firstPerson
-                ? carrier.getViewYRot(partialTicks)
-                : Mth.rotLerp(partialTicks, carrier.yBodyRotO, carrier.yBodyRot);
+        if (firstPerson) return carrier.getViewYRot(partialTicks);
+        if (carrier.getVehicle() instanceof OWEntity mount) return Mth.rotLerp(partialTicks, mount.yBodyRotO, mount.yBodyRot);
+        return Mth.rotLerp(partialTicks, carrier.yBodyRotO, carrier.yBodyRot);
     }
 
     /**
@@ -270,6 +270,9 @@ public class RedPandaRenderer extends OWEntityRenderer<RedPandaEntity, RedPandaM
         poseStack.translate(-dx, -dy, -dz);
         if (seatFix != null) poseStack.translate(seatFix.x, seatFix.y, seatFix.z);
         if (rotation != null) poseStack.mulPose(rotation);
+        if (!firstPerson && mount instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo) {
+            net.tiew.operationWild.client.HippopotamusRiderBalance.applyBodySway(poseStack, carrier, hippo, partialTicks);
+        }
         poseStack.translate(dx, dy, dz);
     }
 

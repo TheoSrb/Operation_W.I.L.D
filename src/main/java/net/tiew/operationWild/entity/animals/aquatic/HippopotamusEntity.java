@@ -261,6 +261,16 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     }
 
     @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isRolling();
+    }
+
+    @Override
+    public float headHitboxRootPitch() {
+        return this.isTame() ? 0f : Mth.clamp(this.getTargetPitch(), -30f, 30f);
+    }
+
+    @Override
     public boolean usesAggressiveTaming() {
         return true;
     }

@@ -315,6 +315,11 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isSpinning();
+    }
+
+    @Override
     public boolean usesAggressiveTaming() {
         return true;
     }

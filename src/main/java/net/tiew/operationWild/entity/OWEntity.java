@@ -231,6 +231,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int syncedFoodWanted = -1;
 
     public static final int WAKE_WARNING_PERCENT = 15;
+    public static final float HEADSHOT_SOMNOLENCE_FACTOR = 1.5f;
     private static final int WAKE_TWITCH_DURATION = 7;
     private static final float WAKE_TWITCH_CHANCE = 0.025f;
     private static final float WAKE_TWITCH_AMPLITUDE = 0.35f;
@@ -2980,23 +2981,24 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (sedative && this.usesAggressiveTaming() && !this.isTame()) {
                 this.aggressiveTaming.onSedated(damageSource);
             }
+            float headshotFactor = sedative && this.isSedativeHeadshot(directEntity) ? HEADSHOT_SOMNOLENCE_FACTOR : 1f;
             if (directEntity instanceof TranquilizerArrow sedativeArrow) {
                 if (isSleeping()) return false;
-                int tranquilizerPower = amount > 0.5 ? (int) (sedativeArrow.tranquilizerEffectiveness * (amount / 2)) : 0;
+                int tranquilizerPower = amount > 0.5 ? (int) (sedativeArrow.tranquilizerEffectiveness * (amount / 2) * headshotFactor) : 0;
                 this.setActualSleepingBarTo(this.getActualSleepingBar() + tranquilizerPower);
                 if (!isSleeping() && getActualSleepingBar() >= getMaxSleepingBar()) {
                     fallAsleepFromSedation();
                 }
             } else if (directEntity instanceof SlingshotProjectile slingshotProjectile) {
                 if (isSleeping()) return false;
-                int tranquilizerPower = amount > 0.5 ? (int) (slingshotProjectile.tranquilizerEffectiveness * (amount / 2)) : 0;
+                int tranquilizerPower = amount > 0.5 ? (int) (slingshotProjectile.tranquilizerEffectiveness * (amount / 2) * headshotFactor) : 0;
                 this.setActualSleepingBarTo(this.getActualSleepingBar() + tranquilizerPower);
                 if (!isSleeping() && getActualSleepingBar() >= getMaxSleepingBar()) {
                     fallAsleepFromSedation();
                 }
             } else if (directEntity instanceof TranquilizerWoodenStinger tranquilizerWoodenStinger) {
                 if (isSleeping()) return false;
-                int tranquilizerPower = tranquilizerWoodenStinger.tranquilizerEffectiveness;
+                int tranquilizerPower = (int) (tranquilizerWoodenStinger.tranquilizerEffectiveness * headshotFactor);
                 this.setActualSleepingBarTo(this.getActualSleepingBar() + tranquilizerPower);
                 if (!isSleeping() && getActualSleepingBar() >= getMaxSleepingBar()) {
                     fallAsleepFromSedation();
@@ -3437,6 +3439,20 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     protected boolean leanPitchWhenFree() {
         return true;
+    }
+
+    protected float freeLeanPitchTarget() {
+        float maxPitch = this.pitchMaxAngle();
+        if (!this.canLean() || !this.leanPitchWhenFree() || maxPitch <= 0f) return 0f;
+        double dx = this.getX() - this.xOld;
+        double dy = this.getY() - this.yOld;
+        double dz = this.getZ() - this.zOld;
+        float step = (float) java.lang.Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (step <= 1.0E-5f) return 0f;
+        float drive = Mth.clamp(step / LEAN_CRUISE_STEP, LEAN_IDLE_DRIVE, 1f);
+        double horizontal = java.lang.Math.sqrt(dx * dx + dz * dz);
+        float slope = (float) java.lang.Math.toDegrees(java.lang.Math.atan2(-dy, horizontal));
+        return Mth.clamp(slope * FREE_PITCH_GAIN, -maxPitch, maxPitch) * drive;
     }
 
     protected LivingEntity leaningRider() {
@@ -4719,6 +4735,38 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public java.util.List<OWSaddleShield> saddleShields() {
         return java.util.List.of();
+    }
+
+    @Nullable
+    public OWHeadHitbox headHitbox() {
+        return OWHeadHitboxes.get(BuiltInRegistries.ENTITY_TYPE.getKey(this.getType()));
+    }
+
+    public java.util.Set<String> excludedHeadParts() {
+        return java.util.Set.of();
+    }
+
+    public boolean hasStandardHeadPose() {
+        return true;
+    }
+
+    public float headHitboxRootPitch() {
+        return 0f;
+    }
+
+    public float modelRenderScale() {
+        float scale = this.getScale();
+        if (this instanceof BoaEntity) return scale;
+        if (!this.isBaby()) return scale * scale;
+        float babyScale = scale / 2.25f;
+        return scale * (babyScale + (scale - babyScale) * this.getMaturationPercentage() / 100f);
+    }
+
+    public boolean isSedativeHeadshot(@Nullable Entity projectile) {
+        if (projectile == null || this.isSleeping() || this.isNapping() || this.isSitting()
+                || this.isPassenger() || this.deathTime > 0 || !this.hasStandardHeadPose()) return false;
+        OWHeadHitbox hitbox = this.headHitbox();
+        return hitbox != null && hitbox.isHeadshot(this, projectile, this.excludedHeadParts());
     }
 
     public boolean isSaddleShieldDisabled() {

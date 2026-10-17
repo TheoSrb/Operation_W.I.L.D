@@ -305,6 +305,16 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isDeathRolling();
+    }
+
+    @Override
+    public float headHitboxRootPitch() {
+        return this.isTame() ? 0f : Mth.clamp(this.getTargetPitch(), -40f, 40f);
+    }
+
+    @Override
     public boolean usesAggressiveTaming() {
         return true;
     }

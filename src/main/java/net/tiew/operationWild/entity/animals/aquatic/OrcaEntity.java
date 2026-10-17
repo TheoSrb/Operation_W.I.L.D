@@ -820,6 +820,17 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     }
 
     @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isFlopping() && !this.isSpyhopping() && !this.isWaveBreaching()
+                && !this.isWaveCharging() && !this.isRollingFigure();
+    }
+
+    @Override
+    public float headHitboxRootPitch() {
+        return this.freeLeanPitchTarget();
+    }
+
+    @Override
     public boolean usesAggressiveTaming() {
         return true;
     }

@@ -316,6 +316,11 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     }
 
     @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isClimbing() && !this.isVaulting() && !this.isChestBeating();
+    }
+
+    @Override
     public boolean usesAggressiveTaming() {
         return true;
     }

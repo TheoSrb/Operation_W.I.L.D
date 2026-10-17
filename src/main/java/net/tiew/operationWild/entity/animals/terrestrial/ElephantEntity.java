@@ -369,6 +369,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public boolean hasStandardHeadPose() {
+        return !this.isEarthquakeGesture();
+    }
+
+    @Override
     public boolean usesAggressiveTaming() {
         return true;
     }
