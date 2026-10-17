@@ -678,6 +678,19 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     }
 
     @Override
+    public void onSedationKnockOut() {
+        super.onSedationKnockOut();
+        if (!this.isNoGravity() && !this.noPhysics && !this.isTreeClimbing()) return;
+        this.noPhysics = false;
+        this.setNoGravity(false);
+        this.setTreeClimbing(false);
+        this.setTreeLeanTarget(0f);
+        this.setTreeFlipTarget(0f);
+        this.setClimbColumn(null);
+        this.grantFallGrace(SPAWN_FALL_GRACE_TICKS);
+    }
+
+    @Override
     public boolean hasSedationAnimations() {
         return true;
     }

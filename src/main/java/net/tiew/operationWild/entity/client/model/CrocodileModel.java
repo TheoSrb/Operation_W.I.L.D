@@ -301,7 +301,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 		}
 
 		this.storeAwakeTail();
-		OWSedationAnimator.apply(this, crocodile, SEDATION, ageInTicks, this.left_eyeball, this.right_eyeball);
+		OWSedationAnimator.apply(this, crocodile, SEDATION, ageInTicks);
 		this.head.xRot += crocodile.getSedatedHeadNod(ageInTicks) * sedation;
 
 		if (sedation > 0f) {

@@ -288,7 +288,7 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
             this.setupAwakeAnim(elephant, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
         }
 
-        OWSedationAnimator.apply(this, elephant, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+        OWSedationAnimator.apply(this, elephant, SEDATION, ageInTicks);
         if (sedation > 0f) {
             float babyFix = headScale / Mth.lerp(sedation, headScale, 1f);
             this.head.xScale *= babyFix;

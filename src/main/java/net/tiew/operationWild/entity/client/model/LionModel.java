@@ -225,7 +225,7 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         float sedation = OWSedationAnimator.weight(lion, SEDATION, ageInTicks);
         if (sedation < 1f) this.setupAwakeAnim(lion, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 
-        OWSedationAnimator.apply(this, lion, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+        OWSedationAnimator.apply(this, lion, SEDATION, ageInTicks);
         this.head.xRot += lion.getSedatedHeadNod(ageInTicks) * sedation;
 
         if (lion.isBaby()) {

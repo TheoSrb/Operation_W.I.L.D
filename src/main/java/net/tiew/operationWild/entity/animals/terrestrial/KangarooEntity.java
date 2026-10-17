@@ -455,6 +455,16 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public boolean hasSedationAnimations() {
+        return true;
+    }
+
+    @Override
+    public int sedationWakeTicks() {
+        return 44;
+    }
+
+    @Override
     public float getScale() {
         return super.getScale() <= 0 ? 1f : super.getScale();
     }

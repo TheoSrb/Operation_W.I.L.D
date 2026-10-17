@@ -175,7 +175,7 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
             }
         }
 
-        OWSedationAnimator.apply(this, redPanda, SEDATION, ageInTicks, this.left_Eyeball, this.right_Eyeball);
+        OWSedationAnimator.apply(this, redPanda, SEDATION, ageInTicks);
         this.head.xRot += redPanda.getSedatedHeadNod(ageInTicks) * sedation;
         if (treePosed && sedation > 0f) applyTreeRoll(redPanda, ageInTicks, sedation);
 

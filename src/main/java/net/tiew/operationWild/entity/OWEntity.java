@@ -225,6 +225,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private float somnolenceDisplayO;
     private int observedSomnolence = -1;
     private int somnolenceStepTick;
+    private int somnolenceRiseTick;
+    private int somnolenceLossPause;
+    @Nullable
+    private Vec3 renderedHeadTop;
+    private int renderedHeadTick;
     private float mealBob;
     private float mealBobO;
     private boolean knockedOutOnClient;
@@ -235,6 +240,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int syncedFoodWanted = -1;
 
     public static final int WAKE_WARNING_PERCENT = 15;
+    private static final int SOMNOLENCE_LOSS_PAUSE = 100;
+    private static final int RENDERED_HEAD_LIFETIME = 3;
     public static final float HEADSHOT_SOMNOLENCE_FACTOR = 1.5f;
     private static final int WAKE_TWITCH_DURATION = 7;
     private static final float WAKE_TWITCH_CHANCE = 0.025f;
@@ -1834,7 +1841,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public void setActualSleepingBarTo(int actualSleepingBar) {
         int max = this.getMaxSleepingBar();
-        this.entityData.set(ACTUAL_SLEEPING_BAR, max > 0 ? Math.min(actualSleepingBar, max) : actualSleepingBar);
+        int value = max > 0 ? Math.min(actualSleepingBar, max) : actualSleepingBar;
+        if (value > this.getActualSleepingBar()) this.somnolenceLossPause = SOMNOLENCE_LOSS_PAUSE;
+        this.entityData.set(ACTUAL_SLEEPING_BAR, value);
     }
 
     public int getActualSleepingBar() {
@@ -2049,7 +2058,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (voice != null) this.playSound(voice, 1.0f, pitch);
     }
 
+    public void setRenderedHeadTop(Vec3 top) {
+        this.renderedHeadTop = top;
+        this.renderedHeadTick = this.tickCount;
+    }
+
     public Vec3 getSedationHeadPosition() {
+        if (this.renderedHeadTop != null && this.level().isClientSide() && this.tickCount - this.renderedHeadTick <= RENDERED_HEAD_LIFETIME) {
+            return this.renderedHeadTop;
+        }
         float yaw = this.yBodyRot * Mth.DEG_TO_RAD;
         double forward = this.napParticleForward();
         return new Vec3(this.getX() - Mth.sin(yaw) * forward, this.getY() + this.napParticleHeight(), this.getZ() + Mth.cos(yaw) * forward);
@@ -2197,12 +2214,14 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (max <= 0) return 0f;
         int actual = this.getActualSleepingBar();
         if (actual != this.observedSomnolence) {
+            if (actual > this.observedSomnolence) this.somnolenceRiseTick = this.tickCount;
             this.observedSomnolence = actual;
             this.somnolenceStepTick = this.tickCount;
         }
         float value = actual;
-        if (this.losesSomnolence()) {
-            value -= Math.min(1f, (this.tickCount - this.somnolenceStepTick) / (float) this.somnolenceLossInterval());
+        int lossStart = Math.max(this.somnolenceStepTick, this.somnolenceRiseTick + SOMNOLENCE_LOSS_PAUSE);
+        if (this.losesSomnolence() && this.tickCount > lossStart) {
+            value -= Math.min(1f, (this.tickCount - lossStart) / (float) this.somnolenceLossInterval());
         }
         return Mth.clamp(value / max, 0f, 1f) * 100f;
     }
@@ -3012,6 +3031,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (this.level().isClientSide()) return false;
             float headshotFactor = this.isSedativeHeadshot(directEntity) ? HEADSHOT_SOMNOLENCE_FACTOR : 1f;
             this.aggressiveTaming.onSedatedWhileKnockedOut(damageSource, this.sedativePower(directEntity, amount, headshotFactor));
+            this.level().broadcastDamageEvent(this, damageSource);
             return true;
         }
 
@@ -3769,7 +3789,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             }
         }
 
-        if (!this.level().isClientSide() && this.losesSomnolence() && tickCount % this.somnolenceLossInterval() == 0) {
+        if (!this.level().isClientSide() && this.somnolenceLossPause > 0) this.somnolenceLossPause--;
+        if (!this.level().isClientSide() && this.somnolenceLossPause <= 0 && this.losesSomnolence() && tickCount % this.somnolenceLossInterval() == 0) {
             setActualSleepingBarTo(getActualSleepingBar() - 1);
         }
 

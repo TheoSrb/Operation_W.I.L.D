@@ -112,7 +112,6 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
 
     private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(
             GorillaAnimations.SEDATED_FALL, GorillaAnimations.SEDATED_REST, GorillaAnimations.SEDATED_WAKE);
-    private static final float SEDATION_LID_DROP = 1.0f;
 
     private final ModelPart ALL2;
     private final ModelPart ALL;
@@ -222,9 +221,6 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
         this.head.xRot += gorilla.getSedatedHeadNod(ageInTicks) * sedation;
 
         if (sedation > 0f) {
-            float lid = OWSedationAnimator.eyeClosure(gorilla, SEDATION, ageInTicks) * SEDATION_LID_DROP;
-            this.left_eyeBall.y += lid;
-            this.right_eyeBall.y += lid;
             captureBodyState(gorilla, (this.ALL.xRot + this.body.xRot) * sedation, (this.ALL.zRot + this.body.zRot) * sedation);
         }
 

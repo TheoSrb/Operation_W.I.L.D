@@ -1217,7 +1217,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
             if (flopHopCooldown > 0) flopHopCooldown--;
 
             if (this.isFlopping()) {
-                if (grounded && flopHopCooldown == 0) {
+                if (grounded && flopHopCooldown == 0 && !this.isSleeping()) {
                     Vec3 escape = this.getControllingPassenger() == null ? cachedWaterDirection() : null;
                     boolean seeking = escape != null;
 

@@ -110,6 +110,9 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private static final double CLIMB_VAULT_RISE_MIN = 0.3;
     private static final double CLIMB_VAULT_RISE_MAX = 2.2;
     private static final int CLIMB_FALL_IMMUNITY_TICKS = 60;
+    private static final int FLEE_CLIMB_STUCK_TICKS = 10;
+    private static final double FLEE_STUCK_SPEED = 0.03;
+    private static final float FLEE_CLIMB_MAX_ANGLE = 100f;
     private static final double CLIMB_WALL_MARGIN = 0.45;
     private static final double CLIMB_START_MARGIN = 0.2;
     private static final float CLIMB_START_LOOK_TOLERANCE = 50f;
@@ -193,6 +196,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private int vaultElapsed = -1;
     private double vaultRise = 0.0;
     private int climbRiderlessTicks = 0;
+    private int fleeStuckTicks = 0;
 
     public int clientClimbElapsed = -1;
 
@@ -647,7 +651,9 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         if (tick <= 0) {
             if (this.level().isClientSide()) return;
             if (this.isNoGravity()) this.setNoGravity(false);
-            if (shouldStartClimb()) startClimb();
+            Direction fleeFace = fleeClimbFace();
+            if (shouldStartClimb()) startClimb(Direction.fromYRot(this.getYRot()));
+            else if (fleeFace != null) startClimb(fleeFace);
             return;
         }
 
@@ -717,13 +723,14 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             return;
         }
 
-        if (this.isInWater()) {
+        if (this.isInWater() || this.isSleeping()) {
             stopClimb();
             return;
         }
 
+        boolean wildFlee = isWildFleeing();
         if (climber == null) {
-            if (++climbRiderlessTicks > CLIMB_RIDERLESS_TICKS) {
+            if (!wildFlee && ++climbRiderlessTicks > CLIMB_RIDERLESS_TICKS) {
                 stopClimb();
                 return;
             }
@@ -773,8 +780,8 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             }
         }
 
-        boolean wantsToClimb = this.isRunning() && climber != null;
-        boolean hasEnergy = getVitalEnergy() <= getVitalEnergyCapacity() - CLIMB_ENERGY_PER_SURGE;
+        boolean wantsToClimb = (this.isRunning() && climber != null) || wildFlee;
+        boolean hasEnergy = climber == null || getVitalEnergy() <= getVitalEnergyCapacity() - CLIMB_ENERGY_PER_SURGE;
         if (wantsToClimb && !hasEnergy) canShowVitalEnergyLack = true;
 
         boolean nowHanging = !wantsToClimb || !hasEnergy;
@@ -782,7 +789,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
         if (nowHanging) return;
 
-        if (phase == 0) setVitalEnergy(getVitalEnergy() + CLIMB_ENERGY_PER_SURGE);
+        if (phase == 0 && climber != null) setVitalEnergy(getVitalEnergy() + CLIMB_ENERGY_PER_SURGE);
         this.entityData.set(CLIMB_TICK, tick + 1);
     }
 
@@ -980,8 +987,41 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         return state.isFaceSturdy(this.level(), pos, face.getOpposite());
     }
 
-    private void startClimb() {
-        Direction face = Direction.fromYRot(this.getYRot());
+    private boolean isWildFleeing() {
+        return !this.isTame() && !this.isSleeping() && (this.isSedatedFleeing() || this.sedationResponse.isRetreating());
+    }
+
+    @Nullable
+    private Direction fleeClimbFace() {
+        if (!isWildFleeing() || this.isBaby() || this.isInWater() || climbFallImmunity > 0 || isSliding() || isSlideMotionActive()) {
+            fleeStuckTicks = 0;
+            return null;
+        }
+        double moved = Math.sqrt((this.getX() - this.xo) * (this.getX() - this.xo) + (this.getZ() - this.zo) * (this.getZ() - this.zo));
+        fleeStuckTicks = moved < FLEE_STUCK_SPEED ? fleeStuckTicks + 1 : 0;
+        if (!this.horizontalCollision && fleeStuckTicks < FLEE_CLIMB_STUCK_TICKS) return null;
+
+        Vec3 threat = this.sedationResponse.getThreatPosition();
+        if (threat == null && this.aggressiveTaming.getThreat() != null) threat = this.aggressiveTaming.getThreat().position();
+        float awayYaw = threat == null ? this.getYRot()
+                : (float) (Mth.atan2(this.getZ() - threat.z, this.getX() - threat.x) * Mth.RAD_TO_DEG) - 90f;
+
+        Direction best = null;
+        float bestDiff = FLEE_CLIMB_MAX_ANGLE;
+        for (Direction face : Direction.Plane.HORIZONTAL) {
+            if (!hasWall(face, 0.4, CLIMB_START_MARGIN) || !hasWall(face, 1.6, CLIMB_START_MARGIN)) continue;
+            float diff = Math.min(Math.abs(Mth.wrapDegrees(face.toYRot() - this.getYRot())),
+                    Math.abs(Mth.wrapDegrees(face.toYRot() - awayYaw)));
+            if (diff <= bestDiff) {
+                best = face;
+                bestDiff = diff;
+            }
+        }
+        if (best != null) fleeStuckTicks = 0;
+        return best;
+    }
+
+    private void startClimb(Direction face) {
 
         BlockPos grip = BlockPos.containing(
                 this.getX() + face.getStepX() * climbWallReach(),

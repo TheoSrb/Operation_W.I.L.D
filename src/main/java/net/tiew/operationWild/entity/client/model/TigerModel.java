@@ -246,7 +246,7 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 		float sedation = OWSedationAnimator.weight(tiger, SEDATION, ageInTicks);
 		if (sedation < 1f) this.setupAwakeAnim(tiger, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 
-		OWSedationAnimator.apply(this, tiger, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+		OWSedationAnimator.apply(this, tiger, SEDATION, ageInTicks);
 		this.head.xRot += tiger.getSedatedHeadNod(ageInTicks) * sedation;
 		if (sedation > 0f) captureBodyState(tiger, 9f, this.ALL2, this.ALL, this.body);
 

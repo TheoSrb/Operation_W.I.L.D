@@ -222,7 +222,7 @@ public class HippopotamusModel<T extends HippopotamusEntity> extends OWComboMode
         float sedation = OWSedationAnimator.weight(hippo, SEDATION, ageInTicks);
         if (sedation < 1f) setupAwake(hippo, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, prevSwing);
 
-        OWSedationAnimator.apply(this, hippo, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+        OWSedationAnimator.apply(this, hippo, SEDATION, ageInTicks);
         this.head.xRot += hippo.getSedatedHeadNod(ageInTicks) * sedation;
         if (sedation > 0f) captureBodyState(hippo);
 

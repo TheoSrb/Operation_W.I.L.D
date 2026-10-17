@@ -18,10 +18,6 @@ public final class OWSedationAnimator {
     private static final float HANDOFF_MS = 300f;
     private static final float SETTLE_MS = 250f;
     private static final float BLEND_OUT_MS = 400f;
-    private static final float TWITCH_EYE_OPENING = 0.6f;
-
-    private static final float[] FALL_EYES = {0f, 0f, 0.35f, 0.6f, 0.5f, 0.35f, 0.85f, 1f};
-    private static final float[] WAKE_EYES = {0f, 1f, 0.12f, 0.4f, 0.22f, 1f, 0.34f, 0.25f, 0.44f, 0.85f, 0.6f, 0f};
 
     private static final int FIELDS = 9;
     private static final Vector3f CACHE = new Vector3f();
@@ -41,7 +37,7 @@ public final class OWSedationAnimator {
         };
     }
 
-    public static float apply(HierarchicalModel<?> model, OWEntity entity, OWSedationAnimationSet set, float ageInTicks, ModelPart... eyes) {
+    public static float apply(HierarchicalModel<?> model, OWEntity entity, OWSedationAnimationSet set, float ageInTicks) {
         float weight = weight(entity, set, ageInTicks);
         if (weight <= 0f) return 0f;
 
@@ -52,34 +48,7 @@ public final class OWSedationAnimator {
 
         animateSedation(model, entity.sedationAnim, set, ageInTicks);
         if (blend) mix(parts, weight);
-
-        float closure = eyeClosure(entity, set, ageInTicks);
-        for (ModelPart eye : eyes) eye.yScale *= 1f - closure;
         return weight;
-    }
-
-    public static float eyeClosure(OWEntity entity, OWSedationAnimationSet set, float ageInTicks) {
-        OWSedationAnimState state = entity.sedationAnim;
-        long ms = state.elapsedMs(ageInTicks);
-        switch (state.phase()) {
-            case SLEEP -> {
-                float closure = sleepClosure(set, ms, state.skipsFall());
-                if (wakeInterrupted(state, set)) {
-                    float handoff = smooth(ms / HANDOFF_MS);
-                    closure = Mth.lerp(handoff, wakeClosure(set, state.previousElapsedMs()), closure);
-                }
-                float partialTick = Mth.clamp(ageInTicks - entity.tickCount, 0f, 1f);
-                return closure * (1f - TWITCH_EYE_OPENING * entity.getWakeTwitchAmount(partialTick));
-            }
-            case WAKE -> {
-                float handoff = smooth(ms / HANDOFF_MS);
-                float from = sleepClosure(set, state.previousElapsedMs(), state.previousSkippedFall());
-                return Mth.lerp(handoff, from, wakeClosure(set, ms));
-            }
-            default -> {
-                return 0f;
-            }
-        }
     }
 
     private static void animateSedation(HierarchicalModel<?> model, OWSedationAnimState state, OWSedationAnimationSet set, float ageInTicks) {
@@ -118,26 +87,6 @@ public final class OWSedationAnimator {
 
     private static boolean wakeInterrupted(OWSedationAnimState state, OWSedationAnimationSet set) {
         return state.previous() == Phase.WAKE && state.previousElapsedMs() < set.wakeMs();
-    }
-
-    private static float sleepClosure(OWSedationAnimationSet set, long ms, boolean skipFall) {
-        if (skipFall) return 1f;
-        return curve(FALL_EYES, ms / (float) Math.max(1L, set.fallMs()));
-    }
-
-    private static float wakeClosure(OWSedationAnimationSet set, long ms) {
-        return curve(WAKE_EYES, ms / (float) Math.max(1L, set.wakeMs()));
-    }
-
-    private static float curve(float[] points, float progress) {
-        if (progress <= points[0]) return points[1];
-        for (int i = 2; i < points.length; i += 2) {
-            if (progress <= points[i]) {
-                float t = (progress - points[i - 2]) / (points[i] - points[i - 2]);
-                return Mth.lerp(smooth(t), points[i - 1], points[i + 1]);
-            }
-        }
-        return points[points.length - 1];
     }
 
     private static void capture(ModelPart[] parts) {

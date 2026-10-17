@@ -17,6 +17,8 @@ import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.entity.client.animation.KangarooAnimations;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimationSet;
+import net.tiew.operationWild.entity.client.animation.OWSedationAnimator;
 
 public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "kangaroo"), "main");
@@ -27,6 +29,8 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
     private static final Vector3f SPIN_ANIM_VEC = new Vector3f();
 
     private static final float FREE_WALK_SPEED_FACTOR = 1.25f;
+
+    private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(KangarooAnimations.SEDATED_FALL, KangarooAnimations.SEDATED_REST, KangarooAnimations.SEDATED_WAKE);
 
     private static final float HOP_ANIM_LENGTH_MS = 1000f;
     private static final float HOP_ANIM_SPEED = 0.64f;
@@ -180,21 +184,27 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
     public void setupAnim(T kangaroo, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.root().getAllParts().forEach(ModelPart::resetPose);
 
+        float sedation = OWSedationAnimator.weight(kangaroo, SEDATION, ageInTicks);
+        if (sedation < 1f) this.animateAwake(kangaroo, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
+
+        OWSedationAnimator.apply(this, kangaroo, SEDATION, ageInTicks);
+        this.head.xRot += kangaroo.getSedatedHeadNod(ageInTicks) * sedation;
+
+        captureBodyState(kangaroo);
+    }
+
+    private void animateAwake(T kangaroo, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         if (kangaroo.transitionIdleSleep.isStarted()) {
             this.animate(kangaroo.transitionIdleSleep, KangarooAnimations.TRANSITION_IDLE_NAP, ageInTicks, 1.0f);
-            captureBodyState(kangaroo);
             return;
         }
         if (kangaroo.transitionSleepIdle.isStarted()) {
             this.animate(kangaroo.transitionSleepIdle, KangarooAnimations.TRANSITION_NAP_IDLE, ageInTicks, 1.0f);
-            captureBodyState(kangaroo);
             return;
         }
 
-        if (kangaroo.isNapping() || kangaroo.isSleeping()) {
+        if (kangaroo.isNapping()) {
             this.animate(kangaroo.restAnimationState, KangarooAnimations.NAP, ageInTicks, 1.0f);
-            this.head.xRot += kangaroo.getSedatedHeadNod(ageInTicks);
-            captureBodyState(kangaroo);
             return;
         }
 
@@ -204,24 +214,20 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
 
         if (kangaroo.isTelluricStomping() || kangaroo.telluricStompOutroTicks > 0) {
             animateTelluricStomp(kangaroo, ageInTicks);
-            captureBodyState(kangaroo);
             return;
         }
 
         if (kangaroo.transitionIdleSit.isStarted()) {
             this.animate(kangaroo.transitionIdleSit, KangarooAnimations.TRANSITION_IDLE_SIT, ageInTicks, 1.0f);
-            captureBodyState(kangaroo);
             return;
         }
         if (kangaroo.transitionSitIdle.isStarted()) {
             this.animate(kangaroo.transitionSitIdle, KangarooAnimations.TRANSITION_SIT_IDLE, ageInTicks, 1.0f);
-            captureBodyState(kangaroo);
             return;
         }
 
         if (kangaroo.isSitting()) {
             this.animate(kangaroo.sittingAnimationState, KangarooAnimations.SIT, ageInTicks, 1.0f);
-            captureBodyState(kangaroo);
             return;
         }
 
@@ -230,7 +236,6 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
             float timeMs = kangaroo.clientAnimTimeMs + 50f * kangaroo.clientSpinSpeed * partial;
             long loopedMs = (long) (SPIN_LOOP_START_MS + (timeMs % SPIN_LOOP_LENGTH_MS));
             KeyframeAnimations.animate(this, KangarooAnimations.ATTACK_SECONDARY, loopedMs, 1f, SPIN_ANIM_VEC);
-            captureBodyState(kangaroo);
             return;
         }
 
@@ -241,25 +246,21 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
             float loopEnd = SPIN_LOOP_START_MS + SPIN_LOOP_LENGTH_MS;
             long outroMs = (long) (loopEnd + progress * (SPIN_ANIM_END_MS - loopEnd));
             KeyframeAnimations.animate(this, KangarooAnimations.ATTACK_SECONDARY, outroMs, 1f, SPIN_ANIM_VEC);
-            captureBodyState(kangaroo);
             return;
         }
 
         if (kangaroo.drownWindupAnimationState.isStarted()) {
             this.animate(kangaroo.drownWindupAnimationState, KangarooAnimations.DROWN_WINDUP, ageInTicks, 1.0f);
-            captureBodyState(kangaroo);
             return;
         }
 
         if (kangaroo.drownAnimationState.isStarted()) {
             this.animate(kangaroo.drownAnimationState, KangarooAnimations.DROWN_HOLD, ageInTicks, 1.0f);
-            captureBodyState(kangaroo);
             return;
         }
 
         if (kangaroo.thumpAnimationState.isStarted()) {
             this.animate(kangaroo.thumpAnimationState, KangarooAnimations.ALERT_THUMP, ageInTicks, 1.0f);
-            captureBodyState(kangaroo);
             return;
         }
 
@@ -268,7 +269,6 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
             this.head.yRot = 0f;
             this.animate(kangaroo.idleAnimationState, KangarooAnimations.MISC_IDLE, ageInTicks, 1.0f);
             animateGrazing(ageInTicks);
-            captureBodyState(kangaroo);
             return;
         }
 
@@ -284,8 +284,6 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         }
 
         if (kangaroo.isPivoting()) animatePivot(ageInTicks);
-
-        captureBodyState(kangaroo);
     }
 
     private void animateHop(T kangaroo, float ageInTicks, float limbSwingAmount) {

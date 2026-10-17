@@ -267,7 +267,7 @@ public class KodiakModel<T extends KodiakEntity> extends OWComboModel<T> impleme
         float sedation = OWSedationAnimator.weight(kodiak, SEDATION, ageInTicks);
         if (sedation < 1f) this.setupAwake(kodiak, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 
-        OWSedationAnimator.apply(this, kodiak, SEDATION, ageInTicks, this.left_eyeBall, this.right_eyeBall);
+        OWSedationAnimator.apply(this, kodiak, SEDATION, ageInTicks);
         this.head.xRot += kodiak.getSedatedHeadNod(ageInTicks) * sedation;
 
         if (sedation > 0f) {

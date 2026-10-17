@@ -77,7 +77,7 @@ public class OrcaRenderer extends OWEntityRenderer<OrcaEntity, OrcaModel<OrcaEnt
 
         if (!orca.isFlopping()) return;
 
-        poseStack.mulPose(Axis.YP.rotationDegrees(FLOP_BODY_SWING * Mth.sin(FLOP_BODY_SPEED * ageInTicks)));
+        if (!orca.isSleeping()) poseStack.mulPose(Axis.YP.rotationDegrees(FLOP_BODY_SWING * Mth.sin(FLOP_BODY_SPEED * ageInTicks)));
         poseStack.translate(OrcaEntity.FLOP_SIDE_OFFSET, OrcaEntity.FLOP_GROUND_LIFT, 0.0F);
         poseStack.mulPose(Axis.ZP.rotationDegrees(OrcaEntity.FLOP_BODY_ROLL));
     }
