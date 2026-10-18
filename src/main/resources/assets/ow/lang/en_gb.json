@@ -1114,7 +1114,7 @@
   "tooltip.gorillaSkin0": "Default Gorilla",
   "tooltip.gorillaSkin0.desc": "Set your Gorilla back to default!",
   "ow.attacks.gorilla.combo.title": "Hammering",
-  "ow.attacks.gorilla.combo.desc": "Left click: three punches, right then left, and a third that comes down with both fists at once — that one sends them flying. %s block reach, %s damage per blow.",
+  "ow.attacks.gorilla.combo.desc": "Left click: a right straight, then a left, and a third blow that crashes both fists into the ground in a shockwave — that one sends them flying. %s block reach, %s damage per blow.",
   "ow.attacks.gorilla.rock_throw.title": "Rock Throw",
   "ow.attacks.gorilla.rock_throw.desc": "Hold right click: the gorilla tears out a block of stone and hurls it. The longer the charge, the further and harder it flies — up to %s damage. The block bursts on impact across %s blocks and blows away whatever stands there. Nothing is broken or spent. %s second cooldown.",
   "ow.attacks.gorilla.rider_launch.title": "Toss",

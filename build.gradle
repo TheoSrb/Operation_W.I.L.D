@@ -242,6 +242,190 @@ tasks.register("runWikiDatas") {
     }
 }
 
+var animToBlockbenchScript = new File(studioDir, "utils/java_anim_to_blockbench.py")
+var blockbenchSyncDir = new File(studioDir, "utils/blockbench")
+var animalModelsDir = new File(studioDir, "3D Models/Animals")
+var javaAnimationsDir = file("src/main/java/net/tiew/operationWild/entity/client/animation")
+var blockbenchExportDir = layout.buildDirectory.dir("blockbench").get().asFile
+var blockbenchExe = file(providers.gradleProperty("ow_blockbench_exe")
+        .getOrElse(System.getenv("LOCALAPPDATA") + "/Programs/Blockbench/Blockbench.exe"))
+var blockbenchUserData = new File(System.getenv("APPDATA") ?: "", "Blockbench")
+var blockbenchDebugPort = providers.gradleProperty("ow_blockbench_debug_port").getOrElse("9277")
+
+tasks.register("runBlockbenchAnimations") {
+    group = "operation wild"
+    description = "Exporte les animations Java de chaque animal et les recharge dans Blockbench (${animalModelsDir}), sans rien sauvegarder."
+
+    doLast {
+        if (!animToBlockbenchScript.isFile()) {
+            throw new GradleException("Script de conversion introuvable : ${animToBlockbenchScript}")
+        }
+        var plugin = new File(blockbenchSyncDir, "ow_anim_sync_driver.js")
+        if (!plugin.isFile()) {
+            throw new GradleException("Script de pilotage Blockbench introuvable : ${plugin}")
+        }
+        if (!blockbenchExe.isFile()) {
+            throw new GradleException("Blockbench introuvable : ${blockbenchExe} (regler ow_blockbench_exe dans gradle.properties).")
+        }
+        blockbenchExportDir.mkdirs()
+
+        var models = []
+        var sources = javaAnimationsDir.listFiles().findAll { it.name.endsWith("Animations.java") }.sort { it.name }
+        for (source in sources) {
+            var species = source.name - "Animations.java"
+            var snake = species.replaceAll(/([a-z0-9])([A-Z])/, '$1_$2').toLowerCase()
+            var model = new File(animalModelsDir, snake + ".bbmodel")
+            if (!model.isFile()) {
+                continue
+            }
+            var output = new File(blockbenchExportDir, snake + ".animation.json")
+            var args = [animToBlockbenchScript.absolutePath, source.absolutePath, "-o", output.absolutePath]
+            Process process = null
+            for (candidate in [pythonExe, "py"].unique()) {
+                try {
+                    var builder = new ProcessBuilder([candidate] + args).directory(blockbenchExportDir).redirectErrorStream(true)
+                    builder.environment().put("PYTHONIOENCODING", "utf-8")
+                    process = builder.start()
+                    break
+                } catch (IOException ignored) {
+                }
+            }
+            if (process == null) {
+                throw new GradleException("Python introuvable : installer Python, ou regler ow_python dans gradle.properties.")
+            }
+            var lines = process.inputStream.newReader("UTF-8").readLines()
+            if (process.waitFor() != 0) {
+                lines.each { logger.error(it) }
+                throw new GradleException("La conversion de ${source.name} a echoue (voir ci-dessus).")
+            }
+            logger.lifecycle("  ${snake.padRight(14)} ${lines.find { it.contains("animation(s)") } ?: ''}")
+            models << [model: model.absolutePath, animations: output.absolutePath]
+        }
+        if (models.isEmpty()) {
+            throw new GradleException("Aucun modele d'animal trouve dans ${animalModelsDir}.")
+        }
+
+        var driver = new File(blockbenchSyncDir, "ow_anim_sync_driver.js")
+        var request = new File(blockbenchSyncDir, "sync_request.json")
+        var http = java.net.http.HttpClient.newBuilder().connectTimeout(java.time.Duration.ofSeconds(1)).build()
+        var json = new groovy.json.JsonSlurper()
+
+        var debugUp = {
+            try {
+                var response = http.send(java.net.http.HttpRequest.newBuilder(URI.create("http://127.0.0.1:${blockbenchDebugPort}/json/version"))
+                        .timeout(java.time.Duration.ofSeconds(1)).build(), java.net.http.HttpResponse.BodyHandlers.ofString())
+                return response.statusCode() == 200
+            } catch (Exception ignored) {
+                return false
+            }
+        }
+
+        if (!debugUp()) {
+            var running = ["tasklist", "/FI", "IMAGENAME eq Blockbench.exe", "/NH"].execute().text.contains("Blockbench.exe")
+            if (running) {
+                var storage = new File(blockbenchUserData, "Local Storage/leveldb")
+                var pluginInstalled = storage.isDirectory() && storage.listFiles().any { f ->
+                    f.isFile() && (new String(f.bytes, "ISO-8859-1").contains("ow_anim_sync") || new String(f.bytes, "UTF-16LE").contains("ow_anim_sync"))
+                }
+                if (pluginInstalled) {
+                    request.setText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(
+                            [created: System.currentTimeMillis(), models: models])), "UTF-8")
+                    logger.lifecycle("Blockbench etait deja ouvert : demande transmise au plugin ow_anim_sync, ${models.size()} modeles, rien n'est sauvegarde.")
+                    return
+                }
+                throw new GradleException("Blockbench est deja ouvert hors du mode de synchronisation : le fermer, puis relancer la tache (elle le rouvrira elle-meme).")
+            }
+            new ProcessBuilder("cmd", "/c", "start", "", blockbenchExe.absolutePath, "--remote-debugging-port=${blockbenchDebugPort}").start().waitFor()
+            var deadline = System.currentTimeMillis() + 60000
+            while (!debugUp()) {
+                if (System.currentTimeMillis() > deadline) {
+                    throw new GradleException("Blockbench ne repond pas sur le port ${blockbenchDebugPort}.")
+                }
+                Thread.sleep(500)
+            }
+        }
+        if (request.isFile()) {
+            request.delete()
+        }
+
+        var targets = json.parseText(http.send(java.net.http.HttpRequest.newBuilder(URI.create("http://127.0.0.1:${blockbenchDebugPort}/json")).build(),
+                java.net.http.HttpResponse.BodyHandlers.ofString()).body())
+        var page = targets.find { it.type == "page" && it.url.contains("index.html") } ?: targets.find { it.type == "page" }
+        if (page == null) {
+            throw new GradleException("Aucune fenetre Blockbench trouvee sur le port ${blockbenchDebugPort}.")
+        }
+
+        var pending = new java.util.concurrent.ConcurrentHashMap<Integer, java.util.concurrent.CompletableFuture<Map>>()
+        var nextId = new java.util.concurrent.atomic.AtomicInteger()
+        var socket = http.newWebSocketBuilder().buildAsync(URI.create(page.webSocketDebuggerUrl), new java.net.http.WebSocket.Listener() {
+            StringBuilder buffer = new StringBuilder()
+
+            @Override
+            java.util.concurrent.CompletionStage<?> onText(java.net.http.WebSocket webSocket, CharSequence data, boolean last) {
+                buffer.append(data)
+                if (last) {
+                    var message = new groovy.json.JsonSlurper().parseText(buffer.toString())
+                    buffer.setLength(0)
+                    if (message.id != null) {
+                        pending.remove(message.id as Integer)?.complete(message as Map)
+                    }
+                }
+                webSocket.request(1)
+                return null
+            }
+        }).get(10, java.util.concurrent.TimeUnit.SECONDS)
+
+        var evaluate = { String expression, int seconds ->
+            int id = nextId.incrementAndGet()
+            var future = new java.util.concurrent.CompletableFuture<Map>()
+            pending.put(id, future)
+            socket.sendText(groovy.json.JsonOutput.toJson([id: id, method: "Runtime.evaluate",
+                    params: [expression: expression, awaitPromise: true, returnByValue: true]]), true).get()
+            var message = future.get(seconds, java.util.concurrent.TimeUnit.SECONDS)
+            var result = message.result ?: [:]
+            if (result.exceptionDetails) {
+                throw new GradleException("Erreur dans Blockbench : ${result.exceptionDetails.exception?.description ?: result.exceptionDetails.text}")
+            }
+            return result.result?.value
+        }
+
+        try {
+            var readyDeadline = System.currentTimeMillis() + 60000
+            while (true) {
+                evaluate(driver.getText("UTF-8"), 10)
+                if (evaluate("window.__owAnimSyncReady()", 10) == true) break
+                if (System.currentTimeMillis() > readyDeadline) {
+                    throw new GradleException("Blockbench n'a pas fini de demarrer.")
+                }
+                Thread.sleep(500)
+            }
+            evaluate("Promise.race([Plugins.loading_promise, new Promise(r => setTimeout(r, 4000))]).then(() => true)", 15)
+
+            var lines = []
+            int synced = 0
+            for (entry in models) {
+                var content = new File(entry.animations).getText("UTF-8")
+                var name = new File(entry.model).name - ".bbmodel"
+                try {
+                    var outcome = evaluate("window.__owAnimSync(${groovy.json.JsonOutput.toJson(entry.model)}, ${groovy.json.JsonOutput.toJson(content)}, ${groovy.json.JsonOutput.toJson(entry.animations)})", 60)
+                    lines << "${name} : ${outcome.added} animations (${outcome.removed} retirees)"
+                    synced++
+                } catch (Exception e) {
+                    lines << "${name} : ECHEC (${e.message})"
+                }
+                logger.lifecycle("  -> ${lines.last()}")
+            }
+            evaluate("window.__owAnimSyncDone(${groovy.json.JsonOutput.toJson(lines)}, ${synced}, ${models.size()})", 10)
+            logger.lifecycle("${synced} / ${models.size()} modeles mis a jour dans Blockbench, rien n'est sauvegarde.")
+            if (synced < models.size()) {
+                throw new GradleException("Certains modeles n'ont pas pu etre mis a jour (voir ci-dessus).")
+            }
+        } finally {
+            socket.sendClose(java.net.http.WebSocket.NORMAL_CLOSURE, "").get(5, java.util.concurrent.TimeUnit.SECONDS)
+        }
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }

@@ -159,7 +159,7 @@ public class OWAttacksHandler {
 
         registerEntityRow(GorillaEntity.class, 0);
         registerEntityColumn(GorillaEntity.class, 3);
-        registerComboMaxTimer(GorillaEntity.class, 18);
+        registerComboMaxTimer(GorillaEntity.class, 13);
         register(GorillaEntity.class, GorillaAttacks.ROCK_THROW);
         register(GorillaEntity.class, GorillaAttacks.RIDER_LAUNCH);
         register(GorillaEntity.class, GorillaAttacks.CHEST_BEAT);

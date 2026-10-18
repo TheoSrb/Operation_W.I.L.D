@@ -1114,7 +1114,7 @@
   "tooltip.gorillaSkin0": "Standard-Gorilla",
   "tooltip.gorillaSkin0.desc": "Setze deinen Gorilla auf das Standardfell zurück!",
   "ow.attacks.gorilla.combo.title": "Hämmern",
-  "ow.attacks.gorilla.combo.desc": "Linksklick: drei Fausthiebe, erst rechts, dann links, und der dritte kommt mit beiden Fäusten zugleich herunter — der schleudert das Ziel weg. %s Block Reichweite, %s Schaden pro Schlag.",
+  "ow.attacks.gorilla.combo.desc": "Linksklick: eine Rechte, dann eine Linke, und der dritte Hieb kracht mit beiden Fäusten zugleich auf den Boden und löst eine Schockwelle aus — der schleudert das Ziel weg. %s Block Reichweite, %s Schaden pro Schlag.",
   "ow.attacks.gorilla.rock_throw.title": "Felswurf",
   "ow.attacks.gorilla.rock_throw.desc": "Rechtsklick halten: Der Gorilla reißt einen Steinblock heraus und schleudert ihn. Je länger die Ladung, desto weiter und härter fliegt er — bis zu %s Schaden. Der Block zerbirst beim Aufprall auf %s Blöcken und fegt alles davon. Nichts wird zerstört oder verbraucht. %s Sekunden Abklingzeit.",
   "ow.attacks.gorilla.rider_launch.title": "Wurf",

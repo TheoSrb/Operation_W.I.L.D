@@ -43,6 +43,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -91,6 +92,15 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     private static final int MISC_IDLE_2_DURATION = 140;
     private static final int SEDATION_WAKE_TICKS = 50;
+
+    private static final int COMBO_TIME_TO_HIT = 11;
+    private static final int COMBO_TIME_MAX = 18;
+    private static final int HAMMER_TIME_TO_HIT = 15;
+    private static final int HAMMER_RECOVERY = 13;
+    private static final int HAMMER_TIME_MAX = 32;
+    private static final double HAMMER_SHOCKWAVE_REACH = 2.0;
+    private static final double HAMMER_SHOCKWAVE_RADIUS = 2.2;
+    private static final int HAMMER_SHOCKWAVE_POINTS = 28;
 
     private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(29, 41);
 
@@ -560,8 +570,18 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             handleLaunchedRider();
         }
 
-        createCombo(18, 11, OWSounds.LEG_HURT.get(),
-                3.0, 3.0, 1.6, actualAttackNumber == 3, actualAttackNumber == 3 ? 1 : 2);
+        boolean hammer = getComboAttack() == 3;
+        createCombo(hammer ? HAMMER_TIME_MAX : COMBO_TIME_MAX, hammer ? HAMMER_TIME_TO_HIT : COMBO_TIME_TO_HIT, OWSounds.LEG_HURT.get(),
+                3.0, 3.0, 1.6, hammer, hammer ? 1 : 2);
+
+        if (hammer && this.isCombo() && !this.isPauseCombo() && attackTimer == HAMMER_TIME_TO_HIT && !this.level().isClientSide()) {
+            createHammerShockwave();
+        }
+
+        if (isPauseCombo() && getComboAttack() == 3) {
+            resetCombo(0);
+            actualAttackNumber = 0;
+        }
 
         if (this.isVehicle() && this.isTame() && !this.isSitting()) setMadByRider(this.isCombo());
 
@@ -614,6 +634,41 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     @Override
     public boolean canStartCombo() {
         return super.canStartCombo() && !isClimbing() && !isVaulting();
+    }
+
+    private void createHammerShockwave() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        Vec3 dir = Vec3.directionFromRotation(0f, this.getYRot());
+        double cx = this.getX() + dir.x * HAMMER_SHOCKWAVE_REACH * this.getScale();
+        double cz = this.getZ() + dir.z * HAMMER_SHOCKWAVE_REACH * this.getScale();
+        double y = this.getY() + 0.05;
+
+        BlockState ground = this.level().getBlockState(BlockPos.containing(cx, this.getY() - 0.5, cz));
+        if (ground.isAir()) ground = Blocks.DIRT.defaultBlockState();
+        BlockParticleOption debris = new BlockParticleOption(ParticleTypes.BLOCK, ground);
+
+        double radius = HAMMER_SHOCKWAVE_RADIUS * this.getScale();
+        for (int i = 0; i < HAMMER_SHOCKWAVE_POINTS; i++) {
+            double angle = Math.PI * 2.0 * i / HAMMER_SHOCKWAVE_POINTS;
+            double px = cx + Math.cos(angle) * radius;
+            double pz = cz + Math.sin(angle) * radius;
+            serverLevel.sendParticles(debris, px, y, pz, 4, 0.2, 0.05, 0.2, 0.18);
+        }
+        serverLevel.sendParticles(debris, cx, y, cz, 30, radius * 0.4, 0.1, radius * 0.4, 0.3);
+        serverLevel.sendParticles(ParticleTypes.POOF, cx, y + 0.2, cz, 14, radius * 0.35, 0.1, radius * 0.35, 0.04);
+
+        this.level().playSound(null, cx, y, cz, SoundEvents.ROOTED_DIRT_BREAK, SoundSource.HOSTILE, 1.4f, 0.6f);
+        this.level().playSound(null, cx, y, cz, SoundEvents.ZOMBIE_ATTACK_WOODEN_DOOR, SoundSource.HOSTILE, 0.6f, 0.55f);
+    }
+
+    @Override
+    public int getComboPauseDelay() {
+        return getComboAttack() == 3 ? HAMMER_RECOVERY : super.getComboPauseDelay();
+    }
+
+    @Override
+    public int comboCardMaxTimer() {
+        return getComboAttack() == 3 ? HAMMER_TIME_TO_HIT + HAMMER_RECOVERY : super.comboCardMaxTimer();
     }
 
     @Override
@@ -1815,9 +1870,9 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     }
 
     private void setupComboAnimations() {
-        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (33 / comboSpeedMultiplier));
-        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (33 / comboSpeedMultiplier));
-        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (36 / comboSpeedMultiplier));
+        setupComboAnimation(1, attack1Combo, attack1ComboTimer, (int) (32 / comboSpeedMultiplier));
+        setupComboAnimation(2, attack2Combo, attack2ComboTimer, (int) (35 / comboSpeedMultiplier));
+        setupComboAnimation(3, attack3Combo, attack3ComboTimer, (int) (45 / comboSpeedMultiplier));
     }
 
     private void setupComboAnimation(int comboNumber, AnimationState animationState, int timer, int maxTimer) {

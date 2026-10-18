@@ -1114,7 +1114,7 @@
   "tooltip.gorillaSkin0": "デフォルトのゴリラ",
   "tooltip.gorillaSkin0.desc": "ゴリラを元の姿に戻しましょう！",
   "ow.attacks.gorilla.combo.title": "打ち下ろし",
-  "ow.attacks.gorilla.combo.desc": "左クリック：右、左と拳を叩き込み、三発目は両拳を同時に振り下ろして相手を吹き飛ばします。射程 %s ブロック、一撃あたり %s ダメージ。",
+  "ow.attacks.gorilla.combo.desc": "左クリック：右ストレート、続いて左ストレート、そして三発目は両拳を地面に叩きつけて衝撃波を起こし、相手を吹き飛ばします。射程 %s ブロック、一撃あたり %s ダメージ。",
   "ow.attacks.gorilla.rock_throw.title": "岩投げ",
   "ow.attacks.gorilla.rock_throw.desc": "右クリック長押し：ゴリラが石のブロックを引き抜いて投げつけます。溜めが長いほど遠く、強く飛び、最大 %s ダメージ。着弾で %s ブロックにわたって砕け散り、その場のものを吹き飛ばします。地形は壊れず、資源も消費しません。クールダウン %s 秒。",
   "ow.attacks.gorilla.rider_launch.title": "投げ飛ばし",

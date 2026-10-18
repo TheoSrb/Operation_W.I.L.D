@@ -1114,7 +1114,7 @@
   "tooltip.gorillaSkin0": "Gorila Padrão",
   "tooltip.gorillaSkin0.desc": "Devolva ao seu Gorila o visual padrão!",
   "ow.attacks.gorilla.combo.title": "Martelada",
-  "ow.attacks.gorilla.combo.desc": "Clique esquerdo: três murros, primeiro o direito, depois o esquerdo, e o terceiro desce com os dois punhos ao mesmo tempo — esse projeta. %s bloco de alcance, %s de dano por golpe.",
+  "ow.attacks.gorilla.combo.desc": "Clique esquerdo: um direto de direita, depois um de esquerda, e o terceiro esmaga os dois punhos no chão numa onda de choque — esse projeta. %s bloco de alcance, %s de dano por golpe.",
   "ow.attacks.gorilla.rock_throw.title": "Arremesso de Rocha",
   "ow.attacks.gorilla.rock_throw.desc": "Mantenha o clique direito: o gorila arranca um bloco de pedra e atira-o. Quanto mais longa a carga, mais longe e mais forte vai — até %s de dano. O bloco rebenta no impacto em %s blocos e varre o que lá estiver. Nada é partido nem consumido. %s segundos de recarga.",
   "ow.attacks.gorilla.rider_launch.title": "Projeção",

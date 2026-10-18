@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -46,6 +47,8 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
     private static final float RUN_ANIM_SPEED = 1.2f;
 
     private static final float COMBO_ANIMATION_SPEED = 1.0f;
+    private static final float COMBO_CROSSFADE_MS = 120f;
+    private static final float COMBO_FADE_OUT_MS = 200f;
 
     private static final float RIDDEN_IDLE_BODY_PITCH = 0.61f;
     private static final float RIDDEN_IDLE_HEAD_COMP = -0.42f;
@@ -197,12 +200,54 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
 
     @Override
     protected float comboSpeed(int index) {
-        return switch (index) {
-            case 1 -> 1.2f;
-            case 2 -> 1.2f;
-            case 3 -> 1.1f;
-            default -> 1.0f;
+        return 1.0f;
+    }
+
+    private float comboElapsedMs(T gorilla, int index, AnimationState state, float ageInTicks) {
+        if (!state.isStarted()) return -1f;
+        state.updateTime(ageInTicks, comboSpeed(index) * COMBO_ANIMATION_SPEED * gorilla.comboSpeedMultiplier);
+        return state.getAccumulatedTime();
+    }
+
+    private float animateComboBlend(T gorilla, float ageInTicks, boolean apply) {
+        float[] elapsed = {
+                comboElapsedMs(gorilla, 1, gorilla.attack1Combo, ageInTicks),
+                comboElapsedMs(gorilla, 2, gorilla.attack2Combo, ageInTicks),
+                comboElapsedMs(gorilla, 3, gorilla.attack3Combo, ageInTicks)
         };
+
+        int newest = -1;
+        for (int i = 0; i < 3; i++) {
+            if (elapsed[i] >= 0f && (newest < 0 || elapsed[i] < elapsed[newest])) newest = i;
+        }
+        if (newest < 0) return 0f;
+
+        float handOver = smoothStep(elapsed[newest] / COMBO_CROSSFADE_MS);
+        float total = 0f;
+        for (int i = 0; i < 3; i++) {
+            if (elapsed[i] < 0f) continue;
+            AnimationDefinition animation = comboAnimation(i + 1);
+            float lengthMs = animation.lengthInSeconds() * 1000f;
+            float presence = smoothStep(Math.min(elapsed[i] / COMBO_CROSSFADE_MS, (lengthMs - elapsed[i]) / COMBO_FADE_OUT_MS));
+            float weight = i == newest ? presence : presence * (1f - handOver);
+            if (weight <= 0.001f) continue;
+            total += weight;
+            if (apply) {
+                KeyframeAnimations.animate(this, animation, (long) Math.min(elapsed[i], lengthMs), weight, ANIM_VECTOR);
+            }
+        }
+        return Math.min(total, 1f);
+    }
+
+    private static void fadeToRest(ModelPart part, float weight) {
+        if (weight <= 0f) return;
+        PartPose rest = part.getInitialPose();
+        part.x = Mth.lerp(weight, part.x, rest.x);
+        part.y = Mth.lerp(weight, part.y, rest.y);
+        part.z = Mth.lerp(weight, part.z, rest.z);
+        part.xRot = Mth.lerp(weight, part.xRot, rest.xRot);
+        part.yRot = Mth.lerp(weight, part.yRot, rest.yRot);
+        part.zRot = Mth.lerp(weight, part.zRot, rest.zRot);
     }
 
     @Override
@@ -297,14 +342,14 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
         float slideWeight = smoothStep(gorilla.slideBlend(pt));
         float stanceWeight = 1f - ultimateWeight;
 
-        animateStance(gorilla, limbSwing, limbSwingAmount * (1f - slideWeight), ageInTicks, prevSwing, pt, stanceWeight);
+        float comboWeight = animateComboBlend(gorilla, ageInTicks, false);
 
-        if (comboOwnsArms(gorilla)) {
-            this.left_arm.resetPose();
-            this.right_arm.resetPose();
-        }
+        animateStance(gorilla, limbSwing, limbSwingAmount * (1f - slideWeight), ageInTicks, prevSwing, pt, stanceWeight, comboWeight);
 
-        animateCombos(gorilla, ageInTicks, COMBO_ANIMATION_SPEED);
+        fadeToRest(this.left_arm, comboWeight);
+        fadeToRest(this.right_arm, comboWeight);
+
+        animateComboBlend(gorilla, ageInTicks, true);
 
         float ignoredXRot = 0f;
         if (ultimateWeight > 0.001f) {
@@ -332,22 +377,24 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
     }
 
     private void animateStance(T gorilla, float limbSwing, float limbSwingAmount, float ageInTicks, float prevSwing,
-                               float pt, float stanceWeight) {
+                               float pt, float stanceWeight, float comboWeight) {
         if (stanceWeight <= 0.001f) return;
 
         float moveWeight = Math.min(limbSwingAmount * MOVE_BLEND_FACTOR, 1.0f);
         float rideWeight = smoothStep(gorilla.rideBlend(pt));
 
-        if (moveWeight < 1.0f && !gorilla.isCombo()) {
-            float idleWeight = 1.0f - moveWeight;
+        float idleWeight = (1.0f - moveWeight) * (1.0f - comboWeight) * stanceWeight;
+        if (idleWeight > 0.001f) {
             KeyframeAnimations.animate(this, GorillaAnimations.MISC_IDLE,
-                    (long) (ageInTicks * 50.0f), idleWeight * stanceWeight, ANIM_VECTOR);
+                    (long) (ageInTicks * 50.0f), idleWeight, ANIM_VECTOR);
 
-            this.body.xRot += RIDDEN_IDLE_BODY_PITCH * idleWeight * rideWeight * stanceWeight;
-            this.head.xRot += RIDDEN_IDLE_HEAD_COMP * idleWeight * rideWeight * stanceWeight;
+            this.body.xRot += RIDDEN_IDLE_BODY_PITCH * idleWeight * rideWeight;
+            this.head.xRot += RIDDEN_IDLE_HEAD_COMP * idleWeight * rideWeight;
 
             if (gorilla.miscIdleAnimationState.isStarted()) {
-                this.animate(gorilla.miscIdleAnimationState, GorillaAnimations.MISC_IDLE_2, ageInTicks, 1.0f);
+                gorilla.miscIdleAnimationState.updateTime(ageInTicks, 1.0f);
+                KeyframeAnimations.animate(this, GorillaAnimations.MISC_IDLE_2,
+                        gorilla.miscIdleAnimationState.getAccumulatedTime(), idleWeight, ANIM_VECTOR);
             }
         }
 
@@ -385,13 +432,6 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
 
         if (prev <= cur) return prev < triggerTimeMs && cur >= triggerTimeMs;
         return triggerTimeMs <= cur || triggerTimeMs > prev;
-    }
-
-    private static boolean comboOwnsArms(GorillaEntity gorilla) {
-        return gorilla.isCombo()
-                || gorilla.attack1Combo.isStarted()
-                || gorilla.attack2Combo.isStarted()
-                || gorilla.attack3Combo.isStarted();
     }
 
     private static float smoothStep(float t) {

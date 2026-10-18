@@ -1114,7 +1114,7 @@
   "tooltip.gorillaSkin0": "기본 고릴라",
   "tooltip.gorillaSkin0.desc": "고릴라를 기본 모습으로 되돌리세요!",
   "ow.attacks.gorilla.combo.title": "내리치기",
-  "ow.attacks.gorilla.combo.desc": "좌클릭: 오른손, 왼손으로 두 번 내지른 뒤 세 번째는 두 주먹을 한꺼번에 내리찍어 상대를 날려 버립니다. 사거리 %s 블록, 타격당 %s 피해.",
+  "ow.attacks.gorilla.combo.desc": "좌클릭: 오른손 스트레이트, 이어서 왼손 스트레이트, 그리고 세 번째는 두 주먹을 땅에 내리찍어 충격파로 상대를 날려 버립니다. 사거리 %s 블록, 타격당 %s 피해.",
   "ow.attacks.gorilla.rock_throw.title": "바위 던지기",
   "ow.attacks.gorilla.rock_throw.desc": "우클릭 유지: 고릴라가 돌 블록을 뜯어내 던집니다. 오래 모을수록 더 멀리, 더 세게 날아가 최대 %s 피해를 줍니다. 착탄하면 %s 블록 범위로 부서지며 그 자리의 대상을 날려 버립니다. 지형은 부서지지 않고 자원도 소모되지 않습니다. 재사용 대기시간 %s초.",
   "ow.attacks.gorilla.rider_launch.title": "탑승자 던지기",

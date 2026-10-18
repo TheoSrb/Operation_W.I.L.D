@@ -1114,7 +1114,7 @@
   "tooltip.gorillaSkin0": "Gorila Por Defecto",
   "tooltip.gorillaSkin0.desc": "¡Devuelve a tu Gorila su aspecto original!",
   "ow.attacks.gorilla.combo.title": "Martilleo",
-  "ow.attacks.gorilla.combo.desc": "Clic izquierdo: tres puñetazos, primero el derecho, luego el izquierdo, y el tercero cae con ambos puños a la vez — ese sale despedido. %s bloque de alcance, %s de daño por golpe.",
+  "ow.attacks.gorilla.combo.desc": "Clic izquierdo: un directo de derecha, luego uno de izquierda, y el tercero estrella ambos puños contra el suelo en una onda expansiva — ese sale despedido. %s bloque de alcance, %s de daño por golpe.",
   "ow.attacks.gorilla.rock_throw.title": "Lanzamiento de Roca",
   "ow.attacks.gorilla.rock_throw.desc": "Mantén clic derecho: el gorila arranca un bloque de piedra y lo lanza. Cuanto más larga la carga, más lejos y más fuerte llega — hasta %s de daño. El bloque estalla al impactar en %s bloques y barre lo que haya allí. Nada se rompe ni se consume. %s segundos de recarga.",
   "ow.attacks.gorilla.rider_launch.title": "Proyección",

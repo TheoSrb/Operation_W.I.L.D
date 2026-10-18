@@ -1114,7 +1114,7 @@
   "tooltip.gorillaSkin0": "Gorille Par Défaut",
   "tooltip.gorillaSkin0.desc": "Rendez votre Gorille par défaut !",
   "ow.attacks.gorilla.combo.title": "Martèlement",
-  "ow.attacks.gorilla.combo.desc": "Clic gauche : trois coups de poing, le droit puis le gauche, et le troisième s'abat des deux mains à la fois — celui-là projette. Portée de %s bloc, %s dégâts par coup.",
+  "ow.attacks.gorilla.combo.desc": "Clic gauche : une droite, puis une gauche, et un troisième coup qui écrase les deux poings au sol dans une onde de choc — celui-là projette. Portée de %s bloc, %s dégâts par coup.",
   "ow.attacks.gorilla.rock_throw.title": "Jet de Rocher",
   "ow.attacks.gorilla.rock_throw.desc": "Clic droit maintenu : le gorille arrache un bloc de pierre et le lance. Plus la charge est longue, plus le tir part loin et fort — jusqu'à %s dégâts. Le bloc explose à l'impact sur %s blocs et souffle ce qui s'y trouve. Rien n'est cassé ni consommé. %s secondes de recharge.",
   "ow.attacks.gorilla.rider_launch.title": "Projection",

@@ -1114,7 +1114,7 @@
   "tooltip.gorillaSkin0": "默认大猩猩",
   "tooltip.gorillaSkin0.desc": "把你的大猩猩变回原本的模样！",
   "ow.attacks.gorilla.combo.title": "重锤",
-  "ow.attacks.gorilla.combo.desc": "左键：先右拳再左拳，第三下双拳齐落，把目标直接砸飞。攻击距离 %s 格，每击 %s 点伤害。",
+  "ow.attacks.gorilla.combo.desc": "左键：先是右直拳，再是左直拳，第三下双拳砸地掀起冲击波，把目标直接砸飞。攻击距离 %s 格，每击 %s 点伤害。",
   "ow.attacks.gorilla.rock_throw.title": "投石",
   "ow.attacks.gorilla.rock_throw.desc": "长按右键：大猩猩掰下一块石头砸出去。蓄力越久，飞得越远越狠，最高 %s 点伤害。落点炸开 %s 格范围，把附近的一切掀翻。不会破坏方块，也不消耗材料。冷却 %s 秒。",
   "ow.attacks.gorilla.rider_launch.title": "抛投",
