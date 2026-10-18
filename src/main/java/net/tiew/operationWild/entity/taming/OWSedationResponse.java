@@ -36,11 +36,11 @@ public class OWSedationResponse {
     private static final int UNREACHABLE_CHECKS = 4;
     private static final int REACHABLE_CHECKS = 2;
     private static final int CHARGE_MEMORY = 600;
-    private static final int RETREAT_MIN_TICKS = 200;
-    private static final int RETREAT_MAX_TICKS = 1400;
+    private static final int RETREAT_MIN_TICKS = 300;
+    private static final int RETREAT_MAX_TICKS = 1800;
     private static final int WARY_TICKS = 1200;
-    private static final double RETREAT_SAFE_DISTANCE = 72.0;
-    private static final double WARY_KEEP_DISTANCE = 40.0;
+    private static final double RETREAT_SAFE_DISTANCE = 96.0;
+    private static final double WARY_KEEP_DISTANCE = 56.0;
     private static final int DEEP_WATER_SCAN = 3;
     private static final int DEEP_WATER_BLOCKS = 2;
     private static final double CHARGE_GIVE_UP_DISTANCE = 56.0;
@@ -61,11 +61,12 @@ public class OWSedationResponse {
     private static final int MOMENTUM_SAMPLE = 20;
     private static final double MOMENTUM_GAIN = 1.0;
     private static final double MOMENTUM_RANGE = 6.0;
-    private static final double AMBUSH_RETREAT_DISTANCE = 22.0;
-    private static final int AMBUSH_RETREAT_MIN_TICKS = 60;
-    private static final int AMBUSH_RETREAT_MAX_TICKS = 200;
+    private static final double AMBUSH_RETREAT_DISTANCE = 64.0;
+    private static final int AMBUSH_RETREAT_MIN_TICKS = 240;
+    private static final int AMBUSH_RETREAT_MAX_TICKS = 900;
+    private static final int COMMITTED_RETREAT_MIN_TICKS = 300;
     private static final int AMBUSH_MAX_TICKS = 1200;
-    private static final double AMBUSH_TRIGGER_DISTANCE = 14.0;
+    private static final double AMBUSH_TRIGGER_DISTANCE = 18.0;
     private static final int SURPRISE_TICKS = 100;
     private static final float SURPRISE_SPEED_BONUS = 1.35f;
     private static final int STALL_TICKS = 40;
@@ -90,6 +91,7 @@ public class OWSedationResponse {
     private int harassment;
     private int harassLimit = HARASS_LIMIT_MIN;
     private boolean ambushPlanned;
+    private boolean committed;
     private int surpriseTicks;
     private Vec3 stallAnchor = Vec3.ZERO;
     private int stallTicks;
@@ -143,6 +145,10 @@ public class OWSedationResponse {
 
         sinceProvoked = 0;
         if (source.getEntity() instanceof LivingEntity shooter && shooter != entity) {
+            if (stance == Stance.RETREAT && committed) {
+                stanceTicks = 0;
+                return;
+            }
             if (stance == Stance.CHARGE && shooter == provoker && harassedOut(shooter)) {
                 tacticalRetreat();
                 return;
@@ -200,6 +206,7 @@ public class OWSedationResponse {
         frustration = 0;
         harassment = 0;
         ambushPlanned = false;
+        committed = false;
         surpriseTicks = 0;
     }
 
@@ -249,6 +256,7 @@ public class OWSedationResponse {
             momentum = false;
         }
         ambushPlanned = false;
+        committed = false;
         stance = Stance.CHARGE;
         entity.setNap(false);
         entity.setSitting(false);
@@ -266,6 +274,7 @@ public class OWSedationResponse {
     private void retreat() {
         entity.breakout.endSiege();
         ambushPlanned = false;
+        committed = false;
         surpriseTicks = 0;
         boolean wasRetreating = stance == Stance.RETREAT;
         stance = Stance.RETREAT;
@@ -386,6 +395,7 @@ public class OWSedationResponse {
     private void giveUp() {
         frustratedUntil = entity.tickCount + FRUSTRATION_COOLDOWN;
         retreat();
+        committed = true;
     }
 
     private boolean harassedOut(LivingEntity shooter) {
@@ -397,6 +407,7 @@ public class OWSedationResponse {
     private void tacticalRetreat() {
         retreat();
         ambushPlanned = provoker != null;
+        committed = true;
     }
 
     private void tickTacticalRetreat() {
@@ -446,6 +457,8 @@ public class OWSedationResponse {
             tickTacticalRetreat();
             return;
         }
+        if (committed && stanceTicks < COMMITTED_RETREAT_MIN_TICKS) return;
+        committed = false;
         if (watchForOpening()) return;
         boolean safe = threatPosition == null
                 || entity.position().distanceToSqr(threatPosition) >= RETREAT_SAFE_DISTANCE * RETREAT_SAFE_DISTANCE;

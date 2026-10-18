@@ -118,7 +118,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private static final float BITE_KNOCKBACK = 0.3f;
     private static final float HEADBUTT_KNOCKBACK = 2.8f;
     private static final double HEADBUTT_LIFT = 0.36;
-    private static final float WILD_SWIM_CAP = 0.12f;
+    private static final float WILD_SWIM_CAP = 0.16f;
     private static final float WILD_SWIM_CHASE_BONUS = 1.15f;
     private static final double RIVERBED_SINK_SPEED = 0.08;
     private static final double RIVERBED_RISE_SPEED = 0.12;
@@ -1566,8 +1566,8 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     // ==================================================
 
     private void setupAnimationState() {
-        createIdleAnimation(72, true);
-        createSitAnimation(120, true);
+        createIdleAnimation(true);
+        createSitAnimation(true);
 
         this.furyRoarAnimationState.animateWhen(isFuryWindup(), this.tickCount);
 

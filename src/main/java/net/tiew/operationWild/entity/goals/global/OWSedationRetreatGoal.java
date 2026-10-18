@@ -9,7 +9,7 @@ import java.util.EnumSet;
 public class OWSedationRetreatGoal extends Goal {
 
     private static final int REPATH_INTERVAL = 40;
-    private static final int ESCAPE_RADIUS = 32;
+    private static final int ESCAPE_RADIUS = 40;
     private static final int ESCAPE_HEIGHT = 7;
 
     private final OWEntity mob;

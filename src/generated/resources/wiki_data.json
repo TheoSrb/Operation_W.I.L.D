@@ -833,17 +833,17 @@
           },
           {
             "looping": false,
-            "name": "SEDATED_FALL",
+            "name": "DEFINITION",
             "seconds": 1.8
           },
           {
             "looping": true,
-            "name": "SEDATED_REST",
+            "name": "DEFINITION",
             "seconds": 4.0
           },
           {
             "looping": false,
-            "name": "SEDATED_WAKE",
+            "name": "DEFINITION",
             "seconds": 2.2
           }
         ],
@@ -4335,17 +4335,17 @@
           },
           {
             "looping": false,
-            "name": "SEDATED_FALL",
+            "name": "DEFINITION",
             "seconds": 1.6
           },
           {
             "looping": true,
-            "name": "SEDATED_REST",
+            "name": "DEFINITION",
             "seconds": 6.0
           },
           {
             "looping": false,
-            "name": "SEDATED_WAKE",
+            "name": "DEFINITION",
             "seconds": 2.0
           }
         ],
@@ -7419,12 +7419,12 @@
         "walk_speed_blocks_per_second": 3.5999999999999996
       },
       "history": {
-        "created": "2026-10-17T16:53:07.6848615+02:00",
+        "created": "2026-10-17T21:51:07.1258579+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-17T16:53:07.687373+02:00",
+        "last_modified": "2026-10-17T21:51:07.1263587+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 98038
+        "size_bytes": 98060
       },
       "id": "ow:orca",
       "loot": {
@@ -7973,18 +7973,18 @@
           },
           {
             "looping": false,
-            "name": "SEDATED_FALL",
+            "name": "SEDATED_WAKE",
+            "seconds": 3.2
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
             "seconds": 2.6
           },
           {
             "looping": true,
-            "name": "SEDATED_REST",
+            "name": "DEFINITION",
             "seconds": 6.0
-          },
-          {
-            "looping": false,
-            "name": "SEDATED_WAKE",
-            "seconds": 3.2
           }
         ],
         "layers": [
@@ -8646,16 +8646,6 @@
           },
           {
             "looping": false,
-            "name": "ATTACK_STRIKE_3",
-            "seconds": 1.75
-          },
-          {
-            "looping": false,
-            "name": "ATTACK_SECONDARY",
-            "seconds": 15.0
-          },
-          {
-            "looping": false,
             "name": "TELLURIC_STOMP_WINDUP",
             "seconds": 0.35
           },
@@ -8708,6 +8698,31 @@
             "looping": false,
             "name": "ALERT_THUMP",
             "seconds": 3.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.8
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 2.2
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 15.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.75
           }
         ],
         "layers": [
@@ -8848,9 +8863,9 @@
         "created": "2026-10-12T19:33:54.9600162+02:00",
         "created_date": "2026-10-12",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-17T12:41:24.8816343+02:00",
+        "last_modified": "2026-10-17T21:47:43.5609735+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 83780
+        "size_bytes": 83944
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -9454,12 +9469,12 @@
         "walk_speed_blocks_per_second": 3.2
       },
       "history": {
-        "created": "2026-10-17T12:57:49.2506819+02:00",
+        "created": "2026-10-17T21:51:56.435674+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-17T16:59:19.1575289+02:00",
+        "last_modified": "2026-10-17T21:51:56.4376178+02:00",
         "last_modified_date": "2026-10-17",
-        "size_bytes": 76971
+        "size_bytes": 77416
       },
       "id": "ow:red_panda",
       "loot": {
@@ -10259,9 +10274,9 @@
           {
             "desc": {
               "key": "ow.attacks.gorilla.combo.desc",
-              "plain": "Clic gauche : trois coups de poing, le droit puis le gauche, et le troisième s'abat des deux mains à la fois — celui-là projette. Portée de %s bloc, %s dégâts par coup.",
+              "plain": "Clic gauche : une droite, puis une gauche, et un troisième coup qui écrase les deux poings au sol dans une onde de choc — celui-là projette. Portée de %s bloc, %s dégâts par coup.",
               "translations": {
-                "fr_fr": "Clic gauche : trois coups de poing, le droit puis le gauche, et le troisième s'abat des deux mains à la fois — celui-là projette. Portée de %s bloc, %s dégâts par coup."
+                "fr_fr": "Clic gauche : une droite, puis une gauche, et un troisième coup qui écrase les deux poings au sol dans une onde de choc — celui-là projette. Portée de %s bloc, %s dégâts par coup."
               }
             },
             "slug": "combo",
@@ -10460,17 +10475,17 @@
           {
             "looping": false,
             "name": "ATTACK_STRIKE",
-            "seconds": 1.5
+            "seconds": 1.125
           },
           {
             "looping": false,
             "name": "ATTACK_STRIKE_2",
-            "seconds": 1.5
+            "seconds": 1.125
           },
           {
             "looping": false,
             "name": "ATTACK_STRIKE_3",
-            "seconds": 1.5
+            "seconds": 1.7
           },
           {
             "looping": true,
@@ -10578,12 +10593,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-09T14:51:15.7443803+02:00",
-        "created_date": "2026-10-09",
+        "created": "2026-10-18T11:15:01.445615+02:00",
+        "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-17T16:52:07.0272242+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 74613
+        "last_modified": "2026-10-18T11:15:01.4462984+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 81516
       },
       "id": "ow:gorilla",
       "loot": {
@@ -11081,6 +11096,16 @@
           },
           {
             "looping": true,
+            "name": "SEDATED_REST",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "SEDATED_WAKE",
+            "seconds": 2.4
+          },
+          {
+            "looping": true,
             "name": "SWIM",
             "seconds": 1.6
           },
@@ -11123,6 +11148,11 @@
             "looping": true,
             "name": "ROLL_TUCK",
             "seconds": 0.8
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.8
           }
         ],
         "layers": [

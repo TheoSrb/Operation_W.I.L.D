@@ -1595,8 +1595,8 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     // ==================================================
 
     private void setupAnimationState() {
-        createIdleAnimation(80, true);
-        createSitAnimation(83, true);
+        createIdleAnimation(true);
+        createSitAnimation(true);
 
         handleMiscIdleAnimations();
 

@@ -14,6 +14,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.client.layer.OWHeadTrackerLayer;
+import net.tiew.operationWild.entity.client.layer.OWSaddleShieldTrackerLayer;
 import net.tiew.operationWild.entity.client.render.misc.OWRendererUtils;
 
 public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel<T>> extends MobRenderer<T, M> {
@@ -45,6 +46,7 @@ public abstract class OWEntityRenderer<T extends OWEntity, M extends EntityModel
     public OWEntityRenderer(EntityRendererProvider.Context context, M model, float shadowRadius) {
         super(context, model, shadowRadius);
         this.addLayer(new OWHeadTrackerLayer<>(this));
+        this.addLayer(new OWSaddleShieldTrackerLayer<>(this));
     }
 
     @Override

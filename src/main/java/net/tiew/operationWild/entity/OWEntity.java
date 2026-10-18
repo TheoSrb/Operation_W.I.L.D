@@ -298,9 +298,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public final AnimationState idleAnimationState = new AnimationState();
     public final AnimationState attackAnimationState = new AnimationState();
     public final AnimationState sittingAnimationState = new AnimationState();
-    public int idleAnimationTimeout = 0;
     public int attackAnimationTimeout = 0;
-    public int sittingAnimationTimeout = 0;
 
     public AnimationState transitionIdleSit = new AnimationState();
     public AnimationState transitionSitIdle = new AnimationState();
@@ -608,6 +606,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         private static final float TURN_BRAKE_FULL = 110f;
         private static final float TURN_BRAKE_MIN_FACTOR = 0.2f;
         private static final double TURN_BRAKE_MIN_DISTANCE_SQR = 0.25;
+        private static final float TURN_RADIUS_MIN_ERROR = 15f;
+        private static final float TURN_RADIUS_MIN_FACTOR = 0.1f;
+        private static final double GROUND_TERMINAL_FACTOR = 1.6;
 
         private final OWEntity owner;
 
@@ -634,9 +635,23 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (dx * dx + dz * dz < TURN_BRAKE_MIN_DISTANCE_SQR) return;
             float wanted = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
             float error = Math.abs(Mth.wrapDegrees(wanted - this.owner.getYRot()));
-            if (error <= TURN_BRAKE_START) return;
-            float t = Mth.clamp((error - TURN_BRAKE_START) / (TURN_BRAKE_FULL - TURN_BRAKE_START), 0f, 1f);
-            this.mob.setZza(this.mob.zza * Mth.lerp(t, 1f, TURN_BRAKE_MIN_FACTOR));
+            float factor = 1f;
+            if (error > TURN_BRAKE_START) {
+                float t = Mth.clamp((error - TURN_BRAKE_START) / (TURN_BRAKE_FULL - TURN_BRAKE_START), 0f, 1f);
+                factor = Mth.lerp(t, 1f, TURN_BRAKE_MIN_FACTOR);
+            }
+            this.mob.setZza(Math.min(this.mob.zza * factor, turnRadiusLimit(error, Math.sqrt(dx * dx + dz * dz))));
+        }
+
+        private float turnRadiusLimit(float error, double distance) {
+            if (error <= TURN_RADIUS_MIN_ERROR) return Float.MAX_VALUE;
+            float rate = Mth.clamp(this.owner.getRotationSpeed(), 0f, 1f);
+            if (rate <= 0f) return Float.MAX_VALUE;
+            double turn = Math.toRadians(Math.max(OWEntity.MIN_TURN_STEP, error * rate));
+            double circle = distance / (2.0 * Math.sin(Math.toRadians(Math.min(error, 90f))));
+            double fullSpeed = this.owner.getSpeed() * GROUND_TERMINAL_FACTOR;
+            if (fullSpeed <= 1.0E-4) return Float.MAX_VALUE;
+            return (float) Math.max(TURN_RADIUS_MIN_FACTOR, turn * circle / fullSpeed);
         }
 
         private boolean needsStepJump() {
@@ -2469,6 +2484,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private boolean wasInWaterWhileRidden = false;
 
     private long saddleShieldDisabledUntil = 0L;
+    @Nullable
+    private OWSaddleShield.Pose[] reportedShieldPoses;
+    private long reportedShieldPoseTime;
+    public long lastShieldPoseReport = Long.MIN_VALUE;
 
     public boolean hasReachedEnergyLimit() {
         return hasReachedEnergyLimit;
@@ -4842,6 +4861,19 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         saddleShieldDisabledUntil = this.level().getGameTime() + ticks;
     }
 
+    public void reportSaddleShieldPoses(OWSaddleShield.Pose[] poses) {
+        this.reportedShieldPoses = poses;
+        this.reportedShieldPoseTime = this.level().getGameTime();
+    }
+
+    @Nullable
+    public OWSaddleShield.Pose reportedSaddleShieldPose(int index) {
+        OWSaddleShield.Pose[] poses = this.reportedShieldPoses;
+        if (poses == null || index >= poses.length) return null;
+        if (this.level().getGameTime() - this.reportedShieldPoseTime > OWSaddleShield.POSE_REPORT_LIFETIME) return null;
+        return poses[index];
+    }
+
     public void setFed(boolean isFed) {
         this.entityData.set(IS_FED, isFed);
     }
@@ -5417,13 +5449,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return this.entityData.get(VARIANT);
     }
 
-    public void createIdleAnimation(int maxDuration, boolean condition) {
+    public void createIdleAnimation(boolean condition) {
         if (!condition) return;
-
-        if (this.idleAnimationTimeout <= 0) {
-            this.idleAnimationTimeout = maxDuration;
-            this.idleAnimationState.start(this.tickCount);
-        } else --this.idleAnimationTimeout;
+        this.idleAnimationState.startIfStopped(this.tickCount);
     }
 
     public void createAttackAnimation(int maxDuration, boolean condition) {
@@ -5439,18 +5467,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
-    public void createSitAnimation(int maxDuration, boolean condition) {
+    public void createSitAnimation(boolean condition) {
         if (!condition) return;
 
-        if (this.isSitting()) {
-            if (this.sittingAnimationTimeout <= 0) {
-                this.sittingAnimationTimeout = maxDuration;
-                this.sittingAnimationState.start(this.tickCount);
-            } else --this.sittingAnimationTimeout;
-        } else {
-            this.sittingAnimationTimeout = 0;
-            this.sittingAnimationState.stop();
-        }
+        if (this.isSitting()) this.sittingAnimationState.startIfStopped(this.tickCount);
+        else this.sittingAnimationState.stop();
     }
 
     public String getCachedOwnerName() {

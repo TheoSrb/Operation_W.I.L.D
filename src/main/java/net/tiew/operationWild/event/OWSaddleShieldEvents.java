@@ -34,6 +34,10 @@ public class OWSaddleShieldEvents {
         event.setBlocked(true);
         event.setShieldDamage(0f);
 
+        Player hearsVanillaParry = victim instanceof Player player ? player : null;
+        victim.level().playSound(hearsVanillaParry, impact.x, impact.y, impact.z, SoundEvents.SHIELD_BLOCK,
+                victim.getSoundSource(), 1.0f, 0.8f + victim.getRandom().nextFloat() * 0.4f);
+
         if (!source.is(DamageTypeTags.IS_PROJECTILE)
                 && source.getDirectEntity() instanceof LivingEntity attacker
                 && attacker.canDisableShield()) {

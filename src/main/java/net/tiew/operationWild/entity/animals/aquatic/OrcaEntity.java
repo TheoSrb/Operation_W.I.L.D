@@ -2374,8 +2374,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     }
 
     private void setupAnimationState() {
-        createIdleAnimation(60, true);
-        createSitAnimation(96, true);
+        createIdleAnimation(true);
+        createSitAnimation(true);
 
         setupComboAnimations();
     }

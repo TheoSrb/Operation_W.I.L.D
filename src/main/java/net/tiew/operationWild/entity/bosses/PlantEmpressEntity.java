@@ -458,7 +458,7 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
 
 
     private void setupAnimationState() {
-        createIdleAnimation(180, true);
+        createIdleAnimation(true);
 
         if (this.isHead2Dead()) {
             if (this.head2DeathAnimationTimeout <= 0) {

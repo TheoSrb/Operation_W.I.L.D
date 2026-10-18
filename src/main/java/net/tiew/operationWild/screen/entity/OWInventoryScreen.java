@@ -1,6 +1,7 @@
 package net.tiew.operationWild.screen.entity;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -12,6 +13,7 @@ import net.minecraft.client.resources.MobEffectTextureManager;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
@@ -79,6 +81,29 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
     private static final int STAT_ARROW_DOWN_U = 130;
     private static final int STAT_ARROW_W = 7;
     private static final int STAT_ARROW_H = 8;
+
+    private static final int LEVEL_BADGE_U = 80;
+    private static final int LEVEL_BADGE_V = 196;
+    private static final int LEVEL_BADGE_W = 40;
+    private static final int LEVEL_BADGE_H = 20;
+    private static final int LEVEL_BADGE_X = 135;
+    private static final int LEVEL_BADGE_Y = -19;
+    private static final int LEVEL_BADGE_Z = 200;
+    private static final int[] LEVEL_BADGE_RIGHT_GAP = {6, 6, 2, 2, 0, 0};
+    private static final int LEVEL_PLATE_X = 7;
+    private static final int LEVEL_PLATE_Y = 4;
+    private static final int LEVEL_PLATE_W = 26;
+    private static final int LEVEL_PLATE_H = 15;
+    private static final int LEVEL_NUMBER_Y = 4;
+    private static final float LEVEL_SHINE_PERIOD = 90f;
+    private static final float LEVEL_SHINE_SWEEP = 18f;
+    private static final int LEVEL_SHINE_WIDTH = 2;
+    private static final int LEVEL_SHINE_COLOR = 0x70FFFFFF;
+    private static final float LEVEL_SPARKLE_PERIOD = 40f;
+    private static final int[][] LEVEL_SPARKLES = {{2, 3, 0}, {37, 6, 13}, {1, 13, 27}, {38, 15, 33}};
+    private static final int[] LEVEL_RANK_FLOORS = {1, 10, 20, 30, 40, 50};
+    private static final int[] LEVEL_RANK_ENGRAVING = {0x343432, 0x48240E, 0x303846, 0x5C3808, 0x0C3A24, 0x542808};
+    private static final int[] LEVEL_RANK_ENGRAVING_LIGHT = {0xCDCDC8, 0xECB278, 0xECF0F6, 0xFFE88C, 0xA0E6BA, 0xFFD682};
 
     /** Ligne des dégâts remplacée par la Puissance de Soin sur une espèce qui ne frappe pas. */
     private boolean isHealer() {
@@ -305,6 +330,76 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         }
 
         renderTexts(guiGraphics, i, j);
+        renderLevelBadge(guiGraphics, i, j, p_282998_);
+    }
+
+    private int levelRank() {
+        int level = entity.getLevel();
+        for (int rank = LEVEL_RANK_FLOORS.length - 1; rank > 0; rank--) {
+            if (level >= LEVEL_RANK_FLOORS[rank]) return rank;
+        }
+        return 0;
+    }
+
+    private static int plateInset(int row) {
+        return (Math.abs(row - LEVEL_PLATE_H / 2) + 1) / 2;
+    }
+
+    private void renderLevelBadge(GuiGraphics graphics, int left, int top, float partialTick) {
+        int rank = levelRank();
+        int x = left + LEVEL_BADGE_X + LEVEL_BADGE_RIGHT_GAP[rank];
+        int y = top + LEVEL_BADGE_Y;
+        int plateX = x + LEVEL_PLATE_X;
+        int plateY = y + LEVEL_PLATE_Y;
+        float time = entity.tickCount + partialTick;
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, LEVEL_BADGE_Z);
+        graphics.blit(OW_INVENTORY_LOCATION, x, y,
+                LEVEL_BADGE_U + (rank % 3) * LEVEL_BADGE_W, LEVEL_BADGE_V + (rank / 3) * LEVEL_BADGE_H,
+                LEVEL_BADGE_W, LEVEL_BADGE_H);
+
+        renderPlateShine(graphics, plateX, plateY, time % LEVEL_SHINE_PERIOD);
+
+        Component number = Component.literal(String.valueOf(entity.getLevel())).withStyle(ChatFormatting.BOLD);
+        int textX = plateX + (LEVEL_PLATE_W - (this.font.width(number) - 1) + 1) / 2;
+        int textY = plateY + LEVEL_NUMBER_Y;
+        graphics.drawString(this.font, number, textX, textY + 1, LEVEL_RANK_ENGRAVING_LIGHT[rank], false);
+        graphics.drawString(this.font, number, textX, textY, LEVEL_RANK_ENGRAVING[rank], false);
+
+        if (rank == LEVEL_RANK_FLOORS.length - 1) renderLevelSparkles(graphics, x, y, time);
+        graphics.pose().popPose();
+    }
+
+    private void renderPlateShine(GuiGraphics graphics, int plateX, int plateY, float phase) {
+        if (phase >= LEVEL_SHINE_SWEEP) return;
+
+        float sweep = phase / LEVEL_SHINE_SWEEP * (LEVEL_PLATE_W + LEVEL_PLATE_H) - LEVEL_PLATE_H / 2f;
+        for (int row = 1; row < LEVEL_PLATE_H - 1; row++) {
+            int band = Math.round(sweep + (LEVEL_PLATE_H - row) / 2f);
+            int start = Math.max(plateInset(row) + 1, band);
+            int end = Math.min(LEVEL_PLATE_W - 1 - plateInset(row), band + LEVEL_SHINE_WIDTH);
+            if (start < end) graphics.fill(plateX + start, plateY + row, plateX + end, plateY + row + 1, LEVEL_SHINE_COLOR);
+        }
+    }
+
+    private void renderLevelSparkles(GuiGraphics graphics, int x, int y, float time) {
+        for (int[] sparkle : LEVEL_SPARKLES) {
+            float life = ((time + sparkle[2]) % LEVEL_SPARKLE_PERIOD) / LEVEL_SPARKLE_PERIOD;
+            if (life >= 0.5f) continue;
+
+            float glow = Mth.sin(life * 2f * Mth.PI);
+            int sx = x + sparkle[0];
+            int sy = y + sparkle[1];
+            graphics.fill(sx, sy, sx + 1, sy + 1, ((int) (glow * 255) << 24) | 0xFFFFFF);
+            if (glow < 0.5f) continue;
+
+            int arm = ((int) (glow * 180) << 24) | 0xFFE68C;
+            graphics.fill(sx - 1, sy, sx, sy + 1, arm);
+            graphics.fill(sx + 1, sy, sx + 2, sy + 1, arm);
+            graphics.fill(sx, sy - 1, sx + 1, sy, arm);
+            graphics.fill(sx, sy + 1, sx + 1, sy + 2, arm);
+        }
     }
 
     private static final int FOOD_SLOT_INDEX = 1;
@@ -467,10 +562,6 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         Component entitySpeed = Component.literal(entityBaseSpeed)
                 .append(Component.translatable("tooltip.entitySpeed"));
 
-        Component levelText = Component.translatable("tooltip.level");
-        Component levelValue = Component.literal(String.valueOf(entity.getLevel())).withStyle(Style.EMPTY.withColor(TextColor.fromRgb(entity.getLevel() >= 50 ? 0xdd9847 : 0xb8e45a)).withBold(true));
-        Component fullLevelText = Component.empty().append(levelText).append(" ").append(levelValue);
-
         graphics.drawString(this.font, levelPoints, this.entity.getLevelPoints() > 9 ? centerX + 67 : centerX + 70, centerY - 76, this.entity.getLevelPoints() > 0 ? 0xb8e45a : 0x8b8b8b);
 
         float energyLeft = Math.max(0f, entity.getVitalEnergyCapacity() - entity.getVitalEnergy());
@@ -484,8 +575,6 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         drawStatLine(graphics, entitySpeed, textX, offsetY, 2);
         drawStatLine(graphics, entityEnergy, textX, offsetY, 3);
         graphics.pose().popPose();
-
-        graphics.drawString(this.font, fullLevelText, centerX - (this.font.width(fullLevelText) / 2), centerY + 100, 0xFFFFFF);
     }
 
     private void drawStatLine(GuiGraphics graphics, Object text, int textX, int offsetY, int row) {

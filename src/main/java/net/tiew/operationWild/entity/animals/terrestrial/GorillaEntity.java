@@ -1836,8 +1836,8 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     // ==================================================
 
     private void setupAnimationState() {
-        createIdleAnimation(80, true);
-        createSitAnimation(120, true);
+        createIdleAnimation(true);
+        createSitAnimation(true);
 
         if (isChestBeating()) this.chestBeatAnimationState.startIfStopped(this.tickCount);
         else this.chestBeatAnimationState.stop();

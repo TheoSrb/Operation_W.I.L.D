@@ -1562,8 +1562,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     private void setupAnimationState() {
-        createIdleAnimation(96, true);
-        createSitAnimation(96, true);
+        createIdleAnimation(true);
+        createSitAnimation(true);
 
         handleMiscIdleAnimations();
 

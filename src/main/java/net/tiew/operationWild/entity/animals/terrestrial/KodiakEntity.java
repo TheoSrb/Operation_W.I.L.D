@@ -123,9 +123,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public final AnimationState pawSlamStrikeAnimState = new AnimationState();
 
     public int napAnimationTimeout = 0;
-    public int sniffingAnimationTimeout = 0;
     public int rejectingAnimationTimeout = 0;
-    public int rubsAnimationTimeout = 0;
     public int pawSlamChargeAnimTimer = 0;
     public int pawSlamChargeFullAnimTimer = 0;
     public int pawSlamStrikeAnimTimer = 0;
@@ -287,8 +285,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     private static final List<OWSaddleShield> SADDLE_SHIELDS = List.of(
-            OWSaddleShield.modelPanel(-12f, 3f, 10f, -1.6107f, 0.0948f, -1.5274f, -6f, -11f, 0f, 12f, 22f, 1f),
-            OWSaddleShield.modelPanel(12f, 3f, 10f, -1.6107f, -0.0948f, 1.5274f, -6f, -11f, 0f, 12f, 22f, 1f));
+            OWSaddleShield.modelPanel("cube_r1", -12f, 3f, 10f, -1.6107f, 0.0948f, -1.5274f, -6f, -11f, 0f, 12f, 22f, 1f),
+            OWSaddleShield.modelPanel("cube_r2", 12f, 3f, 10f, -1.6107f, -0.0948f, 1.5274f, -6f, -11f, 0f, 12f, 22f, 1f));
 
     @Override
     public List<OWSaddleShield> saddleShields() {
@@ -1209,8 +1207,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     private void setupAnimationState() {
-        createIdleAnimation(48, true);
-        createSitAnimation(58, true);
+        createIdleAnimation(true);
+        createSitAnimation(true);
 
         if (this.isNapping()) {
             if (this.napAnimationTimeout <= 0) {
@@ -1233,17 +1231,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.rollingAnimationState.stop();
         }
 
-        if (this.isSniffing()) {
-            if (this.sniffingAnimationTimeout <= 0) {
-                this.sniffingAnimationTimeout = 15;
-                this.sniffingAnimationState.start(this.tickCount);
-            } else --this.sniffingAnimationTimeout;
-        }
-
-        if (!this.isSniffing()) {
-            this.sniffingAnimationTimeout = 0;
-            this.sniffingAnimationState.stop();
-        }
+        if (this.isSniffing()) this.sniffingAnimationState.startIfStopped(this.tickCount);
+        else this.sniffingAnimationState.stop();
 
         if (this.isRejectingItem()) {
             if (this.rejectingAnimationTimeout <= 0) {
@@ -1257,17 +1246,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             this.rejectingAnimationState.stop();
         }
 
-        if (this.isRubs()) {
-            if (this.rubsAnimationTimeout <= 0) {
-                this.rubsAnimationTimeout = 28;
-                this.rubsAnimationState.start(this.tickCount);
-            } else --this.rubsAnimationTimeout;
-        }
-
-        if (!this.isRubs()) {
-            this.rubsAnimationTimeout = 0;
-            this.rubsAnimationState.stop();
-        }
+        if (this.isRubs()) this.rubsAnimationState.startIfStopped(this.tickCount);
+        else this.rubsAnimationState.stop();
 
         if (this.isPawSlamCharging()) {
             if (this.pawSlamChargeAnimTimer <= 0) {

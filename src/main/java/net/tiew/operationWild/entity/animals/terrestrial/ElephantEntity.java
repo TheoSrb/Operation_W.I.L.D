@@ -2388,8 +2388,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     private void setupAnimationState() {
-        createIdleAnimation(96, true);
-        createSitAnimation(122, true);
+        createIdleAnimation(true);
+        createSitAnimation(true);
 
         if (this.isCalling()) {
             callAnimationState.startIfStopped(this.tickCount);

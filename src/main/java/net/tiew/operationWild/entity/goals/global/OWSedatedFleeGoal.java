@@ -13,9 +13,9 @@ import java.util.EnumSet;
 public class OWSedatedFleeGoal extends Goal {
 
     private static final int REPATH_INTERVAL = 30;
-    private static final int ESCAPE_RADIUS = 16;
+    private static final int ESCAPE_RADIUS = 28;
     private static final int ESCAPE_HEIGHT = 7;
-    private static final float DROWSY_SLOWDOWN = 0.45f;
+    private static final float DROWSY_SLOWDOWN = 0.3f;
     private static final float STAGGER_BASE_CHANCE = 0.012f;
     private static final float STAGGER_DROWSY_CHANCE = 0.035f;
     private static final int STAGGER_MIN_TICKS = 8;

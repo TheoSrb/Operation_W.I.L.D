@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.OWSemiWaterEntity;
 import net.tiew.operationWild.entity.breakout.OWEnclosureProbe;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,6 +26,7 @@ public class OWFleeRoute {
     private static final double CORNER_SPEED_FACTOR = 0.55;
     private static final int SCOUT_GAP = 10;
     private static final double STEER_DISTANCE = 8.0;
+    private static final int WATER_RESCAN = 40;
 
     private final OWEntity mob;
     private final int radius;
@@ -46,6 +48,9 @@ public class OWFleeRoute {
     private int rescanTimer;
     @Nullable
     private Vec3 lastDanger;
+    @Nullable
+    private Vec3 water;
+    private int waterScanTimer;
 
     public OWFleeRoute(OWEntity mob, int radius, int height, int repathInterval) {
         this.mob = mob;
@@ -59,7 +64,9 @@ public class OWFleeRoute {
         cornered = false;
         refuge = null;
         lastDanger = danger;
-        escape = OWEscapeScout.find(mob, danger, radius, height, this::isFailed);
+        water = seeksWater() ? OWWaterRefuge.find(mob, danger, this::isFailed) : null;
+        waterScanTimer = WATER_RESCAN;
+        escape = water != null ? water : OWEscapeScout.find(mob, danger, radius, height, this::isFailed);
         if (escape != null) return true;
         return enterCorner(danger) || danger != null;
     }
@@ -77,6 +84,7 @@ public class OWFleeRoute {
 
     public void stop() {
         escape = null;
+        water = null;
         refuge = null;
         cornered = false;
         mob.getNavigation().stop();
@@ -94,6 +102,7 @@ public class OWFleeRoute {
             tickCorner(danger, threat, speed);
             return;
         }
+        tickWater(danger);
 
         if (++stuckTimer >= STUCK_WINDOW) {
             boolean moving = !mob.getNavigation().isDone();
@@ -102,6 +111,7 @@ public class OWFleeRoute {
             anchor = mob.position();
             if (!progressed && (moving || !arrived(escape))) {
                 if (escape != null) remember(escape);
+                if (water != null && isFailed(water)) water = null;
                 stuckStrikes++;
                 repathTimer = 0;
             } else if (progressed) {
@@ -122,9 +132,32 @@ public class OWFleeRoute {
         boolean needed = escape == null || mob.getNavigation().isDone() || arrived(escape) || compromised(escape, danger);
         if (scoutCooldown <= 0 && (due || needed)) {
             scoutCooldown = SCOUT_GAP;
-            Vec3 next = OWEscapeScout.find(mob, danger, radius, height, this::isFailed);
+            Vec3 next = water != null ? water : OWEscapeScout.find(mob, danger, radius, height, this::isFailed);
             if (next != null) escape = next;
             moveToEscape(speed);
+        }
+    }
+
+    private boolean seeksWater() {
+        return mob instanceof OWSemiWaterEntity && !mob.isInWater();
+    }
+
+    private void tickWater(@Nullable Vec3 danger) {
+        if (!seeksWater()) {
+            water = null;
+            return;
+        }
+        if (water != null && (isFailed(water) || compromised(water, danger))) {
+            water = null;
+            waterScanTimer = 0;
+        }
+        if (water != null || --waterScanTimer > 0) return;
+        waterScanTimer = WATER_RESCAN;
+        water = OWWaterRefuge.find(mob, danger, this::isFailed);
+        if (water != null && !water.equals(escape)) {
+            escape = water;
+            repathTimer = 0;
+            scoutCooldown = 0;
         }
     }
 

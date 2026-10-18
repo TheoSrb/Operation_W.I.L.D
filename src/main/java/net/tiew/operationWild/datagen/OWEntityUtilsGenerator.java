@@ -304,8 +304,8 @@ public class OWEntityUtilsGenerator implements DataProvider {
                             "\n" +
                             "\n" +
                             "    private void setupAnimationState() {\n" +
-                            "        createIdleAnimation(54, true);\n" +
-                            "        createSitAnimation(80, true);\n" +
+                            "        createIdleAnimation(true);\n" +
+                            "        createSitAnimation(true);\n" +
                             "    }\n" +
                             "\n" +
                             "    protected void defineSynchedData(SynchedEntityData.Builder builder) {\n" +

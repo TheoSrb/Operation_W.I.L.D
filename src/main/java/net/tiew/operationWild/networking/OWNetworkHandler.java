@@ -34,6 +34,7 @@ public class OWNetworkHandler {
         registrar.playToServer(LevelUpOWInventoryPacket.TYPE, LevelUpOWInventoryPacket.STREAM_CODEC, LevelUpOWInventoryPacket::handle);
         registrar.playToServer(OWRunningPacket.TYPE, OWRunningPacket.STREAM_CODEC, OWRunningPacket::handle);
         registrar.playToServer(OWSlidePacket.TYPE, OWSlidePacket.STREAM_CODEC, OWSlidePacket::handle);
+        registrar.playToServer(SaddleShieldPosePacket.TYPE, SaddleShieldPosePacket.STREAM_CODEC, SaddleShieldPosePacket::handle);
         registrar.playToServer(OWVariantsSkinsPacket.TYPE, OWVariantsSkinsPacket.STREAM_CODEC, OWVariantsSkinsPacket::handle);
         registrar.playToServer(SkinBuyingPacket.TYPE, SkinBuyingPacket.STREAM_CODEC, SkinBuyingPacket::handle);
         registrar.playToServer(ConsumeItemPacket.TYPE, ConsumeItemPacket.STREAM_CODEC, ConsumeItemPacket::handle);

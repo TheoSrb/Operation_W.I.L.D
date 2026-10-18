@@ -361,7 +361,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float vehicleRunSpeedMultiplier() {
-        return 3.75f;
+        return 4.25f;
     }
 
     @Override
@@ -1939,8 +1939,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     private void setupAnimationState() {
-        createIdleAnimation(80, true);
-        createSitAnimation(80, true);
+        createIdleAnimation(true);
+        createSitAnimation(true);
         setupThumpAnimation();
         setupNapAnimation();
         setupDrownAnimation();

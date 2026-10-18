@@ -1,6 +1,8 @@
 package net.tiew.operationWild.entity.misc;
 
 import net.minecraft.core.Direction;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -9,6 +11,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.item.OWItems;
 
@@ -16,7 +19,7 @@ public class TranquilizerArrow extends AbstractArrow {
     public static final float DAMAGE_FACTOR = 0.2f;
 
     public Vec2 groundedOffset;
-    public int tranquilizerEffectiveness = 100;
+    public int tranquilizerEffectiveness = 85;
 
     public TranquilizerArrow(EntityType<? extends AbstractArrow> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -35,11 +38,18 @@ public class TranquilizerArrow extends AbstractArrow {
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
+        Entity target = result.getEntity();
+        Vec3 motion = target.getDeltaMovement();
         super.onHitEntity(result);
         if (!this.level().isClientSide) {
+            target.setDeltaMovement(motion);
             this.level().broadcastEntityEvent(this, (byte)3);
             this.discard();
         }
+    }
+
+    @Override
+    protected void doKnockback(LivingEntity target, DamageSource damageSource) {
     }
 
     @Override
