@@ -1131,7 +1131,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         Vec3 push = victim.position().subtract(this.position());
         push = push.lengthSqr() > 1.0e-4 ? push.multiply(1, 0, 1).normalize() : this.getLookAngle().multiply(1, 0, 1);
-        victim.setDeltaMovement(push.x * 0.35, 0.55, push.z * 0.35);
+        OWUtils.launchResisted(this, victim, push.x * 0.35, 0.55, push.z * 0.35);
         victim.hasImpulse = true;
         victim.hurtMarked = true;
 
@@ -1756,7 +1756,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             Vec3 outward = target.position().subtract(this.position());
             outward = outward.lengthSqr() > 1.0e-4 ? outward.multiply(1, 0, 1).normalize() : Vec3.ZERO;
             Vec3 motion = target.getDeltaMovement();
-            target.setDeltaMovement(motion.x * 0.3 + outward.x * 0.3, 0.6, motion.z * 0.3 + outward.z * 0.3);
+            OWUtils.launchResisted(this, target, motion.x * 0.3 + outward.x * 0.3, 0.6, motion.z * 0.3 + outward.z * 0.3);
             target.hasImpulse = true;
             target.hurtMarked = true;
         }

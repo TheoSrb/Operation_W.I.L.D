@@ -231,7 +231,7 @@ public class CrocodileBehaviorHandler {
             target.hurt(this.crocodile.damageSources().mobAttack(this.crocodile), attackDamage);
 
             Vec3 dir = target.position().subtract(this.crocodile.position()).normalize();
-            target.setDeltaMovement(
+            OWUtils.launchResisted(this.crocodile, target,
                     dir.x * knockbackPower,
                     0.25 + knockbackPower * 0.07,
                     dir.z * knockbackPower

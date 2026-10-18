@@ -10,12 +10,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.client.OWClientHooks;
 
 import java.util.HashSet;
@@ -156,10 +156,9 @@ public final class OWSlideController {
             shoved.add(living.getId());
 
             double sideSign = living.position().subtract(owner.position()).dot(side) >= 0 ? 1.0 : -1.0;
-            double resistance = 1.0 - Mth.clamp(living.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE), 0.0, 1.0) * 0.7;
-            double push = power * (0.4 + 0.6 * factor) * resistance;
+            double push = power * (0.4 + 0.6 * factor);
 
-            living.push(dir.x * push + side.x * sideSign * push * 0.8,
+            OWUtils.pushResisted(owner, living, dir.x * push + side.x * sideSign * push * 0.8,
                     0.28 + 0.12 * factor,
                     dir.z * push + side.z * sideSign * push * 0.8);
             living.hurtMarked = true;

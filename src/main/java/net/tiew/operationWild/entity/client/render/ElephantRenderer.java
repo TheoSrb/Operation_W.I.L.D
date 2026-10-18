@@ -27,6 +27,7 @@ public class ElephantRenderer extends OWEntityRenderer<ElephantEntity, ElephantM
         this.addLayer(new ElephantLayer(this));
         this.addLayer(new ElephantSkinRenderLayer(this, context));
         this.addLayer(new net.tiew.operationWild.entity.client.layer.ElephantTrunkSprayLayer(this));
+        this.addLayer(new net.tiew.operationWild.entity.client.layer.ElephantTrunkFoodLayer(this, context.getBlockRenderDispatcher()));
         // En dernier : le drapeau porte la bannière de tribu par-dessus le skin actif.
         this.addLayer(new OWTribeFlagLayer<>(this));
     }
@@ -56,6 +57,13 @@ public class ElephantRenderer extends OWEntityRenderer<ElephantEntity, ElephantM
         this.model.externalWalkTimeMs = elephant.getWalkAnimTimeMs(partialTicks);
 
         super.render(elephant, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
+    }
+
+    @Override
+    protected void scale(ElephantEntity elephant, PoseStack poseStack, float partialTick) {
+        super.scale(elephant, poseStack, partialTick);
+        float matriarch = elephant.getMatriarchRenderScale(partialTick);
+        if (matriarch != 1f) poseStack.scale(matriarch, matriarch, matriarch);
     }
 
     private ElephantModel<ElephantEntity> getOrBakeModel(ModelLayerLocation layer) {

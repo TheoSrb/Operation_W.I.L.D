@@ -668,7 +668,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
         Vec3 push = grabbed.position().subtract(this.position()).multiply(1, 0, 1);
         push = push.lengthSqr() > 1.0e-4 ? push.normalize() : this.getLookAngle().multiply(1, 0, 1);
-        grabbed.setDeltaMovement(push.x * 0.45, 0.42, push.z * 0.45);
+        OWUtils.launchResisted(this, grabbed, push.x * 0.45, 0.42, push.z * 0.45);
         grabbed.hasImpulse = true;
         grabbed.hurtMarked = true;
 

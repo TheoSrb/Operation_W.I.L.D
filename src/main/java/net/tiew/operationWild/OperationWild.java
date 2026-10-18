@@ -341,6 +341,8 @@ public class OperationWild {
                     net.tiew.operationWild.particle.WaterSplatParticle.Provider::new);
             event.registerSpriteSet(OWParticles.DIZZY_STAR.get(),
                     net.tiew.operationWild.particle.DizzyStarParticle.Provider::new);
+            event.registerSpriteSet(OWParticles.AIM_MARKER.get(),
+                    net.tiew.operationWild.particle.AimMarkerParticle.Provider::new);
         }
     }
 }

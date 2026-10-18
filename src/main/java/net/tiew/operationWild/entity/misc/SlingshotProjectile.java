@@ -127,7 +127,7 @@ public class SlingshotProjectile extends AbstractArrow {
 
         Vec3 direction = entity.position().subtract(this.position()).normalize();
         if (!(entity instanceof PlantEmpressEntity)) {
-            entity.push(direction.x * 0.35, 0.2, direction.z * 0.35);
+            OWUtils.pushResisted(this, entity, direction.x * 0.35, 0.2, direction.z * 0.35);
         }
 
         this.setDespawnCounter(5);

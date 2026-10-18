@@ -2082,9 +2082,21 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (this.renderedHeadTop != null && this.level().isClientSide() && this.tickCount - this.renderedHeadTick <= RENDERED_HEAD_LIFETIME) {
             return this.renderedHeadTop;
         }
+        return this.restingHeadPosition();
+    }
+
+    public Vec3 restingHeadOffset() {
+        return new Vec3(0.0, this.napParticleHeight(), this.napParticleForward());
+    }
+
+    public Vec3 restingHeadPosition() {
+        Vec3 offset = this.restingHeadOffset();
         float yaw = this.yBodyRot * Mth.DEG_TO_RAD;
-        double forward = this.napParticleForward();
-        return new Vec3(this.getX() - Mth.sin(yaw) * forward, this.getY() + this.napParticleHeight(), this.getZ() + Mth.cos(yaw) * forward);
+        double sin = Mth.sin(yaw);
+        double cos = Mth.cos(yaw);
+        return new Vec3(this.getX() - sin * offset.z + cos * offset.x,
+                this.getY() + offset.y,
+                this.getZ() + cos * offset.z + sin * offset.x);
     }
 
     public float getSleepBarProgress() {
@@ -3088,13 +3100,18 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     private int sedativePower(Entity projectile, float amount, float headshotFactor) {
+        float factor = headshotFactor * this.sedativeResistanceFactor();
         if (projectile instanceof TranquilizerWoodenStinger stinger) {
-            return (int) (stinger.tranquilizerEffectiveness * headshotFactor);
+            return (int) (stinger.tranquilizerEffectiveness * factor);
         }
         if (amount <= 0.5f) return 0;
         int effectiveness = projectile instanceof TranquilizerArrow arrow ? arrow.tranquilizerEffectiveness
                 : projectile instanceof SlingshotProjectile pebble ? pebble.tranquilizerEffectiveness : 0;
-        return (int) (effectiveness * (amount / 2) * headshotFactor);
+        return (int) (effectiveness * (amount / 2) * factor);
+    }
+
+    public float sedativeResistanceFactor() {
+        return 1f;
     }
 
     @Override
@@ -4033,7 +4050,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 if (getComboAttack() == 3) {
                     for (LivingEntity target : kangaroo.lastAttackHitEntities) {
                         Vec3 motion = target.getDeltaMovement();
-                        target.setDeltaMovement(motion.x * 0.3, 0.65, motion.z * 0.3);
+                        OWUtils.launchResisted(this, target, motion.x * 0.3, 0.65, motion.z * 0.3);
                         target.hurtMarked = true;
 
                         if (kangaroo.level() instanceof ServerLevel serverLevel) {
@@ -4189,7 +4206,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                         Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
                         Vec3 knockback = knockbackDirection.scale(knockbackMultiplier * 0.4);
-                        livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
+                        OWUtils.addVelocityResisted(this, livingEntity, knockback.x, knockback.y * 0.3, knockback.z);
                     }
                 }
             }
@@ -5321,7 +5338,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                         }
                         Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
                         Vec3 knockback = knockbackDirection.scale($$1 * 0.5);
-                        livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
+                        OWUtils.addVelocityResisted(this, livingEntity, knockback.x, knockback.y * 0.3, knockback.z);
                     }
 
                     OWUtils.spawnParticles(livingEntity, ParticleTypes.CRIT, 0, 0.5, 0, 20, 3);
@@ -5362,7 +5379,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                         }
                         Vec3 knockbackDirection = livingEntity.position().subtract(this.position()).normalize();
                         Vec3 knockback = knockbackDirection.scale($$1 * 0.4);
-                        livingEntity.setDeltaMovement(livingEntity.getDeltaMovement().add(knockback.x, knockback.y * 0.3, knockback.z));
+                        OWUtils.addVelocityResisted(this, livingEntity, knockback.x, knockback.y * 0.3, knockback.z);
                     }
 
                     if (this.isTame() && ownerIsRiding()) {

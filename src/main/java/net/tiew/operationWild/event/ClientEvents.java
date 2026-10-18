@@ -1221,59 +1221,16 @@ public class ClientEvents {
             return;
         }
 
+        if (mc.screen != null || mc.options.hideGui) return;
+
         // Le lisere rouge reste reserve a la monture : un compagnon d'epaule blesse a deja sa barre
         // de vie et son signe d'alerte, un ecran rouge se lirait comme la sante du joueur.
-        if (ridden != null && ridden.getHealth() / ridden.getMaxHealth() <= 0.25f) {
-            float opacityPercent = ((float) (-2.8 * (ridden.getHealth() / ridden.getMaxHealth())) + 1) * 1.5f;
-            renderBorder(event.getGuiGraphics(), mc, 0xbc0c0c, opacityPercent, 1.0f);
+        if (ridden != null && ridden.getHealth() / ridden.getMaxHealth() <= net.tiew.operationWild.gui.OWMountAlertOverlay.WOUND_THRESHOLD) {
+            net.tiew.operationWild.gui.OWMountAlertOverlay.renderWound(event.getGuiGraphics(), ridden.getHealth() / ridden.getMaxHealth());
         }
 
-        if (net.tiew.operationWild.gui.OWEntityHud.isEnergyLackFlashing(controlled.getId())) {
-            renderBorder(event.getGuiGraphics(), mc, 0x6442ac, 1.0f, 1.0f);
-        }
-    }
-
-    private static void renderBorder(GuiGraphics graphics, Minecraft mc, int baseColor, float opacityPercent, float sizeMultiplier) {
-        if (mc.screen != null || mc.options.hideGui) {
-            return;
-        }
-
-        int screenWidth = mc.getWindow().getGuiScaledWidth();
-        int screenHeight = mc.getWindow().getGuiScaledHeight();
-        float centerX = screenWidth / 2.0f;
-        float centerY = screenHeight / 2.0f;
-        int steps = 40;
-
-        for (int step = 0; step < steps; step++) {
-            float progress = (float) step / steps;
-            float time = (System.currentTimeMillis() % 2000) / 2000.0f;
-            float oscillation = 0.4f + 0.1f * (float) Math.sin(time * 2 * Math.PI);
-            float size = progress * Math.min(screenWidth, screenHeight) * oscillation * ((1 + opacityPercent) / 2) * sizeMultiplier;
-            float alpha = ((1.0f - progress) * 0.075f) * opacityPercent;
-
-            int alphaInt = (int) (alpha * 255);
-            int color = (alphaInt << 24) | baseColor;
-
-            int topHeight = (int) (size * (1.0f - Math.abs(centerY - size) / centerY));
-            if (topHeight > 0) {
-                graphics.fill(0, 0, screenWidth, Math.min(topHeight, screenHeight), color);
-            }
-
-            int bottomStart = (int) (screenHeight - size * (1.0f - Math.abs(centerY - (screenHeight - size)) / centerY));
-            if (bottomStart < screenHeight) {
-                graphics.fill(0, Math.max(bottomStart, 0), screenWidth, screenHeight, color);
-            }
-
-            int leftWidth = (int) (size * (1.0f - Math.abs(centerX - size) / centerX));
-            if (leftWidth > 0) {
-                graphics.fill(0, 0, Math.min(leftWidth, screenWidth), screenHeight, color);
-            }
-
-            int rightStart = (int) (screenWidth - size * (1.0f - Math.abs(centerX - (screenWidth - size)) / centerX));
-            if (rightStart < screenWidth) {
-                graphics.fill(Math.max(rightStart, 0), 0, screenWidth, screenHeight, color);
-            }
-        }
+        net.tiew.operationWild.gui.OWMountAlertOverlay.renderFatigue(event.getGuiGraphics(),
+                net.tiew.operationWild.gui.OWEntityHud.isEnergyLackFlashing(controlled.getId()));
     }
 
     @SubscribeEvent

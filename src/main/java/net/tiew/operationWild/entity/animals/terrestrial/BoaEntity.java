@@ -923,7 +923,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
         Vec3 away = grabbed.position().subtract(this.position());
         away = (away.lengthSqr() > 1.0E-4 ? away.normalize() : new Vec3(0, 0, 1)).scale(0.45).add(0, 0.3, 0);
-        grabbed.setDeltaMovement(away);
+        OWUtils.launchResisted(this, grabbed, away.x, away.y, away.z);
         grabbed.hasImpulse = true;
         grabbed.hurtMarked = true;
 
@@ -991,7 +991,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                 away = (away.lengthSqr() > 1.0E-4 ? away.normalize() : new Vec3(0, 0, 1)).scale(0.45).add(0, 0.3, 0);
                 stopConstrict();
                 this.setTarget(null);
-                t.setDeltaMovement(away);
+                OWUtils.launchResisted(this, t, away.x, away.y, away.z);
                 t.hurtMarked = true;
                 return;
             }

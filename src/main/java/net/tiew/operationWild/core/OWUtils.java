@@ -29,6 +29,8 @@ import org.joml.Vector3f;
 
 public class OWUtils {
 
+    private static final double HEFT_PENETRATION = 0.8;
+
     /**
      * Planifie une action sur le thread <b>principal</b> du serveur après {@code delayTicks} ticks (20 ticks = 1 s).
      * À utiliser systématiquement à la place de {@code new Timer()}/{@code TimerTask} : accéder au monde ou aux
@@ -370,4 +372,36 @@ public class OWUtils {
         }
     }
 
+    public static double knockbackFactor(Entity attacker, Entity target) {
+        if (!(target instanceof LivingEntity living)) return 1.0;
+        double resistance = Mth.clamp(living.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE), 0.0, 1.0);
+        if (resistance >= 1.0) return 0.0;
+        return 1.0 - resistance * (1.0 - heft(attacker) * HEFT_PENETRATION);
+    }
+
+    public static double heft(Entity attacker) {
+        if (!(attacker instanceof LivingEntity living)) return 0.0;
+        return Mth.clamp(living.getAttributeBaseValue(Attributes.KNOCKBACK_RESISTANCE), 0.0, 1.0);
+    }
+
+    public static void pushResisted(Entity attacker, Entity target, double x, double y, double z) {
+        double factor = knockbackFactor(attacker, target);
+        if (factor <= 0.0) return;
+        target.push(x * factor, y * factor, z * factor);
+    }
+
+    public static void addVelocityResisted(Entity attacker, Entity target, double x, double y, double z) {
+        double factor = knockbackFactor(attacker, target);
+        if (factor <= 0.0) return;
+        target.setDeltaMovement(target.getDeltaMovement().add(x * factor, y * factor, z * factor));
+    }
+
+    public static void launchResisted(Entity attacker, Entity target, double x, double y, double z) {
+        double factor = knockbackFactor(attacker, target);
+        if (factor <= 0.0) return;
+        net.minecraft.world.phys.Vec3 current = target.getDeltaMovement();
+        target.setDeltaMovement(current.x + (x - current.x) * factor,
+                current.y + (y - current.y) * factor,
+                current.z + (z - current.z) * factor);
+    }
 }

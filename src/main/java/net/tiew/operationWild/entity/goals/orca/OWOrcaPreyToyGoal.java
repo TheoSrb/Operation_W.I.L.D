@@ -8,6 +8,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 
 import java.util.EnumSet;
@@ -206,7 +207,7 @@ public class OWOrcaPreyToyGoal extends Goal {
         double horizontal = lastToss ? FINAL_TOSS_HORIZONTAL : TOSS_HORIZONTAL;
         double vertical = lastToss ? FINAL_TOSS_VERTICAL : TOSS_VERTICAL;
 
-        this.prey.setDeltaMovement(away.x * horizontal, vertical, away.z * horizontal);
+        OWUtils.launchResisted(this.orca, this.prey, away.x * horizontal, vertical, away.z * horizontal);
         this.prey.hurtMarked = true;
         this.prey.hasImpulse = true;
         this.prey.fallDistance = 0.0F;

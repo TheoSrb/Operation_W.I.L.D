@@ -7,12 +7,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;
@@ -22,9 +25,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
+import org.jetbrains.annotations.Nullable;
 
 public class ThrownRockEntity extends ThrowableItemProjectile {
 
@@ -32,6 +38,9 @@ public class ThrownRockEntity extends ThrowableItemProjectile {
 
     private static final int IMPACT_RING_POINTS = 10;
     private static final double ROCK_VISUAL_MARGIN = 0.06;
+    private static final double GRAVITY = 0.055;
+    private static final double AIR_DRAG = 0.99;
+    private static final double WATER_DRAG = 0.8;
 
     private boolean exploded = false;
 
@@ -75,7 +84,33 @@ public class ThrownRockEntity extends ThrowableItemProjectile {
 
     @Override
     protected double getDefaultGravity() {
-        return 0.055;
+        return GRAVITY;
+    }
+
+    @Nullable
+    public static Vec3 predictImpact(Level level, Vec3 origin, Vec3 velocity) {
+        EntityDimensions size = OWEntityRegistry.THROWN_ROCK.get().getDimensions();
+        double half = size.width() * 0.5;
+        double height = size.height();
+        Vec3 position = origin;
+        Vec3 motion = velocity;
+
+        for (int tick = 0; tick <= OWAttacksConstants.Gorilla.ROCK_THROW_MAX_LIFETIME_TICKS; tick++) {
+            Vec3 next = position.add(motion);
+            BlockHitResult hit = level.clip(new ClipContext(position, next,
+                    ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, CollisionContext.empty()));
+            if (hit.getType() != HitResult.Type.MISS) return hit.getLocation();
+
+            boolean inWater = level.getFluidState(BlockPos.containing(position)).is(FluidTags.WATER);
+            position = next;
+            motion = motion.scale(inWater ? WATER_DRAG : AIR_DRAG).add(0.0, -GRAVITY, 0.0);
+            if (!level.isLoaded(BlockPos.containing(position))) return null;
+
+            AABB box = new AABB(position.x - half, position.y, position.z - half,
+                    position.x + half, position.y + height, position.z + half).inflate(ROCK_VISUAL_MARGIN);
+            if (!level.noCollision(box)) return box.getCenter();
+        }
+        return null;
     }
 
     @Override
@@ -233,7 +268,7 @@ public class ThrownRockEntity extends ThrowableItemProjectile {
             Vec3 push = living.position().subtract(at);
             if (push.lengthSqr() < 1.0E-4) push = new Vec3(0, 1, 0);
             push = push.normalize().scale(OWAttacksConstants.Gorilla.ROCK_THROW_KNOCKBACK * falloff);
-            living.push(push.x, Math.max(0.35, push.y), push.z);
+            OWUtils.pushResisted(this, living, push.x, Math.max(0.35, push.y), push.z);
             living.hurtMarked = true;
         }
 

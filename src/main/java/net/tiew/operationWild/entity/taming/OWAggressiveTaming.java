@@ -547,9 +547,8 @@ public class OWAggressiveTaming {
     }
 
     private Vec3 mouthPosition() {
-        double yaw = Math.toRadians(entity.yBodyRot);
-        double forward = entity.napParticleForward();
-        return new Vec3(entity.getX() - Math.sin(yaw) * forward, entity.getY() + 0.25, entity.getZ() + Math.cos(yaw) * forward);
+        Vec3 head = entity.restingHeadPosition();
+        return new Vec3(head.x, entity.getY() + 0.25, head.z);
     }
 
     private double mealReach() {

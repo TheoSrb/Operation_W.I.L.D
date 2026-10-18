@@ -733,7 +733,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
             Vec3 push = victim.position().subtract(this.position());
             push = push.lengthSqr() > 1.0E-4 ? push.normalize() : this.getLookAngle();
-            victim.setDeltaMovement(victim.getDeltaMovement().add(push.x * 0.45, 0.32, push.z * 0.45));
+            OWUtils.addVelocityResisted(this, victim, push.x * 0.45, 0.32, push.z * 0.45);
             victim.hurtMarked = true;
         }
 
@@ -1610,8 +1610,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
             target.hurt(this.damageSources().mobAttack(this), this.getRushDamage());
             double shove = this.isTame() ? 1.2 : 0.55;
-            target.setDeltaMovement(target.getDeltaMovement()
-                    .add(push.x * shove, this.isTame() ? 0.25 : 0.14, push.z * shove));
+            OWUtils.addVelocityResisted(this, target, push.x * shove, this.isTame() ? 0.25 : 0.14, push.z * shove);
         }
     }
 
@@ -2016,7 +2015,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
             if (spit) {
                 Vec3 push = Vec3.directionFromRotation(0, this.getYRot()).scale(0.9);
-                prey.setDeltaMovement(push.x, 0.35, push.z);
+                OWUtils.launchResisted(this, prey, push.x, 0.35, push.z);
                 prey.hurtMarked = true;
                 this.level().playSound(null, getX(), getY(), getZ(),
                         net.minecraft.sounds.SoundEvents.DOLPHIN_ATTACK, SoundSource.HOSTILE, 1.5f, 0.69f);

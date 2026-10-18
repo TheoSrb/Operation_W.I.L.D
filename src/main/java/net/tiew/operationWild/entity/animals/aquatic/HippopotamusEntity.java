@@ -714,7 +714,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         if (entity instanceof Player player && player.isCreative()) return;
 
         if (comboAttack == 3) {
-            entity.push(0, HEADBUTT_LIFT, 0);
+            OWUtils.pushResisted(this, entity, 0, HEADBUTT_LIFT, 0);
             entity.hurtMarked = true;
         }
 
@@ -1247,7 +1247,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
             if (push.horizontalDistanceSqr() < 1.0E-4) push = this.getLookAngle();
             double power = OWAttacksConstants.Hippopotamus.FURY_SHOCKWAVE_PUSH * (1.0 - 0.5 * distance / radius);
             push = new Vec3(push.x, 0, push.z).normalize().scale(power);
-            living.push(push.x, 0.35, push.z);
+            OWUtils.pushResisted(this, living, push.x, 0.35, push.z);
             living.hurtMarked = true;
             living.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
                     OWAttacksConstants.Hippopotamus.FURY_SHOCKWAVE_SLOW_TICKS, 1));

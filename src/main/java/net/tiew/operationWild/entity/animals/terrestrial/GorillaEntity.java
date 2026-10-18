@@ -140,6 +140,13 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private static final double ULTIMATE_SEAT_LIFT = 0.55;
     private static final double SEAT_FORWARD_CLIMBING = -0.85;
     private static final double SEAT_DROP = 0.14;
+    private static final double ROCK_LAUNCH_FORWARD = 1.8;
+    private static final double ROCK_LAUNCH_RISE = 0.35;
+    private static final double ROCK_LAUNCH_LOOK_RISE = 0.6;
+    private static final double ROCK_LAUNCH_LOFT = 0.10;
+    private static final double KNOCKED_OUT_HEAD_SIDE = 0.17;
+    private static final double KNOCKED_OUT_HEAD_HEIGHT = 0.55;
+    private static final double KNOCKED_OUT_HEAD_FORWARD = -1.06;
     private static final double CLIMB_HIP_OUT = 0.34;
     private static final double CLIMB_HIP_HEIGHT = 0.70;
     private static final double RIDER_HIP_HEIGHT = 0.75;
@@ -474,6 +481,13 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     @Override
     public Item favoriteFoodTier3() {
         return Items.MELON_SLICE;
+    }
+
+    @Override
+    public Vec3 restingHeadOffset() {
+        if (!this.isKnockedOut()) return super.restingHeadOffset();
+        double scale = this.getScale();
+        return new Vec3(KNOCKED_OUT_HEAD_SIDE * scale, KNOCKED_OUT_HEAD_HEIGHT * scale, KNOCKED_OUT_HEAD_FORWARD * scale);
     }
 
     @Override
@@ -1312,28 +1326,42 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         this.entityData.set(ROCK_THROW_TICK, OWAttacksConstants.Gorilla.ROCK_THROW_RELEASE_TICKS);
 
         float factor = Mth.clamp(chargeFactor, 0f, 1f);
-        double speed = Mth.lerp(factor,
-                OWAttacksConstants.Gorilla.ROCK_THROW_MIN_SPEED,
-                OWAttacksConstants.Gorilla.ROCK_THROW_MAX_SPEED);
         float damage = (float) (getCombatDamage() * Mth.lerp(factor,
                 OWAttacksConstants.Gorilla.ROCK_THROW_MIN_DAMAGE_RATIO,
                 OWAttacksConstants.Gorilla.ROCK_THROW_MAX_DAMAGE_RATIO));
 
         LivingEntity aimer = this.getControllingPassenger() != null ? this.getControllingPassenger() : this;
-        Vec3 look = isClimbing() && aimer != this
-                ? Vec3.directionFromRotation(aimer.getXRot() - CLIMB_TILT_MAX_DEG, aimer.getYRot())
-                : aimer.getLookAngle();
+        Vec3 look = rockAimDirection(aimer);
+        Vec3 origin = rockLaunchOrigin(look);
+        Vec3 velocity = rockLaunchVelocity(look, factor);
 
         ThrownRockEntity rock = new ThrownRockEntity(this.level(), this, damage);
-        rock.setPos(this.getX() + look.x * 1.8,
-                this.getEyeY() + 0.35 + look.y * 0.6,
-                this.getZ() + look.z * 1.8);
-        rock.shoot(look.x, look.y + 0.10, look.z, (float) speed, 0f);
+        rock.setPos(origin.x, origin.y, origin.z);
+        rock.shoot(velocity.x, velocity.y, velocity.z, (float) velocity.length(), 0f);
         this.level().addFreshEntity(rock);
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 SoundEvents.RAVAGER_ROAR, SoundSource.NEUTRAL,
                 1.4f, (float) OWUtils.generateRandomInterval(0.85, 1.05));
+    }
+
+    public Vec3 rockAimDirection(LivingEntity aimer) {
+        return isClimbing() && aimer != this
+                ? Vec3.directionFromRotation(aimer.getXRot() - CLIMB_TILT_MAX_DEG, aimer.getYRot())
+                : aimer.getLookAngle();
+    }
+
+    public Vec3 rockLaunchOrigin(Vec3 look) {
+        return new Vec3(this.getX() + look.x * ROCK_LAUNCH_FORWARD,
+                this.getEyeY() + ROCK_LAUNCH_RISE + look.y * ROCK_LAUNCH_LOOK_RISE,
+                this.getZ() + look.z * ROCK_LAUNCH_FORWARD);
+    }
+
+    public static Vec3 rockLaunchVelocity(Vec3 look, float chargeFactor) {
+        double speed = Mth.lerp(Mth.clamp(chargeFactor, 0f, 1f),
+                OWAttacksConstants.Gorilla.ROCK_THROW_MIN_SPEED,
+                OWAttacksConstants.Gorilla.ROCK_THROW_MAX_SPEED);
+        return new Vec3(look.x, look.y + ROCK_LAUNCH_LOFT, look.z).normalize().scale(speed);
     }
 
     public void startRiderLaunchCharge() {
@@ -1519,7 +1547,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             Vec3 push = living.position().subtract(this.position());
             if (push.lengthSqr() < 1.0E-4) push = this.getLookAngle();
             push = push.normalize().scale(OWAttacksConstants.Gorilla.CHEST_BEAT_PUSH_POWER);
-            living.push(push.x, 0.25, push.z);
+            OWUtils.pushResisted(this, living, push.x, 0.25, push.z);
             living.hurtMarked = true;
 
             if (living instanceof net.minecraft.world.entity.Mob mob && mob.getTarget() == this) {

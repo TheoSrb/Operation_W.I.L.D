@@ -98,6 +98,7 @@ public class OWSedationResponse {
     private double pursuitDistance = Double.MAX_VALUE;
     private int pursuitSampleTimer;
     private boolean momentum;
+    private boolean drowsy;
 
     public OWSedationResponse(OWEntity entity) {
         this.entity = entity;
@@ -178,6 +179,14 @@ public class OWSedationResponse {
             return;
         }
 
+        if (entity.getActualSleepingBar() > 0) {
+            drowsy = true;
+        } else if (drowsy && (stance == Stance.RETREAT || stance == Stance.WARY)) {
+            entity.getNavigation().stop();
+            reset();
+            return;
+        }
+
         stanceTicks++;
         sinceProvoked++;
         if (surpriseTicks > 0) surpriseTicks--;
@@ -208,6 +217,7 @@ public class OWSedationResponse {
         ambushPlanned = false;
         committed = false;
         surpriseTicks = 0;
+        drowsy = false;
     }
 
     public boolean isFrustrated() {
@@ -277,6 +287,7 @@ public class OWSedationResponse {
         committed = false;
         surpriseTicks = 0;
         boolean wasRetreating = stance == Stance.RETREAT;
+        drowsy = entity.getActualSleepingBar() > 0;
         stance = Stance.RETREAT;
         stanceTicks = 0;
         unreachableChecks = 0;

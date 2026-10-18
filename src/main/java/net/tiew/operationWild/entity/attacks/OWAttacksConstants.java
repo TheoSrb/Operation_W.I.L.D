@@ -71,12 +71,7 @@ public class OWAttacksConstants {
         public static final int SHOULDER_BASH_DURATION_TICKS =
                 SHOULDER_BASH_WINDUP_TICKS + SHOULDER_BASH_DASH_TICKS + SHOULDER_BASH_RECOVER_TICKS;
 
-        /**
-         * Vitesse latérale maintenue pendant la ruée. Elle est réécrite à chaque tick, donc le
-         * frottement n'entre pas en jeu : dix ticks à 0,26 déportent l'éléphant de deux blocs et
-         * demi, l'écart demandé. Une impulsion unique, elle, s'éteignait en un demi-bloc.
-         */
-        public static final double SHOULDER_BASH_DASH_SPEED = 0.42;
+        public static final double SHOULDER_BASH_DASH_SPEED = 0.22;
         /** Petit sursaut vertical au départ : sans lui la masse colle au sol et l'écart ne se voit pas. */
         public static final double SHOULDER_BASH_LIFT = 0.26;
         /** Demi-largeur de la boîte de frappe, prise du côté vers lequel l'éléphant se déporte. */
@@ -90,8 +85,8 @@ public class OWAttacksConstants {
          * qu'un tiers — sans approcher la démesure d'un ultime.</p>
          */
         public static final float SHOULDER_BASH_DAMAGE_RATIO = 0.5f;
-        public static final float SHOULDER_BASH_KNOCKBACK = 3.4f;
-        public static final double SHOULDER_BASH_KNOCKBACK_LIFT = 0.62;
+        public static final float SHOULDER_BASH_KNOCKBACK = 2.0f;
+        public static final double SHOULDER_BASH_KNOCKBACK_LIFT = 0.38;
         /**
          * Bornes du dosage par gabarit, plus resserrées que celles du jet d'eau.
          *

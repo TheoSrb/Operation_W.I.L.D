@@ -39,6 +39,9 @@ public class ElephantTrunkSprayLayer extends RenderLayer<ElephantEntity, Elephan
     // la même eau étalée sur une section trois fois plus large paraît trois fois plus rare.
     private static final int JET_PER_TICK  = 88;  // les gouttes lancées, qui parcourent l'arc
     private static final int DRIP_PER_TICK = 7;   // ce qui coule le long de la trompe
+    private static final int SHOWER_PER_TICK = 26;
+    private static final double SHOWER_SPEED = 0.45;
+    private static final double SHOWER_SPREAD = 0.14;
 
     /**
      * Largeur du jet à la sortie de trompe.
@@ -72,7 +75,8 @@ public class ElephantTrunkSprayLayer extends RenderLayer<ElephantEntity, Elephan
 
         boolean spraying = elephant.isSprayingWater();
         boolean filling = elephant.isFillingTrunk();
-        if (!spraying && !filling) return;
+        boolean showering = elephant.isTrunkAiControlled() && elephant.getTrunkMode() == ElephantEntity.TRUNK_SHOWERING;
+        if (!spraying && !filling && !showering) return;
 
         Level level = elephant.level();
         if (!level.isClientSide()) return;
@@ -107,6 +111,11 @@ public class ElephantTrunkSprayLayer extends RenderLayer<ElephantEntity, Elephan
 
         if (filling) {
             spawnSuction(level, tip);
+            return;
+        }
+
+        if (showering) {
+            spawnShower(level, tip, axis);
             return;
         }
 
@@ -150,6 +159,23 @@ public class ElephantTrunkSprayLayer extends RenderLayer<ElephantEntity, Elephan
         // ── Ce qui coule le long de la trompe ─────────────────────────────────
         for (int i = 0; i < DRIP_PER_TICK; i++) {
             Vec3 at = scatter(random, tip, 0.18);
+            level.addParticle(ParticleTypes.FALLING_WATER, at.x, at.y, at.z, 0, 0, 0);
+        }
+    }
+
+    private void spawnShower(Level level, Vec3 tip, Vec3 dir) {
+        var random = level.getRandom();
+        for (int i = 0; i < SHOWER_PER_TICK; i++) {
+            Vec3 perp = perpendicular(random, dir);
+            double offset = Math.pow(random.nextDouble(), 0.6);
+            Vec3 at = tip.add(perp.scale(NOZZLE_RADIUS * 0.4 * offset));
+            Vec3 v = dir.scale(SHOWER_SPEED * (0.75 + 0.5 * random.nextDouble()))
+                    .add(perp.scale(SHOWER_SPREAD * offset));
+            level.addParticle(net.tiew.operationWild.particle.OWParticles.WATER_JET_PARTICLE.get(),
+                    at.x, at.y, at.z, v.x, v.y, v.z);
+        }
+        for (int i = 0; i < DRIP_PER_TICK; i++) {
+            Vec3 at = scatter(random, tip, 0.2);
             level.addParticle(ParticleTypes.FALLING_WATER, at.x, at.y, at.z, 0, 0, 0);
         }
     }

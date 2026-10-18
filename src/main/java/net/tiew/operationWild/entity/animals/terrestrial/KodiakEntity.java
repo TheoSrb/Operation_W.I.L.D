@@ -1553,7 +1553,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             }
             target.hurt(this.damageSources().mobAttack(this), damage);
             Vec3 diff = target.position().subtract(this.position()).normalize();
-            target.setDeltaMovement(target.getDeltaMovement().add(diff.x * 1.8, 0.6, diff.z * 1.8));
+            OWUtils.addVelocityResisted(this, target, diff.x * 1.8, 0.6, diff.z * 1.8);
             target.hasImpulse = true;
         }
 

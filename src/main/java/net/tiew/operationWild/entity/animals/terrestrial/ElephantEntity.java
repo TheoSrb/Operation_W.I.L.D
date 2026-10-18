@@ -59,7 +59,22 @@ import net.tiew.operationWild.entity.config.IOWEntity;
 import net.tiew.operationWild.entity.config.IOWRideable;
 import net.tiew.operationWild.entity.config.IOWTamable;
 import net.tiew.operationWild.entity.config.OWEntityConfig;
+import net.tiew.operationWild.entity.goals.elephant.ElephantBrowseGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantDouseFireGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantFollowHerdGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantGrudgeTargetGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantHerdDefenseTargetGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantListenGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantMockChargeGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantMournGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantMusthTargetGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantPredatorTargetGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantSeekWaterGoal;
+import net.tiew.operationWild.entity.goals.elephant.ElephantSprayPerchedGoal;
 import net.tiew.operationWild.entity.goals.global.OWBreedGoal;
+import net.tiew.operationWild.entity.herd.ElephantHerd;
+import net.tiew.operationWild.entity.herd.ElephantHerdSpawnData;
+import net.tiew.operationWild.entity.herd.ElephantWildMind;
 import net.tiew.operationWild.entity.goals.global.OWRandomLookAroundGoal;
 import net.tiew.operationWild.entity.variants.ElephantVariant;
 import net.tiew.operationWild.item.OWItems;
@@ -77,6 +92,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
 
@@ -112,6 +128,34 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private static final EntityDataAccessor<Integer> SADDLE_WOOL_0 = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SADDLE_WOOL_1 = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_MATRIARCH = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> ALARM_TICK = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> THREAT_DISPLAY = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> IS_LISTENING = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> IS_MUSTH = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> TRUNK_AI = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Float> TRUNK_AIM_YAW = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Float> TRUNK_AIM_PITCH = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<java.util.Optional<BlockState>> HELD_FOOD = SynchedEntityData.defineId(ElephantEntity.class, EntityDataSerializers.OPTIONAL_BLOCK_STATE);
+
+    public static final int TRUNK_BROWSING = 3;
+    public static final int TRUNK_DRINKING = 4;
+    public static final int TRUNK_SHOWERING = 5;
+    public static final int TRUNK_TOUCHING = 6;
+
+    public static final int ALARM_DURATION_TICKS = 80;
+    public static final int ALARM_SIGNAL_TICK = 25;
+    public static final int ALARM_LANDING_TICK = 68;
+    private static final int ALARM_FACE_TICKS = 16;
+    private static final float ALARM_TURN_SPEED = 7f;
+    public static final long ALARM_LENGTH_MS = 4000L;
+
+    private static final float MATRIARCH_RENDER_SCALE = 1.08f;
+    private static final float MUSTH_SEDATIVE_FACTOR = 0.6f;
+    private static final int WILD_QUAKE_BLOCK_DIVIDER = 4;
+    private static final double AI_DRINK_POINT = 1.6;
+    private static final int AI_DRINK_DEPTH = 4;
+    private static final float BROWSE_LOW_PITCH = 30f;
 
     private static final double SEAT_HEIGHT = 0.78;
     private static final double SEAT_FORWARD = 0.10;
@@ -218,6 +262,17 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     
     public final AnimationState callAnimationState = new AnimationState();
     public final AnimationState earthquakeAnimationState = new AnimationState();
+    public final AnimationState alarmAnimationState = new AnimationState();
+
+    public final ElephantWildMind wild = new ElephantWildMind(this);
+
+    private float displayBlend, displayBlendO;
+    private float tossBlend, tossBlendO;
+    private float listenBlend, listenBlendO;
+    private float matriarchBlend, matriarchBlendO;
+    private float trunkCurl, trunkCurlO;
+    public int lastFoodCrumbTick = -1;
+    private boolean wildQuake = false;
 
     public int callAnimationStartTime = 0;
 
@@ -236,6 +291,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      * commence et quand il finit.</p>
      */
     public int clientBashElapsed = -1;
+    private int clientBashLastShake = -1;
 
     /** Visée lissée de la trompe (client), en degrés relatifs au corps. */
     public float trunkAimYaw, trunkAimYawO;
@@ -328,18 +384,31 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new ElephantDouseFireGoal(this));
+        this.goalSelector.addGoal(1, new ElephantSprayPerchedGoal(this));
         this.goalSelector.addGoal(2, new ElephantMeleeAttackGoal());
+        this.goalSelector.addGoal(3, new ElephantMockChargeGoal(this));
+        this.goalSelector.addGoal(3, new ElephantMournGoal(this));
+        this.goalSelector.addGoal(5, new ElephantListenGoal(this));
+        this.goalSelector.addGoal(7, new ElephantSeekWaterGoal(this));
+        this.goalSelector.addGoal(8, new ElephantFollowHerdGoal(this));
+        this.goalSelector.addGoal(9, new ElephantBrowseGoal(this));
 
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
         this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D));
 
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
 
+        this.targetSelector.addGoal(0, new ElephantHerdDefenseTargetGoal(this));
+        this.targetSelector.addGoal(1, new ElephantGrudgeTargetGoal(this));
+        this.targetSelector.addGoal(2, new ElephantPredatorTargetGoal(this));
+        this.targetSelector.addGoal(2, new ElephantMusthTargetGoal(this));
+
         this.lookControl = new LookControl(this) {
             @Override
             public void tick() {
                 if (this.mob instanceof ElephantEntity elephant && !elephant.isSleeping() && !elephant.isNapping()
-                        && !elephant.isEarthquakeGesture()) {
+                        && !elephant.isEarthquakeGesture() && !elephant.isAlarming()) {
                     super.tick();
                 }
             }
@@ -361,6 +430,15 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         builder.define(ULTIMATE_KILL_COUNT, 0);
         builder.define(SADDLE_WOOL_0, NO_TRIBE_WOOL_0);
         builder.define(SADDLE_WOOL_1, NO_TRIBE_WOOL_1);
+        builder.define(IS_MATRIARCH, false);
+        builder.define(ALARM_TICK, 0);
+        builder.define(THREAT_DISPLAY, ElephantWildMind.DISPLAY_NONE);
+        builder.define(IS_LISTENING, false);
+        builder.define(IS_MUSTH, false);
+        builder.define(TRUNK_AI, false);
+        builder.define(TRUNK_AIM_YAW, 0f);
+        builder.define(TRUNK_AIM_PITCH, 0f);
+        builder.define(HELD_FOOD, java.util.Optional.empty());
     }
 
     public static final int ENTITY_COLOR = 0x776a5e;
@@ -382,7 +460,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public boolean hasStandardHeadPose() {
-        return !this.isEarthquakeGesture();
+        return !this.isEarthquakeGesture() && !this.isAlarming();
     }
 
     @Override
@@ -762,6 +840,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             tickChargeHeadPitch();
             tickTrunkAim();
             tickClientBashElapsed();
+            tickWildBlends();
+            tickMusthDrip();
+            tickClientBodyFacing();
         }
         if (this.isInResurrection()) this.setSleeping(true);
 
@@ -769,7 +850,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             setMadByRider(this.isCombo() || this.isShoulderBashing() || this.isEarthquakeGesture());
         }
 
-        if (this.isEarthquakeGesture()) {
+        if (this.isEarthquakeGesture() || this.isAlarming()) {
             this.setDeltaMovement(this.getDeltaMovement().multiply(0.2, 1.0, 0.2));
         }
 
@@ -778,13 +859,88 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (!this.level().isClientSide()) {
             tickTrunkWater();
             tickEarthquake();
+            tickAlarm();
             tickShockwave();
             tickChargeStall();
             tickCharge();
             tickGroundStrikes();
             handleCall();
+            wild.tick();
         }
     }
+
+    private void tickWildBlends() {
+        displayBlendO = displayBlend;
+        tossBlendO = tossBlend;
+        listenBlendO = listenBlend;
+        matriarchBlendO = matriarchBlend;
+        trunkCurlO = trunkCurl;
+
+        int display = getThreatDisplay();
+        float displayTarget = switch (display) {
+            case ElephantWildMind.DISPLAY_NONE -> 0f;
+            case ElephantWildMind.DISPLAY_MUSTH -> 0.45f;
+            default -> 1f;
+        };
+        displayBlend = approachBlend(displayBlend, displayTarget, 0.14f);
+        tossBlend = approachBlend(tossBlend, display == ElephantWildMind.DISPLAY_TOSS ? 1f : 0f, 0.2f);
+        listenBlend = approachBlend(listenBlend, isListening() ? 1f : 0f, 0.12f);
+        float matriarchTarget = isMatriarch() ? 1f : 0f;
+        if (this.tickCount < 3) {
+            matriarchBlend = matriarchTarget;
+            matriarchBlendO = matriarchTarget;
+        } else {
+            matriarchBlend = approachBlend(matriarchBlend, matriarchTarget, 0.02f);
+        }
+
+        float curl = 0f;
+        if (isTrunkAiControlled()) {
+            curl = switch (getTrunkMode()) {
+                case TRUNK_DRINKING -> 115f;
+                case TRUNK_SHOWERING -> -55f;
+                case TRUNK_BROWSING -> 18f + 22f * Mth.sin(this.tickCount * 0.32f);
+                case TRUNK_TOUCHING -> -14f + 8f * Mth.sin(this.tickCount * 0.09f);
+                default -> 0f;
+            };
+        }
+        trunkCurl += (curl - trunkCurl) * 0.16f;
+    }
+
+    private void tickClientBodyFacing() {
+        if (this.isVehicle() || this.isTame()) return;
+        boolean oriented = isAlarming() || isTrunkAiControlled() || isListening()
+                || getThreatDisplay() != ElephantWildMind.DISPLAY_NONE;
+        if (oriented) this.yBodyRot = Mth.approachDegrees(this.yBodyRot, this.yHeadRot, 12f);
+    }
+
+    private static float approachBlend(float value, float target, float rate) {
+        if (value < target) return Math.min(target, value + rate);
+        return Math.max(target, value - rate);
+    }
+
+    private void tickMusthDrip() {
+        if (!isMusth() || this.random.nextFloat() > 0.3f) return;
+        Vec3 forward = Vec3.directionFromRotation(0f, this.yBodyRot);
+        Vec3 side = new Vec3(-forward.z, 0, forward.x);
+        double sign = this.random.nextBoolean() ? 1.0 : -1.0;
+        Vec3 temple = this.position()
+                .add(forward.scale(1.75 * this.getScale()))
+                .add(side.scale(0.55 * sign * this.getScale()))
+                .add(0, this.getBbHeight() * 0.68, 0);
+        this.level().addParticle(ParticleTypes.DRIPPING_HONEY, temple.x, temple.y, temple.z, 0.0, 0.0, 0.0);
+    }
+
+    public float getDisplayBlend(float partial) { return Mth.lerp(partial, displayBlendO, displayBlend); }
+
+    public float getTossBlend(float partial) { return Mth.lerp(partial, tossBlendO, tossBlend); }
+
+    public float getListenBlend(float partial) { return Mth.lerp(partial, listenBlendO, listenBlend); }
+
+    public float getMatriarchRenderScale(float partial) {
+        return 1f + (MATRIARCH_RENDER_SCALE - 1f) * Mth.lerp(partial, matriarchBlendO, matriarchBlend);
+    }
+
+    public float getTrunkCurl(float partial) { return Mth.lerp(partial, trunkCurlO, trunkCurl); }
 
     private void broadcastFootstep(ServerLevel serverLevel, boolean right) {
         ElephantFootstepPacket packet = new ElephantFootstepPacket(this.getId(), right);
@@ -996,7 +1152,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             double distance = target.distanceTo(this);
             if (distance > FOOTFALL_RADIUS) continue;
 
-            double footing = 1.0 - Mth.clamp(target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE), 0.0, 1.0);
+            double footing = OWUtils.knockbackFactor(this, target);
             double nearness = 1.0 - Math.max(distance, FOOTFALL_NEAR_PLATEAU) / FOOTFALL_RADIUS;
             double hop = FOOTFALL_HOP * nearness * footing;
             if (hop < 0.01) continue;
@@ -1052,6 +1208,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (this.level().isClientSide()) return;
 
         if (elapsed == windup) applyShoulderBashDamage();
+        if (elapsed == dashEnd) plantShoulderBash();
 
         this.entityData.set(SHOULDER_BASH_TIMER, timer - 1);
     }
@@ -1118,6 +1275,19 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public boolean hurt(DamageSource damageSource, float amount) {
+        boolean hurt = super.hurt(damageSource, amount);
+        if (hurt && !this.level().isClientSide() && this.isAlive()) wild.onHurt(damageSource);
+        return hurt;
+    }
+
+    @Override
+    public void die(DamageSource damageSource) {
+        if (!this.level().isClientSide() && !this.isRemoved() && !this.dead) ElephantHerd.onDeath(this, damageSource);
+        super.die(damageSource);
+    }
+
+    @Override
     public boolean killedEntity(ServerLevel level, LivingEntity target) {
         int kills = getUltimateKillCount();
         if (kills < OWAttacksConstants.Elephant.EARTHQUAKE_KILLS_REQUIRED) {
@@ -1132,8 +1302,15 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public boolean isPushable() {
+        if (this.isAlarming() || this.isEarthquakeGesture()) return false;
+        return super.isPushable();
+    }
+
+    @Override
     protected boolean isImmobile() {
-        return this.isEarthquakeGesture() || isSlammingCombo();
+        return this.isEarthquakeGesture() || isSlammingCombo() || this.isAlarming()
+                || (this.isShoulderBashing() && !this.isVehicle());
     }
 
     public boolean isSlammingCombo() {
@@ -1149,7 +1326,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      */
     @Override
     public boolean canStartCombo() {
-        return !isEarthquakeGesture() && !isSprayingWater() && !isFillingTrunk() && super.canStartCombo();
+        return !isEarthquakeGesture() && !isAlarming() && !isSprayingWater() && !isFillingTrunk() && super.canStartCombo();
     }
 
     @Override
@@ -1171,14 +1348,16 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         if (entity == this.getControllingPassenger()) return;
         if (entity instanceof Player player && player.isCreative()) return;
 
+        wild.onLandedHit(entity);
+
         if (comboAttack == 3) {
-            entity.push(0, COMBO_SLAM_LAUNCH, 0);
+            OWUtils.pushResisted(this, entity, 0, COMBO_SLAM_LAUNCH, 0);
             entity.hurtMarked = true;
             return;
         }
 
         Vec3 sweep = getBashDirection(comboAttack == 1 ? -1 : 1);
-        entity.push(sweep.x * COMBO_SWEEP_KNOCKBACK, COMBO_SWEEP_LIFT, sweep.z * COMBO_SWEEP_KNOCKBACK);
+        OWUtils.pushResisted(this, entity, sweep.x * COMBO_SWEEP_KNOCKBACK, COMBO_SWEEP_LIFT, sweep.z * COMBO_SWEEP_KNOCKBACK);
         entity.hurtMarked = true;
     }
 
@@ -1283,7 +1462,18 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             this.setInitialVariant(this.getVariant());
         }
         this.foodWanted = FOOD_WANTED_MIN + this.random.nextInt(FOOD_WANTED_MAX - FOOD_WANTED_MIN + 1);
-        return super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
+
+        boolean founder = !(spawnGroupData instanceof ElephantHerdSpawnData);
+        if (founder && mobSpawnType != MobSpawnType.BREEDING) {
+            spawnGroupData = new ElephantHerdSpawnData(this.getUUID());
+        }
+        SpawnGroupData result = super.finalizeSpawn(levelAccessor, difficultyInstance, mobSpawnType, spawnGroupData);
+
+        if (spawnGroupData instanceof ElephantHerdSpawnData herd && !this.isTame()) {
+            this.joinHerd(herd.getHerdId());
+            if (founder) this.becomeMatriarch();
+        }
+        return result;
     }
 
     private ElephantVariant chooseElephantVariant() {
@@ -1299,6 +1489,10 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         super.onSyncedDataUpdated(accessor);
         if (EARTHQUAKE_TICK.equals(accessor) && !isEarthquakeGesture() && this.level().isClientSide()) {
             earthquakeAnimationState.stop();
+        }
+        if (ALARM_TICK.equals(accessor) && this.level().isClientSide()) {
+            if (isAlarming()) alarmAnimationState.startIfStopped(this.tickCount);
+            else alarmAnimationState.stop();
         }
     }
 
@@ -1326,9 +1520,24 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         LivingEntity rider = this.getControllingPassenger();
         int side = computeBashSide(rider != null ? rider.getYRot() : this.getYRot(), this.yBodyRot);
 
+        beginShoulderBash(side);
+        startSecondaryCooldown();
+    }
+
+    public boolean startWildShoulderBash(int side) {
+        if (this.level().isClientSide()) return false;
+        if (isShoulderBashing() || isEarthquakeGesture() || isAlarming() || this.isVehicle() || this.isTame()) return false;
+        if (isTrunkAiControlled()) stopAiTrunk();
+        resetCombo(0);
+        actualAttackNumber = 0;
+        this.getNavigation().stop();
+        beginShoulderBash(side);
+        return true;
+    }
+
+    private void beginShoulderBash(int side) {
         this.entityData.set(SHOULDER_BASH_SIDE, side);
         this.entityData.set(SHOULDER_BASH_TIMER, OWAttacksConstants.Elephant.SHOULDER_BASH_DURATION_TICKS);
-        startSecondaryCooldown();
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 OWSounds.ELEPHANT_SCREAM.get(), SoundSource.NEUTRAL,
@@ -1338,6 +1547,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private void tickClientBashElapsed() {
         if (!isShoulderBashing()) {
             clientBashElapsed = -1;
+            clientBashLastShake = -1;
             return;
         }
         // Le geste vient de commencer : on se cale sur ce que le serveur annonce, puis on avance
@@ -1349,6 +1559,24 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             clientBashElapsed++;
             if (Math.abs(clientBashElapsed - serverElapsed) > 2) clientBashElapsed = serverElapsed;
         }
+        int windup = OWAttacksConstants.Elephant.SHOULDER_BASH_WINDUP_TICKS;
+        int dashEnd = windup + OWAttacksConstants.Elephant.SHOULDER_BASH_DASH_TICKS;
+        if ((clientBashElapsed == windup || clientBashElapsed == dashEnd) && clientBashElapsed > clientBashLastShake) {
+            clientBashLastShake = clientBashElapsed;
+            net.tiew.operationWild.event.ClientEvents.addGroundShake(this, true);
+        }
+    }
+
+    private void plantShoulderBash() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        Vec3 side = this.position().add(getBashDirection(getShoulderBashSide()).scale(this.getBbWidth() * 0.45));
+        serverLevel.playSound(null, side.x, side.y, side.z, OWSounds.ELEPHANT_FOOTSTEP.get(), SoundSource.NEUTRAL, 2.2f, 0.5f);
+        BlockState ground = serverLevel.getBlockState(BlockPos.containing(side.x, side.y - 0.2, side.z));
+        if (!ground.isAir()) {
+            serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
+                    side.x, side.y + 0.1, side.z, 36, this.getBbWidth() * 0.3, 0.05, this.getBbWidth() * 0.3, 0.18);
+        }
+        serverLevel.sendParticles(ParticleTypes.POOF, side.x, side.y + 0.2, side.z, 6, 0.5, 0.05, 0.5, 0.02);
     }
 
     /**
@@ -1383,7 +1611,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         // pose de visée demande une seconde : équiper le Jet de Trompe faisait donc lentement
         // retomber la trompe hors de son animation de repos, sans que rien ne se passe par
         // ailleurs. On ne quitte les animations clés qu'au moment où l'on s'en sert.
-        return isSprayingWater() || isFillingTrunk();
+        return isSprayingWater() || isFillingTrunk() || (isTrunkAiControlled() && getTrunkMode() != TRUNK_IDLE);
     }
 
     /**
@@ -1485,7 +1713,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             wasFillingTrunk = true;
         } else {
             wasFillingTrunk = false;
-            fillHeadDip = 0f;
+            fillHeadDip = isTrunkAiControlled() ? aiHeadDip() : 0f;
         }
         trunkHeadDip += (fillHeadDip - trunkHeadDip) * 0.25f;
 
@@ -1503,8 +1731,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             targetYaw = 0f;
             targetPitch = fillPitch;
         } else {
-            float aimYaw = rider != null ? rider.getYRot() : this.getYRot();
-            float aimPitch = rider != null ? rider.getXRot() : this.getXRot();
+            boolean ai = rider == null && isTrunkAiControlled();
+            float aimYaw = rider != null ? rider.getYRot() : ai ? this.entityData.get(TRUNK_AIM_YAW) : this.getYRot();
+            float aimPitch = rider != null ? rider.getXRot() : ai ? this.entityData.get(TRUNK_AIM_PITCH) : this.getXRot();
             // Débattement large : la trompe doit pouvoir désigner franchement les côtés et le sol,
             // pas se contenter d'incliner poliment la pointe. Le relevé la tient au-dessus de la
             // ligne de visée — c'est le même que celui du jet, sans quoi les deux divergeraient.
@@ -1532,6 +1761,14 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             wander = 0.15f;
             wanderYaw = 0.55f;
             follow = 0.34f;
+        } else if (isTrunkAiControlled() && getTrunkMode() == TRUNK_TOUCHING) {
+            wander = 0.35f;
+            wanderYaw = 1.6f;
+            follow = 0.06f;
+        } else if (isTrunkAiControlled() && getTrunkMode() != TRUNK_IDLE && !isFillingTrunk()) {
+            wander = 0.25f;
+            wanderYaw = 0.3f;
+            follow = 0.14f;
         } else if (isFillingTrunk()) {
             wander = 0.50f;
             wanderYaw = 0.50f;
@@ -1561,6 +1798,16 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         float targetSwell = getTrunkWaterRatio();
         if (isFillingTrunk()) targetSwell += 0.22f * Mth.sin(t * 0.45f);
         trunkSwell += (targetSwell - trunkSwell) * 0.2f;
+    }
+
+    private float aiHeadDip() {
+        return switch (getTrunkMode()) {
+            case TRUNK_TOUCHING -> 16f;
+            case TRUNK_DRINKING -> -6f;
+            case TRUNK_BROWSING -> this.entityData.get(TRUNK_AIM_PITCH) > BROWSE_LOW_PITCH ? 10f : -12f;
+            case TRUNK_SHOWERING -> -10f;
+            default -> 0f;
+        };
     }
 
     public float getTrunkAimYaw(float partial) { return Mth.lerp(partial, trunkAimYawO, trunkAimYaw); }
@@ -1630,7 +1877,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      */
     public Vec3 getTrunkBase() {
         Vec3 forward = Vec3.directionFromRotation(0f, this.yBodyRot);
-        return this.position().add(forward.scale(2.0)).add(0, this.getBbHeight() * 0.62, 0);
+        return this.position().add(forward.scale(TRUNK_BASE_FORWARD)).add(0, this.getBbHeight() * TRUNK_BASE_HEIGHT, 0);
     }
 
     /**
@@ -1642,8 +1889,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
      */
     public Vec3 getSprayDirection() {
         LivingEntity rider = this.getControllingPassenger();
-        float pitch = rider != null ? rider.getXRot() : this.getXRot();
-        float yaw = rider != null ? rider.getYRot() : this.yBodyRot;
+        boolean ai = rider == null && isTrunkAiControlled();
+        float pitch = rider != null ? rider.getXRot() : ai ? this.entityData.get(TRUNK_AIM_PITCH) : this.getXRot();
+        float yaw = rider != null ? rider.getYRot() : ai ? this.entityData.get(TRUNK_AIM_YAW) : this.yBodyRot;
         return Vec3.directionFromRotation(pitch - OWAttacksConstants.Elephant.WATER_SPRAY_LIFT_DEGREES, yaw);
     }
 
@@ -1680,6 +1928,12 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     /** Longueur de la trompe déployée, en blocs : deux segments de seize unités de modèle. */
     private static final double TRUNK_LENGTH = 2.0;
+    private static final double TRUNK_BASE_FORWARD = 2.0;
+    private static final double TRUNK_BASE_HEIGHT = 0.62;
+    private static final double TRUNK_MIN_FRONT = 1.4;
+    private static final double TRUNK_MAX_RAISE = Math.toRadians(60);
+    private static final double TRUNK_COMFORT_RAISE = Math.toRadians(48);
+    private static final double TRUNK_MIN_CLEARANCE = 0.6;
 
     /**
      * Hauteur de la surface d'eau la plus haute à portée de trompe, ou {@code null} s'il n'y en a
@@ -1738,7 +1992,14 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         }
 
         // Le cavalier a lâché la bête sans lâcher le clic : personne ne fermera le robinet.
-        if (mode != TRUNK_IDLE && this.getControllingPassenger() == null) {
+        if (isTrunkAiControlled() && (this.getControllingPassenger() != null || !canAiUseTrunk())) {
+            stopAiTrunk();
+            return;
+        }
+
+        if (isTrunkAiControlled() && mode == TRUNK_IDLE) this.entityData.set(TRUNK_AI, false);
+
+        if (mode != TRUNK_IDLE && this.getControllingPassenger() == null && !isTrunkAiControlled()) {
             stopTrunkAction();
             return;
         }
@@ -2027,6 +2288,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
             target.hurt(this.damageSources().mobAttack(this),
                     (float) (this.getCombatDamage() * OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE_RATIO));
+            wild.onLandedHit(target);
             // setDeltaMovement plutôt que push : la poussée s'ajoute à l'élan existant, si bien
             // qu'une cible qui venait vers l'éléphant partait deux fois moins loin que celle qui
             // fuyait. On impose la trajectoire, elle ne dépend plus de ce que faisait la victime —
@@ -2227,7 +2489,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             target.invulnerableTime = 0;
             target.hurt(this.damageSources().mobAttack(this), OWAttacksConstants.Elephant.SHOCKWAVE_DAMAGE);
 
-            target.push(wave.direction.x * OWAttacksConstants.Elephant.SHOCKWAVE_CARRY,
+            OWUtils.pushResisted(this, target, wave.direction.x * OWAttacksConstants.Elephant.SHOCKWAVE_CARRY,
                     OWAttacksConstants.Elephant.SHOCKWAVE_LAUNCH,
                     wave.direction.z * OWAttacksConstants.Elephant.SHOCKWAVE_CARRY);
             target.hurtMarked = true;
@@ -2247,6 +2509,21 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         setVitalEnergy(0);
 
         setUltimateKillCount(0);
+        beginEarthquake(false);
+        return true;
+    }
+
+    public boolean startWildEarthquake() {
+        if (this.level().isClientSide()) return false;
+        if (isEarthquaking() || isAlarming() || isShoulderBashing() || this.isVehicle() || this.isTame()) return false;
+        beginEarthquake(true);
+        return true;
+    }
+
+    private void beginEarthquake(boolean wild) {
+        wildQuake = wild;
+        stopTrunkAction();
+        if (isTrunkAiControlled()) stopAiTrunk();
         cancelShoulderBash();
         resetCombo(0);
         actualAttackNumber = 0;
@@ -2257,7 +2534,6 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
                 OWSounds.ELEPHANT_CALL.get(), SoundSource.NEUTRAL, 3.0f, 0.75f);
-        return true;
     }
 
     private void cancelEarthquake() {
@@ -2310,7 +2586,10 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         BlockPos origin = BlockPos.containing(earthquakeEpicentre);
 
-        for (int attempt = 0; attempt < OWAttacksConstants.Elephant.EARTHQUAKE_BLOCKS_PER_PULSE; attempt++) {
+        int attempts = wildQuake
+                ? OWAttacksConstants.Elephant.EARTHQUAKE_BLOCKS_PER_PULSE / WILD_QUAKE_BLOCK_DIVIDER
+                : OWAttacksConstants.Elephant.EARTHQUAKE_BLOCKS_PER_PULSE;
+        for (int attempt = 0; attempt < attempts; attempt++) {
             double angle = this.random.nextDouble() * Math.PI * 2;
             double distance = Math.sqrt(this.random.nextDouble()) * radius;
 
@@ -2381,7 +2660,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
             target.hurt(this.damageSources().mobAttack(this), OWAttacksConstants.Elephant.EARTHQUAKE_PULSE_DAMAGE);
 
-            double footing = 1.0 - Mth.clamp(target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE), 0.0, 1.0);
+            double footing = OWUtils.knockbackFactor(this, target);
             target.push(0, OWAttacksConstants.Elephant.EARTHQUAKE_PULSE_HOP * footing, 0);
             target.hurtMarked = true;
         }
@@ -2403,12 +2682,19 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             earthquakeAnimationState.stop();
         }
 
+        if (this.isAlarming()) {
+            alarmAnimationState.startIfStopped(this.tickCount);
+        } else {
+            alarmAnimationState.stop();
+        }
+
         setupComboAnimations();
     }
 
     public boolean canPlayIdleAnimation() {
         return this.getTarget() == null && !this.isNapping() && !this.isSleeping() && !this.isMoving()
-                && !this.isVehicle() && !this.isInWater() && !this.isEarthquaking();
+                && !this.isVehicle() && !this.isInWater() && !this.isEarthquaking() && !this.isAlarming()
+                && !this.isTrunkAiControlled();
     }
 
     private void setupComboAnimations() {
@@ -2485,7 +2771,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         this.entityData.set(IS_MAD, isMad);
     }
 
-    public boolean isMad() { return this.entityData.get(IS_MAD) || this.isTamingFury(); }
+    public boolean isMad() { return this.entityData.get(IS_MAD) || this.isTamingFury() || this.isMusth(); }
 
     public void setCalling(boolean calling) { this.entityData.set(IS_CALLING, calling); }
 
@@ -2519,6 +2805,309 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         return OWAttacksConstants.Elephant.EARTHQUAKE_SHAKE_INTENSITY
                 * (floor + (1f - floor) * (1f - sincePulse));
+    }
+
+    public int getAlarmTick() { return this.entityData.get(ALARM_TICK); }
+
+    public boolean isAlarming() { return this.entityData.get(ALARM_TICK) > 0; }
+
+    public void startAlarm() {
+        if (this.level().isClientSide()) return;
+        stopTrunkAction();
+        if (isTrunkAiControlled()) stopAiTrunk();
+        cancelShoulderBash();
+        resetCombo(0);
+        actualAttackNumber = 0;
+        this.getNavigation().stop();
+        this.setNap(false);
+        this.entityData.set(ALARM_TICK, 1);
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                OWSounds.ELEPHANT_SCREAM.get(), SoundSource.NEUTRAL, 2.5f,
+                (float) OWUtils.generateRandomInterval(0.8, 0.9));
+    }
+
+    private void tickAlarm() {
+        int tick = this.entityData.get(ALARM_TICK);
+        if (tick <= 0) return;
+
+        if (!this.isAlive() || this.isSleeping() || this.isTame() || this.isVehicle()) {
+            stopAlarm();
+            return;
+        }
+
+        LivingEntity threat = wild.getAlarmTarget();
+        if (tick <= ALARM_FACE_TICKS && threat != null && threat.isAlive()) {
+            turnBodyTowards(threat.position(), ALARM_TURN_SPEED);
+        }
+
+        if (tick == ALARM_SIGNAL_TICK) {
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    OWSounds.ELEPHANT_CALL.get(), SoundSource.NEUTRAL, 4.0f,
+                    (float) OWUtils.generateRandomInterval(0.85, 0.95));
+            this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                    OWSounds.ELEPHANT_SCREAM.get(), SoundSource.NEUTRAL, 3.0f, 0.7f);
+            wild.onAlarmSignal();
+        }
+
+        if (tick == ALARM_LANDING_TICK && this.level() instanceof ServerLevel serverLevel) {
+            broadcastFootstep(serverLevel, true);
+            broadcastFootstep(serverLevel, false);
+            spawnSkinParticles(serverLevel, this.getX(), this.getY() + 0.2, this.getZ(), 30, 1.6, 0.12);
+        }
+
+        if (tick >= ALARM_DURATION_TICKS) {
+            stopAlarm();
+            return;
+        }
+        this.entityData.set(ALARM_TICK, tick + 1);
+    }
+
+    private void stopAlarm() {
+        this.entityData.set(ALARM_TICK, 0);
+        wild.onAlarmEnd();
+    }
+
+    public void turnBodyTowards(Vec3 point, float maxStep) {
+        double dx = point.x - this.getX();
+        double dz = point.z - this.getZ();
+        if (dx * dx + dz * dz < 1.0E-4) return;
+        float wanted = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90f;
+        float yaw = Mth.approachDegrees(this.getYRot(), wanted, maxStep);
+        this.setYRot(yaw);
+        this.yBodyRot = yaw;
+        this.yHeadRot = yaw;
+    }
+
+    public void heavyStomp() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) return;
+        broadcastFootstep(serverLevel, true);
+        broadcastFootstep(serverLevel, false);
+
+        Vec3 forward = Vec3.directionFromRotation(0f, this.yBodyRot);
+        Vec3 front = this.position().add(forward.scale(this.getBbWidth() * 0.45));
+        BlockState ground = serverLevel.getBlockState(BlockPos.containing(front.x, front.y - 0.2, front.z));
+        if (!ground.isAir()) {
+            serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
+                    front.x, front.y + 0.1, front.z, 40, this.getBbWidth() * 0.35, 0.05, this.getBbWidth() * 0.35, 0.15);
+        }
+        serverLevel.sendParticles(ParticleTypes.POOF, front.x, front.y + 0.2, front.z, 8, 0.6, 0.05, 0.6, 0.02);
+    }
+
+    public float yawTowards(Vec3 point) {
+        return (float) (Mth.atan2(point.z - this.getZ(), point.x - this.getX()) * Mth.RAD_TO_DEG) - 90f;
+    }
+
+    @Nullable
+    public UUID getHerdId() { return wild.getHerdId(); }
+
+    public boolean isSameHerd(ElephantEntity other) {
+        if (other == this) return true;
+        if (this.isTame() || other.isTame()) return false;
+        UUID mine = getHerdId();
+        return mine != null && mine.equals(other.getHerdId());
+    }
+
+    public boolean isMatriarch() { return this.entityData.get(IS_MATRIARCH); }
+
+    public void setMatriarch(boolean matriarch) {
+        if (this.entityData.get(IS_MATRIARCH) != matriarch) this.entityData.set(IS_MATRIARCH, matriarch);
+    }
+
+    public void joinHerd(@Nullable UUID herdId) {
+        wild.setHerdId(herdId);
+        setMatriarch(false);
+    }
+
+    public void becomeMatriarch() {
+        if (getHerdId() == null) wild.setHerdId(this.getUUID());
+        wild.setOrphanTicks(0);
+        setMatriarch(true);
+    }
+
+    public void leaveHerd() {
+        if (getHerdId() == null && !isMatriarch()) return;
+        wild.setHerdId(null);
+        setMatriarch(false);
+    }
+
+    @Override
+    public boolean isAlliedTo(Entity entity) {
+        if (entity instanceof ElephantEntity other && other != this && isSameHerd(other)) return true;
+        return super.isAlliedTo(entity);
+    }
+
+    public int getThreatDisplay() { return this.entityData.get(THREAT_DISPLAY); }
+
+    public void setThreatDisplay(int display) {
+        if (this.entityData.get(THREAT_DISPLAY) != display) this.entityData.set(THREAT_DISPLAY, display);
+    }
+
+    public boolean isListening() { return this.entityData.get(IS_LISTENING); }
+
+    public void setListening(boolean listening) {
+        if (this.entityData.get(IS_LISTENING) != listening) this.entityData.set(IS_LISTENING, listening);
+    }
+
+    public boolean isMusth() { return this.entityData.get(IS_MUSTH); }
+
+    public void setMusth(boolean musth) {
+        if (this.entityData.get(IS_MUSTH) != musth) this.entityData.set(IS_MUSTH, musth);
+    }
+
+    @Override
+    public float sedativeResistanceFactor() {
+        return isMusth() ? MUSTH_SEDATIVE_FACTOR : 1f;
+    }
+
+    public boolean isTrunkAiControlled() { return this.entityData.get(TRUNK_AI); }
+
+    public boolean canAiUseTrunk() {
+        return !this.isVehicle() && !this.isTame() && !isEarthquakeGesture() && !isAlarming()
+                && !isShoulderBashing() && !this.isSleeping();
+    }
+
+    public boolean startAiTrunk(int mode) {
+        if (this.level().isClientSide() || !canAiUseTrunk()) return false;
+        if (mode == TRUNK_SPRAYING && getTrunkWater() <= 0) return false;
+        if (mode == TRUNK_FILLING && !isWaterInTrunkReach()) return false;
+        if (!this.entityData.get(TRUNK_AI)) {
+            this.entityData.set(TRUNK_AIM_YAW, Mth.wrapDegrees(this.yBodyRot));
+            this.entityData.set(TRUNK_AIM_PITCH, 20f);
+        }
+        this.entityData.set(TRUNK_AI, true);
+        if (getTrunkMode() != mode) {
+            this.entityData.set(TRUNK_MODE, mode);
+            if (mode == TRUNK_FILLING) {
+                this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                        SoundEvents.AMBIENT_UNDERWATER_ENTER, SoundSource.NEUTRAL, 0.7f, 1.4f);
+            }
+        }
+        return true;
+    }
+
+    public void aimAiTrunk(float worldYaw, float lookPitch) {
+        if (this.level().isClientSide()) return;
+        float yaw = Mth.wrapDegrees(worldYaw);
+        if (Math.abs(Mth.wrapDegrees(this.entityData.get(TRUNK_AIM_YAW) - yaw)) > 0.25f) {
+            this.entityData.set(TRUNK_AIM_YAW, yaw);
+        }
+        if (Math.abs(this.entityData.get(TRUNK_AIM_PITCH) - lookPitch) > 0.25f) {
+            this.entityData.set(TRUNK_AIM_PITCH, lookPitch);
+        }
+    }
+
+    public void aimAiTrunkAt(Vec3 point) {
+        Vec3 base = getTrunkBase();
+        double dx = point.x - base.x;
+        double dz = point.z - base.z;
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        float pitch = (float) -(Mth.atan2(point.y - base.y, horizontal) * Mth.RAD_TO_DEG);
+        aimAiTrunk(yawTowards(point), pitch + OWAttacksConstants.Elephant.WATER_SPRAY_LIFT_DEGREES);
+    }
+
+    public boolean aimAiSprayAt(Vec3 point) {
+        Vec3 base = getTrunkBase();
+        double dx = point.x - base.x;
+        double dz = point.z - base.z;
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        float pitch = sprayPitchFor(horizontal, point.y - base.y);
+        if (Float.isNaN(pitch)) return false;
+        aimAiTrunk(yawTowards(point), pitch + OWAttacksConstants.Elephant.WATER_SPRAY_LIFT_DEGREES);
+        return true;
+    }
+
+    public static float sprayPitchFor(double horizontal, double rise) {
+        double droop = OWAttacksConstants.Elephant.WATER_SPRAY_DROOP;
+        if (horizontal < 0.5) return rise >= 0 ? -80f : 80f;
+        double a = droop * horizontal * horizontal;
+        double discriminant = horizontal * horizontal - 4.0 * a * (rise + a);
+        if (discriminant < 0) return Float.NaN;
+        double tan = (horizontal - Math.sqrt(discriminant)) / (2.0 * a);
+        double pitch = Math.atan(tan);
+        double arc = horizontal / Math.cos(pitch);
+        if (arc > OWAttacksConstants.Elephant.WATER_SPRAY_RANGE) return Float.NaN;
+        return (float) -Math.toDegrees(pitch);
+    }
+
+    public void stopAiTrunk() {
+        if (this.level().isClientSide()) return;
+        if (this.entityData.get(TRUNK_AI)) this.entityData.set(TRUNK_AI, false);
+        if (getTrunkMode() != TRUNK_IDLE) stopTrunkAction();
+    }
+
+    public void interruptCalmTrunk() {
+        if (this.level().isClientSide() || !isTrunkAiControlled()) return;
+        if (getTrunkMode() == TRUNK_SPRAYING) return;
+        stopAiTrunk();
+    }
+
+    @Nullable
+    public BlockState getHeldFood() {
+        return this.entityData.get(HELD_FOOD).orElse(null);
+    }
+
+    public void setHeldFood(@Nullable BlockState food) {
+        java.util.Optional<BlockState> value = java.util.Optional.ofNullable(food);
+        if (!this.entityData.get(HELD_FOOD).equals(value)) this.entityData.set(HELD_FOOD, value);
+    }
+
+    public void setTrunkWater(int water) {
+        this.entityData.set(TRUNK_WATER, Mth.clamp(water, 0, OWAttacksConstants.Elephant.WATER_SPRAY_CAPACITY));
+    }
+
+    public boolean hasWaterInTrunkReach() {
+        return isWaterInTrunkReach();
+    }
+
+    public boolean hasWaterUnderTrunk() {
+        if (this.isInWater()) return true;
+        Vec3 point = this.position().add(Vec3.directionFromRotation(0f, this.yBodyRot).scale(AI_DRINK_POINT * this.getScale()));
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int dy = 1; dy >= -AI_DRINK_DEPTH; dy--) {
+            cursor.set(point.x, this.getY() + dy, point.z);
+            if (this.level().getFluidState(cursor).is(FluidTags.WATER)) return true;
+        }
+        return false;
+    }
+
+    public boolean canTrunkReach(BlockPos pos, double slack) {
+        Vec3 center = Vec3.atCenterOf(pos);
+        if (new Vec3(center.x - this.getX(), 0, center.z - this.getZ()).length() < TRUNK_MIN_FRONT) return false;
+        Vec3 offset = trunkGrabPoint(pos).subtract(trunkBaseToward(center));
+        if (offset.length() > TRUNK_LENGTH + slack) return false;
+        return Math.atan2(offset.y, offset.horizontalDistance()) <= TRUNK_MAX_RAISE;
+    }
+
+    public Vec3 trunkGrabPoint(BlockPos pos) {
+        Vec3 base = trunkBaseToward(Vec3.atCenterOf(pos));
+        return new Vec3(Mth.clamp(base.x, pos.getX(), pos.getX() + 1),
+                Mth.clamp(base.y, pos.getY(), pos.getY() + 1),
+                Mth.clamp(base.z, pos.getZ(), pos.getZ() + 1));
+    }
+
+    public double maxTrunkRise() {
+        return this.getBbHeight() * TRUNK_BASE_HEIGHT + TRUNK_LENGTH * Math.sin(TRUNK_MAX_RAISE);
+    }
+
+    public double trunkStandOff(BlockPos pos) {
+        double baseY = this.getY() + this.getBbHeight() * TRUNK_BASE_HEIGHT;
+        double rise = pos.getY() - baseY;
+        double clearance;
+        if (rise > 0) {
+            clearance = Mth.clamp(rise / Math.tan(TRUNK_COMFORT_RAISE), TRUNK_MIN_CLEARANCE, TRUNK_LENGTH * 0.8);
+        } else {
+            double drop = Math.max(baseY - (pos.getY() + 1), 0);
+            double room = (TRUNK_LENGTH - 0.3) * (TRUNK_LENGTH - 0.3) - drop * drop;
+            clearance = Mth.clamp(room > 0 ? Math.sqrt(room) : 0, 0.1, TRUNK_MIN_CLEARANCE);
+        }
+        return TRUNK_BASE_FORWARD + 0.5 + clearance;
+    }
+
+    private Vec3 trunkBaseToward(Vec3 point) {
+        Vec3 flat = new Vec3(point.x - this.getX(), 0, point.z - this.getZ());
+        Vec3 forward = flat.lengthSqr() < 1.0E-4 ? Vec3.directionFromRotation(0f, this.yBodyRot) : flat.normalize();
+        return this.position().add(forward.scale(TRUNK_BASE_FORWARD)).add(0, this.getBbHeight() * TRUNK_BASE_HEIGHT, 0);
     }
 
     public int getSaddleWoolColor(int layer) {
@@ -2559,6 +3148,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         tag.putInt("trunkWater", this.getTrunkWater());
         tag.putInt("saddleWool0", this.getSaddleWoolColor(0));
         tag.putInt("saddleWool1", this.getSaddleWoolColor(1));
+        tag.putBoolean("matriarch", this.isMatriarch());
+        wild.save(tag);
     }
 
     @Override
@@ -2575,6 +3166,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
                 OWAttacksConstants.Elephant.WATER_SPRAY_CAPACITY));
         if (tag.contains("saddleWool0")) this.entityData.set(SADDLE_WOOL_0, tag.getInt("saddleWool0"));
         if (tag.contains("saddleWool1")) this.entityData.set(SADDLE_WOOL_1, tag.getInt("saddleWool1"));
+        wild.load(tag);
+        this.entityData.set(IS_MATRIARCH, tag.getBoolean("matriarch") && !this.isTame());
         if (this.getSkinIndex() != 0) { this.nbtRestoring = true; this.changeSkin(this.getSkinIndex(), false); this.nbtRestoring = false; }
     }
 
@@ -2601,6 +3194,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         public void tick() {
             super.tick();
             slowUnriddenCharge();
+            if (!ElephantEntity.this.isVehicle() && !ElephantEntity.this.isTame()) {
+                ElephantEntity.this.wild.tickCombatTactics(ElephantEntity.this.getTarget());
+            }
         }
 
         private void slowUnriddenCharge() {

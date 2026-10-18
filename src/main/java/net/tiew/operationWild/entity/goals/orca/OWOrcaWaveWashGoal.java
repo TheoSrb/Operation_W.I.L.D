@@ -18,6 +18,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.tiew.operationWild.core.OWUtils;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 
 import java.util.ArrayList;
@@ -468,8 +469,8 @@ public class OWOrcaWaveWashGoal extends Goal {
                     || (entity instanceof LivingEntity living && isPerched(living) && !this.orca.isAlliedTo(living));
             if (!washable) continue;
 
-            entity.setDeltaMovement(entity.getDeltaMovement().add(
-                    this.runDirection.x * WAVE_PUSH, WAVE_LIFT, this.runDirection.z * WAVE_PUSH));
+            OWUtils.addVelocityResisted(this.orca, entity,
+                    this.runDirection.x * WAVE_PUSH, WAVE_LIFT, this.runDirection.z * WAVE_PUSH);
             entity.hurtMarked = true;
             entity.hasImpulse = true;
         }
