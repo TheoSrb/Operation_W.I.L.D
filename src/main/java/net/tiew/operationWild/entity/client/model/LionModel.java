@@ -32,13 +32,15 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
 
     private static final float REST_POSE_Y_SUM = 14f;
     private static final float COMBO_ANIMATION_SPEED = 1.0f;
-    private static final float WALK_ANIM_SPEED = 4.5f;
-    private static final float RUN_ANIM_SPEED = 1.1f;
+    private static final float WALK_ANIM_SPEED = 4.6875f;
+    private static final float RUN_ANIM_SPEED = 1.2f;
     private static final float WALK_WEIGHT_FACTOR = 4.5f;
     private static final float RUN_WEIGHT_FACTOR = 1.25f;
     private static final float STEP_WEIGHT_MIN = 0.3f;
     private static final float LEG_LENGTH = 12f;
     private static final float MANE_BRISTLE = 0.14f;
+    private static final float SIT_LEG_FOLD = 0.49f;
+    private static final float NAP_LIFT = 16f;
     private static final Vector3f ANIM_VECTOR = new Vector3f();
     private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(LionAnimations.SEDATED_FALL, LionAnimations.SEDATED_REST, LionAnimations.SEDATED_WAKE);
 
@@ -255,14 +257,22 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         float look = (1f - rest) * (1f - roar) * (1f - 0.4f * sit) * (1f - call);
         this.applyHeadRotation(netHeadYaw * look, headPitch * look);
 
-        float seated = rest + sit;
-        if (seated > 0.001f) {
-            KeyframeAnimations.animate(this, LionAnimations.SIT, time, seated, ANIM_VECTOR);
+        if (sit > 0.001f) {
+            KeyframeAnimations.animate(this, LionAnimations.SIT, time, sit, ANIM_VECTOR);
+            float fold = SIT_LEG_FOLD * (1f - sit) * smoothStep(sit / 0.08f);
+            this.left_leg.xRot -= fold;
+            this.right_leg.xRot -= fold;
+        }
+
+        if (rest > 0.001f) {
+            KeyframeAnimations.animate(this, LionAnimations.NAP, time, rest, ANIM_VECTOR);
+            this.ALL.y -= NAP_LIFT * rest * (1f - rest);
         }
 
         if (stance > 0.001f) {
-            KeyframeAnimations.animate(this, LionAnimations.MISC_IDLE, time, stance, ANIM_VECTOR);
-            animateLocomotion(lion, limbSwing, limbSwingAmount, pt, stance);
+            float moving = animateLocomotion(lion, limbSwing, limbSwingAmount, pt, stance);
+            float idle = stance * (1f - moving);
+            if (idle > 0.001f) KeyframeAnimations.animate(this, LionAnimations.MISC_IDLE, time, idle, ANIM_VECTOR);
         }
 
         if (roar > 0.001f && lion.roarAnimationState.isStarted()) {
@@ -282,10 +292,11 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         if (lion.isMad() || lion.isEmpowered() || lion.isRallied()) hideEyeBalls();
     }
 
-    private void animateLocomotion(T lion, float limbSwing, float limbSwingAmount, float pt, float stance) {
+    private float animateLocomotion(T lion, float limbSwing, float limbSwingAmount, float pt, float stance) {
         float run = smoothStep(lion.runBlend(pt));
-        float walkWeight = Math.min(limbSwingAmount * WALK_WEIGHT_FACTOR, 1f) * (1f - run) * stance;
-        float runWeight = Math.min(limbSwingAmount * RUN_WEIGHT_FACTOR, 1f) * run * stance;
+        float moving = Mth.lerp(run, Math.min(limbSwingAmount * WALK_WEIGHT_FACTOR, 1f), Math.min(limbSwingAmount * RUN_WEIGHT_FACTOR, 1f));
+        float walkWeight = moving * (1f - run) * stance;
+        float runWeight = moving * run * stance;
 
         if (walkWeight > 0.001f) {
             KeyframeAnimations.animate(this, LionAnimations.MOVE_WALK, (long) (limbSwing * 50f * WALK_ANIM_SPEED), walkWeight, ANIM_VECTOR);
@@ -295,12 +306,13 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         }
 
         if (run >= 0.5f && runWeight > STEP_WEIGHT_MIN) {
-            if (walkAnimCrossed(LionAnimations.MOVE_RUN, limbSwing, RUN_ANIM_SPEED, 180L)) lion.onRightFootDown();
-            if (walkAnimCrossed(LionAnimations.MOVE_RUN, limbSwing, RUN_ANIM_SPEED, 570L)) lion.onLeftFootDown();
+            if (walkAnimCrossed(LionAnimations.MOVE_RUN, limbSwing, RUN_ANIM_SPEED, 114L)) lion.onRightFootDown();
+            if (walkAnimCrossed(LionAnimations.MOVE_RUN, limbSwing, RUN_ANIM_SPEED, 568L)) lion.onLeftFootDown();
         } else if (run < 0.5f && walkWeight > STEP_WEIGHT_MIN) {
-            if (walkAnimCrossed(LionAnimations.MOVE_WALK, limbSwing, WALK_ANIM_SPEED, 230L)) lion.onRightFootDown();
-            if (walkAnimCrossed(LionAnimations.MOVE_WALK, limbSwing, WALK_ANIM_SPEED, 1030L)) lion.onLeftFootDown();
+            if (walkAnimCrossed(LionAnimations.MOVE_WALK, limbSwing, WALK_ANIM_SPEED, 1250L)) lion.onRightFootDown();
+            if (walkAnimCrossed(LionAnimations.MOVE_WALK, limbSwing, WALK_ANIM_SPEED, 417L)) lion.onLeftFootDown();
         }
+        return moving;
     }
 
     private void applyRoarFlourish(T lion, float ageInTicks, float weight) {
@@ -309,10 +321,6 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         if (bristle <= 0.001f) return;
 
         bristleMane(bristle * (MANE_BRISTLE + Mth.sin(ageInTicks * 1.9f) * 0.012f));
-        this.left_ear.xRot -= 0.55f * bristle;
-        this.right_ear.xRot -= 0.55f * bristle;
-        this.tail_1.xRot -= 0.35f * bristle;
-        this.tail_2.yRot += Mth.sin(ageInTicks * 0.8f) * 0.4f * bristle;
     }
 
     private float callEnvelope(T lion, float ageInTicks) {

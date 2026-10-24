@@ -105,7 +105,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     public static final double FEMALE_SPEED = 0.21;
     public static final int MALE_ONE_IN = 3;
     public static final int ALBINO_PERCENT = 3;
-    public static final float FEMALE_SCALE = 0.92f;
+    public static final float FEMALE_SCALE = 0.95f;
 
     private static final ResourceLocation PACK_HEALTH_MODIFIER = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "lion_pack_health");
     private static final ResourceLocation PACK_DAMAGE_MODIFIER = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "lion_pack_damage");
@@ -183,7 +183,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     public static AttributeSupplier.Builder createAttributes() {
         return Animal.createLivingAttributes()
                 .add(Attributes.MAX_HEALTH, 30.0)
-                .add(Attributes.MOVEMENT_SPEED, 0.205D)
+                .add(Attributes.MOVEMENT_SPEED, 0.175D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
                 .add(Attributes.ATTACK_DAMAGE, 7.5D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.5D)
@@ -203,7 +203,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         this.goalSelector.addGoal(7, new LionessStayWithPrideGoal());
 
         this.goalSelector.addGoal(10, new OWBreedGoal(this, 1.0D));
-        this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.8D));
+        this.goalSelector.addGoal(10, new RandomStrollGoal(this, 0.65D));
 
         this.goalSelector.addGoal(11, new OWRandomLookAroundGoal(this));
     }
@@ -312,12 +312,12 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     @Override
     public float vehicleRunSpeedMultiplier() {
-        return this.isMale() ? 4.75f : 5f;
+        return this.isMale() ? 4.5f : 4.75f;
     }
 
     @Override
     public float vehicleWalkSpeedMultiplier() {
-        return this.isMale() ? 2.2f : 2.3f;
+        return this.isMale() ? 2.2f : 2.4f;
     }
 
     @Override
@@ -384,7 +384,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     public float getRotationSpeed() {
         if (isRoaring()) return 0f;
         if (isCalling()) return 0.12f;
-        return this.isMale() ? 0.3f : 0.33f;
+        return this.isMale() ? 0.14f : 0.18f;
     }
 
     @Override
@@ -483,7 +483,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
         // ------------ FONCTIONNEMENT GLOBAL ------------
 
-        createCombo(16, 10, OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 2 : 0);
+        createCombo(21, 12, OWSounds.TIGER_HURTING.get(), 3.0, 3.5, 1.5, actualAttackNumber == 2, actualAttackNumber == 2 ? 2 : 0);
         setTamingPercentage(this.foodGiven, this.foodWanted);
 
         if (this.level().isClientSide()) setupAnimationState();

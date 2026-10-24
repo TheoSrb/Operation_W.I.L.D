@@ -1099,9 +1099,9 @@
         "created": "2026-10-17T16:56:05.2950614+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-17T16:56:05.2960775+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 77647
+        "last_modified": "2026-10-18T21:02:54.5473926+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 79639
       },
       "id": "ow:tiger",
       "loot": {
@@ -2913,12 +2913,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-17T17:03:45.6660236+02:00",
-        "created_date": "2026-10-17",
+        "created": "2026-10-18T15:06:31.0637823+02:00",
+        "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-17T17:03:45.6666614+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 62576
+        "last_modified": "2026-10-18T21:02:54.546387+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 63622
       },
       "id": "ow:kodiak",
       "loot": {
@@ -4462,9 +4462,9 @@
         "created": "2026-10-17T16:54:47.3649623+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-17T16:54:47.365464+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 82858
+        "last_modified": "2026-10-18T21:02:54.5392789+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 85041
       },
       "id": "ow:crocodile",
       "loot": {
@@ -5981,9 +5981,9 @@
         "created": "2026-10-17T16:58:42.131349+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-17T16:58:42.133362+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 60225
+        "last_modified": "2026-10-18T21:02:54.54179+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 61806
       },
       "id": "ow:boa",
       "loot": {
@@ -7422,9 +7422,9 @@
         "created": "2026-10-17T21:51:07.1258579+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-17T21:51:07.1263587+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 98060
+        "last_modified": "2026-10-18T21:02:54.5407848+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 100659
       },
       "id": "ow:orca",
       "loot": {
@@ -7837,12 +7837,12 @@
         "SHOCKWAVE_LENGTH": 30.0,
         "SHOCKWAVE_SPEED": 0.18,
         "SHOULDER_BASH_DAMAGE_RATIO": 0.5,
-        "SHOULDER_BASH_DASH_SPEED": 0.42,
+        "SHOULDER_BASH_DASH_SPEED": 0.22,
         "SHOULDER_BASH_DASH_TICKS": 8,
         "SHOULDER_BASH_DURATION_TICKS": 19,
         "SHOULDER_BASH_ENERGY": 60.0,
-        "SHOULDER_BASH_KNOCKBACK": 3.4,
-        "SHOULDER_BASH_KNOCKBACK_LIFT": 0.62,
+        "SHOULDER_BASH_KNOCKBACK": 2.0,
+        "SHOULDER_BASH_KNOCKBACK_LIFT": 0.38,
         "SHOULDER_BASH_LIFT": 0.26,
         "SHOULDER_BASH_PUSH_MAX_FACTOR": 1.5,
         "SHOULDER_BASH_PUSH_MIN_FACTOR": 0.25,
@@ -7985,10 +7985,26 @@
             "looping": true,
             "name": "DEFINITION",
             "seconds": 6.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 0.9583
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 0.9583
           }
         ],
         "layers": [
           "ElephantLayer",
+          "ElephantTrunkFoodLayer",
           "ElephantTrunkSprayLayer"
         ],
         "model": "ElephantModel",
@@ -7996,6 +8012,10 @@
         "skin": "ElephantSkin"
       },
       "constants": {
+        "ALARM_DURATION_TICKS": 80,
+        "ALARM_LANDING_TICK": 68,
+        "ALARM_LENGTH_MS": 4000,
+        "ALARM_SIGNAL_TICK": 25,
         "ENTITY_COLOR": 7826014,
         "FOOD_WANTED_MAX": 19,
         "FOOD_WANTED_MIN": 12,
@@ -8006,9 +8026,13 @@
         "SOMNOLENCE_LOSS_INTERVAL": 4,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 10,
         "TAMING_EXPERIENCE": 300.0,
+        "TRUNK_BROWSING": 3,
+        "TRUNK_DRINKING": 4,
         "TRUNK_FILLING": 1,
         "TRUNK_IDLE": 0,
+        "TRUNK_SHOWERING": 5,
         "TRUNK_SPRAYING": 2,
+        "TRUNK_TOUCHING": 6,
         "WALK_ANIM_SPEED": 6.0
       },
       "cosmetics": [
@@ -8075,12 +8099,12 @@
         "walk_speed_blocks_per_second": 2.8000000000000003
       },
       "history": {
-        "created": "2026-10-17T17:03:23.6764972+02:00",
-        "created_date": "2026-10-17",
+        "created": "2026-10-18T20:39:21.2420416+02:00",
+        "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-17T17:03:23.6775122+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 109925
+        "last_modified": "2026-10-18T21:18:47.9276124+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 140530
       },
       "id": "ow:elephant",
       "loot": {
@@ -8447,6 +8471,22 @@
           "name": "SKIN_ZOMBIE",
           "ordinal": 5
         }
+      ],
+      "wild_behaviors": [
+        "ElephantBrowseGoal",
+        "ElephantDouseFireGoal",
+        "ElephantFollowHerdGoal",
+        "ElephantGoals",
+        "ElephantGrudgeTargetGoal",
+        "ElephantHerdDefenseTargetGoal",
+        "ElephantListenGoal",
+        "ElephantMockChargeGoal",
+        "ElephantMournGoal",
+        "ElephantMusthTargetGoal",
+        "ElephantPredatorTargetGoal",
+        "ElephantSeekWaterGoal",
+        "ElephantSprayPerchedGoal",
+        "ElephantWaterRun"
       ]
     },
     {
@@ -8836,7 +8876,7 @@
         "follow_owner_speed_factor": 20.0,
         "grab_max_timeout": 160,
         "initial_variant": 3,
-        "mounted_speed_blocks_per_second": 9.0,
+        "mounted_speed_blocks_per_second": 10.2,
         "nap_particle_forward": 1.25,
         "nap_particle_height": 1.15,
         "pitch_max_angle": 45.0,
@@ -8863,9 +8903,9 @@
         "created": "2026-10-12T19:33:54.9600162+02:00",
         "created_date": "2026-10-12",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-17T21:47:43.5609735+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 83944
+        "last_modified": "2026-10-18T21:02:54.544873+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 86052
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -8925,7 +8965,7 @@
         "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": -0.0,
-        "run_speed_multiplier": 3.75,
+        "run_speed_multiplier": 4.25,
         "saddle_item": "ow:tiger_saddle",
         "vital_energy_level_gain": 0.5,
         "vital_energy_recuperation": 1.0,
@@ -10475,12 +10515,12 @@
           {
             "looping": false,
             "name": "ATTACK_STRIKE",
-            "seconds": 1.125
+            "seconds": 1.25
           },
           {
             "looping": false,
             "name": "ATTACK_STRIKE_2",
-            "seconds": 1.125
+            "seconds": 1.25
           },
           {
             "looping": false,
@@ -10596,9 +10636,9 @@
         "created": "2026-10-18T11:15:01.445615+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-18T11:15:01.4462984+02:00",
+        "last_modified": "2026-10-18T21:02:54.5438259+02:00",
         "last_modified_date": "2026-10-18",
-        "size_bytes": 81516
+        "size_bytes": 82867
       },
       "id": "ow:gorilla",
       "loot": {
@@ -11225,12 +11265,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-17T16:53:08.0422051+02:00",
-        "created_date": "2026-10-17",
+        "created": "2026-10-18T14:35:53.7018984+02:00",
+        "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-17T16:53:08.1488466+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 71587
+        "last_modified": "2026-10-18T21:02:54.5402813+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 73407
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -11748,12 +11788,12 @@
         "walk_speed_blocks_per_second": 4.1
       },
       "history": {
-        "created": "2026-10-11T11:57:02.6081155+02:00",
-        "created_date": "2026-10-11",
+        "created": "2026-10-18T15:06:31.1070969+02:00",
+        "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-17T17:04:35.809465+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 62932
+        "last_modified": "2026-10-18T15:06:31.1086008+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 62946
       },
       "id": "ow:lion",
       "loot": {
@@ -12065,9 +12105,9 @@
         "created": "2026-02-25T10:58:13.1092156+01:00",
         "created_date": "2026-02-25",
         "file": "src/main/java/net/tiew/operationWild/entity/bosses/PlantEmpressEntity.java",
-        "last_modified": "2026-10-11T19:31:24.9566187+02:00",
-        "last_modified_date": "2026-10-11",
-        "size_bytes": 25174
+        "last_modified": "2026-10-18T14:55:51.1522479+02:00",
+        "last_modified_date": "2026-10-18",
+        "size_bytes": 25169
       },
       "id": "ow:plant_empress",
       "loot": {
