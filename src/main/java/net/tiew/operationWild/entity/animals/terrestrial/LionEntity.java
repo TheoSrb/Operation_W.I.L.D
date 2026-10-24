@@ -89,7 +89,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     // ==================================================
 
     public static final double TAMING_EXPERIENCE = 140.0;
-    public static final int MAX_SOMNOLENCE = 2200;
+    public static final int MAX_SOMNOLENCE = 1700;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 2;
     public static final int FOOD_WANTED_MIN = 8;

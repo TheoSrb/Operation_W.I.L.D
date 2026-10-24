@@ -11735,7 +11735,7 @@
         "MALE_HEALTH": 32.0,
         "MALE_ONE_IN": 3,
         "MALE_SPEED": 0.2,
-        "MAX_SOMNOLENCE": 2200,
+        "MAX_SOMNOLENCE": 1700,
         "SOMNOLENCE_LOSS_INTERVAL": 1,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
         "TAMING_EXPERIENCE": 140.0
@@ -11791,7 +11791,7 @@
         "created": "2026-10-18T15:06:31.1070969+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-24T16:50:55.7462248+02:00",
+        "last_modified": "2026-10-24T16:55:00.0655329+02:00",
         "last_modified_date": "2026-10-24",
         "size_bytes": 62950
       },
@@ -11894,15 +11894,15 @@
         },
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 220.0,
-          "full_bar_awake_seconds": 110.0,
+          "full_bar_asleep_seconds": 170.0,
+          "full_bar_awake_seconds": 85.0,
           "loss_interval_ticks_asleep": 2,
           "loss_interval_ticks_awake": 1,
           "loss_per_second_asleep": 10.0,
           "loss_per_second_awake": 20.0,
-          "max": 2200,
-          "max_max": 2640,
-          "max_min": 1760,
+          "max": 1700,
+          "max_max": 2040,
+          "max_min": 1360,
           "spread_percent": 20
         },
         "tameable": true
