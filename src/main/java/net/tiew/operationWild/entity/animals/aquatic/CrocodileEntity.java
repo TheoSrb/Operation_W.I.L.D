@@ -79,6 +79,7 @@ import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import java.util.*;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity {
 
@@ -693,11 +694,6 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             if (deathRollCooldown > 0) deathRollCooldown--;
         }
 
-        if (this.isInWater() && !this.isBaby()) {
-            if (!this.level().isClientSide() && isPlayerMouthCharging()) cancelMouthSlamCharge();
-            this.setChargingMouth(false);
-            this.setChargingMouthTimer(0);
-        }
 
         if (!this.level().isClientSide()) tickDeathRoll();
 
@@ -1893,7 +1889,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     public void startMouthSlamCharge() {
-        if (this.isInWater() || this.isGrabbing()) return;
+        if (this.isGrabbing()) return;
         setPlayerMouthCharging(true);
         setChargingMouthTimer(0);
     }
@@ -2056,7 +2052,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
         boolean wasCharging = isPlayerMouthCharging();
         setPlayerMouthCharging(false);
         setChargingMouthTimer(0);
-        if (!wasCharging || this.isInWater() || this.isGrabbing()) return;
+        if (!wasCharging || this.isGrabbing()) return;
         float energyRequired = OWAttacksConstants.Crocodile.MOUTH_SLAM_ENERGY;
         if (getVitalEnergy() > getVitalEnergyCapacity() - energyRequired) {
             canShowVitalEnergyLack = true;
@@ -2175,5 +2171,14 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
             }
         }
 
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(18, -0.4f, 9.0f, 1.0f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

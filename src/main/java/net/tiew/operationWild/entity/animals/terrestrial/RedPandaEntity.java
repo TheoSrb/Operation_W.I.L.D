@@ -86,6 +86,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
@@ -1947,5 +1948,14 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
             this.remainingPulses = remainingPulses;
             this.amountPerPulse = amountPerPulse;
         }
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(18, -2.9f, 4.2f, 1.0f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

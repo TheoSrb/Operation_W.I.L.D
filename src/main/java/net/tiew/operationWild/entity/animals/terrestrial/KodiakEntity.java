@@ -78,6 +78,7 @@ import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import java.util.*;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, NeutralMob {
 
@@ -1644,5 +1645,15 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
             if (!KodiakEntity.this.isHungry()) return false;
             return super.canContinueToUse();
         }
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(17, 0.5f, -11.4f, 0.7f),
+            new OWSedationImpact(35, -1.8f, 11.1f, 1.0f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

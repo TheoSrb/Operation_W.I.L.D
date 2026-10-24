@@ -72,6 +72,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity, PlayerRideableJumping, NeutralMob {
 
@@ -770,6 +771,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             ridingJumpTimer = 0;
         }
 
+        if (this.isInWater() && !this.onGround()) playerJumpPendingScale = 0f;
         if (this.isControlledByLocalInstance() && this.onGround() && !isRidingJump) {
             if (playerJumpPendingScale > 0f && !isSpinning()) {
                 executeRidersJump(playerJumpPendingScale);
@@ -2086,5 +2088,15 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
             this.changeSkin(this.getSkinIndex(), false);
             this.nbtRestoring = false;
         }
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(17, 0.1f, 12.9f, 1.0f),
+            new OWSedationImpact(24, -0.4f, 34.4f, 0.35f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

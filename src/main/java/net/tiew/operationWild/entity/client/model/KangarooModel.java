@@ -274,26 +274,31 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
 
         float s = kangaroo.isTame() ? kangaroo.isRunning() ? 1.25f : 2.0f : kangaroo.isRunning() ? 1f : 1.75f;
         if (kangaroo.getControllingPassenger() == null) s *= FREE_WALK_SPEED_FACTOR;
+        float swim = swimWeight(kangaroo, ageInTicks);
+        float land = 1f - swim;
         if (!kangaroo.isRunning())
-            this.animate(kangaroo.idleAnimationState, KangarooAnimations.MISC_IDLE, ageInTicks, 1.0f);
+            this.animateWeighted(kangaroo.idleAnimationState, KangarooAnimations.MISC_IDLE, ageInTicks, 1.0f, land);
 
         if (kangaroo.isHopping()) {
-            animateHop(kangaroo, ageInTicks, limbSwingAmount);
+            animateHop(kangaroo, ageInTicks, limbSwingAmount, land);
         } else if (!kangaroo.isCombo(3)) {
-            this.animateWalk(KangarooAnimations.MOVE_WALK, limbSwing, limbSwingAmount, s, s * 1.25f);
+            this.animateWalkWeighted(KangarooAnimations.MOVE_WALK, limbSwing, limbSwingAmount, s, s * 1.25f, land);
         }
+
+        animateSwim(kangaroo, KangarooAnimations.SWIM, ageInTicks, swim);
 
         if (kangaroo.isPivoting()) animatePivot(ageInTicks);
     }
 
-    private void animateHop(T kangaroo, float ageInTicks, float limbSwingAmount) {
+    private void animateHop(T kangaroo, float ageInTicks, float limbSwingAmount, float weight) {
         float partial = Mth.clamp(ageInTicks - kangaroo.tickCount, 0f, 1f);
         float elapsed = kangaroo.hopAnimTicks + partial;
         float period = Math.max(4f, kangaroo.hopAnimPeriod);
         float cycle = Mth.clamp(elapsed / period, 0f, 1f);
 
         long ms = (long) (cycle * HOP_ANIM_LENGTH_MS * HOP_ANIM_SPEED);
-        float amount = Math.max(0.55f, Math.min(1.0f, limbSwingAmount * 2.2f));
+        float amount = Math.max(0.55f, Math.min(1.0f, limbSwingAmount * 2.2f)) * weight;
+        if (amount <= 0.001f) return;
         KeyframeAnimations.animate(this, KangarooAnimations.MOVE_WALK, ms, amount, HOP_ANIM_VEC);
     }
 

@@ -90,6 +90,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity, PlayerRideableJumping {
     // ==================================================
@@ -1260,6 +1261,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     @Override
     public void tickRidden(Player player, Vec3 travelVector) {
         super.tickRidden(player, travelVector);
+        if (this.isInWater() && !this.onGround()) this.playerJumpPendingScale = 0.0F;
         if (this.isControlledByLocalInstance() && this.onGround()) {
             if (this.playerJumpPendingScale > 0.0F && !this.isLeaping && !this.isPreparing && !this.isGrabbing()) {
                 executeRidersJump(this.playerJumpPendingScale);
@@ -1984,5 +1986,14 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
             }
         }
 
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(18, -0.6f, 5.9f, 1.0f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

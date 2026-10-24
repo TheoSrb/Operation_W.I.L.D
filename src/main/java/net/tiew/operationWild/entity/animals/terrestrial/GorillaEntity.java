@@ -74,6 +74,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable, NeutralMob {
     // ==================================================
@@ -2067,5 +2068,16 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
                 }
             }
         }
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(15, -5.7f, -0.3f, 0.6f),
+            new OWSedationImpact(34, 2.4f, -9.3f, 1.0f),
+            new OWSedationImpact(39, 9.8f, 13.7f, 0.3f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

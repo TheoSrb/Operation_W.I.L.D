@@ -42,6 +42,7 @@ public class OWWikiDatasProvider implements DataProvider {
         root.add("entities", OWWikiEntitySection.build(provider, lang, sources, recipes));
         root.add("meta", meta(lang));
         root.add("glossary", OWWikiGlossarySection.build(lang));
+        root.add("sedatives", OWWikiSedativesSection.build(lang));
         root.add("tribes", OWWikiTribesSection.build(provider, lang, sources));
         root.add("items", OWWikiCatalogSection.items(lang));
         root.add("blocks", OWWikiCatalogSection.blocks(lang));

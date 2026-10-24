@@ -534,4 +534,9 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
             }
         }
     }
+
+    @Override
+    protected double riddenAscendSpeed() {
+        return 0.0D;
+    }
 }

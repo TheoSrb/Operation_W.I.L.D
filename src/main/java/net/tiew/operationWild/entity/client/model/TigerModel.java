@@ -385,20 +385,24 @@ public class TigerModel<T extends TigerEntity> extends OWComboModel<T> implement
 		}
 
 
-		this.animate(tiger.idleAnimationState, TigerAnimations.MISC_IDLE, ageInTicks, 1.0f);
+		float swim = swimWeight(tiger, ageInTicks);
+		float land = 1f - swim;
+		this.animateWeighted(tiger.idleAnimationState, TigerAnimations.MISC_IDLE, ageInTicks, 1.0f, land);
 
 		if (tiger.isRunning() || tiger.getState() == 2) {
-			this.animateWalk(TigerAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.1f, 1.25f);
+			this.animateWalkWeighted(TigerAnimations.MOVE_RUN, limbSwing, limbSwingAmount, 1.1f, 1.25f, land);
 
-			if (walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 150L)) tiger.onRightFootDown();
-			if (walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 340L)) tiger.onLeftFootDown();
+			if (land > 0.5f && walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 150L)) tiger.onRightFootDown();
+			if (land > 0.5f && walkAnimCrossed(TigerAnimations.MOVE_RUN, limbSwing, 1.1f, 340L)) tiger.onLeftFootDown();
 
 		} else {
-			this.animateWalk(TigerAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 4.5f, 4.5f);
+			this.animateWalkWeighted(TigerAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 4.5f, 4.5f, land);
 
-			if (walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 300L)) tiger.onRightFootDown();
-			if (walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 1000L)) tiger.onLeftFootDown();
+			if (land > 0.5f && walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 300L)) tiger.onRightFootDown();
+			if (land > 0.5f && walkAnimCrossed(TigerAnimations.MOVE_WALK, limbSwing, 4.5f, 1000L)) tiger.onLeftFootDown();
 		}
+
+		animateSwim(tiger, TigerAnimations.SWIM, ageInTicks, swim);
 
 		// Must be updated AFTER the event checks above, so they see the previous frame's value.
 		this.prevLimbSwing = limbSwing;

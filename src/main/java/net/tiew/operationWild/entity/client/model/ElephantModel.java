@@ -363,15 +363,24 @@ public class ElephantModel<T extends ElephantEntity> extends OWComboModel<T> imp
         long bashMs = shoulderBashTimeMs(elephant, ageInTicks);
         float bash = bashMs < 0 ? 0f : shoulderBashWeight(bashMs);
         float stance = (1f - alarm) * (1f - bash);
+        float swim = swimWeight(elephant, ageInTicks);
+        float land = stance * (1f - swim);
+        float snorkel = smoothStep(elephant.getSnorkelBlend(Mth.clamp(ageInTicks - elephant.tickCount, 0f, 1f)));
 
         elephant.idleAnimationState.updateTime(ageInTicks, 1.0f);
-        if (elephant.idleAnimationState.isStarted() && stance > 0f) {
+        if (elephant.idleAnimationState.isStarted() && land > 0f) {
             KeyframeAnimations.animate(this, ElephantAnimations.MISC_IDLE,
-                    elephant.idleAnimationState.getAccumulatedTime(), stance, BLEND_ANIM_VECTOR);
+                    elephant.idleAnimationState.getAccumulatedTime(), land, BLEND_ANIM_VECTOR);
         }
 
         KeyframeAnimations.animate(this, ElephantAnimations.MOVE_WALK, (long) walkTimeMs,
-                Math.min(limbSwingAmount * 7.5f, 1.0f) * stance, WALK_ANIM_VECTOR);
+                Math.min(limbSwingAmount * 7.5f, 1.0f) * land, WALK_ANIM_VECTOR);
+
+        animateSwim(elephant, ElephantAnimations.SWIM, ageInTicks, stance * swim * (1f - snorkel));
+        animateSwim(elephant, ElephantAnimations.SWIM_SNORKEL, ageInTicks, stance * swim * snorkel);
+        if (land * snorkel > 0.001f) {
+            KeyframeAnimations.animate(this, ElephantAnimations.SNORKEL, (long) (ageInTicks * 50f), land * snorkel, BLEND_ANIM_VECTOR);
+        }
 
         if (alarm > 0f) {
             KeyframeAnimations.animate(this, ElephantAnimations.ALARM, alarmMs, alarm, BLEND_ANIM_VECTOR);

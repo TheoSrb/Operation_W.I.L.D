@@ -647,7 +647,7 @@ public class OWAttacksHandler {
                 },
                 false,
                 true
-        ).withCanUsePredicate(entity -> !entity.isInWater());
+        );
 
         public static final OWAttack PRIMAL_DIVE = new OWAttack(
                 PRIMAL_DIVE_ID,

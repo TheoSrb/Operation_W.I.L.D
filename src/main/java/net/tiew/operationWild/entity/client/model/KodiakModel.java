@@ -409,23 +409,28 @@ public class KodiakModel<T extends KodiakEntity> extends OWComboModel<T> impleme
         }
 
 
-        this.animate(kodiak.idleAnimationState, KodiakAnimations.MISC_IDLE, ageInTicks, 1.0f);
+        float swim = swimWeight(kodiak, ageInTicks);
+        float land = 1f - swim;
+        boolean footsteps = land > 0.5f;
+        this.animateWeighted(kodiak.idleAnimationState, KodiakAnimations.MISC_IDLE, ageInTicks, 1.0f, land);
 
         if (kodiak.isRunning() || kodiak.getState() == 2) {
             float animSpeed = kodiak.isVehicle() ? 1.0f : 1.25f;
 
-            this.animateWalk(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, animSpeed, 1.35f);
+            this.animateWalkWeighted(KodiakAnimations.MOVE_RUN, limbSwing, limbSwingAmount, animSpeed, 1.35f, land);
 
-            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 240L)) kodiak.onRightFootDown();
-            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 240L)) kodiak.onLeftFootDown();
-            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 920L)) kodiak.onLeftFootDown();
-            if (walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 920L)) kodiak.onRightFootDown();
+            if (footsteps && walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 240L)) kodiak.onRightFootDown();
+            if (footsteps && walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 240L)) kodiak.onLeftFootDown();
+            if (footsteps && walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 920L)) kodiak.onLeftFootDown();
+            if (footsteps && walkAnimCrossed(KodiakAnimations.MOVE_RUN, limbSwing, animSpeed, 920L)) kodiak.onRightFootDown();
         } else {
-            this.animateWalk(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f);
+            this.animateWalkWeighted(KodiakAnimations.MOVE_WALK, limbSwing, limbSwingAmount, 6f, 6f, land);
 
-            if (walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 550L)) kodiak.onRightFootDown();
-            if (walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 1350L)) kodiak.onLeftFootDown();
+            if (footsteps && walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 550L)) kodiak.onRightFootDown();
+            if (footsteps && walkAnimCrossed(KodiakAnimations.MOVE_WALK, limbSwing, 6f, 1350L)) kodiak.onLeftFootDown();
         }
+
+        animateSwim(kodiak, KodiakAnimations.SWIM, ageInTicks, swim);
 
         this.prevLimbSwing = limbSwing;
         captureBodyState(kodiak, 10f, false, this.ALL2, this.ALL, this.body, this.body_2, this.body_1);

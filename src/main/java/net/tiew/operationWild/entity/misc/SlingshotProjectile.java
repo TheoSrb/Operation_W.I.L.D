@@ -27,7 +27,8 @@ public class SlingshotProjectile extends AbstractArrow {
     // collisions entre dimensions. Le décai périodique est piloté par le tick SERVEUR (voir decayTick),
     // et non plus par un Timer sur un thread annexe (accéder au monde hors thread principal = crashs).
     private static final Map<GlobalPos, Integer> blockDamageMap = new HashMap<>();
-    public int tranquilizerEffectiveness = 35;
+    public static final int TRANQUILIZER_EFFECTIVENESS = 35;
+    public static final float HIT_DAMAGE = 2f;
 
     private static final Set<SlingshotProjectile> projectilesToRemove = Collections.synchronizedSet(new HashSet<>());
 
@@ -123,7 +124,7 @@ public class SlingshotProjectile extends AbstractArrow {
         OWUtils.spawnBlockParticles(this, Blocks.COBBLESTONE, 0, 0, 0, 20, 0.5);
         float pitch = (float) OWUtils.generateRandomInterval(0.85f, 1.15f);
         this.playSound(SoundEvents.STONE_BREAK, 1.0f, pitch);
-        entity.hurt($$4, 2);
+        entity.hurt($$4, HIT_DAMAGE);
 
         Vec3 direction = entity.position().subtract(this.position()).normalize();
         if (!(entity instanceof PlantEmpressEntity)) {

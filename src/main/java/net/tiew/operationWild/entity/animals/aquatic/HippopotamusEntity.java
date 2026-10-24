@@ -78,6 +78,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
+import java.util.List;
 
 public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable {
     // ==================================================
@@ -1779,5 +1781,15 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
                 }
             }
         }
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(17, 9.2f, -3.2f, 1.0f),
+            new OWSedationImpact(25, -3.0f, 30.8f, 0.4f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

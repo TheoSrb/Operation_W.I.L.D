@@ -70,6 +70,7 @@ import net.tiew.operationWild.item.custom.AnimalSoulItem;
 import java.util.*;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, IOWRideable {
 
@@ -2638,5 +2639,15 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
         private static final int WATER_PICK_ATTEMPTS = 8;
 
         private static final double WANDER_ARC = Math.toRadians(220);
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(13, 0.8f, -50.6f, 0.6f),
+            new OWSedationImpact(29, 4.3f, -15.9f, 1.0f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

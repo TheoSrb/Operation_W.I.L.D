@@ -97,6 +97,7 @@ import net.tiew.operationWild.entity.goals.global.OWSedationRetaliationGoal;
 import net.tiew.operationWild.entity.goals.global.OWSedationRetreatGoal;
 import net.tiew.operationWild.entity.taming.OWAggressiveTaming;
 import net.tiew.operationWild.entity.taming.OWSedationAnimState;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 import net.tiew.operationWild.entity.taming.OWSedationResponse;
 import net.tiew.operationWild.particle.OWParticles;
 import net.tiew.operationWild.entity.misc.*;
@@ -232,6 +233,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int renderedHeadTick;
     private float mealBob;
     private float mealBobO;
+    private float swimPose;
+    private float swimPoseO;
+    private float swimTime;
+    private float swimTimeO;
+    private float swimTempo = SWIM_TEMPO_IDLE;
+    private int swimAfloatTicks;
     private boolean knockedOutOnClient;
     private boolean sedationDisplayPrimed;
     private int dizzyStarIndex;
@@ -243,9 +250,19 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final int SOMNOLENCE_LOSS_PAUSE = 100;
     private static final int RENDERED_HEAD_LIFETIME = 3;
     public static final float HEADSHOT_SOMNOLENCE_FACTOR = 1.5f;
+    public static final float SEDATIVE_DAMAGE_DIVISOR = 2f;
+    public static final float SEDATIVE_MIN_DAMAGE = 0.5f;
     private static final int WAKE_TWITCH_DURATION = 7;
     private static final float WAKE_TWITCH_CHANCE = 0.025f;
     private static final float WAKE_TWITCH_AMPLITUDE = 0.35f;
+    private static final List<OWSedationImpact> DEFAULT_SEDATION_IMPACTS = List.of(new OWSedationImpact(18, 0f, 0f, 1f));
+    private static final int SWIM_SETTLE_TICKS = 6;
+    private static final double SWIM_MIN_DEPTH = 0.2;
+    private static final float SWIM_BLEND_RATE = 0.1f;
+    private static final float SWIM_TEMPO_IDLE = 0.6f;
+    private static final float SWIM_TEMPO_MOVE = 1.2f;
+    private static final float SWIM_DRIVE_GAIN = 3.0f;
+    private static final float SWIM_TEMPO_RESPONSE = 0.15f;
 
     public static final float LEASH_DRAG_SLACK = 3.0f;
     public static final float LEASH_DRAG_SNAP = 10.0f;
@@ -2067,6 +2084,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public void onSedationKnockOut() {
     }
 
+    public List<OWSedationImpact> sedationImpacts() {
+        return DEFAULT_SEDATION_IMPACTS;
+    }
+
     public void playSedationVoice(float pitch) {
         SoundEvent voice = this.getAmbientSound();
         if (voice == null) voice = this.getHurtSound(this.damageSources().generic());
@@ -2145,6 +2166,38 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public float getMealBob(float partialTick) {
         return Mth.lerp(partialTick, this.mealBobO, this.mealBob);
+    }
+
+    public float swimPose(float partialTick) {
+        return Mth.lerp(partialTick, this.swimPoseO, this.swimPose);
+    }
+
+    public float swimTime(float partialTick) {
+        return Mth.lerp(partialTick, this.swimTimeO, this.swimTime);
+    }
+
+    protected boolean canSwimPose() {
+        return !this.isPassenger() && !this.isKnockedOut();
+    }
+
+    private void tickSwimPose() {
+        boolean afloat = this.isInWater() && !this.onGround() && this.getFluidHeight(FluidTags.WATER) > SWIM_MIN_DEPTH;
+        this.swimAfloatTicks = Mth.clamp(this.swimAfloatTicks + (afloat ? 1 : -1), 0, SWIM_SETTLE_TICKS);
+
+        this.swimPoseO = this.swimPose;
+        float target = this.canSwimPose() ? this.swimAfloatTicks / (float) SWIM_SETTLE_TICKS : 0f;
+        this.swimPose = Mth.approach(this.swimPose, target, SWIM_BLEND_RATE);
+
+        this.swimTimeO = this.swimTime;
+        if (this.swimPose <= 0f) {
+            this.swimTime = 0f;
+            this.swimTimeO = 0f;
+            this.swimTempo = SWIM_TEMPO_IDLE;
+            return;
+        }
+        float drive = Mth.clamp(this.walkAnimation.speed() * SWIM_DRIVE_GAIN, 0f, 1f);
+        this.swimTempo += (Mth.lerp(drive, SWIM_TEMPO_IDLE, SWIM_TEMPO_MOVE) - this.swimTempo) * SWIM_TEMPO_RESPONSE;
+        this.swimTime += 50f * this.swimTempo;
     }
 
     public float getSedatedHeadNod(float ageInTicks) {
@@ -2634,6 +2687,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     protected static final float RIDDEN_SWIM_ACCEL_RESPONSE = 0.09f;
     protected static final float RIDDEN_SWIM_BRAKE_RESPONSE = 0.055f;
+    private static final double RIDDEN_SWIM_ASCEND_SPEED = 0.04D;
+    private static final float RIDDEN_SWIM_SURFACE_FRACTION = 0.25f;
 
     protected float riddenSpeedResponse(boolean accelerating) {
         return RIDDEN_SPEED_RESPONSE;
@@ -2693,7 +2748,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     protected double riddenAscendSpeed() {
-        return 0.0D;
+        if (this.getFluidHeight(FluidTags.WATER) <= this.getBbHeight() * RIDDEN_SWIM_SURFACE_FRACTION) return 0.0D;
+        return RIDDEN_SWIM_ASCEND_SPEED;
     }
 
     private void travelRidden(Player player, Vec3 travelVector) {
@@ -3101,13 +3157,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     private int sedativePower(Entity projectile, float amount, float headshotFactor) {
         float factor = headshotFactor * this.sedativeResistanceFactor();
-        if (projectile instanceof TranquilizerWoodenStinger stinger) {
-            return (int) (stinger.tranquilizerEffectiveness * factor);
+        if (projectile instanceof TranquilizerWoodenStinger) {
+            return (int) (TranquilizerWoodenStinger.TRANQUILIZER_EFFECTIVENESS * factor);
         }
-        if (amount <= 0.5f) return 0;
-        int effectiveness = projectile instanceof TranquilizerArrow arrow ? arrow.tranquilizerEffectiveness
-                : projectile instanceof SlingshotProjectile pebble ? pebble.tranquilizerEffectiveness : 0;
-        return (int) (effectiveness * (amount / 2) * factor);
+        if (amount <= SEDATIVE_MIN_DAMAGE) return 0;
+        int effectiveness = projectile instanceof TranquilizerArrow ? TranquilizerArrow.TRANQUILIZER_EFFECTIVENESS
+                : projectile instanceof SlingshotProjectile ? SlingshotProjectile.TRANQUILIZER_EFFECTIVENESS : 0;
+        return (int) (effectiveness * (amount / SEDATIVE_DAMAGE_DIVISOR) * factor);
     }
 
     public float sedativeResistanceFactor() {
@@ -3657,6 +3713,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (this.level().isClientSide) {
             handleClientAnimationSync();
             tickSedationClient();
+            tickSwimPose();
         }
 
         if (this.isCombo() && !keepsAccelerationDuringCombo()) {

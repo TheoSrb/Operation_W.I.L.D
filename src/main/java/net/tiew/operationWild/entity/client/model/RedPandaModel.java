@@ -250,28 +250,31 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
 
         if (redPanda.isSitting()) {
             this.animate(redPanda.sittingAnimationState, RedPandaAnimations.SIT, ageInTicks, 1.0f);
-            animateTailGravity(redPanda, ageInTicks);
+            animateTailGravity(redPanda, ageInTicks, 1f);
             animateGestures(redPanda, ageInTicks);
             return;
         }
 
-        this.animate(redPanda.idleAnimationState, RedPandaAnimations.MISC_IDLE, ageInTicks, 1.0f);
+        float swim = RENDER_AS_GROUNDED ? 0f : swimWeight(redPanda, ageInTicks);
+        float land = 1f - swim;
+        this.animateWeighted(redPanda.idleAnimationState, RedPandaAnimations.MISC_IDLE, ageInTicks, 1.0f, land);
 
         float walkSpeed = redPanda.isAlerted() ? FLEE_WALK_SPEED : WALK_SPEED;
-        this.animateWalk(RedPandaAnimations.MOVE_WALK, limbSwing, limbSwingAmount, walkSpeed, walkSpeed * 1.2f);
+        this.animateWalkWeighted(RedPandaAnimations.MOVE_WALK, limbSwing, limbSwingAmount, walkSpeed, walkSpeed * 1.2f, land);
+        animateSwim(redPanda, RedPandaAnimations.SWIM, ageInTicks, swim);
 
-        if (!RENDER_AS_GROUNDED && !treePosed) {
+        if (!RENDER_AS_GROUNDED && !treePosed && land > 0.5f) {
             if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, walkSpeed, STEP_RIGHT_MS))
                 redPanda.onRightFootDown();
             if (walkAnimCrossed(RedPandaAnimations.MOVE_WALK, limbSwing, walkSpeed, STEP_LEFT_MS))
                 redPanda.onLeftFootDown();
         }
 
-        if (!treePosed) animateTailGravity(redPanda, ageInTicks);
+        if (!treePosed) animateTailGravity(redPanda, ageInTicks, land);
         animateGestures(redPanda, ageInTicks);
     }
 
-    private void animateTailGravity(T redPanda, float ageInTicks) {
+    private void animateTailGravity(T redPanda, float ageInTicks, float weight) {
         if (RENDER_AS_GROUNDED) return;
 
         if (redPanda.tailGroundProbeTick != redPanda.tickCount) {
@@ -288,7 +291,7 @@ public class RedPandaModel<T extends RedPandaEntity> extends OWComboModel<T> {
         redPanda.tailGroundPitch += (target - redPanda.tailGroundPitch)
                 * Math.min(1f, TAIL_GRAVITY_RESPONSE * dt);
 
-        this.tail.xRot += -redPanda.tailGroundPitch * Mth.DEG_TO_RAD;
+        this.tail.xRot += -redPanda.tailGroundPitch * Mth.DEG_TO_RAD * weight;
     }
 
     private static float probeTailDrop(RedPandaEntity redPanda) {

@@ -845,6 +845,11 @@
             "looping": false,
             "name": "DEFINITION",
             "seconds": 2.2
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.1667
           }
         ],
         "layers": [
@@ -1099,9 +1104,9 @@
         "created": "2026-10-17T16:56:05.2950614+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-18T21:02:54.5473926+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 79639
+        "last_modified": "2026-10-24T21:25:00.5875505+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 80046
       },
       "id": "ow:tiger",
       "loot": {
@@ -2734,6 +2739,11 @@
             "looping": false,
             "name": "DEFINITION",
             "seconds": 2.4
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.3333
           }
         ],
         "layers": [
@@ -2916,9 +2926,9 @@
         "created": "2026-10-18T15:06:31.0637823+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-18T21:02:54.546387+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 63622
+        "last_modified": "2026-10-24T21:25:00.5825057+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 64002
       },
       "id": "ow:kodiak",
       "loot": {
@@ -4462,9 +4472,9 @@
         "created": "2026-10-17T16:54:47.3649623+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-18T21:02:54.5392789+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 85041
+        "last_modified": "2026-10-24T21:25:00.5905714+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 85073
       },
       "id": "ow:crocodile",
       "loot": {
@@ -5981,9 +5991,9 @@
         "created": "2026-10-17T16:58:42.131349+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-18T21:02:54.54179+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 61806
+        "last_modified": "2026-10-24T21:25:00.591576+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 62127
       },
       "id": "ow:boa",
       "loot": {
@@ -7422,9 +7432,9 @@
         "created": "2026-10-17T21:51:07.1258579+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-18T21:02:54.5407848+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 100659
+        "last_modified": "2026-10-24T21:25:00.5930938+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 101039
       },
       "id": "ow:orca",
       "loot": {
@@ -8000,6 +8010,21 @@
             "looping": false,
             "name": "DEFINITION",
             "seconds": 0.9583
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.6667
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.6667
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 2.0
           }
         ],
         "layers": [
@@ -8102,9 +8127,9 @@
         "created": "2026-10-18T20:39:21.2420416+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-18T21:18:47.9276124+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 140530
+        "last_modified": "2026-10-24T21:25:00.580749+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 141213
       },
       "id": "ow:elephant",
       "loot": {
@@ -8763,6 +8788,11 @@
             "looping": false,
             "name": "DEFINITION",
             "seconds": 1.75
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.0
           }
         ],
         "layers": [
@@ -8903,9 +8933,9 @@
         "created": "2026-10-12T19:33:54.9600162+02:00",
         "created_date": "2026-10-12",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-18T21:02:54.544873+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 86052
+        "last_modified": "2026-10-24T21:25:00.5850285+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 86512
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -9417,6 +9447,11 @@
             "looping": false,
             "name": "SEDATED_WAKE",
             "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "SWIM",
+            "seconds": 0.6667
           }
         ],
         "layers": [
@@ -9512,9 +9547,9 @@
         "created": "2026-10-17T21:51:56.435674+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-17T21:51:56.4376178+02:00",
-        "last_modified_date": "2026-10-17",
-        "size_bytes": 77416
+        "last_modified": "2026-10-24T21:25:00.5890663+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 77726
       },
       "id": "ow:red_panda",
       "loot": {
@@ -10561,6 +10596,11 @@
             "looping": false,
             "name": "SEDATED_WAKE",
             "seconds": 2.5
+          },
+          {
+            "looping": true,
+            "name": "SWIM",
+            "seconds": 0.8333
           }
         ],
         "layers": [
@@ -10636,9 +10676,9 @@
         "created": "2026-10-18T11:15:01.445615+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-18T21:02:54.5438259+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 82867
+        "last_modified": "2026-10-24T21:25:00.5835102+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 83304
       },
       "id": "ow:gorilla",
       "loot": {
@@ -11268,9 +11308,9 @@
         "created": "2026-10-18T14:35:53.7018984+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-18T21:02:54.5402813+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 73407
+        "last_modified": "2026-10-24T21:25:00.5865459+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 73810
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -11712,6 +11752,11 @@
             "looping": false,
             "name": "SEDATED_WAKE",
             "seconds": 2.4
+          },
+          {
+            "looping": true,
+            "name": "SWIM",
+            "seconds": 1.0
           }
         ],
         "layers": [
@@ -11791,9 +11836,9 @@
         "created": "2026-10-18T15:06:31.1070969+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-24T16:55:00.0655329+02:00",
+        "last_modified": "2026-10-24T21:25:00.5880617+02:00",
         "last_modified_date": "2026-10-24",
-        "size_bytes": 62950
+        "size_bytes": 63259
       },
       "id": "ow:lion",
       "loot": {
@@ -12493,6 +12538,8 @@
       "PASSIVE_REGEN_INTERVAL_TICKS": 400,
       "SAVAGE_ENTITY_DAMAGE_MULTIPLIER": 1.4,
       "SECONDARY_SWITCH_COOLDOWN_TICKS": 10,
+      "SEDATIVE_DAMAGE_DIVISOR": 2.0,
+      "SEDATIVE_MIN_DAMAGE": 0.5,
       "SLEEPING_SOMNOLENCE_LOSS_FACTOR": 2,
       "SOMNOLENCE_SPREAD_PERCENT": 20,
       "VITAL_ENERGY_LEVEL_GAIN": 0.5,
@@ -16706,6 +16753,127 @@
       "taming_threshold": 300.0
     }
   ],
+  "sedatives": {
+    "damage_divisor": 2.0,
+    "headshot_factor": 1.5,
+    "min_damage": 0.5,
+    "resistances": [
+      {
+        "condition": "musth",
+        "entity": "ow:elephant",
+        "factor": 0.6
+      }
+    ],
+    "weapons": [
+      {
+        "ammo": "ow:tranquilizer_arrow",
+        "ammo_names": {
+          "fr_fr": "Flèche Tranquilisante"
+        },
+        "base_damage": 0.05,
+        "crit_max_chance": 0.5,
+        "crit_on_full_draw": true,
+        "effectiveness": 80,
+        "formula": "damage",
+        "full_draw_speed": 3.0,
+        "full_draw_ticks": 20,
+        "interval_seconds": 1.0,
+        "key": "bow",
+        "launcher": "minecraft:bow",
+        "power_avg": 60.0,
+        "power_enchant": [
+          {
+            "crit_extra_max": 1,
+            "damage": 1,
+            "power_avg": 60.0,
+            "power_level": 0,
+            "power_max": 80,
+            "power_min": 40
+          },
+          {
+            "crit_extra_max": 2,
+            "damage": 2,
+            "power_avg": 120.0,
+            "power_level": 1,
+            "power_max": 160,
+            "power_min": 80
+          },
+          {
+            "crit_extra_max": 3,
+            "damage": 4,
+            "power_avg": 220.0,
+            "power_level": 2,
+            "power_max": 280,
+            "power_min": 160
+          },
+          {
+            "crit_extra_max": 3,
+            "damage": 5,
+            "power_avg": 260.0,
+            "power_level": 3,
+            "power_max": 320,
+            "power_min": 200
+          },
+          {
+            "crit_extra_max": 4,
+            "damage": 7,
+            "power_avg": 360.0,
+            "power_level": 4,
+            "power_max": 440,
+            "power_min": 280
+          },
+          {
+            "crit_extra_max": 5,
+            "damage": 8,
+            "power_avg": 420.0,
+            "power_level": 5,
+            "power_max": 520,
+            "power_min": 320
+          }
+        ],
+        "power_max": 80,
+        "power_min": 40,
+        "power_uncharged": 40
+      },
+      {
+        "ammo": "ow:tranquilizer_wooden_stinger",
+        "ammo_names": {
+          "fr_fr": "Dart en bois tranquilisant"
+        },
+        "effectiveness": 60,
+        "formula": "flat",
+        "full_draw_ticks": 10,
+        "interval_seconds": 0.5,
+        "key": "blowpipe",
+        "launcher": "ow:maya_blowpipe",
+        "launcher_names": {
+          "fr_fr": "Sarbacane de Maya"
+        },
+        "power_avg": 60.0,
+        "power_max": 60,
+        "power_min": 60,
+        "power_uncharged": 60
+      },
+      {
+        "ammo": "minecraft:cobblestone",
+        "effectiveness": 35,
+        "formula": "damage",
+        "full_draw_ticks": 20,
+        "hit_damage": 2.0,
+        "interval_seconds": 1.0,
+        "key": "slingshot",
+        "launcher": "ow:primitive_slingshot",
+        "launcher_names": {
+          "fr_fr": "Lance-pierre primitif"
+        },
+        "power_avg": 35.0,
+        "power_independent_of_draw": true,
+        "power_max": 35,
+        "power_min": 35,
+        "power_uncharged": 35
+      }
+    ]
+  },
   "sounds": [
     {
       "constant": "TAME_SUCCESS",

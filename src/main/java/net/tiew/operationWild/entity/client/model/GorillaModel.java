@@ -380,6 +380,11 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
                                float pt, float stanceWeight, float comboWeight) {
         if (stanceWeight <= 0.001f) return;
 
+        float swim = swimWeight(gorilla, ageInTicks);
+        animateSwim(gorilla, GorillaAnimations.SWIM, ageInTicks, swim * stanceWeight);
+        stanceWeight *= 1f - swim;
+        if (stanceWeight <= 0.001f) return;
+
         float moveWeight = Math.min(limbSwingAmount * MOVE_BLEND_FACTOR, 1.0f);
         float rideWeight = smoothStep(gorilla.rideBlend(pt));
 
@@ -417,8 +422,9 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
             float speed = running ? RUN_ANIM_SPEED : WALK_ANIM_SPEED;
             long rightMark = running ? RUN_STEP_RIGHT_MS : WALK_STEP_RIGHT_MS;
             long leftMark = running ? RUN_STEP_LEFT_MS : WALK_STEP_LEFT_MS;
-            if (walkAnimCrossed(move, limbSwing, prevSwing, speed, rightMark)) gorilla.onRightFootDown();
-            if (walkAnimCrossed(move, limbSwing, prevSwing, speed, leftMark)) gorilla.onLeftFootDown();
+            boolean footsteps = swim < 0.5f;
+            if (footsteps && walkAnimCrossed(move, limbSwing, prevSwing, speed, rightMark)) gorilla.onRightFootDown();
+            if (footsteps && walkAnimCrossed(move, limbSwing, prevSwing, speed, leftMark)) gorilla.onLeftFootDown();
         }
     }
 

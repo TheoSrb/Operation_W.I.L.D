@@ -17,18 +17,19 @@ import net.tiew.operationWild.item.OWItems;
 
 public class TranquilizerArrow extends AbstractArrow {
     public static final float DAMAGE_FACTOR = 0.2f;
+    public static final int TRANQUILIZER_EFFECTIVENESS = 80;
+    public static final double BASE_DAMAGE = 0.05;
 
     public Vec2 groundedOffset;
-    public int tranquilizerEffectiveness = 80;
 
     public TranquilizerArrow(EntityType<? extends AbstractArrow> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        this.setBaseDamage(0.05);
+        this.setBaseDamage(BASE_DAMAGE);
     }
 
     public TranquilizerArrow(LivingEntity shooter, Level level) {
         super(OWEntityRegistry.TRANQUILIZER_ARROW.get(), shooter, level, new ItemStack(OWItems.TRANQUILIZER_ARROW.get()), null);
-        this.setBaseDamage(0.05);
+        this.setBaseDamage(BASE_DAMAGE);
     }
 
     @Override

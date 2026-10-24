@@ -269,11 +269,14 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
             this.ALL.y -= NAP_LIFT * rest * (1f - rest);
         }
 
-        if (stance > 0.001f) {
-            float moving = animateLocomotion(lion, limbSwing, limbSwingAmount, pt, stance);
-            float idle = stance * (1f - moving);
+        float swim = swimWeight(lion, ageInTicks);
+        float land = stance * (1f - swim);
+        if (land > 0.001f) {
+            float moving = animateLocomotion(lion, limbSwing, limbSwingAmount, pt, land);
+            float idle = land * (1f - moving);
             if (idle > 0.001f) KeyframeAnimations.animate(this, LionAnimations.MISC_IDLE, time, idle, ANIM_VECTOR);
         }
+        animateSwim(lion, LionAnimations.SWIM, ageInTicks, stance * swim);
 
         if (roar > 0.001f && lion.roarAnimationState.isStarted()) {
             lion.roarAnimationState.updateTime(ageInTicks, 1f);
@@ -286,8 +289,8 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         applyCallGesture(lion);
         applyArrival(lion, ageInTicks);
         applyRespond(lion, ageInTicks);
-        applyHuntingPosture(lion, ageInTicks, pt, stance);
-        applyEarFlick(lion, pt, stance);
+        applyHuntingPosture(lion, ageInTicks, pt, land);
+        applyEarFlick(lion, pt, land);
 
         if (lion.isMad() || lion.isEmpowered() || lion.isRallied()) hideEyeBalls();
     }

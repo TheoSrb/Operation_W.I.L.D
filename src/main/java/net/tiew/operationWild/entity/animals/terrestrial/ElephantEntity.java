@@ -95,6 +95,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
 
@@ -271,6 +272,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private float listenBlend, listenBlendO;
     private float matriarchBlend, matriarchBlendO;
     private float trunkCurl, trunkCurlO;
+    private float snorkelBlend, snorkelBlendO;
     public int lastFoodCrumbTick = -1;
     private boolean wildQuake = false;
 
@@ -875,6 +877,9 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         listenBlendO = listenBlend;
         matriarchBlendO = matriarchBlend;
         trunkCurlO = trunkCurl;
+        snorkelBlendO = snorkelBlend;
+
+        snorkelBlend = approachBlend(snorkelBlend, this.isEyeInFluid(FluidTags.WATER) ? 1f : 0f, 0.08f);
 
         int display = getThreatDisplay();
         float displayTarget = switch (display) {
@@ -935,6 +940,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public float getTossBlend(float partial) { return Mth.lerp(partial, tossBlendO, tossBlend); }
 
     public float getListenBlend(float partial) { return Mth.lerp(partial, listenBlendO, listenBlend); }
+
+    public float getSnorkelBlend(float partial) { return Mth.lerp(partial, snorkelBlendO, snorkelBlend); }
 
     public float getMatriarchRenderScale(float partial) {
         return 1f + (MATRIARCH_RENDER_SCALE - 1f) * Mth.lerp(partial, matriarchBlendO, matriarchBlend);
@@ -3233,5 +3240,15 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
             }
         }
 
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(34, 1.2f, -0.9f, 0.6f),
+            new OWSedationImpact(41, 2.6f, 29.2f, 1.0f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

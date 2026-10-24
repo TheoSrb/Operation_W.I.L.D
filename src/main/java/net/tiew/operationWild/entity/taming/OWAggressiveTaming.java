@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.taming;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -14,6 +15,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.WrappedGoal;
@@ -89,6 +91,7 @@ public class OWAggressiveTaming {
     private int noticeDelay;
     private int mealTicks;
     private int collapseTicks;
+    private int fallTicks = -1;
     private int tameRevealTicks;
     private Vec3 collapseVelocity = Vec3.ZERO;
     private float pendingSomnolence;
@@ -140,6 +143,7 @@ public class OWAggressiveTaming {
         else if (speed > COLLAPSE_MAX_SPEED) motion = motion.scale(COLLAPSE_MAX_SPEED / speed);
         collapseVelocity = motion;
         collapseTicks = COLLAPSE_DURATION;
+        fallTicks = 0;
         entity.setDeltaMovement(motion.x, Math.min(entity.getDeltaMovement().y, 0.0), motion.z);
         entity.hasImpulse = true;
 
@@ -191,6 +195,7 @@ public class OWAggressiveTaming {
         if (!knockedOut) return;
 
         tickCollapse();
+        tickFallImpacts();
         tickFloating();
         tickSomnolenceGain();
         tickWakeWarning();
@@ -204,37 +209,72 @@ public class OWAggressiveTaming {
         double ease = remaining * remaining * remaining;
         Vec3 motion = entity.getDeltaMovement();
         entity.setDeltaMovement(collapseVelocity.x * ease, motion.y, collapseVelocity.z * ease);
-        if (collapseTicks == 0) landImpact();
     }
 
-    private void landImpact() {
+    private void tickFallImpacts() {
+        if (fallTicks < 0) return;
+        fallTicks++;
+        boolean pending = false;
+        for (OWSedationImpact impact : entity.sedationImpacts()) {
+            if (impact.tick() == fallTicks) landImpact(impact);
+            else if (impact.tick() > fallTicks) pending = true;
+        }
+        if (!pending) fallTicks = -1;
+    }
+
+    private Vec3 impactPosition(OWSedationImpact impact) {
+        float scale = entity.getScale();
+        if (entity.isBaby()) {
+            float baby = scale / 2.25f;
+            scale = baby + (scale - baby) * entity.getMaturationPercentage() / 100f;
+        }
+        double side = impact.sidePx() / 16.0 * scale;
+        double forward = impact.forwardPx() / 16.0 * scale;
+        float yaw = entity.yBodyRot * Mth.DEG_TO_RAD;
+        double x = entity.getX() - Mth.sin(yaw) * forward + Mth.cos(yaw) * side;
+        double z = entity.getZ() + Mth.cos(yaw) * forward + Mth.sin(yaw) * side;
+        return new Vec3(x, entity.getY(), z);
+    }
+
+    private void landImpact(OWSedationImpact impact) {
         if (!(entity.level() instanceof ServerLevel level)) return;
+        Vec3 at = impactPosition(impact);
+        float weight = impact.weight();
         boolean heavy = entity.getBbWidth() >= 1.5f;
-        if (entity.isInWater()) {
-            splashImpact(level, heavy);
+        if (entity.isInWater() || level.getFluidState(BlockPos.containing(at.x, at.y + 0.1, at.z)).is(FluidTags.WATER)) {
+            splashImpact(level, at, heavy, weight);
             return;
         }
-        level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                heavy ? SoundEvents.GENERIC_BIG_FALL : SoundEvents.GENERIC_SMALL_FALL,
-                SoundSource.NEUTRAL, 0.9f, 0.75f);
+        float volume = 0.35f + 0.55f * weight;
+        float pitch = (heavy ? 0.7f : 0.85f) + 0.2f * (1f - weight) + entity.getRandom().nextFloat() * 0.06f;
+        level.playSound(null, at.x, at.y, at.z,
+                heavy && weight >= 0.6f ? SoundEvents.GENERIC_BIG_FALL : SoundEvents.GENERIC_SMALL_FALL,
+                SoundSource.NEUTRAL, volume, pitch);
         if (!entity.onGround()) return;
-        BlockState ground = entity.getBlockStateOn();
+        BlockPos below = BlockPos.containing(at.x, at.y - 0.2, at.z);
+        BlockState ground = level.getBlockState(below);
+        if (ground.isAir()) {
+            below = entity.getOnPos();
+            ground = entity.getBlockStateOn();
+        }
         if (ground.isAir()) return;
-        double spread = entity.getBbWidth() * 0.4;
-        int count = 8 + (int) (entity.getBbWidth() * 10);
+        level.playSound(null, at.x, at.y, at.z, ground.getSoundType(level, below, entity).getFallSound(),
+                SoundSource.NEUTRAL, volume * 0.8f, pitch);
+        double spread = entity.getBbWidth() * 0.35 * (0.5 + 0.5 * weight);
+        int count = Math.max(3, (int) ((8 + entity.getBbWidth() * 10) * weight));
         level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
-                entity.getX(), entity.getY() + 0.1, entity.getZ(), count, spread, 0.05, spread, 0.15);
+                at.x, at.y + 0.1, at.z, count, spread, 0.05, spread, 0.15);
     }
 
-    private void splashImpact(ServerLevel level, boolean heavy) {
-        level.playSound(null, entity.getX(), entity.getY(), entity.getZ(),
-                heavy ? SoundEvents.GENERIC_SPLASH : SoundEvents.PLAYER_SPLASH,
-                SoundSource.NEUTRAL, 0.9f, 0.8f);
-        double spread = entity.getBbWidth() * 0.5;
-        int count = 10 + (int) (entity.getBbWidth() * 12);
+    private void splashImpact(ServerLevel level, Vec3 at, boolean heavy, float weight) {
+        level.playSound(null, at.x, at.y, at.z,
+                heavy && weight >= 0.6f ? SoundEvents.GENERIC_SPLASH : SoundEvents.PLAYER_SPLASH,
+                SoundSource.NEUTRAL, 0.4f + 0.5f * weight, 0.8f + 0.2f * (1f - weight));
+        double spread = entity.getBbWidth() * 0.5 * (0.5 + 0.5 * weight);
+        int count = Math.max(4, (int) ((10 + entity.getBbWidth() * 12) * weight));
         double surface = entity.getY() + entity.getFluidHeight(FluidTags.WATER);
-        level.sendParticles(ParticleTypes.SPLASH, entity.getX(), surface, entity.getZ(), count, spread, 0.1, spread, 0.2);
-        level.sendParticles(ParticleTypes.BUBBLE, entity.getX(), entity.getY() + entity.getBbHeight() * 0.5, entity.getZ(),
+        level.sendParticles(ParticleTypes.SPLASH, at.x, surface, at.z, count, spread, 0.1, spread, 0.2);
+        level.sendParticles(ParticleTypes.BUBBLE, at.x, entity.getY() + entity.getBbHeight() * 0.5, at.z,
                 count / 2, spread, entity.getBbHeight() * 0.3, spread, 0.05);
     }
 
@@ -486,6 +526,7 @@ public class OWAggressiveTaming {
     }
 
     private void onWakeUp() {
+        fallTicks = -1;
         if (entity.isTame() || !entity.isAlive()) {
             clearState();
             return;

@@ -72,6 +72,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamable, IOWRideable, IOWGrabberEntity {
 
@@ -1516,5 +1517,14 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                 else if (owEntity.isPauseCombo()) owEntity.playerContinueCombo = true;
             }
         }
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(16, 0.0f, -16.0f, 1.0f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

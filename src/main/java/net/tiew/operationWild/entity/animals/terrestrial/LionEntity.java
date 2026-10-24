@@ -82,6 +82,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static net.tiew.operationWild.core.OWUtils.RANDOM;
+import net.tiew.operationWild.entity.taming.OWSedationImpact;
 
 public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRideable {
     // ==================================================
@@ -1514,5 +1515,14 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
             this.male = null;
             LionEntity.this.getNavigation().stop();
         }
+    }
+
+    private static final List<OWSedationImpact> SEDATION_IMPACTS = List.of(
+            new OWSedationImpact(18, 2.4f, 7.8f, 1.0f)
+    );
+
+    @Override
+    public List<OWSedationImpact> sedationImpacts() {
+        return SEDATION_IMPACTS;
     }
 }

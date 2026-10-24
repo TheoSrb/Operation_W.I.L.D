@@ -457,23 +457,6 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 				if (walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 300L)) crocodile.onRightFootDown();
 				if (walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 1000L)) crocodile.onLeftFootDown();
 			}
-
-			if (crocodile.isPlayerMouthCharging()) {
-				Minecraft mc = Minecraft.getInstance();
-				// Seul le pilote juge de sa propre charge (prédiction client, sans latence) ; tous les
-				// autres spectateurs — y compris un passager assis derrière lui — s'en remettent à
-				// l'état répliqué par le serveur.
-				boolean isLocalDriver = mc.player != null && crocodile.getControllingPassenger() == mc.player;
-
-				if (!isLocalDriver || OWAttackLogic.isCharging) {
-					float progress = isLocalDriver
-							? OWAttackLogic.getChargeProgress()
-							: Math.min(crocodile.getChargingMouthTimer() / 60f, 1.0f);
-					applyMouthSlamAnimation(progress, ageInTicks);
-				}
-			}
-
-			handleChargingMouth(crocodile, ageInTicks);
 		} else {
 			// Idle aquatique monté : croco apprivoisé + monté + immobile dans l'eau
 			if (crocodile.isTame() && crocodile.isVehicle() && limbSwingAmount < 0.01f) {
@@ -484,6 +467,23 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 				this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
 			}
 		}
+
+		if (crocodile.isPlayerMouthCharging()) {
+			Minecraft mc = Minecraft.getInstance();
+			// Seul le pilote juge de sa propre charge (prédiction client, sans latence) ; tous les
+			// autres spectateurs — y compris un passager assis derrière lui — s'en remettent à
+			// l'état répliqué par le serveur.
+			boolean isLocalDriver = mc.player != null && crocodile.getControllingPassenger() == mc.player;
+
+			if (!isLocalDriver || OWAttackLogic.isCharging) {
+				float progress = isLocalDriver
+						? OWAttackLogic.getChargeProgress()
+						: Math.min(crocodile.getChargingMouthTimer() / 60f, 1.0f);
+				applyMouthSlamAnimation(progress, ageInTicks);
+			}
+		}
+
+		handleChargingMouth(crocodile, ageInTicks);
 
 		this.prevLimbSwing = limbSwing;
 
