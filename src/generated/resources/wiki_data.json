@@ -11613,7 +11613,7 @@
         "minecraft:generic.max_absorption": 0.0,
         "minecraft:generic.max_health": 30.0,
         "minecraft:generic.movement_efficiency": 0.0,
-        "minecraft:generic.movement_speed": 0.205,
+        "minecraft:generic.movement_speed": 0.175,
         "minecraft:generic.oxygen_bonus": 0.0,
         "minecraft:generic.safe_fall_distance": 3.0,
         "minecraft:generic.scale": 1.0,
@@ -11656,47 +11656,47 @@
           {
             "looping": true,
             "name": "MISC_IDLE",
-            "seconds": 2.6667
-          },
-          {
-            "looping": true,
-            "name": "MISC_IDLE_2",
-            "seconds": 2.6667
+            "seconds": 5.3333
           },
           {
             "looping": true,
             "name": "MOVE_WALK",
-            "seconds": 1.6
+            "seconds": 1.6667
           },
           {
             "looping": true,
             "name": "MOVE_RUN",
-            "seconds": 0.7864
+            "seconds": 0.9091
           },
           {
             "looping": false,
             "name": "ROAR",
-            "seconds": 4.5067
+            "seconds": 4.5
           },
           {
             "looping": false,
             "name": "ATTACK_STRIKE",
-            "seconds": 1.1294
+            "seconds": 1.125
           },
           {
             "looping": false,
             "name": "ATTACK_STRIKE_2",
-            "seconds": 1.1294
+            "seconds": 1.125
           },
           {
             "looping": false,
             "name": "ATTACK_STRIKE_3",
-            "seconds": 1.1294
+            "seconds": 1.125
           },
           {
             "looping": true,
             "name": "SIT",
-            "seconds": 4.16
+            "seconds": 5.3333
+          },
+          {
+            "looping": true,
+            "name": "NAP",
+            "seconds": 6.0
           },
           {
             "looping": false,
@@ -11727,7 +11727,7 @@
         "ENTITY_COLOR": 13609584,
         "FEMALE_DAMAGE": 8.0,
         "FEMALE_HEALTH": 28.0,
-        "FEMALE_SCALE": 0.92,
+        "FEMALE_SCALE": 0.95,
         "FEMALE_SPEED": 0.21,
         "FOOD_WANTED_MAX": 13,
         "FOOD_WANTED_MIN": 8,
@@ -11764,7 +11764,7 @@
         "fights_in_arena": true,
         "follow_owner_speed_factor": 20.0,
         "initial_variant": 1,
-        "mounted_speed_blocks_per_second": 11.128571428571428,
+        "mounted_speed_blocks_per_second": 9.0,
         "nap_particle_forward": 1.25,
         "nap_particle_height": 1.15,
         "pitch_max_angle": 45.0,
@@ -11774,7 +11774,7 @@
         "rider_camera_follows_body_tilt": false,
         "rider_seat_frame_accurate": true,
         "rolling_figure": false,
-        "rotation_speed": 0.3,
+        "rotation_speed": 0.14,
         "secondary_attack_count": 1,
         "secondary_cooldown_ticks": 3600,
         "taming_experience": 140.0,
@@ -11785,15 +11785,15 @@
           "maxUpStep",
           "getDefaultGravity"
         ],
-        "walk_speed_blocks_per_second": 4.1
+        "walk_speed_blocks_per_second": 3.5
       },
       "history": {
         "created": "2026-10-18T15:06:31.1070969+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-18T15:06:31.1086008+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 62946
+        "last_modified": "2026-10-24T16:50:55.7462248+02:00",
+        "last_modified_date": "2026-10-24",
+        "size_bytes": 62950
       },
       "id": "ow:lion",
       "loot": {
@@ -11813,7 +11813,7 @@
         "needs_saddle": true,
         "rideable": true,
         "rider_anim_y_offset": -0.0,
-        "run_speed_multiplier": 4.75,
+        "run_speed_multiplier": 4.5,
         "saddle_item": "ow:tiger_saddle",
         "vital_energy_level_gain": 0.5,
         "vital_energy_recuperation": 0.95,
