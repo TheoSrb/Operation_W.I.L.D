@@ -282,7 +282,7 @@ public class OWIndicationOverlay {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player != null && mc.player.getRootVehicle() instanceof OWEntity ow) {
             try {
-                return OWAttacksHandler.getAttacks(ow.getClass()).size();
+                return OWAttacksHandler.getActiveAttacks(ow).size();
             } catch (Exception ignored) {
             }
         }

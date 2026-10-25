@@ -35,6 +35,7 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
     public static final byte ACTION_CHARGE_RELEASE       = 3;
     public static final byte ACTION_EXECUTE_WITH_TARGET  = 4;
     public static final byte ACTION_TRIGGER_DEATH_ROLL   = 5;
+    public static final byte ACTION_LATCH_BITE           = 6;
 
     public static final CustomPacketPayload.Type<OWAttackPacket> TYPE =
             new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "ow_attack"));
@@ -90,6 +91,11 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 return;
             }
 
+            if (packet.action() == ACTION_LATCH_BITE) {
+                if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lioness) lioness.lionessBite();
+                return;
+            }
+
             if (packet.action() == ACTION_TRIGGER_DEATH_ROLL) {
                 // Le délai est vérifié côté serveur : le client en applique un de son côté, mais
                 // lui seul ne protège de rien face à un envoi répété.
@@ -103,6 +109,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                     if (packet.attackId() == OWAttackIds.HEAL_SNACK) {
                         if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity redPandaOrb)
                             redPandaOrb.throwHealSnack();
+                        return;
+                    }
+
+                    if (packet.attackId() == OWAttackIds.HUNTING_LEAP) {
+                        if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lioness)
+                            lioness.releaseLatchByRider();
                         return;
                     }
 
@@ -171,6 +183,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.DOMINATION_ROAR ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lionRoar
                                         && lionRoar.activateDominationRoar();
+                        case OWAttackIds.DISTRESS_CALL ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lionDistress
+                                        && lionDistress.activateDistressCall();
                         default -> true;
                     };
 
@@ -195,6 +210,18 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa) {
                                 int targetId = Float.floatToRawIntBits(packet.value());
                                 boa.executeConstrictUltimate(targetId);
+                            }
+                        }
+                        case OWAttackIds.HUNTING_LEAP -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lioness) {
+                                if (entity.isCombo()) {
+                                    entity.resetCombo(0);
+                                    entity.actualAttackNumber = 0;
+                                }
+                                if (!lioness.startHuntingLeap(Float.floatToRawIntBits(packet.value()))) {
+                                    PacketDistributor.sendToPlayer(player,
+                                            new OWAttackRejectedPacket(entity.getId(), packet.attackId()));
+                                }
                             }
                         }
                     }

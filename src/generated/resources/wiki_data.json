@@ -11581,6 +11581,40 @@
           },
           {
             "desc": {
+              "key": "ow.attacks.lion.hunting_leap.desc",
+              "plain": "En pleine course, visez une créature moyenne ou grande à moins de %s blocs (un curseur doré apparaît sur elle) : la lionne fonce, bondit et s'agrippe là où elle atterrit. Accrochée, clic gauche pour mordre, clic droit pour lâcher prise. Sa prise tient %s secondes au plus et faiblit à chaque secousse ou coup encaissé. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "En pleine course, visez une créature moyenne ou grande à moins de %s blocs (un curseur doré apparaît sur elle) : la lionne fonce, bondit et s'agrippe là où elle atterrit. Accrochée, clic gauche pour mordre, clic droit pour lâcher prise. Sa prise tient %s secondes au plus et faiblit à chaque secousse ou coup encaissé. %s secondes de recharge."
+              }
+            },
+            "slug": "hunting_leap",
+            "title": {
+              "key": "ow.attacks.lion.hunting_leap.title",
+              "plain": "Bond Agrippeur",
+              "translations": {
+                "fr_fr": "Bond Agrippeur"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.lion.distress_call.desc",
+              "plain": "S'arme sur %s victimes, utilisable seulement à %s%% de vie ou moins. La lionne blessée appelle son clan : tous les lions apprivoisés du clan dans un rayon de %s blocs accourent, le mâle rugit une fois pour faire fuir les créatures hostiles, et les lionnes se postent en cercle autour d'elle pour attaquer toute menace pendant %s secondes. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "S'arme sur %s victimes, utilisable seulement à %s%% de vie ou moins. La lionne blessée appelle son clan : tous les lions apprivoisés du clan dans un rayon de %s blocs accourent, le mâle rugit une fois pour faire fuir les créatures hostiles, et les lionnes se postent en cercle autour d'elle pour attaquer toute menace pendant %s secondes. %s secondes de recharge."
+              }
+            },
+            "slug": "distress_call",
+            "title": {
+              "key": "ow.attacks.lion.distress_call.title",
+              "plain": "Appel de Détresse",
+              "translations": {
+                "fr_fr": "Appel de Détresse"
+              }
+            }
+          },
+          {
+            "desc": {
               "key": "ow.attacks.lion.pride_bond.desc",
               "plain": "Le mâle gagne %s points de vie par lionne de son clan (%s au plus). Chaque lionne proche lui donne %s%% de dégâts et de résistance en plus, jusqu'à %s lionnes dans un rayon de %s blocs.",
               "translations": {
@@ -11600,8 +11634,16 @@
       },
       "attack_constants": {
         "ARRIVAL_TICKS": 14,
+        "AUTO_BITE_CHANCE": 0.25,
+        "AUTO_LEAP_CHANCE": 0.35,
+        "AUTO_LEAP_CHECK_TICKS": 10,
+        "AUTO_LEAP_MAX_DISTANCE": 16.0,
+        "BITE_ANIMATION_TICKS": 10,
+        "BITE_COMBO_MULTIPLIER": 1.0,
+        "BITE_COOLDOWN_TICKS": 14,
+        "BITE_IMPACT_TICK": 3,
         "CLAN_CALL_ARRIVAL_SPACING": 3,
-        "CLAN_CALL_COOLDOWN_TICKS": 3600,
+        "CLAN_CALL_COOLDOWN_TICKS": 600,
         "CLAN_CALL_DURATION_TICKS": 400,
         "CLAN_CALL_ENERGY": 100.0,
         "CLAN_CALL_FIRST_ARRIVAL_TICK": 12,
@@ -11619,6 +11661,59 @@
         "CLAN_FIDELITY_RADIUS_WILD": 24.0,
         "CLAN_JOIN_RADIUS": 32.0,
         "CLAN_MAX_LIONESSES": 6,
+        "DISTRESS_CALL_RADIUS": 64.0,
+        "DISTRESS_COOLDOWN_TICKS": 1800,
+        "DISTRESS_ENERGY": 100.0,
+        "DISTRESS_FIRST_CALL_TICK": 8,
+        "DISTRESS_GESTURE_TICKS": 40,
+        "DISTRESS_HEALTH_RATIO": 0.5,
+        "DISTRESS_KILLS_REQUIRED": 5,
+        "DISTRESS_MOAN_TICK": 2,
+        "DISTRESS_SECOND_CALL_TICK": 22,
+        "FEAR_FLEE_DISTANCE": 18.0,
+        "FEAR_RADIUS": 20.0,
+        "FEAR_TICKS": 120,
+        "GRIP_KNOCKOFF_HEALTH_RATIO": 0.35,
+        "GRIP_LOSS_PER_DAMAGE": 5.0,
+        "GRIP_MAX_TICKS": 200,
+        "GRIP_SHAKE_LOSS": 32,
+        "GUARD_LEASH_RADIUS": 20.0,
+        "GUARD_MS": 25000,
+        "GUARD_RING_RADIUS": 3.2,
+        "GUARD_ROAR_DEADLINE_TICKS": 160,
+        "GUARD_ROAR_TRIGGER_DISTANCE": 12.0,
+        "GUARD_SCAN_INTERVAL": 5,
+        "GUARD_SPEED_TICKS": 200,
+        "GUARD_THREAT_RADIUS": 11.0,
+        "GUARD_TICKS": 500,
+        "LATCH_MAX_SLOTS": 5,
+        "LATCH_POUNCE_DAMAGE_FACTOR": 0.35,
+        "LATCH_SLOTS_PER_BLOCK": 2.2,
+        "LATCH_SLOW_AMPLIFIER": 1,
+        "LEAP_ABORT_COOLDOWN_TICKS": 100,
+        "LEAP_AIM_COSINE": 0.965,
+        "LEAP_ARC_BASE": 0.3,
+        "LEAP_ARC_PER_TICK": 0.08,
+        "LEAP_COOLDOWN_TICKS": 500,
+        "LEAP_ENERGY": 70.0,
+        "LEAP_FLIGHT_MAX_TICKS": 12,
+        "LEAP_FLIGHT_MIN_TICKS": 6,
+        "LEAP_FLIGHT_TICKS_PER_BLOCK": 1.8,
+        "LEAP_LOSE_DISTANCE": 4.0,
+        "LEAP_MIN_TARGET_HEIGHT": 1.1,
+        "LEAP_MIN_TARGET_WIDTH": 0.85,
+        "LEAP_RELEASE_LIFT": 0.42,
+        "LEAP_RELEASE_PUSH": 0.55,
+        "LEAP_RELEASE_TICKS": 10,
+        "LEAP_RUSH_ACCELERATION": 0.07,
+        "LEAP_RUSH_JUMP": 0.42,
+        "LEAP_RUSH_MAX_TICKS": 50,
+        "LEAP_RUSH_SPEED": 0.58,
+        "LEAP_RUSH_TURN_DEGREES": 16.0,
+        "LEAP_SERVER_AIM_COSINE": 0.85,
+        "LEAP_TARGET_RANGE": 18.0,
+        "LEAP_TRIGGER_DISTANCE": 3.4,
+        "LEAP_TRIGGER_FACING_DEGREES": 35.0,
         "PACK_BONUS_MAX_LIONESSES": 3,
         "PACK_BONUS_PER_LIONESS": 0.05,
         "PACK_HEALTH_PER_LIONESS": 2.0,
@@ -11648,7 +11743,7 @@
         "minecraft:generic.fall_damage_multiplier": 1.0,
         "minecraft:generic.follow_range": 32.0,
         "minecraft:generic.gravity": 0.08,
-        "minecraft:generic.jump_strength": 0.9,
+        "minecraft:generic.jump_strength": 0.41999998688697815,
         "minecraft:generic.knockback_resistance": 0.5,
         "minecraft:generic.max_absorption": 0.0,
         "minecraft:generic.max_health": 30.0,
@@ -11729,6 +11824,36 @@
             "seconds": 1.125
           },
           {
+            "looping": false,
+            "name": "LATCH_LEAP",
+            "seconds": 0.4167
+          },
+          {
+            "looping": true,
+            "name": "LATCH_CLING",
+            "seconds": 1.5
+          },
+          {
+            "looping": false,
+            "name": "LATCH_BITE",
+            "seconds": 0.5
+          },
+          {
+            "looping": false,
+            "name": "LATCH_RELEASE",
+            "seconds": 0.5
+          },
+          {
+            "looping": false,
+            "name": "DISTRESS_CALL",
+            "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "GUARD_STANCE",
+            "seconds": 2.0
+          },
+          {
             "looping": true,
             "name": "SIT",
             "seconds": 5.3333
@@ -11776,6 +11901,11 @@
         "FEMALE_SPEED": 0.21,
         "FOOD_WANTED_MAX": 13,
         "FOOD_WANTED_MIN": 8,
+        "LATCH_HOLD": 3,
+        "LATCH_LEAP": 2,
+        "LATCH_NONE": 0,
+        "LATCH_RELEASE": 4,
+        "LATCH_RUSH": 1,
         "MALE_DAMAGE": 7.0,
         "MALE_HEALTH": 32.0,
         "MALE_ONE_IN": 3,
@@ -11783,7 +11913,10 @@
         "MAX_SOMNOLENCE": 1700,
         "SOMNOLENCE_LOSS_INTERVAL": 1,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
-        "TAMING_EXPERIENCE": 140.0
+        "TAMING_EXPERIENCE": 140.0,
+        "ZONE_FLANK": 1,
+        "ZONE_RUMP": 2,
+        "ZONE_THROAT": 0
       },
       "cosmetics": [],
       "gameplay": {
@@ -11821,7 +11954,7 @@
         "rolling_figure": false,
         "rotation_speed": 0.14,
         "secondary_attack_count": 1,
-        "secondary_cooldown_ticks": 3600,
+        "secondary_cooldown_ticks": 600,
         "taming_experience": 140.0,
         "teleports_to_owner": false,
         "temperament": "NEUTRAL",
@@ -11833,12 +11966,12 @@
         "walk_speed_blocks_per_second": 3.5
       },
       "history": {
-        "created": "2026-10-18T15:06:31.1070969+02:00",
-        "created_date": "2026-10-18",
+        "created": "2026-10-25T10:13:57.1064888+01:00",
+        "created_date": "2026-10-25",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-24T21:25:00.5880617+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 63259
+        "last_modified": "2026-10-25T10:54:59.1497542+01:00",
+        "last_modified_date": "2026-10-25",
+        "size_bytes": 118785
       },
       "id": "ow:lion",
       "loot": {
@@ -12341,11 +12474,13 @@
       "CHEST_BEAT": 21,
       "CLAN_CALL": 24,
       "CONSTRICT_ULTIMATE": 10,
+      "DISTRESS_CALL": 27,
       "DOMINATION_ROAR": 25,
       "EARTHQUAKE": 14,
       "FEAST": 18,
       "HEAL_SNACK": 17,
       "HIPPO_ROLL": 22,
+      "HUNTING_LEAP": 26,
       "MOUTH_SLAM": 3,
       "NAP_ULTIMATE": 6,
       "PAW_SLAM": 5,
@@ -14707,7 +14842,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1154
+      "fr_fr": 1158
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",

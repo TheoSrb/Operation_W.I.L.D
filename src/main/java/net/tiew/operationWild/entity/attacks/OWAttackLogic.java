@@ -108,7 +108,7 @@ public class OWAttackLogic {
 
     public static boolean hasSharedSecondaryCooldown(OWEntity entity) {
         return entity.getSecondaryCooldownDuration() > 0
-                && OWAttacksHandler.hasSwitchableSecondary(entity.getClass());
+                && OWAttacksHandler.hasSwitchableSecondary(entity);
     }
 
     private static boolean isSharedSecondary(OWEntity entity, OWAttack attack) {
@@ -1152,7 +1152,7 @@ public class OWAttackLogic {
         if (owEntity.getPassengers().indexOf(mc.player) != 0) return;
         if (!owEntity.canPilotAttacks(mc.player)) return;
 
-        int count = OWAttacksHandler.getSecondaryAttacks(owEntity.getClass()).size();
+        int count = OWAttacksHandler.getSecondaryAttacks(owEntity).size();
         if (count <= 1) return;
 
         double scroll = event.getScrollDeltaY();
@@ -1191,6 +1191,55 @@ public class OWAttackLogic {
         startSecondaryFlip(owEntity.getId(), leaving != null ? leaving.getId() : -1);
 
         event.setCanceled(true);
+    }
+
+    private static long lionessBiteSentMs = -1L;
+
+    private static boolean handleLionessLatchInput(net.tiew.operationWild.entity.animals.terrestrial.LionEntity lioness,
+                                                   Player player, InputEvent.MouseButton.Pre event) {
+        if (event.getAction() != GLFW.GLFW_PRESS) return lioness.isLatchActive();
+        OWAttack leap = OWAttacksHandler.LionAttacks.HUNTING_LEAP;
+
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+            if (!lioness.isLatchActive()) return false;
+            long now = System.currentTimeMillis();
+            if (lioness.getLatchPhase() == net.tiew.operationWild.entity.animals.terrestrial.LionEntity.LATCH_HOLD
+                    && now - lionessBiteSentMs >= OWAttacksConstants.Lion.BITE_COOLDOWN_TICKS * 50L) {
+                lionessBiteSentMs = now;
+                PacketDistributor.sendToServer(new OWAttackPacket(leap.getId(), OWAttackPacket.ACTION_LATCH_BITE, 0f));
+            }
+            return true;
+        }
+
+        if (event.getButton() != GLFW.GLFW_MOUSE_BUTTON_RIGHT) return lioness.isLatchActive();
+
+        if (lioness.isLatchActive()) {
+            PacketDistributor.sendToServer(new OWAttackPacket(leap.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+            recordAttackClick(leap.getId(), false);
+            return true;
+        }
+        if (lioness.getLatchPhase() != net.tiew.operationWild.entity.animals.terrestrial.LionEntity.LATCH_NONE) return true;
+
+        if (playerHoldsUsableItem(player)) return false;
+        if (isCharging || lioness.isAttackLocked() || lioness.isSecondaryOnCooldown()) {
+            recordAttackClick(leap.getId(), true);
+            return true;
+        }
+        if (lioness.getVitalEnergy() > lioness.getVitalEnergyCapacity() - leap.getEnergyRequired()) {
+            lioness.canShowVitalEnergyLack = true;
+            recordAttackClick(leap.getId(), true);
+            return true;
+        }
+        int targetId = lioness.getClientLeapTargetId();
+        if (targetId < 0) {
+            recordAttackClick(leap.getId(), true);
+            return true;
+        }
+
+        PacketDistributor.sendToServer(new OWAttackPacket(leap.getId(), OWAttackPacket.ACTION_EXECUTE_WITH_TARGET,
+                Float.intBitsToFloat(targetId)));
+        recordAttackClick(leap.getId(), false);
+        return true;
     }
 
     private static boolean elephantSprayHeld = false;
@@ -1334,6 +1383,13 @@ public class OWAttackLogic {
 
         // Rien devant le museau : la Grande Gueule claquerait dans le vide et l'ultime serait
         // perdu pour rien. Refus net, avec le retour « clic invalide » habituel.
+        if (attack.getId() == OWAttacksHandler.DISTRESS_CALL_ID
+                && owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity distressLion
+                && !distressLion.isDistressReady()) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
         if (attack.getId() == OWAttacksHandler.BIG_MOUTH_ID
                 && owEntity instanceof OrcaEntity orcaMouthAim && !orcaMouthAim.hasMouthTarget()) {
             recordAttackClick(attack.getId(), true);
@@ -1465,6 +1521,12 @@ public class OWAttackLogic {
 
         boolean isCrocGrabbing = owEntity instanceof CrocodileEntity && owEntity.isGrabbing();
         boolean isKodiakUltNapping = isKodiakNapping && owEntity instanceof KodiakEntity;
+
+        if (owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lioness && !lioness.isMale()
+                && handleLionessLatchInput(lioness, mc.player, event)) {
+            event.setCanceled(true);
+            return;
+        }
 
         if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_LEFT && event.getAction() == GLFW.GLFW_PRESS) {
             if (owEntity.isPlayerControlledDeathRoll()) {

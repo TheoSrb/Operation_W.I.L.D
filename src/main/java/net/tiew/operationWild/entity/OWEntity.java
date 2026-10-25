@@ -1011,6 +1011,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         this.entityData.set(SECONDARY_COOLDOWN, duration);
     }
 
+    protected void setSecondaryCooldown(int ticks) {
+        if (this.level().isClientSide()) return;
+        this.entityData.set(SECONDARY_COOLDOWN, Math.max(0, ticks));
+    }
+
     private void tickSecondaryCooldown() {
         int remaining = getSecondaryCooldown();
         if (remaining > 0) this.entityData.set(SECONDARY_COOLDOWN, remaining - 1);
@@ -2403,14 +2408,21 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return InteractionResult.PASS;
     }
 
+    private float vitalityRoll = -1f;
+
+    private float vitalityRoll() {
+        if (this.vitalityRoll < 0f) this.vitalityRoll = this.random.nextFloat();
+        return this.vitalityRoll;
+    }
+
     public void setRandomScale(float actualScale, double minPurcent, double maxPurcent) {
-        float randomScaleMultiplicator = (float) (minPurcent + (Math.random() * (maxPurcent - minPurcent)));
+        float randomScaleMultiplicator = (float) (minPurcent + (this.vitalityRoll() * (maxPurcent - minPurcent)));
         float newScale = randomScaleMultiplicator * actualScale;
         this.setScale(newScale);
     }
 
     public void setRandomAttributes(OWEntity entity, double actualHealth, double actualDamage, double actualSpeed) {
-        double randomHealthMultiplicator = 0.8 + (Math.random() * (1.2 - 0.8));
+        double randomHealthMultiplicator = 0.8 + (entity.vitalityRoll() * (1.2 - 0.8));
         double randomDamageMultiplicator = 0.9 + (Math.random() * (1.1 - 0.9));
         double randomSpeedMultiplicator = 0.85 + (Math.random() * (1.05 - 0.85));
 

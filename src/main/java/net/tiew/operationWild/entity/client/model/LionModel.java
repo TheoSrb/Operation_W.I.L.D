@@ -248,13 +248,31 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         float pt = Mth.clamp(ageInTicks - lion.tickCount, 0f, 1f);
         long time = (long) (ageInTicks * 50f);
 
-        float rest = smoothStep(lion.restBlend(pt));
-        float sit = smoothStep(lion.sitBlend(pt)) * (1f - rest);
-        float roar = smoothStep(lion.roarBlend(pt)) * (1f - rest);
-        float stance = (1f - rest) * (1f - sit) * (1f - roar);
+        float latch = smoothStep(lion.latchBlend(pt));
+        float leap = smoothStep(lion.leapBlend(pt));
+        float release = smoothStep(lion.releaseBlend(pt));
+        float cling = latch + leap + release;
+        if (cling > 1f) {
+            latch /= cling;
+            leap /= cling;
+            release /= cling;
+            cling = 1f;
+        }
+        float free = 1f - cling;
+        float distress = smoothStep(lion.distressBlend(pt)) * free;
+        float guard = smoothStep(lion.guardBlend(pt)) * (free - distress);
+        free = Math.max(0f, free - distress - guard);
+
+        float restBase = smoothStep(lion.restBlend(pt));
+        float sitBase = smoothStep(lion.sitBlend(pt)) * (1f - restBase);
+        float roarBase = smoothStep(lion.roarBlend(pt)) * (1f - restBase);
+        float rest = restBase * free;
+        float sit = sitBase * free;
+        float roar = roarBase * free;
+        float stance = (1f - restBase) * (1f - sitBase) * (1f - roarBase) * free;
         float call = callEnvelope(lion, ageInTicks);
 
-        float look = (1f - rest) * (1f - roar) * (1f - 0.4f * sit) * (1f - call);
+        float look = (1f - restBase) * (1f - roarBase) * (1f - 0.4f * sitBase) * (1f - call) * free;
         this.applyHeadRotation(netHeadYaw * look, headPitch * look);
 
         if (sit > 0.001f) {
@@ -284,6 +302,8 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
             applyRoarFlourish(lion, ageInTicks, roar);
         }
 
+        animateLionessHunt(lion, ageInTicks, time, latch, leap, release, distress, guard);
+
         animateCombos(lion, ageInTicks, COMBO_ANIMATION_SPEED);
 
         applyCallGesture(lion);
@@ -292,7 +312,40 @@ public class LionModel<T extends LionEntity> extends OWComboModel<T> implements 
         applyHuntingPosture(lion, ageInTicks, pt, land);
         applyEarFlick(lion, pt, land);
 
-        if (lion.isMad() || lion.isEmpowered() || lion.isRallied()) hideEyeBalls();
+        if (lion.isMad() || lion.isEmpowered() || lion.isRallied() || lion.isLatchActive()) hideEyeBalls();
+    }
+
+    private void animateLionessHunt(T lion, float ageInTicks, long time, float latch, float leap, float release, float distress, float guard) {
+        if (latch > 0.001f) {
+            KeyframeAnimations.animate(this, LionAnimations.LATCH_CLING, time, latch, ANIM_VECTOR);
+            if (lion.biteAnimationState.isStarted()) {
+                lion.biteAnimationState.updateTime(ageInTicks, 1f);
+                long biteMs = lion.biteAnimationState.getAccumulatedTime();
+                if (biteMs < (long) (LionAnimations.LATCH_BITE.lengthInSeconds() * 1000f)) {
+                    KeyframeAnimations.animate(this, LionAnimations.LATCH_BITE, biteMs, latch, ANIM_VECTOR);
+                }
+            }
+        }
+        if (leap > 0.001f) {
+            float pt = Mth.clamp(ageInTicks - lion.tickCount, 0f, 1f);
+            long leapMs = (long) (lion.leapAnimationProgress(pt) * LionAnimations.LATCH_LEAP.lengthInSeconds() * 1000f);
+            KeyframeAnimations.animate(this, LionAnimations.LATCH_LEAP, leapMs, leap, ANIM_VECTOR);
+        }
+        if (release > 0.001f) {
+            KeyframeAnimations.animate(this, LionAnimations.LATCH_RELEASE, stateTime(lion.releaseAnimationState, LionAnimations.LATCH_RELEASE, ageInTicks), release, ANIM_VECTOR);
+        }
+        if (distress > 0.001f) {
+            KeyframeAnimations.animate(this, LionAnimations.DISTRESS_CALL, stateTime(lion.distressAnimationState, LionAnimations.DISTRESS_CALL, ageInTicks), distress, ANIM_VECTOR);
+        }
+        if (guard > 0.001f) {
+            KeyframeAnimations.animate(this, LionAnimations.GUARD_STANCE, time, guard, ANIM_VECTOR);
+        }
+    }
+
+    private static long stateTime(net.minecraft.world.entity.AnimationState state, AnimationDefinition definition, float ageInTicks) {
+        if (!state.isStarted()) return (long) (definition.lengthInSeconds() * 1000f);
+        state.updateTime(ageInTicks, 1f);
+        return state.getAccumulatedTime();
     }
 
     private float animateLocomotion(T lion, float limbSwing, float limbSwingAmount, float pt, float stance) {

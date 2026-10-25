@@ -725,7 +725,7 @@ public class OWAttacksConstants {
         public static final int PACK_BONUS_MAX_LIONESSES = 3;
 
         public static final float CLAN_CALL_ENERGY = 100f;
-        public static final int CLAN_CALL_COOLDOWN_TICKS = 3600;
+        public static final int CLAN_CALL_COOLDOWN_TICKS = 600;
         public static final double CLAN_CALL_RADIUS = 50.0;
         public static final int CLAN_CALL_MAX_LIONESSES = 3;
         public static final int CLAN_CALL_DURATION_TICKS = 400;
@@ -754,6 +754,72 @@ public class OWAttacksConstants {
         public static final int ROAR_SPEED_AMPLIFIER = 1;
         public static final int ROAR_STRENGTH_AMPLIFIER = 0;
         public static final int ROAR_REGENERATION_AMPLIFIER = 0;
+
+        public static final float LEAP_ENERGY = 70f;
+        public static final int LEAP_COOLDOWN_TICKS = 500;
+        public static final int LEAP_ABORT_COOLDOWN_TICKS = 100;
+        public static final double LEAP_TARGET_RANGE = 18.0;
+        public static final double LEAP_AIM_COSINE = 0.965;
+        public static final double LEAP_SERVER_AIM_COSINE = 0.85;
+        public static final float LEAP_MIN_TARGET_WIDTH = 0.85f;
+        public static final float LEAP_MIN_TARGET_HEIGHT = 1.1f;
+        public static final int LEAP_RUSH_MAX_TICKS = 50;
+        public static final double LEAP_RUSH_SPEED = 0.58;
+        public static final double LEAP_RUSH_ACCELERATION = 0.07;
+        public static final float LEAP_RUSH_TURN_DEGREES = 16f;
+        public static final double LEAP_RUSH_JUMP = 0.42;
+        public static final double LEAP_TRIGGER_DISTANCE = 3.4;
+        public static final float LEAP_TRIGGER_FACING_DEGREES = 35f;
+        public static final int LEAP_FLIGHT_MIN_TICKS = 6;
+        public static final int LEAP_FLIGHT_MAX_TICKS = 12;
+        public static final double LEAP_FLIGHT_TICKS_PER_BLOCK = 1.8;
+        public static final double LEAP_ARC_BASE = 0.3;
+        public static final double LEAP_ARC_PER_TICK = 0.08;
+        public static final int LEAP_RELEASE_TICKS = 10;
+        public static final double LATCH_SLOTS_PER_BLOCK = 2.2;
+        public static final int LATCH_MAX_SLOTS = 5;
+        public static final int AUTO_LEAP_CHECK_TICKS = 10;
+        public static final double AUTO_LEAP_MAX_DISTANCE = 16.0;
+        public static final float AUTO_LEAP_CHANCE = 0.35f;
+        public static final float AUTO_BITE_CHANCE = 0.25f;
+        public static final double LEAP_RELEASE_PUSH = 0.55;
+        public static final double LEAP_RELEASE_LIFT = 0.42;
+        public static final double LEAP_LOSE_DISTANCE = 4.0;
+        public static final int GRIP_MAX_TICKS = 200;
+        public static final float GRIP_LOSS_PER_DAMAGE = 5f;
+        public static final float GRIP_KNOCKOFF_HEALTH_RATIO = 0.35f;
+        public static final int GRIP_SHAKE_LOSS = 32;
+        public static final int[] GRIP_SHAKE_INTERVAL = {42, 58, 78};
+        public static final int[] GRIP_SHAKE_SPREAD = {18, 24, 30};
+        public static final float[] ZONE_EXPOSURE = {1.0f, 0.5f, 0.2f};
+        public static final float LATCH_POUNCE_DAMAGE_FACTOR = 0.35f;
+        public static final float BITE_COMBO_MULTIPLIER = 1.0f;
+        public static final int BITE_COOLDOWN_TICKS = 14;
+        public static final int BITE_ANIMATION_TICKS = 10;
+        public static final int BITE_IMPACT_TICK = 3;
+        public static final int LATCH_SLOW_AMPLIFIER = 1;
+
+        public static final int DISTRESS_KILLS_REQUIRED = 5;
+        public static final float DISTRESS_ENERGY = 100f;
+        public static final int DISTRESS_COOLDOWN_TICKS = 1800;
+        public static final float DISTRESS_HEALTH_RATIO = 0.5f;
+        public static final int DISTRESS_GESTURE_TICKS = 40;
+        public static final int DISTRESS_MOAN_TICK = 2;
+        public static final int DISTRESS_FIRST_CALL_TICK = 8;
+        public static final int DISTRESS_SECOND_CALL_TICK = 22;
+        public static final double DISTRESS_CALL_RADIUS = 64.0;
+        public static final int GUARD_TICKS = 500;
+        public static final long GUARD_MS = GUARD_TICKS * 50L;
+        public static final double GUARD_RING_RADIUS = 3.2;
+        public static final double GUARD_THREAT_RADIUS = 11.0;
+        public static final double GUARD_LEASH_RADIUS = 20.0;
+        public static final int GUARD_SCAN_INTERVAL = 5;
+        public static final int GUARD_SPEED_TICKS = 200;
+        public static final double GUARD_ROAR_TRIGGER_DISTANCE = 12.0;
+        public static final int GUARD_ROAR_DEADLINE_TICKS = 160;
+        public static final double FEAR_RADIUS = 20.0;
+        public static final int FEAR_TICKS = 120;
+        public static final double FEAR_FLEE_DISTANCE = 18.0;
     }
 
     public static class Slide {

@@ -134,6 +134,7 @@ public class OWAttacksInformation {
     }
 
     private static final Map<Class<? extends OWEntity>, EntityProfile> PROFILES = new HashMap<>();
+    private static final EntityProfile LIONESS_PROFILE;
 
     // =========================================================================
     //  DÉFINITIONS DES ENTITÉS  ──  MODIFIER / AJOUTER ICI
@@ -415,6 +416,44 @@ public class OWAttacksInformation {
 
         ));
 
+        LIONESS_PROFILE = new EntityProfile(
+
+                new AttackSlot(0, 120, "LMB",
+                        title("ow.attacks.lion.combo.title"),
+                        e -> desc("ow.attacks.lion.combo.desc",
+                                val("0.5"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(236, 176, "RMB",
+                        title("ow.attacks.lion.hunting_leap.title"),
+                        e -> desc("ow.attacks.lion.hunting_leap.desc",
+                                val((int) OWAttacksConstants.Lion.LEAP_TARGET_RANGE),
+                                val(OWAttacksConstants.Lion.GRIP_MAX_TICKS / 20),
+                                val(OWAttacksConstants.Lion.LEAP_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(216, 176, "X",
+                        title("ow.attacks.lion.distress_call.title"),
+                        e -> desc("ow.attacks.lion.distress_call.desc",
+                                val(OWAttacksConstants.Lion.DISTRESS_KILLS_REQUIRED),
+                                val((int) (OWAttacksConstants.Lion.DISTRESS_HEALTH_RATIO * 100)),
+                                val((int) OWAttacksConstants.Lion.DISTRESS_CALL_RADIUS),
+                                val(OWAttacksConstants.Lion.GUARD_TICKS / 20),
+                                val(OWAttacksConstants.Lion.DISTRESS_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.lion.pride_bond.title"),
+                        e -> desc("ow.attacks.lion.pride_bond.desc",
+                                val((int) OWAttacksConstants.Lion.PACK_HEALTH_PER_LIONESS),
+                                val(OWAttacksConstants.Lion.CLAN_MAX_LIONESSES),
+                                val((int) (OWAttacksConstants.Lion.PACK_BONUS_PER_LIONESS * 100)),
+                                val(OWAttacksConstants.Lion.PACK_BONUS_MAX_LIONESSES),
+                                val((int) OWAttacksConstants.Lion.PACK_NEARBY_RADIUS))
+                )
+
+        );
+
         PROFILES.put(ElephantEntity.class, new EntityProfile(
 
                 new AttackSlot(60, 160, "LMB",
@@ -620,7 +659,7 @@ public class OWAttacksInformation {
         OWEntity entity = net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.resolveControlledEntity(player);
         if (entity == null) return;
 
-        EntityProfile profile = PROFILES.get(entity.getClass());
+        EntityProfile profile = entity instanceof LionEntity lion && !lion.isMale() ? LIONESS_PROFILE : PROFILES.get(entity.getClass());
         if (profile == null) return;
 
         float scale = animScale();

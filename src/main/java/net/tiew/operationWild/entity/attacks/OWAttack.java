@@ -26,6 +26,7 @@ public class OWAttack {
     // -1 = position déduite du rang d'affichage ; sinon coordonnées imposées dans l'atlas de cartes
     private int cardTexX = -1;
     private int cardTexY = -1;
+    private Predicate<OWEntity> availability = null;
 
     public OWAttack(int id, KeyMapping key, float energyRequired, Consumer<OWEntity> action, int cooldownTicks) {
         this.id = id;
@@ -140,6 +141,15 @@ public class OWAttack {
 
     public int getCardTexY() {
         return cardTexY;
+    }
+
+    public OWAttack withAvailability(Predicate<OWEntity> availability) {
+        this.availability = availability;
+        return this;
+    }
+
+    public boolean isAvailableFor(OWEntity entity) {
+        return availability == null || availability.test(entity);
     }
 
     public void trigger(OWEntity entity) {

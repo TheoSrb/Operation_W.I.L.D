@@ -82,6 +82,12 @@ public class OWChargedAttack extends OWAttack {
         return this;
     }
 
+    @Override
+    public OWChargedAttack withAvailability(Predicate<OWEntity> availability) {
+        super.withAvailability(availability);
+        return this;
+    }
+
     public OWChargedAttack withCanUsePredicate(Predicate<OWEntity> predicate) {
         this.canUsePredicate = predicate;
         return this;

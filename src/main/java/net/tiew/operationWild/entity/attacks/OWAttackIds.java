@@ -29,6 +29,8 @@ public final class OWAttackIds {
     public static final int RIVER_FURY = 23;
     public static final int CLAN_CALL = 24;
     public static final int DOMINATION_ROAR = 25;
+    public static final int HUNTING_LEAP = 26;
+    public static final int DISTRESS_CALL = 27;
 
     private static final Set<Integer> ULTIMATES = Set.of(
             SHADOW_STRIKE,
@@ -41,7 +43,8 @@ public final class OWAttackIds {
             FEAST,
             CHEST_BEAT,
             RIVER_FURY,
-            DOMINATION_ROAR
+            DOMINATION_ROAR,
+            DISTRESS_CALL
     );
 
     public static boolean isUltimate(int id) {

@@ -70,6 +70,8 @@ public class OWAttacksHandler {
     public static final int RIVER_FURY_ID = OWAttackIds.RIVER_FURY;
     public static final int CLAN_CALL_ID = OWAttackIds.CLAN_CALL;
     public static final int DOMINATION_ROAR_ID = OWAttackIds.DOMINATION_ROAR;
+    public static final int HUNTING_LEAP_ID = OWAttackIds.HUNTING_LEAP;
+    public static final int DISTRESS_CALL_ID = OWAttackIds.DISTRESS_CALL;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -175,7 +177,9 @@ public class OWAttacksHandler {
         registerEntityRow(LionEntity.class, 3);
         registerComboMaxTimer(LionEntity.class, 12);
         register(LionEntity.class, LionAttacks.CLAN_CALL);
+        register(LionEntity.class, LionAttacks.HUNTING_LEAP);
         register(LionEntity.class, LionAttacks.DOMINATION_ROAR);
+        register(LionEntity.class, LionAttacks.DISTRESS_CALL);
         registerPassive(LionEntity.class, LionPassives.PRIDE_BOND);
     }
 
@@ -202,9 +206,17 @@ public class OWAttacksHandler {
         return attacks.stream().filter(a -> a.getKey() == OW_ATTACK_0).toList();
     }
 
+    public static List<OWAttack> getSecondaryAttacks(OWEntity entity) {
+        return getSecondaryAttacks(entity.getClass()).stream().filter(a -> a.isAvailableFor(entity)).toList();
+    }
+
     /** Vrai si l'espèce propose plusieurs cartes secondaires, donc si le switch a un sens. */
     public static boolean hasSwitchableSecondary(Class<?> entityClass) {
         return getSecondaryAttacks(entityClass).size() > 1;
+    }
+
+    public static boolean hasSwitchableSecondary(OWEntity entity) {
+        return getSecondaryAttacks(entity).size() > 1;
     }
 
     /** Vrai si cette attaque occupe le rang de carte secondaire (clic droit). */
@@ -214,7 +226,7 @@ public class OWAttacksHandler {
 
     /** Carte secondaire actuellement équipée, ou {@code null} si l'espèce n'en a aucune. */
     public static OWAttack getActiveSecondary(OWEntity entity) {
-        List<OWAttack> secondaries = getSecondaryAttacks(entity.getClass());
+        List<OWAttack> secondaries = getSecondaryAttacks(entity);
         if (secondaries.isEmpty()) return null;
         return secondaries.get(Math.min(entity.getSecondaryAttackIndex(), secondaries.size() - 1));
     }
@@ -227,10 +239,11 @@ public class OWAttacksHandler {
      * bouge pas quand on change de secondaire : seul son dessin change.</p>
      */
     public static List<OWAttack> getActiveAttacks(OWEntity entity) {
-        List<OWAttack> attacks = ENTITY_ATTACKS.get(entity.getClass());
-        if (attacks == null) return List.of();
+        List<OWAttack> registered = ENTITY_ATTACKS.get(entity.getClass());
+        if (registered == null) return List.of();
+        List<OWAttack> attacks = registered.stream().filter(a -> a.isAvailableFor(entity)).toList();
 
-        List<OWAttack> secondaries = getSecondaryAttacks(entity.getClass());
+        List<OWAttack> secondaries = getSecondaryAttacks(entity);
         if (secondaries.size() <= 1) return attacks;
 
         OWAttack active = getActiveSecondary(entity);
@@ -457,7 +470,17 @@ public class OWAttacksHandler {
                 (entity, factor, dir) -> { },
                 false,
                 false
-        ).withCanUsePredicate(entity -> entity instanceof LionEntity lion && lion.hasCallableClanmates());
+        ).withCanUsePredicate(entity -> entity instanceof LionEntity lion && lion.hasCallableClanmates())
+                .withAvailability(entity -> entity instanceof LionEntity lion && lion.isMale());
+
+        public static final OWAttack HUNTING_LEAP = new OWAttack(
+                HUNTING_LEAP_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Lion.LEAP_ENERGY,
+                entity -> { },
+                0
+        ).withCardTexture(236, 176)
+                .withAvailability(entity -> entity instanceof LionEntity lion && !lion.isMale());
 
         public static final OWAttack DOMINATION_ROAR = new OWAttack(
                 DOMINATION_ROAR_ID,
@@ -475,7 +498,28 @@ public class OWAttacksHandler {
         ).withUnlockCounter(
                 entity -> entity instanceof LionEntity lion ? lion.getUltimateKillCount() : 0,
                 OWAttacksConstants.Lion.ROAR_KILLS_REQUIRED
-        ).withUltimateDuration(OWAttacksConstants.Lion.ROAR_BUFF_MS);
+        ).withUltimateDuration(OWAttacksConstants.Lion.ROAR_BUFF_MS)
+                .withAvailability(entity -> entity instanceof LionEntity lion && lion.isMale());
+
+        public static final OWAttack DISTRESS_CALL = new OWAttack(
+                DISTRESS_CALL_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Lion.DISTRESS_ENERGY,
+                entity -> ((LionEntity) entity).activateDistressCall(),
+                OWAttacksConstants.Lion.DISTRESS_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof LionEntity lion
+                        && lion.getUltimateKillCount() >= OWAttacksConstants.Lion.DISTRESS_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof LionEntity lion
+                        ? (float) lion.getUltimateKillCount() / OWAttacksConstants.Lion.DISTRESS_KILLS_REQUIRED
+                        : 0f
+        ).withUnlockCounter(
+                entity -> entity instanceof LionEntity lion ? lion.getUltimateKillCount() : 0,
+                OWAttacksConstants.Lion.DISTRESS_KILLS_REQUIRED
+        ).withUltimateDuration(OWAttacksConstants.Lion.GUARD_MS)
+                .withCardTexture(216, 176)
+                .withAvailability(entity -> entity instanceof LionEntity lion && !lion.isMale());
     }
 
     public static class LionPassives {

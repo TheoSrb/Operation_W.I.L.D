@@ -994,6 +994,7 @@ public class ClientEvents {
                 // la barre de vie / énergie / cartes (même handler → ordre de dessin garanti).
                 OWIndicationOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
                 net.tiew.operationWild.gui.OWGorillaAimOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
+                net.tiew.operationWild.gui.OWLionessHuntOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
             }
 
             if (isNotifiedOWBook) {

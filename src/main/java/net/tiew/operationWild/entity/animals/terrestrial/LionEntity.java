@@ -25,6 +25,7 @@ import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.TamableAnimal;
@@ -37,6 +38,8 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -76,8 +79,10 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -123,6 +128,37 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     private static final int EAR_FLICK_TICKS = 6;
     private static final int SEDATION_WAKE_TICKS = 48;
 
+    public static final int LATCH_NONE = 0;
+    public static final int LATCH_RUSH = 1;
+    public static final int LATCH_LEAP = 2;
+    public static final int LATCH_HOLD = 3;
+    public static final int LATCH_RELEASE = 4;
+    private static final int END_GRIP_LOST = 0;
+    private static final int END_KNOCKED_OFF = 1;
+    private static final int END_PREY_DOWN = 2;
+    private static final int END_LET_GO = 3;
+    private static final int END_PREY_LOST = 4;
+    private static final int END_RIDER_GONE = 5;
+    public static final int ZONE_THROAT = 0;
+    public static final int ZONE_FLANK = 1;
+    public static final int ZONE_RUMP = 2;
+    private static final double CLING_PIVOT = 0.94;
+    private static final double CLING_SURFACE_OFFSET = 0.6;
+    private static final double CLING_HEIGHT_RATIO = 0.6;
+    private static final double CLING_TILT = Math.toRadians(70.0);
+    private static final double SEAT_BACK_OFFSET = 0.45;
+    private static final double SEAT_DROP = 0.5;
+    private static final float THROAT_ZONE_DEGREES = 50f;
+    private static final float RUMP_ZONE_DEGREES = 125f;
+    private static final int FALL_GRACE_TICKS = 40;
+    private static final int SHAKE_SIGNAL_TICKS = 8;
+    private static final int DISTRESS_REFRESH_TICKS = 10;
+    private static final float LATCH_BLEND_RATE = 0.22f;
+    private static final float LEAP_BLEND_RATE = 0.45f;
+    private static final float RELEASE_BLEND_RATE = 0.3f;
+    private static final float DISTRESS_BLEND_RATE = 0.2f;
+    private static final float GUARD_BLEND_RATE = 0.1f;
+
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
@@ -135,6 +171,16 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     private static final EntityDataAccessor<Integer> RESPOND_TICK = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> RALLY_TICK = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> EMPOWER_TICK = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> LATCH_PHASE = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> LATCH_TARGET = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> LATCH_ANGLE = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Integer> LATCH_GRIP = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> LATCH_SHAKE = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> BITE_TICK = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DISTRESS_TICK = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> GUARD_POSE = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> RELEASE_LEAP = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> LEAP_FLIGHT = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
 
     // ==================================================
     //             COMPTEURS ET ANIMATIONS
@@ -144,6 +190,10 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     public final AnimationState callAnimationState = new AnimationState();
     public final AnimationState arrivalAnimationState = new AnimationState();
     public final AnimationState respondAnimationState = new AnimationState();
+    public final AnimationState leapAnimationState = new AnimationState();
+    public final AnimationState biteAnimationState = new AnimationState();
+    public final AnimationState releaseAnimationState = new AnimationState();
+    public final AnimationState distressAnimationState = new AnimationState();
 
     // ==================================================
     //                VARIABLES PROPRES
@@ -173,6 +223,38 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     private int earFlickCooldown = 120;
     private boolean earFlickLeft = false;
 
+    private int latchPhaseSeen = LATCH_NONE;
+    private int latchPhaseTicks = 0;
+    private Vec3 leapStart = Vec3.ZERO;
+    private float leapStartYaw = 0f;
+    private boolean latchByRider = false;
+    private double rushSpeed = 0.0;
+    private int biteCooldown = 0;
+    private int pendingBiteImpact = 0;
+    private int shakeTimer = 0;
+    private int fallGraceTicks = 0;
+    private int clientLeapTargetId = -1;
+    private int clientDistressResponders = 0;
+    private int lastBiteSignal = 0;
+    private int lastShakeSignal = 0;
+
+    private int guardLeaderId = -1;
+    private int guardTicks = 0;
+    private int guardSlot = 0;
+    private int guardSlotCount = 1;
+    private float guardSlotOffset = 0f;
+    private boolean guardWasSitting = false;
+    private int guardRoarTicks = 0;
+    private boolean guardRoar = false;
+    private int guardedTicks = 0;
+    private final Map<Integer, Integer> frightened = new HashMap<>();
+
+    private float latchBlend, latchBlendO;
+    private float leapBlend, leapBlendO;
+    private float releaseBlend, releaseBlendO;
+    private float distressBlend, distressBlendO;
+    private float guardBlend, guardBlendO;
+
     // ==================================================
     //            INTELLIGENCE ARTIFICIELLE
     // ==================================================
@@ -187,8 +269,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
                 .add(Attributes.MOVEMENT_SPEED, 0.175D)
                 .add(Attributes.FOLLOW_RANGE, 32.0D)
                 .add(Attributes.ATTACK_DAMAGE, 7.5D)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 0.5D)
-                .add(Attributes.JUMP_STRENGTH, 0.9);
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.5D);
     }
 
     @Override
@@ -197,6 +278,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
         this.goalSelector.addGoal(0, new FloatGoal(this));
 
+        this.goalSelector.addGoal(1, new LionGuardGoal());
         this.goalSelector.addGoal(2, new LionMeleeAttackGoal());
 
         this.goalSelector.addGoal(5, new NapGoal(this, 1f, 800, true));
@@ -224,6 +306,16 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         builder.define(RESPOND_TICK, 0);
         builder.define(RALLY_TICK, 0);
         builder.define(EMPOWER_TICK, 0);
+        builder.define(LATCH_PHASE, LATCH_NONE);
+        builder.define(LATCH_TARGET, -1);
+        builder.define(LATCH_ANGLE, 0f);
+        builder.define(LATCH_GRIP, 0);
+        builder.define(LATCH_SHAKE, 0);
+        builder.define(BITE_TICK, 0);
+        builder.define(DISTRESS_TICK, 0);
+        builder.define(GUARD_POSE, false);
+        builder.define(RELEASE_LEAP, true);
+        builder.define(LEAP_FLIGHT, OWAttacksConstants.Lion.LEAP_FLIGHT_MIN_TICKS);
     }
 
     // ==================================================
@@ -273,7 +365,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     @Override
     public boolean hasStandardHeadPose() {
-        return !this.isRoaring() && !this.isCalling();
+        return !this.isRoaring() && !this.isCalling() && !this.isDistressing() && getLatchPhase() == LATCH_NONE;
     }
 
     @Override
@@ -383,7 +475,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     @Override
     public float getRotationSpeed() {
-        if (isRoaring()) return 0f;
+        if (isRoaring() || isDistressing() || getLatchPhase() != LATCH_NONE) return 0f;
         if (isCalling()) return 0.12f;
         return this.isMale() ? 0.14f : 0.18f;
     }
@@ -405,7 +497,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     @Override
     public int getSecondaryCooldownDuration() {
-        return OWAttacksConstants.Lion.CLAN_CALL_COOLDOWN_TICKS;
+        return this.isMale() ? OWAttacksConstants.Lion.CLAN_CALL_COOLDOWN_TICKS : OWAttacksConstants.Lion.LEAP_COOLDOWN_TICKS;
     }
 
     @Override
@@ -491,14 +583,20 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         if (this.isInResurrection()) this.setSleeping(true);
 
         if (this.isVehicle() && this.isTame() && !this.isSitting()) {
-            setMadByRider(this.isCombo() || this.isRoaring() || this.isCalling());
+            setMadByRider(this.isCombo() || this.isRoaring() || this.isCalling() || getLatchPhase() != LATCH_NONE);
         }
+
+        tickLatch();
 
         // ------------ FONCTIONNEMENT PROPRE ------------
 
         if (this.level() instanceof ServerLevel serverLevel) {
             tickRoar(serverLevel);
             tickCall(serverLevel);
+            tickDistress(serverLevel);
+            tickGuard(serverLevel);
+            tickFrightened(serverLevel);
+            tickAutoPounce();
             tickGestureCounters();
             tickClan(serverLevel);
         } else {
@@ -547,7 +645,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     @Override
     public float getRiddenSpeedVehicle(Player player) {
-        return isRoaring() || isCalling() ? 0 : super.getRiddenSpeedVehicle(player);
+        return isRoaring() || isCalling() || isDistressing() ? 0 : super.getRiddenSpeedVehicle(player);
     }
 
     @Override
@@ -561,7 +659,15 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
             received *= 1f - OWAttacksConstants.Lion.PACK_BONUS_PER_LIONESS * packNearbyLionesses;
         }
 
+        boolean latched = isLatchedOn();
+        if (latched && !this.level().isClientSide() && damageSource.getEntity() != null
+                && damageSource.getEntity() == getLatchTarget() && !(damageSource.getEntity() instanceof OWEntity)
+                && this.random.nextFloat() > OWAttacksConstants.Lion.ZONE_EXPOSURE[getLatchZone()]) {
+            return false;
+        }
+
         boolean hurt = super.hurt(damageSource, received);
+        if (hurt && latched && !this.level().isClientSide()) onLatchedHurt(received);
 
         if (hurt && !this.level().isClientSide() && this.isMale() && damageSource.getEntity() instanceof LivingEntity attacker) {
             rallyClanAgainst(attacker);
@@ -572,7 +678,8 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     @Override
     public boolean killedEntity(ServerLevel level, LivingEntity target) {
         int kills = getUltimateKillCount();
-        if (kills < OWAttacksConstants.Lion.ROAR_KILLS_REQUIRED) setUltimateKillCount(kills + 1);
+        int required = Math.max(OWAttacksConstants.Lion.ROAR_KILLS_REQUIRED, OWAttacksConstants.Lion.DISTRESS_KILLS_REQUIRED);
+        if (kills < required) setUltimateKillCount(kills + 1);
 
         if (target instanceof LionEntity rival) claimDefeatedClan(level, rival);
         return super.killedEntity(level, target);
@@ -583,7 +690,10 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         if (!this.level().isClientSide()) {
             this.entityData.set(ROAR_TICK, 0);
             this.entityData.set(CALL_TICK, 0);
+            this.entityData.set(DISTRESS_TICK, 0);
             this.pendingArrivals.clear();
+            if (getLatchPhase() != LATCH_NONE) endLatch();
+            if (isGuarding()) endGuard();
         }
         super.die(damageSource);
 
@@ -617,17 +727,44 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     @Override
     protected boolean isImmobile() {
-        return super.isImmobile() || isRoaring() || isCalling();
+        return super.isImmobile() || isRoaring() || isCalling() || isDistressing();
     }
 
     @Override
     public boolean isAttackLocked() {
-        return super.isAttackLocked() || isRoaring() || isCalling();
+        return super.isAttackLocked() || isRoaring() || isCalling() || isDistressing();
     }
 
     @Override
     public boolean canStartCombo() {
-        return super.canStartCombo() && !isRoaring() && !isCalling();
+        return super.canStartCombo() && !isRoaring() && !isCalling() && getLatchPhase() == LATCH_NONE;
+    }
+
+    @Override
+    public boolean canUseUltimate() {
+        return super.canUseUltimate() && getLatchPhase() == LATCH_NONE;
+    }
+
+    @Override
+    protected boolean isLeapingVehicle() {
+        return getLatchPhase() != LATCH_NONE || super.isLeapingVehicle();
+    }
+
+    @Override
+    public boolean isPushable() {
+        return !isLatchedOn() && super.isPushable();
+    }
+
+    @Override
+    public void knockback(double strength, double x, double z) {
+        if (isLatchedOn()) return;
+        super.knockback(strength, x, z);
+    }
+
+    @Override
+    public boolean causeFallDamage(float distance, float multiplier, DamageSource damageSource) {
+        if (fallGraceTicks > 0 || getLatchPhase() != LATCH_NONE) return false;
+        return super.causeFallDamage(distance, multiplier, damageSource);
     }
 
     @Override
@@ -997,7 +1134,11 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         int elapsed = OWAttacksConstants.Lion.ROAR_ANIMATION_TICKS - tick;
         this.entityData.set(ROAR_TICK, tick - 1);
 
-        if (elapsed == OWAttacksConstants.Lion.ROAR_SHOUT_TICK) roarOfDomination(level);
+        if (elapsed == OWAttacksConstants.Lion.ROAR_SHOUT_TICK) {
+            if (guardRoar) guardRoarShout(level);
+            else roarOfDomination(level);
+        }
+        if (tick - 1 <= 0) guardRoar = false;
         if (elapsed == OWAttacksConstants.Lion.ROAR_STOMP_TICK) groundSlam(level, 1.4, 20);
 
         int[] pulses = OWAttacksConstants.Lion.ROAR_PULSE_TICKS;
@@ -1108,6 +1249,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     private void tickClientEffects() {
         tickAnimationBlends();
+        tickLatchClient();
 
         if (this.isVehicle() && this.tickCount % CALLABLE_REFRESH_TICKS == 0) {
             clientCallableClanmates = callableClanmates().size();
@@ -1171,6 +1313,18 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         empowerBlendO = empowerBlend;
         empowerBlend = approach(empowerBlend, isEmpowered() || isRallied() ? 1f : 0f, EMPOWER_BLEND_RATE);
 
+        int phase = getLatchPhase();
+        latchBlendO = latchBlend;
+        latchBlend = approach(latchBlend, phase == LATCH_HOLD ? 1f : 0f, LATCH_BLEND_RATE);
+        leapBlendO = leapBlend;
+        leapBlend = approach(leapBlend, phase == LATCH_LEAP ? 1f : 0f, LEAP_BLEND_RATE);
+        releaseBlendO = releaseBlend;
+        releaseBlend = approach(releaseBlend, phase == LATCH_RELEASE ? 1f : 0f, RELEASE_BLEND_RATE);
+        distressBlendO = distressBlend;
+        distressBlend = approach(distressBlend, isDistressing() ? 1f : 0f, DISTRESS_BLEND_RATE);
+        guardBlendO = guardBlend;
+        guardBlend = approach(guardBlend, isGuardPosed() ? 1f : 0f, GUARD_BLEND_RATE);
+
         if (earFlickTicks > 0) {
             earFlickTicks--;
         } else if (--earFlickCooldown <= 0) {
@@ -1194,6 +1348,16 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     public float empowerBlend(float partialTick) { return Mth.lerp(partialTick, empowerBlendO, empowerBlend); }
 
+    public float latchBlend(float partialTick) { return Mth.lerp(partialTick, latchBlendO, latchBlend); }
+
+    public float leapBlend(float partialTick) { return Mth.lerp(partialTick, leapBlendO, leapBlend); }
+
+    public float releaseBlend(float partialTick) { return Mth.lerp(partialTick, releaseBlendO, releaseBlend); }
+
+    public float distressBlend(float partialTick) { return Mth.lerp(partialTick, distressBlendO, distressBlend); }
+
+    public float guardBlend(float partialTick) { return Mth.lerp(partialTick, guardBlendO, guardBlend); }
+
     public float earFlick(float partialTick) {
         if (earFlickTicks <= 0) return 0f;
         float progress = (EAR_FLICK_TICKS - earFlickTicks + partialTick) / EAR_FLICK_TICKS;
@@ -1201,6 +1365,873 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     }
 
     public boolean isEarFlickLeft() { return earFlickLeft; }
+
+    public boolean canLatchOnto(@Nullable Entity entity) {
+        if (!(entity instanceof LivingEntity target) || target == this || !target.isAlive()) return false;
+        if (target instanceof ArmorStand || target.isPassenger() || target.isUnderWater()) return false;
+        if (target.getRootVehicle() == this || target == this.getOwner()) return false;
+        if (target.getBbWidth() < OWAttacksConstants.Lion.LEAP_MIN_TARGET_WIDTH
+                || target.getBbHeight() < OWAttacksConstants.Lion.LEAP_MIN_TARGET_HEIGHT) return false;
+        if (isClanmate(target) || this.isAlliedTo(target)) return false;
+        if (target instanceof TamableAnimal tamable && tamable.getOwnerUUID() != null
+                && tamable.getOwnerUUID().equals(this.getOwnerUUID())) return false;
+        return !(target instanceof Player player && (player.isCreative() || player.isSpectator()));
+    }
+
+    @Nullable
+    public LivingEntity findLeapTarget(Player rider) {
+        Vec3 eye = rider.getEyePosition();
+        Vec3 look = rider.getLookAngle();
+        double range = OWAttacksConstants.Lion.LEAP_TARGET_RANGE;
+        LivingEntity best = null;
+        double bestCosine = OWAttacksConstants.Lion.LEAP_AIM_COSINE;
+        for (LivingEntity candidate : this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(range), this::canLatchOnto)) {
+            Vec3 toTarget = candidate.getBoundingBox().getCenter().subtract(eye);
+            double distance = toTarget.length();
+            if (distance < 1.0E-3 || distance > range + candidate.getBbWidth() * 0.5) continue;
+            double tolerance = Math.atan2(candidate.getBbWidth() * 0.5, distance);
+            double cosine = toTarget.scale(1.0 / distance).dot(look) + tolerance * 0.12;
+            if (cosine > bestCosine && rider.hasLineOfSight(candidate)) {
+                bestCosine = cosine;
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+    public boolean startHuntingLeap(int targetId) {
+        if (this.level().isClientSide() || this.isMale() || this.isBaby()) return false;
+        if (getLatchPhase() != LATCH_NONE || isDistressing() || isSecondaryOnCooldown()) return false;
+        if (!(this.getControllingPassenger() instanceof Player rider)) return false;
+        if (!(this.level().getEntity(targetId) instanceof LivingEntity target) || !canLatchOnto(target) || !hasLatchRoom(target)) return false;
+        if (this.distanceTo(target) > OWAttacksConstants.Lion.LEAP_TARGET_RANGE + target.getBbWidth() + 2.0) return false;
+
+        Vec3 toTarget = target.getBoundingBox().getCenter().subtract(rider.getEyePosition());
+        if (toTarget.lengthSqr() > 1.0E-4 && toTarget.normalize().dot(rider.getLookAngle()) < OWAttacksConstants.Lion.LEAP_SERVER_AIM_COSINE) return false;
+        if (!rider.hasLineOfSight(target)) return false;
+
+        float cost = OWAttacksConstants.Lion.LEAP_ENERGY;
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
+            canShowVitalEnergyLack = true;
+            return false;
+        }
+        setVitalEnergy(getVitalEnergy() + cost);
+
+        beginHunt(target, true);
+        return true;
+    }
+
+    private void beginHunt(LivingEntity target, boolean byRider) {
+        latchByRider = byRider;
+        resetCombo(0);
+        actualAttackNumber = 0;
+        this.getNavigation().stop();
+        this.entityData.set(LATCH_TARGET, target.getId());
+        this.entityData.set(LATCH_PHASE, LATCH_RUSH);
+        this.setRunning(true);
+
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_HURTING.get(),
+                SoundSource.NEUTRAL, 1.3f, (float) OWUtils.generateRandomInterval(1.2, 1.3));
+    }
+
+    private void tickAutoPounce() {
+        if (this.isMale() || this.isBaby() || getLatchPhase() != LATCH_NONE || isSecondaryOnCooldown()) return;
+        if ((this.tickCount + this.getId()) % OWAttacksConstants.Lion.AUTO_LEAP_CHECK_TICKS != 0) return;
+        if (this.getControllingPassenger() != null || this.isVehicle() || this.isPassenger()) return;
+        if (isDistressing() || isRoaring() || this.isSitting() || this.isNapping() || this.isSleeping()
+                || this.isKnockedOut() || this.isSedatedFleeing() || this.isInWater()) return;
+
+        LivingEntity target = this.getTarget();
+        if (target == null || target instanceof LionEntity || !canLatchOnto(target) || !hasLatchRoom(target)) return;
+        double distance = this.distanceTo(target);
+        if (distance > OWAttacksConstants.Lion.AUTO_LEAP_MAX_DISTANCE || !this.getSensing().hasLineOfSight(target)) return;
+        if (this.random.nextFloat() > OWAttacksConstants.Lion.AUTO_LEAP_CHANCE) return;
+
+        beginHunt(target, false);
+    }
+
+    public int getLatchTargetId() {
+        return this.entityData.get(LATCH_TARGET);
+    }
+
+    public static int latchCapacity(LivingEntity target) {
+        return Mth.clamp((int) Math.floor(target.getBbWidth() * OWAttacksConstants.Lion.LATCH_SLOTS_PER_BLOCK),
+                1, OWAttacksConstants.Lion.LATCH_MAX_SLOTS);
+    }
+
+    private List<LionEntity> otherLatchers(LivingEntity target) {
+        return this.level().getEntitiesOfClass(LionEntity.class, target.getBoundingBox().inflate(OWAttacksConstants.Lion.LEAP_TARGET_RANGE + 8.0),
+                lion -> lion != this && lion.isAlive() && lion.isLatchActive() && lion.getLatchTargetId() == target.getId());
+    }
+
+    public boolean hasLatchRoom(LivingEntity target) {
+        return otherLatchers(target).size() < latchCapacity(target);
+    }
+
+    @Nullable
+    private Float chooseLatchAngle(LivingEntity target) {
+        float desired = localAngleAround(target);
+        float separation = 360f / latchCapacity(target) * 0.9f;
+        List<Float> taken = new ArrayList<>();
+        for (LionEntity other : otherLatchers(target)) {
+            if (other.isLatchedOn()) taken.add(other.getLatchAngle());
+        }
+        for (int step = 0; step <= 36; step++) {
+            for (int sign = -1; sign <= 1; sign += 2) {
+                float candidate = Mth.wrapDegrees(desired + sign * step * 5f);
+                boolean free = true;
+                for (float angle : taken) {
+                    if (Math.abs(Mth.wrapDegrees(candidate - angle)) < separation) {
+                        free = false;
+                        break;
+                    }
+                }
+                if (free) return candidate;
+                if (step == 0) break;
+            }
+        }
+        return null;
+    }
+
+    public void releaseLatchByRider() {
+        int phase = getLatchPhase();
+        if (phase == LATCH_HOLD || phase == LATCH_LEAP) releaseLatch(END_LET_GO);
+        else if (phase == LATCH_RUSH) abortLeap();
+    }
+
+    public void lionessBite() {
+        if (this.level().isClientSide() || getLatchPhase() != LATCH_HOLD || biteCooldown > 0) return;
+        biteCooldown = OWAttacksConstants.Lion.BITE_COOLDOWN_TICKS;
+        pendingBiteImpact = OWAttacksConstants.Lion.BITE_IMPACT_TICK;
+        this.entityData.set(BITE_TICK, OWAttacksConstants.Lion.BITE_ANIMATION_TICKS);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_HURTING.get(),
+                SoundSource.NEUTRAL, 1.0f, (float) OWUtils.generateRandomInterval(1.25, 1.4));
+    }
+
+    private void tickLatch() {
+        int phase = getLatchPhase();
+        if (phase != latchPhaseSeen) {
+            latchPhaseSeen = phase;
+            latchPhaseTicks = 0;
+            onLatchPhaseEntered(phase);
+        } else {
+            latchPhaseTicks++;
+        }
+
+        if (fallGraceTicks > 0) {
+            fallGraceTicks--;
+            this.fallDistance = 0f;
+        }
+        this.noPhysics = phase == LATCH_LEAP || phase == LATCH_HOLD;
+        if (this.isNoGravity() != this.noPhysics) this.setNoGravity(this.noPhysics);
+        if (phase == LATCH_NONE) return;
+
+        LivingEntity target = getLatchTarget();
+        boolean drives = !this.level().isClientSide() || this.isControlledByLocalInstance();
+        if (drives && target != null) {
+            if (phase == LATCH_RUSH) driveRush(target);
+            else if (phase == LATCH_LEAP || phase == LATCH_HOLD) followAnchor(target, phase);
+        }
+        if (phase == LATCH_RELEASE) this.fallDistance = 0f;
+
+        if (this.level() instanceof ServerLevel level) tickLatchServer(level, phase, target);
+    }
+
+    private void onLatchPhaseEntered(int phase) {
+        if (phase == LATCH_RUSH) {
+            Vec3 motion = this.getDeltaMovement();
+            rushSpeed = Math.sqrt(motion.x * motion.x + motion.z * motion.z);
+        } else if (phase == LATCH_LEAP) {
+            leapStart = this.position();
+            leapStartYaw = this.getYRot();
+        } else if (phase == LATCH_RELEASE) {
+            this.noPhysics = false;
+            fallGraceTicks = FALL_GRACE_TICKS;
+            if (!this.level().isClientSide() || this.isControlledByLocalInstance()) applyReleasePush();
+        } else if (phase == LATCH_NONE) {
+            this.noPhysics = false;
+        }
+    }
+
+    private void driveRush(LivingEntity target) {
+        float yaw = Mth.approachDegrees(this.getYRot(), yawTowards(target), OWAttacksConstants.Lion.LEAP_RUSH_TURN_DEGREES);
+        this.setYRot(yaw);
+        this.yBodyRot = yaw;
+        this.setYHeadRot(yaw);
+        this.setRunning(true);
+
+        rushSpeed = Math.min(OWAttacksConstants.Lion.LEAP_RUSH_SPEED, rushSpeed + OWAttacksConstants.Lion.LEAP_RUSH_ACCELERATION);
+        Vec3 direction = Vec3.directionFromRotation(0f, yaw);
+        double y = this.getDeltaMovement().y;
+        if (this.horizontalCollision && this.onGround()) y = OWAttacksConstants.Lion.LEAP_RUSH_JUMP;
+        this.setDeltaMovement(direction.x * rushSpeed, y, direction.z * rushSpeed);
+        this.hasImpulse = true;
+    }
+
+    private float yawTowards(LivingEntity target) {
+        return (float) (Mth.atan2(target.getZ() - this.getZ(), target.getX() - this.getX()) * Mth.RAD_TO_DEG) - 90f;
+    }
+
+    private void followAnchor(LivingEntity target, int phase) {
+        Vec3 anchor = latchAnchor(target);
+        float facing = latchFacingYaw(target);
+        Vec3 pos = anchor;
+        float yaw = facing;
+
+        if (phase == LATCH_LEAP) {
+            float t = leapProgress();
+            double arc = OWAttacksConstants.Lion.LEAP_ARC_BASE + OWAttacksConstants.Lion.LEAP_ARC_PER_TICK * getLeapFlightTicks();
+            double y = Mth.lerp(t * t, leapStart.y, anchor.y) + arc * 4.0 * t * (1.0 - t);
+            pos = new Vec3(Mth.lerp(t, leapStart.x, anchor.x), y, Mth.lerp(t, leapStart.z, anchor.z));
+            yaw = Mth.rotLerp(t * t, leapStartYaw, facing);
+        }
+
+        this.setDeltaMovement(Vec3.ZERO);
+        this.setPos(pos.x, pos.y, pos.z);
+        this.setYRot(yaw);
+        this.yBodyRot = yaw;
+        this.setYHeadRot(yaw);
+        this.setXRot(0f);
+        this.fallDistance = 0f;
+    }
+
+    private float leapProgress() {
+        return Mth.clamp((latchPhaseTicks + 1f) / getLeapFlightTicks(), 0f, 1f);
+    }
+
+    public float leapAnimationProgress(float partialTick) {
+        if (getLatchPhase() != LATCH_LEAP) return 1f;
+        return Mth.clamp((latchPhaseTicks + partialTick) / getLeapFlightTicks(), 0f, 1f);
+    }
+
+    public int getLeapFlightTicks() {
+        return Math.max(1, this.entityData.get(LEAP_FLIGHT));
+    }
+
+    private float clingAmount() {
+        int phase = getLatchPhase();
+        if (phase == LATCH_HOLD) return 1f;
+        if (phase == LATCH_LEAP) return leapProgress();
+        return 0f;
+    }
+
+    private Vec3 latchAnchor(LivingEntity target) {
+        double rad = Math.toRadians(target.yBodyRot + getLatchAngle());
+        double radius = target.getBbWidth() * 0.5 + CLING_SURFACE_OFFSET * this.getScale();
+        double lift = Math.max(0.0, target.getBbHeight() * CLING_HEIGHT_RATIO - CLING_PIVOT * this.getScale());
+        return new Vec3(target.getX() - Math.sin(rad) * radius, target.getY() + lift, target.getZ() + Math.cos(rad) * radius);
+    }
+
+    private float latchFacingYaw(LivingEntity target) {
+        return Mth.wrapDegrees(target.yBodyRot + getLatchAngle() + 180f);
+    }
+
+    private float localAngleAround(LivingEntity target) {
+        double dx = this.getX() - target.getX();
+        double dz = this.getZ() - target.getZ();
+        float yaw = (float) (Mth.atan2(-dx, dz) * Mth.RAD_TO_DEG);
+        return Mth.wrapDegrees(yaw - target.yBodyRot);
+    }
+
+    private static int zoneOf(float localAngle) {
+        float angle = Math.abs(Mth.wrapDegrees(localAngle));
+        if (angle <= THROAT_ZONE_DEGREES) return ZONE_THROAT;
+        if (angle >= RUMP_ZONE_DEGREES) return ZONE_RUMP;
+        return ZONE_FLANK;
+    }
+
+    private void tickLatchServer(ServerLevel level, int phase, @Nullable LivingEntity target) {
+        if (biteCooldown > 0) biteCooldown--;
+        decrement(BITE_TICK);
+        decrement(LATCH_SHAKE);
+
+        if (phase == LATCH_RELEASE) {
+            if (latchPhaseTicks >= OWAttacksConstants.Lion.LEAP_RELEASE_TICKS) endLatch();
+            return;
+        }
+
+        if (target == null || target.level() != level) {
+            if (phase == LATCH_RUSH) abortLeap();
+            else releaseLatch(END_PREY_LOST);
+            return;
+        }
+        if (!target.isAlive()) {
+            if (phase == LATCH_RUSH) abortLeap();
+            else releaseLatch(END_PREY_DOWN);
+            return;
+        }
+        boolean ridden = this.getControllingPassenger() instanceof Player;
+        if (ridden) latchByRider = true;
+        if (latchByRider && !ridden) {
+            if (phase == LATCH_RUSH) abortLeap();
+            else releaseLatch(END_RIDER_GONE);
+            return;
+        }
+        if (!ridden) this.getNavigation().stop();
+
+        if (phase == LATCH_RUSH) {
+            if (latchPhaseTicks > OWAttacksConstants.Lion.LEAP_RUSH_MAX_TICKS) abortLeap();
+            else if (isInLeapReach(target)) beginLeap(level, target);
+            return;
+        }
+
+        if (phase == LATCH_LEAP) {
+            if (latchPhaseTicks >= getLeapFlightTicks()) latchOn(level, target);
+            return;
+        }
+
+        int grip = getLatchGrip() - 1;
+        this.entityData.set(LATCH_GRIP, Math.max(0, grip));
+        if (grip <= 0) {
+            releaseLatch(END_GRIP_LOST);
+            return;
+        }
+
+        if (this.tickCount % 20 == 0) {
+            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 30, OWAttacksConstants.Lion.LATCH_SLOW_AMPLIFIER, false, false));
+        }
+
+        if (!latchByRider && biteCooldown <= 0 && pendingBiteImpact <= 0
+                && this.random.nextFloat() < OWAttacksConstants.Lion.AUTO_BITE_CHANCE) {
+            lionessBite();
+        }
+
+        if (pendingBiteImpact > 0 && --pendingBiteImpact == 0) {
+            biteImpact(level, target);
+            if (!target.isAlive()) {
+                releaseLatch(END_PREY_DOWN);
+                return;
+            }
+        }
+
+        if (--shakeTimer <= 0) shakeOff(level, target);
+        if (getLatchGrip() <= 0) {
+            releaseLatch(END_GRIP_LOST);
+            return;
+        }
+
+        if (this.tickCount % 5 == 0) {
+            Vec3 claw = latchContactPoint(target, 0.2);
+            level.sendParticles(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.REDSTONE_BLOCK.defaultBlockState()),
+                    claw.x, claw.y, claw.z, 1, 0.15, 0.2, 0.15, 0.0);
+        }
+    }
+
+    private boolean isInLeapReach(LivingEntity target) {
+        double dx = target.getX() - this.getX();
+        double dz = target.getZ() - this.getZ();
+        double gap = Math.sqrt(dx * dx + dz * dz) - target.getBbWidth() * 0.5;
+        double dy = target.getY() - this.getY();
+        float facing = Math.abs(Mth.wrapDegrees(yawTowards(target) - this.getYRot()));
+        return gap <= OWAttacksConstants.Lion.LEAP_TRIGGER_DISTANCE && facing <= OWAttacksConstants.Lion.LEAP_TRIGGER_FACING_DEGREES
+                && dy > -2.5 && dy < target.getBbHeight() + 1.5;
+    }
+
+    private void beginLeap(ServerLevel level, LivingEntity target) {
+        Float angle = chooseLatchAngle(target);
+        if (angle == null) {
+            abortLeap();
+            return;
+        }
+        this.entityData.set(LATCH_ANGLE, angle);
+        double distance = this.position().distanceTo(latchAnchor(target));
+        int flight = (int) Math.round(distance * OWAttacksConstants.Lion.LEAP_FLIGHT_TICKS_PER_BLOCK);
+        this.entityData.set(LEAP_FLIGHT, Mth.clamp(flight, OWAttacksConstants.Lion.LEAP_FLIGHT_MIN_TICKS, OWAttacksConstants.Lion.LEAP_FLIGHT_MAX_TICKS));
+        this.entityData.set(LATCH_PHASE, LATCH_LEAP);
+        this.setRunning(false);
+
+        level.playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_JUMP.get(),
+                SoundSource.NEUTRAL, 1.3f, (float) OWUtils.generateRandomInterval(1.15, 1.3));
+        BlockState ground = this.getBlockStateOn();
+        if (ground.isAir()) ground = Blocks.DIRT.defaultBlockState();
+        level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
+                this.getX(), this.getY() + 0.1, this.getZ(), 18, 0.4, 0.05, 0.4, 0.15);
+    }
+
+    private void latchOn(ServerLevel level, LivingEntity target) {
+        this.entityData.set(LATCH_PHASE, LATCH_HOLD);
+        this.entityData.set(LATCH_GRIP, OWAttacksConstants.Lion.GRIP_MAX_TICKS);
+        shakeTimer = nextShakeDelay();
+
+        float damage = this.getCombatDamage() * OWAttacksConstants.Lion.LATCH_POUNCE_DAMAGE_FACTOR;
+        target.invulnerableTime = 0;
+        target.hurt(this.damageSources().mobAttack(this), damage);
+
+        Vec3 contact = latchContactPoint(target, 0.55);
+        spawnBlood(level, contact, 22);
+        level.sendParticles(ParticleTypes.CRIT, contact.x, contact.y, contact.z, 14, 0.3, 0.3, 0.3, 0.3);
+        level.playSound(null, contact.x, contact.y, contact.z, SoundEvents.PLAYER_ATTACK_CRIT,
+                SoundSource.NEUTRAL, 1.1f, 0.65f);
+        level.playSound(null, contact.x, contact.y, contact.z, SoundEvents.FOX_BITE,
+                SoundSource.NEUTRAL, 1.4f, 0.55f);
+        level.playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_HURTING.get(),
+                SoundSource.NEUTRAL, 1.2f, 1.1f);
+    }
+
+    private void biteImpact(ServerLevel level, LivingEntity target) {
+        float damage = this.getCombatDamage() / MAX_ATTACKS_IN_COMBO * OWAttacksConstants.Lion.BITE_COMBO_MULTIPLIER;
+        target.invulnerableTime = 0;
+        target.hurt(this.damageSources().mobAttack(this), damage);
+
+        Vec3 mouth = latchContactPoint(target, 0.8);
+        spawnBlood(level, mouth, 18);
+        level.playSound(null, mouth.x, mouth.y, mouth.z, SoundEvents.FOX_BITE,
+                SoundSource.NEUTRAL, 1.3f, (float) OWUtils.generateRandomInterval(0.55, 0.7));
+        level.playSound(null, mouth.x, mouth.y, mouth.z, SoundEvents.PLAYER_ATTACK_STRONG,
+                SoundSource.NEUTRAL, 0.9f, (float) OWUtils.generateRandomInterval(0.7, 0.85));
+    }
+
+    private void shakeOff(ServerLevel level, LivingEntity target) {
+        shakeTimer = nextShakeDelay();
+        int grip = getLatchGrip() - OWAttacksConstants.Lion.GRIP_SHAKE_LOSS;
+        this.entityData.set(LATCH_GRIP, Math.max(0, grip));
+        this.entityData.set(LATCH_SHAKE, SHAKE_SIGNAL_TICKS);
+
+        BlockState ground = target.getBlockStateOn();
+        if (ground.isAir()) ground = Blocks.DIRT.defaultBlockState();
+        level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground),
+                target.getX(), target.getY() + 0.1, target.getZ(), 20, target.getBbWidth() * 0.4, 0.05, target.getBbWidth() * 0.4, 0.15);
+        level.playSound(null, target.getX(), target.getY(), target.getZ(), SoundEvents.PLAYER_ATTACK_KNOCKBACK,
+                SoundSource.NEUTRAL, 1.2f, 0.6f);
+        SoundType soundType = ground.getSoundType(level, target.blockPosition(), target);
+        level.playSound(null, target.getX(), target.getY(), target.getZ(), soundType.getStepSound(),
+                SoundSource.NEUTRAL, soundType.getVolume() * 1.5f, soundType.getPitch() * 0.6f);
+    }
+
+    private int nextShakeDelay() {
+        int zone = getLatchZone();
+        return OWAttacksConstants.Lion.GRIP_SHAKE_INTERVAL[zone] + this.random.nextInt(OWAttacksConstants.Lion.GRIP_SHAKE_SPREAD[zone]);
+    }
+
+    private void onLatchedHurt(float amount) {
+        int grip = getLatchGrip() - Math.round(amount * OWAttacksConstants.Lion.GRIP_LOSS_PER_DAMAGE);
+        this.entityData.set(LATCH_GRIP, Math.max(0, grip));
+        if (amount >= this.getMaxHealth() * OWAttacksConstants.Lion.GRIP_KNOCKOFF_HEALTH_RATIO) releaseLatch(END_KNOCKED_OFF);
+        else if (grip <= 0) releaseLatch(END_GRIP_LOST);
+    }
+
+    private void releaseLatch(int reason) {
+        if (this.level().isClientSide()) return;
+        int phase = getLatchPhase();
+        if (phase != LATCH_HOLD && phase != LATCH_LEAP) return;
+        boolean victory = reason == END_PREY_DOWN;
+        this.entityData.set(RELEASE_LEAP, victory || reason == END_LET_GO);
+
+        this.entityData.set(LATCH_PHASE, LATCH_RELEASE);
+        this.entityData.set(LATCH_GRIP, 0);
+        pendingBiteImpact = 0;
+        startSecondaryCooldown();
+
+        if (this.level() instanceof ServerLevel level) {
+            level.playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_JUMP.get(),
+                    SoundSource.NEUTRAL, 1.1f, (float) OWUtils.generateRandomInterval(1.25, 1.4));
+            if (victory) {
+                level.playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_ROAR.get(),
+                        SoundSource.NEUTRAL, 1.6f, 1.25f);
+            }
+        }
+    }
+
+    private void abortLeap() {
+        if (this.level().isClientSide()) return;
+        this.entityData.set(LATCH_PHASE, LATCH_NONE);
+        this.entityData.set(LATCH_TARGET, -1);
+        this.setRunning(false);
+        setSecondaryCooldown(OWAttacksConstants.Lion.LEAP_ABORT_COOLDOWN_TICKS);
+    }
+
+    private void endLatch() {
+        this.entityData.set(LATCH_PHASE, LATCH_NONE);
+        this.entityData.set(LATCH_TARGET, -1);
+        this.entityData.set(LATCH_GRIP, 0);
+        this.noPhysics = false;
+        pendingBiteImpact = 0;
+    }
+
+    private void applyReleasePush() {
+        LivingEntity target = getLatchTarget();
+        Vec3 away = target != null
+                ? new Vec3(this.getX() - target.getX(), 0, this.getZ() - target.getZ())
+                : Vec3.directionFromRotation(0f, this.getYRot() + 180f);
+        away = away.lengthSqr() < 1.0E-4 ? Vec3.directionFromRotation(0f, this.getYRot() + 180f) : away.normalize();
+        boolean leap = this.entityData.get(RELEASE_LEAP);
+        double push = OWAttacksConstants.Lion.LEAP_RELEASE_PUSH * (leap ? 1.0 : 0.45);
+        double lift = leap ? OWAttacksConstants.Lion.LEAP_RELEASE_LIFT : 0.12;
+        this.setDeltaMovement(away.x * push, lift, away.z * push);
+        this.hasImpulse = true;
+    }
+
+    private Vec3 latchContactPoint(LivingEntity target, double heightFraction) {
+        Vec3 anchor = latchAnchor(target);
+        Vec3 inward = new Vec3(target.getX() - anchor.x, 0, target.getZ() - anchor.z);
+        if (inward.lengthSqr() > 1.0E-4) inward = inward.normalize().scale(CLING_SURFACE_OFFSET * this.getScale());
+        double y = anchor.y + CLING_PIVOT * this.getScale() + heightFraction * this.getScale();
+        return new Vec3(anchor.x + inward.x, Math.min(y, target.getY() + target.getBbHeight()), anchor.z + inward.z);
+    }
+
+    private static void spawnBlood(ServerLevel level, Vec3 at, int count) {
+        level.sendParticles(new DustParticleOptions(new Vector3f(0.55f, 0.02f, 0.02f), 1.3f),
+                at.x, at.y, at.z, count, 0.18, 0.18, 0.18, 0.02);
+        level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, Blocks.REDSTONE_BLOCK.defaultBlockState()),
+                at.x, at.y, at.z, count / 2, 0.12, 0.12, 0.12, 0.12);
+        level.sendParticles(new BlockParticleOption(ParticleTypes.FALLING_DUST, Blocks.REDSTONE_BLOCK.defaultBlockState()),
+                at.x, at.y, at.z, count / 3, 0.25, 0.1, 0.25, 0.0);
+    }
+
+    private void tickLatchClient() {
+        if (getLatchPhase() == LATCH_NONE && !this.isMale() && this.isControlledByLocalInstance()
+                && this.getControllingPassenger() instanceof Player rider) {
+            LivingEntity target = isSecondaryOnCooldown() || !this.isRunning() ? null : findLeapTarget(rider);
+            if (target != null && !hasLatchRoom(target)) target = null;
+            clientLeapTargetId = target == null ? -1 : target.getId();
+        } else {
+            clientLeapTargetId = getLatchPhase() == LATCH_RUSH ? this.entityData.get(LATCH_TARGET) : -1;
+        }
+
+        if (!this.isMale() && this.isVehicle() && this.tickCount % DISTRESS_REFRESH_TICKS == 0) {
+            clientDistressResponders = distressResponders().size();
+        }
+
+        int shake = this.entityData.get(LATCH_SHAKE);
+        if (shake > lastShakeSignal) net.tiew.operationWild.event.ClientEvents.addGroundShake(this, false);
+        lastShakeSignal = shake;
+    }
+
+    public int getClientLeapTargetId() {
+        return clientLeapTargetId;
+    }
+
+    public int getLatchPhase() {
+        return this.entityData.get(LATCH_PHASE);
+    }
+
+    public boolean isLatchActive() {
+        return getLatchPhase() != LATCH_NONE && getLatchPhase() != LATCH_RELEASE;
+    }
+
+    public boolean isLatchedOn() {
+        int phase = getLatchPhase();
+        return phase == LATCH_HOLD || phase == LATCH_LEAP;
+    }
+
+    @Nullable
+    public LivingEntity getLatchTarget() {
+        int id = this.entityData.get(LATCH_TARGET);
+        return id >= 0 && this.level().getEntity(id) instanceof LivingEntity living ? living : null;
+    }
+
+    public float getLatchAngle() {
+        return this.entityData.get(LATCH_ANGLE);
+    }
+
+    public int getLatchZone() {
+        return zoneOf(getLatchAngle());
+    }
+
+    public int getLatchGrip() {
+        return this.entityData.get(LATCH_GRIP);
+    }
+
+    public float getLatchGripRatio() {
+        return Mth.clamp((float) getLatchGrip() / OWAttacksConstants.Lion.GRIP_MAX_TICKS, 0f, 1f);
+    }
+
+    public int getLatchShakeTicks() {
+        return this.entityData.get(LATCH_SHAKE);
+    }
+
+    public int getBiteTick() {
+        return this.entityData.get(BITE_TICK);
+    }
+
+    public boolean activateDistressCall() {
+        if (this.level().isClientSide() || this.isMale()) return false;
+        if (isDistressing() || getLatchPhase() != LATCH_NONE) return false;
+        if (getUltimateKillCount() < OWAttacksConstants.Lion.DISTRESS_KILLS_REQUIRED) return false;
+        if (!isWoundedEnoughForDistress() || distressResponders().isEmpty()) return false;
+
+        float cost = OWAttacksConstants.Lion.DISTRESS_ENERGY;
+        if (getVitalEnergy() > getVitalEnergyCapacity() - cost) {
+            canShowVitalEnergyLack = true;
+            return false;
+        }
+        setVitalEnergy(getVitalEnergy() + cost);
+
+        setUltimateKillCount(0);
+        resetCombo(0);
+        actualAttackNumber = 0;
+        this.getNavigation().stop();
+        if (!(this.getControllingPassenger() instanceof Player)) {
+            this.setDeltaMovement(0, this.getDeltaMovement().y, 0);
+        }
+        this.entityData.set(DISTRESS_TICK, OWAttacksConstants.Lion.DISTRESS_GESTURE_TICKS);
+        return true;
+    }
+
+    public boolean isWoundedEnoughForDistress() {
+        return this.getHealth() <= this.getMaxHealth() * OWAttacksConstants.Lion.DISTRESS_HEALTH_RATIO;
+    }
+
+    public boolean isDistressReady() {
+        return isWoundedEnoughForDistress() && getDistressResponderCount() > 0;
+    }
+
+    public int getDistressResponderCount() {
+        return this.level().isClientSide() ? clientDistressResponders : distressResponders().size();
+    }
+
+    public int getDistressTick() {
+        return this.entityData.get(DISTRESS_TICK);
+    }
+
+    public boolean isDistressing() {
+        return getDistressTick() > 0;
+    }
+
+    private List<LionEntity> distressResponders() {
+        UUID clanId = getClanId();
+        if (clanId == null || !this.isTame()) return List.of();
+        double radius = OWAttacksConstants.Lion.DISTRESS_CALL_RADIUS;
+        return this.level().getEntitiesOfClass(LionEntity.class, this.getBoundingBox().inflate(radius),
+                lion -> lion != this && lion.isAlive() && lion.isTame() && !lion.isBaby() && clanId.equals(lion.getClanId())
+                        && !lion.isVehicle() && !lion.isPassenger() && !lion.isKnockedOut() && !lion.isLeashed()
+                        && lion.distanceToSqr(this) <= radius * radius);
+    }
+
+    private void tickDistress(ServerLevel level) {
+        if (guardedTicks > 0) {
+            guardedTicks--;
+            if (guardedTicks % 20 == 0) {
+                emitRing(level, OWAttacksConstants.Lion.GUARD_RING_RADIUS + this.getBbWidth() * 0.5, clanDust(1.1f));
+            }
+        }
+
+        int tick = getDistressTick();
+        if (tick <= 0) return;
+        int elapsed = OWAttacksConstants.Lion.DISTRESS_GESTURE_TICKS - tick;
+        this.entityData.set(DISTRESS_TICK, tick - 1);
+
+        if (elapsed == OWAttacksConstants.Lion.DISTRESS_MOAN_TICK) {
+            level.playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_HURT.get(),
+                    SoundSource.NEUTRAL, 1.4f, 1.35f);
+        }
+        if (elapsed == OWAttacksConstants.Lion.DISTRESS_FIRST_CALL_TICK) {
+            distressShout(level, 2.6f, 1.38f, 0.8);
+            summonGuard(level);
+        }
+        if (elapsed == OWAttacksConstants.Lion.DISTRESS_SECOND_CALL_TICK) {
+            distressShout(level, 3.2f, 1.28f, 1.0);
+        }
+    }
+
+    private void distressShout(ServerLevel level, float volume, float pitch, double strength) {
+        level.playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_ROAR.get(),
+                SoundSource.NEUTRAL, volume, pitch);
+        Vec3 mouth = mouthPosition().add(0, 0.35 * this.getScale(), 0);
+        for (int i = 0; i < 10; i++) {
+            double spread = (this.random.nextDouble() - 0.5) * 0.5;
+            Vec3 direction = Vec3.directionFromRotation(-55f, this.yBodyRot).yRot((float) spread);
+            level.sendParticles(ParticleTypes.CLOUD, mouth.x, mouth.y, mouth.z, 0,
+                    direction.x, direction.y, direction.z, 0.25 + this.random.nextDouble() * 0.2);
+        }
+        emitRing(level, 2.5 * strength, clanDust(1.6f));
+        emitRing(level, 5.0 * strength, clanDust(1.3f));
+        emitWave(level, 6.0 * strength, ParticleTypes.CLOUD, 0.25);
+    }
+
+    private void summonGuard(ServerLevel level) {
+        List<LionEntity> responders = new ArrayList<>(distressResponders());
+        if (responders.isEmpty()) return;
+        responders.sort(Comparator.comparingDouble(this::distanceToSqr));
+
+        guardedTicks = OWAttacksConstants.Lion.GUARD_TICKS;
+        float offset = this.random.nextFloat() * 360f;
+        LionEntity roarer = responders.stream().filter(LionEntity::isMale).findFirst().orElse(null);
+
+        for (int i = 0; i < responders.size(); i++) {
+            LionEntity guard = responders.get(i);
+            guard.beginGuard(this, i, responders.size(), offset);
+            if (guard == roarer) guard.guardRoarTicks = OWAttacksConstants.Lion.GUARD_ROAR_DEADLINE_TICKS;
+            level.sendParticles(clanDust(1.4f), guard.getX(), guard.getY() + guard.getBbHeight() * 0.6, guard.getZ(),
+                    12, 0.4, 0.4, 0.4, 0.0);
+        }
+    }
+
+    private void beginGuard(LionEntity leader, int slot, int slotCount, float offset) {
+        guardLeaderId = leader.getId();
+        guardTicks = OWAttacksConstants.Lion.GUARD_TICKS;
+        guardSlot = slot;
+        guardSlotCount = Math.max(1, slotCount);
+        guardSlotOffset = offset;
+        guardWasSitting = this.isSitting();
+        if (guardWasSitting) this.setSitting(false);
+        if (this.getTarget() != null && !isGuardThreat(this.getTarget(), leader)) this.setTarget(null);
+
+        this.entityData.set(RALLY_TICK, OWAttacksConstants.Lion.GUARD_TICKS);
+        this.entityData.set(RESPOND_TICK, OWAttacksConstants.Lion.RESPOND_TICKS);
+        this.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, OWAttacksConstants.Lion.GUARD_SPEED_TICKS, 1, false, false));
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_ROAR.get(),
+                SoundSource.NEUTRAL, 0.9f, (float) OWUtils.generateRandomInterval(1.2, 1.4) * (this.isMale() ? 0.8f : 1f));
+    }
+
+    private void endGuard() {
+        guardTicks = 0;
+        guardLeaderId = -1;
+        guardRoarTicks = 0;
+        this.entityData.set(GUARD_POSE, false);
+        this.entityData.set(RALLY_TICK, 0);
+        if (guardWasSitting && this.isAlive()) {
+            this.getNavigation().stop();
+            this.setSitting(true);
+        }
+        guardWasSitting = false;
+    }
+
+    public boolean isGuarding() {
+        return guardTicks > 0 && guardLeaderId >= 0;
+    }
+
+    public boolean isGuardPosed() {
+        return this.entityData.get(GUARD_POSE);
+    }
+
+    @Nullable
+    private LionEntity getGuardLeader() {
+        if (guardLeaderId < 0) return null;
+        return this.level().getEntity(guardLeaderId) instanceof LionEntity leader && leader.isAlive() ? leader : null;
+    }
+
+    private Vec3 guardSlotPosition(LionEntity leader) {
+        double angle = Math.toRadians(guardSlotOffset + guardSlot * 360.0 / guardSlotCount);
+        double radius = OWAttacksConstants.Lion.GUARD_RING_RADIUS + leader.getBbWidth() * 0.5 + this.getBbWidth() * 0.3;
+        return new Vec3(leader.getX() + Math.cos(angle) * radius, leader.getY(), leader.getZ() + Math.sin(angle) * radius);
+    }
+
+    private void tickGuard(ServerLevel level) {
+        if (!isGuarding()) return;
+        LionEntity leader = getGuardLeader();
+        if (--guardTicks <= 0 || leader == null || this.isVehicle() || this.isKnockedOut()) {
+            endGuard();
+            return;
+        }
+
+        if (guardRoarTicks > 0) {
+            guardRoarTicks--;
+            boolean close = this.distanceTo(leader) <= OWAttacksConstants.Lion.GUARD_ROAR_TRIGGER_DISTANCE;
+            if ((close || guardRoarTicks == 0) && !isRoaring() && this.onGround()) {
+                guardRoarTicks = 0;
+                startGuardRoar();
+            }
+        }
+
+        if (this.tickCount % OWAttacksConstants.Lion.GUARD_SCAN_INTERVAL != 0) return;
+
+        LivingEntity target = this.getTarget();
+        if (target != null && (!target.isAlive() || target.distanceTo(leader) > OWAttacksConstants.Lion.GUARD_LEASH_RADIUS)) {
+            this.setTarget(null);
+            target = null;
+        }
+        if (target == null && !isRoaring()) {
+            LivingEntity threat = pickGuardThreat(leader);
+            if (threat != null) this.setTarget(threat);
+        }
+    }
+
+    @Nullable
+    private LivingEntity pickGuardThreat(LionEntity leader) {
+        double radius = OWAttacksConstants.Lion.GUARD_THREAT_RADIUS;
+        List<LivingEntity> threats = this.level().getEntitiesOfClass(LivingEntity.class, leader.getBoundingBox().inflate(radius),
+                entity -> entity.distanceTo(leader) <= radius && isGuardThreat(entity, leader));
+        if (threats.isEmpty()) return null;
+
+        List<LionEntity> guards = this.level().getEntitiesOfClass(LionEntity.class, leader.getBoundingBox().inflate(OWAttacksConstants.Lion.GUARD_LEASH_RADIUS),
+                lion -> lion != this && lion.guardLeaderId == leader.getId() && lion.getTarget() != null);
+        return threats.stream()
+                .min(Comparator.comparingDouble(threat -> this.distanceToSqr(threat)
+                        + 64.0 * guards.stream().filter(lion -> lion.getTarget() == threat).count()))
+                .orElse(null);
+    }
+
+    private boolean isGuardThreat(LivingEntity entity, LionEntity leader) {
+        if (entity == leader || entity == this || !entity.isAlive() || entity instanceof ArmorStand) return false;
+        if (leader.isClanmate(entity) || entity == leader.getOwner() || leader.isAlliedTo(entity)) return false;
+        if (entity instanceof LionEntity lion && lion.guardLeaderId == leader.getId()) return false;
+        if (entity instanceof TamableAnimal tamable && tamable.getOwnerUUID() != null
+                && tamable.getOwnerUUID().equals(leader.getOwnerUUID())) return false;
+        if (entity instanceof Player player) return !player.isCreative() && !player.isSpectator();
+        if (entity instanceof Enemy) return true;
+        if (entity == leader.getLastHurtByMob() && leader.tickCount - leader.getLastHurtByMobTimestamp() < 200) return true;
+        return entity instanceof Mob mob && mob.getTarget() != null && isProtected(mob.getTarget(), leader);
+    }
+
+    private static boolean isProtected(LivingEntity entity, LionEntity leader) {
+        return entity == leader || entity == leader.getOwner() || leader.isClanmate(entity)
+                || entity.getRootVehicle() == leader;
+    }
+
+    private void startGuardRoar() {
+        guardRoar = true;
+        this.getNavigation().stop();
+        this.entityData.set(ROAR_TICK, OWAttacksConstants.Lion.ROAR_ANIMATION_TICKS);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.HORSE_BREATHE,
+                SoundSource.NEUTRAL, 1.6f, 0.5f);
+    }
+
+    private void guardRoarShout(ServerLevel level) {
+        level.playSound(null, this.getX(), this.getY(), this.getZ(), OWSounds.TIGER_ROAR.get(),
+                SoundSource.NEUTRAL, 3.0f, this.isMale() ? 0.8f : 1.0f);
+        OWUtils.spawnServerParticles(this, ParticleTypes.FLASH, 0, 0.5, 0, 1, 0);
+        Vec3 mouth = mouthPosition();
+        Vec3 forward = Vec3.directionFromRotation(0f, this.yBodyRot);
+        for (int i = 0; i < 18; i++) {
+            double spread = (this.random.nextDouble() - 0.5) * 0.6;
+            Vec3 direction = forward.yRot((float) spread).add(0, 0.05 + this.random.nextDouble() * 0.15, 0);
+            level.sendParticles(ParticleTypes.CLOUD, mouth.x, mouth.y, mouth.z, 0,
+                    direction.x, direction.y, direction.z, 0.35 + this.random.nextDouble() * 0.25);
+        }
+
+        LionEntity leader = getGuardLeader();
+        LionEntity center = leader != null ? leader : this;
+        double radius = OWAttacksConstants.Lion.FEAR_RADIUS;
+        for (Mob mob : level.getEntitiesOfClass(Mob.class, this.getBoundingBox().inflate(radius).minmax(center.getBoundingBox().inflate(radius)),
+                mob -> mob.isAlive() && (mob.distanceTo(this) <= radius || mob.distanceTo(center) <= radius)
+                        && isFearTarget(mob, center))) {
+            frightened.put(mob.getId(), OWAttacksConstants.Lion.FEAR_TICKS);
+            mob.setTarget(null);
+            mob.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, OWAttacksConstants.Lion.FEAR_TICKS, 0, false, true));
+            fleeFrom(mob, center);
+            level.sendParticles(ParticleTypes.SPLASH, mob.getX(), mob.getY() + mob.getBbHeight() + 0.2, mob.getZ(),
+                    8, 0.25, 0.1, 0.25, 0.1);
+        }
+    }
+
+    private boolean isFearTarget(Mob mob, LionEntity center) {
+        if (mob == this || mob == center || center.isClanmate(mob) || center.isAlliedTo(mob)) return false;
+        if (mob instanceof TamableAnimal tamable && tamable.getOwnerUUID() != null
+                && tamable.getOwnerUUID().equals(center.getOwnerUUID())) return false;
+        return mob instanceof Enemy || (mob.getTarget() != null && isProtected(mob.getTarget(), center));
+    }
+
+    private void fleeFrom(Mob mob, LionEntity center) {
+        Vec3 away = new Vec3(mob.getX() - center.getX(), 0, mob.getZ() - center.getZ());
+        if (away.lengthSqr() < 1.0E-4) away = Vec3.directionFromRotation(0f, this.random.nextFloat() * 360f);
+        Vec3 point = mob.position().add(away.normalize().scale(OWAttacksConstants.Lion.FEAR_FLEE_DISTANCE));
+        mob.getNavigation().moveTo(point.x, point.y, point.z, 1.4);
+    }
+
+    private void tickFrightened(ServerLevel level) {
+        if (frightened.isEmpty() || this.tickCount % 10 != 0) return;
+        LionEntity leader = getGuardLeader();
+        LionEntity center = leader != null ? leader : this;
+        frightened.entrySet().removeIf(entry -> {
+            int left = entry.getValue() - 10;
+            if (left <= 0 || !(level.getEntity(entry.getKey()) instanceof Mob mob) || !mob.isAlive()) return true;
+            entry.setValue(left);
+            mob.setTarget(null);
+            fleeFrom(mob, center);
+            return false;
+        });
+    }
 
     private void rejectAttack(int attackId) {
         if (this.getControllingPassenger() instanceof ServerPlayer player) {
@@ -1221,6 +2252,23 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     @Override
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (!this.hasPassenger(passenger) || this.touchingUnloadedChunk()) return;
+
+        float cling = clingAmount();
+        if (cling > 0f) {
+            double rad = Math.toRadians(this.yBodyRot);
+            double scale = this.getScale();
+            double tilt = CLING_TILT * cling;
+            double back = SEAT_BACK_OFFSET * scale;
+            double standing = getBaseRiderYOffset() + getRiderAnimYOffset();
+            double clingY = CLING_PIVOT * scale + Math.cos(tilt) * back - SEAT_DROP;
+            double outward = -Math.sin(tilt) * back;
+            passenger.fallDistance = 0f;
+            function.accept(passenger,
+                    this.getX() - Math.sin(rad) * outward,
+                    this.getY() + Mth.lerp(cling, standing, clingY),
+                    this.getZ() + Math.cos(rad) * outward);
+            return;
+        }
 
         Vec3 seatOffset = new Vec3(0, 0, 0).yRot((float) Math.toRadians(-this.yBodyRot));
         double baseY = getBaseRiderYOffset();
@@ -1269,6 +2317,13 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         this.callAnimationState.animateWhen(isCalling(), this.tickCount);
         this.arrivalAnimationState.animateWhen(getArrivalTick() > 0, this.tickCount);
         this.respondAnimationState.animateWhen(getRespondTick() > 0, this.tickCount);
+        this.leapAnimationState.animateWhen(getLatchPhase() == LATCH_LEAP, this.tickCount);
+        this.releaseAnimationState.animateWhen(getLatchPhase() == LATCH_RELEASE, this.tickCount);
+        this.distressAnimationState.animateWhen(isDistressing(), this.tickCount);
+
+        int bite = this.entityData.get(BITE_TICK);
+        if (bite > lastBiteSignal) this.biteAnimationState.start(this.tickCount);
+        lastBiteSignal = bite;
 
         setupComboAnimations();
     }
@@ -1414,12 +2469,14 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         @Override
         public boolean canUse() {
             if (LionEntity.this.isSedatedFleeing() || LionEntity.this.isRoaring()) return false;
+            if (LionEntity.this.getLatchPhase() != LATCH_NONE || LionEntity.this.isDistressing()) return false;
             return super.canUse();
         }
 
         @Override
         public boolean canContinueToUse() {
             if (LionEntity.this.isSedatedFleeing() || LionEntity.this.isRoaring()) return false;
+            if (LionEntity.this.getLatchPhase() != LATCH_NONE || LionEntity.this.isDistressing()) return false;
             return super.canContinueToUse();
         }
 
@@ -1513,6 +2570,81 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         @Override
         public void stop() {
             this.male = null;
+            LionEntity.this.getNavigation().stop();
+        }
+    }
+
+    class LionGuardGoal extends Goal {
+
+        private int repathCooldown;
+
+        public LionGuardGoal() {
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        }
+
+        private boolean active() {
+            LionEntity lion = LionEntity.this;
+            return lion.isGuarding() && lion.getTarget() == null && !lion.isVehicle()
+                    && !lion.isKnockedOut() && !lion.isRoaring();
+        }
+
+        @Override
+        public boolean canUse() {
+            return active();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return active();
+        }
+
+        @Override
+        public boolean requiresUpdateEveryTick() {
+            return true;
+        }
+
+        @Override
+        public void start() {
+            this.repathCooldown = 0;
+        }
+
+        @Override
+        public void tick() {
+            LionEntity lion = LionEntity.this;
+            LionEntity leader = lion.getGuardLeader();
+            if (leader == null) return;
+
+            Vec3 slot = lion.guardSlotPosition(leader);
+            double dx = slot.x - lion.getX();
+            double dz = slot.z - lion.getZ();
+            double distanceSq = dx * dx + dz * dz;
+
+            if (distanceSq > 1.96) {
+                lion.entityData.set(GUARD_POSE, false);
+                boolean far = distanceSq > 36.0;
+                lion.setRunning(far);
+                if (--this.repathCooldown <= 0) {
+                    this.repathCooldown = this.adjustedTickDelay(8);
+                    lion.getNavigation().moveTo(slot.x, slot.y, slot.z, far ? 1.8 : 1.0);
+                }
+                return;
+            }
+
+            lion.getNavigation().stop();
+            lion.setRunning(false);
+            double ox = slot.x - leader.getX();
+            double oz = slot.z - leader.getZ();
+            lion.getLookControl().setLookAt(slot.x + ox * 2.0, lion.getEyeY(), slot.z + oz * 2.0);
+            float yaw = (float) (Mth.atan2(oz, ox) * Mth.RAD_TO_DEG) - 90f;
+            lion.setYRot(Mth.approachDegrees(lion.getYRot(), yaw, 12f));
+            lion.yBodyRot = lion.getYRot();
+            lion.entityData.set(GUARD_POSE, true);
+        }
+
+        @Override
+        public void stop() {
+            LionEntity.this.entityData.set(GUARD_POSE, false);
+            LionEntity.this.setRunning(false);
             LionEntity.this.getNavigation().stop();
         }
     }

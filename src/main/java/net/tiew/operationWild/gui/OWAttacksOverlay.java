@@ -193,12 +193,21 @@ public class OWAttacksOverlay {
                     ? OWAttackLogic.getSharedSecondaryProgress(entity)
                     : 0f;
 
+            net.tiew.operationWild.entity.animals.terrestrial.LionEntity lioness =
+                    entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lion && !lion.isMale() ? lion : null;
+            boolean isHuntingLeap = lioness != null && attack.getId() == OWAttacksHandler.HUNTING_LEAP_ID;
+            boolean isDistressCall = lioness != null && attack.getId() == OWAttacksHandler.DISTRESS_CALL_ID;
+
             float fillProgress;
             boolean isGlowing = false;
 
             if (isCharging) {
                 fillProgress = OWAttackLogic.getChargeProgress();
                 isGlowing    = fillProgress >= 1.0f;
+            } else if (isHuntingLeap && lioness.isLatchActive()) {
+                fillProgress = lioness.getLatchPhase() == net.tiew.operationWild.entity.animals.terrestrial.LionEntity.LATCH_HOLD
+                        ? lioness.getLatchGripRatio() : 1.0f;
+                isGlowing    = true;
             } else if (isHippoRolling) {
                 fillProgress = 1.0f;
                 isGlowing    = true;
@@ -271,6 +280,16 @@ public class OWAttacksOverlay {
                 fillProgress = cooldownRemaining > 0f ? 1.0f - cooldownRemaining : 1.0f;
             }
 
+            if (isHuntingLeap && !lioness.isLatchActive() && sharedCooldown <= 0f) {
+                isGlowing = lioness.getClientLeapTargetId() >= 0;
+                if (!isGlowing) fillProgress = 0f;
+            }
+
+            boolean isDistressBlocked = isDistressCall && attack.isUnlocked(entity)
+                    && OWAttackLogic.getUltimateActiveProgress(entity.getId(), attack.getId()) <= 0f
+                    && OWAttackLogic.getCooldownProgress(entity.getId(), attack.getId()) <= 0f
+                    && !lioness.isDistressReady();
+
             // Tornade indisponible dans l'eau : carte grisée.
             boolean isWhirlwindBlockedInWater = isWhirlwind && entity.isInWater();
 
@@ -287,7 +306,7 @@ public class OWAttacksOverlay {
                     : 0;
             boolean isClanCallEmpty = isClanCall && callableLionesses <= 0 && !isCharging;
 
-            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty) {
+            if (isGrabbing || isWhirlwindBlockedInWater || isHealOrbBlocked || isClanCallEmpty || isDistressBlocked) {
                 fillProgress     = 0f;
                 isGlowing        = false;
                 isNapDrainActive = false;
@@ -353,7 +372,7 @@ public class OWAttacksOverlay {
 
             // Hors du scale de rebond : le rappel de commande doit rester lisible et immobile,
             // il ne fait pas partie de l'animation de la carte.
-            if (OWAttacksHandler.hasSwitchableSecondary(entityClass)
+            if (OWAttacksHandler.hasSwitchableSecondary(entity)
                     && OWAttacksHandler.isSecondaryCard(attack)) {
                 drawSwitchHint(g, cardX, baseY, flipProgress);
             }
@@ -367,6 +386,10 @@ public class OWAttacksOverlay {
 
             if (isClanCall) {
                 drawClanCallBadge(g, cardX, baseY, callableLionesses);
+            }
+
+            if (isDistressCall) {
+                drawClanCallBadge(g, cardX, baseY, lioness.getDistressResponderCount());
             }
         }
 
