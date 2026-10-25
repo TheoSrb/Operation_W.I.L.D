@@ -12,6 +12,7 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
 import net.tiew.operationWild.entity.client.model.LionModel;
 import net.tiew.operationWild.entity.client.render.LionRenderer;
+import net.tiew.operationWild.entity.variants.LionVariant;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class LionLayer extends RenderLayer<LionEntity, LionModel<LionEntity>> {
 
     private static final ResourceLocation ANGRY_EYES_TEXTURE = tex("lion_default_angry_eyes.png");
+    private static final ResourceLocation WHITE_ANGRY_EYES_TEXTURE = tex("lion_white_angry_eyes.png");
     private static final ResourceLocation SADDLE_TEXTURE = tex("lion_saddle.png");
     private static final ResourceLocation FLAG_SADDLE_TEXTURE = tex("lion_flag_saddle.png");
     private static final ResourceLocation NECKLACE_TEXTURE = tex("lion_necklace.png");
@@ -46,7 +48,10 @@ public class LionLayer extends RenderLayer<LionEntity, LionModel<LionEntity>> {
             renderOverlay(poseStack, bufferSource, NECKLACE_SPIKES_TEXTURE, false, packedLight);
         }
 
-        if (lion.isMad() || lion.isEmpowered() || lion.isRallied()) renderOverlay(poseStack, bufferSource, ANGRY_EYES_TEXTURE, true, packedLight);
+        if (lion.isMad() || lion.isEmpowered() || lion.isRallied()) {
+            boolean isWhite = lion.getVariant() == LionVariant.ALBINO;
+            renderOverlay(poseStack, bufferSource, isWhite ? WHITE_ANGRY_EYES_TEXTURE : ANGRY_EYES_TEXTURE, true, packedLight);
+        }
         if (lion.isSaddled()) renderOverlay(poseStack, bufferSource, SADDLE_TEXTURE, false, packedLight);
         if (lion.carriesTribeFlag()) renderOverlay(poseStack, bufferSource, FLAG_SADDLE_TEXTURE, false, packedLight);
 
