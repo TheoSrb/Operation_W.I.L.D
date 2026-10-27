@@ -12094,6 +12094,7 @@
         "textures/entity/lion/lion_saddle.png",
         "textures/entity/lion/lion_skin_gold_glowing.png",
         "textures/entity/lion/lion_white.png",
+        "textures/entity/lion/lion_white_angry_eyes.png",
         "textures/entity/lion/lioness_default.png",
         "textures/entity/lion/lioness_white.png"
       ],
@@ -13972,6 +13973,32 @@
       "translation_key": "item.ow.maya_blowpipe"
     },
     {
+      "class": "SyringeRifleItem",
+      "fire_resistant": false,
+      "id": "ow:syringe_rifle",
+      "max_damage": 211,
+      "max_stack_size": 1,
+      "names": {
+        "fr_fr": "Fusil à seringue primitif"
+      },
+      "path": "syringe_rifle",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.syringe_rifle"
+    },
+    {
+      "class": "SyringeRifleItem",
+      "fire_resistant": false,
+      "id": "ow:syringe_rifle_spy_glass",
+      "max_damage": 211,
+      "max_stack_size": 1,
+      "names": {
+        "fr_fr": "Fusil à seringue primitif"
+      },
+      "path": "syringe_rifle_spy_glass",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.syringe_rifle_spy_glass"
+    },
+    {
       "class": "ReptilianDaggerItem",
       "fire_resistant": false,
       "id": "ow:reptilian_dagger",
@@ -14028,6 +14055,32 @@
       "path": "tranquilizer_arrow",
       "rarity": "COMMON",
       "translation_key": "item.ow.tranquilizer_arrow"
+    },
+    {
+      "class": "TranquilizerDartItem",
+      "fire_resistant": false,
+      "id": "ow:tranquilizer_dart",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Fléchette tranquillisante"
+      },
+      "path": "tranquilizer_dart",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.tranquilizer_dart"
+    },
+    {
+      "class": "TranquilizerDartItem",
+      "fire_resistant": false,
+      "id": "ow:concentrated_tranquilizer_dart",
+      "max_damage": 0,
+      "max_stack_size": 16,
+      "names": {
+        "fr_fr": "Fléchette tranquillisante concentrée"
+      },
+      "path": "concentrated_tranquilizer_dart",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.concentrated_tranquilizer_dart"
     },
     {
       "class": "VenomousArrowItem",
@@ -14842,7 +14895,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1158
+      "fr_fr": 1169
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -17029,6 +17082,41 @@
       "constant": "BLOWPIPE_LUNCH",
       "id": "ow:primitive_blowpipe_lunch",
       "path": "primitive_blowpipe_lunch"
+    },
+    {
+      "constant": "SYRINGE_RIFLE_SHOOT",
+      "id": "ow:syringe_rifle_shoot",
+      "path": "syringe_rifle_shoot"
+    },
+    {
+      "constant": "SYRINGE_RIFLE_CRACK",
+      "id": "ow:syringe_rifle_crack",
+      "path": "syringe_rifle_crack"
+    },
+    {
+      "constant": "SYRINGE_RIFLE_TRIGGER",
+      "id": "ow:syringe_rifle_trigger",
+      "path": "syringe_rifle_trigger"
+    },
+    {
+      "constant": "SYRINGE_RIFLE_LOAD_START",
+      "id": "ow:syringe_rifle_load_start",
+      "path": "syringe_rifle_load_start"
+    },
+    {
+      "constant": "SYRINGE_RIFLE_LOAD_MIDDLE",
+      "id": "ow:syringe_rifle_load_middle",
+      "path": "syringe_rifle_load_middle"
+    },
+    {
+      "constant": "SYRINGE_RIFLE_LOADED",
+      "id": "ow:syringe_rifle_loaded",
+      "path": "syringe_rifle_loaded"
+    },
+    {
+      "constant": "TRANQUILIZER_DART_HIT",
+      "id": "ow:tranquilizer_dart_hit",
+      "path": "tranquilizer_dart_hit"
     },
     {
       "constant": "BEAR_TRAP_CLOSED",

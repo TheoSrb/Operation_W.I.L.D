@@ -47,6 +47,8 @@ authors="${mod_authors}" #optional
 # The description text for the mod (multi line!) (#mandatory)
 description='''${mod_description}'''
 
+enumExtensions="META-INF/enumextensions.json"
+
 
 [[mixins]]
 config="mixins.ow.json"

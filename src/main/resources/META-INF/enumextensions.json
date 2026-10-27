@@ -1,0 +1,22 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
+      "name": "OW_SYRINGE_RIFLE_HOLD",
+      "constructor": "(ZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "parameters": {
+        "class": "net/tiew/operationWild/item/client/SyringeRifleArmPoses",
+        "field": "HOLD"
+      }
+    },
+    {
+      "enum": "net/minecraft/client/model/HumanoidModel$ArmPose",
+      "name": "OW_SYRINGE_RIFLE_RELOAD",
+      "constructor": "(ZLnet/neoforged/neoforge/client/IArmPoseTransformer;)V",
+      "parameters": {
+        "class": "net/tiew/operationWild/item/client/SyringeRifleArmPoses",
+        "field": "RELOAD"
+      }
+    }
+  ]
+}

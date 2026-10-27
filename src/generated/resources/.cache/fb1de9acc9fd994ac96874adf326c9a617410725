@@ -1,4 +1,4 @@
-// 1.21	2026-10-10T12:37:26.0321473	Item Models: ow
+// 1.21	2026-10-27T17:40:05.3150073	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
@@ -52,6 +52,7 @@ fab65a437d5443e130ef221c1ab7315dd8ea8171 assets/ow/models/item/camouflage_leggin
 8fd0e895b4ab105c5a21a34a9cec7daaebf44716 assets/ow/models/item/camouflage_leggings_netherite_trim.json
 9a4b95df7e7d07e662d92400fa9f5a7d92ffac9b assets/ow/models/item/camouflage_leggings_quartz_trim.json
 be0ab2dc0a07b69332d05173c4792eca447ffd28 assets/ow/models/item/camouflage_leggings_redstone_trim.json
+c4acd6ab9b8cdb5d8c5bbfb02be6491e838139b0 assets/ow/models/item/concentrated_tranquilizer_dart.json
 adcbfb5ceaa0d9a0a15bae4f5e815587d9060969 assets/ow/models/item/cooked_boa.json
 0ead5c5ce6a49f4c3f942c85e7182cd9e27fcb3a assets/ow/models/item/cooked_kodiak.json
 6564e282637e35db612bc5413e96c9b4b2701b78 assets/ow/models/item/cooked_peacock.json
@@ -162,11 +163,14 @@ da176b702c605ca0b627c127597ae13976f945c5 assets/ow/models/item/ruby_sword.json
 3d9a27932674be911b0f1de658823381f820d8bc assets/ow/models/item/seabug_porthole.json
 98a638b0e951e9e0da88adea74ed3bd81dcc5a60 assets/ow/models/item/shark_fin.json
 88cb16b3596abed1dffc5f5ae241dfe863aa1958 assets/ow/models/item/stinging_filament.json
+e9def00c6c9c2a63a57f544374eba5f2ac846839 assets/ow/models/item/syringe_rifle.json
+4a36a16f3aaf53ea593b38beab474341c0819da7 assets/ow/models/item/syringe_rifle_spy_glass.json
 34f07399d58eb0af6afba1e9a085e1e0fbfee456 assets/ow/models/item/tiger_fur.json
 135021268f83660d3517f8ec557302c0940f73da assets/ow/models/item/tiger_saddle.json
 e008bc0a4532b510141dca8152831a04d78c0cc0 assets/ow/models/item/tiger_shark_saddle.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/tiger_spawn_egg.json
 e01cb91b93296f005444cce53e14f1f8a5b4bd26 assets/ow/models/item/tranquilizer_arrow.json
+be2865b6679ef9b5ac3aea4753e18a7ba904bf87 assets/ow/models/item/tranquilizer_dart.json
 e89e5016d8fb6eb2227fa544689d8b5d2ef02a69 assets/ow/models/item/tranquilizer_wooden_stinger.json
 1d913d85a318b101171b2050f58c3db52a885ffe assets/ow/models/item/venomous_arrow.json
 9ab1461c36ff4337672605e5be7deae831ddb842 assets/ow/models/item/venomous_glands.json

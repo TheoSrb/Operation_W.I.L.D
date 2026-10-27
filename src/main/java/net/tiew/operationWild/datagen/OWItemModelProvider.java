@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.armortrim.TrimMaterial;
 import net.minecraft.world.item.armortrim.TrimMaterials;
 import net.minecraft.world.level.block.Block;
@@ -78,6 +79,8 @@ public class OWItemModelProvider extends ItemModelProvider {
         handheldItem(OWItems.PRIMITIVE_SLINGSHOT);
         handheldItem(OWItems.PRIMITIVE_SICKLE);
         handheldItem(OWItems.MAYA_BLOWPIPE);
+        rifleItem(OWItems.SYRINGE_RIFLE, "primitive_syringe_rifle");
+        rifleItem(OWItems.SYRINGE_RIFLE_SPY_GLASS, "primitive_syringe_rifle_spy_glass");
 
         ItemModelBuilder daggerHeld = withExistingParent("reptilian_dagger_held", "minecraft:item/handheld")
                 .texture("layer0", ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "item/reptilian_dagger"));
@@ -130,6 +133,8 @@ public class OWItemModelProvider extends ItemModelProvider {
         basicItem(OWItems.VENOMOUS_ARROW.get());
         basicItem(OWItems.WOODEN_STINGER.get());
         basicItem(OWItems.TRANQUILIZER_WOODEN_STINGER.get());
+        basicItem(OWItems.TRANQUILIZER_DART.get());
+        basicItem(OWItems.CONCENTRATED_TRANQUILIZER_DART.get());
 
         basicItem(OWItems.RAW_TIGER.get());
         basicItem(OWItems.COOKED_TIGER.get());
@@ -206,6 +211,17 @@ public class OWItemModelProvider extends ItemModelProvider {
         return withExistingParent(item.getId().getPath(),
                 ResourceLocation.parse("item/generated")).texture("layer0",
                 ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "block/" + item.getId().getPath()));
+    }
+
+    private ItemModelBuilder rifleItem(DeferredHolder<Item, Item> item, String texture) {
+        return withExistingParent(item.getId().getPath(), ResourceLocation.parse("item/generated"))
+                .texture("layer0", ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "item/" + texture))
+                .transforms()
+                .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND).rotation(0, -90, 45).translation(0, 1.5f, -1.5f).scale(0.9f).end()
+                .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND).rotation(0, 90, -45).translation(0, 1.5f, -1.5f).scale(0.9f).end()
+                .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND).rotation(0, -90, 45).translation(1.13f, 3.2f, 1.13f).scale(0.68f).end()
+                .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND).rotation(0, 90, -45).translation(1.13f, 3.2f, 1.13f).scale(0.68f).end()
+                .end();
     }
 
     private ItemModelBuilder handheldItem(DeferredHolder<Item, Item> item) {

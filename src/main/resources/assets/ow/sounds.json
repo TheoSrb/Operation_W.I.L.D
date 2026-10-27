@@ -4,6 +4,13 @@
   "spear_lunch": { "subtitle": "sounds.ow.spear_lunch", "sounds": [ "ow:spear_lunch" ] },
   "spear_hurt": { "subtitle": "sounds.ow.spear_hurt", "sounds": [ "ow:spear_hurt" ] },
   "primitive_blowpipe_lunch": { "subtitle": "sounds.ow.primitive_blowpipe_lunch", "sounds": [ "ow:primitive_blowpipe_lunch" ] },
+  "syringe_rifle_shoot": {"subtitle": "sounds.ow.syringe_rifle_shoot", "sounds": [{"name": "minecraft:entity/wind_charge/wind_burst1", "pitch": 1.6}, {"name": "minecraft:entity/wind_charge/wind_burst2", "pitch": 1.6}, {"name": "minecraft:entity/wind_charge/wind_burst3", "pitch": 1.6}]},
+  "syringe_rifle_crack": {"subtitle": "sounds.ow.syringe_rifle_shoot", "sounds": [{"name": "minecraft:fireworks/blast1", "pitch": 1.45, "volume": 0.8}]},
+  "syringe_rifle_trigger": {"subtitle": "sounds.ow.syringe_rifle_shoot", "sounds": [{"name": "minecraft:random/click", "pitch": 1.9, "volume": 0.5}]},
+  "syringe_rifle_load_start": {"subtitle": "sounds.ow.syringe_rifle_load", "sounds": [{"name": "minecraft:block/iron_trapdoor/open1", "pitch": 1.6, "volume": 0.6}, {"name": "minecraft:block/iron_trapdoor/open2", "pitch": 1.6, "volume": 0.6}, {"name": "minecraft:block/iron_trapdoor/open3", "pitch": 1.6, "volume": 0.6}, {"name": "minecraft:block/iron_trapdoor/open4", "pitch": 1.6, "volume": 0.6}]},
+  "syringe_rifle_load_middle": {"subtitle": "sounds.ow.syringe_rifle_load", "sounds": [{"name": "minecraft:block/vault/insert", "pitch": 1.5, "volume": 0.7}]},
+  "syringe_rifle_loaded": {"subtitle": "sounds.ow.syringe_rifle_loaded", "sounds": [{"name": "minecraft:block/iron_trapdoor/close1", "pitch": 1.75, "volume": 0.7}, {"name": "minecraft:block/iron_trapdoor/close2", "pitch": 1.75, "volume": 0.7}, {"name": "minecraft:block/iron_trapdoor/close3", "pitch": 1.75, "volume": 0.7}, {"name": "minecraft:block/iron_trapdoor/close4", "pitch": 1.75, "volume": 0.7}]},
+  "tranquilizer_dart_hit": { "subtitle": "sounds.ow.tranquilizer_dart_hit", "sounds": [ { "name": "minecraft:random/bowhit1", "pitch": 1.5 }, { "name": "minecraft:random/bowhit2", "pitch": 1.5 }, { "name": "minecraft:random/bowhit3", "pitch": 1.5 }, { "name": "minecraft:random/bowhit4", "pitch": 1.5 } ] },
   "bear_trap_closed": { "subtitle": "sounds.ow.bear_trap_closed", "sounds": [ "ow:bear_trap_closed" ] },
   "mini_earthquake": { "subtitle": "sounds.ow.mini_earthquake", "sounds": [ "ow:mini_earthquake" ] },
 

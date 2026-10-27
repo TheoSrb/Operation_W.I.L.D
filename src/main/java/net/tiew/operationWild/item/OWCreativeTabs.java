@@ -59,6 +59,8 @@ public class OWCreativeTabs {
                         output.accept(OWItems.PLATINUM_INGOT.get());
                         output.accept(OWItems.PLATINUM_PLATED_RUBY_SWORD.get());
                         output.accept(OWItems.MAYA_BLOWPIPE.get());
+                        output.accept(OWItems.SYRINGE_RIFLE.get());
+                        output.accept(OWItems.SYRINGE_RIFLE_SPY_GLASS.get());
                         output.accept(OWItems.PRIMITIVE_SICKLE.get());
                         output.accept(OWItems.PRIMITIVE_SLINGSHOT.get());
                         output.accept(OWItems.PRIMITIVE_SPEAR.get());
@@ -80,6 +82,8 @@ public class OWCreativeTabs {
                         output.accept(OWItems.TRANQUILIZER_ARROW.get());
                         output.accept(OWItems.WOODEN_STINGER.get());
                         output.accept(OWItems.TRANQUILIZER_WOODEN_STINGER.get());
+                        output.accept(OWItems.TRANQUILIZER_DART.get());
+                        output.accept(OWItems.CONCENTRATED_TRANQUILIZER_DART.get());
                         output.accept(OWItems.VENOMOUS_ARROW.get());
                         output.accept(OWItems.TIGER_FUR.get());
                         output.accept(OWItems.BOA_TONG.get());

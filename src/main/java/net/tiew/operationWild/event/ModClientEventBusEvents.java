@@ -6,6 +6,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntityRegistry;
@@ -16,6 +17,8 @@ import net.tiew.operationWild.entity.client.model.BoaTailPartModel;
 import net.tiew.operationWild.entity.client.render.BoaTailPartRenderer;
 import net.tiew.operationWild.entity.client.render.CrocodileTailPartRenderer;
 import net.tiew.operationWild.entity.client.skin.SkinRegistry;
+import net.tiew.operationWild.item.OWItems;
+import net.tiew.operationWild.item.client.SyringeRifleClientExtensions;
 
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -31,6 +34,11 @@ public class ModClientEventBusEvents {
         event.register(OWKeysBinding.OW_SKIP_TUTORIAL);
         event.register(OWKeysBinding.OW_SWITCH_ATTACK);
         event.register(OWKeysBinding.OW_SLIDE);
+    }
+
+    @SubscribeEvent
+    public static void onRegisterClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new SyringeRifleClientExtensions(), OWItems.SYRINGE_RIFLE.get(), OWItems.SYRINGE_RIFLE_SPY_GLASS.get());
     }
 
     @SubscribeEvent

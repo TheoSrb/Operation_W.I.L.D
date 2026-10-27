@@ -3125,7 +3125,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     public boolean hurt(DamageSource damageSource, float amount) {
         Entity directEntity = damageSource.getDirectEntity();
         boolean sedative = directEntity instanceof TranquilizerArrow || directEntity instanceof SlingshotProjectile
-                || directEntity instanceof TranquilizerWoodenStinger;
+                || directEntity instanceof TranquilizerWoodenStinger || directEntity instanceof TranquilizerDart;
         if (sedative && this.isKnockedOut()) {
             if (this.level().isClientSide()) return false;
             float headshotFactor = this.isSedativeHeadshot(directEntity) ? HEADSHOT_SOMNOLENCE_FACTOR : 1f;
@@ -3171,6 +3171,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         float factor = headshotFactor * this.sedativeResistanceFactor();
         if (projectile instanceof TranquilizerWoodenStinger) {
             return (int) (TranquilizerWoodenStinger.TRANQUILIZER_EFFECTIVENESS * factor);
+        }
+        if (projectile instanceof TranquilizerDart dart) {
+            return (int) (dart.getTranquilizerEffectiveness() * factor);
         }
         if (amount <= SEDATIVE_MIN_DAMAGE) return 0;
         int effectiveness = projectile instanceof TranquilizerArrow ? TranquilizerArrow.TRANQUILIZER_EFFECTIVENESS

@@ -10,6 +10,7 @@ import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.item.custom.*;
 import net.tiew.operationWild.item.custom.platinum_tools.PlatinumPlatedSwordItem;
 import net.tiew.operationWild.item.custom.projectile.TranquilizerArrowItem;
+import net.tiew.operationWild.item.custom.projectile.TranquilizerDartItem;
 import net.tiew.operationWild.item.custom.projectile.TranquilizerWoodenStingerItem;
 import net.tiew.operationWild.item.custom.projectile.VenomousArrowItem;
 import net.tiew.operationWild.item.custom.projectile.WoodenStingerItem;
@@ -134,6 +135,8 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> PRIMITIVE_SLINGSHOT = ITEMS.register("primitive_slingshot", () -> new PrimitiveSlingshotItem(new Item.Properties().stacksTo(1).durability(211)));
     public static final DeferredHolder<Item, Item> PRIMITIVE_SICKLE = ITEMS.register("primitive_sickle", () -> new PrimitiveSickleItem(new Item.Properties().stacksTo(1).durability(211)));
     public static final DeferredHolder<Item, Item> MAYA_BLOWPIPE = ITEMS.register("maya_blowpipe", () -> new MayaBlowpipeItem(new Item.Properties().stacksTo(1).durability(211)));
+    public static final DeferredHolder<Item, Item> SYRINGE_RIFLE = ITEMS.register("syringe_rifle", () -> new SyringeRifleItem(new Item.Properties().stacksTo(1).durability(211), false));
+    public static final DeferredHolder<Item, Item> SYRINGE_RIFLE_SPY_GLASS = ITEMS.register("syringe_rifle_spy_glass", () -> new SyringeRifleItem(new Item.Properties().stacksTo(1).durability(211), true));
 
     public static final DeferredHolder<Item, Item> REPTILIAN_DAGGER = ITEMS.register("reptilian_dagger", () -> new ReptilianDaggerItem(OWToolsTiers.PRIMITIVE, new Item.Properties().attributes(SwordItem.createAttributes(OWToolsTiers.PRIMITIVE, 2, -1.6f))));
 
@@ -142,6 +145,8 @@ public class OWItems {
     public static final DeferredHolder<Item, Item> TRANQUILIZER_WOODEN_STINGER = ITEMS.register("tranquilizer_wooden_stinger", () -> new TranquilizerWoodenStingerItem(new Item.Properties()));
 
     public static final DeferredHolder<Item, Item> TRANQUILIZER_ARROW = ITEMS.register("tranquilizer_arrow", () -> new TranquilizerArrowItem(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> TRANQUILIZER_DART = ITEMS.register("tranquilizer_dart", () -> new TranquilizerDartItem(new Item.Properties(), false));
+    public static final DeferredHolder<Item, Item> CONCENTRATED_TRANQUILIZER_DART = ITEMS.register("concentrated_tranquilizer_dart", () -> new TranquilizerDartItem(new Item.Properties().stacksTo(16), true));
     public static final DeferredHolder<Item, Item> VENOMOUS_ARROW = ITEMS.register("venomous_arrow", () -> new VenomousArrowItem(new Item.Properties()));
 
 

@@ -22,6 +22,14 @@ public class OWSounds {
 
     public static final DeferredHolder<SoundEvent, SoundEvent> BLOWPIPE_LUNCH = registerSoundEvent("primitive_blowpipe_lunch");
 
+    public static final DeferredHolder<SoundEvent, SoundEvent> SYRINGE_RIFLE_SHOOT = registerSoundEvent("syringe_rifle_shoot");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SYRINGE_RIFLE_CRACK = registerSoundEvent("syringe_rifle_crack");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SYRINGE_RIFLE_TRIGGER = registerSoundEvent("syringe_rifle_trigger");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SYRINGE_RIFLE_LOAD_START = registerSoundEvent("syringe_rifle_load_start");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SYRINGE_RIFLE_LOAD_MIDDLE = registerSoundEvent("syringe_rifle_load_middle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> SYRINGE_RIFLE_LOADED = registerSoundEvent("syringe_rifle_loaded");
+    public static final DeferredHolder<SoundEvent, SoundEvent> TRANQUILIZER_DART_HIT = registerSoundEvent("tranquilizer_dart_hit");
+
     public static final DeferredHolder<SoundEvent, SoundEvent> BEAR_TRAP_CLOSED = registerSoundEvent("bear_trap_closed");
 
     public static final DeferredHolder<SoundEvent, SoundEvent> MINI_EARTHQUAKE = registerSoundEvent("mini_earthquake");

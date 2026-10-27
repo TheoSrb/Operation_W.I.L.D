@@ -285,6 +285,7 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.TRANQUILIZER_ARROW.get(), TranquilizerArrowRenderer::new);
             EntityRenderers.register(OWEntityRegistry.WOODEN_STINGER.get(), WoodenStingerRenderer::new);
             EntityRenderers.register(OWEntityRegistry.TRANQUILIZER_WOODEN_STINGER.get(), TranquilizerWoodenStingerRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.TRANQUILIZER_DART.get(), TranquilizerDartRenderer::new);
             EntityRenderers.register(OWEntityRegistry.VENOMOUS_ARROW.get(), VenomousArrowRenderer::new);
             EntityRenderers.register(OWEntityRegistry.SLINGSHOT_PROJECTILE.get(), SlingshotProjectileRenderer::new);
 
@@ -335,6 +336,7 @@ public class OperationWild {
             event.registerSpriteSet(OWParticles.ELECTRIC_PARTICLES.get(), ElectricParticles.Provider::new);
             event.registerSpriteSet(OWParticles.NAP_PARTICLES.get(), NapParticles.Provider::new);
             event.registerSpriteSet(OWParticles.GOLD_TRAIL_PARTICLE.get(), GoldTrailParticle.Provider::new);
+            event.registerSpriteSet(OWParticles.TRANQUILIZER_DART_TRAIL.get(), net.tiew.operationWild.particle.DartTrailParticle.Provider::new);
             event.registerSpriteSet(OWParticles.WATER_JET_PARTICLE.get(),
                     net.tiew.operationWild.particle.WaterJetParticle.Provider::new);
             event.registerSpriteSet(OWParticles.WATER_SPLAT_PARTICLE.get(),
