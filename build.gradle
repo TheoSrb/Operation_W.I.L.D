@@ -244,7 +244,7 @@ tasks.register("runWikiDatas") {
 
 var animToBlockbenchScript = new File(studioDir, "utils/java_anim_to_blockbench.py")
 var blockbenchSyncDir = new File(studioDir, "utils/blockbench")
-var animalModelsDir = new File(studioDir, "3D Models/Animals")
+var animationModelDirs = ["Animals", "Bosses"].collect { new File(studioDir, "3D Models/" + it) }
 var javaAnimationsDir = file("src/main/java/net/tiew/operationWild/entity/client/animation")
 var blockbenchExportDir = layout.buildDirectory.dir("blockbench").get().asFile
 var blockbenchExe = file(providers.gradleProperty("ow_blockbench_exe")
@@ -254,7 +254,7 @@ var blockbenchDebugPort = providers.gradleProperty("ow_blockbench_debug_port").g
 
 tasks.register("runBlockbenchAnimations") {
     group = "operation wild"
-    description = "Exporte les animations Java de chaque animal et les recharge dans Blockbench (${animalModelsDir}), sans rien sauvegarder."
+    description = "Exporte les animations Java de chaque animal et boss et les recharge dans Blockbench (${animationModelDirs.join(', ')}), sans rien sauvegarder."
 
     doLast {
         if (!animToBlockbenchScript.isFile()) {
@@ -269,16 +269,28 @@ tasks.register("runBlockbenchAnimations") {
         }
         blockbenchExportDir.mkdirs()
 
-        var models = []
+        var findModel = { String snake ->
+            var parts = snake.split("_")
+            for (int i = parts.length; i > 0; i--) {
+                var name = parts[0..<i].join("_") + ".bbmodel"
+                var found = animationModelDirs.collect { new File(it, name) }.find { it.isFile() }
+                if (found != null) return found
+            }
+            return null
+        }
+
+        var grouped = new LinkedHashMap<File, List<File>>()
         var sources = javaAnimationsDir.listFiles().findAll { it.name.endsWith("Animations.java") }.sort { it.name }
         for (source in sources) {
             var species = source.name - "Animations.java"
             var snake = species.replaceAll(/([a-z0-9])([A-Z])/, '$1_$2').toLowerCase()
-            var model = new File(animalModelsDir, snake + ".bbmodel")
-            if (!model.isFile()) {
-                continue
+            var model = findModel(snake)
+            if (model != null) {
+                grouped.computeIfAbsent(model, { [] }) << source
             }
-            var output = new File(blockbenchExportDir, snake + ".animation.json")
+        }
+
+        var convert = { File source, File output ->
             var args = [animToBlockbenchScript.absolutePath, source.absolutePath, "-o", output.absolutePath]
             Process process = null
             for (candidate in [pythonExe, "py"].unique()) {
@@ -298,11 +310,25 @@ tasks.register("runBlockbenchAnimations") {
                 lines.each { logger.error(it) }
                 throw new GradleException("La conversion de ${source.name} a echoue (voir ci-dessus).")
             }
-            logger.lifecycle("  ${snake.padRight(14)} ${lines.find { it.contains("animation(s)") } ?: ''}")
-            models << [model: model.absolutePath, animations: output.absolutePath]
+        }
+
+        var models = []
+        for (group in grouped) {
+            var snake = group.key.name - ".bbmodel"
+            var merged = new LinkedHashMap()
+            for (source in group.value) {
+                var part = new File(blockbenchExportDir, (source.name - ".java") + ".part.json")
+                convert(source, part)
+                merged.putAll(new groovy.json.JsonSlurper().parseText(part.getText("UTF-8")).animations as Map)
+                part.delete()
+            }
+            var output = new File(blockbenchExportDir, snake + ".animation.json")
+            output.setText(groovy.json.JsonOutput.toJson([format_version: "1.8.0", animations: merged]), "UTF-8")
+            logger.lifecycle("  ${snake.padRight(14)} ${merged.size()} animation(s) (${group.value*.name.join(', ')})")
+            models << [model: group.key.absolutePath, animations: output.absolutePath]
         }
         if (models.isEmpty()) {
-            throw new GradleException("Aucun modele d'animal trouve dans ${animalModelsDir}.")
+            throw new GradleException("Aucun modele trouve dans ${animationModelDirs.join(', ')}.")
         }
 
         var driver = new File(blockbenchSyncDir, "ow_anim_sync_driver.js")

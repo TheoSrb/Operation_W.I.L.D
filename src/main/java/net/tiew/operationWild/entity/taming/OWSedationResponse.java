@@ -33,7 +33,7 @@ public class OWSedationResponse {
 
     private static final int REEVALUATE_INTERVAL = 20;
     private static final int WATCH_INTERVAL = 10;
-    private static final int UNREACHABLE_CHECKS = 4;
+    private static final int UNREACHABLE_CHECKS = 6;
     private static final int REACHABLE_CHECKS = 2;
     private static final int CHARGE_MEMORY = 600;
     private static final int RETREAT_MIN_TICKS = 300;
@@ -51,22 +51,22 @@ public class OWSedationResponse {
     private static final double SEARCH_FRONTIER_MARGIN = 3.0;
     private static final double UNSEEN_SHOOTER_DISTANCE = 16.0;
     private static final int PROBE_GROUND_SEARCH = 8;
-    private static final int FRUSTRATION_LIMIT = 600;
-    private static final int FRUSTRATION_COOLDOWN = 300;
+    private static final int FRUSTRATION_LIMIT = 900;
+    private static final int FRUSTRATION_COOLDOWN = 160;
     private static final int BREAK_PROGRESS_GRACE = 100;
     private static final int PATH_DOUBT_TICKS = 100;
-    private static final int HARASS_MIN_FRUSTRATION = 100;
-    private static final int HARASS_LIMIT_MIN = 4;
-    private static final int HARASS_LIMIT_SPREAD = 2;
+    private static final int HARASS_MIN_FRUSTRATION = 200;
+    private static final int HARASS_LIMIT_MIN = 7;
+    private static final int HARASS_LIMIT_SPREAD = 3;
     private static final int MOMENTUM_SAMPLE = 20;
     private static final double MOMENTUM_GAIN = 1.0;
     private static final double MOMENTUM_RANGE = 6.0;
-    private static final double AMBUSH_RETREAT_DISTANCE = 64.0;
-    private static final int AMBUSH_RETREAT_MIN_TICKS = 240;
-    private static final int AMBUSH_RETREAT_MAX_TICKS = 900;
-    private static final int COMMITTED_RETREAT_MIN_TICKS = 300;
-    private static final int AMBUSH_MAX_TICKS = 1200;
-    private static final double AMBUSH_TRIGGER_DISTANCE = 18.0;
+    private static final double AMBUSH_RETREAT_DISTANCE = 32.0;
+    private static final int AMBUSH_RETREAT_MIN_TICKS = 100;
+    private static final int AMBUSH_RETREAT_MAX_TICKS = 300;
+    private static final int COMMITTED_RETREAT_MIN_TICKS = 120;
+    private static final int AMBUSH_MAX_TICKS = 600;
+    private static final double AMBUSH_TRIGGER_DISTANCE = 24.0;
     private static final int SURPRISE_TICKS = 100;
     private static final float SURPRISE_SPEED_BONUS = 1.35f;
     private static final int STALL_TICKS = 40;
@@ -146,10 +146,7 @@ public class OWSedationResponse {
 
         sinceProvoked = 0;
         if (source.getEntity() instanceof LivingEntity shooter && shooter != entity) {
-            if (stance == Stance.RETREAT && committed) {
-                stanceTicks = 0;
-                return;
-            }
+            if (stance == Stance.RETREAT && committed) return;
             if (stance == Stance.CHARGE && shooter == provoker && harassedOut(shooter)) {
                 tacticalRetreat();
                 return;
@@ -330,7 +327,7 @@ public class OWSedationResponse {
         } else if (besieging && entity.breakout.ticksSinceProgress() < BREAK_PROGRESS_GRACE) {
             frustration = 0;
             sinceProvoked = 0;
-        } else if (++frustration >= FRUSTRATION_LIMIT) {
+        } else if (!momentum && ++frustration >= FRUSTRATION_LIMIT) {
             giveUp();
             return;
         }

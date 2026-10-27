@@ -144,6 +144,11 @@ public class OWBreakout {
         return strikePending;
     }
 
+    public boolean isCharging() {
+        return (phase == Phase.BREACHING || phase == Phase.SIEGING) && !strikePending && strikePause <= 0
+                && !entity.getNavigation().isDone();
+    }
+
     public float rage() {
         return Mth.clamp(trappedTicks / (float) RAGE_BUILDUP, 0f, 1f);
     }

@@ -9,6 +9,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -50,6 +51,10 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
 
     public static final int MAX_SOMNOLENCE = 100000;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 0;
+    public static final int SPAWN_TICKS = 140;
+    public static final int HEAD_DEATH_TICKS = 55;
+    public static final int FINAL_DEATH_TICKS = 130;
+    private static final float RAGE_BLEND_RATE = 0.05f;
 
     public String[] quests = {};
     public boolean test = false;
@@ -59,8 +64,13 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
     public final AnimationState head3DeathAnimationState = new AnimationState();
     public final AnimationState head2DeathLoopAnimationState = new AnimationState();
     public final AnimationState head3DeathLoopAnimationState = new AnimationState();
-    public int head2DeathAnimationTimeout = 0;
-    public int head3DeathAnimationTimeout = 0;
+    public final AnimationState painRoar2AnimationState = new AnimationState();
+    public final AnimationState painRoar3AnimationState = new AnimationState();
+    public final AnimationState spawnAnimationState = new AnimationState();
+    public final AnimationState deathAnimationState = new AnimationState();
+    private float rageBlend;
+    private float rageBlendO;
+    private int finalDeathTicks;
 
     public int head2DeathTimer;
     public int head3DeathTimer;
@@ -77,6 +87,8 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
     private static final EntityDataAccessor<Boolean> HEAD_2_DEATH_LOOP = SynchedEntityData.defineId(PlantEmpressEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HEAD_3_DEATH = SynchedEntityData.defineId(PlantEmpressEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> HEAD_3_DEATH_LOOP = SynchedEntityData.defineId(PlantEmpressEntity.class, EntityDataSerializers.BOOLEAN);
+
+    private static final EntityDataAccessor<Integer> SPAWN_TICKS_LEFT = SynchedEntityData.defineId(PlantEmpressEntity.class, EntityDataSerializers.INT);
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(PlantEmpressEntity.class, EntityDataSerializers.INT);
 
@@ -120,6 +132,11 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
     public int getHead3Life() { return this.entityData.get(HEAD_3_HEALTH);}
     public void setHead3Life(int health) { this.entityData.set(HEAD_3_HEALTH, health);}
 
+    public int getSpawnTicksLeft() { return this.entityData.get(SPAWN_TICKS_LEFT);}
+    public void setSpawnTicksLeft(int ticks) { this.entityData.set(SPAWN_TICKS_LEFT, ticks);}
+
+    public float rageBlend(float partialTick) { return Mth.lerp(partialTick, this.rageBlendO, this.rageBlend);}
+
     public boolean isHead2Dead() { return this.entityData.get(HEAD_2_DEATH);}
     public void setHead2Dead(boolean isHead2Dead) { this.entityData.set(HEAD_2_DEATH, isHead2Dead);}
     public boolean isHead2DeadLoop() { return this.entityData.get(HEAD_2_DEATH_LOOP);}
@@ -141,6 +158,15 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
         musicPlayed = false;
         musicTimer = 0;
         this.playSound(OWSounds.PLANT_EMPRESS_DEFEATED_THEME.get(), 1.0f, 1.0f);
+    }
+
+    @Override
+    protected void tickDeath() {
+        ++this.finalDeathTicks;
+        if (this.finalDeathTicks >= FINAL_DEATH_TICKS && !this.level().isClientSide() && !this.isRemoved()) {
+            this.level().broadcastEntityEvent(this, (byte) 60);
+            this.remove(RemovalReason.KILLED);
+        }
     }
 
     @Override
@@ -186,7 +212,7 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
         if (isHead2Dead()) {
             head2DeathTimer++;
 
-            if (head2DeathTimer >= 54) {
+            if (head2DeathTimer >= HEAD_DEATH_TICKS) {
                 head2DeathTimer = 0;
                 setHead2Dead(false);
                 setHead2DeadLoop(true);
@@ -196,7 +222,7 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
         if (isHead3Dead()) {
             head3DeathTimer++;
 
-            if (head3DeathTimer >= 54) {
+            if (head3DeathTimer >= HEAD_DEATH_TICKS) {
                 head3DeathTimer = 0;
                 setHead3Dead(false);
                 setHead3DeadLoop(true);
@@ -208,6 +234,8 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
         if (getHead3Life() <= 0) setHead3Life(0);
 
         if (this.onGround()) this.setDeltaMovement(Vec3.ZERO);
+
+        if (!this.level().isClientSide() && this.getSpawnTicksLeft() > 0) this.setSpawnTicksLeft(this.getSpawnTicksLeft() - 1);
 
         if (target != null) {
             this.setLookAt(target.getX(), target.getY(), target.getZ());
@@ -450,6 +478,7 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
         this.setHead2Life(75);
         this.setHead3Life(75);
         this.getAttribute(Attributes.MAX_HEALTH).setBaseValue(this.getHead1Life() + this.getHead2Life() + this.getHead3Life());
+        this.setSpawnTicksLeft(SPAWN_TICKS);
 
         this.playSound(OWSounds.PLANT_EMPRESS_THEME.get(), 1.0F, 1.0F);
 
@@ -458,27 +487,29 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
 
 
     private void setupAnimationState() {
+        int spawnTicksLeft = this.getSpawnTicksLeft();
+        if (spawnTicksLeft > 0 && !this.spawnAnimationState.isStarted()) {
+            this.spawnAnimationState.start(this.tickCount);
+            this.spawnAnimationState.fastForward(SPAWN_TICKS - spawnTicksLeft, 1.0f);
+        }
+        if (spawnTicksLeft <= 0 && this.spawnAnimationState.isStarted()) {
+            this.spawnAnimationState.stop();
+            this.idleAnimationState.start(this.tickCount);
+        }
         createIdleAnimation(true);
 
-        if (this.isHead2Dead()) {
-            if (this.head2DeathAnimationTimeout <= 0) {
-                this.head2DeathAnimationTimeout = 54;
-                this.head2DeathAnimationState.start(this.tickCount);
-            } else --this.head2DeathAnimationTimeout;
-        }
-        if (this.isHead2DeadLoop()) {
-            this.head2DeathLoopAnimationState.start(this.tickCount);
-        }
+        this.head2DeathAnimationState.animateWhen(this.isHead2Dead(), this.tickCount);
+        this.head2DeathLoopAnimationState.animateWhen(this.isHead2DeadLoop(), this.tickCount);
+        this.head3DeathAnimationState.animateWhen(this.isHead3Dead(), this.tickCount);
+        this.head3DeathLoopAnimationState.animateWhen(this.isHead3DeadLoop(), this.tickCount);
+        if (this.isHead2Dead()) this.painRoar2AnimationState.startIfStopped(this.tickCount);
+        if (this.isHead3Dead()) this.painRoar3AnimationState.startIfStopped(this.tickCount);
 
-        if (this.isHead3Dead()) {
-            if (this.head3DeathAnimationTimeout <= 0) {
-                this.head3DeathAnimationTimeout = 54;
-                this.head3DeathAnimationState.start(this.tickCount);
-            } else --this.head3DeathAnimationTimeout;
-        }
-        if (this.isHead3DeadLoop()) {
-            this.head3DeathLoopAnimationState.start(this.tickCount);
-        }
+        this.deathAnimationState.animateWhen(this.isDeadOrDying(), this.tickCount);
+
+        this.rageBlendO = this.rageBlend;
+        float rageTarget = this.isHead2DeadLoop() && this.isHead3DeadLoop() ? 1f : 0f;
+        this.rageBlend += Mth.clamp(rageTarget - this.rageBlend, -RAGE_BLEND_RATE, RAGE_BLEND_RATE);
     }
 
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -491,6 +522,7 @@ public class PlantEmpressEntity extends OWEntity implements OWEntityUtils {
         builder.define(HEAD_2_DEATH_LOOP, false);
         builder.define(HEAD_3_DEATH, false);
         builder.define(HEAD_3_DEATH_LOOP, false);
+        builder.define(SPAWN_TICKS_LEFT, 0);
     }
 
     public void addAdditionalSaveData(CompoundTag tag) {

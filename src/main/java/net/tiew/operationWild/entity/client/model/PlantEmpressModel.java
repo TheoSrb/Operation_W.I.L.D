@@ -2,6 +2,8 @@ package net.tiew.operationWild.entity.client.model;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.animation.AnimationDefinition;
+import net.minecraft.client.animation.KeyframeAnimations;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -9,6 +11,10 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.AnimationState;
+import org.joml.Vector3f;
+
+import java.util.stream.Stream;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.client.animation.PlantEmpressAnimations;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
@@ -16,6 +22,11 @@ import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 public class PlantEmpressModel<T extends PlantEmpressEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "plant_empress_default"), "main");
 
+	private static final Vector3f ANIM_VECTOR = new Vector3f();
+	private static final float DEATH_FADE_MS = 300f;
+	private static final float HEAD_DEATH_FADE_MS = 200f;
+
+	private final ModelPart root;
 	private final ModelPart ALL;
 	private final ModelPart body_1;
 	private final ModelPart body_2;
@@ -57,6 +68,7 @@ public class PlantEmpressModel<T extends PlantEmpressEntity> extends Hierarchica
 
     public PlantEmpressModel(ModelPart root) {
 
+		this.root = root;
 		this.ALL = root.getChild("ALL");
 		this.body_1 = this.ALL.getChild("body_1");
 		this.body_2 = this.body_1.getChild("body_2");
@@ -219,42 +231,35 @@ public class PlantEmpressModel<T extends PlantEmpressEntity> extends Hierarchica
     @Override
     public void setupAnim(PlantEmpressEntity plant_empress, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
-		this.applyHeadRotation(netHeadYaw, headPitch);
+		float partialTick = Mth.clamp(ageInTicks - plant_empress.tickCount, 0f, 1f);
 
-		if ((plant_empress.isHead2Dead() && plant_empress.isHead3DeadLoop()) || (plant_empress.isHead3Dead() && plant_empress.isHead2DeadLoop())) {
-			this.animate(plant_empress.idleAnimationState, PlantEmpressAnimations.MISC_IDLE_HEADS_DEATH, ageInTicks, 1.0f);
-		}
-
-		if (!plant_empress.isHead2Dead() && !plant_empress.isHead2DeadLoop() && !plant_empress.isHead3Dead() && !plant_empress.isHead3DeadLoop()) {
-			this.animate(plant_empress.idleAnimationState, PlantEmpressAnimations.MISC_IDLE, ageInTicks, 1.0f);
-		} else if (!plant_empress.isHead2Dead() && !plant_empress.isHead2DeadLoop()) {
-			this.animate(plant_empress.idleAnimationState, PlantEmpressAnimations.MISC_IDLE_HEAD3_DEATH, ageInTicks, 1.0f);
-		} else if (!plant_empress.isHead3Dead() && !plant_empress.isHead3DeadLoop()) {
-			this.animate(plant_empress.idleAnimationState, PlantEmpressAnimations.MISC_IDLE_HEAD2_DEATH, ageInTicks, 1.0f);
-		}
-
-
-		if (plant_empress.isHead2DeadLoop() && plant_empress.isHead3DeadLoop()) {
-			this.animate(plant_empress.head2DeathLoopAnimationState, PlantEmpressAnimations.HEADS_DEAD_LOOP, ageInTicks, 1.0f);
-			this.animate(plant_empress.idleAnimationState, PlantEmpressAnimations.MISC_IDLE_HEADS_DEATH, ageInTicks, 1.0f);
+		if (plant_empress.spawnAnimationState.isStarted()) {
+			this.animate(plant_empress.spawnAnimationState, PlantEmpressAnimations.SPAWN, ageInTicks, 1.0f);
 		} else {
-			if (plant_empress.isHead2Dead())
-				this.animate(plant_empress.head2DeathAnimationState, PlantEmpressAnimations.HEAD_2_DEAD, ageInTicks, 1.0f);
-			if (plant_empress.isHead2DeadLoop())
-				this.animate(plant_empress.head2DeathLoopAnimationState, PlantEmpressAnimations.HEAD_2_DEAD_LOOP, ageInTicks, 1.0f);
+			float death = this.fadeIn(plant_empress.deathAnimationState, ageInTicks, DEATH_FADE_MS);
+			this.applyHeadRotation(netHeadYaw * (1f - death), headPitch * (1f - death));
 
-			if (plant_empress.isHead3Dead())
-				this.animate(plant_empress.head3DeathAnimationState, PlantEmpressAnimations.HEAD_3_DEAD, ageInTicks, 1.0f);
-			if (plant_empress.isHead3DeadLoop())
-				this.animate(plant_empress.head3DeathLoopAnimationState, PlantEmpressAnimations.HEAD_3_DEAD_LOOP, ageInTicks, 1.0f);
+			plant_empress.idleAnimationState.updateTime(ageInTicks, 1.0f);
+			long idleTime = plant_empress.idleAnimationState.getAccumulatedTime();
+			float rage = smoothStep(plant_empress.rageBlend(partialTick));
+			KeyframeAnimations.animate(this, PlantEmpressAnimations.MISC_IDLE, idleTime, (1f - rage) * (1f - death), ANIM_VECTOR);
+			KeyframeAnimations.animate(this, PlantEmpressAnimations.MISC_IDLE_RAGE, idleTime, rage * (1f - death), ANIM_VECTOR);
+
+			this.animate(plant_empress.painRoar2AnimationState, PlantEmpressAnimations.PAIN_ROAR_HEAD_2, ageInTicks, 1.0f);
+			this.animate(plant_empress.painRoar3AnimationState, PlantEmpressAnimations.PAIN_ROAR_HEAD_3, ageInTicks, 1.0f);
+
+			if (death > 0f) {
+				fadePart(this.ALL, 1f - death);
+				this.body_1.getAllParts().forEach(part -> fadePart(part, 1f - death));
+				this.stems().forEach(stem -> stem.getAllParts().forEach(part -> fadePart(part, 1f - death)));
+				KeyframeAnimations.animate(this, PlantEmpressAnimations.DEATH, plant_empress.deathAnimationState.getAccumulatedTime(), death, ANIM_VECTOR);
+			}
 		}
 
-
-		if (plant_empress.getHead1Life() <= 0) {
-			this.head.xScale = 0;
-			this.head.yScale = 0;
-			this.head.zScale = 0;
-		}
+		this.animateDeadHead(this.body_4, plant_empress.head2DeathAnimationState, plant_empress.head2DeathLoopAnimationState,
+				PlantEmpressAnimations.HEAD_2_DEAD, PlantEmpressAnimations.HEAD_2_DEAD_LOOP, ageInTicks);
+		this.animateDeadHead(this.body_7, plant_empress.head3DeathAnimationState, plant_empress.head3DeathLoopAnimationState,
+				PlantEmpressAnimations.HEAD_3_DEAD, PlantEmpressAnimations.HEAD_3_DEAD_LOOP, ageInTicks);
 
 		this.head2.xScale *= 0.7f;
 		this.head2.yScale *= 0.7f;
@@ -263,6 +268,45 @@ public class PlantEmpressModel<T extends PlantEmpressEntity> extends Hierarchica
 		this.head3.xScale *= 0.7f;
 		this.head3.yScale *= 0.7f;
 		this.head3.zScale *= 0.7f;
+	}
+
+	private void animateDeadHead(ModelPart chain, AnimationState dying, AnimationState dead, AnimationDefinition dyingAnimation, AnimationDefinition deadAnimation, float ageInTicks) {
+		if (dead.isStarted()) {
+			chain.getAllParts().forEach(ModelPart::resetPose);
+			this.animate(dead, deadAnimation, ageInTicks, 1.0f);
+		} else if (dying.isStarted()) {
+			float weight = this.fadeIn(dying, ageInTicks, HEAD_DEATH_FADE_MS);
+			chain.getAllParts().forEach(part -> fadePart(part, 1f - weight));
+			KeyframeAnimations.animate(this, dyingAnimation, dying.getAccumulatedTime(), weight, ANIM_VECTOR);
+		}
+	}
+
+	private float fadeIn(AnimationState state, float ageInTicks, float durationMs) {
+		if (!state.isStarted()) return 0f;
+		state.updateTime(ageInTicks, 1.0f);
+		return smoothStep(state.getAccumulatedTime() / durationMs);
+	}
+
+	private Stream<ModelPart> stems() {
+		return Stream.of(this.stem_14, this.stem_2, this.stem_10, this.stem_17, this.stem_7, this.stem_4);
+	}
+
+	private static void fadePart(ModelPart part, float keep) {
+		PartPose initial = part.getInitialPose();
+		part.x = Mth.lerp(keep, initial.x, part.x);
+		part.y = Mth.lerp(keep, initial.y, part.y);
+		part.z = Mth.lerp(keep, initial.z, part.z);
+		part.xRot = Mth.lerp(keep, initial.xRot, part.xRot);
+		part.yRot = Mth.lerp(keep, initial.yRot, part.yRot);
+		part.zRot = Mth.lerp(keep, initial.zRot, part.zRot);
+		part.xScale = Mth.lerp(keep, 1f, part.xScale);
+		part.yScale = Mth.lerp(keep, 1f, part.yScale);
+		part.zScale = Mth.lerp(keep, 1f, part.zScale);
+	}
+
+	private static float smoothStep(float t) {
+		t = Mth.clamp(t, 0f, 1f);
+		return t * t * (3f - 2f * t);
 	}
 
     @Override
@@ -280,6 +324,6 @@ public class PlantEmpressModel<T extends PlantEmpressEntity> extends Hierarchica
 
     @Override
     public ModelPart root() {
-        return this.ALL;
+        return this.root;
     }
 }

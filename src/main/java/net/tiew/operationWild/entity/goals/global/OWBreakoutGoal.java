@@ -39,10 +39,19 @@ public class OWBreakoutGoal extends Goal {
     @Override
     public void tick() {
         mob.breakout.drive();
+        if (mob.breakout.isCharging()) {
+            mob.setRunning(true);
+            if (mob.getState() != 1) mob.setState(2);
+        } else if (mob.isRunning()) {
+            mob.setRunning(false);
+            if (mob.getState() == 2) mob.resetState();
+        }
     }
 
     @Override
     public void stop() {
         mob.breakout.release();
+        mob.setRunning(false);
+        if (mob.getState() == 2) mob.resetState();
     }
 }

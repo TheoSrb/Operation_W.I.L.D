@@ -31,7 +31,7 @@ public class TranquilizerDart extends AbstractArrow {
     public static final double RANGE_MULTIPLIER = 2;
     public static final double AIR_GRAVITY = 0.03 / RANGE_MULTIPLIER;
     public static final double WATER_GRAVITY = 0.01 / RANGE_MULTIPLIER;
-    public static final float WATER_INERTIA = 0.9f;
+    public static final float WATER_INERTIA = 0.825f;
 
     private static final int TRAIL_PARTICLES_PER_TICK = 4;
 
