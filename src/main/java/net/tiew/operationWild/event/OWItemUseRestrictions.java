@@ -3,9 +3,11 @@ package net.tiew.operationWild.event;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.tiew.operationWild.OperationWild;
@@ -44,8 +46,16 @@ public class OWItemUseRestrictions {
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event) {
-        if (event.getEntity().level().isClientSide()) return;
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
         SyringeRifleItem.tickReloadSlowdown(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onJump(LivingEvent.LivingJumpEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        if (!SyringeRifleItem.isReloading(SyringeRifleItem.activeRifle(player))) return;
+        Vec3 motion = player.getDeltaMovement();
+        player.setDeltaMovement(motion.x, Math.min(motion.y, 0.0), motion.z);
+        player.hasImpulse = false;
     }
 }
