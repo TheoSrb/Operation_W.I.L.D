@@ -1104,9 +1104,9 @@
         "created": "2026-10-17T16:56:05.2950614+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-24T21:25:00.5875505+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 80046
+        "last_modified": "2026-10-28T18:37:37.4333529+01:00",
+        "last_modified_date": "2026-10-28",
+        "size_bytes": 80550
       },
       "id": "ow:tiger",
       "loot": {
@@ -1951,9 +1951,9 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 0.98,
-            "individuals_per_100_chunks": 0.98,
-            "pool_weight": 340,
+            "groups_per_100_chunks": 1.048,
+            "individuals_per_100_chunks": 1.048,
+            "pool_weight": 318,
             "species_weight": 30,
             "tier": "rare"
           },
@@ -1961,15 +1961,15 @@
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.508,
-            "individuals_per_100_chunks": 1.508,
-            "pool_weight": 221,
+            "groups_per_100_chunks": 2.033,
+            "individuals_per_100_chunks": 2.033,
+            "pool_weight": 164,
             "species_weight": 30,
             "tier": "rare"
           }
         ],
-        "groups_per_100_chunks": 1.508,
-        "individuals_per_100_chunks": 1.508,
+        "groups_per_100_chunks": 2.033,
+        "individuals_per_100_chunks": 2.033,
         "spawns_naturally": true,
         "tier": "rare"
       },
@@ -4431,7 +4431,6 @@
         },
         "arena_terrain_mask": 3,
         "bank_max_angle": 45.0,
-        "can_lean": false,
         "combo_pause_delay": 2,
         "default_skin_index": 7,
         "diet": {
@@ -4464,7 +4463,8 @@
         "theoretical_scale": 9.0,
         "unresolved": [
           "maxUpStep",
-          "getDefaultGravity"
+          "getDefaultGravity",
+          "canLean"
         ],
         "walk_speed_blocks_per_second": 3.2
       },
@@ -5265,17 +5265,17 @@
             "biome": "minecraft:swamp",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 3.376,
-            "individuals_per_100_chunks": 10.127,
-            "pool_weight": 158,
-            "species_weight": 48,
-            "tier": "uncommon"
+            "groups_per_100_chunks": 1.748,
+            "individuals_per_100_chunks": 3.496,
+            "pool_weight": 89,
+            "species_weight": 14,
+            "tier": "rare"
           }
         ],
-        "groups_per_100_chunks": 3.376,
-        "individuals_per_100_chunks": 10.127,
+        "groups_per_100_chunks": 1.748,
+        "individuals_per_100_chunks": 3.496,
         "spawns_naturally": true,
-        "tier": "uncommon"
+        "tier": "rare"
       },
       "simple_class": "CrocodileEntity",
       "size": {
@@ -5338,9 +5338,9 @@
           "minecraft:swamp"
         ],
         "chunk_one_in": 1,
-        "max_count": 4,
-        "min_count": 2,
-        "weight": 48
+        "max_count": 3,
+        "min_count": 1,
+        "weight": 14
       },
       "spawns": [
         {
@@ -5349,9 +5349,9 @@
             "minecraft:swamp"
           ],
           "chunk_one_in": 1,
-          "max_count": 4,
-          "min_count": 2,
-          "weight": 48
+          "max_count": 3,
+          "min_count": 1,
+          "weight": 14
         }
       ],
       "taming": {
@@ -5950,7 +5950,6 @@
         },
         "arena_terrain_mask": 3,
         "bank_max_angle": 45.0,
-        "can_lean": false,
         "combo_pause_delay": 2,
         "default_skin_index": 7,
         "diet": {
@@ -5983,7 +5982,8 @@
         "unresolved": [
           "getRotationSpeed",
           "maxUpStep",
-          "getDefaultGravity"
+          "getDefaultGravity",
+          "canLean"
         ],
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
@@ -5991,9 +5991,9 @@
         "created": "2026-10-17T16:58:42.131349+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-24T21:25:00.591576+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 62127
+        "last_modified": "2026-10-29T19:58:49.590661+01:00",
+        "last_modified_date": "2026-10-29",
+        "size_bytes": 62372
       },
       "id": "ow:boa",
       "loot": {
@@ -6817,37 +6817,37 @@
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 3.017,
-            "individuals_per_100_chunks": 4.525,
-            "pool_weight": 221,
-            "species_weight": 60,
-            "tier": "uncommon"
+            "groups_per_100_chunks": 1.694,
+            "individuals_per_100_chunks": 2.541,
+            "pool_weight": 164,
+            "species_weight": 25,
+            "tier": "rare"
           },
           {
             "biome": "minecraft:mangrove_swamp",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 9.524,
-            "individuals_per_100_chunks": 14.286,
-            "pool_weight": 70,
-            "species_weight": 60,
-            "tier": "common"
+            "groups_per_100_chunks": 7.937,
+            "individuals_per_100_chunks": 11.905,
+            "pool_weight": 35,
+            "species_weight": 25,
+            "tier": "uncommon"
           },
           {
             "biome": "minecraft:swamp",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 4.219,
-            "individuals_per_100_chunks": 6.329,
-            "pool_weight": 158,
-            "species_weight": 60,
+            "groups_per_100_chunks": 3.121,
+            "individuals_per_100_chunks": 4.682,
+            "pool_weight": 89,
+            "species_weight": 25,
             "tier": "uncommon"
           }
         ],
-        "groups_per_100_chunks": 9.524,
-        "individuals_per_100_chunks": 14.286,
+        "groups_per_100_chunks": 7.937,
+        "individuals_per_100_chunks": 11.905,
         "spawns_naturally": true,
-        "tier": "common"
+        "tier": "uncommon"
       },
       "simple_class": "BoaEntity",
       "size": {
@@ -6904,7 +6904,7 @@
         "chunk_one_in": 1,
         "max_count": 2,
         "min_count": 1,
-        "weight": 60
+        "weight": 25
       },
       "spawns": [
         {
@@ -6917,7 +6917,7 @@
           "chunk_one_in": 1,
           "max_count": 2,
           "min_count": 1,
-          "weight": 60
+          "weight": 25
         }
       ],
       "taming": {
@@ -7354,7 +7354,7 @@
         "SLIPSTREAM_SPEED_BONUS": 0.15,
         "SOMNOLENCE_LOSS_INTERVAL": 2,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 2,
-        "SPAWN_CHUNK_ONE_IN": 8,
+        "SPAWN_CHUNK_ONE_IN": 24,
         "TAMING_EXPERIENCE": 270.0,
         "WAVE_BREACH_DURATION": 26,
         "WAVE_BREACH_SLAM": 7
@@ -7432,9 +7432,9 @@
         "created": "2026-10-17T21:51:07.1258579+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-24T21:25:00.5930938+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 101039
+        "last_modified": "2026-10-29T18:55:58.2764957+01:00",
+        "last_modified_date": "2026-10-29",
+        "size_bytes": 101040
       },
       "id": "ow:orca",
       "loot": {
@@ -7514,29 +7514,29 @@
         "biomes": [
           {
             "biome": "minecraft:deep_cold_ocean",
-            "chunk_one_in": 8,
+            "chunk_one_in": 24,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.389,
-            "individuals_per_100_chunks": 3.472,
+            "groups_per_100_chunks": 0.463,
+            "individuals_per_100_chunks": 0.926,
             "pool_weight": 10,
             "species_weight": 10,
-            "tier": "rare"
+            "tier": "very_rare"
           },
           {
             "biome": "minecraft:deep_frozen_ocean",
-            "chunk_one_in": 8,
+            "chunk_one_in": 24,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.263,
-            "individuals_per_100_chunks": 3.157,
+            "groups_per_100_chunks": 0.421,
+            "individuals_per_100_chunks": 0.842,
             "pool_weight": 11,
             "species_weight": 10,
-            "tier": "rare"
+            "tier": "very_rare"
           }
         ],
-        "groups_per_100_chunks": 1.389,
-        "individuals_per_100_chunks": 3.472,
+        "groups_per_100_chunks": 0.463,
+        "individuals_per_100_chunks": 0.926,
         "spawns_naturally": true,
-        "tier": "rare"
+        "tier": "very_rare"
       },
       "simple_class": "OrcaEntity",
       "size": {
@@ -7553,8 +7553,8 @@
           "minecraft:deep_cold_ocean",
           "minecraft:deep_frozen_ocean"
         ],
-        "chunk_one_in": 8,
-        "max_count": 4,
+        "chunk_one_in": 24,
+        "max_count": 3,
         "min_count": 1,
         "weight": 10
       },
@@ -7565,8 +7565,8 @@
             "minecraft:deep_cold_ocean",
             "minecraft:deep_frozen_ocean"
           ],
-          "chunk_one_in": 8,
-          "max_count": 4,
+          "chunk_one_in": 24,
+          "max_count": 3,
           "min_count": 1,
           "weight": 10
         }
@@ -8127,9 +8127,9 @@
         "created": "2026-10-18T20:39:21.2420416+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-24T21:25:00.580749+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 141213
+        "last_modified": "2026-10-29T19:22:52.6185372+01:00",
+        "last_modified_date": "2026-10-29",
+        "size_bytes": 141548
       },
       "id": "ow:elephant",
       "loot": {
@@ -8803,7 +8803,6 @@
         "skin": "KangarooSkin"
       },
       "constants": {
-        "AI_SPEED_TO_BLOCKS": 1.0,
         "AI_STEP_JUMP_FACTOR": 0.45,
         "ALERT_DURATION_TICKS": 600,
         "DROWN_COOLDOWN_TICKS": 220,
@@ -8821,35 +8820,12 @@
         "FOOD_WANTED_MAX": 14,
         "FOOD_WANTED_MIN": 8,
         "HERD_ANGER_RADIUS": 20.0,
-        "HOP_AIR_FRICTION": 0.91,
-        "HOP_CHASE_TURN": 0.35,
-        "HOP_DISTANCE_FACTOR_MAX": 3.0,
-        "HOP_DISTANCE_FACTOR_MIN": 0.6,
-        "HOP_GROUND_BRAKE": 0.55,
-        "HOP_GROUND_DELAY": 8,
-        "HOP_GROUND_DELAY_FAST": 2,
-        "HOP_HEIGHT_CALIBRATION": 0.94,
-        "HOP_HURRY_SPEED": 0.3,
-        "HOP_MIN_SPEED": 0.012,
-        "HOP_POWER_RIDDEN": 0.3,
-        "HOP_REFERENCE_SPEED": 0.21,
-        "HOP_RUN_DISTANCE": 4.5,
-        "HOP_RUN_HEIGHT": 1.15,
-        "HOP_STEER": 0.1,
-        "HOP_STEER_CHASE": 0.45,
-        "HOP_STEER_RIDDEN": 0.65,
-        "HOP_TARGET_MARGIN": 1.2,
-        "HOP_TARGET_MIN_REACH": 1.5,
-        "HOP_TICK_GRAVITY": 0.08,
-        "HOP_WALK_DISTANCE": 2.0,
-        "HOP_WALK_HEIGHT": 3.0,
         "HOT_BIOME_TEMPERATURE": 0.95,
         "HOT_HOURS_END": 9000,
         "HOT_HOURS_START": 4000,
         "MAX_SOMNOLENCE": 1300,
         "OVERHEAT_MAX_TICKS": 900,
         "OVERHEAT_THRESHOLD_TICKS": 300,
-        "PIVOT_DAMAGE_MULTIPLIER": 1.25,
         "SOMNOLENCE_LOSS_INTERVAL": 3,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 6,
         "STOMP_PHASE_DIVE": 4,
@@ -8933,9 +8909,9 @@
         "created": "2026-10-12T19:33:54.9600162+02:00",
         "created_date": "2026-10-12",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-24T21:25:00.5850285+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 86512
+        "last_modified": "2026-10-28T21:53:52.3754754+01:00",
+        "last_modified_date": "2026-10-28",
+        "size_bytes": 74493
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -10115,15 +10091,15 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 3.268,
-            "individuals_per_100_chunks": 3.268,
-            "pool_weight": 340,
+            "groups_per_100_chunks": 3.494,
+            "individuals_per_100_chunks": 3.494,
+            "pool_weight": 318,
             "species_weight": 100,
             "tier": "uncommon"
           }
         ],
-        "groups_per_100_chunks": 3.268,
-        "individuals_per_100_chunks": 3.268,
+        "groups_per_100_chunks": 3.494,
+        "individuals_per_100_chunks": 3.494,
         "spawns_naturally": true,
         "tier": "uncommon"
       },
@@ -10673,12 +10649,12 @@
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-18T11:15:01.445615+02:00",
-        "created_date": "2026-10-18",
+        "created": "2026-10-29T20:21:47.2318351+01:00",
+        "created_date": "2026-10-29",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-24T21:25:00.5835102+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 83304
+        "last_modified": "2026-10-29T20:22:19.014027+01:00",
+        "last_modified_date": "2026-10-29",
+        "size_bytes": 87642
       },
       "id": "ow:gorilla",
       "loot": {
@@ -10719,35 +10695,35 @@
             "biome": "minecraft:bamboo_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 1.307,
-            "individuals_per_100_chunks": 1.307,
-            "pool_weight": 340,
-            "species_weight": 40,
-            "tier": "rare"
+            "groups_per_100_chunks": 0.629,
+            "individuals_per_100_chunks": 0.629,
+            "pool_weight": 318,
+            "species_weight": 18,
+            "tier": "very_rare"
           },
           {
             "biome": "minecraft:jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 2.011,
-            "individuals_per_100_chunks": 2.011,
-            "pool_weight": 221,
-            "species_weight": 40,
+            "groups_per_100_chunks": 1.22,
+            "individuals_per_100_chunks": 1.22,
+            "pool_weight": 164,
+            "species_weight": 18,
             "tier": "rare"
           },
           {
             "biome": "minecraft:sparse_jungle",
             "chunk_one_in": 1,
             "creature_spawn_probability": 0.1,
-            "groups_per_100_chunks": 5.144,
-            "individuals_per_100_chunks": 10.288,
-            "pool_weight": 108,
-            "species_weight": 50,
+            "groups_per_100_chunks": 3.056,
+            "individuals_per_100_chunks": 4.583,
+            "pool_weight": 80,
+            "species_weight": 22,
             "tier": "uncommon"
           }
         ],
-        "groups_per_100_chunks": 5.144,
-        "individuals_per_100_chunks": 10.288,
+        "groups_per_100_chunks": 3.056,
+        "individuals_per_100_chunks": 4.583,
         "spawns_naturally": true,
         "tier": "uncommon"
       },
@@ -10769,7 +10745,7 @@
         "chunk_one_in": 1,
         "max_count": 1,
         "min_count": 1,
-        "weight": 40
+        "weight": 18
       },
       "spawns": [
         {
@@ -10781,7 +10757,7 @@
           "chunk_one_in": 1,
           "max_count": 1,
           "min_count": 1,
-          "weight": 40
+          "weight": 18
         },
         {
           "biome_modifier": "ow:spawn_gorilla_sparse",
@@ -10789,9 +10765,9 @@
             "minecraft:sparse_jungle"
           ],
           "chunk_one_in": 1,
-          "max_count": 3,
+          "max_count": 2,
           "min_count": 1,
-          "weight": 50
+          "weight": 22
         }
       ],
       "taming": {
@@ -11267,7 +11243,6 @@
           "speed_multiplier": 0.8
         },
         "arena_terrain_mask": 3,
-        "bank_max_angle": 18.0,
         "can_lean": true,
         "combo_pause_delay": 2,
         "default_skin_index": 1,
@@ -11300,7 +11275,8 @@
         "theoretical_scale": 13.0,
         "unresolved": [
           "maxUpStep",
-          "getDefaultGravity"
+          "getDefaultGravity",
+          "bankMaxAngle"
         ],
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
@@ -11308,9 +11284,9 @@
         "created": "2026-10-18T14:35:53.7018984+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-24T21:25:00.5865459+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 73810
+        "last_modified": "2026-10-29T19:59:04.6597047+01:00",
+        "last_modified_date": "2026-10-29",
+        "size_bytes": 75481
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -11969,9 +11945,9 @@
         "created": "2026-10-25T10:13:57.1064888+01:00",
         "created_date": "2026-10-25",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-25T10:54:59.1497542+01:00",
-        "last_modified_date": "2026-10-25",
-        "size_bytes": 118785
+        "last_modified": "2026-10-28T17:39:17.3726639+01:00",
+        "last_modified_date": "2026-10-28",
+        "size_bytes": 118923
       },
       "id": "ow:lion",
       "loot": {
@@ -12192,47 +12168,87 @@
           {
             "looping": true,
             "name": "MISC_IDLE",
-            "seconds": 9.04
+            "seconds": 6.0
           },
           {
             "looping": true,
-            "name": "MISC_IDLE_HEAD2_DEATH",
-            "seconds": 9.04
+            "name": "MISC_IDLE_RAGE",
+            "seconds": 3.0
           },
           {
-            "looping": true,
-            "name": "MISC_IDLE_HEAD3_DEATH",
-            "seconds": 9.04
-          },
-          {
-            "looping": true,
-            "name": "MISC_IDLE_HEADS_DEATH",
-            "seconds": 9.04
+            "looping": false,
+            "name": "SPAWN",
+            "seconds": 7.0
           },
           {
             "looping": false,
             "name": "HEAD_2_DEAD",
-            "seconds": 2.72
+            "seconds": 2.75
           },
           {
             "looping": false,
             "name": "HEAD_3_DEAD",
-            "seconds": 2.72
+            "seconds": 2.75
           },
           {
             "looping": true,
             "name": "HEAD_2_DEAD_LOOP",
-            "seconds": 0.0
+            "seconds": 4.0
           },
           {
             "looping": true,
             "name": "HEAD_3_DEAD_LOOP",
-            "seconds": 0.0
+            "seconds": 4.0
           },
           {
-            "looping": true,
-            "name": "HEADS_DEAD_LOOP",
-            "seconds": 0.0
+            "looping": false,
+            "name": "PAIN_ROAR_HEAD_2",
+            "seconds": 3.0
+          },
+          {
+            "looping": false,
+            "name": "PAIN_ROAR_HEAD_3",
+            "seconds": 3.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 6.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 2.5
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 3.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 4.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 4.0
           }
         ],
         "layers": [
@@ -12242,8 +12258,11 @@
         "renderer": "PlantEmpressRenderer"
       },
       "constants": {
+        "FINAL_DEATH_TICKS": 130,
+        "HEAD_DEATH_TICKS": 55,
         "MAX_SOMNOLENCE": 100000,
-        "SOMNOLENCE_LOSS_INTERVAL": 0
+        "SOMNOLENCE_LOSS_INTERVAL": 0,
+        "SPAWN_TICKS": 140
       },
       "gameplay": {
         "allows_unowned_piloting": false,
@@ -12284,9 +12303,9 @@
         "created": "2026-02-25T10:58:13.1092156+01:00",
         "created_date": "2026-02-25",
         "file": "src/main/java/net/tiew/operationWild/entity/bosses/PlantEmpressEntity.java",
-        "last_modified": "2026-10-18T14:55:51.1522479+02:00",
-        "last_modified_date": "2026-10-18",
-        "size_bytes": 25169
+        "last_modified": "2026-10-27T18:19:23.4041514+01:00",
+        "last_modified_date": "2026-10-27",
+        "size_bytes": 27311
       },
       "id": "ow:plant_empress",
       "loot": {
@@ -12665,6 +12684,7 @@
       "FIGHT_COOLDOWN_TICKS": 200,
       "FIGHT_DECAY_TICKS": 100,
       "FIGHT_HOLD_TICKS": 100,
+      "FLEE_SPEED_FACTOR": 1.3,
       "FOOD_SLOT": 1,
       "HEADSHOT_SOMNOLENCE_FACTOR": 1.5,
       "LEASH_DRAG_SLACK": 3.0,
@@ -12678,6 +12698,8 @@
       "SEDATIVE_MIN_DAMAGE": 0.5,
       "SLEEPING_SOMNOLENCE_LOSS_FACTOR": 2,
       "SOMNOLENCE_SPREAD_PERCENT": 20,
+      "TAMING_DAMAGE_FACTOR": 1.2,
+      "TAMING_SPEED_FACTOR": 1.15,
       "VITAL_ENERGY_LEVEL_GAIN": 0.5,
       "VITAL_ENERGY_UPGRADE_STEP": 6.0,
       "WAKE_WARNING_PERCENT": 15
@@ -14895,7 +14917,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1169
+      "fr_fr": 1180
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -17059,6 +17081,48 @@
         "power_max": 35,
         "power_min": 35,
         "power_uncharged": 35
+      },
+      {
+        "ammo": "ow:tranquilizer_dart",
+        "ammo_names": {
+          "fr_fr": "Fléchette tranquillisante"
+        },
+        "auto_reload": true,
+        "effectiveness": 120,
+        "formula": "flat",
+        "full_draw_ticks": 10,
+        "interval_seconds": 2.4,
+        "key": "rifle",
+        "launcher": "ow:syringe_rifle",
+        "launcher_names": {
+          "fr_fr": "Fusil à seringue primitif"
+        },
+        "power_avg": 120.0,
+        "power_max": 120,
+        "power_min": 120,
+        "power_uncharged": 120,
+        "reload_ticks": 40
+      },
+      {
+        "ammo": "ow:concentrated_tranquilizer_dart",
+        "ammo_names": {
+          "fr_fr": "Fléchette tranquillisante concentrée"
+        },
+        "auto_reload": true,
+        "effectiveness": 160,
+        "formula": "flat",
+        "full_draw_ticks": 10,
+        "interval_seconds": 2.4,
+        "key": "rifle_concentrated",
+        "launcher": "ow:syringe_rifle",
+        "launcher_names": {
+          "fr_fr": "Fusil à seringue primitif"
+        },
+        "power_avg": 160.0,
+        "power_max": 160,
+        "power_min": 160,
+        "power_uncharged": 160,
+        "reload_ticks": 40
       }
     ]
   },
@@ -28068,9 +28132,9 @@
         ],
         "chunk_one_in": 1,
         "entity": "ow:crocodile",
-        "max_count": 4,
-        "min_count": 2,
-        "weight": 48
+        "max_count": 3,
+        "min_count": 1,
+        "weight": 14
       },
       {
         "biome_modifier": "ow:spawn_boa",
@@ -28083,7 +28147,7 @@
         "entity": "ow:boa",
         "max_count": 2,
         "min_count": 1,
-        "weight": 60
+        "weight": 25
       },
       {
         "biome_modifier": "ow:spawn_kangaroo",
@@ -28118,7 +28182,7 @@
         "entity": "ow:gorilla",
         "max_count": 1,
         "min_count": 1,
-        "weight": 40
+        "weight": 18
       },
       {
         "biome_modifier": "ow:spawn_gorilla_sparse",
@@ -28127,9 +28191,9 @@
         ],
         "chunk_one_in": 1,
         "entity": "ow:gorilla",
-        "max_count": 3,
+        "max_count": 2,
         "min_count": 1,
-        "weight": 50
+        "weight": 22
       },
       {
         "biome_modifier": "ow:spawn_red_panda",
@@ -28148,9 +28212,9 @@
           "minecraft:deep_cold_ocean",
           "minecraft:deep_frozen_ocean"
         ],
-        "chunk_one_in": 8,
+        "chunk_one_in": 24,
         "entity": "ow:orca",
-        "max_count": 4,
+        "max_count": 3,
         "min_count": 1,
         "weight": 10
       },

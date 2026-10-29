@@ -21,7 +21,6 @@ public class HippopotamusRenderer extends OWEntityRenderer<HippopotamusEntity, H
 
     private final EntityRendererProvider.Context context;
     private final Map<ModelLayerLocation, HippopotamusModel<HippopotamusEntity>> modelCache = new HashMap<>();
-    private final Map<Integer, Float> smoothedWildPitch = new HashMap<>();
 
     public HippopotamusRenderer(EntityRendererProvider.Context context) {
         super(context, new HippopotamusModel<>(context.bakeLayer(HippopotamusModel.LAYER_LOCATION)), 1.1f);
@@ -48,17 +47,7 @@ public class HippopotamusRenderer extends OWEntityRenderer<HippopotamusEntity, H
                 ? skin.getModelLayer().map(this::getOrBakeModel).orElse(getOrBakeModel(HippopotamusModel.LAYER_LOCATION))
                 : getOrBakeModel(HippopotamusModel.LAYER_LOCATION);
 
-        float pitch;
-        if (hippo.isTame() && hippo.isVehicle() && !hippo.isSitting() && hippo.isInWater()) {
-            pitch = hippo.getRidePitch(partialTicks);
-            smoothedWildPitch.put(hippo.getId(), pitch);
-        } else {
-            float target = !hippo.isTame() ? Mth.clamp(hippo.getTargetPitch(), -30f, 30f) : 0f;
-            float previous = smoothedWildPitch.getOrDefault(hippo.getId(), 0f);
-            pitch = Mth.lerp(0.18f, previous, target);
-            if (Math.abs(pitch) < 0.01f) smoothedWildPitch.remove(hippo.getId());
-            else smoothedWildPitch.put(hippo.getId(), pitch);
-        }
+        float pitch = hippo.getSwimPitch(partialTicks);
 
         this.model.externalRiderPitch = pitch;
         this.model.externalBankRoll = hippo.getBankRoll(partialTicks);

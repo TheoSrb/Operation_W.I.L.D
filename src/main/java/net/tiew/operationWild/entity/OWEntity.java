@@ -247,7 +247,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private int syncedFoodWanted = -1;
 
     public static final int WAKE_WARNING_PERCENT = 15;
-    private static final int SOMNOLENCE_LOSS_PAUSE = 100;
+    private static final int SOMNOLENCE_LOSS_PAUSE = 40;
+    public static final float TAMING_SPEED_FACTOR = 1.15f;
+    public static final float FLEE_SPEED_FACTOR = 1.3f;
+    public static final float TAMING_DAMAGE_FACTOR = 1.2f;
     private static final int RENDERED_HEAD_LIFETIME = 3;
     public static final float HEADSHOT_SOMNOLENCE_FACTOR = 1.5f;
     public static final float SEDATIVE_DAMAGE_DIVISOR = 2f;
@@ -626,6 +629,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         private static final float TURN_RADIUS_MIN_ERROR = 15f;
         private static final float TURN_RADIUS_MIN_FACTOR = 0.1f;
         private static final double GROUND_TERMINAL_FACTOR = 1.6;
+        private static final float PURSUIT_TURN_RATE = 0.4f;
+        private static final float FLEE_TURN_RATE = 0.3f;
+        private static final float FLEE_BRAKE_START = 70f;
+        private static final float FLEE_BRAKE_MIN_FACTOR = 0.6f;
+        private static final double PURSUIT_ARRIVAL_SQR = 1.0;
 
         private final OWEntity owner;
 
@@ -636,12 +644,33 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         @Override
         public void tick() {
+            aimAtPrey();
             boolean moving = this.operation == Operation.MOVE_TO;
             super.tick();
             if (moving) brakeIntoTurn();
             if (moving && this.operation != Operation.JUMPING && this.needsStepJump()) {
                 this.mob.getJumpControl().jump();
                 this.operation = Operation.JUMPING;
+            }
+        }
+
+        @Nullable
+        private LivingEntity pursuedPrey() {
+            if (this.owner.sedationResponse == null || this.owner.getControllingPassenger() != null) return null;
+            return this.owner.sedationResponse.directPursuitTarget();
+        }
+
+        private void aimAtPrey() {
+            LivingEntity prey = pursuedPrey();
+            if (prey == null || this.owner.isCombo()) return;
+            if (this.operation != Operation.MOVE_TO && this.operation != Operation.WAIT) return;
+            if (prey.distanceToSqr(this.owner) <= PURSUIT_ARRIVAL_SQR) return;
+            this.wantedX = prey.getX();
+            this.wantedY = prey.getY();
+            this.wantedZ = prey.getZ();
+            if (this.operation == Operation.WAIT) {
+                this.operation = Operation.MOVE_TO;
+                if (this.speedModifier <= 0) this.speedModifier = 1.0;
             }
         }
 
@@ -652,12 +681,15 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             if (dx * dx + dz * dz < TURN_BRAKE_MIN_DISTANCE_SQR) return;
             float wanted = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90.0F;
             float error = Math.abs(Mth.wrapDegrees(wanted - this.owner.getYRot()));
+            boolean fleeing = this.owner.isFleeingDanger();
+            float start = fleeing ? FLEE_BRAKE_START : TURN_BRAKE_START;
             float factor = 1f;
-            if (error > TURN_BRAKE_START) {
-                float t = Mth.clamp((error - TURN_BRAKE_START) / (TURN_BRAKE_FULL - TURN_BRAKE_START), 0f, 1f);
-                factor = Mth.lerp(t, 1f, TURN_BRAKE_MIN_FACTOR);
+            if (error > start) {
+                float t = Mth.clamp((error - start) / (TURN_BRAKE_FULL - start), 0f, 1f);
+                factor = Mth.lerp(t, 1f, fleeing ? FLEE_BRAKE_MIN_FACTOR : TURN_BRAKE_MIN_FACTOR);
             }
-            this.mob.setZza(Math.min(this.mob.zza * factor, turnRadiusLimit(error, Math.sqrt(dx * dx + dz * dz))));
+            float limit = fleeing ? Float.MAX_VALUE : turnRadiusLimit(error, Math.sqrt(dx * dx + dz * dz));
+            this.mob.setZza(Math.min(this.mob.zza * factor, limit));
         }
 
         private float turnRadiusLimit(float error, double distance) {
@@ -693,6 +725,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             float delta = Mth.wrapDegrees(to - from);
             float rate = Mth.clamp(this.owner.getRotationSpeed(), 0f, 1f);
             if (this.owner.horizontalCollision) rate = Math.max(rate, BLOCKED_TURN_RATE);
+            if (pursuedPrey() != null) rate = Math.max(rate, PURSUIT_TURN_RATE);
+            if (rate > 0f && this.owner.isFleeingDanger()) rate = Math.max(rate, FLEE_TURN_RATE);
             float step = delta * rate;
 
             float floor = Math.min(OWEntity.MIN_TURN_STEP, Math.abs(delta));
@@ -1448,20 +1482,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private void notifyLevelUpClient() {
         if (this.level().isClientSide()) return;
 
-        ServerPlayer target = null;
-        LivingEntity rider = this.getControllingPassenger();
-        if (rider instanceof ServerPlayer sp) {
-            target = sp;
-        } else if (this.getOwner() instanceof ServerPlayer owner
-                && owner.level() == this.level() && owner.distanceToSqr(this) <= 48 * 48) {
-            target = owner;
-        }
-
-        if (target != null) {
+        for (Entity passenger : this.getPassengers()) {
+            if (!(passenger instanceof ServerPlayer rider)) continue;
             OWNetworkHandler.sendToClient(
                     new net.tiew.operationWild.networking.packets.to_client.OWLevelUpPacket(
                             this.getLevel(), this.getEntityColor()),
-                    target);
+                    rider);
         }
     }
 
@@ -1565,7 +1591,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         if (!canEatFood(food)) return;
 
         this.setItemFood(food.copy());
-        healWithFavoriteFood(AUTO_FEED_HEAL_MULTIPLIER, preferRawMeat(), preferCookedMeat());
+        healWithFood(food, AUTO_FEED_HEAL_MULTIPLIER);
         this.playSound(SoundEvents.CAMEL_EAT, 1.0f, 1.0f);
         food.shrink(1);
         this.setFoodCount(food.getCount());
@@ -1593,8 +1619,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return 0f;
     }
 
-    public void healWithFavoriteFood(float healMultiplier, boolean preferRawMeat, boolean preferCookedMeat) {
-        float base = foodHealAmount(this.getItemFood(), preferRawMeat, preferCookedMeat);
+    public void healWithFood(ItemStack food, float healMultiplier) {
+        float base = foodHealAmount(food, preferRawMeat(), preferCookedMeat());
         if (base <= 0f) return;
 
         this.heal(base * healMultiplier);
@@ -1992,6 +2018,19 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return 3.0f;
     }
 
+    public boolean canClimbTowards(LivingEntity target) {
+        return false;
+    }
+
+    public boolean isClimbingTowards(LivingEntity target) {
+        return false;
+    }
+
+    @Override
+    protected net.minecraft.world.entity.ai.navigation.PathNavigation createNavigation(Level level) {
+        return new net.tiew.operationWild.entity.navigation.OWGroundPathNavigation(this, level);
+    }
+
     public int blockBreakLevel() {
         return OWBreakLevel.NONE;
     }
@@ -2332,7 +2371,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public float getSpeed() {
         float base = (float) this.getAttributeBaseValue(Attributes.MOVEMENT_SPEED);
-        return this.sedationResponse == null ? base : base * this.sedationResponse.chaseSpeedFactor();
+        return this.sedationResponse == null ? base : base * this.sedationResponse.chaseSpeedFactor() * this.tamingSpeedFactor() * this.fleeSpeedFactor();
     }
 
     public float getDamage() {
@@ -2340,7 +2379,29 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public float getCombatDamage() {
-        return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE);
+        return (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE) * this.tamingDamageFactor();
+    }
+
+    public float fleeSpeedFactor() {
+        return this.isFleeingDanger() ? FLEE_SPEED_FACTOR : 1f;
+    }
+
+    public boolean isFleeingDanger() {
+        if (this.isTame() || this.sedationResponse == null) return false;
+        return this.sedationResponse.isRetreating() || this.isSedatedFleeing();
+    }
+
+    public float tamingSpeedFactor() {
+        return this.isTamingEngaged() ? TAMING_SPEED_FACTOR : 1f;
+    }
+
+    public float tamingDamageFactor() {
+        return this.isTamingEngaged() ? TAMING_DAMAGE_FACTOR : 1f;
+    }
+
+    private boolean isTamingEngaged() {
+        if (this.sedationResponse == null || this.breakout == null || this.level().isClientSide()) return false;
+        return !this.isSleeping() && !this.isVehicle() && this.isSedationAgitated();
     }
 
     public InteractionResult createFoodHealingSystem(Player player, ItemStack itemStack, boolean preferRawMeat, boolean preferCookedMeat, boolean preferVegetables, float healingMultiplier) {
@@ -3549,6 +3610,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final float BANK_RISE_FREE = 0.15f;
 
     private static final float LEAN_STEP_SMOOTHING = 0.25f;
+    private static final float LEAN_BLEND_STEP = 0.08f;
 
     private float bankRoll = 0f;
     private float bankRollPrev = 0f;
@@ -3556,6 +3618,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private float leanPitch = 0f;
     private float leanPitchPrev = 0f;
     private float leanStep = 0f;
+    private float leanBlend = 0f;
 
     public float getBankRoll(float partialTick) {
         return Mth.lerp(partialTick, this.bankRollPrev, this.bankRoll);
@@ -3634,8 +3697,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         float rollTarget = 0f;
         float pitchTarget = 0f;
+        boolean lean = this.canLean();
+        this.leanBlend = Mth.approach(this.leanBlend, lean ? 1f : 0f, LEAN_BLEND_STEP);
 
-        if (this.canLean()) {
+        if (lean || this.leanBlend > 0f) {
             double dx = this.getX() - this.xOld;
             double dy = this.getY() - this.yOld;
             double dz = this.getZ() - this.zOld;
@@ -3644,7 +3709,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             this.leanStep += (step - this.leanStep) * LEAN_STEP_SMOOTHING;
             float drive = Mth.clamp(this.leanStep / LEAN_CRUISE_STEP, LEAN_IDLE_DRIVE, 1f);
 
-            LivingEntity rider = this.leaningRider();
+            LivingEntity rider = lean ? this.leaningRider() : null;
             boolean ridden = rider != null;
 
             float yawRate = Mth.wrapDegrees(this.yBodyRot - this.yBodyRotO);
@@ -3666,6 +3731,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     pitchTarget = Mth.clamp(slope * FREE_PITCH_GAIN, -maxPitch, maxPitch) * drive;
                 }
             }
+            rollTarget *= this.leanBlend;
+            pitchTarget *= this.leanBlend;
         } else {
             this.bankYawRate *= 0.5f;
             this.leanStep *= 0.5f;
@@ -4806,11 +4873,13 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
             return InteractionResult.SUCCESS;
         }
 
-        if (this.getHealth() < this.getMaxHealth() && itemstack.is(Tags.Items.FOODS) && this.isTame()) {
-            itemstack.shrink(1);
-            healWithFavoriteFood(1.5f, preferRawMeat(), preferCookedMeat());
-            this.playSound(SoundEvents.CAMEL_EAT, 1.0f, 1.0f);
-            return InteractionResult.SUCCESS;
+        if (this.getHealth() < this.getMaxHealth() && this.isTame() && this.canEatFood(itemstack)) {
+            if (!this.level().isClientSide()) {
+                healWithFood(itemstack, 1.5f);
+                itemstack.consume(1, player);
+                this.playSound(SoundEvents.CAMEL_EAT, 1.0f, 1.0f);
+            }
+            return InteractionResult.sidedSuccess(this.level().isClientSide());
         }
 
         if (itemstack.is(Tags.Items.DYES) && isTame()) {
@@ -5327,6 +5396,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     private boolean canStrikeReach(LivingEntity target) {
         if (!blockStrikeInProgress) return true;
+        if (target.getClass() == this.getClass() && !(target instanceof OWEntity kin && kin.isTame())) return false;
         Vec3 from = new Vec3(this.getX(), this.getY() + this.getBbHeight() * 0.5, this.getZ());
         AABB box = target.getBoundingBox();
         Vec3 center = box.getCenter();

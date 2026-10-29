@@ -3,8 +3,8 @@
   "biomes": "minecraft:swamp",
   "spawners": {
     "type": "ow:crocodile",
-    "maxCount": 4,
-    "minCount": 2,
-    "weight": 48
+    "maxCount": 3,
+    "minCount": 1,
+    "weight": 14
   }
 }

@@ -23,6 +23,7 @@ public final class OWBreachPlanner {
 
     private static final int SEARCH_RADIUS = OWEnclosureProbe.RADIUS + 4;
     private static final int VERTICAL_RANGE = 6;
+    private static final int SIEGE_MAX_CLIMB = 1;
     private static final int MAX_EXPANSIONS = 3000;
     private static final int MAX_TARGET_EXPANSIONS = 6000;
     private static final int TARGET_MARGIN = 6;
@@ -110,7 +111,7 @@ public final class OWBreachPlanner {
             this.minZ = Math.min(origin.getZ(), aim.getZ()) - TARGET_MARGIN;
             this.maxZ = Math.max(origin.getZ(), aim.getZ()) + TARGET_MARGIN;
             this.minY = Math.min(origin.getY(), aim.getY()) - VERTICAL_RANGE;
-            this.maxY = Math.max(origin.getY(), aim.getY()) + VERTICAL_RANGE;
+            this.maxY = origin.getY() + SIEGE_MAX_CLIMB;
             this.maxExpansions = MAX_TARGET_EXPANSIONS;
         }
         this.bodyCost.defaultReturnValue(Float.NaN);

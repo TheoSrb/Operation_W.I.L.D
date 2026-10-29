@@ -21,6 +21,13 @@ public class OWHeadTrackerLayer<T extends OWEntity, M extends EntityModel<T>> ex
         super(parent);
     }
 
+    private static boolean isHeadPart(String path) {
+        if (path.endsWith("/head")) return true;
+        int head = path.indexOf("/head/");
+        if (head < 0) return false;
+        return !path.substring(head + 6).startsWith("body") && !path.substring(head).contains("/body");
+    }
+
     @Override
     public void render(PoseStack poseStack, MultiBufferSource buffer, int packedLight, T entity, float limbSwing, float limbSwingAmount,
                        float partialTick, float ageInTicks, float netHeadYaw, float headPitch) {
@@ -29,7 +36,7 @@ public class OWHeadTrackerLayer<T extends OWEntity, M extends EntityModel<T>> ex
         BOUNDS[0] = BOUNDS[1] = BOUNDS[2] = Float.POSITIVE_INFINITY;
         BOUNDS[3] = BOUNDS[4] = BOUNDS[5] = Float.NEGATIVE_INFINITY;
         model.root().visit(poseStack, (pose, path, index, cube) -> {
-            if (!path.endsWith("/head") && !path.contains("/head/")) return;
+            if (!isHeadPart(path)) return;
             Matrix4f matrix = pose.pose();
             for (int corner = 0; corner < 8; corner++) {
                 float x = ((corner & 1) == 0 ? cube.minX : cube.maxX) / 16f;

@@ -41,12 +41,11 @@ public record ConsumeItemPacket(int entityId) implements CustomPacketPayload {
                     if (itemHandler != null) {
                         ItemStack foodStack = itemHandler.getStackInSlot(1);
 
-                        if (!foodStack.isEmpty()) {
+                        if (owEntity.canEatFood(foodStack)) {
+                            owEntity.healWithFood(foodStack, 1.5f);
                             foodStack.shrink(1);
 
                             owEntity.setFoodCount(foodStack.getCount());
-
-                            owEntity.healWithFavoriteFood(1.5f, owEntity.preferRawMeat(), owEntity.preferCookedMeat());
 
                             owEntity.playSound(SoundEvents.CAMEL_EAT, 1.0f, 1.0f);
 

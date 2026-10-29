@@ -26,8 +26,6 @@ public class CrocodileRenderer extends OWEntityRenderer<CrocodileEntity, Crocodi
     private final EntityRendererProvider.Context context;
     private final Map<ModelLayerLocation, CrocodileModel<CrocodileEntity>> modelCache = new HashMap<>();
 
-    private float smoothedRiderPitch = 0f;
-
     public CrocodileRenderer(EntityRendererProvider.Context context) {
         super(context, new CrocodileModel<>(context.bakeLayer(CrocodileModel.LAYER_LOCATION)), 1.2f);
         this.context = context;
@@ -50,22 +48,7 @@ public class CrocodileRenderer extends OWEntityRenderer<CrocodileEntity, Crocodi
     public void render(CrocodileEntity crocodile, float entityYaw, float partialTicks,
                        PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 
-        float pitchTarget;
-        if (crocodile.isTame() && crocodile.isVehicle() && !crocodile.isSitting() && crocodile.isInWater()) {
-            // Monté : même voie que l'orque. Valeur PAR ENTITÉ, lissée au tick et interpolée à
-            // l'image, prise sur le regard du cavalier — donc exactement l'angle qui construit la
-            // direction de nage, corps et trajectoire alignés. L'ancienne source passait par le
-            // serveur puis par le champ de lissage partagé ci-dessous, d'où un tangage à la fois en
-            // retard et commun à tous les crocodiles visibles.
-            pitchTarget = crocodile.getRidePitch(partialTicks);
-        } else {
-            // Pas de vérification isInWater() ici : elle peut clignoter côté client à la surface
-            // Le serveur gère le retour à 0 du pitch quand le croco sort de l'eau
-            float wildTarget = !crocodile.isTame() ? Mth.clamp(crocodile.getTargetPitch(), -40f, 40f) : 0f;
-            // Lerp fixe par frame, sans dépendre de partialTicks comme exposant (évite le saut à chaque tick)
-            smoothedRiderPitch = Mth.lerp(0.18f, smoothedRiderPitch, wildTarget);
-            pitchTarget = smoothedRiderPitch;
-        }
+        float pitchTarget = crocodile.getSwimPitch(partialTicks);
 
         CrocodileSkin skin = SkinRegistry.CrocodileSkins.get(crocodile.getVariant());
         this.model = skin.getMode() == CrocodileSkin.Mode.REPLACEMENT

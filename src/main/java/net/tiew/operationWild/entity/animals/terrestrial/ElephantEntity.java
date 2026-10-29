@@ -101,6 +101,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     public static final double TAMING_EXPERIENCE = 300.0;
     public static final int MAX_SOMNOLENCE = 5000;
+    private static final float TAMING_CHASE_SPEED_FACTOR = 0.93f;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 4;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 10;
     public static final int FOOD_WANTED_MIN = 12;
@@ -468,6 +469,13 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     @Override
     public boolean usesAggressiveTaming() {
         return true;
+    }
+
+    @Override
+    public float getSpeed() {
+        float speed = super.getSpeed();
+        if (!this.isTame() && this.sedationResponse != null && this.sedationResponse.getChargeTarget() != null) speed *= TAMING_CHASE_SPEED_FACTOR;
+        return speed;
     }
 
     @Override

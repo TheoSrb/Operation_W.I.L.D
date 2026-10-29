@@ -124,6 +124,12 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private static final int FLEE_CLIMB_STUCK_TICKS = 10;
     private static final double FLEE_STUCK_SPEED = 0.03;
     private static final float FLEE_CLIMB_MAX_ANGLE = 100f;
+    private static final double CHASE_CLIMB_MIN_RISE = 2.0;
+    private static final double CHASE_CLIMB_APPROACH = 40.0;
+    private static final float TAMING_SPEED_PENALTY = 0.9f;
+    private static final double CHASE_CLIMB_REACH = 2.5;
+    private static final double CHASE_CLIMB_GAP = 0.05;
+    private static final double CHASE_CLIMB_ALIGN = 0.35;
     private static final double CLIMB_WALL_MARGIN = 0.45;
     private static final double CLIMB_START_MARGIN = 0.2;
     private static final float CLIMB_START_LOOK_TOLERANCE = 50f;
@@ -722,8 +728,10 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             if (this.level().isClientSide()) return;
             if (this.isNoGravity()) this.setNoGravity(false);
             Direction fleeFace = fleeClimbFace();
+            Direction chaseFace = fleeFace == null ? chaseClimbFace() : null;
             if (shouldStartClimb()) startClimb(Direction.fromYRot(this.getYRot()));
             else if (fleeFace != null) startClimb(fleeFace);
+            else if (chaseFace != null) startClimb(chaseFace);
             return;
         }
 
@@ -798,7 +806,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
             return;
         }
 
-        boolean wildFlee = isWildFleeing();
+        boolean wildFlee = isWildFleeing() || climbingToPrey();
         if (climber == null) {
             if (!wildFlee && ++climbRiderlessTicks > CLIMB_RIDERLESS_TICKS) {
                 stopClimb();
@@ -966,6 +974,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     private boolean columnSolid(int columnX, int columnZ, double yOffset) {
         BlockPos pos = BlockPos.containing(columnX + 0.5, this.getY() + yOffset, columnZ + 0.5);
         BlockState state = this.level().getBlockState(pos);
+        if (state.is(Blocks.BARRIER)) return false;
         return state.isFaceSturdy(this.level(), pos, Direction.UP)
                 || state.isCollisionShapeFullBlock(this.level(), pos);
     }
@@ -1047,6 +1056,17 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         return this.getBbWidth() * 0.5 + CLIMB_WALL_MARGIN;
     }
 
+    private boolean isLonePillar(Direction face) {
+        double reach = this.getBbWidth() * 0.5 + CLIMB_START_MARGIN;
+        BlockPos wall = BlockPos.containing(this.getX() + face.getStepX() * reach, this.getY() + 0.4, this.getZ() + face.getStepZ() * reach);
+        Direction side = face.getClockWise();
+        for (int step = -1; step <= 1; step += 2) {
+            BlockPos neighbour = wall.relative(side, step);
+            if (columnSolid(neighbour.getX(), neighbour.getZ(), 0.4) || columnSolid(neighbour.getX(), neighbour.getZ(), 1.6)) return false;
+        }
+        return true;
+    }
+
     private boolean hasWall(Direction face, double yOffset, double margin) {
         double reach = this.getBbWidth() * 0.5 + margin;
         BlockPos pos = BlockPos.containing(
@@ -1054,7 +1074,76 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
                 this.getY() + yOffset,
                 this.getZ() + face.getStepZ() * reach);
         BlockState state = this.level().getBlockState(pos);
-        return state.isFaceSturdy(this.level(), pos, face.getOpposite());
+        return !state.is(Blocks.BARRIER) && state.isFaceSturdy(this.level(), pos, face.getOpposite());
+    }
+
+    @Override
+    public boolean canClimbTowards(LivingEntity target) {
+        if (this.isTame() || this.isBaby() || this.isInWater()) return false;
+        double rise = target.getY() - this.getY();
+        if (rise < CHASE_CLIMB_MIN_RISE) return false;
+        double dx = target.getX() - this.getX();
+        double dz = target.getZ() - this.getZ();
+        if (dx * dx + dz * dz > CHASE_CLIMB_APPROACH * CHASE_CLIMB_APPROACH) return false;
+        BlockPos pos = target.blockPosition().below();
+        for (int y = pos.getY(); y >= Mth.floor(this.getY()); y--) {
+            BlockPos column = new BlockPos(pos.getX(), y, pos.getZ());
+            if (!this.level().getBlockState(column).isFaceSturdy(this.level(), column, Direction.UP)) return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean isClimbingTowards(LivingEntity target) {
+        return this.isClimbing() && this.sedationResponse.getChargeTarget() == target;
+    }
+
+    @Override
+    public float getSpeed() {
+        float speed = super.getSpeed();
+        boolean ready = this.sedationResponse != null && this.breakout != null;
+        return ready && this.isSedationAgitated() ? speed * TAMING_SPEED_PENALTY : speed;
+    }
+
+    private boolean climbingToPrey() {
+        LivingEntity prey = this.sedationResponse.getChargeTarget();
+        return prey != null && !this.isTame() && prey.getY() > this.getY();
+    }
+
+    @Nullable
+    private Direction chaseClimbFace() {
+        LivingEntity prey = this.sedationResponse.getChargeTarget();
+        if (prey == null || !canClimbTowards(prey) || climbFallImmunity > 0 || isSliding() || isSlideMotionActive()) return null;
+        BlockPos column = prey.blockPosition().below();
+        double cx = column.getX() + 0.5;
+        double cz = column.getZ() + 0.5;
+        double offset = 0.5 + this.getBbWidth() * 0.5 + CHASE_CLIMB_GAP;
+        if (Math.sqrt((cx - this.getX()) * (cx - this.getX()) + (cz - this.getZ()) * (cz - this.getZ())) > offset + CHASE_CLIMB_REACH) return null;
+
+        Direction best = null;
+        double bestX = 0;
+        double bestZ = 0;
+        double bestDistance = Double.MAX_VALUE;
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            double x = cx + side.getStepX() * offset;
+            double z = cz + side.getStepZ() * offset;
+            AABB box = this.getBoundingBox().move(x - this.getX(), 0.05, z - this.getZ());
+            if (!this.level().noCollision(this, box)) continue;
+            double distance = (x - this.getX()) * (x - this.getX()) + (z - this.getZ()) * (z - this.getZ());
+            if (distance < bestDistance) {
+                best = side.getOpposite();
+                bestX = x;
+                bestZ = z;
+                bestDistance = distance;
+            }
+        }
+        if (best == null) return null;
+        if (bestDistance > CHASE_CLIMB_ALIGN * CHASE_CLIMB_ALIGN) {
+            this.getNavigation().stop();
+            this.getMoveControl().setWantedPosition(bestX, this.getY(), bestZ, 1.0);
+            return null;
+        }
+        return best;
     }
 
     private boolean isWildFleeing() {
@@ -1080,6 +1169,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         float bestDiff = FLEE_CLIMB_MAX_ANGLE;
         for (Direction face : Direction.Plane.HORIZONTAL) {
             if (!hasWall(face, 0.4, CLIMB_START_MARGIN) || !hasWall(face, 1.6, CLIMB_START_MARGIN)) continue;
+            if (isLonePillar(face)) continue;
             float diff = Math.min(Math.abs(Mth.wrapDegrees(face.toYRot() - this.getYRot())),
                     Math.abs(Mth.wrapDegrees(face.toYRot() - awayYaw)));
             if (diff <= bestDiff) {

@@ -11,6 +11,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.ClientConfig;
 
 @EventBusSubscriber(modid = OperationWild.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
 public final class OWWindRushOverlay {
@@ -45,7 +46,7 @@ public final class OWWindRushOverlay {
     }
 
     public static void render(GuiGraphics g) {
-        if (intensity <= 0.01f) return;
+        if (intensity <= 0.01f || !ClientConfig.get(ClientConfig.WIND_RUSH)) return;
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.options.hideGui) return;

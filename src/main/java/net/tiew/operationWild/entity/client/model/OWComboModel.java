@@ -9,16 +9,41 @@ import net.minecraft.world.entity.AnimationState;
 import net.tiew.operationWild.entity.OWEntity;
 import org.joml.Vector3f;
 
+import java.util.Map;
+import java.util.WeakHashMap;
+
 public abstract class OWComboModel<T extends OWEntity> extends HierarchicalModel<T> {
 
     public static final int COMBO_COUNT = 3;
 
     private static final Vector3f WEIGHTED_VECTOR = new Vector3f();
+    private static final Vector3f ANIMATION_VECTOR = new Vector3f();
+    private static final Map<AnimationState, float[]> TIME_CARRY = new WeakHashMap<>();
 
     protected abstract AnimationDefinition comboAnimation(int index);
 
     protected float comboSpeed(int index) {
         return 1.0f;
+    }
+
+    @Override
+    protected void animate(AnimationState state, AnimationDefinition animation, float ageInTicks, float speed) {
+        advance(state, ageInTicks, speed);
+        state.ifStarted(s -> KeyframeAnimations.animate(this, animation, s.getAccumulatedTime(), 1.0f, ANIMATION_VECTOR));
+    }
+
+    protected static void advance(AnimationState state, float ageInTicks, float speed) {
+        if (!state.isStarted()) return;
+        long before = state.getAccumulatedTime();
+        state.updateTime(ageInTicks, 1.0f);
+        if (speed == 1.0f) return;
+        long elapsed = state.getAccumulatedTime() - before;
+        float[] carry = TIME_CARRY.computeIfAbsent(state, key -> new float[1]);
+        float wanted = elapsed * speed + carry[0];
+        long applied = (long) Math.floor(wanted);
+        carry[0] = wanted - applied;
+        long correction = applied - elapsed;
+        if (correction != 0) state.fastForward(1, (correction + Math.signum(correction) * 0.25f) / 50f);
     }
 
     protected final void animateCombos(OWEntity entity, float ageInTicks, float speedMultiplier) {
@@ -58,7 +83,7 @@ public abstract class OWComboModel<T extends OWEntity> extends HierarchicalModel
     }
 
     protected final void animateWeighted(AnimationState state, AnimationDefinition animation, float ageInTicks, float speed, float weight) {
-        state.updateTime(ageInTicks, speed);
+        advance(state, ageInTicks, speed);
         if (weight <= 0.001f) return;
         state.ifStarted(s -> KeyframeAnimations.animate(this, animation, s.getAccumulatedTime(), weight, WEIGHTED_VECTOR));
     }

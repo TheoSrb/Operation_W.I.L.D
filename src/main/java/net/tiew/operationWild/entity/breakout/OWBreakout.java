@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,7 +31,7 @@ import java.util.List;
 
 public class OWBreakout {
 
-    private enum Phase { IDLE, BREACHING, SIEGING, STRUGGLING }
+    private enum Phase { IDLE, BREACHING, SIEGING, STRUGGLING, JAMMED }
 
     private static final int AGITATION_MEMORY = 600;
     private static final int SCAN_INTERVAL = 20;
@@ -44,6 +45,7 @@ public class OWBreakout {
     private static final double APPROACH_PROGRESS = 0.5;
     private static final int APPROACH_REPATH = 10;
     private static final float APPROACH_SPEED_FACTOR = 0.45f;
+    private static final float BLOCK_DROP_CHANCE = 0.5f;
     private static final int STRIKE_TIMEOUT = 40;
     private static final int STRIKE_PAUSE_MIN = 3;
     private static final int STRIKE_PAUSE_MAX = 9;
@@ -72,6 +74,18 @@ public class OWBreakout {
     private static final int STRUGGLE_REST_MIN = 160;
     private static final int STRUGGLE_REST_MAX = 280;
     private static final double STRUGGLE_LOOKUP = 4.0;
+    private static final int JAM_WINDOW = 80;
+    private static final double JAM_PROGRESS_SQR = 9.0;
+    private static final int JAM_COVERED_TICKS = 60;
+    private static final int JAM_CEILING_SCAN = 3;
+    private static final float JAM_COLLISION_SHARE = 0.2f;
+    private static final float JAM_AIR_FRACTION = 0.5f;
+    private static final int JAM_MAX_STRIKES = 12;
+    private static final int JAM_COOLDOWN = 40;
+    private static final double JAM_FREED_SQR = 4.0;
+    private static final double JAM_AHEAD = 0.9;
+    private static final double JAM_REACH_BONUS = 0.6;
+    private static final float JAM_POWER = 2.0f;
     private static final double RECOIL = 0.22;
     private static final double SIEGE_MAX_DISTANCE = 56.0;
     private static final int SIEGE_PROBE_TTL = 40;
@@ -89,6 +103,16 @@ public class OWBreakout {
     private final OWEntity entity;
     private final OWEnclosureProbe probe;
     private Phase phase = Phase.IDLE;
+    private Vec3 jamAnchor = Vec3.ZERO;
+    private Vec3 jamStart = Vec3.ZERO;
+    private Vec3 jamDirection = new Vec3(0.0, 0.0, 1.0);
+    private int jamTicks;
+    private int jamCollisions;
+    private int coveredTicks;
+    private int jamStrikes;
+    private int jamCooldown;
+    @Nullable
+    private BlockPos jamTarget;
     @Nullable
     private OWBreachPlanner.Plan plan;
     private int stepIndex;
@@ -122,6 +146,7 @@ public class OWBreakout {
     private boolean assaultDirect;
     private boolean blockCombo;
     private int lastProgressTick = Integer.MIN_VALUE / 2;
+    private int siegeBlocksBroken;
 
     public OWBreakout(OWEntity entity) {
         this.entity = entity;
@@ -137,7 +162,8 @@ public class OWBreakout {
     }
 
     public boolean wantsControl() {
-        return phase == Phase.BREACHING || phase == Phase.SIEGING || (phase == Phase.STRUGGLING && struggleRest <= 0);
+        return phase == Phase.BREACHING || phase == Phase.SIEGING || phase == Phase.JAMMED
+                || (phase == Phase.STRUGGLING && struggleRest <= 0);
     }
 
     public boolean isStriking() {
@@ -160,11 +186,20 @@ public class OWBreakout {
         if (blockCombo && !entity.isCombo()) blockCombo = false;
         if (struggleRest > 0) struggleRest--;
         refreshAgitation();
+        if (jamCooldown > 0) jamCooldown--;
         if (phase == Phase.SIEGING) {
             tickSiege();
             return;
         }
-        if (!canBreakOut()) {
+        if (phase == Phase.JAMMED) {
+            tickJam();
+            return;
+        }
+        if (phase == Phase.IDLE && detectJam()) {
+            enterJam();
+            return;
+        }
+        if (!canBreakOut() || entity.sedationResponse.getChargeTarget() != null) {
             reset();
             return;
         }
@@ -189,6 +224,7 @@ public class OWBreakout {
     public void drive() {
         if (phase == Phase.BREACHING || phase == Phase.SIEGING) driveBreach();
         else if (phase == Phase.STRUGGLING) driveStruggle();
+        else if (phase == Phase.JAMMED) driveJam();
     }
 
     public boolean isSieging() {
@@ -312,6 +348,199 @@ public class OWBreakout {
                 || entity.sedationResponse.isAlarmed();
         if (provoked) agitation = AGITATION_MEMORY;
         else if (agitation > 0) agitation--;
+    }
+
+    private boolean canUnjam() {
+        if (!entity.isAlive() || entity.isTame() || !entity.usesAggressiveTaming()) return false;
+        if (entity.effectiveBlockBreakLevel() == OWBreakLevel.NONE) return false;
+        if (entity.isKnockedOut() || entity.isSleeping() || entity.isInResurrection()) return false;
+        if (entity.isPassenger() || entity.isVehicle()) return false;
+        if (entity.level().dimension().equals(OWDimensions.ARENA)) return false;
+        if (entity.sedationResponse.getChargeTarget() != null) return false;
+        if (!(entity.level() instanceof ServerLevel level) || !EventHooks.canEntityGrief(level, entity)) return false;
+        if (entity.isSedatedFleeing() && !entity.isInWater()) return false;
+        return agitation > 0;
+    }
+
+    private boolean detectJam() {
+        if (jamCooldown > 0 || !canUnjam()) {
+            jamTicks = 0;
+            jamCollisions = 0;
+            jamAnchor = entity.position();
+            return false;
+        }
+        boolean sealed = isSealedUnderwater();
+        boolean moving = entity.getNavigation().isInProgress() || entity.getMoveControl().hasWanted();
+        coveredTicks = entity.isInWater() && (moving || entity.isFleeingDanger()) && isUnderCover() ? coveredTicks + 1 : 0;
+        if (coveredTicks >= JAM_COVERED_TICKS) {
+            coveredTicks = 0;
+            return true;
+        }
+        if (!moving && !sealed) {
+            jamTicks = 0;
+            jamCollisions = 0;
+            jamAnchor = entity.position();
+            return false;
+        }
+        if (entity.horizontalCollision || (entity.verticalCollision && entity.isInWater())) jamCollisions++;
+        if (++jamTicks < JAM_WINDOW) return false;
+        boolean stalled = entity.position().distanceToSqr(jamAnchor) < JAM_PROGRESS_SQR;
+        boolean bumping = jamCollisions >= JAM_WINDOW * JAM_COLLISION_SHARE;
+        jamTicks = 0;
+        jamCollisions = 0;
+        jamAnchor = entity.position();
+        return sealed || (stalled && bumping);
+    }
+
+    private boolean isSealedUnderwater() {
+        if (!entity.isInWater() || entity.getAirSupply() >= entity.getMaxAirSupply() * JAM_AIR_FRACTION) return false;
+        return pickCeilingBlock() != null;
+    }
+
+    private void enterJam() {
+        phase = Phase.JAMMED;
+        plan = null;
+        clearStrike();
+        jamTarget = null;
+        jamStrikes = 0;
+        jamStart = entity.position();
+        jamDirection = intendedDirection();
+        entity.getNavigation().stop();
+    }
+
+    private void leaveJam(int cooldown) {
+        phase = Phase.IDLE;
+        jamTarget = null;
+        jamStrikes = 0;
+        jamTicks = 0;
+        jamCollisions = 0;
+        jamAnchor = entity.position();
+        jamCooldown = cooldown;
+        clearStrike();
+    }
+
+    private void tickJam() {
+        if (!canUnjam()) {
+            leaveJam(0);
+            return;
+        }
+        if (strikePending || strikePause > 0) return;
+        if (entity.position().distanceToSqr(jamStart) >= JAM_FREED_SQR) leaveJam(0);
+    }
+
+    private void driveJam() {
+        if (tickPendingStrike()) return;
+        if (jamStrikes >= JAM_MAX_STRIKES) {
+            leaveJam(JAM_COOLDOWN);
+            return;
+        }
+        if (jamTarget != null && !isObstruction(jamTarget)) jamStrikes = 0;
+        if (jamTarget == null || !isObstruction(jamTarget)) jamTarget = pickJamTarget();
+        if (jamTarget == null || distanceTo(jamTarget) > strikeReach() + JAM_REACH_BONUS) {
+            leaveJam(jamStrikes > 0 ? 0 : JAM_COOLDOWN);
+            return;
+        }
+        if (strikeAt(jamTarget)) jamStrikes++;
+    }
+
+    @Nullable
+    private BlockPos pickJamTarget() {
+        if (entity.isInWater()) {
+            BlockPos ceiling = pickCeilingBlock();
+            if (ceiling != null || entity.getAirSupply() < entity.getMaxAirSupply() * JAM_AIR_FRACTION) return ceiling;
+        }
+        return pickBlockAhead();
+    }
+
+    private boolean isUnderCover() {
+        AABB box = entity.getBoundingBox();
+        int start = Mth.floor(box.maxY - 1.0E-4);
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int x = Mth.floor(box.minX); x <= Mth.floor(box.maxX - 1.0E-4); x++)
+            for (int z = Mth.floor(box.minZ); z <= Mth.floor(box.maxZ - 1.0E-4); z++) {
+                boolean covered = false;
+                for (int y = start; y <= start + JAM_CEILING_SCAN; y++) {
+                    cursor.set(x, y, z);
+                    if (entity.level().getFluidState(cursor).is(FluidTags.WATER)) continue;
+                    covered = !entity.level().getBlockState(cursor).getCollisionShape(entity.level(), cursor).isEmpty();
+                    break;
+                }
+                if (!covered) return false;
+            }
+        return true;
+    }
+
+    @Nullable
+    private BlockPos pickCeilingBlock() {
+        AABB box = entity.getBoundingBox();
+        int start = Mth.floor(box.maxY - 1.0E-4);
+        Vec3 center = box.getCenter();
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int x = Mth.floor(box.minX); x <= Mth.floor(box.maxX - 1.0E-4); x++)
+            for (int z = Mth.floor(box.minZ); z <= Mth.floor(box.maxZ - 1.0E-4); z++)
+                for (int y = start; y <= start + JAM_CEILING_SCAN; y++) {
+                    cursor.set(x, y, z);
+                    if (entity.level().getFluidState(cursor).is(FluidTags.WATER)) continue;
+                    if (isObstruction(cursor)) {
+                        double distance = Vec3.atCenterOf(cursor).distanceToSqr(center);
+                        if (distance < bestDistance) {
+                            bestDistance = distance;
+                            best = cursor.immutable();
+                        }
+                    }
+                    break;
+                }
+        return best;
+    }
+
+    @Nullable
+    private BlockPos pickBlockAhead() {
+        AABB box = entity.getBoundingBox().move(jamDirection.x * JAM_AHEAD, 0.0, jamDirection.z * JAM_AHEAD);
+        int floor = Mth.floor(entity.getY() + 0.05);
+        return closestObstruction(Mth.floor(box.minX), Mth.floor(box.maxX - 1.0E-4), floor, Mth.floor(box.maxY - 1.0E-4),
+                Mth.floor(box.minZ), Mth.floor(box.maxZ - 1.0E-4));
+    }
+
+    @Nullable
+    private BlockPos closestObstruction(int minX, int maxX, int minY, int maxY, int minZ, int maxZ) {
+        Vec3 center = entity.getBoundingBox().getCenter();
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int x = minX; x <= maxX; x++)
+            for (int y = minY; y <= maxY; y++)
+                for (int z = minZ; z <= maxZ; z++) {
+                    cursor.set(x, y, z);
+                    if (!isObstruction(cursor)) continue;
+                    double distance = Vec3.atCenterOf(cursor).distanceToSqr(center);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        best = cursor.immutable();
+                    }
+                }
+        return best;
+    }
+
+    private boolean isObstruction(BlockPos pos) {
+        BlockState state = entity.level().getBlockState(pos);
+        if (state.getCollisionShape(entity.level(), pos).isEmpty()) return false;
+        return breakableNow(pos);
+    }
+
+    private Vec3 intendedDirection() {
+        Vec3 wanted = null;
+        if (entity.getNavigation().getPath() != null && !entity.getNavigation().isDone()) {
+            wanted = entity.getNavigation().getPath().getNextEntityPos(entity);
+        } else if (entity.getMoveControl().hasWanted()) {
+            wanted = new Vec3(entity.getMoveControl().getWantedX(), entity.getY(), entity.getMoveControl().getWantedZ());
+        }
+        Vec3 flat = wanted != null ? new Vec3(wanted.x - entity.getX(), 0.0, wanted.z - entity.getZ()) : Vec3.ZERO;
+        Vec3 danger = danger();
+        if (flat.lengthSqr() < 1.0E-4 && danger != null) flat = new Vec3(entity.getX() - danger.x, 0.0, entity.getZ() - danger.z);
+        if (flat.lengthSqr() < 1.0E-4) flat = Vec3.directionFromRotation(0f, entity.getYRot()).multiply(1.0, 0.0, 1.0);
+        return flat.lengthSqr() < 1.0E-4 ? new Vec3(0.0, 0.0, 1.0) : flat.normalize();
     }
 
     private boolean canBreakOut() {
@@ -593,6 +822,14 @@ public class OWBreakout {
         return blockCombo && entity.isCombo();
     }
 
+    public int siegeBlocksBroken() {
+        return siegeBlocksBroken;
+    }
+
+    public void resetSiegeBlocksBroken() {
+        siegeBlocksBroken = 0;
+    }
+
     public int ticksSinceProgress() {
         return entity.tickCount - lastProgressTick;
     }
@@ -688,7 +925,8 @@ public class OWBreakout {
     }
 
     private void breakBlock(ServerLevel level, BlockPos pos) {
-        level.destroyBlock(pos, true, entity);
+        level.destroyBlock(pos, level.random.nextFloat() < BLOCK_DROP_CHANCE, entity);
+        if (phase == Phase.SIEGING) siegeBlocksBroken++;
         OWPlacedBlocks.get(level).forget(pos);
         probe.invalidate();
     }
@@ -734,6 +972,7 @@ public class OWBreakout {
     private float strikePower() {
         float damage = (float) entity.getAttributeValue(Attributes.ATTACK_DAMAGE);
         float factor = Mth.clamp(damage / DAMAGE_REFERENCE, MIN_DAMAGE_FACTOR, MAX_DAMAGE_FACTOR);
+        if (phase == Phase.JAMMED) return factor * JAM_POWER;
         float drowsy = 1f;
         if (entity.getMaxSleepingBar() > 0) {
             float sleepiness = Mth.clamp(entity.getSleepBarPercent() / (float) OWAggressiveTaming.FLEE_THRESHOLD, 0f, 1f);

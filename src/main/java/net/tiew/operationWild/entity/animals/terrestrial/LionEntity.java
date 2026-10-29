@@ -327,9 +327,10 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         return ENTITY_COLOR;
     }
 
+    private static final double SADDLE_SHIELD_COVERAGE = 0.75;
     private static final List<OWSaddleShield> SADDLE_SHIELDS = List.of(
-            OWSaddleShield.modelPanel("cube_r1", -5.75f, 7.5f, 3.5f, -1.5708f, -0.0835f, -1.5706f, -6.5f, -5.5f, -0.5f, 12f, 11f, 1f),
-            OWSaddleShield.modelPanel("cube_r2", 5.75f, 7.5f, 3.5f, -1.5708f, 0.0835f, 1.5706f, -5.5f, -5.5f, -0.5f, 12f, 11f, 1f));
+            OWSaddleShield.modelPanel("cube_r1", -5.75f, 7.5f, 3.5f, -1.5708f, -0.0835f, -1.5706f, -6.5f, -5.5f, -0.5f, 12f, 11f, 1f).withCoverage(SADDLE_SHIELD_COVERAGE),
+            OWSaddleShield.modelPanel("cube_r2", 5.75f, 7.5f, 3.5f, -1.5708f, 0.0835f, 1.5706f, -5.5f, -5.5f, -0.5f, 12f, 11f, 1f).withCoverage(SADDLE_SHIELD_COVERAGE));
 
     @Override
     public List<OWSaddleShield> saddleShields() {

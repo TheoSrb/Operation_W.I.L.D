@@ -83,7 +83,7 @@ public class CrocodileTailPartModel extends EntityModel<CrocodileTailPart> {
                           float ageInTicks, float netHeadYaw, float headPitch) {
         this.segment.resetPose();
         CrocodileEntity parent = entity.getParent();
-        this.segment.visible = parent != null && !parent.isInWater();
+        this.segment.visible = parent != null && !parent.isVisuallyInWater();
         if (parent == null) return;
 
         Vector3f offset = new Vector3f(0f, parent.tailSedationDrop, 0f);

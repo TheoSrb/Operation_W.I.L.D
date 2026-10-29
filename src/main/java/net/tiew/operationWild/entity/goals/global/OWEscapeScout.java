@@ -25,6 +25,12 @@ public final class OWEscapeScout {
 
     private static final int LAND_SAMPLES = 10;
     private static final int AWAY_SAMPLES = 7;
+    private static final int NARROW_SAMPLES = 6;
+    private static final double NARROW_CONE = Math.PI / 6.0;
+    private static final double WIDE_CONE = Math.PI * 0.4;
+    private static final double HEADING_WEIGHT = 2.0;
+    private static final double LENGTH_WEIGHT = 1.0;
+    private static final double HEADING_JITTER = 0.1;
     private static final int SWIM_SAMPLES = 8;
     private static final int PATH_CHECKS = 3;
     private static final double GAIN_WEIGHT = 2.0;
@@ -44,20 +50,20 @@ public final class OWEscapeScout {
     }
 
     @Nullable
-    public static Vec3 find(OWEntity mob, @Nullable Vec3 danger, int radius, int height, Predicate<Vec3> rejected) {
+    public static Vec3 find(OWEntity mob, @Nullable Vec3 danger, @Nullable Vec3 heading, int radius, int height, Predicate<Vec3> rejected) {
         boolean swimmer = mob.isInWater() && (mob instanceof OWWaterEntity || mob instanceof OWSemiWaterEntity);
-        if (swimmer) return findSwim(mob, danger, radius, height, rejected);
+        if (swimmer) return findSwim(mob, danger, heading, radius, height, rejected);
 
         List<Candidate> candidates = new ArrayList<>();
         for (int i = 0; i < LAND_SAMPLES; i++) {
-            Vec3 sample = danger != null && i < AWAY_SAMPLES
-                    ? DefaultRandomPos.getPosAway(mob, radius, height, danger)
-                    : DefaultRandomPos.getPos(mob, radius, height);
+            Vec3 sample = sample(mob, danger, heading, radius, height, i);
             if (sample == null || rejected.test(sample)) continue;
-            candidates.add(new Candidate(sample, score(mob, sample, danger, radius)));
+            candidates.add(new Candidate(sample, score(mob, sample, danger, heading, radius)));
         }
         if (candidates.isEmpty()) {
-            Vec3 fallback = DefaultRandomPos.getPos(mob, Math.max(1, radius / 2), height);
+            Vec3 fallback = heading != null
+                    ? DefaultRandomPos.getPosTowards(mob, Math.max(1, radius / 2), height, mob.position().add(heading.scale(radius)), WIDE_CONE)
+                    : DefaultRandomPos.getPos(mob, Math.max(1, radius / 2), height);
             return fallback != null && !rejected.test(fallback) ? fallback : null;
         }
         candidates.sort(Comparator.comparingDouble(Candidate::score).reversed());
@@ -74,16 +80,29 @@ public final class OWEscapeScout {
         return fallback;
     }
 
-    private static double score(OWEntity mob, Vec3 spot, @Nullable Vec3 danger, int radius) {
-        double score = mob.getRandom().nextDouble() * JITTER;
+    @Nullable
+    private static Vec3 sample(OWEntity mob, @Nullable Vec3 danger, @Nullable Vec3 heading, int radius, int height, int index) {
+        if (heading != null) {
+            double cone = index < NARROW_SAMPLES ? NARROW_CONE : WIDE_CONE;
+            return DefaultRandomPos.getPosTowards(mob, radius, height, mob.position().add(heading.scale(radius)), cone);
+        }
+        if (danger != null && index < AWAY_SAMPLES) return DefaultRandomPos.getPosAway(mob, radius, height, danger);
+        return DefaultRandomPos.getPos(mob, radius, height);
+    }
+
+    private static double score(OWEntity mob, Vec3 spot, @Nullable Vec3 danger, @Nullable Vec3 heading, int radius) {
+        double score = mob.getRandom().nextDouble() * (heading != null ? HEADING_JITTER : JITTER);
+        Vec3 run = flatten(spot.subtract(mob.position()));
         if (danger != null) {
             double gain = (horizontal(spot, danger) - horizontal(mob.position(), danger)) / Math.max(1, radius);
-            Vec3 run = flatten(spot.subtract(mob.position()));
             Vec3 away = flatten(mob.position().subtract(danger));
             score += GAIN_WEIGHT * gain + ALIGN_WEIGHT * run.dot(away);
             if (!visibleFrom(mob, danger.add(0, EYE_HEIGHT, 0), spot.add(0, mob.getBbHeight() * 0.6, 0))) {
                 score += COVER_WEIGHT;
             }
+        }
+        if (heading != null) {
+            score += HEADING_WEIGHT * run.dot(heading) + LENGTH_WEIGHT * horizontal(spot, mob.position()) / Math.max(1, radius);
         }
         if (mob instanceof OWSemiWaterEntity && mob.level().getFluidState(BlockPos.containing(spot)).is(FluidTags.WATER)) {
             score += WATER_WEIGHT;
@@ -128,16 +147,18 @@ public final class OWEscapeScout {
     }
 
     @Nullable
-    private static Vec3 findSwim(OWEntity mob, @Nullable Vec3 danger, int radius, int height, Predicate<Vec3> rejected) {
+    private static Vec3 findSwim(OWEntity mob, @Nullable Vec3 danger, @Nullable Vec3 heading, int radius, int height, Predicate<Vec3> rejected) {
         Vec3 best = null;
-        double bestDistance = -1;
+        double bestScore = Double.NEGATIVE_INFINITY;
         for (int i = 0; i < SWIM_SAMPLES; i++) {
             Vec3 candidate = BehaviorUtils.getRandomSwimmablePos(mob, radius, height);
             if (candidate == null || rejected.test(candidate)) continue;
-            if (danger == null) return candidate;
-            double distance = candidate.distanceToSqr(danger);
-            if (distance > bestDistance) {
-                bestDistance = distance;
+            if (danger == null && heading == null) return candidate;
+            double score = heading != null
+                    ? (candidate.x - mob.getX()) * heading.x + (candidate.z - mob.getZ()) * heading.z
+                    : candidate.distanceToSqr(danger);
+            if (score > bestScore) {
+                bestScore = score;
                 best = candidate;
             }
         }

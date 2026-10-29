@@ -29,7 +29,7 @@ public class OWSaddleShieldEvents {
 
         DamageSource source = event.getDamageSource();
         Vec3 impact = OWSaddleShield.intercept(mount, victim, source);
-        if (impact == null) return;
+        if (impact == null || victim.getRandom().nextFloat() >= OWSaddleShield.BLOCK_CHANCE) return;
 
         event.setBlocked(true);
         event.setShieldDamage(0f);

@@ -273,7 +273,7 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 		// En jeu, la queue du modèle n'est visible que dans l'eau (les entités CrocodileTailPart
 		// la remplacent sur terre). En GUI, ces entités n'existent pas : RENDER_FULL_BODY force
 		// l'affichage de la queue du modèle pour montrer le crocodile entier.
-		boolean inWater = crocodile.isInWater() || RENDER_FULL_BODY;
+		boolean inWater = crocodile.isVisuallyInWater() || RENDER_FULL_BODY;
 		this.tail1.visible = inWater;
 		this.tail2.visible = inWater;
 		this.tail3.visible = inWater;
@@ -435,8 +435,10 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 			return;
 		}
 
-		if (!crocodile.isInWater()) {
-			this.animate(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f);
+		float swim = crocodile.waterBlend(Mth.clamp(ageInTicks - crocodile.tickCount, 0f, 1f));
+		float land = 1f - swim;
+		if (land > 0.001f) {
+			this.animateWeighted(crocodile.idleAnimationState, CrocodileAnimations.MISC_IDLE, ageInTicks, 1.0f, land);
 
 			// Une proie en gueule n'empêche PAS la course : le crocodile qui traîne sa prise vers
 			// l'eau file au contraire à toute allure. Le garde-fou sur hasGrabSomething() ne se
@@ -445,27 +447,30 @@ public class CrocodileModel<T extends CrocodileEntity> extends OWComboModel<T> i
 			if ((crocodile.isRunning() || crocodile.getState() == 2) && !crocodile.isChargingMouth()) {
 				float speed = crocodile.getControllingPassenger() != null ? 1.2f : 1.5f;
 
-				this.animateWalk(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, speed, 1.25f);
+				this.animateWalkWeighted(CrocodileAnimations.MOVE_RUN, limbSwing, limbSwingAmount, speed, 1.25f, land);
 
-				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, speed, 200L)) crocodile.onRightFootDown();
-				if (walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, speed, 480L)) crocodile.onLeftFootDown();
+				if (land > 0.5f && walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, speed, 200L)) crocodile.onRightFootDown();
+				if (land > 0.5f && walkAnimCrossed(CrocodileAnimations.MOVE_RUN, limbSwing, speed, 480L)) crocodile.onLeftFootDown();
 
 			} else {
 				float speed = crocodile.getControllingPassenger() != null ? 8.5f : 6.5f;
-				this.animateWalk(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, speed, speed);
+				this.animateWalkWeighted(CrocodileAnimations.MOVE_WALK, limbSwing, limbSwingAmount, speed, speed, land);
 
-				if (walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 300L)) crocodile.onRightFootDown();
-				if (walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 1000L)) crocodile.onLeftFootDown();
+				if (land > 0.5f && walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 300L)) crocodile.onRightFootDown();
+				if (land > 0.5f && walkAnimCrossed(CrocodileAnimations.MOVE_WALK, limbSwing, speed, 1000L)) crocodile.onLeftFootDown();
 			}
-		} else {
+		}
+		if (swim > 0.001f) {
 			// Idle aquatique monté : croco apprivoisé + monté + immobile dans l'eau
 			if (crocodile.isTame() && crocodile.isVehicle() && limbSwingAmount < 0.01f) {
 				crocodile.idleWaterMountedAnimState.startIfStopped((int) ageInTicks);
-				this.animate(crocodile.idleWaterMountedAnimState, CrocodileAnimations.IDLE_WATER_MOUNTED, ageInTicks, 1.0f);
+				this.animateWeighted(crocodile.idleWaterMountedAnimState, CrocodileAnimations.IDLE_WATER_MOUNTED, ageInTicks, 1.0f, swim);
 			} else {
 				crocodile.idleWaterMountedAnimState.stop();
-				this.animateWalk(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f);
+				this.animateWalkWeighted(CrocodileAnimations.MOVE_SWIM, limbSwing, limbSwingAmount, 3f, 15f, swim);
 			}
+		} else {
+			crocodile.idleWaterMountedAnimState.stop();
 		}
 
 		if (crocodile.isPlayerMouthCharging()) {

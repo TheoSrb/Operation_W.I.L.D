@@ -155,6 +155,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     private int hideCooldown = MAX_NO_HIDING_TIMER + this.random.nextInt(MAX_NO_HIDING_TIMER / 2);
     private int hideDuration = 0;
+    private boolean sedationCamouflage;
 
     public boolean isLeaping = false;
     public boolean isPreparing = false;
@@ -901,6 +902,18 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
      * Méthode permettant de gérer la logique de camouflage aléatoire du Tigre.
      */
     private void handleCamouflage() {
+        if (this.isSedatedFleeing()) {
+            if (!this.isHidden()) this.setHidden(true);
+            sedationCamouflage = true;
+            return;
+        }
+        if (sedationCamouflage) {
+            sedationCamouflage = false;
+            hideDuration = 0;
+            hideCooldown = MAX_HIDING_TIMER + this.random.nextInt(MAX_HIDING_TIMER / 2);
+            if (this.isHidden() && !isShadowStrikeActive()) this.setHidden(false);
+        }
+
         if (this.isTame() || this.isBaby() || this.isNapping() || this.isSleeping() || (this.getTarget() != null && this.level().isDay())) {
             // Ne pas forcer la révélation si le Shadow Strike est actif
             if (this.isHidden() && !isShadowStrikeActive()) this.setHidden(false);

@@ -10,10 +10,12 @@ import net.minecraft.world.item.Items;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.misc.SlingshotProjectile;
 import net.tiew.operationWild.entity.misc.TranquilizerArrow;
+import net.tiew.operationWild.entity.misc.TranquilizerDart;
 import net.tiew.operationWild.entity.misc.TranquilizerWoodenStinger;
 import net.tiew.operationWild.item.OWItems;
 import net.tiew.operationWild.item.custom.MayaBlowpipeItem;
 import net.tiew.operationWild.item.custom.PrimitiveSlingshotItem;
+import net.tiew.operationWild.item.custom.SyringeRifleItem;
 
 import java.util.Map;
 import java.util.function.IntToDoubleFunction;
@@ -38,6 +40,8 @@ public final class OWWikiSedativesSection {
         weapons.add(bow(lang));
         weapons.add(blowpipe(lang));
         weapons.add(slingshot(lang));
+        weapons.add(rifle("rifle", OWItems.TRANQUILIZER_DART.get(), TranquilizerDart.TRANQUILIZER_EFFECTIVENESS, lang));
+        weapons.add(rifle("rifle_concentrated", OWItems.CONCENTRATED_TRANQUILIZER_DART.get(), TranquilizerDart.CONCENTRATED_TRANQUILIZER_EFFECTIVENESS, lang));
         sedatives.add("weapons", weapons);
         sedatives.add("resistances", resistances());
         return sedatives;
@@ -91,6 +95,16 @@ public final class OWWikiSedativesSection {
         slingshot.addProperty("power_independent_of_draw", true);
         flatPower(slingshot, arrowLikePower(SlingshotProjectile.TRANQUILIZER_EFFECTIVENESS, SlingshotProjectile.HIT_DAMAGE));
         return slingshot;
+    }
+
+    private static JsonObject rifle(String key, Item ammo, int power, OWWikiLang lang) {
+        JsonObject rifle = weapon(key, "flat", OWItems.SYRINGE_RIFLE.get(), ammo, power, SyringeRifleItem.AIM_DURATION, lang);
+        int cycle = SyringeRifleItem.RECOIL_TICKS + SyringeRifleItem.RELOAD_DURATION;
+        rifle.addProperty("reload_ticks", SyringeRifleItem.RELOAD_DURATION);
+        rifle.addProperty("interval_seconds", cycle / 20.0);
+        rifle.addProperty("auto_reload", true);
+        flatPower(rifle, power);
+        return rifle;
     }
 
     private static JsonObject weapon(String key, String formula, Item launcher, Item ammo, int effectiveness, int drawTicks, OWWikiLang lang) {

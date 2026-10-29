@@ -13,6 +13,8 @@ import terrablender.api.RegionType;
 import java.util.function.Consumer;
 
 public class OWOverworldRegion extends Region {
+
+    private static final float UNREACHABLE_CLIMATE = 10f;
     public OWOverworldRegion(ResourceLocation name, int weight) {
         super(name, RegionType.OVERWORLD, weight);
     }
@@ -21,10 +23,11 @@ public class OWOverworldRegion extends Region {
     public void addBiomes(Registry<Biome> registry, Consumer<Pair<Climate.ParameterPoint, ResourceKey<Biome>>> mapper) {
         //addBiome(mapper, 0.5f, 0.8f, 1.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.3f, OWBiomes.REDWOOD_FOREST_BIOME);
 
+        Climate.Parameter unreachable = Climate.Parameter.point(UNREACHABLE_CLIMATE);
+        this.addBiome(mapper, Climate.parameters(unreachable, unreachable, unreachable, unreachable, unreachable, unreachable, 0f),
+                OWBiomes.REDWOOD_FOREST_BIOME);
+
         this.addModifiedVanillaOverworldBiomes(mapper, modifiedVanillaOverworldBuilder -> {
-            modifiedVanillaOverworldBuilder.replaceBiome(Biomes.TAIGA, OWBiomes.REDWOOD_FOREST_BIOME);
-            modifiedVanillaOverworldBuilder.replaceBiome(Biomes.OLD_GROWTH_PINE_TAIGA, OWBiomes.REDWOOD_FOREST_BIOME);
-            modifiedVanillaOverworldBuilder.replaceBiome(Biomes.OLD_GROWTH_SPRUCE_TAIGA, OWBiomes.REDWOOD_FOREST_BIOME);
             // Mine Field : remplace uniquement les variantes froides/gelées — elles apparaissent
             // dans les zones les plus extrêmes de l'océan profond, naturellement éloignées de toute terre.
             // DEEP_OCEAN (tempéré) est exclu car il peut border des biomes terrestres mixtes.

@@ -88,6 +88,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
     public static final double TAMING_EXPERIENCE = 230.0;
     public static final int MAX_SOMNOLENCE = 3600;
+    private static final float TAMING_CHASE_SPEED_FACTOR = 0.92f;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 3;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 6;
     public static final int SEDATION_WAKE_TICKS = 48;
@@ -122,6 +123,8 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     private static final double HEADBUTT_LIFT = 0.36;
     private static final float WILD_SWIM_CAP = 0.16f;
     private static final float WILD_SWIM_CHASE_BONUS = 1.15f;
+    private static final double HERD_RALLY_RADIUS = 20.0;
+    private static final double HERD_RALLY_HEIGHT = 8.0;
     private static final double RIVERBED_SINK_SPEED = 0.08;
     private static final double RIVERBED_RISE_SPEED = 0.12;
     private static final double RIVERBED_CLIMB_SPEED = 0.22;
@@ -427,15 +430,20 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     }
 
     @Override
+    protected float swimPitchLimit() {
+        return 30f;
+    }
+
+    @Override
     protected float bankMaxAngle() {
-        if (this.isInWater() && !walksRiverBed()) return 45f;
+        if (this.isVisuallyInWater() && !walksRiverBed()) return 45f;
         return isRolling() ? 24f : 18f;
     }
 
     @Override
     protected float bankReferenceYawRate(boolean ridden) {
         if (isRolling()) return 1.0f;
-        if (this.isInWater() && !walksRiverBed()) return super.bankReferenceYawRate(ridden);
+        if (this.isVisuallyInWater() && !walksRiverBed()) return super.bankReferenceYawRate(ridden);
         return ridden ? 7.0f : 2.5f;
     }
 
@@ -527,6 +535,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         float speed = super.getSpeed();
         if (isRiverSurging()) speed *= 1f + OWAttacksConstants.Hippopotamus.RIVER_SURGE_SPEED_BONUS;
         if (isRiverFuryActive()) speed *= OWAttacksConstants.Hippopotamus.FURY_SPEED_FACTOR;
+        if (!this.isTame() && this.sedationResponse != null && this.sedationResponse.getChargeTarget() != null) speed *= TAMING_CHASE_SPEED_FACTOR;
         return speed;
     }
 
@@ -744,7 +753,28 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
             this.entityData.set(FURY_GRUDGE, Math.min(OWAttacksConstants.Hippopotamus.FURY_GRUDGE_MAX,
                     getFuryGrudge() + OWAttacksConstants.Hippopotamus.FURY_GRUDGE_PER_HIT));
         }
+        if (hurt && !this.level().isClientSide() && damageSource.getEntity() instanceof LivingEntity attacker) {
+            rallyHerd(attacker);
+        }
         return hurt;
+    }
+
+    private void rallyHerd(LivingEntity attacker) {
+        if (this.isTame() || attacker == this || attacker instanceof HippopotamusEntity || !attacker.isAlive()) return;
+        if (attacker instanceof Player player && (player.isCreative() || player.isSpectator())) return;
+        boolean taming = this.isSedationAgitated();
+        AABB area = this.getBoundingBox().inflate(HERD_RALLY_RADIUS, HERD_RALLY_HEIGHT, HERD_RALLY_RADIUS);
+        for (HippopotamusEntity mate : this.level().getEntitiesOfClass(HippopotamusEntity.class, area,
+                mate -> mate != this && mate.answersHerdCall(attacker))) {
+            mate.setNap(false);
+            if (taming) mate.sedationResponse.rally(attacker);
+            else mate.setLastHurtByMob(attacker);
+        }
+    }
+
+    private boolean answersHerdCall(LivingEntity attacker) {
+        return this.isAlive() && !this.isTame() && !this.isBaby() && !this.isSleeping() && !this.isVehicle()
+                && !this.isSedatedFleeing() && !this.isAlliedTo(attacker) && this.getTarget() != attacker;
     }
 
     @Override

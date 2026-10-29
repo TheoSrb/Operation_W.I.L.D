@@ -1016,11 +1016,10 @@ public class ClientEvents {
             }
 
 
-            if (questsAreUpdated) {
-                OWUtilsOverlay.render(event.getGuiGraphics(),
-                        event.getGuiGraphics().guiWidth(),
-                        event.getGuiGraphics().guiHeight());
-            }
+            OWUtilsOverlay.render(event.getGuiGraphics(),
+                    event.getGuiGraphics().guiWidth(),
+                    event.getGuiGraphics().guiHeight(),
+                    questsAreUpdated);
 
             // Encart de nourriture retiré du HUD : ranger de la bouffe dans le slot n'a plus à
             // s'annoncer à l'écran. La monture y pioche d'elle-même hors combat, et c'est la jauge
@@ -1222,7 +1221,7 @@ public class ClientEvents {
             return;
         }
 
-        if (mc.screen != null || mc.options.hideGui) return;
+        if (mc.screen != null || mc.options.hideGui || !net.tiew.operationWild.ClientConfig.get(net.tiew.operationWild.ClientConfig.MOUNT_ALERTS)) return;
 
         // Le lisere rouge reste reserve a la monture : un compagnon d'epaule blesse a deja sa barre
         // de vie et son signe d'alerte, un ecran rouge se lirait comme la sante du joueur.

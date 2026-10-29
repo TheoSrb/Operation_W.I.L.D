@@ -32,9 +32,6 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
 
     private static final OWSedationAnimationSet SEDATION = new OWSedationAnimationSet(KangarooAnimations.SEDATED_FALL, KangarooAnimations.SEDATED_REST, KangarooAnimations.SEDATED_WAKE);
 
-    private static final float HOP_ANIM_LENGTH_MS = 1000f;
-    private static final float HOP_ANIM_SPEED = 0.64f;
-    private static final Vector3f HOP_ANIM_VEC = new Vector3f();
     private static final Vector3f STOMP_ANIM_VEC = new Vector3f();
 
     private final ModelPart ALL2;
@@ -279,27 +276,11 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         if (!kangaroo.isRunning())
             this.animateWeighted(kangaroo.idleAnimationState, KangarooAnimations.MISC_IDLE, ageInTicks, 1.0f, land);
 
-        if (kangaroo.isHopping()) {
-            animateHop(kangaroo, ageInTicks, limbSwingAmount, land);
-        } else if (!kangaroo.isCombo(3)) {
+        if (!kangaroo.isCombo(3)) {
             this.animateWalkWeighted(KangarooAnimations.MOVE_WALK, limbSwing, limbSwingAmount, s, s * 1.25f, land);
         }
 
         animateSwim(kangaroo, KangarooAnimations.SWIM, ageInTicks, swim);
-
-        if (kangaroo.isPivoting()) animatePivot(ageInTicks);
-    }
-
-    private void animateHop(T kangaroo, float ageInTicks, float limbSwingAmount, float weight) {
-        float partial = Mth.clamp(ageInTicks - kangaroo.tickCount, 0f, 1f);
-        float elapsed = kangaroo.hopAnimTicks + partial;
-        float period = Math.max(4f, kangaroo.hopAnimPeriod);
-        float cycle = Mth.clamp(elapsed / period, 0f, 1f);
-
-        long ms = (long) (cycle * HOP_ANIM_LENGTH_MS * HOP_ANIM_SPEED);
-        float amount = Math.max(0.55f, Math.min(1.0f, limbSwingAmount * 2.2f)) * weight;
-        if (amount <= 0.001f) return;
-        KeyframeAnimations.animate(this, KangarooAnimations.MOVE_WALK, ms, amount, HOP_ANIM_VEC);
     }
 
     private void animateGrazing(float ageInTicks) {
@@ -346,24 +327,6 @@ public class KangarooModel<T extends KangarooEntity> extends OWComboModel<T> {
         this.right_leg.xRot += -0.14f * dip;
         this.right_leg2.xRot += 0.20f * dip;
         this.right_leg3.xRot += -0.07f * dip;
-    }
-
-    private void animatePivot(float ageInTicks) {
-        float cycle = ageInTicks * 0.9f;
-        float hop = Math.abs(Mth.sin(cycle)) * 1.4f;
-        float sway = Mth.cos(cycle * 2f) * 0.07f;
-
-        this.ALL.y -= hop;
-        this.ALL.zRot += sway;
-        this.body2.xRot += -0.10f - hop * 0.05f;
-        this.tail.xRot += 0.18f + hop * 0.06f;
-        this.back_tail.xRot += 0.10f;
-        this.left_arm.xRot += -0.30f;
-        this.right_arm.xRot += -0.30f;
-        this.left_leg.xRot += -hop * 0.20f;
-        this.right_leg.xRot += hop * 0.20f;
-        this.left_Ear.xRot += -0.18f;
-        this.right_Ear.xRot += -0.18f;
     }
 
     private void animateTelluricStomp(T kangaroo, float ageInTicks) {

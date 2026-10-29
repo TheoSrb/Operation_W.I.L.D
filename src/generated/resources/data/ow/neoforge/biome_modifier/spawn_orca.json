@@ -6,7 +6,7 @@
   ],
   "spawners": {
     "type": "ow:orca",
-    "maxCount": 4,
+    "maxCount": 3,
     "minCount": 1,
     "weight": 10
   }

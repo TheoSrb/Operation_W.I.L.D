@@ -205,7 +205,7 @@ public class GorillaModel<T extends GorillaEntity> extends OWComboModel<T> {
 
     private float comboElapsedMs(T gorilla, int index, AnimationState state, float ageInTicks) {
         if (!state.isStarted()) return -1f;
-        state.updateTime(ageInTicks, comboSpeed(index) * COMBO_ANIMATION_SPEED * gorilla.comboSpeedMultiplier);
+        advance(state, ageInTicks, comboSpeed(index) * COMBO_ANIMATION_SPEED * gorilla.comboSpeedMultiplier);
         return state.getAccumulatedTime();
     }
 

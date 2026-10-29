@@ -81,7 +81,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public static final int FOOD_WANTED_MIN = 6;
     public static final int FOOD_WANTED_MAX = 10;
     private static final int SPAWN_MIN_DEPTH = 8;
-    public static final int SPAWN_CHUNK_ONE_IN = 8;
+    public static final int SPAWN_CHUNK_ONE_IN = 24;
     private static final long SPAWN_CHUNK_SALT = 412837190L;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);

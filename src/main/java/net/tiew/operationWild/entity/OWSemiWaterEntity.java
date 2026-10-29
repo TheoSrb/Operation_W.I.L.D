@@ -13,10 +13,13 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.tags.FluidTags;
+import net.tiew.operationWild.entity.navigation.OWGroundPathNavigation;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.navigation.WaterBoundPathNavigation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.core.OWDamageSources;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
@@ -53,17 +56,44 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
 
     private final float TARGET_YAW_SPEED = 0.03f;
     private final float PITCH_SMOOTH_SPEED = 0.08f;
+    private static final float WADE_DEPTH_FRACTION = 0.6f;
+    private static final float WADE_FRICTION = 0.6f;
+    private static final double WADE_SPEED_FACTOR = 0.85;
+    private static final double WANTED_ARRIVAL_SQR = 1.0;
+    private static final float BANK_STEP = 2.0f;
+    private static final double BANK_PROBE_MARGIN = 0.6;
+    private static final int BANK_PROBE_HEIGHT = 3;
+    private static final double BANK_LIFT_BASE = 0.35;
+    private static final double BANK_LIFT_PER_BLOCK = 0.15;
+    private static final double BANK_LIFT_MAX = 0.75;
+    private static final double OBSTACLE_LIFT = 0.3;
+    private static final double BANK_MIN_RISE = 1.0;
+    private static final int BANK_CLIMB_TICKS = 12;
+    private static final double BANK_PUSH = 0.08;
+    private static final double BANK_PUSH_MAX = 0.25;
+    private int bankClimbTicks;
+    private static final float SWIM_PITCH_SMOOTHING = 0.15f;
+    private static final float FLEE_YAW_SPEED = 0.25f;
+    private static final int SURFACE_AIR_RESERVE = 200;
+    private float swimPitch;
+    private float swimPitchPrev;
+    private static final int WATER_VISUAL_SETTLE = 6;
+    private static final float WATER_BLEND_STEP = 0.12f;
+    private int waterVisualTicks;
+    private boolean waterVisual;
+    private float waterBlend;
+    private float waterBlendO;
     private final float TARGET_TRANSITION_SPEED = 0.1f;
     private float targetModeBlend = 0.0f;
 
-    private GroundPathNavigation groundNavigation;
-    private WaterBoundPathNavigation waterNavigation;
+    private OWGroundPathNavigation groundNavigation;
+    private OWWaterNavigation waterNavigation;
 
     public OWSemiWaterEntity(EntityType<? extends TamableAnimal> entityType, Level level, float scale, int maxSleepBar, int sleepBarDownSpeed) {
         super(entityType, level, scale, maxSleepBar, sleepBarDownSpeed);
 
-        this.groundNavigation = new GroundPathNavigation(this, level);
-        this.waterNavigation = new WaterBoundPathNavigation(this, level);
+        this.groundNavigation = new OWGroundPathNavigation(this, level);
+        this.waterNavigation = new OWWaterNavigation(this, level);
 
         this.YAW_SMOOTH_SPEED = 0.015f * getSwimSpeed();
         this.HORIZONTAL_SPEED = 0.02f * getSwimSpeed();
@@ -100,7 +130,7 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
      */
     @Override
     protected boolean canLean() {
-        return this.isInWater() && !this.isSitting() && !this.isSleeping();
+        return this.isVisuallyInWater() && !this.isSitting() && !this.isSleeping();
     }
 
     @Override
@@ -162,6 +192,10 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
      */
     @Override
     public void travel(Vec3 vec3) {
+        if (this.isWading() && this.getControllingPassenger() == null && this.isEffectiveAi()) {
+            wade(vec3);
+            return;
+        }
         if (this.isInWater() && (this.isEffectiveAi() || this.isControlledByLocalInstance())) {
             this.moveRelative(0.1F, vec3);
             if (!(this.getControllingPassenger() instanceof Player)) capWildSwimSpeed();
@@ -185,7 +219,12 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
             }
 
             if (this.horizontalCollision && this.getDeltaMovement().y < 0.1) {
-                this.setDeltaMovement(this.getDeltaMovement().add(0.0D, 0.3D, 0.0D));
+                Vec3 motion = this.getDeltaMovement();
+                double rise = bankRise();
+                boolean bank = rise > BANK_MIN_RISE;
+                double lift = bank ? Math.min(BANK_LIFT_MAX, BANK_LIFT_BASE + BANK_LIFT_PER_BLOCK * rise) : 0.0;
+                this.setDeltaMovement(motion.x, Math.max(motion.y + OBSTACLE_LIFT, lift), motion.z);
+                if (bank && this.getControllingPassenger() == null) bankClimbTicks = BANK_CLIMB_TICKS;
             }
         } else {
             super.travel(vec3);
@@ -202,6 +241,110 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         return accelerating ? RIDDEN_SWIM_ACCEL_RESPONSE : RIDDEN_SWIM_BRAKE_RESPONSE;
     }
 
+    @Override
+    public float maxUpStep() {
+        float step = super.maxUpStep();
+        boolean footing = this.onGround() || this.isWading();
+        return this.isInWater() && footing && this.getControllingPassenger() == null ? Math.max(step, BANK_STEP) : step;
+    }
+
+    private void riseWhileSwimming() {
+        Vec3 motion = this.getDeltaMovement();
+        this.setDeltaMovement(motion.x, Math.max(motion.y, 0.0) + SURFACE_RISE_SPEED, motion.z);
+    }
+
+    private void tickWaterVisual() {
+        this.waterVisualTicks = Mth.clamp(this.waterVisualTicks + (this.isInWater() ? 1 : -1), 0, WATER_VISUAL_SETTLE);
+        if (this.waterVisualTicks >= WATER_VISUAL_SETTLE) this.waterVisual = true;
+        else if (this.waterVisualTicks == 0) this.waterVisual = false;
+        this.waterBlendO = this.waterBlend;
+        this.waterBlend = Mth.approach(this.waterBlend, this.waterVisual ? 1f : 0f, WATER_BLEND_STEP);
+    }
+
+    public boolean isVisuallyInWater() {
+        return this.level().isClientSide() ? this.waterVisual : this.isInWater();
+    }
+
+    public float waterBlend(float partialTick) {
+        float t = Mth.lerp(partialTick, this.waterBlendO, this.waterBlend);
+        return t * t * (3f - 2f * t);
+    }
+
+    protected float swimPitchLimit() {
+        return 40f;
+    }
+
+    public float getSwimPitch(float partialTick) {
+        return Mth.lerp(partialTick, this.swimPitchPrev, this.swimPitch);
+    }
+
+    private void tickSwimPitch() {
+        this.swimPitchPrev = this.swimPitch;
+        if (this.isTame() && this.isVehicle() && !this.isSitting() && this.isInWater()) {
+            this.swimPitch = this.getRidePitch(1f);
+            return;
+        }
+        float limit = this.swimPitchLimit();
+        float target = this.isTame() ? 0f : Mth.clamp(this.getTargetPitch(), -limit, limit);
+        this.swimPitch += (target - this.swimPitch) * SWIM_PITCH_SMOOTHING;
+        if (Math.abs(this.swimPitch) < 0.01f && target == 0f) this.swimPitch = 0f;
+    }
+
+    private void tickBankClimb() {
+        if (bankClimbTicks <= 0) return;
+        bankClimbTicks--;
+        if (this.onGround() && !this.isInWater()) {
+            bankClimbTicks = 0;
+            return;
+        }
+        if (this.isInWater()) return;
+        double yaw = Math.toRadians(this.getYRot());
+        Vec3 motion = this.getDeltaMovement();
+        double x = motion.x - Math.sin(yaw) * BANK_PUSH;
+        double z = motion.z + Math.cos(yaw) * BANK_PUSH;
+        double horizontal = Math.sqrt(x * x + z * z);
+        if (horizontal > BANK_PUSH_MAX) {
+            x *= BANK_PUSH_MAX / horizontal;
+            z *= BANK_PUSH_MAX / horizontal;
+        }
+        this.setDeltaMovement(x, motion.y, z);
+    }
+
+    private double bankRise() {
+        double yaw = Math.toRadians(this.getYRot());
+        double reach = this.getBbWidth() * 0.5 + BANK_PROBE_MARGIN;
+        int x = Mth.floor(this.getX() - Math.sin(yaw) * reach);
+        int z = Mth.floor(this.getZ() + Math.cos(yaw) * reach);
+        int base = Mth.floor(this.getY());
+        int clearance = Mth.ceil(this.getBbHeight());
+        for (int k = 0; k <= BANK_PROBE_HEIGHT; k++) {
+            if (!isOpenColumn(x, base + k, z, clearance)) continue;
+            return k == 0 ? -1.0 : base + k - this.getY();
+        }
+        return -1.0;
+    }
+
+    private boolean isOpenColumn(int x, int y, int z, int height) {
+        for (int i = 0; i < height; i++) {
+            BlockPos pos = new BlockPos(x, y + i, z);
+            if (!this.level().getBlockState(pos).getCollisionShape(this.level(), pos).isEmpty()) return false;
+        }
+        return true;
+    }
+
+    public boolean isWading() {
+        if (!this.isInWater()) return false;
+        if (this.getFluidHeight(FluidTags.WATER) >= this.getBbHeight() * WADE_DEPTH_FRACTION) return false;
+        return this.onGround() || !this.level().getBlockState(this.blockPosition().below()).getCollisionShape(this.level(), this.blockPosition().below()).isEmpty();
+    }
+
+    private void wade(Vec3 vec3) {
+        Vec3 moved = this.handleRelativeFrictionAndCalculateMovement(vec3.scale(WADE_SPEED_FACTOR), WADE_FRICTION);
+        double drag = this.onGround() ? WADE_FRICTION * 0.91 : 0.91;
+        this.setDeltaMovement(moved.x * drag, (moved.y - this.getGravity()) * 0.98, moved.z * drag);
+        this.calculateEntityAnimation(false);
+    }
+
     public float wildSwimSpeedCap() {
         return 0.15f;
     }
@@ -209,7 +352,7 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
     private void capWildSwimSpeed() {
         Vec3 motion = this.getDeltaMovement();
         double horizontal = motion.horizontalDistance();
-        double cap = wildSwimSpeedCap() * this.sedationResponse.chaseSpeedFactor();
+        double cap = wildSwimSpeedCap() * this.sedationResponse.chaseSpeedFactor() * this.tamingSpeedFactor() * this.fleeSpeedFactor();
         if (horizontal <= cap) return;
         double scale = cap / horizontal;
         this.setDeltaMovement(motion.x * scale, motion.y, motion.z * scale);
@@ -233,13 +376,19 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         // faisait en plus sauter les dégâts de pression — un crocodile qui noyait sa victime au
         // fond ne les subissait jamais.
 
+        if (this.level().isClientSide()) {
+            tickWaterVisual();
+            tickSwimPitch();
+        }
+
         LivingEntity rider = this.getControllingPassenger();
         int depth = (int) (this.level().getSeaLevel() - this.getY());
 
         if (this.isEffectiveAi() && !this.isVehicle() && !this.isSitting()) {
             switchNavigation();
+            tickBankClimb();
 
-            if (this.isInWater()) {
+            if (this.isInWater() && !this.isWading() && !this.breakout.wantsControl()) {
                 handleSmoothSwimming();
             } else if (!this.level().isClientSide()) {
                 float p = this.getTargetPitch();
@@ -269,6 +418,7 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         LivingEntity target = this.getTarget();
         boolean hasTarget = target != null;
         Vec3 pathPoint = hasTarget ? null : currentPathPoint();
+        if (!hasTarget && pathPoint == null) pathPoint = wantedPoint();
 
         if (hasTarget) {
             targetModeBlend = Math.min(1.0f, targetModeBlend + TARGET_TRANSITION_SPEED);
@@ -307,7 +457,7 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         while (yawDiff > 180f) yawDiff -= 360f;
         while (yawDiff < -180f) yawDiff += 360f;
 
-        float yawSpeed = hasTarget ? 0.18f : (pathPoint != null ? 0.14f : YAW_SMOOTH_SPEED);
+        float yawSpeed = hasTarget ? 0.18f : (pathPoint != null ? (this.isFleeingDanger() ? FLEE_YAW_SPEED : 0.14f) : YAW_SMOOTH_SPEED);
         swimYaw += yawDiff * yawSpeed;
 
         while (swimYaw > 360f) swimYaw -= 360f;
@@ -353,23 +503,24 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         double airPercentage = (double) currentAir / maxAir * 100.0;
         int depth = (int) (this.level().getSeaLevel() - this.getY());
 
-        if (airPercentage < 15.0 || depth >= getMaxDepth()) {
-            if (!this.isAtSurface()) {
-                double yawRadians = Math.toRadians(swimYaw);
-                double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 0.5;
-                double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED * 0.5;
-                this.setDeltaMovement(this.getDeltaMovement().add(moveX, SURFACE_RISE_SPEED, moveZ));
-                return;
-            }
+        boolean surfacing = (airPercentage < 15.0 || currentAir < SURFACE_AIR_RESERVE || depth >= getMaxDepth()) && !this.isAtSurface();
+        if (surfacing && !hasTarget && pathPoint == null) {
+            double yawRadians = Math.toRadians(swimYaw);
+            double moveX = -Math.sin(yawRadians) * HORIZONTAL_SPEED * 0.5;
+            double moveZ = Math.cos(yawRadians) * HORIZONTAL_SPEED * 0.5;
+            this.setDeltaMovement(this.getDeltaMovement().add(moveX, SURFACE_RISE_SPEED, moveZ));
+            return;
         }
 
         if (hasTarget) {
             handleTargetSwimming(target);
+            if (surfacing) riseWhileSwimming();
             return;
         }
 
         if (pathPoint != null) {
             handlePathSwimming(pathPoint);
+            if (surfacing) riseWhileSwimming();
             return;
         }
 
@@ -391,6 +542,13 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         net.minecraft.world.level.pathfinder.Path path = nav.getPath();
         if (path == null || path.isDone()) return null;
         return path.getNextEntityPos(this);
+    }
+
+    @javax.annotation.Nullable
+    private Vec3 wantedPoint() {
+        if (!this.getMoveControl().hasWanted()) return null;
+        Vec3 wanted = new Vec3(this.getMoveControl().getWantedX(), this.getMoveControl().getWantedY(), this.getMoveControl().getWantedZ());
+        return wanted.distanceToSqr(this.position()) <= WANTED_ARRIVAL_SQR ? null : wanted;
     }
 
     protected void handleFreeSwimming() {
@@ -524,14 +682,24 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
     }
 
     protected void switchNavigation() {
-        if (this.isInWater()) {
-            if (this.navigation != this.waterNavigation) {
-                this.navigation = this.waterNavigation;
-            }
-        } else {
-            if (this.navigation != this.groundNavigation) {
-                this.navigation = this.groundNavigation;
-            }
+        PathNavigation wanted = this.isInWater() && !this.isWading() ? this.waterNavigation : this.groundNavigation;
+        if (this.navigation == wanted) return;
+        PathNavigation previous = this.navigation;
+        BlockPos destination = previous.isDone() ? null : previous.getTargetPos();
+        double speed = previous instanceof OWGroundPathNavigation ground ? ground.speed()
+                : previous instanceof OWWaterNavigation water ? water.speed() : 1.0;
+        previous.stop();
+        this.navigation = wanted;
+        if (destination != null) wanted.moveTo(destination.getX() + 0.5, destination.getY(), destination.getZ() + 0.5, speed);
+    }
+
+    private static class OWWaterNavigation extends WaterBoundPathNavigation {
+        OWWaterNavigation(OWSemiWaterEntity mob, Level level) {
+            super(mob, level);
+        }
+
+        double speed() {
+            return this.speedModifier;
         }
     }
 

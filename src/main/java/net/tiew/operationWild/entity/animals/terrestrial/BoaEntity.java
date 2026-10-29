@@ -78,6 +78,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     public static final double TAMING_EXPERIENCE = 80.0;
     public static final int MAX_SOMNOLENCE = 1200;
+    private static final float SWIM_WAVE_BLEND_STEP = 0.1f;
+    private float swimWaveBlend;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 1;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 4;
     public static final int FOOD_WANTED_MIN = 8;
@@ -567,6 +569,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                 float xRot = this.getXRot();
 
                 boolean swimming = this.isInWater();
+                this.swimWaveBlend = Mth.approach(this.swimWaveBlend, swimming ? 1f : 0f, SWIM_WAVE_BLEND_STEP);
                 float swimFreq = 3.0f;
                 float swimStep = 0.85f;
                 float swimAmpDeg = 18f;
@@ -582,10 +585,10 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
                     }
                 }
 
-                if (swimming) {
+                if (this.swimWaveBlend > 0f) {
                     for (int i = 0; i < segments; i++) {
                         if (parts[i] != null) {
-                            float wave = swimAmpDeg * (float) Math.sin(this.walkDist * swimFreq - i * swimStep);
+                            float wave = this.swimWaveBlend * swimAmpDeg * (float) Math.sin(this.walkDist * swimFreq - i * swimStep);
                             parts[i].setXRot(Mth.clamp(parts[i].getXRot() + wave, -25f, 25f));
                         }
                     }

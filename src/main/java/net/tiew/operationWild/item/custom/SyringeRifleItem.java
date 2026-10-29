@@ -24,6 +24,11 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.ChargedProjectiles;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.component.OWDataComponentTypes;
 import net.tiew.operationWild.entity.misc.TranquilizerDart;
 import net.tiew.operationWild.item.OWItems;
@@ -31,7 +36,10 @@ import net.tiew.operationWild.item.custom.projectile.TranquilizerDartItem;
 import net.tiew.operationWild.sound.OWSounds;
 
 import javax.annotation.Nullable;
+import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Predicate;
 
 public class SyringeRifleItem extends ProjectileWeaponItem {
@@ -46,6 +54,12 @@ public class SyringeRifleItem extends ProjectileWeaponItem {
     public static final float HIP_INACCURACY = 3.0f;
     public static final float AIMED_INACCURACY = 0.5f;
     public static final float SCOPED_INACCURACY = 0.0f;
+    public static final int SWITCH_COOLDOWN = 20;
+    public static final double RELOAD_SLOWDOWN = -0.5;
+    private static final ResourceLocation RELOAD_SLOWDOWN_ID = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "syringe_rifle_reload_slowdown");
+    private static final ResourceLocation RELOAD_NO_JUMP_ID = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "syringe_rifle_reload_no_jump");
+    private static final double RELOAD_NO_JUMP = -1.0;
+    private static final Map<Player, WeakReference<ItemStack>> LAST_ACTIVE = new WeakHashMap<>();
 
     private final boolean scoped;
 
@@ -89,6 +103,38 @@ public class SyringeRifleItem extends ProjectileWeaponItem {
         return entity.isUsingItem() && stack.getItem() instanceof SyringeRifleItem && isLoaded(stack);
     }
 
+    public static ItemStack activeRifle(LivingEntity entity) {
+        if (entity.getMainHandItem().getItem() instanceof SyringeRifleItem) return entity.getMainHandItem();
+        if (entity.getOffhandItem().getItem() instanceof SyringeRifleItem) return entity.getOffhandItem();
+        return ItemStack.EMPTY;
+    }
+
+    public static void tickReloadSlowdown(Player player) {
+        boolean reloading = isReloading(activeRifle(player));
+        applyReloadModifier(player.getAttribute(Attributes.MOVEMENT_SPEED), RELOAD_SLOWDOWN_ID, RELOAD_SLOWDOWN, reloading);
+        applyReloadModifier(player.getAttribute(Attributes.JUMP_STRENGTH), RELOAD_NO_JUMP_ID, RELOAD_NO_JUMP, reloading);
+    }
+
+    private static void applyReloadModifier(AttributeInstance attribute, ResourceLocation id, double amount, boolean active) {
+        if (attribute == null) return;
+        boolean present = attribute.hasModifier(id);
+        if (active && !present) {
+            attribute.addTransientModifier(new AttributeModifier(id, amount, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        } else if (!active && present) {
+            attribute.removeModifier(id);
+        }
+    }
+
+    private static void trackSwitch(Player player, ItemStack active) {
+        WeakReference<ItemStack> last = LAST_ACTIVE.get(player);
+        ItemStack previous = last != null ? last.get() : null;
+        if (previous == active) return;
+        LAST_ACTIVE.put(player, new WeakReference<>(active));
+        if (previous == null) return;
+        player.getCooldowns().addCooldown(OWItems.SYRINGE_RIFLE.get(), SWITCH_COOLDOWN);
+        player.getCooldowns().addCooldown(OWItems.SYRINGE_RIFLE_SPY_GLASS.get(), SWITCH_COOLDOWN);
+    }
+
     public static boolean isScoping(LivingEntity entity) {
         return isAiming(entity) && entity.getUseItem().getItem() instanceof SyringeRifleItem rifle && rifle.isScoped();
     }
@@ -101,7 +147,7 @@ public class SyringeRifleItem extends ProjectileWeaponItem {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!isLoaded(stack)) return InteractionResultHolder.fail(stack);
+        if (!isLoaded(stack) || activeRifle(player) != stack) return InteractionResultHolder.fail(stack);
 
         if (this.scoped) player.playSound(SoundEvents.SPYGLASS_USE, 1.0F, 1.0F);
         player.startUsingItem(hand);
@@ -110,7 +156,7 @@ public class SyringeRifleItem extends ProjectileWeaponItem {
 
     @Override
     public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
-        if (!isLoaded(stack)) return;
+        if (!isLoaded(stack) || activeRifle(entity) != stack) return;
 
         if (this.scoped) entity.playSound(SoundEvents.SPYGLASS_STOP_USING, 1.0F, 1.0F);
         stack.set(OWDataComponentTypes.SYRINGE_RIFLE_LAST_SHOT.get(), level.getGameTime());
@@ -122,12 +168,10 @@ public class SyringeRifleItem extends ProjectileWeaponItem {
         if (level.isClientSide || !(entity instanceof Player player)) return;
 
         Long end = stack.get(OWDataComponentTypes.SYRINGE_RIFLE_RELOAD_END.get());
-        boolean held = player.getMainHandItem() == stack || player.getOffhandItem() == stack;
+        boolean held = activeRifle(player) == stack;
+        if (held) trackSwitch(player, stack);
         if (!held || isLoaded(stack)) {
-            if (end != null) {
-                stack.remove(OWDataComponentTypes.SYRINGE_RIFLE_RELOAD_END.get());
-                player.getCooldowns().removeCooldown(this);
-            }
+            if (end != null) stack.remove(OWDataComponentTypes.SYRINGE_RIFLE_RELOAD_END.get());
             return;
         }
 

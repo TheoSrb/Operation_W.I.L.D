@@ -3,8 +3,8 @@
   "biomes": "minecraft:sparse_jungle",
   "spawners": {
     "type": "ow:gorilla",
-    "maxCount": 3,
+    "maxCount": 2,
     "minCount": 1,
-    "weight": 50
+    "weight": 22
   }
 }

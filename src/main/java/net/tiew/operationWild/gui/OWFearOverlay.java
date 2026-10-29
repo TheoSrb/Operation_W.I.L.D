@@ -11,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.behavior.OWFearHandler;
 import net.tiew.operationWild.entity.misc.Submarine;
+import net.tiew.operationWild.ClientConfig;
 
 /**
  * Ce que voit le cavalier d'une monture affolée. Il n'y a rien à faire, rien à presser : la peur se
@@ -66,6 +67,7 @@ public final class OWFearOverlay {
     }
 
     public static void render(GuiGraphics graphics, int screenWidth, int screenHeight) {
+        if (!ClientConfig.get(ClientConfig.FEAR_EFFECTS)) return;
         Minecraft mc = Minecraft.getInstance();
         OWEntity mount = panickingMount(mc.player);
         if (mount == null) return;

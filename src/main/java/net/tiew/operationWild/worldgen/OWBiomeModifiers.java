@@ -114,14 +114,14 @@ public class OWBiomeModifiers {
     public static final List<SpawnRule> SPAWN_RULES = List.of(
             new SpawnRule(SPAWN_TIGER, OWEntityRegistry.TIGER, TIGER_BIOMES, 30, 1, 1),
             new SpawnRule(SPAWN_KODIAK, OWEntityRegistry.KODIAK, KODIAK_BIOMES, 35, 1, 1),
-            new SpawnRule(SPAWN_CROCODILE, OWEntityRegistry.CROCODILE, CROCODILE_BIOMES, 48, 2, 4),
-            new SpawnRule(SPAWN_BOA, OWEntityRegistry.BOA, BOA_BIOMES, 60, 1, 2),
+            new SpawnRule(SPAWN_CROCODILE, OWEntityRegistry.CROCODILE, CROCODILE_BIOMES, 14, 1, 3),
+            new SpawnRule(SPAWN_BOA, OWEntityRegistry.BOA, BOA_BIOMES, 25, 1, 2),
             new SpawnRule(SPAWN_KANGAROO, OWEntityRegistry.KANGAROO, KANGAROO_BIOMES, 4, 2, 5),
             new SpawnRule(SPAWN_ELEPHANT, OWEntityRegistry.ELEPHANT, ELEPHANT_BIOMES, 8, 2, 5),
-            new SpawnRule(SPAWN_GORILLA, OWEntityRegistry.GORILLA, GORILLA_BIOMES, 40, 1, 1),
-            new SpawnRule(SPAWN_GORILLA_SPARSE, OWEntityRegistry.GORILLA, GORILLA_SPARSE_BIOMES, 50, 1, 3),
+            new SpawnRule(SPAWN_GORILLA, OWEntityRegistry.GORILLA, GORILLA_BIOMES, 18, 1, 1),
+            new SpawnRule(SPAWN_GORILLA_SPARSE, OWEntityRegistry.GORILLA, GORILLA_SPARSE_BIOMES, 22, 1, 2),
             new SpawnRule(SPAWN_RED_PANDA, OWEntityRegistry.RED_PANDA, RED_PANDA_BIOMES, 100, 1, 1),
-            new SpawnRule(SPAWN_ORCA, OWEntityRegistry.ORCA, ORCA_BIOMES, 10, 1, 4, OrcaEntity.SPAWN_CHUNK_ONE_IN),
+            new SpawnRule(SPAWN_ORCA, OWEntityRegistry.ORCA, ORCA_BIOMES, 10, 1, 3, OrcaEntity.SPAWN_CHUNK_ONE_IN),
             new SpawnRule(SPAWN_HIPPOPOTAMUS, OWEntityRegistry.HIPPOPOTAMUS, HIPPOPOTAMUS_BIOMES, 30, 2, 4));
 
     public static void bootstrap(BootstrapContext<BiomeModifier> context) {

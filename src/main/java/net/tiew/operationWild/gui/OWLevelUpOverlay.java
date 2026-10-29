@@ -8,6 +8,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
+import net.tiew.operationWild.ClientConfig;
 
 /**
  * Animation « RPG » de passage de niveau : des anneaux concentriques (à la couleur de l'entité)
@@ -29,6 +30,7 @@ public class OWLevelUpOverlay {
     private static final int NUMBER_COLOR = 0xA8E677;
 
     public static void trigger(int level, int entityColor) {
+        if (!ClientConfig.get(ClientConfig.LEVEL_UP_ANIMATION)) return;
         // Anti-stacking : si une animation est déjà en cours (gain de plusieurs niveaux d'un coup),
         // on met juste à jour le chiffre sans rejouer le son par-dessus lui-même.
         boolean alreadyActive = startTime >= 0 && System.currentTimeMillis() - startTime < DURATION_MS;

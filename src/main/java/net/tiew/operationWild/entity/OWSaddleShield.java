@@ -13,9 +13,10 @@ import org.joml.Vector3f;
 
 import java.util.List;
 
-public record OWSaddleShield(String part, Pose rest, Vec3 cubeSize, int thinAxis, double outward) {
+public record OWSaddleShield(String part, Pose rest, Vec3 cubeSize, int thinAxis, double outward, double coverage) {
 
     public static final int AXE_DISABLE_TICKS = 100;
+    public static final float BLOCK_CHANCE = 0.5f;
     public static final int POSE_REPORT_LIFETIME = 20;
     public static final int MAX_SHIELDS = 4;
     public static final int FLOATS_PER_POSE = 9;
@@ -59,7 +60,11 @@ public record OWSaddleShield(String part, Pose rest, Vec3 cubeSize, int thinAxis
         int thinAxis = sizeX <= sizeY && sizeX <= sizeZ ? 0 : sizeY <= sizeZ ? 1 : 2;
         Vec3 flank = new Vec3(rest.center().x, 0, rest.center().z);
         double facing = rest.axis(thinAxis).dot(flank);
-        return new OWSaddleShield(part, rest, new Vec3(sizeX, sizeY, sizeZ), thinAxis, facing < 0 ? -1.0 : 1.0);
+        return new OWSaddleShield(part, rest, new Vec3(sizeX, sizeY, sizeZ), thinAxis, facing < 0 ? -1.0 : 1.0, 1.0);
+    }
+
+    public OWSaddleShield withCoverage(double coverage) {
+        return new OWSaddleShield(part, rest, cubeSize, thinAxis, outward, coverage);
     }
 
     private static Vec3 modelAxis(Quaternionf rotation, float x, float y, float z) {
@@ -75,7 +80,7 @@ public record OWSaddleShield(String part, Pose rest, Vec3 cubeSize, int thinAxis
 
     private double halfSize(int axis, double scale) {
         double size = axis == 0 ? cubeSize.x : axis == 1 ? cubeSize.y : cubeSize.z;
-        return size * PIXEL * 0.5 * scale;
+        return size * PIXEL * 0.5 * scale * (axis == thinAxis ? 1.0 : coverage);
     }
 
     private Pose pose(OWEntity mount, int index, double scale) {

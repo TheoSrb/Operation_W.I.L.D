@@ -19,6 +19,7 @@ import net.tiew.operationWild.entity.attacks.OWAttacksHandler;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import net.tiew.operationWild.ClientConfig;
 
 @OnlyIn(Dist.CLIENT)
 public class OWIndicationOverlay {
@@ -117,7 +118,7 @@ public class OWIndicationOverlay {
 
     public static void render(GuiGraphics g, int screenW, int screenH) {
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null || mc.options.hideGui) return;
+        if (mc.player == null || mc.options.hideGui || !ClientConfig.get(ClientConfig.TUTORIAL_HINTS)) return;
 
         long now = System.currentTimeMillis();
 
