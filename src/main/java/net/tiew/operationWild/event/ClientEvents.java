@@ -1360,14 +1360,16 @@ public class ClientEvents {
                 // Orientation prise sur la chaîne des MÂCHOIRES et non sur le corps : la victime
                 // est tenue par la gueule, elle doit donc basculer avec elle — cou qui se cabre,
                 // secousse de tête, tonneau de la roulade.
-                Vec3 look = crocodile.getLookAngle();
-                Quaternionf rotationZ = Axis.ZP.rotationDegrees(-crocodile.mouthZRotDeg);
-                Quaternionf rotationX = Axis.XP.rotationDegrees(-crocodile.mouthXRotDeg);
-                Quaternionf rotationY = Axis.YP.rotationDegrees(-crocodile.mouthYRotDeg);
-
-                poseStack.rotateAround(rotationZ, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-                poseStack.rotateAround(rotationX, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-                poseStack.rotateAround(rotationY, (float) ((float) pivotPoint.x - (look.x * 0.75f)), (float) pivotPoint.y, (float) ((float) pivotPoint.z - (look.z * 0.75f)));
+                org.joml.Matrix4f jaws = crocodile.mouthMatrix;
+                if (jaws != null) {
+                    float jawYaw = crocodile.getPreciseBodyRotation(event.getPartialTick());
+                    Quaternionf frame = Axis.YP.rotationDegrees(180f - jawYaw);
+                    frame.mul(Axis.ZP.rotationDegrees(180f));
+                    Quaternionf jawRotation = new Quaternionf(frame)
+                            .mul(jaws.getNormalizedRotation(new Quaternionf()))
+                            .mul(new Quaternionf(frame).invert());
+                    poseStack.rotateAround(jawRotation, 0f, (float) crocodile.grabHang(player), 0f);
+                }
             } else {
                 poseStack.mulPose(riderBodyRotation(player, owVehicle, event.getPartialTick()));
             }
@@ -1412,7 +1414,8 @@ public class ClientEvents {
             }
         } else {
             poseStack.pushPose();
-            poseStack.mulPose(riderBodyRotation(player, owVehicle, event.getPartialTick()));
+            Quaternionf riderRotation = riderBodyRotation(player, owVehicle, event.getPartialTick());
+            if (riderRotation != null) poseStack.mulPose(riderRotation);
         }
 
         if (owVehicle instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo) {
@@ -1513,6 +1516,13 @@ public class ClientEvents {
     private static final Map<UUID, Quaternionf> RIDER_ROTATION = new HashMap<>();
     private static final Map<UUID, Long> RIDER_ROTATION_AT = new HashMap<>();
 
+    private static boolean isHeldCaptive(Player player, OWEntity vehicle) {
+        if (vehicle instanceof TigerEntity tiger) return tiger.getGrabbedTargetId() == player.getId();
+        if (vehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa) return boa.getGrabbedTargetId() == player.getId();
+        if (vehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity kangaroo) return kangaroo.getDrownVictim() == player;
+        return false;
+    }
+
     private static Quaternionf computeRiderBodyRotation(Player player, OWEntity vehicle, float partialTick) {
         boolean isPassenger = vehicle.getPassengers().indexOf(player) != 0;
 
@@ -1542,6 +1552,7 @@ public class ClientEvents {
         // des rotations qui ne commutent pas cesse d'avoir un sens.
         // La gueule du crocodile garde sa pose à elle : on ne passe pas par les os du dos.
         boolean grabbed = vehicle instanceof CrocodileEntity croc && player == croc.getGrabbedTarget();
+        if (isHeldCaptive(player, vehicle)) return null;
 
         org.joml.Matrix4f bones = vehicle.riderBoneMatrix();
         if (bones != null && !grabbed) {

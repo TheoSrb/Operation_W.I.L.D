@@ -965,7 +965,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     protected void positionRider(Entity passenger, MoveFunction function) {
         if (passenger == this.getGrabbedTarget()) {
             final double s = this.getScale();
-            final double hang = Math.min(0.9f, passenger.getBbHeight() * 0.5f) * s;
+            final double hang = grabHang(passenger);
             final float localZ = -(MOUTH_HOLD_LOCAL_Z + passenger.getBbWidth() * 0.35f);
 
             double px, py, pz;
@@ -1813,6 +1813,10 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     public boolean hasGrabSomething() {
         return this.isGrabbing() && this.getGrabbedTarget() != null;
+    }
+
+    public double grabHang(Entity passenger) {
+        return Math.min(0.9f, passenger.getBbHeight() * 0.5f) * this.getScale();
     }
 
     public LivingEntity getGrabbedTarget() {
