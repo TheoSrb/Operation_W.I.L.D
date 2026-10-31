@@ -1489,6 +1489,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                             this.getLevel(), this.getEntityColor()),
                     rider);
         }
+        if (this.getVehicle() instanceof ServerPlayer carrier) {
+            OWNetworkHandler.sendToClient(
+                    new net.tiew.operationWild.networking.packets.to_client.OWLevelUpPacket(
+                            this.getLevel(), this.getEntityColor()),
+                    carrier);
+        }
     }
 
     public void gainLevelXp(float amount) {
@@ -4169,6 +4175,12 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
         if (this instanceof TigerEntity tigerCombo) {
             if (attackTimer == timeToHit) tigerCombo.createPawImpact();
+        }
+        if (this instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant) {
+            if (attackTimer == Math.max(1, timeToHit - 7) && getComboAttack() != 3) {
+                float pitch = (float) (OWUtils.generateRandomInterval(0.7, 0.85));
+                elephant.level().playSound(null, elephant.getX(), elephant.getY(), elephant.getZ(), OWSounds.LEG_HURT.get(), SoundSource.HOSTILE, 1.2f, pitch);
+            }
         }
         if (this instanceof CrocodileEntity crocodile) {
             if (attackTimer == 1) {

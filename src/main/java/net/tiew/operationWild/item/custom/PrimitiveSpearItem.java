@@ -2,7 +2,6 @@ package net.tiew.operationWild.item.custom;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Holder;
 import net.minecraft.core.Position;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.sounds.SoundEvent;
@@ -22,9 +21,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ProjectileItem;
 import net.minecraft.world.item.UseAnim;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -59,18 +56,18 @@ public class PrimitiveSpearItem extends Item implements ProjectileItem {
         return 72000;
     }
 
+    public static int minChargeTicks(ItemStack itemStack, Level level) {
+        int lightness = level.registryAccess().registry(Registries.ENCHANTMENT)
+                .flatMap(registry -> registry.getHolder(OWEnchantments.LIGHTNESS))
+                .map(holder -> itemStack.getEnchantments().getLevel(holder))
+                .orElse(0);
+        return 10 - lightness * 3;
+    }
+
     public void releaseUsing(ItemStack itemStack, Level level, LivingEntity living, int i) {
-
-        ItemEnchantments enchantment = itemStack.getEnchantments();
-        Holder<Enchantment> lightnessHolder = level.registryAccess()
-                .registryOrThrow(Registries.ENCHANTMENT)
-                .getHolderOrThrow(OWEnchantments.LIGHTNESS);
-
-        int piercingPointLevel = enchantment.getLevel(lightnessHolder);
-
         if (living instanceof Player $$4) {
             int $$6 = this.getUseDuration(itemStack, living) - i;
-            if ($$6 >= (10 - (piercingPointLevel * 3))) {
+            if ($$6 >= minChargeTicks(itemStack, level)) {
                 float $$7 = EnchantmentHelper.getTridentSpinAttackStrength(itemStack, $$4);
                 if (!($$7 > 0.0F) || $$4.isInWaterOrRain()) {
                     if (!isTooDamagedToUse(itemStack)) {

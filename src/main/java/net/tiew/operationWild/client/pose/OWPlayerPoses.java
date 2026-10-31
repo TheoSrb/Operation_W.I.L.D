@@ -12,6 +12,7 @@ import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderHandEvent;
 import net.neoforged.neoforge.client.event.RenderPlayerEvent;
 import net.tiew.operationWild.OperationWild;
 
@@ -31,6 +32,7 @@ public final class OWPlayerPoses {
             OWGrabbedPoses.BOA,
             OWGrabbedPoses.KANGAROO,
             OWAirbornePoses.FLIGHT,
+            OWSpearThrowPose.INSTANCE,
             OWAssailedPoses.LATCH,
             OWRiderPoses.RODEO,
             OWRiderPoses.SURF,
@@ -38,6 +40,7 @@ public final class OWPlayerPoses {
             OWAssailedPoses.DIZZY,
             OWShoulderPetPose.INSTANCE);
 
+    private static final int SPEAR_THROW = POSES.indexOf(OWSpearThrowPose.INSTANCE);
     private static final int FORGET_AFTER_TICKS = 40;
     private static final float MIN_WEIGHT = 0.001f;
 
@@ -111,6 +114,16 @@ public final class OWPlayerPoses {
             }
             body(POSES.get(i), poseStack, player, state, i, weight, partialTick, bodyYaw);
         }
+    }
+
+    @SubscribeEvent
+    public static void onRenderHand(RenderHandEvent event) {
+        Player player = Minecraft.getInstance().player;
+        if (player == null) return;
+        OWPlayerPoseState state = STATES.get(player.getId());
+        if (state == null) return;
+        OWSpearThrowPose.INSTANCE.firstPerson(event.getPoseStack(), (OWSpearThrowPose.ThrowData) state.data[SPEAR_THROW],
+                event.getHand(), event.getPartialTick());
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)

@@ -14,5 +14,13 @@
     "fixed": {
       "parent": "ow:item/primitive_spear_2d"
     }
-  }
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "ow:throwing": 1
+      },
+      "model": "ow:item/primitive_spear_throwing"
+    }
+  ]
 }

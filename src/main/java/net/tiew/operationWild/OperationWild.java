@@ -314,6 +314,9 @@ public class OperationWild {
                                     || mc.player.getOffhandItem() == stack;
                             return isHeld ? 1.0f : 0.0f;
                         });
+                ItemProperties.register(OWItems.PRIMITIVE_SPEAR.get(),
+                        ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "throwing"),
+                        (stack, level, entity, seed) -> entity != null && entity.isUsingItem() && entity.getUseItem() == stack ? 1.0f : 0.0f);
             });
         }
 

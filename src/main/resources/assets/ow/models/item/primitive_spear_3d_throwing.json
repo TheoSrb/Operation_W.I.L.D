@@ -1,0 +1,29 @@
+{
+  "parent": "ow:item/primitive_spear_3d",
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        0,
+        0,
+        180
+      ],
+      "translation": [
+        0,
+        -8,
+        1
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        0,
+        0,
+        180
+      ],
+      "translation": [
+        0,
+        -8,
+        1
+      ]
+    }
+  }
+}
