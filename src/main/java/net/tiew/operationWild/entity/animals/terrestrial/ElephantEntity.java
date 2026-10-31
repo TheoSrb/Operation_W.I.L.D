@@ -107,6 +107,8 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public static final int FOOD_WANTED_MIN = 12;
     public static final int FOOD_WANTED_MAX = 19;
 
+    private static final float MAX_VITAL_ENERGY = 280f;
+
     private static final int CALL_MIN_COOLDOWN = 700;
     private static final int CALL_MAX_COOLDOWN = 1400;
     private static final int CALL_DURATION = 90;
@@ -555,7 +557,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float getMaxVitalEnergy() {
-        return 280f;
+        return MAX_VITAL_ENERGY * (1f + this.getLevel() / 100f);
     }
 
     @Override

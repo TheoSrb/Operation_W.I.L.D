@@ -12,6 +12,7 @@ import net.tiew.operationWild.entity.variants.HippopotamusVariant;
 import net.tiew.operationWild.entity.variants.KangarooVariant;
 import net.tiew.operationWild.entity.variants.KodiakVariant;
 import net.tiew.operationWild.entity.variants.LionVariant;
+import net.tiew.operationWild.entity.variants.ColossalSquidVariant;
 import net.tiew.operationWild.entity.variants.OrcaVariant;
 import net.tiew.operationWild.entity.variants.RedPandaVariant;
 import net.tiew.operationWild.entity.variants.TigerVariant;
@@ -388,6 +389,37 @@ public final class SkinRegistry {
 
         public static BoaSkin get(BoaVariant variant) {
             return REGISTRY.getOrDefault(variant, REGISTRY.get(BoaVariant.DEFAULT));
+        }
+
+        public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            REGISTRY.values().stream()
+                    .distinct()
+                    .forEach(skin -> skin.getModelLayer().ifPresent(layer ->
+                            skin.getLayerDefinitionSupplier().ifPresent(supplier ->
+                                    event.registerLayerDefinition(layer, supplier)
+                            )
+                    ));
+        }
+    }
+
+    public static class ColossalSquidSkins {
+
+        private static final Map<ColossalSquidVariant, ColossalSquidSkin> REGISTRY = new EnumMap<>(ColossalSquidVariant.class);
+
+        private static ResourceLocation tex(String path) {
+            return ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/entity/colossal_squid/" + path);
+        }
+
+        static {
+            register(ColossalSquidVariant.DEFAULT, ColossalSquidSkin.base(tex("colossal_squid_default.png")));
+        }
+
+        public static void register(ColossalSquidVariant variant, ColossalSquidSkin skin) {
+            REGISTRY.put(variant, skin);
+        }
+
+        public static ColossalSquidSkin get(ColossalSquidVariant variant) {
+            return REGISTRY.getOrDefault(variant, REGISTRY.get(ColossalSquidVariant.DEFAULT));
         }
 
         public static void registerAllLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {

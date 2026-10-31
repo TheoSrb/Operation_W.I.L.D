@@ -1178,5 +1178,18 @@
   "ow.attacks.lion.pride_bond.title": "Force de la Meute",
   "ow.attacks.lion.pride_bond.desc": "Le mâle gagne %s points de vie par lionne de son clan (%s au plus). Chaque lionne proche lui donne %s%% de dégâts et de résistance en plus, jusqu'à %s lionnes dans un rayon de %s blocs.",
   "ow.advancements.king_of_the_savanna.title": "Roi de la Savane",
-  "ow.advancements.king_of_the_savanna.description": "Vous avez apprivoisé un Lion !"
+  "ow.advancements.king_of_the_savanna.description": "Vous avez apprivoisé un Lion !",
+  "entity.ow.colossal_squid": "Calamar Colossal",
+  "chapter.entity.ow.colossal_squid": "Calamar Colossal",
+  "item.ow.colossal_squid_spawn_egg": "Oeuf d'apparition de calamar colossal",
+  "ow.attacks.colossal_squid.combo.title": "Tempête de Tentacules",
+  "ow.attacks.colossal_squid.combo.desc": "Les dix bras du Calamar Colossal s'abattent l'un après l'autre, toutes les %s secondes, pour %s points de dégâts par salve. Tant que vous relancez et qu'il reste de l'énergie, l'enchaînement ne s'arrête jamais : chaque salve coûte %s d'énergie. Avant de frapper, la bête se retourne pour présenter ses tentacules.",
+  "ow.attacks.colossal_squid.abyssal_grab.title": "Étreinte Abyssale",
+  "ow.attacks.colossal_squid.abyssal_grab.desc": "Clic droit : le calamar se ramasse, puis ses deux longues tentacules jaillissent jusqu'à %s blocs, harponnent la proie et la plaquent dans une cage de bras. Tant qu'il la tient, chaque coup de combo la broie et le soigne de %s%% des points de vie actuels de sa proie. Un joueur se débat au clic droit ; une créature est relâchée au bout de %s secondes. Un second clic droit lâche la proie. Votre tribu est épargnée. %s secondes de recharge.",
+  "ow.attacks.colossal_squid.ink_frenzy.title": "Frénésie d'Encre",
+  "ow.attacks.colossal_squid.ink_frenzy.desc": "S'arme sur %s victimes. Le calamar perd la raison : il se débat, puis libère une nuée d'encre qui aveugle toute créature et tout joueur à moins de %s blocs pendant %s secondes, sauf votre tribu. Il fait aussitôt volte-face et file %s%% plus vite pendant %s secondes pour disparaître dans le noir. %s secondes de recharge.",
+  "ow.attacks.colossal_squid.volte_face.title": "Volte-face",
+  "ow.attacks.colossal_squid.volte_face.desc": "Le Calamar Colossal nage manteau en avant et se retourne en %s seconde pour frapper tentacules devant ; son cavalier, lui, ne bouge pas. Après %s secondes sans attaquer, ou dès que vous sprintez, il se retourne pour repartir nager.",
+  "ow.advancements.abyssal_terror.title": "Terreur des Abysses",
+  "ow.advancements.abyssal_terror.description": "Vous avez apprivoisé un Calamar Colossal !"
 }

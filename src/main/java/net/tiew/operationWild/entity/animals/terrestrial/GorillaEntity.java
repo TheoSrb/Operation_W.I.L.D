@@ -91,6 +91,8 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     public static final int DEFAULT_SKIN_INDEX = 1;
     public static final float AI_STEP_JUMP_FACTOR = 0.45f;
 
+    private static final float MAX_VITAL_ENERGY = 200f;
+
     private static final int MISC_IDLE_2_DURATION = 140;
     private static final int SEDATION_WAKE_TICKS = 50;
 
@@ -436,7 +438,7 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
 
     @Override
     public float getMaxVitalEnergy() {
-        return 200f;
+        return MAX_VITAL_ENERGY * (1f + this.getLevel() / 100f);
     }
 
     @Override

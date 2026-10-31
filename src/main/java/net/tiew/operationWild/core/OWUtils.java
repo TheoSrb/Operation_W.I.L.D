@@ -107,8 +107,7 @@ public class OWUtils {
      * statistique n'a aucun tirage aléatoire à l'apparition, seul le bonus acquis la différencie.
      */
     public static Boolean aboveEnergyAverage(OWEntity entity) {
-        double average = entity.getMaxVitalEnergy()
-                * (1f + OWEntity.VITAL_ENERGY_LEVEL_GAIN * (java.lang.Math.min(entity.getLevel(), 50) / 50f));
+        double average = entity.getMaxVitalEnergy();
         return average <= 0.0 ? null : entity.getVitalEnergyCapacity() >= average;
     }
 

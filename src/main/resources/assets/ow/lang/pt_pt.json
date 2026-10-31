@@ -1167,5 +1167,18 @@
   "ow.attacks.lion.pride_bond.title": "Força da Alcateia",
   "ow.attacks.lion.pride_bond.desc": "O macho ganha %s pontos de vida por cada leoa do seu clã (até %s). Cada leoa próxima dá-lhe %s%% de dano e resistência a mais, até %s leoas num raio de %s blocos.",
   "ow.advancements.king_of_the_savanna.title": "Rei da Savana",
-  "ow.advancements.king_of_the_savanna.description": "Domaste um Leão!"
+  "ow.advancements.king_of_the_savanna.description": "Domaste um Leão!",
+  "entity.ow.colossal_squid": "Lula-Colossal",
+  "chapter.entity.ow.colossal_squid": "Lula-Colossal",
+  "item.ow.colossal_squid_spawn_egg": "Ovo de invocação de lula-colossal",
+  "ow.attacks.colossal_squid.combo.title": "Tempestade de Tentáculos",
+  "ow.attacks.colossal_squid.combo.desc": "Os dez braços da Lula-Colossal golpeiam um após o outro a cada %s segundos, causando %s de dano por rajada. Enquanto continuares a atacar e houver energia, a sequência nunca acaba: cada rajada custa %s de energia. Antes de golpear, a fera vira-se para apresentar os tentáculos.",
+  "ow.attacks.colossal_squid.abyssal_grab.title": "Abraço Abissal",
+  "ow.attacks.colossal_squid.abyssal_grab.desc": "Clique direito: a lula encolhe-se e depois os seus dois longos tentáculos disparam até %s blocos, arpoam a presa e prendem-na numa jaula de braços. Enquanto a segura, cada golpe de combo esmaga-a e cura a lula em %s%% da vida atual da presa. Um jogador liberta-se com cliques direitos; uma criatura é largada ao fim de %s segundos. Um segundo clique direito larga a presa. A tua tribo é poupada. %s segundos de recarga.",
+  "ow.attacks.colossal_squid.ink_frenzy.title": "Frenesim de Tinta",
+  "ow.attacks.colossal_squid.ink_frenzy.desc": "Carrega com %s abates. A lula enlouquece: debate-se e depois liberta uma nuvem de tinta que cega todas as criaturas e jogadores a menos de %s blocos durante %s segundos, exceto a tua tribo. De imediato dá meia-volta e nada %s%% mais depressa durante %s segundos para desaparecer no escuro. %s segundos de recarga.",
+  "ow.attacks.colossal_squid.volte_face.title": "Meia-Volta",
+  "ow.attacks.colossal_squid.volte_face.desc": "A Lula-Colossal nada com o manto à frente e vira-se em %s segundos para golpear com os tentáculos à frente; o seu cavaleiro não se mexe. Após %s segundos sem atacar, ou assim que corres, volta a virar-se para continuar a nadar.",
+  "ow.advancements.abyssal_terror.title": "Terror Abissal",
+  "ow.advancements.abyssal_terror.description": "Domesticaste uma Lula-Colossal!"
 }

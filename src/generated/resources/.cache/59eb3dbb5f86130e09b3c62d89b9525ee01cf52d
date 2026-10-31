@@ -1,4 +1,4 @@
-// 1.21	2026-10-10T12:37:26.0351752	Loot Tables
+// 1.21	2026-10-31T13:47:54.8428985	Loot Tables
 39411953e31428b0099044fec99043fae3ff3335 data/ow/loot_table/blocks/animal_carcass.json
 21b0793ae3d401beeb314311ffbd4936db7dfe6d data/ow/loot_table/blocks/bear_trap.json
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
@@ -49,6 +49,7 @@ c0e8e870cedadc85c986c82fcf360b4db6934f2c data/ow/loot_table/chests/arena_jade_la
 5cbfe47834e91c984cf61abb42414608bb695098 data/ow/loot_table/chests/arena_ruby_small.json
 fd55caab0ddfed3c2c86ac1792b6b612d4342086 data/ow/loot_table/chests/arena_tribe.json
 c126029e496776a2517b9e0319571465950de1d0 data/ow/loot_table/entities/boa.json
+37b02da07444baf57350469a3ef2e058d94085d7 data/ow/loot_table/entities/colossal_squid.json
 ae09f7776c5de886119eb2a8361cf101d520afe6 data/ow/loot_table/entities/crocodile.json
 8e0e6d751af4340f3fe60f3a76f8e64a0cfde785 data/ow/loot_table/entities/elephant.json
 4981c8813f3183c2290c7f163f5b8ffa6c128096 data/ow/loot_table/entities/gorilla.json

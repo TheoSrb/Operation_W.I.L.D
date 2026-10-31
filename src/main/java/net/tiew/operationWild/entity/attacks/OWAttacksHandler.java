@@ -10,6 +10,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
@@ -72,6 +73,8 @@ public class OWAttacksHandler {
     public static final int DOMINATION_ROAR_ID = OWAttackIds.DOMINATION_ROAR;
     public static final int HUNTING_LEAP_ID = OWAttackIds.HUNTING_LEAP;
     public static final int DISTRESS_CALL_ID = OWAttackIds.DISTRESS_CALL;
+    public static final int ABYSSAL_GRAB_ID = OWAttackIds.ABYSSAL_GRAB;
+    public static final int INK_FRENZY_ID = OWAttackIds.INK_FRENZY;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -173,6 +176,12 @@ public class OWAttacksHandler {
         register(HippopotamusEntity.class, HippopotamusAttacks.ROLL);
         register(HippopotamusEntity.class, HippopotamusAttacks.RIVER_FURY);
         registerPassive(HippopotamusEntity.class, HippopotamusPassives.RIVER_SURGE);
+
+        registerEntityRow(ColossalSquidEntity.class, 0);
+        registerEntityColumn(ColossalSquidEntity.class, 6);
+        registerComboMaxTimer(ColossalSquidEntity.class, 12);
+        register(ColossalSquidEntity.class, ColossalSquidAttacks.ABYSSAL_GRAB);
+        register(ColossalSquidEntity.class, ColossalSquidAttacks.INK_FRENZY);
 
         registerEntityRow(LionEntity.class, 3);
         registerComboMaxTimer(LionEntity.class, 12);
@@ -412,6 +421,32 @@ public class OWAttacksHandler {
                 return 0x8FB4C8;
             }
         };
+    }
+
+    public static class ColossalSquidAttacks {
+
+        public static final OWAttack ABYSSAL_GRAB = new OWAttack(
+                ABYSSAL_GRAB_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.ColossalSquid.GRAB_ENERGY,
+                entity -> ((ColossalSquidEntity) entity).startAbyssalGrab(),
+                OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS
+        );
+
+        public static final OWAttack INK_FRENZY = new OWAttack(
+                INK_FRENZY_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.ColossalSquid.INK_ENERGY,
+                entity -> ((ColossalSquidEntity) entity).activateInkFrenzy(),
+                OWAttacksConstants.ColossalSquid.INK_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof ColossalSquidEntity squid
+                        && squid.getUltimateKillCount() >= OWAttacksConstants.ColossalSquid.INK_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof ColossalSquidEntity squid
+                        ? (float) squid.getUltimateKillCount() / OWAttacksConstants.ColossalSquid.INK_KILLS_REQUIRED
+                        : 0f
+        ).withUltimateDuration(OWAttacksConstants.ColossalSquid.INK_DURATION_MS);
     }
 
     public static class HippopotamusAttacks {

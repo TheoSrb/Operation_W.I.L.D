@@ -85,6 +85,8 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     public static final int FOOD_WANTED_MIN = 8;
     public static final int FOOD_WANTED_MAX = 14;
 
+    private static final float MAX_VITAL_ENERGY = 250f;
+
     private BoaTailPart[] parts;
 
     private double prevChainX = Double.NaN;
@@ -397,7 +399,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
 
     @Override
     public float getMaxVitalEnergy() {
-        return 250.0f;
+        return MAX_VITAL_ENERGY * (1f + this.getLevel() / 100f);
     }
 
     @Override

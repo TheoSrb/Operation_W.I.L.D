@@ -1167,5 +1167,18 @@
   "ow.attacks.lion.pride_bond.title": "Fuerza de la Manada",
   "ow.attacks.lion.pride_bond.desc": "El macho gana %s puntos de vida por cada leona de su clan (hasta %s). Cada leona cercana le añade un %s%% de daño y resistencia, hasta %s leonas en un radio de %s bloques.",
   "ow.advancements.king_of_the_savanna.title": "Rey de la Sabana",
-  "ow.advancements.king_of_the_savanna.description": "¡Has domesticado un León!"
+  "ow.advancements.king_of_the_savanna.description": "¡Has domesticado un León!",
+  "entity.ow.colossal_squid": "Calamar Colosal",
+  "chapter.entity.ow.colossal_squid": "Calamar Colosal",
+  "item.ow.colossal_squid_spawn_egg": "Huevo generador de calamar colosal",
+  "ow.attacks.colossal_squid.combo.title": "Tormenta de Tentáculos",
+  "ow.attacks.colossal_squid.combo.desc": "Los diez brazos del Calamar Colosal golpean uno tras otro cada %s segundos, infligiendo %s puntos de daño por ráfaga. Mientras sigas atacando y quede energía, la cadena nunca termina: cada ráfaga cuesta %s de energía. Antes de golpear, la bestia se da la vuelta para presentar sus tentáculos.",
+  "ow.attacks.colossal_squid.abyssal_grab.title": "Abrazo Abisal",
+  "ow.attacks.colossal_squid.abyssal_grab.desc": "Clic derecho: el calamar se encoge y luego sus dos largos tentáculos salen disparados hasta %s bloques, arponean a la presa y la aprisionan en una jaula de brazos. Mientras la sujeta, cada golpe de combo la tritura y lo cura un %s%% de la vida actual de la presa. Un jugador se libera con clics derechos; una criatura es soltada tras %s segundos. Un segundo clic derecho suelta a la presa. Tu tribu queda a salvo. %s segundos de recarga.",
+  "ow.attacks.colossal_squid.ink_frenzy.title": "Frenesí de Tinta",
+  "ow.attacks.colossal_squid.ink_frenzy.desc": "Se carga con %s víctimas. El calamar enloquece: se revuelve y luego libera una nube de tinta que ciega a toda criatura y jugador a menos de %s bloques durante %s segundos, salvo a tu tribu. Al instante da media vuelta y nada un %s%% más rápido durante %s segundos para desaparecer en la oscuridad. %s segundos de recarga.",
+  "ow.attacks.colossal_squid.volte_face.title": "Media Vuelta",
+  "ow.attacks.colossal_squid.volte_face.desc": "El Calamar Colosal nada con el manto por delante y se da la vuelta en %s segundos para golpear con los tentáculos por delante; su jinete no se mueve. Tras %s segundos sin atacar, o en cuanto corres, vuelve a girarse para seguir nadando.",
+  "ow.advancements.abyssal_terror.title": "Terror Abisal",
+  "ow.advancements.abyssal_terror.description": "¡Has domesticado un Calamar Colosal!"
 }

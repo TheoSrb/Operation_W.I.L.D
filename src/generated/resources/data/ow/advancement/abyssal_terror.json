@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_colossal_squid": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:colossal_squid"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.abyssal_terror.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "ow:colossal_squid_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.abyssal_terror.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_colossal_squid"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

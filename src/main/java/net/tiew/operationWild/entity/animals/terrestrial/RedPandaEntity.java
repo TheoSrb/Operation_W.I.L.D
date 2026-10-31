@@ -103,6 +103,8 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     private static final int SPAWN_FALL_GRACE_TICKS = 100;
     public static final int ENTITY_COLOR = 0xec8925;
 
+    private static final float MAX_VITAL_ENERGY = 250f;
+
     private static final double SHOULDER_SIDE_OFFSET = 0.44;
     private static final double SHOULDER_HEIGHT_OFFSET = 1.02;
     private static final double SHOULDER_FORWARD_OFFSET = -0.05;
@@ -738,7 +740,7 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
 
     @Override
     public float getMaxVitalEnergy() {
-        return 250f;
+        return MAX_VITAL_ENERGY * (1f + this.getLevel() / 100f);
     }
 
     @Override

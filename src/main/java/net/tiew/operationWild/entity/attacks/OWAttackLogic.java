@@ -1244,6 +1244,36 @@ public class OWAttackLogic {
 
     private static boolean elephantSprayHeld = false;
 
+    private static void handleColossalSquidGrab(OWAttack attack,
+                                                net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid,
+                                                Player player, int action) {
+        if (action == GLFW.GLFW_PRESS) {
+            if (net.tiew.operationWild.event.ColossalSquidGrabAim.aiming) return;
+            int phase = squid.getGrabPhase();
+            if (phase == net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity.GRAB_HOLD) {
+                PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+                recordAttackClick(attack.getId(), false);
+                return;
+            }
+            if (phase != net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity.GRAB_NONE
+                    || isAttackOnCooldown(squid, attack) || playerHoldsUsableItem(player) || squid.isBeached()) {
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
+            if (squid.getVitalEnergy() > squid.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
+                squid.canShowVitalEnergyLack = true;
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
+            net.tiew.operationWild.event.ColossalSquidGrabAim.start(squid);
+
+        } else if (action == GLFW.GLFW_RELEASE && net.tiew.operationWild.event.ColossalSquidGrabAim.aiming) {
+            boolean caught = net.tiew.operationWild.event.ColossalSquidGrabAim.release();
+            if (caught) armCooldown(squid, attack);
+            recordAttackClick(attack.getId(), !caught);
+        }
+    }
+
     /**
      * Éléphant — Jet de Trompe : press démarre l'action de trompe, release l'arrête.
      *
@@ -1613,6 +1643,16 @@ public class OWAttackLogic {
             OWAttack spray = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
             if (spray != null && spray.getId() == OWAttacksHandler.WATER_SPRAY_ID) {
                 handleElephantWaterSpray(spray, elephant, mc.player, event.getAction());
+                return;
+            }
+        }
+
+        // Calamar Colossal — Saisie Abyssale : clic droit maintenu pour viser, relâché pour harponner.
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
+                && owEntity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) {
+            OWAttack grab = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
+            if (grab != null) {
+                handleColossalSquidGrab(grab, squid, mc.player, event.getAction());
                 return;
             }
         }

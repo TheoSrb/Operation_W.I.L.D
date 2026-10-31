@@ -10,6 +10,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.tiew.operationWild.OperationWild;
+import net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
@@ -52,6 +53,15 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
                 struggle(crocodile, crocodile.getGrabTimeout(), crocodile.getGrabMaxTimeout(),
                         CROCODILE_STRUGGLE_REDUCTION, crocodile::setGrabTimeout,
                         !crocodile.isGrabHoldLocked(), crocodile::breakFreeFromGrab);
+                return;
+            }
+
+            ColossalSquidEntity squid = captor(player, ColossalSquidEntity.class,
+                    s -> s.isGrabbing() && s.getGrabbedTarget() == player);
+            if (squid != null) {
+                struggle(squid, squid.getGrabTimeout(), squid.getGrabMaxTimeout(),
+                        OWAttacksConstants.ColossalSquid.GRAB_STRUGGLE_REDUCTION, squid::setGrabTimeout,
+                        true, squid::breakFreeFromGrab);
                 return;
             }
 

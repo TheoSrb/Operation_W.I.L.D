@@ -201,6 +201,11 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.PORKCHOP)
                 .add(Items.RABBIT);
 
+        tag(OWTags.Items.COLOSSAL_SQUID_FOOD)
+                .add(Items.COD)
+                .add(Items.SALMON)
+                .add(Items.TROPICAL_FISH);
+
         tag(OWTags.Items.RED_PANDA_FOOD)
                 .add(Items.BAMBOO)
                 .add(Items.SWEET_BERRIES)

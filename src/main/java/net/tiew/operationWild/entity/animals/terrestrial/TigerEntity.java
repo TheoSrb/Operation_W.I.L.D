@@ -108,6 +108,9 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
     public static final int MAX_HIDING_TIMER = 1000;
     public static final int MAX_NO_HIDING_TIMER = 400;
 
+    private static final float MAX_VITAL_ENERGY_DAY = 300f;
+    private static final float MAX_VITAL_ENERGY_NIGHT = 400f;
+
     private static final int SCRATCHES_DURATION = 60;
 
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(TigerEntity.class, EntityDataSerializers.INT);
@@ -394,8 +397,7 @@ public class TigerEntity extends OWEntity implements IOWEntity, IOWTamable, IOWR
 
     @Override
     public float getMaxVitalEnergy() {
-        int max = this.level().isNight() ? 400 : 300;
-        return max;
+        return (this.level().isNight() ? MAX_VITAL_ENERGY_NIGHT : MAX_VITAL_ENERGY_DAY) * (1f + this.getLevel() / 100f);
     }
 
     @Override

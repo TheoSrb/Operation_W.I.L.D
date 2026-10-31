@@ -845,4 +845,49 @@ public class OWAttacksConstants {
         public static final double SHOVE_POWER = 0.65;
         public static final float FOV_GAIN = 0.08f;
     }
+
+
+    public static class ColossalSquid {
+        public static final float COMBO_STRIKE_ENERGY = 10f;
+        public static final int TURN_TICKS = 26;
+        public static final int TURN_TO_SWIM_TICKS = 44;
+        public static final int TURN_BACK_MOVE_GRACE_TICKS = 6;
+        public static final int TURN_BACK_IDLE_TICKS = 60;
+
+        public static final float GRAB_ENERGY = 60f;
+        public static final int GRAB_COOLDOWN_TICKS = 160;
+        public static final int GRAB_PREPARE_TICKS = 13;
+        public static final int GRAB_LUNGE_TICKS = 10;
+        public static final int GRAB_CATCH_TICK = 7;
+        public static final int GRAB_PULL_TICKS = 12;
+        public static final int GRAB_PULL_MAX_TICKS = 26;
+        public static final double GRAB_PULL_TICKS_PER_BLOCK = 1.1;
+        public static final int GRAB_RELEASE_TICKS = 10;
+        public static final int GRAB_MISS_TICKS = 12;
+        public static final int GRAB_STRIKE_TICKS = 15;
+        public static final double GRAB_RANGE = 18.0;
+        public static final double GRAB_AIM_RANGE_SLACK = 1.25;
+        public static final int GRAB_AIM_MAX_TICKS = 200;
+        public static final int GRAB_WHIFF_COOLDOWN_TICKS = 20;
+        public static final double GRAB_CONE_DOT = 0.55;
+        public static final double GRAB_HOLD_FORWARD = 4.2;
+        public static final double GRAB_HOLD_HEIGHT = 0.15;
+        public static final int GRAB_ENTITY_RELEASE_TICKS = 400;
+        public static final int GRAB_START_TIMEOUT = 140;
+        public static final int GRAB_MAX_TIMEOUT = 320;
+        public static final int GRAB_STRUGGLE_REDUCTION = 14;
+        public static final float GRAB_HEAL_TARGET_RATIO = 0.06f;
+        public static final float GRAB_HEAL_SELF_CAP_RATIO = 0.05f;
+
+        public static final int INK_KILLS_REQUIRED = 5;
+        public static final int INK_COOLDOWN_TICKS = 1200;
+        public static final float INK_ENERGY = 100f;
+        public static final int INK_ANIMATION_TICKS = 47;
+        public static final int INK_BURST_TICK = 19;
+        public static final double INK_RADIUS = 16.0;
+        public static final int INK_BLIND_TICKS = 120;
+        public static final int INK_SPEED_TICKS = 160;
+        public static final double INK_SPEED_BONUS = 0.8;
+        public static final long INK_DURATION_MS = (INK_ANIMATION_TICKS + INK_SPEED_TICKS) * 50L;
+    }
 }

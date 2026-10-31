@@ -7,6 +7,7 @@ import net.minecraft.world.entity.animal.Cod;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.entity.animal.Dolphin;
 import net.minecraft.world.entity.animal.Fox;
+import net.minecraft.world.entity.GlowSquid;
 import net.minecraft.world.entity.animal.Ocelot;
 import net.minecraft.world.entity.animal.Panda;
 import net.minecraft.world.entity.animal.Parrot;
@@ -32,6 +33,7 @@ import net.minecraft.world.entity.monster.Guardian;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
+import net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
@@ -128,6 +130,19 @@ public final class OWTargetLists {
             TigerEntity.class, KodiakEntity.class, BoaEntity.class,
             Squid.class, Cod.class, Salmon.class, TropicalFish.class, Pufferfish.class,
             Dolphin.class, Turtle.class, PolarBear.class,
-            Drowned.class, Guardian.class, ElderGuardian.class
+            Drowned.class, Guardian.class, ElderGuardian.class,
+            ColossalSquidEntity.class
+    );
+
+    /**
+     * Calamar Colossal — l'horreur des fonds. Il ne quitte jamais le noir : poisson des abysses,
+     * céphalopodes plus petits que lui (qui se dévorent entre eux), le noyé qui hante le fond, et
+     * le joueur qui ose plonger. Rien qui vive hors de l'eau.
+     */
+    public static final List<Class<?>> COLOSSAL_SQUID = List.of(
+            Player.class,
+            Cod.class, Salmon.class, TropicalFish.class, Pufferfish.class,
+            Squid.class, GlowSquid.class,
+            Drowned.class
     );
 }

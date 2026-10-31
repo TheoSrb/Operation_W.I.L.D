@@ -1167,5 +1167,18 @@
   "ow.attacks.lion.pride_bond.title": "Stärke des Rudels",
   "ow.attacks.lion.pride_bond.desc": "Das Männchen erhält %s Lebenspunkte pro Löwin seines Rudels (höchstens %s). Jede Löwin in der Nähe gibt ihm %s%% mehr Schaden und Widerstand, bis zu %s Löwinnen im Umkreis von %s Blöcken.",
   "ow.advancements.king_of_the_savanna.title": "König der Savanne",
-  "ow.advancements.king_of_the_savanna.description": "Du hast einen Löwen gezähmt!"
+  "ow.advancements.king_of_the_savanna.description": "Du hast einen Löwen gezähmt!",
+  "entity.ow.colossal_squid": "Koloss-Kalmar",
+  "chapter.entity.ow.colossal_squid": "Koloss-Kalmar",
+  "item.ow.colossal_squid_spawn_egg": "Koloss-Kalmar-Spawn-Ei",
+  "ow.attacks.colossal_squid.combo.title": "Tentakelsturm",
+  "ow.attacks.colossal_squid.combo.desc": "Die zehn Arme des Koloss-Kalmars schlagen alle %s Sekunden nacheinander zu und verursachen %s Schaden pro Salve. Solange du weiter angreifst und Energie übrig ist, endet die Kette nie: Jede Salve kostet %s Energie. Vor dem Zuschlagen dreht sich das Tier um, um seine Tentakel einzusetzen.",
+  "ow.attacks.colossal_squid.abyssal_grab.title": "Umarmung der Tiefe",
+  "ow.attacks.colossal_squid.abyssal_grab.desc": "Rechtsklick: Der Kalmar zieht sich zusammen, dann schnellen seine zwei langen Tentakel bis zu %s Blöcke weit vor, harpunieren die Beute und pressen sie in einen Käfig aus Armen. Solange er sie hält, zermalmt jeder Kombotreffer sie und heilt den Kalmar um %s%% der aktuellen Lebenspunkte der Beute. Ein Spieler befreit sich mit Rechtsklicks; eine Kreatur wird nach %s Sekunden losgelassen. Ein zweiter Rechtsklick lässt die Beute los. Dein Stamm wird verschont. %s Sekunden Abklingzeit.",
+  "ow.attacks.colossal_squid.ink_frenzy.title": "Tintenraserei",
+  "ow.attacks.colossal_squid.ink_frenzy.desc": "Wird durch %s Tötungen aufgeladen. Der Kalmar verliert den Verstand: Er schlägt um sich und stößt dann eine Tintenwolke aus, die jede Kreatur und jeden Spieler im Umkreis von %s Blöcken %s Sekunden lang blendet, außer deinem Stamm. Sofort macht er kehrt und schwimmt %s Sekunden lang %s%% schneller, um im Dunkeln zu verschwinden. %s Sekunden Abklingzeit.",
+  "ow.attacks.colossal_squid.volte_face.title": "Kehrtwende",
+  "ow.attacks.colossal_squid.volte_face.desc": "Der Koloss-Kalmar schwimmt mit dem Mantel voran und dreht sich in %s Sekunden um, um mit den Tentakeln voran zuzuschlagen; sein Reiter bewegt sich dabei nicht. Nach %s Sekunden ohne Angriff oder sobald du sprintest, dreht er sich zum Weiterschwimmen wieder um.",
+  "ow.advancements.abyssal_terror.title": "Schrecken der Tiefe",
+  "ow.advancements.abyssal_terror.description": "Du hast einen Koloss-Kalmar gezähmt!"
 }

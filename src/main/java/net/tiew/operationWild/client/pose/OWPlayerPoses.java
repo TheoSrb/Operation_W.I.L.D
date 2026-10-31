@@ -36,6 +36,7 @@ public final class OWPlayerPoses {
             OWAssailedPoses.LATCH,
             OWRiderPoses.RODEO,
             OWRiderPoses.SURF,
+            OWRiderPoses.PRONE,
             OWAssailedPoses.HYPNOSIS,
             OWAssailedPoses.DIZZY,
             OWShoulderPetPose.INSTANCE);

@@ -22,5 +22,10 @@ public class CosmeticsQuestEvents {
             // et donc à la barre d'avancement, en partie multijoueur comme en solo.
             tiger.addCosmeticQuestKill();
         }
+
+        if (event.getSource().getEntity() instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid
+                && squid.isTame() && !(victim instanceof Player)) {
+            squid.addCosmeticQuestKill();
+        }
     }
 }

@@ -78,11 +78,13 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
     private float swimPitch;
     private float swimPitchPrev;
     private static final int WATER_VISUAL_SETTLE = 6;
-    private static final float WATER_BLEND_STEP = 0.12f;
+    private static final float WATER_BLEND_SPRING = 0.05f;
+    private static final float WATER_BLEND_DAMPING = 0.44f;
     private int waterVisualTicks;
     private boolean waterVisual;
     private float waterBlend;
     private float waterBlendO;
+    private float waterBlendVelocity;
     private final float TARGET_TRANSITION_SPEED = 0.1f;
     private float targetModeBlend = 0.0f;
 
@@ -258,7 +260,13 @@ public abstract class OWSemiWaterEntity extends OWEntity implements net.tiew.ope
         if (this.waterVisualTicks >= WATER_VISUAL_SETTLE) this.waterVisual = true;
         else if (this.waterVisualTicks == 0) this.waterVisual = false;
         this.waterBlendO = this.waterBlend;
-        this.waterBlend = Mth.approach(this.waterBlend, this.waterVisual ? 1f : 0f, WATER_BLEND_STEP);
+        this.waterBlendVelocity += ((this.waterVisual ? 1f : 0f) - this.waterBlend) * WATER_BLEND_SPRING
+                - this.waterBlendVelocity * WATER_BLEND_DAMPING;
+        this.waterBlend += this.waterBlendVelocity;
+        if (this.waterBlend <= 0f || this.waterBlend >= 1f) {
+            this.waterBlend = Mth.clamp(this.waterBlend, 0f, 1f);
+            this.waterBlendVelocity = 0f;
+        }
     }
 
     public boolean isVisuallyInWater() {

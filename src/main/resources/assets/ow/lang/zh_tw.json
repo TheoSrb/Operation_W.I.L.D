@@ -1167,5 +1167,18 @@
   "ow.attacks.lion.pride_bond.title": "獅群之力",
   "ow.attacks.lion.pride_bond.desc": "雄獅每擁有一頭獅群母獅，生命值增加%s點（最多%s頭）。附近每有一頭母獅，牠的傷害與抗性提高%s%%（最多%s頭，範圍%s格）。",
   "ow.advancements.king_of_the_savanna.title": "草原之王",
-  "ow.advancements.king_of_the_savanna.description": "你馴服了一頭獅子！"
+  "ow.advancements.king_of_the_savanna.description": "你馴服了一頭獅子！",
+  "entity.ow.colossal_squid": "大王酸漿魷",
+  "chapter.entity.ow.colossal_squid": "大王酸漿魷",
+  "item.ow.colossal_squid_spawn_egg": "大王酸漿魷生怪蛋",
+  "ow.attacks.colossal_squid.combo.title": "觸手風暴",
+  "ow.attacks.colossal_squid.combo.desc": "大王酸漿魷的十條腕每隔%s秒依次猛擊，每輪造成%s點傷害。只要你持續攻擊且仍有體力，連擊就永不停止：每輪消耗%s點體力。出擊前，巨獸會轉身亮出觸手。",
+  "ow.attacks.colossal_squid.abyssal_grab.title": "深淵之擁",
+  "ow.attacks.colossal_squid.abyssal_grab.desc": "右鍵：魷魚蜷縮身體，隨後兩條長觸腕射出最遠%s格，鉤住獵物並將其困入腕足之籠。抓住期間，每次連擊都會碾壓獵物，並按獵物目前生命值的%s%%治療魷魚。玩家可透過右鍵掙扎脫身；生物會在%s秒後被放開。再次右鍵可鬆開獵物。你的部落不會被波及。冷卻%s秒。",
+  "ow.attacks.colossal_squid.ink_frenzy.title": "墨汁狂亂",
+  "ow.attacks.colossal_squid.ink_frenzy.desc": "擊殺%s個目標後充能。魷魚陷入瘋狂：劇烈扭動後噴出墨雲，使%s格內所有生物和玩家失明%s秒（你的部落除外）。隨即掉頭，在%s秒內游速提高%s%%，消失在黑暗中。冷卻%s秒。",
+  "ow.attacks.colossal_squid.volte_face.title": "轉身",
+  "ow.attacks.colossal_squid.volte_face.desc": "大王酸漿魷以外套膜朝前游動，並在%s秒內轉身，以觸手朝前發動攻擊；騎乘者保持不動。%s秒內未攻擊或你開始疾跑時，牠會再次轉身繼續游走。",
+  "ow.advancements.abyssal_terror.title": "深淵恐懼",
+  "ow.advancements.abyssal_terror.description": "你馴服了一隻大王酸漿魷！"
 }

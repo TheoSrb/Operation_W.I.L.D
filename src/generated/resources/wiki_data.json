@@ -131,6 +131,16 @@
       "title": {
         "fr_fr": "Roi de la Savane"
       }
+    },
+    {
+      "constant": "COLOSSAL_SQUID_TAMED_ADVANCEMENT",
+      "description": {
+        "fr_fr": "Vous avez apprivoisé un Calamar Colossal !"
+      },
+      "id": "ow:abyssal_terror",
+      "title": {
+        "fr_fr": "Terreur des Abysses"
+      }
     }
   ],
   "blocks": [
@@ -4469,12 +4479,12 @@
         "walk_speed_blocks_per_second": 3.2
       },
       "history": {
-        "created": "2026-10-17T16:54:47.3649623+02:00",
-        "created_date": "2026-10-17",
+        "created": "2026-10-30T17:28:11.4096468+01:00",
+        "created_date": "2026-10-30",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-24T21:25:00.5905714+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 85073
+        "last_modified": "2026-10-30T17:28:11.4104146+01:00",
+        "last_modified_date": "2026-10-30",
+        "size_bytes": 85181
       },
       "id": "ow:crocodile",
       "loot": {
@@ -10652,9 +10662,9 @@
         "created": "2026-10-29T20:21:47.2318351+01:00",
         "created_date": "2026-10-29",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-29T20:22:19.014027+01:00",
+        "last_modified": "2026-10-29T20:40:50.2518587+01:00",
         "last_modified_date": "2026-10-29",
-        "size_bytes": 87642
+        "size_bytes": 87724
       },
       "id": "ow:gorilla",
       "loot": {
@@ -12111,6 +12121,1195 @@
       ]
     },
     {
+      "abilities": {
+        "cards": [
+          {
+            "desc": {
+              "key": "ow.attacks.colossal_squid.combo.desc",
+              "plain": "Les dix bras du Calamar Colossal s'abattent l'un après l'autre, toutes les %s secondes, pour %s points de dégâts par salve. Tant que vous relancez et qu'il reste de l'énergie, l'enchaînement ne s'arrête jamais : chaque salve coûte %s d'énergie. Avant de frapper, la bête se retourne pour présenter ses tentacules.",
+              "translations": {
+                "fr_fr": "Les dix bras du Calamar Colossal s'abattent l'un après l'autre, toutes les %s secondes, pour %s points de dégâts par salve. Tant que vous relancez et qu'il reste de l'énergie, l'enchaînement ne s'arrête jamais : chaque salve coûte %s d'énergie. Avant de frapper, la bête se retourne pour présenter ses tentacules."
+              }
+            },
+            "slug": "combo",
+            "title": {
+              "key": "ow.attacks.colossal_squid.combo.title",
+              "plain": "Tempête de Tentacules",
+              "translations": {
+                "fr_fr": "Tempête de Tentacules"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.colossal_squid.abyssal_grab.desc",
+              "plain": "Clic droit : le calamar se ramasse, puis ses deux longues tentacules jaillissent jusqu'à %s blocs, harponnent la proie et la plaquent dans une cage de bras. Tant qu'il la tient, chaque coup de combo la broie et le soigne de %s%% des points de vie actuels de sa proie. Un joueur se débat au clic droit ; une créature est relâchée au bout de %s secondes. Un second clic droit lâche la proie. Votre tribu est épargnée. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "Clic droit : le calamar se ramasse, puis ses deux longues tentacules jaillissent jusqu'à %s blocs, harponnent la proie et la plaquent dans une cage de bras. Tant qu'il la tient, chaque coup de combo la broie et le soigne de %s%% des points de vie actuels de sa proie. Un joueur se débat au clic droit ; une créature est relâchée au bout de %s secondes. Un second clic droit lâche la proie. Votre tribu est épargnée. %s secondes de recharge."
+              }
+            },
+            "slug": "abyssal_grab",
+            "title": {
+              "key": "ow.attacks.colossal_squid.abyssal_grab.title",
+              "plain": "Étreinte Abyssale",
+              "translations": {
+                "fr_fr": "Étreinte Abyssale"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.colossal_squid.ink_frenzy.desc",
+              "plain": "S'arme sur %s victimes. Le calamar perd la raison : il se débat, puis libère une nuée d'encre qui aveugle toute créature et tout joueur à moins de %s blocs pendant %s secondes, sauf votre tribu. Il fait aussitôt volte-face et file %s%% plus vite pendant %s secondes pour disparaître dans le noir. %s secondes de recharge.",
+              "translations": {
+                "fr_fr": "S'arme sur %s victimes. Le calamar perd la raison : il se débat, puis libère une nuée d'encre qui aveugle toute créature et tout joueur à moins de %s blocs pendant %s secondes, sauf votre tribu. Il fait aussitôt volte-face et file %s%% plus vite pendant %s secondes pour disparaître dans le noir. %s secondes de recharge."
+              }
+            },
+            "slug": "ink_frenzy",
+            "title": {
+              "key": "ow.attacks.colossal_squid.ink_frenzy.title",
+              "plain": "Frénésie d'Encre",
+              "translations": {
+                "fr_fr": "Frénésie d'Encre"
+              }
+            }
+          },
+          {
+            "desc": {
+              "key": "ow.attacks.colossal_squid.volte_face.desc",
+              "plain": "Le Calamar Colossal nage manteau en avant et se retourne en %s seconde pour frapper tentacules devant ; son cavalier, lui, ne bouge pas. Après %s secondes sans attaquer, ou dès que vous sprintez, il se retourne pour repartir nager.",
+              "translations": {
+                "fr_fr": "Le Calamar Colossal nage manteau en avant et se retourne en %s seconde pour frapper tentacules devant ; son cavalier, lui, ne bouge pas. Après %s secondes sans attaquer, ou dès que vous sprintez, il se retourne pour repartir nager."
+              }
+            },
+            "slug": "volte_face",
+            "title": {
+              "key": "ow.attacks.colossal_squid.volte_face.title",
+              "plain": "Volte-face",
+              "translations": {
+                "fr_fr": "Volte-face"
+              }
+            }
+          }
+        ]
+      },
+      "attack_constants": {
+        "COMBO_STRIKE_ENERGY": 10.0,
+        "GRAB_CATCH_TICK": 7,
+        "GRAB_CONE_DOT": 0.55,
+        "GRAB_COOLDOWN_TICKS": 160,
+        "GRAB_ENERGY": 60.0,
+        "GRAB_ENTITY_RELEASE_TICKS": 400,
+        "GRAB_HEAL_SELF_CAP_RATIO": 0.05,
+        "GRAB_HEAL_TARGET_RATIO": 0.06,
+        "GRAB_HOLD_FORWARD": 4.2,
+        "GRAB_HOLD_HEIGHT": 0.15,
+        "GRAB_LUNGE_TICKS": 10,
+        "GRAB_MAX_TIMEOUT": 320,
+        "GRAB_MISS_TICKS": 12,
+        "GRAB_PREPARE_TICKS": 13,
+        "GRAB_PULL_TICKS": 12,
+        "GRAB_RANGE": 9.0,
+        "GRAB_RELEASE_TICKS": 10,
+        "GRAB_START_TIMEOUT": 140,
+        "GRAB_STRIKE_TICKS": 15,
+        "GRAB_STRUGGLE_REDUCTION": 14,
+        "INK_ANIMATION_TICKS": 47,
+        "INK_BLIND_TICKS": 120,
+        "INK_BURST_TICK": 19,
+        "INK_COOLDOWN_TICKS": 1200,
+        "INK_DURATION_MS": 10350,
+        "INK_ENERGY": 100.0,
+        "INK_KILLS_REQUIRED": 5,
+        "INK_RADIUS": 16.0,
+        "INK_SPEED_BONUS": 0.8,
+        "INK_SPEED_TICKS": 160,
+        "TURN_BACK_IDLE_TICKS": 60,
+        "TURN_TICKS": 17
+      },
+      "attributes": {
+        "minecraft:generic.armor": 0.0,
+        "minecraft:generic.armor_toughness": 0.0,
+        "minecraft:generic.attack_damage": 15.0,
+        "minecraft:generic.attack_knockback": 0.0,
+        "minecraft:generic.burning_time": 1.0,
+        "minecraft:generic.explosion_knockback_resistance": 0.0,
+        "minecraft:generic.fall_damage_multiplier": 1.0,
+        "minecraft:generic.follow_range": 40.0,
+        "minecraft:generic.gravity": 0.08,
+        "minecraft:generic.jump_strength": 0.41999998688697815,
+        "minecraft:generic.knockback_resistance": 0.85,
+        "minecraft:generic.max_absorption": 0.0,
+        "minecraft:generic.max_health": 80.0,
+        "minecraft:generic.movement_efficiency": 0.0,
+        "minecraft:generic.movement_speed": 0.17,
+        "minecraft:generic.oxygen_bonus": 0.0,
+        "minecraft:generic.safe_fall_distance": 3.0,
+        "minecraft:generic.scale": 1.0,
+        "minecraft:generic.step_height": 0.6,
+        "minecraft:generic.water_movement_efficiency": 0.0,
+        "neoforge:nametag_distance": 64.0,
+        "neoforge:swim_speed": 1.0
+      },
+      "chapter_names": {
+        "fr_fr": "Calamar Colossal"
+      },
+      "class": "net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity",
+      "classification": {
+        "boss": false,
+        "family": "aquatic",
+        "friendly": true,
+        "hierarchy": [
+          "ColossalSquidEntity",
+          "OWWaterEntity",
+          "OWEntity",
+          "TamableAnimal",
+          "Animal",
+          "AgeableMob",
+          "PathfinderMob",
+          "Mob",
+          "LivingEntity",
+          "Entity",
+          "AttachmentHolder"
+        ],
+        "interfaces": [
+          "IOWEntity",
+          "IOWTamable",
+          "IOWRideable"
+        ],
+        "max_instances_per_chunk": 5,
+        "mob_category": "water_creature",
+        "persistent": false
+      },
+      "client": {
+        "animations": [
+          {
+            "looping": true,
+            "name": "EYES",
+            "seconds": 10.0
+          },
+          {
+            "looping": false,
+            "name": "TURN_TO_COMBAT",
+            "seconds": 0.8333
+          },
+          {
+            "looping": false,
+            "name": "GRAB_PREPARE",
+            "seconds": 0.625
+          },
+          {
+            "looping": false,
+            "name": "GRAB_LUNGE",
+            "seconds": 0.5
+          },
+          {
+            "looping": false,
+            "name": "GRAB_PULL",
+            "seconds": 0.5833
+          },
+          {
+            "looping": false,
+            "name": "GRAB_STRIKE",
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "GRAB_STRIKE_2",
+            "seconds": 0.75
+          },
+          {
+            "looping": false,
+            "name": "GRAB_RELEASE",
+            "seconds": 0.5
+          },
+          {
+            "looping": false,
+            "name": "GRAB_MISS",
+            "seconds": 0.5833
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 6.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.5
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 0.9167
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 3.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.5
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 0.8333
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.0833
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 2.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 2.3333
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 5.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 6.6667
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 3.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.8333
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 5.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 2.0
+          }
+        ],
+        "layers": [
+          "ColossalSquidLayer"
+        ],
+        "model": "ColossalSquidModel",
+        "renderer": "ColossalSquidRenderer",
+        "skin": "ColossalSquidSkin"
+      },
+      "constants": {
+        "ENTITY_COLOR": 13462877,
+        "FOOD_WANTED_MAX": 12,
+        "FOOD_WANTED_MIN": 8,
+        "GRAB_HOLD": 4,
+        "GRAB_LUNGE": 2,
+        "GRAB_MISS": 6,
+        "GRAB_NONE": 0,
+        "GRAB_PREPARE": 1,
+        "GRAB_PULL": 3,
+        "GRAB_RELEASE": 5,
+        "MAX_SOMNOLENCE": 8000,
+        "SOMNOLENCE_LOSS_INTERVAL": 3,
+        "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 3,
+        "TAMING_EXPERIENCE": 500.0
+      },
+      "cosmetics": [],
+      "gameplay": {
+        "allows_unowned_piloting": false,
+        "archetype": {
+          "damage_multiplier": 1.1,
+          "energy_multiplier": 0.8,
+          "health_multiplier": 1.2,
+          "name": "BERSERKER",
+          "speed_multiplier": 1.0
+        },
+        "arena_terrain_mask": 2,
+        "bank_max_angle": 40.0,
+        "can_lean": false,
+        "combo_pause_delay": 2,
+        "default_skin_index": 0,
+        "diet": {
+          "name": "CARNIVOROUS",
+          "saturation_multiplier": 1.0
+        },
+        "entity_color": 13462877,
+        "entity_color_hex": "#CD6D5D",
+        "fights_in_arena": true,
+        "follow_owner_speed_factor": 5.0,
+        "grab_max_timeout": 320,
+        "initial_variant": 0,
+        "max_depth": 40,
+        "mounted_speed_blocks_per_second": 3.1733333806196855,
+        "nap_particle_forward": 1.25,
+        "nap_particle_height": 1.15,
+        "pitch_max_angle": 89.0,
+        "prefers_cooked_meat": false,
+        "prefers_raw_meat": true,
+        "prefers_vegetables": false,
+        "rider_camera_follows_body_tilt": true,
+        "rider_seat_frame_accurate": true,
+        "rolling_figure": false,
+        "rotation_speed": 0.065,
+        "secondary_attack_count": 1,
+        "secondary_cooldown_ticks": 0,
+        "taming_experience": 500.0,
+        "teleports_to_owner": false,
+        "temperament": "AGGRESSIVE",
+        "theoretical_scale": 20.0,
+        "unresolved": [
+          "maxUpStep",
+          "getDefaultGravity"
+        ],
+        "walk_speed_blocks_per_second": 3.4000000000000004
+      },
+      "history": {
+        "created": "2026-10-31T13:41:19.7582345+01:00",
+        "created_date": "2026-10-31",
+        "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/ColossalSquidEntity.java",
+        "last_modified": "2026-10-31T13:45:32.2151784+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 51075
+      },
+      "id": "ow:colossal_squid",
+      "loot": {
+        "drops": [],
+        "table": "ow:entities/colossal_squid",
+        "table_json": {
+          "type": "minecraft:entity"
+        }
+      },
+      "mount": {
+        "base_rider_y_offset": 1.125,
+        "changes_speed_during_combo": false,
+        "combo_speed_multiplier": 1.0,
+        "increases_speed_during_sprint": true,
+        "leaping_vehicle": false,
+        "max_vital_energy": 360.0,
+        "needs_saddle": true,
+        "rideable": true,
+        "rider_anim_y_offset": -0.0,
+        "run_speed_multiplier": 3.2,
+        "saddle_item": "ow:tiger_saddle",
+        "vital_energy_level_gain": 0.5,
+        "vital_energy_recuperation": 0.9,
+        "walk_speed_multiplier": 1.5,
+        "water_speed_divider": 0.5
+      },
+      "names": {
+        "fr_fr": "Calamar Colossal"
+      },
+      "path": "colossal_squid",
+      "piste": {
+        "available": true,
+        "node_count": 40,
+        "nodes": [
+          {
+            "type": "START",
+            "children": [
+              1
+            ],
+            "cost": 0,
+            "exclusive_fork": false,
+            "id": 0,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 277
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 33,
+            "required_level": 42,
+            "requires_all": false,
+            "reward": 90,
+            "x": 160,
+            "y": 0
+          },
+          {
+            "type": "XP",
+            "children": [
+              32,
+              33
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 24,
+            "required_level": 24,
+            "requires_all": false,
+            "reward": 45,
+            "x": 160,
+            "y": 61
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 32,
+            "required_level": 5,
+            "requires_all": false,
+            "reward": 0,
+            "x": 223,
+            "y": 61
+          },
+          {
+            "type": "ATTACK",
+            "children": [],
+            "cost": 75,
+            "exclusive_fork": false,
+            "id": 29,
+            "passives": [
+              {
+                "description": {
+                  "key": "piste.attack.0.desc",
+                  "plain": "Les proies tuées lâchent plus de viande crue.",
+                  "translations": {
+                    "fr_fr": "Les proies tuées lâchent plus de viande crue."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_0.png",
+                "id": 0,
+                "name": {
+                  "key": "piste.attack.0.name",
+                  "plain": "Festin du Prédateur",
+                  "translations": {
+                    "fr_fr": "Festin du Prédateur"
+                  }
+                }
+              },
+              {
+                "description": {
+                  "key": "piste.attack.1.desc",
+                  "plain": "Chance de désarmer la cible après un coup réussi.",
+                  "translations": {
+                    "fr_fr": "Chance de désarmer la cible après un coup réussi."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_1.png",
+                "id": 1,
+                "name": {
+                  "key": "piste.attack.1.name",
+                  "plain": "Griffe Désarmante",
+                  "translations": {
+                    "fr_fr": "Griffe Désarmante"
+                  }
+                }
+              }
+            ],
+            "required_level": 46,
+            "requires_all": false,
+            "reward": 0,
+            "x": 0,
+            "y": 101
+          },
+          {
+            "type": "XP",
+            "children": [
+              29,
+              30
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 22,
+            "required_level": 33,
+            "requires_all": false,
+            "reward": 55,
+            "x": 83,
+            "y": 101
+          },
+          {
+            "type": "XP",
+            "children": [
+              22,
+              23,
+              24
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 15,
+            "required_level": 36,
+            "requires_all": false,
+            "reward": 70,
+            "x": 160,
+            "y": 101
+          },
+          {
+            "type": "STEP",
+            "children": [
+              31
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 23,
+            "required_level": 19,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 101
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 31,
+            "required_level": 3,
+            "requires_all": false,
+            "reward": 25,
+            "x": 293,
+            "y": 101
+          },
+          {
+            "type": "COINS",
+            "children": [
+              28
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 21,
+            "required_level": 9,
+            "requires_all": false,
+            "reward": 4,
+            "x": 104,
+            "y": 125
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 28,
+            "required_level": 12,
+            "requires_all": false,
+            "reward": 0,
+            "x": 142,
+            "y": 125
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 17,
+            "required_level": 24,
+            "requires_all": false,
+            "reward": 45,
+            "x": 207,
+            "y": 125
+          },
+          {
+            "type": "COINS",
+            "children": [
+              17,
+              18
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 10,
+            "required_level": 7,
+            "requires_all": false,
+            "reward": 4,
+            "x": 239,
+            "y": 125
+          },
+          {
+            "type": "STEP",
+            "children": [
+              26
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 18,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 276,
+            "y": 125
+          },
+          {
+            "type": "COINS",
+            "children": [
+              36
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 26,
+            "required_level": 16,
+            "requires_all": false,
+            "reward": 5,
+            "x": 346,
+            "y": 125
+          },
+          {
+            "type": "STEP",
+            "children": [
+              21
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 14,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 104,
+            "y": 161
+          },
+          {
+            "type": "STEP",
+            "children": [
+              14,
+              15,
+              16
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 9,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 160,
+            "y": 161
+          },
+          {
+            "type": "COINS",
+            "children": [
+              9,
+              10,
+              11
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 6,
+            "required_level": 7,
+            "requires_all": false,
+            "reward": 4,
+            "x": 239,
+            "y": 161
+          },
+          {
+            "type": "STEP",
+            "children": [
+              6
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 4,
+            "required_level": 5,
+            "requires_all": false,
+            "reward": 0,
+            "x": 276,
+            "y": 161
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 12,
+            "required_level": 14,
+            "requires_all": false,
+            "reward": 0,
+            "x": 307,
+            "y": 161
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 30,
+            "required_level": 27,
+            "requires_all": false,
+            "reward": 0,
+            "x": 83,
+            "y": 178
+          },
+          {
+            "type": "ATTACK",
+            "children": [],
+            "cost": 75,
+            "exclusive_fork": false,
+            "id": 36,
+            "passives": [
+              {
+                "description": {
+                  "key": "piste.attack.0.desc",
+                  "plain": "Les proies tuées lâchent plus de viande crue.",
+                  "translations": {
+                    "fr_fr": "Les proies tuées lâchent plus de viande crue."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_0.png",
+                "id": 0,
+                "name": {
+                  "key": "piste.attack.0.name",
+                  "plain": "Festin du Prédateur",
+                  "translations": {
+                    "fr_fr": "Festin du Prédateur"
+                  }
+                }
+              },
+              {
+                "description": {
+                  "key": "piste.attack.1.desc",
+                  "plain": "Chance de désarmer la cible après un coup réussi.",
+                  "translations": {
+                    "fr_fr": "Chance de désarmer la cible après un coup réussi."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_1.png",
+                "id": 1,
+                "name": {
+                  "key": "piste.attack.1.name",
+                  "plain": "Griffe Désarmante",
+                  "translations": {
+                    "fr_fr": "Griffe Désarmante"
+                  }
+                }
+              }
+            ],
+            "required_level": 46,
+            "requires_all": false,
+            "reward": 0,
+            "x": 346,
+            "y": 178
+          },
+          {
+            "type": "COINS",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 35,
+            "required_level": 39,
+            "requires_all": false,
+            "reward": 6,
+            "x": 83,
+            "y": 195
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 38,
+            "required_level": 5,
+            "requires_all": false,
+            "reward": 0,
+            "x": 207,
+            "y": 195
+          },
+          {
+            "type": "COINS",
+            "children": [
+              12
+            ],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 7,
+            "required_level": 39,
+            "requires_all": false,
+            "reward": 6,
+            "x": 307,
+            "y": 195
+          },
+          {
+            "type": "COINS",
+            "children": [
+              7,
+              8
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 5,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 3,
+            "x": 346,
+            "y": 195
+          },
+          {
+            "type": "COINS",
+            "children": [
+              13
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 8,
+            "required_level": 21,
+            "requires_all": false,
+            "reward": 5,
+            "x": 406,
+            "y": 195
+          },
+          {
+            "type": "STEP",
+            "children": [
+              19
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 11,
+            "required_level": 12,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 219
+          },
+          {
+            "type": "ATTACK",
+            "children": [],
+            "cost": 75,
+            "exclusive_fork": false,
+            "id": 34,
+            "passives": [
+              {
+                "description": {
+                  "key": "piste.attack.0.desc",
+                  "plain": "Les proies tuées lâchent plus de viande crue.",
+                  "translations": {
+                    "fr_fr": "Les proies tuées lâchent plus de viande crue."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_0.png",
+                "id": 0,
+                "name": {
+                  "key": "piste.attack.0.name",
+                  "plain": "Festin du Prédateur",
+                  "translations": {
+                    "fr_fr": "Festin du Prédateur"
+                  }
+                }
+              },
+              {
+                "description": {
+                  "key": "piste.attack.1.desc",
+                  "plain": "Chance de désarmer la cible après un coup réussi.",
+                  "translations": {
+                    "fr_fr": "Chance de désarmer la cible après un coup réussi."
+                  }
+                },
+                "icon": "ow:textures/misc/attacks/tiger_passive_misc_1.png",
+                "id": 1,
+                "name": {
+                  "key": "piste.attack.1.name",
+                  "plain": "Griffe Désarmante",
+                  "translations": {
+                    "fr_fr": "Griffe Désarmante"
+                  }
+                }
+              }
+            ],
+            "required_level": 46,
+            "requires_all": false,
+            "reward": 0,
+            "x": 0,
+            "y": 240
+          },
+          {
+            "type": "STEP",
+            "children": [
+              34,
+              35
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 25,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 83,
+            "y": 240
+          },
+          {
+            "type": "COINS",
+            "children": [
+              25
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 16,
+            "required_level": 30,
+            "requires_all": false,
+            "reward": 6,
+            "x": 160,
+            "y": 240
+          },
+          {
+            "type": "COINS",
+            "children": [
+              3,
+              4
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 2,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 3,
+            "x": 276,
+            "y": 240
+          },
+          {
+            "type": "XP",
+            "children": [
+              5
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 3,
+            "required_level": 3,
+            "requires_all": false,
+            "reward": 25,
+            "x": 346,
+            "y": 240
+          },
+          {
+            "type": "COINS",
+            "children": [
+              20
+            ],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 13,
+            "required_level": 9,
+            "requires_all": false,
+            "reward": 4,
+            "x": 406,
+            "y": 240
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 10,
+            "exclusive_fork": false,
+            "id": 37,
+            "required_level": 33,
+            "requires_all": false,
+            "reward": 55,
+            "x": 142,
+            "y": 257
+          },
+          {
+            "type": "STEP",
+            "children": [
+              37,
+              38,
+              39
+            ],
+            "cost": 20,
+            "exclusive_fork": false,
+            "id": 27,
+            "required_level": 27,
+            "requires_all": false,
+            "reward": 0,
+            "x": 207,
+            "y": 257
+          },
+          {
+            "type": "STEP",
+            "children": [
+              27
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 19,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 239,
+            "y": 257
+          },
+          {
+            "type": "STEP",
+            "children": [
+              2
+            ],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 1,
+            "required_level": 0,
+            "requires_all": false,
+            "reward": 0,
+            "x": 276,
+            "y": 277
+          },
+          {
+            "type": "STEP",
+            "children": [],
+            "cost": 5,
+            "exclusive_fork": false,
+            "id": 20,
+            "required_level": 5,
+            "requires_all": false,
+            "reward": 0,
+            "x": 406,
+            "y": 277
+          },
+          {
+            "type": "XP",
+            "children": [],
+            "cost": 15,
+            "exclusive_fork": false,
+            "id": 39,
+            "required_level": 50,
+            "requires_all": true,
+            "reward": 250,
+            "x": 207,
+            "y": 324
+          }
+        ],
+        "start_node": 0,
+        "total_cost": 555
+      },
+      "probe_resolved": true,
+      "rarity": {
+        "spawns_naturally": false,
+        "tier": "none"
+      },
+      "simple_class": "ColossalSquidEntity",
+      "size": {
+        "eye_height": 1.19,
+        "fixed": false,
+        "height": 1.4,
+        "theoretical_scale": 20.0,
+        "width": 2.6
+      },
+      "sounds": [],
+      "taming": {
+        "advancement": "ow:abyssal_terror",
+        "breakout": {
+          "babies_break": false,
+          "below_percent": 80,
+          "level": 3,
+          "level_name": "stone",
+          "respects_mob_griefing": true
+        },
+        "experience": 500.0,
+        "feeding": {
+          "food_wanted_max": 12,
+          "food_wanted_min": 8,
+          "meal_interval_seconds_max": 90.0,
+          "meal_interval_seconds_min": 20.0,
+          "meal_interval_ticks_max": 1800,
+          "meal_interval_ticks_min": 400,
+          "somnolence_meal_interval_seconds_max": 45.0,
+          "somnolence_meal_interval_seconds_min": 10.0,
+          "somnolence_meal_interval_ticks_max": 900,
+          "somnolence_meal_interval_ticks_min": 200
+        },
+        "food_tags": [
+          {
+            "constant": "COLOSSAL_SQUID_FOOD",
+            "id": "ow:colossal_squid_food"
+          }
+        ],
+        "food_tiers": [
+          {
+            "items_from": "food_tags",
+            "kind": "diet",
+            "portions": 1,
+            "tier": 1
+          },
+          {
+            "item": "minecraft:cod",
+            "kind": "preferred",
+            "portions": 2,
+            "tier": 2
+          },
+          {
+            "item": "minecraft:salmon",
+            "kind": "adored",
+            "portions": 3,
+            "tier": 3
+          }
+        ],
+        "knockout": {
+          "bonus_lost_on_player_hit_only": false,
+          "flee_threshold_percent": 80,
+          "leash_drag_slack_blocks": 3.0,
+          "leash_drag_snap_blocks": 10.0,
+          "max_bonus_points": 5,
+          "meal_announce_seconds": 3.0,
+          "wake_warning_percent": 15
+        },
+        "somnolence": {
+          "decays": true,
+          "full_bar_asleep_seconds": 1200.0,
+          "full_bar_awake_seconds": 1200.0,
+          "loss_interval_ticks_asleep": 3,
+          "loss_interval_ticks_awake": 3,
+          "loss_per_second_asleep": 6.666666666666667,
+          "loss_per_second_awake": 6.666666666666667,
+          "max": 8000,
+          "max_max": 9600,
+          "max_min": 6400,
+          "spread_percent": 20
+        },
+        "tameable": true
+      },
+      "textures": [
+        "textures/entity/colossal_squid/colossal_squid_default.png"
+      ],
+      "tracking": {
+        "client_tracking_range": 5,
+        "fire_immune": false,
+        "loot_table": "ow:entities/colossal_squid",
+        "serializable": true,
+        "spawns_far_from_player": false,
+        "summonable": true,
+        "update_interval": 3
+      },
+      "traits": {
+        "diver": true,
+        "grabber": false,
+        "neutral_mob": false,
+        "rideable": true,
+        "rideable_jumping": false,
+        "tameable": true,
+        "waypoint": true
+      },
+      "translation_key": "entity.ow.colossal_squid",
+      "variants": [
+        {
+          "deprecated": false,
+          "id": 0,
+          "name": "DEFAULT",
+          "ordinal": 0
+        }
+      ],
+      "wild_behaviors": [
+        "ColossalSquidWildGrabGoal"
+      ]
+    },
+    {
       "abilities": {},
       "attributes": {
         "minecraft:generic.armor": 0.0,
@@ -12489,6 +13688,7 @@
       }
     ],
     "attack_ids": {
+      "ABYSSAL_GRAB": 28,
       "ATTACK_JUMP": 1,
       "BIG_MOUTH": 8,
       "CHEST_BEAT": 21,
@@ -12501,6 +13701,7 @@
       "HEAL_SNACK": 17,
       "HIPPO_ROLL": 22,
       "HUNTING_LEAP": 26,
+      "INK_FRENZY": 29,
       "MOUTH_SLAM": 3,
       "NAP_ULTIMATE": 6,
       "PAW_SLAM": 5,
@@ -14402,6 +15603,19 @@
     {
       "class": "DeferredSpawnEggItem",
       "fire_resistant": false,
+      "id": "ow:colossal_squid_spawn_egg",
+      "max_damage": 0,
+      "max_stack_size": 64,
+      "names": {
+        "fr_fr": "Oeuf d'apparition de calamar colossal"
+      },
+      "path": "colossal_squid_spawn_egg",
+      "rarity": "COMMON",
+      "translation_key": "item.ow.colossal_squid_spawn_egg"
+    },
+    {
+      "class": "DeferredSpawnEggItem",
+      "fire_resistant": false,
       "id": "ow:red_panda_spawn_egg",
       "max_damage": 0,
       "max_stack_size": 64,
@@ -14917,7 +16131,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1180
+      "fr_fr": 1193
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -17895,6 +19109,10 @@
           "minecraft:rabbit"
         ],
         "id": "ow:lion_food"
+      },
+      {
+        "constant": "COLOSSAL_SQUID_FOOD",
+        "id": "ow:colossal_squid_food"
       },
       {
         "constant": "SOMNOLENCE_FOOD",
@@ -23000,6 +24218,18 @@
           ]
         },
         {
+          "archetype": "BERSERKER",
+          "danger": 1.0,
+          "fights_in_arena": true,
+          "id": "ow:colossal_squid",
+          "path": "colossal_squid",
+          "probe_resolved": true,
+          "terrain_mask": 2,
+          "terrains": [
+            "AQUATIC"
+          ]
+        },
+        {
           "danger": 1.0,
           "fights_in_arena": true,
           "id": "ow:plant_empress",
@@ -23643,6 +24873,11 @@
           "carries_flag": true,
           "id": "ow:lion",
           "model": "LionModel"
+        },
+        {
+          "carries_flag": false,
+          "id": "ow:colossal_squid",
+          "model": "ColossalSquidModel"
         },
         {
           "carries_flag": false,
@@ -27946,6 +29181,19 @@
           "danger": 1.0,
           "id": "ow:lion",
           "path": "lion",
+          "value_by_level": {
+            "1": 11.4,
+            "10": 24.0,
+            "25": 45.0,
+            "40": 66.0,
+            "49": 78.6,
+            "50": 255.0
+          }
+        },
+        {
+          "danger": 1.0,
+          "id": "ow:colossal_squid",
+          "path": "colossal_squid",
           "value_by_level": {
             "1": 11.4,
             "10": 24.0,

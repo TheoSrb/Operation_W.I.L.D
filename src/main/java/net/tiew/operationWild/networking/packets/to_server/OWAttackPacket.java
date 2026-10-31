@@ -103,6 +103,17 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 return;
             }
 
+            if (packet.attackId() == OWAttackIds.ABYSSAL_GRAB
+                    && entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) {
+                switch (packet.action()) {
+                    case ACTION_CHARGE_START -> squid.beginGrabAim();
+                    case ACTION_CHARGE_CANCEL -> squid.releaseGrabAim(-1);
+                    case ACTION_EXECUTE_WITH_TARGET -> squid.releaseGrabAim(Float.floatToRawIntBits(packet.value()));
+                    default -> squid.startAbyssalGrab();
+                }
+                return;
+            }
+
             switch (packet.action()) {
                 case ACTION_EXECUTE -> {
                     // Panda roux — Orbe de Soin : lancer instantané, sans combo à interrompre.
@@ -183,6 +194,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.DOMINATION_ROAR ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lionRoar
                                         && lionRoar.activateDominationRoar();
+                        case OWAttackIds.INK_FRENZY ->
+                                entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squidInk
+                                        && squidInk.activateInkFrenzy();
                         case OWAttackIds.DISTRESS_CALL ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lionDistress
                                         && lionDistress.activateDistressCall();

@@ -239,6 +239,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private float swimTimeO;
     private float swimTempo = SWIM_TEMPO_IDLE;
     private int swimAfloatTicks;
+    private boolean swimAfloat;
+    private float swimPoseVelocity;
     private boolean knockedOutOnClient;
     private boolean sedationDisplayPrimed;
     private int dizzyStarIndex;
@@ -261,7 +263,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private static final List<OWSedationImpact> DEFAULT_SEDATION_IMPACTS = List.of(new OWSedationImpact(18, 0f, 0f, 1f));
     private static final int SWIM_SETTLE_TICKS = 6;
     private static final double SWIM_MIN_DEPTH = 0.2;
-    private static final float SWIM_BLEND_RATE = 0.1f;
+    private static final float SWIM_SPRING = 0.05f;
+    private static final float SWIM_DAMPING = 0.44f;
     private static final float SWIM_TEMPO_IDLE = 0.6f;
     private static final float SWIM_TEMPO_MOVE = 1.2f;
     private static final float SWIM_DRIVE_GAIN = 3.0f;
@@ -1717,9 +1720,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     public final float getVitalEnergyCapacity() {
-        float levelled = getMaxVitalEnergy()
-                * (1f + VITAL_ENERGY_LEVEL_GAIN * (Math.min(getLevel(), 50) / 50f));
-        return levelled + getVitalEnergyBonus();
+        return getMaxVitalEnergy() + getVitalEnergyBonus();
     }
 
     public void setItemFood(ItemStack food) {
@@ -2234,9 +2235,19 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         boolean afloat = this.isInWater() && !this.onGround() && this.getFluidHeight(FluidTags.WATER) > SWIM_MIN_DEPTH;
         this.swimAfloatTicks = Mth.clamp(this.swimAfloatTicks + (afloat ? 1 : -1), 0, SWIM_SETTLE_TICKS);
 
+        if (this.swimAfloatTicks >= SWIM_SETTLE_TICKS) this.swimAfloat = true;
+        else if (this.swimAfloatTicks == 0) this.swimAfloat = false;
+
+        // Ressort amorti plutôt qu'une approche linéaire : à la surface, l'ancienne cible suivait le
+        // compteur tick par tick et le poids montait puis redescendait par paliers visibles.
         this.swimPoseO = this.swimPose;
-        float target = this.canSwimPose() ? this.swimAfloatTicks / (float) SWIM_SETTLE_TICKS : 0f;
-        this.swimPose = Mth.approach(this.swimPose, target, SWIM_BLEND_RATE);
+        float target = this.canSwimPose() && this.swimAfloat ? 1f : 0f;
+        this.swimPoseVelocity += (target - this.swimPose) * SWIM_SPRING - this.swimPoseVelocity * SWIM_DAMPING;
+        this.swimPose += this.swimPoseVelocity;
+        if (this.swimPose <= 0f || this.swimPose >= 1f) {
+            this.swimPose = Mth.clamp(this.swimPose, 0f, 1f);
+            this.swimPoseVelocity = 0f;
+        }
 
         this.swimTimeO = this.swimTime;
         if (this.swimPose <= 0f) {
@@ -2626,6 +2637,9 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     private boolean hasReachedEnergyLimit = false;
 
     private boolean wasInWaterWhileRidden = false;
+    private boolean riddenBreaching = false;
+    private static final double BREACH_MIN_RISE = 0.12D;
+    private static final double BREACH_MAX_RISE = 0.9D;
 
     private long saddleShieldDisabledUntil = 0L;
     @Nullable
@@ -2838,11 +2852,24 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         try {
             if (this.isControlledByLocalInstance()) {
-                if (!ownsMotion) {
-                    boolean inWater = this.isInWater();
+                boolean inWater = this.isInWater();
+                Vec3 currentMovement = this.getDeltaMovement();
+                // Sortie de l'eau en montant : la bête garde tout l'élan qu'elle avait sous l'eau et
+                // décrit un vrai saut, au lieu d'être plafonnée à 0,1 puis recalée sur sa vitesse de
+                // terre, ce qui la stoppait net à la surface.
+                if (inWater || this.onGround()) {
+                    this.riddenBreaching = false;
+                } else if (this.wasInWaterWhileRidden && currentMovement.y > BREACH_MIN_RISE) {
+                    this.riddenBreaching = true;
+                    if (currentMovement.y > BREACH_MAX_RISE) {
+                        this.setDeltaMovement(currentMovement.x, BREACH_MAX_RISE, currentMovement.z);
+                    }
+                }
+                if (!ownsMotion && this.riddenBreaching) {
+                    this.wasInWaterWhileRidden = false;
+                } else if (!ownsMotion) {
                     Vec3 lookDirection = Vec3.directionFromRotation(inWater ? this.getXRot() : 0, this.getYRot()).normalize();
                     double speedPerTick = getRiddenSpeedVehicle(player) / (inWater ? vehicleWaterSpeedDivider() : 1);
-                    Vec3 currentMovement = this.getDeltaMovement();
                     double yMovement;
                     if (inWater) {
                         yMovement = lookDirection.y * speedPerTick + riddenBuoyancy();
@@ -2850,8 +2877,6 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                                 && net.tiew.operationWild.client.OWClientHooks.isJumpKeyDown()) {
                             yMovement += riddenAscendSpeed();
                         }
-                    } else if (this.wasInWaterWhileRidden && currentMovement.y > 0.1) {
-                        yMovement = 0.1;
                     } else {
                         yMovement = currentMovement.y;
                     }

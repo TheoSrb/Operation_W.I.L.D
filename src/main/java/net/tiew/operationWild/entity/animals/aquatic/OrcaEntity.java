@@ -84,6 +84,8 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     public static final int SPAWN_CHUNK_ONE_IN = 24;
     private static final long SPAWN_CHUNK_SALT = 412837190L;
 
+    private static final float MAX_VITAL_ENERGY = 315f;
+
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> RIDER_CONTROL_PITCH = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> IS_DASHING = SynchedEntityData.defineId(OrcaEntity.class, EntityDataSerializers.BOOLEAN);
@@ -918,7 +920,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
     @Override
     public float getMaxVitalEnergy() {
-        return 315f;
+        return MAX_VITAL_ENERGY * (1f + this.getLevel() / 100f);
     }
 
     @Override

@@ -103,6 +103,9 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     public static final int ENTITY_COLOR = 0xCFAA70;
     public static final int DEFAULT_SKIN_INDEX = 1;
 
+    private static final float MAX_VITAL_ENERGY_MALE = 320f;
+    private static final float MAX_VITAL_ENERGY_FEMALE = 280f;
+
     public static final double MALE_HEALTH = 32.0;
     public static final double MALE_DAMAGE = 7.0;
     public static final double MALE_SPEED = 0.20;
@@ -446,7 +449,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
     @Override
     public float getMaxVitalEnergy() {
-        return this.isMale() ? 320f : 280f;
+        return (this.isMale() ? MAX_VITAL_ENERGY_MALE : MAX_VITAL_ENERGY_FEMALE) * (1f + this.getLevel() / 100f);
     }
 
     @Override

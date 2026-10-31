@@ -82,6 +82,8 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     public static final int FOOD_WANTED_MIN = 8;
     public static final int FOOD_WANTED_MAX = 14;
 
+    private static final float MAX_VITAL_ENERGY = 150f;
+
     private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(25, 40);
     public static final double HERD_ANGER_RADIUS = 20.0;
 
@@ -358,7 +360,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     @Override
     public float getMaxVitalEnergy() {
-        return 150f;
+        return MAX_VITAL_ENERGY * (1f + this.getLevel() / 100f);
     }
 
     @Override

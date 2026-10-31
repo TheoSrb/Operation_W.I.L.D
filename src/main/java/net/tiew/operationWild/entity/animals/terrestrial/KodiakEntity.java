@@ -93,6 +93,8 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     public static final int MAX_DIRTY_TIMER = 1200;
     public final int MAX_SITTING_TIMER = 600;
 
+    private static final float MAX_VITAL_ENERGY = 350f;
+
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_SHADE_SKIN = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_ROLLING = SynchedEntityData.defineId(KodiakEntity.class, EntityDataSerializers.BOOLEAN);
@@ -401,7 +403,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
 
     @Override
     public float getMaxVitalEnergy() {
-        return 350f;
+        return MAX_VITAL_ENERGY * (1f + this.getLevel() / 100f);
     }
 
     @Override

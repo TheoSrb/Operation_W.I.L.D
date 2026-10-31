@@ -31,6 +31,7 @@ public class OWCreativeTabs {
                         output.accept(OWItems.GORILLA_SPAWN_EGG.get());
                         output.accept(OWItems.HIPPOPOTAMUS_SPAWN_EGG.get());
                         output.accept(OWItems.LION_SPAWN_EGG.get());
+                        output.accept(OWItems.COLOSSAL_SQUID_SPAWN_EGG.get());
                         output.accept(OWItems.TIGER_SPAWN_EGG.get());
 
                         output.accept(OWItems.PLANT_FIBER.get());

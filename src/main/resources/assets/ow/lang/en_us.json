@@ -1178,5 +1178,18 @@
   "ow.attacks.lion.pride_bond.title": "Pride Strength",
   "ow.attacks.lion.pride_bond.desc": "The male gains %s health per lioness in his clan (up to %s). Each nearby lioness grants him %s%% extra damage and resistance, up to %s lionesses within %s blocks.",
   "ow.advancements.king_of_the_savanna.title": "King of the Savanna",
-  "ow.advancements.king_of_the_savanna.description": "You tamed a Lion!"
+  "ow.advancements.king_of_the_savanna.description": "You tamed a Lion!",
+  "entity.ow.colossal_squid": "Colossal Squid",
+  "chapter.entity.ow.colossal_squid": "Colossal Squid",
+  "item.ow.colossal_squid_spawn_egg": "Colossal Squid Spawn Egg",
+  "ow.attacks.colossal_squid.combo.title": "Tentacle Storm",
+  "ow.attacks.colossal_squid.combo.desc": "The Colossal Squid's ten arms lash out one after another every %s seconds, dealing %s damage per volley. As long as you keep attacking and energy remains, the chain never ends: each volley costs %s energy. Before striking, the beast turns around to bring its tentacles to bear.",
+  "ow.attacks.colossal_squid.abyssal_grab.title": "Abyssal Embrace",
+  "ow.attacks.colossal_squid.abyssal_grab.desc": "Right click: the squid coils, then its two long tentacles shoot out up to %s blocks, harpoon the prey and pin it in a cage of arms. While held, every combo hit crushes it and heals the squid for %s%% of the prey's current health. A player struggles free with right clicks; a creature is released after %s seconds. Right click again to drop the prey. Your tribe is spared. %s seconds cooldown.",
+  "ow.attacks.colossal_squid.ink_frenzy.title": "Ink Frenzy",
+  "ow.attacks.colossal_squid.ink_frenzy.desc": "Charged by %s kills. The squid goes berserk: it thrashes, then releases a cloud of ink that blinds every creature and player within %s blocks for %s seconds, except your tribe. It immediately turns about and swims %s%% faster for %s seconds to vanish into the dark. %s seconds cooldown.",
+  "ow.attacks.colossal_squid.volte_face.title": "About-Face",
+  "ow.attacks.colossal_squid.volte_face.desc": "The Colossal Squid swims mantle first and turns around in %s seconds to strike tentacles first; its rider does not move. After %s seconds without attacking, or as soon as you sprint, it turns back to swim away.",
+  "ow.advancements.abyssal_terror.title": "Abyssal Terror",
+  "ow.advancements.abyssal_terror.description": "You tamed a Colossal Squid!"
 }

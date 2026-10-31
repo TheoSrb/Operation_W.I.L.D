@@ -181,6 +181,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "GorillaEntity" -> entityScale = 20;
             case "HippopotamusEntity" -> entityScale = 16;
             case "LionEntity" -> entityScale = 20;
+            case "ColossalSquidEntity" -> entityScale = 5;
         }
 
         tabsRenderer.init(this.width, this.height, this.imageWidth, this.imageHeight, entity, this::addRenderableWidget);
@@ -415,6 +416,8 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
             case "HippopotamusEntity":
                 return 240;
             case "LionEntity":
+                return 240;
+            case "ColossalSquidEntity":
                 return 240;
             case "TigerEntity":
                 return 240;

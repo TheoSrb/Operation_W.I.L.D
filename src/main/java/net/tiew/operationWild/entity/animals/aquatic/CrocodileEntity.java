@@ -90,6 +90,8 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     public static final int FOOD_WANTED_MIN = 6;
     public static final int FOOD_WANTED_MAX = 10;
 
+    private static final float MAX_VITAL_ENERGY = 290f;
+
     private static final EntityDataAccessor<Integer> DATA_INITIAL_VARIANT = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> IS_MAD = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_GRABBING = SynchedEntityData.defineId(CrocodileEntity.class, EntityDataSerializers.BOOLEAN);
@@ -413,7 +415,7 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
 
     @Override
     public float getMaxVitalEnergy() {
-        return 290f;
+        return MAX_VITAL_ENERGY * (1f + this.getLevel() / 100f);
     }
 
     @Override

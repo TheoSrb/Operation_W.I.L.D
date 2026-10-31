@@ -11,7 +11,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
+import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.config.IOWDiver;
@@ -28,15 +30,10 @@ public class OWEntityHud {
         if (Minecraft.getInstance().options.hideGui) return;
 
         if (rider != null) {
-            // Le panda roux ne se monte pas, il se porte : le joueur à pied n'a pas de véhicule, et
-            // c'est parmi ses PASSAGERS qu'il faut aller chercher la bête dont afficher les jauges.
-            // La monture garde la priorité quand il y a les deux.
             if (rider.getVehicle() == null) {
                 net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity shoulderPanda =
                         net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity.getShoulderPanda(rider);
                 if (shoulderPanda != null && shoulderPanda.isTame()) {
-                    // Place d'origine : c'est la barre de faim qui s'efface pour lui laisser la
-                    // bande, comme elle le fait pour une monture (cf. ClientEvents.onRenderGuiLayer).
                     createHUD(guiGraphics, shoulderPanda, screenWidth, screenHeight);
                 }
                 return;
@@ -52,8 +49,6 @@ public class OWEntityHud {
 
                     createHUD(guiGraphics, owEntity, screenWidth, screenHeight);
 
-                    // Lu sur le contrat de plongée et non sur une famille : l'orque n'hérite pas de
-                    // OWSemiWaterEntity, et c'est ce qui la privait de la jauge jusqu'ici.
                     boolean depthShown = owEntity instanceof IOWDiver && owEntity.isInWater();
 
                     if (depthShown) {
@@ -61,9 +56,6 @@ public class OWEntityHud {
                         int actualDepth = (int) (owEntity.level().getSeaLevel() - owEntity.getY());
                         boolean isTooDeep = actualDepth >= diver.getMaxDepth();
 
-                        // Passé la limite, la profondeur clignote en rouge : c'est la seule chose
-                        // à l'écran qui explique les dégâts encaissés, et le jaune fixe d'avant ne
-                        // se distinguait pas assez du chiffre de limite, écrit dans la même teinte.
                         int depthColor = isTooDeep
                                 ? ((owEntity.tickCount / 5) % 2 == 0 ? 0xFF4040 : 0xF3C83B)
                                 : 0xFFFFFF;
@@ -155,6 +147,7 @@ public class OWEntityHud {
             case "RedPandaEntity": return 13;
             case "GorillaEntity": return 14;
             case "HippopotamusEntity": return 15;
+            case "ColossalSquidEntity": return 16;
             default: return 0;
         }
     }
@@ -166,10 +159,6 @@ public class OWEntityHud {
         if (entity instanceof OWEntity owEntity && owEntity.showsChargeBar()) {
             guiGraphics.blit(HUD, xPlacement, yPlacement, 173, 0, 10, 103);
 
-            // L'accélération n'a pas de plafond : le paquet de sprint l'incrémente d'un par tick
-            // sans jamais s'arrêter, et seul le calcul de vitesse la borne à cent. Sans le même
-            // plafond ici, la jauge dépassait sa hauteur au bout de cinq secondes de course et se
-            // redessinait une seconde fois AU-DESSUS du cadre, avec un décalage de texture négatif.
             float filled = Math.min(100f, owEntity.getChargeDisplay()) / 100f;
 
             int barHeight = (int) (103 * filled);
@@ -223,23 +212,22 @@ public class OWEntityHud {
             return new EntityIconData(242, 38, 14, 11, -(14 / 2), -2);
         } else if (entity instanceof KangarooEntity) {
             return new EntityIconData(239, 203, 17, 23, -(17 / 2), -14);
-        } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity) {
+        } else if (entity instanceof RedPandaEntity) {
             return new EntityIconData(232, 226, 24, 19, -(24 / 2), -10);
-        } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity) {
+        } else if (entity instanceof GorillaEntity) {
             return new EntityIconData(211, 229, 21, 27, -(21 / 2), -18);
-        } else if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity) {
+        } else if (entity instanceof LionEntity) {
             return new EntityIconData(239, 169, 17, 17, -(17 / 2), -8);
-        } else if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity) {
+        } else if (entity instanceof HippopotamusEntity) {
             return new EntityIconData(188, 237, 23, 19, -(23 / 2), -10);
         } else if (entity instanceof ElephantEntity) {
-            // Vignette la plus large du lot (31 px) : elle déborde des deux côtés de l'ancrage, d'où
-            // un décalage horizontal deux fois plus grand que celui du kodiak.
             return new EntityIconData(225, 0, 31, 21, -(31 / 2), -12);
+        } else if (entity instanceof ColossalSquidEntity) {
+            return new EntityIconData(166, 215, 22, 41, -(22 / 2), -32);
         }
         return null;
     }
 
-    /** Durée du battement de refus, et bête concernée : une seule peut clignoter à la fois. */
     private static final long ENERGY_LACK_FLASH_MS = 1200L;
     private static long energyLackUntilMs = 0L;
     private static int energyLackEntityId = -1;
@@ -250,15 +238,6 @@ public class OWEntityHud {
 
         guiGraphics.blit(HUD, xPlacement + 81 + 5, yPlacement, 0, 230, 8, 14);
 
-        // Refus faute d'énergie : l'icône bat en violet vif pendant une seconde et quelque.
-        //
-        // Le drapeau était pose par les NEUF especes et lu par personne — du code mort depuis
-        // toujours. Il est consomme ici, donc rendu tout de suite a zero : laisse a vrai, il ferait
-        // clignoter la jauge sans fin. Rien ne peut regresser, puisque jusqu'ici il ne se passait
-        // rien du tout.
-        // Fenetre partagee avec la bordure d'ecran. Le drapeau brut ne pouvait pas la servir : il
-        // est consomme ICI, dans une couche de GUI, alors que la bordure se dessine apres toutes les
-        // couches — elle le trouvait donc toujours deja remis a faux.
         if (entity.canShowVitalEnergyLack) {
             entity.canShowVitalEnergyLack = false;
             energyLackEntityId = entity.getId();
@@ -275,9 +254,6 @@ public class OWEntityHud {
             return;
         }
 
-        // Une bete qui ne court pas et n'enchaine pas peut tout de meme se depenser : le panda roux
-        // ne fait que lancer des soins, et ni le combo ni la course ne le decrivaient. Le battement
-        // suit donc aussi la depense recente, quelle qu'en soit la source.
         boolean isActuallySpendingEnergy = entity.isCombo()
                 || (entity.isRunning() && entity.isVehicle() && entity.isTame()
                     && entity.getDeltaMovement().horizontalDistanceSqr() > 0.00005);
@@ -291,17 +267,6 @@ public class OWEntityHud {
         guiGraphics.blit(HUD, xPlacement + 81 + 5 + 1, yPlacement + 1, 7, 244, 6, (int) (12 * (((float) (entity.getVitalEnergy() / entity.getVitalEnergyCapacity())))));
     }
 
-    /**
-     * Alerte de pression, affichée sous le bloc de profondeur.
-     *
-     * <p>Le message existait, était traduit dans les quatorze langues, et n'a jamais été montré : il
-     * était construit côté SERVEUR dans {@code OWSemiWaterEntity}, {@code OWWaterEntity} et le
-     * submersible, puis abandonné là — l'appel d'affichage y est commenté avec la mention « ne
-     * marche pas côté serveur ». Résultat, la monture encaissait des dégâts de pression sans que
-     * rien à l'écran ne les explique, et le joueur les attribuait naturellement à sa jauge
-     * d'oxygène, encore pleine. Le HUD tourne sur le client et connaît déjà la profondeur : il n'y
-     * avait aucune raison de faire voyager quoi que ce soit.</p>
-     */
     public static boolean isEnergyLackFlashing(int entityId) {
         return energyLackEntityId == entityId && System.currentTimeMillis() < energyLackUntilMs;
     }
@@ -317,9 +282,7 @@ public class OWEntityHud {
     private static final ResourceLocation AIR_SPRITE = ResourceLocation.withDefaultNamespace("hud/air");
     private static final ResourceLocation AIR_BURSTING_SPRITE = ResourceLocation.withDefaultNamespace("hud/air_bursting");
 
-    /** Rangee de bulles, juste sous l'indicateur de profondeur quand il est affiche. */
     private static final int ENTITY_AIR_ROW_Y_UNDER_DEPTH = 30;
-    /** Et a sa place des qu'il disparait : la rangee ne reste pas suspendue dans le vide. */
     private static final int ENTITY_AIR_ROW_Y_ALONE = 10;
     private static final int ENTITY_AIR_BUBBLES = 7;
 
@@ -327,20 +290,6 @@ public class OWEntityHud {
     private static boolean airRowWasVisible = false;
     private static long airRowLastMs = 0L;
 
-    /**
-     * Souffle de la monture, en bulles vanilla.
-     *
-     * <p>L'ancienne jauge etait un carre de 15 px pose juste a gauche du centre, sur la meme bande
-     * que la rangee d'armure et les bulles du joueur : elle mordait sur le HUD vanilla des que la
-     * barre d'armure etait pleine, et sur n'importe quel HUD moddé occupant cette bande. Le bas de
-     * l'ecran est de toute facon sature — coeurs, barre d'experience, vie de monture et bulles du
-     * joueur se partagent deja chaque ligne, il n'y restait aucune place franche.</p>
-     *
-     * <p>Les bulles rejoignent donc le bloc de plongee, en haut, ou vivent deja la profondeur et sa
-     * limite : meme sprite et meme regle d'eclatement que vanilla, donc rien a apprendre, et une
-     * rangee qui se retracte vers le centre a mesure que l'air manque. Elle ne s'affiche que
-     * lorsqu'elle a quelque chose a dire — sous l'eau, ou tant que le souffle n'est pas revenu.</p>
-     */
     public static void createEntityAirBubbles(GuiGraphics guiGraphics, OWEntity entity, int screenWidth,
                                               boolean depthShown) {
         int air = entity.getAirSupply();
@@ -358,10 +307,6 @@ public class OWEntityHud {
             return;
         }
 
-        // Le bloc de profondeur ne s'affiche que sous l'eau : à la remontée il disparaît alors que
-        // le souffle se refait encore, et la rangée resterait plantée à sa hauteur, seule et trop
-        // basse. Elle remonte donc à sa place — en glissant, car un saut sec de vingt pixels au
-        // moment précis où l'on crève la surface se remarquerait plus que le décalage lui-même.
         float target = depthShown ? ENTITY_AIR_ROW_Y_UNDER_DEPTH : ENTITY_AIR_ROW_Y_ALONE;
         long now = System.currentTimeMillis();
 

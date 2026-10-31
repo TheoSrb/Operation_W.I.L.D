@@ -1167,5 +1167,18 @@
   "ow.attacks.lion.pride_bond.title": "狮群之力",
   "ow.attacks.lion.pride_bond.desc": "雄狮每拥有一头狮群母狮，生命值增加%s点（最多%s头）。附近每有一头母狮，他的伤害与抗性提高%s%%（最多%s头，范围%s格）。",
   "ow.advancements.king_of_the_savanna.title": "草原之王",
-  "ow.advancements.king_of_the_savanna.description": "你驯服了一头狮子！"
+  "ow.advancements.king_of_the_savanna.description": "你驯服了一头狮子！",
+  "entity.ow.colossal_squid": "大王酸浆鱿",
+  "chapter.entity.ow.colossal_squid": "大王酸浆鱿",
+  "item.ow.colossal_squid_spawn_egg": "大王酸浆鱿刷怪蛋",
+  "ow.attacks.colossal_squid.combo.title": "触手风暴",
+  "ow.attacks.colossal_squid.combo.desc": "大王酸浆鱿的十条腕每隔%s秒依次猛击，每轮造成%s点伤害。只要你持续攻击且仍有体力，连击就永不停止：每轮消耗%s点体力。出击前，巨兽会转身亮出触手。",
+  "ow.attacks.colossal_squid.abyssal_grab.title": "深渊之拥",
+  "ow.attacks.colossal_squid.abyssal_grab.desc": "右键：鱿鱼蜷缩身体，随后两条长触腕射出最远%s格，钩住猎物并将其困入腕足之笼。抓住期间，每次连击都会碾压猎物，并按猎物当前生命值的%s%%治疗鱿鱼。玩家可通过右键挣扎脱身；生物会在%s秒后被放开。再次右键可松开猎物。你的部落不会被波及。冷却%s秒。",
+  "ow.attacks.colossal_squid.ink_frenzy.title": "墨汁狂乱",
+  "ow.attacks.colossal_squid.ink_frenzy.desc": "击杀%s个目标后充能。鱿鱼陷入疯狂：剧烈扭动后喷出墨云，使%s格内所有生物和玩家失明%s秒（你的部落除外）。随即掉头，在%s秒内游速提高%s%%，消失在黑暗中。冷却%s秒。",
+  "ow.attacks.colossal_squid.volte_face.title": "转身",
+  "ow.attacks.colossal_squid.volte_face.desc": "大王酸浆鱿以外套膜朝前游动，并在%s秒内转身，以触手朝前发动攻击；骑乘者保持不动。%s秒内未攻击或你开始疾跑时，它会再次转身继续游走。",
+  "ow.advancements.abyssal_terror.title": "深渊恐惧",
+  "ow.advancements.abyssal_terror.description": "你驯服了一只大王酸浆鱿！"
 }

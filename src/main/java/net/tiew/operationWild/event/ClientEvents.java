@@ -1191,6 +1191,11 @@ public class ClientEvents {
     }
 
     @SubscribeEvent
+    public static void onRenderColossalSquidGrabAim(RenderGuiEvent.Post event) {
+        ColossalSquidGrabAim.renderHud(event.getGuiGraphics());
+    }
+
+    @SubscribeEvent
     public static void onRenderFear(RenderGuiEvent.Post event) {
         OWFearOverlay.render(event.getGuiGraphics(),
                 event.getGuiGraphics().guiWidth(),
@@ -1688,6 +1693,8 @@ public class ClientEvents {
                 // d'où l'apport explicite là-bas et son absence ici.
                 event.setRoll((float) (event.getRoll() + (crocodile.getBodyZRot() / 4) * intensity));
                 event.setPitch((float) (event.getPitch() + (crocodile.getBodyXRot() / 4) * intensity));
+            } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) {
+                event.setRoll((float) (event.getRoll() + squid.getBankCameraRoll((float) event.getPartialTick()) * intensity));
             } else if (rootVehicle instanceof OrcaEntity orca) {
                 // La camera epouse le corps sur les trois axes, au quart : elle n'attenuait
                 // le mouvement qu'au sixieme, et ignorait le lacet. Ce sont ALL + body — le pique
@@ -2140,6 +2147,7 @@ public class ClientEvents {
 
         if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
             renderPassiveEsp(event);
+            ColossalSquidGrabAim.project(event);
             renderThermalHearts(event);
             renderRedPandaVitalSense(event);
             renderHealTargetOutline(event);
@@ -2482,6 +2490,8 @@ public class ClientEvents {
                 updateCrocTargeting(crocT, mcT.player, mcT.level);
             }
         }
+
+        ColossalSquidGrabAim.tick();
 
         if (OWAttackLogic.isBoaTargeting) {
             Minecraft mcB = Minecraft.getInstance();

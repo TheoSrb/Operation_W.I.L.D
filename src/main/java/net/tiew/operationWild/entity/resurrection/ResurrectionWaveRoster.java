@@ -49,7 +49,8 @@ public final class ResurrectionWaveRoster {
             "kodiak", 3,
             "orca", 4,
             "hippopotamus", 4,
-            "elephant", 5
+            "elephant", 5,
+            "colossal_squid", 5
     ));
 
     /**

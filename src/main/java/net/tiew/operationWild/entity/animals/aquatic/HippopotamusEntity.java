@@ -100,6 +100,8 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
     public static final int ENTITY_COLOR = 0x675250;
     public static final int DEFAULT_SKIN_INDEX = 1;
 
+    private static final float MAX_VITAL_ENERGY = 400f;
+
     public static final int STAGGER_NONE = 0;
     public static final int STAGGER_BOUNCE = 1;
     public static final int STAGGER_DIZZY = 2;
@@ -380,7 +382,7 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
 
     @Override
     public float getMaxVitalEnergy() {
-        return 400f;
+        return MAX_VITAL_ENERGY * (1f + this.getLevel() / 100f);
     }
 
     @Override

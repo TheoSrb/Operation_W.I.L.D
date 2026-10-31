@@ -28,6 +28,10 @@ IDs d'attaque déjà pris :
  23 → Hippopotame RIVER_FURY  (Furie du Fleuve — ultime, touche X, 5 kills requis)
  24 → Lion   CLAN_CALL       (Appel du Clan — clic droit instantané, téléporte jusqu'à 3 lionnes apprivoisées du clan)
  25 → Lion   DOMINATION_ROAR (Rugissement de Domination — ultime, touche X, 5 kills requis)
+ 26 → Lionne HUNTING_LEAP    (Bond Agrippeur — clic droit, accroche sans monter)
+ 27 → Lionne DISTRESS_CALL   (Appel de Détresse — ultime, touche X)
+ 28 → Calamar Colossal ABYSSAL_GRAB (Étreinte Abyssale — clic droit, harpon puis cage ; re-clic relâche)
+ 29 → Calamar Colossal INK_FRENZY   (Frénésie d'Encre — ultime, touche X, 5 kills requis)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR

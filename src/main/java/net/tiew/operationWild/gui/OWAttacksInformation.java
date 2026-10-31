@@ -12,6 +12,7 @@ import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.core.OWKeysBinding;
 import net.tiew.operationWild.entity.OWEntity;
+import net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity;
 import net.tiew.operationWild.entity.animals.aquatic.OrcaEntity;
@@ -374,6 +375,44 @@ public class OWAttacksInformation {
                         e -> desc("ow.attacks.hippopotamus.river_surge.desc",
                                 val(OWAttacksConstants.Hippopotamus.RIVER_SURGE_TICKS / 20),
                                 val((int) (OWAttacksConstants.Hippopotamus.RIVER_SURGE_SPEED_BONUS * 100)))
+                )
+
+        ));
+
+        PROFILES.put(ColossalSquidEntity.class, new EntityProfile(
+
+                new AttackSlot(120, 0, "LMB",
+                        title("ow.attacks.colossal_squid.combo.title"),
+                        e -> desc("ow.attacks.colossal_squid.combo.desc",
+                                val("0.6"), val(e.getDamageToClient() / 3),
+                                val((int) OWAttacksConstants.ColossalSquid.COMBO_STRIKE_ENERGY))
+                ),
+
+                new AttackSlot(140, 0, "RMB",
+                        title("ow.attacks.colossal_squid.abyssal_grab.title"),
+                        e -> desc("ow.attacks.colossal_squid.abyssal_grab.desc",
+                                val((int) OWAttacksConstants.ColossalSquid.GRAB_RANGE),
+                                val((int) (OWAttacksConstants.ColossalSquid.GRAB_HEAL_TARGET_RATIO * 100)),
+                                val(OWAttacksConstants.ColossalSquid.GRAB_ENTITY_RELEASE_TICKS / 20),
+                                val(OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(160, 0, "X",
+                        title("ow.attacks.colossal_squid.ink_frenzy.title"),
+                        e -> desc("ow.attacks.colossal_squid.ink_frenzy.desc",
+                                val(OWAttacksConstants.ColossalSquid.INK_KILLS_REQUIRED),
+                                val((int) OWAttacksConstants.ColossalSquid.INK_RADIUS),
+                                val(OWAttacksConstants.ColossalSquid.INK_BLIND_TICKS / 20),
+                                val((int) (OWAttacksConstants.ColossalSquid.INK_SPEED_BONUS * 100)),
+                                val(OWAttacksConstants.ColossalSquid.INK_SPEED_TICKS / 20),
+                                val(OWAttacksConstants.ColossalSquid.INK_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(-1, -1, "",
+                        title("ow.attacks.colossal_squid.volte_face.title"),
+                        e -> desc("ow.attacks.colossal_squid.volte_face.desc",
+                                val(String.format(java.util.Locale.ROOT, "%.2f", OWAttacksConstants.ColossalSquid.TURN_TICKS / 20f)),
+                                val(OWAttacksConstants.ColossalSquid.TURN_BACK_IDLE_TICKS / 20))
                 )
 
         ));

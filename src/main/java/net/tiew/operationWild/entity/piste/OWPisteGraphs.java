@@ -15,6 +15,7 @@ public final class OWPisteGraphs {
         BY_SPECIES.put("KodiakEntity", buildKodiak());
         BY_SPECIES.put("TigerEntity", buildTiger());
         BY_SPECIES.put("CrocodileEntity", buildCrocodile());
+        BY_SPECIES.put("ColossalSquidEntity", buildCrocodile());
         BY_SPECIES.put("BoaEntity", buildBoa());
         BY_SPECIES.put("RedPandaEntity", buildRedPanda());
     }

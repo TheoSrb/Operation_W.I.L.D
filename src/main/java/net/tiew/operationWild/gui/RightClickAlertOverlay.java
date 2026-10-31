@@ -56,6 +56,7 @@ public class RightClickAlertOverlay {
         if (entity instanceof TigerEntity tiger) return tiger.isGrabbing() && tiger.getGrabbedTarget() == player;
         if (entity instanceof BoaEntity boa) return boa.isGrabbing() && boa.getGrabbedTarget() == player;
         if (entity instanceof KangarooEntity kangaroo) return kangaroo.getDrownVictim() == player;
+        if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) return squid.isGrabbing() && squid.getGrabbedTarget() == player;
         return false;
     }
 
@@ -334,6 +335,7 @@ public class RightClickAlertOverlay {
         if (captor instanceof TigerEntity tiger) return tiger.getGrabTimeout();
         if (captor instanceof BoaEntity boa) return boa.getGrabTimeout();
         if (captor instanceof KangarooEntity kangaroo) return kangaroo.getGrabTimeout();
+        if (captor instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) return squid.getGrabTimeout();
         return 0;
     }
 
@@ -342,6 +344,7 @@ public class RightClickAlertOverlay {
         if (captor instanceof TigerEntity tiger) return tiger.getGrabMaxTimeout();
         if (captor instanceof BoaEntity boa) return boa.getGrabMaxTimeout();
         if (captor instanceof KangarooEntity kangaroo) return kangaroo.getGrabMaxTimeout();
+        if (captor instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) return squid.getGrabMaxTimeout();
         return 0;
     }
 }

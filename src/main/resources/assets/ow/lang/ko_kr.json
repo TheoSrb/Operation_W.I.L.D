@@ -1167,5 +1167,18 @@
   "ow.attacks.lion.pride_bond.title": "무리의 힘",
   "ow.attacks.lion.pride_bond.desc": "수컷은 무리의 암사자 한 마리당 체력이 %s 증가합니다(최대 %s마리). 근처 암사자 한 마리마다 피해량과 저항이 %s%% 증가합니다(최대 %s마리, 반경 %s블록).",
   "ow.advancements.king_of_the_savanna.title": "사바나의 왕",
-  "ow.advancements.king_of_the_savanna.description": "사자를 길들였습니다!"
+  "ow.advancements.king_of_the_savanna.description": "사자를 길들였습니다!",
+  "entity.ow.colossal_squid": "대왕오징어",
+  "chapter.entity.ow.colossal_squid": "대왕오징어",
+  "item.ow.colossal_squid_spawn_egg": "대왕오징어 스폰 알",
+  "ow.attacks.colossal_squid.combo.title": "촉수 폭풍",
+  "ow.attacks.colossal_squid.combo.desc": "대왕오징어의 열 개의 팔이 %s초마다 차례로 내리쳐 일제 공격마다 %s의 피해를 줍니다. 계속 공격하고 기력이 남아 있는 한 연계는 끝나지 않습니다. 일제 공격마다 기력 %s를 소모합니다. 공격하기 전에 몸을 돌려 촉수를 들이댑니다.",
+  "ow.attacks.colossal_squid.abyssal_grab.title": "심연의 포옹",
+  "ow.attacks.colossal_squid.abyssal_grab.desc": "우클릭: 오징어가 몸을 웅크린 뒤 두 개의 긴 촉완이 최대 %s블록까지 뻗어 먹잇감을 꿰고 팔로 된 우리에 가둡니다. 붙잡고 있는 동안 콤보 공격마다 먹잇감을 짓이기고 먹잇감 현재 체력의 %s%%만큼 오징어를 회복시킵니다. 플레이어는 우클릭으로 발버둥쳐 빠져나올 수 있고, 생물은 %s초 후 풀려납니다. 다시 우클릭하면 먹잇감을 놓습니다. 당신의 부족은 해치지 않습니다. 재사용 대기시간 %s초.",
+  "ow.attacks.colossal_squid.ink_frenzy.title": "먹물 광란",
+  "ow.attacks.colossal_squid.ink_frenzy.desc": "%s마리를 처치하면 충전됩니다. 오징어가 이성을 잃고 몸부림친 뒤 먹물 구름을 뿜어 %s블록 안의 모든 생물과 플레이어를 %s초 동안 실명시킵니다(당신의 부족 제외). 곧바로 몸을 돌려 %s초 동안 %s%% 더 빠르게 헤엄쳐 어둠 속으로 사라집니다. 재사용 대기시간 %s초.",
+  "ow.attacks.colossal_squid.volte_face.title": "방향 전환",
+  "ow.attacks.colossal_squid.volte_face.desc": "대왕오징어는 외투막을 앞으로 하고 헤엄치다가 %s초 만에 몸을 돌려 촉수로 공격합니다. 기수는 움직이지 않습니다. %s초 동안 공격하지 않거나 질주하면 곧바로 다시 몸을 돌려 헤엄쳐 나갑니다.",
+  "ow.advancements.abyssal_terror.title": "심연의 공포",
+  "ow.advancements.abyssal_terror.description": "대왕오징어를 길들였습니다!"
 }
