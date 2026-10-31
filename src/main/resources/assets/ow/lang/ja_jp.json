@@ -1175,6 +1175,8 @@
   "ow.attacks.colossal_squid.combo.desc": "ダイオウホウズキイカの十本の腕が%s秒ごとに次々と叩きつけ、一斉攻撃ごとに%sのダメージを与える。攻撃を続けエネルギーが残る限り連撃は終わらない。一斉攻撃ごとに%sのエネルギーを消費する。攻撃の前に、獣は向きを変えて触腕を突き出す。",
   "ow.attacks.colossal_squid.abyssal_grab.title": "深淵の抱擁",
   "ow.attacks.colossal_squid.abyssal_grab.desc": "右クリック：イカが身を縮め、二本の長い触腕が最大%sブロック先まで伸びて獲物を捕らえ、腕の檻に押し込む。捕らえている間、コンボの一撃ごとに獲物を締め潰し、獲物の現在体力の%s%%だけイカを回復する。プレイヤーは右クリックで抵抗でき、生物は%s秒後に解放される。もう一度右クリックで獲物を放す。あなたの部族は狙われない。クールダウン%s秒。",
+  "ow.attacks.colossal_squid.maelstrom.title": "メイルシュトローム",
+  "ow.attacks.colossal_squid.maelstrom.desc": "イカが垂直に立ち上がり、%s秒間すべての触手を周囲で旋回させる。重い渦が半径%sブロック内のすべてを打ち（1周ごとに%sダメージ）、敵を弾き飛ばす。自分の部族は巻き込まない。深淵の抱擁と%s秒のクールダウンを共有。",
   "ow.attacks.colossal_squid.ink_frenzy.title": "墨の狂乱",
   "ow.attacks.colossal_squid.ink_frenzy.desc": "%s体倒すとチャージされる。イカが錯乱して暴れ、墨の雲を放ち、%sブロック以内のすべての生物とプレイヤーを%s秒間盲目にする（あなたの部族は除く）。直後に反転し、%s%%速く%s秒間泳いで闇に消える。クールダウン%s秒。",
   "ow.attacks.colossal_squid.volte_face.title": "反転",

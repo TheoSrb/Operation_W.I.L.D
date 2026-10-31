@@ -1175,6 +1175,8 @@
   "ow.attacks.colossal_squid.combo.desc": "Os dez braços da Lula-Colossal golpeiam um após o outro a cada %s segundos, causando %s de dano por rajada. Enquanto você continuar atacando e houver energia, a sequência nunca termina: cada rajada custa %s de energia. Antes de golpear, a fera se vira para apresentar os tentáculos.",
   "ow.attacks.colossal_squid.abyssal_grab.title": "Abraço Abissal",
   "ow.attacks.colossal_squid.abyssal_grab.desc": "Clique direito: a lula se encolhe e então seus dois longos tentáculos disparam até %s blocos, arpoam a presa e a prendem numa gaiola de braços. Enquanto a segura, cada golpe de combo a esmaga e cura a lula em %s%% da vida atual da presa. Um jogador se solta com cliques direitos; uma criatura é solta após %s segundos. Um segundo clique direito solta a presa. Sua tribo é poupada. %s segundos de recarga.",
+  "ow.attacks.colossal_squid.maelstrom.title": "Redemoinho",
+  "ow.attacks.colossal_squid.maelstrom.desc": "A lula se ergue na vertical e gira todos os tentáculos ao seu redor por %s segundos: um vórtice pesado que atinge tudo num raio de %s blocos (%s de dano por volta) e repele os inimigos. Sua tribo é poupada. Compartilha %s segundos de recarga com o Abraço Abissal.",
   "ow.attacks.colossal_squid.ink_frenzy.title": "Frenesi de Tinta",
   "ow.attacks.colossal_squid.ink_frenzy.desc": "Carrega com %s abates. A lula enlouquece: se debate e então libera uma nuvem de tinta que cega toda criatura e jogador a até %s blocos por %s segundos, exceto sua tribo. Na hora ela dá meia-volta e nada %s%% mais rápido por %s segundos para sumir no escuro. %s segundos de recarga.",
   "ow.attacks.colossal_squid.volte_face.title": "Meia-Volta",

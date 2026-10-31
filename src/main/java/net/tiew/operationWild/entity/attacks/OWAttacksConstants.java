@@ -855,7 +855,18 @@ public class OWAttacksConstants {
         public static final int TURN_BACK_IDLE_TICKS = 60;
 
         public static final float GRAB_ENERGY = 60f;
-        public static final int GRAB_COOLDOWN_TICKS = 160;
+        public static final int GRAB_COOLDOWN_TICKS = 1000;
+        public static final int GRAB_PULL_SLOW_TICKS = 80;
+        public static final float GRAB_HOLD_DAMAGE_RATIO = 0.5f;
+
+        public static final float MAELSTROM_ENERGY = 70f;
+        public static final int MAELSTROM_TICKS = 60;
+        public static final int MAELSTROM_FIRST_PULSE = 14;
+        public static final int MAELSTROM_LAST_PULSE = 52;
+        public static final int MAELSTROM_PULSE_INTERVAL = 8;
+        public static final double MAELSTROM_RADIUS = 6.5;
+        public static final float MAELSTROM_DAMAGE_RATIO = 0.3f;
+        public static final double MAELSTROM_KNOCKBACK = 1.1;
         public static final int GRAB_PREPARE_TICKS = 13;
         public static final int GRAB_LUNGE_TICKS = 10;
         public static final int GRAB_CATCH_TICK = 7;

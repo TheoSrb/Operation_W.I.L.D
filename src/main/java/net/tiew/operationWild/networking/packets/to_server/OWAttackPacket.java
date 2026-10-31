@@ -103,6 +103,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                 return;
             }
 
+            if (packet.attackId() == OWAttackIds.MAELSTROM
+                    && entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squidMaelstrom) {
+                if (packet.action() == ACTION_EXECUTE) squidMaelstrom.startMaelstrom();
+                return;
+            }
+
             if (packet.attackId() == OWAttackIds.ABYSSAL_GRAB
                     && entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) {
                 switch (packet.action()) {

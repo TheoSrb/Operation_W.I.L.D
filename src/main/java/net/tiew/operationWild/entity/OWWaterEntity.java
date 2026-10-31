@@ -68,9 +68,19 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
         return this.isInWater() && !this.isSitting() && !this.isSleeping();
     }
 
+    private static final double SIT_SINK_ACCEL = 0.006D;
+    private static final double SIT_SINK_SPEED = 0.07D;
+
     @Override
     public void travel(Vec3 travelVector) {
         if (this.isInWater() && (this.isEffectiveAi() || this.isControlledByLocalInstance())) {
+            if (this.isSitting() && !this.onGround()) {
+                // Assise : la bête se laisse couler jusqu'au fond, sans à-coup, au lieu de rester
+                // suspendue entre deux eaux.
+                Vec3 motion = this.getDeltaMovement();
+                this.setDeltaMovement(motion.x * 0.8, Math.max(motion.y - SIT_SINK_ACCEL, -SIT_SINK_SPEED), motion.z * 0.8);
+                travelVector = Vec3.ZERO;
+            }
             this.moveRelative(this.getSpeed(), travelVector);
             this.move(MoverType.SELF, this.getDeltaMovement());
             this.setDeltaMovement(this.getDeltaMovement().scale(0.9D));
@@ -99,6 +109,13 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
     protected double riddenAscendSpeed() {
         return 0.12D;
     }
+
+    @Override
+    protected double breachLaunch() {
+        return BREACH_LAUNCH;
+    }
+
+    private static final double BREACH_LAUNCH = 1.5D;
 
     /**
      * Inertie de nage : la bete met du temps a lancer, et bien plus a s'arreter.
@@ -197,10 +214,11 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
         // Bride de sortie d'eau : sans elle, la moindre poussée de nage catapultait la bête en
         // l'air. Elle est levée pendant un envol volontaire, sinon un saut hors de l'eau serait
         // écrêté à trois dixièmes de bloc par tick et l'animal ne décollerait jamais vraiment.
-        if (!this.isInWater() && !this.isBreaching() && !this.keepsVerticalImpulseOutOfWater()) {
+        if (!this.isInWater() && !this.isBreaching() && !this.keepsVerticalImpulseOutOfWater()
+                && this.getControllingPassenger() == null) {
             Vec3 mv = this.getDeltaMovement();
             if (mv.y > 0.3) {
-                this.setDeltaMovement(mv.x * 0.5, 0.3, mv.z * 0.5);
+                this.setDeltaMovement(mv.x, 0.3, mv.z);
             }
         }
 
@@ -302,7 +320,8 @@ public abstract class OWWaterEntity extends OWEntity implements net.tiew.operati
             // continuait pourtant d'orienter la bête vers ce point et de la pousser en avant : le
             // dash était constamment ramené vers la surface au lieu de décrire son arc. On laisse
             // donc la balistique faire son travail tant que le bond dure.
-            if (this.entity.isBreaching() && !this.entity.isInWater()) {
+            if (this.entity.getControllingPassenger() instanceof Player
+                    || (this.entity.isBreaching() && !this.entity.isInWater())) {
                 this.entity.setXxa(0.0F);
                 this.entity.setYya(0.0F);
                 this.entity.setZza(0.0F);

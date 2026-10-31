@@ -1175,6 +1175,8 @@
   "ow.attacks.colossal_squid.combo.desc": "大王酸漿魷的十條腕每隔%s秒依次猛擊，每輪造成%s點傷害。只要你持續攻擊且仍有體力，連擊就永不停止：每輪消耗%s點體力。出擊前，巨獸會轉身亮出觸手。",
   "ow.attacks.colossal_squid.abyssal_grab.title": "深淵之擁",
   "ow.attacks.colossal_squid.abyssal_grab.desc": "右鍵：魷魚蜷縮身體，隨後兩條長觸腕射出最遠%s格，鉤住獵物並將其困入腕足之籠。抓住期間，每次連擊都會碾壓獵物，並按獵物目前生命值的%s%%治療魷魚。玩家可透過右鍵掙扎脫身；生物會在%s秒後被放開。再次右鍵可鬆開獵物。你的部落不會被波及。冷卻%s秒。",
+  "ow.attacks.colossal_squid.maelstrom.title": "漩渦",
+  "ow.attacks.colossal_squid.maelstrom.desc": "烏賊直立起來，讓所有觸手繞身旋轉%s秒：沉重的漩渦打擊半徑%s格內的一切（每圈%s點傷害）並擊退敵人。你的部落不受影響。與深淵擁抱共享%s秒冷卻。",
   "ow.attacks.colossal_squid.ink_frenzy.title": "墨汁狂亂",
   "ow.attacks.colossal_squid.ink_frenzy.desc": "擊殺%s個目標後充能。魷魚陷入瘋狂：劇烈扭動後噴出墨雲，使%s格內所有生物和玩家失明%s秒（你的部落除外）。隨即掉頭，在%s秒內游速提高%s%%，消失在黑暗中。冷卻%s秒。",
   "ow.attacks.colossal_squid.volte_face.title": "轉身",

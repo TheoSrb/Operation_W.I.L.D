@@ -2638,7 +2638,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     private boolean wasInWaterWhileRidden = false;
     private boolean riddenBreaching = false;
-    private static final double BREACH_MIN_RISE = 0.12D;
+    private static final double BREACH_MIN_RISE = 0.02D;
     private static final double BREACH_MAX_RISE = 0.9D;
 
     private long saddleShieldDisabledUntil = 0L;
@@ -2840,6 +2840,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return -0.01D;
     }
 
+    protected double breachLaunch() {
+        return 1.0D;
+    }
+
     protected double riddenAscendSpeed() {
         if (this.getFluidHeight(FluidTags.WATER) <= this.getBbHeight() * RIDDEN_SWIM_SURFACE_FRACTION) return 0.0D;
         return RIDDEN_SWIM_ASCEND_SPEED;
@@ -2861,9 +2865,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     this.riddenBreaching = false;
                 } else if (this.wasInWaterWhileRidden && currentMovement.y > BREACH_MIN_RISE) {
                     this.riddenBreaching = true;
-                    if (currentMovement.y > BREACH_MAX_RISE) {
-                        this.setDeltaMovement(currentMovement.x, BREACH_MAX_RISE, currentMovement.z);
-                    }
+                    double rise = Math.min(currentMovement.y * this.breachLaunch(), BREACH_MAX_RISE);
+                    this.setDeltaMovement(currentMovement.x, rise, currentMovement.z);
                 }
                 if (!ownsMotion && this.riddenBreaching) {
                     this.wasInWaterWhileRidden = false;
@@ -4631,6 +4634,16 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                     0
             );
         }
+    }
+
+    /**
+     * Dans l'eau, le pas se mesure en trois dimensions : une bête qui pique droit vers le fond ou
+     * remonte à la verticale ne parcourt presque rien à l'horizontale, et son animation de
+     * déplacement s'éteignait alors qu'elle nageait à pleine vitesse.
+     */
+    @Override
+    public void calculateEntityAnimation(boolean includeHeight) {
+        super.calculateEntityAnimation(includeHeight || this.isInWater());
     }
 
     public void tickRidden(Player player, Vec3 vec3) {

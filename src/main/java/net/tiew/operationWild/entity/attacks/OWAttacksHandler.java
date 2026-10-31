@@ -75,6 +75,7 @@ public class OWAttacksHandler {
     public static final int DISTRESS_CALL_ID = OWAttackIds.DISTRESS_CALL;
     public static final int ABYSSAL_GRAB_ID = OWAttackIds.ABYSSAL_GRAB;
     public static final int INK_FRENZY_ID = OWAttackIds.INK_FRENZY;
+    public static final int MAELSTROM_ID = OWAttackIds.MAELSTROM;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -181,6 +182,7 @@ public class OWAttacksHandler {
         registerEntityColumn(ColossalSquidEntity.class, 6);
         registerComboMaxTimer(ColossalSquidEntity.class, 12);
         register(ColossalSquidEntity.class, ColossalSquidAttacks.ABYSSAL_GRAB);
+        register(ColossalSquidEntity.class, ColossalSquidAttacks.MAELSTROM);
         register(ColossalSquidEntity.class, ColossalSquidAttacks.INK_FRENZY);
 
         registerEntityRow(LionEntity.class, 3);
@@ -432,6 +434,18 @@ public class OWAttacksHandler {
                 entity -> ((ColossalSquidEntity) entity).startAbyssalGrab(),
                 OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS
         );
+
+        /**
+         * Maelström — seconde carte de clic droit (switch). Le calamar se dresse, ses tentacules
+         * tournoient trois secondes autour de lui : coups répétés et répulsion dans un large rayon.
+         */
+        public static final OWAttack MAELSTROM = new OWAttack(
+                MAELSTROM_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.ColossalSquid.MAELSTROM_ENERGY,
+                entity -> { },
+                OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS
+        ).withCardTexture(196, 176);
 
         public static final OWAttack INK_FRENZY = new OWAttack(
                 INK_FRENZY_ID,

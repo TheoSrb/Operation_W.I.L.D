@@ -397,6 +397,15 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS / 20))
                 ),
 
+                new AttackSlot(196, 176, "RMB",
+                        title("ow.attacks.colossal_squid.maelstrom.title"),
+                        e -> desc("ow.attacks.colossal_squid.maelstrom.desc",
+                                val(OWAttacksConstants.ColossalSquid.MAELSTROM_TICKS / 20),
+                                val((int) OWAttacksConstants.ColossalSquid.MAELSTROM_RADIUS),
+                                val((int) (e.getDamageToClient() * OWAttacksConstants.ColossalSquid.MAELSTROM_DAMAGE_RATIO)),
+                                val(OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS / 20))
+                ),
+
                 new AttackSlot(160, 0, "X",
                         title("ow.attacks.colossal_squid.ink_frenzy.title"),
                         e -> desc("ow.attacks.colossal_squid.ink_frenzy.desc",

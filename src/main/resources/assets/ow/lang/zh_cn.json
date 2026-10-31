@@ -1175,6 +1175,8 @@
   "ow.attacks.colossal_squid.combo.desc": "大王酸浆鱿的十条腕每隔%s秒依次猛击，每轮造成%s点伤害。只要你持续攻击且仍有体力，连击就永不停止：每轮消耗%s点体力。出击前，巨兽会转身亮出触手。",
   "ow.attacks.colossal_squid.abyssal_grab.title": "深渊之拥",
   "ow.attacks.colossal_squid.abyssal_grab.desc": "右键：鱿鱼蜷缩身体，随后两条长触腕射出最远%s格，钩住猎物并将其困入腕足之笼。抓住期间，每次连击都会碾压猎物，并按猎物当前生命值的%s%%治疗鱿鱼。玩家可通过右键挣扎脱身；生物会在%s秒后被放开。再次右键可松开猎物。你的部落不会被波及。冷却%s秒。",
+  "ow.attacks.colossal_squid.maelstrom.title": "漩涡",
+  "ow.attacks.colossal_squid.maelstrom.desc": "乌贼直立起来，让所有触手绕身旋转%s秒：沉重的漩涡打击半径%s格内的一切（每圈%s点伤害）并击退敌人。你的部落不受影响。与深渊拥抱共享%s秒冷却。",
   "ow.attacks.colossal_squid.ink_frenzy.title": "墨汁狂乱",
   "ow.attacks.colossal_squid.ink_frenzy.desc": "击杀%s个目标后充能。鱿鱼陷入疯狂：剧烈扭动后喷出墨云，使%s格内所有生物和玩家失明%s秒（你的部落除外）。随即掉头，在%s秒内游速提高%s%%，消失在黑暗中。冷却%s秒。",
   "ow.attacks.colossal_squid.volte_face.title": "转身",

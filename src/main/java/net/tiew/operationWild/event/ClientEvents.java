@@ -451,6 +451,50 @@ public class ClientEvents {
 
     private static final float HYPNOSIS_PULL_SPEED = 0.25f;
 
+    @SubscribeEvent
+    public static void onSquidPreyGaze(ViewportEvent.ComputeCameraAngles event) {
+        Minecraft mc = Minecraft.getInstance();
+        Player player = mc.player;
+        if (player == null || mc.level == null) return;
+        if (player.isCreative() || player.isSpectator()) return;
+
+        net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid = player.level()
+                .getEntitiesOfClass(net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity.class,
+                        player.getBoundingBox().inflate(SQUID_GAZE_SEARCH))
+                .stream()
+                .filter(s -> s.holdsGazeOf(player))
+                .findFirst().orElse(null);
+        if (squid == null) return;
+
+        float partialTick = (float) event.getPartialTick();
+        Vec3 beak = squid.beakPosition(partialTick);
+        Vec3 eyes = player.getEyePosition(partialTick);
+        double dx = beak.x - eyes.x;
+        double dz = beak.z - eyes.z;
+        double dy = beak.y - eyes.y;
+        double horiz = Math.sqrt(dx * dx + dz * dz);
+        float wantedYaw = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90f;
+        float wantedPitch = (float) (-(Mth.atan2(dy, horiz) * Mth.RAD_TO_DEG));
+
+        float dt = (float) mc.getTimer().getRealtimeDeltaTicks();
+        float pull = 1f - (float) Math.exp(-dt * SQUID_GAZE_PULL_SPEED);
+
+        float newYaw = approachAngle(player.getYRot(), wantedYaw, pull);
+        float newPitch = Mth.clamp(approachAngle(player.getXRot(), wantedPitch, pull), -90f, 90f);
+        player.setYRot(newYaw);
+        player.yRotO = newYaw;
+        player.setXRot(newPitch);
+        player.xRotO = newPitch;
+        player.setYHeadRot(newYaw);
+        player.yHeadRot = newYaw;
+        player.yHeadRotO = newYaw;
+        event.setYaw(newYaw);
+        event.setPitch(newPitch);
+    }
+
+    private static final double SQUID_GAZE_SEARCH = 32.0;
+    private static final float SQUID_GAZE_PULL_SPEED = 0.15f;
+
     private static float approachAngle(float current, float wanted, float fraction) {
         return current + Mth.wrapDegrees(wanted - current) * fraction;
     }
@@ -1188,6 +1232,18 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onRenderWindRush(RenderGuiEvent.Post event) {
         net.tiew.operationWild.gui.OWWindRushOverlay.render(event.getGuiGraphics());
+    }
+
+    /** Prisonnier d'un calamar colossal : aucun inventaire ne s'ouvre tant qu'il le tient. */
+    @SubscribeEvent
+    public static void onScreenOpeningWhileGrabbed(ScreenEvent.Opening event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        if (!(mc.player.getVehicle() instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid)
+                || squid.getGrabbedTarget() != mc.player) return;
+        if (event.getNewScreen() instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?>) {
+            event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent

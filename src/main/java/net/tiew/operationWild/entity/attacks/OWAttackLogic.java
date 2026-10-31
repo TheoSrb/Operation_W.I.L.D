@@ -1244,6 +1244,25 @@ public class OWAttackLogic {
 
     private static boolean elephantSprayHeld = false;
 
+    private static void handleColossalSquidMaelstrom(OWAttack attack,
+                                                     net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid,
+                                                     Player player) {
+        if (isAttackOnCooldown(squid, attack) || playerHoldsUsableItem(player) || squid.isBeached() || isCharging
+                || squid.isCombo() || squid.isAttackLocked() || squid.isMaelstromAnimating()
+                || squid.getGrabPhase() != net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity.GRAB_NONE) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        if (squid.getVitalEnergy() > squid.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
+            squid.canShowVitalEnergyLack = true;
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+        PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+        armCooldown(squid, attack);
+        recordAttackClick(attack.getId(), false);
+    }
+
     private static void handleColossalSquidGrab(OWAttack attack,
                                                 net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid,
                                                 Player player, int action) {
@@ -1256,7 +1275,8 @@ public class OWAttackLogic {
                 return;
             }
             if (phase != net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity.GRAB_NONE
-                    || isAttackOnCooldown(squid, attack) || playerHoldsUsableItem(player) || squid.isBeached()) {
+                    || isAttackOnCooldown(squid, attack) || playerHoldsUsableItem(player) || squid.isBeached()
+                    || isCharging || squid.isCombo() || squid.isAttackLocked() || squid.isMaelstromAnimating()) {
                 recordAttackClick(attack.getId(), true);
                 return;
             }
@@ -1458,6 +1478,7 @@ public class OWAttackLogic {
     private static boolean isLocalPlayerGrabbed(OWEntity owEntity, Player player) {
         if (owEntity instanceof CrocodileEntity croc) return croc.isGrabbing() && croc.getGrabbedTarget() == player;
         if (owEntity instanceof TigerEntity tiger) return tiger.isGrabbing() && tiger.getGrabbedTarget() == player;
+        if (owEntity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) return squid.getGrabbedTarget() == player;
         return false;
     }
 
@@ -1651,6 +1672,10 @@ public class OWAttackLogic {
         if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
                 && owEntity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) {
             OWAttack grab = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
+            if (grab != null && grab.getId() == OWAttacksHandler.MAELSTROM_ID) {
+                if (event.getAction() == GLFW.GLFW_PRESS) handleColossalSquidMaelstrom(grab, squid, mc.player);
+                return;
+            }
             if (grab != null) {
                 handleColossalSquidGrab(grab, squid, mc.player, event.getAction());
                 return;

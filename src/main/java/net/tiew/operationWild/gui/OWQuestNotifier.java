@@ -47,6 +47,9 @@ public class OWQuestNotifier {
         }
 
         Entity vehicle = mc.player.getVehicle();
+        // Tenu dans les bras d'un calamar colossal, le joueur en est le passager sans en être le cavalier.
+        if (vehicle instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid
+                && squid.getGrabbedTarget() == mc.player) { trackedEntity = -1; return; }
         if (!(vehicle instanceof OWEntity ent) || ent instanceof Submarine) { trackedEntity = -1; return; }
 
         if (ent.getId() != trackedEntity) { initTracking(ent); return; }

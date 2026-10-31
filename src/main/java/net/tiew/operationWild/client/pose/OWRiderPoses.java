@@ -154,7 +154,7 @@ public final class OWRiderPoses {
     private static final class Prone extends OWPlayerPose<ProneData> {
 
         private static final float PIVOT_Y = 0.6f;
-        private static final float LIE_DOWN = -0.45f;
+        private static final float LIE_DOWN = -0.1f;
         private static final float SLIDE_BACK = -0.3f;
 
         @Override
@@ -172,6 +172,22 @@ public final class OWRiderPoses {
             data.pitch.step(mantlePitch(squid));
             data.grip.step(Mth.clamp(squid.walkAnimation.speed() * 2f, 0f, 1f));
             return true;
+        }
+
+        /**
+         * Recolle le cavalier à la selle à chaque image : sa position n'est recalculée qu'une fois par
+         * tick, alors que le manteau, lui, bouge à chaque image (poussées, gonflement, cabrage).
+         * L'écart est exprimé dans le repère déjà incliné par la monture.
+         */
+        private static void followSeat(PoseStack poseStack, Player player, float weight, float partialTick) {
+            if (!(player.getVehicle() instanceof ColossalSquidEntity squid)) return;
+            float squidYaw = Mth.rotLerp(partialTick, squid.yBodyRotO, squid.yBodyRot);
+            net.minecraft.world.phys.Vec3 seat = squid.getPosition(partialTick).add(squid.seatOffset(squidYaw));
+            net.minecraft.world.phys.Vec3 delta = seat.subtract(player.getPosition(partialTick));
+            org.joml.Vector3f move = new org.joml.Vector3f((float) delta.x, (float) delta.y, (float) delta.z).mul(weight);
+            org.joml.Quaternionf tilt = net.tiew.operationWild.event.ClientEvents.riderBodyRotation(player, squid, partialTick);
+            if (tilt != null) move.rotate(new org.joml.Quaternionf(tilt).conjugate());
+            poseStack.translate(move.x, move.y, move.z);
         }
 
         /**
@@ -205,6 +221,7 @@ public final class OWRiderPoses {
 
         @Override
         protected void body(PoseStack poseStack, Player player, ProneData data, float weight, float partialTick, float bodyYaw) {
+            followSeat(poseStack, player, weight, partialTick);
             float pitch = (90f + data.pitch.get(partialTick)) * weight;
             inBodyFrame(poseStack, bodyYaw, 0f, PIVOT_Y, 0f, euler(pitch, 0f, 0f), 0f, LIE_DOWN * weight, SLIDE_BACK * weight);
         }
