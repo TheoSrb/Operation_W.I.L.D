@@ -42,6 +42,7 @@ public class OWChooseNameScreen extends Screen {
     private float yMouse;
     protected int imageWidth = 140;
     protected int imageHeight = 140;
+    private static final float ICON_SCALE = 2f;
 
     private EditBox nameInput;
     private String enteredName = "";
@@ -156,12 +157,13 @@ public class OWChooseNameScreen extends Screen {
 
         OWEntityHud.EntityIconData iconData = getEntityIconData(entity);
         if (iconData != null) {
-            float scale = 2f;
+            int top = Math.max(currentY + 2, j + 30);
+            int bottom = this.nameInput.getY() - 4;
+            float scale = Math.min(ICON_SCALE, (bottom - top) / (float) iconData.height);
             graphics.pose().pushPose();
-            graphics.pose().scale(scale, scale, scale);
-            int scaledX = (int) ((i + (this.imageWidth / 2f) - (iconData.width * scale / 2f)) / scale);
-            int scaledY = (int) ((j + 40) / scale);
-            graphics.blit(OWEntityHud.HUD, scaledX, scaledY, iconData.textureX, iconData.textureY, iconData.width, iconData.height);
+            graphics.pose().translate(i + this.imageWidth / 2f - iconData.width * scale / 2f, bottom - iconData.height * scale, 0f);
+            graphics.pose().scale(scale, scale, 1f);
+            graphics.blit(OWEntityHud.HUD, 0, 0, iconData.textureX, iconData.textureY, iconData.width, iconData.height);
             graphics.pose().popPose();
         }
 

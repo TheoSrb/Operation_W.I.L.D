@@ -2171,6 +2171,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 this.getZ() + cos * offset.z + sin * offset.x);
     }
 
+    public Vec3 mealMouthPosition() {
+        Vec3 head = this.restingHeadPosition();
+        return new Vec3(head.x, this.getY() + 0.25, head.z);
+    }
+
     public float getSleepBarProgress() {
         int max = this.getMaxSleepingBar();
         return max <= 0 ? 0f : Mth.clamp(this.getActualSleepingBar() / (float) max, 0f, 1f);
@@ -3720,6 +3725,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return Mth.clamp(slope * FREE_PITCH_GAIN, -maxPitch, maxPitch) * drive;
     }
 
+    protected boolean leansOnServer() {
+        return false;
+    }
+
     protected LivingEntity leaningRider() {
         if (!this.canLean()) return null;
         return this.getControllingPassenger();
@@ -3787,7 +3796,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         super.tick();
 
         slide.tick();
-        if (this.level().isClientSide()) this.tickLean();
+        if (this.level().isClientSide() || this.leansOnServer()) this.tickLean();
 
         if (!this.level().isClientSide) {
             resolveTeamFromOwnerIfNeeded();
@@ -5192,7 +5201,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     private String defaultNickname() {
-        return Component.translatable("entity.ow." + this.getClass().getSimpleName().toLowerCase().split("entity")[0]).getString();
+        return this.getType().getDescription().getString();
     }
 
     public static void addExperienceCommand(OWEntity entity, int amount) {

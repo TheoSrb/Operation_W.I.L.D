@@ -1114,9 +1114,9 @@
         "created": "2026-10-17T16:56:05.2950614+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/TigerEntity.java",
-        "last_modified": "2026-10-28T18:37:37.4333529+01:00",
-        "last_modified_date": "2026-10-28",
-        "size_bytes": 80550
+        "last_modified": "2026-10-31T15:38:01.990841+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 80722
       },
       "id": "ow:tiger",
       "loot": {
@@ -2936,9 +2936,9 @@
         "created": "2026-10-18T15:06:31.0637823+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KodiakEntity.java",
-        "last_modified": "2026-10-24T21:25:00.5825057+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 64002
+        "last_modified": "2026-10-31T15:38:02.0060407+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 64105
       },
       "id": "ow:kodiak",
       "loot": {
@@ -4482,9 +4482,9 @@
         "created": "2026-10-30T17:28:11.4096468+01:00",
         "created_date": "2026-10-30",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/CrocodileEntity.java",
-        "last_modified": "2026-10-30T17:28:11.4104146+01:00",
-        "last_modified_date": "2026-10-30",
-        "size_bytes": 85181
+        "last_modified": "2026-10-31T15:38:01.9611115+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 85284
       },
       "id": "ow:crocodile",
       "loot": {
@@ -6001,9 +6001,9 @@
         "created": "2026-10-17T16:58:42.131349+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/BoaEntity.java",
-        "last_modified": "2026-10-29T19:58:49.590661+01:00",
-        "last_modified_date": "2026-10-29",
-        "size_bytes": 62372
+        "last_modified": "2026-10-31T15:38:01.9468953+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 62473
       },
       "id": "ow:boa",
       "loot": {
@@ -7442,9 +7442,9 @@
         "created": "2026-10-17T21:51:07.1258579+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/OrcaEntity.java",
-        "last_modified": "2026-10-29T18:55:58.2764957+01:00",
-        "last_modified_date": "2026-10-29",
-        "size_bytes": 101040
+        "last_modified": "2026-10-31T15:38:01.9773836+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 101143
       },
       "id": "ow:orca",
       "loot": {
@@ -8137,9 +8137,9 @@
         "created": "2026-10-18T20:39:21.2420416+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/ElephantEntity.java",
-        "last_modified": "2026-10-29T19:22:52.6185372+01:00",
-        "last_modified_date": "2026-10-29",
-        "size_bytes": 141548
+        "last_modified": "2026-10-31T15:38:02.0881323+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 141651
       },
       "id": "ow:elephant",
       "loot": {
@@ -8919,9 +8919,9 @@
         "created": "2026-10-12T19:33:54.9600162+02:00",
         "created_date": "2026-10-12",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/KangarooEntity.java",
-        "last_modified": "2026-10-28T21:53:52.3754754+01:00",
-        "last_modified_date": "2026-10-28",
-        "size_bytes": 74493
+        "last_modified": "2026-10-31T15:38:02.0320636+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 74596
       },
       "id": "ow:kangaroo",
       "loot": {
@@ -9533,9 +9533,9 @@
         "created": "2026-10-17T21:51:56.435674+02:00",
         "created_date": "2026-10-17",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/RedPandaEntity.java",
-        "last_modified": "2026-10-24T21:25:00.5890663+02:00",
-        "last_modified_date": "2026-10-24",
-        "size_bytes": 77726
+        "last_modified": "2026-10-31T15:38:02.1002101+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 79790
       },
       "id": "ow:red_panda",
       "loot": {
@@ -10662,9 +10662,9 @@
         "created": "2026-10-29T20:21:47.2318351+01:00",
         "created_date": "2026-10-29",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/GorillaEntity.java",
-        "last_modified": "2026-10-29T20:40:50.2518587+01:00",
-        "last_modified_date": "2026-10-29",
-        "size_bytes": 87724
+        "last_modified": "2026-10-31T15:38:02.0711963+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 87827
       },
       "id": "ow:gorilla",
       "loot": {
@@ -11294,9 +11294,9 @@
         "created": "2026-10-18T14:35:53.7018984+02:00",
         "created_date": "2026-10-18",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/HippopotamusEntity.java",
-        "last_modified": "2026-10-29T19:59:04.6597047+01:00",
-        "last_modified_date": "2026-10-29",
-        "size_bytes": 75481
+        "last_modified": "2026-10-31T15:38:02.0194653+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 75584
       },
       "id": "ow:hippopotamus",
       "loot": {
@@ -11955,9 +11955,9 @@
         "created": "2026-10-25T10:13:57.1064888+01:00",
         "created_date": "2026-10-25",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/LionEntity.java",
-        "last_modified": "2026-10-28T17:39:17.3726639+01:00",
-        "last_modified_date": "2026-10-28",
-        "size_bytes": 118923
+        "last_modified": "2026-10-31T15:38:02.0465763+01:00",
+        "last_modified_date": "2026-10-31",
+        "size_bytes": 119121
       },
       "id": "ow:lion",
       "loot": {
@@ -12159,6 +12159,23 @@
           },
           {
             "desc": {
+              "key": "ow.attacks.colossal_squid.maelstrom.desc",
+              "plain": "Le calamar se dresse à la verticale et fait tournoyer toutes ses tentacules autour de lui pendant %s secondes : un tourbillon lourd qui frappe tout dans un rayon de %s blocs (%s dégâts par passage) et repousse les ennemis. Votre tribu est épargnée. Recharge commune de %s secondes avec l'Étreinte Abyssale.",
+              "translations": {
+                "fr_fr": "Le calamar se dresse à la verticale et fait tournoyer toutes ses tentacules autour de lui pendant %s secondes : un tourbillon lourd qui frappe tout dans un rayon de %s blocs (%s dégâts par passage) et repousse les ennemis. Votre tribu est épargnée. Recharge commune de %s secondes avec l'Étreinte Abyssale."
+              }
+            },
+            "slug": "maelstrom",
+            "title": {
+              "key": "ow.attacks.colossal_squid.maelstrom.title",
+              "plain": "Maelström",
+              "translations": {
+                "fr_fr": "Maelström"
+              }
+            }
+          },
+          {
+            "desc": {
               "key": "ow.attacks.colossal_squid.ink_frenzy.desc",
               "plain": "S'arme sur %s victimes. Le calamar perd la raison : il se débat, puis libère une nuée d'encre qui aveugle toute créature et tout joueur à moins de %s blocs pendant %s secondes, sauf votre tribu. Il fait aussitôt volte-face et file %s%% plus vite pendant %s secondes pour disparaître dans le noir. %s secondes de recharge.",
               "translations": {
@@ -12195,25 +12212,32 @@
       },
       "attack_constants": {
         "COMBO_STRIKE_ENERGY": 10.0,
+        "GRAB_AIM_MAX_TICKS": 200,
+        "GRAB_AIM_RANGE_SLACK": 1.25,
         "GRAB_CATCH_TICK": 7,
         "GRAB_CONE_DOT": 0.55,
-        "GRAB_COOLDOWN_TICKS": 160,
+        "GRAB_COOLDOWN_TICKS": 1000,
         "GRAB_ENERGY": 60.0,
         "GRAB_ENTITY_RELEASE_TICKS": 400,
         "GRAB_HEAL_SELF_CAP_RATIO": 0.05,
         "GRAB_HEAL_TARGET_RATIO": 0.06,
+        "GRAB_HOLD_DAMAGE_RATIO": 0.5,
         "GRAB_HOLD_FORWARD": 4.2,
         "GRAB_HOLD_HEIGHT": 0.15,
         "GRAB_LUNGE_TICKS": 10,
         "GRAB_MAX_TIMEOUT": 320,
         "GRAB_MISS_TICKS": 12,
         "GRAB_PREPARE_TICKS": 13,
+        "GRAB_PULL_MAX_TICKS": 26,
+        "GRAB_PULL_SLOW_TICKS": 80,
         "GRAB_PULL_TICKS": 12,
-        "GRAB_RANGE": 9.0,
+        "GRAB_PULL_TICKS_PER_BLOCK": 1.1,
+        "GRAB_RANGE": 18.0,
         "GRAB_RELEASE_TICKS": 10,
         "GRAB_START_TIMEOUT": 140,
         "GRAB_STRIKE_TICKS": 15,
         "GRAB_STRUGGLE_REDUCTION": 14,
+        "GRAB_WHIFF_COOLDOWN_TICKS": 20,
         "INK_ANIMATION_TICKS": 47,
         "INK_BLIND_TICKS": 120,
         "INK_BURST_TICK": 19,
@@ -12224,8 +12248,33 @@
         "INK_RADIUS": 16.0,
         "INK_SPEED_BONUS": 0.8,
         "INK_SPEED_TICKS": 160,
+        "MAELSTROM_DAMAGE_RATIO": 0.3,
+        "MAELSTROM_ENERGY": 70.0,
+        "MAELSTROM_FIRST_PULSE": 14,
+        "MAELSTROM_KNOCKBACK": 1.1,
+        "MAELSTROM_LAST_PULSE": 52,
+        "MAELSTROM_PULSE_INTERVAL": 8,
+        "MAELSTROM_RADIUS": 6.5,
+        "MAELSTROM_TICKS": 60,
+        "SEABUG_COOLDOWN_TICKS": 2400,
+        "SEABUG_DAMAGE_INTERVAL": 20,
+        "SEABUG_DAMAGE_RATIO": 0.05,
+        "SEABUG_DETECT_RANGE": 28.0,
+        "SEABUG_DIVE_STEP": 14.0,
+        "SEABUG_JUMPSCARE_TICKS": 30,
+        "SEABUG_LUNGE_MAX_TICKS": 200,
+        "SEABUG_RELEASE_PUSH": 0.9,
+        "SEABUG_SEIZE_REACH": 5.0,
+        "SEABUG_SHAKE_TICKS": 200,
+        "SEABUG_STRIKE_DAMAGE_RATIO": 0.1,
+        "SEABUG_STRIKE_TICK": 13,
+        "SEABUG_THRASH_DEGREES": 19.0,
+        "SEABUG_THRASH_PERIOD": 25,
+        "SEABUG_TURN_RANGE": 12.0,
         "TURN_BACK_IDLE_TICKS": 60,
-        "TURN_TICKS": 17
+        "TURN_BACK_MOVE_GRACE_TICKS": 6,
+        "TURN_TICKS": 26,
+        "TURN_TO_SWIM_TICKS": 44
       },
       "attributes": {
         "minecraft:generic.armor": 0.0,
@@ -12290,11 +12339,6 @@
           },
           {
             "looping": false,
-            "name": "TURN_TO_COMBAT",
-            "seconds": 0.8333
-          },
-          {
-            "looping": false,
             "name": "GRAB_PREPARE",
             "seconds": 0.625
           },
@@ -12311,12 +12355,12 @@
           {
             "looping": false,
             "name": "GRAB_STRIKE",
-            "seconds": 0.75
+            "seconds": 0.9167
           },
           {
             "looping": false,
             "name": "GRAB_STRIKE_2",
-            "seconds": 0.75
+            "seconds": 0.9167
           },
           {
             "looping": false,
@@ -12329,6 +12373,16 @@
             "seconds": 0.5833
           },
           {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.5
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 1.25
+          },
+          {
             "looping": true,
             "name": "DEFINITION",
             "seconds": 6.0
@@ -12336,12 +12390,7 @@
           {
             "looping": true,
             "name": "DEFINITION",
-            "seconds": 1.5
-          },
-          {
-            "looping": true,
-            "name": "DEFINITION",
-            "seconds": 0.9167
+            "seconds": 2.0
           },
           {
             "looping": true,
@@ -12356,7 +12405,12 @@
           {
             "looping": false,
             "name": "DEFINITION",
-            "seconds": 0.8333
+            "seconds": 1.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 1.0
           },
           {
             "looping": false,
@@ -12377,6 +12431,16 @@
             "looping": true,
             "name": "DEFINITION",
             "seconds": 2.0
+          },
+          {
+            "looping": true,
+            "name": "DEFINITION",
+            "seconds": 2.0
+          },
+          {
+            "looping": false,
+            "name": "DEFINITION",
+            "seconds": 3.0
           },
           {
             "looping": false,
@@ -12422,6 +12486,7 @@
         "skin": "ColossalSquidSkin"
       },
       "constants": {
+        "DRIFT_LEVELS": 8,
         "ENTITY_COLOR": 13462877,
         "FOOD_WANTED_MAX": 12,
         "FOOD_WANTED_MIN": 8,
@@ -12432,10 +12497,15 @@
         "GRAB_PREPARE": 1,
         "GRAB_PULL": 3,
         "GRAB_RELEASE": 5,
-        "MAX_SOMNOLENCE": 8000,
+        "MAX_SOMNOLENCE": 7000,
+        "SEABUG_JUMPSCARE": 2,
+        "SEABUG_LUNGE": 1,
+        "SEABUG_NONE": 0,
+        "SEABUG_SHAKE": 3,
         "SOMNOLENCE_LOSS_INTERVAL": 3,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 3,
-        "TAMING_EXPERIENCE": 500.0
+        "TAMING_EXPERIENCE": 500.0,
+        "TIP_COUNT": 10
       },
       "cosmetics": [],
       "gameplay": {
@@ -12448,7 +12518,7 @@
           "speed_multiplier": 1.0
         },
         "arena_terrain_mask": 2,
-        "bank_max_angle": 40.0,
+        "bank_max_angle": 60.0,
         "can_lean": false,
         "combo_pause_delay": 2,
         "default_skin_index": 0,
@@ -12473,26 +12543,26 @@
         "rider_camera_follows_body_tilt": true,
         "rider_seat_frame_accurate": true,
         "rolling_figure": false,
-        "rotation_speed": 0.065,
-        "secondary_attack_count": 1,
-        "secondary_cooldown_ticks": 0,
+        "secondary_attack_count": 2,
+        "secondary_cooldown_ticks": 1000,
         "taming_experience": 500.0,
         "teleports_to_owner": false,
-        "temperament": "AGGRESSIVE",
+        "temperament": "NEUTRAL",
         "theoretical_scale": 20.0,
         "unresolved": [
+          "getRotationSpeed",
           "maxUpStep",
           "getDefaultGravity"
         ],
         "walk_speed_blocks_per_second": 3.4000000000000004
       },
       "history": {
-        "created": "2026-10-31T13:41:19.7582345+01:00",
-        "created_date": "2026-10-31",
+        "created": "2026-11-01T09:22:31.4609472+01:00",
+        "created_date": "2026-11-01",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/aquatic/ColossalSquidEntity.java",
-        "last_modified": "2026-10-31T13:45:32.2151784+01:00",
-        "last_modified_date": "2026-10-31",
-        "size_bytes": 51075
+        "last_modified": "2026-11-01T09:22:31.4609472+01:00",
+        "last_modified_date": "2026-11-01",
+        "size_bytes": 105950
       },
       "id": "ow:colossal_squid",
       "loot": {
@@ -12505,7 +12575,7 @@
       "mount": {
         "base_rider_y_offset": 1.125,
         "changes_speed_during_combo": false,
-        "combo_speed_multiplier": 1.0,
+        "combo_speed_multiplier": 3.0,
         "increases_speed_during_sprint": true,
         "leaping_vehicle": false,
         "max_vital_energy": 360.0,
@@ -12514,6 +12584,7 @@
         "rider_anim_y_offset": -0.0,
         "run_speed_multiplier": 3.2,
         "saddle_item": "ow:tiger_saddle",
+        "sprint_acceleration_multiplier": 2.0,
         "vital_energy_level_gain": 0.5,
         "vital_energy_recuperation": 0.9,
         "walk_speed_multiplier": 1.5,
@@ -13228,6 +13299,11 @@
         "food_tags": [
           {
             "constant": "COLOSSAL_SQUID_FOOD",
+            "entries": [
+              "minecraft:cod",
+              "minecraft:salmon",
+              "minecraft:tropical_fish"
+            ],
             "id": "ow:colossal_squid_food"
           }
         ],
@@ -13262,15 +13338,15 @@
         },
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 1200.0,
-          "full_bar_awake_seconds": 1200.0,
+          "full_bar_asleep_seconds": 1050.0,
+          "full_bar_awake_seconds": 1050.0,
           "loss_interval_ticks_asleep": 3,
           "loss_interval_ticks_awake": 3,
           "loss_per_second_asleep": 6.666666666666667,
           "loss_per_second_awake": 6.666666666666667,
-          "max": 8000,
-          "max_max": 9600,
-          "max_min": 6400,
+          "max": 7000,
+          "max_max": 8400,
+          "max_min": 5600,
           "spread_percent": 20
         },
         "tameable": true
@@ -13306,6 +13382,8 @@
         }
       ],
       "wild_behaviors": [
+        "ColossalSquidSeabugAmbushGoal",
+        "ColossalSquidWanderGoal",
         "ColossalSquidWildGrabGoal"
       ]
     },
@@ -13702,6 +13780,7 @@
       "HIPPO_ROLL": 22,
       "HUNTING_LEAP": 26,
       "INK_FRENZY": 29,
+      "MAELSTROM": 30,
       "MOUTH_SLAM": 3,
       "NAP_ULTIMATE": 6,
       "PAW_SLAM": 5,
@@ -16131,7 +16210,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1193
+      "fr_fr": 1195
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -19112,6 +19191,11 @@
       },
       {
         "constant": "COLOSSAL_SQUID_FOOD",
+        "entries": [
+          "minecraft:cod",
+          "minecraft:salmon",
+          "minecraft:tropical_fish"
+        ],
         "id": "ow:colossal_squid_food"
       },
       {

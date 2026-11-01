@@ -130,6 +130,8 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     private static final float STROKE_MEAN = strokeMean();
     private static final double WILD_CRUISE_SPEED = 0.13;
     private static final double WILD_MAX_SPEED = 0.26;
+    private static final double WILD_PANIC_BOOST = 1.45;
+    private static final double WILD_PANIC_MAX_SPEED = 0.38;
     private static final double WILD_SPEED_EXPONENT = 0.6;
     private static final double WILD_GLIDE_DRAG = 0.94;
     private static final double WILD_IDLE_DRAG = 0.9;
@@ -154,6 +156,12 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Integer> MAELSTROM_ID = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> INK_SPEED = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> ULTIMATE_KILL_COUNT = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> SEABUG_ID = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> SEABUG_PHASE = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.INT);
+    public static final int SEABUG_NONE = 0;
+    public static final int SEABUG_LUNGE = 1;
+    public static final int SEABUG_JUMPSCARE = 2;
+    public static final int SEABUG_SHAKE = 3;
 
     // ==================================================
     //             COMPTEURS ET ANIMATIONS
@@ -173,6 +181,12 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     public final AnimationState grabMissAnimationState = new AnimationState();
     public final AnimationState inkAnimationState = new AnimationState();
     public final AnimationState maelstromAnimationState = new AnimationState();
+    public final AnimationState seabugJumpscareAnimationState = new AnimationState();
+    public final AnimationState seabugShakeAnimationState = new AnimationState();
+    public int seabugPhaseStartTick = -1000;
+    private int lastSeabugPhase = SEABUG_NONE;
+    private int seabugPhaseTicks = 0;
+    private int seabugCooldown = 0;
     public int maelstromStartTick = -1000;
     private int lastMaelstromId = 0;
     private int maelstromTicks = 0;
@@ -188,6 +202,9 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     private static final float BEAK_FORWARD = 2.65f;
     private static final float BEAK_HEIGHT = 0.38f;
     private static final float PREY_GAZE_RESPONSE = 0.2f;
+    private static final float KO_BEAK_FORWARD = -1.98f;
+    private static final float KO_BEAK_HEIGHT = 0.24f;
+    private static final double HOLD_PIVOT_HEIGHT = 0.501;
 
     public static final int DRIFT_LEVELS = 8;
     public final org.joml.Vector3f[] drift = driftLevels();
@@ -302,6 +319,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         super.registerGoals();
 
         this.goalSelector.addGoal(0, new TryFindWaterGoal(this));
+        this.goalSelector.addGoal(1, new net.tiew.operationWild.entity.goals.colossal_squid.ColossalSquidSeabugAmbushGoal(this));
         this.goalSelector.addGoal(1, new ColossalSquidWildGrabGoal(this));
         this.goalSelector.addGoal(2, new OWAttackGoal(this, this.getSpeed() * 11f, 20, 5, false));
         this.goalSelector.addGoal(4, new ColossalSquidWanderGoal(this));
@@ -322,6 +340,8 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         builder.define(MAELSTROM_ID, 0);
         builder.define(INK_SPEED, false);
         builder.define(ULTIMATE_KILL_COUNT, 0);
+        builder.define(SEABUG_ID, -1);
+        builder.define(SEABUG_PHASE, SEABUG_NONE);
     }
 
     @Override
@@ -637,6 +657,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
             tickMaelstrom();
             tickGrab();
             tickInk();
+            tickSeabugAssault();
         }
     }
 
@@ -712,7 +733,9 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         boolean swimming = length > 1.0E-4 && attribute > 1.0E-4;
         if (swimming) {
             double modifier = length / attribute;
-            double cruise = Math.min(WILD_CRUISE_SPEED * Math.pow(modifier, WILD_SPEED_EXPONENT), WILD_MAX_SPEED) * combatSpeedFactor();
+            boolean panic = this.isSedatedFleeing() || this.getSeabugPhase() == SEABUG_LUNGE;
+            double cruise = Math.min(WILD_CRUISE_SPEED * Math.pow(modifier, WILD_SPEED_EXPONENT) * (panic ? WILD_PANIC_BOOST : 1.0),
+                    panic ? WILD_PANIC_MAX_SPEED : WILD_MAX_SPEED) * combatSpeedFactor();
             boolean strokes = !this.isCombatFacing() && !isPivoting();
             double drive = strokes ? strokeShape(this.getSwimPhase(0f)) / STROKE_MEAN : 1.0;
             this.moveRelative((float) (cruise * (1.0 - WILD_GLIDE_DRAG) / WILD_GLIDE_DRAG * drive), input.scale(1.0 / length));
@@ -822,7 +845,8 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     private void tickTentacleDrift() {
         for (int i = 0; i < DRIFT_LEVELS; i++) this.driftO[i].set(this.drift[i]);
         this.driftWeightO = this.driftWeight;
-        boolean busy = this.isTurning() || this.maelstromAnimationState.isStarted() || this.getGrabPhase() != GRAB_NONE;
+        boolean busy = this.isTurning() || this.maelstromAnimationState.isStarted() || this.getGrabPhase() != GRAB_NONE
+                || this.getSeabugPhase() >= SEABUG_JUMPSCARE;
         this.driftWeight = Mth.approach(this.driftWeight, busy ? 0f : 1f, DRIFT_WEIGHT_STEP);
 
         org.joml.Quaternionf body = new org.joml.Quaternionf()
@@ -1092,7 +1116,8 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
 
         if (!this.isCombatFacing()) return;
 
-        boolean busy = this.isCombo() || this.getGrabPhase() != GRAB_NONE || this.inkTicks > 0 || this.maelstromTicks > 0;
+        boolean busy = this.isCombo() || this.getGrabPhase() != GRAB_NONE || this.inkTicks > 0 || this.maelstromTicks > 0
+                || this.getSeabugPhase() != SEABUG_NONE;
         if (busy) {
             this.combatIdleTicks = 0;
             return;
@@ -1147,6 +1172,11 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         this.pendingInk = false;
     }
 
+    public boolean canWildGrab() {
+        return this.grabCooldown <= 0 && this.getGrabPhase() == GRAB_NONE && this.inkTicks <= 0 && !this.isBeached()
+                && this.maelstromTicks <= 0 && this.getSeabugPhase() == SEABUG_NONE;
+    }
+
     public boolean startAbyssalGrab() {
         if (this.level().isClientSide()) return false;
         int phase = this.getGrabPhase();
@@ -1156,13 +1186,14 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         }
         if (phase != GRAB_NONE || this.grabCooldown > 0 || this.inkTicks > 0 || this.isBeached()) return false;
 
+        boolean wild = this.getControllingPassenger() == null && !this.isTame();
         float cost = OWAttacksConstants.ColossalSquid.GRAB_ENERGY;
-        if (this.getVitalEnergy() > this.getVitalEnergyCapacity() - cost) {
+        if (!wild && this.getVitalEnergy() > this.getVitalEnergyCapacity() - cost) {
             this.canShowVitalEnergyLack = true;
             return false;
         }
-        this.setVitalEnergy(this.getVitalEnergy() + cost);
-        this.grabCooldown = OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS;
+        if (!wild) this.setVitalEnergy(this.getVitalEnergy() + cost);
+        this.grabCooldown = wild ? OWAttacksConstants.ColossalSquid.WILD_GRAB_COOLDOWN_TICKS : OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS;
 
         if (this.isCombo()) {
             this.resetCombo(0);
@@ -1375,6 +1406,8 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
 
     public boolean canGrab(LivingEntity candidate) {
         if (candidate == this || !candidate.isAlive() || candidate.isSpectator()) return false;
+        if (candidate instanceof net.tiew.operationWild.entity.animals.terrestrial.IHurtableMultipart) return false;
+        if (candidate instanceof net.tiew.operationWild.entity.misc.SeaBugEntity) return false;
         if (this.hasPassenger(candidate) || candidate.isPassenger()) return false;
         if (candidate instanceof Player player && (player.isCreative() || player.isSpectator())) return false;
         if (candidate instanceof IOWTamable tamable && tamable.getTheoreticalScale() >= this.getTheoreticalScale()) return false;
@@ -1415,9 +1448,147 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         turnPreyToBeak(prey);
     }
 
+    @Override
+    public Vec3 mealMouthPosition() {
+        float s = this.modelRenderScale();
+        Vec3 forward = Vec3.directionFromRotation(0f, this.yBodyRot);
+        return this.position().add(forward.scale(KO_BEAK_FORWARD * s)).add(0, KO_BEAK_HEIGHT * s, 0);
+    }
+
     public boolean holdsGazeOf(Entity entity) {
         int phase = this.getGrabPhase();
-        return (phase == GRAB_PULL || phase == GRAB_HOLD) && this.getGrabFocus() == entity;
+        if ((phase == GRAB_PULL || phase == GRAB_HOLD) && this.getGrabFocus() == entity) return true;
+        int seabug = this.getSeabugPhase();
+        return (seabug == SEABUG_JUMPSCARE || seabug == SEABUG_SHAKE) && entity.getVehicle() != null
+                && entity.getVehicle().getId() == this.entityData.get(SEABUG_ID);
+    }
+
+    public int getSeabugPhase() {
+        return this.entityData.get(SEABUG_PHASE);
+    }
+
+    @Nullable
+    public net.tiew.operationWild.entity.misc.SeaBugEntity getSeizedSeabug() {
+        return this.level().getEntity(this.entityData.get(SEABUG_ID)) instanceof net.tiew.operationWild.entity.misc.SeaBugEntity seabug ? seabug : null;
+    }
+
+    public boolean canHuntSeabug() {
+        return !this.isTame() && !this.isBaby() && this.seabugCooldown <= 0 && this.isInWater() && !this.isVehicle()
+                && this.getGrabPhase() == GRAB_NONE && !this.isSleeping() && !this.isNapping() && !this.isSitting()
+                && !this.isKnockedOut() && this.inkTicks <= 0 && this.maelstromTicks <= 0;
+    }
+
+    public void beginSeabugHunt(net.tiew.operationWild.entity.misc.SeaBugEntity seabug) {
+        this.entityData.set(SEABUG_ID, seabug.getId());
+        setSeabugPhase(SEABUG_LUNGE);
+        this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ELDER_GUARDIAN_AMBIENT,
+                SoundSource.HOSTILE, 2.5f, 0.45f);
+    }
+
+    public boolean readyToSeizeSeabug() {
+        net.tiew.operationWild.entity.misc.SeaBugEntity seabug = this.getSeizedSeabug();
+        if (seabug == null || !this.isCombatFacing() || this.turnTicks > 0) return false;
+        return this.distanceTo(seabug) <= OWAttacksConstants.ColossalSquid.SEABUG_SEIZE_REACH * this.getScale() + seabug.getBbWidth();
+    }
+
+    public void requestCombatFacing() {
+        if (!this.isCombatFacing()) requestFacing(true);
+    }
+
+    public void seizeSeabug() {
+        net.tiew.operationWild.entity.misc.SeaBugEntity seabug = this.getSeizedSeabug();
+        if (seabug == null || seabug.isPassenger()) {
+            endSeabugAssault(false);
+            return;
+        }
+        seabug.startRiding(this, true);
+        setSeabugPhase(SEABUG_JUMPSCARE);
+        this.getNavigation().stop();
+        Vec3 at = seabug.position();
+        this.level().playSound(null, at.x, at.y, at.z, SoundEvents.WARDEN_ROAR, SoundSource.HOSTILE, 3.0f, 0.55f);
+        this.level().playSound(null, at.x, at.y, at.z, SoundEvents.ELDER_GUARDIAN_CURSE, SoundSource.HOSTILE, 2.5f, 0.5f);
+        this.level().playSound(null, at.x, at.y, at.z, SoundEvents.RAVAGER_ROAR, SoundSource.HOSTILE, 3.0f, 0.4f);
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.BUBBLE, at.x, at.y + 1, at.z, 80, 1.2, 1.0, 1.2, 0.3);
+            serverLevel.sendParticles(ParticleTypes.SQUID_INK, at.x, at.y + 1, at.z, 30, 1.0, 0.8, 1.0, 0.05);
+        }
+    }
+
+    private void setSeabugPhase(int phase) {
+        this.entityData.set(SEABUG_PHASE, phase);
+        this.seabugPhaseTicks = 0;
+        this.combatIdleTicks = 0;
+    }
+
+    private void tickSeabugAssault() {
+        if (this.seabugCooldown > 0) this.seabugCooldown--;
+        int phase = this.getSeabugPhase();
+        if (phase == SEABUG_NONE) {
+            for (Entity passenger : List.copyOf(this.getPassengers())) {
+                if (passenger instanceof net.tiew.operationWild.entity.misc.SeaBugEntity) passenger.stopRiding();
+            }
+            return;
+        }
+        this.seabugPhaseTicks++;
+        net.tiew.operationWild.entity.misc.SeaBugEntity seabug = this.getSeizedSeabug();
+        if (seabug == null || !seabug.isAlive() || this.isSleeping() || this.isKnockedOut() || this.isTame()) {
+            endSeabugAssault(true);
+            return;
+        }
+        if (phase == SEABUG_LUNGE) {
+            if (this.seabugPhaseTicks > OWAttacksConstants.ColossalSquid.SEABUG_LUNGE_MAX_TICKS
+                    || this.distanceTo(seabug) > OWAttacksConstants.ColossalSquid.SEABUG_DETECT_RANGE * 1.5) endSeabugAssault(true);
+            return;
+        }
+        if (seabug.getVehicle() != this) {
+            endSeabugAssault(true);
+            return;
+        }
+        this.combatIdleTicks = 0;
+        if (phase == SEABUG_JUMPSCARE) {
+            if (this.seabugPhaseTicks == OWAttacksConstants.ColossalSquid.SEABUG_STRIKE_TICK) {
+                crushSeabug(seabug, OWAttacksConstants.ColossalSquid.SEABUG_STRIKE_DAMAGE_RATIO);
+                this.level().playSound(null, seabug.getX(), seabug.getY(), seabug.getZ(), SoundEvents.ANVIL_LAND,
+                        SoundSource.HOSTILE, 2.0f, 0.55f);
+            }
+            if (this.seabugPhaseTicks >= OWAttacksConstants.ColossalSquid.SEABUG_JUMPSCARE_TICKS) setSeabugPhase(SEABUG_SHAKE);
+            return;
+        }
+        if (this.seabugPhaseTicks % OWAttacksConstants.ColossalSquid.SEABUG_DAMAGE_INTERVAL == 0) {
+            crushSeabug(seabug, OWAttacksConstants.ColossalSquid.SEABUG_DAMAGE_RATIO);
+            this.level().playSound(null, seabug.getX(), seabug.getY(), seabug.getZ(), SoundEvents.ANVIL_PLACE,
+                    SoundSource.HOSTILE, 1.2f, 0.45f + this.random.nextFloat() * 0.15f);
+        }
+        if (this.seabugPhaseTicks >= OWAttacksConstants.ColossalSquid.SEABUG_SHAKE_TICKS) endSeabugAssault(true);
+    }
+
+    private void crushSeabug(net.tiew.operationWild.entity.misc.SeaBugEntity seabug, float ratio) {
+        seabug.invulnerableTime = 0;
+        seabug.hurt(this.damageSources().mobAttack(this), Math.max(2f, seabug.getMaxHealth() * ratio));
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(ParticleTypes.BUBBLE, seabug.getX(), seabug.getY(0.5), seabug.getZ(), 25, 0.8, 0.6, 0.8, 0.2);
+            serverLevel.sendParticles(ParticleTypes.CRIT, seabug.getX(), seabug.getY(0.5), seabug.getZ(), 12, 0.6, 0.5, 0.6, 0.3);
+        }
+    }
+
+    public void endSeabugAssault(boolean cooldown) {
+        net.tiew.operationWild.entity.misc.SeaBugEntity seabug = this.getSeizedSeabug();
+        if (seabug != null && seabug.getVehicle() == this) {
+            seabug.stopRiding();
+            Vec3 push = Vec3.directionFromRotation(0f, this.yBodyRot).scale(OWAttacksConstants.ColossalSquid.SEABUG_RELEASE_PUSH);
+            seabug.setDeltaMovement(push.x, 0.2, push.z);
+            seabug.hurtMarked = true;
+        }
+        this.entityData.set(SEABUG_ID, -1);
+        setSeabugPhase(SEABUG_NONE);
+        if (cooldown) this.seabugCooldown = OWAttacksConstants.ColossalSquid.SEABUG_COOLDOWN_TICKS;
+    }
+
+    public float seabugThrash(float partialTick) {
+        if (this.getSeabugPhase() != SEABUG_SHAKE) return 0f;
+        float ticks = (this.level().isClientSide() ? this.tickCount - this.seabugPhaseStartTick : this.seabugPhaseTicks) + partialTick;
+        return OWAttacksConstants.ColossalSquid.SEABUG_THRASH_DEGREES
+                * Mth.sin(ticks * Mth.TWO_PI / OWAttacksConstants.ColossalSquid.SEABUG_THRASH_PERIOD);
     }
 
     public Vec3 beakPosition(float partialTick) {
@@ -1508,10 +1679,25 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     }
 
     public Vec3 holdPosition(Entity prey) {
+        return heldCenter(0f).subtract(0, prey.getBbHeight() * 0.5, 0);
+    }
+
+    private Vec3 heldCenter(float thrashDegrees) {
+        double pivot = HOLD_PIVOT_HEIGHT * this.modelRenderScale();
+        double up = (OWAttacksConstants.ColossalSquid.GRAB_HOLD_HEIGHT + 0.55) * this.getScale() - pivot;
         double forward = OWAttacksConstants.ColossalSquid.GRAB_HOLD_FORWARD * this.getScale();
-        Vec3 dir = Vec3.directionFromRotation(this.getXRot(), this.yBodyRot).normalize();
-        double centerY = this.getY() + (OWAttacksConstants.ColossalSquid.GRAB_HOLD_HEIGHT + 0.55) * this.getScale();
-        return new Vec3(this.getX() + dir.x * forward, centerY + dir.y * forward - prey.getBbHeight() * 0.5, this.getZ() + dir.z * forward);
+        org.joml.Vector3f arm = new org.joml.Vector3f(0f, (float) -up, (float) -forward);
+        new org.joml.Quaternionf()
+                .rotationZYX(this.getBankRoll(1f) * Mth.DEG_TO_RAD, 0f, this.getRidePitch(1f) * Mth.DEG_TO_RAD)
+                .rotateY(thrashDegrees * Mth.DEG_TO_RAD)
+                .transform(arm);
+        Vec3 local = new Vec3(-arm.x, -arm.y, arm.z).yRot((float) Math.toRadians(180f - this.yBodyRot));
+        return this.position().add(0, pivot, 0).add(local);
+    }
+
+    @Override
+    protected boolean leansOnServer() {
+        return true;
     }
 
     @Override
@@ -1676,6 +1862,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     @Override
     public void die(DamageSource damageSource) {
         if (!this.level().isClientSide() && this.getGrabPhase() != GRAB_NONE) releaseGrab();
+        if (!this.level().isClientSide() && this.getSeabugPhase() != SEABUG_NONE) endSeabugAssault(false);
         super.die(damageSource);
         if (this.isSaddled()) this.spawnAtLocation(acceptSaddle());
     }
@@ -1699,12 +1886,14 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     public LivingEntity getControllingPassenger() {
         LivingEntity prey = this.getGrabbedTarget();
         if (prey != null && this.getFirstPassenger() == prey) return null;
+        if (this.getFirstPassenger() instanceof net.tiew.operationWild.entity.misc.SeaBugEntity) return null;
         return super.getControllingPassenger();
     }
 
     @Override
     protected boolean canAddPassenger(Entity passenger) {
         if (passenger == this.getGrabbedTarget()) return true;
+        if (passenger instanceof net.tiew.operationWild.entity.misc.SeaBugEntity) return this.getPassengers().isEmpty();
         return this.getPassengers().stream().noneMatch(p -> p != this.getGrabbedTarget());
     }
 
@@ -1723,6 +1912,22 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
             Vec3 hold = this.holdPosition(passenger);
             passenger.fallDistance = 0f;
             function.accept(passenger, hold.x, hold.y, hold.z);
+            return;
+        }
+
+        if (passenger instanceof net.tiew.operationWild.entity.misc.SeaBugEntity) {
+            float thrash = this.seabugThrash(0f);
+            Vec3 hold = this.heldCenter(thrash).subtract(0, passenger.getBbHeight() * 0.5, 0);
+            passenger.fallDistance = 0f;
+            function.accept(passenger, hold.x, hold.y, hold.z);
+            float facing = this.yBodyRot + 180f - thrash;
+            passenger.setYRot(facing);
+            passenger.yRotO = facing;
+            if (passenger instanceof LivingEntity living) {
+                living.yBodyRot = facing;
+                living.yBodyRotO = facing;
+                living.setYHeadRot(facing);
+            }
             return;
         }
 
@@ -1828,6 +2033,16 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
                 default -> { }
             }
         }
+
+        int seabugPhase = this.getSeabugPhase();
+        if (seabugPhase != this.lastSeabugPhase) {
+            this.lastSeabugPhase = seabugPhase;
+            this.seabugPhaseStartTick = this.tickCount;
+            this.seabugJumpscareAnimationState.stop();
+            this.seabugShakeAnimationState.stop();
+            if (seabugPhase == SEABUG_JUMPSCARE) this.seabugJumpscareAnimationState.start(this.tickCount);
+        }
+        if (seabugPhase == SEABUG_SHAKE) this.seabugShakeAnimationState.startIfStopped(this.tickCount);
 
         int maelstromId = this.entityData.get(MAELSTROM_ID);
         if (maelstromId != this.lastMaelstromId) {

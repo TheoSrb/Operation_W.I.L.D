@@ -2,10 +2,12 @@ package net.tiew.operationWild.entity.goals.global;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.behavior.BehaviorUtils;
 import net.minecraft.world.entity.ai.util.DefaultRandomPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.HitResult;
@@ -32,6 +34,12 @@ public final class OWEscapeScout {
     private static final double LENGTH_WEIGHT = 1.0;
     private static final double HEADING_JITTER = 0.1;
     private static final int SWIM_SAMPLES = 8;
+    private static final int DEEP_SAMPLES = 14;
+    private static final double DEEP_MIN_REACH = 0.45;
+    private static final int DEEP_COLUMN_SCAN = 48;
+    private static final double DEEP_MARGIN = 2.5;
+    private static final double DEEP_BIAS = 0.8;
+    private static final double DEEP_VERTICAL_WEIGHT = 1.5;
     private static final int PATH_CHECKS = 3;
     private static final double GAIN_WEIGHT = 2.0;
     private static final double ALIGN_WEIGHT = 1.5;
@@ -148,6 +156,7 @@ public final class OWEscapeScout {
 
     @Nullable
     private static Vec3 findSwim(OWEntity mob, @Nullable Vec3 danger, @Nullable Vec3 heading, int radius, int height, Predicate<Vec3> rejected) {
+        if (mob instanceof OWWaterEntity) return findDeepSwim(mob, danger, heading, radius, rejected);
         Vec3 best = null;
         double bestScore = Double.NEGATIVE_INFINITY;
         for (int i = 0; i < SWIM_SAMPLES; i++) {
@@ -163,6 +172,49 @@ public final class OWEscapeScout {
             }
         }
         return best;
+    }
+
+    @Nullable
+    private static Vec3 findDeepSwim(OWEntity mob, @Nullable Vec3 danger, @Nullable Vec3 heading, int radius, Predicate<Vec3> rejected) {
+        Level level = mob.level();
+        Vec3 origin = mob.position();
+        Vec3 away = heading != null ? heading : danger != null ? flatten(origin.subtract(danger)) : Vec3.ZERO;
+        double baseAngle = away.lengthSqr() > 1.0E-6 ? Math.atan2(away.x, away.z) : mob.getRandom().nextDouble() * Math.PI * 2.0;
+        boolean threatAbove = danger == null || danger.y >= origin.y - 1.0;
+        Vec3 best = null;
+        double bestScore = Double.NEGATIVE_INFINITY;
+        for (int i = 0; i < DEEP_SAMPLES; i++) {
+            double cone = i < DEEP_SAMPLES / 2 ? NARROW_CONE : WIDE_CONE;
+            double angle = baseAngle + (mob.getRandom().nextDouble() - 0.5) * 2.0 * cone;
+            double distance = radius * (DEEP_MIN_REACH + mob.getRandom().nextDouble() * (1.0 - DEEP_MIN_REACH));
+            double x = origin.x + Math.sin(angle) * distance;
+            double z = origin.z + Math.cos(angle) * distance;
+            BlockPos column = BlockPos.containing(x, origin.y, z);
+            if (!isWater(level, column)) continue;
+            int floor = column.getY();
+            while (floor > column.getY() - DEEP_COLUMN_SCAN && isWater(level, column.atY(floor - 1))) floor--;
+            int surface = column.getY();
+            while (surface < column.getY() + DEEP_COLUMN_SCAN && isWater(level, column.atY(surface + 1))) surface++;
+            double low = Math.max(floor + DEEP_MARGIN, surface + 1 - ((OWWaterEntity) mob).getMaxDepth());
+            double high = Math.max(low, surface + 1 - DEEP_MARGIN - mob.getBbHeight());
+            double depthBias = threatAbove ? DEEP_BIAS : 1.0 - DEEP_BIAS;
+            double t = Math.pow(mob.getRandom().nextDouble(), threatAbove ? 2.0 : 0.5);
+            double y = Mth.lerp(t, low, high);
+            Vec3 candidate = new Vec3(x, y, z);
+            if (rejected.test(candidate)) continue;
+            double gain = danger != null ? horizontal(candidate, danger) - horizontal(origin, danger) : distance;
+            double vertical = danger != null ? Math.abs(candidate.y - danger.y) - Math.abs(origin.y - danger.y) : 0.0;
+            double score = gain + DEEP_VERTICAL_WEIGHT * vertical * depthBias + mob.getRandom().nextDouble() * JITTER;
+            if (score > bestScore) {
+                bestScore = score;
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+    private static boolean isWater(Level level, BlockPos pos) {
+        return level.getFluidState(pos).is(FluidTags.WATER);
     }
 
     private static Vec3 flatten(Vec3 vector) {

@@ -602,6 +602,16 @@ public class ColossalSquidModel<T extends ColossalSquidEntity> extends OWComboMo
 	private void animateAwake(T squid, float limbSwing, float limbSwingAmount, float ageInTicks) {
 		this.holdingPrey = squid.getGrabPhase() == ColossalSquidEntity.GRAB_HOLD;
 
+		if (squid.seabugJumpscareAnimationState.isStarted()) {
+			this.animate(squid.seabugJumpscareAnimationState, ColossalSquidAnimations.SEABUG_JUMPSCARE, ageInTicks, 1.0f);
+			return;
+		}
+
+		if (squid.seabugShakeAnimationState.isStarted()) {
+			this.animate(squid.seabugShakeAnimationState, ColossalSquidAnimations.SEABUG_SHAKE, ageInTicks, 1.0f);
+			return;
+		}
+
 		if (squid.maelstromAnimationState.isStarted()) {
 			this.animate(squid.maelstromAnimationState, ColossalSquidAnimations.MAELSTROM, ageInTicks, 1.0f);
 			return;

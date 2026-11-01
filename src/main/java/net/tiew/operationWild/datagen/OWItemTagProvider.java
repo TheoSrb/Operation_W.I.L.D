@@ -169,8 +169,6 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(OWItems.BOA_TONG.get());
 
 
-        // Le panda roux vit de bambou, et le reste tient de la friandise : quelques baies, un fruit,
-        // une racine. Tag court, à l'inverse de l'éléphant — il ne broute pas, il choisit.
         tag(OWTags.Items.GORILLA_FOOD)
                 .add(Items.BAMBOO)
                 .add(Items.SUGAR_CANE)
@@ -213,8 +211,6 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.APPLE)
                 .add(Items.CARROT);
 
-        // L'éléphant broute tout ce qui pousse. Les fruits et les légumes restent ses préférés, mais
-        // rien de végétal ne le rebute — d'où un tag large plutôt qu'une courte liste de friandises.
         tag(OWTags.Items.ELEPHANT_FOOD)
                 .add(Items.APPLE)
                 .add(Items.MELON_SLICE)

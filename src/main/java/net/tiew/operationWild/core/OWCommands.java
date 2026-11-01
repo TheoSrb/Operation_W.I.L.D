@@ -722,7 +722,7 @@ public class OWCommands {
                         owEntity.setTame(true, player);
                         owEntity.addTamingExperience(owEntity.getTamingExperience() / 2, player);
                         source.sendSuccess(() -> Component.translatable("forceTameCommandSuccess",
-                                        Component.translatable(String.valueOf("entity.ow." + owEntity.getClass().getSimpleName().toLowerCase().split("entity")[0])))
+                                        owEntity.getType().getDescription())
                                 .setStyle(Style.EMPTY.withColor(0x00FF00)), false);
                     } else {
                         source.sendSuccess(() -> Component.translatable("forceTameCommandTooFar")

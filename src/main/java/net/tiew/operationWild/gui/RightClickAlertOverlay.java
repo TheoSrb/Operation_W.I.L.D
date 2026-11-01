@@ -104,7 +104,7 @@ public class RightClickAlertOverlay {
 
     private static void renderTitle(GuiGraphics guiGraphics, Font font, OWEntity captor,
                                     int centerX, int y, float danger, boolean critical, float beat) {
-        String captorKey = "entity.ow." + captor.getClass().getSimpleName().split("Entity")[0].toLowerCase();
+        String captorKey = captor.getType().getDescriptionId();
         Component name = Component.literal(Component.translatable(captorKey).getString().toUpperCase());
         Component title = Component.translatable("tooltip.grabBy", name);
 

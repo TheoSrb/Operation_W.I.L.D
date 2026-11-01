@@ -28,6 +28,8 @@ import java.util.List;
 
 public class SeaBugEntity extends Submarine implements OWEntityUtils {
 
+    private static final double SEAT_DROP = 1.4;
+
     public static final int MAX_DEPTH = 50;
     public static final int MAX_BATTERY = 2;
 
@@ -228,8 +230,7 @@ public class SeaBugEntity extends Submarine implements OWEntityUtils {
 
     @Override
     protected void positionRider(Entity entity, MoveFunction function) {
-        super.positionRider(entity, function);
-        function.accept(entity, entity.getX(), entity.getY() - 1.4f, entity.getZ());
+        super.positionRider(entity, (passenger, x, y, z) -> function.accept(passenger, x, y - SEAT_DROP, z));
     }
 
     @Override

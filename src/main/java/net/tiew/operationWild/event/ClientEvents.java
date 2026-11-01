@@ -476,8 +476,10 @@ public class ClientEvents {
         float wantedYaw = (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90f;
         float wantedPitch = (float) (-(Mth.atan2(dy, horiz) * Mth.RAD_TO_DEG));
 
+        int seabugPhase = squid.getSeabugPhase();
+        boolean scare = seabugPhase == net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity.SEABUG_JUMPSCARE;
         float dt = (float) mc.getTimer().getRealtimeDeltaTicks();
-        float pull = 1f - (float) Math.exp(-dt * SQUID_GAZE_PULL_SPEED);
+        float pull = 1f - (float) Math.exp(-dt * (scare ? SQUID_SCARE_PULL_SPEED : SQUID_GAZE_PULL_SPEED));
 
         float newYaw = approachAngle(player.getYRot(), wantedYaw, pull);
         float newPitch = Mth.clamp(approachAngle(player.getXRot(), wantedPitch, pull), -90f, 90f);
@@ -488,12 +490,39 @@ public class ClientEvents {
         player.setYHeadRot(newYaw);
         player.yHeadRot = newYaw;
         player.yHeadRotO = newYaw;
-        event.setYaw(newYaw);
-        event.setPitch(newPitch);
+
+        float shakeYaw = 0f;
+        float shakePitch = 0f;
+        float shakeRoll = 0f;
+        double now = System.currentTimeMillis();
+        if (scare) {
+            float since = squid.tickCount - squid.seabugPhaseStartTick + partialTick;
+            float strike = since - net.tiew.operationWild.entity.attacks.OWAttacksConstants.ColossalSquid.SEABUG_STRIKE_TICK;
+            float amplitude = SQUID_SCARE_SHAKE * (float) Math.exp(-since / 10f)
+                    + (strike >= 0f ? SQUID_STRIKE_SHAKE * (float) Math.exp(-strike / 6f) : 0f);
+            shakeYaw = amplitude * (float) Math.sin(now / 23.0);
+            shakePitch = amplitude * (float) Math.cos(now / 31.0);
+            shakeRoll = amplitude * 0.6f * (float) Math.sin(now / 41.0);
+        } else if (seabugPhase == net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity.SEABUG_SHAKE) {
+            float thrash = squid.seabugThrash(partialTick);
+            shakeYaw = thrash * SQUID_THRASH_FOLLOW + SQUID_THRASH_SHAKE * (float) Math.sin(now / 29.0);
+            shakePitch = SQUID_THRASH_SHAKE * 0.8f * (float) Math.cos(now / 37.0);
+            shakeRoll = -thrash * SQUID_THRASH_ROLL;
+        }
+        event.setYaw(newYaw + shakeYaw);
+        event.setPitch(newPitch + shakePitch);
+        event.setRoll(event.getRoll() + shakeRoll);
     }
 
+    private static final double SEABUG_HULL_PIVOT = 1.7;
     private static final double SQUID_GAZE_SEARCH = 32.0;
     private static final float SQUID_GAZE_PULL_SPEED = 0.15f;
+    private static final float SQUID_SCARE_PULL_SPEED = 0.7f;
+    private static final float SQUID_SCARE_SHAKE = 9f;
+    private static final float SQUID_STRIKE_SHAKE = 14f;
+    private static final float SQUID_THRASH_FOLLOW = 0.35f;
+    private static final float SQUID_THRASH_SHAKE = 2.2f;
+    private static final float SQUID_THRASH_ROLL = 0.5f;
 
     private static float approachAngle(float current, float wanted, float fraction) {
         return current + Mth.wrapDegrees(wanted - current) * fraction;
@@ -1407,12 +1436,18 @@ public class ClientEvents {
 
         if (owVehicle instanceof SeaBugEntity seaBug) {
             poseStack.pushPose();
-            pivotPoint = new Vec3(0, 1.3, 0);
+            float seaBugTick = event.getPartialTick();
+            float seaBugYaw = seaBug.getViewYRot(seaBugTick);
+            float seaBugPitch = seaBug.isOff() ? 0f
+                    : seaBug.getControllingPassenger() == player ? seaBug.getViewXRot(seaBugTick) : seaBug.getLastPlayerPitch();
+            pivotPoint = seaBug.getPosition(seaBugTick).add(0, SEABUG_HULL_PIVOT, 0)
+                    .subtract(player.getPosition(seaBugTick))
+                    .yRot(seaBugYaw * Mth.DEG_TO_RAD);
 
-            poseStack.mulPose(Axis.YP.rotationDegrees(-player.getYRot()));
-            Quaternionf rotation = Axis.XP.rotationDegrees(seaBug.getLastPlayerPitch());
+            poseStack.mulPose(Axis.YP.rotationDegrees(-seaBugYaw));
+            Quaternionf rotation = Axis.XP.rotationDegrees(seaBugPitch);
             poseStack.rotateAround(rotation, (float) pivotPoint.x, (float) pivotPoint.y, (float) pivotPoint.z);
-            poseStack.mulPose(Axis.YP.rotationDegrees(player.getYRot()));
+            poseStack.mulPose(Axis.YP.rotationDegrees(seaBugYaw));
 
         } else if (owVehicle instanceof CrocodileEntity crocodile) {
             poseStack.pushPose();

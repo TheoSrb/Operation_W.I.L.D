@@ -58,7 +58,7 @@ public record OWRunningPacket(boolean isSprintKeyDown) implements CustomPacketPa
                         canSprint = false;
 
                         if (TIRED_NOTIFIED.add(player.getUUID())) {
-                            OWUtils.showMessage(player, Component.translatable("tooltip.entityIsTired", Component.translatable("entity.ow." + entity.getClass().getSimpleName().split("Entity")[0].toLowerCase())), 0xd2c7e8, false);
+                            OWUtils.showMessage(player, Component.translatable("tooltip.entityIsTired", entity.getType().getDescription()), 0xd2c7e8, false);
                         }
                     }
 

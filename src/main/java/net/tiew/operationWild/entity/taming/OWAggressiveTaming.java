@@ -588,8 +588,7 @@ public class OWAggressiveTaming {
     }
 
     private Vec3 mouthPosition() {
-        Vec3 head = entity.restingHeadPosition();
-        return new Vec3(head.x, entity.getY() + 0.25, head.z);
+        return entity.mealMouthPosition();
     }
 
     private double mealReach() {

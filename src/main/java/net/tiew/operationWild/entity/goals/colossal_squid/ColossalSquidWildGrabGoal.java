@@ -10,7 +10,7 @@ import java.util.EnumSet;
 public class ColossalSquidWildGrabGoal extends Goal {
 
     private static final int CHANCE_PER_TICK = 30;
-    private static final double MIN_RANGE = 3.0;
+    private static final double MIN_RANGE = 0.0;
 
     private final ColossalSquidEntity squid;
 
@@ -22,7 +22,7 @@ public class ColossalSquidWildGrabGoal extends Goal {
     @Override
     public boolean canUse() {
         if (this.squid.isTame() || this.squid.isVehicle() || this.squid.isSleeping() || !this.squid.isInWater()) return false;
-        if (this.squid.getGrabPhase() != ColossalSquidEntity.GRAB_NONE || this.squid.isCombo()) return false;
+        if (!this.squid.canWildGrab() || this.squid.isCombo()) return false;
         LivingEntity target = this.squid.getTarget();
         if (target == null || !target.isAlive() || !target.isInWater()) return false;
         double distance = this.squid.distanceTo(target);

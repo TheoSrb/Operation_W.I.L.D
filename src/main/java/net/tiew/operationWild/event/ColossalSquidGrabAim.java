@@ -16,6 +16,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.BoaTailPart;
 import net.tiew.operationWild.entity.attacks.OWAttackIds;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
@@ -25,6 +26,7 @@ import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Visée de la Saisie Abyssale : clic droit maintenu, un réticule de tentacules s'affiche à l'écran
@@ -121,17 +123,26 @@ public final class ColossalSquidGrabAim {
                 e -> e != player && squid.canGrab(e) && squid.distanceTo(e) <= r);
     }
 
+    @Nullable
+    private static LivingEntity wholeBody(LivingEntity entity) {
+        if (entity instanceof BoaTailPart part) return part.getParentForRender() instanceof LivingEntity parent ? parent : null;
+        return entity;
+    }
+
     private static LivingEntity pickTarget(ColossalSquidEntity squid, Player player) {
         Vec3 eye = player.getEyePosition();
         Vec3 look = player.getLookAngle();
         LivingEntity best = null;
         double bestScore = 1.0;
-        for (LivingEntity candidate : candidates(squid, player)) {
-            Vec3 to = candidate.getBoundingBox().getCenter().subtract(eye);
+        double r = range(squid);
+        for (LivingEntity piece : squid.level().getEntitiesOfClass(LivingEntity.class, squid.getBoundingBox().inflate(r))) {
+            LivingEntity candidate = wholeBody(piece);
+            if (candidate == null || candidate == player || !squid.canGrab(candidate) || squid.distanceTo(candidate) > r) continue;
+            Vec3 to = piece.getBoundingBox().getCenter().subtract(eye);
             double distance = to.length();
             if (distance < 1.0E-3) continue;
             double angle = Math.acos(Math.min(1.0, look.dot(to.scale(1.0 / distance))));
-            double size = Math.max(candidate.getBbWidth(), candidate.getBbHeight()) * 0.6 + MIN_AIM_RADIUS;
+            double size = Math.max(piece.getBbWidth(), piece.getBbHeight()) * 0.6 + MIN_AIM_RADIUS;
             double score = angle / Math.atan2(size, distance);
             if (score < bestScore) {
                 bestScore = score;

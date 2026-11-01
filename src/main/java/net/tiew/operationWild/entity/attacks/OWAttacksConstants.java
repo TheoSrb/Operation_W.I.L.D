@@ -856,8 +856,24 @@ public class OWAttacksConstants {
 
         public static final float GRAB_ENERGY = 60f;
         public static final int GRAB_COOLDOWN_TICKS = 1000;
+        public static final int WILD_GRAB_COOLDOWN_TICKS = 240;
         public static final int GRAB_PULL_SLOW_TICKS = 80;
         public static final float GRAB_HOLD_DAMAGE_RATIO = 0.5f;
+        public static final double SEABUG_DETECT_RANGE = 28.0;
+        public static final double SEABUG_TURN_RANGE = 12.0;
+        public static final double SEABUG_SEIZE_REACH = 5.0;
+        public static final int SEABUG_LUNGE_MAX_TICKS = 200;
+        public static final int SEABUG_JUMPSCARE_TICKS = 30;
+        public static final int SEABUG_STRIKE_TICK = 13;
+        public static final int SEABUG_SHAKE_TICKS = 200;
+        public static final int SEABUG_THRASH_PERIOD = 25;
+        public static final float SEABUG_THRASH_DEGREES = 19f;
+        public static final int SEABUG_DAMAGE_INTERVAL = 20;
+        public static final float SEABUG_DAMAGE_RATIO = 0.05f;
+        public static final float SEABUG_STRIKE_DAMAGE_RATIO = 0.1f;
+        public static final double SEABUG_DIVE_STEP = 14.0;
+        public static final int SEABUG_COOLDOWN_TICKS = 2400;
+        public static final double SEABUG_RELEASE_PUSH = 0.9;
 
         public static final float MAELSTROM_ENERGY = 70f;
         public static final int MAELSTROM_TICKS = 60;

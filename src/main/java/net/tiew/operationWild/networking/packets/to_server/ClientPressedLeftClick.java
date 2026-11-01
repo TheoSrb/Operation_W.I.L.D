@@ -58,7 +58,7 @@ public record ClientPressedLeftClick(boolean isScreenOpen) implements CustomPack
                         owEntity.setHasReachedAttackEnergyLimit(true);
                         if (showTiredMessage) {
                             OWUtils.showMessage(player, Component.translatable("tooltip.entityIsTired",
-                                            Component.translatable("entity.ow." + entity.getClass().getSimpleName().split("Entity")[0].toLowerCase())),
+                                            entity.getType().getDescription()),
                                     0xd2c7e8, false);
                             showTiredMessage = false;
                         }

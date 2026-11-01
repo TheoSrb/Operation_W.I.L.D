@@ -5,6 +5,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.OWSemiWaterEntity;
+import net.tiew.operationWild.entity.OWWaterEntity;
 import net.tiew.operationWild.entity.breakout.OWEnclosureProbe;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,7 +119,7 @@ public class OWFleeRoute {
         tickWater(danger);
 
         if (++stuckTimer >= STUCK_WINDOW) {
-            boolean moving = !mob.getNavigation().isDone();
+            boolean moving = directSwim() || !mob.getNavigation().isDone();
             boolean progressed = mob.position().distanceToSqr(anchor) >= STUCK_PROGRESS_SQR;
             stuckTimer = 0;
             anchor = mob.position();
@@ -137,11 +138,12 @@ public class OWFleeRoute {
                 moveToRefuge(speed);
                 return;
             }
-            if (mob.getNavigation().isDone()) steerAway(lastDanger, speed);
+            if (!directSwim() && mob.getNavigation().isDone()) steerAway(lastDanger, speed);
         }
 
         if (scoutCooldown > 0) scoutCooldown--;
-        boolean needed = rescout || escape == null || mob.getNavigation().isDone() || nearing(escape) || compromised(escape, danger);
+        boolean idle = directSwim() ? arrived(escape) : mob.getNavigation().isDone();
+        boolean needed = rescout || escape == null || idle || nearing(escape) || compromised(escape, danger);
         if (scoutCooldown <= 0 && needed) {
             scoutCooldown = SCOUT_GAP;
             rescout = false;
@@ -235,7 +237,16 @@ public class OWFleeRoute {
 
     private void moveToEscape(double speed) {
         if (escape == null) return;
+        if (directSwim()) {
+            mob.getNavigation().stop();
+            mob.getMoveControl().setWantedPosition(escape.x, escape.y, escape.z, speed);
+            return;
+        }
         mob.getNavigation().moveTo(escape.x, escape.y, escape.z, speed);
+    }
+
+    private boolean directSwim() {
+        return mob instanceof OWWaterEntity && mob.isInWater();
     }
 
     private void steerAway(@Nullable Vec3 danger, double speed) {
