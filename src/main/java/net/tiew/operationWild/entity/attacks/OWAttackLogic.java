@@ -810,19 +810,7 @@ public class OWAttackLogic {
     }
 
     private static boolean playerHoldsUsableItem(Player player) {
-        ItemStack stack = player.getMainHandItem();
-        if (stack.isEmpty()) return false;
-        // Items that require holding right-click (food, bow, crossbow, potion, shield, trident…)
-        if (stack.getUseAnimation() != UseAnim.NONE) return true;
-        // Items with an immediate right-click action (throwables, spawn eggs…)
-        if (stack.getItem() instanceof SpawnEggItem) return true;
-        if (stack.is(net.minecraft.world.item.Items.EGG)) return true;
-        if (stack.is(net.minecraft.world.item.Items.SNOWBALL)) return true;
-        if (stack.is(net.minecraft.world.item.Items.ENDER_PEARL)) return true;
-        if (stack.is(net.minecraft.world.item.Items.SPLASH_POTION)) return true;
-        if (stack.is(net.minecraft.world.item.Items.LINGERING_POTION)) return true;
-        if (stack.is(net.minecraft.world.item.Items.FIRE_CHARGE)) return true;
-        return false;
+        return net.tiew.operationWild.event.OWItemUseRestrictions.isUsableItem(player.getMainHandItem());
     }
 
     /**

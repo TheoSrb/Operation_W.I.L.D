@@ -397,7 +397,8 @@ public class ClientEvents {
     }
 
     private static boolean canUseRightClick(Minecraft minecraft) {
-        return minecraft.player != null && minecraft.player.getMainHandItem().getUseAnimation() == UseAnim.NONE && !(minecraft.player.getMainHandItem().getItem() instanceof MayaBlowpipeItem);
+        return minecraft.player != null && !OWItemUseRestrictions.isUsableItem(minecraft.player.getMainHandItem())
+                && !(minecraft.player.getMainHandItem().getItem() instanceof MayaBlowpipeItem);
     }
 
     @SubscribeEvent

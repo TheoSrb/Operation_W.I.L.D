@@ -4920,6 +4920,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     @Override
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
         if (this.isKnockedOut()) return InteractionResult.PASS;
+        if (this.hasPassenger(player) && net.tiew.operationWild.event.OWItemUseRestrictions.isFreeRider(player, this)
+                && net.tiew.operationWild.event.OWItemUseRestrictions.isUsableItem(player.getItemInHand(hand))) {
+            return InteractionResult.PASS;
+        }
 
         ItemStack itemstack = player.getItemInHand(hand);
         Item item = itemstack.getItem();
