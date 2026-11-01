@@ -310,7 +310,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
                 .add(Attributes.MAX_HEALTH, 80.0)
                 .add(Attributes.MOVEMENT_SPEED, 0.17D)
                 .add(Attributes.FOLLOW_RANGE, 40.0D)
-                .add(Attributes.ATTACK_DAMAGE, 15.0D)
+                .add(Attributes.ATTACK_DAMAGE, 13.0D)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 0.85D);
     }
 
