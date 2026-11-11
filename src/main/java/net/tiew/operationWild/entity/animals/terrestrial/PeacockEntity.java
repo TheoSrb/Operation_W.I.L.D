@@ -76,7 +76,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     // ==================================================
 
     public static final double TAMING_EXPERIENCE = 60.0;
-    public static final int MAX_SOMNOLENCE = 900;
+    public static final int MAX_SOMNOLENCE = 500;
     public static final int SOMNOLENCE_LOSS_INTERVAL = 2;
     public static final int SOMNOLENCE_LOSS_INTERVAL_ASLEEP = 4;
     public static final int FOOD_WANTED_MIN = 6;

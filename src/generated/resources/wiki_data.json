@@ -12559,7 +12559,7 @@
         "LINK_ACTIVE": 2,
         "LINK_NONE": 0,
         "LINK_SELECTING": 1,
-        "MAX_SOMNOLENCE": 900,
+        "MAX_SOMNOLENCE": 500,
         "SOMNOLENCE_LOSS_INTERVAL": 2,
         "SOMNOLENCE_LOSS_INTERVAL_ASLEEP": 4,
         "TAMING_EXPERIENCE": 60.0
@@ -12667,7 +12667,7 @@
         "created": "2026-11-11T20:25:23.8041746+01:00",
         "created_date": "2026-11-11",
         "file": "src/main/java/net/tiew/operationWild/entity/animals/terrestrial/PeacockEntity.java",
-        "last_modified": "2026-11-11T20:50:13.3849074+01:00",
+        "last_modified": "2026-11-11T21:07:56.941237+01:00",
         "last_modified_date": "2026-11-11",
         "size_bytes": 51984
       },
@@ -13489,15 +13489,15 @@
         ],
         "somnolence": {
           "decays": true,
-          "full_bar_asleep_seconds": 180.0,
-          "full_bar_awake_seconds": 90.0,
+          "full_bar_asleep_seconds": 100.0,
+          "full_bar_awake_seconds": 50.0,
           "loss_interval_ticks_asleep": 4,
           "loss_interval_ticks_awake": 2,
           "loss_per_second_asleep": 5.0,
           "loss_per_second_awake": 10.0,
-          "max": 900,
-          "max_max": 1080,
-          "max_min": 720,
+          "max": 500,
+          "max_max": 600,
+          "max_min": 400,
           "spread_percent": 20
         },
         "tameable": true,
