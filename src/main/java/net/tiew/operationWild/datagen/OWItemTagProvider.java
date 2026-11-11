@@ -193,6 +193,16 @@ public class OWItemTagProvider extends ItemTagsProvider {
                 .add(Items.PUMPKIN)
                 .add(Items.MELON);
 
+        tag(OWTags.Items.PEACOCK_FOOD)
+                .add(Items.WHEAT_SEEDS)
+                .add(Items.PUMPKIN_SEEDS)
+                .add(Items.MELON_SEEDS)
+                .add(Items.BEETROOT_SEEDS)
+                .add(Items.TORCHFLOWER_SEEDS)
+                .add(Items.SWEET_BERRIES)
+                .add(Items.GLOW_BERRIES)
+                .add(OWItems.SAVAGE_BERRIES.get());
+
         tag(OWTags.Items.LION_FOOD)
                 .add(Items.BEEF)
                 .add(Items.MUTTON)

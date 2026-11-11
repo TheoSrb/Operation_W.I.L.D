@@ -169,7 +169,7 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     }
 
     public static AttributeSupplier.Builder createAttributes() {
-        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 22.0).add(Attributes.MOVEMENT_SPEED, 0.17).add(Attributes.ATTACK_DAMAGE, 6.0).add(Attributes.FOLLOW_RANGE, 25.0).add(Attributes.ARMOR, 2.0);
+        return Animal.createLivingAttributes().add(Attributes.MAX_HEALTH, 22.0).add(Attributes.MOVEMENT_SPEED, 0.17).add(Attributes.ATTACK_DAMAGE, 6.0).add(Attributes.FOLLOW_RANGE, 20.0).add(Attributes.ARMOR, 2.0);
     }
 
     @Override
@@ -313,6 +313,12 @@ public class BoaEntity extends OWSemiWaterEntity implements IOWEntity, IOWTamabl
     @Override
     public boolean usesAggressiveTaming() {
         return true;
+    }
+
+    @Override
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_WOODEN_STINGER.get(),
+                OWEntityRegistry.SLINGSHOT_PROJECTILE.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
     }
 
     @Override

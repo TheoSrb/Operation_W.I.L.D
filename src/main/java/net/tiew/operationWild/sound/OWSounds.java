@@ -73,6 +73,11 @@ public class OWSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> BOA_SLITHER = registerSoundEvent("boa_slither");
 
     public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_IDLE = registerSoundEvent("peacock_idle");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_HURT = registerSoundEvent("peacock_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_DEATH = registerSoundEvent("peacock_death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_CALL = registerSoundEvent("peacock_call");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_WING_GUST = registerSoundEvent("peacock_wing_gust");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PEACOCK_FAN = registerSoundEvent("peacock_fan");
 
     public static final DeferredHolder<SoundEvent, SoundEvent> TIGER_SHARK_CRUSH_MOUTH = registerSoundEvent("tiger_shark_crush_mouth");
 

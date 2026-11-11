@@ -34,6 +34,7 @@ public class OWBiomeModifiers {
     public static final ResourceKey<BiomeModifier> SPAWN_TIGER = registerKey("spawn_tiger");
     public static final ResourceKey<BiomeModifier> SPAWN_BOA = registerKey("spawn_boa");
     public static final ResourceKey<BiomeModifier> SPAWN_PEACOCK = registerKey("spawn_peacock");
+    public static final ResourceKey<BiomeModifier> SPAWN_PEACOCK_MEADOW = registerKey("spawn_peacock_meadow");
     public static final ResourceKey<BiomeModifier> SPAWN_JELLYFISH = registerKey("spawn_jellyfish");
     public static final ResourceKey<BiomeModifier> SPAWN_KODIAK = registerKey("spawn_kodiak");
     public static final ResourceKey<BiomeModifier> SPAWN_CROCODILE = registerKey("spawn_crocodile");
@@ -54,7 +55,11 @@ public class OWBiomeModifiers {
     );
 
     public static final ArrayList<ResourceKey<Biome>> PEACOCK_BIOMES = new ArrayList<>(
-            List.of(Biomes.FLOWER_FOREST, Biomes.MEADOW)
+            List.of(Biomes.FLOWER_FOREST)
+    );
+
+    public static final ArrayList<ResourceKey<Biome>> PEACOCK_MEADOW_BIOMES = new ArrayList<>(
+            List.of(Biomes.MEADOW, Biomes.CHERRY_GROVE)
     );
 
     public static final ArrayList<ResourceKey<Biome>> JELLYFISH_BIOMES = new ArrayList<>(
@@ -122,7 +127,9 @@ public class OWBiomeModifiers {
             new SpawnRule(SPAWN_GORILLA_SPARSE, OWEntityRegistry.GORILLA, GORILLA_SPARSE_BIOMES, 22, 1, 2),
             new SpawnRule(SPAWN_RED_PANDA, OWEntityRegistry.RED_PANDA, RED_PANDA_BIOMES, 100, 1, 1),
             new SpawnRule(SPAWN_ORCA, OWEntityRegistry.ORCA, ORCA_BIOMES, 10, 1, 3, OrcaEntity.SPAWN_CHUNK_ONE_IN),
-            new SpawnRule(SPAWN_HIPPOPOTAMUS, OWEntityRegistry.HIPPOPOTAMUS, HIPPOPOTAMUS_BIOMES, 30, 2, 4));
+            new SpawnRule(SPAWN_HIPPOPOTAMUS, OWEntityRegistry.HIPPOPOTAMUS, HIPPOPOTAMUS_BIOMES, 30, 2, 4),
+            new SpawnRule(SPAWN_PEACOCK, OWEntityRegistry.PEACOCK, PEACOCK_BIOMES, 10, 2, 4),
+            new SpawnRule(SPAWN_PEACOCK_MEADOW, OWEntityRegistry.PEACOCK, PEACOCK_MEADOW_BIOMES, 2, 2, 4));
 
     public static void bootstrap(BootstrapContext<BiomeModifier> context) {
         var placedFeature = context.lookup(Registries.PLACED_FEATURE);

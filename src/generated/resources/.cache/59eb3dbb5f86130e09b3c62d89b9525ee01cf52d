@@ -1,4 +1,4 @@
-// 1.21	2026-10-31T13:47:54.8428985	Loot Tables
+// 1.21	2026-11-11T20:17:16.7215963	Loot Tables
 39411953e31428b0099044fec99043fae3ff3335 data/ow/loot_table/blocks/animal_carcass.json
 21b0793ae3d401beeb314311ffbd4936db7dfe6d data/ow/loot_table/blocks/bear_trap.json
 6f82ac1c1d6f229b28ecea4374dcfb2416e64f22 data/ow/loot_table/blocks/camellia.json
@@ -58,6 +58,7 @@ ac439941d9641cf5781efaab6ef5e6c96daf8c97 data/ow/loot_table/entities/kangaroo.js
 be73d7ecf6c368985dbc35b3fd75a80fb1a78266 data/ow/loot_table/entities/kodiak.json
 428c9a37f643b48c28307809958cad10288a419b data/ow/loot_table/entities/lion.json
 f57f3773458f05cce755ed7d40523663a1cc00a8 data/ow/loot_table/entities/orca.json
+79a3ff449e9938400446516f87d47bc0456fb6c3 data/ow/loot_table/entities/peacock.json
 39610dbed52045c08dad942c60325f4a89c2f127 data/ow/loot_table/entities/plant_empress.json
 30fde7be140d64f8241814b9454d47d2d566bd15 data/ow/loot_table/entities/red_panda.json
 7e6d2422d023d722aecca73a3b3c8cdd37e4b894 data/ow/loot_table/entities/seabug.json

@@ -839,6 +839,11 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
     }
 
     @Override
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
+    }
+
+    @Override
     public float sedatedFleeSpeed() {
         return this.getSwimSpeed();
     }

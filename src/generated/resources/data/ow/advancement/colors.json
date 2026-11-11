@@ -1,0 +1,38 @@
+{
+  "parent": "ow:renowned_tamer",
+  "criteria": {
+    "tamed_peacock": {
+      "conditions": {
+        "entity": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "type": "ow:peacock"
+            }
+          }
+        ]
+      },
+      "trigger": "minecraft:tame_animal"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "ow.advancements.colors.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "ow:peacock_spawn_egg"
+    },
+    "title": {
+      "translate": "ow.advancements.colors.title"
+    }
+  },
+  "requirements": [
+    [
+      "tamed_peacock"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

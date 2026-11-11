@@ -48,6 +48,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.tiew.operationWild.entity.breakout.OWBreakLevel;
@@ -184,6 +185,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     private static final EntityDataAccessor<Boolean> GUARD_POSE = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> RELEASE_LEAP = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> LEAP_FLIGHT = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Float> LEAP_APEX = SynchedEntityData.defineId(LionEntity.class, EntityDataSerializers.FLOAT);
 
     // ==================================================
     //             COMPTEURS ET ANIMATIONS
@@ -319,6 +321,7 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         builder.define(GUARD_POSE, false);
         builder.define(RELEASE_LEAP, true);
         builder.define(LEAP_FLIGHT, OWAttacksConstants.Lion.LEAP_FLIGHT_MIN_TICKS);
+        builder.define(LEAP_APEX, (float) OWAttacksConstants.Lion.LEAP_ARC_BASE);
     }
 
     // ==================================================
@@ -375,6 +378,12 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     @Override
     public boolean usesAggressiveTaming() {
         return true;
+    }
+
+    @Override
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_WOODEN_STINGER.get(),
+                OWEntityRegistry.SLINGSHOT_PROJECTILE.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
     }
 
     @Override
@@ -752,6 +761,12 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     @Override
     protected boolean isLeapingVehicle() {
         return getLatchPhase() != LATCH_NONE || super.isLeapingVehicle();
+    }
+
+    @Override
+    protected double leapingFallLimit() {
+        int phase = getLatchPhase();
+        return phase == LATCH_RUSH || phase == LATCH_RELEASE ? OWAttacksConstants.Lion.LEAP_RUSH_TERMINAL_FALL : super.leapingFallLimit();
     }
 
     @Override
@@ -1558,13 +1573,19 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
     }
 
     private void driveRush(LivingEntity target) {
-        float yaw = Mth.approachDegrees(this.getYRot(), yawTowards(target), OWAttacksConstants.Lion.LEAP_RUSH_TURN_DEGREES);
+        float speedShare = (float) Mth.clamp(rushSpeed / OWAttacksConstants.Lion.LEAP_RUSH_SPEED, 0.0, 1.0);
+        float turn = Mth.lerp(speedShare, OWAttacksConstants.Lion.LEAP_RUSH_SLOW_TURN_DEGREES, OWAttacksConstants.Lion.LEAP_RUSH_TURN_DEGREES);
+        float yaw = Mth.approachDegrees(this.getYRot(), yawTowards(target), turn);
         this.setYRot(yaw);
         this.yBodyRot = yaw;
         this.setYHeadRot(yaw);
         this.setRunning(true);
 
-        rushSpeed = Math.min(OWAttacksConstants.Lion.LEAP_RUSH_SPEED, rushSpeed + OWAttacksConstants.Lion.LEAP_RUSH_ACCELERATION);
+        float misalignment = Math.abs(Mth.wrapDegrees(yawTowards(target) - yaw)) / 90f;
+        double wanted = OWAttacksConstants.Lion.LEAP_RUSH_SPEED * Mth.clamp(1f - misalignment * 0.5f, 0.5f, 1f);
+        rushSpeed = rushSpeed < wanted
+                ? Math.min(wanted, rushSpeed + OWAttacksConstants.Lion.LEAP_RUSH_ACCELERATION)
+                : Math.max(wanted, rushSpeed - OWAttacksConstants.Lion.LEAP_RUSH_ACCELERATION);
         Vec3 direction = Vec3.directionFromRotation(0f, yaw);
         double y = this.getDeltaMovement().y;
         if (this.horizontalCollision && this.onGround()) y = OWAttacksConstants.Lion.LEAP_RUSH_JUMP;
@@ -1584,10 +1605,8 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
 
         if (phase == LATCH_LEAP) {
             float t = leapProgress();
-            double arc = OWAttacksConstants.Lion.LEAP_ARC_BASE + OWAttacksConstants.Lion.LEAP_ARC_PER_TICK * getLeapFlightTicks();
-            double y = Mth.lerp(t * t, leapStart.y, anchor.y) + arc * 4.0 * t * (1.0 - t);
-            pos = new Vec3(Mth.lerp(t, leapStart.x, anchor.x), y, Mth.lerp(t, leapStart.z, anchor.z));
-            yaw = Mth.rotLerp(t * t, leapStartYaw, facing);
+            pos = leapArcPoint(leapStart, anchor, t, this.entityData.get(LEAP_APEX));
+            yaw = Mth.rotLerp(t * t * (3f - 2f * t), leapStartYaw, facing);
         }
 
         this.setDeltaMovement(Vec3.ZERO);
@@ -1597,6 +1616,12 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         this.setYHeadRot(yaw);
         this.setXRot(0f);
         this.fallDistance = 0f;
+    }
+
+    private static Vec3 leapArcPoint(Vec3 from, Vec3 to, float t, double apex) {
+        double lift = Math.max(0.0, to.y - from.y);
+        double y = Mth.lerp(t, from.y, to.y) + 4.0 * (apex + lift * 0.5) * t * (1.0 - t);
+        return new Vec3(Mth.lerp(t, from.x, to.x), y, Mth.lerp(t, from.z, to.z));
     }
 
     private float leapProgress() {
@@ -1727,8 +1752,37 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
         double gap = Math.sqrt(dx * dx + dz * dz) - target.getBbWidth() * 0.5;
         double dy = target.getY() - this.getY();
         float facing = Math.abs(Mth.wrapDegrees(yawTowards(target) - this.getYRot()));
-        return gap <= OWAttacksConstants.Lion.LEAP_TRIGGER_DISTANCE && facing <= OWAttacksConstants.Lion.LEAP_TRIGGER_FACING_DEGREES
-                && dy > -2.5 && dy < target.getBbHeight() + 1.5;
+        double trigger = Mth.clamp(rushSpeed * OWAttacksConstants.Lion.LEAP_TRIGGER_TICKS,
+                OWAttacksConstants.Lion.LEAP_TRIGGER_MIN_DISTANCE, OWAttacksConstants.Lion.LEAP_TRIGGER_MAX_DISTANCE);
+        if (gap > trigger || facing > OWAttacksConstants.Lion.LEAP_TRIGGER_FACING_DEGREES) return false;
+        if (dy <= -OWAttacksConstants.Lion.LEAP_TRIGGER_DROP || dy >= target.getBbHeight() + OWAttacksConstants.Lion.LEAP_TRIGGER_RISE) return false;
+        return gap <= OWAttacksConstants.Lion.LEAP_TRIGGER_MIN_DISTANCE || clearLeapApex(target, leapFlightTicks(target)) != null;
+    }
+
+    private int leapFlightTicks(LivingEntity target) {
+        Vec3 anchor = latchAnchor(target);
+        double horizontal = Math.sqrt(Mth.square(anchor.x - this.getX()) + Mth.square(anchor.z - this.getZ()));
+        double speed = Math.max(rushSpeed, OWAttacksConstants.Lion.LEAP_FLIGHT_MIN_SPEED);
+        return Mth.clamp((int) Math.round(horizontal / speed), OWAttacksConstants.Lion.LEAP_FLIGHT_MIN_TICKS, OWAttacksConstants.Lion.LEAP_FLIGHT_MAX_TICKS);
+    }
+
+    @Nullable
+    private Double clearLeapApex(LivingEntity target, int flight) {
+        Vec3 from = this.position();
+        Vec3 to = latchAnchor(target);
+        AABB body = this.getBoundingBox().deflate(0.1);
+        double base = OWAttacksConstants.Lion.LEAP_ARC_BASE + OWAttacksConstants.Lion.LEAP_ARC_PER_TICK * flight;
+        for (int attempt = 0; attempt < OWAttacksConstants.Lion.LEAP_ARC_TRIES; attempt++) {
+            double apex = base + attempt * OWAttacksConstants.Lion.LEAP_ARC_STEP;
+            boolean clear = true;
+            for (int i = 1; i < OWAttacksConstants.Lion.LEAP_ARC_SAMPLES && clear; i++) {
+                float t = i / (float) OWAttacksConstants.Lion.LEAP_ARC_SAMPLES * 0.8f;
+                Vec3 point = leapArcPoint(from, to, t, apex);
+                clear = this.level().noCollision(this, body.move(point.subtract(from)));
+            }
+            if (clear) return apex;
+        }
+        return null;
     }
 
     private void beginLeap(ServerLevel level, LivingEntity target) {
@@ -1738,9 +1792,11 @@ public class LionEntity extends OWEntity implements IOWEntity, IOWTamable, IOWRi
             return;
         }
         this.entityData.set(LATCH_ANGLE, angle);
-        double distance = this.position().distanceTo(latchAnchor(target));
-        int flight = (int) Math.round(distance * OWAttacksConstants.Lion.LEAP_FLIGHT_TICKS_PER_BLOCK);
-        this.entityData.set(LEAP_FLIGHT, Mth.clamp(flight, OWAttacksConstants.Lion.LEAP_FLIGHT_MIN_TICKS, OWAttacksConstants.Lion.LEAP_FLIGHT_MAX_TICKS));
+        int flight = leapFlightTicks(target);
+        Double apex = clearLeapApex(target, flight);
+        this.entityData.set(LEAP_FLIGHT, flight);
+        this.entityData.set(LEAP_APEX, (float) (apex != null ? apex
+                : OWAttacksConstants.Lion.LEAP_ARC_BASE + OWAttacksConstants.Lion.LEAP_ARC_PER_TICK * flight));
         this.entityData.set(LATCH_PHASE, LATCH_LEAP);
         this.setRunning(false);
 

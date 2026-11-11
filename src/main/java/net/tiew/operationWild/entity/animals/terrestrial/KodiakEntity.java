@@ -327,6 +327,11 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
     }
 
     @Override
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
+    }
+
+    @Override
     public float sedatedFleeSpeed() {
         return 4.5f;
     }

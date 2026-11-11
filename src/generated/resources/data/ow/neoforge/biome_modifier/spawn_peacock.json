@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "minecraft:flower_forest",
+  "spawners": {
+    "type": "ow:peacock",
+    "maxCount": 4,
+    "minCount": 2,
+    "weight": 10
+  }
+}

@@ -7,12 +7,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -99,6 +101,12 @@ public class OWBreakout {
     private static final double HIT_REACH_MARGIN = 1.2;
     private static final double MIN_HIT_RISE = 1.0;
     private static final double HIT_RISE_MARGIN = 0.5;
+    private static final int SIEGE_BREAK_MIN = 7;
+    private static final int SIEGE_BREAK_MAX = 48;
+    private static final float SIEGE_BREAK_PLAN_FACTOR = 1.5f;
+    private static final int SIEGE_BREAK_SLACK = 4;
+    private static final int COMBO_IMPACT_HEIGHT_MARGIN = 1;
+    private static final double COMBO_IMPACT_REACH_FACTOR = 1.5;
 
     private final OWEntity entity;
     private final OWEnclosureProbe probe;
@@ -147,6 +155,7 @@ public class OWBreakout {
     private boolean blockCombo;
     private int lastProgressTick = Integer.MIN_VALUE / 2;
     private int siegeBlocksBroken;
+    private int siegeBreakLimit = SIEGE_BREAK_MIN;
 
     public OWBreakout(OWEntity entity) {
         this.entity = entity;
@@ -258,6 +267,7 @@ public class OWBreakout {
         siegeTarget = target;
         siegeAim = target.position();
         planCooldown = REPLAN_DELAY;
+        allowSiegeBreaks(probed);
         struggleTarget = null;
         struggleStrikes = 0;
         struggleRest = 0;
@@ -308,6 +318,14 @@ public class OWBreakout {
         stepIndex = 0;
         assaultDirect = false;
         siegeAim = target.position();
+        allowSiegeBreaks(next);
+    }
+
+    private void allowSiegeBreaks(OWBreachPlanner.Plan planned) {
+        int blocks = 0;
+        for (OWBreachPlanner.Step step : planned.steps()) blocks += step.blocks().size();
+        int wanted = siegeBlocksBroken + Math.round(blocks * SIEGE_BREAK_PLAN_FACTOR) + SIEGE_BREAK_SLACK;
+        siegeBreakLimit = Mth.clamp(Math.max(siegeBreakLimit, wanted), SIEGE_BREAK_MIN, SIEGE_BREAK_MAX);
     }
 
     private boolean siegeAllowed(LivingEntity target) {
@@ -341,6 +359,72 @@ public class OWBreakout {
         if (entity.level().isClientSide() || !strikePending || strikeTarget == null) return false;
         landPendingStrike(sound);
         return true;
+    }
+
+    public void comboImpact() {
+        if (!(entity.level() instanceof ServerLevel level) || strikePending || phase == Phase.JAMMED) return;
+        if (entity.getControllingPassenger() != null || !canBreakOut() || !EventHooks.canEntityGrief(level, entity)) return;
+        Vec3 forward = Vec3.directionFromRotation(0f, entity.getYRot()).multiply(1.0, 0.0, 1.0);
+        if (forward.lengthSqr() < 1.0E-4) return;
+        forward = forward.normalize();
+        double half = entity.getBbWidth() * 0.5;
+        double ahead = half + Math.max(STRIKE_REACH, half) * COMBO_IMPACT_REACH_FACTOR;
+        double corridor = half + BASH_CORRIDOR_MARGIN;
+        int floorY = Mth.floor(entity.getY() + 0.05);
+        int topY = Mth.floor(entity.getY() + entity.getBbHeight());
+        int span = Mth.ceil(ahead + 1.0);
+        BlockPos center = entity.blockPosition();
+        int breakLevel = entity.effectiveBlockBreakLevel();
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (BlockPos pos : BlockPos.betweenClosed(center.offset(-span, floorY - center.getY(), -span),
+                center.offset(span, topY + COMBO_IMPACT_HEIGHT_MARGIN - center.getY(), span))) {
+            Vec3 offset = Vec3.atCenterOf(pos).subtract(entity.position()).multiply(1.0, 0.0, 1.0);
+            double along = offset.dot(forward);
+            if (along <= 0.0 || along > ahead || offset.subtract(forward.scale(along)).length() > corridor) continue;
+            BlockState state = level.getBlockState(pos);
+            if (isVine(state)) {
+                if (CommonHooks.canEntityDestroy(level, pos, entity)) level.destroyBlock(pos, false, entity);
+                continue;
+            }
+            if (pos.getY() > topY || !OWBlockToughness.isObstacle(state, level, pos)) continue;
+            if (!OWBreakLevel.canBreak(breakLevel, OWBlockToughness.tierOf(state, level, pos))) continue;
+            double distance = distanceTo(pos);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = pos.immutable();
+            }
+        }
+        if (best == null || !CommonHooks.canEntityDestroy(level, best, entity)) return;
+        BlockState state = level.getBlockState(best);
+        int tier = OWBlockToughness.tierOf(state, level, best);
+        Vec3 impact = impactPoint(best);
+        SoundType soundType = state.getSoundType(level, best, entity);
+        level.playSound(null, best, soundType.getHitSound(), SoundSource.BLOCKS, 1.0f, soundType.getPitch() * 0.6f);
+        level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), impact.x, impact.y, impact.z, 12, 0.2, 0.2, 0.2, 0.15);
+        OWBlockDamageTracker tracker = OWBlockDamageTracker.of(level);
+        float power = strikePower();
+        boolean broken = tracker.damage(best, state, power * OWBreakLevel.advantage(breakLevel, tier));
+        accent(level, best, tier, broken);
+        if (broken) breakBlock(level, best, false);
+        shockwave(level, tracker, best, power, breakLevel);
+    }
+
+    private static boolean isVine(BlockState state) {
+        return state.is(Blocks.VINE) || state.is(BlockTags.CAVE_VINES)
+                || state.is(Blocks.WEEPING_VINES) || state.is(Blocks.WEEPING_VINES_PLANT)
+                || state.is(Blocks.TWISTING_VINES) || state.is(Blocks.TWISTING_VINES_PLANT);
+    }
+
+    private void clearVines(ServerLevel level, BlockPos origin, double radius) {
+        int span = Mth.ceil(radius);
+        int floorY = Mth.floor(entity.getY() + 0.05);
+        int topY = Mth.floor(entity.getY() + entity.getBbHeight()) + COMBO_IMPACT_HEIGHT_MARGIN;
+        for (BlockPos pos : BlockPos.betweenClosed(origin.offset(-span, -span, -span), origin.offset(span, span, span))) {
+            if (pos.getY() < floorY || pos.getY() > topY || !isVine(level.getBlockState(pos))) continue;
+            if (Vec3.atCenterOf(pos).distanceTo(Vec3.atCenterOf(origin)) > radius) continue;
+            if (CommonHooks.canEntityDestroy(level, pos, entity)) level.destroyBlock(pos, false, entity);
+        }
     }
 
     private void refreshAgitation() {
@@ -826,8 +910,14 @@ public class OWBreakout {
         return siegeBlocksBroken;
     }
 
+    public int siegeBreakLimit() {
+        return siegeBreakLimit;
+    }
+
     public void resetSiegeBlocksBroken() {
         siegeBlocksBroken = 0;
+        siegeBreakLimit = SIEGE_BREAK_MIN;
+        if (phase == Phase.SIEGING && plan != null) allowSiegeBreaks(plan);
     }
 
     public int ticksSinceProgress() {
@@ -868,11 +958,12 @@ public class OWBreakout {
         float power = strikePower();
         boolean broken = tracker.damage(pos, state, power * OWBreakLevel.advantage(breakLevel, tier));
         accent(level, pos, tier, broken);
-        if (broken) breakBlock(level, pos);
+        if (broken) breakBlock(level, pos, true);
         shockwave(level, tracker, pos, power, breakLevel);
     }
 
     private void shockwave(ServerLevel level, OWBlockDamageTracker tracker, BlockPos origin, float power, int breakLevel) {
+        clearVines(level, origin, Math.min(IMPACT_MAX_RADIUS, impactBodyRadius() + IMPACT_SOFTNESS_REACH * IMPACT_SOFTNESS_STEPS));
         int budget = impactBudget() - 1;
         if (budget <= 0) return;
         double bodyRadius = impactBodyRadius();
@@ -908,7 +999,7 @@ public class OWBreakout {
             float falloff = 1f - IMPACT_FALLOFF * (float) (impact.distance() / impact.radius());
             if (tracker.damage(impact.pos(), impact.state(), power * OWBreakLevel.advantage(breakLevel, impact.tier()) * falloff)) {
                 accent(level, impact.pos(), impact.tier(), true);
-                breakBlock(level, impact.pos());
+                breakBlock(level, impact.pos(), false);
             }
         }
     }
@@ -924,9 +1015,9 @@ public class OWBreakout {
     private record Impact(BlockPos pos, BlockState state, int tier, double distance, double radius) {
     }
 
-    private void breakBlock(ServerLevel level, BlockPos pos) {
+    private void breakBlock(ServerLevel level, BlockPos pos, boolean aimed) {
         level.destroyBlock(pos, level.random.nextFloat() < BLOCK_DROP_CHANCE, entity);
-        if (phase == Phase.SIEGING) siegeBlocksBroken++;
+        if (aimed && phase == Phase.SIEGING) siegeBlocksBroken++;
         OWPlacedBlocks.get(level).forget(pos);
         probe.invalidate();
     }

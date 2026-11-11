@@ -152,6 +152,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     private static final EntityDataAccessor<Integer> GRAB_FOCUS_ID = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GRAB_PULL_TICKS = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> GRAB_TIMEOUT = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> REEL_STRUGGLE = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Integer> INK_ID = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> MAELSTROM_ID = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> INK_SPEED = SynchedEntityData.defineId(ColossalSquidEntity.class, EntityDataSerializers.BOOLEAN);
@@ -241,6 +242,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     private static final float REEL_FADE = 0.2f;
     private static final float REEL_SETTLE_DISTANCE = 2.5f;
     private static final float REEL_SETTLE_TICKS = 6f;
+    private static final float REEL_RETURN_STEP = 0.25f;
 
     public int turnStartTick = -1000;
     public int inkStartTick = -1000;
@@ -273,6 +275,10 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     private int grabCooldown = 0;
     private int grabHoldTicks = 0;
     private Vec3 grabPullStart = null;
+    private boolean grabLungeQueued = false;
+    private float reelBar = 0f;
+    public float reelProgress = 0f;
+    public float reelProgressO = 0f;
     private int inkTicks = 0;
     private int inkSpeedTicks = 0;
     private int dryOutTicks = 0;
@@ -336,6 +342,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         builder.define(GRAB_FOCUS_ID, -1);
         builder.define(GRAB_PULL_TICKS, OWAttacksConstants.ColossalSquid.GRAB_PULL_TICKS);
         builder.define(GRAB_TIMEOUT, 0);
+        builder.define(REEL_STRUGGLE, false);
         builder.define(INK_ID, 0);
         builder.define(MAELSTROM_ID, 0);
         builder.define(INK_SPEED, false);
@@ -371,6 +378,12 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     @Override
     public boolean usesAggressiveTaming() {
         return true;
+    }
+
+    @Override
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_WOODEN_STINGER.get(),
+                OWEntityRegistry.SLINGSHOT_PROJECTILE.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
     }
 
     @Override
@@ -507,7 +520,9 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
 
     @Override
     public float getRotationSpeed() {
-        if (this.getControllingPassenger() != null) return this.riddenRotationSpeed;
+        if (this.getControllingPassenger() != null) {
+            return this.grabFacingFocus() != null ? OWAttacksConstants.ColossalSquid.GRAB_FACING_RATE : this.riddenRotationSpeed;
+        }
         return BASE_ROTATION_SPEED * (1f - COMBAT_SLOW_ROTATION_LOSS * this.combatSlow);
     }
 
@@ -533,6 +548,8 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
 
     @Override
     public Vec2 getRiddenRotation(LivingEntity livingEntity) {
+        LivingEntity focus = this.grabFacingFocus();
+        if (focus != null) return new Vec2(this.riddenPitch, yawTowards(focus));
         return new Vec2(this.riddenPitch, livingEntity.getYRot());
     }
 
@@ -646,6 +663,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
             tickTentacleDrift();
             tickTentacleReel();
             tickMaelstromVortex();
+            followGrabYaw();
         }
         if (this.isInResurrection()) this.setSleeping(true);
 
@@ -656,9 +674,51 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
             tickFacing();
             tickMaelstrom();
             tickGrab();
+            tickGrabFacing();
             tickInk();
             tickSeabugAssault();
         }
+    }
+
+    private void tickGrabFacing() {
+        if (this.getControllingPassenger() != null) return;
+        LivingEntity focus = this.grabFacingFocus();
+        if (focus == null) return;
+        float yaw = this.getYRot() + this.grabFacingStep(focus);
+        this.setYRot(yaw);
+        this.yBodyRot = yaw;
+        this.yHeadRot = yaw;
+    }
+
+    private void followGrabYaw() {
+        if (this.getControllingPassenger() != null || !this.isCombatFacing() || this.isTurning()) return;
+        int phase = this.getGrabPhase();
+        if (phase != GRAB_PREPARE && phase != GRAB_LUNGE && phase != GRAB_PULL) return;
+        this.yBodyRot = this.getYRot();
+        this.yHeadRot = this.getYRot();
+    }
+
+    private float grabFacingStep(LivingEntity focus) {
+        float delta = Mth.wrapDegrees(yawTowards(focus) - this.getYRot());
+        float max = OWAttacksConstants.ColossalSquid.GRAB_FACING_MAX_STEP;
+        return Mth.clamp(delta * OWAttacksConstants.ColossalSquid.GRAB_FACING_RATE, -max, max);
+    }
+
+    private float yawTowards(Entity entity) {
+        double dx = entity.getX() - this.getX();
+        double dz = entity.getZ() - this.getZ();
+        if (dx * dx + dz * dz < 1.0E-4) return this.getYRot();
+        return (float) (Mth.atan2(dz, dx) * Mth.RAD_TO_DEG) - 90f;
+    }
+
+    @Nullable
+    private LivingEntity grabFacingFocus() {
+        if (!this.isCombatFacing() || isPivoting()) return null;
+        return switch (this.getGrabPhase()) {
+            case GRAB_LUNGE, GRAB_PULL -> this.getGrabFocus();
+            case GRAB_PREPARE -> this.getControllingPassenger() == null && !this.level().isClientSide() ? this.getTarget() : null;
+            default -> null;
+        };
     }
 
     @Override
@@ -925,6 +985,9 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
 
     private void tickTentacleReel() {
         this.reelWeightO = this.reelWeight;
+        this.reelProgressO = this.reelProgress;
+        this.reelProgress = this.getReelProgress();
+        if (this.getGrabPhase() != GRAB_PULL) this.reelProgressO = this.reelProgress;
         LivingEntity focus = this.getGrabFocus();
         if (focus != null) this.reelTarget = focus.position().add(0, focus.getBbHeight() * 0.5, 0);
         int phase = this.getGrabPhase();
@@ -938,7 +1001,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
                     / (OWAttacksConstants.ColossalSquid.GRAB_CATCH_TICK - REEL_LUNGE_FROM), 0f, 1f);
             this.reelWeight = t * t * (3f - 2f * t);
         } else if (focus != null && phase == GRAB_PULL) {
-            this.reelWeight = 1f;
+            this.reelWeight = Mth.approach(this.reelWeight, 1f, REEL_RETURN_STEP);
         } else {
             this.reelWeight = Math.max(0f, this.reelWeight - REEL_FADE);
         }
@@ -950,7 +1013,8 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         Vec3 hold = this.holdPosition(prey).add(0, half, 0).subtract(this.position());
         Vec3 center = prey.getPosition(partialTick).add(0, half, 0).subtract(this.getPosition(partialTick));
         float near = 1f - (float) (center.distanceTo(hold) / (REEL_SETTLE_DISTANCE * this.modelRenderScale()));
-        float late = (ageInTicks - this.grabPhaseStartTick - this.getGrabPullTicks() + REEL_SETTLE_TICKS) / REEL_SETTLE_TICKS;
+        float late = this.isReelStruggle() ? 0f
+                : (ageInTicks - this.grabPhaseStartTick - this.getGrabPullTicks() + REEL_SETTLE_TICKS) / REEL_SETTLE_TICKS;
         float t = Mth.clamp(Math.max(near, late), 0f, 1f);
         return t * t * (3f - 2f * t);
     }
@@ -1050,7 +1114,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     @Override
     public boolean canStartCombo() {
         int phase = this.getGrabPhase();
-        boolean grabBusy = phase != GRAB_NONE && phase != GRAB_HOLD;
+        boolean grabBusy = phase != GRAB_NONE && (phase != GRAB_HOLD || this.isReelStruggle());
         return super.canStartCombo() && !grabBusy && this.inkTicks <= 0 && !this.isBeached();
     }
 
@@ -1268,7 +1332,8 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
             this.grabAimTarget = null;
             this.grabCooldown = OWAttacksConstants.ColossalSquid.GRAB_WHIFF_COOLDOWN_TICKS;
         }
-        enterGrabPhase(GRAB_LUNGE);
+        this.grabLungeQueued = true;
+        if (readyToStrike()) enterGrabPhase(GRAB_LUNGE);
     }
 
     public boolean isGrabAiming() {
@@ -1285,6 +1350,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         }
         this.grabPhaseTicks = 0;
         this.combatIdleTicks = 0;
+        this.grabLungeQueued = false;
         if (phase == GRAB_PREPARE) {
             this.getNavigation().stop();
             this.level().playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.SQUID_AMBIENT,
@@ -1309,29 +1375,41 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
                     if (this.getControllingPassenger() == null || ++this.grabAimTicks > OWAttacksConstants.ColossalSquid.GRAB_AIM_MAX_TICKS) {
                         releaseGrabAim(-1);
                     }
-                } else if (this.grabPhaseTicks >= OWAttacksConstants.ColossalSquid.GRAB_PREPARE_TICKS) {
+                } else if (this.grabPhaseTicks > OWAttacksConstants.ColossalSquid.GRAB_PREPARE_MAX_TICKS) {
+                    enterGrabPhase(GRAB_NONE);
+                } else if ((this.grabLungeQueued || this.grabPhaseTicks >= OWAttacksConstants.ColossalSquid.GRAB_PREPARE_TICKS) && readyToStrike()) {
                     enterGrabPhase(GRAB_LUNGE);
                 }
             }
             case GRAB_LUNGE -> {
                 if (this.grabPhaseTicks == OWAttacksConstants.ColossalSquid.GRAB_CATCH_TICK) tryCatchPrey();
+                LivingEntity caught = this.getGrabbedTarget();
+                if (caught != null && this.isReelStruggle() && !isPreyValid(caught)) {
+                    releaseGrab();
+                    forgetUntouchable(caught);
+                    return;
+                }
                 if (this.grabPhaseTicks >= OWAttacksConstants.ColossalSquid.GRAB_LUNGE_TICKS) {
-                    enterGrabPhase(this.getGrabbedTarget() != null ? GRAB_PULL : GRAB_MISS);
+                    enterGrabPhase(caught != null ? GRAB_PULL : GRAB_MISS);
                 }
             }
             case GRAB_PULL -> {
                 LivingEntity prey = this.getGrabbedTarget();
                 if (!isPreyValid(prey)) {
                     releaseGrab();
+                    forgetUntouchable(prey);
                     return;
                 }
-                if (this.grabPhaseTicks >= this.getGrabPullTicks()) {
+                if (this.isReelStruggle()) {
+                    tickStruggleReel(prey);
+                } else if (this.grabPhaseTicks >= this.getGrabPullTicks()) {
                     if (!prey.isPassenger()) prey.startRiding(this, true);
                     this.grabHoldTicks = 0;
                     if (prey instanceof Player) this.setGrabTimeout(OWAttacksConstants.ColossalSquid.GRAB_START_TIMEOUT);
                     enterGrabPhase(GRAB_HOLD);
                 } else {
-                    pullPrey(prey);
+                    float t = Mth.clamp((float) this.grabPhaseTicks / this.getGrabPullTicks(), 0f, 1f);
+                    pullPrey(prey, t);
                 }
             }
             case GRAB_HOLD -> tickHold();
@@ -1387,10 +1465,13 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     }
 
     private void catchPrey(LivingEntity prey) {
+        boolean struggle = prey instanceof Player && this.getControllingPassenger() == null && !this.isTame();
         this.setGrabbedTarget(prey);
         this.grabPullStart = prey.position();
         this.entityData.set(GRAB_FOCUS_ID, prey.getId());
-        this.entityData.set(GRAB_PULL_TICKS, OWAttacksConstants.ColossalSquid.GRAB_PULL_SLOW_TICKS);
+        this.entityData.set(GRAB_PULL_TICKS, reelTicksFor(prey, struggle));
+        this.entityData.set(REEL_STRUGGLE, struggle);
+        if (struggle) this.setGrabTimeout(OWAttacksConstants.ColossalSquid.GRAB_START_TIMEOUT);
         if (this.level() instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(ParticleTypes.BUBBLE, prey.getX(), prey.getY(0.5), prey.getZ(), 40, 0.6, 0.6, 0.6, 0.25);
             serverLevel.sendParticles(ParticleTypes.BUBBLE_POP, prey.getX(), prey.getY(0.5), prey.getZ(), 14, 0.5, 0.5, 0.5, 0.05);
@@ -1421,13 +1502,99 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
                 && !(prey instanceof Player player && (player.isCreative() || player.isSpectator()));
     }
 
-    private void pullPrey(LivingEntity prey) {
+    private int reelTicksFor(LivingEntity prey, boolean struggle) {
+        double distance = prey.position().distanceTo(this.holdPosition(prey));
+        if (struggle) {
+            return Mth.clamp((int) Math.round(OWAttacksConstants.ColossalSquid.WILD_REEL_BASE_TICKS
+                            + distance * OWAttacksConstants.ColossalSquid.WILD_REEL_TICKS_PER_BLOCK),
+                    OWAttacksConstants.ColossalSquid.WILD_REEL_MIN_TICKS, OWAttacksConstants.ColossalSquid.WILD_REEL_MAX_TICKS);
+        }
+        return Mth.clamp((int) Math.round(OWAttacksConstants.ColossalSquid.GRAB_PULL_MIN_TICKS
+                        + distance * OWAttacksConstants.ColossalSquid.GRAB_PULL_TICKS_PER_BLOCK),
+                OWAttacksConstants.ColossalSquid.GRAB_PULL_MIN_TICKS, OWAttacksConstants.ColossalSquid.GRAB_PULL_MAX_TICKS);
+    }
+
+    private float reelRate() {
+        return (float) (this.getGrabMaxTimeout() - OWAttacksConstants.ColossalSquid.GRAB_START_TIMEOUT)
+                / (this.getGrabPullTicks() + OWAttacksConstants.ColossalSquid.NIBBLE_TICKS);
+    }
+
+    private float reelProgressAt(float bar) {
+        float start = OWAttacksConstants.ColossalSquid.GRAB_START_TIMEOUT;
+        float beak = this.getGrabMaxTimeout() - reelRate() * OWAttacksConstants.ColossalSquid.NIBBLE_TICKS;
+        return Mth.clamp((bar - start) / Math.max(beak - start, 1f), 0f, 1f);
+    }
+
+    public float getReelProgress() {
+        if (!this.isReelStruggle()) return 0f;
+        return reelProgressAt(this.level().isClientSide() ? this.getGrabTimeout() : this.reelBar);
+    }
+
+    private boolean advanceReelBar(LivingEntity prey) {
+        this.reelBar += reelRate();
+        this.entityData.set(GRAB_TIMEOUT, Mth.floor(this.reelBar));
+        if (this.reelBar < this.getGrabMaxTimeout()) return true;
+        this.level().playSound(null, prey.getX(), prey.getY(), prey.getZ(), SoundEvents.PLAYER_ATTACK_CRIT,
+                SoundSource.HOSTILE, 1.6f, 0.5f);
+        this.level().playSound(null, prey.getX(), prey.getY(), prey.getZ(), SoundEvents.GENERIC_EAT,
+                SoundSource.HOSTILE, 1.6f, 0.45f);
+        prey.invulnerableTime = 0;
+        prey.hurt(this.damageSources().mobAttack(this), Float.MAX_VALUE);
+        releaseGrab();
+        return false;
+    }
+
+    private void tickStruggleReel(LivingEntity prey) {
+        if (!advanceReelBar(prey)) return;
+        float progress = reelProgressAt(this.reelBar);
+        if (progress >= 1f) {
+            this.grabHoldTicks = 0;
+            enterGrabPhase(GRAB_HOLD);
+        }
+        pullPrey(prey, progress);
+    }
+
+    private void tickNibble(LivingEntity prey) {
+        pullPrey(prey, 1f);
+        if (!advanceReelBar(prey)) return;
+        this.grabHoldTicks++;
+        if (this.grabHoldTicks % OWAttacksConstants.ColossalSquid.NIBBLE_BITE_INTERVAL == 1) {
+            prey.invulnerableTime = 0;
+            prey.hurt(this.damageSources().mobAttack(this), OWAttacksConstants.ColossalSquid.NIBBLE_BITE_DAMAGE);
+            this.level().playSound(null, prey.getX(), prey.getY(), prey.getZ(), SoundEvents.GENERIC_EAT,
+                    SoundSource.HOSTILE, 1.3f, 0.5f + this.random.nextFloat() * 0.15f);
+            this.level().playSound(null, prey.getX(), prey.getY(), prey.getZ(), SoundEvents.SLIME_SQUISH,
+                    SoundSource.HOSTILE, 1.0f, 0.45f);
+            if (this.level() instanceof ServerLevel serverLevel) {
+                serverLevel.sendParticles(ParticleTypes.DAMAGE_INDICATOR, prey.getX(), prey.getY(0.6), prey.getZ(), 3, 0.3, 0.3, 0.3, 0.1);
+                serverLevel.sendParticles(ParticleTypes.BUBBLE, prey.getX(), prey.getY(0.6), prey.getZ(), 8, 0.4, 0.4, 0.4, 0.1);
+            }
+        }
+        if (reelProgressAt(this.reelBar) < OWAttacksConstants.ColossalSquid.NIBBLE_ESCAPE_PROGRESS) enterGrabPhase(GRAB_PULL);
+    }
+
+    public boolean isReelStruggle() {
+        return this.entityData.get(REEL_STRUGGLE);
+    }
+
+    public boolean holdsStruggling(Entity entity) {
+        if (this.getGrabbedTarget() != entity) return false;
+        return this.isGrabbing() || this.isReelStruggle();
+    }
+
+    @Nullable
+    public static ColossalSquidEntity struggleCaptorOf(Player player) {
+        return player.level().getEntitiesOfClass(ColossalSquidEntity.class,
+                        player.getBoundingBox().inflate(OWAttacksConstants.ColossalSquid.STRUGGLE_SEARCH_RADIUS),
+                        squid -> squid.holdsStruggling(player))
+                .stream().findFirst().orElse(null);
+    }
+
+    private void pullPrey(LivingEntity prey, float t) {
         Vec3 start = this.grabPullStart != null ? this.grabPullStart : prey.position();
-        float t = Mth.clamp((float) this.grabPhaseTicks / this.getGrabPullTicks(), 0f, 1f);
         float eased = t * t * (3f - 2f * t);
         Vec3 hold = this.holdPosition(prey);
         Vec3 pos = start.lerp(hold, eased);
-        // Secousses de la traque : la proie est tirée par à-coups, de moins en moins à l'approche.
         float tug = (1f - eased) * (0.08f + 0.06f * Mth.sin(this.grabPhaseTicks * 1.9f));
         Vec3 side = new Vec3(-(hold.z - start.z), 0, hold.x - start.x);
         if (side.lengthSqr() > 1.0E-4) pos = pos.add(side.normalize().scale(tug * Mth.sin(this.grabPhaseTicks * 0.9f)));
@@ -1435,8 +1602,6 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
             serverLevel.sendParticles(ParticleTypes.BUBBLE, prey.getX(), prey.getY(0.5), prey.getZ(), 6, 0.3, 0.3, 0.3, 0.05);
         }
         if (prey instanceof Player) {
-            // Un joueur se déplace de son côté : une téléportation par tick le ferait saccader.
-            // La vitesse est imposée et renvoyée au client, qui glisse jusqu'au point voulu.
             prey.setDeltaMovement(pos.subtract(prey.position()));
             prey.hurtMarked = true;
         } else {
@@ -1624,6 +1789,10 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
             forgetUntouchable(prey);
             return;
         }
+        if (this.isReelStruggle()) {
+            tickNibble(prey);
+            return;
+        }
         if (!prey.isPassenger()) prey.startRiding(this, true);
         prey.fallDistance = 0f;
         if (prey instanceof Mob mob) mob.setTarget(null);
@@ -1652,6 +1821,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         if (prey != null && prey.getVehicle() == this) prey.stopRiding();
         this.setGrabbedTarget(null);
         this.setGrabTimeout(0);
+        this.entityData.set(REEL_STRUGGLE, false);
         this.grabHoldTicks = 0;
         this.grabPullStart = null;
         int phase = this.getGrabPhase();
@@ -2201,7 +2371,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
 
     @Override
     protected boolean forceRiderLookBodyRotation() {
-        return this.getGrabPhase() == GRAB_PREPARE;
+        return this.getGrabPhase() == GRAB_PREPARE || this.grabFacingFocus() != null;
     }
 
     public boolean isTurning() {
@@ -2247,7 +2417,10 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
     public int getGrabPhase() { return this.entityData.get(GRAB_PHASE); }
     public boolean isGrabbing() { return this.getGrabPhase() == GRAB_HOLD && this.getGrabbedTarget() != null; }
     public int getGrabTimeout() { return this.entityData.get(GRAB_TIMEOUT); }
-    public void setGrabTimeout(int timeout) { this.entityData.set(GRAB_TIMEOUT, timeout); }
+    public void setGrabTimeout(int timeout) {
+        this.entityData.set(GRAB_TIMEOUT, timeout);
+        this.reelBar = timeout;
+    }
     public int getGrabMaxTimeout() { return OWAttacksConstants.ColossalSquid.GRAB_MAX_TIMEOUT; }
     public boolean isInkSpeedActive() { return this.entityData.get(INK_SPEED); }
     public int getUltimateKillCount() { return this.entityData.get(ULTIMATE_KILL_COUNT); }

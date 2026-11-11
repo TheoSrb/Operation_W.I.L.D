@@ -18,6 +18,7 @@ public final class OWPisteGraphs {
         BY_SPECIES.put("ColossalSquidEntity", buildCrocodile());
         BY_SPECIES.put("BoaEntity", buildBoa());
         BY_SPECIES.put("RedPandaEntity", buildRedPanda());
+        BY_SPECIES.put("PeacockEntity", buildPeacock());
     }
 
     public static OWPisteGraph forEntity(OWEntity entity) {
@@ -197,7 +198,15 @@ public final class OWPisteGraphs {
      * pour que le joueur sache déjà comment il soigne, assez tôt pour en profiter seize niveaux.</p>
      */
     private static OWPisteGraph buildRedPanda() {
-        return OWPisteMaze.create(U)
+        return buildHealerMaze(true);
+    }
+
+    private static OWPisteGraph buildPeacock() {
+        return buildHealerMaze(false);
+    }
+
+    private static OWPisteGraph buildHealerMaze(boolean redPandaPassives) {
+        OWPisteMaze maze = OWPisteMaze.create(U)
                 .map("""
                        o
                        |
@@ -238,7 +247,6 @@ public final class OWPisteGraphs {
                 .coins('U', 6, 12, 28)
                 .step('F', 18, 30)
                 .xp('D', 82, 12, 32)
-                .attack('R', 2, 3, 70, 34)
                 .coins('I', 6, 15, 36)
                 .step('L', 20, 38)
                 .xp('S', 105, 15, 40)
@@ -246,8 +254,10 @@ public final class OWPisteGraphs {
                 .step('V', 25, 44)
                 .xp('X', 140, 15, 46)
                 .coins('Y', 8, 20, 48)
-                .xp('Z', 250, 15, 50).requireAll('Z')
-                .build();
+                .xp('Z', 250, 15, 50).requireAll('Z');
+        if (redPandaPassives) maze.attack('R', 2, 3, 70, 34);
+        else maze.xp('R', 95, 15, 34);
+        return maze.build();
     }
 
     private static OWPisteGraph buildBoa() {

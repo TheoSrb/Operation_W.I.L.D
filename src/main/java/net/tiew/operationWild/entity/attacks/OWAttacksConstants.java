@@ -764,17 +764,26 @@ public class OWAttacksConstants {
         public static final float LEAP_MIN_TARGET_WIDTH = 0.85f;
         public static final float LEAP_MIN_TARGET_HEIGHT = 1.1f;
         public static final int LEAP_RUSH_MAX_TICKS = 50;
-        public static final double LEAP_RUSH_SPEED = 0.58;
-        public static final double LEAP_RUSH_ACCELERATION = 0.07;
+        public static final double LEAP_RUSH_SPEED = 0.64;
+        public static final double LEAP_RUSH_ACCELERATION = 0.085;
         public static final float LEAP_RUSH_TURN_DEGREES = 16f;
-        public static final double LEAP_RUSH_JUMP = 0.42;
-        public static final double LEAP_TRIGGER_DISTANCE = 3.4;
+        public static final float LEAP_RUSH_SLOW_TURN_DEGREES = 30f;
+        public static final double LEAP_RUSH_JUMP = 0.5;
+        public static final double LEAP_RUSH_TERMINAL_FALL = -3.92;
+        public static final double LEAP_TRIGGER_MIN_DISTANCE = 1.8;
+        public static final double LEAP_TRIGGER_MAX_DISTANCE = 4.8;
+        public static final double LEAP_TRIGGER_TICKS = 7.0;
+        public static final double LEAP_TRIGGER_RISE = 2.5;
+        public static final double LEAP_TRIGGER_DROP = 4.0;
         public static final float LEAP_TRIGGER_FACING_DEGREES = 35f;
-        public static final int LEAP_FLIGHT_MIN_TICKS = 6;
+        public static final int LEAP_FLIGHT_MIN_TICKS = 5;
         public static final int LEAP_FLIGHT_MAX_TICKS = 12;
-        public static final double LEAP_FLIGHT_TICKS_PER_BLOCK = 1.8;
-        public static final double LEAP_ARC_BASE = 0.3;
-        public static final double LEAP_ARC_PER_TICK = 0.08;
+        public static final double LEAP_FLIGHT_MIN_SPEED = 0.35;
+        public static final double LEAP_ARC_BASE = 0.35;
+        public static final double LEAP_ARC_PER_TICK = 0.07;
+        public static final double LEAP_ARC_STEP = 0.6;
+        public static final int LEAP_ARC_TRIES = 4;
+        public static final int LEAP_ARC_SAMPLES = 8;
         public static final int LEAP_RELEASE_TICKS = 10;
         public static final double LATCH_SLOTS_PER_BLOCK = 2.2;
         public static final int LATCH_MAX_SLOTS = 5;
@@ -822,6 +831,49 @@ public class OWAttacksConstants {
         public static final double FEAR_FLEE_DISTANCE = 18.0;
     }
 
+    public static class Peacock {
+        public static final double LINK_AIM_RANGE = 32.0;
+        public static final double LINK_AIM_TOLERANCE = 1.5;
+        public static final double LINK_MIN_AIM_DISTANCE = 2.0;
+        public static final double LINK_MAX_DISTANCE = 24.0;
+        public static final int LINK_SELECTION_TIMEOUT_TICKS = 200;
+        public static final int LINK_START_TICKS = 15;
+        public static final int LINK_END_TICKS = 12;
+        public static final int LINK_TRANSFER_INTERVAL = 10;
+        public static final float LINK_TRANSFER_RATIO = 0.03f;
+        public static final float LINK_AMPLIFICATION = 1.5f;
+        public static final float LINK_DONOR_FLOOR = 0.5f;
+        public static final float LINK_START_ENERGY = 80f;
+        public static final int LINK_DURATION_TICKS = 200;
+        public static final float LINK_BREAK_DAMAGE = 6f;
+        public static final int LINK_COOLDOWN_TICKS = 60;
+
+        public static final float GUST_ENERGY = 60f;
+        public static final int GUST_COOLDOWN_TICKS = 100;
+        public static final int GUST_ANIMATION_TICKS = 20;
+        public static final int GUST_RELEASE_TICK = 9;
+        public static final double GUST_SPEED = 0.9;
+        public static final int GUST_LIFETIME_TICKS = 18;
+        public static final double GUST_START_RADIUS = 0.9;
+        public static final double GUST_END_RADIUS = 2.6;
+        public static final double GUST_PUSH = 1.7;
+        public static final double GUST_LIFT = 0.35;
+
+        public static final int SWEEP_KILLS_REQUIRED = 5;
+        public static final int SWEEP_COOLDOWN_TICKS = 1200;
+        public static final float SWEEP_ENERGY = 100f;
+        public static final int SWEEP_ANIMATION_TICKS = 60;
+        public static final int SWEEP_SPIN_START_TICK = 14;
+        public static final int SWEEP_SPIN_END_TICK = 34;
+        public static final double SWEEP_RADIUS = 6.0;
+        public static final float SWEEP_HEAL_MULTIPLIER = 2f;
+        public static final int SWEEP_LINK_TICKS = 24;
+        public static final double SWEEP_PUSH = 1.4;
+        public static final double SWEEP_LIFT = 0.45;
+        public static final double SWEEP_SHARE_RADIUS = 32.0;
+        public static final long SWEEP_DURATION_MS = SWEEP_ANIMATION_TICKS * 50L;
+    }
+
     public static class Slide {
         public static final float ENERGY = 12f;
         public static final int COOLDOWN_TICKS = 16;
@@ -857,8 +909,19 @@ public class OWAttacksConstants {
         public static final float GRAB_ENERGY = 60f;
         public static final int GRAB_COOLDOWN_TICKS = 1000;
         public static final int WILD_GRAB_COOLDOWN_TICKS = 240;
-        public static final int GRAB_PULL_SLOW_TICKS = 80;
         public static final float GRAB_HOLD_DAMAGE_RATIO = 0.5f;
+        public static final float GRAB_FACING_RATE = 0.16f;
+        public static final float GRAB_FACING_MAX_STEP = 9f;
+        public static final int GRAB_PREPARE_MAX_TICKS = 320;
+        public static final int WILD_REEL_BASE_TICKS = 24;
+        public static final double WILD_REEL_TICKS_PER_BLOCK = 4.0;
+        public static final int WILD_REEL_MIN_TICKS = 50;
+        public static final int WILD_REEL_MAX_TICKS = 110;
+        public static final int NIBBLE_TICKS = 20;
+        public static final int NIBBLE_BITE_INTERVAL = 5;
+        public static final float NIBBLE_BITE_DAMAGE = 1.0f;
+        public static final float NIBBLE_ESCAPE_PROGRESS = 0.85f;
+        public static final double STRUGGLE_SEARCH_RADIUS = 48.0;
         public static final double SEABUG_DETECT_RANGE = 28.0;
         public static final double SEABUG_TURN_RANGE = 12.0;
         public static final double SEABUG_SEIZE_REACH = 5.0;
@@ -887,8 +950,9 @@ public class OWAttacksConstants {
         public static final int GRAB_LUNGE_TICKS = 10;
         public static final int GRAB_CATCH_TICK = 7;
         public static final int GRAB_PULL_TICKS = 12;
-        public static final int GRAB_PULL_MAX_TICKS = 26;
-        public static final double GRAB_PULL_TICKS_PER_BLOCK = 1.1;
+        public static final int GRAB_PULL_MIN_TICKS = 14;
+        public static final int GRAB_PULL_MAX_TICKS = 90;
+        public static final double GRAB_PULL_TICKS_PER_BLOCK = 3.5;
         public static final int GRAB_RELEASE_TICKS = 10;
         public static final int GRAB_MISS_TICKS = 12;
         public static final int GRAB_STRIKE_TICKS = 15;

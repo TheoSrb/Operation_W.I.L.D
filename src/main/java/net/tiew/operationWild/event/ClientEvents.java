@@ -1036,9 +1036,12 @@ public class ClientEvents {
         }
 
         if (player != null) {
-            PlantEmpressBossBar.render(event.getGuiGraphics(),
-                    event.getGuiGraphics().guiWidth(),
-                    event.getGuiGraphics().guiHeight());
+            if (event.getName().equals(net.neoforged.neoforge.client.gui.VanillaGuiLayers.BOSS_OVERLAY)) {
+                PlantEmpressBossBar.render(event.getGuiGraphics(),
+                        event.getGuiGraphics().guiWidth(),
+                        event.getGuiGraphics().guiHeight(),
+                        event.getPartialTick().getGameTimeDeltaPartialTick(true));
+            }
 
             if (isGrabBySomething) {
                 RightClickAlertOverlay.render(event.getGuiGraphics(), event.getGuiGraphics().guiWidth(), event.getGuiGraphics().guiHeight());
@@ -1704,6 +1707,10 @@ public class ClientEvents {
             outerYaw = bodyYaw;
             zRot = -lion.getBodyZRot();
             xRot = -lion.getBodyXRot();
+        } else if (vehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock) {
+            outerYaw = bodyYaw;
+            zRot = -peacock.getBodyZRot();
+            xRot = -peacock.getBodyXRot();
         } else {
             outerYaw = player.getYRot();
             zRot = -vehicle.getBodyZRot();
@@ -1814,6 +1821,9 @@ public class ClientEvents {
             } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lion) {
                 event.setRoll((float) (event.getRoll() + (lion.getBodyZRot() / 6) * intensity));
                 event.setPitch((float) (event.getPitch() + (lion.getBodyXRot() / 6) * intensity));
+            } else if (rootVehicle instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock) {
+                event.setRoll((float) (event.getRoll() + (peacock.getBodyZRot() / 6) * intensity));
+                event.setPitch((float) (event.getPitch() + (peacock.getBodyXRot() / 6) * intensity));
             }
         }
     }
@@ -2243,6 +2253,7 @@ public class ClientEvents {
             renderThermalHearts(event);
             renderRedPandaVitalSense(event);
             renderHealTargetOutline(event);
+            net.tiew.operationWild.entity.client.render.misc.PeacockLifeLinkRenderer.render(event);
             computeWaypointScreenPositions(event);
         }
 

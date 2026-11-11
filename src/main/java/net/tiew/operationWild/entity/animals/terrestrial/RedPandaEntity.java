@@ -681,6 +681,12 @@ public class RedPandaEntity extends OWEntity implements IOWEntity, IOWTamable {
     }
 
     @Override
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_WOODEN_STINGER.get(),
+                OWEntityRegistry.SLINGSHOT_PROJECTILE.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
+    }
+
+    @Override
     public void onSedationKnockOut() {
         super.onSedationKnockOut();
         if (!this.isNoGravity() && !this.noPhysics && !this.isTreeClimbing()) return;

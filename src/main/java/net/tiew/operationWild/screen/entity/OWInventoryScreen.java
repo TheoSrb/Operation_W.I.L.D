@@ -174,7 +174,7 @@ public class OWInventoryScreen extends AbstractContainerScreen<OWInventoryMenu> 
         switch (this.entity.getClass().getSimpleName()) {
             case "TigerEntity" -> entityScale = 22;
             case "CrocodileEntity" -> entityScale = 18;
-            case "PeacockEntity" -> entityScale = 35;
+            case "PeacockEntity" -> entityScale = 20;
             case "ElephantEntity" -> entityScale = 12;
             case "HyenaEntity" -> entityScale = 30;
             case "RedPandaEntity" -> entityScale = 32;

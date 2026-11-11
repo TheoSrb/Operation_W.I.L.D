@@ -295,6 +295,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public final List<LivingEntity> lastAttackHitEntities = new ArrayList<>();
     private boolean blockStrikeInProgress;
+    private static final double UNDERFOOT_STRIKE_DEPTH = 2.0;
     private int sleepBarDownSpeed;
     public int maxSleepBar;
     public float maxHealthBeforeResurrection;
@@ -2905,7 +2906,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
                     if (this.isLeapingVehicle()) {
                         if (!this.onGround() && !this.isInWater() && !this.isNoGravity() && !this.hasEffect(MobEffects.LEVITATION)) {
-                            yVel = Math.max(cur.y - this.getGravity(), -0.08);
+                            yVel = Math.max(cur.y - this.getGravity(), this.leapingFallLimit());
                         } else {
                             yVel = cur.y;
                         }
@@ -3226,6 +3227,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         Entity directEntity = damageSource.getDirectEntity();
         boolean sedative = directEntity instanceof TranquilizerArrow || directEntity instanceof SlingshotProjectile
                 || directEntity instanceof TranquilizerWoodenStinger || directEntity instanceof TranquilizerDart;
+        if (sedative && !this.getValidTamingProjectiles().contains(directEntity.getType())) {
+            if (!this.level().isClientSide()) this.shatterTamingProjectile(directEntity, damageSource);
+            return false;
+        }
         if (sedative && this.isKnockedOut()) {
             if (this.level().isClientSide()) return false;
             float headshotFactor = this.isSedativeHeadshot(directEntity) ? HEADSHOT_SOMNOLENCE_FACTOR : 1f;
@@ -3283,6 +3288,37 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
     public float sedativeResistanceFactor() {
         return 1f;
+    }
+
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_WOODEN_STINGER.get(),
+                OWEntityRegistry.SLINGSHOT_PROJECTILE.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
+    }
+
+    private void shatterTamingProjectile(Entity projectile, DamageSource source) {
+        ItemStack ammo = projectile instanceof TranquilizerArrow ? new ItemStack(OWItems.TRANQUILIZER_ARROW.get())
+                : projectile instanceof TranquilizerWoodenStinger ? new ItemStack(OWItems.TRANQUILIZER_WOODEN_STINGER.get())
+                : projectile instanceof TranquilizerDart ? new ItemStack(OWItems.TRANQUILIZER_DART.get())
+                : new ItemStack(net.minecraft.world.item.Items.COBBLESTONE);
+        if (this.level() instanceof ServerLevel serverLevel) {
+            serverLevel.sendParticles(new net.minecraft.core.particles.ItemParticleOption(ParticleTypes.ITEM, ammo),
+                    projectile.getX(), projectile.getY(), projectile.getZ(), 10, 0.08, 0.08, 0.08, 0.08);
+        }
+        SoundEvent snap = projectile instanceof TranquilizerWoodenStinger ? SoundEvents.BAMBOO_BREAK
+                : projectile instanceof TranquilizerDart ? SoundEvents.GLASS_BREAK
+                : projectile instanceof TranquilizerArrow ? SoundEvents.ITEM_BREAK : null;
+        float pitch = 0.9f + this.random.nextFloat() * 0.2f;
+        this.level().playSound(null, projectile.getX(), projectile.getY(), projectile.getZ(), SoundEvents.SHIELD_BLOCK, SoundSource.NEUTRAL, 0.6f, pitch * 0.75f);
+        if (snap != null) this.level().playSound(null, projectile.getX(), projectile.getY(), projectile.getZ(), snap, SoundSource.NEUTRAL, 1.0f, pitch);
+        projectile.discard();
+
+        if (this.isKnockedOut() || this.isSleeping() || this.isTame()) return;
+        if (source.getEntity() instanceof LivingEntity shooter && shooter != this) this.setLastHurtByMob(shooter);
+        this.setNap(false);
+        fightingTime = 200;
+        this.setFighting(true);
+        if (this.usesAggressiveTaming()) this.aggressiveTaming.onSedated(source);
+        this.sedationResponse.onSedativeHit(source);
     }
 
     @Override
@@ -4186,6 +4222,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 boolean blockStrike = this.breakout.landStrike(sound);
                 float d0 = (float) ((this.getCombatDamage() / MAX_ATTACKS_IN_COMBO) * (isTame() ? 1.0 : SAVAGE_ENTITY_DAMAGE_MULTIPLIER));
                 runStrike(blockStrike, () -> attackEntitiesInFront(d0, sound, width * (isRided ? 1 : 1.5f), height * (isRided ? 1 : 1.5f), reach * (isRided ? 1 : 1.5f), backMultiplier));
+                if (!blockStrike) this.breakout.comboImpact();
 
                 if (spawnBlurr && !blockStrike) {
                     OWUtils.spawnBlurrParticle(this.level(), this, 1, 1, 1);
@@ -4359,10 +4396,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         double extendedHeight = height * 2;
 
-        AABB attackBox = new AABB(
+        AABB attackBox = withUnderfootReach(new AABB(
                 centerX - width / 2, centerY - extendedHeight / 2, centerZ - width / 2,
                 centerX + width / 2, centerY + extendedHeight / 2, centerZ + width / 2
-        );
+        ));
 
         List<Entity> entitiesInRange = this.level().getEntities(
                 this,
@@ -4454,6 +4491,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                             reach * (isRided ? 1 : 1.5f),
                             backMultiplier
                     ));
+                    if (!blockStrike) this.breakout.comboImpact();
                 }
 
                 applyComboModification(timeToHit);
@@ -5292,6 +5330,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         return false;
     }
 
+    protected double leapingFallLimit() {
+        return -0.08;
+    }
+
     @Override
     public boolean canIncreasesSpeedDuringSprint() {
         return false;
@@ -5457,6 +5499,11 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         }
     }
 
+    private AABB withUnderfootReach(AABB attackBox) {
+        if (this.getControllingPassenger() != null) return attackBox;
+        return attackBox.minmax(this.getBoundingBox().expandTowards(0.0, -UNDERFOOT_STRIKE_DEPTH, 0.0));
+    }
+
     private boolean canStrikeReach(LivingEntity target) {
         if (!blockStrikeInProgress) return true;
         if (target.getClass() == this.getClass() && !(target instanceof OWEntity kin && kin.isTame())) return false;
@@ -5481,10 +5528,10 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
 
         double extendedHeight = height * 2;
 
-        AABB attackBox = new AABB(
+        AABB attackBox = withUnderfootReach(new AABB(
                 centerX - width / 2, centerY - extendedHeight / 2, centerZ - width / 2,
                 centerX + width / 2, centerY + extendedHeight / 2, centerZ + width / 2
-        );
+        ));
 
         List<Entity> entitiesInRange = this.level().getEntities(
                 this,

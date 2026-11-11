@@ -20,6 +20,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
@@ -76,6 +77,9 @@ public class OWAttacksHandler {
     public static final int ABYSSAL_GRAB_ID = OWAttackIds.ABYSSAL_GRAB;
     public static final int INK_FRENZY_ID = OWAttackIds.INK_FRENZY;
     public static final int MAELSTROM_ID = OWAttackIds.MAELSTROM;
+    public static final int LIFE_LINK_ID = OWAttackIds.LIFE_LINK;
+    public static final int WING_GUST_ID = OWAttackIds.WING_GUST;
+    public static final int ROYAL_SWEEP_ID = OWAttackIds.ROYAL_SWEEP;
 
 
     public static void register(Class<? extends OWEntity> entityClass, OWAttack attack) {
@@ -192,6 +196,13 @@ public class OWAttacksHandler {
         register(LionEntity.class, LionAttacks.DOMINATION_ROAR);
         register(LionEntity.class, LionAttacks.DISTRESS_CALL);
         registerPassive(LionEntity.class, LionPassives.PRIDE_BOND);
+
+        registerEntityRow(PeacockEntity.class, 2);
+        registerEntityColumn(PeacockEntity.class, 3);
+        registerComboMaxTimer(PeacockEntity.class, 14);
+        register(PeacockEntity.class, PeacockAttacks.LIFE_LINK);
+        register(PeacockEntity.class, PeacockAttacks.WING_GUST);
+        register(PeacockEntity.class, PeacockAttacks.ROYAL_SWEEP);
     }
 
     public static List<OWAttack> getAttacks(Class<?> entityClass) {
@@ -502,6 +513,52 @@ public class OWAttacksHandler {
                 return 0x4FA3C7;
             }
         };
+    }
+
+    public static class PeacockAttacks {
+
+        public static final OWAttack LIFE_LINK = new OWAttack(
+                LIFE_LINK_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Peacock.LINK_START_ENERGY,
+                entity -> { },
+                0
+        ).withCardTexture(80, 80);
+
+        public static final OWChargedAttack WING_GUST = new OWChargedAttack(
+                WING_GUST_ID,
+                OW_ATTACK_0,
+                OWAttacksConstants.Peacock.GUST_ENERGY,
+                OWAttacksConstants.Peacock.GUST_COOLDOWN_TICKS,
+                0L,
+                50L,
+                entity -> { },
+                entity -> { },
+                (entity, factor) -> ((PeacockEntity) entity).performWingGust(),
+                (entity, factor, dir) -> { },
+                false,
+                false
+        ).withCardTexture(236, 136)
+                .withCanUsePredicate(entity -> entity instanceof PeacockEntity peacock
+                && !peacock.isLinking() && !peacock.isSweeping() && !peacock.isGusting());
+
+        public static final OWAttack ROYAL_SWEEP = new OWAttack(
+                ROYAL_SWEEP_ID,
+                OW_ATTACK_1,
+                OWAttacksConstants.Peacock.SWEEP_ENERGY,
+                entity -> ((PeacockEntity) entity).activateRoyalSweep(),
+                OWAttacksConstants.Peacock.SWEEP_COOLDOWN_TICKS
+        ).withUnlockCondition(
+                entity -> entity instanceof PeacockEntity peacock
+                        && peacock.getUltimateKillCount() >= OWAttacksConstants.Peacock.SWEEP_KILLS_REQUIRED
+        ).withUnlockProgress(
+                entity -> entity instanceof PeacockEntity peacock
+                        ? (float) peacock.getUltimateKillCount() / OWAttacksConstants.Peacock.SWEEP_KILLS_REQUIRED
+                        : 0f
+        ).withUnlockCounter(
+                entity -> entity instanceof PeacockEntity peacock ? peacock.getUltimateKillCount() : 0,
+                OWAttacksConstants.Peacock.SWEEP_KILLS_REQUIRED
+        ).withUltimateDuration(OWAttacksConstants.Peacock.SWEEP_DURATION_MS);
     }
 
     public static class LionAttacks {

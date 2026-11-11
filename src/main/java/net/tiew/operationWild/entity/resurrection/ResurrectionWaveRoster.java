@@ -40,17 +40,18 @@ public final class ResurrectionWaveRoster {
     public static int DEFAULT_TIER = 2;
 
     /** Palier de puissance (1 à 5) par espèce. Modifiable librement. */
-    public static final Map<String, Integer> POWER_TIERS = new HashMap<>(Map.of(
-            "red_panda", 1,
-            "boa", 2,
-            "tiger", 3,
-            "lion", 3,
-            "crocodile", 3,
-            "kodiak", 3,
-            "orca", 4,
-            "hippopotamus", 4,
-            "elephant", 5,
-            "colossal_squid", 5
+    public static final Map<String, Integer> POWER_TIERS = new HashMap<>(Map.ofEntries(
+            Map.entry("red_panda", 1),
+            Map.entry("peacock", 1),
+            Map.entry("boa", 2),
+            Map.entry("tiger", 3),
+            Map.entry("lion", 3),
+            Map.entry("crocodile", 3),
+            Map.entry("kodiak", 3),
+            Map.entry("orca", 4),
+            Map.entry("hippopotamus", 4),
+            Map.entry("elephant", 5),
+            Map.entry("colossal_squid", 5)
     ));
 
     /**

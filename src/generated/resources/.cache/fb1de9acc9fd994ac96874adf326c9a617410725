@@ -1,4 +1,4 @@
-// 1.21	2026-10-31T13:47:54.8397572	Item Models: ow
+// 1.21	2026-11-11T20:17:16.7166266	Item Models: ow
 515a36edd6deee455fe5fe3630bc0752e57c7fa7 assets/ow/models/item/animal_soul.json
 c45cf69d02d3d1fe9aacf71eee3240c3ef68696a assets/ow/models/item/battery.json
 ce4bd18df05ef02d56e59a95e571cb0e08fbc046 assets/ow/models/item/bioluminescent_jelly.json
@@ -133,6 +133,7 @@ b9f588931c962f38b673267ebbdff7855ca20e4c assets/ow/models/item/kodiak_coat.json
 63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/orca_spawn_egg.json
 c34229071fd3f458d89fa76967dc053a6067157c assets/ow/models/item/peacock_feather.json
 60f003eb2bc19731a164bc15351d2a92713c95ae assets/ow/models/item/peacock_saddle.json
+63ec6c618a3a23eab4cab9c52d7d3250de9b516e assets/ow/models/item/peacock_spawn_egg.json
 5302aff3131faaebb0b99040becc4ed29fcd77c2 assets/ow/models/item/plant_empress_music_disc.json
 d53db43b06849e3d4cce48e9095252433924ac17 assets/ow/models/item/plant_fiber.json
 5966d2d5f7628d375962654d62b04f3746b4d121 assets/ow/models/item/platinum_ingot.json

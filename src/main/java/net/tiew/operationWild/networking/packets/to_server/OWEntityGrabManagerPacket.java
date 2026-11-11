@@ -56,8 +56,7 @@ public record OWEntityGrabManagerPacket(boolean isRightClickDown) implements Cus
                 return;
             }
 
-            ColossalSquidEntity squid = captor(player, ColossalSquidEntity.class,
-                    s -> s.isGrabbing() && s.getGrabbedTarget() == player);
+            ColossalSquidEntity squid = ColossalSquidEntity.struggleCaptorOf(player);
             if (squid != null) {
                 struggle(squid, squid.getGrabTimeout(), squid.getGrabMaxTimeout(),
                         OWAttacksConstants.ColossalSquid.GRAB_STRUGGLE_REDUCTION, squid::setGrabTimeout,

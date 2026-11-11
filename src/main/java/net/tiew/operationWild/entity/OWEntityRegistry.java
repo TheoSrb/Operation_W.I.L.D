@@ -29,6 +29,7 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<GorillaEntity>> GORILLA = ENTITY_TYPES.register("gorilla", () -> EntityType.Builder.<GorillaEntity>of((type, world) -> new GorillaEntity(type, world, 1.0f, GorillaEntity.MAX_SOMNOLENCE, GorillaEntity.SOMNOLENCE_LOSS_INTERVAL), MobCategory.CREATURE).sized(1.5f, 1.9f).build("gorilla"));
     public static final DeferredHolder<EntityType<?>, EntityType<HippopotamusEntity>> HIPPOPOTAMUS = ENTITY_TYPES.register("hippopotamus", () -> EntityType.Builder.<HippopotamusEntity>of((type, world) -> new HippopotamusEntity(type, world, 1.035f, HippopotamusEntity.MAX_SOMNOLENCE, HippopotamusEntity.SOMNOLENCE_LOSS_INTERVAL), MobCategory.CREATURE).sized(1.8f, 1.7f).build("hippopotamus"));
     public static final DeferredHolder<EntityType<?>, EntityType<LionEntity>> LION = ENTITY_TYPES.register("lion", () -> EntityType.Builder.<LionEntity>of((type, world) -> new LionEntity(type, world, 1.03f, LionEntity.MAX_SOMNOLENCE, LionEntity.SOMNOLENCE_LOSS_INTERVAL), MobCategory.CREATURE).sized(1.3f, 1.5f).build("lion"));
+    public static final DeferredHolder<EntityType<?>, EntityType<PeacockEntity>> PEACOCK = ENTITY_TYPES.register("peacock", () -> EntityType.Builder.<PeacockEntity>of((type, world) -> new PeacockEntity(type, world, 1.0f, PeacockEntity.MAX_SOMNOLENCE, PeacockEntity.SOMNOLENCE_LOSS_INTERVAL), MobCategory.CREATURE).sized(0.6f, 1.2f).build("peacock"));
     public static final DeferredHolder<EntityType<?>, EntityType<ColossalSquidEntity>> COLOSSAL_SQUID = ENTITY_TYPES.register("colossal_squid", () -> EntityType.Builder.<ColossalSquidEntity>of((type, world) -> new ColossalSquidEntity(type, world, 1.1f, ColossalSquidEntity.MAX_SOMNOLENCE, ColossalSquidEntity.SOMNOLENCE_LOSS_INTERVAL), MobCategory.WATER_CREATURE).sized(2.6f, 1.4f).build("colossal_squid"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<CrocodileTailPart>> CROCODILE_TAIL_PART =
@@ -82,6 +83,16 @@ public class OWEntityRegistry {
                     .updateInterval(1)
                     .sized(0.4f, 0.4f)
                     .build("heal_snack"));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<WindGustEntity>> WIND_GUST =
+            ENTITY_TYPES.register("wind_gust", () -> EntityType.Builder
+                    .<WindGustEntity>of(WindGustEntity::new, MobCategory.MISC)
+                    .noSave()
+                    .noSummon()
+                    .clientTrackingRange(8)
+                    .updateInterval(1)
+                    .sized(0.5f, 0.5f)
+                    .build("wind_gust"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<FeastPileEntity>> FEAST_PILE =
             ENTITY_TYPES.register("feast_pile", () -> EntityType.Builder

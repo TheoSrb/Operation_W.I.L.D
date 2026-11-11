@@ -44,11 +44,12 @@ public class RightClickAlertOverlay {
     public static OWEntity captorOf(Player player) {
         if (player.getVehicle() instanceof OWEntity mount && holds(mount, player)) return mount;
 
-        return player.level()
+        OWEntity near = player.level()
                 .getEntitiesOfClass(OWEntity.class, player.getBoundingBox().inflate(6.0))
                 .stream()
                 .filter(entity -> holds(entity, player))
                 .findFirst().orElse(null);
+        return near != null ? near : net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity.struggleCaptorOf(player);
     }
 
     private static boolean holds(OWEntity entity, Player player) {
@@ -56,7 +57,7 @@ public class RightClickAlertOverlay {
         if (entity instanceof TigerEntity tiger) return tiger.isGrabbing() && tiger.getGrabbedTarget() == player;
         if (entity instanceof BoaEntity boa) return boa.isGrabbing() && boa.getGrabbedTarget() == player;
         if (entity instanceof KangarooEntity kangaroo) return kangaroo.getDrownVictim() == player;
-        if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) return squid.isGrabbing() && squid.getGrabbedTarget() == player;
+        if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.ColossalSquidEntity squid) return squid.holdsStruggling(player);
         return false;
     }
 

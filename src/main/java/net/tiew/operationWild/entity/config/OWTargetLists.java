@@ -38,6 +38,7 @@ import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 
@@ -71,14 +72,15 @@ public final class OWTargetLists {
     /**
      * Tigre — grand prédateur de jungle. Le panda partage sa forêt de bambous, le villageois et le
      * joueur rappellent le mangeur d'hommes, et les deux entrées du mod tiennent à un lieu précis :
-     * le boa qu'il tue et mange, le crocodile qu'il croise dans les Sundarbans.
+     * le boa qu'il tue et mange, le crocodile qu'il croise dans les Sundarbans. Le paon, proie
+     * classique des forêts claires indiennes, complète le tableau.
      */
     public static final List<Class<?>> TIGER = List.of(
             Player.class, Villager.class,
             Pig.class, Cow.class, Sheep.class, Goat.class, Chicken.class, Rabbit.class,
             Horse.class, Donkey.class, Mule.class, Llama.class,
             Panda.class, Parrot.class, Ocelot.class, Cat.class, Fox.class,
-            BoaEntity.class, CrocodileEntity.class, RedPandaEntity.class
+            BoaEntity.class, CrocodileEntity.class, RedPandaEntity.class, PeacockEntity.class
     );
 
     /**

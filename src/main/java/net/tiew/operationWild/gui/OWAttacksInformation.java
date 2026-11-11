@@ -22,6 +22,7 @@ import net.tiew.operationWild.entity.animals.terrestrial.GorillaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KangarooEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.LionEntity;
+import net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
@@ -376,6 +377,44 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Hippopotamus.RIVER_SURGE_TICKS / 20),
                                 val((int) (OWAttacksConstants.Hippopotamus.RIVER_SURGE_SPEED_BONUS * 100)))
                 )
+
+        ));
+
+        PROFILES.put(PeacockEntity.class, new EntityProfile(
+
+                new AttackSlot(60, 80, "LMB",
+                        title("ow.attacks.peacock.combo.title"),
+                        e -> desc("ow.attacks.peacock.combo.desc",
+                                val("0.9"), val(e.getDamageToClient() / 3))
+                ),
+
+                new AttackSlot(80, 80, "RMB",
+                        title("ow.attacks.peacock.life_link.title"),
+                        e -> desc("ow.attacks.peacock.life_link.desc",
+                                val((int) (OWAttacksConstants.Peacock.LINK_TRANSFER_RATIO * 100 * 20 / OWAttacksConstants.Peacock.LINK_TRANSFER_INTERVAL)),
+                                val((int) (OWAttacksConstants.Peacock.LINK_AMPLIFICATION * 100)),
+                                val((int) (OWAttacksConstants.Peacock.LINK_DONOR_FLOOR * 100)),
+                                val((int) OWAttacksConstants.Peacock.LINK_MAX_DISTANCE),
+                                val((int) OWAttacksConstants.Peacock.LINK_START_ENERGY),
+                                val(OWAttacksConstants.Peacock.LINK_DURATION_TICKS / 20))
+                ),
+
+                new AttackSlot(236, 136, "RMB",
+                        title("ow.attacks.peacock.wing_gust.title"),
+                        e -> desc("ow.attacks.peacock.wing_gust.desc",
+                                val((int) (OWAttacksConstants.Peacock.GUST_SPEED * OWAttacksConstants.Peacock.GUST_LIFETIME_TICKS)),
+                                val(OWAttacksConstants.Peacock.GUST_COOLDOWN_TICKS / 20))
+                ),
+
+                new AttackSlot(100, 80, "X",
+                        title("ow.attacks.peacock.royal_sweep.title"),
+                        e -> desc("ow.attacks.peacock.royal_sweep.desc",
+                                val(OWAttacksConstants.Peacock.SWEEP_KILLS_REQUIRED),
+                                val((int) OWAttacksConstants.Peacock.SWEEP_SHARE_RADIUS),
+                                val(OWAttacksConstants.Peacock.SWEEP_COOLDOWN_TICKS / 20))
+                ),
+
+                null
 
         ));
 

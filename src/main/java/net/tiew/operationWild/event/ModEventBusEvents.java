@@ -36,6 +36,7 @@ public class ModEventBusEvents {
         event.put(OWEntityRegistry.GORILLA.get(), GorillaEntity.createAttributes().build());
         event.put(OWEntityRegistry.HIPPOPOTAMUS.get(), HippopotamusEntity.createAttributes().build());
         event.put(OWEntityRegistry.LION.get(), LionEntity.createAttributes().build());
+        event.put(OWEntityRegistry.PEACOCK.get(), PeacockEntity.createAttributes().build());
         event.put(OWEntityRegistry.COLOSSAL_SQUID.get(), ColossalSquidEntity.createAttributes().build());
         event.put(OWEntityRegistry.RED_PANDA.get(), RedPandaEntity.createAttributes().build());
         event.put(OWEntityRegistry.BOA_TAIL_PART.get(), BoaTailPart.bakeAttributes().build());
@@ -71,5 +72,7 @@ public class ModEventBusEvents {
                 OrcaEntity::checkOrcaSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
         event.register(OWEntityRegistry.HIPPOPOTAMUS.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 HippopotamusEntity::checkHippopotamusSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
+        event.register(OWEntityRegistry.PEACOCK.get(), SpawnPlacementTypes.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                Animal::checkAnimalSpawnRules, RegisterSpawnPlacementsEvent.Operation.AND);
     }
 }

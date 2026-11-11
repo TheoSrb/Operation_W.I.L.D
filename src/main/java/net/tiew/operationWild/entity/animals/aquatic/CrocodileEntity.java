@@ -324,6 +324,11 @@ public class CrocodileEntity extends OWSemiWaterEntity implements IOWEntity, IOW
     }
 
     @Override
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
+    }
+
+    @Override
     public float sedatedFleeSpeed() {
         return 2.8f;
     }

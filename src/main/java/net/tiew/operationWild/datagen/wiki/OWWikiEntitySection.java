@@ -320,6 +320,16 @@ public final class OWWikiEntitySection {
         taming.add("food_tiers", foodTiers(probe));
         taming.add("knockout", knockout());
         taming.add("breakout", breakout(probe));
+        OWWikiReflect.call(probe, "getValidTamingProjectiles").ifPresent(value -> {
+            if (!(value instanceof java.util.List<?> types)) return;
+            JsonArray projectiles = new JsonArray();
+            for (Object type : types) {
+                if (type instanceof net.minecraft.world.entity.EntityType<?> entityType) {
+                    projectiles.add(BuiltInRegistries.ENTITY_TYPE.getKey(entityType).toString());
+                }
+            }
+            taming.add("valid_projectiles", projectiles);
+        });
 
         OWSaddleRecipe recipe = OWSaddleRecipes.all().stream()
                 .filter(candidate -> candidate.id().equals(species.id()))

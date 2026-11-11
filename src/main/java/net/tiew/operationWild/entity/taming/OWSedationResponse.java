@@ -73,7 +73,6 @@ public class OWSedationResponse {
     private static final int SURPRISE_TICKS = 100;
     private static final float SURPRISE_SPEED_BONUS = 1.35f;
     private static final int STALL_TICKS = 40;
-    private static final int SIEGE_BREAK_LIMIT = 7;
     private static final double STALL_MOVE_SQR = 0.25;
     private static final double DIRECT_PURSUIT_RANGE = 32.0;
     private static final double DIRECT_PURSUIT_RISE = 1.5;
@@ -369,7 +368,7 @@ public class OWSedationResponse {
             return;
         }
 
-        if (entity.breakout.siegeBlocksBroken() >= SIEGE_BREAK_LIMIT) {
+        if (entity.breakout.siegeBlocksBroken() >= entity.breakout.siegeBreakLimit()) {
             giveUp();
             return;
         }

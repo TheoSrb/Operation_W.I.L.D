@@ -187,7 +187,7 @@ public class OWEgg extends HorizontalDirectionalBlock {
     private OWEntity createEntity(ServerLevel serverLevel, String itemId) {
         return switch(itemId) {
             case "crocodile_egg" -> OWEntityRegistry.CROCODILE.get().create(serverLevel);
-            case "peacock_egg" -> OWEntityRegistry.CROCODILE.get().create(serverLevel);
+            case "peacock_egg" -> OWEntityRegistry.PEACOCK.get().create(serverLevel);
             default -> OWEntityRegistry.CROCODILE.get().create(serverLevel);
         };
     }

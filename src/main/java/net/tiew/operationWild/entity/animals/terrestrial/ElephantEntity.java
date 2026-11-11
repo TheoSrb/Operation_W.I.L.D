@@ -474,6 +474,11 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
     }
 
     @Override
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
+    }
+
+    @Override
     public float getSpeed() {
         float speed = super.getSpeed();
         if (!this.isTame() && this.sedationResponse != null && this.sedationResponse.getChargeTarget() != null) speed *= TAMING_CHASE_SPEED_FACTOR;

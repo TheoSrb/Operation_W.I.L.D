@@ -357,6 +357,12 @@ public class GorillaEntity extends OWEntity implements IOWEntity, IOWTamable, IO
     }
 
     @Override
+    public List<EntityType<?>> getValidTamingProjectiles() {
+        return List.of(OWEntityRegistry.TRANQUILIZER_ARROW.get(), OWEntityRegistry.TRANQUILIZER_WOODEN_STINGER.get(),
+                OWEntityRegistry.SLINGSHOT_PROJECTILE.get(), OWEntityRegistry.TRANQUILIZER_DART.get());
+    }
+
+    @Override
     public float sedatedFleeSpeed() {
         return 5f;
     }

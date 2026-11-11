@@ -135,6 +135,12 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         return;
                     }
 
+                    if (packet.attackId() == OWAttackIds.LIFE_LINK) {
+                        if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacockLink)
+                            peacockLink.breakLinkByRider();
+                        return;
+                    }
+
                     if (packet.attackId() == OWAttackIds.HIPPO_ROLL) {
                         if (entity instanceof net.tiew.operationWild.entity.animals.aquatic.HippopotamusEntity hippo)
                             hippo.toggleRoll();
@@ -206,6 +212,9 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.DISTRESS_CALL ->
                                 entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lionDistress
                                         && lionDistress.activateDistressCall();
+                        case OWAttackIds.ROYAL_SWEEP ->
+                                entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacockSweep
+                                        && peacockSweep.activateRoyalSweep();
                         default -> true;
                     };
 
@@ -230,6 +239,11 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.BoaEntity boa) {
                                 int targetId = Float.floatToRawIntBits(packet.value());
                                 boa.executeConstrictUltimate(targetId);
+                            }
+                        }
+                        case OWAttackIds.LIFE_LINK -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacockLink) {
+                                peacockLink.selectLinkTarget(Float.floatToRawIntBits(packet.value()));
                             }
                         }
                         case OWAttackIds.HUNTING_LEAP -> {
@@ -377,6 +391,13 @@ public record OWAttackPacket(int attackId, byte action, float value) implements 
                         case OWAttackIds.CLAN_CALL -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.LionEntity lion)
                                 lion.performClanCall();
+                        }
+                        case OWAttackIds.WING_GUST -> {
+                            if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacockGust
+                                    && !peacockGust.performWingGust()) {
+                                PacketDistributor.sendToPlayer(player,
+                                        new OWAttackRejectedPacket(entity.getId(), packet.attackId()));
+                            }
                         }
                         case OWAttackIds.SHOULDER_BASH -> {
                             if (entity instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity elephant)

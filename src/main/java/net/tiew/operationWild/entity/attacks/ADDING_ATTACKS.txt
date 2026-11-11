@@ -32,6 +32,10 @@ IDs d'attaque déjà pris :
  27 → Lionne DISTRESS_CALL   (Appel de Détresse — ultime, touche X)
  28 → Calamar Colossal ABYSSAL_GRAB (Étreinte Abyssale — clic droit, harpon puis cage ; re-clic relâche)
  29 → Calamar Colossal INK_FRENZY   (Frénésie d'Encre — ultime, touche X, 5 kills requis)
+ 30 → Calamar Colossal MAELSTROM    (Maelström — 2e carte secondaire, clic droit)
+ 31 → Paon   LIFE_LINK       (Lien de Vie — clic droit, désigne le donneur puis le receveur ; re-clic rompt)
+ 32 → Paon   WING_GUST       (Bourrasque — 2e carte secondaire, clic droit instantané, onde de vent)
+ 33 → Paon   ROYAL_SWEEP     (Balayage Royal — ultime, touche X, 5 kills requis)
 
 ------------------------------------------------------------
 ARCHITECTURE — CLIENT vs SERVEUR

@@ -693,12 +693,24 @@ public class ColossalSquidModel<T extends ColossalSquidEntity> extends OWComboMo
 				return;
 			}
 			case ColossalSquidEntity.GRAB_PULL -> {
+				if (squid.isReelStruggle()) {
+					float pt = Mth.clamp(ageInTicks - squid.tickCount, 0f, 1f);
+					float progress = Mth.lerp(pt, squid.reelProgressO, squid.reelProgress);
+					long time = (long) (progress * ColossalSquidAnimations.GRAB_PULL.lengthInSeconds() * 1000f);
+					KeyframeAnimations.animate(this, ColossalSquidAnimations.GRAB_PULL, time, weight, ANIM_VECTOR);
+					return;
+				}
 				float pullSpeed = (float) OWAttacksConstants.ColossalSquid.GRAB_PULL_TICKS / squid.getGrabPullTicks();
 				this.animateWeighted(squid.grabPullAnimationState, ColossalSquidAnimations.GRAB_PULL, ageInTicks, pullSpeed, weight);
 				return;
 			}
 			case ColossalSquidEntity.GRAB_HOLD -> {
 				this.animateWeighted(squid.grabHoldAnimationState, ColossalSquidAnimations.GRAB_HOLD, ageInTicks, 1.0f, weight);
+				if (squid.isReelStruggle()) {
+					long nibble = (long) (Math.max(ageInTicks - squid.grabPhaseStartTick, 0f) * 50f)
+							% (long) (ColossalSquidAnimations.GRAB_STRIKE.lengthInSeconds() * 1000f);
+					KeyframeAnimations.animate(this, ColossalSquidAnimations.GRAB_STRIKE, nibble, weight, ANIM_VECTOR);
+				}
 				return;
 			}
 			case ColossalSquidEntity.GRAB_RELEASE -> {

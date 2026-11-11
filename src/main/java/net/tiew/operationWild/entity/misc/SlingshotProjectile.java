@@ -125,6 +125,7 @@ public class SlingshotProjectile extends AbstractArrow {
         float pitch = (float) OWUtils.generateRandomInterval(0.85f, 1.15f);
         this.playSound(SoundEvents.STONE_BREAK, 1.0f, pitch);
         entity.hurt($$4, HIT_DAMAGE);
+        if (this.isRemoved()) return;
 
         Vec3 direction = entity.position().subtract(this.position()).normalize();
         if (!(entity instanceof PlantEmpressEntity)) {

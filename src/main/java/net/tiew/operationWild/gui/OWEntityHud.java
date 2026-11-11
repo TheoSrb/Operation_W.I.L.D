@@ -216,6 +216,8 @@ public class OWEntityHud {
             return new EntityIconData(232, 226, 24, 19, -(24 / 2), -10);
         } else if (entity instanceof GorillaEntity) {
             return new EntityIconData(211, 229, 21, 27, -(21 / 2), -18);
+        } else if (entity instanceof PeacockEntity) {
+            return new EntityIconData(247, 49, 9, 19, -(9 / 2), -11);
         } else if (entity instanceof LionEntity) {
             return new EntityIconData(239, 169, 17, 17, -(17 / 2), -8);
         } else if (entity instanceof HippopotamusEntity) {

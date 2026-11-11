@@ -57,6 +57,11 @@
   "boa_slither": { "subtitle": "sounds.ow.boa_slither", "sounds": [ "ow:boa/boa_slither" ] },
 
   "peacock_idle": { "subtitle": "sounds.ow.peacock_idle", "sounds": [ "ow:peacock/peacock_idle" ] },
+  "peacock_hurt": { "subtitle": "sounds.ow.peacock_hurt", "sounds": [ { "name": "minecraft:entity.parrot.hurt", "type": "event" } ] },
+  "peacock_death": { "subtitle": "sounds.ow.peacock_death", "sounds": [ { "name": "minecraft:entity.parrot.death", "type": "event" } ] },
+  "peacock_call": { "subtitle": "sounds.ow.peacock_call", "sounds": [ { "name": "ow:peacock_idle", "type": "event", "pitch": 0.85 } ] },
+  "peacock_wing_gust": { "subtitle": "sounds.ow.peacock_wing_gust", "sounds": [ { "name": "minecraft:entity.ender_dragon.flap", "type": "event", "pitch": 1.4 } ] },
+  "peacock_fan": { "subtitle": "sounds.ow.peacock_fan", "sounds": [ { "name": "minecraft:item.armor.equip_elytra", "type": "event", "pitch": 0.8 } ] },
 
   "tiger_shark_crush_mouth": { "subtitle": "sounds.ow.tiger_shark_crush_mouth", "sounds": [ "ow:tiger_shark/tiger_shark_crush_mouth" ] },
 

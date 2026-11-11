@@ -80,6 +80,10 @@ public class OWEntityLootTableProvider extends EntityLootSubProvider {
         this.add(OWEntityRegistry.GORILLA.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.HIPPOPOTAMUS.get(), LootTable.lootTable());
         this.add(OWEntityRegistry.LION.get(), LootTable.lootTable());
+        this.add(OWEntityRegistry.PEACOCK.get(), LootTable.lootTable()
+                .withPool(createBasicPool(OWItems.RAW_PEACOCK.get(), 1.0F, 2.0F, true, true))
+                .withPool(createBasicPool(OWItems.PEACOCK_FEATHER.get(), 0.0F, 2.0F, true))
+        );
         this.add(OWEntityRegistry.COLOSSAL_SQUID.get(), LootTable.lootTable());
 
         this.add(OWEntityRegistry.SEABUG.get(), LootTable.lootTable());

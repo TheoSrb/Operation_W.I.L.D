@@ -439,6 +439,12 @@ public class OWAttackLogic {
             kangarooWasTelluricStomping = false;
         }
 
+        if (peacockLinkAiming && (mc.player == null
+                || !(mc.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity linkPeacock)
+                || OWAttacksHandler.getActiveSecondary(linkPeacock) != OWAttacksHandler.PeacockAttacks.LIFE_LINK)) {
+            peacockLinkAiming = false;
+        }
+
         // Jet de Trompe : le robinet se ferme si le joueur quitte l'éléphant sans relâcher le clic.
         if (elephantSprayHeld && mc.player != null
                 && !(mc.player.getRootVehicle() instanceof net.tiew.operationWild.entity.animals.terrestrial.ElephantEntity)) {
@@ -1230,6 +1236,67 @@ public class OWAttackLogic {
         return true;
     }
 
+    public static boolean peacockLinkAiming = false;
+    private static long peacockLinkPressMs = 0L;
+    private static final long PEACOCK_LINK_TAP_MS = 300L;
+
+    public static boolean isPeacockLinkAiming() {
+        return peacockLinkAiming;
+    }
+
+    private static void handlePeacockLifeLink(OWAttack attack,
+                                              net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock,
+                                              Player player, int action) {
+        if (action == GLFW.GLFW_PRESS) {
+            if (peacockLinkAiming) return;
+            boolean engaged = peacock.isLinking() || peacock.isSelectingLink();
+            if (!engaged && (isCharging || peacock.isCombo() || peacock.isAttackLocked() || peacock.isSweeping()
+                    || peacock.isGusting() || peacock.isSecondaryOnCooldown() || playerHoldsUsableItem(player))) {
+                recordAttackClick(attack.getId(), true);
+                return;
+            }
+            peacockLinkAiming = true;
+            peacockLinkPressMs = System.currentTimeMillis();
+            return;
+        }
+
+        if (action != GLFW.GLFW_RELEASE || !peacockLinkAiming) return;
+        peacockLinkAiming = false;
+        long held = System.currentTimeMillis() - peacockLinkPressMs;
+
+        if (peacock.isLinking()) {
+            if (held <= PEACOCK_LINK_TAP_MS) {
+                PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE, 0f));
+                recordAttackClick(attack.getId(), false);
+            }
+            return;
+        }
+
+        net.tiew.operationWild.entity.OWEntity target = peacock.pickLinkTarget(player);
+        if (target == null) {
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        if (!peacock.isSelectingLink()
+                && !net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity.canDonate(target)) {
+            player.playSound(net.minecraft.sounds.SoundEvents.NOTE_BLOCK_BASS.value(), 0.8f, 0.5f);
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        boolean choosingReceiver = peacock.isSelectingLink() && target.getId() != peacock.getLinkDonorId();
+        if (choosingReceiver && peacock.getVitalEnergy() > peacock.getVitalEnergyCapacity() - attack.getEnergyRequired()) {
+            peacock.canShowVitalEnergyLack = true;
+            recordAttackClick(attack.getId(), true);
+            return;
+        }
+
+        PacketDistributor.sendToServer(new OWAttackPacket(attack.getId(), OWAttackPacket.ACTION_EXECUTE_WITH_TARGET,
+                Float.intBitsToFloat(target.getId())));
+        recordAttackClick(attack.getId(), false);
+    }
+
     private static boolean elephantSprayHeld = false;
 
     private static void handleColossalSquidMaelstrom(OWAttack attack,
@@ -1666,6 +1733,16 @@ public class OWAttackLogic {
             }
             if (grab != null) {
                 handleColossalSquidGrab(grab, squid, mc.player, event.getAction());
+                return;
+            }
+        }
+
+        if (event.getButton() == GLFW.GLFW_MOUSE_BUTTON_RIGHT
+                && owEntity instanceof net.tiew.operationWild.entity.animals.terrestrial.PeacockEntity peacock) {
+            OWAttack link = OWAttacksHandler.findInstantAttack(owEntity, event.getButton());
+            if (link != null && link.getId() == OWAttacksHandler.LIFE_LINK_ID) {
+                handlePeacockLifeLink(link, peacock, mc.player, event.getAction());
+                event.setCanceled(true);
                 return;
             }
         }
