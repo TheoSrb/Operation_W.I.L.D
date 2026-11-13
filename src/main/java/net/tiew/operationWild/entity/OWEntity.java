@@ -115,7 +115,6 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Math;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.effect.OWEffects;
-import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuest;
 import net.tiew.operationWild.entity.quests.daily_quests.DailyQuestRegistry;
 import net.tiew.operationWild.entity.quests.daily_quests.OWDailyQuests;
@@ -2056,7 +2055,7 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
     }
 
     private boolean losesSomnolence() {
-        return this.getActualSleepingBar() > 0 && this.somnolenceLossInterval() > 0 && !(this instanceof PlantEmpressEntity);
+        return this.getActualSleepingBar() > 0 && this.somnolenceLossInterval() > 0;
     }
 
     public boolean isTamingFood(ItemStack stack) {

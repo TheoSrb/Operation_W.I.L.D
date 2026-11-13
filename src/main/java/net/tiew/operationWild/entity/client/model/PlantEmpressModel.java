@@ -11,20 +11,26 @@ import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.AnimationState;
 import org.joml.Vector3f;
 
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import net.tiew.operationWild.OperationWild;
-import net.tiew.operationWild.entity.client.animation.PlantEmpressAnimations;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
+import net.tiew.operationWild.entity.bosses.plantempress.EmpressPose;
+import net.tiew.operationWild.entity.bosses.plantempress.EmpressRig;
+import net.tiew.operationWild.entity.client.animation.PlantEmpressAnimationSet;
 
 public class PlantEmpressModel<T extends PlantEmpressEntity> extends HierarchicalModel<T> {
     public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "plant_empress_default"), "main");
 
 	private static final Vector3f ANIM_VECTOR = new Vector3f();
-	private static final float DEATH_FADE_MS = 300f;
-	private static final float HEAD_DEATH_FADE_MS = 200f;
+
+	private final ModelPart[] bones;
+	private final ModelPart[][] segmentCubes;
+	private final Set<ModelPart>[] chainParts;
 
 	private final ModelPart root;
 	private final ModelPart ALL;
@@ -107,6 +113,17 @@ public class PlantEmpressModel<T extends PlantEmpressEntity> extends Hierarchica
 		this.stem_7 = this.ALL.getChild("stem_7");
 		this.stem_8 = this.stem_7.getChild("stem_8");
 		this.stem_9 = this.stem_8.getChild("stem_9");
+		this.bones = new ModelPart[]{this.ALL, this.body_1, this.body_2, this.body_3, this.body_10, this.head,
+				this.body_4, this.body_5, this.body_6, this.head2, this.body_7, this.body_8, this.body_9, this.head3};
+		this.chainParts = new Set[]{new HashSet<>(this.body_1.getAllParts().toList()),
+				new HashSet<>(this.body_4.getAllParts().toList()), new HashSet<>(this.body_7.getAllParts().toList())};
+		this.segmentCubes = new ModelPart[][]{
+				{this.body_1.getChild("cube_r1"), this.body_1.getChild("cube_r2"), this.body_2.getChild("cube_r3"), this.body_2.getChild("cube_r4"),
+						this.body_3.getChild("cube_r5"), this.body_3.getChild("cube_r6"), this.body_10.getChild("cube_r7"), this.body_10.getChild("cube_r8")},
+				{this.body_4.getChild("cube_r15"), this.body_4.getChild("cube_r16"), this.body_5.getChild("cube_r17"), this.body_5.getChild("cube_r18"),
+						this.body_6.getChild("cube_r19"), this.body_6.getChild("cube_r20")},
+				{this.body_7.getChild("cube_r27"), this.body_7.getChild("cube_r28"), this.body_8.getChild("cube_r29"), this.body_8.getChild("cube_r30"),
+						this.body_9.getChild("cube_r31"), this.body_9.getChild("cube_r32")}};
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -229,69 +246,92 @@ public class PlantEmpressModel<T extends PlantEmpressEntity> extends Hierarchica
     }
 
     @Override
-    public void setupAnim(PlantEmpressEntity plant_empress, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+    public void setupAnim(PlantEmpressEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
 		this.root().getAllParts().forEach(ModelPart::resetPose);
-		float partialTick = Mth.clamp(ageInTicks - plant_empress.tickCount, 0f, 1f);
+		float partialTick = Mth.clamp(ageInTicks - entity.tickCount, 0f, 1f);
+		EmpressPose.Composition composition = EmpressPose.compose(entity, partialTick);
+		for (EmpressPose.Layer layer : composition.layers) this.play(layer);
+		for (int chain = 1; chain < 3; chain++) {
+			float fade = composition.deadFade[chain];
+			if (fade > 0f) this.chainParts[chain].forEach(part -> relax(part, 1f - fade));
+		}
+		for (EmpressPose.Layer layer : composition.deadLayers) this.play(layer);
 
-		if (plant_empress.spawnAnimationState.isStarted()) {
-			this.animate(plant_empress.spawnAnimationState, PlantEmpressAnimations.SPAWN, ageInTicks, 1.0f);
-		} else {
-			float death = this.fadeIn(plant_empress.deathAnimationState, ageInTicks, DEATH_FADE_MS);
-			this.applyHeadRotation(netHeadYaw * (1f - death), headPitch * (1f - death));
-
-			plant_empress.idleAnimationState.updateTime(ageInTicks, 1.0f);
-			long idleTime = plant_empress.idleAnimationState.getAccumulatedTime();
-			float rage = smoothStep(plant_empress.rageBlend(partialTick));
-			KeyframeAnimations.animate(this, PlantEmpressAnimations.MISC_IDLE, idleTime, (1f - rage) * (1f - death), ANIM_VECTOR);
-			KeyframeAnimations.animate(this, PlantEmpressAnimations.MISC_IDLE_RAGE, idleTime, rage * (1f - death), ANIM_VECTOR);
-
-			this.animate(plant_empress.painRoar2AnimationState, PlantEmpressAnimations.PAIN_ROAR_HEAD_2, ageInTicks, 1.0f);
-			this.animate(plant_empress.painRoar3AnimationState, PlantEmpressAnimations.PAIN_ROAR_HEAD_3, ageInTicks, 1.0f);
-
-			if (death > 0f) {
-				fadePart(this.ALL, 1f - death);
-				this.body_1.getAllParts().forEach(part -> fadePart(part, 1f - death));
-				this.stems().forEach(stem -> stem.getAllParts().forEach(part -> fadePart(part, 1f - death)));
-				KeyframeAnimations.animate(this, PlantEmpressAnimations.DEATH, plant_empress.deathAnimationState.getAccumulatedTime(), death, ANIM_VECTOR);
+		EmpressRig.Pose pose = EmpressPose.evaluate(composition);
+		for (int bone = 0; bone < EmpressRig.COUNT; bone++) {
+			ModelPart part = this.bones[bone];
+			part.x = pose.x[bone];
+			part.y = pose.y[bone];
+			part.z = pose.z[bone];
+			part.xRot = pose.rx[bone];
+			part.yRot = pose.ry[bone];
+			part.zRot = pose.rz[bone];
+		}
+		for (int chain = 0; chain < 3; chain++) {
+			ModelPart head = this.bones[EmpressRig.HEAD_BONE[chain]];
+			float scale = EmpressRig.HEAD_SCALE[chain];
+			head.xScale = scale;
+			head.yScale = scale;
+			head.zScale = scale;
+		}
+		for (int chain = 0; chain < 3; chain++) {
+			float stretch = composition.chainStretch[chain];
+			for (ModelPart cube : this.segmentCubes[chain]) {
+				cube.y = cube.getInitialPose().y * stretch;
+				cube.yScale = stretch;
 			}
 		}
-
-		this.animateDeadHead(this.body_4, plant_empress.head2DeathAnimationState, plant_empress.head2DeathLoopAnimationState,
-				PlantEmpressAnimations.HEAD_2_DEAD, PlantEmpressAnimations.HEAD_2_DEAD_LOOP, ageInTicks);
-		this.animateDeadHead(this.body_7, plant_empress.head3DeathAnimationState, plant_empress.head3DeathLoopAnimationState,
-				PlantEmpressAnimations.HEAD_3_DEAD, PlantEmpressAnimations.HEAD_3_DEAD_LOOP, ageInTicks);
-
-		this.head2.xScale *= 0.7f;
-		this.head2.yScale *= 0.7f;
-		this.head2.zScale *= 0.7f;
-
-		this.head3.xScale *= 0.7f;
-		this.head3.yScale *= 0.7f;
-		this.head3.zScale *= 0.7f;
+		this.animateJaws(entity, ageInTicks);
 	}
 
-	private void animateDeadHead(ModelPart chain, AnimationState dying, AnimationState dead, AnimationDefinition dyingAnimation, AnimationDefinition deadAnimation, float ageInTicks) {
-		if (dead.isStarted()) {
-			chain.getAllParts().forEach(ModelPart::resetPose);
-			this.animate(dead, deadAnimation, ageInTicks, 1.0f);
-		} else if (dying.isStarted()) {
-			float weight = this.fadeIn(dying, ageInTicks, HEAD_DEATH_FADE_MS);
-			chain.getAllParts().forEach(part -> fadePart(part, 1f - weight));
-			KeyframeAnimations.animate(this, dyingAnimation, dying.getAccumulatedTime(), weight, ANIM_VECTOR);
+
+	private void animateJaws(PlantEmpressEntity entity, float ageInTicks) {
+		if (entity.getPhase() != PlantEmpressEntity.PHASE_FIGHT) return;
+		ModelPart[] uppers = {this.mouthUp, this.mouthUp2, this.mouthUp3};
+		ModelPart[] lowers = {this.mouthDown, this.mouthDown2, this.mouthDown3};
+		for (int chain = 0; chain < 3; chain++) {
+			if (entity.isChainDead(chain) || entity.isChainBusy(chain)) continue;
+			float snap = Mth.sin(ageInTicks * 0.09f + chain * 2.1f);
+			float open = Math.max(0f, snap) * 0.08f + (1f - entity.getHeadFraction(chain)) * 0.06f;
+			uppers[chain].xRot -= open;
+			lowers[chain].xRot += open * 0.8f;
 		}
 	}
 
-	private float fadeIn(AnimationState state, float ageInTicks, float durationMs) {
-		if (!state.isStarted()) return 0f;
-		state.updateTime(ageInTicks, 1.0f);
-		return smoothStep(state.getAccumulatedTime() / durationMs);
+	private void play(EmpressPose.Layer layer) {
+		AnimationDefinition definition = PlantEmpressAnimationSet.get(layer.anim());
+		long millis = (long) (layer.seconds() * 1000f);
+		if (layer.mask() < 0) {
+			KeyframeAnimations.animate(this, definition, millis, layer.weight(), ANIM_VECTOR);
+			return;
+		}
+		Set<ModelPart> allowed = this.chainParts[layer.mask()];
+		List<ModelPart> outside = new ArrayList<>();
+		List<float[]> saved = new ArrayList<>();
+		for (String name : definition.boneAnimations().keySet()) {
+			this.getAnyDescendantWithName(name).ifPresent(part -> {
+				if (allowed.contains(part)) return;
+				outside.add(part);
+				saved.add(new float[]{part.x, part.y, part.z, part.xRot, part.yRot, part.zRot, part.xScale, part.yScale, part.zScale});
+			});
+		}
+		KeyframeAnimations.animate(this, definition, millis, layer.weight(), ANIM_VECTOR);
+		for (int i = 0; i < outside.size(); i++) {
+			ModelPart part = outside.get(i);
+			float[] v = saved.get(i);
+			part.x = v[0];
+			part.y = v[1];
+			part.z = v[2];
+			part.xRot = v[3];
+			part.yRot = v[4];
+			part.zRot = v[5];
+			part.xScale = v[6];
+			part.yScale = v[7];
+			part.zScale = v[8];
+		}
 	}
 
-	private Stream<ModelPart> stems() {
-		return Stream.of(this.stem_14, this.stem_2, this.stem_10, this.stem_17, this.stem_7, this.stem_4);
-	}
-
-	private static void fadePart(ModelPart part, float keep) {
+	private static void relax(ModelPart part, float keep) {
 		PartPose initial = part.getInitialPose();
 		part.x = Mth.lerp(keep, initial.x, part.x);
 		part.y = Mth.lerp(keep, initial.y, part.y);
@@ -304,22 +344,9 @@ public class PlantEmpressModel<T extends PlantEmpressEntity> extends Hierarchica
 		part.zScale = Mth.lerp(keep, 1f, part.zScale);
 	}
 
-	private static float smoothStep(float t) {
-		t = Mth.clamp(t, 0f, 1f);
-		return t * t * (3f - 2f * t);
-	}
-
     @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay, int color) {
         this.ALL.render(poseStack, vertexConsumer, packedLight, packedOverlay, color);
-    }
-
-    private void applyHeadRotation(float pNetHeadYaw, float pHeadPitch) {
-        pNetHeadYaw = Mth.clamp(pNetHeadYaw, -30.0F, 30.0F);
-        pHeadPitch = Mth.clamp(pHeadPitch, -30.0F, 30.0F);
-
-        this.head.yRot = pNetHeadYaw * ((float)Math.PI / 180F);
-        this.head.xRot = pHeadPitch * ((float)Math.PI / 180F);
     }
 
     @Override

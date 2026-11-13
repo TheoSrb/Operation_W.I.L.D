@@ -147,6 +147,6 @@
       ]
     }
   ],
-  "pitch_limit": 30.0,
-  "yaw_limit": 30.0
+  "pitch_limit": 0.0,
+  "yaw_limit": 0.0
 }

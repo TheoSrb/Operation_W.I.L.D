@@ -19,7 +19,6 @@ import net.tiew.operationWild.entity.animals.terrestrial.KodiakEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.RedPandaEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.TigerEntity;
 import net.tiew.operationWild.entity.attacks.OWAttacksConstants;
-import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 
 import java.util.List;
 
@@ -41,8 +40,7 @@ public record OWWikiSpecies(EntityType<?> type, Class<? extends OWEntity> implem
                 of(OWEntityRegistry.HIPPOPOTAMUS.get(), HippopotamusEntity.class),
                 of(OWEntityRegistry.LION.get(), LionEntity.class),
                 of(OWEntityRegistry.PEACOCK.get(), PeacockEntity.class),
-                of(OWEntityRegistry.COLOSSAL_SQUID.get(), ColossalSquidEntity.class),
-                of(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressEntity.class));
+                of(OWEntityRegistry.COLOSSAL_SQUID.get(), ColossalSquidEntity.class));
     }
 
     private static OWWikiSpecies of(EntityType<?> type, Class<? extends OWEntity> implementation) {

@@ -45,5 +45,6 @@ public class OWDataGenerators {
         generator.addProvider(event.includeServer(), new OWEntityTypeTagProvider(packOutput, lookupProvider, existingFileHelper));
         generator.addProvider(event.includeServer(), new OWEnchantmentTagProvider(packOutput, lookupProvider, existingFileHelper));
         generator.addProvider(event.includeClient(), new OWHeadHitboxProvider(packOutput));
+        generator.addProvider(event.includeClient(), new OWBossRigProvider(packOutput));
     }
 }

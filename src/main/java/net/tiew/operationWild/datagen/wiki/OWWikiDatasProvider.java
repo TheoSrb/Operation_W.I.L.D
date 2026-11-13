@@ -44,6 +44,7 @@ public class OWWikiDatasProvider implements DataProvider {
         root.add("glossary", OWWikiGlossarySection.build(lang));
         root.add("sedatives", OWWikiSedativesSection.build(lang));
         root.add("tribes", OWWikiTribesSection.build(provider, lang, sources));
+        root.add("bosses", OWWikiBossSection.build(lang, sources));
         root.add("items", OWWikiCatalogSection.items(lang));
         root.add("blocks", OWWikiCatalogSection.blocks(lang));
         root.add("saddles", OWWikiCatalogSection.saddles(lang));

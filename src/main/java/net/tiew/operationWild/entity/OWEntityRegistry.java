@@ -8,6 +8,10 @@ import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.animals.aquatic.*;
 import net.tiew.operationWild.entity.animals.terrestrial.*;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
+import net.tiew.operationWild.entity.bosses.plantempress.EmpressRootSpike;
+import net.tiew.operationWild.entity.bosses.plantempress.EmpressSeedProjectile;
+import net.tiew.operationWild.entity.bosses.plantempress.EmpressThornBush;
+import net.tiew.operationWild.entity.bosses.plantempress.EmpressVineSnare;
 import net.tiew.operationWild.entity.misc.*;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -58,7 +62,11 @@ public class OWEntityRegistry {
     public static final DeferredHolder<EntityType<?>, EntityType<SeaBugShard2Entity>> SEABUG_SHARD_2 = ENTITY_TYPES.register("seabug_shard_2", () -> EntityType.Builder.<SeaBugShard2Entity>of((type, world) -> new SeaBugShard2Entity(type, world, 1.1f, 0, 0), MobCategory.WATER_CREATURE).sized(1.3f, 1.1f).build("seabug_shard_2"));
 
 
-    public static final DeferredHolder<EntityType<?>, EntityType<PlantEmpressEntity>> PLANT_EMPRESS = ENTITY_TYPES.register("plant_empress", () -> EntityType.Builder.<PlantEmpressEntity>of((type, world) -> new PlantEmpressEntity(type, world, 1.3f, PlantEmpressEntity.MAX_SOMNOLENCE, PlantEmpressEntity.SOMNOLENCE_LOSS_INTERVAL), MobCategory.CREATURE).sized(2.5f, 3).build("plant_empress"));
+    public static final DeferredHolder<EntityType<?>, EntityType<PlantEmpressEntity>> PLANT_EMPRESS = ENTITY_TYPES.register("plant_empress", () -> EntityType.Builder.<PlantEmpressEntity>of(PlantEmpressEntity::new, MobCategory.MONSTER).sized(3.2f, 4.0f).fireImmune().clientTrackingRange(10).updateInterval(1).build("plant_empress"));
+    public static final DeferredHolder<EntityType<?>, EntityType<EmpressSeedProjectile>> EMPRESS_SEED = ENTITY_TYPES.register("empress_seed", () -> EntityType.Builder.<EmpressSeedProjectile>of(EmpressSeedProjectile::new, MobCategory.MISC).sized(0.5f, 0.5f).clientTrackingRange(8).updateInterval(1).build("empress_seed"));
+    public static final DeferredHolder<EntityType<?>, EntityType<EmpressThornBush>> EMPRESS_THORN_BUSH = ENTITY_TYPES.register("empress_thorn_bush", () -> EntityType.Builder.<EmpressThornBush>of(EmpressThornBush::new, MobCategory.MISC).sized(1.1f, 1.1f).clientTrackingRange(8).build("empress_thorn_bush"));
+    public static final DeferredHolder<EntityType<?>, EntityType<EmpressRootSpike>> EMPRESS_ROOT_SPIKE = ENTITY_TYPES.register("empress_root_spike", () -> EntityType.Builder.<EmpressRootSpike>of(EmpressRootSpike::new, MobCategory.MISC).sized(0.9f, 0.5f).clientTrackingRange(8).build("empress_root_spike"));
+    public static final DeferredHolder<EntityType<?>, EntityType<EmpressVineSnare>> EMPRESS_VINE_SNARE = ENTITY_TYPES.register("empress_vine_snare", () -> EntityType.Builder.<EmpressVineSnare>of(EmpressVineSnare::new, MobCategory.MISC).sized(0.5f, 0.5f).clientTrackingRange(8).build("empress_vine_snare"));
 
     public static final DeferredHolder<EntityType<?>, EntityType<PrimitiveSpearProjectileEntity>> PRIMITIVE_SPEAR_PROJECTILE = ENTITY_TYPES.register("primitive_spear", () -> EntityType.Builder.<PrimitiveSpearProjectileEntity>of(PrimitiveSpearProjectileEntity::new, MobCategory.MISC).sized(0.5f, 0.5f).build("primitive_spear_projectile"));
     public static final DeferredHolder<EntityType<?>, EntityType<TranquilizerArrow>> TRANQUILIZER_ARROW = ENTITY_TYPES.register("tranquilizer_arrow", () -> EntityType.Builder.<TranquilizerArrow>of(TranquilizerArrow::new, MobCategory.MISC).sized(0.5f, 0.5f).build("tranquilizer_arrow"));

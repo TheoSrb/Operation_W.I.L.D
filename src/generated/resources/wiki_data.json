@@ -529,6 +529,1164 @@
       "translation_key": "block.ow.redwood_trapdoor"
     }
   ],
+  "bosses": [
+    {
+      "attributes": {
+        "minecraft:generic.armor": 0.0,
+        "minecraft:generic.armor_toughness": 0.0,
+        "minecraft:generic.attack_damage": 16.0,
+        "minecraft:generic.attack_knockback": 0.0,
+        "minecraft:generic.burning_time": 1.0,
+        "minecraft:generic.explosion_knockback_resistance": 0.0,
+        "minecraft:generic.fall_damage_multiplier": 1.0,
+        "minecraft:generic.follow_range": 48.0,
+        "minecraft:generic.gravity": 0.08,
+        "minecraft:generic.jump_strength": 0.41999998688697815,
+        "minecraft:generic.knockback_resistance": 1.0,
+        "minecraft:generic.max_absorption": 0.0,
+        "minecraft:generic.max_health": 720.0,
+        "minecraft:generic.movement_efficiency": 0.0,
+        "minecraft:generic.movement_speed": 0.0,
+        "minecraft:generic.oxygen_bonus": 0.0,
+        "minecraft:generic.safe_fall_distance": 3.0,
+        "minecraft:generic.scale": 1.0,
+        "minecraft:generic.step_height": 0.6,
+        "minecraft:generic.water_movement_efficiency": 0.0,
+        "neoforge:nametag_distance": 64.0,
+        "neoforge:swim_speed": 1.0
+      },
+      "class": "net.tiew.operationWild.entity.bosses.PlantEmpressEntity",
+      "classification": {
+        "boss": true,
+        "family": "terrestrial",
+        "fire_immune": true,
+        "hierarchy": [
+          "PlantEmpressEntity",
+          "OWBossEntity",
+          "Monster",
+          "PathfinderMob",
+          "Mob",
+          "LivingEntity",
+          "Entity",
+          "AttachmentHolder"
+        ],
+        "mob_category": "monster",
+        "persistent": true
+      },
+      "constants": {
+        "balance": {
+          "AGITATION_FULL": 0.4,
+          "AGITATION_START": 0.7,
+          "DAMAGE_BITE_MAIN": 18.0,
+          "DAMAGE_BITE_SIDE": 14.0,
+          "DAMAGE_BURROW_ERUPTION": 12.0,
+          "DAMAGE_CARCASS": 14.0,
+          "DAMAGE_CHEW": 3.0,
+          "DAMAGE_GUARD_THORNS": 8.0,
+          "DAMAGE_PLUNGE": 18.0,
+          "DAMAGE_POLLEN": 10.0,
+          "DAMAGE_PUDDLE": 2.0,
+          "DAMAGE_QUAKE_SLAM": 14.0,
+          "DAMAGE_QUAKE_WAVE": 12.0,
+          "DAMAGE_ROOT_SPIKE": 9.0,
+          "DAMAGE_SHOCKWAVE": 4.0,
+          "DAMAGE_SLAM": 16.0,
+          "DAMAGE_SPORE": 6.0,
+          "DAMAGE_SPROUT": 3.0,
+          "DAMAGE_TRIPLE": 12.0,
+          "DAMAGE_WALL": 3.0,
+          "DAMAGE_WHIP": 10.0,
+          "DESPERATION_THRESHOLD": 0.25,
+          "FRENZY_FULL": 0.14,
+          "FRENZY_START": 0.36,
+          "HEALTH_PER_EXTRA_PLAYER": 0.5,
+          "MULTIPLIER_COUNTER": 1.25,
+          "MULTIPLIER_PLANTED": 1.25,
+          "MULTIPLIER_STAGGERED": 1.5,
+          "MULTIPLIER_VENOM": 1.5,
+          "REFLEX_ONE": 0.55,
+          "REFLEX_THREE": 0.2,
+          "REFLEX_TWO": 0.36,
+          "SAP_COUNTER_BONUS": 0.35,
+          "SAP_CRITICAL_FACTOR": 1.35,
+          "SAP_GAIN_FACTOR": 2.2,
+          "SAP_MELEE_FACTOR": 1.5,
+          "SAP_PLANTED_FACTOR": 1.2
+        },
+        "entity": {
+          "ACTION_DODGE": -2,
+          "ACTION_NONE": -1,
+          "ARENA_RADIUS": 24.0,
+          "AWAKEN_RADIUS": 22.0,
+          "EVENT_BURST": 70,
+          "EVENT_DESPERATION": 76,
+          "EVENT_HEAD_DEATH": 74,
+          "EVENT_ROAR": 71,
+          "EVENT_SLAM": 72,
+          "EVENT_STAGGER": 75,
+          "EVENT_TREMOR": 73,
+          "HEAD_INVULNERABLE_TICKS": 10,
+          "LEASH_RADIUS": 42.0,
+          "MAIN_HEALTH": 360.0,
+          "PHASE_AWAKEN": 5,
+          "PHASE_BURROW": 7,
+          "PHASE_DESPERATION": 3,
+          "PHASE_DORMANT": 4,
+          "PHASE_DYING": 6,
+          "PHASE_FIGHT": 1,
+          "PHASE_SPAWN": 0,
+          "PHASE_TRANSITION": 2,
+          "REFLEX_RECHARGE": 160,
+          "REGEN_DELAY": 200,
+          "RESET_DELAY": 600,
+          "SAP_DECAY_DELAY": 60,
+          "SAP_DECAY_PER_TICK": 8.0E-4,
+          "SIDE_HEALTH": 180.0
+        },
+        "timings": {
+          "AWAKEN_BAR_FILL_END": 70,
+          "AWAKEN_BAR_FILL_START": 20,
+          "AWAKEN_ROAR": 36,
+          "AWAKEN_TICKS": 80,
+          "BAR_FADE_END": 150,
+          "BITE_IMPACT_MAIN": 17,
+          "BITE_IMPACT_SIDE": 15,
+          "BURROW_BURST": 88,
+          "BURROW_DOWN": 30,
+          "BURROW_EMERGE": 18,
+          "BURROW_HIDE": 28,
+          "BURROW_TICKS": 128,
+          "BURROW_TRAVEL": 40,
+          "BURROW_UNFURL": 40,
+          "BURROW_UP": 58,
+          "CARCASS_IMPACT": 24,
+          "CAST_RELEASE": 16,
+          "CHEW_GRAB": 12,
+          "CHEW_RELEASE": 52,
+          "COUNTER_WINDOW": 6,
+          "DESPERATION_TICKS": 160,
+          "DISSOLVE_END": 1025,
+          "DISSOLVE_START": 125,
+          "FINAL_DEATH_TICKS": 1050,
+          "HEAD_TELL": 10,
+          "HEAD_TRANSITION_TICKS": 60,
+          "LUNGE_COUNTER_START": 6,
+          "LUNGE_IMPACT": 18,
+          "LUNGE_LOCK": 12,
+          "LUNGE_MISS_HOLD": 10,
+          "LUNGE_MISS_HOLD_AT": 26,
+          "LUNGE_PLANT_END": 48,
+          "PLUNGE_COUNTER_START": 12,
+          "PLUNGE_IMPACT": 25,
+          "PLUNGE_LOCK": 19,
+          "PLUNGE_PLANT_END": 38,
+          "QUAKE_COUNTER_START": 30,
+          "QUAKE_SLAM": 46,
+          "QUAKE_WAVE_GAP": 10,
+          "RAGE_TRANSITION_TICKS": 90,
+          "SPAWN_BAR_FILL_END": 280,
+          "SPAWN_BAR_FILL_START": 200,
+          "SPAWN_BAR_SHOW": 180,
+          "SPAWN_BURST": 150,
+          "SPAWN_ROAR": 226,
+          "SPAWN_TICKS": 300,
+          "SPIT_COUNTER_START": 28,
+          "SPIT_RELEASE": 38,
+          "STAGGER_DOWN_END": 74,
+          "STAGGER_DOWN_START": 8,
+          "STAGGER_IMMUNITY": 200,
+          "TRANSITION_SHOCKWAVE": 10,
+          "TRIPLE_LOCK": 12,
+          "WHIP_RADIUS_END": 12.5,
+          "WHIP_RADIUS_START": 2.5,
+          "WHIP_WAVE_END": 38,
+          "WHIP_WAVE_START": 26
+        }
+      },
+      "fight": {
+        "agitation": {
+          "agitation_full": 0.4,
+          "agitation_start": 0.7,
+          "desperation_threshold": 0.25,
+          "frenzy_full": 0.14,
+          "frenzy_start": 0.36,
+          "reflex_recharge_seconds": 8,
+          "reflexes": [
+            {
+              "below_health_fraction": 0.55,
+              "count": 1
+            },
+            {
+              "below_health_fraction": 0.36,
+              "count": 2
+            },
+            {
+              "below_health_fraction": 0.2,
+              "count": 3
+            }
+          ]
+        },
+        "animations": [
+          {
+            "field": "MISC_IDLE",
+            "id": "IDLE",
+            "seconds": 6.0
+          },
+          {
+            "field": "MISC_IDLE_RAGE",
+            "id": "IDLE_RAGE",
+            "seconds": 3.0
+          },
+          {
+            "field": "SPAWN",
+            "id": "SPAWN",
+            "seconds": 15.0
+          },
+          {
+            "field": "DEATH",
+            "id": "DEATH",
+            "seconds": 6.0
+          },
+          {
+            "field": "HEAD_2_DEAD",
+            "id": "HEAD_2_DEAD",
+            "seconds": 2.75
+          },
+          {
+            "field": "HEAD_3_DEAD",
+            "id": "HEAD_3_DEAD",
+            "seconds": 2.75
+          },
+          {
+            "field": "HEAD_2_DEAD_LOOP",
+            "id": "HEAD_2_DEAD_LOOP",
+            "seconds": 4.0
+          },
+          {
+            "field": "HEAD_3_DEAD_LOOP",
+            "id": "HEAD_3_DEAD_LOOP",
+            "seconds": 4.0
+          },
+          {
+            "field": "PAIN_ROAR_HEAD_2",
+            "id": "PAIN_ROAR_2",
+            "seconds": 3.0
+          },
+          {
+            "field": "PAIN_ROAR_HEAD_3",
+            "id": "PAIN_ROAR_3",
+            "seconds": 3.0
+          },
+          {
+            "field": "HURT_HEAD_1",
+            "id": "HURT_1",
+            "seconds": 0.75
+          },
+          {
+            "field": "HURT_HEAD_2",
+            "id": "HURT_2",
+            "seconds": 0.75
+          },
+          {
+            "field": "HURT_HEAD_3",
+            "id": "HURT_3",
+            "seconds": 0.75
+          },
+          {
+            "field": "IDLE_STRETCH",
+            "id": "STRETCH",
+            "seconds": 4.0
+          },
+          {
+            "field": "ATTACK_EARTHQUAKE",
+            "id": "EARTHQUAKE",
+            "seconds": 3.625
+          },
+          {
+            "field": "ATTACK_PLUNGING_BITE",
+            "id": "PLUNGE",
+            "seconds": 2.625
+          },
+          {
+            "field": "ATTACK_ROOT_WHIP",
+            "id": "ROOT_WHIP",
+            "seconds": 2.75
+          },
+          {
+            "field": "ATTACK_TRIPLE_BITE",
+            "id": "TRIPLE_BITE",
+            "seconds": 3.25
+          },
+          {
+            "field": "ATTACK_SPORE_SPIT",
+            "id": "SPORE_SPIT",
+            "seconds": 3.0
+          },
+          {
+            "field": "ATTACK_LUNGE_HEAD_2",
+            "id": "LUNGE_2",
+            "seconds": 3.0
+          },
+          {
+            "field": "ATTACK_LUNGE_HEAD_3",
+            "id": "LUNGE_3",
+            "seconds": 3.0
+          },
+          {
+            "field": "STAGGER_HEAD_1",
+            "id": "STAGGER_1",
+            "seconds": 4.2
+          },
+          {
+            "field": "STAGGER_HEAD_2",
+            "id": "STAGGER_2",
+            "seconds": 4.2
+          },
+          {
+            "field": "STAGGER_HEAD_3",
+            "id": "STAGGER_3",
+            "seconds": 4.2
+          },
+          {
+            "field": "ATTACK_VINE_CAST",
+            "id": "VINE_CAST",
+            "seconds": 2.0
+          },
+          {
+            "field": "ATTACK_CARCASS_SLAM_2",
+            "id": "CARCASS_2",
+            "seconds": 2.0
+          },
+          {
+            "field": "ATTACK_CARCASS_SLAM_3",
+            "id": "CARCASS_3",
+            "seconds": 2.0
+          },
+          {
+            "field": "DESPERATION_BLOOM",
+            "id": "DESPERATION",
+            "seconds": 8.0
+          },
+          {
+            "field": "ATTACK_BITE_HEAD_1",
+            "id": "BITE_1",
+            "seconds": 1.8
+          },
+          {
+            "field": "ATTACK_BITE_HEAD_2",
+            "id": "BITE_2",
+            "seconds": 1.6
+          },
+          {
+            "field": "ATTACK_BITE_HEAD_3",
+            "id": "BITE_3",
+            "seconds": 1.6
+          },
+          {
+            "field": "ATTACK_CHEW_HEAD_1",
+            "id": "CHEW_1",
+            "seconds": 3.4
+          },
+          {
+            "field": "ATTACK_CHEW_HEAD_2",
+            "id": "CHEW_2",
+            "seconds": 3.4
+          },
+          {
+            "field": "ATTACK_CHEW_HEAD_3",
+            "id": "CHEW_3",
+            "seconds": 3.4
+          },
+          {
+            "field": "STEMS_DIG",
+            "id": "STEMS_DIG",
+            "seconds": 2.0
+          },
+          {
+            "field": "STEMS_LASH",
+            "id": "STEMS_LASH",
+            "seconds": 2.75
+          }
+        ],
+        "arena": {
+          "arena_radius": 24.0,
+          "awaken_radius": 22.0,
+          "burrow_max_distance_from_home": 14,
+          "leash_radius": 42.0,
+          "rage_wall_damage": 3.0,
+          "rage_wall_radius": 24.0,
+          "regen_after_seconds": 10,
+          "regen_percent_per_second": 2,
+          "reset_after_seconds": 30
+        },
+        "damage_multipliers": {
+          "counter": 1.25,
+          "head_invulnerability_seconds": 0.5,
+          "planted": 1.25,
+          "staggered": 1.5,
+          "stem_and_base": "Parade : tiges et pied renvoient les coups et les flèches",
+          "venom": 1.5,
+          "weapons": "Toutes : épées, haches, arcs, arbalètes, tridents, lances, frondes, projectiles d'autres mods"
+        },
+        "heads": [
+          {
+            "bone": "head",
+            "core": true,
+            "health": 360.0,
+            "id": "main",
+            "scale": 1.0
+          },
+          {
+            "bone": "head2",
+            "core": false,
+            "health": 180.0,
+            "id": "left",
+            "scale": 0.7
+          },
+          {
+            "bone": "head3",
+            "core": false,
+            "health": 180.0,
+            "id": "right",
+            "scale": 0.7
+          }
+        ],
+        "health_scaling": [
+          {
+            "main": 360.0,
+            "players": 1,
+            "side": 180.0,
+            "total": 720.0
+          },
+          {
+            "main": 540.0,
+            "players": 2,
+            "side": 270.0,
+            "total": 1080.0
+          },
+          {
+            "main": 720.0,
+            "players": 3,
+            "side": 360.0,
+            "total": 1440.0
+          },
+          {
+            "main": 900.0,
+            "players": 4,
+            "side": 450.0,
+            "total": 1800.0
+          },
+          {
+            "main": 1080.0,
+            "players": 5,
+            "side": 540.0,
+            "total": 2160.0
+          },
+          {
+            "main": 1260.0,
+            "players": 6,
+            "side": 630.0,
+            "total": 2520.0
+          }
+        ],
+        "moves": [
+          {
+            "blockable": true,
+            "cooldown_seconds": 3.5,
+            "counterable": true,
+            "damage": 14.0,
+            "head": "side",
+            "id": "bite",
+            "stages": [
+              1,
+              2,
+              3
+            ],
+            "telegraph": "red",
+            "weights": [
+              26,
+              26,
+              26
+            ]
+          },
+          {
+            "blockable": true,
+            "cooldown_seconds": 6.5,
+            "counterable": true,
+            "damage": 16.0,
+            "head": "side",
+            "id": "slam",
+            "stages": [
+              1,
+              2,
+              3
+            ],
+            "telegraph": "red",
+            "weights": [
+              11,
+              11,
+              11
+            ]
+          },
+          {
+            "blockable": true,
+            "cooldown_seconds": 8.5,
+            "counterable": true,
+            "damage": 16.0,
+            "head": "both_sides",
+            "id": "scissors",
+            "stages": [
+              1
+            ],
+            "telegraph": "red",
+            "weights": [
+              12,
+              0,
+              0
+            ]
+          },
+          {
+            "blockable": false,
+            "cooldown_seconds": 8.5,
+            "counterable": false,
+            "damage": 10.0,
+            "head": "body",
+            "id": "whip",
+            "stages": [
+              1,
+              2,
+              3
+            ],
+            "telegraph": "brown",
+            "weights": [
+              14,
+              11,
+              11
+            ]
+          },
+          {
+            "blockable": false,
+            "cooldown_seconds": 8.5,
+            "counterable": true,
+            "damage": 6.0,
+            "head": "main",
+            "id": "spit",
+            "stages": [
+              1,
+              2,
+              3
+            ],
+            "telegraph": "green",
+            "weights": [
+              9,
+              7,
+              5
+            ]
+          },
+          {
+            "blockable": true,
+            "cooldown_seconds": 9.5,
+            "counterable": true,
+            "damage": 3.0,
+            "head": "main",
+            "id": "seeds",
+            "stages": [
+              2,
+              3
+            ],
+            "telegraph": "green",
+            "weights": [
+              0,
+              9,
+              9
+            ]
+          },
+          {
+            "blockable": false,
+            "cooldown_seconds": 8.5,
+            "counterable": false,
+            "damage": 3.0,
+            "head": "main",
+            "id": "snare",
+            "stages": [
+              2,
+              3
+            ],
+            "telegraph": "vine",
+            "weights": [
+              0,
+              14,
+              14
+            ]
+          },
+          {
+            "blockable": true,
+            "cooldown_seconds": 3.0,
+            "counterable": true,
+            "damage": 18.0,
+            "head": "main",
+            "id": "bite_main",
+            "stages": [
+              3
+            ],
+            "telegraph": "red",
+            "weights": [
+              0,
+              0,
+              22
+            ]
+          },
+          {
+            "blockable": true,
+            "cooldown_seconds": 7.5,
+            "counterable": true,
+            "damage": 12.0,
+            "head": "body",
+            "id": "triple",
+            "stages": [
+              2,
+              3
+            ],
+            "telegraph": "red",
+            "weights": [
+              0,
+              12,
+              12
+            ]
+          },
+          {
+            "blockable": true,
+            "cooldown_seconds": 4.5,
+            "counterable": true,
+            "damage": 18.0,
+            "head": "body",
+            "id": "plunge",
+            "stages": [
+              3
+            ],
+            "telegraph": "red",
+            "weights": [
+              0,
+              0,
+              16
+            ]
+          },
+          {
+            "blockable": false,
+            "cooldown_seconds": 10.0,
+            "counterable": true,
+            "damage": 12.0,
+            "head": "body",
+            "id": "quake",
+            "stages": [
+              3
+            ],
+            "telegraph": "brown",
+            "weights": [
+              0,
+              0,
+              12
+            ]
+          },
+          {
+            "blockable": false,
+            "cooldown_seconds": 12.0,
+            "counterable": false,
+            "damage": 6.0,
+            "head": "none",
+            "id": "rain",
+            "stages": [
+              3
+            ],
+            "telegraph": "green",
+            "weights": [
+              0,
+              0,
+              8
+            ]
+          },
+          {
+            "blockable": false,
+            "cooldown_seconds": 6.0,
+            "counterable": false,
+            "damage": 9.0,
+            "head": "none",
+            "id": "eruption",
+            "stages": [
+              3
+            ],
+            "telegraph": "brown",
+            "weights": [
+              0,
+              0,
+              14
+            ]
+          },
+          {
+            "blockable": false,
+            "cooldown_seconds": 5.0,
+            "counterable": false,
+            "damage": 14.0,
+            "head": "dead_side",
+            "id": "carcass",
+            "stages": [
+              3
+            ],
+            "telegraph": "red",
+            "weights": [
+              0,
+              0,
+              14
+            ]
+          },
+          {
+            "blockable": false,
+            "cooldown_seconds": 26.0,
+            "counterable": false,
+            "damage": 12.0,
+            "head": "body",
+            "id": "burrow",
+            "stages": [
+              1,
+              2,
+              3
+            ],
+            "telegraph": "brown",
+            "weights": [
+              9,
+              9,
+              9
+            ]
+          }
+        ],
+        "sap": {
+          "counter_bonus": 0.35,
+          "critical_factor": 1.35,
+          "gain_factor": 2.2,
+          "melee_factor": 1.5,
+          "planted_factor": 1.2
+        },
+        "spawn": {
+          "bar_fill_end_seconds": 14.0,
+          "bar_fill_start_seconds": 10.0,
+          "bar_show_seconds": 9.0,
+          "burst_seconds": 7.5,
+          "duration_seconds": 15.0,
+          "invulnerable": true,
+          "roar_seconds": 11.3,
+          "timeline": [
+            {
+              "id": "rumble",
+              "seconds": 0.0,
+              "text": "Le sol gronde, le brouillard vert monte, la musique démarre."
+            },
+            {
+              "id": "roots",
+              "seconds": 1.2,
+              "text": "Des racines percent le sol en cercle."
+            },
+            {
+              "id": "fingers",
+              "seconds": 3.5,
+              "text": "Les lianes de la base sortent et grattent la terre."
+            },
+            {
+              "id": "silence",
+              "seconds": 6.0,
+              "text": "Tout se fige : un souffle grave monte."
+            },
+            {
+              "id": "burst",
+              "seconds": 7.5,
+              "text": "La plante jaillit sur le coup de la musique et repousse les joueurs."
+            },
+            {
+              "id": "unfurl",
+              "seconds": 8.0,
+              "text": "Les trois têtes s'ouvrent l'une après l'autre."
+            },
+            {
+              "id": "stare",
+              "seconds": 10.0,
+              "text": "La tête centrale se penche vers le joueur le plus proche."
+            },
+            {
+              "id": "roar",
+              "seconds": 11.3,
+              "text": "Rugissement à trois voix ; la barre de vie se remplit."
+            },
+            {
+              "id": "fight",
+              "seconds": 15.0,
+              "text": "Le combat commence."
+            }
+          ]
+        },
+        "stages": [
+          {
+            "index": 1,
+            "moves": [
+              "bite",
+              "slam",
+              "scissors",
+              "whip",
+              "spit",
+              "burrow"
+            ],
+            "name": "Trinité",
+            "text": "Trois têtes vivantes ; la tête centrale est scellée (invulnérable) tant qu'une tête latérale vit.",
+            "transition_seconds": 3.0
+          },
+          {
+            "index": 2,
+            "moves": [
+              "bite",
+              "slam",
+              "whip",
+              "spit",
+              "seeds",
+              "snare",
+              "triple",
+              "burrow"
+            ],
+            "name": "Veuve",
+            "text": "Une tête latérale est morte : elle pend et laisse une flaque toxique permanente. Les attaques du stade 1 restent.",
+            "transition_seconds": 3.0
+          },
+          {
+            "index": 3,
+            "moves": [
+              "bite",
+              "slam",
+              "whip",
+              "spit",
+              "seeds",
+              "snare",
+              "bite_main",
+              "triple",
+              "plunge",
+              "quake",
+              "rain",
+              "eruption",
+              "carcass",
+              "burrow"
+            ],
+            "name": "Rage",
+            "text": "Les deux têtes latérales sont mortes : la tête centrale devient vulnérable, un mur de ronces ferme l'arène, les têtes mortes servent de massues.",
+            "transition_seconds": 4.5
+          }
+        ],
+        "telegraphs": {
+          "brown": "Ce qui vient du sol (racines, ondes, éruptions) : sauter au passage de l'onde ou s'écarter.",
+          "green": "Poison et spores : quitter la zone avant l'éclatement.",
+          "red": "Coup direct d'une tête (morsure, écrasement, plongeon) : sortir de la ligne ou du cercle.",
+          "vine": "Lianes-piège : ne pas entrer dans le cercle vert tant qu'il est armé."
+        },
+        "timings": {
+          "bite_main_impact_seconds": 1.35,
+          "bite_side_impact_seconds": 1.25,
+          "burrow_eruption_radius": 4.7,
+          "burrow_eruption_seconds": 4.4,
+          "burrow_seconds": 6.4,
+          "chew_bites": 4,
+          "chew_release_seconds": 2.6,
+          "counter_window_seconds": 0.3,
+          "desperation_seconds": 8.0,
+          "desperation_sectors": 8,
+          "desperation_waves": 5,
+          "dissolve_end_seconds": 51.25,
+          "dissolve_start_seconds": 6.25,
+          "final_death_seconds": 52.5,
+          "head_tell_seconds": 0.5,
+          "plunge_impact_seconds": 1.75,
+          "quake_slam_seconds": 2.3,
+          "quake_wave_gap_seconds": 0.5,
+          "quake_wave_speed_blocks_per_second": 11.0,
+          "slam_impact_seconds": 1.4,
+          "slam_miss_extra_seconds": 0.5,
+          "slam_planted_seconds": 1.5,
+          "snare_armed_seconds": 2.5,
+          "snare_radius": 1.8,
+          "snare_warn_seconds": 1.5,
+          "spore_radius": 2.5,
+          "sprout_arm_seconds": 1.5,
+          "sprout_life_seconds": 11.0,
+          "stagger_immunity_seconds": 10.0,
+          "stagger_seconds": 3.7,
+          "whip_radius_end": 12.5,
+          "whip_wave_start_seconds": 1.3
+        }
+      },
+      "gameplay": {
+        "entity_color_hex": "#7B9E4F",
+        "fights_in_arena": false,
+        "summon": "/summon ow:plant_empress"
+      },
+      "history": {
+        "created": "2026-11-13T18:47:02.5023786+01:00",
+        "created_date": "2026-11-13",
+        "file": "src/main/java/net/tiew/operationWild/entity/bosses/PlantEmpressEntity.java",
+        "last_modified": "2026-11-13T18:53:09.5378856+01:00",
+        "last_modified_date": "2026-11-13",
+        "size_bytes": 57255
+      },
+      "id": "ow:plant_empress",
+      "names": {
+        "fr_fr": "Impératrice Végétale"
+      },
+      "path": "plant_empress",
+      "simple_class": "PlantEmpressEntity",
+      "size": {
+        "height": 4.0,
+        "main_head_height_blocks": 9.6,
+        "render_scale": 1.2,
+        "side_head_height_blocks": 7.2,
+        "width": 3.2
+      },
+      "sounds": [
+        {
+          "constant": "PLANT_EMPRESS_THEME",
+          "id": "ow:plant_empress_theme",
+          "path": "plant_empress_theme"
+        },
+        {
+          "constant": "PLANT_EMPRESS_THEME_LITE",
+          "id": "ow:plant_empress_theme_lite",
+          "path": "plant_empress_theme_lite"
+        },
+        {
+          "constant": "PLANT_EMPRESS_DEFEATED_THEME",
+          "id": "ow:plant_empress_defeated",
+          "path": "plant_empress_defeated"
+        },
+        {
+          "constant": "PLANT_EMPRESS_RUMBLE",
+          "id": "ow:plant_empress_rumble",
+          "path": "plant_empress_rumble",
+          "subtitle": {
+            "fr_fr": "Le sol gronde"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_HEARTBEAT",
+          "id": "ow:plant_empress_heartbeat",
+          "path": "plant_empress_heartbeat",
+          "subtitle": {
+            "fr_fr": "Battement de cœur monstrueux"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_BREATH",
+          "id": "ow:plant_empress_breath",
+          "path": "plant_empress_breath",
+          "subtitle": {
+            "fr_fr": "Quelque chose respire sous terre"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_BURST",
+          "id": "ow:plant_empress_burst",
+          "path": "plant_empress_burst",
+          "subtitle": {
+            "fr_fr": "L'Impératrice végétale jaillit"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_UNFURL",
+          "id": "ow:plant_empress_unfurl",
+          "path": "plant_empress_unfurl",
+          "subtitle": {
+            "fr_fr": "Des pétales se déploient"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_ROAR",
+          "id": "ow:plant_empress_roar",
+          "path": "plant_empress_roar",
+          "subtitle": {
+            "fr_fr": "L'Impératrice végétale rugit"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_AMBIENT",
+          "id": "ow:plant_empress_ambient",
+          "path": "plant_empress_ambient",
+          "subtitle": {
+            "fr_fr": "L'Impératrice végétale siffle"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_HURT",
+          "id": "ow:plant_empress_hurt",
+          "path": "plant_empress_hurt",
+          "subtitle": {
+            "fr_fr": "L'Impératrice végétale souffre"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_DEATH",
+          "id": "ow:plant_empress_death",
+          "path": "plant_empress_death",
+          "subtitle": {
+            "fr_fr": "L'Impératrice végétale se fane"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_HEAD_DEATH",
+          "id": "ow:plant_empress_head_death",
+          "path": "plant_empress_head_death",
+          "subtitle": {
+            "fr_fr": "Une tête meurt"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_PARRY",
+          "id": "ow:plant_empress_parry",
+          "path": "plant_empress_parry",
+          "subtitle": {
+            "fr_fr": "L'écorce résiste"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_SEALED",
+          "id": "ow:plant_empress_sealed",
+          "path": "plant_empress_sealed",
+          "subtitle": {
+            "fr_fr": "Le sceau d'épines repousse"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_COUNTER",
+          "id": "ow:plant_empress_counter",
+          "path": "plant_empress_counter",
+          "subtitle": {
+            "fr_fr": "Contre-attaque"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_STAGGER",
+          "id": "ow:plant_empress_stagger",
+          "path": "plant_empress_stagger",
+          "subtitle": {
+            "fr_fr": "Une tête s'effondre"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_DODGE",
+          "id": "ow:plant_empress_dodge",
+          "path": "plant_empress_dodge",
+          "subtitle": {
+            "fr_fr": "Une tête esquive"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_SNARE",
+          "id": "ow:plant_empress_snare",
+          "path": "plant_empress_snare",
+          "subtitle": {
+            "fr_fr": "Des lianes fouettent"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_ROOTS",
+          "id": "ow:plant_empress_roots",
+          "path": "plant_empress_roots",
+          "subtitle": {
+            "fr_fr": "Des racines déchirent le sol"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_SLAM",
+          "id": "ow:plant_empress_slam",
+          "path": "plant_empress_slam",
+          "subtitle": {
+            "fr_fr": "Impact violent"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_LUNGE",
+          "id": "ow:plant_empress_lunge",
+          "path": "plant_empress_lunge",
+          "subtitle": {
+            "fr_fr": "Une tête se dresse"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_BITE",
+          "id": "ow:plant_empress_bite",
+          "path": "plant_empress_bite",
+          "subtitle": {
+            "fr_fr": "Des mâchoires claquent"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_SPIT_CHARGE",
+          "id": "ow:plant_empress_spit_charge",
+          "path": "plant_empress_spit_charge",
+          "subtitle": {
+            "fr_fr": "Des spores s'amassent"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_SPIT",
+          "id": "ow:plant_empress_spit",
+          "path": "plant_empress_spit",
+          "subtitle": {
+            "fr_fr": "L'Impératrice végétale crache"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_SPORE_BURST",
+          "id": "ow:plant_empress_spore_burst",
+          "path": "plant_empress_spore_burst",
+          "subtitle": {
+            "fr_fr": "Des spores éclatent"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_SEED_PLANT",
+          "id": "ow:plant_empress_seed_plant",
+          "path": "plant_empress_seed_plant",
+          "subtitle": {
+            "fr_fr": "Une graine prend racine"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_WHIP",
+          "id": "ow:plant_empress_whip",
+          "path": "plant_empress_whip",
+          "subtitle": {
+            "fr_fr": "Des racines s'enroulent"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_QUAKE_RISE",
+          "id": "ow:plant_empress_quake_rise",
+          "path": "plant_empress_quake_rise",
+          "subtitle": {
+            "fr_fr": "L'Impératrice se dresse"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_QUAKE",
+          "id": "ow:plant_empress_quake",
+          "path": "plant_empress_quake",
+          "subtitle": {
+            "fr_fr": "Le sol vole en éclats"
+          }
+        },
+        {
+          "constant": "PLANT_EMPRESS_POLLEN",
+          "id": "ow:plant_empress_pollen",
+          "path": "plant_empress_pollen",
+          "subtitle": {
+            "fr_fr": "Du pollen explose"
+          }
+        }
+      ],
+      "translation_key": "entity.ow.plant_empress"
+    }
+  ],
   "entities": [
     {
       "abilities": {
@@ -14860,337 +16018,6 @@
         "ColossalSquidWanderGoal",
         "ColossalSquidWildGrabGoal"
       ]
-    },
-    {
-      "abilities": {},
-      "attributes": {
-        "minecraft:generic.armor": 0.0,
-        "minecraft:generic.armor_toughness": 0.0,
-        "minecraft:generic.attack_damage": 4.0,
-        "minecraft:generic.attack_knockback": 0.0,
-        "minecraft:generic.burning_time": 1.0,
-        "minecraft:generic.explosion_knockback_resistance": 0.0,
-        "minecraft:generic.fall_damage_multiplier": 1.0,
-        "minecraft:generic.follow_range": 30.0,
-        "minecraft:generic.gravity": 0.08,
-        "minecraft:generic.jump_strength": 0.41999998688697815,
-        "minecraft:generic.knockback_resistance": 1.0,
-        "minecraft:generic.max_absorption": 0.0,
-        "minecraft:generic.max_health": 300.0,
-        "minecraft:generic.movement_efficiency": 0.0,
-        "minecraft:generic.movement_speed": 0.0,
-        "minecraft:generic.oxygen_bonus": 0.0,
-        "minecraft:generic.safe_fall_distance": 3.0,
-        "minecraft:generic.scale": 1.0,
-        "minecraft:generic.step_height": 0.6,
-        "minecraft:generic.water_movement_efficiency": 0.0,
-        "neoforge:nametag_distance": 64.0,
-        "neoforge:swim_speed": 1.0
-      },
-      "chapter_names": {
-        "fr_fr": "Impératrice Végétale"
-      },
-      "class": "net.tiew.operationWild.entity.bosses.PlantEmpressEntity",
-      "classification": {
-        "boss": true,
-        "family": "terrestrial",
-        "friendly": true,
-        "hierarchy": [
-          "PlantEmpressEntity",
-          "OWEntity",
-          "TamableAnimal",
-          "Animal",
-          "AgeableMob",
-          "PathfinderMob",
-          "Mob",
-          "LivingEntity",
-          "Entity",
-          "AttachmentHolder"
-        ],
-        "interfaces": [
-          "OWEntityUtils"
-        ],
-        "max_instances_per_chunk": 10,
-        "mob_category": "creature",
-        "persistent": true
-      },
-      "client": {
-        "animations": [
-          {
-            "looping": true,
-            "name": "MISC_IDLE",
-            "seconds": 6.0
-          },
-          {
-            "looping": true,
-            "name": "MISC_IDLE_RAGE",
-            "seconds": 3.0
-          },
-          {
-            "looping": false,
-            "name": "SPAWN",
-            "seconds": 7.0
-          },
-          {
-            "looping": false,
-            "name": "HEAD_2_DEAD",
-            "seconds": 2.75
-          },
-          {
-            "looping": false,
-            "name": "HEAD_3_DEAD",
-            "seconds": 2.75
-          },
-          {
-            "looping": true,
-            "name": "HEAD_2_DEAD_LOOP",
-            "seconds": 4.0
-          },
-          {
-            "looping": true,
-            "name": "HEAD_3_DEAD_LOOP",
-            "seconds": 4.0
-          },
-          {
-            "looping": false,
-            "name": "PAIN_ROAR_HEAD_2",
-            "seconds": 3.0
-          },
-          {
-            "looping": false,
-            "name": "PAIN_ROAR_HEAD_3",
-            "seconds": 3.0
-          },
-          {
-            "looping": false,
-            "name": "DEFINITION",
-            "seconds": 6.0
-          },
-          {
-            "looping": false,
-            "name": "DEFINITION",
-            "seconds": 0.75
-          },
-          {
-            "looping": false,
-            "name": "DEFINITION",
-            "seconds": 0.75
-          },
-          {
-            "looping": false,
-            "name": "DEFINITION",
-            "seconds": 0.75
-          },
-          {
-            "looping": false,
-            "name": "DEFINITION",
-            "seconds": 2.5
-          },
-          {
-            "looping": false,
-            "name": "DEFINITION",
-            "seconds": 3.0
-          },
-          {
-            "looping": false,
-            "name": "DEFINITION",
-            "seconds": 4.0
-          },
-          {
-            "looping": false,
-            "name": "DEFINITION",
-            "seconds": 4.0
-          }
-        ],
-        "layers": [
-          "PlantEmpressLayer"
-        ],
-        "model": "PlantEmpressModel",
-        "renderer": "PlantEmpressRenderer"
-      },
-      "constants": {
-        "FINAL_DEATH_TICKS": 130,
-        "HEAD_DEATH_TICKS": 55,
-        "MAX_SOMNOLENCE": 100000,
-        "SOMNOLENCE_LOSS_INTERVAL": 0,
-        "SPAWN_TICKS": 140
-      },
-      "gameplay": {
-        "allows_unowned_piloting": false,
-        "arena_terrain_mask": 1,
-        "bank_max_angle": 34.0,
-        "can_lean": false,
-        "combo_pause_delay": 2,
-        "default_skin_index": 0,
-        "entity_color": 8101455,
-        "entity_color_hex": "#7B9E4F",
-        "fights_in_arena": true,
-        "follow_owner_speed_factor": 20.0,
-        "initial_variant": 0,
-        "mounted_speed_blocks_per_second": 0.0,
-        "nap_particle_forward": 1.25,
-        "nap_particle_height": 1.15,
-        "pitch_max_angle": 45.0,
-        "prefers_cooked_meat": false,
-        "prefers_raw_meat": false,
-        "prefers_vegetables": false,
-        "rider_camera_follows_body_tilt": false,
-        "rider_seat_frame_accurate": true,
-        "rolling_figure": false,
-        "rotation_speed": 0.0,
-        "secondary_attack_count": 1,
-        "secondary_cooldown_ticks": 0,
-        "taming_experience": 0.0,
-        "teleports_to_owner": false,
-        "theoretical_scale": 0.0,
-        "unresolved": [
-          "getTemperament",
-          "maxUpStep",
-          "getDefaultGravity"
-        ],
-        "walk_speed_blocks_per_second": 0.0
-      },
-      "history": {
-        "created": "2026-02-25T10:58:13.1092156+01:00",
-        "created_date": "2026-02-25",
-        "file": "src/main/java/net/tiew/operationWild/entity/bosses/PlantEmpressEntity.java",
-        "last_modified": "2026-10-27T18:19:23.4041514+01:00",
-        "last_modified_date": "2026-10-27",
-        "size_bytes": 27311
-      },
-      "id": "ow:plant_empress",
-      "loot": {
-        "drops": [],
-        "table": "ow:entities/plant_empress",
-        "table_json": {
-          "type": "minecraft:entity"
-        }
-      },
-      "mount": {
-        "base_rider_y_offset": 2.25,
-        "changes_speed_during_combo": false,
-        "combo_speed_multiplier": 0.0,
-        "increases_speed_during_sprint": false,
-        "leaping_vehicle": false,
-        "max_vital_energy": 0.0,
-        "needs_saddle": true,
-        "rideable": true,
-        "rider_anim_y_offset": 0.0,
-        "run_speed_multiplier": 0.0,
-        "vital_energy_level_gain": 0.5,
-        "vital_energy_recuperation": 0.0,
-        "walk_speed_multiplier": 0.0,
-        "water_speed_divider": 0.0
-      },
-      "names": {
-        "fr_fr": "Impératrice Végétale"
-      },
-      "path": "plant_empress",
-      "piste": {
-        "available": false
-      },
-      "probe_resolved": true,
-      "rarity": {
-        "spawns_naturally": false,
-        "tier": "none"
-      },
-      "simple_class": "PlantEmpressEntity",
-      "size": {
-        "eye_height": 2.5500002,
-        "fixed": false,
-        "height": 3.0,
-        "theoretical_scale": 0.0,
-        "width": 2.5
-      },
-      "sounds": [
-        {
-          "constant": "PLANT_EMPRESS_THEME",
-          "id": "ow:plant_empress_theme",
-          "path": "plant_empress_theme"
-        },
-        {
-          "constant": "PLANT_EMPRESS_THEME_LITE",
-          "id": "ow:plant_empress_theme_lite",
-          "path": "plant_empress_theme_lite"
-        },
-        {
-          "constant": "PLANT_EMPRESS_DEFEATED_THEME",
-          "id": "ow:plant_empress_defeated",
-          "path": "plant_empress_defeated"
-        }
-      ],
-      "taming": {
-        "advancement": "ow:",
-        "breakout": {
-          "babies_break": false,
-          "below_percent": 80,
-          "level": 0,
-          "level_name": "any",
-          "respects_mob_griefing": true
-        },
-        "experience": 0.0,
-        "food_tiers": [
-          {
-            "items_from": "food_tags",
-            "kind": "diet",
-            "portions": 1,
-            "tier": 1
-          }
-        ],
-        "knockout": {
-          "bonus_lost_on_player_hit_only": false,
-          "flee_threshold_percent": 80,
-          "leash_drag_slack_blocks": 3.0,
-          "leash_drag_snap_blocks": 10.0,
-          "max_bonus_points": 5,
-          "meal_announce_seconds": 3.0,
-          "wake_warning_percent": 15
-        },
-        "somnolence": {
-          "decays": false,
-          "max": 100000,
-          "max_max": 120000,
-          "max_min": 80000,
-          "spread_percent": 20
-        },
-        "tameable": true,
-        "valid_projectiles": [
-          "ow:tranquilizer_arrow",
-          "ow:tranquilizer_wooden_stinger",
-          "ow:slingshot_projectile",
-          "ow:tranquilizer_dart"
-        ]
-      },
-      "textures": [
-        "textures/entity/plant_empress/plant_empress.png"
-      ],
-      "tracking": {
-        "client_tracking_range": 5,
-        "fire_immune": false,
-        "loot_table": "ow:entities/plant_empress",
-        "serializable": true,
-        "spawns_far_from_player": true,
-        "summonable": true,
-        "update_interval": 3
-      },
-      "traits": {
-        "diver": false,
-        "grabber": false,
-        "neutral_mob": false,
-        "rideable": true,
-        "rideable_jumping": false,
-        "tameable": true,
-        "waypoint": true
-      },
-      "translation_key": "entity.ow.plant_empress",
-      "variants": [
-        {
-          "deprecated": false,
-          "id": 0,
-          "name": "PLANT_EMPRESS",
-          "ordinal": 0
-        }
-      ]
     }
   ],
   "glossary": {
@@ -17706,7 +18533,7 @@
   "meta": {
     "generator": "OW Wiki Data",
     "languages": {
-      "fr_fr": 1210
+      "fr_fr": 1242
     },
     "mod_id": "ow",
     "mod_version": "0.0.1",
@@ -20375,6 +21202,146 @@
       "constant": "PLANT_EMPRESS_DEFEATED_THEME",
       "id": "ow:plant_empress_defeated",
       "path": "plant_empress_defeated"
+    },
+    {
+      "constant": "PLANT_EMPRESS_RUMBLE",
+      "id": "ow:plant_empress_rumble",
+      "path": "plant_empress_rumble"
+    },
+    {
+      "constant": "PLANT_EMPRESS_HEARTBEAT",
+      "id": "ow:plant_empress_heartbeat",
+      "path": "plant_empress_heartbeat"
+    },
+    {
+      "constant": "PLANT_EMPRESS_BREATH",
+      "id": "ow:plant_empress_breath",
+      "path": "plant_empress_breath"
+    },
+    {
+      "constant": "PLANT_EMPRESS_BURST",
+      "id": "ow:plant_empress_burst",
+      "path": "plant_empress_burst"
+    },
+    {
+      "constant": "PLANT_EMPRESS_UNFURL",
+      "id": "ow:plant_empress_unfurl",
+      "path": "plant_empress_unfurl"
+    },
+    {
+      "constant": "PLANT_EMPRESS_ROAR",
+      "id": "ow:plant_empress_roar",
+      "path": "plant_empress_roar"
+    },
+    {
+      "constant": "PLANT_EMPRESS_AMBIENT",
+      "id": "ow:plant_empress_ambient",
+      "path": "plant_empress_ambient"
+    },
+    {
+      "constant": "PLANT_EMPRESS_HURT",
+      "id": "ow:plant_empress_hurt",
+      "path": "plant_empress_hurt"
+    },
+    {
+      "constant": "PLANT_EMPRESS_DEATH",
+      "id": "ow:plant_empress_death",
+      "path": "plant_empress_death"
+    },
+    {
+      "constant": "PLANT_EMPRESS_HEAD_DEATH",
+      "id": "ow:plant_empress_head_death",
+      "path": "plant_empress_head_death"
+    },
+    {
+      "constant": "PLANT_EMPRESS_PARRY",
+      "id": "ow:plant_empress_parry",
+      "path": "plant_empress_parry"
+    },
+    {
+      "constant": "PLANT_EMPRESS_SEALED",
+      "id": "ow:plant_empress_sealed",
+      "path": "plant_empress_sealed"
+    },
+    {
+      "constant": "PLANT_EMPRESS_COUNTER",
+      "id": "ow:plant_empress_counter",
+      "path": "plant_empress_counter"
+    },
+    {
+      "constant": "PLANT_EMPRESS_STAGGER",
+      "id": "ow:plant_empress_stagger",
+      "path": "plant_empress_stagger"
+    },
+    {
+      "constant": "PLANT_EMPRESS_DODGE",
+      "id": "ow:plant_empress_dodge",
+      "path": "plant_empress_dodge"
+    },
+    {
+      "constant": "PLANT_EMPRESS_SNARE",
+      "id": "ow:plant_empress_snare",
+      "path": "plant_empress_snare"
+    },
+    {
+      "constant": "PLANT_EMPRESS_ROOTS",
+      "id": "ow:plant_empress_roots",
+      "path": "plant_empress_roots"
+    },
+    {
+      "constant": "PLANT_EMPRESS_SLAM",
+      "id": "ow:plant_empress_slam",
+      "path": "plant_empress_slam"
+    },
+    {
+      "constant": "PLANT_EMPRESS_LUNGE",
+      "id": "ow:plant_empress_lunge",
+      "path": "plant_empress_lunge"
+    },
+    {
+      "constant": "PLANT_EMPRESS_BITE",
+      "id": "ow:plant_empress_bite",
+      "path": "plant_empress_bite"
+    },
+    {
+      "constant": "PLANT_EMPRESS_SPIT_CHARGE",
+      "id": "ow:plant_empress_spit_charge",
+      "path": "plant_empress_spit_charge"
+    },
+    {
+      "constant": "PLANT_EMPRESS_SPIT",
+      "id": "ow:plant_empress_spit",
+      "path": "plant_empress_spit"
+    },
+    {
+      "constant": "PLANT_EMPRESS_SPORE_BURST",
+      "id": "ow:plant_empress_spore_burst",
+      "path": "plant_empress_spore_burst"
+    },
+    {
+      "constant": "PLANT_EMPRESS_SEED_PLANT",
+      "id": "ow:plant_empress_seed_plant",
+      "path": "plant_empress_seed_plant"
+    },
+    {
+      "constant": "PLANT_EMPRESS_WHIP",
+      "id": "ow:plant_empress_whip",
+      "path": "plant_empress_whip"
+    },
+    {
+      "constant": "PLANT_EMPRESS_QUAKE_RISE",
+      "id": "ow:plant_empress_quake_rise",
+      "path": "plant_empress_quake_rise"
+    },
+    {
+      "constant": "PLANT_EMPRESS_QUAKE",
+      "id": "ow:plant_empress_quake",
+      "path": "plant_empress_quake"
+    },
+    {
+      "constant": "PLANT_EMPRESS_POLLEN",
+      "id": "ow:plant_empress_pollen",
+      "path": "plant_empress_pollen"
     },
     {
       "constant": "MENU_MUSIC",
@@ -25859,17 +26826,6 @@
           "terrains": [
             "AQUATIC"
           ]
-        },
-        {
-          "danger": 1.0,
-          "fights_in_arena": true,
-          "id": "ow:plant_empress",
-          "path": "plant_empress",
-          "probe_resolved": true,
-          "terrain_mask": 1,
-          "terrains": [
-            "TERRESTRIAL"
-          ]
         }
       ],
       "terrains": [
@@ -26514,11 +27470,6 @@
           "carries_flag": false,
           "id": "ow:colossal_squid",
           "model": "ColossalSquidModel"
-        },
-        {
-          "carries_flag": false,
-          "id": "ow:plant_empress",
-          "model": "PlantEmpressModel"
         }
       ],
       "survives_unloaded_chunks": true
@@ -30843,19 +31794,6 @@
           "danger": 1.0,
           "id": "ow:colossal_squid",
           "path": "colossal_squid",
-          "value_by_level": {
-            "1": 11.4,
-            "10": 24.0,
-            "25": 45.0,
-            "40": 66.0,
-            "49": 78.6,
-            "50": 255.0
-          }
-        },
-        {
-          "danger": 1.0,
-          "id": "ow:plant_empress",
-          "path": "plant_empress",
           "value_by_level": {
             "1": 11.4,
             "10": 24.0,

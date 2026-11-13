@@ -126,6 +126,34 @@ public class OWSounds {
     public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_THEME_LITE = registerSoundEvent("plant_empress_theme_lite");
     public static final ResourceKey<JukeboxSong> PLANT_EMPRESS_THEME_LITE_KEY = ResourceKey.create(Registries.JUKEBOX_SONG, ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "plant_empress_theme_lite"));
     public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_DEFEATED_THEME = registerSoundEvent("plant_empress_defeated");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_RUMBLE = registerSoundEvent("plant_empress_rumble");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_HEARTBEAT = registerSoundEvent("plant_empress_heartbeat");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_BREATH = registerSoundEvent("plant_empress_breath");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_BURST = registerSoundEvent("plant_empress_burst");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_UNFURL = registerSoundEvent("plant_empress_unfurl");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_ROAR = registerSoundEvent("plant_empress_roar");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_AMBIENT = registerSoundEvent("plant_empress_ambient");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_HURT = registerSoundEvent("plant_empress_hurt");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_DEATH = registerSoundEvent("plant_empress_death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_HEAD_DEATH = registerSoundEvent("plant_empress_head_death");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_PARRY = registerSoundEvent("plant_empress_parry");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_SEALED = registerSoundEvent("plant_empress_sealed");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_COUNTER = registerSoundEvent("plant_empress_counter");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_STAGGER = registerSoundEvent("plant_empress_stagger");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_DODGE = registerSoundEvent("plant_empress_dodge");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_SNARE = registerSoundEvent("plant_empress_snare");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_ROOTS = registerSoundEvent("plant_empress_roots");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_SLAM = registerSoundEvent("plant_empress_slam");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_LUNGE = registerSoundEvent("plant_empress_lunge");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_BITE = registerSoundEvent("plant_empress_bite");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_SPIT_CHARGE = registerSoundEvent("plant_empress_spit_charge");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_SPIT = registerSoundEvent("plant_empress_spit");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_SPORE_BURST = registerSoundEvent("plant_empress_spore_burst");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_SEED_PLANT = registerSoundEvent("plant_empress_seed_plant");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_WHIP = registerSoundEvent("plant_empress_whip");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_QUAKE_RISE = registerSoundEvent("plant_empress_quake_rise");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_QUAKE = registerSoundEvent("plant_empress_quake");
+    public static final DeferredHolder<SoundEvent, SoundEvent> PLANT_EMPRESS_POLLEN = registerSoundEvent("plant_empress_pollen");
 
     /** Thème du menu principal (écran-titre), joué en boucle. */
     public static final DeferredHolder<SoundEvent, SoundEvent> MENU_MUSIC = registerSoundEvent("menu_music");

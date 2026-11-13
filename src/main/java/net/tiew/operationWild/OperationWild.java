@@ -284,6 +284,10 @@ public class OperationWild {
             EntityRenderers.register(OWEntityRegistry.FEAST_PILE.get(), net.tiew.operationWild.entity.client.render.FeastPileRenderer::new);
             EntityRenderers.register(OWEntityRegistry.SEABUG.get(), SeaBugRenderer::new);
             EntityRenderers.register(OWEntityRegistry.PLANT_EMPRESS.get(), PlantEmpressRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.EMPRESS_SEED.get(), net.tiew.operationWild.entity.client.render.EmpressHazardRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.EMPRESS_THORN_BUSH.get(), net.tiew.operationWild.entity.client.render.EmpressSproutRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.EMPRESS_ROOT_SPIKE.get(), net.tiew.operationWild.entity.client.render.EmpressHazardRenderer::new);
+            EntityRenderers.register(OWEntityRegistry.EMPRESS_VINE_SNARE.get(), net.tiew.operationWild.entity.client.render.EmpressHazardRenderer::new);
             EntityRenderers.register(OWEntityRegistry.PRIMITIVE_SPEAR_PROJECTILE.get(), PrimitiveSpearProjectileRenderer::new);
             EntityRenderers.register(OWEntityRegistry.TRANQUILIZER_ARROW.get(), TranquilizerArrowRenderer::new);
             EntityRenderers.register(OWEntityRegistry.WOODEN_STINGER.get(), WoodenStingerRenderer::new);

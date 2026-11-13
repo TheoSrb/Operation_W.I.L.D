@@ -11,6 +11,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
+import net.tiew.operationWild.entity.bosses.plantempress.EmpressTimings;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,9 +23,10 @@ import java.util.Set;
 
 public class PlantEmpressBossBar {
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(OperationWild.MOD_ID, "textures/overlay/boss_bars/plant_empress_boss_bar.png");
-    private static final double RENDER_DISTANCE = 100.0;
-    private static final float SIDE_MAX = 75.0f;
-    private static final float CENTER_MAX = 150.0f;
+    private static final double RENDER_DISTANCE = 72.0;
+    private static final int SAP_COLOR = 0xFFF2C14E;
+    private static final int SAP_BACK = 0x99101808;
+    private static final int REFLEX_COLOR = 0xFFFFE08A;
     private static final int FRAME_WIDTH = 254;
     private static final int BAR_SPACING = 60;
     private static final int TOP = 4;
@@ -82,6 +84,7 @@ public class PlantEmpressBossBar {
                 PlantEmpressEntity.class,
                 player.getBoundingBox().inflate(RENDER_DISTANCE),
                 boss -> !boss.isRemoved() && player.distanceTo(boss) <= RENDER_DISTANCE
+                        && (boss.isDeadOrDying() || boss.introBarAlpha(partialTick) > 0f)
         );
 
         Set<Integer> seen = new HashSet<>();
@@ -107,17 +110,20 @@ public class PlantEmpressBossBar {
         TRACKS.keySet().removeIf(id -> !seen.contains(id));
     }
 
-    private static float[] lives(PlantEmpressEntity boss) {
+    private static float[] lives(PlantEmpressEntity boss, float partialTick) {
+        float intro = Math.max(0f, boss.introBarProgress(partialTick));
+        float side = Mth.clamp(intro / 0.65f, 0f, 1f);
+        float center = Mth.clamp((intro - 0.35f) / 0.65f, 0f, 1f);
         return new float[]{
-                Mth.clamp(boss.getHead1Life() / CENTER_MAX, 0.0f, 1.0f),
-                Mth.clamp(boss.getHead2Life() / SIDE_MAX, 0.0f, 1.0f),
-                Mth.clamp(boss.getHead3Life() / SIDE_MAX, 0.0f, 1.0f)
+                boss.getHeadFraction(0) * center,
+                boss.getHeadFraction(1) * side,
+                boss.getHeadFraction(2) * side
         };
     }
 
     private static void update(Track track, PlantEmpressEntity boss) {
-        float[] now = lives(boss);
-        if (!track.initialized) {
+        float[] now = lives(boss, 0f);
+        if (!track.initialized || boss.introBarProgress(0f) < 1f) {
             System.arraycopy(now, 0, track.lag, 0, 3);
             System.arraycopy(now, 0, track.last, 0, 3);
             track.initialized = true;
@@ -131,7 +137,7 @@ public class PlantEmpressBossBar {
             if (now[k] < track.last[k]) {
                 track.flash[k] = FLASH_TICKS;
                 track.hold[k] = LAG_HOLD_TICKS;
-                if (now[k] <= 0 && k != CENTER) spawnLeaves(track, k);
+                if (boss.isChainDead(k) && k != CENTER) spawnLeaves(track, k);
             }
             if (track.flash[k] > 0) track.flash[k]--;
             if (now[k] >= track.lag[k]) {
@@ -196,16 +202,21 @@ public class PlantEmpressBossBar {
     }
 
     private static void renderBar(GuiGraphics g, Font font, PlantEmpressEntity boss, Track track, int x, int y, float partialTick) {
-        float[] life = lives(boss);
+        float[] life = lives(boss, partialTick);
         boolean dying = boss.isDeadOrDying();
-        boolean leftDead = life[LEFT] <= 0;
-        boolean rightDead = life[RIGHT] <= 0;
+        boolean leftDead = boss.isChainDead(LEFT);
+        boolean rightDead = boss.isChainDead(RIGHT);
         boolean sealed = !(leftDead && rightDead);
-        boolean centerDead = life[CENTER] <= 0 || dying;
+        boolean centerDead = dying;
+        float intro = boss.introBarProgress(partialTick);
         boolean rage = !sealed && !centerDead;
 
-        float alpha = dying ? Mth.clamp((PlantEmpressEntity.FINAL_DEATH_TICKS - track.deathTicks - partialTick) / FADE_TICKS, 0.0f, 1.0f) : 1.0f;
+        float alpha = dying ? Mth.clamp((EmpressTimings.BAR_FADE_END - track.deathTicks - partialTick) / FADE_TICKS, 0.0f, 1.0f)
+                : boss.introBarAlpha(partialTick);
         if (alpha <= 0) return;
+        if (!dying && alpha < 1f) {
+            g.pose().translate(0, (1f - alpha) * -12f, 0);
+        }
         g.setColor(1.0f, 1.0f, 1.0f, alpha);
 
         float time = boss.tickCount + partialTick;
@@ -258,9 +269,21 @@ public class PlantEmpressBossBar {
         }
         g.setColor(1.0f, 1.0f, 1.0f, alpha);
 
-        Component name = Component.translatable("entity.ow.plant_empress");
-        int textWidth = font.width(name);
-        int midWidth = textWidth + 10;
+        if (!dying && intro >= 1f) {
+            sap(g, x + 48, y + 47, 24, boss.getSap(LEFT), boss.getReflexes(LEFT), leftDead, alpha);
+            sap(g, x + 182, y + 47, 24, boss.getSap(RIGHT), boss.getReflexes(RIGHT), rightDead, alpha);
+            if (!sealed) sap(g, x + 112, y - 5, 30, boss.getSap(CENTER), boss.getReflexes(CENTER), false, alpha);
+        }
+
+        Component fullName = Component.translatable("entity.ow.plant_empress");
+        String nameText = fullName.getString();
+        if (intro >= 0f && intro < 1f) {
+            int letters = Mth.clamp(Math.round(nameText.length() * Mth.clamp(intro * 1.4f, 0f, 1f)), 0, nameText.length());
+            nameText = nameText.substring(0, letters);
+        }
+        Component name = Component.literal(nameText);
+        int fullWidth = font.width(fullName);
+        int midWidth = fullWidth + 10;
         int bannerX = x + FRAME_WIDTH / 2 - (midWidth + 24) / 2;
         int bannerY = y + 42;
         blit(g, bannerX, bannerY, 216, 194, 12, 14);
@@ -276,6 +299,18 @@ public class PlantEmpressBossBar {
         if (alpha > 0.1f) {
             int color = (rage ? TEXT_RAGE_COLOR : TEXT_COLOR) | ((int) (alpha * 255) << 24);
             g.drawString(font, name, bannerX + 12 + 5, bannerY + 3, color, true);
+        }
+    }
+
+    private static void sap(GuiGraphics g, int x, int y, int width, float sap, int reflexes, boolean dead, float alpha) {
+        if (dead) return;
+        int a = (int) (alpha * 255) << 24;
+        g.fill(x - 1, y - 1, x + width + 1, y + 2, (SAP_BACK & 0xFFFFFF) | ((int) (alpha * 0x99) << 24));
+        int filled = Math.round(width * Mth.clamp(sap, 0f, 1f));
+        if (filled > 0) g.fill(x, y, x + filled, y + 1, (SAP_COLOR & 0xFFFFFF) | a);
+        for (int i = 0; i < reflexes; i++) {
+            int px = x + width + 3 + i * 4;
+            g.fill(px, y - 1, px + 2, y + 1, (REFLEX_COLOR & 0xFFFFFF) | a);
         }
     }
 
