@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.bosses.plantempress;
 
+import net.tiew.operationWild.particle.EmpressFx;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -23,7 +24,7 @@ import net.minecraft.world.phys.AABB;
 import net.tiew.operationWild.entity.OWEntityRegistry;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 
-public class EmpressThornBush extends Entity implements EmpressHazardVisual {
+public class EmpressThornBush extends Entity implements EmpressHazardVisual, net.tiew.operationWild.entity.bosses.OWBossTarget {
 
     public static final int ARM_TICKS = 30;
     public static final int LIFE_TICKS = 220;
@@ -83,13 +84,25 @@ public class EmpressThornBush extends Entity implements EmpressHazardVisual {
     @Override
     public boolean hurt(DamageSource source, float amount) {
         if (this.level().isClientSide() || this.isRemoved()) return false;
-        if (source.getEntity() instanceof Player || source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.Projectile) {
+        Entity attacker = source.getEntity();
+        boolean struck = attacker instanceof LivingEntity && attacker != owner && !(attacker instanceof PlantEmpressEntity);
+        if (struck || source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.Projectile) {
             this.level().playSound(null, getX(), getY(), getZ(), SoundEvents.BIG_DRIPLEAF_BREAK, SoundSource.BLOCKS, 1f, 1.2f);
 
             wither((ServerLevel) this.level());
             return true;
         }
         return false;
+    }
+
+    @Override
+    public Entity strikeGroup() {
+        return this;
+    }
+
+    @Override
+    public int strikePriority() {
+        return 2;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.bosses.plantempress;
 
+import net.tiew.operationWild.particle.EmpressFx;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -50,6 +51,10 @@ public class EmpressSeedProjectile extends Entity implements EmpressHazardVisual
         seed.setPos(from.x, from.y, from.z);
         Vec3 delta = landing.subtract(from);
         seed.setDeltaMovement(delta.x / flight, delta.y / flight + 0.5 * GRAVITY * flight, delta.z / flight);
+        if (level instanceof net.minecraft.server.level.ServerLevel server) {
+            if (kind == SPORE) EmpressFx.decal(server, EmpressFx.SPORE, landing, SPORE_RADIUS, flight, server.random.nextFloat() * 360f);
+            else EmpressFx.decal(server, EmpressFx.SEED, landing, 0.9, flight + 4, server.random.nextFloat() * 360f);
+        }
         return seed;
     }
 

@@ -307,7 +307,7 @@ de charge au relâchement.
 
 ── 6. Enregistrer dans registerAll() ────────────────────────
 
-    registerEntityRow(CrocodileEntity.class, 1);  // rangée 1 dans l'overlay
+    registerCardOrigin(CrocodileEntity.class, 0, 40);  // carte de combo dans ow_entity_attacks_cards.png
     register(CrocodileEntity.class, CrocodileAttacks.BITE_ATTACK);
 
 ------------------------------------------------------------
@@ -318,7 +318,7 @@ de charge au relâchement.
   2. Dans perform : vérifier l'énergie, la consommer, appliquer l'effet.
      NE PAS appeler setDeltaMovement ici si l'entité est un véhicule monté.
   3. Déclarer OWChargedAttack dans OWAttacksHandler (inner class par animal).
-  4. Enregistrer dans registerAll() avec registerEntityRow + register.
+  4. Enregistrer dans registerAll() avec registerCardOrigin + register.
   5. Si l'attaque déplace le véhicule : implémenter localEffect (setDeltaMovement).
   6. Si animation pendant la charge : lire OWAttackLogic.getChargeProgress()
      dans setupAnim() côté client.

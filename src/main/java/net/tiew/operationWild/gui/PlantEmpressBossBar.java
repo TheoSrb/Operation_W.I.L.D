@@ -28,6 +28,7 @@ public class PlantEmpressBossBar {
     private static final int SAP_BACK = 0x99101808;
     private static final int REFLEX_COLOR = 0xFFFFE08A;
     private static final int FRAME_WIDTH = 254;
+    private static final float BAR_SCALE = 0.9f;
     private static final int BAR_SPACING = 60;
     private static final int TOP = 4;
     private static final int VISIBLE = 34;
@@ -88,7 +89,7 @@ public class PlantEmpressBossBar {
         );
 
         Set<Integer> seen = new HashSet<>();
-        float scale = Math.min(1.0f, (screenWidth - 16) / (float) FRAME_WIDTH);
+        float scale = Math.min(BAR_SCALE, (screenWidth - 16) / (float) FRAME_WIDTH);
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();

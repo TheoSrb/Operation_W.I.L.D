@@ -1,6 +1,9 @@
 package net.tiew.operationWild.particle;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.bus.api.IEventBus;
@@ -21,4 +24,15 @@ public class OWParticles {
     public static final Supplier<SimpleParticleType> WATER_SPLAT_PARTICLE = PARTICLE_TYPES.register("water_splat_particle", () -> new SimpleParticleType(true));
     public static final Supplier<SimpleParticleType> DIZZY_STAR = PARTICLE_TYPES.register("dizzy_star", () -> new SimpleParticleType(true));
     public static final Supplier<SimpleParticleType> AIM_MARKER = PARTICLE_TYPES.register("aim_marker", () -> new SimpleParticleType(true));
+    public static final Supplier<ParticleType<EmpressFxOptions>> PLANT_EMPRESS_FX = PARTICLE_TYPES.register("plant_empress_fx", () -> new ParticleType<EmpressFxOptions>(true) {
+        @Override
+        public MapCodec<EmpressFxOptions> codec() {
+            return EmpressFxOptions.CODEC;
+        }
+
+        @Override
+        public StreamCodec<? super RegistryFriendlyByteBuf, EmpressFxOptions> streamCodec() {
+            return EmpressFxOptions.STREAM_CODEC;
+        }
+    });
 }

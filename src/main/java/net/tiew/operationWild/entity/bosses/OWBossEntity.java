@@ -45,14 +45,22 @@ public abstract class OWBossEntity extends Monster {
         return player.isAlive() && !player.isSpectator() && !player.isCreative();
     }
 
-    public void engage(Entity entity) {
+    public static Entity credit(Entity entity) {
+        if (entity == null || entity instanceof Player) return entity;
+        if (entity.getControllingPassenger() instanceof Player rider) return rider;
+        if (entity instanceof net.minecraft.world.entity.OwnableEntity ownable && ownable.getOwner() instanceof Player owner) return owner;
+        return entity;
+    }
+
+    public void engage(Entity source) {
+        Entity entity = credit(source);
         if (entity instanceof Player player && isValidFighter(player)) {
             engagement.put(player.getUUID(), this.level().getGameTime());
         }
     }
 
-    public void addThreat(Entity entity, float amount) {
-        if (!(entity instanceof Player player)) return;
+    public void addThreat(Entity source, float amount) {
+        if (!(credit(source) instanceof Player player)) return;
         threat.merge(player.getUUID(), amount, Float::sum);
         engage(player);
     }

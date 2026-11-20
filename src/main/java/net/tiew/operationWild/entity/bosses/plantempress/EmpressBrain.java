@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.bosses.plantempress;
 
+import net.tiew.operationWild.particle.EmpressFx;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
@@ -473,6 +474,10 @@ public class EmpressBrain {
 
     public void addBurst(Vec3 center, float radius, long fireAt, int warn, float damage, boolean poison) {
         bursts.add(new Burst(center, radius, fireAt, warn, damage, poison));
+        if (boss.level() instanceof ServerLevel level) {
+            int life = (int) Math.max(4, fireAt - boss.now());
+            EmpressFx.decal(level, poison ? EmpressFx.SPORE : EmpressFx.ROOTS, center, radius, life, boss.getRandom().nextFloat() * 360f);
+        }
     }
 
     private void tickGuard(ServerLevel level, long now) {
@@ -492,6 +497,7 @@ public class EmpressBrain {
             boss.playBossSound(OWSounds.PLANT_EMPRESS_ROOTS.get(), 2.5f, 0.6f);
             boss.broadcastEvent(PlantEmpressEntity.EVENT_TREMOR);
             boss.setStemAction(EmpressAnim.STEMS_DIG);
+            EmpressFx.decal(level, EmpressFx.THORNS, boss.position(), 3.8, 16, 0f);
             for (int ring = 0; ring < 2; ring++) {
                 double radius = ring == 0 ? 2.0 : 3.4;
                 int count = ring == 0 ? 7 : 11;
@@ -545,7 +551,20 @@ public class EmpressBrain {
                     if (i % 4 == 0) level.sendParticles(ParticleTypes.SPORE_BLOSSOM_AIR, x, y + 0.5, z, 1, 0.2, 0.3, 0.2, 0.01);
                 }
                 EmpressDamage.ring(level, c, 2.5, EmpressDamage.TOXIC, 0.4);
-                if (t == fire - SECTOR_WARN) boss.playBossSound(OWSounds.PLANT_EMPRESS_SPIT_CHARGE.get(), 3f, 0.6f + w * 0.08f);
+                if (t == fire - SECTOR_WARN) {
+                    boss.playBossSound(OWSounds.PLANT_EMPRESS_SPIT_CHARGE.get(), 3f, 0.6f + w * 0.08f);
+                    float base = desperationAngle + (w / 2) * (Mth.PI / SECTORS);
+                    for (int sector = 0; sector < SECTORS; sector++) {
+                        double mid = base + (sector + 0.5) * (Mth.TWO_PI / SECTORS);
+                        if (!doomed(mid, w)) continue;
+                        for (double r = 6; r <= 18; r += 6) {
+                            double x = c.x + Math.cos(mid) * r;
+                            double z = c.z + Math.sin(mid) * r;
+                            Vec3 at = new Vec3(x, EmpressDamage.groundY(level, x, z, boss.getY()), z);
+                            EmpressFx.decal(level, EmpressFx.BLOOM, at, 1.2 + r * 0.17, SECTOR_WARN, (float) (mid * Mth.RAD_TO_DEG));
+                        }
+                    }
+                }
             }
             if (t == fire) {
                 boss.playBossSound(OWSounds.PLANT_EMPRESS_POLLEN.get(), 4f, 0.6f + w * 0.05f);
@@ -604,7 +623,8 @@ public class EmpressBrain {
         level.sendParticles(EmpressDamage.TOXIC, c.x, c.y, c.z, 50, 1, 1, 1, 0);
     }
 
-    public boolean onSnared(ServerLevel level, LivingEntity target, Vec3 at) {
+    public boolean onSnared(ServerLevel level, LivingEntity target, EmpressVineSnare snare) {
+        Vec3 at = snare.position();
         int best = -1;
         double bestDistance = Double.MAX_VALUE;
         Matrix4f[] world = boss.world();
@@ -624,7 +644,7 @@ public class EmpressBrain {
             cancelBody();
             boss.setBodyAction(null, 0f);
         }
-        running.add(new EmpressAttacks.Devour(this, best, target, at));
+        running.add(new EmpressAttacks.Devour(this, best, target, snare));
 
         reserve(target, boss.now() + EmpressTimings.CHEW_RELEASE);
         return true;

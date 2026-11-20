@@ -254,6 +254,7 @@ public class ThrownRockEntity extends ThrowableItemProjectile {
         serverLevel.playSound(null, x, y, z, SoundEvents.ROOTED_DIRT_HIT, SoundSource.NEUTRAL, 1.4f, 0.5f);
 
         AABB area = new AABB(x - radius, y - radius, z - radius, x + radius, y + radius, z + radius);
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, area, this.damageSources().thrown(this, owner), impactDamage);
 
         for (LivingEntity living : serverLevel.getEntitiesOfClass(LivingEntity.class, area)) {
             if (living == owner) continue;

@@ -39,8 +39,7 @@ import java.util.function.Function;
  * ─── Ajouter une entité ──────────────────────────────────────────────────────
  *   1. Créer un nouveau bloc dans la section "DÉFINITIONS" ci-dessous.
  *   2. PROFILES.put(MonEntity.class, new EntityProfile(...)).
- *   3. Pour les cartes, cardTexX = index × 20, cardTexY = entityRow × 40 — sauf carte secondaire
- *      interchangeable, qui porte ses propres coordonnées où qu'elles soient dans l'atlas.
+ *   3. Pour les cartes, coordonnées de la carte dans ow_entity_attacks_cards.png.
  *
  * ─── Formater du texte ───────────────────────────────────────────────────────
  *   e -> desc("ow.attacks.xxx.desc", val("3"), val(e.getDamage()))
@@ -50,11 +49,7 @@ public class OWAttacksInformation {
     // ── Textures ──────────────────────────────────────────────────────────────
     private static final ResourceLocation BG    = ResourceLocation.fromNamespaceAndPath(
             OperationWild.MOD_ID, "textures/overlay/attacks_information.png");
-    private static final ResourceLocation CARDS = ResourceLocation.fromNamespaceAndPath(
-            OperationWild.MOD_ID, "textures/overlay/ow_tamed_attacks.png");
-
-    private static final int CARD_SIZE = 20;
-    private static final int TEX_SIZE  = 256;
+    private static final int CARD_SIZE = OWAttackCards.CARD_SIZE;
     private static final int BG_W      = 256;
     private static final int BG_H      = 136;
 
@@ -145,7 +140,7 @@ public class OWAttacksInformation {
     static {
 
         // ──────────────────────────────────────────────────────────────────────
-        //  TIGRE  (entityRow = 0 dans ow_tamed_attacks.png)
+        //  TIGRE
         // ──────────────────────────────────────────────────────────────────────
         PROFILES.put(TigerEntity.class, new EntityProfile(
 
@@ -161,7 +156,7 @@ public class OWAttacksInformation {
                     val(OWAttacksConstants.Tiger.SECONDARY_COOLDOWN_TICKS / 20))
             ),
 
-            new AttackSlot(216, 216, "RMB",
+            new AttackSlot(40, 0, "RMB",
                 title("ow.attacks.tiger.primal_roar.title"),
                 e -> desc("ow.attacks.tiger.primal_roar.desc",
                     val(OWAttacksConstants.Tiger.PRIMAL_ROAR_CHARGE_MS / 1000),
@@ -170,7 +165,7 @@ public class OWAttacksInformation {
                     val(OWAttacksConstants.Tiger.SECONDARY_COOLDOWN_TICKS / 20))
             ),
 
-            new AttackSlot(40, 0, "X",
+            new AttackSlot(60, 0, "X",
                 title("ow.attacks.tiger.shadow_strike.title"),
                 e -> desc("ow.attacks.tiger.shadow_strike.desc",
                     val(OWAttacksConstants.Tiger.SHADOW_STRIKE_DURATION_TICKS / 20),
@@ -193,19 +188,19 @@ public class OWAttacksInformation {
 
         PROFILES.put(CrocodileEntity.class, new EntityProfile(
 
-                new AttackSlot(0, 80, "LMB",
+                new AttackSlot(0, 40, "LMB",
                         title("ow.attacks.crocodile.combo.title"),
                         e -> desc("ow.attacks.crocodile.combo.desc",
                                 val("0.75"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(20, 80, "RMB",
+                new AttackSlot(20, 40, "RMB",
                         title("ow.attacks.crocodile.mouth.title"),
                         e -> desc("ow.attacks.crocodile.mouth.desc",
                                 val("3"), val(OWAttacksConstants.Crocodile.MOUTH_SLAM_COOLDOWN_TICKS / 20), val(e.getDamageToClient()))
                 ),
 
-                new AttackSlot(40, 80, "X",
+                new AttackSlot(40, 40, "X",
                         title("ow.attacks.crocodile.primal_dive.title"),
                         // Total d'une rotation, déduit des constantes de l'entité : recopier le
                         // chiffre ici l'aurait laissé vieillir au premier rééquilibrage.
@@ -229,19 +224,19 @@ public class OWAttacksInformation {
 
         PROFILES.put(KodiakEntity.class, new EntityProfile(
 
-                new AttackSlot(0, 40, "LMB",
+                new AttackSlot(0, 20, "LMB",
                         title("ow.attacks.kodiak.combo.title"),
                         e -> desc("ow.attacks.kodiak.combo.desc",
                                 val("0.75"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(20, 40, "RMB",
+                new AttackSlot(20, 20, "RMB",
                         title("ow.attacks.kodiak.paw_slam.title"),
                         e -> desc("ow.attacks.kodiak.paw_slam.desc",
                                 val("3"), val(OWAttacksConstants.Kodiak.PAW_SLAM_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(40, 40, "X",
+                new AttackSlot(40, 20, "X",
                         title("ow.attacks.kodiak.nap.title"),
                         e -> desc("ow.attacks.kodiak.nap.desc",
                                 val(OWAttacksConstants.Kodiak.NAP_DURATION_TICKS / 20),
@@ -267,17 +262,17 @@ public class OWAttacksInformation {
 
 
         // ──────────────────────────────────────────────────────────────────────
-        //  BOA  (entityRow = 3 → cardTexY = 120 ; cartes en colonnes 60 / 80 / 100)
+        //  BOA
         // ──────────────────────────────────────────────────────────────────────
         PROFILES.put(BoaEntity.class, new EntityProfile(
 
-                new AttackSlot(60, 120, "LMB",
+                new AttackSlot(0, 180, "LMB",
                         title("ow.attacks.boa.combo.title"),
                         e -> desc("ow.attacks.boa.combo.desc",
                                 val("0.5"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(80, 120, "RMB",
+                new AttackSlot(20, 180, "RMB",
                         title("ow.attacks.boa.venom.title"),
                         e -> desc("ow.attacks.boa.venom.desc",
                                 val(OWAttacksConstants.Boa.VENOM_FANGS_MIN_DURATION_TICKS / 20),
@@ -285,7 +280,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Boa.VENOM_FANGS_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(100, 120, "X",
+                new AttackSlot(40, 180, "X",
                         title("ow.attacks.boa.ultimate.title"),
                         e -> desc("ow.attacks.boa.ultimate.desc",
                                 val(OWAttacksConstants.Boa.CONSTRICT_ULT_KILLS_REQUIRED),
@@ -300,19 +295,15 @@ public class OWAttacksInformation {
 
         ));
 
-        // ──────────────────────────────────────────────────────────────────────
-        //  ÉLÉPHANT  (entityRow = 4 → cardTexY = 160 ; cartes en colonnes 60 / 80 / 100)
-        // ──────────────────────────────────────────────────────────────────────
-        // Même rangée que l'orque, qui occupe les colonnes 0 à 2 : l'éléphant prend les suivantes.
         PROFILES.put(GorillaEntity.class, new EntityProfile(
 
-                new AttackSlot(60, 0, "LMB",
+                new AttackSlot(0, 120, "LMB",
                         title("ow.attacks.gorilla.combo.title"),
                         e -> desc("ow.attacks.gorilla.combo.desc",
                                 val("0.75"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(80, 0, "RMB",
+                new AttackSlot(20, 120, "RMB",
                         title("ow.attacks.gorilla.rock_throw.title"),
                         e -> desc("ow.attacks.gorilla.rock_throw.desc",
                                 val((int) (e.getDamageToClient() * OWAttacksConstants.Gorilla.ROCK_THROW_MAX_DAMAGE_RATIO)),
@@ -320,13 +311,13 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Gorilla.SECONDARY_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(196, 216, "RMB",
+                new AttackSlot(40, 120, "RMB",
                         title("ow.attacks.gorilla.rider_launch.title"),
                         e -> desc("ow.attacks.gorilla.rider_launch.desc",
                                 val(OWAttacksConstants.Gorilla.SECONDARY_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(100, 0, "X",
+                new AttackSlot(60, 120, "X",
                         title("ow.attacks.gorilla.chest_beat.title"),
                         e -> desc("ow.attacks.gorilla.chest_beat.desc",
                                 val(OWAttacksConstants.Gorilla.CHEST_BEAT_KILLS_REQUIRED),
@@ -345,13 +336,13 @@ public class OWAttacksInformation {
 
         PROFILES.put(HippopotamusEntity.class, new EntityProfile(
 
-                new AttackSlot(60, 40, "LMB",
+                new AttackSlot(0, 140, "LMB",
                         title("ow.attacks.hippopotamus.combo.title"),
                         e -> desc("ow.attacks.hippopotamus.combo.desc",
                                 val("0.75"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(80, 40, "RMB",
+                new AttackSlot(20, 140, "RMB",
                         title("ow.attacks.hippopotamus.roll.title"),
                         e -> desc("ow.attacks.hippopotamus.roll.desc",
                                 val((int) OWAttacksConstants.Hippopotamus.ROLL_START_ENERGY),
@@ -359,7 +350,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Hippopotamus.ROLL_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(100, 40, "X",
+                new AttackSlot(40, 140, "X",
                         title("ow.attacks.hippopotamus.river_fury.title"),
                         e -> desc("ow.attacks.hippopotamus.river_fury.desc",
                                 val(OWAttacksConstants.Hippopotamus.FURY_KILLS_REQUIRED),
@@ -382,13 +373,13 @@ public class OWAttacksInformation {
 
         PROFILES.put(PeacockEntity.class, new EntityProfile(
 
-                new AttackSlot(60, 80, "LMB",
+                new AttackSlot(0, 160, "LMB",
                         title("ow.attacks.peacock.combo.title"),
                         e -> desc("ow.attacks.peacock.combo.desc",
                                 val("0.9"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(80, 80, "RMB",
+                new AttackSlot(20, 160, "RMB",
                         title("ow.attacks.peacock.life_link.title"),
                         e -> desc("ow.attacks.peacock.life_link.desc",
                                 val((int) (OWAttacksConstants.Peacock.LINK_TRANSFER_RATIO * 100 * 20 / OWAttacksConstants.Peacock.LINK_TRANSFER_INTERVAL)),
@@ -399,14 +390,14 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Peacock.LINK_DURATION_TICKS / 20))
                 ),
 
-                new AttackSlot(236, 136, "RMB",
+                new AttackSlot(40, 160, "RMB",
                         title("ow.attacks.peacock.wing_gust.title"),
                         e -> desc("ow.attacks.peacock.wing_gust.desc",
                                 val((int) (OWAttacksConstants.Peacock.GUST_SPEED * OWAttacksConstants.Peacock.GUST_LIFETIME_TICKS)),
                                 val(OWAttacksConstants.Peacock.GUST_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(100, 80, "X",
+                new AttackSlot(60, 160, "X",
                         title("ow.attacks.peacock.royal_sweep.title"),
                         e -> desc("ow.attacks.peacock.royal_sweep.desc",
                                 val(OWAttacksConstants.Peacock.SWEEP_KILLS_REQUIRED),
@@ -420,14 +411,14 @@ public class OWAttacksInformation {
 
         PROFILES.put(ColossalSquidEntity.class, new EntityProfile(
 
-                new AttackSlot(120, 0, "LMB",
+                new AttackSlot(176, 0, "LMB",
                         title("ow.attacks.colossal_squid.combo.title"),
                         e -> desc("ow.attacks.colossal_squid.combo.desc",
                                 val("0.6"), val(e.getDamageToClient() / 3),
                                 val((int) OWAttacksConstants.ColossalSquid.COMBO_STRIKE_ENERGY))
                 ),
 
-                new AttackSlot(140, 0, "RMB",
+                new AttackSlot(196, 0, "RMB",
                         title("ow.attacks.colossal_squid.abyssal_grab.title"),
                         e -> desc("ow.attacks.colossal_squid.abyssal_grab.desc",
                                 val((int) OWAttacksConstants.ColossalSquid.GRAB_RANGE),
@@ -436,7 +427,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(196, 176, "RMB",
+                new AttackSlot(216, 0, "RMB",
                         title("ow.attacks.colossal_squid.maelstrom.title"),
                         e -> desc("ow.attacks.colossal_squid.maelstrom.desc",
                                 val(OWAttacksConstants.ColossalSquid.MAELSTROM_TICKS / 20),
@@ -445,7 +436,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(160, 0, "X",
+                new AttackSlot(236, 0, "X",
                         title("ow.attacks.colossal_squid.ink_frenzy.title"),
                         e -> desc("ow.attacks.colossal_squid.ink_frenzy.desc",
                                 val(OWAttacksConstants.ColossalSquid.INK_KILLS_REQUIRED),
@@ -467,13 +458,13 @@ public class OWAttacksInformation {
 
         PROFILES.put(LionEntity.class, new EntityProfile(
 
-                new AttackSlot(0, 120, "LMB",
+                new AttackSlot(0, 60, "LMB",
                         title("ow.attacks.lion.combo.title"),
                         e -> desc("ow.attacks.lion.combo.desc",
                                 val("0.5"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(20, 120, "RMB",
+                new AttackSlot(20, 60, "RMB",
                         title("ow.attacks.lion.clan_call.title"),
                         e -> desc("ow.attacks.lion.clan_call.desc",
                                 val(OWAttacksConstants.Lion.CLAN_CALL_MAX_LIONESSES),
@@ -482,7 +473,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Lion.CLAN_CALL_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(40, 120, "X",
+                new AttackSlot(60, 60, "X",
                         title("ow.attacks.lion.domination_roar.title"),
                         e -> desc("ow.attacks.lion.domination_roar.desc",
                                 val(OWAttacksConstants.Lion.ROAR_KILLS_REQUIRED),
@@ -505,13 +496,13 @@ public class OWAttacksInformation {
 
         LIONESS_PROFILE = new EntityProfile(
 
-                new AttackSlot(0, 120, "LMB",
+                new AttackSlot(0, 60, "LMB",
                         title("ow.attacks.lion.combo.title"),
                         e -> desc("ow.attacks.lion.combo.desc",
                                 val("0.5"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(236, 176, "RMB",
+                new AttackSlot(40, 60, "RMB",
                         title("ow.attacks.lion.hunting_leap.title"),
                         e -> desc("ow.attacks.lion.hunting_leap.desc",
                                 val((int) OWAttacksConstants.Lion.LEAP_TARGET_RANGE),
@@ -519,7 +510,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Lion.LEAP_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(216, 176, "X",
+                new AttackSlot(80, 60, "X",
                         title("ow.attacks.lion.distress_call.title"),
                         e -> desc("ow.attacks.lion.distress_call.desc",
                                 val(OWAttacksConstants.Lion.DISTRESS_KILLS_REQUIRED),
@@ -543,13 +534,13 @@ public class OWAttacksInformation {
 
         PROFILES.put(ElephantEntity.class, new EntityProfile(
 
-                new AttackSlot(60, 160, "LMB",
+                new AttackSlot(0, 200, "LMB",
                         title("ow.attacks.elephant.combo.title"),
                         e -> desc("ow.attacks.elephant.combo.desc",
                                 val("1.2"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(80, 160, "RMB",
+                new AttackSlot(20, 200, "RMB",
                         title("ow.attacks.elephant.shoulder_bash.title"),
                         e -> desc("ow.attacks.elephant.shoulder_bash.desc",
                                 val((int) (e.getDamageToClient()
@@ -557,7 +548,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Elephant.SECONDARY_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(236, 216, "RMB",
+                new AttackSlot(40, 200, "RMB",
                         title("ow.attacks.elephant.water_spray.title"),
                         e -> desc("ow.attacks.elephant.water_spray.desc",
                                 val((int) OWAttacksConstants.Elephant.WATER_SPRAY_RANGE),
@@ -565,7 +556,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Elephant.SECONDARY_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(100, 160, "X",
+                new AttackSlot(60, 200, "X",
                         title("ow.attacks.elephant.earthquake.title"),
                         e -> desc("ow.attacks.elephant.earthquake.desc",
                                 val(OWAttacksConstants.Elephant.EARTHQUAKE_KILLS_REQUIRED),
@@ -581,27 +572,24 @@ public class OWAttacksInformation {
 
         ));
 
-        // ──────────────────────────────────────────────────────────────────────
-        //  KANGOUROU  (entityRow = 5)  ── combo + secondaire, pas d'ultime/passif
-        // ──────────────────────────────────────────────────────────────────────
         // L'orque n'avait aucune fiche : ses trois cartes s'affichaient muettes, sans nom ni
         // description, alors que toutes les autres espèces documentent les leurs.
         PROFILES.put(OrcaEntity.class, new EntityProfile(
 
-                new AttackSlot(0, 160, "LMB",
+                new AttackSlot(0, 80, "LMB",
                         title("ow.attacks.orca.combo.title"),
                         e -> desc("ow.attacks.orca.combo.desc",
                                 val("1.4"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(20, 160, "RMB",
+                new AttackSlot(20, 80, "RMB",
                         title("ow.attacks.orca.tidal_rush.title"),
                         e -> desc("ow.attacks.orca.tidal_rush.desc",
                                 val(e.getDamageToClient()),
                                 val(OWAttacksConstants.Orca.TIDAL_RUSH_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(40, 160, "X",
+                new AttackSlot(40, 80, "X",
                         title("ow.attacks.orca.big_mouth.title"),
                         // Durées lues sur les constantes de l'entité, pas sur celle du HUD : cette
                         // dernière ne connaît que le plus long des deux transports.
@@ -627,13 +615,13 @@ public class OWAttacksInformation {
 
         PROFILES.put(KangarooEntity.class, new EntityProfile(
 
-                new AttackSlot(0, 200, "LMB",
+                new AttackSlot(0, 100, "LMB",
                         title("ow.attacks.kangaroo.combo.title"),
                         e -> desc("ow.attacks.kangaroo.combo.desc",
                                 val("0.5"), val(e.getDamageToClient() / 3))
                 ),
 
-                new AttackSlot(20, 200, "RMB",
+                new AttackSlot(20, 100, "RMB",
                         title("ow.attacks.kangaroo.whirlwind.title"),
                         e -> desc("ow.attacks.kangaroo.whirlwind.desc",
                                 val(OWAttacksConstants.Kangaroo.WHIRLWIND_DAMAGE_PEAK_TICKS / 20),
@@ -644,7 +632,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.Kangaroo.WHIRLWIND_COOLDOWN_THRESHOLD_TICKS / 20))
                 ),
 
-                new AttackSlot(40, 200, "X",
+                new AttackSlot(40, 100, "X",
                         title("ow.attacks.kangaroo.telluric_stomp.title"),
                         e -> desc("ow.attacks.kangaroo.telluric_stomp.desc",
                                 val(OWAttacksConstants.Kangaroo.TELLURIC_STOMP_KILLS_REQUIRED),
@@ -664,12 +652,12 @@ public class OWAttacksInformation {
 
 
         // Panda roux : pas de carte de combo — la colonne reste vide et la fiche n'en montre que
-        // deux. Ses deux cartes sont isolées en haut à droite de l'atlas.
+        // deux.
         PROFILES.put(RedPandaEntity.class, new EntityProfile(
 
                 null,
 
-                new AttackSlot(216, 0, "RMB",
+                new AttackSlot(216, 80, "RMB",
                         title("ow.attacks.red_panda.heal_snack.title"),
                         e -> desc("ow.attacks.red_panda.heal_snack.desc",
                                 val((int) (OWAttacksConstants.RedPanda.HEAL_SNACK_INSTANT_RATIO * 100)),
@@ -679,7 +667,7 @@ public class OWAttacksInformation {
                                 val(OWAttacksConstants.RedPanda.HEAL_SNACK_COOLDOWN_TICKS / 20))
                 ),
 
-                new AttackSlot(236, 0, "X",
+                new AttackSlot(236, 80, "X",
                         title("ow.attacks.red_panda.feast.title"),
                         e -> desc("ow.attacks.red_panda.feast.desc",
                                 val(OWAttacksConstants.RedPanda.FEAST_SNACKS_REQUIRED),
@@ -785,13 +773,7 @@ public class OWAttacksInformation {
             int curY  = bgY + 6;
 
             if (slot.hasCard()) {
-                // Le Y du slot fait foi, et non la rangée de l'espèce : une carte secondaire
-                // interchangeable peut vivre ailleurs dans l'atlas que sur la rangée de sa bête.
-                g.blit(CARDS,
-                        colCX - CARD_SIZE / 2, curY,
-                        slot.cardTexX(), slot.cardTexY(),
-                        CARD_SIZE, CARD_SIZE,
-                        TEX_SIZE, TEX_SIZE);
+                OWAttackCards.drawLit(g, colCX - CARD_SIZE / 2, curY, slot.cardTexX(), slot.cardTexY());
             }
             curY += CARD_SIZE + 2;
 

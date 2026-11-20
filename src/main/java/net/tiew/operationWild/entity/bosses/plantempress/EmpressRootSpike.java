@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.bosses.plantempress;
 
+import net.tiew.operationWild.particle.EmpressFx;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;

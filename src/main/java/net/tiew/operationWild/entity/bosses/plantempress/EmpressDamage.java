@@ -1,5 +1,7 @@
 package net.tiew.operationWild.entity.bosses.plantempress;
 
+import net.minecraft.core.particles.ParticleOptions;
+import net.tiew.operationWild.particle.EmpressFx;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.registries.Registries;
@@ -100,7 +102,7 @@ public final class EmpressDamage {
         return new Vec3(point.x, groundY(level, point.x, point.z, reference), point.z);
     }
 
-    public static void ring(ServerLevel level, Vec3 center, double radius, DustParticleOptions dust, double spacing) {
+    public static void ring(ServerLevel level, Vec3 center, double radius, ParticleOptions dust, double spacing) {
         int count = Math.max(8, (int) (Math.PI * 2 * radius / spacing));
         for (int i = 0; i < count; i++) {
             double angle = Math.PI * 2 * i / count;
@@ -110,7 +112,7 @@ public final class EmpressDamage {
         }
     }
 
-    public static void disc(ServerLevel level, Vec3 center, double radius, DustParticleOptions dust) {
+    public static void disc(ServerLevel level, Vec3 center, double radius, ParticleOptions dust) {
         ring(level, center, radius, dust, 0.7);
         int inner = (int) (radius * radius * 1.2);
         for (int i = 0; i < inner; i++) {
@@ -120,7 +122,7 @@ public final class EmpressDamage {
         }
     }
 
-    public static void line(ServerLevel level, Vec3 from, Vec3 to, DustParticleOptions dust, double spacing) {
+    public static void line(ServerLevel level, Vec3 from, Vec3 to, ParticleOptions dust, double spacing) {
         Vec3 delta = to.subtract(from);
         int count = Math.max(2, (int) (delta.length() / spacing));
         for (int i = 0; i <= count; i++) {

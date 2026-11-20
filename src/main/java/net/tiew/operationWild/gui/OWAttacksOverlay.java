@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.tiew.operationWild.OperationWild;
 import net.tiew.operationWild.entity.OWEntity;
 import net.tiew.operationWild.entity.animals.aquatic.CrocodileEntity;
 import net.tiew.operationWild.entity.animals.terrestrial.BoaEntity;
@@ -19,35 +18,12 @@ import net.tiew.operationWild.networking.packets.to_server.OWAttackPacket;
 
 import java.util.List;
 
-/**
- * Cartes d'attaque affichées en bas à droite.
- *
- * ── Texture : ow_tamed_attacksl.png ─────────────────────────────────────────
- *   Colonne X  = index de carte × 20  (0=combo, 20=attaque1, 40=attaque2…)
- *   Rangée normale  Y = entityRow × 40
- *   Rangée grisée   Y = entityRow × 40 + 20
- *   → 2 rangées de 20px par entité, donc +40 pour chaque nouvelle entité.
- *
- * ── Comportement des cartes ──────────────────────────────────────────────────
- *   Carte 0 (combo)    : toujours colorée ; barre de cooldown selon attackTimer.
- *   Cartes 1+ (chargée): grisée par défaut.
- *     • En cooldown    : coloré monte de bas en haut à mesure que le cooldown expire.
- *     • En charge      : coloré monte de bas en haut à mesure que la charge augmente.
- *     • Charge max     : colorée complète + légère lueur blanche.
- *
- * ── Pour ajouter une entité ──────────────────────────────────────────────────
- *   Dans OWAttacksHandler.registerAll() :
- *     registerEntityRow(MonEntity.class, N);       // N=0 pour rangée Y=0/20, N=1→Y=40/60…
- *     registerComboMaxTimer(MonEntity.class, 14);  // timeMax du createCombo de l'entité
- *     register(MonEntity.class, MonAttacks.ATTAQUE);
- */
 public class OWAttacksOverlay {
 
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(
-            OperationWild.MOD_ID, "textures/overlay/ow_tamed_attacks.png");
+    private static final ResourceLocation TEXTURE = OWAttackCards.ATLAS;
 
-    private static final int CARD_SIZE    = 20;
-    private static final int TEX_SIZE     = 256;
+    private static final int CARD_SIZE    = OWAttackCards.CARD_SIZE;
+    private static final int TEX_SIZE     = OWAttackCards.TEX_SIZE;
     private static final int CARD_SPACING = 25;
 
     // Bordure animée quand la carte est prête / chargée à fond
@@ -87,13 +63,8 @@ public class OWAttacksOverlay {
         int baseX = (screenWidth / 2) + 96;
         int baseY = screenHeight - 22;
 
-        int entityRow  = OWAttacksHandler.getEntityRow(entityClass);
-        int normalTexY = entityRow * 40;        // rangée colorée dans la texture
-        int grayTexY   = entityRow * 40 + 20;  // rangée grisée (juste en dessous)
-
-        // Décalage horizontal de la 1ère carte dans la texture (ex : Boa = colonne 60px).
-        int columnOffset = OWAttacksHandler.getEntityColumn(entityClass);
-        int comboTexX    = columnOffset * CARD_SIZE;
+        int comboTexX = OWAttacksHandler.getComboCardTexX(entityClass);
+        int comboTexY = OWAttacksHandler.getComboCardTexY(entityClass);
 
         boolean isGrabbing = entity instanceof CrocodileEntity && entity.isGrabbing();
 
@@ -102,25 +73,17 @@ public class OWAttacksOverlay {
         // et le clic gauche du joueur qui la porte reste son propre coup, pas celui de la bête.
         if (hasComboCard) applyCardScale(g, baseX, baseY, OWAttackLogic.getComboClickScale(), () -> {
             if (isGrabbing) {
-                // Tout gris quand grab actif
-                g.blit(TEXTURE, baseX, baseY, comboTexX, grayTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
+                OWAttackCards.drawGreyed(g, baseX, baseY, comboTexX, comboTexY);
                 return;
             }
-            g.blit(TEXTURE, baseX, baseY, comboTexX, normalTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
 
+            int grayH = 0;
             if (entity.attackTimer >= 1) {
                 int comboTimeMax = entity.comboCardMaxTimer();
                 int coloredH = Math.min(CARD_SIZE, (int)((float) CARD_SIZE / comboTimeMax * entity.attackTimer));
-                int grayH    = CARD_SIZE - coloredH;
-
-                g.blit(TEXTURE, baseX, baseY, comboTexX, grayTexY, CARD_SIZE, CARD_SIZE, TEX_SIZE, TEX_SIZE);
-                if (coloredH > 0) {
-                    g.blit(TEXTURE, baseX, baseY + grayH,
-                            comboTexX, normalTexY + grayH,
-                            CARD_SIZE, coloredH,
-                            TEX_SIZE, TEX_SIZE);
-                }
+                grayH = CARD_SIZE - coloredH;
             }
+            OWAttackCards.draw(g, baseX, baseY, comboTexX, comboTexY, grayH);
 
             if (OWAttackLogic.comboClickAnimInvalid && OWAttackLogic.comboClickAnimTimeMs >= 0) {
                 float p = (float)(System.currentTimeMillis() - OWAttackLogic.comboClickAnimTimeMs) / 200f;
@@ -138,9 +101,6 @@ public class OWAttacksOverlay {
         for (int i = 0; i < attacks.size(); i++) {
             OWAttack attack = attacks.get(i);
             int cardX = baseX + (hasComboCard ? i + 1 : i) * CARD_SPACING;
-            // Une carte peut imposer ses propres coordonnées dans l'atlas plutôt que de les déduire
-            // de son rang : c'est le cas des secondaires interchangeables, qui partagent un rang mais
-            // pas un dessin. La version grisée reste 20 pixels sous l'allumée, comme partout ailleurs.
             // Retournement en cours : tant que la tranche n'est pas passée, c'est encore la face
             // qu'on quitte qui est tournée vers le joueur. Sans cela la nouvelle carte serait déjà
             // là avant même que l'ancienne ait disparu, et le geste ne se lirait plus.
@@ -153,9 +113,8 @@ public class OWAttacksOverlay {
                 if (leaving != null) shown = leaving;
             }
 
-            int texX        = shown.hasCardTexture() ? shown.getCardTexX() : (columnOffset + i + 1) * CARD_SIZE;
-            int cardNormalY = shown.hasCardTexture() ? shown.getCardTexY() : normalTexY;
-            int cardGrayY   = cardNormalY + CARD_SIZE;
+            int texX = OWAttacksHandler.getCardTexX(entityClass, shown);
+            int texY = OWAttacksHandler.getCardTexY(entityClass, shown);
 
             // ── Primal Dive special states ────────────────────────────────────
             boolean isPrimalDive = attack.getId() == OWAttacksHandler.PRIMAL_DIVE_ID;
@@ -344,18 +303,7 @@ public class OWAttacksOverlay {
                 // Rendu unifié : grisé haut→bas pour drain (fillProgress 1→0),
                 // coloré bas→haut pour remplissage (fillProgress 0→1).
                 // Le branch NAP utilise le même rendu que les autres ultimes.
-                if (fGrayH > 0) {
-                    g.blit(TEXTURE, cardX, baseY,
-                            texX, cardGrayY,
-                            CARD_SIZE, fGrayH,
-                            TEX_SIZE, TEX_SIZE);
-                }
-                if (fColoredH > 0) {
-                    g.blit(TEXTURE, cardX, baseY + fGrayH,
-                            texX, cardNormalY + fGrayH,
-                            CARD_SIZE, fColoredH,
-                            TEX_SIZE, TEX_SIZE);
-                }
+                OWAttackCards.draw(g, cardX, baseY, texX, texY, fGrayH);
                 if (fShowBorder) {
                     drawGlowBorder(g, cardX, baseY, fBorderRgb);
                 }

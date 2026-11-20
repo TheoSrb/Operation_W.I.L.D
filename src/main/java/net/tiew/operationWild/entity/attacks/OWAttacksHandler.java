@@ -42,8 +42,8 @@ public class OWAttacksHandler {
 
     private static final Map<Class<? extends OWEntity>, List<OWAttack>> ENTITY_ATTACKS = new HashMap<>();
     private static final Map<Class<? extends OWEntity>, OWPassive> ENTITY_PASSIVES = new HashMap<>();
-    private static final Map<Class<? extends OWEntity>, Integer> ENTITY_TEXTURE_ROWS = new HashMap<>();
-    private static final Map<Class<? extends OWEntity>, Integer> ENTITY_TEXTURE_COLUMNS = new HashMap<>();
+    private static final Map<Class<? extends OWEntity>, int[]> ENTITY_CARD_ORIGINS = new HashMap<>();
+    private static final int CARD_SIZE = 20;
     private static final Map<Class<? extends OWEntity>, Integer> ENTITY_COMBO_MAX_TIMERS = new HashMap<>();
 
 
@@ -87,16 +87,8 @@ public class OWAttacksHandler {
         OWAttackPacket.register(attack);
     }
 
-    public static void registerEntityRow(Class<? extends OWEntity> entityClass, int row) {
-        ENTITY_TEXTURE_ROWS.put(entityClass, row);
-    }
-
-    /**
-     * Décalage horizontal (en nombre de cartes) de la première carte de l'entité dans la texture.
-     * 0 = combo en colonne 0 (cas par défaut). Pour le Boa : 3 → combo en colonne 60px.
-     */
-    public static void registerEntityColumn(Class<? extends OWEntity> entityClass, int column) {
-        ENTITY_TEXTURE_COLUMNS.put(entityClass, column);
+    public static void registerCardOrigin(Class<? extends OWEntity> entityClass, int texX, int texY) {
+        ENTITY_CARD_ORIGINS.put(entityClass, new int[]{texX, texY});
     }
 
     public static void registerComboMaxTimer(Class<? extends OWEntity> entityClass, int timeMax) {
@@ -112,84 +104,73 @@ public class OWAttacksHandler {
     }
 
     public static void registerAll() {
-        registerEntityRow(TigerEntity.class, 0);
+        registerCardOrigin(TigerEntity.class, 0, 0);
         registerComboMaxTimer(TigerEntity.class, 12);
         register(TigerEntity.class, TigerAttacks.JUMP_ATTACK);
         register(TigerEntity.class, TigerAttacks.PRIMAL_ROAR);
         register(TigerEntity.class, TigerAttacks.SHADOW_STRIKE);
         registerPassive(TigerEntity.class, TigerPassives.PREDATOR_SENSE);
 
-        registerEntityRow(KodiakEntity.class, 1);
+        registerCardOrigin(KodiakEntity.class, 0, 20);
         registerComboMaxTimer(KodiakEntity.class, 14);
         register(KodiakEntity.class, KodiakAttacks.PAW_SLAM);
         register(KodiakEntity.class, KodiakAttacks.NAP_ULTIMATE);
         registerPassive(KodiakEntity.class, KodiakPassives.BUTCHER_INSTINCT);
 
-        // Kangaroo : combo + attaque secondaire « Tornade de Poings » (carte en ligne 5 → texY 200/220).
-        registerEntityRow(KangarooEntity.class, 5);
+        registerCardOrigin(KangarooEntity.class, 0, 100);
         registerComboMaxTimer(KangarooEntity.class, 12);
         register(KangarooEntity.class, KangarooAttacks.WHIRLWIND_FISTS);
         register(KangarooEntity.class, KangarooAttacks.TELLURIC_STOMP);
 
-        registerEntityRow(CrocodileEntity.class, 2);
+        registerCardOrigin(CrocodileEntity.class, 0, 40);
         registerComboMaxTimer(CrocodileEntity.class, 17);
         register(CrocodileEntity.class, CrocodileAttacks.MOUTH_SLAM);
         register(CrocodileEntity.class, CrocodileAttacks.PRIMAL_DIVE);
         registerPassive(CrocodileEntity.class, CrocodilePassives.PRIMAL_DIVE_SENSE);
 
-        registerEntityRow(OrcaEntity.class, 4);
+        registerCardOrigin(OrcaEntity.class, 0, 80);
         registerComboMaxTimer(OrcaEntity.class, 24);
         register(OrcaEntity.class, OrcaAttacks.TIDAL_RUSH);
         register(OrcaEntity.class, OrcaAttacks.BIG_MOUTH);
 
-        // Boa : cartes dessinées en colonnes 60/80/100 de la ligne Y=120 → offset de 3 cartes.
         // Combo identique au Tigre (createCombo(16, 10, …)) → même comboMaxTimer d'affichage : 12.
-        registerEntityRow(BoaEntity.class, 3);
-        registerEntityColumn(BoaEntity.class, 3);
+        registerCardOrigin(BoaEntity.class, 0, 180);
         registerComboMaxTimer(BoaEntity.class, 12);
         register(BoaEntity.class, BoaAttacks.VENOM_FANGS);
         register(BoaEntity.class, BoaAttacks.CONSTRICT_ULTIMATE);
         registerPassive(BoaEntity.class, BoaPassives.ULTIMATE_TARGET_SENSE);
 
-        // Éléphant : cartes dessinées en colonnes 60/80/100 de la ligne Y=160 → même rangée que
-        // l'orque, dont les trois cartes occupent les colonnes 0 à 2, avec un décalage de 3 cartes.
-        registerEntityRow(ElephantEntity.class, 4);
-        registerEntityColumn(ElephantEntity.class, 3);
+        registerCardOrigin(ElephantEntity.class, 0, 200);
         registerComboMaxTimer(ElephantEntity.class, 24);
         register(ElephantEntity.class, ElephantAttacks.SHOULDER_BASH);
         register(ElephantEntity.class, ElephantAttacks.WATER_SPRAY);
         register(ElephantEntity.class, ElephantAttacks.EARTHQUAKE);
 
-        // Panda roux : aucune carte de combo, et deux cartes isolées en haut à droite de l'atlas.
-        // La rangée ne sert donc à rien ici — chaque carte porte ses propres coordonnées.
-        registerEntityRow(RedPandaEntity.class, 0);
+        registerCardOrigin(RedPandaEntity.class, 196, 80);
         register(RedPandaEntity.class, RedPandaAttacks.HEAL_SNACK);
         register(RedPandaEntity.class, RedPandaAttacks.FEAST);
         registerPassive(RedPandaEntity.class, RedPandaPassives.VITAL_SENSE);
 
-        registerEntityRow(GorillaEntity.class, 0);
-        registerEntityColumn(GorillaEntity.class, 3);
+        registerCardOrigin(GorillaEntity.class, 0, 120);
         registerComboMaxTimer(GorillaEntity.class, 13);
         register(GorillaEntity.class, GorillaAttacks.ROCK_THROW);
         register(GorillaEntity.class, GorillaAttacks.RIDER_LAUNCH);
         register(GorillaEntity.class, GorillaAttacks.CHEST_BEAT);
         registerPassive(GorillaEntity.class, GorillaPassives.COLD_BLOOD);
 
-        registerEntityRow(HippopotamusEntity.class, 1);
-        registerEntityColumn(HippopotamusEntity.class, 3);
+        registerCardOrigin(HippopotamusEntity.class, 0, 140);
         registerComboMaxTimer(HippopotamusEntity.class, 14);
         register(HippopotamusEntity.class, HippopotamusAttacks.ROLL);
         register(HippopotamusEntity.class, HippopotamusAttacks.RIVER_FURY);
         registerPassive(HippopotamusEntity.class, HippopotamusPassives.RIVER_SURGE);
 
-        registerEntityRow(ColossalSquidEntity.class, 0);
-        registerEntityColumn(ColossalSquidEntity.class, 6);
+        registerCardOrigin(ColossalSquidEntity.class, 176, 0);
         registerComboMaxTimer(ColossalSquidEntity.class, 12);
         register(ColossalSquidEntity.class, ColossalSquidAttacks.ABYSSAL_GRAB);
         register(ColossalSquidEntity.class, ColossalSquidAttacks.MAELSTROM);
         register(ColossalSquidEntity.class, ColossalSquidAttacks.INK_FRENZY);
 
-        registerEntityRow(LionEntity.class, 3);
+        registerCardOrigin(LionEntity.class, 0, 60);
         registerComboMaxTimer(LionEntity.class, 12);
         register(LionEntity.class, LionAttacks.CLAN_CALL);
         register(LionEntity.class, LionAttacks.HUNTING_LEAP);
@@ -197,8 +178,7 @@ public class OWAttacksHandler {
         register(LionEntity.class, LionAttacks.DISTRESS_CALL);
         registerPassive(LionEntity.class, LionPassives.PRIDE_BOND);
 
-        registerEntityRow(PeacockEntity.class, 2);
-        registerEntityColumn(PeacockEntity.class, 3);
+        registerCardOrigin(PeacockEntity.class, 0, 160);
         registerComboMaxTimer(PeacockEntity.class, 14);
         register(PeacockEntity.class, PeacockAttacks.LIFE_LINK);
         register(PeacockEntity.class, PeacockAttacks.WING_GUST);
@@ -209,12 +189,32 @@ public class OWAttacksHandler {
         return ENTITY_ATTACKS.get(entityClass);
     }
 
-    public static int getEntityRow(Class<?> entityClass) {
-        return ENTITY_TEXTURE_ROWS.getOrDefault(entityClass, 0);
+    public static int getComboCardTexX(Class<?> entityClass) {
+        return cardOrigin(entityClass)[0];
     }
 
-    public static int getEntityColumn(Class<?> entityClass) {
-        return ENTITY_TEXTURE_COLUMNS.getOrDefault(entityClass, 0);
+    public static int getComboCardTexY(Class<?> entityClass) {
+        return cardOrigin(entityClass)[1];
+    }
+
+    public static int getCardTexX(Class<?> entityClass, OWAttack attack) {
+        if (attack.hasCardTexture()) return attack.getCardTexX();
+        return getComboCardTexX(entityClass) + (cardIndex(entityClass, attack) + 1) * CARD_SIZE;
+    }
+
+    public static int getCardTexY(Class<?> entityClass, OWAttack attack) {
+        if (attack.hasCardTexture()) return attack.getCardTexY();
+        return getComboCardTexY(entityClass);
+    }
+
+    private static int[] cardOrigin(Class<?> entityClass) {
+        int[] origin = ENTITY_CARD_ORIGINS.get(entityClass);
+        return origin != null ? origin : new int[]{0, 0};
+    }
+
+    private static int cardIndex(Class<?> entityClass, OWAttack attack) {
+        List<OWAttack> attacks = ENTITY_ATTACKS.get(entityClass);
+        return attacks == null ? 0 : Math.max(0, attacks.indexOf(attack));
     }
 
     public static int getComboMaxTimer(Class<?> entityClass) {
@@ -367,7 +367,7 @@ public class OWAttacksHandler {
                 (entity, factor, dir) -> { },
                 false,
                 false
-        ).withCardTexture(216, 216);
+        );
     }
 
     public static class GorillaAttacks {
@@ -400,7 +400,7 @@ public class OWAttacksHandler {
                 (entity, factor, dir) -> { },
                 false,
                 true
-        ).withCardTexture(196, 216);
+        );
 
         public static final OWAttack CHEST_BEAT = new OWAttack(
                 CHEST_BEAT_ID,
@@ -456,7 +456,7 @@ public class OWAttacksHandler {
                 OWAttacksConstants.ColossalSquid.MAELSTROM_ENERGY,
                 entity -> { },
                 OWAttacksConstants.ColossalSquid.GRAB_COOLDOWN_TICKS
-        ).withCardTexture(196, 176);
+        );
 
         public static final OWAttack INK_FRENZY = new OWAttack(
                 INK_FRENZY_ID,
@@ -523,7 +523,7 @@ public class OWAttacksHandler {
                 OWAttacksConstants.Peacock.LINK_START_ENERGY,
                 entity -> { },
                 0
-        ).withCardTexture(80, 80);
+        );
 
         public static final OWChargedAttack WING_GUST = new OWChargedAttack(
                 WING_GUST_ID,
@@ -538,7 +538,7 @@ public class OWAttacksHandler {
                 (entity, factor, dir) -> { },
                 false,
                 false
-        ).withCardTexture(236, 136)
+        )
                 .withCanUsePredicate(entity -> entity instanceof PeacockEntity peacock
                 && !peacock.isLinking() && !peacock.isSweeping() && !peacock.isGusting());
 
@@ -585,7 +585,7 @@ public class OWAttacksHandler {
                 OWAttacksConstants.Lion.LEAP_ENERGY,
                 entity -> { },
                 0
-        ).withCardTexture(236, 176)
+        )
                 .withAvailability(entity -> entity instanceof LionEntity lion && !lion.isMale());
 
         public static final OWAttack DOMINATION_ROAR = new OWAttack(
@@ -624,7 +624,6 @@ public class OWAttacksHandler {
                 entity -> entity instanceof LionEntity lion ? lion.getUltimateKillCount() : 0,
                 OWAttacksConstants.Lion.DISTRESS_KILLS_REQUIRED
         ).withUltimateDuration(OWAttacksConstants.Lion.GUARD_MS)
-                .withCardTexture(216, 176)
                 .withAvailability(entity -> entity instanceof LionEntity lion && !lion.isMale());
     }
 
@@ -651,7 +650,7 @@ public class OWAttacksHandler {
                 OWAttacksConstants.RedPanda.HEAL_SNACK_ENERGY,
                 entity -> ((RedPandaEntity) entity).throwHealSnack(),
                 OWAttacksConstants.RedPanda.HEAL_SNACK_COOLDOWN_TICKS
-        ).withCardTexture(216, 0);
+        );
 
         /**
          * Aura de Vie — ultime sans condition de déblocage.
@@ -677,8 +676,7 @@ public class OWAttacksHandler {
         ).withUnlockCounter(
                 entity -> entity instanceof RedPandaEntity panda ? panda.getFeastOvercharge() : 0,
                 OWAttacksConstants.RedPanda.FEAST_OVERCHARGE_MAX
-        ).withUltimateDuration(OWAttacksConstants.RedPanda.FEAST_DURATION_MS)
-                .withCardTexture(236, 0);
+        ).withUltimateDuration(OWAttacksConstants.RedPanda.FEAST_DURATION_MS);
     }
 
     public static class RedPandaPassives {
@@ -952,7 +950,7 @@ public class OWAttacksHandler {
                 OWAttacksConstants.Elephant.WATER_SPRAY_ENERGY,
                 entity -> { },
                 0
-        ).withCardTexture(236, 216);
+        );
 
         /**
          * Tremblement de Terre — ultime (touche X). Cinq victimes pour l'armer. L'éléphant se cabre

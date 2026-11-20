@@ -726,6 +726,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
 
         AABB crushBox = this.getBoundingBox().inflate(FLOP_CRUSH_RADIUS, 0.6, FLOP_CRUSH_RADIUS);
         float damage = this.getCombatDamage() * FLOP_CRUSH_RATIO;
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, crushBox, damage);
 
         for (LivingEntity victim : this.level().getEntitiesOfClass(LivingEntity.class, crushBox)) {
             if (victim == this || this.hasPassenger(victim) || this.isAlliedTo(victim)) continue;
@@ -1611,6 +1612,7 @@ public class OrcaEntity extends OWWaterEntity implements IOWEntity, IOWTamable, 
                 .inflate(0.6);
 
         Vec3 push = this.dashDirection.lengthSqr() > 1.0E-6 ? this.dashDirection : this.getLookAngle();
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, sweep, this.getRushDamage());
 
         for (LivingEntity target : this.level().getEntitiesOfClass(LivingEntity.class, sweep)) {
             if (target == this || this.hasPassenger(target) || this.isAlliedTo(target)) continue;

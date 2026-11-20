@@ -55,7 +55,8 @@ public final class EmpressTimings {
 
     public static final int STAGGER_DOWN_START = 8;
     public static final int STAGGER_DOWN_END = 74;
-    public static final int STAGGER_IMMUNITY = 200;
+    public static final int STAGGER_IMMUNITY = 70;
+    public static final int STAGGER_COLLAPSE_SKIP = 10;
 
     public static final int DESPERATION_TICKS = 160;
 

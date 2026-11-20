@@ -1944,6 +1944,7 @@ public class ColossalSquidEntity extends OWWaterEntity implements IOWEntity, IOW
         double radius = OWAttacksConstants.ColossalSquid.MAELSTROM_RADIUS * this.getScale();
         float damage = (float) this.getCombatDamage() * OWAttacksConstants.ColossalSquid.MAELSTROM_DAMAGE_RATIO;
         Vec3 center = this.position().add(0, this.getBbHeight() * 0.5, 0);
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, this.getBoundingBox().inflate(radius), damage);
         for (LivingEntity victim : this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(radius))) {
             if (!canGrab(victim) || victim.distanceToSqr(center) > radius * radius) continue;
             victim.hurt(this.damageSources().mobAttack(this), damage);

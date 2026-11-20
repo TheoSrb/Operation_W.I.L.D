@@ -10,10 +10,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.PartEntity;
+import net.tiew.operationWild.entity.bosses.OWBossTarget;
 import net.tiew.operationWild.entity.bosses.PlantEmpressEntity;
 import org.jetbrains.annotations.Nullable;
 
-public class PlantEmpressPart extends PartEntity<PlantEmpressEntity> {
+public class PlantEmpressPart extends PartEntity<PlantEmpressEntity> implements OWBossTarget {
 
     public static final int STEM = -1;
 
@@ -31,6 +32,19 @@ public class PlantEmpressPart extends PartEntity<PlantEmpressEntity> {
 
     public boolean isHead() {
         return this.chain >= 0;
+    }
+
+    @Override
+    public Entity strikeGroup() {
+        return this.getParent();
+    }
+
+    @Override
+    public int strikePriority() {
+        if (!isHead()) return 0;
+        PlantEmpressEntity boss = this.getParent();
+        if (boss.isChainDead(this.chain)) return 0;
+        return boss.isHeadVulnerable(this.chain) ? 3 : 1;
     }
 
     public void place(Vec3 center) {

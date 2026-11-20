@@ -119,10 +119,8 @@ public class OWAttack {
     /**
      * Impose les coordonnées de la carte dans l'atlas, au lieu de les déduire du rang d'affichage.
      *
-     * <p>Indispensable dès qu'une espèce porte plusieurs cartes secondaires interchangeables : elles
-     * occupent toutes le même rang à l'écran, mais chacune a son propre dessin. Les coordonnées sont
-     * celles de la carte <b>allumée</b> ; la version grisée se lit 20 pixels plus bas, comme partout
-     * ailleurs dans l'atlas.</p>
+     * <p>Par défaut, une carte se place dans la rangée de son espèce selon son ordre
+     * d'enregistrement ; la version éteinte est générée automatiquement.</p>
      */
     public OWAttack withCardTexture(int texX, int texY) {
         this.cardTexX = texX;

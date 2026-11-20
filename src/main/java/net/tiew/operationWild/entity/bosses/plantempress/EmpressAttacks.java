@@ -1,7 +1,7 @@
 package net.tiew.operationWild.entity.bosses.plantempress;
 
+import net.tiew.operationWild.particle.EmpressFx;
 import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
@@ -36,8 +36,24 @@ public final class EmpressAttacks {
         final EmpressBrain brain;
         final PlantEmpressEntity boss;
         final Set<LivingEntity> hit = new HashSet<>();
+        final Set<String> marks = new HashSet<>();
         int t;
         boolean done;
+
+        float facing(Vec3 at) {
+            return (float) (Math.atan2(boss.getX() - at.x, -(boss.getZ() - at.z)) * Mth.RAD_TO_DEG);
+        }
+
+        void mark(ServerLevel level, String key, int kind, Vec3 at, double radius, int life, float yaw) {
+            if (marks.add(key)) EmpressFx.decal(level, kind, ground(level, at), radius, life, yaw);
+        }
+
+        void markOn(ServerLevel level, String key, int kind, LivingEntity target, double radius, int life, int lockAfter) {
+            if (marks.add(key)) {
+                Vec3 at = ground(level, target.position());
+                EmpressFx.tracked(level, kind, target, at, radius, life, lockAfter, facing(at));
+            }
+        }
 
         Attack(EmpressBrain brain) {
             this.brain = brain;
@@ -132,7 +148,7 @@ public final class EmpressAttacks {
         }
 
         void chainTelegraph(ServerLevel level, Matrix4f[] predicted, int chain, boolean locked, double skullRadius) {
-            DustParticleOptions dust = locked ? EmpressDamage.DANGER : EmpressDamage.WARNING;
+            net.minecraft.core.particles.ParticleOptions dust = locked ? EmpressDamage.DANGER : EmpressDamage.WARNING;
             int[] segments = EmpressRig.SEGMENTS[chain];
             Vec3 previous = null;
             for (int i = 1; i < segments.length; i++) {
@@ -164,6 +180,14 @@ public final class EmpressAttacks {
         }
 
         float[] solveReach(int chain, int impactIn, Vec3 goal, boolean adjustPitch, @Nullable float[] previous) {
+            return solveReach(chain, impactIn, goal, adjustPitch, previous, false);
+        }
+
+        Vec3 reachPoint(Matrix4f[] world, int chain, boolean mouth) {
+            return mouth ? rig().mouthPoint(world, chain) : rig().skullCenter(world, chain);
+        }
+
+        float[] solveReach(int chain, int impactIn, Vec3 goal, boolean adjustPitch, @Nullable float[] previous, boolean mouth) {
             int root = EmpressRig.ROOT_BONE[chain];
             float aim = previous != null ? previous[0] : clampAim(boss.aimFor(root, goal));
             float stretch = previous != null ? previous[1] : 1f;
@@ -173,8 +197,8 @@ public final class EmpressAttacks {
             double want = Math.sqrt(sqr(goal.x - rootPos.x) + sqr(goal.z - rootPos.z));
             double goalAngle = Math.atan2(goal.z - rootPos.z, goal.x - rootPos.x);
             for (int i = 0; i < 4; i++) {
-                Vec3 skull = rig().skullCenter(boss.previewReach(chain, aim, stretch, pitch, ahead), chain);
-                Vec3 probe = rig().skullCenter(boss.previewReach(chain, aim + 0.05f, stretch, pitch, ahead), chain);
+                Vec3 skull = reachPoint(boss.previewReach(chain, aim, stretch, pitch, ahead), chain, mouth);
+                Vec3 probe = reachPoint(boss.previewReach(chain, aim + 0.05f, stretch, pitch, ahead), chain, mouth);
                 double angle = Math.atan2(skull.z - rootPos.z, skull.x - rootPos.x);
                 double probeAngle = Math.atan2(probe.z - rootPos.z, probe.x - rootPos.x);
                 double slope = Mth.wrapDegrees((probeAngle - angle) * Mth.RAD_TO_DEG) * Mth.DEG_TO_RAD / 0.05;
@@ -196,7 +220,7 @@ public final class EmpressAttacks {
         }
 
         void biteTelegraph(ServerLevel level, int chain, Matrix4f[] predicted, boolean locked, double radius) {
-            DustParticleOptions dust = locked ? EmpressDamage.DANGER : EmpressDamage.WARNING;
+            net.minecraft.core.particles.ParticleOptions dust = locked ? EmpressDamage.DANGER : EmpressDamage.WARNING;
             Vec3 root = ground(level, EmpressRig.origin(predicted, EmpressRig.ROOT_BONE[chain]));
             Vec3 skull = ground(level, rig().skullCenter(predicted, chain));
             EmpressDamage.line(level, root, skull, dust, 0.55);
@@ -253,6 +277,8 @@ public final class EmpressAttacks {
                 boss.setChainReach(chain, reach[0], reach[1], reach[2]);
                 brain.reserve(target, now() + EmpressTimings.LUNGE_IMPACT + EmpressTimings.HEAD_TELL);
                 brain.markTargeted(target);
+                markOn(level, "slam", EmpressFx.SLAM, target, 2.3, EmpressTimings.HEAD_TELL + EmpressTimings.LUNGE_IMPACT,
+                        EmpressTimings.HEAD_TELL + EmpressTimings.LUNGE_LOCK);
                 Vec3 head = rig().skullCenter(boss.world(), chain);
                 sound(OWSounds.PLANT_EMPRESS_LUNGE.get(), head, 2.2f, chain == 1 ? 0.95f : 1.05f);
             }
@@ -282,6 +308,7 @@ public final class EmpressAttacks {
                 boss.broadcastEvent(PlantEmpressEntity.EVENT_SLAM);
             }
             if (s == EmpressTimings.LUNGE_MISS_HOLD_AT && hit.isEmpty() && boss.chainAnim(chain) == EmpressAnim.lunge(chain)) {
+                if (boss.collapse(chain)) return;
                 boss.delayChain(chain, EmpressTimings.LUNGE_MISS_HOLD);
                 extra = EmpressTimings.LUNGE_MISS_HOLD;
             }
@@ -445,6 +472,7 @@ public final class EmpressAttacks {
                 boss.setStemAction(EmpressAnim.STEMS_LASH);
                 sound(OWSounds.PLANT_EMPRESS_WHIP.get(), center, 3f, 0.7f);
             }
+            if (t == 6) mark(level, "whip", EmpressFx.ROOTS, center, EmpressTimings.WHIP_RADIUS_END, EmpressTimings.WHIP_WAVE_START - 6, 0f);
             if (t >= 6 && t < EmpressTimings.WHIP_WAVE_START && t % 2 == 0) {
                 EmpressDamage.ring(level, center, EmpressTimings.WHIP_RADIUS_START, EmpressDamage.EARTH, 0.4);
                 EmpressDamage.ring(level, center, EmpressTimings.WHIP_RADIUS_END, EmpressDamage.EARTH, 1.4);
@@ -460,6 +488,7 @@ public final class EmpressAttacks {
                 float f = (t - EmpressTimings.WHIP_WAVE_START) / (float) (EmpressTimings.WHIP_WAVE_END - EmpressTimings.WHIP_WAVE_START);
                 double radius = Mth.lerp(f, EmpressTimings.WHIP_RADIUS_START, EmpressTimings.WHIP_RADIUS_END);
                 if (t == EmpressTimings.WHIP_WAVE_START) {
+                    EmpressFx.wave(level, center, EmpressTimings.WHIP_RADIUS_END, EmpressFx.EARTH, EmpressTimings.WHIP_WAVE_END - EmpressTimings.WHIP_WAVE_START + 2);
                     sound(OWSounds.PLANT_EMPRESS_ROOTS.get(), center, 3f, 0.6f);
                     sound(OWSounds.PLANT_EMPRESS_WHIP.get(), center, 3f, 1.1f);
                     boss.broadcastEvent(PlantEmpressEntity.EVENT_SLAM);
@@ -535,6 +564,7 @@ public final class EmpressAttacks {
                 if (t >= impact - 12 && t < impact && t % 2 == 0) {
                     Matrix4f[] predicted = boss.predictWorld(impact - t);
                     Vec3 skull = ground(level, rig().skullCenter(predicted, chain));
+                    if (t >= EmpressTimings.TRIPLE_LOCK) mark(level, "triple" + chain, EmpressFx.BITE, skull, 2.2, impact - t, facing(skull));
                     EmpressDamage.disc(level, skull, 2.1, impact - t <= 6 ? EmpressDamage.DANGER : EmpressDamage.WARNING);
                 }
                 if (t == impact) {
@@ -626,6 +656,8 @@ public final class EmpressAttacks {
                 boss.delayBody(EmpressTimings.HEAD_TELL);
                 brain.reserve(target, now() + EmpressTimings.PLUNGE_IMPACT + EmpressTimings.HEAD_TELL);
                 brain.markTargeted(target);
+                markOn(level, "plunge", EmpressFx.SLAM, target, 2.9, EmpressTimings.HEAD_TELL + EmpressTimings.PLUNGE_IMPACT,
+                        EmpressTimings.HEAD_TELL + EmpressTimings.PLUNGE_LOCK);
                 sound(OWSounds.PLANT_EMPRESS_LUNGE.get(), boss.position().add(0, 9, 0), 3f, 0.7f);
             }
             if (r > 0 && t < EmpressTimings.PLUNGE_LOCK && target.isAlive()) {
@@ -699,6 +731,7 @@ public final class EmpressAttacks {
             }
             if (t >= 14 && t < slam && t % 2 == 0) {
                 Vec3 predicted = ground(level, rig().skullCenter(boss.predictWorld(slam - t), 0));
+                if (t == 14) mark(level, "quake", EmpressFx.QUAKE, predicted, 3.4, slam - 14, 0f);
                 EmpressDamage.disc(level, predicted, 3.0, slam - t <= 10 ? EmpressDamage.DANGER : EmpressDamage.WARNING);
                 float pulse = (t % 8) / 8f;
                 for (int k = 0; k < 3; k++) EmpressDamage.ring(level, predicted, 4 + k * 6 + pulse * 2, EmpressDamage.EARTH, 1.2);
@@ -720,6 +753,7 @@ public final class EmpressAttacks {
                     if (t < start) continue;
                     double radius = 1.5 + (t - start) * 0.55;
                     if (radius > 22) continue;
+                    if (t == start) EmpressFx.wave(level, center, 22, EmpressFx.EARTH, (int) Math.ceil((22 - 1.5) / 0.55));
                     if (t == start && k > 0) {
                         sound(OWSounds.PLANT_EMPRESS_QUAKE.get(), center, 3f, 0.7f + k * 0.1f);
                         boss.broadcastEvent(PlantEmpressEntity.EVENT_TREMOR);
@@ -849,6 +883,10 @@ public final class EmpressAttacks {
                         line.add(ground(level, p));
                     }
                     lines.add(line);
+                    for (int k = 0; k < line.size(); k += 2) {
+                        Vec3 p = line.get(k);
+                        EmpressFx.decal(level, EmpressFx.CHEVRON, p, 0.75, k + 4, (float) (Math.atan2(dir.x, -dir.z) * Mth.RAD_TO_DEG));
+                    }
                 }
                 if (origin == null && brain.chainFree(0)) {
                     cast = true;
@@ -906,6 +944,7 @@ public final class EmpressAttacks {
                 boss.setChainReach(chain, reach[0], reach[1], reach[2]);
                 brain.reserve(target, now() + impact + EmpressTimings.HEAD_TELL);
                 brain.markTargeted(target);
+                markOn(level, "bite", EmpressFx.BITE, target, chain == 0 ? 2.3 : 2.0, EmpressTimings.HEAD_TELL + impact, EmpressTimings.HEAD_TELL + lock);
                 sound(OWSounds.PLANT_EMPRESS_LUNGE.get(), rig().skullCenter(boss.world(), chain), 2.2f, chain == 0 ? 0.8f : 1.15f);
             }
             if (r > 0 && t < lock && target.isAlive()) {
@@ -953,42 +992,48 @@ public final class EmpressAttacks {
     }
 
     public static class Devour extends Attack {
-        private static final int WRAP = 4;
+        private static final int LIFT = 10;
         final int chain;
         final LivingEntity victim;
-        final Vec3 snare;
-        Vec3 start;
+        final EmpressVineSnare snare;
+        Vec3 anchor;
         float[] reach;
         boolean released;
 
-        public Devour(EmpressBrain brain, int chain, LivingEntity victim, Vec3 snare) {
+        public Devour(EmpressBrain brain, int chain, LivingEntity victim, EmpressVineSnare snare) {
             super(brain);
             this.chain = chain;
             this.victim = victim;
             this.snare = snare;
         }
 
-        private void pull(LivingEntity entity, Vec3 goal) {
+        private Vec3 chest() {
+            return victim.position().add(0, victim.getBbHeight() * 0.6, 0);
+        }
+
+        private void pin(LivingEntity entity, Vec3 goal) {
             Vec3 delta = goal.subtract(entity.position());
-            if (delta.length() > 3.5) {
-                hold(entity, goal);
-                return;
+            if (delta.length() > 3.0) {
+                entity.teleportTo(goal.x, goal.y, goal.z);
+                delta = Vec3.ZERO;
             }
-            if (delta.length() > 2.5) delta = delta.normalize().scale(2.5);
-            entity.setDeltaMovement(delta);
+            entity.setDeltaMovement(delta.scale(0.45).add(0, 0.04, 0));
             entity.hurtMarked = true;
             entity.fallDistance = 0f;
             entity.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN, 4, 10, false, false));
         }
 
-        private void vines(ServerLevel level, Vec3 from, Vec3 to, double sag) {
-            int count = Math.max(4, (int) (from.distanceTo(to) * 2.2));
-            for (int i = 0; i <= count; i++) {
-                double f = i / (double) count;
-                Vec3 p = from.lerp(to, f).add(0, Math.sin(f * Math.PI) * sag, 0);
-                level.sendParticles(EmpressDamage.VINE, p.x, p.y, p.z, 1, 0.04, 0.04, 0.04, 0);
-                if (i % 3 == 0) level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, net.minecraft.world.level.block.Blocks.VINE.defaultBlockState()),
-                        p.x, p.y, p.z, 1, 0.05, 0.05, 0.05, 0);
+        private void wrap(ServerLevel level) {
+            double height = victim.getBbHeight();
+            for (int i = 0; i < 8; i++) {
+                double angle = t * 0.35 + i * (Math.PI / 4);
+                double y = victim.getY() + ((t * 0.08 + i / 8.0) % 1.0) * height;
+                double r = 0.45 + 0.1 * Math.sin(t * 0.3 + i);
+                level.sendParticles(EmpressDamage.VINE, victim.getX() + Math.cos(angle) * r, y, victim.getZ() + Math.sin(angle) * r, 1, 0, 0, 0, 0);
+            }
+            if (t % 3 == 0) {
+                level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, net.minecraft.world.level.block.Blocks.VINE.defaultBlockState()),
+                        victim.getX(), victim.getY() + height * 0.5, victim.getZ(), 3, 0.3, height * 0.4, 0.3, 0.02);
             }
         }
 
@@ -997,53 +1042,41 @@ public final class EmpressAttacks {
             EmpressAnim anim = EmpressAnim.chew(chain);
             int grab = EmpressTimings.CHEW_GRAB;
             int release = EmpressTimings.CHEW_RELEASE;
-            if (t == 0) {
-                start = victim.position();
-                boss.setChainAction(chain, anim.ordinal(), clampAim(boss.aimFor(EmpressRig.ROOT_BONE[chain], start)));
-                reach = solveReach(chain, grab, start.add(0, 2.4, 0), true, null);
-                boss.setChainReach(chain, reach[0], reach[1], reach[2]);
-
-                sound(OWSounds.PLANT_EMPRESS_SNARE.get(), start, 2f, 0.6f);
-                sound(OWSounds.PLANT_EMPRESS_LUNGE.get(), rig().skullCenter(boss.world(), chain), 2.4f, 0.9f);
-            }
             boolean alive = victim.isAlive() && !victim.isRemoved();
-            Vec3 mouth = rig().mouthPoint(boss.world(), chain);
-            Vec3 held = mouth.subtract(0, victim.getBbHeight() * 0.5, 0);
-            double floorY = EmpressDamage.groundY(level, held.x, held.z, boss.getY());
-            if (held.y < floorY + 0.3) held = new Vec3(held.x, floorY + 0.3, held.z);
-
-            if (alive && !released && t <= release) {
-                Vec3 body = victim.position().add(0, victim.getBbHeight() * 0.5, 0);
-                if (t < WRAP) {
-                    pull(victim, start);
-                    for (int i = 0; i < 6; i++) {
-                        double angle = (t * 6 + i) * 1.05;
-                        double y = victim.getY() + (i / 6.0) * victim.getBbHeight();
-                        level.sendParticles(EmpressDamage.VINE, victim.getX() + Math.cos(angle) * 0.55, y, victim.getZ() + Math.sin(angle) * 0.55, 1, 0, 0, 0, 0);
-                    }
-                    vines(level, snare, body, 0.4);
-                } else if (t <= grab) {
-                    float f = EmpressPose.smooth((t - WRAP) / (float) (grab - WRAP));
-                    Vec3 goal = start.lerp(held, f).add(0, Math.sin(f * Math.PI) * 1.6, 0);
-                    pull(victim, goal);
-                    vines(level, snare, body, 1.2 * (1 - f) + 0.2);
-                    vines(level, body, mouth, -0.3);
-                    if (t == grab) {
-                        level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, net.minecraft.world.level.block.Blocks.VINE.defaultBlockState()),
-                                snare.x, snare.y + 0.3, snare.z, 30, 0.8, 0.3, 0.8, 0.15);
-                        sound(OWSounds.PLANT_EMPRESS_BITE.get(), mouth, 2.6f, 0.75f);
-                    }
-                } else {
-                    pull(victim, held);
-                    if (t % 3 == 0) level.sendParticles(EmpressDamage.VINE, body.x, body.y, body.z, 4, 0.4, 0.4, 0.4, 0);
-                }
+            if (t == 0) {
+                anchor = victim.position();
+                if (snare != null) snare.hold(release + 4);
+                boss.setChainAction(chain, anim.ordinal(), clampAim(boss.aimFor(EmpressRig.ROOT_BONE[chain], anchor)));
+                reach = solveReach(chain, grab, chest(), true, null, true);
+                boss.setChainReach(chain, reach[0], reach[1], reach[2]);
+                sound(OWSounds.PLANT_EMPRESS_SNARE.get(), anchor, 2.2f, 0.6f);
+                sound(OWSounds.PLANT_EMPRESS_LUNGE.get(), rig().skullCenter(boss.world(), chain), 2.4f, 0.85f);
             }
             if (alive && !released) {
+                float lift = EmpressPose.smooth(Math.min(1f, t / (float) LIFT)) * 0.9f;
+                pin(victim, anchor.add(0, lift, 0));
+                wrap(level);
+                if (t < release) {
+                    reach = solveReach(chain, Math.max(1, grab - t), chest(), true, reach, true);
+                    boss.setChainReach(chain, reach[0], reach[1], reach[2]);
+                }
+                if (t < grab && t % 2 == 0) {
+                    Vec3 mouth = rig().mouthPoint(boss.world(), chain);
+                    level.sendParticles(ParticleTypes.CRIT, mouth.x, mouth.y, mouth.z, 3, 0.4, 0.3, 0.4, 0.05);
+                }
+                if (t == grab) {
+                    Vec3 mouth = rig().mouthPoint(boss.world(), chain);
+                    sound(OWSounds.PLANT_EMPRESS_BITE.get(), mouth, 2.6f, 0.75f);
+                    level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, net.minecraft.world.level.block.Blocks.MOSS_BLOCK.defaultBlockState()),
+                            mouth.x, mouth.y, mouth.z, 24, 0.5, 0.4, 0.5, 0.2);
+                    boss.broadcastEvent(PlantEmpressEntity.EVENT_TREMOR);
+                }
                 for (int bite : EmpressTimings.CHEW_BITES) {
                     if (t != bite) continue;
+                    Vec3 mouth = rig().mouthPoint(boss.world(), chain);
                     victim.invulnerableTime = 0;
                     victim.hurt(EmpressDamage.roots(boss, boss), EmpressBalance.DAMAGE_CHEW);
-                    level.sendParticles(ParticleTypes.DAMAGE_INDICATOR, mouth.x, mouth.y, mouth.z, 6, 0.4, 0.4, 0.4, 0.1);
+                    level.sendParticles(ParticleTypes.DAMAGE_INDICATOR, victim.getX(), victim.getY() + 1, victim.getZ(), 6, 0.3, 0.4, 0.3, 0.1);
                     level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, net.minecraft.world.level.block.Blocks.MOSS_BLOCK.defaultBlockState()),
                             mouth.x, mouth.y, mouth.z, 10, 0.4, 0.3, 0.4, 0.15);
                     sound(OWSounds.PLANT_EMPRESS_BITE.get(), mouth, 1.8f, 0.9f + boss.getRandom().nextFloat() * 0.3f);
@@ -1051,30 +1084,20 @@ public final class EmpressAttacks {
             }
             if (t == release && !released) {
                 released = true;
+                Vec3 mouth = rig().mouthPoint(boss.world(), chain);
                 if (alive) {
-                    Vec3 floor = ground(level, mouth);
-                    hold(victim, floor.add(0, 0.2, 0));
-                    Vec3 away = new Vec3(floor.x - boss.getX(), 0, floor.z - boss.getZ());
+                    Vec3 away = new Vec3(victim.getX() - boss.getX(), 0, victim.getZ() - boss.getZ());
                     away = away.lengthSqr() < 1e-3 ? new Vec3(1, 0, 0) : away.normalize();
-                    victim.setDeltaMovement(away.x * 0.5, 0.35, away.z * 0.5);
+                    victim.setDeltaMovement(away.x * 0.65, 0.42, away.z * 0.65);
                     victim.hurtMarked = true;
                 }
                 level.sendParticles(ParticleTypes.SPORE_BLOSSOM_AIR, mouth.x, mouth.y, mouth.z, 30, 0.6, 0.5, 0.6, 0.1);
+                level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, net.minecraft.world.level.block.Blocks.VINE.defaultBlockState()),
+                        anchor.x, anchor.y + 0.6, anchor.z, 30, 0.6, 0.6, 0.6, 0.12);
                 sound(OWSounds.PLANT_EMPRESS_SPIT.get(), mouth, 2.2f, 1.1f);
                 brain.requestWhip();
             }
             if (t >= rig().lengthTicks(anim)) done = true;
-        }
-
-        private void hold(LivingEntity entity, Vec3 at) {
-            if (entity instanceof net.minecraft.server.level.ServerPlayer player) {
-                player.connection.teleport(at.x, at.y, at.z, 0f, 0f,
-                        java.util.EnumSet.of(net.minecraft.world.entity.RelativeMovement.X_ROT, net.minecraft.world.entity.RelativeMovement.Y_ROT));
-            } else {
-                entity.teleportTo(at.x, at.y, at.z);
-            }
-            entity.setDeltaMovement(Vec3.ZERO);
-            entity.fallDistance = 0f;
         }
 
         @Override
@@ -1122,6 +1145,9 @@ public final class EmpressAttacks {
             int impact = EmpressTimings.CARCASS_IMPACT;
             if (t == 0) {
                 boss.setChainAction(chain, EmpressAnim.carcass(chain).ordinal(), 0f);
+                Vec3 landing = ground(level, rig().skullCenter(boss.predictWorld(impact), chain));
+                mark(level, "carcass", EmpressFx.SLAM, landing, 3.3, impact, facing(landing));
+                EmpressFx.decal(level, EmpressFx.SKULL, landing, 1.2, impact, facing(landing));
                 sound(OWSounds.PLANT_EMPRESS_HEAD_DEATH.get(), rig().skullCenter(boss.world(), chain), 1.8f, 0.6f);
             }
             if (t < impact && t % 2 == 0) {

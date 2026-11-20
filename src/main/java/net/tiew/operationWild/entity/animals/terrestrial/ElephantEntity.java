@@ -1155,6 +1155,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
                         this.getBbWidth() * CHARGE_HIT_HALF_WIDTH)
                 .move(0, this.getBbHeight() * 0.5, 0);
 
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, hitBox, CHARGE_DAMAGE);
         for (LivingEntity target : serverLevel.getEntitiesOfClass(LivingEntity.class, hitBox)) {
             if (target == this || target.getRootVehicle() == this) continue;
             if (this.isAlliedTo(target)) continue;
@@ -2303,6 +2304,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
         Vec3 center = this.position().add(dir.scale(radius * 0.5)).add(0, this.getBbHeight() * 0.5, 0);
         AABB box = new AABB(center, center).inflate(radius * 0.75, this.getBbHeight() * 0.6, radius * 0.75);
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, box, (float) (this.getCombatDamage() * OWAttacksConstants.Elephant.SHOULDER_BASH_DAMAGE_RATIO));
 
         for (LivingEntity target : this.level().getEntitiesOfClass(LivingEntity.class, box)) {
             if (target == this || target == this.getControllingPassenger()) continue;
@@ -2492,6 +2494,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
         Vec3 b = new Vec3(wave.origin.x, wave.y, wave.origin.z)
                 .add(wave.direction.scale(front));
         AABB box = new AABB(a, b).inflate(half, 2.5, half);
+        if (wave.tick % SHOCKWAVE_HIT_INTERVAL == 0) net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, box, OWAttacksConstants.Elephant.SHOCKWAVE_DAMAGE);
 
         for (LivingEntity target : serverLevel.getEntitiesOfClass(LivingEntity.class, box)) {
             if (target == this || target.getRootVehicle() == this) continue;
@@ -2674,6 +2677,7 @@ public class ElephantEntity extends OWEntity implements IOWEntity, IOWTamable, I
 
     private void shakeEntitiesAround(ServerLevel serverLevel, double radius) {
         AABB box = new AABB(earthquakeEpicentre, earthquakeEpicentre).inflate(radius, radius * 0.5, radius);
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, box, OWAttacksConstants.Elephant.EARTHQUAKE_PULSE_DAMAGE);
 
         for (LivingEntity target : serverLevel.getEntitiesOfClass(LivingEntity.class, box)) {
             if (target == this || target.getRootVehicle() == this) continue;

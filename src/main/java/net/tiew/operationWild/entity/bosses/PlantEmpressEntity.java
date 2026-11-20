@@ -1,5 +1,6 @@
 package net.tiew.operationWild.entity.bosses;
 
+import net.tiew.operationWild.particle.EmpressFx;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -79,8 +80,8 @@ public class PlantEmpressEntity extends OWBossEntity {
     public static final double LEASH_RADIUS = 42.0;
     public static final double AWAKEN_RADIUS = 22.0;
 
-    private static final float SAP_DECAY_PER_TICK = 0.0008f;
-    private static final int SAP_DECAY_DELAY = 60;
+    private static final float SAP_DECAY_PER_TICK = 0.0004f;
+    private static final int SAP_DECAY_DELAY = 120;
     private static final int HEAD_INVULNERABLE_TICKS = 10;
     private static final int REFLEX_RECHARGE = 160;
     private static final int REGEN_DELAY = 200;
@@ -696,6 +697,7 @@ public class PlantEmpressEntity extends OWBossEntity {
                 level.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, getX(), getY() + 0.4, getZ(), 20, 1.8, 0.3, 1.8, 0.02);
             }
         } else if (t == down) {
+            EmpressFx.decal(level, EmpressFx.BURROW, burrowTo, 4.8, EmpressTimings.BURROW_BURST - down, random.nextFloat() * 360f);
             this.moveTo(burrowTo.x, burrowTo.y, burrowTo.z, getYRot(), 0f);
             this.yBodyRot = getYRot();
             updateParts();
@@ -708,6 +710,10 @@ public class PlantEmpressEntity extends OWBossEntity {
             if (under.isAir()) under = ground;
             level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, under), at.x, y + 0.2, at.z, 24, 0.9, 0.3, 0.9, 0.25);
             level.sendParticles(EmpressDamage.EARTH, at.x, y + 0.2, at.z, 6, 0.7, 0.1, 0.7, 0);
+            if (t % 3 == 0) {
+                Vec3 heading = burrowTo.subtract(burrowFrom);
+                EmpressFx.decal(level, EmpressFx.CHEVRON, new Vec3(at.x, y, at.z), 0.9, 14, (float) (Math.atan2(heading.x, -heading.z) * Mth.RAD_TO_DEG));
+            }
             if (t % 5 == 0) {
                 level.playSound(null, at.x, y, at.z, OWSounds.PLANT_EMPRESS_RUMBLE.get(), SoundSource.HOSTILE, 2f, 0.7f + f * 0.4f);
                 broadcastEvent(EVENT_TREMOR);
@@ -949,9 +955,10 @@ public class PlantEmpressEntity extends OWBossEntity {
         if (!staggered && now >= staggerImmuneUntil[chain]) {
             boolean critical = attacker instanceof Player player && melee && player.fallDistance > 0f && !player.onGround()
                     && !player.onClimbable() && !player.isInWater();
-            float gain = damage / getHeadMax(chain) * 2.2f * (melee ? 1.5f : 1f) * (critical ? 1.35f : 1f);
-            if (counter) gain += 0.35f;
-            if (planted) gain *= 1.2f;
+            float gain = damage / getHeadMax(chain) * EmpressBalance.SAP_GAIN_FACTOR * (melee ? EmpressBalance.SAP_MELEE_FACTOR : 1f)
+                    * (critical ? EmpressBalance.SAP_CRITICAL_FACTOR : 1f);
+            if (counter) gain += EmpressBalance.SAP_COUNTER_BONUS;
+            if (planted) gain *= EmpressBalance.SAP_PLANTED_FACTOR;
             float sap = Math.min(1f, getSap(chain) + gain);
             this.entityData.set(SAP[chain], sap);
             lastSapGain[chain] = now;
@@ -992,6 +999,20 @@ public class PlantEmpressEntity extends OWBossEntity {
         staggerImmuneUntil[chain] = now + EmpressRig.get().lengthTicks(EmpressAnim.stagger(chain)) + EmpressTimings.STAGGER_IMMUNITY;
         playBossSound(OWSounds.PLANT_EMPRESS_STAGGER.get(), 3f, forced ? 0.7f : 0.9f);
         broadcastEvent(EVENT_STAGGER);
+    }
+
+    public boolean collapse(int chain) {
+        long now = now();
+        if (isChainDead(chain) || isStaggered(chain) || now < staggerImmuneUntil[chain]) return false;
+        EmpressAnim anim = EmpressAnim.stagger(chain);
+        brain.cancelChain(chain);
+        this.entityData.set(CHAIN_ACTION[chain], anim.ordinal());
+        this.entityData.set(CHAIN_START[chain], now - EmpressTimings.STAGGER_COLLAPSE_SKIP);
+        this.entityData.set(SAP[chain], 0f);
+        staggerImmuneUntil[chain] = now + EmpressRig.get().lengthTicks(anim) - EmpressTimings.STAGGER_COLLAPSE_SKIP + EmpressTimings.STAGGER_IMMUNITY;
+        playBossSound(OWSounds.PLANT_EMPRESS_STAGGER.get(), 3f, 0.8f);
+        broadcastEvent(EVENT_STAGGER);
+        return true;
     }
 
     private void killHead(int chain, DamageSource source) {
@@ -1053,9 +1074,9 @@ public class PlantEmpressEntity extends OWBossEntity {
             return true;
         }
         if (this.level().isClientSide()) return false;
-        if (source.getEntity() instanceof Player player && source.getDirectEntity() == player) {
+        if (source.getEntity() instanceof LivingEntity attacker && source.getDirectEntity() == attacker && attacker != this) {
             parry(parts[parts.length - 1], source, false);
-            engage(player);
+            engage(attacker);
         }
         return false;
     }

@@ -1099,6 +1099,10 @@ public class HippopotamusEntity extends OWSemiWaterEntity implements IOWEntity, 
         AABB box = this.getBoundingBox().inflate(0.3, 0.0, 0.3).move(forward.scale(0.55));
         float topSpeed = Math.max(rollTopSpeed(), 0.05f);
         float speedFactor = Mth.clamp((float) measuredSpeed / topSpeed, 0.4f, 1.25f);
+        if (net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, box, this.getCombatDamage() * OWAttacksConstants.Hippopotamus.ROLL_BUMP_DAMAGE_RATIO * speedFactor)) {
+            bounceOffObstacle(OWAttacksConstants.Hippopotamus.ROLL_CREATURE_BOUNCE_TICKS);
+            return;
+        }
 
         for (LivingEntity target : serverLevel.getEntitiesOfClass(LivingEntity.class, box)) {
             if (target == this || target.getRootVehicle() == this) continue;

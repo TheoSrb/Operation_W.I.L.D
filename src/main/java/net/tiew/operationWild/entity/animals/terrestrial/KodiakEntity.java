@@ -1539,6 +1539,7 @@ public class KodiakEntity extends OWEntity implements IOWEntity, IOWTamable, IOW
                 centerX - width, centerY - 1.0, centerZ - width,
                 centerX + width, centerY + 2.0, centerZ + width);
 
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, area, 5f + factor * 15f);
         java.util.UUID myOwner = this.getOwnerUUID();
         List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area, target -> {
             if (target == this) return false;

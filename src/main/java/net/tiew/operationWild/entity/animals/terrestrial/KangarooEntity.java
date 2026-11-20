@@ -1118,6 +1118,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private void dealWhirlwindDamage(float amount) {
         double r = OWAttacksConstants.Kangaroo.WHIRLWIND_RADIUS;
         AABB area = this.getBoundingBox().inflate(r, 1.0, r);
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, area, amount);
         UUID owner = this.getOwnerUUID();
 
         double yaw = Math.toRadians(this.getYRot());
@@ -1457,6 +1458,7 @@ public class KangarooEntity extends OWEntity implements IOWEntity, IOWTamable, I
     private void executeTelluricStompImpact() {
         double radius = OWAttacksConstants.Kangaroo.TELLURIC_STOMP_RADIUS;
         AABB area = this.getBoundingBox().inflate(radius, 2.0, radius);
+        net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, area, this.getCombatDamage() * OWAttacksConstants.Kangaroo.TELLURIC_STOMP_DAMAGE_CENTER_MULT);
         UUID owner = this.getOwnerUUID();
 
         List<LivingEntity> targets = this.level().getEntitiesOfClass(LivingEntity.class, area, target -> {

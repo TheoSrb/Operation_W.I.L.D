@@ -4406,7 +4406,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
                 entity -> entity instanceof LivingEntity living && canStrikeReach(living)
         );
 
-        if (blockStrikeInProgress && entitiesInRange.isEmpty()) return;
+        boolean bossStruck = net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, attackBox, attackDamage);
+        if (blockStrikeInProgress && entitiesInRange.isEmpty() && !bossStruck) return;
 
         for (Entity entity : entitiesInRange) {
             if (entity instanceof LivingEntity livingEntity) {
@@ -5539,7 +5540,8 @@ public class OWEntity extends TamableAnimal implements MenuProvider, IOWEntity, 
         );
 
         this.lastAttackHitEntities.clear();
-        if (blockStrikeInProgress && entitiesInRange.isEmpty()) return;
+        boolean bossStruck = net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, attackBox, attackDamage);
+        if (blockStrikeInProgress && entitiesInRange.isEmpty() && !bossStruck) return;
 
         UUID ownerUUID = null;
         if (this instanceof TamableAnimal tamable) {

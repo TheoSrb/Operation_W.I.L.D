@@ -824,6 +824,7 @@ public class PeacockEntity extends OWEntity implements IOWEntity, IOWTamable, IO
         }
 
         AABB box = this.getBoundingBox().inflate(radius, 2.0, radius);
+        if (sweepHits.add(Integer.MIN_VALUE)) net.tiew.operationWild.entity.bosses.OWBossStrikes.strike(this, box, getCombatDamage());
         for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, box, e -> e != this && e.isAlive())) {
             if (sweepHits.contains(target.getId()) || this.isAlliedTo(target) || this.hasPassenger(target)) continue;
             if (target instanceof Player player && (player.isCreative() || player.isSpectator())) continue;

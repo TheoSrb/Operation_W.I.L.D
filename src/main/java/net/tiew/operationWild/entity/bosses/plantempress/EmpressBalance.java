@@ -29,11 +29,11 @@ public final class EmpressBalance {
     public static final float MULTIPLIER_PLANTED = 1.25f;
     public static final float MULTIPLIER_COUNTER = 1.25f;
     public static final float MULTIPLIER_VENOM = 1.5f;
-    public static final float SAP_GAIN_FACTOR = 2.2f;
+    public static final float SAP_GAIN_FACTOR = 5.0f;
     public static final float SAP_MELEE_FACTOR = 1.5f;
     public static final float SAP_CRITICAL_FACTOR = 1.35f;
-    public static final float SAP_COUNTER_BONUS = 0.35f;
-    public static final float SAP_PLANTED_FACTOR = 1.2f;
+    public static final float SAP_COUNTER_BONUS = 0.6f;
+    public static final float SAP_PLANTED_FACTOR = 1.6f;
     public static final float HEALTH_PER_EXTRA_PLAYER = 0.5f;
     public static final float AGITATION_START = 0.7f;
     public static final float AGITATION_FULL = 0.4f;
@@ -55,7 +55,7 @@ public final class EmpressBalance {
 
     static {
         move("bite", "side", new int[]{26, 26, 26}, 70, DAMAGE_BITE_SIDE, "red", true, true);
-        move("slam", "side", new int[]{11, 11, 11}, 130, DAMAGE_SLAM, "red", true, true);
+        move("slam", "side", new int[]{17, 17, 17}, 110, DAMAGE_SLAM, "red", true, true);
         move("scissors", "both_sides", new int[]{12, 0, 0}, 170, DAMAGE_SLAM, "red", true, true);
         move("whip", "body", new int[]{14, 11, 11}, 170, DAMAGE_WHIP, "brown", false, false);
         move("spit", "main", new int[]{9, 7, 5}, 170, DAMAGE_SPORE, "green", false, true);
